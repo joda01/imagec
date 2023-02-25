@@ -25,7 +25,18 @@ using namespace std;
 using namespace cv;
 using namespace dnn;
 
+struct Detection
+{
+  int class_id;
+  float confidence;
+  cv::Rect box;
+};
+
 void classifier();
+void drawBoundry(Mat &image, const Mat &detectionMat);
+void detectFct(const cv::Mat &input_image, const Mat &output, std::vector<Detection> &outputs);
+Mat post_process(Mat &input_image, vector<Mat> &outputs, const vector<string> &class_name);
+void draw_label(Mat &input_image, string label, int left, int top);
 
 ////
 
@@ -33,123 +44,135 @@ int main(int argc, char **argv)
 {
   classifier();
   return 0;
-  std::string inputImage = "img/test.vsi";
-  std::string ouputImage = "img/test.tiff";
-  std::string command    = "lib/bftools/bfconvert -overwrite " + inputImage + " " + ouputImage + "";
-
-  // system(command.c_str());
-
-  /// Load an image
-  auto canRead = cv::haveImageReader("img/test.tiff");
-  std::cout << "Can read " << canRead << std::endl;
-
-  std::vector<Mat> channels;
-  imreadmulti("img/test.tiff", channels, cv::ImreadModes::IMREAD_GRAYSCALE);
-
-  int nr             = 0;
-  auto originakImage = channels[4];
-  if(originakImage.channels() == 1) {
-    auto start = std::chrono::steady_clock::now();
-
-    RollingBallBackground *bg = new RollingBallBackground();
-
-    bg->run(originakImage);
-    imwrite("output/rollingBall" + std::to_string(nr) + ".jpg", originakImage);
-
-    //
-    // Thersholding
-    //
-    Mat thersoldImage;
-    threshold(originakImage, thersoldImage, 15, 255,
-              cv::ThresholdTypes::THRESH_TRIANGLE | cv::ThresholdTypes::THRESH_BINARY);
-
-    imwrite("output/thresholded" + std::to_string(nr) + ".jpg", thersoldImage);
-
-    //
-    // Stop timer
-    //
-    auto end                                      = std::chrono::steady_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
-
-    //
-    // Generate markers
-    //
-    Mat dist_transform;
-    distanceTransform(thersoldImage, dist_transform, DistanceTypes::DIST_L2, 5);
-    dist_transform *= 2;
-    imwrite("output/dist_transform" + std::to_string(nr) + ".jpg", dist_transform);
-
-    double minVal;
-    double maxVal;
-    Point minLoc;
-    Point maxLoc;
-    minMaxLoc(dist_transform, &minVal, &maxVal, &minLoc, &maxLoc);
-    Mat sure_fg;
-    std::cout << "MAX " << std::to_string(maxVal) << std::endl;
-    threshold(dist_transform, sure_fg, maxVal * 0.7, 255, cv::ThresholdTypes::THRESH_BINARY);
-    imwrite("output/sure_fg" + std::to_string(nr) + ".jpg", sure_fg);
-
-    Mat markers;
-    sure_fg.convertTo(sure_fg, CV_8U);
-    connectedComponents(sure_fg, markers);
-    imwrite("output/markers" + std::to_string(nr) + ".jpg", markers);
-
-    //
-    // Watershed
-    //
-    Mat colorImg;
-    cvtColor(thersoldImage, colorImg, COLOR_GRAY2BGR);
-    watershed(colorImg, markers);
-    imwrite("output/colorImg" + std::to_string(nr) + ".jpg", colorImg);
-    imwrite("output/markerso" + std::to_string(nr) + ".jpg", markers);
-    Mat result;
-    markers.convertTo(markers, CV_8UC1);
-    threshold(markers, result, 1, 255, cv::THRESH_BINARY);
-    imwrite("output/result" + std::to_string(nr) + ".jpg", result);
-  }
-
-  // imwrite("sub_2.jpg", drawing);
 
   return 0;
 }
 
-cv::Mat format_yolov5(const cv::Mat &source);
+// Constants.
+const float INPUT_WIDTH          = 640.0;
+const float INPUT_HEIGHT         = 640.0;
+const float SCORE_THRESHOLD      = 0.5;
+const float NMS_THRESHOLD        = 0.45;
+const float CONFIDENCE_THRESHOLD = 0.45;
+
+// Text parameters.
+const float FONT_SCALE = 0.7;
+const int FONT_FACE    = FONT_HERSHEY_SIMPLEX;
+const int THICKNESS    = 1;
+
+// Colors.
+Scalar BLACK  = Scalar(0, 0, 0);
+Scalar BLUE   = Scalar(255, 178, 50);
+Scalar YELLOW = Scalar(0, 255, 255);
+Scalar RED    = Scalar(0, 0, 255);
 
 // https://learnopencv.com/deep-learning-with-opencvs-dnn-module-a-definitive-guide/
 void classifier()
 {
-  auto model = cv::dnn::readNetFromONNX("models/best.onnx");
+  auto net = cv::dnn::readNet("/workspaces/open-bio-image-processor/test/best.onnx");
 
   // read the image from disk
-  Mat image = imread("/workspaces/evanalzer_v2/img/1b3078ec-2.jpg");
-  image     = format_yolov5(image);
+  Mat image = imread("/workspaces/open-bio-image-processor/test/nucleus_01.jpg", CV_32FC3);
+  imwrite("image_in.jpg", image);
 
-  std::vector<cv::Mat> predictions;
-  model.setInput(image);
-  model.forward(predictions, model.getUnconnectedOutLayersNames());
-  const cv::Mat &output = predictions[0];
+  Mat blob;
+  blobFromImage(image, blob, 1. / 255., Size(INPUT_WIDTH, INPUT_HEIGHT), Scalar(), true, false, CV_32F);
+  net.setInput(blob);
 
-  // imshow("image", image);
-  imwrite("image_result.jpg", output);
-  // waitKey(0);
-  // destroyAllWindows();
+  vector<Mat> outputs;
+  net.forward(outputs, net.getUnconnectedOutLayersNames());
+
+  // detectFct(image, output, detect);
+  post_process(image, outputs, {"nuclues"});
+  imwrite("image_out.jpg", image);
 }
-int INPUT_WIDTH  = 640;
-int INPUT_HEIGHT = 640;
 
-cv::Mat format_yolov5(const cv::Mat &source)
+Mat post_process(Mat &input_image, vector<Mat> &outputs, const vector<string> &class_name)
 {
-  // put the image in a square big enough
-  int col         = source.cols;
-  int row         = source.rows;
-  int _max        = MAX(col, row);
-  cv::Mat resized = cv::Mat::zeros(_max, _max, CV_8UC3);
-  source.copyTo(resized(cv::Rect(0, 0, col, row)));
+  // Initialize vectors to hold respective outputs while unwrapping     detections.
+  vector<int> class_ids;
+  vector<float> confidences;
+  vector<Rect> boxes;
+  // Resizing factor.
+  float x_factor       = input_image.cols / INPUT_WIDTH;
+  float y_factor       = input_image.rows / INPUT_HEIGHT;
+  float *data          = (float *) outputs[0].data;
+  const int dimensions = outputs[0].size[2];
+  std::cout << "Dimension " << std::to_string(dimensions) << std::endl;
+  // 25200 for default size 640.
+  const int rows = 25200;
+  // Iterate through 25200 detections.
+  for(int i = 0; i < rows; ++i) {
+    /*std::cout << std::fixed << std::setw(4) << std::setprecision(2) << std::to_string(data[0]) << "\t"
+              << std::to_string(data[1]) << "\t" << std::to_string(data[2]) << "\t" << std::to_string(data[3]) << "\t"
+              << std::to_string(data[4]) << std::endl;*/
 
-  // resize to 640x640, normalize to [0,1[ and swap Red and Blue channels
-  cv::Mat result;
-  cv::dnn::blobFromImage(source, result, 1. / 255., cv::Size(INPUT_WIDTH, INPUT_HEIGHT), cv::Scalar(), true, false);
+    float confidence = data[4];
+    // Discard bad detections and continue.
+    if(confidence >= CONFIDENCE_THRESHOLD) {
+      float *classes_scores = data + 5;
+      // Create a 1x85 Mat and store class scores of 80 classes.
+      Mat scores(1, class_name.size(), CV_32FC1, classes_scores);
+      // Perform minMaxLoc and acquire the index of best class  score.
+      Point class_id;
+      double max_class_score;
+      minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
+      // Continue if the class score is above the threshold.
+      if(max_class_score > SCORE_THRESHOLD) {
+        // Store class ID and confidence in the pre-defined respective vectors.
+        confidences.push_back(confidence);
+        class_ids.push_back(class_id.x);
+        // Center.
+        float cx = data[0];
+        float cy = data[1];
+        // Box dimension.
+        float w = data[2];
+        float h = data[3];
+        // Bounding box coordinates.
+        int left   = int((cx - 0.5 * w) * x_factor);
+        int top    = int((cy - 0.5 * h) * y_factor);
+        int width  = int(w * x_factor);
+        int height = int(h * y_factor);
+        // Store good detections in the boxes vector.
+        boxes.push_back(Rect(left, top, width, height));
+      }
+    }
+    // Jump to the next row.
+    data += dimensions;
+  }
+  // Perform Non-Maximum Suppression and draw predictions.
+  vector<int> indices;
+  NMSBoxes(boxes, confidences, SCORE_THRESHOLD, NMS_THRESHOLD, indices);
+  for(int i = 0; i < indices.size(); i++) {
+    int idx    = indices[i];
+    Rect box   = boxes[idx];
+    int left   = box.x;
+    int top    = box.y;
+    int width  = box.width;
+    int height = box.height;
+    // Draw bounding box.
+    rectangle(input_image, Point(left, top), Point(left + width, top + height), BLUE, 3 * THICKNESS);
+    // Get the label for the class name and its confidence.
+    string label = format("%.2f", confidences[idx]);
+    label        = class_name[class_ids[idx]] + ":" + label;
+    // Draw class labels.
+    draw_label(input_image, label, left, top);
+  }
+  return input_image;
+}
 
-  return result;
+void draw_label(Mat &input_image, string label, int left, int top)
+{
+  // Display the label at the top of the bounding box.
+  int baseLine;
+  Size label_size = getTextSize(label, FONT_FACE, FONT_SCALE, THICKNESS, &baseLine);
+  top             = max(top, label_size.height);
+  // Top left corner.
+  Point tlc = Point(left, top);
+  // Bottom right corner.
+  Point brc = Point(left + label_size.width, top + label_size.height + baseLine);
+  // Draw white rectangle.
+  rectangle(input_image, tlc, brc, BLACK, FILLED);
+  // Put the label on the black rectangle.
+  // putText(input_image, label, Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, YELLOW, THICKNESS);
 }
