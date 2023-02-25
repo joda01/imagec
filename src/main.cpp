@@ -72,7 +72,7 @@ void classifier()
   auto net = cv::dnn::readNet("/workspaces/open-bio-image-processor/test/best.onnx");
 
   // read the image from disk
-  Mat image = imread("/workspaces/open-bio-image-processor/test/nucleus_01.jpg", CV_32FC3);
+  Mat image = imread("/workspaces/open-bio-image-processor/test/nucleus_03.tiff", CV_32FC3);
   imwrite("image_in.jpg", image);
 
   Mat blob;
@@ -151,12 +151,12 @@ Mat post_process(Mat &input_image, vector<Mat> &outputs, const vector<string> &c
     int width  = box.width;
     int height = box.height;
     // Draw bounding box.
-    rectangle(input_image, Point(left, top), Point(left + width, top + height), BLUE, 3 * THICKNESS);
+    rectangle(input_image, Point(left, top), Point(left + width, top + height), BLUE, 1 * THICKNESS);
     // Get the label for the class name and its confidence.
     string label = format("%.2f", confidences[idx]);
     label        = class_name[class_ids[idx]] + ":" + label;
     // Draw class labels.
-    draw_label(input_image, label, left, top);
+    // draw_label(input_image, label, left, top);
   }
   return input_image;
 }
@@ -174,5 +174,5 @@ void draw_label(Mat &input_image, string label, int left, int top)
   // Draw white rectangle.
   rectangle(input_image, tlc, brc, BLACK, FILLED);
   // Put the label on the black rectangle.
-  // putText(input_image, label, Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, YELLOW, THICKNESS);
+  putText(input_image, label, Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, YELLOW, THICKNESS);
 }
