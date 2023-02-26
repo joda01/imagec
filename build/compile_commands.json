@@ -1,6 +1,11 @@
 [
 {
   "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -isystem /usr/local/include/opencv4  -pthread -O0 -g -o CMakeFiles/evanalyzerv2.dir/src/algorithms/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/open-bio-image-processor/src/algorithms/ai_object_detection/ai_object_detection.cpp",
+  "file": "/workspaces/open-bio-image-processor/src/algorithms/ai_object_detection/ai_object_detection.cpp"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -isystem /usr/local/include/opencv4  -pthread -O0 -g -o CMakeFiles/evanalyzerv2.dir/src/algorithms/rolling_ball/rolling_ball.cpp.o -c /workspaces/open-bio-image-processor/src/algorithms/rolling_ball/rolling_ball.cpp",
   "file": "/workspaces/open-bio-image-processor/src/algorithms/rolling_ball/rolling_ball.cpp"
 },
@@ -28,6 +33,11 @@
   "directory": "/workspaces/open-bio-image-processor/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -isystem /usr/local/include/opencv4  -pthread -O0 -g -o CMakeFiles/evanalyzerv2.dir/src/pipelines/pipeline.cpp.o -c /workspaces/open-bio-image-processor/src/pipelines/pipeline.cpp",
   "file": "/workspaces/open-bio-image-processor/src/pipelines/pipeline.cpp"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -isystem /usr/local/include/opencv4  -pthread -O0 -g -o CMakeFiles/tests.dir/src/algorithms/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/open-bio-image-processor/src/algorithms/ai_object_detection/ai_object_detection.cpp",
+  "file": "/workspaces/open-bio-image-processor/src/algorithms/ai_object_detection/ai_object_detection.cpp"
 },
 {
   "directory": "/workspaces/open-bio-image-processor/build",
