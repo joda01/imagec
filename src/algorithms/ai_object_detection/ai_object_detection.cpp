@@ -13,6 +13,7 @@
 
 #include "ai_object_detection.h"
 #include <set>
+#include <string>
 #include <opencv2/core/mat.hpp>
 
 namespace ai {
@@ -160,14 +161,35 @@ void ObjectDetector::paintBoundingBox(cv::Mat &inputImage, const DetectionResult
     int top      = box.y;
     int width    = box.width;
     int height   = box.height;
+    int classi   = detection.classId[i];
     // Draw bounding box.
-    rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), BLUE, 1 * THICKNESS);
+    if(0 == classi) {
+      rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), RED, 1 * THICKNESS);
+    } else if(1 == classi) {
+      rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), BLUE, 1 * THICKNESS);
+    }
     // Get the label for the class name and its confidence.
-    // string label = format("%.2f", confidences[idx]);
-    // label        = class_name[classIds[idx]] + ":" + label;
+    std::string label = cv::format("%.2f", detection.confidences[i]);
+    label             = mClassNames[classi] + ":" + label;
     // Draw class labels.
-    // draw_label(input_image, label, left, top);
+    // drawLabel(inputImage, label, left, top);
   }
+}
+
+void ObjectDetector::drawLabel(cv::Mat &input_image, std::string label, int left, int top)
+{
+  // Display the label at the top of the bounding box.
+  int baseLine;
+  cv::Size label_size = cv::getTextSize(label, FONT_FACE, FONT_SCALE, THICKNESS, &baseLine);
+  top                 = cv::max(top, label_size.height);
+  // Top left corner.
+  cv::Point tlc = cv::Point(left, top);
+  // Bottom right corner.
+  cv::Point brc = cv::Point(left + label_size.width, top + label_size.height + baseLine);
+  // Draw white rectangle.
+  rectangle(input_image, tlc, brc, BLACK, cv::FILLED);
+  // Put the label on the black rectangle.
+  putText(input_image, label, cv::Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, YELLOW, THICKNESS);
 }
 
 }    // namespace ai

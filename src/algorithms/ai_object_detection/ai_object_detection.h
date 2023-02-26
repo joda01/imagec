@@ -42,16 +42,24 @@ public:
 private:
   /////////////////////////////////////////////////////
   auto postProcessing(const cv::Mat &inputImage, std::vector<cv::Mat> &outputs) -> DetectionResult;
-
+  void drawLabel(cv::Mat &input_image, std::string label, int left, int top);
   /////////////////////////////////////////////////////
   const float INPUT_WIDTH          = 640.0;
   const float INPUT_HEIGHT         = 640.0;
-  const float SCORE_THRESHOLD      = 0.5;
-  const float NMS_THRESHOLD        = 0.3;    // 0.45
-  const float CONFIDENCE_THRESHOLD = 0.45;
-  const cv::Scalar BLUE            = cv::Scalar(255, 178, 50);
+  const float SCORE_THRESHOLD      = 0.1;    // 0.5
+  const float NMS_THRESHOLD        = 0.3;    // 0.45    // To prevent double bounding boxes
+  const float CONFIDENCE_THRESHOLD = 0.1;    // 0.45
   const int THICKNESS              = 1;
 
+  // Text parameters.
+  const float FONT_SCALE = 0.7;
+  const int FONT_FACE    = cv::FONT_HERSHEY_SIMPLEX;
+
+  // Colors.
+  const cv::Scalar BLUE   = cv::Scalar(255, 178, 50);
+  const cv::Scalar BLACK  = cv::Scalar(0, 0, 0);
+  const cv::Scalar YELLOW = cv::Scalar(0, 255, 255);
+  const cv::Scalar RED    = cv::Scalar(0, 0, 255);
   const std::vector<std::string> mClassNames;
   cv::dnn::Net mNet;
 };
