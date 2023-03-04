@@ -12,6 +12,7 @@
 ///
 
 #include <string>
+#include <vector>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/dnn.hpp>
 #include <opencv2/dnn/all_layers.hpp>
@@ -19,12 +20,18 @@
 
 namespace ai {
 
-struct DetectionResult
+using Boxes      = cv::Rect;
+using Confidence = float;
+using ClassId    = int;
+
+struct Detection
 {
-  std::vector<cv::Rect> boxes;
-  std::vector<float> confidences;
-  std::vector<int> classId;
+  Boxes box;
+  Confidence confidence;
+  ClassId classId;
 };
+
+using DetectionResults = std::vector<Detection>;
 
 ///
 /// \class      ObjectDetector
@@ -36,19 +43,19 @@ class ObjectDetector
 public:
   /////////////////////////////////////////////////////
   ObjectDetector(const std::string &onnxNet, const std::vector<std::string> &classNames);
-  auto forward(const cv::Mat &inputImage) -> DetectionResult;
-  void paintBoundingBox(cv::Mat &inputImage, const DetectionResult &detection);
+  auto forward(const cv::Mat &inputImage) -> DetectionResults;
+  void paintBoundingBox(cv::Mat &inputImage, const DetectionResults &detection);
 
 private:
   /////////////////////////////////////////////////////
-  auto postProcessing(const cv::Mat &inputImage, std::vector<cv::Mat> &outputs) -> DetectionResult;
-  void drawLabel(cv::Mat &input_image, std::string label, int left, int top);
+  auto postProcessing(const cv::Mat &inputImage, const std::vector<cv::Mat> &predictionMatrix) -> DetectionResults;
+  void drawLabel(cv::Mat &input_image, const std::string &label, int left, int top);
   /////////////////////////////////////////////////////
   const float INPUT_WIDTH          = 640.0;
   const float INPUT_HEIGHT         = 640.0;
   const float SCORE_THRESHOLD      = 0.1;    // 0.5
   const float NMS_THRESHOLD        = 0.3;    // 0.45    // To prevent double bounding boxes
-  const float CONFIDENCE_THRESHOLD = 0.1;    // 0.45
+  const float CONFIDENCE_THRESHOLD = 0.3;    // 0.45
   const int THICKNESS              = 1;
 
   // Text parameters.

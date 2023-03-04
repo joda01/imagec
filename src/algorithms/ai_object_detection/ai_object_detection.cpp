@@ -28,13 +28,14 @@ ObjectDetector::ObjectDetector(const std::string &onnxNetPath, const std::vector
     mNet{cv::dnn::readNet(onnxNetPath)}, mClassNames(classNames)
 {
 }
+
 ///
 /// \brief      Analyse the image
 /// \author     Joachim Danmayr
 /// \param[in]  inputImage      Image to analyze
 /// \return     Result of the analysis
 ///
-auto ObjectDetector::forward(const cv::Mat &inputImage) -> DetectionResult
+auto ObjectDetector::forward(const cv::Mat &inputImage) -> DetectionResults
 {
   cv::Mat blob;
   cv::dnn::blobFromImage(inputImage, blob, 1. / 255., cv::Size(INPUT_WIDTH, INPUT_HEIGHT), cv::Scalar(), true, false,
@@ -57,11 +58,13 @@ auto ObjectDetector::forward(const cv::Mat &inputImage) -> DetectionResult
 ///
 /// \author     Joachim Danmayr
 /// \ref        https://learnopencv.com/object-detection-using-yolov5-and-opencv-dnn-in-c-and-python/
-/// \param[in]
-/// \param[out]
-/// \return
 ///
-auto ObjectDetector::postProcessing(const cv::Mat &inputImage, std::vector<cv::Mat> &outputs) -> DetectionResult
+/// \param[in]  inputImage Image which has been used for detection
+/// \param[out] outputs    predictionMatrix Matrix which holds the prediction result (see brief)
+/// \return Retruens the prepared prediction result
+///
+auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const std::vector<cv::Mat> &predictionMatrix)
+    -> DetectionResults
 
 {
   // Initialize vectors to hold respective outputs while unwrapping     detections.
@@ -71,8 +74,8 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, std::vector<cv::M
   // Resizing factor.
   float x_factor       = inputImage.cols / INPUT_WIDTH;
   float y_factor       = inputImage.rows / INPUT_HEIGHT;
-  float *data          = (float *) outputs[0].data;
-  const int dimensions = outputs[0].size[2];
+  float *data          = (float *) predictionMatrix[0].data;
+  const int dimensions = predictionMatrix[0].size[2];
   // 25200 for default size 640.
   const int rows = 25200;
   // Iterate through 25200 detections.
@@ -136,32 +139,33 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, std::vector<cv::M
   //
   // Remove all elements which where suppressed by the NMS algoeithm
   //
-  std::vector<int> classIdsOut;
-  std::vector<float> confidencesOut;
-  std::vector<cv::Rect> boxesOut;
-
+  DetectionResults result;
   for(int n = 0; n < confidences.size(); n++) {
     if(keptIndexesSet.count(n) == 1) {
-      classIdsOut.push_back(classIds[n]);
-      confidencesOut.push_back(confidences[n]);
-      boxesOut.push_back(boxes[n]);
+      result.push_back({.box = boxes[n], .confidence = confidences[n], .classId = classIds[n]});
     }
   }
 
-  return {.boxes = boxesOut, .confidences = confidencesOut, .classId = classIdsOut};
+  return result;
 }
 
-void ObjectDetector::paintBoundingBox(cv::Mat &inputImage, const DetectionResult &detection)
+///
+/// \brief      Paint bounding boxes around the found regions
+/// \author     Joachim Danmayr
+/// \param[in,out]  inputImage input image where bounding boxes should be painted on
+/// \param[in]      detection Detection result
+///
+void ObjectDetector::paintBoundingBox(cv::Mat &inputImage, const DetectionResults &detection)
 {
   // Perform Non-Maximum Suppression and draw predictions.
 
-  for(int i = 0; i < detection.boxes.size(); i++) {
-    cv::Rect box = detection.boxes[i];
+  for(const auto &element : detection) {
+    cv::Rect box = element.box;
     int left     = box.x;
     int top      = box.y;
     int width    = box.width;
     int height   = box.height;
-    int classi   = detection.classId[i];
+    int classi   = element.classId;
     // Draw bounding box.
     if(0 == classi) {
       rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), RED, 1 * THICKNESS);
@@ -169,14 +173,22 @@ void ObjectDetector::paintBoundingBox(cv::Mat &inputImage, const DetectionResult
       rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), BLUE, 1 * THICKNESS);
     }
     // Get the label for the class name and its confidence.
-    std::string label = cv::format("%.2f", detection.confidences[i]);
+    std::string label = cv::format("%.2f", element.confidence);
     label             = mClassNames[classi] + ":" + label;
     // Draw class labels.
     // drawLabel(inputImage, label, left, top);
   }
 }
 
-void ObjectDetector::drawLabel(cv::Mat &input_image, std::string label, int left, int top)
+///
+/// \brief      Draw labels
+/// \author     Joachim Danmayr
+/// \param[in,out]  inputImage input image where bounding boxes should be painted on
+/// \param[in]      label Text to print in the image
+/// \param[in]      left position to print
+/// \param[in]      top position to print
+///
+void ObjectDetector::drawLabel(cv::Mat &inputImage, const std::string &label, int left, int top)
 {
   // Display the label at the top of the bounding box.
   int baseLine;
@@ -187,9 +199,9 @@ void ObjectDetector::drawLabel(cv::Mat &input_image, std::string label, int left
   // Bottom right corner.
   cv::Point brc = cv::Point(left + label_size.width, top + label_size.height + baseLine);
   // Draw white rectangle.
-  rectangle(input_image, tlc, brc, BLACK, cv::FILLED);
+  rectangle(inputImage, tlc, brc, BLACK, cv::FILLED);
   // Put the label on the black rectangle.
-  putText(input_image, label, cv::Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, YELLOW, THICKNESS);
+  putText(inputImage, label, cv::Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, YELLOW, THICKNESS);
 }
 
 }    // namespace ai
