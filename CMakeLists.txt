@@ -14,7 +14,7 @@ SET(CMAKE_CXX20_STANDARD_REQUIRED true)
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O2")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O2 -lm")
 SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
 
 
@@ -31,15 +31,21 @@ find_package(PkgConfig REQUIRED)
 set(LIBS
   ${OpenCV_LIBS}
   /usr/local/lib/libtiff.a
+  /usr/local/lib/libz.a
+  /usr/local/lib/libjpeg.a
 )
 
 include_directories("./src")
+include_directories("/usr/local/include/libtiff")
+
 
 ###########################################################################################
 # Source file
 ###########################################################################################
 file(GLOB_RECURSE SOURCES
   ./src/*.cpp
+  ./src/*.c
+  /usr/local/include/libtiff/*.h
 )
 
 # Exclude test files from source
@@ -74,6 +80,7 @@ set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
 
 file(GLOB_RECURSE TEST_SOURCES
   ./src/*.cpp
+  ./src/*.c
   ./test/*.cpp
 )
 # Exclude main file from source

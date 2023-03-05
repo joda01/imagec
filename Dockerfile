@@ -66,6 +66,8 @@ RUN cd /libtiff-4.1 && make
 RUN mkdir -p /usr/local/include/libtiff
 RUN cp -r /libtiff-4.1/tiff-4.1/libtiff/*.h  /usr/local/include/libtiff
 RUN cp -r /libtiff-4.1/libtiff.a  /usr/local/lib/libtiff.a
+RUN cp -r /libtiff-4.1/libz.a /usr/local/lib/libz.a
+RUN cp -r /libtiff-4.1/libjpeg.a /usr/local/lib/libjpeg.a
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog

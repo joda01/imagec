@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "image_reader/tif/image_loader_tif.hpp"
 #include "image_reader/vsi/image_loader_vsi.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -32,6 +33,9 @@ using namespace dnn;
 int main(int argc, char **argv)
 {
   std::string imgName = "test/test_images_nuclei/falte.tiff";
+  TiffLoader::openTiff(imgName);
+
+  return 0;
   //  convert("test/test_images_nuclei/standard.vsi", imgName);
 
   std::vector<Mat> channels;
@@ -49,7 +53,7 @@ int main(int argc, char **argv)
   imwrite("image_in.jpg", image);
 
   auto t_start = std::chrono::high_resolution_clock::now();
-  ai::ObjectDetector obj("/workspaces/open-bio-image-processor/test/best.onnx", {"nuclues","nucleus_no_focus"});
+  ai::ObjectDetector obj("/workspaces/open-bio-image-processor/test/best.onnx", {"nuclues", "nucleus_no_focus"});
   auto result            = obj.forward(image);
   auto t_end             = std::chrono::high_resolution_clock::now();
   double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
