@@ -61,5 +61,11 @@ RUN git clone --recursive -b v3.3.1 --depth 1 https://github.com/catchorg/Catch2
 RUN sudo apt install -y default-jre
 
 
+COPY lib/libtiff-4.1 /libtiff-4.1
+RUN cd /libtiff-4.1 && make
+RUN mkdir -p /usr/local/include/libtiff
+RUN cp -r /libtiff-4.1/tiff-4.1/libtiff/*.h  /usr/local/include/libtiff
+RUN cp -r /libtiff-4.1/libtiff.a  /usr/local/lib/libtiff.a
+
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog

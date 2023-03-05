@@ -30,6 +30,7 @@ find_package(PkgConfig REQUIRED)
 #
 set(LIBS
   ${OpenCV_LIBS}
+  /usr/local/lib/libtiff.a
 )
 
 include_directories("./src")

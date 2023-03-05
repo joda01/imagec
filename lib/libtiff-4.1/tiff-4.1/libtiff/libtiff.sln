@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtiff", "libtiff.vcxproj", "{3135834B-9A7E-4C68-BA7E-8296E119F438}"
+EndProject
+Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 2
+		SccProjectName0 = Perforce\u0020Project
+		SccLocalPath0 = .
+		SccProvider0 = MSSCCI:Perforce\u0020SCM
+		SccProjectUniqueName1 = libtiff.vcxproj
+		SccLocalPath1 = .
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Console_Debug|Win32 = Console_Debug|Win32
+		Console_Debug|x64 = Console_Debug|x64
+		Console_Release|Win32 = Console_Release|Win32
+		Console_Release|x64 = Console_Release|x64
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Console_Debug|Win32.ActiveCfg = Console_Debug|Win32
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Console_Debug|Win32.Build.0 = Console_Debug|Win32
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Console_Debug|x64.ActiveCfg = Console_Debug|x64
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Console_Debug|x64.Build.0 = Console_Debug|x64
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Console_Release|Win32.ActiveCfg = Console_Release|Win32
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Console_Release|Win32.Build.0 = Console_Release|Win32
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Console_Release|x64.ActiveCfg = Console_Release|x64
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Console_Release|x64.Build.0 = Console_Release|x64
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Debug|Win32.Build.0 = Debug|Win32
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Debug|x64.ActiveCfg = Debug|x64
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Debug|x64.Build.0 = Debug|x64
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Release|Win32.ActiveCfg = Release|Win32
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Release|Win32.Build.0 = Release|Win32
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Release|x64.ActiveCfg = Release|x64
+		{3135834B-9A7E-4C68-BA7E-8296E119F438}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
