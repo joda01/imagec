@@ -33,6 +33,9 @@ using namespace dnn;
 int main(int argc, char **argv)
 {
   std::string imgName = "test/test_images_nuclei/falte.tiff";
+
+  // convert("test/test_images_nuclei/falte.vsi", imgName);
+
   TiffLoader::openTiff(imgName);
 
   return 0;
