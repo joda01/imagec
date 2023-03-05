@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
   // convert("test/test_images_nuclei/falte.vsi", imgName);
 
-  TiffLoader::openTiff(imgName);
+  TiffLoader::loadImageTile(imgName, 0);
 
   return 0;
   //  convert("test/test_images_nuclei/standard.vsi", imgName);
