@@ -25,3 +25,5 @@ output/
 *.out.*
 result.txt
 test
+*.jpg
+pred/image_out8.jpg

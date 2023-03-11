@@ -17,16 +17,13 @@
 
 // http://www.simplesystems.org/libtiff//functions/TIFFCreateDirectory.html
 
-cv::Mat TiffLoader::loadImageTile(const std::string &filename, int idx, int offset)
+cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int offset, int nrOfTilesToRead)
 {
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
   if(tif) {
     unsigned int width, height, tilewidth, tileheight, tileOffset, tileByteCount;
-    uint32 *raster;
-    uint16_t cnt1 = 0;
-
-    cnt1 = TIFFNumberOfDirectories(tif);
-    TIFFSetDirectory(tif, idx);
+    auto cnt1 = TIFFNumberOfDirectories(tif);
+    TIFFSetDirectory(tif, document);
 
     // get the size of the tiff
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
@@ -37,61 +34,89 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, int idx, int offs
     TIFFGetField(tif, TIFFTAG_TILEOFFSETS, &tileOffset);
     TIFFGetField(tif, TIFFTAG_TILEBYTECOUNTS, &tileByteCount);
 
-    std::cout << " WID " << std::to_string(width) << std::endl;
-    std::cout << " HIGH " << std::to_string(height) << std::endl;
-
-    std::cout << "TIL WID " << std::to_string(tilewidth) << std::endl;
-    std::cout << "TIL HIGH " << std::to_string(tileheight) << std::endl;
-    std::cout << "CNT " << std::to_string(cnt1) << std::endl;
-    std::cout << "TIL " << std::to_string(tileOffset) << std::endl;
-    std::cout << "BY " << std::to_string(tileByteCount) << std::endl;
-
     if(tileheight <= 0) {
       tileheight = tilewidth;
     }
-
     uint npixels = tilewidth * tileheight;    // get the total number of pixels
 
-    int tilePart = offset * tilewidth;
-    if(tilePart > width) {
-      throw std::runtime_error("Offset error");
-    }
-    // for(tilePart = 0; tilePart < width; tilePart += tilewidth)
+    uint64_t nrOfXTiles = width / tilewidth;
+    uint64_t nrOfYTiles = height / tileheight;
+    uint64_t nrOfTilles = nrOfXTiles * nrOfYTiles;
 
-    raster =
-        (uint32 *) _TIFFmalloc(npixels * sizeof(uint32));    // allocate temp memory (must use the tiff library malloc)
-    if(raster == NULL)                                       // check the raster's memory was allocaed
-    {
-      TIFFClose(tif);
-      throw std::runtime_error("Could not allocate memory for raster of TIFF image.");
-    }
-
-    if(!TIFFReadRGBATile(tif, tilePart, tilePart, raster)) {
-      TIFFClose(tif);
-      throw std::runtime_error("Could not read raster of TIFF image.");
-    }
+    std::cout << "A: " << std::to_string(nrOfXTiles) << "x" << std::to_string(nrOfYTiles) << std::endl;
 
     // Itterate through all the pixels of the tif
-    cv::Mat image = cv::Mat(tilewidth, tileheight, CV_8UC3);
 
-    for(uint x = 0; x < tilewidth; x++)
-      for(uint y = 0; y < tileheight; y++) {
-        uint32 &TiffPixel = raster[y * tilewidth + x];               // read the current pixel of the TIF
-        cv::Vec3b &pixel  = image.at<cv::Vec3b>(cv::Point(y, x));    // read the current pixel of the matrix
-        pixel[0]          = TIFFGetB(TiffPixel);                     // Set the pixel values as BGRA
-        pixel[1]          = TIFFGetG(TiffPixel);
-        pixel[2]          = TIFFGetR(TiffPixel);
-        // pixel[3]          = TIFFGetA(TiffPixel);
+    uint64_t newImageWidth  = tilewidth * std::sqrt(nrOfTilesToRead);
+    uint64_t newImageHeight = tileheight * std::sqrt(nrOfTilesToRead);
+    cv::Mat image           = cv::Mat(newImageWidth, newImageHeight, CV_8UC3);
+
+    uint64_t tileNrX = newImageWidth / tilewidth;
+    uint64_t tileNrY = newImageHeight / tileheight;
+
+    std::cout << "TileNr: " << std::to_string(tileNrX) << "x" << std::to_string(tileNrY) << std::endl;
+    std::cout << "ImgSize: " << std::to_string(newImageWidth) << "x" << std::to_string(newImageHeight) << std::endl;
+
+    for(int tileOffsetY = 0; tileOffsetY < tileNrY; tileOffsetY++) {
+      for(int tileOffsetX = 0; tileOffsetX < tileNrX; tileOffsetX++) {
+        //
+        // Calculate the x/y part of the tile to read
+        //
+        int tilePartX = tileOffsetX * tilewidth;
+        int tilePartY = tileOffsetY * tileheight;
+
+        // std::cout << "" << std::to_string(tilePartX) << "x" << std::to_string(tilePartY) << std::endl;
+
+        //
+        // Boundarie check
+        //
+        uint64_t tileToReadX = tilePartX + (offset * tilewidth);
+        uint64_t tileToReadY = tilePartY + (offset * tileheight);
+        // std::cout << "" << std::to_string(tileToReadX) << "x" << std::to_string(tileToReadY) << std::endl;
+
+        if(tileToReadX > width || tileToReadY > height) {
+          throw std::runtime_error("Offset error");
+        }
+
+        auto raster = (uint32 *) _TIFFmalloc(
+            npixels * sizeof(uint32));    // allocate temp memory (must use the tiff library malloc)
+        if(raster == NULL)                // check the raster's memory was allocaed
+        {
+          TIFFClose(tif);
+          throw std::runtime_error("Could not allocate memory for raster of TIFF image.");
+        }
+        if(!TIFFReadRGBATile(tif, tileToReadX, tileToReadY, raster)) {
+          TIFFClose(tif);
+          throw std::runtime_error("Could not read raster of TIFF image.");
+        }
+        for(uint x = 0; x < tilewidth; x++) {
+          for(uint y = 0; y < tileheight; y++) {
+            uint32 &TiffPixel = raster[y * tilewidth + x];    // read the current pixel of the TIF
+            int xImg          = (x + tilePartX);
+            int yImg          = (y + (tilewidth * (tileNrY - tileOffsetY - 1)));
+
+            cv::Vec3b &pixel = image.at<cv::Vec3b>(cv::Point(yImg, xImg));    // read the current pixel of the matrix
+            pixel[0]         = TIFFGetB(TiffPixel);                           // Set the pixel values as BGRA
+            pixel[1]         = TIFFGetG(TiffPixel);
+            pixel[2]         = TIFFGetR(TiffPixel);
+            // pixel[3]          = TIFFGetA(TiffPixel);
+          }
+        }
+        _TIFFfree(raster);    // release temp memory
       }
-    _TIFFfree(raster);    // release temp memory
-    // Rotate the image 90 degrees couter clockwise
-    image = image.t();
-    cv::flip(image, image, 0);
+      // std::cout << "W: " << std::to_string((tilewidth * (tileNrY - tileOffsetY - 1))) << std::endl;
+    }
+    cv::imwrite("out/bigtiff" + std::to_string(98) + ".jpg", image);
 
-    cv::Mat imageOut = cv::Mat(tilewidth, tileheight, CV_32FC3);
+    // Rotate the image 90 degrees couter clockwise
+    // image = image.t();
+    // cv::flip(image, image, 0);
+
+    cv::Mat imageOut = cv::Mat(newImageWidth, newImageHeight, CV_32FC3);
     image.convertTo(imageOut, CV_32FC3);
 
     TIFFClose(tif);
+
     return imageOut;
   } else {
     throw std::runtime_error("Could not open image!");

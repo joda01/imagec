@@ -36,6 +36,15 @@ int main(int argc, char **argv)
 
   // convert("test/GMEV5minM1OT3_0001.btf", imgName);
 
+  auto tilePart = TiffLoader::loadImageTile(imgName, 14, 50, 800);
+  tilePart *= 10;
+  cv::imwrite("out/bigtiff" + std::to_string(99) + ".jpg", tilePart);
+  ai::ObjectDetector obj("/workspaces/open-bio-image-processor/test/best.onnx", {"nuclues", "nucleus_no_focus"});
+  auto result = obj.forward(tilePart);
+  obj.paintBoundingBox(tilePart, result);
+  imwrite("pred/image_out" + std::to_string(99) + ".jpg", tilePart);
+
+  return 0;
   for(int n = 0; n < 80; n++) {
     auto tilePart = TiffLoader::loadImageTile(imgName, 14, n);
     tilePart *= 9;
