@@ -32,39 +32,21 @@ using namespace dnn;
 
 int main(int argc, char **argv)
 {
-  std::string imgName = "test/test_images_nuclei/falte.tiff";
+  std::string imgName = "test/GMEV5minM1OT3_0001.btf";
 
-  // convert("test/test_images_nuclei/falte.vsi", imgName);
+  // convert("test/GMEV5minM1OT3_0001.btf", imgName);
 
-  TiffLoader::loadImageTile(imgName, 0);
-
-  return 0;
-  //  convert("test/test_images_nuclei/standard.vsi", imgName);
-
-  std::vector<Mat> channels;
-  imreadmulti(imgName, channels, CV_32FC3);
-  int i = 0;
-  for(const auto &img : channels) {
-    imwrite("image_out" + std::to_string(i) + ".jpg", img);
-    i++;
+  for(int n = 0; n < 80; n++) {
+    auto tilePart = TiffLoader::loadImageTile(imgName, 14, n);
+    tilePart *= 9;
+    cv::imwrite("out/bigtiff" + std::to_string(n) + ".jpg", tilePart);
+    ai::ObjectDetector obj("/workspaces/open-bio-image-processor/test/best.onnx", {"nuclues", "nucleus_no_focus"});
+    auto result = obj.forward(tilePart);
+    obj.paintBoundingBox(tilePart, result);
+    imwrite("pred/image_out" + std::to_string(n) + ".jpg", tilePart);
   }
 
-  // cv::max(channels[4], channels[9], channels[4]);
-  // cv::max(channels[4], channels[14], channels[4]);
-  channels[0] *= 6;
-  auto image = channels[0];
-  imwrite("image_in.jpg", image);
-
-  auto t_start = std::chrono::high_resolution_clock::now();
-  ai::ObjectDetector obj("/workspaces/open-bio-image-processor/test/best.onnx", {"nuclues", "nucleus_no_focus"});
-  auto result            = obj.forward(image);
-  auto t_end             = std::chrono::high_resolution_clock::now();
-  double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
-  std::cout << "Duration " << std::to_string(elapsed_time_ms) << std::endl;
-
-  obj.paintBoundingBox(image, result);
-
-  imwrite("image_out.jpg", image);
+  // TiffLoader::loadEntireImage(imgName, 0);
 
   return 0;
 }
