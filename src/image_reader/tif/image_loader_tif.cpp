@@ -3,7 +3,7 @@
 /// \author    Joachim Danmayr
 /// \date      2023-03-12
 ///
-/// \copyright Copyright 2019 Joachim Danmayr
+/// \copyright Copyright 2023 Joachim Danmayr
 ///            All rights reserved! This file is subject
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
@@ -26,14 +26,14 @@
 #include <libtiff/tiffiop.h>
 
 ///
-/// \brief      Used to load (very) large TIFF images that cannot be loaded into RAM as a whole.
-///             The prerequisite is that the TIF is stored as a Tiled TIFF.
-///             With this method tile per tile can be loaded and it it possible to load more
-///             than one tile and form a composite image of this tiles.
+/// \brief      Used to load (very) large TIFF images that cannot be loaded as a whole into RAM.
+///             Prerequisite is that the TIF is saved as a tiled TIFF.
+///             With this method it is possible to load tile by tile, and it is possible to load
+///             more than one tile and create a composite image from these tiles.
 ///
 ///             Loads >nrOfTilesToRead< tiles of a tiled TIFF image starting at >offset<
-///             The tiles are read in squares and put together to form a picture.
-///             Offset is the number of composite tile which should be read.
+///             The tiles are read in squares and assembled into an image.
+///             Offset is the number of composite tiles to read.
 ///
 ///             +-----+-----+-----+-----+-----+-----+-----+
 ///             |0    |0    |0    |1    |1    |1    |2    |
