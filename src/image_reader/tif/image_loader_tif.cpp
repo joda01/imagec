@@ -12,6 +12,7 @@
 ///
 
 #include "image_loader_tif.hpp"
+#include <opencv2/core/hal/interface.h>
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
@@ -35,19 +36,32 @@
 ///             The tiles are read in squares and assembled into an image.
 ///             Offset is the number of composite tiles to read.
 ///
-///             +-----+-----+-----+-----+-----+-----+-----+
-///             |0    |0    |0    |1    |1    |1    |2    |
-///             |     |     |     |     |     |     |     |
-///             +-----+-----+-----+-----+-----+-----+-----+
-///             |0    |0    |0    |1    |1    |1    |2    |
-///             |     |     |     |     |     |     |     |
-///             +-----+-----+-----+-----+-----+-----+-----+
-///             |0    |0    |0    |1    |1    |1    |2    |
-///             |     |     |     |     |     |     |     |
-///             +-----+-----+-----+-----+-----+-----+-----+
-///             |3    |3    |3    |4    |4    |4    |5    |
-///             |     |     |     |     |     |     |     |
-///             +-----+-----+-----+-----+-----+-----+-----+
+///             If sqrt(nrOfTilesToRead) is not a multiplier of nrOfTilesX / nrOfTilesY
+///             the image is padded with black "virtual" tiles.
+///             Example shows an image with size 4x7 tiles and nrOfTilesToRead = 9
+///             Numbers in brackets are padded part of the image
+///
+///             0     1     2     3     4     5     6     (7)   (8)
+///           0 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           1 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           2 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           3 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |3    |3    |3    |4    |4    |4    |5    |(5)  |(5)  |
+///             |     |     |     |     |     |     |     |     |     |
+///         (4) +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |(3)  |(3)  |(3)  |(4)  |(4)  |(4)  |(5)  |(5)  |(5)  |
+///             |     |     |     |     |     |     |     |     |     |
+///         (5) +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |(3)  |(3)  |(3)  |(4)  |(4)  |(4)  |(5)  |(5)  |(5)  |
+///             |     |     |     |     |     |     |     |     |     |
+///             +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///
 ///
 /// \author     Joachim Danmayr
 /// \ref        http://www.simplesystems.org/libtiff//functions.html
@@ -100,8 +114,9 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int
     // tiles to read and divide them evenly in x and y direction.
     // The result is the size of the newly created composite image we get at the end.
     //
-    uint64_t newImageWidth  = tilewidth * std::sqrt(nrOfTilesToRead);
-    uint64_t newImageHeight = tileheight * std::sqrt(nrOfTilesToRead);
+    uint64_t tilesPerLine   = std::sqrt(nrOfTilesToRead);
+    uint64_t newImageWidth  = tilewidth * tilesPerLine;
+    uint64_t newImageHeight = tileheight * tilesPerLine;
     cv::Mat image           = cv::Mat(newImageWidth, newImageHeight, CV_8UC3);
 
     //
@@ -110,6 +125,25 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int
     //
     uint64_t tileNrX = newImageWidth / tilewidth;
     uint64_t tileNrY = newImageHeight / tileheight;
+
+    //
+    // Padding the image (make the number of tiles in x and y direction a multiplier of tilesPerLine)
+    //
+    uint64_t nrOfXTilesPadded = nrOfXTiles;
+    if(nrOfXTiles % tilesPerLine > 0) {
+      nrOfXTilesPadded += (tilesPerLine - (nrOfXTiles % tilesPerLine));
+    }
+
+    uint64_t nrOfYTilesPadded = nrOfYTiles;
+    if(nrOfYTiles % tilesPerLine > 0) {
+      nrOfYTilesPadded += (tilesPerLine - (nrOfYTiles % tilesPerLine));
+    }
+
+    //
+    // Calculates the x and y tile offset based on the padded composite image offset
+    //
+    uint64_t offsetX = (offset * tilesPerLine) % nrOfXTilesPadded;
+    uint64_t offsetY = (offset * tilesPerLine) % nrOfYTilesPadded;
 
     //
     // Iterate through all tiles in X and Y directions, load the
@@ -126,11 +160,26 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int
         //
         // Boundary check
         //
-        uint64_t tileToReadX = tilePartX + (offset * tilewidth);
-        uint64_t tileToReadY = tilePartY + (offset * tileheight);
+        uint64_t tileToReadX = tilePartX + (offsetX * tilewidth);
+        uint64_t tileToReadY = tilePartY + (offsetY * tileheight);
 
         if(tileToReadX > width || tileToReadY > height) {
-          throw std::runtime_error("Tries to read a tile which is not part of the image (array index out of bound)!");
+          // We reached the padding area -> Nothing to see here, just write a black image
+          for(uint x = 0; x < tilewidth; x++) {
+            for(uint y = 0; y < tileheight; y++) {
+              int xImg         = (x + tilePartX);
+              int yImg         = (y + (tilewidth * (tileNrY - tileOffsetY - 1)));
+              cv::Vec3b &pixel = image.at<cv::Vec3b>(
+                  cv::Point(yImg, xImg));    // Get the reference of the pixel to write of the opencv matrix
+              pixel[0] = 0;
+              pixel[1] = 0;
+              pixel[2] = 0;
+              // pixel[3] = TIFFGetA(TiffPixel);   // We ignore the alpha channel since we are using CV_8UC3
+            }
+          }
+
+          std::cout << "Padding area reached" << std::endl;
+          break;
         }
 
         // Allocate temp memory (must use the tiff library malloc)

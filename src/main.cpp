@@ -38,13 +38,13 @@ int main(int argc, char **argv)
 
   for(int n = 0; n < 200; n++) {
     try {
-      auto tilePart = TiffLoader::loadImageTile(imgName, 14, n, 9);
+      auto tilePart = TiffLoader::loadImageTile(imgName, 14, n, 36);
       tilePart *= 10;
       cv::imwrite("out/bigtiff" + std::to_string(n) + ".jpg", tilePart);
-      ai::ObjectDetector obj("/workspaces/open-bio-image-processor/test/best.onnx", {"nuclues", "nucleus_no_focus"});
-      auto result = obj.forward(tilePart);
-      obj.paintBoundingBox(tilePart, result);
-      imwrite("pred/image_out" + std::to_string(n) + ".jpg", tilePart);
+      // ai::ObjectDetector obj("/workspaces/open-bio-image-processor/test/best.onnx", {"nuclues", "nucleus_no_focus"});
+      // auto result = obj.forward(tilePart);
+      // obj.paintBoundingBox(tilePart, result);
+      // imwrite("pred/image_out" + std::to_string(n) + ".jpg", tilePart);
     } catch(...) {
     }
   }
