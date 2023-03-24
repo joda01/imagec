@@ -14,6 +14,7 @@
 #include "ai_object_detection.h"
 #include <set>
 #include <string>
+#include <opencv2/core/cuda.hpp>
 #include <opencv2/core/mat.hpp>
 
 namespace ai {
@@ -37,6 +38,7 @@ ObjectDetector::ObjectDetector(const std::string &onnxNetPath, const std::vector
 ///
 auto ObjectDetector::forward(const cv::Mat &inputImage) -> DetectionResults
 {
+  // cv::cuda::setDevice(0);
   cv::Mat blob;
   cv::dnn::blobFromImage(inputImage, blob, 1. / 255., cv::Size(INPUT_WIDTH, INPUT_HEIGHT), cv::Scalar(), true, false,
                          CV_32F);

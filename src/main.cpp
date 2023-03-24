@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <algorithm>
+#include <exception>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -21,6 +22,7 @@
 ////
 #include <fstream>
 #include <iostream>
+#include "duration_count/duration_count.h"
 #include <opencv2/dnn.hpp>
 #include <opencv2/dnn/all_layers.hpp>
 #include <opencv2/opencv.hpp>
@@ -48,13 +50,17 @@ int main(int argc, char **argv)
 
   for(int n = 0; n < runs; n++) {
     try {
+      auto i        = DurationCount::start("open img");
       auto tilePart = TiffLoader::loadImageTile(imgName, 14, n, tilesToLoadPerRun);
+      DurationCount::stop(i);
+
       joda::pipeline::NucleusCounter counter("out", &reporting);
       counter.analyzeImage(joda::Image{.mImage = tilePart, .mName = "ctrl_" + std::to_string(n)});
-      float percent = (float) n / 200;
+      float percent = (float) n / runs;
       printProgress(percent);
       std::cout << " " << std::to_string(n) << "/" << std::to_string(runs) << std::endl;
-    } catch(...) {
+    } catch(const std::exception &ex) {
+      std::cout << ex.what() << std::endl;
     }
   }
 

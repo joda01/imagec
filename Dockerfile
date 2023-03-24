@@ -37,11 +37,11 @@ RUN wget https://github.com/Kitware/CMake/archive/refs/tags/v3.25.2.tar.gz -O cm
 RUN apt-get update && apt-get install -y pkg-config git
 
 
-RUN git clone -b 4.7.0 https://github.com/opencv/opencv.git &&\
-    cd ./opencv &&\
+RUN git clone -b 4.7.0 https://github.com/opencv/opencv.git
+RUN cd ./opencv &&\
     mkdir build &&\
     cd build &&\
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local .. &&\
+    cmake -DCMAKE_BUILD_TYPE=Release -DWITH_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local .. &&\
     make -j4 &&\
     make install
 
