@@ -32,6 +32,8 @@ using namespace dnn;
 
 int main(int argc, char **argv)
 {
+  TiffLoader::initLibTif();
+
   std::string imgName = "test/GMEV5minM1OT3_0001.btf";
 
   // convert("test/GMEV5minM1OT3_0001.btf", imgName);

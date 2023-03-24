@@ -26,6 +26,22 @@
 #include <libtiff/tiffio.h>
 #include <libtiff/tiffiop.h>
 
+void DummyHandler(const char *module, const char *fmt, va_list ap)
+{
+  // ignore errors and warnings (or handle them your own way)
+}
+
+///
+/// \brief      Init the lib tif to suppress warnings
+///             This method should be called once at top of main
+/// \author     Joachim Danmayr
+///
+void TiffLoader::initLibTif()
+{
+  TIFFSetWarningHandler(DummyHandler);
+  TIFFSetErrorHandler(DummyHandler);
+}
+
 ///
 /// \brief      Used to load (very) large TIFF images that cannot be loaded as a whole into RAM.
 ///             Prerequisite is that the TIF is saved as a tiled TIFF.
@@ -41,27 +57,27 @@
 ///             Example shows an image with size 4x7 tiles and nrOfTilesToRead = 9
 ///             Numbers in brackets are padded part of the image
 ///
-///             0     1     2     3     4     5     6     (7)   (8)
-///           0 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
-///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
-///             |     |     |     |     |     |     |     |     |     |
-///           1 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
-///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
-///             |     |     |     |     |     |     |     |     |     |
-///           2 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
-///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
-///             |     |     |     |     |     |     |     |     |     |
-///           3 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
-///             |3    |3    |3    |4    |4    |4    |5    |(5)  |(5)  |
-///             |     |     |     |     |     |     |     |     |     |
-///         (4) +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///
+///         (6) +-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ///             |(3)  |(3)  |(3)  |(4)  |(4)  |(4)  |(5)  |(5)  |(5)  |
 ///             |     |     |     |     |     |     |     |     |     |
 ///         (5) +-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ///             |(3)  |(3)  |(3)  |(4)  |(4)  |(4)  |(5)  |(5)  |(5)  |
 ///             |     |     |     |     |     |     |     |     |     |
-///             +-----+-----+-----+-----+-----+-----+-----+-----+-----+
-///
+///           4 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |3    |3    |3    |4    |4    |4    |5    |(5)  |(5)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           3 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           2 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           1 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           0 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             0     1     2     3     4     5     6     (7)   (8)
 ///
 /// \author     Joachim Danmayr
 /// \ref        http://www.simplesystems.org/libtiff//functions.html
@@ -73,7 +89,7 @@
 /// \param[in]  nrOfTilesToRead Nr of tiles which should form one composite image
 /// \return Loaded composite image
 ///
-cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int offset, int nrOfTilesToRead)
+cv::Mat TiffLoader::loadImageTile(const std::string &filename, unsigned short document, int offset, int nrOfTilesToRead)
 {
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
   if(tif) {
@@ -87,13 +103,10 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int
     //
     // Load TIF meta data
     //
-    unsigned int width, height, tilewidth, tileheight, tileOffset, tileByteCount;
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
-    TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tilewidth);
-    TIFFGetField(tif, TIFFTAG_TILELENGTH, &tileheight);
-    TIFFGetField(tif, TIFFTAG_TILEOFFSETS, &tileOffset);
-    TIFFGetField(tif, TIFFTAG_TILEBYTECOUNTS, &tileByteCount);
+    unsigned int width      = tif->tif_dir.td_imagewidth;
+    unsigned int height     = tif->tif_dir.td_imagelength;
+    unsigned int tilewidth  = tif->tif_dir.td_tilewidth;
+    unsigned int tileheight = tif->tif_dir.td_tilelength;
 
     //
     // Messy piece of code. But I realized that there are TIFFs where the TIFFTAG_TILELENGTH meta is wrong.
@@ -117,7 +130,7 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int
     uint64_t tilesPerLine   = std::sqrt(nrOfTilesToRead);
     uint64_t newImageWidth  = tilewidth * tilesPerLine;
     uint64_t newImageHeight = tileheight * tilesPerLine;
-    cv::Mat image           = cv::Mat(newImageWidth, newImageHeight, CV_8UC3);
+    cv::Mat image           = cv::Mat(newImageHeight, newImageWidth, CV_8UC3, 0.0);
 
     //
     // Now calculate the number of tiles in x and y direction based on the new image size.
@@ -149,7 +162,7 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int
     // Iterate through all tiles in X and Y directions, load the
     // Pixel values and write them to an openCV Matrix (Mat).
     //
-    for(int tileOffsetY = 0; tileOffsetY < tileNrY; tileOffsetY++) {
+    for(int tileOffsetY = 0; tileOffsetY < tileNrX; tileOffsetY++) {
       for(int tileOffsetX = 0; tileOffsetX < tileNrX; tileOffsetX++) {
         //
         // Calculate the x/y part of the tile to read
@@ -163,22 +176,20 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int
         uint64_t tileToReadX = tilePartX + (offsetX * tilewidth);
         uint64_t tileToReadY = tilePartY + (offsetY * tileheight);
 
-        if(tileToReadX > width || tileToReadY > height) {
-          // We reached the padding area -> Nothing to see here, just write a black image
-          for(uint x = 0; x < tilewidth; x++) {
-            for(uint y = 0; y < tileheight; y++) {
+        if((tileToReadX + tilewidth) >= width || (tileToReadY + tileheight) >= height) {
+          //  We reached the padding area -> Nothing to see here, just write a black tile
+          for(uint y = 0; y < tileheight; y++) {
+            for(uint x = 0; x < tilewidth; x++) {
               int xImg         = (x + tilePartX);
               int yImg         = (y + (tilewidth * (tileNrY - tileOffsetY - 1)));
               cv::Vec3b &pixel = image.at<cv::Vec3b>(
-                  cv::Point(yImg, xImg));    // Get the reference of the pixel to write of the opencv matrix
+                  cv::Point(xImg, yImg));    // Get the reference of the pixel to write of the opencv matrix
               pixel[0] = 0;
               pixel[1] = 0;
               pixel[2] = 0;
               // pixel[3] = TIFFGetA(TiffPixel);   // We ignore the alpha channel since we are using CV_8UC3
             }
           }
-
-          std::cout << "Padding area reached" << std::endl;
           break;
         }
 
@@ -208,8 +219,8 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int
         // image = image.t();
         // cv::flip(image, image, 0);
         //
-        for(uint x = 0; x < tilewidth; x++) {
-          for(uint y = 0; y < tileheight; y++) {
+        for(uint y = 0; y < tileheight; y++) {
+          for(uint x = 0; x < tilewidth; x++) {
             uint32 &TiffPixel =
                 raster[y * tilewidth + x];    // Read the current pixel of the TIF (see:
                                               // http://www.simplesystems.org/libtiff//functions/TIFFReadRGBATile.html))
@@ -217,12 +228,12 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, int document, int
             int yImg = (y + (tilewidth * (tileNrY - tileOffsetY - 1)));
 
             cv::Vec3b &pixel = image.at<cv::Vec3b>(
-                cv::Point(yImg, xImg));    // Get the reference of the pixel to write of the opencv matrix
+                cv::Point(xImg, yImg));    // Get the reference of the pixel to write of the opencv matrix
 
             pixel[0] = TIFFGetB(TiffPixel);    // Set the pixel values as BGRA
             pixel[1] = TIFFGetG(TiffPixel);
             pixel[2] = TIFFGetR(TiffPixel);
-            // pixel[3] = TIFFGetA(TiffPixel);   // We ignore the alpha channel since we are using CV_8UC3
+            //  pixel[3] = TIFFGetA(TiffPixel);   // We ignore the alpha channel since we are using CV_8UC3
           }
         }
         _TIFFfree(raster);    // Free the allocated memory before next round starts
@@ -285,7 +296,7 @@ cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
     for(uint x = 0; x < width; x++)
       for(uint y = 0; y < height; y++) {
         uint32 &TiffPixel = raster[y * width + x];                   // Read the current pixel of the TIF
-        cv::Vec4b &pixel  = image.at<cv::Vec4b>(cv::Point(y, x));    // Read the current pixel of the matrix
+        cv::Vec4b &pixel  = image.at<cv::Vec4b>(cv::Point(x, y));    // Read the current pixel of the matrix
         pixel[0]          = TIFFGetB(TiffPixel);                     // Set the pixel values as BGRA
         pixel[1]          = TIFFGetG(TiffPixel);
         pixel[2]          = TIFFGetR(TiffPixel);
