@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "image/image.hpp"
 #include "image_reader/tif/image_loader_tif.hpp"
 #include "image_reader/vsi/image_loader_vsi.hpp"
 #include <opencv2/core.hpp>
@@ -15,11 +16,11 @@
 #include <opencv4/opencv2/imgproc.hpp>
 
 #include "algorithms/rolling_ball/rolling_ball.hpp"
+#include "pipelines/nucleus_count/nucleus_count.hpp"
 
 ////
 #include <fstream>
 #include <iostream>
-#include "algorithms/ai_object_detection/ai_object_detection.h"
 #include <opencv2/dnn.hpp>
 #include <opencv2/dnn/all_layers.hpp>
 #include <opencv2/opencv.hpp>
@@ -30,6 +31,8 @@ using namespace dnn;
 
 ////
 
+void printProgress(double percentage);
+
 int main(int argc, char **argv)
 {
   TiffLoader::initLibTif();
@@ -38,31 +41,36 @@ int main(int argc, char **argv)
 
   // convert("test/GMEV5minM1OT3_0001.btf", imgName);
 
-  for(int n = 0; n < 200; n++) {
+  joda::reporting::Reporting reporting;
+  auto nrOfTIles        = TiffLoader::getNrOfTiles(imgName, 14);
+  int tilesToLoadPerRun = 36;
+  int runs              = nrOfTIles / tilesToLoadPerRun;
+
+  for(int n = 0; n < runs; n++) {
     try {
-      auto tilePart = TiffLoader::loadImageTile(imgName, 14, n, 36);
-      tilePart *= 10;
-      cv::imwrite("out/bigtiff" + std::to_string(n) + ".jpg", tilePart);
-      // ai::ObjectDetector obj("/workspaces/open-bio-image-processor/test/best.onnx", {"nuclues", "nucleus_no_focus"});
-      // auto result = obj.forward(tilePart);
-      // obj.paintBoundingBox(tilePart, result);
-      // imwrite("pred/image_out" + std::to_string(n) + ".jpg", tilePart);
+      auto tilePart = TiffLoader::loadImageTile(imgName, 14, n, tilesToLoadPerRun);
+      joda::pipeline::NucleusCounter counter("out", &reporting);
+      counter.analyzeImage(joda::Image{.mImage = tilePart, .mName = "ctrl_" + std::to_string(n)});
+      float percent = (float) n / 200;
+      printProgress(percent);
+      std::cout << " " << std::to_string(n) << "/" << std::to_string(runs) << std::endl;
     } catch(...) {
     }
   }
 
-  return 0;
-  for(int n = 0; n < 80; n++) {
-    auto tilePart = TiffLoader::loadImageTile(imgName, 14, n);
-    tilePart *= 9;
-    cv::imwrite("out/bigtiff" + std::to_string(n) + ".jpg", tilePart);
-    ai::ObjectDetector obj("/workspaces/open-bio-image-processor/test/best.onnx", {"nuclues", "nucleus_no_focus"});
-    auto result = obj.forward(tilePart);
-    obj.paintBoundingBox(tilePart, result);
-    imwrite("pred/image_out" + std::to_string(n) + ".jpg", tilePart);
-  }
-
-  // TiffLoader::loadEntireImage(imgName, 0);
+  std::cout << "Found nuclues " << std::to_string(reporting.counter) << std::endl;
 
   return 0;
+}
+
+#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+#define PBWIDTH 60
+
+void printProgress(double percentage)
+{
+  int val  = (int) (percentage * 100);
+  int lpad = (int) (percentage * PBWIDTH);
+  int rpad = PBWIDTH - lpad;
+  printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+  fflush(stdout);
 }

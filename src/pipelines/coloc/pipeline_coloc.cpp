@@ -15,8 +15,4 @@
 
 namespace joda::pipeline {
 
-PipelineColoc::PipelineColoc()
-{
-}
-
 }    // namespace joda::pipeline

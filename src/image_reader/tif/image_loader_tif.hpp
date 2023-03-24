@@ -11,5 +11,6 @@ public:
   static void initLibTif();
   static cv::Mat loadImageTile(const std::string &filename, unsigned short document, int offset,
                                int nrOfTilesToRead = 100);
+  static uint32_t getNrOfTiles(const std::string &filename, unsigned short document);
   static cv::Mat loadEntireImage(const std::string &filename, int directory);
 };

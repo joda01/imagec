@@ -26,6 +26,7 @@ using ClassId    = int;
 
 struct Detection
 {
+  uint32_t index;
   Boxes box;
   Confidence confidence;
   ClassId classId;

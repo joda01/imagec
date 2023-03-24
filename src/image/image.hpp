@@ -25,40 +25,9 @@ namespace joda {
 /// \author     Joachim Danmayr
 /// \brief      Multi channel image
 ///
-class Image
+struct Image
 {
-public:
-  /////////////////////////////////////////////////////
-  static constexpr uint32_t TYPE_MASK = 0xFF000000;
-
-  /////////////////////////////////////////////////////
-  enum class Type : uint32_t
-  {
-    UNDEFINED  = 0x00000000,
-    EV         = 0x01000000,
-    CELL       = 0x02000000,
-    NUCLUES    = 0x03000000,
-    BACKGROUND = 0x04000000,
-  };
-
-  enum class Channel : uint32_t
-  {
-    CELL       = (uint32_t) Type::CELL,
-    NUCLUES    = (uint32_t) Type::NUCLUES,
-    BACKGROUND = (uint32_t) Type::BACKGROUND,
-    EV_DAPI    = (uint32_t) Type::EV | 1,
-    EV_CY3     = (uint32_t) Type::EV | 2,
-    EV_CY5     = (uint32_t) Type::EV | 3,
-  };
-
-  /////////////////////////////////////////////////////
-  Image();
-  void addImage(Channel ch, std::shared_ptr<cv::Mat> img);
-  auto getImage(Channel ch) -> std::shared_ptr<cv::Mat>;
-  auto getAllOfType(Type t) -> std::map<Channel, std::shared_ptr<cv::Mat>>;
-
-private:
-  /////////////////////////////////////////////////////
-  std::map<Type, std::map<Channel, std::shared_ptr<cv::Mat>>> mChannels;
+  cv::Mat mImage;
+  std::string mName;
 };
 }    // namespace joda

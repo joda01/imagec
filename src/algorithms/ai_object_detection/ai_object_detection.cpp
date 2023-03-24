@@ -140,9 +140,11 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const std::vector
   // Remove all elements which where suppressed by the NMS algoeithm
   //
   DetectionResults result;
+  uint32_t index = 0;
   for(int n = 0; n < confidences.size(); n++) {
     if(keptIndexesSet.count(n) == 1) {
-      result.push_back({.box = boxes[n], .confidence = confidences[n], .classId = classIds[n]});
+      result.push_back({.index = index, .box = boxes[n], .confidence = confidences[n], .classId = classIds[n]});
+      index++;
     }
   }
 

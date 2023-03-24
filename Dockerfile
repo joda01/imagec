@@ -1,9 +1,7 @@
-#-------------------------------------------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
 
-FROM mcr.microsoft.com/vscode/devcontainers/base:0-debian-9
+ARG DEBIAN_VERSION="11.6-slim"
+
+FROM debian:$DEBIAN_VERSION AS live
 
 # Avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
@@ -36,6 +34,8 @@ RUN wget https://github.com/Kitware/CMake/archive/refs/tags/v3.25.2.tar.gz -O cm
     cd .. && \
     rm -rf CMake*
 
+RUN apt-get update && apt-get install -y pkg-config git
+
 
 RUN git clone -b 4.7.0 https://github.com/opencv/opencv.git &&\
     cd ./opencv &&\
@@ -46,7 +46,6 @@ RUN git clone -b 4.7.0 https://github.com/opencv/opencv.git &&\
     make install
 
 
-RUN apt-get update && apt-get install -y pkg-config
 
 #
 # Catch2 unit test framework
@@ -58,7 +57,7 @@ RUN git clone --recursive -b v3.3.1 --depth 1 https://github.com/catchorg/Catch2
  cd / &&\
  rm -rf /catch2
 
-RUN sudo apt install -y default-jre
+RUN apt install -y default-jre
 
 
 COPY lib/libtiff-4.1 /libtiff-4.1
@@ -69,5 +68,16 @@ RUN cp -r /libtiff-4.1/libtiff.a  /usr/local/lib/libtiff.a
 RUN cp -r /libtiff-4.1/libz.a /usr/local/lib/libz.a
 RUN cp -r /libtiff-4.1/libjpeg.a /usr/local/lib/libjpeg.a
 
-# Switch back to dialog for any ad-hoc use of apt-get
+#
+# LLVM toolchain
+#
+RUN echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-15 main" >> /etc/apt/sources.list &&\
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key| apt-key add - &&\
+    apt-get update && apt-get install -y clang-format-15 clangd-15 &&\
+    ln -s /usr/bin/clangd-15 /usr/bin/clangd &&\
+    ln -s /usr/bin/clang-format-15 /usr/bin/clang-format
+
+
+RUN useradd $USERNAME
+
 ENV DEBIAN_FRONTEND=dialog

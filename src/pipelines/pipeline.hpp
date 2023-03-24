@@ -14,6 +14,7 @@
 #pragma once
 
 #include "image/image.hpp"
+#include "reporting/reporting.h"
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
 
@@ -28,6 +29,18 @@ class Pipeline
 {
 public:
   /////////////////////////////////////////////////////
-  virtual void analyseImage(joda::Image &img) = 0;
+  Pipeline(const std::string &outputFolder, joda::reporting::Reporting *);
+
+  virtual void analyzeImage(const joda::Image &img) = 0;
+
+protected:
+  /////////////////////////////////////////////////////
+  auto getOutputFolder() const -> const std::string &;
+  auto reporting() -> joda::reporting::Reporting *;
+
+private:
+  /////////////////////////////////////////////////////
+  std::string mOutputFolder;
+  joda::reporting::Reporting *mReporting;
 };
 }    // namespace joda::pipeline

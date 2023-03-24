@@ -12,6 +12,33 @@
 ///
 
 #include "pipeline.hpp"
+#include "reporting/reporting.h"
 
 namespace joda::pipeline {
+
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+/// \param[in]  outputFolder  Output folder of the results and control images
+///
+Pipeline::Pipeline(const std::string &outputFolder, joda::reporting::Reporting *reporting) :
+    mOutputFolder(outputFolder), mReporting(reporting)
+{
 }
+
+///
+/// \brief      Returns the output folder for the results and control images
+/// \author     Joachim Danmayr
+/// \return     folder
+///
+auto Pipeline::getOutputFolder() const -> const std::string &
+{
+  return mOutputFolder;
+}
+
+auto Pipeline::reporting() -> joda::reporting::Reporting *
+{
+  return mReporting;
+}
+
+}    // namespace joda::pipeline

@@ -20,6 +20,6 @@ class PipelineColoc : public Pipeline
 {
 public:
   /////////////////////////////////////////////////////
-  PipelineColoc();
+  using Pipeline::Pipeline;
 };
 }    // namespace joda::pipeline

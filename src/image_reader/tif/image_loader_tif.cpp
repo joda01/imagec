@@ -43,6 +43,40 @@ void TiffLoader::initLibTif()
 }
 
 ///
+/// \brief      Returns the number od tiles of an image
+/// \author     Joachim Danmayr
+/// \param[in]  filename
+/// \param[in]  document
+/// \return     Nr. of tiles
+///
+uint32_t TiffLoader::getNrOfTiles(const std::string &filename, unsigned short document)
+{
+  TIFF *tif = TIFFOpen(filename.c_str(), "r");
+  if(tif) {
+    auto nrOfDirectories = TIFFNumberOfDirectories(tif);
+    if(document >= nrOfDirectories) {
+      throw std::runtime_error("Nr. of directories exceeded!");
+    }
+    // Set the directory to load the image from this directory
+    TIFFSetDirectory(tif, document);
+
+    unsigned int width      = tif->tif_dir.td_imagewidth;
+    unsigned int height     = tif->tif_dir.td_imagelength;
+    unsigned int tilewidth  = tif->tif_dir.td_tilewidth;
+    unsigned int tileheight = tif->tif_dir.td_tilelength;
+
+    uint64_t tileArea  = tilewidth * tileheight;
+    uint64_t imageArea = width * height;
+
+    TIFFClose(tif);
+
+    return imageArea / tileArea;
+  }
+
+  return 0;
+}
+
+///
 /// \brief      Used to load (very) large TIFF images that cannot be loaded as a whole into RAM.
 ///             Prerequisite is that the TIF is saved as a tiled TIFF.
 ///             With this method it is possible to load tile by tile, and it is possible to load
