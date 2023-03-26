@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
   // convert("test/GMEV5minM1OT3_0001.btf", imgName);
 
-  joda::reporting::Reporting reporting;
+  joda::reporting::Table reporting;
   auto nrOfTIles        = TiffLoader::getNrOfTiles(imgName, 14);
   int tilesToLoadPerRun = 36;
   int runs              = nrOfTIles / tilesToLoadPerRun;
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
     }
   }
 
-  std::cout << "Found nuclues " << std::to_string(reporting.counter) << std::endl;
+  // std::cout << "Found nuclues " << std::to_string(reporting.counter) << std::endl;
 
   return 0;
 }

@@ -29,18 +29,18 @@ class Pipeline
 {
 public:
   /////////////////////////////////////////////////////
-  Pipeline(const std::string &outputFolder, joda::reporting::Reporting *);
+  Pipeline(const std::string &outputFolder, joda::reporting::Table *);
 
   virtual void analyzeImage(const joda::Image &img) = 0;
 
 protected:
   /////////////////////////////////////////////////////
   auto getOutputFolder() const -> const std::string &;
-  auto reporting() -> joda::reporting::Reporting *;
+  auto reporting() -> joda::reporting::Table *;
 
 private:
   /////////////////////////////////////////////////////
   std::string mOutputFolder;
-  joda::reporting::Reporting *mReporting;
+  joda::reporting::Table *mReporting;
 };
 }    // namespace joda::pipeline

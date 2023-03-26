@@ -59,14 +59,14 @@ void NucleusCounter::writeReport(const ai::DetectionResults &prediction, const s
     idx++;
   }
   std::lock_guard<std::mutex> lockGuard(mWriteMutex);
-  reporting()->counter += idx;
+  // reporting()->counter += idx;
   std::string fileName = getOutputFolder() + "/" + imgName + ".csv";
   std::ofstream detailedReport;
   detailedReport.open(fileName);
   detailedReport << detailedReportBuffer;
   detailedReport.close();
 
-  reporting()->counter++;
+  // reporting()->counter++;
 }
 
 }    // namespace joda::pipeline

@@ -21,7 +21,7 @@ namespace joda::pipeline {
 /// \author     Joachim Danmayr
 /// \param[in]  outputFolder  Output folder of the results and control images
 ///
-Pipeline::Pipeline(const std::string &outputFolder, joda::reporting::Reporting *reporting) :
+Pipeline::Pipeline(const std::string &outputFolder, joda::reporting::Table *reporting) :
     mOutputFolder(outputFolder), mReporting(reporting)
 {
 }
@@ -36,7 +36,7 @@ auto Pipeline::getOutputFolder() const -> const std::string &
   return mOutputFolder;
 }
 
-auto Pipeline::reporting() -> joda::reporting::Reporting *
+auto Pipeline::reporting() -> joda::reporting::Table *
 {
   return mReporting;
 }
