@@ -39,7 +39,6 @@ void NucleusCounter::analyzeImage(const joda::Image &img)
   i = DurationCount::start("ctrl");
   obj.paintBoundingBox(enhancedContrast, result);
   cv::imwrite(getOutputFolder() + "/" + img.mName + ".jpg", enhancedContrast);
-  writeReport(result, img.mName);
   DurationCount::stop(i);
 }
 
@@ -50,23 +49,22 @@ void NucleusCounter::analyzeImage(const joda::Image &img)
 ///
 void NucleusCounter::writeReport(const ai::DetectionResults &prediction, const std::string imgName)
 {
-  std::string detailedReportBuffer = "Index\tClass ID\tProbability\n";
-  int idx                          = 0;
+  reporting::Table imageReport;
+
+  imageReport.setColumnNames({{0, "Index"}, {1, "Class"}, {2, "Probability"}});
+
+  int nrOfNucleus = 0;
   for(const auto &pred : prediction) {
-    detailedReportBuffer += std::to_string(pred.index) + "\t";
-    detailedReportBuffer += std::to_string(pred.classId) + "\t";
-    detailedReportBuffer += std::to_string(pred.confidence) + "\n";
-    idx++;
+    imageReport.appendValueToColumn(0, pred.index);
+    imageReport.appendValueToColumn(1, pred.classId);
+    imageReport.appendValueToColumn(2, pred.confidence);
+    nrOfNucleus++;
   }
   std::lock_guard<std::mutex> lockGuard(mWriteMutex);
-  // reporting()->counter += idx;
   std::string fileName = getOutputFolder() + "/" + imgName + ".csv";
-  std::ofstream detailedReport;
-  detailedReport.open(fileName);
-  detailedReport << detailedReportBuffer;
-  detailedReport.close();
+  imageReport.flushReportToFile(fileName);
 
-  // reporting()->counter++;
+  reporting()->appendValueToColumn(0, nrOfNucleus);
 }
 
 }    // namespace joda::pipeline
