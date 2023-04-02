@@ -32,7 +32,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  void writeReport(const ai::DetectionResults &, const std::string imgName);
+  void writeReport(const ai::DetectionResults &, const std::string &imgName);
   std::mutex mWriteMutex;
 };
 

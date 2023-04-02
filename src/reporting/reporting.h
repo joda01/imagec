@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <map>
 #include <string>
@@ -36,14 +37,11 @@ class Statistics
 {
 public:
   /////////////////////////////////////////////////////
-  static constexpr int NR_OF_VALUE = 6;
+  static constexpr int NR_OF_VALUE = 5;
 
   /////////////////////////////////////////////////////
   void addValue(float val)
   {
-    mSum += val;
-    mQuadratSum = mQuadratSum + val * val;
-
     if(mNr == 0) {
       mMin = val;
       mMax = val;
@@ -52,17 +50,18 @@ public:
       mMax = std::max(mMax, val);
     }
     mNr++;
+
+    mSum += val;
     mMean = mSum / mNr;
   }
 
   void reset()
   {
-    mNr         = 0;
-    mSum        = 0;
-    mQuadratSum = 0;
-    mMin        = 0;
-    mMax        = 0;
-    mMean       = 0;
+    mNr   = 0;
+    mSum  = 0;
+    mMin  = 0;
+    mMax  = 0;
+    mMean = 0;
   }
 
   uint64_t getNr() const
@@ -75,11 +74,6 @@ public:
     return mSum;
   }
 
-  float getQuadratSum() const
-  {
-    return mQuadratSum;
-  }
-
   float getMin() const
   {
     return mMin;
@@ -90,24 +84,28 @@ public:
     return mMax;
   }
 
+  float getMean() const
+  {
+    return mMean;
+  }
+
   static auto getStatisitcsTitle() -> const std::array<std::string, NR_OF_VALUE>
   {
-    return {"Nr", "Sum", "Sum²", "Min", "Max", "Mean"};
+    return {"Nr", "Sum", "Min", "Max", "Mean"};
   }
 
   auto getStatisitcs() const -> const std::array<float, NR_OF_VALUE>
   {
-    return {(float) mNr, mSum, mQuadratSum, mMin, mMax, mMean};
+    return {(float) mNr, mSum, mMin, mMax, mMean};
   }
 
 private:
   /////////////////////////////////////////////////////
-  uint64_t mNr      = 0;
-  float mSum        = 0;
-  float mQuadratSum = 0;
-  float mMin        = 0;
-  float mMax        = 0;
-  float mMean       = 0;
+  uint64_t mNr = 0;
+  float mSum   = 0;
+  float mMin   = 0;
+  float mMax   = 0;
+  float mMean  = 0;
 };
 
 ///
@@ -142,8 +140,9 @@ public:
 
   /////////////////////////////////////////////////////
   void setColumnNames(const std::map<uint64_t, std::string_view> &&);
-  void setRowName(uint64_t rowIdx, std::string_view);
-  void appendValueToColumn(uint64_t colIdx, float value);
+  void setRowName(uint64_t rowIdx, const std::string &);
+  auto appendValueToColumn(uint64_t colIdx, float value) -> int64_t;
+  auto appendValueToColumn(const std::string &rowName, uint64_t colIdx, float value) -> int64_t;
   auto getTable() const -> const Table_t &;
   auto getStatisitcs() const -> const std::map<uint64_t, Statistics> &;
   void flushReportToFile(std::string_view fileName) const;
@@ -154,7 +153,7 @@ private:
   /////////////////////////////////////////////////////
   Table_t mTable;
   std::map<uint64_t, Statistics> mStatisitcs;
-  std::map<uint64_t, std::string_view> mRowNames;
+  std::map<uint64_t, std::string> mRowNames;
   std::map<uint64_t, std::string_view> mColumnName;
   int64_t mRows = 0;
 };

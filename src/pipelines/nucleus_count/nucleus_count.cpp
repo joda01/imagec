@@ -15,6 +15,7 @@
 #include <fstream>
 #include <iostream>
 #include <mutex>
+#include <string_view>
 #include "duration_count/duration_count.h"
 
 namespace joda::pipeline {
@@ -47,24 +48,28 @@ void NucleusCounter::analyzeImage(const joda::Image &img)
 /// \author     Joachim Danmayr
 /// \param[in]  Outcome of the AI prediction
 ///
-void NucleusCounter::writeReport(const ai::DetectionResults &prediction, const std::string imgName)
+void NucleusCounter::writeReport(const ai::DetectionResults &prediction, const std::string &imgName)
 {
   reporting::Table imageReport;
 
-  imageReport.setColumnNames({{0, "Index"}, {1, "Class"}, {2, "Probability"}});
+  imageReport.setColumnNames({{0, "Index"}, {1, "Class"}, {2, "Probability [0-1]"}, {3, "Diameter [px]"}});
 
   int nrOfNucleus = 0;
   for(const auto &pred : prediction) {
+    float diameter = float(pred.box.height + pred.box.width) / 2.0f;
     imageReport.appendValueToColumn(0, pred.index);
     imageReport.appendValueToColumn(1, pred.classId);
     imageReport.appendValueToColumn(2, pred.confidence);
+    imageReport.appendValueToColumn(3, diameter);
     nrOfNucleus++;
   }
   std::lock_guard<std::mutex> lockGuard(mWriteMutex);
-  std::string fileName = getOutputFolder() + "/" + imgName + ".csv";
+  std::string fileName = getOutputFolder() + "/" + std::string(imgName) + ".csv";
   imageReport.flushReportToFile(fileName);
 
-  reporting()->appendValueToColumn(0, nrOfNucleus);
+  reporting()->setColumnNames({{0, "Count"}, {1, "Diameter [px]"}});
+  reporting()->appendValueToColumn(imgName, 0, imageReport.getStatisitcs().at(0).getNr());
+  reporting()->appendValueToColumn(imgName, 1, imageReport.getStatisitcs().at(3).getMean());
 }
 
 }    // namespace joda::pipeline

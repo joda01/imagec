@@ -7,15 +7,25 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <variant>
 
 namespace joda::reporting {
 
-void Table::appendValueToColumn(uint64_t colIdx, float value)
+int64_t Table::appendValueToColumn(uint64_t colIdx, float value)
 {
-  mTable[colIdx][mTable[colIdx].size()] = Row{.value = value};
+  auto newIndex            = mTable[colIdx].size();
+  mTable[colIdx][newIndex] = Row{.value = value};
   mStatisitcs[colIdx].addValue(value);
-  mRows = std::max(mRows, (int64_t) mTable[colIdx].size());
+  mRows = std::max(mRows, (int64_t) newIndex + 1);
+  return newIndex;
+}
+
+int64_t Table::appendValueToColumn(const std::string &rowName, uint64_t colIdx, float value)
+{
+  auto newIndex = appendValueToColumn(colIdx, value);
+  setRowName(newIndex, rowName);
+  return newIndex;
 }
 
 auto Table::getNrOfColumns() const -> int64_t
@@ -37,9 +47,9 @@ auto Table::getStatisitcs() const -> const std::map<uint64_t, Statistics> &
   return mStatisitcs;
 }
 
-void Table::setRowName(uint64_t rowIdx, std::string_view name)
+void Table::setRowName(uint64_t rowIdx, const std::string &name)
 {
-  mRowNames[rowIdx] = name;
+  mRowNames.emplace(rowIdx, name);
 }
 
 void Table::setColumnNames(const std::map<uint64_t, std::string_view> &&colNames)
@@ -108,6 +118,22 @@ void Table::flushReportToFile(std::string_view fileName) const
     rowBuffer += "\n";
     outFile << rowBuffer;
   }
+
+  //
+  // Write separator
+  //
+  rowBuffer = "";
+  for(int64_t colIdx = 0; colIdx < columns; colIdx++) {
+    if(0 == colIdx) {
+      rowBuffer += CSV_SEPARATOR;
+    }
+    rowBuffer += std::string("---") + CSV_SEPARATOR;
+  }
+  if(rowBuffer.size() > 0) {
+    rowBuffer.pop_back();    // Remove trailing CSV_SEPARATOR
+  }
+  rowBuffer += "\n";
+  outFile << rowBuffer;
 
   //
   // Write table statistircs

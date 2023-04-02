@@ -6,22 +6,29 @@
 SCENARIO("Adding three values to a table", "[table]")
 {
   joda::reporting::Table table;
-  table.appendValueToColumn(0, 2);
-  table.appendValueToColumn(0, 3);
-  table.appendValueToColumn(0, 4);
+  table.appendValueToColumn(0, 0);
+  table.appendValueToColumn(0, 382);
+  table.appendValueToColumn(0, 527);
+  table.appendValueToColumn(0, 474);
+  table.appendValueToColumn(0, 460);
+  table.appendValueToColumn(0, 498);
+  table.appendValueToColumn(0, 428);
+  table.appendValueToColumn(0, 889);
+  table.appendValueToColumn(0, 798);
+  table.appendValueToColumn(0, 403);
 
   table.appendValueToColumn(1, 4);
 
-  CHECK(2 == table.getTable().at(0).at(0).value);
-  CHECK(3 == table.getTable().at(0).at(1).value);
-  CHECK(4 == table.getTable().at(0).at(2).value);
+  CHECK(0 == table.getTable().at(0).at(0).value);
+  CHECK(382 == table.getTable().at(0).at(1).value);
+  CHECK(527 == table.getTable().at(0).at(2).value);
 
-  CHECK(3 == table.getStatisitcs().at(0).getNr());
-  CHECK(9 == table.getStatisitcs().at(0).getSum());
-  CHECK(29 == table.getStatisitcs().at(0).getQuadratSum());
-  CHECK(2 == table.getStatisitcs().at(0).getMin());
-  CHECK(4 == table.getStatisitcs().at(0).getMax());
+  CHECK(10 == table.getStatisitcs().at(0).getNr());
+  CHECK(4859 == table.getStatisitcs().at(0).getSum());
+  CHECK(0 == table.getStatisitcs().at(0).getMin());
+  CHECK(889 == table.getStatisitcs().at(0).getMax());
+  CHECK(485.9 == Catch::Approx(table.getStatisitcs().at(0).getMean()).epsilon(0.5));
 
-  CHECK(table.getNrOfRows() == 3);
+  CHECK(table.getNrOfRows() == 10);
   CHECK(table.getNrOfColumns() == 2);
 }

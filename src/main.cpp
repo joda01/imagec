@@ -47,7 +47,7 @@ int main(int argc, char **argv)
   auto nrOfTIles        = TiffLoader::getNrOfTiles(imgName, 14);
   int tilesToLoadPerRun = 36;
   int runs              = nrOfTIles / tilesToLoadPerRun;
-
+  runs                  = 10;
   for(int n = 0; n < runs; n++) {
     try {
       auto i        = DurationCount::start("open img");
@@ -56,13 +56,15 @@ int main(int argc, char **argv)
 
       joda::pipeline::NucleusCounter counter("out", &reporting);
       counter.analyzeImage(joda::Image{.mImage = tilePart, .mName = "ctrl_" + std::to_string(n)});
-      float percent = (float) n / runs;
+      float percent = (float) (n + 1) / runs;
       printProgress(percent);
-      std::cout << " " << std::to_string(n) << "/" << std::to_string(runs) << std::endl;
+      std::cout << " " << std::to_string(n + 1) << "/" << std::to_string(runs) << std::endl;
     } catch(const std::exception &ex) {
       std::cout << ex.what() << std::endl;
     }
   }
+
+  reporting.flushReportToFile("out/report.csv");
 
   // std::cout << "Found nuclues " << std::to_string(reporting.counter) << std::endl;
 
