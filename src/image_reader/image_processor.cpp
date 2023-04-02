@@ -67,7 +67,7 @@ void ImageProcessor::start()
       analyze(entireImage, mAllOverReporting, outFolder, filename, -1);
     }
     cnt++;
-    printProgress(Progress{0, mListOfImagePaths.size()}, Progress{100, 100});
+    printProgress(Progress{cnt, mListOfImagePaths.size()}, Progress{100, 100});
   }
 
   mAllOverReporting.flushReportToFile(outFolder + "/report.csv");
