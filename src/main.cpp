@@ -2,30 +2,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <algorithm>
+#include <chrono>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+#include "algorithms/rolling_ball/rolling_ball.hpp"
+#include "duration_count/duration_count.h"
 #include "image/image.hpp"
+#include "image_reader/image_processor.hpp"
 #include "image_reader/tif/image_loader_tif.hpp"
 #include "image_reader/vsi/image_loader_vsi.hpp"
+#include "pipelines/nucleus_count/nucleus_count.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include <opencv2/dnn/dnn.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv4/opencv2/highgui.hpp>
-#include <opencv4/opencv2/imgproc.hpp>
-
-#include "algorithms/rolling_ball/rolling_ball.hpp"
-#include "pipelines/nucleus_count/nucleus_count.hpp"
-
-////
-#include <fstream>
-#include <iostream>
-#include "duration_count/duration_count.h"
 #include <opencv2/dnn.hpp>
 #include <opencv2/dnn/all_layers.hpp>
+#include <opencv2/dnn/dnn.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/opencv.hpp>
+#include <opencv4/opencv2/highgui.hpp>
+#include <opencv4/opencv2/imgproc.hpp>
 
 using namespace std;
 using namespace cv;
@@ -39,46 +37,11 @@ int main(int argc, char **argv)
 {
   TiffLoader::initLibTif();
 
-  std::string imgName = "test/GMEV5minM1OT3_0001.btf";
-
-  // convert("test/GMEV5minM1OT3_0001.btf", imgName);
-
-  joda::reporting::Table reporting;
-  auto nrOfTIles        = TiffLoader::getNrOfTiles(imgName, 14);
-  int tilesToLoadPerRun = 36;
-  int runs              = nrOfTIles / tilesToLoadPerRun;
-  runs                  = 10;
-  for(int n = 0; n < runs; n++) {
-    try {
-      auto i        = DurationCount::start("open img");
-      auto tilePart = TiffLoader::loadImageTile(imgName, 14, n, tilesToLoadPerRun);
-      DurationCount::stop(i);
-
-      joda::pipeline::NucleusCounter counter("out", &reporting);
-      counter.analyzeImage(joda::Image{.mImage = tilePart, .mName = "ctrl_" + std::to_string(n)});
-      float percent = (float) (n + 1) / runs;
-      printProgress(percent);
-      std::cout << " " << std::to_string(n + 1) << "/" << std::to_string(runs) << std::endl;
-    } catch(const std::exception &ex) {
-      std::cout << ex.what() << std::endl;
-    }
-  }
-
-  reporting.flushReportToFile("out/report.csv");
+  std::string imageName = "test/GMEV5minM1OT3_0001.btf";
+  ImageProcessor pc("out", {imageName});
+  pc.start();
 
   // std::cout << "Found nuclues " << std::to_string(reporting.counter) << std::endl;
 
   return 0;
-}
-
-#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
-#define PBWIDTH 60
-
-void printProgress(double percentage)
-{
-  int val  = (int) (percentage * 100);
-  int lpad = (int) (percentage * PBWIDTH);
-  int rpad = PBWIDTH - lpad;
-  printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
-  fflush(stdout);
 }

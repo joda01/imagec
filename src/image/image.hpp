@@ -15,6 +15,7 @@
 
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 #include <opencv2/core/mat.hpp>
 
@@ -29,5 +30,14 @@ struct Image
 {
   cv::Mat mImage;
   std::string mName;
+  int64_t mTileNr = -1;
+
+  auto getUniqueName() const -> std::string
+  {
+    if(mTileNr >= 0) {
+      return mName + "_" + std::to_string(mTileNr);
+    }
+    return mName;
+  }
 };
 }    // namespace joda

@@ -14,6 +14,10 @@ namespace joda::reporting {
 
 int64_t Table::appendValueToColumn(uint64_t colIdx, float value)
 {
+  if(!mTable.contains(colIdx)) {
+    mTable.emplace(colIdx, Row_t{});
+  }
+
   auto newIndex            = mTable[colIdx].size();
   mTable[colIdx][newIndex] = Row{.value = value};
   mStatisitcs[colIdx].addValue(value);

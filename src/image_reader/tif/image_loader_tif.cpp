@@ -43,37 +43,38 @@ void TiffLoader::initLibTif()
 }
 
 ///
-/// \brief      Returns the number od tiles of an image
+/// \brief      Returns the number of tiles of an image
 /// \author     Joachim Danmayr
 /// \param[in]  filename
 /// \param[in]  document
 /// \return     Nr. of tiles
 ///
-uint32_t TiffLoader::getNrOfTiles(const std::string &filename, unsigned short document)
+auto TiffLoader::getImageProperties(const std::string &filename, uint16_t directory) -> ImageProperties
 {
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
   if(tif) {
     auto nrOfDirectories = TIFFNumberOfDirectories(tif);
-    if(document >= nrOfDirectories) {
-      throw std::runtime_error("Nr. of directories exceeded!");
+    if(directory >= nrOfDirectories) {
+      throw std::runtime_error("Nr. of directories exceeded! Maximum is: " + std::to_string(nrOfDirectories) + ".");
     }
     // Set the directory to load the image from this directory
-    TIFFSetDirectory(tif, document);
+    TIFFSetDirectory(tif, directory);
 
     unsigned int width      = tif->tif_dir.td_imagewidth;
     unsigned int height     = tif->tif_dir.td_imagelength;
     unsigned int tilewidth  = tif->tif_dir.td_tilewidth;
     unsigned int tileheight = tif->tif_dir.td_tilelength;
 
-    uint64_t tileArea  = tilewidth * tileheight;
-    uint64_t imageArea = width * height;
-
+    int64_t tileSize  = tilewidth * tileheight;
+    int64_t imageSize = width * height;
+    int64_t nrOfTiles = imageSize / tileSize;
     TIFFClose(tif);
 
-    return imageArea / tileArea;
+    return ImageProperties{
+        .imageSize = imageSize, .tileSize = tileSize, .nrOfTiles = nrOfTiles, .nrOfDocuments = nrOfDirectories};
   }
 
-  return 0;
+  return ImageProperties{};
 }
 
 ///
@@ -117,22 +118,22 @@ uint32_t TiffLoader::getNrOfTiles(const std::string &filename, unsigned short do
 /// \ref        http://www.simplesystems.org/libtiff//functions.html
 ///
 /// \param[in]  filename  Name of the file to load
-/// \param[in]  document  If it is multi document tiff, the index of
+/// \param[in]  directory  If it is multi document tiff, the index of
 ///                       the document which should be loaded
 /// \param[in]  offset    Composite tile number to load
 /// \param[in]  nrOfTilesToRead Nr of tiles which should form one composite image
 /// \return Loaded composite image
 ///
-cv::Mat TiffLoader::loadImageTile(const std::string &filename, unsigned short document, int offset, int nrOfTilesToRead)
+cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t directory, int offset, int nrOfTilesToRead)
 {
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
   if(tif) {
     auto nrOfDirectories = TIFFNumberOfDirectories(tif);
-    if(document >= nrOfDirectories) {
+    if(directory >= nrOfDirectories) {
       throw std::runtime_error("Nr. of directories exceeded!");
     }
     // Set the directory to load the image from this directory
-    TIFFSetDirectory(tif, document);
+    TIFFSetDirectory(tif, directory);
 
     //
     // Load TIF meta data
@@ -278,7 +279,7 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, unsigned short do
     TIFFClose(tif);
 
     // Convert to a three channel float image, because we need this format for AI
-    cv::Mat imageOut = cv::Mat(newImageWidth, newImageHeight, CV_32FC3);
+    cv::Mat imageOut = cv::Mat(newImageHeight, newImageWidth, CV_32FC3);
     image.convertTo(imageOut, CV_32FC3);
     return imageOut;
   } else {
@@ -299,14 +300,12 @@ cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
 {
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
   if(tif) {
-    unsigned int width = 0, height = 0, directoryNr = 0;
-
     // Get the size of the tiff
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
+    unsigned int width  = tif->tif_dir.td_imagewidth;
+    unsigned int height = tif->tif_dir.td_imagelength;
 
     // Access wanted directory
-    directoryNr = TIFFNumberOfDirectories(tif);
+    auto directoryNr = TIFFNumberOfDirectories(tif);
     if(directory >= directoryNr) {
       throw std::runtime_error("Directory index too large! Image has only " + std::to_string(directoryNr) +
                                " directrories.");
@@ -325,7 +324,7 @@ cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
 
     // Create a new matrix of w x h with 8 bits per channel and 4 channels (RGBA)
     // and itterate through all the pixels of the tif and assign to the opencv matrix
-    cv::Mat image = cv::Mat(width, height, CV_8UC4);
+    cv::Mat image = cv::Mat(height, width, CV_8UC3, 0.0);
 
     for(uint x = 0; x < width; x++)
       for(uint y = 0; y < height; y++) {
@@ -334,7 +333,7 @@ cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
         pixel[0]          = TIFFGetB(TiffPixel);                     // Set the pixel values as BGRA
         pixel[1]          = TIFFGetG(TiffPixel);
         pixel[2]          = TIFFGetR(TiffPixel);
-        pixel[3]          = TIFFGetA(TiffPixel);
+        // pixel[3]          = TIFFGetA(TiffPixel);    // No alpha channel
       }
 
     _TIFFfree(raster);    // Free temp memory
@@ -342,7 +341,10 @@ cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
     // Rotate the image 90 degrees couter clockwise
     image = image.t();
     cv::flip(image, image, 0);
-    return image;
+    // Convert to a three channel float image, because we need this format for AI
+    cv::Mat imageOut = cv::Mat(height, width, CV_32FC3);
+    image.convertTo(imageOut, CV_32FC3);
+    return imageOut;
   } else {
     throw std::runtime_error("Could not open image!");
   }

@@ -12,6 +12,7 @@
 ///
 
 #include "nucleus_count.hpp"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <mutex>
@@ -34,12 +35,12 @@ void NucleusCounter::analyzeImage(const joda::Image &img)
   DurationCount::stop(i);
 
   i = DurationCount::start("write");
-  writeReport(result, img.mName);
+  writeReport(result, img);
   DurationCount::stop(i);
 
   i = DurationCount::start("ctrl");
   obj.paintBoundingBox(enhancedContrast, result);
-  cv::imwrite(getOutputFolder() + "/" + img.mName + ".jpg", enhancedContrast);
+  cv::imwrite(getOutputFolder() + "/" + img.mName + "/" + img.getUniqueName() + ".jpg", enhancedContrast);
   DurationCount::stop(i);
 }
 
@@ -48,7 +49,7 @@ void NucleusCounter::analyzeImage(const joda::Image &img)
 /// \author     Joachim Danmayr
 /// \param[in]  Outcome of the AI prediction
 ///
-void NucleusCounter::writeReport(const ai::DetectionResults &prediction, const std::string &imgName)
+void NucleusCounter::writeReport(const ai::DetectionResults &prediction, const joda::Image &img)
 {
   reporting::Table imageReport;
 
@@ -64,12 +65,46 @@ void NucleusCounter::writeReport(const ai::DetectionResults &prediction, const s
     nrOfNucleus++;
   }
   std::lock_guard<std::mutex> lockGuard(mWriteMutex);
-  std::string fileName = getOutputFolder() + "/" + std::string(imgName) + ".csv";
-  imageReport.flushReportToFile(fileName);
+  std::string outPath = getOutputFolder() + "/" + img.mName;
+  if(!std::filesystem::exists(outPath)) {
+    std::filesystem::create_directories(outPath);
+  }
 
-  reporting()->setColumnNames({{0, "Count"}, {1, "Diameter [px]"}});
-  reporting()->appendValueToColumn(imgName, 0, imageReport.getStatisitcs().at(0).getNr());
-  reporting()->appendValueToColumn(imgName, 1, imageReport.getStatisitcs().at(3).getMean());
+  imageReport.flushReportToFile(outPath + "/" + img.getUniqueName() + ".csv");
+
+  mergeReportInt(img.getUniqueName(), *reporting(), imageReport);
+}
+
+void NucleusCounter::mergeReportInt(const std::string &rowName, joda::reporting::Table &mergeTo,
+                                    const joda::reporting::Table &mergeFrom)
+{
+  mergeTo.setColumnNames({{0, "Count"}, {1, "Diameter [px]"}});
+  if(mergeFrom.getStatisitcs().contains(0)) {
+    mergeTo.appendValueToColumn(rowName, 0, mergeFrom.getStatisitcs().at(0).getNr());
+  } else {
+    mergeTo.appendValueToColumn(rowName, 0, 0);
+  }
+  if(mergeFrom.getStatisitcs().contains(3)) {
+    mergeTo.appendValueToColumn(rowName, 1, mergeFrom.getStatisitcs().at(3).getMean());
+  } else {
+    mergeTo.appendValueToColumn(rowName, 1, 0);
+  }
+}
+
+void NucleusCounter::mergeReport(const std::string &rowName, joda::reporting::Table &mergeTo,
+                                 const joda::reporting::Table &mergeFrom)
+{
+  mergeTo.setColumnNames({{0, "Count"}, {1, "Diameter [px]"}});
+  if(mergeFrom.getStatisitcs().contains(0)) {
+    mergeTo.appendValueToColumn(rowName, 0, mergeFrom.getStatisitcs().at(0).getSum());
+  } else {
+    mergeTo.appendValueToColumn(rowName, 0, 0);
+  }
+  if(mergeFrom.getStatisitcs().contains(3)) {
+    mergeTo.appendValueToColumn(rowName, 1, mergeFrom.getStatisitcs().at(3).getMean());
+  } else {
+    mergeTo.appendValueToColumn(rowName, 1, 0);
+  }
 }
 
 }    // namespace joda::pipeline

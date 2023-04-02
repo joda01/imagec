@@ -29,10 +29,14 @@ public:
   /////////////////////////////////////////////////////
   using Pipeline::Pipeline;
   void analyzeImage(const joda::Image &img) override;
+  static void mergeReport(const std::string &rowName, joda::reporting::Table &mergeTo,
+                          const joda::reporting::Table &mergeFrom);
 
 private:
   /////////////////////////////////////////////////////
-  void writeReport(const ai::DetectionResults &, const std::string &imgName);
+  static void mergeReportInt(const std::string &rowName, joda::reporting::Table &mergeTo,
+                             const joda::reporting::Table &mergeFrom);
+  void writeReport(const ai::DetectionResults &, const joda::Image &img);
   std::mutex mWriteMutex;
 };
 
