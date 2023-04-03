@@ -21,7 +21,7 @@ int64_t Table::appendValueToColumn(uint64_t colIdx, float value)
   auto newIndex            = mTable[colIdx].size();
   mTable[colIdx][newIndex] = Row{.value = value};
   mStatisitcs[colIdx].addValue(value);
-  mRows = std::max(mRows, (int64_t) newIndex + 1);
+  mRows = std::max(mRows, static_cast<int64_t>(newIndex) + 1);
   return newIndex;
 }
 
@@ -69,8 +69,8 @@ void Table::flushReportToFile(std::string_view fileName) const
   //
   // Write column header
   //
-  std::string rowBuffer = "";
-  int64_t columns       = std::max(getNrOfColumns(), (int64_t) mColumnName.size());
+  std::string rowBuffer;
+  int64_t columns = std::max(getNrOfColumns(), static_cast<int64_t>(mColumnName.size()));
   for(int64_t colIdx = 0; colIdx < columns; colIdx++) {
     if(0 == colIdx) {
       rowBuffer += CSV_SEPARATOR;
@@ -82,7 +82,7 @@ void Table::flushReportToFile(std::string_view fileName) const
       rowBuffer += std::to_string(colIdx) + CSV_SEPARATOR;
     }
   }
-  if(rowBuffer.size() > 0) {
+  if(!rowBuffer.empty()) {
     rowBuffer.pop_back();    // Remove trailing CSV_SEPARATOR
   }
   rowBuffer += "\n";
@@ -116,7 +116,7 @@ void Table::flushReportToFile(std::string_view fileName) const
       }
     }
 
-    if(rowBuffer.size() > 0) {
+    if(!rowBuffer.empty()) {
       rowBuffer.pop_back();    // Remove trailing CSV_SEPARATOR
     }
     rowBuffer += "\n";
@@ -133,7 +133,7 @@ void Table::flushReportToFile(std::string_view fileName) const
     }
     rowBuffer += std::string("---") + CSV_SEPARATOR;
   }
-  if(rowBuffer.size() > 0) {
+  if(!rowBuffer.empty()) {
     rowBuffer.pop_back();    // Remove trailing CSV_SEPARATOR
   }
   rowBuffer += "\n";
@@ -155,4 +155,12 @@ void Table::flushReportToFile(std::string_view fileName) const
   outFile.close();
 }
 
+auto Statistics::getStatisitcsTitle() -> const std::array<std::string, NR_OF_VALUE>
+{
+  return {"Nr", "Sum", "Min", "Max", "Mean"};
+}
+auto Statistics::getStatisitcs() const -> const std::array<float, NR_OF_VALUE>
+{
+  return {(float) mNr, mSum, mMin, mMax, mMean};
+}
 }    // namespace joda::reporting

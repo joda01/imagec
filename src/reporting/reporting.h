@@ -89,15 +89,8 @@ public:
     return mMean;
   }
 
-  static auto getStatisitcsTitle() -> const std::array<std::string, NR_OF_VALUE>
-  {
-    return {"Nr", "Sum", "Min", "Max", "Mean"};
-  }
-
-  auto getStatisitcs() const -> const std::array<float, NR_OF_VALUE>
-  {
-    return {(float) mNr, mSum, mMin, mMax, mMean};
-  }
+  static auto getStatisitcsTitle() -> const std::array<std::string, NR_OF_VALUE>;
+  [[nodiscard]] auto getStatisitcs() const -> const std::array<float, NR_OF_VALUE>;
 
 private:
   /////////////////////////////////////////////////////

@@ -65,6 +65,6 @@ inline void printProgress(Progress main, Progress sub)
     int rpad          = PBWIDTH - lpad;
     printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTRS, rpad, "");
     fflush(stdout);
-    std::cout << " " << std::to_string(sub.actNr) << "/" << std::to_string(sub.totalNr) << std::endl;
+    std::cout << " " << std::to_string(sub.actNr) << "/" << std::to_string(sub.totalNr) << "\n" << std::endl;
   }
 }
