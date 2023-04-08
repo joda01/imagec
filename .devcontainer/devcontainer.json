@@ -16,7 +16,9 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"ms-vscode.cpptools",
-		"llvm-vs-code-extensions.vscode-clangd"
+		"llvm-vs-code-extensions.vscode-clangd",
+		"GrapeCity.gc-excelviewer",
+		"streetsidesoftware.code-spell-checker"
 	]
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],

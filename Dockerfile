@@ -78,6 +78,21 @@ RUN echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-15 main" >> 
     ln -s /usr/bin/clang-format-15 /usr/bin/clang-format
 
 
+
+RUN git clone --recursive -b v3.11.2 --depth 1 https://github.com/nlohmann/json.git /json && \
+    cd /json &&\
+    cmake -S ./ -DJSON_BuildTests=OFF  &&\
+    make -j4 &&\
+    make install &&\
+    checkinstall  --pkgname="json" --pkgversion="1.0.0" --pkgrelease="1" --install=no --backup=no --nodoc -D && \
+    cp /json/json_1.0.0-1_amd64.deb /json.deb  && \
+    cd / &&\
+    rm -rf /json
+
+
+
+
+
 RUN useradd $USERNAME
 
 ENV DEBIAN_FRONTEND=dialog

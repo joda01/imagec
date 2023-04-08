@@ -11,7 +11,7 @@
 #include "algorithms/rolling_ball/rolling_ball.hpp"
 #include "duration_count/duration_count.h"
 #include "image/image.hpp"
-#include "image_reader/image_processor.hpp"
+#include "image_processor/image_processor.hpp"
 #include "image_reader/tif/image_loader_tif.hpp"
 #include "image_reader/vsi/image_loader_vsi.hpp"
 #include "pipelines/nucleus_count/nucleus_count.hpp"
@@ -37,8 +37,7 @@ int main(int argc, char **argv)
 {
   TiffLoader::initLibTif();
 
-  std::string imageName = "test/GMEV5minM1OT3_0001.btf";
-  ImageProcessor pc("out", {imageName});
+  joda::processor::ImageProcessor<::joda::pipeline::NucleusCounter> pc("test/nucleus", "out");
   pc.start();
 
   // std::cout << "Found nuclues " << std::to_string(reporting.counter) << std::endl;

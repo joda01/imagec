@@ -1,0 +1,25 @@
+{
+    "pipeline": "NUCLEUS_COUNT",
+    "channels": [
+        {
+            "index": [
+                1,
+                2
+            ],
+            "type": "MANUAL",
+            "threshold_algorithm": "LI",
+            "threshold_min": 65536,
+            "threshold_max": 123,
+            "min_particle_size": 0.25,
+            "max_particle_size": 0.23,
+            "min_circularity": 0.2,
+            "snap_area_size": 2,
+            "margin_crop": 1,
+            "zprojection": "MAX"
+        }
+    ],
+    "min_coloc_factor": 15.5,
+    "pixel_in_micrometer": 0.001,
+    "with_control_images": true,
+    "with_detailed_report": true
+}
