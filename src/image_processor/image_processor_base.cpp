@@ -51,7 +51,7 @@ void ImageProcessorBase::lookForImagesInFolderAndSubfolder()
   for(recursive_directory_iterator i(mInputFolder), end; i != end; ++i) {
     if(!is_directory(i->path())) {
       if(ALLOWED_EXTENSIONS.contains(i->path().extension())) {
-        mListOfImagePaths.push_back(i->path().filename());
+        mListOfImagePaths.push_back(i->path());
       }
     }
   }

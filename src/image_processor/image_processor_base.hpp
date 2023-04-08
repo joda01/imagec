@@ -45,7 +45,7 @@ protected:
 
 private:
   /////////////////////////////////////////////////////
-  static inline const std::set<std::string> ALLOWED_EXTENSIONS = {"tif", "tiff", "btif", "btiff", "btf"};
+  static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
 
   /////////////////////////////////////////////////////
   void lookForImagesInFolderAndSubfolder();
