@@ -34,7 +34,7 @@ class ImageProcessorBase
 {
 public:
   /////////////////////////////////////////////////////
-  explicit ImageProcessorBase(const std::string &&inputFolder, const std::string &&outputFolder);
+  explicit ImageProcessorBase(const std::string &inputFolder, const std::string &outputFolder);
   void start();
 
 protected:

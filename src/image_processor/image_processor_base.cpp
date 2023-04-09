@@ -8,7 +8,7 @@ namespace joda::processor {
 using namespace std;
 using namespace std::filesystem;
 
-ImageProcessorBase::ImageProcessorBase(const std::string &&inputFolder, const std::string &&outputFolder) :
+ImageProcessorBase::ImageProcessorBase(const std::string &inputFolder, const std::string &outputFolder) :
 
     mInputFolder(inputFolder), mOutputFolder(outputFolder)
 {

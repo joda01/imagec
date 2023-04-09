@@ -30,7 +30,7 @@ void NucleusCounter::analyzeImage(const joda::Image &img)
 {
   auto i                = DurationCount::start("detect");
   auto enhancedContrast = img.mImage *= 10;
-  ai::ObjectDetector obj("/workspaces/open-bio-image-processor/test/best.onnx", {"nuclues", "nucleus_no_focus"});
+  ai::ObjectDetector obj("models/nucleus_detection.onnx", {"nuclues", "nucleus_no_focus"});
   ai::DetectionResults result = obj.forward(enhancedContrast);
   DurationCount::stop(i);
 

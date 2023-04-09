@@ -230,3 +230,6 @@ out/ctrl_197.csv
 out/ctrl_198.csv
 out/ctrl_199.csv
 out/report.csv
+models/nucleus_detection.onnx
+.gitignore
+build/build/models/nucleus_detection.onnx

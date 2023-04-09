@@ -11,12 +11,13 @@ option(MAKE_LIBRARY "Builds a library instead of an executable program." OFF)
 
 SET(CMAKE_CXX20_STANDARD 20)
 SET(CMAKE_CXX20_STANDARD_REQUIRED true)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O2 -lm -std=c++20")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20")
 SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
 
+set(OpenCV_STATIC ON)
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
@@ -30,8 +31,9 @@ find_package(PkgConfig REQUIRED)
 set(LIBS
   ${OpenCV_LIBS}
   /usr/local/lib/libtiff.a
-  /usr/local/lib/libz.a
-  /usr/local/lib/libjpeg.a
+  #/usr/local/lib/libz.a
+  #/usr/local/lib/libjpeg.a
+
 )
 
 include_directories("./src")

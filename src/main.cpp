@@ -31,16 +31,47 @@ using namespace dnn;
 
 ////
 
-void printProgress(double percentage);
+void printLogo();
+std::string readFolder(const std::string &text);
 
 int main(int argc, char **argv)
 {
   TiffLoader::initLibTif();
 
-  joda::processor::ImageProcessor<::joda::pipeline::NucleusCounter> pc("test/nucleus", "out");
+  printLogo();
+  std::string inFolder  = readFolder("Input folder: ");
+  std::string outFolder = readFolder("Output folder: ");
+
+  joda::processor::ImageProcessor<::joda::pipeline::NucleusCounter> pc(inFolder, outFolder);
   pc.start();
 
   // std::cout << "Found nuclues " << std::to_string(reporting.counter) << std::endl;
 
   return 0;
+}
+
+std::string readFolder(const std::string &text)
+{
+  std::string inputFolder;
+  std::cout << text;
+  std::cin >> inputFolder;    // get user input from the keyboard
+  return inputFolder;
+}
+
+///
+/// \brief      Print logo imageC
+/// \author     Joachim Danmayr
+///
+void printLogo()
+{
+  system("clear");
+  std::cout << "\
+  \n \
+  (_)___ ___  ____ _____ ____  / ____/\n\
+  / / __ `__ \\/ __ `/ __ `/ _ \\/ /     \n\
+ / / / / / / / /_/ / /_/ /  __/ /___   \n\
+/_/_/ /_/ /_/\\__,_/\\__, /\\___/\\____/   \n\
+                  /____/               \n\
+                                       \
+" << std::endl;
 }
