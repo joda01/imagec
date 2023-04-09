@@ -65,9 +65,12 @@ std::string readFolder(const std::string &text)
 void printLogo()
 {
   system("clear");
+  std::cout << "rev.: v1.0.0-alpha1" << std::endl;
+
   std::cout << "\
   \n \
-  (_)___ ___  ____ _____ ____  / ____/\n\
+   _                            ______ \n\
+   (_)___ ___  ____ _____  ___  / ____/\n\
   / / __ `__ \\/ __ `/ __ `/ _ \\/ /     \n\
  / / / / / / / /_/ / /_/ /  __/ /___   \n\
 /_/_/ /_/ /_/\\__,_/\\__, /\\___/\\____/   \n\
