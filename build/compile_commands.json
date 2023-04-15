@@ -56,6 +56,11 @@
 },
 {
   "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/evanalyzerv2.dir/src/settings/analze_settings_parser.cpp.o -c /workspaces/open-bio-image-processor/src/settings/analze_settings_parser.cpp",
+  "file": "/workspaces/open-bio-image-processor/src/settings/analze_settings_parser.cpp"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
   "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/algorithms/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/open-bio-image-processor/src/algorithms/ai_object_detection/ai_object_detection.cpp",
   "file": "/workspaces/open-bio-image-processor/src/algorithms/ai_object_detection/ai_object_detection.cpp"
 },
@@ -116,7 +121,12 @@
 },
 {
   "directory": "/workspaces/open-bio-image-processor/build",
-  "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/settings/analze_settings_test.cpp.o -c /workspaces/open-bio-image-processor/src/settings/analze_settings_test.cpp",
-  "file": "/workspaces/open-bio-image-processor/src/settings/analze_settings_test.cpp"
+  "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/settings/analze_settings_parser.cpp.o -c /workspaces/open-bio-image-processor/src/settings/analze_settings_parser.cpp",
+  "file": "/workspaces/open-bio-image-processor/src/settings/analze_settings_parser.cpp"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/settings/analze_settings_parser_test.cpp.o -c /workspaces/open-bio-image-processor/src/settings/analze_settings_parser_test.cpp",
+  "file": "/workspaces/open-bio-image-processor/src/settings/analze_settings_parser_test.cpp"
 }
 ]

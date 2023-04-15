@@ -6,8 +6,43 @@
                 1,
                 2
             ],
-            "type": "MANUAL",
+            "type": "EV",
             "threshold_algorithm": "LI",
+            "label": "CY5",
+            "threshold_min": 65536,
+            "threshold_max": 123,
+            "min_particle_size": 0.25,
+            "max_particle_size": 0.23,
+            "min_circularity": 0.2,
+            "snap_area_size": 2,
+            "margin_crop": 1,
+            "zprojection": "MAX"
+        },
+        {
+            "index": [
+                1,
+                2
+            ],
+            "type": "EV",
+            "threshold_algorithm": "LI",
+            "label": "CY7",
+            "threshold_min": 65536,
+            "threshold_max": 123,
+            "min_particle_size": 0.25,
+            "max_particle_size": 0.23,
+            "min_circularity": 0.2,
+            "snap_area_size": 2,
+            "margin_crop": 1,
+            "zprojection": "MAX"
+        },
+        {
+            "index": [
+                1,
+                2
+            ],
+            "type": "NUCLEUS",
+            "threshold_algorithm": "LI",
+            "label": "CY7",
             "threshold_min": 65536,
             "threshold_max": 123,
             "min_particle_size": 0.25,
