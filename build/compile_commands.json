@@ -36,6 +36,11 @@
 },
 {
   "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/evanalyzerv2.dir/src/navigation/navigation.cpp.o -c /workspaces/open-bio-image-processor/src/navigation/navigation.cpp",
+  "file": "/workspaces/open-bio-image-processor/src/navigation/navigation.cpp"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/evanalyzerv2.dir/src/pipelines/coloc/pipeline_coloc.cpp.o -c /workspaces/open-bio-image-processor/src/pipelines/coloc/pipeline_coloc.cpp",
   "file": "/workspaces/open-bio-image-processor/src/pipelines/coloc/pipeline_coloc.cpp"
 },
@@ -93,6 +98,11 @@
   "directory": "/workspaces/open-bio-image-processor/build",
   "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/main_test.cpp.o -c /workspaces/open-bio-image-processor/src/main_test.cpp",
   "file": "/workspaces/open-bio-image-processor/src/main_test.cpp"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/navigation/navigation.cpp.o -c /workspaces/open-bio-image-processor/src/navigation/navigation.cpp",
+  "file": "/workspaces/open-bio-image-processor/src/navigation/navigation.cpp"
 },
 {
   "directory": "/workspaces/open-bio-image-processor/build",

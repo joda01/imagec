@@ -91,7 +91,13 @@ RUN git clone --recursive -b v3.11.2 --depth 1 https://github.com/nlohmann/json.
 
 
 
-
+#RUN git clone -b v4.0.0 https://github.com/ArthurSonzogni/FTXUI.git &&\
+#    cd FTXUI &&\
+#    mkdir build && cd build &&\
+#    cmake .. &&\
+#    make &&\
+#    ./main
+#
 
 RUN useradd $USERNAME
 
