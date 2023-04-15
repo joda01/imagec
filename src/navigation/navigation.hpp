@@ -29,7 +29,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  static auto readFromConsole(const std::string &text, const std::string &def) -> std::string;
+  static auto readFromConsole(int y, const std::string &def) -> std::string;
   static void printLogo();
   void menuMain();
   auto menuGetInputFolder() -> std::string;

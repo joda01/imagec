@@ -18,7 +18,6 @@ inline auto timeNowToString() -> std::string
   std::string now_str = ss.str();
   return now_str;
 }
-}    // namespace joda::helper
 
 inline auto getFileNameFromPath(const std::string &path) -> std::string
 {
@@ -68,3 +67,4 @@ inline void printProgress(Progress main, Progress sub)
     std::cout << " " << std::to_string(sub.actNr) << "/" << std::to_string(sub.totalNr) << "\n" << std::endl;
   }
 }
+}    // namespace joda::helper

@@ -1,6 +1,5 @@
 
 
-
 #include <opencv2/core/hal/interface.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +12,7 @@
 #include <vector>
 #include "algorithms/rolling_ball/rolling_ball.hpp"
 #include "duration_count/duration_count.h"
+#include "helper/termbox/termbox2.h"
 #include "image/image.hpp"
 #include "image_processor/image_processor.hpp"
 #include "image_reader/tif/image_loader_tif.hpp"
@@ -40,15 +40,13 @@ std::string readFolder(const std::string &text);
 
 int main(int argc, char **argv)
 {
+  tb_init();
+
   TiffLoader::initLibTif();
 
   Navigation navigation;
   navigation.start();
 
-  // joda::processor::ImageProcessor<::joda::pipeline::NucleusCounter> pc(inFolder, outFolder);
-  // pc.start();
-
-  // std::cout << "Found nuclues " << std::to_string(reporting.counter) << std::endl;
-
+  tb_shutdown();
   return 0;
 }

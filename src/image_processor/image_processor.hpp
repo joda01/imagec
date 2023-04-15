@@ -54,7 +54,7 @@ public:
   {
     uint16_t dir   = 14;
     auto outFolder = prepareOutputFolders();
-    printProgress(Progress{0, getListOfImagePaths().size()}, Progress{0, 0});
+    printProgress(joda::helper::Progress{0, getListOfImagePaths().size()}, joda::helper::Progress{0, 0});
     uint64 cnt = 0;
     for(const auto &imagePath : getListOfImagePaths()) {
       std::filesystem::path path_obj(imagePath);
@@ -69,7 +69,7 @@ public:
         for(uint64 n = 0; n < runs; n++) {
           auto tilePart = TiffLoader::loadImageTile(imagePath, dir, n, tilesToLoadPerRun);
           analyze(tilePart, tileReport, outFolder, filename, n);
-          printProgress(Progress{0, getListOfImagePaths().size()}, Progress{n, runs});
+          printProgress(joda::helper::Progress{0, getListOfImagePaths().size()}, joda::helper::Progress{n, runs});
         }
         tileReport.flushReportToFile(outFolder + "/" + filename + "/" + "report_" + filename + ".csv");
         PIPELINE::mergeReport(filename, getAllOverReporting(), tileReport);
@@ -78,7 +78,7 @@ public:
         analyze(entireImage, getAllOverReporting(), outFolder, filename, -1);
       }
       cnt++;
-      printProgress(Progress{cnt, getListOfImagePaths().size()}, Progress{100, 100});
+      printProgress(joda::helper::Progress{cnt, getListOfImagePaths().size()}, joda::helper::Progress{100, 100});
     }
 
     getAllOverReporting().flushReportToFile(outFolder + "/report.csv");

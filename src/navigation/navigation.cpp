@@ -14,9 +14,11 @@
 #include "navigation.hpp"
 #include <stdio.h>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include "helper/termbox/termbox2.h"
 #include "image_processor/image_processor.hpp"
 #include "pipelines/nucleus_count/nucleus_count.hpp"
 
@@ -30,28 +32,28 @@ void Navigation::start()
 }
 
 ///
-/// \brief      Print a menu
+/// \brief      Print the main menu
 /// \author     Joachim Danmayr
 ///
 void Navigation::menuMain()
 {
+  int y = 10;
+
   std::string selection = "";
   do {
+    y = 10;
+
     printLogo();
 
-    std::cout << "1... Set Input folder";
+    tb_printf(0, y++, TB_DEFAULT, 0, "1... Set Input folder");
     if(!mSelectedInputFolder.empty()) {
-      std::cout << " (" << mSelectedInputFolder << ")" << std::endl;
-    } else {
-      std::cout << std::endl;
+      tb_printf(0, y++, TB_DEFAULT, 0, "2... Start analyzes");
     }
-    if(!mSelectedInputFolder.empty()) {
-      std::cout << "s... Start analyzes" << std::endl;
-    }
-    std::cout << "x... Exit" << std::endl;
-    std::cout << std::endl;
-    selection = readFromConsole(":", "");
-
+    tb_printf(0, y++, TB_DEFAULT, 0, "x... Exit");
+    y++;
+    tb_print(0, y, TB_DEFAULT, 0, ":");
+    tb_present();
+    selection = readFromConsole(y, "");
     //
     // Select folder
     //
@@ -78,6 +80,13 @@ void Navigation::menuMain()
   } while(selection != "x");
 }
 
+///
+/// \brief      Read input folder and returns the selected folder.
+///             If no folder selected, the previous selected is returned.
+///             If folder does not exists user is asked to try again.
+/// \author     Joachim Danmayr
+/// \return     Selected folder
+///
 auto Navigation::menuGetInputFolder() -> std::string
 {
   bool folderExists = false;
@@ -85,7 +94,7 @@ auto Navigation::menuGetInputFolder() -> std::string
   clearScreen();
   std::cout << "> Main/Select input folder\n" << std::endl;
   do {
-    read = readFromConsole("(" + mSelectedInputFolder + ") :", mSelectedInputFolder);
+    read = readFromConsole(10, mSelectedInputFolder);
 
     if(std::filesystem::exists(read) && std::filesystem::is_directory(read)) {
       folderExists = true;
@@ -102,33 +111,81 @@ auto Navigation::menuGetInputFolder() -> std::string
 ///
 void Navigation::printLogo()
 {
-  clearScreen();
-  std::cout << "rev.: v1.0.0-alpha1" << std::endl;
-
-  std::cout << "\
-  \n \
-   _                            ______ \n\
-   (_)___ ___  ____ _____  ___  / ____/\n\
-  / / __ `__ \\/ __ `/ __ `/ _ \\/ /     \n\
- / / / / / / / /_/ / /_/ /  __/ /___   \n\
-/_/_/ /_/ /_/\\__,_/\\__, /\\___/\\____/   \n\
-                  /____/               \n\
-                                       \
-" << std::endl;
+  tb_printf(0, 0, TB_DEFAULT, 0, "rev.: v1.0.0-alpha1");
+  tb_printf(0, 1, TB_GREEN, 0, "    _                            ______ ");
+  tb_printf(0, 2, TB_GREEN, 0, "   (_)___ ___  ____ _____  ___  / ____/");
+  tb_printf(0, 3, TB_GREEN, 0, "  / / __ `__ \\/ __ `/ __ `/ _ \\/ /   ");
+  tb_printf(0, 4, TB_GREEN, 0, " / / / / / / / /_/ / /_/ /  __/ /___   ");
+  tb_printf(0, 5, TB_GREEN, 0, "/_/_/ /_/ /_/\\__,_/\\__, /\\___/\\____/ ");
+  tb_printf(0, 6, TB_GREEN, 0, "                  /____/               ");
+  tb_printf(0, 7, TB_GREEN, 0, "                                       ");
+  tb_present();
 }
 
-std::string Navigation::readFromConsole(const std::string &text, const std::string &def)
+std::string Navigation::readFromConsole(int y, const std::string &def)
 {
-  std::cout << text;
-  std::string input;
-  std::getline(std::cin, input);    // read a line of input
-  if(input.empty()) {
-    std::cout << "You did not enter anything." << std::endl;
-    return def;
+  char input_buffer[256] = {0};
+  int cursor_x           = 1;
+
+  while(true) {
+    struct tb_event event;
+    tb_poll_event(&event);
+    if(event.type == TB_EVENT_KEY) {
+      //
+      // Enter pressed
+      //
+      if(event.key == TB_KEY_ENTER) {
+        if(cursor_x <= 1) {
+          return def;
+        }
+        while(cursor_x > 1) {
+          cursor_x--;
+          // Erase the character from the screen
+          tb_set_cell(cursor_x, y, ' ', TB_DEFAULT, 0);
+        }
+
+        // The user pressed Enter, so we're done reading input
+        auto readString = std::string(input_buffer);
+        cursor_x        = 1;
+        memset(input_buffer, 0, 256);
+        return readString;
+
+      } else if(event.ch) {
+        //
+        // Convert the Unicode code point to a UTF-8 string
+        //
+        std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
+        std::string utf8_string = convert.to_bytes(event.ch);
+
+        // Add the UTF-8 string to the input buffer
+        strncat(input_buffer, utf8_string.c_str(), utf8_string.length());
+
+        // Display the character on the screen
+        tb_set_cell(cursor_x, y, event.ch, TB_DEFAULT, 0);
+        cursor_x++;
+      }
+      //
+      // Check if the user pressed the backspace key
+      //
+      if((event.type == TB_EVENT_KEY && event.key == TB_KEY_BACKSPACE) ||
+         (event.type == TB_EVENT_KEY && event.key == TB_KEY_BACKSPACE2)) {
+        // Delete the last character from the input buffer
+        if(cursor_x > 0) {
+          cursor_x--;
+          input_buffer[cursor_x] = '\0';
+          // Erase the character from the screen
+          tb_set_cell(cursor_x, y, ' ', TB_DEFAULT, 0);
+        }
+      }
+    }
+    tb_present();
   }
-  return input;
 }
 
+///
+/// \brief      Clear screen
+/// \author     Joachim Danmayr
+///
 void Navigation::clearScreen()
 {
   system("clear");
