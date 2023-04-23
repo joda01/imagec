@@ -233,7 +233,7 @@ void Navigation::menuUpdating()
   updateThread.get();
 
   tb_printf(0, 0, TB_DEFAULT | TB_ITALIC, 0, "Download finished!     ");
-  tb_printf(0, 1, TB_DEFAULT, 0, "Restarting imageC, please wait ... ");
+  tb_printf(0, 1, TB_DEFAULT, 0, "Exiting imageC, please wait ... ");
   tb_present();
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   mUpdater->restart();

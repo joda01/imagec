@@ -132,20 +132,20 @@ void Updater::restart()
   // Check if this is the first run of the program
 
   // Get the program name and arguments
-  auto restartThread = [&]() {
-    std::string program_name = argv[0];
-    std::string arguments    = "";
-    for(int i = 1; i < argc; ++i) {
-      arguments += " " + std::string(argv[i]);
-    }
-
-    // Execute the program again with the same arguments
-    std::string command = program_name + arguments;
-    std::cout << command << std::endl;
-    std::system(command.c_str());
-  };
-
-  std::thread t(restartThread);
-  t.detach();
-  sleep(5);
+  // auto restartThread = [&]() {
+  //  std::string program_name = argv[0];
+  //  std::string arguments    = "";
+  //  for(int i = 1; i < argc; ++i) {
+  //    arguments += " " + std::string(argv[i]);
+  //  }
+  //
+  //  // Execute the program again with the same arguments
+  //  std::string command = program_name + arguments;
+  //  std::cout << command << std::endl;
+  //  std::system(command.c_str());
+  //};
+  //
+  // std::thread t(restartThread);
+  // t.detach();
+  // sleep(5);
 }
