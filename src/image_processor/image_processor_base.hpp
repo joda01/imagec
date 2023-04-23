@@ -14,8 +14,10 @@
 #pragma once
 
 #include <filesystem>
+#include <future>
 #include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 #include "helper/helper.hpp"
 #include "image_reader/tif/image_loader_tif.hpp"
@@ -34,20 +36,38 @@ class ImageProcessorBase
 {
 public:
   /////////////////////////////////////////////////////
+  struct Progress
+  {
+    uint32_t finished = 0;
+    uint32_t total    = 0;
+  };
+
+  /////////////////////////////////////////////////////
   explicit ImageProcessorBase(const std::string &inputFolder, const std::string &outputFolder);
-  void start();
+  auto start() -> std::future<void>;
+  void stop();
+  auto getProgress() const -> std::tuple<Progress, Progress>;
 
 protected:
   /////////////////////////////////////////////////////
   [[nodiscard]] auto getListOfImagePaths() const -> const std::vector<std::string> &;
   [[nodiscard]] auto getOutputFolder() const -> const std::string &;
   [[nodiscard]] auto getAllOverReporting() -> joda::reporting::Table &;
+  [[nodiscard]] auto isStopped() const -> bool
+  {
+    return mStopped;
+  }
+  void setTotalImages(uint32_t total);
+  void setProgressTotal(uint32_t finished);
+  void setTotalActImages(uint32_t total);
+  void setProgressActImage(uint32_t finished);
 
 private:
   /////////////////////////////////////////////////////
   static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
 
   /////////////////////////////////////////////////////
+  void mainThread();
   void lookForImagesInFolderAndSubfolder();
   virtual void analyzeAllImages() = 0;
 
@@ -56,6 +76,9 @@ private:
   std::string mOutputFolder;
   std::vector<std::string> mListOfImagePaths;
   joda::reporting::Table mAllOverReporting;
+  Progress mProgressTotal;
+  Progress mProgressActImage;
+  bool mStopped = false;
 };
 
 }    // namespace joda::processor

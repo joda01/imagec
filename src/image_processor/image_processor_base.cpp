@@ -19,10 +19,57 @@ ImageProcessorBase::ImageProcessorBase(const std::string &inputFolder, const std
 ///             Second starts the analyzing process.
 /// \author     Joachim Danmayr
 ///
-void ImageProcessorBase::start()
+auto ImageProcessorBase::start() -> std::future<void>
+{
+  auto mainThreadFunc      = [this] { mainThread(); };
+  std::future<void> result = std::async(std::launch::async, mainThreadFunc);
+  return result;
+}
+
+void ImageProcessorBase::mainThread()
 {
   lookForImagesInFolderAndSubfolder();
-  analyzeAllImages();
+  if(!isStopped()) {
+    analyzeAllImages();
+  }
+}
+
+///
+/// \brief      Stop image processing
+/// \author     Joachim Danmayr
+///
+void ImageProcessorBase::stop()
+{
+  mStopped = true;
+}
+
+///
+/// \brief      Get actual progress of total and act image
+/// \author     Joachim Danmayr
+/// \return     Total Progress, Progress of act image
+///
+auto ImageProcessorBase::getProgress() const -> std::tuple<Progress, Progress>
+{
+  return {mProgressTotal, mProgressActImage};
+}
+
+void ImageProcessorBase::setTotalImages(uint32_t total)
+{
+  mProgressTotal.total    = total;
+  mProgressTotal.finished = 0;
+}
+void ImageProcessorBase::setProgressTotal(uint32_t finished)
+{
+  mProgressTotal.finished = finished;
+}
+void ImageProcessorBase::setTotalActImages(uint32_t total)
+{
+  mProgressActImage.total    = total;
+  mProgressActImage.finished = 0;
+}
+void ImageProcessorBase::setProgressActImage(uint32_t finished)
+{
+  mProgressActImage.finished = finished;
 }
 
 auto ImageProcessorBase::getListOfImagePaths() const -> const std::vector<std::string> &
@@ -53,6 +100,9 @@ void ImageProcessorBase::lookForImagesInFolderAndSubfolder()
       if(ALLOWED_EXTENSIONS.contains(i->path().extension())) {
         mListOfImagePaths.push_back(i->path());
       }
+    }
+    if(isStopped()) {
+      break;
     }
   }
 }

@@ -11,6 +11,11 @@
 },
 {
   "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/cc -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4 -g -o CMakeFiles/evanalyzerv2.dir/src/helper/termbox/termbox.c.o -c /workspaces/open-bio-image-processor/src/helper/termbox/termbox.c",
+  "file": "/workspaces/open-bio-image-processor/src/helper/termbox/termbox.c"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/evanalyzerv2.dir/src/image/image.cpp.o -c /workspaces/open-bio-image-processor/src/image/image.cpp",
   "file": "/workspaces/open-bio-image-processor/src/image/image.cpp"
 },
@@ -73,6 +78,11 @@
   "directory": "/workspaces/open-bio-image-processor/build",
   "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/algorithms/rolling_ball/rolling_ball.cpp.o -c /workspaces/open-bio-image-processor/src/algorithms/rolling_ball/rolling_ball.cpp",
   "file": "/workspaces/open-bio-image-processor/src/algorithms/rolling_ball/rolling_ball.cpp"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/cc -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4 -g -o CMakeFiles/tests.dir/src/helper/termbox/termbox.c.o -c /workspaces/open-bio-image-processor/src/helper/termbox/termbox.c",
+  "file": "/workspaces/open-bio-image-processor/src/helper/termbox/termbox.c"
 },
 {
   "directory": "/workspaces/open-bio-image-processor/build",

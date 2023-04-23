@@ -29,15 +29,21 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  static auto readFromConsole(int y, const std::string &def) -> std::string;
-  static void printLogo();
+  auto readFromConsole(int y, const std::string &desc, const std::string &def) -> std::string;
+  static int printLogo();
   void menuMain();
   auto menuGetInputFolder() -> std::string;
-
+  void menuStartAnalyzes();
+  void drawProgressBar(int x, int y, int width, float act, float total);
   void saveUserSettings();
   void loadUserSettings();
 
   static void clearScreen();
+  void cancelReadFromConsole()
+  {
+    mReadFromConsoleCanceled = true;
+  }
 
   std::string mSelectedInputFolder;
+  bool mReadFromConsoleCanceled = false;
 };
