@@ -34,6 +34,8 @@ private:
   void menuMain();
   auto menuGetInputFolder() -> std::string;
   void menuStartAnalyzes();
+  void menuReportResult();
+
   void drawProgressBar(int x, int y, int width, float act, float total);
   void saveUserSettings();
   void loadUserSettings();
@@ -45,5 +47,6 @@ private:
   }
 
   std::string mSelectedInputFolder;
+  std::string mLastReport;
   bool mReadFromConsoleCanceled = false;
 };

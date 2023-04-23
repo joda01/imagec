@@ -58,6 +58,10 @@ void Navigation::menuMain()
       tb_printf(0, y++, TB_DEFAULT, 0, toPrint.c_str());
       tb_printf(0, y++, TB_DEFAULT, 0, "2... Start analyzes");
     }
+    if(!mLastReport.empty()) {
+      std::string toPrint = "3... Show result (" + mLastReport + ")";
+      tb_printf(0, y++, TB_DEFAULT, 0, toPrint.c_str());
+    }
     tb_printf(0, y++, TB_DEFAULT, 0, "x... Exit");
     y++;
     selection = readFromConsole(y, "Select: ", "");
@@ -71,8 +75,15 @@ void Navigation::menuMain()
     //
     // Start analysis
     //
-    if("2" == selection) {
+    if("2" == selection && !mSelectedInputFolder.empty()) {
       menuStartAnalyzes();
+    }
+
+    //
+    // Show report result
+    //
+    if("3" == selection && !mLastReport.empty()) {
+      menuReportResult();
     }
 
     //
@@ -85,6 +96,10 @@ void Navigation::menuMain()
   } while(selection != "x");
 }
 
+///
+/// \brief      Start analyzes menu
+/// \author     Joachim Danmayr
+///
 void Navigation::menuStartAnalyzes()
 {
   tb_clear();
@@ -149,8 +164,7 @@ void Navigation::menuStartAnalyzes()
   //
   paintProgress(&processor);
   tb_printf(0, 5, TB_DEFAULT | TB_ITALIC, 0, "Finished!                            ");
-  ReportPrinter::printTable(processor.getReportFilePath());
-
+  mLastReport = processor.getReportFilePath();
   readFromConsole(7, "Press ENTER to continue ", "");
 
   //
@@ -205,6 +219,17 @@ auto Navigation::menuGetInputFolder() -> std::string
     }
   } while(!folderExists);
   return read;
+}
+
+///
+/// \brief      Show report result
+/// \author     Joachim Danmayr
+///
+void Navigation::menuReportResult()
+{
+  ReportPrinter::printTable(mLastReport);
+  struct tb_event event;
+  tb_poll_event(&event);
 }
 
 ///
