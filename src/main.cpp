@@ -29,6 +29,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
+#include "version.h"
 
 using namespace std;
 using namespace cv;
@@ -41,6 +42,7 @@ std::string readFolder(const std::string &text);
 
 int main(int argc, char **argv)
 {
+  Version::initVersion(std::string(argv[0]));
   tb_init();
 
   TiffLoader::initLibTif();

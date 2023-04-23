@@ -17,4 +17,6 @@ class Updater
 {
 public:
   /////////////////////////////////////////////////////
+  Updater();
+  void download();
 };

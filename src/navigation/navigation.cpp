@@ -27,6 +27,7 @@
 #include "image_processor/image_processor_base.hpp"
 #include "pipelines/nucleus_count/nucleus_count.hpp"
 #include "reporting/report_printer.h"
+#include "version.h"
 
 Navigation::Navigation()
 {
@@ -238,13 +239,16 @@ void Navigation::menuReportResult()
 ///
 int Navigation::printLogo()
 {
-  tb_printf(0, 0, TB_DEFAULT | TB_ITALIC, 0, "rev.: v1.0.0-alpha1");
-  tb_printf(0, 1, TB_DEFAULT, 0, "    _                            ______ ");
-  tb_printf(0, 2, TB_DEFAULT, 0, "   (_)___ ___  ____ _____  ___  / ____/");
-  tb_printf(0, 3, TB_DEFAULT, 0, "  / / __ `__ \\/ __ `/ __ `/ _ \\/ /   ");
-  tb_printf(0, 4, TB_DEFAULT, 0, " / / / / / / / /_/ / /_/ /  __/ /___   ");
-  tb_printf(0, 5, TB_DEFAULT, 0, "/_/_/ /_/ /_/\\__,_/\\__, /\\___/\\____/ ");
-  tb_printf(0, 6, TB_DEFAULT, 0, "                  /____/               ");
+  std::string header = "rev.  : " + Version::getVersion() + " | (c) 2023 Joachim Danmayr | Licensed under GPL-3.0";
+  std::string hash   = "sha256: " + Version::getHash();
+  tb_printf(0, 0, TB_DEFAULT | TB_ITALIC, 0, header.c_str());
+  tb_printf(0, 1, TB_DEFAULT | TB_ITALIC, 0, hash.c_str());
+  tb_printf(0, 2, TB_DEFAULT, 0, "    _                            ______ ");
+  tb_printf(0, 3, TB_DEFAULT, 0, "   (_)___ ___  ____ _____  ___  / ____/");
+  tb_printf(0, 4, TB_DEFAULT, 0, "  / / __ `__ \\/ __ `/ __ `/ _ \\/ /   ");
+  tb_printf(0, 5, TB_DEFAULT, 0, " / / / / / / / /_/ / /_/ /  __/ /___   ");
+  tb_printf(0, 6, TB_DEFAULT, 0, "/_/_/ /_/ /_/\\__,_/\\__, /\\___/\\____/ ");
+  tb_printf(0, 7, TB_DEFAULT, 0, "                  /____/               ");
   tb_printf(0, 8, TB_DEFAULT, 0, "_______________________________________");
   tb_present();
   return 10;

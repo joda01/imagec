@@ -17,12 +17,14 @@ SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
 
+
 set(OpenCV_STATIC ON)
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 find_package(PkgConfig REQUIRED)
+find_package(httplib REQUIRED)
 
 
 #
@@ -33,7 +35,7 @@ set(LIBS
   /usr/local/lib/libtiff.a
   #/usr/local/lib/libz.a
   #/usr/local/lib/libjpeg.a
-
+  httplib::httplib
 )
 
 include_directories("./src")

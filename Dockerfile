@@ -99,6 +99,22 @@ RUN git clone --recursive -b v3.11.2 --depth 1 https://github.com/nlohmann/json.
 #    ./main
 #
 
+#
+# cpp-httplib
+#
+RUN git clone --recurse-submodules -b v0.12.2 --depth 1 https://github.com/yhirose/cpp-httplib.git && \
+  cd cpp-httplib &&\
+  cmake -S ./  &&\
+  make &&\
+  make install &&\
+  checkinstall  --pkgname="cpp-httplib" --pkgversion="1.0.0" --pkgrelease="1" --install=no --nodoc -D && \
+  cp /cpp-httplib/cpp-httplib_1.0.0-1_amd64.deb /cpp-httplib.deb  && \
+  rm -rf /cpp-httplib
+
+RUN apt-get update && apt-get install -y libcurl4-openssl-dev
+
+RUN ldconfig
+
 RUN useradd $USERNAME
 
 ENV DEBIAN_FRONTEND=dialog
