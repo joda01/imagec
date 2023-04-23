@@ -9,7 +9,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/workspaces/open-bio-image-processor/build/build/evanalyzerv2",
-            "args": [],
+            "args": [
+                "[table_print]"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [

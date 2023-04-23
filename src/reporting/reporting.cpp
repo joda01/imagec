@@ -61,6 +61,11 @@ void Table::setColumnNames(const std::map<uint64_t, std::string_view> &&colNames
   mColumnName = std::move(colNames);
 }
 
+///
+/// \brief      Writes the report to a CSV file
+/// \author     Joachim Danmayr
+/// \param[in]  fileName  Name of the output report file
+///
 void Table::flushReportToFile(std::string_view fileName) const
 {
   std::ofstream outFile;
@@ -131,7 +136,8 @@ void Table::flushReportToFile(std::string_view fileName) const
     if(0 == colIdx) {
       rowBuffer += CSV_SEPARATOR;
     }
-    rowBuffer += std::string("---") + CSV_SEPARATOR;
+    // Delimiter before summary stars
+    rowBuffer += std::string("   ") + CSV_SEPARATOR;
   }
   if(!rowBuffer.empty()) {
     rowBuffer.pop_back();    // Remove trailing CSV_SEPARATOR

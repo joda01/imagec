@@ -61,6 +61,11 @@
 },
 {
   "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/evanalyzerv2.dir/src/reporting/report_printer.cpp.o -c /workspaces/open-bio-image-processor/src/reporting/report_printer.cpp",
+  "file": "/workspaces/open-bio-image-processor/src/reporting/report_printer.cpp"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/evanalyzerv2.dir/src/reporting/reporting.cpp.o -c /workspaces/open-bio-image-processor/src/reporting/reporting.cpp",
   "file": "/workspaces/open-bio-image-processor/src/reporting/reporting.cpp"
 },
@@ -128,6 +133,16 @@
   "directory": "/workspaces/open-bio-image-processor/build",
   "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/pipelines/pipeline.cpp.o -c /workspaces/open-bio-image-processor/src/pipelines/pipeline.cpp",
   "file": "/workspaces/open-bio-image-processor/src/pipelines/pipeline.cpp"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/reporting/report_printer.cpp.o -c /workspaces/open-bio-image-processor/src/reporting/report_printer.cpp",
+  "file": "/workspaces/open-bio-image-processor/src/reporting/report_printer.cpp"
+},
+{
+  "directory": "/workspaces/open-bio-image-processor/build",
+  "command": "/usr/bin/c++ -DUNIT_TEST -I/workspaces/open-bio-image-processor/build -I/workspaces/open-bio-image-processor/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/reporting/report_printer_test.cpp.o -c /workspaces/open-bio-image-processor/src/reporting/report_printer_test.cpp",
+  "file": "/workspaces/open-bio-image-processor/src/reporting/report_printer_test.cpp"
 },
 {
   "directory": "/workspaces/open-bio-image-processor/build",

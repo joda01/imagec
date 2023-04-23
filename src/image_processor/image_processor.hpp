@@ -47,13 +47,23 @@ public:
   using ImageProcessorBase::ImageProcessorBase;
 
   ///
+  /// \brief      Returns the output file path of the csv report
+  /// \author     Joachim Danmayr
+  ///
+  [[nodiscard]] auto getReportFilePath() const -> const std::string & override
+  {
+    return mOutputFilePathAllOverReport;
+  }
+
+  ///
   /// \brief      Start the processor
   /// \author     Joachim Danmayr
   ///
   void analyzeAllImages() override
   {
-    uint16_t dir   = 14;
-    auto outFolder = prepareOutputFolders();
+    uint16_t dir                 = 14;
+    auto outFolder               = prepareOutputFolders();
+    mOutputFilePathAllOverReport = outFolder + "/report.csv";
     setTotalImages(getListOfImagePaths().size());
 
     uint64 cnt = 0;
@@ -89,7 +99,7 @@ public:
       }
     }
 
-    getAllOverReporting().flushReportToFile(outFolder + "/report.csv");
+    getAllOverReporting().flushReportToFile(mOutputFilePathAllOverReport);
   }
 
 private:
@@ -123,5 +133,6 @@ private:
   }
 
   /////////////////////////////////////////////////////
+  std::string mOutputFilePathAllOverReport;
 };
 }    // namespace joda::processor

@@ -26,6 +26,7 @@
 #include "image_processor/image_processor.hpp"
 #include "image_processor/image_processor_base.hpp"
 #include "pipelines/nucleus_count/nucleus_count.hpp"
+#include "reporting/report_printer.h"
 
 Navigation::Navigation()
 {
@@ -148,6 +149,8 @@ void Navigation::menuStartAnalyzes()
   //
   paintProgress(&processor);
   tb_printf(0, 5, TB_DEFAULT | TB_ITALIC, 0, "Finished!                            ");
+  ReportPrinter::printTable(processor.getReportFilePath());
+
   readFromConsole(7, "Press ENTER to continue ", "");
 
   //

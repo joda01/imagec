@@ -47,6 +47,7 @@ public:
   auto start() -> std::future<void>;
   void stop();
   auto getProgress() const -> std::tuple<Progress, Progress>;
+  virtual auto getReportFilePath() const -> const std::string & = 0;
 
 protected:
   /////////////////////////////////////////////////////

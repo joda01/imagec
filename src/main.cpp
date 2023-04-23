@@ -19,6 +19,7 @@
 #include "image_reader/vsi/image_loader_vsi.hpp"
 #include "navigation/navigation.hpp"
 #include "pipelines/nucleus_count/nucleus_count.hpp"
+#include "reporting/report_printer.h"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/dnn.hpp>
