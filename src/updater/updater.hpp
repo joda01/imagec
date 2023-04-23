@@ -13,10 +13,53 @@
 
 #pragma once
 
+#include <memory>
+#include <string>
+#include <thread>
+
+///
+/// \class      Updater
+/// \author     Joachim Danmayr
+/// \brief      Updater class
+///
 class Updater
 {
 public:
+  enum DownloadState
+  {
+    NO,
+    IN_PROGRESS,
+    SUCCESSFUL,
+    ERROR
+  };
+
   /////////////////////////////////////////////////////
-  Updater();
-  void download();
+  Updater(int argc, char **argv);
+  ~Updater();
+  bool updateProgram();
+  auto getDownloadProgress() -> std::tuple<int32_t, DownloadState>;
+  void restart();
+  std::string getRemoteVersion()
+  {
+    return mRemoteVersion;
+  }
+  std::string getRemoteHash()
+  {
+    return mRemoteHash;
+  }
+  void getRemoteFileVersionAndHash();
+
+private:
+  /////////////////////////////////////////////////////
+
+  /////////////////////////////////////////////////////
+  int argc;
+  char **argv;
+
+  std::string mRemoteVersion;
+  std::string mRemoteHash;
+  uint32_t mDownloadProgress   = 0;
+  DownloadState mDownloadState = DownloadState::NO;
+  std::shared_ptr<std::thread> mGetRemoteVersionHash;
+  bool mStopped = false;
 };

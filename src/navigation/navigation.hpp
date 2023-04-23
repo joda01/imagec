@@ -19,11 +19,12 @@
 /// \brief      Menu navigation
 ///
 #include <string>
+#include "updater/updater.hpp"
 class Navigation
 {
 public:
   /////////////////////////////////////////////////////
-  Navigation();
+  explicit Navigation(Updater *updater);
 
   void start();
 
@@ -35,12 +36,12 @@ private:
   auto menuGetInputFolder() -> std::string;
   void menuStartAnalyzes();
   void menuReportResult();
+  void menuUpdating();
 
   void drawProgressBar(int x, int y, int width, float act, float total);
   void saveUserSettings();
   void loadUserSettings();
 
-  static void clearScreen();
   void cancelReadFromConsole()
   {
     mReadFromConsoleCanceled = true;
@@ -49,4 +50,5 @@ private:
   std::string mSelectedInputFolder;
   std::string mLastReport;
   bool mReadFromConsoleCanceled = false;
+  Updater *mUpdater;
 };

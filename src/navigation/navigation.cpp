@@ -27,9 +27,10 @@
 #include "image_processor/image_processor_base.hpp"
 #include "pipelines/nucleus_count/nucleus_count.hpp"
 #include "reporting/report_printer.h"
+#include "updater/updater.hpp"
 #include "version.h"
 
-Navigation::Navigation()
+Navigation::Navigation(Updater *updater) : mUpdater(updater)
 {
 }
 
@@ -64,8 +65,30 @@ void Navigation::menuMain()
       tb_printf(0, y++, TB_DEFAULT, 0, toPrint.c_str());
     }
     tb_printf(0, y++, TB_DEFAULT, 0, "x... Exit");
-    y++;
-    selection = readFromConsole(y, "Select: ", "");
+
+    //
+    // Update check
+    //
+    auto yUpd                        = y;
+    bool updateEnable                = false;
+    bool checkForUpdateThreadStopped = false;
+    auto checkForUpdate              = [&]() {
+      while(!checkForUpdateThreadStopped) {
+        if(!mUpdater->getRemoteHash().empty() && (mUpdater->getRemoteHash() != Version::getHash())) {
+          updateEnable    = true;
+          std::string upd = "u... Update from " + Version::getVersion() + " -> " + mUpdater->getRemoteVersion();
+          tb_printf(0, yUpd, TB_ITALIC | TB_YELLOW, 0, upd.c_str());
+          checkForUpdateThreadStopped = true;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      }
+    };
+    std::future<void> checkForUpdateThread = std::async(std::launch::async, checkForUpdate);
+
+    selection                   = readFromConsole(yUpd + 1, "Select: ", "");
+    checkForUpdateThreadStopped = true;
+    checkForUpdateThread.get();
+
     //
     // Select folder
     //
@@ -85,6 +108,14 @@ void Navigation::menuMain()
     //
     if("3" == selection && !mLastReport.empty()) {
       menuReportResult();
+    }
+
+    //
+    // Update
+    //
+    if("u" == selection && updateEnable) {
+      menuUpdating();
+      return;
     }
 
     //
@@ -175,26 +206,37 @@ void Navigation::menuStartAnalyzes()
   waitForEscThread.wait();
 }
 
-void Navigation::drawProgressBar(int x, int y, int width, float act, float total)
+///
+/// \brief      Update the program
+/// \author     Joachim Danmayr
+/// \return     Selected folder
+///
+void Navigation::menuUpdating()
 {
-  // Calculate the width of the progress bar
-  float progress = act / total;
-  int bar_width  = (int) (progress * (width - 2));
+  tb_clear();
+  tb_present();
 
-  // Draw the progress bar and frame
-  for(int i = 0; i < width; i++) {
-    if(i == 0 || i == width - 1) {
-      tb_set_cell(x + i, y, '|', TB_WHITE, TB_DEFAULT);
-    } else if(i <= bar_width) {
-      tb_set_cell(x + i, y, '=', TB_WHITE, TB_DEFAULT);
+  auto updateFunction            = [&]() { mUpdater->updateProgram(); };
+  std::future<void> updateThread = std::async(std::launch::async, updateFunction);
+  tb_printf(0, 0, TB_DEFAULT | TB_ITALIC, 0, "Download update ...");
+
+  while(true) {
+    auto [progress, state] = mUpdater->getDownloadProgress();
+    if(state == Updater::DownloadState::ERROR || state == Updater::DownloadState::SUCCESSFUL) {
+      break;
     } else {
-      tb_set_cell(x + i, y, ' ', TB_WHITE, TB_DEFAULT);
+      drawProgressBar(0, 2, 50, progress, 100);
+      tb_present();
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
+  updateThread.get();
 
-  // Draw the progress percentage
-  std::string txt = std::to_string((uint32_t) act) + "/" + std::to_string((uint32_t) total);
-  tb_printf(x + width + 2, y, TB_WHITE, TB_DEFAULT, txt.c_str());
+  tb_printf(0, 0, TB_DEFAULT | TB_ITALIC, 0, "Download finished!     ");
+  tb_printf(0, 1, TB_DEFAULT, 0, "Restarting imageC, please wait ... ");
+  tb_present();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  mUpdater->restart();
 }
 
 ///
@@ -329,11 +371,24 @@ std::string Navigation::readFromConsole(int y, const std::string &desc, const st
   return def;
 }
 
-///
-/// \brief      Clear screen
-/// \author     Joachim Danmayr
-///
-void Navigation::clearScreen()
+void Navigation::drawProgressBar(int x, int y, int width, float act, float total)
 {
-  system("clear");
+  // Calculate the width of the progress bar
+  float progress = act / total;
+  int bar_width  = (int) (progress * (width - 2));
+
+  // Draw the progress bar and frame
+  for(int i = 0; i < width; i++) {
+    if(i == 0 || i == width - 1) {
+      tb_set_cell(x + i, y, '|', TB_WHITE, TB_DEFAULT);
+    } else if(i <= bar_width) {
+      tb_set_cell(x + i, y, '=', TB_WHITE, TB_DEFAULT);
+    } else {
+      tb_set_cell(x + i, y, ' ', TB_WHITE, TB_DEFAULT);
+    }
+  }
+
+  // Draw the progress percentage
+  std::string txt = std::to_string((uint32_t) act) + "/" + std::to_string((uint32_t) total);
+  tb_printf(x + width + 2, y, TB_WHITE, TB_DEFAULT, txt.c_str());
 }

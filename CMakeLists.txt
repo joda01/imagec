@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.5)
 
 # Project name and version
-project (evanalyzerv2
+project (imagec
          VERSION 1.0.0
          HOMEPAGE_URL https://danmayr.org
          LANGUAGES CXX C)

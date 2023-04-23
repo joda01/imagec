@@ -20,6 +20,7 @@
 #include "navigation/navigation.hpp"
 #include "pipelines/nucleus_count/nucleus_count.hpp"
 #include "reporting/report_printer.h"
+#include "updater/updater.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/dnn.hpp>
@@ -43,11 +44,11 @@ std::string readFolder(const std::string &text);
 int main(int argc, char **argv)
 {
   Version::initVersion(std::string(argv[0]));
+  Updater updaterService(argc, argv);
   tb_init();
-
   TiffLoader::initLibTif();
 
-  Navigation navigation;
+  Navigation navigation(&updaterService);
   navigation.start();
 
   tb_shutdown();
