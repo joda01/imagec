@@ -100,8 +100,8 @@ void NucleusCounter::mergeReport(const std::string &rowName, joda::reporting::Ta
   } else {
     mergeTo.appendValueToColumn(rowName, 0, 0);
   }
-  if(mergeFrom.getStatisitcs().contains(3)) {
-    mergeTo.appendValueToColumn(rowName, 1, mergeFrom.getStatisitcs().at(3).getMean());
+  if(mergeFrom.getStatisitcs().contains(1)) {
+    mergeTo.appendValueToColumn(rowName, 1, mergeFrom.getStatisitcs().at(1).getMean());
   } else {
     mergeTo.appendValueToColumn(rowName, 1, 0);
   }
