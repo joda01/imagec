@@ -19,11 +19,38 @@ ImageProcessorBase::ImageProcessorBase(const std::string &inputFolder, const std
 ///             Second starts the analyzing process.
 /// \author     Joachim Danmayr
 ///
-auto ImageProcessorBase::start() -> std::future<void>
+auto ImageProcessorBase::start() -> std::future<void> &
 {
-  auto mainThreadFunc      = [this] { mainThread(); };
-  std::future<void> result = std::async(std::launch::async, mainThreadFunc);
-  return result;
+  auto mainThreadFunc = [this] { mainThread(); };
+  mFuture             = std::async(std::launch::async, mainThreadFunc);
+  return mFuture;
+}
+
+///
+/// \brief      Returns the future of the threaded object
+/// \author     Joachim Danmayr
+///
+auto ImageProcessorBase::getFuture() -> std::future<void> &
+{
+  return mFuture;
+}
+
+///
+/// \brief      Returns the future of the threaded object
+/// \author     Joachim Danmayr
+///
+void ImageProcessorBase::wait()
+{
+  mFuture.wait();
+}
+
+///
+/// \brief      Returns true if analyzing has been finished
+/// \author     Joachim Danmayr
+///
+bool ImageProcessorBase::isFinished() const
+{
+  return isStopped();
 }
 
 void ImageProcessorBase::mainThread()

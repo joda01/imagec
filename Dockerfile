@@ -112,6 +112,7 @@ RUN git clone --recurse-submodules -b v0.12.2 --depth 1 https://github.com/yhiro
   rm -rf /cpp-httplib
 
 RUN apt-get update && apt-get install -y libcurl4-openssl-dev
+RUN apt-get update && apt-get install -y uuid-dev
 
 RUN ldconfig
 

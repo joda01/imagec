@@ -139,8 +139,8 @@ void Navigation::menuStartAnalyzes()
   joda::processor::ImageProcessor<::joda::pipeline::NucleusCounter> processor(mSelectedInputFolder,
                                                                               mSelectedInputFolder + "/result");
 
-  auto startTime    = std::chrono::high_resolution_clock::now();
-  auto workerThread = processor.start();
+  auto startTime     = std::chrono::high_resolution_clock::now();
+  auto &workerThread = processor.start();
 
   bool stopPaintProgress = false;
 

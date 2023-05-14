@@ -39,6 +39,18 @@ public:
     return mCalculatedHash;
   }
 
+  static std::string getLogo()
+  {
+    std::string logo = "    _                            ______ \n";
+    logo += "   (_)___ ___  ____ _____  ___  / ____/\n";
+    logo += "  / / __ `__ \\/ __ `/ __ `/ _ \\/ /   \n";
+    logo += " / / / / / / / /_/ / /_/ /  __/ /___   \n";
+    logo += "/_/_/ /_/ /_/\\__,_/\\__, /\\___/\\____/\n";
+    logo += "                  /____/               \n";
+    logo += "_______________________________________\n";
+    return logo;
+  }
+
 private:
   /////////////////////////////////////////////////////
   static inline std::string mCalculatedHash;

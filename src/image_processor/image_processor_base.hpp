@@ -44,7 +44,11 @@ public:
 
   /////////////////////////////////////////////////////
   explicit ImageProcessorBase(const std::string &inputFolder, const std::string &outputFolder);
-  auto start() -> std::future<void>;
+  auto start() -> std::future<void> &;
+  [[nodiscard]] auto getFuture() -> std::future<void> &;
+  [[nodiscard]] auto isFinished() const -> bool;
+
+  void wait();
   void stop();
   auto getProgress() const -> std::tuple<Progress, Progress>;
   virtual auto getReportFilePath() const -> const std::string & = 0;
@@ -80,6 +84,7 @@ private:
   Progress mProgressTotal;
   Progress mProgressActImage;
   bool mStopped = false;
+  std::future<void> mFuture;
 };
 
 }    // namespace joda::processor

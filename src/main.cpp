@@ -11,10 +11,12 @@
 #include <string>
 #include <vector>
 #include "algorithms/rolling_ball/rolling_ball.hpp"
+#include "api/api.hpp"
 #include "duration_count/duration_count.h"
 #include "helper/termbox/termbox2.h"
 #include "image/image.hpp"
 #include "image_processor/image_processor.hpp"
+#include "image_processor/image_processor_factory.hpp"
 #include "image_reader/tif/image_loader_tif.hpp"
 #include "image_reader/vsi/image_loader_vsi.hpp"
 #include "navigation/navigation.hpp"
@@ -38,19 +40,28 @@ using namespace dnn;
 
 ////
 
-void printLogo();
-std::string readFolder(const std::string &text);
+static constexpr int LISTENING_PORT = 7367;
 
+///
+/// \brief      Main method
+/// \author     Joachim Danmayr
+///
 int main(int argc, char **argv)
 {
   Version::initVersion(std::string(argv[0]));
   Updater updaterService(argc, argv);
-  tb_init();
   TiffLoader::initLibTif();
+  joda::processor::ImageProcessorFactory::initProcessorFactory();
 
-  Navigation navigation(&updaterService);
-  navigation.start();
+  joda::api::Api api;
+  api.start(LISTENING_PORT);
 
-  tb_shutdown();
+  joda::processor::ImageProcessorFactory::shutdownFactory();
+
+  // tb_init();
+  // Navigation navigation(&updaterService);
+  // navigation.start();
+  // tb_shutdown();
+
   return 0;
 }

@@ -100,6 +100,7 @@ public:
     }
 
     getAllOverReporting().flushReportToFile(mOutputFilePathAllOverReport);
+    stop();
   }
 
 private:

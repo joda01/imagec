@@ -11,7 +11,7 @@ TEST_CASE("analze_settings", "[analze_settings]")
 {
   joda::settings::json::AnalyzeSettings settings;
 
-  settings.loadConfig("src/settings/config_test.json");
+  settings.loadConfigFromFile("src/settings/config_test.json");
   CHECK(settings.getMinColocFactor() == 15.5);
   CHECK(settings.getPixelInMicrometer() == 0.001F);
   CHECK(settings.getPipeline() == joda::settings::json::AnalyzeSettings::Pipeline::NUCLEUS_COUNT);

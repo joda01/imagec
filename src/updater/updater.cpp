@@ -105,7 +105,6 @@ void Updater::getRemoteFileVersionAndHash()
   while(!mStopped) {
     try {
       httplib::Client cli("https://a3w6k4.myvserver.online:4443");
-      std::cout << "GET" << std::endl;
       auto res = cli.Get("/imagec_hash.json");
       if(res && res->status == 200) {
         std::string js(res->body.data(), res->body.size());

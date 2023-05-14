@@ -211,17 +211,17 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  void loadConfig(const std::string &cfgPath)
+  void loadConfigFromFile(const std::string &cfgPath)
   {
     std::ifstream input(cfgPath);
     *this = json::parse(input);
-    for(auto &ch : channels) {
-      ch.interpretConfig();
-      // Move from vector to ordered map
-      orderedChannels.emplace(ch.getType(), std::move(ch));
-    }
-    channels.clear();
-    stringToPipeline();
+    interpretConfig();
+  }
+
+  void loadConfigFromString(const std::string &cfgPath)
+  {
+    *this = json::parse(cfgPath);
+    interpretConfig();
   }
 
   auto getPipeline() const -> Pipeline
@@ -265,6 +265,16 @@ public:
   }
 
 private:
+  void interpretConfig()
+  {
+    for(auto &ch : channels) {
+      ch.interpretConfig();
+      // Move from vector to ordered map
+      orderedChannels.emplace(ch.getType(), std::move(ch));
+    }
+    channels.clear();
+    stringToPipeline();
+  }
   //
   // Pipeline to analyze the pictures with
   // [NUCLEUS_COUNT, EV_COUNT, EV_COLOC, EV_COLOC_IN_CELLS]
