@@ -17,6 +17,7 @@
 #include <string>
 #include "image_processor/image_processor_base.hpp"
 #include "image_processor/image_processor_factory.hpp"
+#include "logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include "version.h"
@@ -35,17 +36,18 @@ Api::Api()
 ///
 void Api::start(int listenPort)
 {
-  static std::string apiVersion = "v1";
+  static const std::string apiVersion = "v1";
   std::string actProcessorUID;
+  static const std::string welcomeMessage = "version: " + Version::getVersion() + "\n" +
+                                            "sha256:  " + Version::getHash() + "\n" + "api version: " + apiVersion +
+                                            " | api port: " + std::to_string(listenPort) + "\n" + Version::getLogo();
+
+  std::cout << welcomeMessage << std::endl;
 
   //
   // Welcome page!
   //
-  mServer.Get("/", [](const Request &req, Response &res) {
-    res.set_content("version: " + Version::getVersion() + "\nsha256:  " + Version::getHash() + "\napi: " + apiVersion +
-                        "\n" + Version::getLogo(),
-                    "text/plain");
-  });
+  mServer.Get("/", [&](const Request &req, Response &res) { res.set_content(welcomeMessage, "text/plain"); });
 
   //
   // Start analyzes
@@ -53,7 +55,6 @@ void Api::start(int listenPort)
   std::string start = "/" + apiVersion + "/start";
   mServer.Post(start, [&](const Request &req, Response &res) {
     try {
-      std::cout << req.body << std::endl;
       nlohmann::json object   = nlohmann::json::parse(req.body);
       std::string inputFolder = object["input_folder"];
       actProcessorUID         = joda::processor::ImageProcessorFactory::startProcessing(inputFolder, req.body);
@@ -63,6 +64,7 @@ void Api::start(int listenPort)
       retDoc["status"]     = "running";
       retDoc["process_id"] = actProcessorUID;
       res.set_content(retDoc.dump(), "application/json");
+      joda::log::logInfo("Analyze started from " + req.remote_addr + "!");
 
     } catch(const std::exception &ex) {
       nlohmann::json retDoc;
@@ -70,6 +72,7 @@ void Api::start(int listenPort)
       retDoc["code"]   = ex.what();
       res.status       = 500;
       res.set_content(retDoc.dump(), "application/json");
+      joda::log::logWarning("Analyze could not be started! Got " + std::string(ex.what()) + ".");
     }
   });
 
@@ -78,6 +81,7 @@ void Api::start(int listenPort)
   //
   std::string stop = "/" + apiVersion + "/stop";
   mServer.Get(stop, [&](const Request &req, Response &res) {
+    joda::log::logInfo("Analyze stopped from " + req.remote_addr + "!");
     joda::processor::ImageProcessorFactory::stopProcess(actProcessorUID);
     nlohmann::json retDoc;
     retDoc["status"] = "stopping";
