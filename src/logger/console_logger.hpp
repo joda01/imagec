@@ -25,7 +25,7 @@ const std::string GREEN_COLOR  = "\033[32m";
 const std::string YELLOW_COLOR = "\033[33m";
 const std::string BLUE_COLOR   = "\033[34m";
 
-std::string getCurrentDateTimeISO()
+inline std::string getCurrentDateTimeISO()
 {
   auto now                = std::chrono::system_clock::now();
   std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
@@ -36,19 +36,19 @@ std::string getCurrentDateTimeISO()
   return oss.str();
 }
 
-void logError(const std::string &message)
+inline void logError(const std::string &message)
 {
   std::string currentDateTimeISO = getCurrentDateTimeISO();
   std::cout << RED_COLOR << "[ERROR]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
 }
 
-void logWarning(const std::string &message)
+inline void logWarning(const std::string &message)
 {
   std::string currentDateTimeISO = getCurrentDateTimeISO();
   std::cout << YELLOW_COLOR << "[WARNING]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
 }
 
-void logInfo(const std::string &message)
+inline void logInfo(const std::string &message)
 {
   std::string currentDateTimeISO = getCurrentDateTimeISO();
   std::cout << BLUE_COLOR << "[INFO]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;

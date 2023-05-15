@@ -18,6 +18,7 @@
 #include "helper/uid_generator.hpp"
 #include "image_processor/image_processor.hpp"
 #include "image_processor/image_processor_base.hpp"
+#include "logger/console_logger.hpp"
 #include "pipelines/nucleus_count/nucleus_count.hpp"
 #include "settings/analze_settings_parser.hpp"
 
@@ -59,6 +60,7 @@ void ImageProcessorFactory::observer()
       if(processor->isFinished()) {
         processor->wait();
         toDelete.emplace(uid);
+        joda::log::logInfo("Analyze with process id >" + uid + "< finished!");
       }
     }
 
