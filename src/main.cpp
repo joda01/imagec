@@ -14,8 +14,7 @@
 #include "algorithms/rolling_ball/rolling_ball.hpp"
 #include "duration_count/duration_count.h"
 #include "helper/termbox/termbox2.h"
-#include "http/api/api.hpp"
-#include "http/web_server/web_server.hpp"
+#include "http/web_server.hpp"
 #include "image/image.hpp"
 #include "image_processor/image_processor.hpp"
 #include "image_processor/image_processor_factory.hpp"
@@ -43,7 +42,6 @@ using namespace dnn;
 ////
 
 static constexpr int LISTENING_PORT_API = 7367;
-static constexpr int LISTENING_PORT_UI  = 8067;
 
 ///
 /// \brief      Main method
@@ -56,13 +54,9 @@ int main(int argc, char **argv)
   TiffLoader::initLibTif();
   joda::processor::ImageProcessorFactory::initProcessorFactory();
 
-  joda::api::Api api;
   joda::http::HttpServer http;
 
-  auto apiThread    = std::thread(&joda::api::Api::start, &api, LISTENING_PORT_API);
-  auto serverThread = std::thread(&joda::http::HttpServer::start, &http, LISTENING_PORT_UI);
-
-  apiThread.join();
+  auto serverThread = std::thread(&joda::http::HttpServer::start, &http, LISTENING_PORT_API);
   serverThread.join();
 
   joda::processor::ImageProcessorFactory::shutdownFactory();
