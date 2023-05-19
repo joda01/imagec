@@ -105,7 +105,7 @@ void HttpServer::start(int listeningPort)
 
       // actProcessor->wait();
       nlohmann::json retDoc;
-      retDoc["status"]     = "running";
+      retDoc["status"]     = "RUNNING";
       retDoc["process_id"] = actProcessorUID;
       res.set_content(retDoc.dump(), "application/json");
       joda::log::logInfo("Analyze started from " + req.remote_addr + "!");
@@ -128,26 +128,26 @@ void HttpServer::start(int listeningPort)
     joda::log::logInfo("Analyze stopped from " + req.remote_addr + "!");
     joda::processor::ImageProcessorFactory::stopProcess(actProcessorUID);
     nlohmann::json retDoc;
-    retDoc["status"] = "stopping";
+    retDoc["status"] = "STOPPING";
     res.set_content(retDoc.dump(), "application/json");
   });
 
   //
   // Get progress of running analyzing
   //
-  std::string progress = "/api/" + API_VERSION + "/progress";
+  std::string progress = "/api/" + API_VERSION + "/getstate";
   server.Get(progress, [&](const Request &req, Response &res) {
     nlohmann::json retDoc;
 
     try {
       auto [total, image] = joda::processor::ImageProcessorFactory::getProcess(actProcessorUID)->getProgress();
-      retDoc["status"]    = "running";
+      retDoc["status"]    = "RUNNING";
       retDoc["actual_image"]["finished"] = image.finished;
       retDoc["actual_image"]["total"]    = image.total;
       retDoc["total"]["finished"]        = total.finished;
       retDoc["total"]["total"]           = total.total;
     } catch(const std::exception &ex) {
-      retDoc["status"] = "stopped";
+      retDoc["status"] = "FINISHED";
     }
 
     res.set_content(retDoc.dump(), "application/json");
