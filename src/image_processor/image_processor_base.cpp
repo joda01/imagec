@@ -75,9 +75,17 @@ void ImageProcessorBase::stop()
 /// \author     Joachim Danmayr
 /// \return     Total Progress, Progress of act image
 ///
-auto ImageProcessorBase::getProgress() const -> std::tuple<Progress, Progress>
+auto ImageProcessorBase::getProgress() const -> std::tuple<Progress, Progress, State>
 {
-  return {mProgressTotal, mProgressActImage};
+  State state = State::FINISHED;
+  if(mStopped) {
+    state = State::STOPPING;
+  }
+  if(!mStopped) {
+    state = State::RUNNING;
+  }
+
+  return {mProgressTotal, mProgressActImage, state};
 }
 
 void ImageProcessorBase::setTotalImages(uint32_t total)

@@ -140,8 +140,16 @@ void HttpServer::start(int listeningPort)
     nlohmann::json retDoc;
 
     try {
-      auto [total, image] = joda::processor::ImageProcessorFactory::getProcess(actProcessorUID)->getProgress();
-      retDoc["status"]    = "RUNNING";
+      auto [total, image, state] = joda::processor::ImageProcessorFactory::getProcess(actProcessorUID)->getProgress();
+      if(state == joda::processor::ImageProcessorBase::State::RUNNING) {
+        retDoc["status"] = "RUNNING";
+      }
+      if(state == joda::processor::ImageProcessorBase::State::FINISHED) {
+        retDoc["status"] = "FINISHED";
+      }
+      if(state == joda::processor::ImageProcessorBase::State::STOPPING) {
+        retDoc["status"] = "STOPPING";
+      }
       retDoc["actual_image"]["finished"] = image.finished;
       retDoc["actual_image"]["total"]    = image.total;
       retDoc["total"]["finished"]        = total.finished;

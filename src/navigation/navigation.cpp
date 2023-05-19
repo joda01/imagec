@@ -148,7 +148,7 @@ void Navigation::menuStartAnalyzes()
   // Paint progress
   //
   auto paintProgress = [&](const joda::processor::ImageProcessorBase *processor) {
-    auto [total, img] = processor->getProgress();
+    auto [total, img, state] = processor->getProgress();
 
     auto t_end              = std::chrono::high_resolution_clock::now();
     double elapsedTimeMs    = std::chrono::duration<double, std::milli>(t_end - startTime).count();

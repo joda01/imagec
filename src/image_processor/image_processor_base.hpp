@@ -42,6 +42,13 @@ public:
     uint32_t total    = 0;
   };
 
+  enum class State
+  {
+    FINISHED,
+    RUNNING,
+    STOPPING
+  };
+
   /////////////////////////////////////////////////////
   explicit ImageProcessorBase(const std::string &inputFolder, const std::string &outputFolder);
   auto start() -> std::future<void> &;
@@ -50,7 +57,7 @@ public:
 
   void wait();
   void stop();
-  auto getProgress() const -> std::tuple<Progress, Progress>;
+  auto getProgress() const -> std::tuple<Progress, Progress, State>;
   virtual auto getReportFilePath() const -> const std::string & = 0;
 
 protected:
