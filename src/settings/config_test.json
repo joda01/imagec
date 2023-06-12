@@ -7,10 +7,15 @@
                 2
             ],
             "type": "EV",
-            "threshold_algorithm": "LI",
             "label": "CY5",
-            "threshold_min": 65536,
-            "threshold_max": 123,
+            "thresholds": {
+                "threshold_algorithm": "LI",
+                "threshold_min": 65536,
+                "threshold_max": 123
+            },
+            "ai_settings": {
+                "model_name": "nucleus_detection_ex_vivo_v1.onnx"
+            },
             "min_particle_size": 0.25,
             "max_particle_size": 0.23,
             "min_circularity": 0.2,
@@ -24,10 +29,12 @@
                 2
             ],
             "type": "EV",
-            "threshold_algorithm": "LI",
             "label": "CY7",
-            "threshold_min": 65536,
-            "threshold_max": 123,
+            "thresholds": {
+                "threshold_algorithm": "LI",
+                "threshold_min": 65536,
+                "threshold_max": 123
+            },
             "min_particle_size": 0.25,
             "max_particle_size": 0.23,
             "min_circularity": 0.2,
@@ -41,10 +48,12 @@
                 2
             ],
             "type": "NUCLEUS",
-            "threshold_algorithm": "LI",
             "label": "CY7",
-            "threshold_min": 65536,
-            "threshold_max": 123,
+            "thresholds": {
+                "threshold_algorithm": "LI",
+                "threshold_min": 65536,
+                "threshold_max": 123
+            },
             "min_particle_size": 0.25,
             "max_particle_size": 0.23,
             "min_circularity": 0.2,
@@ -53,6 +62,7 @@
             "zprojection": "MAX"
         }
     ],
+    "input_folder": "",
     "min_coloc_factor": 15.5,
     "pixel_in_micrometer": 0.001,
     "with_control_images": true,

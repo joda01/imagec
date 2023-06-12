@@ -13,7 +13,11 @@
 
 #pragma once
 
+#include <httplib.h>
+
 namespace joda::http {
+
+using namespace httplib;
 
 ///
 /// \class      HttpServer
@@ -28,6 +32,7 @@ public:
   {
   }
   void start(int listeningPort);
+  static void addResponseHeader(Response &res);
 
 private:
   /////////////////////////////////////////////////////

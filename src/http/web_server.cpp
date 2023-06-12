@@ -14,17 +14,21 @@
 #include "web_server.hpp"
 #include <httplib.h>
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
-#include "image_processor/image_processor_base.hpp"
-#include "image_processor/image_processor_factory.hpp"
 #include "logger/console_logger.hpp"
+#include "pipelines/pipeline.hpp"
+#include "pipelines/pipeline_factory.hpp"
+#include "settings/analze_settings_parser.hpp"
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include "version.h"
+
+namespace fs = std::filesystem;
 
 namespace joda::http {
 
@@ -39,6 +43,7 @@ using namespace httplib;
 ///
 void handleRequest(const httplib::Request &req, httplib::Response &res)
 {
+  HttpServer::addResponseHeader(res);
   std::string path = req.path;
   if(path == "/") {
     path = "/index.html";
@@ -93,15 +98,24 @@ void HttpServer::start(int listeningPort)
   //
   server.Get("/api", [&](const Request &req, Response &res) { res.set_content(welcomeMessage, "text/plain"); });
 
+  server.Options(R"(/api/v1/(.+))",
+                 [&](const httplib::Request &req, httplib::Response &res) { HttpServer::addResponseHeader(res); });
+  server.Options("/api/v1",
+                 [&](const httplib::Request &req, httplib::Response &res) { HttpServer::addResponseHeader(res); });
+
   //
   // Start analyzes
   //
   std::string start = "/api/" + API_VERSION + "/start";
   server.Post(start, [&](const Request &req, Response &res) {
+    HttpServer::addResponseHeader(res);
+
     try {
       nlohmann::json object   = nlohmann::json::parse(req.body);
       std::string inputFolder = object["input_folder"];
-      actProcessorUID         = joda::processor::ImageProcessorFactory::startProcessing(inputFolder, req.body);
+      settings::json::AnalyzeSettings settings;
+      settings.loadConfigFromString(req.body);
+      actProcessorUID = joda::pipeline::PipelineFactory::startNewJob(settings, inputFolder);
 
       // actProcessor->wait();
       nlohmann::json retDoc;
@@ -125,8 +139,10 @@ void HttpServer::start(int listeningPort)
   //
   std::string stop = "/api/" + API_VERSION + "/stop";
   server.Get(stop, [&](const Request &req, Response &res) {
+    HttpServer::addResponseHeader(res);
+
     joda::log::logInfo("Analyze stopped from " + req.remote_addr + "!");
-    joda::processor::ImageProcessorFactory::stopProcess(actProcessorUID);
+    joda::pipeline::PipelineFactory::stopJob(actProcessorUID);
     nlohmann::json retDoc;
     retDoc["status"] = "STOPPING";
     res.set_content(retDoc.dump(), "application/json");
@@ -137,25 +153,56 @@ void HttpServer::start(int listeningPort)
   //
   std::string progress = "/api/" + API_VERSION + "/getstate";
   server.Get(progress, [&](const Request &req, Response &res) {
+    HttpServer::addResponseHeader(res);
+
     nlohmann::json retDoc;
 
     try {
-      auto [total, image, state] = joda::processor::ImageProcessorFactory::getProcess(actProcessorUID)->getProgress();
-      if(state == joda::processor::ImageProcessorBase::State::RUNNING) {
+      auto [progress, state] = joda::pipeline::PipelineFactory::getState(actProcessorUID);
+      if(state == joda::pipeline::Pipeline::State::RUNNING) {
         retDoc["status"] = "RUNNING";
       }
-      if(state == joda::processor::ImageProcessorBase::State::FINISHED) {
+      if(state == joda::pipeline::Pipeline::State::FINISHED) {
         retDoc["status"] = "FINISHED";
       }
-      if(state == joda::processor::ImageProcessorBase::State::STOPPING) {
+      if(state == joda::pipeline::Pipeline::State::STOPPING) {
         retDoc["status"] = "STOPPING";
       }
-      retDoc["actual_image"]["finished"] = image.finished;
-      retDoc["actual_image"]["total"]    = image.total;
-      retDoc["total"]["finished"]        = total.finished;
-      retDoc["total"]["total"]           = total.total;
+      retDoc["actual_image"]["finished"] = progress.image.finished;
+      retDoc["actual_image"]["total"]    = progress.image.total;
+      retDoc["total"]["finished"]        = progress.total.finished;
+      retDoc["total"]["total"]           = progress.total.total;
     } catch(const std::exception &ex) {
       retDoc["status"] = "FINISHED";
+    }
+
+    res.set_content(retDoc.dump(), "application/json");
+  });
+
+  //
+  // List folders
+  //
+  std::string listFolders = "/api/" + API_VERSION + "/listfolders";
+  server.Post(listFolders, [&](const Request &req, Response &res) {
+    HttpServer::addResponseHeader(res);
+    nlohmann::json retDoc;
+    try {
+      std::set<std::string> directories;
+      nlohmann::json reqJson = nlohmann::json::parse(req.body);
+      std::string startPath  = reqJson["path"];
+      if(startPath.empty()) {
+        startPath = fs::path(getenv("HOME"));
+      }
+      for(const auto &entry : fs::directory_iterator(startPath)) {
+        if(fs::is_directory(entry.status())) {
+          directories.emplace(entry.path());
+        }
+      }
+      retDoc["directories"] = directories;
+      retDoc["home"]        = fs::path(getenv("HOME"));
+    } catch(const std::exception &ex) {
+      retDoc["directories"] = std::set<std::string>();
+      retDoc["home"]        = fs::path(getenv("HOME"));
     }
 
     res.set_content(retDoc.dump(), "application/json");
@@ -178,4 +225,12 @@ void HttpServer::start(int listeningPort)
 
   server.listen("0.0.0.0", listeningPort);
 }
+
+void HttpServer::addResponseHeader(Response &res)
+{
+  res.set_header("Access-Control-Allow-Origin", "*");
+  res.set_header("Access-Control-Allow-Methods", "GET,PUT,PATCH,POST,DELETE,OPTIONS");
+  //  res.set_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+}
+
 }    // namespace joda::http

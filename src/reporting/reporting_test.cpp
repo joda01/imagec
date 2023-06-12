@@ -23,11 +23,11 @@ SCENARIO("Adding three values to a table", "[table]")
   CHECK(382 == table.getTable().at(0).at(1).value);
   CHECK(527 == table.getTable().at(0).at(2).value);
 
-  CHECK(10 == table.getStatisitcs().at(0).getNr());
-  CHECK(4859 == table.getStatisitcs().at(0).getSum());
-  CHECK(0 == table.getStatisitcs().at(0).getMin());
-  CHECK(889 == table.getStatisitcs().at(0).getMax());
-  CHECK(485.9 == Catch::Approx(table.getStatisitcs().at(0).getMean()).epsilon(0.5));
+  CHECK(10 == table.getStatistics().at(0).getNr());
+  CHECK(4859 == table.getStatistics().at(0).getSum());
+  CHECK(0 == table.getStatistics().at(0).getMin());
+  CHECK(889 == table.getStatistics().at(0).getMax());
+  CHECK(485.9 == Catch::Approx(table.getStatistics().at(0).getMean()).epsilon(0.5));
 
   CHECK(table.getNrOfRows() == 10);
   CHECK(table.getNrOfColumns() == 2);

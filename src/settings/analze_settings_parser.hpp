@@ -13,8 +13,10 @@
 
 #pragma once
 
+#include <cstddef>
 #include <fstream>
 #include <map>
+#include <optional>
 #include <set>
 #include <catch2/catch_config.hpp>
 #include <nlohmann/json.hpp>
@@ -23,50 +25,40 @@ namespace joda::settings::json {
 
 using json = nlohmann::json;
 
-class ChannelSettings final
+class AiSettings final
 {
 public:
   /////////////////////////////////////////////////////
-  enum class Type
+  auto getModelName() const -> std::string
   {
-    NONE,
-    NUCLEUS,
-    EV,
-    BACKGROUND,
-    CELL_BRIGHTFIELD,
-    CELL_DARKFIELD,
-  };
+    return model_name;
+  }
 
+private:
+  //
+  // Name of the onnx AI model which should be used for detection.
+  //
+  std::string model_name;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiSettings, model_name);
+};
+
+class ThresholdSettings final
+{
+public:
+  /////////////////////////////////////////////////////
   enum class Threshold
   {
+    NONE,
     MANUAL,
     LI,
     MIN_ERROR,
     TRIANGLE
   };
 
-  enum class ZProjection
-  {
-    NONE,
-    MAX_INTENSITY
-  };
-
-  /////////////////////////////////////////////////////
   void interpretConfig()
   {
-    stringToType();
     stringToThreshold();
-    stringToZProjection();
-  }
-
-  auto getType() const -> Type
-  {
-    return enumType;
-  }
-
-  auto getLabel() const -> std::string
-  {
-    return label;
   }
 
   auto getThreshold() const -> Threshold
@@ -82,6 +74,80 @@ public:
   auto getThresholdMax() const -> float
   {
     return threshold_max;
+  }
+
+private:
+  //
+  // Which threshold algorithm should be used
+  // [MANUAL, LI, MIN_ERROR, TRIANGLE]
+  //
+  std::string threshold_algorithm;
+  Threshold enumThreshold = Threshold::NONE;
+  void stringToThreshold();
+
+  //
+  // Minimum threshold value.
+  // [0-65535]
+  //
+  float threshold_min = 0;
+
+  //
+  // Maximum threshold value (default 65535)
+  // [0-65535]
+  //
+  float threshold_max = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ThresholdSettings, threshold_algorithm, threshold_min, threshold_max);
+};
+
+class ChannelSettings final
+{
+public:
+  /////////////////////////////////////////////////////
+  enum class Type
+  {
+    NONE,
+    NUCLEUS,
+    EV,
+    CELL,
+    BACKGROUND,
+  };
+
+  enum class ZProjection
+  {
+    NONE,
+    MAX_INTENSITY
+  };
+
+  enum class DetectionMode
+  {
+    NONE,
+    THRESHOLD,
+    AI
+  };
+
+  /////////////////////////////////////////////////////
+  void interpretConfig()
+  {
+    stringToType();
+    stringToZProjection();
+    stringToDetectionMode();
+    thresholds.interpretConfig();
+  }
+
+  auto getType() const -> Type
+  {
+    return enumType;
+  }
+
+  auto getDetectionMode() const -> DetectionMode
+  {
+    return enumDetectionMode;
+  }
+
+  auto getLabel() const -> std::string
+  {
+    return label;
   }
 
   auto getMinParticleSize() const -> float
@@ -114,6 +180,16 @@ public:
     return enumZProjection;
   }
 
+  auto getThersholdSettings() const -> std::optional<ThresholdSettings>
+  {
+    return thresholds;
+  }
+
+  auto getAiSettings() const -> std::optional<AiSettings>
+  {
+    return ai_settings;
+  }
+
 private:
   //
   // Corresponding index (directory) in the TIF image
@@ -136,24 +212,21 @@ private:
   std::string label;
 
   //
-  // Which threshold algorithm should be used
-  // [MANUAL, LI, MIN_ERROR, TRIANGLE]
+  // If either threshold or AI should be used for detection
   //
-  std::string threshold_algorithm;
-  Threshold enumThreshold;
-  void stringToThreshold();
+  std::string detection_mode;
+  DetectionMode enumDetectionMode;
+  void stringToDetectionMode();
 
   //
-  // Minimum threshold value.
-  // [0-65535]
+  // Threshold settings
   //
-  float threshold_min;
+  ThresholdSettings thresholds;
 
   //
-  // Maximum threshold value (default 65535)
-  // [0-65535]
+  // AI settings
   //
-  float threshold_max;
+  AiSettings ai_settings;
 
   //
   // Every particle with a diameter lower than that is ignored during analysis.
@@ -193,9 +266,9 @@ private:
   ZProjection enumZProjection;
   void stringToZProjection();
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(ChannelSettings, index, type, label, threshold_algorithm, threshold_min, threshold_max,
-                                 min_particle_size, max_particle_size, min_circularity, snap_area_size, margin_crop,
-                                 zprojection);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, index, type, label, detection_mode, thresholds,
+                                              ai_settings, min_particle_size, max_particle_size, min_circularity,
+                                              snap_area_size, margin_crop, zprojection);
 };
 
 class AnalyzeSettings final
@@ -204,10 +277,9 @@ public:
   /////////////////////////////////////////////////////
   enum class Pipeline
   {
-    NUCLEUS_COUNT,
-    EV_COUNT,
-    EV_COLOC,
-    EV_COLOC_IN_CELL
+    COUNT,
+    COLOC,
+    COLOC_IN_CELL
   };
 
   /////////////////////////////////////////////////////

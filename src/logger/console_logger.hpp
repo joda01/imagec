@@ -39,13 +39,13 @@ inline std::string getCurrentDateTimeISO()
 inline void logError(const std::string &message)
 {
   std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::cout << RED_COLOR << "[ERROR]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
+  std::cout << RED_COLOR << "[ERR] " << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
 }
 
 inline void logWarning(const std::string &message)
 {
   std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::cout << YELLOW_COLOR << "[WARNING]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
+  std::cout << YELLOW_COLOR << "[WARN]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
 }
 
 inline void logInfo(const std::string &message)

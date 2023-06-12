@@ -14,11 +14,14 @@ TEST_CASE("analze_settings", "[analze_settings]")
   settings.loadConfigFromFile("src/settings/config_test.json");
   CHECK(settings.getMinColocFactor() == 15.5);
   CHECK(settings.getPixelInMicrometer() == 0.001F);
-  CHECK(settings.getPipeline() == joda::settings::json::AnalyzeSettings::Pipeline::NUCLEUS_COUNT);
+  CHECK(settings.getPipeline() == joda::settings::json::AnalyzeSettings::Pipeline::COUNT);
 
   auto evChannels = settings.getChannels(joda::settings::json::ChannelSettings::Type::EV);
   CHECK(evChannels.size() == 2);
   CHECK(evChannels[0].getLabel() == "CY5");
+  CHECK(evChannels[0].getThersholdSettings().has_value());
+  CHECK(evChannels[0].getThersholdSettings()->getThreshold() == joda::settings::json::ThresholdSettings::Threshold::LI);
+  CHECK(evChannels[0].getThersholdSettings()->getThreshold() == joda::settings::json::ThresholdSettings::Threshold::LI);
 
   /*REQUIRE( 3 == add(1,2));
   REQUIRE( 3 == add(1,2));*/

@@ -1,0 +1,70 @@
+
+
+#include <httplib.h>
+#include <filesystem>
+#include <string>
+#include <utility>
+#include "algorithms/algorithm.hpp"
+#include "helper/helper.hpp"
+#include "image_reader/tif/image_loader_tif.hpp"
+#include "reporting/reporting.h"
+#include "settings/analze_settings_parser.hpp"
+
+namespace joda::algo {
+
+static constexpr int64_t MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE = 0;
+static constexpr int64_t TILES_TO_LOAD_PER_RUN          = 36;
+
+// Concept for Pipeline classes message
+template <class T>
+concept algorithm_t = std::is_base_of<joda::algo::Algorithm, T>::value;
+
+template <algorithm_t ALGORITHM>
+class AlgorithmExecutor
+{
+public:
+  AlgorithmExecutor(joda::types::Progress *progress) : mProgress(progress)
+  {
+    // static_assert(mProgress != nullptr, "Progress must not be nullptr");
+  }
+  ///
+  /// \brief      Executed the algorithm and generates reporting
+  /// \author     Joachim Danmayr
+  /// \param[in]
+  /// \param[out]
+  /// \return
+  ///
+  void executeAlgorithm(const std::string &imagePath, const std::string &outFolder,
+                        joda::reporting::Table &allOverReport, uint16_t channel, bool &mStop)
+  {
+    std::filesystem::path path_obj(imagePath);
+    std::string filename = path_obj.filename().stem().string();
+    auto imgProperties   = TiffLoader::getImageProperties(imagePath, channel);
+    if(imgProperties.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+      // Image too big to load at once -> Load image in tiles
+      int tilesToLoadPerRun = TILES_TO_LOAD_PER_RUN;
+      int64 runs            = imgProperties.nrOfTiles / tilesToLoadPerRun;
+      joda::reporting::Table tileReport;
+      mProgress->total = runs;
+      for(int64 idx = 0; idx < runs; idx++) {
+        auto tilePart = TiffLoader::loadImageTile(imagePath, channel, idx, tilesToLoadPerRun);
+        ALGORITHM::execute(joda::Image{.mImage = tilePart, .mName = imagePath, .mTileNr = idx});
+        mProgress->finished = idx + 1;
+        if(mStop) {
+          break;
+        }
+      }
+      tileReport.flushReportToFile(outFolder + "/" + filename + "/" + "report_" + filename + ".csv");
+      ALGORITHM::mergeReport(filename, allOverReport, tileReport);
+    } else {
+      auto entireImage = TiffLoader::loadEntireImage(imagePath, channel);
+      ALGORITHM::mergeReport(entireImage, allOverReport, outFolder, filename, -1);
+    }
+  }
+
+private:
+  /////////////////////////////////////////////////////
+
+  joda::types::Progress *mProgress;
+};
+}    // namespace joda::algo

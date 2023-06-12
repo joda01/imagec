@@ -89,8 +89,8 @@ public:
     return mMean;
   }
 
-  static auto getStatisitcsTitle() -> const std::array<std::string, NR_OF_VALUE>;
-  [[nodiscard]] auto getStatisitcs() const -> const std::array<float, NR_OF_VALUE>;
+  static auto getStatisticsTitle() -> const std::array<std::string, NR_OF_VALUE>;
+  [[nodiscard]] auto getStatistics() const -> const std::array<float, NR_OF_VALUE>;
 
 private:
   /////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ public:
   auto appendValueToColumn(uint64_t colIdx, float value) -> int64_t;
   auto appendValueToColumn(const std::string &rowName, uint64_t colIdx, float value) -> int64_t;
   auto getTable() const -> const Table_t &;
-  auto getStatisitcs() const -> const std::map<uint64_t, Statistics> &;
+  auto getStatistics() const -> const std::map<uint64_t, Statistics> &;
   void flushReportToFile(std::string_view fileName) const;
   auto getNrOfColumns() const -> int64_t;
   auto getNrOfRows() const -> int64_t;

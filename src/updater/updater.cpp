@@ -20,7 +20,10 @@
 #include <filesystem>
 #include <memory>
 #include <thread>
+#include "logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
+
+namespace joda::upd {
 
 namespace fs = std::filesystem;
 using json   = nlohmann::json;
@@ -113,12 +116,12 @@ void Updater::getRemoteFileVersionAndHash()
         mRemoteHash    = parsed["sha256"];
         mStopped       = true;
       } else {
-        std::cout << "Error" << std::endl;
+        joda::log::logWarning("Could not contact update server!");
       }
     } catch(const std::exception &ex) {
       std::cout << ex.what() << std::endl;
     }
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    std::this_thread::sleep_for(std::chrono::seconds(15));
   }
 }
 
@@ -148,3 +151,4 @@ void Updater::restart()
   // t.detach();
   // sleep(5);
 }
+}    // namespace joda::upd

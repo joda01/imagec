@@ -29,16 +29,14 @@ void ChannelSettings::stringToType()
     enumType = Type::EV;
   } else if(type == "BACKGROUND") {
     enumType = Type::BACKGROUND;
-  } else if(type == "CELL_BRIGHTFIELD") {
-    enumType = Type::CELL_BRIGHTFIELD;
-  } else if(type == "CELL_DARKFIELD") {
-    enumType = Type::CELL_DARKFIELD;
+  } else if(type == "CELL") {
+    enumType = Type::CELL;
   } else {
     throw std::runtime_error("Channel type >" + type + "< is not a valid setting!");
   }
 }
 
-void ChannelSettings::stringToThreshold()
+void ThresholdSettings::stringToThreshold()
 {
   std::transform(threshold_algorithm.begin(), threshold_algorithm.end(), threshold_algorithm.begin(),
                  [](unsigned char c) { return std::toupper(c); });
@@ -70,18 +68,31 @@ void ChannelSettings::stringToZProjection()
   }
 }
 
+void ChannelSettings::stringToDetectionMode()
+{
+  std::transform(detection_mode.begin(), detection_mode.end(), detection_mode.begin(),
+                 [](unsigned char c) { return std::toupper(c); });
+
+  if(detection_mode == "THRESHOLD") {
+    enumDetectionMode = DetectionMode::THRESHOLD;
+  } else if(detection_mode == "AI") {
+    enumDetectionMode = DetectionMode::AI;
+
+  } else {
+    throw std::runtime_error("Detection mode >" + detection_mode + "< is not a valid detection mode!");
+  }
+}
+
 void AnalyzeSettings::stringToPipeline()
 {
   std::transform(pipeline.begin(), pipeline.end(), pipeline.begin(), [](unsigned char c) { return std::toupper(c); });
 
-  if(pipeline == "NUCLEUS_COUNT") {
-    enumPipeline = Pipeline::NUCLEUS_COUNT;
-  } else if(pipeline == "EV_COUNT") {
-    enumPipeline = Pipeline::EV_COUNT;
-  } else if(pipeline == "EV_COLOC") {
-    enumPipeline = Pipeline::EV_COLOC;
-  } else if(pipeline == "EV_COLOC_IN_CELLS") {
-    enumPipeline = Pipeline::EV_COLOC_IN_CELL;
+  if(pipeline == "COUNT") {
+    enumPipeline = Pipeline::COUNT;
+  } else if(pipeline == "COLOC") {
+    enumPipeline = Pipeline::COLOC;
+  } else if(pipeline == "COLOC_IN_CELL") {
+    enumPipeline = Pipeline::COLOC_IN_CELL;
   } else {
     throw std::runtime_error("Pipeline >" + pipeline + "< is not a valid pipeline function!");
   }

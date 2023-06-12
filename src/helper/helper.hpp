@@ -23,4 +23,13 @@ inline auto getFileNameFromPath(const std::string &path) -> std::string
 {
   return path;
 }
+
 }    // namespace joda::helper
+
+namespace joda::types {
+struct Progress
+{
+  uint32_t finished = 0;
+  uint32_t total    = 0;
+};
+}    // namespace joda::types

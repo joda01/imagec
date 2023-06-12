@@ -17,6 +17,8 @@
 #include <string>
 #include <thread>
 
+namespace joda::upd {
+
 ///
 /// \class      Updater
 /// \author     Joachim Danmayr
@@ -63,3 +65,4 @@ private:
   std::shared_ptr<std::thread> mGetRemoteVersionHash;
   bool mStopped = false;
 };
+}    // namespace joda::upd
