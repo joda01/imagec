@@ -37,6 +37,7 @@ public:
   void executeAlgorithm(const std::string &imagePath, const std::string &outFolder,
                         joda::reporting::Table &allOverReport, uint16_t channel, bool &mStop)
   {
+    ALGORITHM algo(outFolder, &allOverReport);
     std::filesystem::path path_obj(imagePath);
     std::string filename = path_obj.filename().stem().string();
     auto imgProperties   = TiffLoader::getImageProperties(imagePath, channel);
@@ -48,7 +49,7 @@ public:
       mProgress->total = runs;
       for(int64 idx = 0; idx < runs; idx++) {
         auto tilePart = TiffLoader::loadImageTile(imagePath, channel, idx, tilesToLoadPerRun);
-        ALGORITHM::execute(joda::Image{.mImage = tilePart, .mName = imagePath, .mTileNr = idx});
+        algo.execute(joda::Image{.mImage = tilePart, .mName = imagePath, .mTileNr = idx});
         mProgress->finished = idx + 1;
         if(mStop) {
           break;
@@ -58,7 +59,7 @@ public:
       ALGORITHM::mergeReport(filename, allOverReport, tileReport);
     } else {
       auto entireImage = TiffLoader::loadEntireImage(imagePath, channel);
-      ALGORITHM::mergeReport(entireImage, allOverReport, outFolder, filename, -1);
+      algo.execute(joda::Image{.mImage = entireImage, .mName = imagePath, .mTileNr = -1});
     }
   }
 
