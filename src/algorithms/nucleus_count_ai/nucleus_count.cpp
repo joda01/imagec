@@ -30,7 +30,8 @@ void NucleusCounter::execute(const joda::Image &img)
 {
   auto i                = DurationCount::start("detect");
   auto enhancedContrast = img.mImage *= 10;
-  joda::func::ai::ObjectDetector obj("imagec_models/nucleus_detection.onnx", {"nuclues", "nucleus_no_focus"});
+  joda::func::ai::ObjectDetector obj("imagec_models/nucleus_detection_ex_vivo_v1.onnx",
+                                     {"nuclues", "nucleus_no_focus"});
   joda::func::ai::DetectionResults result = obj.forward(enhancedContrast);
   DurationCount::stop(i);
 

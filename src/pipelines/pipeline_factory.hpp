@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <exception>
 #include <future>
 #include <map>
 #include <memory>
@@ -65,10 +66,18 @@ public:
   static auto startNewJob(const settings::json::AnalyzeSettings &settings, const std::string &inputFolder)
       -> std::string
   {
-    std::string jobId        = createUuid();
-    auto pipeline            = std::make_shared<pipeline::PipelineCount>(settings);
-    auto mainThreadFunc      = [&](std::string inputFolder) { pipeline->runJob(inputFolder); };
-    std::future<void> future = std::async(std::launch::async, mainThreadFunc, inputFolder);
+    std::string jobId = createUuid();
+
+    auto pipeline       = std::make_shared<pipeline::PipelineCount>(settings);
+    auto mainThreadFunc = [=](std::string inputFolder, std::string jobId) {
+      try {
+        pipeline->runJob(inputFolder);
+      } catch(std::exception &ex) {
+        joda::log::logError(ex.what());
+      }
+      // mJobs.erase(jobId);
+    };
+    std::future<void> future = std::async(std::launch::async, mainThreadFunc, inputFolder, jobId);
     mJobs.emplace(jobId, Job{pipeline, std::move(future)});
 
     return jobId;
@@ -89,7 +98,6 @@ public:
     if(mJobs.contains(jobId)) {
       return mJobs[jobId].pipeline->getState();
     }
-
     throw std::invalid_argument("Job with ID >" + jobId + "< not found!");
   }
 

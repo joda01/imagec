@@ -222,8 +222,12 @@ void HttpServer::start(int listeningPort)
   joda::log::logInfo("Open imageC UI with http://localhost:" + std::to_string(listeningPort) + ".");
   joda::log::logInfo("API reachable under http://localhost/api/" + API_VERSION + ":" + std::to_string(listeningPort) +
                      ".");
-
-  server.listen("0.0.0.0", listeningPort);
+  try {
+    server.listen("0.0.0.0", listeningPort);
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+  }
+  joda::log::logError("Should never got there");
 }
 
 void HttpServer::addResponseHeader(Response &res)
