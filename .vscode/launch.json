@@ -8,7 +8,7 @@
             "name": "CMake Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/workspaces/open-bio-image-processor/build/build/evanalyzerv2",
+            "program": "/workspaces/imagec/build/build/imagec",
             "args": [
                 "[table_print]"
             ],
