@@ -3,6 +3,7 @@
 #include <opencv2/core/hal/interface.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <algorithm>
 #include <chrono>
 #include <exception>
@@ -53,7 +54,18 @@ int main(int argc, char **argv)
   joda::http::HttpServer http;
 
   auto serverThread = std::thread(&joda::http::HttpServer::start, &http, LISTENING_PORT_API);
+  while(!http.getServer().is_running()) {
+    usleep(100000);
+  }
+
+  joda::log::logInfo("Server is listening on port " + std::to_string(LISTENING_PORT_API));
+  joda::log::logInfo("Open imageC UI with http://localhost:" + std::to_string(LISTENING_PORT_API));
+  joda::log::logInfo("API reachable under http://localhost" + std::to_string(LISTENING_PORT_API) + "/api/v1");
+
+  auto browserThread = std::thread([]() { system("open http://127.0.0.1:7367"); });
+
   serverThread.join();
+  browserThread.join();
 
   joda::pipeline::PipelineFactory::shutdown();
 

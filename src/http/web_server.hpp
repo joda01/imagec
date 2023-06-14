@@ -32,10 +32,15 @@ public:
   {
   }
   void start(int listeningPort);
+  auto getServer() const -> const httplib::Server &
+  {
+    return server;
+  }
   static void addResponseHeader(Response &res);
 
 private:
   /////////////////////////////////////////////////////
+  httplib::Server server;
 };
 
 }    // namespace joda::http

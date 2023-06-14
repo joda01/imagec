@@ -80,8 +80,6 @@ void handleRequest(const httplib::Request &req, httplib::Response &res)
 ///
 void HttpServer::start(int listeningPort)
 {
-  httplib::Server server;
-
   ///////////////////////////////////////////////////////////////////////////
   //
   // API Server
@@ -92,6 +90,7 @@ void HttpServer::start(int listeningPort)
                                             " | api port: " + std::to_string(listeningPort) + "\n" + Version::getLogo();
 
   std::cout << welcomeMessage << std::endl;
+  joda::log::logInfo("Starting server...");
 
   //
   // Welcome page!
@@ -218,16 +217,13 @@ void HttpServer::start(int listeningPort)
   //
   // Welcome messages
   //
-  joda::log::logInfo("Server is listening on port " + std::to_string(listeningPort) + ".");
-  joda::log::logInfo("Open imageC UI with http://localhost:" + std::to_string(listeningPort) + ".");
-  joda::log::logInfo("API reachable under http://localhost/api/" + API_VERSION + ":" + std::to_string(listeningPort) +
-                     ".");
+
   try {
     server.listen("0.0.0.0", listeningPort);
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
   }
-  joda::log::logError("Should never got there");
+  joda::log::logError("Could not open port!");
 }
 
 void HttpServer::addResponseHeader(Response &res)
