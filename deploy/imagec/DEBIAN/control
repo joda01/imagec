@@ -3,7 +3,7 @@ Version: 1.0-1
 Section: science
 Priority: optional
 Architecture: amd64
-Depends: libsomethingorrather (>= 1.2.13)
+Depends:
 Maintainer: Joachim Danmayr <joachim@danmayr.org>
 Homepage: www.imagec.org
 Description: Image processing software for biologists.
