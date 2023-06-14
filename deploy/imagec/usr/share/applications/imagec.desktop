@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=imageC
+Exec=/usr/local/bin/imagec
+Terminal=true
+Type=Application
+Icon=imagec
+StartupWMClass=imageC
+Comment=Image processing
+Categories=science;
