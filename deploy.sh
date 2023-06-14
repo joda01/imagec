@@ -1,14 +1,20 @@
 cmake --build build --target imagec --parallel 4
 
-cp ./build/build/imagec ./deb/imagec/usr/local/bin/imagec
-cp -r ./imagec_models/. ./deb/imagec/usr/local/bin/imagec_models/.
-cp -r ./build/build/imagec_gui/. ./deb/imagec/usr/local/bin/imagec_gui/.
+rm -rf ./deploy/imagec/usr/local/bin/imagec
+rm -rf ./deploy/imagec/usr/local/bin/imagec_models
+rm -rf ./deploy/imagec/usr/local/bin/imagec_gui
 
+mkdir -p ./deploy/imagec/usr/local/bin/imagec_models
+mkdir -p ./deploy/imagec/usr/local/bin/imagec_gui
+
+cp ./build/build/imagec ./deploy/imagec/usr/local/bin/imagec
+cp -r ./imagec_models/. ./deploy/imagec/usr/local/bin/imagec_models/.
+cp -r ./imagec_gui/. ./deploy/imagec/usr/local/bin/imagec_gui/.
 
 chown root:root -R ./deb/imagec
-chmod 755 ./deb/imagec/usr/local/bin/imagec
-chmod 755 ./deb/imagec/DEBIAN/preinst
-chmod 755 ./deb/imagec/DEBIAN/postinst
+chmod 755 ./deploy/imagec/usr/local/bin/imagec
+chmod 755 ./deploy/imagec/DEBIAN/preinst
+chmod 755 ./deploy/imagec/DEBIAN/postinst
 
 
 dpkg-deb --build ./deb/imagec

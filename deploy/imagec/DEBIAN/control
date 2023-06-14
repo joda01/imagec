@@ -1,0 +1,10 @@
+Package: imageC
+Version: 1.0-1
+Section: science
+Priority: optional
+Architecture: amd64
+Depends: libsomethingorrather (>= 1.2.13)
+Maintainer: Joachim Danmayr <joachim@danmayr.org>
+Homepage: www.imagec.org
+Description: Image processing software for biologists.
+ High throughput image processing application for scientists.
