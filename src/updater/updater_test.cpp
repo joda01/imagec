@@ -9,7 +9,7 @@ SCENARIO("Updater test", "[updater]")
   int argc     = 1;
   char *argv[] = {"string1"};
 
-  Updater upd(argc, argv);
+  joda::upd::Updater upd(argc, argv);
   sleep(20);
   std::cout << "A: " << upd.getRemoteHash() << std::endl;
   std::cout << "B: " << upd.getRemoteVersion() << std::endl;

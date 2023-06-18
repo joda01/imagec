@@ -37,6 +37,7 @@ set(LIBS
   #/usr/local/lib/libjpeg.a
   httplib::httplib
   /usr/lib/x86_64-linux-gnu/libuuid.a
+  /usr/local/lib/libpugixml.a
 )
 
 include_directories("./src")

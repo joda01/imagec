@@ -21,6 +21,7 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <pugixml.hpp>
 
 #define USER_DEFINED_INT64
 #include <libtiff/tiffio.h>
@@ -43,6 +44,46 @@ void TiffLoader::initLibTif()
 }
 
 ///
+/// \brief      Reads the metadata of the image
+/// \author     Joachim Danmayr
+/// \param[in]  filename
+/// \return     Read meta data
+///
+auto TiffLoader::readImageMeta(const std::string &filename) -> std::string
+{
+  TIFF *tif = TIFFOpen(filename.c_str(), "r");
+  if(tif) {
+    auto nrOfDirectories = TIFFNumberOfDirectories(tif);
+
+    for(int directory = 0; directory < nrOfDirectories; directory++) {
+      // Set the directory to load the image from this directory
+      TIFFSetDirectory(tif, directory);
+
+      char *omeXML;
+      TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &omeXML);
+      auto oem = std::string(omeXML);
+      std::cout << std::to_string(directory) << " " << oem << std::endl;
+
+      unsigned int width      = tif->tif_dir.td_imagewidth;
+      unsigned int height     = tif->tif_dir.td_imagelength;
+      unsigned int tileWidth  = tif->tif_dir.td_tilewidth;
+      unsigned int tileHeight = tif->tif_dir.td_tilelength;
+
+      int64_t tileSize  = static_cast<int64_t>(tileWidth) * tileHeight;
+      int64_t imageSize = static_cast<int64_t>(width) * height;
+      int64_t nrOfTiles = imageSize / tileSize;
+
+      ImageProperties{.imageSize     = imageSize,
+                      .tileSize      = tileSize,
+                      .nrOfTiles     = nrOfTiles,
+                      .nrOfDocuments = nrOfDirectories,
+                      .oem           = oem};
+    }
+    TIFFClose(tif);
+  }
+}
+
+///
 /// \brief      Returns the number of tiles of an image
 /// \author     Joachim Danmayr
 /// \param[in]  filename
@@ -62,11 +103,11 @@ auto TiffLoader::getImageProperties(const std::string &filename, uint16_t direct
 
     unsigned int width      = tif->tif_dir.td_imagewidth;
     unsigned int height     = tif->tif_dir.td_imagelength;
-    unsigned int tilewidth  = tif->tif_dir.td_tilewidth;
-    unsigned int tileheight = tif->tif_dir.td_tilelength;
+    unsigned int tileWidth  = tif->tif_dir.td_tilewidth;
+    unsigned int tileHeight = tif->tif_dir.td_tilelength;
 
-    int64_t tileSize  = tilewidth * tileheight;
-    int64_t imageSize = width * height;
+    int64_t tileSize  = static_cast<int64_t>(tileWidth) * tileHeight;
+    int64_t imageSize = static_cast<int64_t>(width) * height;
     int64_t nrOfTiles = imageSize / tileSize;
     TIFFClose(tif);
 

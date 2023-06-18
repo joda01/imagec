@@ -119,3 +119,15 @@ RUN ldconfig
 RUN useradd $USERNAME
 
 ENV DEBIAN_FRONTEND=dialog
+
+
+#
+# XML parser
+#
+RUN git clone -b v1.13 https://github.com/joda01/pugixml.git
+RUN cd ./pugixml &&\
+    mkdir build &&\
+    cd build &&\
+    cmake .. &&\
+    make -j4 &&\
+    make install

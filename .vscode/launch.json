@@ -8,9 +8,9 @@
             "name": "CMake Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/workspaces/imagec/build/build/imagec",
+            "program": "/workspaces/imagec/build/build/tests",
             "args": [
-                "[table_print]"
+                "[image_loader]"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

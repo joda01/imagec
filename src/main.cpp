@@ -60,9 +60,12 @@ int main(int argc, char **argv)
 
   joda::log::logInfo("Server is listening on port " + std::to_string(LISTENING_PORT_API));
   joda::log::logInfo("Open imageC UI with http://localhost:" + std::to_string(LISTENING_PORT_API));
-  joda::log::logInfo("API reachable under http://localhost" + std::to_string(LISTENING_PORT_API) + "/api/v1");
+  joda::log::logInfo("API reachable under http://localhost:" + std::to_string(LISTENING_PORT_API) + "/api/v1");
 
-  auto browserThread = std::thread([]() { system("open http://127.0.0.1:7367"); });
+  auto browserThread = std::thread([]() {
+    int exitState = 0;
+    joda::helper::execCommand("open http://127.0.0.1:7367", exitState);
+  });
 
   serverThread.join();
   browserThread.join();
