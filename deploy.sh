@@ -11,10 +11,10 @@ cp ./build/build/imagec ./deploy/imagec/usr/local/bin/imagec
 cp -r ./imagec_models/. ./deploy/imagec/usr/local/bin/imagec_models/.
 cp -r ./imagec_gui/. ./deploy/imagec/usr/local/bin/imagec_gui/.
 
-chown root:root -R ./deb/imagec
+chown root:root -R ./deploy/imagec
 chmod 755 ./deploy/imagec/usr/local/bin/imagec
 chmod 755 ./deploy/imagec/DEBIAN/preinst
 chmod 755 ./deploy/imagec/DEBIAN/postinst
 
 
-dpkg-deb --build ./deb/imagec
+dpkg-deb --build ./deploy/imagec
