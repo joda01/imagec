@@ -6,13 +6,15 @@
 #include <utility>
 #include "algorithms/algorithm.hpp"
 #include "helper/helper.hpp"
+#include "image_reader/image_reader.hpp"
+#include "image_reader/jpg/image_loader_jpg.hpp"
 #include "image_reader/tif/image_loader_tif.hpp"
 #include "reporting/reporting.h"
 #include "settings/analze_settings_parser.hpp"
 
 namespace joda::algo {
 
-static constexpr int64_t MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE = 0;
+static constexpr int64_t MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE = 71680768;
 static constexpr int64_t TILES_TO_LOAD_PER_RUN          = 36;
 
 // Concept for Pipeline classes message
@@ -39,7 +41,14 @@ public:
   {
     std::filesystem::path path_obj(imagePath);
     std::string filename = path_obj.filename().stem().string();
-    auto imgProperties   = TiffLoader::getImageProperties(imagePath, channel);
+    ImageProperties imgProperties;
+    bool isJpg = imagePath.ends_with(".jpg");
+    if(isJpg) {
+      imgProperties = JpgLoader::getImageProperties(imagePath, channel);
+    } else {
+      imgProperties = TiffLoader::getImageProperties(imagePath, channel);
+    }
+
     if(imgProperties.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
       // Image too big to load at once -> Load image in tiles
       int tilesToLoadPerRun = TILES_TO_LOAD_PER_RUN;
@@ -59,8 +68,13 @@ public:
       ALGORITHM::mergeReport(filename, allOverReport, tileReport);
     } else {
       ALGORITHM algo(outFolder, &allOverReport);
-      auto entireImage = TiffLoader::loadEntireImage(imagePath, channel);
-      algo.execute(joda::Image{.mImage = entireImage, .mName = filename, .mTileNr = -1});
+      if(isJpg) {
+        auto entireImage = JpgLoader::loadEntireImage(imagePath, channel);
+        algo.execute(joda::Image{.mImage = entireImage, .mName = filename, .mTileNr = -1});
+      } else {
+        auto entireImage = TiffLoader::loadEntireImage(imagePath, channel);
+        algo.execute(joda::Image{.mImage = entireImage, .mName = filename, .mTileNr = -1});
+      }
     }
   }
 

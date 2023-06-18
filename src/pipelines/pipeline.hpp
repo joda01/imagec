@@ -87,7 +87,7 @@ protected:
 
 private:
   /////////////////////////////////////////////////////
-  static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
+  static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf", ".jpg"};
 
   /////////////////////////////////////////////////////
   virtual void execute(const std::string &imgPath, const std::string &outputFolder,

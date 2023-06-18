@@ -18,7 +18,6 @@
 #include "http/web_server.hpp"
 #include "image/image.hpp"
 #include "image_reader/tif/image_loader_tif.hpp"
-#include "image_reader/vsi/image_loader_vsi.hpp"
 #include "pipelines/pipeline_factory.hpp"
 #include "reporting/report_printer.h"
 #include "updater/updater.hpp"

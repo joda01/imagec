@@ -1,22 +1,27 @@
 [
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/algorithms/algorithm.cpp.o -c /workspaces/imagec/src/algorithms/algorithm.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/algorithms/algorithm.cpp.o -c /workspaces/imagec/src/algorithms/algorithm.cpp",
   "file": "/workspaces/imagec/src/algorithms/algorithm.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/algorithms/nucleus_count_ai/nucleus_count.cpp.o -c /workspaces/imagec/src/algorithms/nucleus_count_ai/nucleus_count.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/algorithms/cell_count_ai/cell_count.cpp.o -c /workspaces/imagec/src/algorithms/cell_count_ai/cell_count.cpp",
+  "file": "/workspaces/imagec/src/algorithms/cell_count_ai/cell_count.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/algorithms/nucleus_count_ai/nucleus_count.cpp.o -c /workspaces/imagec/src/algorithms/nucleus_count_ai/nucleus_count.cpp",
   "file": "/workspaces/imagec/src/algorithms/nucleus_count_ai/nucleus_count.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/functions/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/imagec/src/functions/ai_object_detection/ai_object_detection.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/functions/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/imagec/src/functions/ai_object_detection/ai_object_detection.cpp",
   "file": "/workspaces/imagec/src/functions/ai_object_detection/ai_object_detection.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/functions/rolling_ball/rolling_ball.cpp.o -c /workspaces/imagec/src/functions/rolling_ball/rolling_ball.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/functions/rolling_ball/rolling_ball.cpp.o -c /workspaces/imagec/src/functions/rolling_ball/rolling_ball.cpp",
   "file": "/workspaces/imagec/src/functions/rolling_ball/rolling_ball.cpp"
 },
 {
@@ -26,17 +31,22 @@
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/http/web_server.cpp.o -c /workspaces/imagec/src/http/web_server.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/http/web_server.cpp.o -c /workspaces/imagec/src/http/web_server.cpp",
   "file": "/workspaces/imagec/src/http/web_server.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image/image.cpp.o -c /workspaces/imagec/src/image/image.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image/image.cpp.o -c /workspaces/imagec/src/image/image.cpp",
   "file": "/workspaces/imagec/src/image/image.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_reader/tif/image_loader_tif.cpp.o -c /workspaces/imagec/src/image_reader/tif/image_loader_tif.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_reader/jpg/image_loader_jpg.cpp.o -c /workspaces/imagec/src/image_reader/jpg/image_loader_jpg.cpp",
+  "file": "/workspaces/imagec/src/image_reader/jpg/image_loader_jpg.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_reader/tif/image_loader_tif.cpp.o -c /workspaces/imagec/src/image_reader/tif/image_loader_tif.cpp",
   "file": "/workspaces/imagec/src/image_reader/tif/image_loader_tif.cpp"
 },
 {
@@ -46,62 +56,72 @@
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/main.cpp.o -c /workspaces/imagec/src/main.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/main.cpp.o -c /workspaces/imagec/src/main.cpp",
   "file": "/workspaces/imagec/src/main.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/pipelines/coloc/pipeline_coloc.cpp.o -c /workspaces/imagec/src/pipelines/coloc/pipeline_coloc.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/pipelines/coloc/pipeline_coloc.cpp.o -c /workspaces/imagec/src/pipelines/coloc/pipeline_coloc.cpp",
   "file": "/workspaces/imagec/src/pipelines/coloc/pipeline_coloc.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/pipelines/count/pipeline_count.cpp.o -c /workspaces/imagec/src/pipelines/count/pipeline_count.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/pipelines/count/pipeline_count.cpp.o -c /workspaces/imagec/src/pipelines/count/pipeline_count.cpp",
   "file": "/workspaces/imagec/src/pipelines/count/pipeline_count.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/pipelines/pipeline.cpp.o -c /workspaces/imagec/src/pipelines/pipeline.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/pipelines/pipeline.cpp.o -c /workspaces/imagec/src/pipelines/pipeline.cpp",
   "file": "/workspaces/imagec/src/pipelines/pipeline.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/reporting/report_printer.cpp.o -c /workspaces/imagec/src/reporting/report_printer.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/reporting/report_printer.cpp.o -c /workspaces/imagec/src/reporting/report_printer.cpp",
   "file": "/workspaces/imagec/src/reporting/report_printer.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/reporting/reporting.cpp.o -c /workspaces/imagec/src/reporting/reporting.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/reporting/reporting.cpp.o -c /workspaces/imagec/src/reporting/reporting.cpp",
   "file": "/workspaces/imagec/src/reporting/reporting.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/settings/analze_settings_parser.cpp.o -c /workspaces/imagec/src/settings/analze_settings_parser.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/settings/analze_settings_parser.cpp.o -c /workspaces/imagec/src/settings/analze_settings_parser.cpp",
   "file": "/workspaces/imagec/src/settings/analze_settings_parser.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/updater/updater.cpp.o -c /workspaces/imagec/src/updater/updater.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/updater/updater.cpp.o -c /workspaces/imagec/src/updater/updater.cpp",
   "file": "/workspaces/imagec/src/updater/updater.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/algorithms/algorithm.cpp.o -c /workspaces/imagec/src/algorithms/algorithm.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/algorithms/algorithm.cpp.o -c /workspaces/imagec/src/algorithms/algorithm.cpp",
   "file": "/workspaces/imagec/src/algorithms/algorithm.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/algorithms/nucleus_count_ai/nucleus_count.cpp.o -c /workspaces/imagec/src/algorithms/nucleus_count_ai/nucleus_count.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/algorithms/cell_count_ai/cell_count.cpp.o -c /workspaces/imagec/src/algorithms/cell_count_ai/cell_count.cpp",
+  "file": "/workspaces/imagec/src/algorithms/cell_count_ai/cell_count.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/algorithms/cell_count_ai/cell_count_test.cpp.o -c /workspaces/imagec/src/algorithms/cell_count_ai/cell_count_test.cpp",
+  "file": "/workspaces/imagec/src/algorithms/cell_count_ai/cell_count_test.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/algorithms/nucleus_count_ai/nucleus_count.cpp.o -c /workspaces/imagec/src/algorithms/nucleus_count_ai/nucleus_count.cpp",
   "file": "/workspaces/imagec/src/algorithms/nucleus_count_ai/nucleus_count.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/functions/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/imagec/src/functions/ai_object_detection/ai_object_detection.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/functions/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/imagec/src/functions/ai_object_detection/ai_object_detection.cpp",
   "file": "/workspaces/imagec/src/functions/ai_object_detection/ai_object_detection.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/functions/rolling_ball/rolling_ball.cpp.o -c /workspaces/imagec/src/functions/rolling_ball/rolling_ball.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/functions/rolling_ball/rolling_ball.cpp.o -c /workspaces/imagec/src/functions/rolling_ball/rolling_ball.cpp",
   "file": "/workspaces/imagec/src/functions/rolling_ball/rolling_ball.cpp"
 },
 {
@@ -111,22 +131,27 @@
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/http/web_server.cpp.o -c /workspaces/imagec/src/http/web_server.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/http/web_server.cpp.o -c /workspaces/imagec/src/http/web_server.cpp",
   "file": "/workspaces/imagec/src/http/web_server.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image/image.cpp.o -c /workspaces/imagec/src/image/image.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image/image.cpp.o -c /workspaces/imagec/src/image/image.cpp",
   "file": "/workspaces/imagec/src/image/image.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_reader/tif/image_loader_test.cpp.o -c /workspaces/imagec/src/image_reader/tif/image_loader_test.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_reader/jpg/image_loader_jpg.cpp.o -c /workspaces/imagec/src/image_reader/jpg/image_loader_jpg.cpp",
+  "file": "/workspaces/imagec/src/image_reader/jpg/image_loader_jpg.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_reader/tif/image_loader_test.cpp.o -c /workspaces/imagec/src/image_reader/tif/image_loader_test.cpp",
   "file": "/workspaces/imagec/src/image_reader/tif/image_loader_test.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_reader/tif/image_loader_tif.cpp.o -c /workspaces/imagec/src/image_reader/tif/image_loader_tif.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_reader/tif/image_loader_tif.cpp.o -c /workspaces/imagec/src/image_reader/tif/image_loader_tif.cpp",
   "file": "/workspaces/imagec/src/image_reader/tif/image_loader_tif.cpp"
 },
 {
@@ -136,62 +161,62 @@
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/main_test.cpp.o -c /workspaces/imagec/src/main_test.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/main_test.cpp.o -c /workspaces/imagec/src/main_test.cpp",
   "file": "/workspaces/imagec/src/main_test.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/pipelines/coloc/pipeline_coloc.cpp.o -c /workspaces/imagec/src/pipelines/coloc/pipeline_coloc.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/pipelines/coloc/pipeline_coloc.cpp.o -c /workspaces/imagec/src/pipelines/coloc/pipeline_coloc.cpp",
   "file": "/workspaces/imagec/src/pipelines/coloc/pipeline_coloc.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/pipelines/count/pipeline_count.cpp.o -c /workspaces/imagec/src/pipelines/count/pipeline_count.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/pipelines/count/pipeline_count.cpp.o -c /workspaces/imagec/src/pipelines/count/pipeline_count.cpp",
   "file": "/workspaces/imagec/src/pipelines/count/pipeline_count.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/pipelines/pipeline.cpp.o -c /workspaces/imagec/src/pipelines/pipeline.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/pipelines/pipeline.cpp.o -c /workspaces/imagec/src/pipelines/pipeline.cpp",
   "file": "/workspaces/imagec/src/pipelines/pipeline.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/reporting/report_printer.cpp.o -c /workspaces/imagec/src/reporting/report_printer.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/reporting/report_printer.cpp.o -c /workspaces/imagec/src/reporting/report_printer.cpp",
   "file": "/workspaces/imagec/src/reporting/report_printer.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/reporting/report_printer_test.cpp.o -c /workspaces/imagec/src/reporting/report_printer_test.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/reporting/report_printer_test.cpp.o -c /workspaces/imagec/src/reporting/report_printer_test.cpp",
   "file": "/workspaces/imagec/src/reporting/report_printer_test.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/reporting/reporting.cpp.o -c /workspaces/imagec/src/reporting/reporting.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/reporting/reporting.cpp.o -c /workspaces/imagec/src/reporting/reporting.cpp",
   "file": "/workspaces/imagec/src/reporting/reporting.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/reporting/reporting_test.cpp.o -c /workspaces/imagec/src/reporting/reporting_test.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/reporting/reporting_test.cpp.o -c /workspaces/imagec/src/reporting/reporting_test.cpp",
   "file": "/workspaces/imagec/src/reporting/reporting_test.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/settings/analze_settings_parser.cpp.o -c /workspaces/imagec/src/settings/analze_settings_parser.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/settings/analze_settings_parser.cpp.o -c /workspaces/imagec/src/settings/analze_settings_parser.cpp",
   "file": "/workspaces/imagec/src/settings/analze_settings_parser.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/settings/analze_settings_parser_test.cpp.o -c /workspaces/imagec/src/settings/analze_settings_parser_test.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/settings/analze_settings_parser_test.cpp.o -c /workspaces/imagec/src/settings/analze_settings_parser_test.cpp",
   "file": "/workspaces/imagec/src/settings/analze_settings_parser_test.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/updater/updater.cpp.o -c /workspaces/imagec/src/updater/updater.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/updater/updater.cpp.o -c /workspaces/imagec/src/updater/updater.cpp",
   "file": "/workspaces/imagec/src/updater/updater.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O0 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/updater/updater_test.cpp.o -c /workspaces/imagec/src/updater/updater_test.cpp",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/updater/updater_test.cpp.o -c /workspaces/imagec/src/updater/updater_test.cpp",
   "file": "/workspaces/imagec/src/updater/updater_test.cpp"
 }
 ]
