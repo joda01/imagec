@@ -30,7 +30,7 @@ void CellCounter::execute(const joda::Image &img)
 {
   auto i                = DurationCount::start("detect");
   auto enhancedContrast = img.mImage *= 1;
-  joda::func::ai::ObjectDetector obj("imagec_models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
+  joda::func::ai::ObjectSegmentation obj("imagec_models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
   joda::func::ai::DetectionResults result = obj.forward(enhancedContrast);
   DurationCount::stop(i);
 

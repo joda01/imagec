@@ -14,7 +14,7 @@
 #include <cmath>
 #include <mutex>
 #include "algorithms/algorithm.hpp"
-#include "functions/ai_object_detection/ai_object_detection.h"
+#include "functions/artificial_intelligence/ai_object_segmentation/ai_object_segmentation.hpp"
 
 namespace joda::algo {
 
