@@ -12,7 +12,7 @@
 ///
 
 #include "pipeline_count.hpp"
-#include "algorithms/algorithm_executor.hpp"
+#include "algorithms/cell_count_ai/cell_count.hpp"
 #include "algorithms/nucleus_count_ai/nucleus_count.hpp"
 
 namespace joda::pipeline {
@@ -25,8 +25,24 @@ namespace joda::pipeline {
 void PipelineCount::execute(const std::string &imgPath, const std::string &outputFolder,
                             joda::reporting::Table &allOverReport, types::Progress *partialProgress)
 {
-  joda::algo::AlgorithmExecutor<joda::algo::NucleusCounter> nucleusCounter(partialProgress);
-  nucleusCounter.executeAlgorithm(imgPath, outputFolder, allOverReport, 14, getStopReference());
+  auto settings = getAnalyzeSetings();
+
+  for(const auto &[_, channel] : settings.getChannels()) {
+    switch(channel.getType()) {
+      case settings::json::ChannelSettings::Type::NONE:
+        break;
+      case settings::json::ChannelSettings::Type::NUCLEUS:
+        count<::joda::algo::NucleusCounter>(imgPath, outputFolder, allOverReport, partialProgress, 14);
+        break;
+      case settings::json::ChannelSettings::Type::EV:
+        break;
+      case settings::json::ChannelSettings::Type::CELL:
+        count<::joda::algo::CellCounter>(imgPath, outputFolder, allOverReport, partialProgress, 14);
+        break;
+      case settings::json::ChannelSettings::Type::BACKGROUND:
+        break;
+    }
+  }
 }
 
 }    // namespace joda::pipeline

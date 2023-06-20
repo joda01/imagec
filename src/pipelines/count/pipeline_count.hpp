@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "algorithms/algorithm_executor.hpp"
 #include "pipelines/pipeline.hpp"
 
 namespace joda::pipeline {
@@ -34,6 +35,14 @@ private:
                types::Progress *partialProgress) override;
 
   /////////////////////////////////////////////////////
+
+  template <class T>
+  void count(const std::string &imgPath, const std::string &outputFolder, joda::reporting::Table &allOverReport,
+             types::Progress *partialProgress, int channel)
+  {
+    joda::algo::AlgorithmExecutor<T> counter(partialProgress);
+    counter.executeAlgorithm(imgPath, outputFolder, allOverReport, channel, getStopReference());
+  }
 };
 
 }    // namespace joda::pipeline

@@ -1,4 +1,17 @@
+///
+/// \file      algorithm_executor.hpp
+/// \author    Joachim Danmayr
+/// \date      2023-06-20
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            All rights reserved! This file is subject
+///            to the terms and conditions defined in file
+///            LICENSE.txt, which is part of this package.
+///
+/// \brief     Executes an algorithm
+///
 
+#pragma once
 
 #include <httplib.h>
 #include <filesystem>

@@ -51,6 +51,21 @@ public:
 
   Pipeline(const settings::json::AnalyzeSettings &);
 
+protected:
+  /////////////////////////////////////////////////////
+
+  ///
+  /// \brief Returns the analyze settings of this pipeline
+  [[nodiscard]] auto getAnalyzeSetings() const -> const joda::settings::json::AnalyzeSettings &
+  {
+    return mAnalyzeSettings;
+  }
+
+  auto getStopReference() -> bool &
+  {
+    return mStop;
+  }
+
 private:
   /////////////////////////////////////////////////////
   void runJob(const std::string &inputFolder);
@@ -64,25 +79,10 @@ private:
   }
 
   ///
-  /// \brief Returns the analyze settings of this pipeline
-  [[nodiscard]] auto getAnalyzeSetings() const -> const joda::settings::json::AnalyzeSettings &
-  {
-    return mAnalyzeSettings;
-  }
-
-  ///
   /// \brief Total progress and state of the analysis
   [[nodiscard]] auto getState() const -> std::tuple<ProgressIndicator, State>
   {
     return {mProgress, mState};
-  }
-
-protected:
-  /////////////////////////////////////////////////////
-
-  auto getStopReference() -> bool &
-  {
-    return mStop;
   }
 
 private:
