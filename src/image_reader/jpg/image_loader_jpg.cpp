@@ -12,6 +12,7 @@
 ///
 
 #include "image_loader_jpg.hpp"
+#include "helper/ome_parser/ome_info.hpp"
 #include "image_reader/image_reader.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -29,7 +30,8 @@ auto JpgLoader::getImageProperties(const std::string &filename, uint16_t directo
   int height = image.rows;
   int size   = width * height;
 
-  return ImageProperties{.imageSize = size, .tileSize = size, .nrOfTiles = 1, .nrOfDocuments = 1, .oem = ""};
+  return ImageProperties{
+      .imageSize = size, .tileSize = size, .nrOfTiles = 1, .nrOfDocuments = 1, .omeInformation = joda::ome::OmeInfo{}};
 }
 cv::Mat JpgLoader::loadEntireImage(const std::string &filename, int directory)
 {

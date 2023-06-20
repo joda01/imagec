@@ -13,10 +13,12 @@
 
 #include "image_loader_tif.hpp"
 #include <opencv2/core/hal/interface.h>
+#include <exception>
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include "helper/ome_parser/ome_info.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -61,8 +63,22 @@ auto TiffLoader::readImageMeta(const std::string &filename) -> std::string
 
       char *omeXML;
       TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &omeXML);
-      auto oem = std::string(omeXML);
-      std::cout << std::to_string(directory) << " " << oem << std::endl;
+      auto omeXmlString = std::string(omeXML);
+
+      joda::ome::OmeInfo omeInfo;
+
+      if(0 == directory) {
+        std::cout << std::to_string(directory) << " " << omeXmlString << std::endl;
+
+        try {
+          omeInfo.loadOmeInformationFromString(omeXmlString);
+          std::cout << "A: " << std::to_string(omeInfo.getNrOfChannels()) << std::endl;
+
+        } catch(const std::exception &ex) {
+          // Could not parse
+          std::cout << ex.what() << std::endl;
+        }
+      }
 
       unsigned int width      = tif->tif_dir.td_imagewidth;
       unsigned int height     = tif->tif_dir.td_imagelength;
@@ -73,11 +89,11 @@ auto TiffLoader::readImageMeta(const std::string &filename) -> std::string
       int64_t imageSize = static_cast<int64_t>(width) * height;
       int64_t nrOfTiles = imageSize / tileSize;
 
-      ImageProperties{.imageSize     = imageSize,
-                      .tileSize      = tileSize,
-                      .nrOfTiles     = nrOfTiles,
-                      .nrOfDocuments = nrOfDirectories,
-                      .oem           = oem};
+      ImageProperties{.imageSize      = imageSize,
+                      .tileSize       = tileSize,
+                      .nrOfTiles      = nrOfTiles,
+                      .nrOfDocuments  = nrOfDirectories,
+                      .omeInformation = omeInfo};
     }
     TIFFClose(tif);
   }
