@@ -2,10 +2,7 @@
     "pipeline": "NUCLEUS_COUNT",
     "channels": [
         {
-            "index": [
-                1,
-                2
-            ],
+            "index": 1,
             "type": "EV",
             "label": "CY5",
             "thresholds": {
@@ -24,10 +21,7 @@
             "zprojection": "MAX"
         },
         {
-            "index": [
-                1,
-                2
-            ],
+            "index": 2,
             "type": "EV",
             "label": "CY7",
             "thresholds": {
@@ -43,10 +37,7 @@
             "zprojection": "MAX"
         },
         {
-            "index": [
-                1,
-                2
-            ],
+            "index": 3,
             "type": "NUCLEUS",
             "label": "CY7",
             "thresholds": {

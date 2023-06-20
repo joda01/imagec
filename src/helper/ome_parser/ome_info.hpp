@@ -41,6 +41,7 @@ public:
   void loadOmeInformationFromString(const std::string &omeXML);
 
   [[nodiscard]] int getNrOfChannels() const;
+  [[nodiscard]] uint64_t getImageSize() const;
   [[nodiscard]] auto getDirectoryForChannel(uint32_t channel, uint32_t timeFrame) const -> std::set<uint32_t>;
 
 private:
@@ -56,6 +57,7 @@ private:
 
   /////////////////////////////////////////////////////
   int mNrOfChannels;
+  uint64_t mImageSize;
   std::map<uint32_t, ChannelInfo> mChannels;    ///< Contains the channel information
 };
 }    // namespace joda::ome

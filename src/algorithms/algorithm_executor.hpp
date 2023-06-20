@@ -15,6 +15,9 @@
 
 #include <httplib.h>
 #include <filesystem>
+#include <iostream>
+#include <iterator>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include "algorithms/algorithm.hpp"
@@ -24,11 +27,13 @@
 #include "image_reader/tif/image_loader_tif.hpp"
 #include "reporting/reporting.h"
 #include "settings/analze_settings_parser.hpp"
+#include <opencv2/core/mat.hpp>
 
 namespace joda::algo {
 
 static constexpr int64_t MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE = 71680768;
 static constexpr int64_t TILES_TO_LOAD_PER_RUN          = 36;
+static constexpr int32_t TIME_FRAME                     = 0;
 
 // Concept for Pipeline classes message
 template <class T>
@@ -50,27 +55,47 @@ public:
   /// \return
   ///
   void executeAlgorithm(const std::string &imagePath, const std::string &outFolder,
-                        joda::reporting::Table &allOverReport, uint16_t channel, bool &mStop)
+                        joda::reporting::Table &allOverReport, uint32_t channel, bool &mStop)
   {
     std::filesystem::path path_obj(imagePath);
     std::string filename = path_obj.filename().stem().string();
     ImageProperties imgProperties;
     bool isJpg = imagePath.ends_with(".jpg");
+
+    std::set<uint32_t> tiffDirectories;
     if(isJpg) {
-      imgProperties = JpgLoader::getImageProperties(imagePath, channel);
+      imgProperties = JpgLoader::getImageProperties(imagePath);
     } else {
-      imgProperties = TiffLoader::getImageProperties(imagePath, channel);
+      auto omeInfo    = TiffLoader::getOmeInformation(imagePath);
+      tiffDirectories = omeInfo.getDirectoryForChannel(channel, TIME_FRAME);
+      if(tiffDirectories.size() <= 0) {
+        throw std::runtime_error("Selected channel does not contain images!");
+      }
+      imgProperties = TiffLoader::getImageProperties(imagePath, *tiffDirectories.begin());
     }
 
     if(imgProperties.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
       // Image too big to load at once -> Load image in tiles
-      int tilesToLoadPerRun = TILES_TO_LOAD_PER_RUN;
-      int64 runs            = imgProperties.nrOfTiles / tilesToLoadPerRun;
+      int64 runs = imgProperties.nrOfTiles / TILES_TO_LOAD_PER_RUN;
       joda::reporting::Table tileReport;
       mProgress->total = runs;
       for(int64 idx = 0; idx < runs; idx++) {
         ALGORITHM algo(outFolder, &tileReport);
-        auto tilePart = TiffLoader::loadImageTile(imagePath, channel, idx, tilesToLoadPerRun);
+        auto actDirectory = tiffDirectories.begin();
+        cv::Mat tilePart  = TiffLoader::loadImageTile(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN);
+        //
+        // Do maximum intensity projection
+        //
+        while(actDirectory != tiffDirectories.end()) {
+          actDirectory = std::next(actDirectory);
+          if(actDirectory == tiffDirectories.end()) {
+            break;
+          }
+          cv::max(tilePart, TiffLoader::loadImageTile(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN), tilePart);
+        }
+        //
+        //
+
         algo.execute(joda::Image{.mImage = tilePart, .mName = filename, .mTileNr = idx});
         mProgress->finished = idx + 1;
         if(mStop) {
@@ -82,10 +107,25 @@ public:
     } else {
       ALGORITHM algo(outFolder, &allOverReport);
       if(isJpg) {
-        auto entireImage = JpgLoader::loadEntireImage(imagePath, channel);
+        auto entireImage = JpgLoader::loadEntireImage(imagePath);
         algo.execute(joda::Image{.mImage = entireImage, .mName = filename, .mTileNr = -1});
       } else {
-        auto entireImage = TiffLoader::loadEntireImage(imagePath, channel);
+        auto actDirectory = tiffDirectories.begin();
+
+        cv::Mat entireImage = TiffLoader::loadEntireImage(imagePath, *actDirectory);
+
+        //
+        // Do maximum intensity projection
+        //
+        while(actDirectory != tiffDirectories.end()) {
+          actDirectory = std::next(actDirectory);
+          if(actDirectory == tiffDirectories.end()) {
+            break;
+          }
+          cv::max(entireImage, TiffLoader::loadEntireImage(imagePath, *actDirectory), entireImage);
+        }
+        //
+        //
         algo.execute(joda::Image{.mImage = entireImage, .mName = filename, .mTileNr = -1});
       }
     }
@@ -93,7 +133,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-
   joda::types::Progress *mProgress;
 };
 }    // namespace joda::algo

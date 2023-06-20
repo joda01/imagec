@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "/workspaces/imagec/build/build/tests",
             "args": [
-                "[cell_counter_ai]"
+                "[pipeline_test]"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

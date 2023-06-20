@@ -23,7 +23,7 @@ auto JpgLoader::readImageMeta(const std::string &filename) -> std::string
 {
   return "";
 }
-auto JpgLoader::getImageProperties(const std::string &filename, uint16_t directory) -> ImageProperties
+auto JpgLoader::getImageProperties(const std::string &filename) -> ImageProperties
 {
   auto image = cv::imread(filename, cv::IMREAD_COLOR);
   int width  = image.cols;
@@ -33,7 +33,7 @@ auto JpgLoader::getImageProperties(const std::string &filename, uint16_t directo
   return ImageProperties{
       .imageSize = size, .tileSize = size, .nrOfTiles = 1, .nrOfDocuments = 1, .omeInformation = joda::ome::OmeInfo{}};
 }
-cv::Mat JpgLoader::loadEntireImage(const std::string &filename, int directory)
+cv::Mat JpgLoader::loadEntireImage(const std::string &filename)
 {
   auto image       = cv::imread(filename, cv::IMREAD_COLOR);
   cv::Mat imageOut = cv::Mat(image.rows, image.cols, CV_32FC3);

@@ -9,7 +9,7 @@
 ///
 TEST_CASE("image:loader", "[image_loader]")
 {
-  auto prop = TiffLoader::readOmeInformation("test/GMEV5minM1OT3_0001.btf");
+  auto prop = TiffLoader::getOmeInformation("test/GMEV5minM1OT3_0001.btf");
 
   CHECK(3 == prop.getDirectoryForChannel(0, 0).size());
 }

@@ -32,12 +32,14 @@ void PipelineCount::execute(const std::string &imgPath, const std::string &outpu
       case settings::json::ChannelSettings::Type::NONE:
         break;
       case settings::json::ChannelSettings::Type::NUCLEUS:
-        count<::joda::algo::NucleusCounter>(imgPath, outputFolder, allOverReport, partialProgress, 14);
+        count<::joda::algo::NucleusCounter>(imgPath, outputFolder, allOverReport, partialProgress,
+                                            channel.getChannelIndex());
         break;
       case settings::json::ChannelSettings::Type::EV:
         break;
       case settings::json::ChannelSettings::Type::CELL:
-        count<::joda::algo::CellCounter>(imgPath, outputFolder, allOverReport, partialProgress, 14);
+        count<::joda::algo::CellCounter>(imgPath, outputFolder, allOverReport, partialProgress,
+                                         channel.getChannelIndex());
         break;
       case settings::json::ChannelSettings::Type::BACKGROUND:
         break;

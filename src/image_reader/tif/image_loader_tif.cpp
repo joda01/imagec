@@ -51,7 +51,7 @@ void TiffLoader::initLibTif()
 /// \param[in]  filename
 /// \return     Read meta data
 ///
-auto TiffLoader::readOmeInformation(const std::string &filename) -> joda::ome::OmeInfo
+auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo
 {
   joda::ome::OmeInfo omeInfo;
 

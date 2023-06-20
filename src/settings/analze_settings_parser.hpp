@@ -135,6 +135,11 @@ public:
     thresholds.interpretConfig();
   }
 
+  auto getChannelIndex() const -> uint32_t
+  {
+    return index;
+  }
+
   auto getType() const -> Type
   {
     return enumType;
@@ -192,10 +197,10 @@ public:
 
 private:
   //
-  // Corresponding index (directory) in the TIF image
+  // Corresponding channel
   // [0, 1, 2, ...]
   //
-  std::set<uint32_t> index;
+  uint32_t index;
 
   //
   // What is seen in this channel

@@ -54,6 +54,10 @@ void OmeInfo::loadOmeInformationFromString(const std::string &omeXML)
   auto dimOrder =
       std::string(doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("DimensionOrder").as_string());
 
+  auto sizeX = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeX").as_ullong();
+  auto sizeY = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeY").as_ullong();
+  mImageSize = sizeX * sizeY;
+
   //
   // TIFF Data
   // This is the implementation of the specification section >The TiffDataElement<
@@ -223,6 +227,15 @@ void OmeInfo::loadOmeInformationFromString(const std::string &omeXML)
 int OmeInfo::getNrOfChannels() const
 {
   return mNrOfChannels;
+}
+
+///
+/// \brief      Returns the image size
+/// \author     Joachim Danmayr
+///
+uint64_t OmeInfo::getImageSize() const
+{
+  return mImageSize;
 }
 
 ///
