@@ -51,52 +51,25 @@ void TiffLoader::initLibTif()
 /// \param[in]  filename
 /// \return     Read meta data
 ///
-auto TiffLoader::readImageMeta(const std::string &filename) -> std::string
+auto TiffLoader::readOmeInformation(const std::string &filename) -> joda::ome::OmeInfo
 {
+  joda::ome::OmeInfo omeInfo;
+
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
   if(tif) {
-    auto nrOfDirectories = TIFFNumberOfDirectories(tif);
-
-    for(int directory = 0; directory < nrOfDirectories; directory++) {
-      // Set the directory to load the image from this directory
-      TIFFSetDirectory(tif, directory);
-
-      char *omeXML;
-      TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &omeXML);
-      auto omeXmlString = std::string(omeXML);
-
-      joda::ome::OmeInfo omeInfo;
-
-      if(0 == directory) {
-        std::cout << std::to_string(directory) << " " << omeXmlString << std::endl;
-
-        try {
-          omeInfo.loadOmeInformationFromString(omeXmlString);
-          std::cout << "A: " << std::to_string(omeInfo.getNrOfChannels()) << std::endl;
-
-        } catch(const std::exception &ex) {
-          // Could not parse
-          std::cout << ex.what() << std::endl;
-        }
-      }
-
-      unsigned int width      = tif->tif_dir.td_imagewidth;
-      unsigned int height     = tif->tif_dir.td_imagelength;
-      unsigned int tileWidth  = tif->tif_dir.td_tilewidth;
-      unsigned int tileHeight = tif->tif_dir.td_tilelength;
-
-      int64_t tileSize  = static_cast<int64_t>(tileWidth) * tileHeight;
-      int64_t imageSize = static_cast<int64_t>(width) * height;
-      int64_t nrOfTiles = imageSize / tileSize;
-
-      ImageProperties{.imageSize      = imageSize,
-                      .tileSize       = tileSize,
-                      .nrOfTiles      = nrOfTiles,
-                      .nrOfDocuments  = nrOfDirectories,
-                      .omeInformation = omeInfo};
+    // Set the directory to load the image from this directory
+    TIFFSetDirectory(tif, 0);
+    char *omeXML = nullptr;
+    TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &omeXML);
+    try {
+      omeInfo.loadOmeInformationFromString(std::string(omeXML));
+    } catch(const std::exception &ex) {
+      std::cout << ex.what() << std::endl;
     }
     TIFFClose(tif);
+    return omeInfo;
   }
+  return omeInfo;
 }
 
 ///

@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <map>
 #include <set>
 #include <string>
 #include <pugixml.hpp>
@@ -39,14 +40,22 @@ public:
 
   void loadOmeInformationFromString(const std::string &omeXML);
 
-  int getNrOfChannels()
-  {
-    return mNrOfChannels;
-  }
-  auto getDirectoryForChannel(int channel) -> std::set<int>;
+  [[nodiscard]] int getNrOfChannels() const;
+  [[nodiscard]] auto getDirectoryForChannel(uint32_t channel, uint32_t timeFrame) const -> std::set<uint32_t>;
 
 private:
   /////////////////////////////////////////////////////
+  using TimeFrame = std::set<uint32_t>;
+
+  struct ChannelInfo
+  {
+    std::string name;
+    uint32_t color;
+    std::map<uint32_t, TimeFrame> zStackForTimeFrame;
+  };
+
+  /////////////////////////////////////////////////////
   int mNrOfChannels;
+  std::map<uint32_t, ChannelInfo> mChannels;    ///< Contains the channel information
 };
 }    // namespace joda::ome

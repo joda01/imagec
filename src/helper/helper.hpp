@@ -52,6 +52,15 @@ inline std::string execCommand(const std::string &cmd, int &out_exitStatus)
   return result;
 }
 
+inline void stringReplace(std::string &str, const std::string &searchStr, const std::string &replaceStr)
+{
+  size_t pos = str.find(searchStr);
+  while(pos != std::string::npos) {
+    str.replace(pos, searchStr.length(), replaceStr);
+    pos = str.find(searchStr, pos + replaceStr.length());
+  }
+}
+
 }    // namespace joda::helper
 
 namespace joda::types {
