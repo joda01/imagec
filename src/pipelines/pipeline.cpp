@@ -12,6 +12,7 @@
 ///
 
 #include "pipeline.hpp"
+#include <bits/types/FILE.h>
 #include <algorithm>
 #include <filesystem>
 #include "helper/helper.hpp"
@@ -65,7 +66,7 @@ void Pipeline::runJob(const std::string &inputFolder)
 [[nodiscard]] auto Pipeline::prepareOutputFolder(const std::string &inputFolder) -> std::string
 {
   auto nowString    = ::joda::helper::timeNowToString();
-  auto outputFolder = inputFolder + std::filesystem::path::preferred_separator + "results" +
+  auto outputFolder = inputFolder + std::filesystem::path::preferred_separator + RESULTS_PATH_NAME +
                       std::filesystem::path::preferred_separator + nowString;
 
   bool directoryExists = false;

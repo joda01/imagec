@@ -87,14 +87,14 @@ private:
 
 private:
   /////////////////////////////////////////////////////
-  static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf", ".jpg"};
+  static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
+  static inline const std::string RESULTS_PATH_NAME{"results"};
 
   /////////////////////////////////////////////////////
   virtual void execute(const std::string &imgPath, const std::string &outputFolder,
                        joda::reporting::Table &allOverReport, types::Progress *partialProgress) = 0;
   void lookForImagesInFolderAndSubfolder(const std::string &inputFolder);
   static auto prepareOutputFolder(const std::string &inputFolder) -> std::string;
-
   ///
   /// \brief Returns if the thread should be stopped
   [[nodiscard]] auto shouldThreadBeStopped() const -> bool

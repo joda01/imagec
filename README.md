@@ -11,3 +11,8 @@ Image processor for biological images
 
 *cell segmentation*
 ![doc/cell_segmentation.jpg](doc/cell_segmentation.jpg)
+
+
+## Todo
+
+- [ ] Ignore result folder
