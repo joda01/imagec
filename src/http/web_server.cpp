@@ -226,7 +226,7 @@ void HttpServer::start(int listeningPort)
   // Return settings JSON
   //
   std::string getSettingsJson = "/api/" + API_VERSION + "/getsettings";
-  server.Post(listFolders, [&](const Request &req, Response &res) {
+  server.Post(getSettingsJson, [&](const Request &req, Response &res) {
     HttpServer::addResponseHeader(res);
     nlohmann::json retDoc;
     try {
