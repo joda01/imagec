@@ -1,0 +1,7 @@
+imageC (0.0-1) unstable; urgency=low
+
+  * Initial release.
+  * Added feature X.
+  * Fixed issue Y.
+
+ -- Joachim Danmayr <joachim@danmayr.org>  Fri, 9 Jun 2023 12:00:00 +0000

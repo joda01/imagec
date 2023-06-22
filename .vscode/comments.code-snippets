@@ -1,0 +1,75 @@
+{
+	// Place your workspace workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders.
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+	"File Header": {
+		"prefix": [
+			"comm-file-heaader"
+		],
+		"body": [
+			"///",
+			"/// \\file      $TM_FILENAME",
+			"/// \\author    $1",
+			"/// \\date      $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE",
+			"///",
+			"/// \\copyright Copyright 2019 Joachim Danmayr",
+			"///            All rights reserved! This file is subject",
+			"///            to the terms and conditions defined in file",
+			"///            LICENSE.txt, which is part of this package.",
+			"///",
+			"/// \\brief     A short description what happens here.",
+			"///"
+		],
+		"description": "Header file"
+	},
+	"Method Header": {
+		"prefix": [
+			"comm-method-heaader"
+		],
+		"body": [
+			"///",
+			"/// \\brief      $1",
+			"/// \\author     $2",
+			"/// \\param[in]  $3",
+			"/// \\param[out] $4",
+			"/// \\return $5",
+			"///"
+		],
+		"description": "Header file"
+	},
+	"Class Header": {
+		"prefix": [
+			"comm-class-heaader"
+		],
+		"body": [
+			"///",
+			"/// \\class      $1",
+			"/// \\author     $2",
+			"/// \\brief      $3",
+			"///"
+		],
+		"description": "Header file"
+	},
+	"Separator": {
+		"prefix": [
+			"comm-separator"
+		],
+		"body": [
+			"/////////////////////////////////////////////////////"
+		],
+		"description": "Separator"
+	}
+}

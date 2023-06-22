@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=imageC
+GenericName=Image processing
+Comment=Image processor for scientists.
+Path=/usr/local/bin
+Exec=/usr/local/bin/imagec
+Terminal=true
+Type=Application
+Icon=imagec
+StartupWMClass=imageC
+Comment=Image processing
+Categories=science;
+Keywords=image;imagec;science;

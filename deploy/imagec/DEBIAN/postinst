@@ -1,0 +1,5 @@
+#!/bin/bash
+# file name postinst
+# Post-install script for imagec.
+
+echo "Installation finished!"

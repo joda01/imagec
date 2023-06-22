@@ -1,0 +1,273 @@
+/*
+
+4/1/07
+
+This is a scoreboard of modifications made to libtiff 3.8.2 for BigTIFF support by
+Ole Eichhorn (ole@aperio.com) / Aperio Technologies (www.aperio.com)
+
+This version is tentatively named 4.0 but it is NOT an official release of libtiff;
+all source has been turned over to the libtiff maintainers for inclusion in a release.
+
+All these modifications are placed in the public domain with no restrictions,
+in gratitude to Sam Leffler, Silicon Graphics, Joris Van Damme, and all who have 
+worked on libtiff over the years to provide such a great tool.
+
+12/1/11
+
+Additional changes made to version named 4.1 to support incremental loading and writing
+of block offsets and lengths.  These changes have no effect on the external API to the 
+library, but reduce the memory footprint for [very] large files.
+
+
+FILE FORMAT
+
+The library retains the capability of writing standard TIFF files, compatible with previous
+versions of the library and other existing software.  Standard TIFF files contain 32-bit
+offsets to directories and image data.  This limits the total size of a standard TIFF
+file to 4GB (2^32).
+
+The library now has the capability of writing BigTIFF files, which contain 64-bit offsets
+to directories and image data.  For a BigTIFF file there is no practical limit to the
+size of a file.  The BigTIFF file format is described in detail here: 
+	http://www.awaresystems.be/imaging/tiff/bigtiff.html
+
+There are several places where the format of a BigTIFF file differs from 
+a standard TIFF file:
+
+-- Each TIFF file begins with a header.  The header differs between standard TIFF and
+BigTIFF as follows:
+
+	Standard TIFF
+0	16-bit	0x4D4D	constant
+2	16-bit	0x2A	version = standard TIFF
+4	32-bit	offset to first directory
+
+	BigTIFF
+0	16-bit	0x4D4D	constant
+2	16-bit	0x2B	version = BigTIFF
+4	16-bit	0x08	bytesize of offsets
+6	16-bit	0x00	constant
+8	64-bit	offset to first directory
+
+-- TIFF directories consist of a series of entries which specify data for an image.  Each
+entry may contain the data itself or may contain an offset to the data which physically 
+follow the directory.  The directory format differs between standard TIFF and BigTIFF
+as follows:
+
+	Standard TIFF
+0	16-bit	number of directory entries
+--- each entry
+0	16-bit	tag identifying information for entry
+2	16-bit	data type of entry (for standard TIFF 14 types are defined, 0-13)
+4	32-bit	count of elements for entry
+4	32-bit	data itself (if <= 32-bits) or offset to data for entry
+---
+2+n*12	32-bit	offset to next directory or zero
+
+	BigTIFF
+0	64-bit	number of directory entries
+--- each entry
+0	16-bit	tag identifying information for entry
+2	16-bit	data type of entry (for BigTIFF 17 types are defined, 0-13 and 16-18)
+4	64-bit	count of elements for entry
+12	64-bit	data itself (if <= 64-bits) or offset to data for entry
+---
+8+n*20	64-bit	offset to next directory or zero
+
+-- For some image data the data themselves consist of file offsets (e.g. tile / strip
+data locations).  In a standard TIFF file these offsets are 32-bit (for backward compatibilty,
+16-bit offsets are also supported).  In a BigTIFF file these offsets may be 64-bit values.  
+Two new data types have been defined for 64-bit integers (TIFF_LONG8 and TIFF_SLONG8).
+
+-- Finally, there is a special case of subimage directories.  For any given directory, one
+or more subsequent directories may be designated as subimages.  Subimage directory offsets
+are stored as 32-bits in standard TIFF files, and in BigTIFF files are 64-bit values.  A
+new data type has been defined for 64-bit IFD offsets (TIFF_IFD8).
+
+
+FILE PROCESSING
+
+When a file is opened for reading the TIFF version in the file header is used to 
+determine whether the file is a standard TIFF (uses 32-bit offsets) or BigTIFF (uses 64-bit
+offsets).  In either case 64-bit offsets are used in internal data structures.
+
+When a file is written it is initially unknown whether it will have to be a BigTIFF
+(if the total size is less than 2^32, there is no reason to make it a BigTIFF file).  The
+library begins by writing a standard TIFF file with 32-bit offsets.  It leaves 8 extra
+bytes of space after the file header in case the file will need to become a BigTIFF file,
+but otherwise the processing is identical to before.  Internally the library will use
+64-bit offsets but externally the file will contain 32-bit offsets.
+
+Image data are written the file as before, with no change.  All internal data offsets are
+64-bit and all I/O routines have been modified to use 64-bit file offsets; files larger
+than 2^32 bytes are supported seamlessly.
+
+When a directory is written, if the file is not already in BigTIFF format, note is 
+made whether the directory will be located beyond 2^32 from the start of the file.  If 
+so, the file is converted into a BigTIFF file.  
+
+The following things are done to convert from standard TIFF to BigTIFF at this point:
+-- A new file header is written with the BigTIFF format
+-- Each of the directories which have already been written into the file are rewritten
+as BigTIFF directories.  A new chain of directories is established beginning with a 64-bit
+offset in the file header.  Image data are left in place, only the directories are 
+rewritten.  The old 32-bit directories are left as dead space in the file.
+-- If a directory contains subdirectories, the subdirectory offsets are updated with
+64-bit values to point to the rewritten directories.
+
+After this point, all directories are written with the BigTIFF format, with 
+64-bit strip/tile offsets.  Subdirectory offsets are written as 64-bit values.  And
+the chain pointers from one directory to the next will use 64-bit offsets.
+
+
+INTERNAL OBJECT CHANGES
+
+The general technique was to leave all data structures and types alone with the 
+exception of offsets within the file.  All file offsets are stored internally and
+processed in the TIFF objects as btoff_t (uint64) values.
+
+
+API CHANGES
+
+The majority of the API to the TIFF object has remained unchanged.  The main change is
+that the toff_t data type used by some API functions for file offsets was 32-bits, and
+has been changed to 64-bits.  The API functions which use file offsets are infrequently
+used so many applications will not require changes.  Applications which use the API
+functions involving file offsets will require recompilation and may require minor
+changes to handle 64-bit values for file offsets.
+
+It is possible for a program to use the TIFFSetField and TIFFGetField API functions to 
+access subdirectory offsets.  The TIFFTAG_SUBIFD tag formerly used 32-bit values, and
+now uses 64-bit values for subdirectory offsets.  Applications which use TIFFTAG_SUBIFD
+will require recompilation and may require minor changes to handle 64-bit offsets.
+
+The TIFFOpen function supports two new *optional* modes:
+-- '4': force reading and writing standard TIFF file.  On input if file is BigTIFF an
+error is reported.  On output if file reaches 2^32 in size, an error is reported.
+-- '8': force reading and writing BigTIFF file.  On input if file is standard TIFF an
+error is reported.  On output file will be forced to be BigTIFF.
+
+One new API function has been added: TIFFIsBigTIFF, which returns whether the current 
+file is a BigTIFF.
+
+
+SCOPE of CHANGES
+
+The source code has been modified and tested on Win32 (MS and Intel compiler), 
+on Linux (RedHat), and on Mac OS X.  Other platform-specific code has not been
+modified or tested.  
+
+The tiffinfo tool which is provided with libtiff has been updated to display file 
+information for both standard TIFF and BigTIFF files.  The other tools which are
+provided with libtiff have not been tested or updated.
+
+
+	HEADERS
+
+	---- 4.0 ----
+tiff.h		- define int64 and uint64 data type
+		- redefine TIFFheader as union of standard and BigTIFF formats
+		- redefine TIFFDirEntry as union of standard and BigTIFF forms
+		- define TIFF_LONG8, TIFF_SLONG8, TIFF_IFD8 64-bit data types
+tiffconf.h	- HAVE_INT64 macro (use "__int64" if set, else "long long")
+tiffio.h	- redefine toff_t data type
+		- define new API functions:
+			TIFFIsBigTIFF
+			TIFFSwabLongLong
+			TIFFSwabArrayOfLongLong
+tiffiop.h	- eliminate typeshift and typemask
+		- define new tif_flags:
+			TIFF_ISBIGTIFF	this is a BigTIFF file
+			TIFF_NOBIGTIFF	do not process BigTIFF files (error instead)
+		- define new macros:
+			isBigTIFF	whether this is a BigTIFF file
+			noBigTIFF	whether BigTIFF files are prevented
+			isBigOff	whether offset is > 2^32
+		- define macros to access to directory offset in header
+			TIFFGetHdrDirOff, TIFFSetHdrDirOff
+		- define macros to access directory counts in IFDs
+			TIFFGetDirCnt, TIFFSetDirCnt, TIFFSwabDirCnt, TIFFDirCntLen
+		- define macros to access directory offsets for IFDs
+			TIFFGetDirOff, TIFFSetDirOff, TIFFSwabDirOff, TIFFDirOffLen
+		- define macros to access directory entry data 
+			TDIREntryLen, TDIREntryNext
+			TDIRGetEntryCount, TDIRSetEntryCount, TDIRSwabEntryCount
+			TDIRAddrEntryOff, TDIRGetEntryOff, TDIRSetEntryOff, 
+			TDIRSwabEntryOff, TDIREntryOffLen
+		- add prototype for _TIFFsetLong8Array
+tifvers.h	- update version to 4.0.0 (20070401)
+tif_dir.h	- remove TIFFInsertData and TIFFExtractData macros
+	---- 4.1 ----
+tiffiop.h	- add prototypes for _TIFFGetOffset, _TIFFGetByteCount, _TIFFSetOffset,
+			_TIFFFlushOffsets(TIFF*), _TIFFSetByteCount, _TIFFFlushByteCounts
+tifvers.h	- update version to 4.1.0 (20111201)
+tif_dir.h	- define STRIPBUFMAX macro for size of offsets and byte counts arrays
+		- define new td_strip... data in TIFFDirectory for offsets and byte counts arrays
+
+	CODE
+
+	---- 4.0 ----
+tif_dir.c	- implement _TIFFsetLong8Array
+		- add 32/64-bit logic for TIFFTAG_SUBIFD
+		- update TIFFAdvanceDirectory, TIFFNumberOfDirectories, TIFFSetDirectory,
+		  and TIFFUnlinkDirectory to use macros to access directory chain
+		- Implement TIFFSetSubDirectoryB and TIFFCurrentDirOffsetB functions
+tif_dirinfo.c	- add TIFF_LONG8 variation for TIFFTAG_STRIPOFFSETS
+		- add TIFF_LONG8 variation for TIFFTAG_STRIPBYTECOUNTS
+		- add TIFF_LONG8 and TIFF_IFD8 variations for TIFFTAG_SUBIFD
+		- update TIFFDataWidth and _TIFFDataSize to support 64-bit types
+tif_dirread.c	- update TIFFReadDirectory to use macros to access header fields and 
+		  directory entries.  Also support more than two types for tag.
+		- add 32-bit/64-bit logic for TIFFTAG_SUBIFD
+		- replace TIFFExtractData with TIFFFetch<x>Array calls
+		- update TIFFReadCustomDirectory to use macros to access header fields
+		  and directory entries.
+		- replace TIFFFetchStripThing with TIFFFetchByteCounts and TIFFetchOffsets
+		- implement TIFFFetchLong8Array
+		- support 64-bit data types in TIFFFetchData
+		- update TIFFFetch<x>Array functions to support 64-bit data in BigTIFF entries
+tif_dirwrite.c	- update _TIFFWriteDirectory to use macros to access header fields and
+		  directory entries.  Also support 32-bit or 64-bit stripe/tile offsets.
+		- replace TIFFInsertData with TIFFWrite<x>Array calls
+		- implement TIFFWriteLong8Array
+		- support 64-bit data types in TIFFWriteData
+		- update TIFFWrite<x>Array functions to support 64-bit data in BigTIFF entries
+		- update TIFFRewriteDirectory to use macros to access directory chain
+		- update TIFFLinkDirectory to use macros to access directory chain
+		- implement local TIFFMakeBigTIFF function (convert directories, etc)
+tif_ojpeg.c	- use macro for directory entry length (ugly code in here!)
+tif_open.c	- eliminate use of typemask and typeshift tables
+		- update TIFFClientOpen to support BigTIFF header
+		- support '4' mode to explicitly prevent reading and writing BigTIFF files
+		- support '8' mode to explicitly force reading and writing BigTIFF files
+		- read/write standard or BigTIFF header as required
+		- implement TIFFIsBigTIFF
+tif_print.c	- replace cascading if with switch (!)
+		- support 64-bit data types
+		- support 64-bit directory and file offsets
+		- format stripe/tile offset array as 64-bit toff_t
+		- format SUBIFD array as 64-bit toff_t
+tif_swab.c	- add TIFFSwabLong8 routine
+		- add TIFFSwabArrayOfLong8 routine
+tif_unix.c	- modify Unix API calls to use 64-bit offsets everywhere
+tif_win32.c	- modify Windows API calls to use 64-bit offsets everywhere
+tif_write.c	- modify TIFFSetupStrips and TIFFGrowStrips for 64-bit offsets
+	---- 4.1 ----
+tif_dir.c	- initialize new td_strip... data in TIFFDirectory from strip/tile tags
+tif_dirread.c - setup td_strip... data during tag processing
+		- only check for sorted offsets and byte counts if not read only
+		- use _TIFFGetOffset and _TIFFGetByteCount instead of accessing arrays
+		- change EstimateStripByteCounts for new td_strip... data
+		- implement _TIFFGetOffset and _TIFFSetOffset
+tif_dirwrite.c - call _TIFFFlushOffsets and _TIFFFlushByteCounts prior to writing directory
+		- set strip/tiole tags from new td_strip... data
+		- implement _TIFFSetOffset, _TIFFFlushOffsets, _TIFFSetByteCount, _TIFFFlushByteCounts
+tif_ojpeg.c	- (deprecated) use _TIFFGetOffset, _TIFFGetByteCount
+tif_print.c	- use _TIFFGetOffset, _TIFFGetByteCount		
+tif_read.c	- use _TIFFGetOffset, _TIFFGetByteCount
+tif_strip.c	- use _TIFFGetOffset, _TIFFGetByteCount
+tif_write.c	- use _TIFFGetOffset, _TIFFGetByteCount, _TIFFSetOffset, _TIFFSetByteCount
+		- modify TIFFSetupStrips to defer initialization to _TIFFGetOffset and _TIFFGetByteCount
+		- check offsets and byte counts array locations when growing strip/tile
+
+*/

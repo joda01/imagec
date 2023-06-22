@@ -1,0 +1,23 @@
+# kai: -google-build-using-namespace: we often need to import bsoncxx::builder::basic::* so using namespaces is sensible
+# kai: -modernize-use-trailing-return-type: we don't use that at all so far
+# kai: -modernize-make-shared: we often have factory methods that do something like std::shared_ptr<Class>(new Class());
+Checks: |
+  '-*,
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  concurrency-*,
+  cppcoreguidelines-*,
+  google-*,
+  -google-build-using-namespace,
+  misc-*,
+  llvm-*,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-make-shared,
+  performance-*,
+  portability-*,
+  readability-*
+CheckOptions:
+  - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value: true
