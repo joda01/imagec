@@ -14,7 +14,9 @@
 #pragma once
 
 #include <cstdint>
+#include <exception>
 #include "algorithms/algorithm_executor.hpp"
+#include "logger/console_logger.hpp"
 #include "pipelines/pipeline.hpp"
 
 namespace joda::pipeline {
@@ -41,8 +43,12 @@ private:
   void count(const std::string &imgPath, const std::string &outputFolder, joda::reporting::Table &allOverReport,
              types::Progress *partialProgress, uint32_t channel)
   {
-    joda::algo::AlgorithmExecutor<T> counter(partialProgress);
-    counter.executeAlgorithm(imgPath, outputFolder, allOverReport, channel, getStopReference());
+    try {
+      joda::algo::AlgorithmExecutor<T> counter(partialProgress);
+      counter.executeAlgorithm(imgPath, outputFolder, allOverReport, channel, getStopReference());
+    } catch(const std::exception &ex) {
+      joda::log::logError(ex.what());
+    }
   }
 };
 

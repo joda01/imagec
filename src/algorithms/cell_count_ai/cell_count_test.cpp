@@ -13,5 +13,5 @@ TEST_CASE("cell:counter", "[cell_counter]")
   joda::reporting::Table tb;
   joda::algo::CellCounter cellCounter("test/output", &tb);
   auto img = JpgLoader::loadEntireImage("test/cells.jpg");
-  cellCounter.execute(joda::Image{.mImage = img, .mName = "test", .mTileNr = 0});
+  cellCounter.execute(joda::Image{img, "test", 0, 0});
 }

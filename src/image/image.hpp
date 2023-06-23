@@ -28,16 +28,30 @@ namespace joda {
 ///
 struct Image
 {
-  cv::Mat mImage;
-  std::string mName;
-  int64_t mTileNr = -1;
+public:
+  Image(cv::Mat image, std::string name, int64_t channelNr, int64_t tileNr) :
+      mImage(image), mName(name), mChannelNr(channelNr), mTileNr(tileNr)
+  {
+  }
 
   auto getUniqueName() const -> std::string
   {
     if(mTileNr >= 0) {
-      return mName + "_" + std::to_string(mTileNr);
+      return mName + "_" + std::to_string(mTileNr) + "_" + std::to_string(mChannelNr);
     }
+    return mName + "_" + std::to_string(mChannelNr);
+  }
+
+  auto name() const -> const std::string &
+  {
     return mName;
   }
+
+  cv::Mat mImage;
+
+private:
+  std::string mName;
+  int64_t mChannelNr = -1;
+  int64_t mTileNr    = -1;
 };
 }    // namespace joda

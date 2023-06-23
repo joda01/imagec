@@ -332,12 +332,10 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
 ///
 cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
 {
+  // return  cv::imread(filename, CV_32FC3);
+
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
   if(tif) {
-    // Get the size of the tiff
-    unsigned int width  = tif->tif_dir.td_imagewidth;
-    unsigned int height = tif->tif_dir.td_imagelength;
-
     // Access wanted directory
     auto directoryNr = TIFFNumberOfDirectories(tif);
     if(directory >= directoryNr) {
@@ -345,6 +343,10 @@ cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
                                " directrories.");
     }
     TIFFSetDirectory(tif, directory);
+
+    // Get the size of the tiff
+    unsigned int width  = tif->tif_dir.td_imagewidth;
+    unsigned int height = tif->tif_dir.td_imagelength;
 
     // Allocate temp memory (must use the tiff library malloc)
     uint npixels   = width * height;    // Total number of pixels
@@ -358,25 +360,25 @@ cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
 
     // Create a new matrix of w x h with 8 bits per channel and 4 channels (RGBA)
     // and itterate through all the pixels of the tif and assign to the opencv matrix
-    cv::Mat image = cv::Mat(height, width, CV_8UC3, 0.0);
+    cv::Mat image = cv::Mat(width, height, CV_8UC3, 0.0);
 
-    for(uint x = 0; x < width; x++)
+    for(uint x = 0; x < width; x++) {
       for(uint y = 0; y < height; y++) {
         uint32 &TiffPixel = raster[y * width + x];                   // Read the current pixel of the TIF
-        cv::Vec4b &pixel  = image.at<cv::Vec4b>(cv::Point(x, y));    // Read the current pixel of the matrix
+        cv::Vec3b &pixel  = image.at<cv::Vec3b>(cv::Point(y, x));    // Read the current pixel of the matrix
         pixel[0]          = TIFFGetB(TiffPixel);                     // Set the pixel values as BGRA
         pixel[1]          = TIFFGetG(TiffPixel);
         pixel[2]          = TIFFGetR(TiffPixel);
         // pixel[3]          = TIFFGetA(TiffPixel);    // No alpha channel
       }
-
+    }
     _TIFFfree(raster);    // Free temp memory
 
     // Rotate the image 90 degrees couter clockwise
     image = image.t();
     cv::flip(image, image, 0);
     // Convert to a three channel float image, because we need this format for AI
-    cv::Mat imageOut = cv::Mat(height, width, CV_32FC3);
+    cv::Mat imageOut = cv::Mat(width, height, CV_32FC3);
     image.convertTo(imageOut, CV_32FC3);
     return imageOut;
   } else {

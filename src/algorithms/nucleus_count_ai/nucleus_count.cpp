@@ -41,7 +41,7 @@ void NucleusCounter::execute(const joda::Image &img)
 
   i = DurationCount::start("ctrl");
   obj.paintBoundingBox(enhancedContrast, result);
-  cv::imwrite(getOutputFolder() + "/" + img.mName + "/" + img.getUniqueName() + ".jpg", enhancedContrast);
+  cv::imwrite(getOutputFolder() + "/" + img.name() + "/" + img.getUniqueName() + ".jpg", enhancedContrast);
   DurationCount::stop(i);
 }
 
@@ -66,7 +66,7 @@ void NucleusCounter::writeReport(const joda::func::ai::DetectionResults &predict
     nrOfNucleus++;
   }
   std::lock_guard<std::mutex> lockGuard(mWriteMutex);
-  std::string outPath = getOutputFolder() + "/" + img.mName;
+  std::string outPath = getOutputFolder() + "/" + img.name();
   if(!std::filesystem::exists(outPath)) {
     std::filesystem::create_directories(outPath);
   }

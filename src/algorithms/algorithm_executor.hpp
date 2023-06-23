@@ -96,7 +96,7 @@ public:
         //
         //
 
-        algo.execute(joda::Image{.mImage = tilePart, .mName = filename, .mTileNr = idx});
+        algo.execute(joda::Image{tilePart, filename, channel, idx});
         mProgress->finished = idx + 1;
         if(mStop) {
           break;
@@ -108,7 +108,7 @@ public:
       ALGORITHM algo(outFolder, &allOverReport);
       if(isJpg) {
         auto entireImage = JpgLoader::loadEntireImage(imagePath);
-        algo.execute(joda::Image{.mImage = entireImage, .mName = filename, .mTileNr = -1});
+        algo.execute(joda::Image{entireImage, filename, channel, -1});
       } else {
         auto actDirectory = tiffDirectories.begin();
 
@@ -126,7 +126,7 @@ public:
         }
         //
         //
-        algo.execute(joda::Image{.mImage = entireImage, .mName = filename, .mTileNr = -1});
+        algo.execute(joda::Image{entireImage, filename, channel, -1});
       }
     }
   }
