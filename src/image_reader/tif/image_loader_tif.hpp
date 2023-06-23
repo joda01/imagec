@@ -4,6 +4,7 @@
 
 #include <string>
 #include "../image_reader.hpp"
+#include "helper/ome_parser/ome_info.hpp"
 #include <opencv2/core/mat.hpp>
 
 class TiffLoader

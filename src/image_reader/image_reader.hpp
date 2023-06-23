@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include "helper/ome_parser/ome_info.hpp"
 #include <opencv2/core/mat.hpp>
 
 struct ImageProperties
@@ -22,5 +21,4 @@ struct ImageProperties
   int64_t tileSize       = 0;
   int64_t nrOfTiles      = 0;
   uint16_t nrOfDocuments = 0;
-  joda::ome::OmeInfo omeInformation;
 };

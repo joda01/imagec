@@ -23,6 +23,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include "image_reader/image_reader.hpp"
 #include <pugixml.hpp>
 
 namespace joda::ome {
@@ -39,6 +40,7 @@ public:
   OmeInfo();
 
   void loadOmeInformationFromString(const std::string &omeXML);
+  void emulateOmeInformationFromTiff(const ImageProperties &);
 
   [[nodiscard]] int getNrOfChannels() const;
   [[nodiscard]] uint64_t getImageSize() const;
@@ -52,12 +54,12 @@ private:
   {
     std::string name;
     uint32_t color;
-    std::map<uint32_t, TimeFrame> zStackForTimeFrame;
+    std::map<uint32_t, TimeFrame> zStackForTimeFrame;    ///< TimeFrame <Time-Index, Frames in the time>
   };
 
   /////////////////////////////////////////////////////
   int mNrOfChannels;
   uint64_t mImageSize;
-  std::map<uint32_t, ChannelInfo> mChannels;    ///< Contains the channel information
+  std::map<uint32_t, ChannelInfo> mChannels;    ///< Contains the channel information <channelIdx | channelinfo>
 };
 }    // namespace joda::ome

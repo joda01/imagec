@@ -221,6 +221,22 @@ void OmeInfo::loadOmeInformationFromString(const std::string &omeXML)
 }
 
 ///
+/// \brief      If no OME information was found, emulate the information from image properties
+/// \author     Joachim Danmayr
+///
+void OmeInfo::emulateOmeInformationFromTiff(const ImageProperties &prop)
+{
+  mImageSize    = prop.imageSize;
+  mNrOfChannels = prop.nrOfDocuments;
+
+  for(uint32_t idx = 0; idx < mNrOfChannels; idx++) {
+    std::map<uint32_t, TimeFrame> zStackForTimeFrame;
+    zStackForTimeFrame.emplace(0, TimeFrame{idx});
+    mChannels.emplace(idx, ChannelInfo{.name = "", .color = 0, .zStackForTimeFrame = zStackForTimeFrame});
+  }
+}
+
+///
 /// \brief      Returns the number of channels
 /// \author     Joachim Danmayr
 ///

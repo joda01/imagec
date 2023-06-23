@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include <string>
 #include "helper/ome_parser/ome_info.hpp"
+#include "logger/console_logger.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -61,12 +62,15 @@ auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::Om
     TIFFSetDirectory(tif, 0);
     char *omeXML = nullptr;
     TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &omeXML);
+    TIFFClose(tif);
+
     try {
       omeInfo.loadOmeInformationFromString(std::string(omeXML));
     } catch(const std::exception &ex) {
-      std::cout << ex.what() << std::endl;
+      // No OME information found, emulate it by just using the TIFF meta data
+      joda::log::logWarning("No OME information found. Use TIFF meta data instead!");
+      omeInfo.emulateOmeInformationFromTiff(getImageProperties(filename, 0));
     }
-    TIFFClose(tif);
     return omeInfo;
   }
   return omeInfo;

@@ -30,8 +30,7 @@ auto JpgLoader::getImageProperties(const std::string &filename) -> ImageProperti
   int height = image.rows;
   int size   = width * height;
 
-  return ImageProperties{
-      .imageSize = size, .tileSize = size, .nrOfTiles = 1, .nrOfDocuments = 1, .omeInformation = joda::ome::OmeInfo{}};
+  return ImageProperties{.imageSize = size, .tileSize = size, .nrOfTiles = 1, .nrOfDocuments = 1};
 }
 cv::Mat JpgLoader::loadEntireImage(const std::string &filename)
 {

@@ -13,10 +13,15 @@
 
 #pragma once
 
-namespace joda::log {
-
+#include <chrono>
 #include <ctime>
+#include <iomanip>
 #include <iostream>
+#include <ostream>
+#include <sstream>    // std::ostringstream
+#include <string>
+
+namespace joda::log {
 
 // Color codes for console formatting
 const std::string RESET_COLOR  = "\033[0m";
