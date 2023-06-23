@@ -39,8 +39,9 @@ private:
   // Name of the onnx AI model which should be used for detection.
   //
   std::string model_name;
+  float probability_min;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiSettings, model_name);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiSettings, model_name, probability_min);
 };
 
 class ThresholdSettings final
