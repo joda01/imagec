@@ -187,23 +187,68 @@ void HttpServer::start(int listeningPort)
     nlohmann::json retDoc;
     try {
       std::set<std::string> directories;
+      std::set<std::string> files;
+
       nlohmann::json reqJson = nlohmann::json::parse(req.body);
       std::string startPath  = reqJson["path"];
+
+      // File extensions to show: If empty only folders are shown
+      std::set<std::string> fileExtensionsToShow;
+      if(reqJson.contains("file_extensions")) {
+        for(const auto &fileExtension : reqJson["file_extensions"]) {
+          std::string ext = fileExtension;
+          fileExtensionsToShow.emplace(ext);
+        }
+      }
+
       if(startPath.empty()) {
         startPath = fs::path(getenv("HOME"));
       }
       for(const auto &entry : fs::directory_iterator(startPath)) {
         if(fs::is_directory(entry.status())) {
           directories.emplace(entry.path());
+        } else if(fileExtensionsToShow.contains(entry.path().extension())) {
+          files.emplace(entry.path());
         }
       }
       retDoc["directories"] = directories;
+      retDoc["files"]       = files;
       retDoc["home"]        = fs::path(getenv("HOME"));
     } catch(const std::exception &ex) {
       retDoc["directories"] = std::set<std::string>();
+      retDoc["files"]       = std::set<std::string>();
       retDoc["home"]        = fs::path(getenv("HOME"));
     }
+    res.set_content(retDoc.dump(), "application/json");
+  });
 
+  //
+  // Return settings JSON
+  //
+  std::string getSettingsJson = "/api/" + API_VERSION + "/getsettings";
+  server.Post(getSettingsJson, [&](const Request &req, Response &res) {
+    HttpServer::addResponseHeader(res);
+    nlohmann::json retDoc;
+    try {
+      nlohmann::json reqJson         = nlohmann::json::parse(req.body);
+      std::string pathToSettingsJson = reqJson["path"];
+      if(pathToSettingsJson.ends_with(".json")) {
+        std::ifstream input(pathToSettingsJson);
+        std::stringstream buffer;
+        buffer << input.rdbuf();
+        auto setingsJson   = nlohmann::json::parse(buffer.str());
+        retDoc["settings"] = setingsJson;
+        input.close();
+        res.status = 200;
+      } else {
+        res.status         = 204;
+        retDoc["settings"] = {};
+      }
+
+    } catch(const std::exception &ex) {
+      res.status         = 400;
+      retDoc["settings"] = {};
+    }
     res.set_content(retDoc.dump(), "application/json");
   });
 

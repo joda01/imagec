@@ -39,8 +39,9 @@ private:
   // Name of the onnx AI model which should be used for detection.
   //
   std::string model_name;
+  float probability_min;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiSettings, model_name);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiSettings, model_name, probability_min);
 };
 
 class ThresholdSettings final
@@ -293,45 +294,55 @@ public:
     std::ifstream input(cfgPath);
     *this = json::parse(input);
     interpretConfig();
+
+    originalJson = json::parse(input).dump();
   }
 
-  void loadConfigFromString(const std::string &cfgPath)
+  void loadConfigFromString(const std::string &jsonString)
   {
-    *this = json::parse(cfgPath);
+    *this = json::parse(jsonString);
     interpretConfig();
+    originalJson = json::parse(jsonString).dump();
   }
 
-  auto getPipeline() const -> Pipeline
+  void storeConfigToFile(const std::string &cfgPath)
+  {
+    std::ofstream out(cfgPath);
+    out << originalJson;
+    out.close();
+  }
+
+  [[nodiscard]] auto getPipeline() const -> Pipeline
   {
     return enumPipeline;
   }
 
-  auto getMinColocFactor() const -> float
+  [[nodiscard]] auto getMinColocFactor() const -> float
   {
     return min_coloc_factor;
   }
 
-  auto getPixelInMicrometer() const -> float
+  [[nodiscard]] auto getPixelInMicrometer() const -> float
   {
     return pixel_in_micrometer;
   }
 
-  auto getWithControlImage() const -> bool
+  [[nodiscard]] auto getWithControlImage() const -> bool
   {
     return with_control_images;
   }
 
-  auto getWithDetailReport() const -> bool
+  [[nodiscard]] auto getWithDetailReport() const -> bool
   {
     return with_detailed_report;
   }
 
-  auto getChannels() const -> const std::multimap<ChannelSettings::Type, ChannelSettings> &
+  [[nodiscard]] auto getChannels() const -> const std::multimap<ChannelSettings::Type, ChannelSettings> &
   {
     return orderedChannels;
   }
 
-  auto getChannels(ChannelSettings::Type type) const -> std::vector<ChannelSettings>
+  [[nodiscard]] auto getChannels(ChannelSettings::Type type) const -> std::vector<ChannelSettings>
   {
     auto range = orderedChannels.equal_range(type);
     std::vector<ChannelSettings> returnVector;
@@ -389,6 +400,11 @@ private:
   // [true, false]
   //
   bool with_detailed_report;
+
+  //
+  // Original unparsed json
+  //
+  std::string originalJson;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, pipeline, channels, min_coloc_factor, pixel_in_micrometer,
                                  with_control_images, with_detailed_report);

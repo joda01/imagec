@@ -40,6 +40,11 @@ void Pipeline::runJob(const std::string &inputFolder)
   mState = State::RUNNING;
   // Prepare
   mOutputFolder = prepareOutputFolder(inputFolder);
+
+  // Store configuration
+  mAnalyzeSettings.storeConfigToFile(mOutputFolder + std::filesystem::path::preferred_separator + "settings.json");
+
+  // Look for images in the input folder
   lookForImagesInFolderAndSubfolder(inputFolder);
 
   // Iterate over each image
