@@ -25,7 +25,6 @@
 #include "helper/helper.hpp"
 #include "helper/uid_generator.hpp"
 #include "logger/console_logger.hpp"
-#include "pipelines/count/pipeline_count.hpp"
 #include "reporting/reporting.h"
 #include "settings/analze_settings_parser.hpp"
 #include "pipeline.hpp"
@@ -68,7 +67,7 @@ public:
   {
     std::string jobId = createUuid();
 
-    auto pipeline       = std::make_shared<pipeline::PipelineCount>(settings);
+    auto pipeline       = std::make_shared<pipeline::Pipeline>(settings);
     auto mainThreadFunc = [=](std::string inputFolder, std::string jobId) {
       try {
         pipeline->runJob(inputFolder);

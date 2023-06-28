@@ -16,6 +16,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include "helper/directory_iterator.hpp"
 #include "helper/helper.hpp"
 #include "reporting/reporting.h"
 #include "settings/analze_settings_parser.hpp"
@@ -76,6 +77,7 @@ private:
   {
     mState = State::STOPPING;
     mStop  = true;
+    mInputFiles.stop();
   }
 
   ///
@@ -87,13 +89,9 @@ private:
 
 private:
   /////////////////////////////////////////////////////
-  static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
   static inline const std::string RESULTS_PATH_NAME{"results"};
 
   /////////////////////////////////////////////////////
-  virtual void execute(const std::string &imgPath, const std::string &outputFolder,
-                       joda::reporting::Table &allOverReport, types::Progress *partialProgress) = 0;
-  void lookForImagesInFolderAndSubfolder(const std::string &inputFolder);
   static auto prepareOutputFolder(const std::string &inputFolder) -> std::string;
   ///
   /// \brief Returns if the thread should be stopped
@@ -105,10 +103,10 @@ private:
   /////////////////////////////////////////////////////
   std::string mInputFolder;
   std::string mOutputFolder;
-  std::vector<std::string> mListOfImagePaths;
   bool mStop = false;
   joda::settings::json::AnalyzeSettings mAnalyzeSettings;
   joda::reporting::Table mAllOverReporting;
+  joda::helper::ImageFileContainer mInputFiles;
 
   ProgressIndicator mProgress;
   State mState = State::STOPPED;

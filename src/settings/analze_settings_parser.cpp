@@ -49,19 +49,4 @@ void ChannelSettings::stringToZProjection()
   }
 }
 
-void AnalyzeSettings::stringToPipeline()
-{
-  std::transform(pipeline.begin(), pipeline.end(), pipeline.begin(), [](unsigned char c) { return std::toupper(c); });
-
-  if(pipeline == "COUNT") {
-    enumPipeline = Pipeline::COUNT;
-  } else if(pipeline == "COLOC") {
-    enumPipeline = Pipeline::COLOC;
-  } else if(pipeline == "COLOC_IN_CELL") {
-    enumPipeline = Pipeline::COLOC_IN_CELL;
-  } else {
-    throw std::runtime_error("Pipeline >" + pipeline + "< is not a valid pipeline function!");
-  }
-}
-
 }    // namespace joda::settings::json

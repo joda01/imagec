@@ -29,6 +29,7 @@ using json = nlohmann::json;
 
 class AnalyzeSettingsOptions final
 {
+public:
   [[nodiscard]] auto getMinColocFactor() const -> float
   {
     return min_coloc_factor;
@@ -49,8 +50,7 @@ class AnalyzeSettingsOptions final
     return with_detailed_report;
   }
 
-public:
-  //
+private:
   // Minimum of area overlapping to identify two particles as colocalize
   // Value between [0-1]
   //

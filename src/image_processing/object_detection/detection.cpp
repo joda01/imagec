@@ -11,9 +11,8 @@
 /// \brief     Abstract base class for a pipeline run
 ///
 
-#include "algorithm.hpp"
+#include "detection.hpp"
 #include "reporting/reporting.h"
-#include "algorithm"
 
 namespace joda::algo {
 
@@ -22,24 +21,8 @@ namespace joda::algo {
 /// \author     Joachim Danmayr
 /// \param[in]  outputFolder  Output folder of the results and control images
 ///
-Algorithm::Algorithm(const std::string &outputFolder, joda::reporting::Table *reporting) :
-    mOutputFolder(outputFolder), mReporting(reporting)
+Detection::Detection()
 {
-}
-
-///
-/// \brief      Returns the output folder for the results and control images
-/// \author     Joachim Danmayr
-/// \return     folder
-///
-auto Algorithm::getOutputFolder() const -> const std::string &
-{
-  return mOutputFolder;
-}
-
-auto Algorithm::reporting() -> joda::reporting::Table *
-{
-  return mReporting;
 }
 
 }    // namespace joda::algo
