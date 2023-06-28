@@ -20,6 +20,8 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <vector>
+#include "image_processing/channel_processor.hpp"
 #include "logger/console_logger.hpp"
 #include "pipelines/pipeline.hpp"
 #include "pipelines/pipeline_factory.hpp"
@@ -250,6 +252,48 @@ void HttpServer::start(int listeningPort)
       retDoc["settings"] = {};
     }
     res.set_content(retDoc.dump(), "application/json");
+  });
+
+  //
+  // Preview
+  //
+  std::string preview = "/api/" + API_VERSION + "/preview";
+  server.Post(preview, [&](const Request &req, Response &res) {
+    HttpServer::addResponseHeader(res);
+
+    try {
+      nlohmann::json object   = nlohmann::json::parse(req.body);
+      std::string inputFolder = object["input_folder"];
+      int channelIndex        = object["channel_idx"];
+      settings::json::AnalyzeSettings settings;
+      settings.loadConfigFromString(req.body);
+
+      bool stopReference = false;
+      joda::helper::ImageFileContainer container;
+      container.lookForImagesInFolderAndSubfolder(inputFolder);
+      std::cout << container.getFileAt(0) << std::endl;
+      auto result = joda::algo::ChannelProcessor::processChannel(settings.getChannelByIndex(channelIndex),
+                                                                 container.getFileAt(0), nullptr, stopReference);
+
+      std::vector<uchar> buffer;
+      cv::imencode(".jpg", result.at(0).controlImage, buffer);    // Assuming you want to encode as JPEG
+
+      std::string str(buffer.begin(), buffer.end());
+      std::string encoded_string = httplib::detail::base64_encode(str);
+      // actProcessor->wait();
+      nlohmann::json retDoc;
+      retDoc["images"] = std::vector<std::string>{encoded_string};
+      res.set_content(retDoc.dump(), "application/json");
+      joda::log::logInfo("Analyze started from " + req.remote_addr + "!");
+
+    } catch(const std::exception &ex) {
+      nlohmann::json retDoc;
+      retDoc["status"] = "error";
+      retDoc["code"]   = ex.what();
+      res.status       = 500;
+      res.set_content(retDoc.dump(), "application/json");
+      joda::log::logWarning("Preview could not be loaded! Got " + std::string(ex.what()) + ".");
+    }
   });
 
   ///////////////////////////////////////////////////////////////////////////

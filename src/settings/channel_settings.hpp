@@ -118,7 +118,7 @@ public:
 
   auto getThersholdSettings() const -> const ThresholdSettings &
   {
-    return thresholds;
+    return threshold;
   }
 
   auto getAiSettings() const -> const AiSettings &
@@ -129,7 +129,7 @@ public:
   void interpretConfig()
   {
     stringToDetectionMode();
-    thresholds.interpretConfig();
+    threshold.interpretConfig();
     // ai_settings.interpretConfig();
   }
 
@@ -137,21 +137,21 @@ private:
   //
   // If either threshold or AI should be used for detection
   //
-  std::string detection_mode;
+  std::string mode;
   DetectionMode enumDetectionMode;
   void stringToDetectionMode();
 
   //
   // Threshold settings
   //
-  ThresholdSettings thresholds;
+  ThresholdSettings threshold;
 
   //
   // AI settings
   //
   AiSettings ai_settings;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelDetection, detection_mode, thresholds, ai_settings);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelDetection, mode, threshold, ai_settings);
 };
 
 class ChannelInfo

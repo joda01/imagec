@@ -36,16 +36,15 @@ void ChannelInfo::stringToType()
 
 void ChannelDetection::stringToDetectionMode()
 {
-  std::transform(detection_mode.begin(), detection_mode.end(), detection_mode.begin(),
-                 [](unsigned char c) { return std::toupper(c); });
+  std::transform(mode.begin(), mode.end(), mode.begin(), [](unsigned char c) { return std::toupper(c); });
 
-  if(detection_mode == "THRESHOLD") {
+  if(mode == "THRESHOLD") {
     enumDetectionMode = DetectionMode::THRESHOLD;
-  } else if(detection_mode == "AI") {
+  } else if(mode == "AI") {
     enumDetectionMode = DetectionMode::AI;
 
   } else {
-    throw std::runtime_error("Detection mode >" + detection_mode + "< is not a valid detection mode!");
+    throw std::runtime_error("Detection mode >" + mode + "< is not a valid detection mode!");
   }
 }
 }    // namespace joda::settings::json

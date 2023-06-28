@@ -159,7 +159,7 @@ private:
   static Detection::DetectionResponse processImage(const std::string &imagePath,
                                                    const std::set<uint32_t> &tiffDirectories, int64 idx)
   {
-    auto image = doZProjection<TiffLoaderTileWrapper>(imagePath, tiffDirectories, idx);
+    auto image = doZProjection<TIFFLOADER>(imagePath, tiffDirectories, idx);
     doPreprocessing(image);
     auto detectionResult = doDetection(image);
     doFiltering(detectionResult);

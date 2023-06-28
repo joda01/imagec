@@ -30,11 +30,6 @@ using json = nlohmann::json;
 class AnalyzeSettingsOptions final
 {
 public:
-  [[nodiscard]] auto getMinColocFactor() const -> float
-  {
-    return min_coloc_factor;
-  }
-
   [[nodiscard]] auto getPixelInMicrometer() const -> float
   {
     return pixel_in_micrometer;
@@ -51,11 +46,6 @@ public:
   }
 
 private:
-  // Minimum of area overlapping to identify two particles as colocalize
-  // Value between [0-1]
-  //
-  float min_coloc_factor;
-
   //
   // How many micrometers are represented by one pixel
   // Value in [um]
@@ -74,7 +64,7 @@ private:
   //
   bool with_detailed_report;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettingsOptions, min_coloc_factor, pixel_in_micrometer, with_control_images,
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettingsOptions, pixel_in_micrometer, with_control_images,
                                  with_detailed_report);
 };
 
@@ -128,6 +118,11 @@ public:
     return returnVector;
   }
 
+  [[nodiscard]] auto getChannelByIndex(uint32_t idx) const -> ChannelSettings
+  {
+    return orderedChannelByIndex.at(idx);
+  }
+
   [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &
   {
     return options;
@@ -139,10 +134,11 @@ private:
     for(auto &ch : channels) {
       ch.interpretConfig();
       // Move from vector to ordered map
-      orderedChannels.emplace(ch.getChannelInfo().getType(), std::move(ch));
+      orderedChannels.emplace(ch.getChannelInfo().getType(), ch);
+      orderedChannelByIndex.emplace(ch.getChannelInfo().getChannelIndex(), ch);
     }
     channels.clear();
-    pipeline.interpretConfig();
+    // pipeline.interpretConfig();
   }
 
   //
@@ -150,6 +146,7 @@ private:
   //
   std::vector<ChannelSettings> channels;
   std::multimap<ChannelInfo::Type, ChannelSettings> orderedChannels;
+  std::map<uint32_t, ChannelSettings> orderedChannelByIndex;
 
   //
   // Analyses settings options
@@ -159,13 +156,13 @@ private:
   //
   // Analyses settings options
   //
-  PipelineSettings pipeline;
+  // PipelineSettings pipeline;
 
   //
   // Original unparsed json
   //
   std::string originalJson;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, channels, options, pipeline);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, channels, options /*, pipeline*/);
 };
 }    // namespace joda::settings::json

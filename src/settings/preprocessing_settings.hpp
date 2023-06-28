@@ -19,7 +19,7 @@ class PreprocessingZStack final
 {
 public:
   std::string function;
-  double value;
+  std::string value;
 
 private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingZStack, function, value);
