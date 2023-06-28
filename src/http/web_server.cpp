@@ -264,7 +264,7 @@ void HttpServer::start(int listeningPort)
     try {
       nlohmann::json object   = nlohmann::json::parse(req.body);
       std::string inputFolder = object["input_folder"];
-      int channelIndex        = object["channel_idx"];
+      int channelIndex        = object["channel_array_idx"];
       settings::json::AnalyzeSettings settings;
       settings.loadConfigFromString(req.body);
 
@@ -272,7 +272,7 @@ void HttpServer::start(int listeningPort)
       joda::helper::ImageFileContainer container;
       container.lookForImagesInFolderAndSubfolder(inputFolder);
       std::cout << container.getFileAt(0) << std::endl;
-      auto result = joda::algo::ChannelProcessor::processChannel(settings.getChannelByIndex(channelIndex),
+      auto result = joda::algo::ChannelProcessor::processChannel(settings.getChannelByArrayIndex(channelIndex),
                                                                  container.getFileAt(0), nullptr, stopReference);
 
       std::vector<uchar> buffer;

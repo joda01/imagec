@@ -118,9 +118,9 @@ public:
     return returnVector;
   }
 
-  [[nodiscard]] auto getChannelByIndex(uint32_t idx) const -> ChannelSettings
+  [[nodiscard]] auto getChannelByArrayIndex(uint32_t idx) const -> ChannelSettings
   {
-    return orderedChannelByIndex.at(idx);
+    return channels.at(idx);
   }
 
   [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &
@@ -135,9 +135,7 @@ private:
       ch.interpretConfig();
       // Move from vector to ordered map
       orderedChannels.emplace(ch.getChannelInfo().getType(), ch);
-      orderedChannelByIndex.emplace(ch.getChannelInfo().getChannelIndex(), ch);
     }
-    channels.clear();
     // pipeline.interpretConfig();
   }
 
@@ -146,7 +144,6 @@ private:
   //
   std::vector<ChannelSettings> channels;
   std::multimap<ChannelInfo::Type, ChannelSettings> orderedChannels;
-  std::map<uint32_t, ChannelSettings> orderedChannelByIndex;
 
   //
   // Analyses settings options
