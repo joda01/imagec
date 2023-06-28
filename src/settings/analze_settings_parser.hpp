@@ -18,263 +18,64 @@
 #include <map>
 #include <optional>
 #include <set>
+#include "settings/pipeline_settings.hpp"
 #include <catch2/catch_config.hpp>
 #include <nlohmann/json.hpp>
+#include "channel_settings.hpp"
 
 namespace joda::settings::json {
 
 using json = nlohmann::json;
 
-class AiSettings final
+class AnalyzeSettingsOptions final
 {
+  [[nodiscard]] auto getMinColocFactor() const -> float
+  {
+    return min_coloc_factor;
+  }
+
+  [[nodiscard]] auto getPixelInMicrometer() const -> float
+  {
+    return pixel_in_micrometer;
+  }
+
+  [[nodiscard]] auto getWithControlImage() const -> bool
+  {
+    return with_control_images;
+  }
+
+  [[nodiscard]] auto getWithDetailReport() const -> bool
+  {
+    return with_detailed_report;
+  }
+
 public:
-  /////////////////////////////////////////////////////
-  auto getModelName() const -> std::string
-  {
-    return model_name;
-  }
-
-private:
   //
-  // Name of the onnx AI model which should be used for detection.
+  // Minimum of area overlapping to identify two particles as colocalize
+  // Value between [0-1]
   //
-  std::string model_name;
-  float probability_min;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiSettings, model_name, probability_min);
-};
-
-class ThresholdSettings final
-{
-public:
-  /////////////////////////////////////////////////////
-  enum class Threshold
-  {
-    NONE,
-    MANUAL,
-    LI,
-    MIN_ERROR,
-    TRIANGLE
-  };
-
-  void interpretConfig()
-  {
-    stringToThreshold();
-  }
-
-  auto getThreshold() const -> Threshold
-  {
-    return enumThreshold;
-  }
-
-  auto getThresholdMin() const -> float
-  {
-    return threshold_min;
-  }
-
-  auto getThresholdMax() const -> float
-  {
-    return threshold_max;
-  }
-
-private:
-  //
-  // Which threshold algorithm should be used
-  // [MANUAL, LI, MIN_ERROR, TRIANGLE]
-  //
-  std::string threshold_algorithm;
-  Threshold enumThreshold = Threshold::NONE;
-  void stringToThreshold();
+  float min_coloc_factor;
 
   //
-  // Minimum threshold value.
-  // [0-65535]
+  // How many micrometers are represented by one pixel
+  // Value in [um]
   //
-  float threshold_min = 0;
-
-  //
-  // Maximum threshold value (default 65535)
-  // [0-65535]
-  //
-  float threshold_max = 0;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ThresholdSettings, threshold_algorithm, threshold_min, threshold_max);
-};
-
-class ChannelSettings final
-{
-public:
-  /////////////////////////////////////////////////////
-  enum class Type
-  {
-    NONE,
-    NUCLEUS,
-    EV,
-    CELL,
-    BACKGROUND,
-  };
-
-  enum class ZProjection
-  {
-    NONE,
-    MAX_INTENSITY
-  };
-
-  enum class DetectionMode
-  {
-    NONE,
-    THRESHOLD,
-    AI
-  };
-
-  /////////////////////////////////////////////////////
-  void interpretConfig()
-  {
-    stringToType();
-    stringToZProjection();
-    stringToDetectionMode();
-    thresholds.interpretConfig();
-  }
-
-  auto getChannelIndex() const -> uint32_t
-  {
-    return index;
-  }
-
-  auto getType() const -> Type
-  {
-    return enumType;
-  }
-
-  auto getDetectionMode() const -> DetectionMode
-  {
-    return enumDetectionMode;
-  }
-
-  auto getLabel() const -> std::string
-  {
-    return label;
-  }
-
-  auto getMinParticleSize() const -> float
-  {
-    return min_particle_size;
-  }
-
-  auto getMaxParticleSize() const -> float
-  {
-    return max_particle_size;
-  }
-
-  auto getMinCircularity() const -> float
-  {
-    return min_circularity;
-  }
-
-  auto getSnapAreaSize() const -> float
-  {
-    return snap_area_size;
-  }
-
-  auto getMarginCrop() const -> float
-  {
-    return margin_crop;
-  }
-
-  auto getZProjection() const -> ZProjection
-  {
-    return enumZProjection;
-  }
-
-  auto getThersholdSettings() const -> std::optional<ThresholdSettings>
-  {
-    return thresholds;
-  }
-
-  auto getAiSettings() const -> std::optional<AiSettings>
-  {
-    return ai_settings;
-  }
-
-private:
-  //
-  // Corresponding channel
-  // [0, 1, 2, ...]
-  //
-  uint32_t index;
+  float pixel_in_micrometer;
 
   //
-  // What is seen in this channel
-  // [NUCLEUS, EV, BACKGROUND, CELL_BRIGHTFIELD, CELL_DARKFIELD]
+  // With or without control images
+  // [true, false]
   //
-  std::string type;
-  Type enumType;
-  void stringToType();
+  bool with_control_images;
 
   //
-  // Label of the channel if available
-  // [CY5, CY3]
+  // Detailed report on
+  // [true, false]
   //
-  std::string label;
+  bool with_detailed_report;
 
-  //
-  // If either threshold or AI should be used for detection
-  //
-  std::string detection_mode;
-  DetectionMode enumDetectionMode;
-  void stringToDetectionMode();
-
-  //
-  // Threshold settings
-  //
-  ThresholdSettings thresholds;
-
-  //
-  // AI settings
-  //
-  AiSettings ai_settings;
-
-  //
-  // Every particle with a diameter lower than that is ignored during analysis.
-  // Value in [px]
-  //
-  float min_particle_size;
-
-  //
-  // Every particle with a diameter bigger than that is ignored during analysis.
-  // Value in [px]
-  //
-  float max_particle_size;
-
-  //
-  // Every particle with a circularity lower than this value is ignored during analysis.
-  // Value in [0-1]
-  //
-  float min_circularity;
-
-  //
-  // Used for coloc algorithm to define a tolerance around each particle.
-  // Value in [px]
-  //
-  float snap_area_size;
-
-  //
-  // How much of the edge should be cut off.
-  // Value in [px]
-  //
-  float margin_crop;
-
-  //
-  // Do a z-projection before analysis starts
-  // [NONE, MAX]
-  //
-  std::string zprojection;
-  ZProjection enumZProjection;
-  void stringToZProjection();
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, index, type, label, detection_mode, thresholds,
-                                              ai_settings, min_particle_size, max_particle_size, min_circularity,
-                                              snap_area_size, margin_crop, zprojection);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettingsOptions, min_coloc_factor, pixel_in_micrometer, with_control_images,
+                                 with_detailed_report);
 };
 
 class AnalyzeSettings final
@@ -312,44 +113,24 @@ public:
     out.close();
   }
 
-  [[nodiscard]] auto getPipeline() const -> Pipeline
-  {
-    return enumPipeline;
-  }
-
-  [[nodiscard]] auto getMinColocFactor() const -> float
-  {
-    return min_coloc_factor;
-  }
-
-  [[nodiscard]] auto getPixelInMicrometer() const -> float
-  {
-    return pixel_in_micrometer;
-  }
-
-  [[nodiscard]] auto getWithControlImage() const -> bool
-  {
-    return with_control_images;
-  }
-
-  [[nodiscard]] auto getWithDetailReport() const -> bool
-  {
-    return with_detailed_report;
-  }
-
-  [[nodiscard]] auto getChannels() const -> const std::multimap<ChannelSettings::Type, ChannelSettings> &
+  [[nodiscard]] auto getChannels() const -> const std::multimap<ChannelInfo::Type, ChannelSettings> &
   {
     return orderedChannels;
   }
 
-  [[nodiscard]] auto getChannels(ChannelSettings::Type type) const -> std::vector<ChannelSettings>
+  [[nodiscard]] auto getChannels(ChannelInfo::Type type) const -> std::vector<ChannelSettings>
   {
     auto range = orderedChannels.equal_range(type);
     std::vector<ChannelSettings> returnVector;
     std::transform(range.first, range.second, std::back_inserter(returnVector),
-                   [](const std::pair<ChannelSettings::Type, ChannelSettings> &element) { return element.second; });
+                   [](const std::pair<ChannelInfo::Type, ChannelSettings> &element) { return element.second; });
 
     return returnVector;
+  }
+
+  [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &
+  {
+    return options;
   }
 
 private:
@@ -358,55 +139,33 @@ private:
     for(auto &ch : channels) {
       ch.interpretConfig();
       // Move from vector to ordered map
-      orderedChannels.emplace(ch.getType(), std::move(ch));
+      orderedChannels.emplace(ch.getChannelInfo().getType(), std::move(ch));
     }
     channels.clear();
-    stringToPipeline();
+    pipeline.interpretConfig();
   }
-  //
-  // Pipeline to analyze the pictures with
-  // [NUCLEUS_COUNT, EV_COUNT, EV_COLOC, EV_COLOC_IN_CELLS]
-  //
-  std::string pipeline;
-  Pipeline enumPipeline;
-  void stringToPipeline();
 
   //
   // Settings for the image channels
   //
   std::vector<ChannelSettings> channels;
-  std::multimap<ChannelSettings::Type, ChannelSettings> orderedChannels;
+  std::multimap<ChannelInfo::Type, ChannelSettings> orderedChannels;
 
   //
-  // Minimum of area overlapping to identify two particles as colocalize
-  // Value between [0-1]
+  // Analyses settings options
   //
-  float min_coloc_factor;
+  AnalyzeSettingsOptions options;
 
   //
-  // How many micrometers are represented by one pixel
-  // Value in [um]
+  // Analyses settings options
   //
-  float pixel_in_micrometer;
-
-  //
-  // With or without control images
-  // [true, false]
-  //
-  bool with_control_images;
-
-  //
-  // Detailed report on
-  // [true, false]
-  //
-  bool with_detailed_report;
+  PipelineSettings pipeline;
 
   //
   // Original unparsed json
   //
   std::string originalJson;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, pipeline, channels, min_coloc_factor, pixel_in_micrometer,
-                                 with_control_images, with_detailed_report);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, channels, options, pipeline);
 };
 }    // namespace joda::settings::json
