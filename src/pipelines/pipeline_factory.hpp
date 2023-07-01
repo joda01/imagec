@@ -62,12 +62,12 @@ public:
   /// \brief      Generate a new pipeline job
   /// \author     Joachim Danmayr
   ///
-  static auto startNewJob(const settings::json::AnalyzeSettings &settings, const std::string &inputFolder)
-      -> std::string
+  static auto startNewJob(const settings::json::AnalyzeSettings &settings, const std::string &inputFolder,
+                          joda::helper::ImageFileContainer *imageFileContainer) -> std::string
   {
     std::string jobId = createUuid();
 
-    auto pipeline       = std::make_shared<pipeline::Pipeline>(settings);
+    auto pipeline       = std::make_shared<pipeline::Pipeline>(settings, imageFileContainer);
     auto mainThreadFunc = [=](std::string inputFolder, std::string jobId) {
       try {
         pipeline->runJob(inputFolder);

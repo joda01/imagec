@@ -14,7 +14,9 @@
 #include <bits/types/FILE.h>
 #include <algorithm>
 #include <filesystem>
+#include <memory>
 #include <set>
+#include <thread>
 #include "helper.hpp"
 
 namespace joda::helper {
@@ -28,23 +30,24 @@ public:
   {
   }
 
+  ~ImageFileContainer()
+  {
+    stop();
+  }
+
   ///
   /// \brief      Find all images in the given infolder and its subfolder.
   /// \author     Joachim Danmayr
   ///
-  inline void lookForImagesInFolderAndSubfolder(const std::string &inputFolder)
+  inline void setWorkingDirectory(const std::string &inputFolder)
   {
-    mIsStopped = false;
-    mListOfImagePaths.clear();
-
-    for(recursive_directory_iterator i(inputFolder), end; i != end; ++i) {
-      if(!is_directory(i->path())) {
-        if(ALLOWED_EXTENSIONS.contains(i->path().extension())) {
-          mListOfImagePaths.push_back(i->path());
-        }
-      }
-      if(mIsStopped) {
-        break;
+    if(mWorkingDirectory != inputFolder) {
+      mWorkingDirectory = inputFolder;
+      if(inputFolder.empty()) {
+        mListOfImagePaths.clear();
+      } else {
+        stop();
+        mWorkerThread = std::make_shared<std::thread>(&ImageFileContainer::lookForImagesInFolderAndSubfolder, this);
       }
     }
   }
@@ -56,6 +59,27 @@ public:
   void stop()
   {
     mIsStopped = true;
+    waitForFinished();
+  }
+
+  ///
+  /// \brief      Blocks until the file search loop has been finished
+  /// \author     Joachim Danmayr
+  ///
+  void waitForFinished()
+  {
+    if(mWorkerThread && mWorkerThread->joinable()) {
+      mWorkerThread->join();
+    }
+  }
+
+  ///
+  /// \brief      Returns true if file lookup is running
+  /// \author     Joachim Danmayr
+  ///
+  [[nodiscard]] bool isRunning() const
+  {
+    return mIsRunning;
   }
 
   ///
@@ -71,13 +95,12 @@ public:
   /// \brief      Returns a file on a specific index
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFileAt(uint32_t idx) const -> const std::string
+  [[nodiscard]] auto getFileAt(uint32_t idx) const -> std::string
   {
     if(idx < mListOfImagePaths.size()) {
       return mListOfImagePaths.at(idx);
-    } else {
-      return "";
     }
+    return "";
   }
 
   ///
@@ -90,10 +113,36 @@ public:
   }
 
 private:
+  ///
+  /// \brief      Find all images in the given infolder and its subfolder.
+  /// \author     Joachim Danmayr
+  ///
+  void lookForImagesInFolderAndSubfolder()
+  {
+    mIsRunning = true;
+    mIsStopped = false;
+    mListOfImagePaths.clear();
+
+    for(recursive_directory_iterator i(mWorkingDirectory), end; i != end; ++i) {
+      if(!is_directory(i->path())) {
+        if(ALLOWED_EXTENSIONS.contains(i->path().extension())) {
+          mListOfImagePaths.push_back(i->path());
+        }
+      }
+      if(mIsStopped) {
+        break;
+      }
+    }
+    mIsRunning = false;
+  }
+
   /////////////////////////////////////////////////////
   static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
+  std::string mWorkingDirectory;
   std::vector<std::string> mListOfImagePaths;
   bool mIsStopped = false;
+  bool mIsRunning = false;
+  std::shared_ptr<std::thread> mWorkerThread;
 };
 
 }    // namespace joda::helper

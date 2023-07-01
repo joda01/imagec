@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include "duration_count/duration_count.h"
 #include "helper/helper.hpp"
 #include "image_reader/image_reader.hpp"
 #include "image_reader/jpg/image_loader_jpg.hpp"
@@ -102,6 +103,7 @@ public:
     //
     // Load image properties
     //
+    auto id = DurationCount::start("load img properties");
     std::set<uint32_t> tiffDirectories;
     if(isJpg) {
       imgProperties = JpgLoader::getImageProperties(imagePath);
@@ -113,6 +115,7 @@ public:
       }
       imgProperties = TiffLoader::getImageProperties(imagePath, *tiffDirectories.begin());
     }
+    DurationCount::stop(id);
 
     //
     // Execute the algorithms
@@ -159,9 +162,17 @@ private:
   static Detection::DetectionResponse processImage(const std::string &imagePath,
                                                    const std::set<uint32_t> &tiffDirectories, int64 idx)
   {
+    auto id = DurationCount::start("z-projection");
+
     auto image = doZProjection<TIFFLOADER>(imagePath, tiffDirectories, idx);
+    DurationCount::stop(id);
+
     doPreprocessing(image);
+    id = DurationCount::start("detection");
+
     auto detectionResult = doDetection(image);
+    DurationCount::stop(id);
+
     doFiltering(detectionResult);
     return detectionResult;
   }
@@ -179,8 +190,10 @@ private:
   template <class TIFFLOADER>
   static cv::Mat doZProjection(const std::string &imagePath, const std::set<uint32_t> &tiffDirectories, int64 idx)
   {
+    auto id           = DurationCount::start("load");
     auto actDirectory = tiffDirectories.begin();
     cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN);
+    DurationCount::stop(id);
     //
     // Do maximum intensity projection
     //
@@ -211,8 +224,14 @@ private:
   ///
   static Detection::DetectionResponse doDetection(cv::Mat image)
   {
+    auto id = DurationCount::start("detection int");
+
     ALGORITHM algo;
-    return algo.execute(image);
+    auto ret = algo.execute(image);
+
+    DurationCount::stop(id);
+
+    return ret;
   }
 
   ///

@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "duration_count/duration_count.h"
 #include "image_processing/channel_processor.hpp"
 #include "logger/console_logger.hpp"
 #include "pipelines/pipeline.hpp"
@@ -94,6 +95,8 @@ void HttpServer::start(int listeningPort)
   std::cout << welcomeMessage << std::endl;
   joda::log::logInfo("Starting server...");
 
+  joda::helper::ImageFileContainer workingDirectory;
+
   //
   // Welcome page!
   //
@@ -116,7 +119,7 @@ void HttpServer::start(int listeningPort)
       std::string inputFolder = object["input_folder"];
       settings::json::AnalyzeSettings settings;
       settings.loadConfigFromString(req.body);
-      actProcessorUID = joda::pipeline::PipelineFactory::startNewJob(settings, inputFolder);
+      actProcessorUID = joda::pipeline::PipelineFactory::startNewJob(settings, inputFolder, &workingDirectory);
 
       // actProcessor->wait();
       nlohmann::json retDoc;
@@ -157,7 +160,6 @@ void HttpServer::start(int listeningPort)
     HttpServer::addResponseHeader(res);
 
     nlohmann::json retDoc;
-
     try {
       auto [progress, state] = joda::pipeline::PipelineFactory::getState(actProcessorUID);
       if(state == joda::pipeline::Pipeline::State::RUNNING) {
@@ -176,6 +178,7 @@ void HttpServer::start(int listeningPort)
     } catch(const std::exception &ex) {
       retDoc["status"] = "FINISHED";
     }
+    res.status = 200;
 
     res.set_content(retDoc.dump(), "application/json");
   });
@@ -255,6 +258,29 @@ void HttpServer::start(int listeningPort)
   });
 
   //
+  // Set working directory
+  //
+  std::string setWorkingDir = "/api/" + API_VERSION + "/setworkingdir";
+  server.Post(setWorkingDir, [&](const Request &req, Response &res) {
+    HttpServer::addResponseHeader(res);
+
+    try {
+      nlohmann::json object   = nlohmann::json::parse(req.body);
+      std::string inputFolder = object["input_folder"];
+      workingDirectory.setWorkingDirectory(inputFolder);
+      joda::log::logInfo("Set working directory to >" + inputFolder + "<!");
+
+    } catch(const std::exception &ex) {
+      nlohmann::json retDoc;
+      retDoc["status"] = "error";
+      retDoc["code"]   = ex.what();
+      res.status       = 500;
+      res.set_content(retDoc.dump(), "application/json");
+      joda::log::logWarning("Could not set working directory! Got " + std::string(ex.what()) + ".");
+    }
+  });
+
+  //
   // Preview
   //
   std::string preview = "/api/" + API_VERSION + "/preview";
@@ -265,21 +291,26 @@ void HttpServer::start(int listeningPort)
       nlohmann::json object   = nlohmann::json::parse(req.body);
       std::string inputFolder = object["input_folder"];
       int channelIndex        = object["channel_array_idx"];
+      int imgNr               = object["image_nr"];
       settings::json::AnalyzeSettings settings;
       settings.loadConfigFromString(req.body);
-
       bool stopReference = false;
-      joda::helper::ImageFileContainer container;
-      container.lookForImagesInFolderAndSubfolder(inputFolder);
-      std::cout << container.getFileAt(0) << std::endl;
-      auto result = joda::algo::ChannelProcessor::processChannel(settings.getChannelByArrayIndex(channelIndex),
-                                                                 container.getFileAt(0), nullptr, stopReference);
+      std::cout << workingDirectory.getFileAt(0) << std::endl;
+      auto id     = DurationCount::start("processing");
+      auto result = joda::algo::ChannelProcessor::processChannel(
+          settings.getChannelByArrayIndex(channelIndex), workingDirectory.getFileAt(imgNr), nullptr, stopReference);
+      DurationCount::stop(id);
 
+      id = DurationCount::start("img encode");
       std::vector<uchar> buffer;
       cv::imencode(".jpg", result.at(0).controlImage, buffer);    // Assuming you want to encode as JPEG
+      DurationCount::stop(id);
 
+      id = DurationCount::start("base64 encode");
       std::string str(buffer.begin(), buffer.end());
       std::string encoded_string = httplib::detail::base64_encode(str);
+      DurationCount::stop(id);
+
       // actProcessor->wait();
       nlohmann::json retDoc;
       retDoc["images"] = std::vector<std::string>{encoded_string};

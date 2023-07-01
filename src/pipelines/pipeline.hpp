@@ -50,7 +50,7 @@ public:
     FINISHED,
   };
 
-  Pipeline(const settings::json::AnalyzeSettings &);
+  Pipeline(const settings::json::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer);
 
 protected:
   /////////////////////////////////////////////////////
@@ -77,7 +77,6 @@ private:
   {
     mState = State::STOPPING;
     mStop  = true;
-    mInputFiles.stop();
   }
 
   ///
@@ -106,7 +105,7 @@ private:
   bool mStop = false;
   joda::settings::json::AnalyzeSettings mAnalyzeSettings;
   joda::reporting::Table mAllOverReporting;
-  joda::helper::ImageFileContainer mInputFiles;
+  joda::helper::ImageFileContainer *mImageFileContainer;
 
   ProgressIndicator mProgress;
   State mState = State::STOPPED;

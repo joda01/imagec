@@ -25,7 +25,10 @@ namespace joda::pipeline {
 using namespace std;
 using namespace std::filesystem;
 
-Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings) : mAnalyzeSettings(settings)
+Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
+                   joda::helper::ImageFileContainer *imageFileContainer) :
+    mAnalyzeSettings(settings),
+    mImageFileContainer(imageFileContainer)
 {
 }
 
@@ -48,11 +51,12 @@ void Pipeline::runJob(const std::string &inputFolder)
   mAnalyzeSettings.storeConfigToFile(mOutputFolder + std::filesystem::path::preferred_separator + "settings.json");
 
   // Look for images in the input folder
-  mInputFiles.lookForImagesInFolderAndSubfolder(inputFolder);
-  mProgress.total.total = mInputFiles.getNrOfFiles();
+  mImageFileContainer->setWorkingDirectory(inputFolder);
+  mImageFileContainer->waitForFinished();
+  mProgress.total.total = mImageFileContainer->getNrOfFiles();
 
   // Iterate over each image
-  for(const auto &imagePath : mInputFiles.getFilesList()) {
+  for(const auto &imagePath : mImageFileContainer->getFilesList()) {
     //
     // Process channel by channel
     for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
