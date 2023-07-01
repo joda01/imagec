@@ -19,6 +19,7 @@
 #include <ctime>
 #include <iostream>
 #include <map>
+#include <string>
 
 class DurationCount
 {
@@ -31,7 +32,8 @@ public:
 
   static uint32_t start(std::string comment)
   {
-    srand((unsigned) time(0));
+    totalCnt++;
+    srand((unsigned) time(0) + totalCnt);
     uint32_t randNr = (rand() % INT32_MAX) + 1;
     mDelays[randNr] = {.t_start = std::chrono::high_resolution_clock::now(), .mComment = comment};
     return randNr;
@@ -40,10 +42,11 @@ public:
   {
     auto t_end             = std::chrono::high_resolution_clock::now();
     double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - mDelays[rand].t_start).count();
-    // std::cout << mDelays[rand].mComment << ": " << elapsed_time_ms << " ms\n";
+    std::cout << mDelays[rand].mComment << ": " << elapsed_time_ms << " ms\n";
     mDelays.erase(rand);
   }
 
 private:
   static inline std::map<uint32_t, TimeDely> mDelays;
+  static inline uint32_t totalCnt = 0;
 };
