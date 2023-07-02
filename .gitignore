@@ -34,5 +34,5 @@ build/build/models/nucleus_detection.onnx
 build/build/imagec
 deploy/
 build/
-imagec_gui
+
 test_cell/
