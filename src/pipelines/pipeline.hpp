@@ -18,6 +18,7 @@
 #include <vector>
 #include "helper/directory_iterator.hpp"
 #include "helper/helper.hpp"
+#include "image_processing/functions/func_types.hpp"
 #include "reporting/reporting.h"
 #include "settings/analze_settings_parser.hpp"
 
@@ -98,6 +99,9 @@ private:
   {
     return mStop;
   }
+
+  void appendToDetailReport(joda::func::ProcessingResult &result, joda::reporting::Table &detailReportTable,
+                            const settings::json::ChannelSettings &channelSettings, int tempChannelIdx);
 
   /////////////////////////////////////////////////////
   std::string mInputFolder;

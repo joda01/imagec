@@ -59,14 +59,26 @@ void Pipeline::runJob(const std::string &inputFolder)
   for(const auto &imagePath : mImageFileContainer->getFilesList()) {
     //
     // Process channel by channel
+    joda::reporting::Table detailReport;
+    int tempChannelIdx = 0;
+
     for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
       try {
         auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath,
                                                                               &mProgress.image, getStopReference());
+
+        appendToDetailReport(processingResult, detailReport, channelSettings, tempChannelIdx);
+        tempChannelIdx++;
+
       } catch(const std::exception &ex) {
         joda::log::logError(ex.what());
       }
     }
+
+    auto detailOutput =
+        mOutputFolder + std::filesystem::path::preferred_separator + helper::getFileNameFromPath(imagePath);
+    std::filesystem::create_directories(detailOutput);
+    detailReport.flushReportToFile(detailOutput + std::filesystem::path::preferred_separator + "detail.csv");
 
     mProgress.total.finished++;
     if(mStop) {
@@ -77,6 +89,29 @@ void Pipeline::runJob(const std::string &inputFolder)
   std::string resultsFile = mOutputFolder + std::filesystem::path::preferred_separator + "results.csv";
   mAllOverReporting.flushReportToFile(resultsFile);
   mState = State::FINISHED;
+}
+
+///
+/// \brief      Append to detailed report
+/// \author     Joachim Danmayr
+/// \param[in]  inputFolder Inputfolder of the images
+/// \return     Outputfolder of the results
+///
+void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::reporting::Table &detailReportTable,
+                                    const settings::json::ChannelSettings &channelSettings, int tempChannelIdx)
+{
+  const int NR_OF_COLUMNS_PER_CHANNEL = 4;
+  detailReportTable.setColumnNames({{0, "confidence"}, {1, "intensity"}, {2, "areaSize"}, {3, "circularity"}});
+  int colIdx = NR_OF_COLUMNS_PER_CHANNEL * tempChannelIdx;
+
+  for(const auto &[tileIdx, tileData] : result) {
+    for(const auto &imgData : tileData.result) {
+      detailReportTable.appendValueToColumn(colIdx, imgData.confidence);
+      detailReportTable.appendValueToColumn(colIdx + 1, imgData.intensity);
+      detailReportTable.appendValueToColumn(colIdx + 2, imgData.areaSize);
+      detailReportTable.appendValueToColumn(colIdx + 3, imgData.circularity);
+    }
+  }
 }
 
 ///

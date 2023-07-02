@@ -4,8 +4,10 @@
 #include <unistd.h>
 #include <chrono>
 #include <cstdlib>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <regex>
 #include <sstream>
 
 namespace joda::helper {
@@ -21,9 +23,14 @@ inline auto timeNowToString() -> std::string
   return now_str;
 }
 
-inline auto getFileNameFromPath(const std::string &path) -> std::string
+inline auto getFileNameFromPath(const std::string &filePathIn) -> std::string
 {
-  return path;
+  std::filesystem::path filePath(filePathIn);
+
+  std::regex pattern("[^a-zA-Z0-9_-]");
+
+  // Use the regex_replace function to replace all matches with an empty string
+  return std::regex_replace(filePath.filename().string(), pattern, "");
 }
 
 inline std::string execCommand(const std::string &cmd, int &out_exitStatus)

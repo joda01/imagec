@@ -12,8 +12,10 @@
 TEST_CASE("pipeline:test", "[pipeline_test]")
 {
   joda::settings::json::AnalyzeSettings settings;
-  settings.loadConfigFromFile("test/nuclues_test.json");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test");
+  settings.loadConfigFromFile("test_cell/config.json");
+  joda::helper::ImageFileContainer imageFileContainer;
+  imageFileContainer.setWorkingDirectory("test_cell");
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test_cell", &imageFileContainer);
 
   while(true) {
     sleep(2);

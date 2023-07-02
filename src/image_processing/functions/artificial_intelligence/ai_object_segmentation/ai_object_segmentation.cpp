@@ -12,6 +12,8 @@
 /// \link      https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
 #include "ai_object_segmentation.hpp"
+#include <string>
+#include <opencv2/core/persistence.hpp>
 
 namespace joda::func::ai {
 
@@ -140,7 +142,7 @@ auto ObjectSegmentation::forward(Mat &inputImage) -> DetectionResults
     mask_proposals.push_back(Mat(temp_mask_proposal).t());
   }
 
-  getMask(mask_proposals, netOutputImg[1], params, inputImage.size(), output);
+  getMask(inputImage, mask_proposals, netOutputImg[1], params, inputImage.size(), output);
 
   return output;
 }
@@ -149,14 +151,15 @@ auto ObjectSegmentation::forward(Mat &inputImage) -> DetectionResults
 /// \brief      Extracts the mask from the prediction and stores the mask
 ///             to the output >output[i].boxMask<
 /// \author     Joachim Danmayr
+/// \param[in]  image           Original image
 /// \param[in]  maskProposals   Mask proposal
 /// \param[in]  maskProtos      Mask proto
 /// \param[in]  params          Image scaling parameters
 /// \param[in]  inputImageShape Image shape
 /// \param[out] output          Stores the mask to the output
 ///
-void ObjectSegmentation::getMask(const Mat &maskProposals, const Mat &maskProtos, const cv::Vec4d &params,
-                                 const cv::Size &inputImageShape, DetectionResults &output)
+void ObjectSegmentation::getMask(const cv::Mat &image, const Mat &maskProposals, const Mat &maskProtos,
+                                 const cv::Vec4d &params, const cv::Size &inputImageShape, DetectionResults &output)
 {
   Mat protos    = maskProtos.reshape(0, {SEG_CHANNELS, SEG_WIDTH * SEG_HEIGHT});
   Mat matmulRes = (maskProposals * protos).t();
@@ -180,6 +183,39 @@ void ObjectSegmentation::getMask(const Mat &maskProposals, const Mat &maskProtos
     Rect temp_rect    = output[i].box;
     mask              = mask(temp_rect) > MASK_THRESHOLD;
     output[i].boxMask = mask;
+
+    // Calculate some more metrics
+    {
+      cv::Mat segRoi    = image(temp_rect);
+      double intensity  = 0;
+      uint64_t areaSize = 0;
+
+      // Calculate the intensity and area of the polygon ROI
+      for(int x = 0; x < temp_rect.width; x++) {
+        for(int y = 0; y < temp_rect.height; y++) {
+          cv::Vec3b maskPxl = mask.at<cv::Vec3b>(y, x);    // Get the pixel value at (x, y)
+          if(maskPxl[0] > 0) {
+            cv::Vec3b pixel = image.at<cv::Vec3b>(y, x);    // Get the pixel value at (x, y)
+            intensity += pixel[0];
+            areaSize++;
+          }
+        }
+      }
+
+      output[i].intensity = intensity / (double) areaSize;
+      output[i].areaSize  = areaSize;
+
+      std::vector<std::vector<cv::Point>> contours;
+      cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+      float circularity = 0;
+      if(!contours.empty()) {
+        double area      = cv::contourArea(contours[0]);
+        double perimeter = cv::arcLength(contours[0], true);
+        circularity      = (4 * M_PI * area) / (perimeter * perimeter);
+      }
+      output[i].circularity = circularity;
+    }
   }
 }
 

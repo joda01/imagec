@@ -14,7 +14,7 @@
 #pragma once
 
 #include <iostream>
-#include "../ai_types.hpp"
+#include "image_processing/functions/func_types.hpp"
 #include <opencv2/opencv.hpp>
 
 #define YOLO_P6 false
@@ -36,7 +36,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  void getMask(const cv::Mat &maskProposals, const cv::Mat &mask_protos, const cv::Vec4d &params,
+  void getMask(const cv::Mat &image, const cv::Mat &maskProposals, const cv::Mat &mask_protos, const cv::Vec4d &params,
                const cv::Size &srcImgShape, DetectionResults &output);
 
   void letterBox(const cv::Mat &image, cv::Mat &outImage,

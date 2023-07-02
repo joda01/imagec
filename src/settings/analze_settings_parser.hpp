@@ -15,6 +15,7 @@
 
 #include <cstddef>
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <optional>
 #include <set>
@@ -83,10 +84,14 @@ public:
   void loadConfigFromFile(const std::string &cfgPath)
   {
     std::ifstream input(cfgPath);
-    *this = json::parse(input);
+    std::ostringstream oss;
+    oss << input.rdbuf();    // Read the file buffer into the ostringstream
+    std::string read = oss.str();
+    *this            = json::parse(read);
     interpretConfig();
 
-    originalJson = json::parse(input).dump();
+    originalJson = json::parse(read).dump();
+    input.close();
   }
 
   void loadConfigFromString(const std::string &jsonString)

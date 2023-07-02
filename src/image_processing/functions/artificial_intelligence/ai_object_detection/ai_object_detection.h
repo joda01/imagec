@@ -13,7 +13,7 @@
 
 #include <string>
 #include <vector>
-#include "../ai_types.hpp"
+#include "image_processing/functions/func_types.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/dnn.hpp>
 #include <opencv2/dnn/all_layers.hpp>
