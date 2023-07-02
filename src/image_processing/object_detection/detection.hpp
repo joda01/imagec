@@ -14,6 +14,7 @@
 #pragma once
 
 #include "image/image.hpp"
+#include "image_processing/functions/artificial_intelligence/ai_types.hpp"
 #include "reporting/reporting.h"
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
@@ -25,22 +26,17 @@ namespace joda::algo {
 /// \author     Joachim Danmayr
 /// \brief      Pipeline base class
 ///
-class Algorithm
+class Detection
 {
 public:
-  /////////////////////////////////////////////////////
-  Algorithm(const std::string &outputFolder, joda::reporting::Table *);
+  struct DetectionResponse
+  {
+    joda::func::ai::DetectionResults result;
+    cv::Mat controlImage;
+  };
 
-  virtual void execute(const joda::Image &img) = 0;
-
-protected:
   /////////////////////////////////////////////////////
-  auto getOutputFolder() const -> const std::string &;
-  auto reporting() -> joda::reporting::Table *;
-
-private:
-  /////////////////////////////////////////////////////
-  std::string mOutputFolder;
-  joda::reporting::Table *mReporting;
+  Detection();
+  virtual auto execute(const cv::Mat &img) -> DetectionResponse = 0;
 };
 }    // namespace joda::algo

@@ -13,8 +13,8 @@
 
 #include <cmath>
 #include <mutex>
-#include "algorithms/algorithm.hpp"
-#include "functions/artificial_intelligence/ai_object_detection/ai_object_detection.h"
+#include "image_processing/functions/artificial_intelligence/ai_object_detection/ai_object_detection.h"
+#include "image_processing/object_detection/detection.hpp"
 
 namespace joda::algo {
 
@@ -23,21 +23,14 @@ namespace joda::algo {
 /// \author     Joachim Danmayr
 /// \brief      Nucleus counter pipeline
 ///
-class NucleusCounter : public Algorithm
+class NucleusCounter : public Detection
 {
 public:
   /////////////////////////////////////////////////////
-  using Algorithm::Algorithm;
-  void execute(const joda::Image &img) override;
+  using Detection::Detection;
+  auto execute(const cv::Mat &img) -> DetectionResponse override;
   static void mergeReport(const std::string &rowName, joda::reporting::Table &mergeTo,
                           const joda::reporting::Table &mergeFrom);
-
-private:
-  /////////////////////////////////////////////////////
-  static void mergeReportInt(const std::string &rowName, joda::reporting::Table &mergeTo,
-                             const joda::reporting::Table &mergeFrom);
-  void writeReport(const joda::func::ai::DetectionResults &, const joda::Image &img);
-  std::mutex mWriteMutex;
 };
 
 }    // namespace joda::algo

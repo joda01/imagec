@@ -14,15 +14,21 @@
 #include "pipeline.hpp"
 #include <bits/types/FILE.h>
 #include <algorithm>
+#include <exception>
 #include <filesystem>
 #include "helper/helper.hpp"
+#include "image_processing/channel_processor.hpp"
+#include "logger/console_logger.hpp"
 
 namespace joda::pipeline {
 
 using namespace std;
 using namespace std::filesystem;
 
-Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings) : mAnalyzeSettings(settings)
+Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
+                   joda::helper::ImageFileContainer *imageFileContainer) :
+    mAnalyzeSettings(settings),
+    mImageFileContainer(imageFileContainer)
 {
 }
 
@@ -45,11 +51,23 @@ void Pipeline::runJob(const std::string &inputFolder)
   mAnalyzeSettings.storeConfigToFile(mOutputFolder + std::filesystem::path::preferred_separator + "settings.json");
 
   // Look for images in the input folder
-  lookForImagesInFolderAndSubfolder(inputFolder);
+  mImageFileContainer->setWorkingDirectory(inputFolder);
+  mImageFileContainer->waitForFinished();
+  mProgress.total.total = mImageFileContainer->getNrOfFiles();
 
   // Iterate over each image
-  for(const auto &imagePath : mListOfImagePaths) {
-    execute(imagePath, mOutputFolder, mAllOverReporting, &mProgress.image);
+  for(const auto &imagePath : mImageFileContainer->getFilesList()) {
+    //
+    // Process channel by channel
+    for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
+      try {
+        auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath,
+                                                                              &mProgress.image, getStopReference());
+      } catch(const std::exception &ex) {
+        joda::log::logError(ex.what());
+      }
+    }
+
     mProgress.total.finished++;
     if(mStop) {
       break;
@@ -84,27 +102,6 @@ void Pipeline::runJob(const std::string &inputFolder)
     directoryExists = true;
   }
   return outputFolder;
-}
-
-///
-/// \brief      Find all images in the given infolder and its subfolder.
-/// \author     Joachim Danmayr
-///
-void Pipeline::lookForImagesInFolderAndSubfolder(const std::string &inputFolder)
-{
-  mListOfImagePaths.clear();
-
-  for(recursive_directory_iterator i(inputFolder), end; i != end; ++i) {
-    if(!is_directory(i->path())) {
-      if(ALLOWED_EXTENSIONS.contains(i->path().extension())) {
-        mListOfImagePaths.push_back(i->path());
-        mProgress.total.total = mListOfImagePaths.size();
-      }
-    }
-    if(shouldThreadBeStopped()) {
-      break;
-    }
-  }
 }
 
 }    // namespace joda::pipeline

@@ -128,7 +128,7 @@ public:
 /// \param[in,out]  ip  Image the rolling ball algorithm should be applied on
 ///                     Result is written back to the same variable.
 ///
-void RollingBallBackground::run(cv::Mat &ip)
+void RollingBallBackground::execute(cv::Mat &ip) const
 {
   if(ip.channels() == 3) {
     subtractRGBBackround(ip, radius);
@@ -137,7 +137,7 @@ void RollingBallBackground::run(cv::Mat &ip)
   }
 }
 
-void RollingBallBackground::subtractRGBBackround(cv::Mat &ip, int ballRadius)
+void RollingBallBackground::subtractRGBBackround(cv::Mat &ip, int ballRadius) const
 {
   int width  = ip.cols;
   int height = ip.rows;
@@ -156,7 +156,7 @@ void RollingBallBackground::subtractRGBBackround(cv::Mat &ip, int ballRadius)
     the original image in order to increase speed with little loss in accuracy.  It uses
     interpolation and extrapolation to blow the shrunk image to full size.
 */
-void RollingBallBackground::subtractBackround(cv::Mat &ip, int ballRadius)
+void RollingBallBackground::subtractBackround(cv::Mat &ip, int ballRadius) const
 {
   if(invert) {
     ip.convertTo(ip, CV_64F);
@@ -208,7 +208,7 @@ void RollingBallBackground::subtractBackround(cv::Mat &ip, int ballRadius)
     of the algorithm.
 */
 std::shared_ptr<cv::Mat> RollingBallBackground::rollBall(RollingBall &ball, cv::Mat &image,
-                                                         std::shared_ptr<cv::Mat> smallImage)
+                                                         std::shared_ptr<cv::Mat> smallImage) const
 {
   int halfpatchwidth;       // distance in x or y from patch center to any edge
   int ptsbelowlastpatch;    // number of points we may ignore because they were below last patch
@@ -321,7 +321,7 @@ std::shared_ptr<cv::Mat> RollingBallBackground::rollBall(RollingBall &ball, cv::
 }
 
 /** Creates a lower resolution image for ball-rolling. */
-std::shared_ptr<cv::Mat> RollingBallBackground::shrinkImage(cv::Mat &ip, int shrinkfactor)
+std::shared_ptr<cv::Mat> RollingBallBackground::shrinkImage(cv::Mat &ip, int shrinkfactor) const
 {
   int width   = ip.cols;
   int height  = ip.rows;
@@ -358,7 +358,7 @@ std::shared_ptr<cv::Mat> RollingBallBackground::shrinkImage(cv::Mat &ip, int shr
         is certain that no point in the full-scale interpolated background has a higher
         pixel value than the corresponding point in the original image
     */
-void RollingBallBackground::interpolateBackground(std::shared_ptr<cv::Mat> background, RollingBall &ball)
+void RollingBallBackground::interpolateBackground(std::shared_ptr<cv::Mat> background, RollingBall &ball) const
 {
   int hloc, vloc;              // position of current pixel in calculated background
   int vinc;                    // memory offset from current calculated pos to current interpolated pos
@@ -413,7 +413,7 @@ void RollingBallBackground::interpolateBackground(std::shared_ptr<cv::Mat> backg
     of the left and right edge points.  If extrapolation yields values
     below zero or above 255, then they are set to zero and 255 respectively.
 */
-void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> background, RollingBall &ball)
+void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> background, RollingBall &ball) const
 {
   int edgeslope;               // difference of last two consecutive pixel values on an edge
   int pvalue;                  // current extrapolated pixel value
@@ -508,7 +508,7 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
 
 /** This is a 16-bit version of the rollBall() method. */
 std::shared_ptr<cv::Mat> RollingBallBackground::rollBall16(RollingBall &ball, cv::Mat &image,
-                                                           std::shared_ptr<cv::Mat> smallImage)
+                                                           std::shared_ptr<cv::Mat> smallImage) const
 {
   int halfpatchwidth;       // distance in x or y from patch center to any edge
   int ptsbelowlastpatch;    // number of points we may ignore because they were below last patch
@@ -617,7 +617,7 @@ std::shared_ptr<cv::Mat> RollingBallBackground::rollBall16(RollingBall &ball, cv
 }
 
 /** This is a 16-bit version of the interpolateBackground(0 method. */
-void RollingBallBackground::interpolateBackground16(std::shared_ptr<cv::Mat> background, RollingBall &ball)
+void RollingBallBackground::interpolateBackground16(std::shared_ptr<cv::Mat> background, RollingBall &ball) const
 {
   int hloc, vloc;              // position of current pixel in calculated background
   int vinc;                    // memory offset from current calculated pos to current interpolated pos
@@ -665,7 +665,7 @@ void RollingBallBackground::interpolateBackground16(std::shared_ptr<cv::Mat> bac
 }
 
 /** This is a 16-bit version of the extrapolateBackground() method. */
-void RollingBallBackground::extrapolateBackground16(std::shared_ptr<cv::Mat> background, RollingBall &ball)
+void RollingBallBackground::extrapolateBackground16(std::shared_ptr<cv::Mat> background, RollingBall &ball) const
 {
   int edgeslope;               // difference of last two consecutive pixel values on an edge
   int pvalue;                  // current extrapolated pixel value
