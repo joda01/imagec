@@ -28,6 +28,7 @@
 #include "object_detection/detection.hpp"
 #include "reporting/reporting.h"
 #include "settings/analze_settings_parser.hpp"
+#include "settings/preprocessing_settings.hpp"
 #include <opencv2/core/mat.hpp>
 
 namespace joda::algo {
@@ -91,9 +92,11 @@ public:
   /// \param[out]
   /// \return
   ///
-  static auto executeAlgorithm(const std::string &imagePath, uint32_t channel, joda::types::Progress *progress,
-                               const bool &mStop) -> ProcessingResult
+  static auto executeAlgorithm(const std::string &imagePath,
+                               const joda::settings::json::ChannelSettings &channelSetting,
+                               joda::types::Progress *progress, const bool &mStop) -> ProcessingResult
   {
+    uint32_t channel = channelSetting.getChannelInfo().getChannelIndex();
     ProcessingResult processingResult;
     std::filesystem::path path_obj(imagePath);
     std::string filename = path_obj.filename().stem().string();
@@ -127,7 +130,7 @@ public:
         progress->total = runs;
       }
       for(int64 idx = 0; idx < runs; idx++) {
-        auto result = processImage<TiffLoaderTileWrapper>(imagePath, tiffDirectories, idx);
+        auto result = processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, tiffDirectories, idx);
         processingResult.emplace(idx, result);
         if(progress != nullptr) {
           progress->finished = idx + 1;
@@ -138,10 +141,10 @@ public:
       }
     } else {
       if(isJpg) {
-        auto result = processImage<JpgLoaderEntireWrapper>(imagePath, tiffDirectories, 0);
+        auto result = processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, tiffDirectories, 0);
         processingResult.emplace(0, result);
       } else {
-        auto result = processImage<TiffLoaderEntireWrapper>(imagePath, tiffDirectories, 0);
+        auto result = processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, tiffDirectories, 0);
         processingResult.emplace(0, result);
       }
     }
@@ -160,14 +163,14 @@ private:
   ///
   template <image_loader_t TIFFLOADER>
   static Detection::DetectionResponse processImage(const std::string &imagePath,
+                                                   const joda::settings::json::ChannelSettings &channelSetting,
                                                    const std::set<uint32_t> &tiffDirectories, int64 idx)
   {
-    auto id = DurationCount::start("z-projection");
-
-    auto image = doZProjection<TIFFLOADER>(imagePath, tiffDirectories, idx);
+    auto id    = DurationCount::start("z-projection");
+    auto image = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx);
     DurationCount::stop(id);
 
-    doPreprocessing(image);
+    doPreprocessing(image, channelSetting);
     id = DurationCount::start("detection");
 
     auto detectionResult = doDetection(image);
@@ -177,7 +180,7 @@ private:
     return detectionResult;
   }
 
-  ///
+  ///,
   /// \brief      Does a Z-Projection of the image
   ///             This template function allows to load tiled and entire images
   ///             using the TiffLoaderEntireWrapper or TiffLoaderTileWrapper class
@@ -188,21 +191,26 @@ private:
   /// \return     Processed image
   ///
   template <class TIFFLOADER>
-  static cv::Mat doZProjection(const std::string &imagePath, const std::set<uint32_t> &tiffDirectories, int64 idx)
+  static cv::Mat doZProjection(const std::string &imagePath,
+                               const joda::settings::json::ChannelSettings &channelSetting,
+                               const std::set<uint32_t> &tiffDirectories, int64 idx)
   {
     auto id           = DurationCount::start("load");
     auto actDirectory = tiffDirectories.begin();
     cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN);
     DurationCount::stop(id);
-    //
-    // Do maximum intensity projection
-    //
-    while(actDirectory != tiffDirectories.end()) {
-      actDirectory = std::next(actDirectory);
-      if(actDirectory == tiffDirectories.end()) {
-        break;
+
+    if(channelSetting.getZProjectionSetting() == PreprocessingZStack::MAX_INTENSITY) {
+      //
+      // Do maximum intensity projection
+      //
+      while(actDirectory != tiffDirectories.end()) {
+        actDirectory = std::next(actDirectory);
+        if(actDirectory == tiffDirectories.end()) {
+          break;
+        }
+        cv::max(tilePart, TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN), tilePart);
       }
-      cv::max(tilePart, TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN), tilePart);
     }
     return tilePart;
   }
@@ -212,8 +220,12 @@ private:
   /// \author     Joachim Danmayr
   /// \param[in,out]  image  Image to preprocess and returns the preprocessed image
   ///
-  static void doPreprocessing(cv::Mat &image)
+  static void doPreprocessing(cv::Mat &image, const joda::settings::json::ChannelSettings &channelSetting)
   {
+    auto preprocessing = channelSetting.getPreprocessingFunctions();
+    for(auto const &func : preprocessing) {
+      func.execute(image);
+    }
   }
 
   ///

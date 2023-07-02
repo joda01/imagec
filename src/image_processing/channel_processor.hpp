@@ -41,12 +41,12 @@ public:
         break;
       case settings::json::ChannelInfo::Type::NUCLEUS:
         return joda::algo::ImageProcessor<::joda::algo::NucleusCounter>::executeAlgorithm(
-            imgPath, channelSetting.getChannelInfo().getChannelIndex(), partialProgress, stopReference);
+            imgPath, channelSetting, partialProgress, stopReference);
       case settings::json::ChannelInfo::Type::EV:
         break;
       case settings::json::ChannelInfo::Type::CELL:
-        return joda::algo::ImageProcessor<::joda::algo::CellCounter>::executeAlgorithm(
-            imgPath, channelSetting.getChannelInfo().getChannelIndex(), partialProgress, stopReference);
+        return joda::algo::ImageProcessor<::joda::algo::CellCounter>::executeAlgorithm(imgPath, channelSetting,
+                                                                                       partialProgress, stopReference);
       case settings::json::ChannelInfo::Type::BACKGROUND:
         break;
     }

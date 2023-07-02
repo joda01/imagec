@@ -35,18 +35,4 @@ void ThresholdSettings::stringToThreshold()
   }
 }
 
-void ChannelSettings::stringToZProjection()
-{
-  std::transform(zprojection.begin(), zprojection.end(), zprojection.begin(),
-                 [](unsigned char c) { return std::toupper(c); });
-
-  if(zprojection == "NONE" || zprojection.empty()) {
-    enumZProjection = ZProjection::NONE;
-  } else if(zprojection == "MAX") {
-    enumZProjection = ZProjection::MAX_INTENSITY;
-  } else {
-    throw std::runtime_error("ZProjection >" + zprojection + "< is not a valid setting!");
-  }
-}
-
 }    // namespace joda::settings::json

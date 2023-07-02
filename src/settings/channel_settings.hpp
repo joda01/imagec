@@ -274,22 +274,17 @@ class ChannelSettings final
 {
 public:
   /////////////////////////////////////////////////////
-
-  enum class ZProjection
-  {
-    NONE,
-    MAX_INTENSITY
-  };
-
-  /////////////////////////////////////////////////////
   void interpretConfig()
   {
-    stringToZProjection();
     info.interpretConfig();
     detection.interpretConfig();
 
     for(auto &pre : preprocessing) {
       pre.interpretConfig();
+      auto method = pre.getZStackMethod();
+      if(method != PreprocessingZStack::ZStackMethod::NONE) {
+        zStackMethod = method;
+      }
     }
   }
 
@@ -303,6 +298,16 @@ public:
     return detection;
   }
 
+  auto getPreprocessingFunctions() const -> const std::vector<PreprocessingStep> &
+  {
+    return preprocessing;
+  }
+
+  auto getZProjectionSetting() const -> PreprocessingZStack::ZStackMethod
+  {
+    return zStackMethod;
+  }
+
   auto getFilter() const -> const ChannelFiltering &
   {
     return filter;
@@ -313,11 +318,6 @@ public:
     return margin_crop;
   }
 
-  auto getZProjection() const -> ZProjection
-  {
-    return enumZProjection;
-  }
-
 private:
   //
   // How much of the edge should be cut off.
@@ -326,19 +326,15 @@ private:
   float margin_crop;
 
   //
-  // Do a z-projection before analysis starts
-  // [NONE, MAX]
-  //
-  std::string zprojection;
-  ZProjection enumZProjection;
-  void stringToZProjection();
-
-  //
   // Common channel information
   //
   ChannelInfo info;
 
+  //
+  // Preprocessing steps
+  //
   std::vector<PreprocessingStep> preprocessing;
+  PreprocessingZStack::ZStackMethod zStackMethod = PreprocessingZStack::ZStackMethod::NONE;
 
   //
   // Detection settings
@@ -350,8 +346,7 @@ private:
   //
   ChannelFiltering filter;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, info, detection, preprocessing, filter, margin_crop,
-                                              zprojection);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, info, detection, preprocessing, filter, margin_crop);
 };
 
 }    // namespace joda::settings::json
