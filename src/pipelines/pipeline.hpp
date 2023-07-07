@@ -101,6 +101,7 @@ private:
   }
 
   void appendToDetailReport(joda::func::ProcessingResult &result, joda::reporting::Table &detailReportTable,
+                            const std::string &detailReportOutputPath,
                             const settings::json::ChannelSettings &channelSettings, int tempChannelIdx);
 
   /////////////////////////////////////////////////////

@@ -34,6 +34,8 @@ struct Detection
   Boxes box;                ///< Rectangle around the prediction
   cv::Mat boxMask;          ///< Segmentation mask
   float intensity;          ///< Avg intensity of the masking area
+  float intensityMin;       ///< Min intensity of the masking area
+  float intensityMax;       ///< Max intensity of the masking area
   float areaSize;           ///< size of the masking area [px^2 / px^3]
   float circularity;        ///< Circularity of the masking area [0-1]
 };

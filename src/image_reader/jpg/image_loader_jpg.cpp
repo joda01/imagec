@@ -35,7 +35,7 @@ auto JpgLoader::getImageProperties(const std::string &filename) -> ImageProperti
 cv::Mat JpgLoader::loadEntireImage(const std::string &filename)
 {
   auto image       = cv::imread(filename, cv::IMREAD_COLOR);
-  cv::Mat imageOut = cv::Mat(image.rows, image.cols, CV_32FC3);
-  image.convertTo(imageOut, CV_32FC3);
+  cv::Mat imageOut = cv::Mat(image.rows, image.cols, CV_16UC3);
+  image.convertTo(imageOut, CV_16UC3);
   return imageOut;
 }

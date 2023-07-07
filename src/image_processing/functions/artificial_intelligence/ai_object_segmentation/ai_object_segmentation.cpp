@@ -57,8 +57,11 @@ ObjectSegmentation::ObjectSegmentation(const std::string &onnxNetPath, const std
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-auto ObjectSegmentation::forward(Mat &inputImage) -> DetectionResults
+auto ObjectSegmentation::forward(const Mat &inputImageOriginal) -> DetectionResults
 {
+  cv::Mat inputImage = cv::Mat(inputImageOriginal.rows, inputImageOriginal.cols, CV_32FC3);
+  inputImageOriginal.convertTo(inputImage, CV_32FC3);
+
   DetectionResults output;
   Mat blob;
   output.clear();
@@ -142,7 +145,7 @@ auto ObjectSegmentation::forward(Mat &inputImage) -> DetectionResults
     mask_proposals.push_back(Mat(temp_mask_proposal).t());
   }
 
-  getMask(inputImage, mask_proposals, netOutputImg[1], params, inputImage.size(), output);
+  getMask(inputImageOriginal, mask_proposals, netOutputImg[1], params, inputImageOriginal.size(), output);
 
   return output;
 }
@@ -186,24 +189,35 @@ void ObjectSegmentation::getMask(const cv::Mat &image, const Mat &maskProposals,
 
     // Calculate some more metrics
     {
-      cv::Mat segRoi    = image(temp_rect);
-      double intensity  = 0;
+      cv::Mat segRoi      = image(temp_rect);
+      double intensity    = 0;
+      double intensityMin = 65536;
+      double intensityMax = 0;
+
       uint64_t areaSize = 0;
 
       // Calculate the intensity and area of the polygon ROI
       for(int x = 0; x < temp_rect.width; x++) {
         for(int y = 0; y < temp_rect.height; y++) {
-          cv::Vec3b maskPxl = mask.at<cv::Vec3b>(y, x);    // Get the pixel value at (x, y)
+          cv::Vec2b maskPxl = mask.at<cv::Vec2b>(y, x);    // Get the pixel value at (x, y)
           if(maskPxl[0] > 0) {
-            cv::Vec3b pixel = image.at<cv::Vec3b>(y, x);    // Get the pixel value at (x, y)
-            intensity += pixel[0];
+            double pixelGrayScale = image.at<cv::Vec3w>(y, x)[0];    // Get the pixel value at (x, y)
+            if(pixelGrayScale < intensityMin) {
+              intensityMin = pixelGrayScale;
+            }
+            if(pixelGrayScale > intensityMax) {
+              intensityMax = pixelGrayScale;
+            }
+            intensity += pixelGrayScale;
             areaSize++;
           }
         }
       }
-
-      output[i].intensity = intensity / (double) areaSize;
-      output[i].areaSize  = areaSize;
+      float intensityAvg     = intensity / static_cast<float>(areaSize);
+      output[i].intensity    = intensityAvg;
+      output[i].intensityMin = intensityMin;
+      output[i].intensityMax = intensityMax;
+      output[i].areaSize     = areaSize;
 
       std::vector<std::vector<cv::Point>> contours;
       cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
@@ -295,9 +309,10 @@ void ObjectSegmentation::paintBoundingBox(cv::Mat &img, const DetectionResults &
     int left      = result[i].box.x;
     int top       = result[i].box.y;
     int color_num = i;
-    rectangle(img, result[i].box, mColors[result[i].classId % mColors.size()], 2, 8);
+    rectangle(img, result[i].box, cv::Scalar(255, 255, 255), 2, 8);
     mask(result[i].box).setTo(mColors[result[i].classId % mColors.size()], result[i].boxMask);
-    string label   = mClassNames[result[i].classId] + ":" + to_string(result[i].confidence);
+    string label =
+        mClassNames[result[i].classId] + ":" + to_string(result[i].confidence) + ":" + to_string(result[i].index);
     int baseLine   = 0;
     Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
     top            = max(top, labelSize.height);
@@ -305,7 +320,7 @@ void ObjectSegmentation::paintBoundingBox(cv::Mat &img, const DetectionResults &
     // baseLine), Scalar(0, 255, 0), FILLED);
     putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, mColors[result[i].classId % mColors.size()], 2);
   }
-  addWeighted(img, 0.5, mask, 0.5, 0, img);
+  addWeighted(img, 0.5, mask, 1, 0, img);
   // imwrite("test/out.jpg", img);
 }
 }    // namespace joda::func::ai

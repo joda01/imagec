@@ -36,8 +36,11 @@ ObjectDetector::ObjectDetector(const std::string &onnxNetPath, const std::vector
 /// \param[in]  inputImage      Image to analyze
 /// \return     Result of the analysis
 ///
-auto ObjectDetector::forward(const cv::Mat &inputImage) -> DetectionResults
+auto ObjectDetector::forward(const cv::Mat &inputImageOriginal) -> DetectionResults
 {
+  cv::Mat inputImage = cv::Mat(inputImageOriginal.rows, inputImageOriginal.cols, CV_32FC3);
+  inputImageOriginal.convertTo(inputImage, CV_32FC3);
+
   // cv::cuda::setDevice(0);
   cv::Mat blob;
   cv::dnn::blobFromImage(inputImage, blob, 1. / 255., cv::Size(INPUT_WIDTH, INPUT_HEIGHT), cv::Scalar(), true, false,

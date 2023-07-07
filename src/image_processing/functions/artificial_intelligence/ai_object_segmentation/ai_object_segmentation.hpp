@@ -31,7 +31,7 @@ class ObjectSegmentation
 public:
   /////////////////////////////////////////////////////
   ObjectSegmentation(const std::string &onnxNetPath, const std::vector<std::string> &classNames);
-  auto forward(cv::Mat &srcImg) -> DetectionResults;
+  auto forward(const cv::Mat &srcImg) -> DetectionResults;
   void paintBoundingBox(cv::Mat &img, const DetectionResults &result);
 
 private:
@@ -89,7 +89,7 @@ private:
   const cv::Scalar BLACK          = cv::Scalar(0, 0, 0);
   const cv::Scalar YELLOW         = cv::Scalar(0, 255, 255);
   const cv::Scalar RED            = cv::Scalar(0, 0, 255);
-  std::vector<cv::Scalar> mColors = {BLUE, BLACK, YELLOW, RED};
+  std::vector<cv::Scalar> mColors = {BLACK, BLUE, YELLOW, RED};
   std::vector<std::string> mClassNames;
   cv::dnn::Net mNet;
 };

@@ -16,9 +16,11 @@
 #include <algorithm>
 #include <exception>
 #include <filesystem>
+#include <string>
 #include "helper/helper.hpp"
 #include "image_processing/channel_processor.hpp"
 #include "logger/console_logger.hpp"
+#include <opencv2/imgcodecs.hpp>
 
 namespace joda::pipeline {
 
@@ -61,13 +63,16 @@ void Pipeline::runJob(const std::string &inputFolder)
     // Process channel by channel
     joda::reporting::Table detailReport;
     int tempChannelIdx = 0;
+    auto detailOutput =
+        mOutputFolder + std::filesystem::path::preferred_separator + helper::getFileNameFromPath(imagePath);
+    std::filesystem::create_directories(detailOutput);
 
     for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
       try {
         auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath,
                                                                               &mProgress.image, getStopReference());
 
-        appendToDetailReport(processingResult, detailReport, channelSettings, tempChannelIdx);
+        appendToDetailReport(processingResult, detailReport, detailOutput, channelSettings, tempChannelIdx);
         tempChannelIdx++;
 
       } catch(const std::exception &ex) {
@@ -75,9 +80,6 @@ void Pipeline::runJob(const std::string &inputFolder)
       }
     }
 
-    auto detailOutput =
-        mOutputFolder + std::filesystem::path::preferred_separator + helper::getFileNameFromPath(imagePath);
-    std::filesystem::create_directories(detailOutput);
     detailReport.flushReportToFile(detailOutput + std::filesystem::path::preferred_separator + "detail.csv");
 
     mProgress.total.finished++;
@@ -98,18 +100,26 @@ void Pipeline::runJob(const std::string &inputFolder)
 /// \return     Outputfolder of the results
 ///
 void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::reporting::Table &detailReportTable,
+                                    const std::string &detailReportOutputPath,
                                     const settings::json::ChannelSettings &channelSettings, int tempChannelIdx)
 {
   const int NR_OF_COLUMNS_PER_CHANNEL = 4;
-  detailReportTable.setColumnNames({{0, "confidence"}, {1, "intensity"}, {2, "areaSize"}, {3, "circularity"}});
+  detailReportTable.setColumnNames(
+      {{0, "confidence"}, {1, "intensity"}, {2, "Min"}, {3, "Max"}, {4, "areaSize"}, {5, "circularity"}});
   int colIdx = NR_OF_COLUMNS_PER_CHANNEL * tempChannelIdx;
 
   for(const auto &[tileIdx, tileData] : result) {
+    cv::imwrite(detailReportOutputPath + std::filesystem::path::preferred_separator + "control" +
+                    std::to_string(tileIdx) + ".jpg",
+                tileData.controlImage);
+
     for(const auto &imgData : tileData.result) {
       detailReportTable.appendValueToColumn(colIdx, imgData.confidence);
       detailReportTable.appendValueToColumn(colIdx + 1, imgData.intensity);
-      detailReportTable.appendValueToColumn(colIdx + 2, imgData.areaSize);
-      detailReportTable.appendValueToColumn(colIdx + 3, imgData.circularity);
+      detailReportTable.appendValueToColumn(colIdx + 2, imgData.intensityMin);
+      detailReportTable.appendValueToColumn(colIdx + 3, imgData.intensityMax);
+      detailReportTable.appendValueToColumn(colIdx + 4, imgData.areaSize);
+      detailReportTable.appendValueToColumn(colIdx + 5, imgData.circularity);
     }
   }
 }
