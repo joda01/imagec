@@ -36,7 +36,7 @@ ObjectDetector::ObjectDetector(const std::string &onnxNetPath, const std::vector
 /// \param[in]  inputImage      Image to analyze
 /// \return     Result of the analysis
 ///
-auto ObjectDetector::forward(const cv::Mat &inputImageOriginal) -> DetectionResults
+auto ObjectDetector::forward(const cv::Mat &inputImageOriginal) -> DetectionResponse
 {
   // Normalize the pixel values to [0, 255] float for detection
   cv::Mat grayImageFloat;
@@ -51,7 +51,9 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal) -> DetectionResu
   mNet.setInput(blob);
   std::vector<cv::Mat> outputs;
   mNet.forward(outputs, mNet.getUnconnectedOutLayersNames());
-  return postProcessing(inputImageOriginal, outputs);
+  auto results = postProcessing(inputImageOriginal, outputs);
+  paintBoundingBox(inputImage, results);
+  return {.result = results, .controlImage = inputImage};
 }
 
 ///
@@ -209,16 +211,12 @@ void ObjectDetector::paintBoundingBox(cv::Mat &inputImage, const DetectionResult
     int height   = box.height;
     int classi   = element.classId;
     // Draw bounding box.
-    if(0 == classi) {
-      rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), RED, 1 * THICKNESS);
-    } else if(1 == classi) {
-      rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), BLUE, 1 * THICKNESS);
-    }
+    rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), BLUE, 1 * THICKNESS);
     // Get the label for the class name and its confidence.
-    std::string label = cv::format("%.2f", element.confidence);
-    label             = mClassNames[classi] + ":" + label;
-    // Draw class labels.
-    // drawLabel(inputImage, label, left, top);
+    std::string label = cv::format("%d", element.index);
+    // label             = mClassNames[classi] + ": " + label;
+    //  Draw class labels.
+    drawLabel(inputImage, label, left, top);
   }
 }
 
@@ -243,7 +241,7 @@ void ObjectDetector::drawLabel(cv::Mat &inputImage, const std::string &label, in
   // Draw white rectangle.
   rectangle(inputImage, tlc, brc, BLACK, cv::FILLED);
   // Put the label on the black rectangle.
-  putText(inputImage, label, cv::Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, YELLOW, THICKNESS);
+  putText(inputImage, label, cv::Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, WHITE, THICKNESS);
 }
 
 }    // namespace joda::func::ai

@@ -60,7 +60,7 @@ ObjectSegmentation::ObjectSegmentation(const std::string &onnxNetPath, const std
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-auto ObjectSegmentation::forward(const Mat &inputImageOriginal) -> DetectionResults
+auto ObjectSegmentation::forward(const Mat &inputImageOriginal) -> DetectionResponse
 {
   // Normalize the pixel values to [0, 255] float for detection
   auto id = DurationCount::start("Convert");
@@ -154,8 +154,8 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal) -> DetectionResu
   }
 
   getMask(inputImageOriginal, mask_proposals, netOutputImg[1], params, inputImageOriginal.size(), output);
-
-  return output;
+  paintBoundingBox(inputImage, output);
+  return {.result = output, .controlImage = inputImage};
 }
 
 ///
@@ -206,11 +206,13 @@ void ObjectSegmentation::getMask(const cv::Mat &image, const Mat &maskProposals,
 
       uint64_t areaSize = 0;
 
+      // std::cout << "MAsk " << std::to_string(mask.channels()) << " x " << std::to_string(mask.type()) << std::endl;
+
       // Calculate the intensity and area of the polygon ROI
       for(int x = 0; x < temp_rect.width; x++) {
         for(int y = 0; y < temp_rect.height; y++) {
-          cv::Vec2b maskPxl = mask.at<cv::Vec2b>(y, x);    // Get the pixel value at (x, y)
-          if(maskPxl[0] > 0) {
+          unsigned char maskPxl = mask.at<unsigned char>(y, x);    // Get the pixel value at (x, y)
+          if(maskPxl > 0) {
             double pixelGrayScale = image.at<unsigned short>(y, x);    // Get the pixel value at (x, y)
             if(pixelGrayScale < intensityMin) {
               intensityMin = pixelGrayScale;
@@ -319,18 +321,22 @@ void ObjectSegmentation::paintBoundingBox(cv::Mat &img, const DetectionResults &
     int left      = result[i].box.x;
     int top       = result[i].box.y;
     int color_num = i;
-    rectangle(img, result[i].box, cv::Scalar(255, 255, 255), 2, 8);
-    mask(result[i].box).setTo(mColors[result[i].classId % mColors.size()], result[i].boxMask);
-    string label =
-        mClassNames[result[i].classId] + ":" + to_string(result[i].confidence) + ":" + to_string(result[i].index);
+    rectangle(img, result[i].box, RED, 2, 8);
+    mask(result[i].box).setTo(RED, result[i].boxMask);
+    // string label =
+    //     mClassNames[result[i].classId] + ":" + to_string(result[i].confidence) + ":" + to_string(result[i].index);
+
+    string label = to_string(result[i].index);
+
     int baseLine   = 0;
     Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
     top            = max(top, labelSize.height);
-    // rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top +
-    // baseLine), Scalar(0, 255, 0), FILLED);
-    putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, mColors[result[i].classId % mColors.size()], 2);
+    rectangle(img, Point(left, top - int(1.5 * labelSize.height)),
+              Point(left + int(1.5 * labelSize.width), top + baseLine), BLACK, FILLED);
+
+    putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, WHITE, 2);
   }
-  addWeighted(img, 0.5, mask, 1, 0, img);
+  addWeighted(mask, 0.5, img, 1, 0, img);
   // imwrite("test/out.jpg", img);
 }
 }    // namespace joda::func::ai

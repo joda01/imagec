@@ -31,8 +31,6 @@ auto NucleusCounter::execute(const cv::Mat &img) -> func::DetectionResponse
   auto enhancedContrast = img;
   joda::func::ai::ObjectDetector obj("imagec_models/nucleus_detection_ex_vivo_v1.onnx",
                                      {"nuclues", "nucleus_no_focus"});
-  joda::func::DetectionResults result = obj.forward(enhancedContrast);
-  obj.paintBoundingBox(enhancedContrast, result);
-  return {.result = result, .controlImage = enhancedContrast};
+  return obj.forward(enhancedContrast);
 }
 }    // namespace joda::algo

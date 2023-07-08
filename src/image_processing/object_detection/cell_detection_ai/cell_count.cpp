@@ -30,10 +30,7 @@ auto CellCounter::execute(const cv::Mat &img) -> func::DetectionResponse
 {
   auto enhancedContrast = img;
   joda::func::ai::ObjectSegmentation obj("imagec_models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
-  joda::func::DetectionResults result = obj.forward(enhancedContrast);
-
-  obj.paintBoundingBox(enhancedContrast, result);
-  return {.result = result, .controlImage = enhancedContrast};
+  return obj.forward(enhancedContrast);
 }
 
 }    // namespace joda::algo

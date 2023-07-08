@@ -31,10 +31,10 @@ class ObjectDetector
 public:
   /////////////////////////////////////////////////////
   ObjectDetector(const std::string &onnxNet, const std::vector<std::string> &classNames);
-  auto forward(const cv::Mat &inputImage) -> DetectionResults;
-  void paintBoundingBox(cv::Mat &inputImage, const DetectionResults &detection);
+  auto forward(const cv::Mat &inputImage) -> DetectionResponse;
 
 private:
+  void paintBoundingBox(cv::Mat &inputImage, const DetectionResults &detection);
   /////////////////////////////////////////////////////
   auto postProcessing(const cv::Mat &inputImage, const std::vector<cv::Mat> &predictionMatrix) -> DetectionResults;
   void drawLabel(cv::Mat &input_image, const std::string &label, int left, int top);
@@ -54,6 +54,7 @@ private:
   const cv::Scalar BLUE   = cv::Scalar(255, 178, 50);
   const cv::Scalar BLACK  = cv::Scalar(0, 0, 0);
   const cv::Scalar YELLOW = cv::Scalar(0, 255, 255);
+  const cv::Scalar WHITE  = cv::Scalar(255, 255, 255);
   const cv::Scalar RED    = cv::Scalar(0, 0, 255);
   const std::vector<std::string> mClassNames;
   cv::dnn::Net mNet;
