@@ -1,6 +1,3 @@
-# kai: -google-build-using-namespace: we often need to import bsoncxx::builder::basic::* so using namespaces is sensible
-# kai: -modernize-use-trailing-return-type: we don't use that at all so far
-# kai: -modernize-make-shared: we often have factory methods that do something like std::shared_ptr<Class>(new Class());
 Checks: |
   '-*,
   bugprone-*,

@@ -79,7 +79,6 @@ concept image_loader_t =
     std::is_base_of<JpgLoaderEntireWrapper, T>::value;
 
 ///< Processing result. Key is the image tile index, value os the detection result of this tile
-using ProcessingResult = std::map<uint32_t, Detection::DetectionResponse>;
 
 template <detection_t ALGORITHM>
 class ImageProcessor
@@ -94,10 +93,10 @@ public:
   ///
   static auto executeAlgorithm(const std::string &imagePath,
                                const joda::settings::json::ChannelSettings &channelSetting,
-                               joda::types::Progress *progress, const bool &mStop) -> ProcessingResult
+                               joda::types::Progress *progress, const bool &mStop) -> func::ProcessingResult
   {
     uint32_t channel = channelSetting.getChannelInfo().getChannelIndex();
-    ProcessingResult processingResult;
+    func::ProcessingResult processingResult;
     std::filesystem::path path_obj(imagePath);
     std::string filename = path_obj.filename().stem().string();
     ImageProperties imgProperties;
@@ -162,9 +161,9 @@ private:
   /// \return     Processed image
   ///
   template <image_loader_t TIFFLOADER>
-  static Detection::DetectionResponse processImage(const std::string &imagePath,
-                                                   const joda::settings::json::ChannelSettings &channelSetting,
-                                                   const std::set<uint32_t> &tiffDirectories, int64 idx)
+  static func::DetectionResponse processImage(const std::string &imagePath,
+                                              const joda::settings::json::ChannelSettings &channelSetting,
+                                              const std::set<uint32_t> &tiffDirectories, int64 idx)
   {
     auto id    = DurationCount::start("z-projection");
     auto image = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx);
@@ -234,7 +233,7 @@ private:
   /// \param[in]  originalImage  Image the detection should be executed on
   /// \return     Detection results with control image
   ///
-  static Detection::DetectionResponse doDetection(cv::Mat image)
+  static func::DetectionResponse doDetection(cv::Mat image)
   {
     auto id = DurationCount::start("detection int");
 
@@ -251,7 +250,7 @@ private:
   /// \author     Joachim Danmayr
   /// \param[in,out]  detectionResult  Detection result and removes the filtered objects from the detection results
   ///
-  static void doFiltering(Detection::DetectionResponse &detectionResult)
+  static void doFiltering(func::DetectionResponse &detectionResult)
   {
   }
 };

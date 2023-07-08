@@ -14,7 +14,7 @@
 #pragma once
 
 #include "image/image.hpp"
-#include "image_processing/functions/artificial_intelligence/ai_types.hpp"
+#include "image_processing/functions/func_types.hpp"
 #include "reporting/reporting.h"
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
@@ -29,14 +29,8 @@ namespace joda::algo {
 class Detection
 {
 public:
-  struct DetectionResponse
-  {
-    joda::func::ai::DetectionResults result;
-    cv::Mat controlImage;
-  };
-
   /////////////////////////////////////////////////////
   Detection();
-  virtual auto execute(const cv::Mat &img) -> DetectionResponse = 0;
+  virtual auto execute(const cv::Mat &img) -> func::DetectionResponse = 0;
 };
 }    // namespace joda::algo

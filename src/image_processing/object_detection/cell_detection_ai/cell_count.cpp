@@ -26,14 +26,11 @@ namespace joda::algo {
 /// \author     Joachim Danmayr
 /// \param[in]  img     Image to analyze
 ///
-auto CellCounter::execute(const cv::Mat &img) -> DetectionResponse
+auto CellCounter::execute(const cv::Mat &img) -> func::DetectionResponse
 {
-  auto enhancedContrast = img *= 1;
+  auto enhancedContrast = img;
   joda::func::ai::ObjectSegmentation obj("imagec_models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
-  joda::func::ai::DetectionResults result = obj.forward(enhancedContrast);
-
-  obj.paintBoundingBox(enhancedContrast, result);
-  return {.result = result, .controlImage = enhancedContrast};
+  return obj.forward(enhancedContrast);
 }
 
 }    // namespace joda::algo

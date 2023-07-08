@@ -20,7 +20,7 @@
 #include <opencv2/dnn/all_layers.hpp>
 #include <opencv2/opencv.hpp>
 
-namespace joda::func::ai {
+namespace joda::func {
 
 using Boxes      = cv::Rect;
 using Confidence = float;
@@ -33,7 +33,21 @@ struct Detection
   ClassId classId;          ///< Class id
   Boxes box;                ///< Rectangle around the prediction
   cv::Mat boxMask;          ///< Segmentation mask
+  float intensity;          ///< Avg intensity of the masking area
+  float intensityMin;       ///< Min intensity of the masking area
+  float intensityMax;       ///< Max intensity of the masking area
+  float areaSize;           ///< size of the masking area [px^2 / px^3]
+  float circularity;        ///< Circularity of the masking area [0-1]
 };
 
 using DetectionResults = std::vector<Detection>;
-}    // namespace joda::func::ai
+
+struct DetectionResponse
+{
+  joda::func::DetectionResults result;
+  cv::Mat controlImage;
+};
+
+using ProcessingResult = std::map<uint32_t, DetectionResponse>;
+
+}    // namespace joda::func

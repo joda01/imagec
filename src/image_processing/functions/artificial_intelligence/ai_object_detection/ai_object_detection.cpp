@@ -36,8 +36,14 @@ ObjectDetector::ObjectDetector(const std::string &onnxNetPath, const std::vector
 /// \param[in]  inputImage      Image to analyze
 /// \return     Result of the analysis
 ///
-auto ObjectDetector::forward(const cv::Mat &inputImage) -> DetectionResults
+auto ObjectDetector::forward(const cv::Mat &inputImageOriginal) -> DetectionResponse
 {
+  // Normalize the pixel values to [0, 255] float for detection
+  cv::Mat grayImageFloat;
+  inputImageOriginal.convertTo(grayImageFloat, CV_32F, 255.0 / 65535.0);
+  cv::Mat inputImage;
+  cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
+
   // cv::cuda::setDevice(0);
   cv::Mat blob;
   cv::dnn::blobFromImage(inputImage, blob, 1. / 255., cv::Size(INPUT_WIDTH, INPUT_HEIGHT), cv::Scalar(), true, false,
@@ -45,7 +51,9 @@ auto ObjectDetector::forward(const cv::Mat &inputImage) -> DetectionResults
   mNet.setInput(blob);
   std::vector<cv::Mat> outputs;
   mNet.forward(outputs, mNet.getUnconnectedOutLayersNames());
-  return postProcessing(inputImage, outputs);
+  auto results = postProcessing(inputImageOriginal, outputs);
+  paintBoundingBox(inputImage, results);
+  return {.result = results, .controlImage = inputImage};
 }
 
 ///
@@ -145,7 +153,39 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const std::vector
   uint32_t index = 0;
   for(int n = 0; n < confidences.size(); n++) {
     if(keptIndexesSet.count(n) == 1) {
-      result.push_back({.index = index, .confidence = confidences[n], .classId = classIds[n], .box = boxes[n]});
+      // Calculate some more metrics
+
+      float intensity    = 0;
+      float intensityMin = USHRT_MAX;
+      float intensityMax = 0;
+      float areaSize     = 0;
+      // Calculate the intensity and area of the polygon ROI
+      for(int x = 0; x < boxes[n].width; x++) {
+        for(int y = 0; y < boxes[n].height; y++) {
+          double pixelGrayScale = inputImage.at<unsigned short>(y, x);    // Get the pixel value at (x, y)
+          if(pixelGrayScale < intensityMin) {
+            intensityMin = pixelGrayScale;
+          }
+          if(pixelGrayScale > intensityMax) {
+            intensityMax = pixelGrayScale;
+          }
+          intensity += pixelGrayScale;
+          areaSize++;
+        }
+      }
+      float intensityAvg = intensity / static_cast<float>(areaSize);
+      result.push_back({
+          .index        = index,
+          .confidence   = confidences[n],
+          .classId      = classIds[n],
+          .box          = boxes[n],
+          .intensity    = intensityAvg,
+          .intensityMin = intensityMin,
+          .intensityMax = intensityMax,
+          .areaSize     = areaSize,
+          .circularity  = 0,
+
+      });
       index++;
     }
   }
@@ -171,16 +211,12 @@ void ObjectDetector::paintBoundingBox(cv::Mat &inputImage, const DetectionResult
     int height   = box.height;
     int classi   = element.classId;
     // Draw bounding box.
-    if(0 == classi) {
-      rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), RED, 1 * THICKNESS);
-    } else if(1 == classi) {
-      rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), BLUE, 1 * THICKNESS);
-    }
+    rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), BLUE, 1 * THICKNESS);
     // Get the label for the class name and its confidence.
-    std::string label = cv::format("%.2f", element.confidence);
-    label             = mClassNames[classi] + ":" + label;
-    // Draw class labels.
-    // drawLabel(inputImage, label, left, top);
+    std::string label = cv::format("%d", element.index);
+    // label             = mClassNames[classi] + ": " + label;
+    //  Draw class labels.
+    drawLabel(inputImage, label, left, top);
   }
 }
 
@@ -205,7 +241,7 @@ void ObjectDetector::drawLabel(cv::Mat &inputImage, const std::string &label, in
   // Draw white rectangle.
   rectangle(inputImage, tlc, brc, BLACK, cv::FILLED);
   // Put the label on the black rectangle.
-  putText(inputImage, label, cv::Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, YELLOW, THICKNESS);
+  putText(inputImage, label, cv::Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, WHITE, THICKNESS);
 }
 
 }    // namespace joda::func::ai

@@ -132,9 +132,10 @@ public:
   using Table_t = std::map<uint64_t, Row_t>;
 
   /////////////////////////////////////////////////////
-  void setColumnNames(const std::map<uint64_t, std::string_view> &&);
+  void setColumnNames(const std::map<uint64_t, std::string> &);
   void setRowName(uint64_t rowIdx, const std::string &);
   auto appendValueToColumn(uint64_t colIdx, float value) -> int64_t;
+  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float value) -> int64_t;
   auto appendValueToColumn(const std::string &rowName, uint64_t colIdx, float value) -> int64_t;
   auto getTable() const -> const Table_t &;
   auto getStatistics() const -> const std::map<uint64_t, Statistics> &;
@@ -147,7 +148,7 @@ private:
   Table_t mTable;
   std::map<uint64_t, Statistics> mStatisitcs;
   std::map<uint64_t, std::string> mRowNames;
-  std::map<uint64_t, std::string_view> mColumnName;
+  std::map<uint64_t, std::string> mColumnName;
   int64_t mRows = 0;
 };
 

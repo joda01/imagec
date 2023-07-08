@@ -12,6 +12,11 @@
 /// \link      https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
 #include "ai_object_segmentation.hpp"
+#include <string>
+#include "duration_count/duration_count.h"
+#include <opencv2/core/matx.hpp>
+#include <opencv2/core/persistence.hpp>
+#include <opencv2/imgproc.hpp>
 
 namespace joda::func::ai {
 
@@ -55,8 +60,16 @@ ObjectSegmentation::ObjectSegmentation(const std::string &onnxNetPath, const std
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-auto ObjectSegmentation::forward(Mat &inputImage) -> DetectionResults
+auto ObjectSegmentation::forward(const Mat &inputImageOriginal) -> DetectionResponse
 {
+  // Normalize the pixel values to [0, 255] float for detection
+  auto id = DurationCount::start("Convert");
+  cv::Mat grayImageFloat;
+  inputImageOriginal.convertTo(grayImageFloat, CV_32F, 255.0 / 65535.0);
+  cv::Mat inputImage;
+  cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
+  DurationCount::stop(id);
+
   DetectionResults output;
   Mat blob;
   output.clear();
@@ -140,24 +153,28 @@ auto ObjectSegmentation::forward(Mat &inputImage) -> DetectionResults
     mask_proposals.push_back(Mat(temp_mask_proposal).t());
   }
 
-  getMask(mask_proposals, netOutputImg[1], params, inputImage.size(), output);
-
-  return output;
+  getMask(inputImageOriginal, mask_proposals, netOutputImg[1], params, inputImageOriginal.size(), output);
+  paintBoundingBox(inputImage, output);
+  return {.result = output, .controlImage = inputImage};
 }
 
 ///
 /// \brief      Extracts the mask from the prediction and stores the mask
 ///             to the output >output[i].boxMask<
 /// \author     Joachim Danmayr
+/// \param[in]  image           Original image
 /// \param[in]  maskProposals   Mask proposal
 /// \param[in]  maskProtos      Mask proto
 /// \param[in]  params          Image scaling parameters
 /// \param[in]  inputImageShape Image shape
 /// \param[out] output          Stores the mask to the output
 ///
-void ObjectSegmentation::getMask(const Mat &maskProposals, const Mat &maskProtos, const cv::Vec4d &params,
-                                 const cv::Size &inputImageShape, DetectionResults &output)
+void ObjectSegmentation::getMask(const cv::Mat &image, const Mat &maskProposals, const Mat &maskProtos,
+                                 const cv::Vec4d &params, const cv::Size &inputImageShape, DetectionResults &output)
 {
+  if(maskProposals.empty()) {
+    return;
+  }
   Mat protos    = maskProtos.reshape(0, {SEG_CHANNELS, SEG_WIDTH * SEG_HEIGHT});
   Mat matmulRes = (maskProposals * protos).t();
   Mat masks     = matmulRes.reshape(output.size(), {SEG_WIDTH, SEG_HEIGHT});
@@ -180,6 +197,51 @@ void ObjectSegmentation::getMask(const Mat &maskProposals, const Mat &maskProtos
     Rect temp_rect    = output[i].box;
     mask              = mask(temp_rect) > MASK_THRESHOLD;
     output[i].boxMask = mask;
+
+    // Calculate some more metrics
+    {
+      double intensity    = 0;
+      double intensityMin = USHRT_MAX;
+      double intensityMax = 0;
+
+      uint64_t areaSize = 0;
+
+      // std::cout << "MAsk " << std::to_string(mask.channels()) << " x " << std::to_string(mask.type()) << std::endl;
+
+      // Calculate the intensity and area of the polygon ROI
+      for(int x = 0; x < temp_rect.width; x++) {
+        for(int y = 0; y < temp_rect.height; y++) {
+          unsigned char maskPxl = mask.at<unsigned char>(y, x);    // Get the pixel value at (x, y)
+          if(maskPxl > 0) {
+            double pixelGrayScale = image.at<unsigned short>(y, x);    // Get the pixel value at (x, y)
+            if(pixelGrayScale < intensityMin) {
+              intensityMin = pixelGrayScale;
+            }
+            if(pixelGrayScale > intensityMax) {
+              intensityMax = pixelGrayScale;
+            }
+            intensity += pixelGrayScale;
+            areaSize++;
+          }
+        }
+      }
+      float intensityAvg     = intensity / static_cast<float>(areaSize);
+      output[i].intensity    = intensityAvg;
+      output[i].intensityMin = intensityMin;
+      output[i].intensityMax = intensityMax;
+      output[i].areaSize     = areaSize;
+
+      std::vector<std::vector<cv::Point>> contours;
+      cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+      float circularity = 0;
+      if(!contours.empty()) {
+        double area      = cv::contourArea(contours[0]);
+        double perimeter = cv::arcLength(contours[0], true);
+        circularity      = (4 * M_PI * area) / (perimeter * perimeter);
+      }
+      output[i].circularity = circularity;
+    }
   }
 }
 
@@ -259,17 +321,22 @@ void ObjectSegmentation::paintBoundingBox(cv::Mat &img, const DetectionResults &
     int left      = result[i].box.x;
     int top       = result[i].box.y;
     int color_num = i;
-    rectangle(img, result[i].box, mColors[result[i].classId % mColors.size()], 2, 8);
-    mask(result[i].box).setTo(mColors[result[i].classId % mColors.size()], result[i].boxMask);
-    string label   = mClassNames[result[i].classId] + ":" + to_string(result[i].confidence);
+    rectangle(img, result[i].box, RED, 2, 8);
+    mask(result[i].box).setTo(RED, result[i].boxMask);
+    // string label =
+    //     mClassNames[result[i].classId] + ":" + to_string(result[i].confidence) + ":" + to_string(result[i].index);
+
+    string label = to_string(result[i].index);
+
     int baseLine   = 0;
     Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
     top            = max(top, labelSize.height);
-    // rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top +
-    // baseLine), Scalar(0, 255, 0), FILLED);
-    putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, mColors[result[i].classId % mColors.size()], 2);
+    rectangle(img, Point(left, top - int(1.5 * labelSize.height)),
+              Point(left + int(1.5 * labelSize.width), top + baseLine), BLACK, FILLED);
+
+    putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, WHITE, 2);
   }
-  addWeighted(img, 0.5, mask, 0.5, 0, img);
+  addWeighted(mask, 0.5, img, 1, 0, img);
   // imwrite("test/out.jpg", img);
 }
 }    // namespace joda::func::ai

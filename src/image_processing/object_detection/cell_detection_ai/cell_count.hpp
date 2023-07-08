@@ -28,7 +28,7 @@ class CellCounter : public Detection
 public:
   /////////////////////////////////////////////////////
   using Detection::Detection;
-  auto execute(const cv::Mat &img) -> DetectionResponse override;
+  auto execute(const cv::Mat &img) -> func::DetectionResponse override;
 };
 
 }    // namespace joda::algo

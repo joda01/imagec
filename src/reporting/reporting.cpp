@@ -12,17 +12,25 @@
 
 namespace joda::reporting {
 
-int64_t Table::appendValueToColumn(uint64_t colIdx, float value)
+int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float value)
 {
   if(!mTable.contains(colIdx)) {
     mTable.emplace(colIdx, Row_t{});
   }
 
-  auto newIndex            = mTable[colIdx].size();
-  mTable[colIdx][newIndex] = Row{.value = value};
+  if(rowIdx < 0) {
+    rowIdx = mTable[colIdx].size();
+  }
+
+  mTable[colIdx][rowIdx] = Row{.value = value};
   mStatisitcs[colIdx].addValue(value);
-  mRows = std::max(mRows, static_cast<int64_t>(newIndex) + 1);
-  return newIndex;
+  mRows = std::max(mRows, static_cast<int64_t>(rowIdx) + 1);
+  return rowIdx;
+}
+
+int64_t Table::appendValueToColumn(uint64_t colIdx, float value)
+{
+  return appendValueToColumnAtRow(colIdx, -1, value);
 }
 
 int64_t Table::appendValueToColumn(const std::string &rowName, uint64_t colIdx, float value)
@@ -56,9 +64,11 @@ void Table::setRowName(uint64_t rowIdx, const std::string &name)
   mRowNames.emplace(rowIdx, name);
 }
 
-void Table::setColumnNames(const std::map<uint64_t, std::string_view> &&colNames)
+void Table::setColumnNames(const std::map<uint64_t, std::string> &colNames)
 {
-  mColumnName = std::move(colNames);
+  for(const auto &[key, val] : colNames) {
+    mColumnName.emplace(key, val);
+  }
 }
 
 ///

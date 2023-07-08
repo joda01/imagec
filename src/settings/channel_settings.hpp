@@ -162,7 +162,7 @@ public:
   {
     NONE,
     NUCLEUS,
-    EV,
+    SPOT,
     CELL,
     BACKGROUND,
   };
@@ -180,6 +180,14 @@ public:
   auto getLabel() const -> std::string
   {
     return label;
+  }
+
+  auto getName() const -> std::string
+  {
+    if(name.empty()) {
+      return type;
+    }
+    return name;
   }
 
   void interpretConfig()

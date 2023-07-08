@@ -31,7 +31,7 @@ public:
   /// \param[in]  imgPath Path to the image which should be analyzed
   ///
   static auto processChannel(const joda::settings::json::ChannelSettings &channelSetting, const std::string &imgPath,
-                             types::Progress *partialProgress, const bool &stopReference) -> ProcessingResult
+                             types::Progress *partialProgress, const bool &stopReference) -> func::ProcessingResult
   {
     //
     // Detection
@@ -42,7 +42,7 @@ public:
       case settings::json::ChannelInfo::Type::NUCLEUS:
         return joda::algo::ImageProcessor<::joda::algo::NucleusCounter>::executeAlgorithm(
             imgPath, channelSetting, partialProgress, stopReference);
-      case settings::json::ChannelInfo::Type::EV:
+      case settings::json::ChannelInfo::Type::SPOT:
         break;
       case settings::json::ChannelInfo::Type::CELL:
         return joda::algo::ImageProcessor<::joda::algo::CellCounter>::executeAlgorithm(imgPath, channelSetting,

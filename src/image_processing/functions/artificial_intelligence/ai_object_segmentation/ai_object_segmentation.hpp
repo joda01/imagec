@@ -14,7 +14,7 @@
 #pragma once
 
 #include <iostream>
-#include "../ai_types.hpp"
+#include "image_processing/functions/func_types.hpp"
 #include <opencv2/opencv.hpp>
 
 #define YOLO_P6 false
@@ -31,12 +31,13 @@ class ObjectSegmentation
 public:
   /////////////////////////////////////////////////////
   ObjectSegmentation(const std::string &onnxNetPath, const std::vector<std::string> &classNames);
-  auto forward(cv::Mat &srcImg) -> DetectionResults;
-  void paintBoundingBox(cv::Mat &img, const DetectionResults &result);
+  auto forward(const cv::Mat &srcImg) -> DetectionResponse;
 
 private:
   /////////////////////////////////////////////////////
-  void getMask(const cv::Mat &maskProposals, const cv::Mat &mask_protos, const cv::Vec4d &params,
+  void paintBoundingBox(cv::Mat &img, const DetectionResults &result);
+
+  void getMask(const cv::Mat &image, const cv::Mat &maskProposals, const cv::Mat &mask_protos, const cv::Vec4d &params,
                const cv::Size &srcImgShape, DetectionResults &output);
 
   void letterBox(const cv::Mat &image, cv::Mat &outImage,
@@ -85,11 +86,10 @@ private:
   static constexpr inline float NMS_SCORE_THRESHOLD = BOX_THRESHOLD * CLASS_THRESHOLD;
 
   // Colors
-  const cv::Scalar BLUE           = cv::Scalar(255, 178, 50);
-  const cv::Scalar BLACK          = cv::Scalar(0, 0, 0);
-  const cv::Scalar YELLOW         = cv::Scalar(0, 255, 255);
-  const cv::Scalar RED            = cv::Scalar(0, 0, 255);
-  std::vector<cv::Scalar> mColors = {BLUE, BLACK, YELLOW, RED};
+  const cv::Scalar BLACK  = cv::Scalar(0, 0, 0);
+  const cv::Scalar WHITE  = cv::Scalar(255, 255, 255);
+  const cv::Scalar YELLOW = cv::Scalar(0, 255, 255);
+  const cv::Scalar RED    = cv::Scalar(0, 0, 255);
   std::vector<std::string> mClassNames;
   cv::dnn::Net mNet;
 };

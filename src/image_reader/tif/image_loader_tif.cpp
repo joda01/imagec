@@ -13,6 +13,7 @@
 
 #include "image_loader_tif.hpp"
 #include <opencv2/core/hal/interface.h>
+#include <cstdint>
 #include <exception>
 #include <iostream>
 #include <ostream>
@@ -35,6 +36,10 @@ void DummyHandler(const char *module, const char *fmt, va_list ap)
   // ignore errors and warnings (or handle them your own way)
 }
 
+void DummyHandlerExt(thandle_t, const char *, const char *, va_list)
+{
+}
+
 ///
 /// \brief      Init the lib tif to suppress warnings
 ///             This method should be called once at top of main
@@ -44,6 +49,7 @@ void TiffLoader::initLibTif()
 {
   TIFFSetWarningHandler(DummyHandler);
   TIFFSetErrorHandler(DummyHandler);
+  TIFFSetWarningHandlerExt(DummyHandlerExt);
 }
 
 ///
@@ -54,6 +60,8 @@ void TiffLoader::initLibTif()
 ///
 auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo
 {
+  TIFFSetWarningHandler(DummyHandler);
+
   joda::ome::OmeInfo omeInfo;
 
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
@@ -85,6 +93,8 @@ auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::Om
 ///
 auto TiffLoader::getImageProperties(const std::string &filename, uint16_t directory) -> ImageProperties
 {
+  TIFFSetWarningHandler(DummyHandler);
+
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
   if(tif) {
     auto nrOfDirectories = TIFFNumberOfDirectories(tif);
@@ -176,6 +186,7 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
     unsigned int height     = tif->tif_dir.td_imagelength;
     unsigned int tilewidth  = tif->tif_dir.td_tilewidth;
     unsigned int tileheight = tif->tif_dir.td_tilelength;
+    uint16_t bitDepth       = tif->tif_dir.td_bitspersample;
 
     //
     // Messy piece of code. But I realized that there are TIFFs where the TIFFTAG_TILELENGTH meta is wrong.
@@ -199,7 +210,7 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
     uint64_t tilesPerLine   = std::sqrt(nrOfTilesToRead);
     uint64_t newImageWidth  = tilewidth * tilesPerLine;
     uint64_t newImageHeight = tileheight * tilesPerLine;
-    cv::Mat image           = cv::Mat(newImageHeight, newImageWidth, CV_8UC3, 0.0);
+    cv::Mat image           = cv::Mat(newImageHeight, newImageWidth, CV_16UC1, 0.0);
 
     //
     // Now calculate the number of tiles in x and y direction based on the new image size.
@@ -249,76 +260,35 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
           //  We reached the padding area -> Nothing to see here, just write a black tile
           for(uint y = 0; y < tileheight; y++) {
             for(uint x = 0; x < tilewidth; x++) {
-              int xImg         = (x + tilePartX);
-              int yImg         = (y + (tilewidth * (tileNrY - tileOffsetY - 1)));
-              cv::Vec3b &pixel = image.at<cv::Vec3b>(
+              int xImg              = (x + tilePartX);
+              int yImg              = (y + tilePartY);
+              unsigned short &pixel = image.at<unsigned short>(
                   cv::Point(xImg, yImg));    // Get the reference of the pixel to write of the opencv matrix
-              pixel[0] = 0;
-              pixel[1] = 0;
-              pixel[2] = 0;
-              // pixel[3] = TIFFGetA(TiffPixel);   // We ignore the alpha channel since we are using CV_8UC3
+              pixel = 0;
             }
           }
           break;
         }
-
-        // Allocate temp memory (must use the tiff library malloc)
-        auto raster = (uint32 *) _TIFFmalloc(npixels * sizeof(uint32));
-        if(raster == NULL) {
-          TIFFClose(tif);
-          throw std::runtime_error("Could not allocate memory for raster of TIFF image.");
+        switch(bitDepth) {
+          case 8:
+            ReadGrayScaleImageTile<TIFF_8BIT_GRAYSCALE>(tif, tileToReadX, tileToReadY, tilewidth, tileheight, image,
+                                                        tilePartX, tilePartY, tileNrY, tileOffsetY);
+            break;
+          case 16:
+            ReadGrayScaleImageTile<TIFF_16BIT_GRAYSCALE>(tif, tileToReadX, tileToReadY, tilewidth, tileheight, image,
+                                                         tilePartX, tilePartY, tileNrY, tileOffsetY);
+            break;
+          default:
+            throw std::runtime_error("Only 8bit and 16bit images are supported!");
         }
-
-        // Read the R(ed), G(reen), B(blue) and A(alpha) channel if one tile of the original image
-        if(!TIFFReadRGBATile(tif, tileToReadX, tileToReadY, raster)) {
-          TIFFClose(tif);
-          throw std::runtime_error("Could not read raster of TIFF image.");
-        }
-
-        //
-        // Now it gets tricky: We have to correctly place the read pixel values from the original image
-        // in the openCV image matrix. This is tricky since an openCV image Matrix has its origin (0,0) at the
-        // button left, a TIFF image has it's origin at the top left. Next tricky thing is that images are
-        // rotated counterclockwise and flipped.
-        // We therefore have to write the tiles from the right to left, but the pixels of a tile must written from left
-        // to right. This is done with: >(y + (tilewidth * (tileNrY - tileOffsetY - 1)))<. For the x direction it is
-        // much more easier we can just write them as they are.
-        //
-        // In openCV language: Rotate the image 90 degrees couter clockwise
-        // image = image.t();
-        // cv::flip(image, image, 0);
-        //
-        for(uint y = 0; y < tileheight; y++) {
-          for(uint x = 0; x < tilewidth; x++) {
-            uint32 &TiffPixel =
-                raster[y * tilewidth + x];    // Read the current pixel of the TIF (see:
-                                              // http://www.simplesystems.org/libtiff//functions/TIFFReadRGBATile.html))
-            int xImg = (x + tilePartX);
-            int yImg = (y + (tilewidth * (tileNrY - tileOffsetY - 1)));
-
-            cv::Vec3b &pixel = image.at<cv::Vec3b>(
-                cv::Point(xImg, yImg));    // Get the reference of the pixel to write of the opencv matrix
-
-            pixel[0] = TIFFGetB(TiffPixel);    // Set the pixel values as BGRA
-            pixel[1] = TIFFGetG(TiffPixel);
-            pixel[2] = TIFFGetR(TiffPixel);
-            //  pixel[3] = TIFFGetA(TiffPixel);   // We ignore the alpha channel since we are using CV_8UC3
-          }
-        }
-        _TIFFfree(raster);    // Free the allocated memory before next round starts
       }
     }
 
     // Free the tiff image
     TIFFClose(tif);
-
-    // Convert to a three channel float image, because we need this format for AI
-    cv::Mat imageOut = cv::Mat(newImageHeight, newImageWidth, CV_32FC3);
-    image.convertTo(imageOut, CV_32FC3);
-    return imageOut;
-  } else {
-    throw std::runtime_error("Could not open image!");
+    return image;
   }
+  throw std::runtime_error("Could not open image!");
 }
 
 ///
@@ -332,6 +302,8 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
 ///
 cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
 {
+  TIFFSetWarningHandler(DummyHandler);
+
   // return  cv::imread(filename, CV_32FC3);
 
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
@@ -347,40 +319,22 @@ cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
     // Get the size of the tiff
     unsigned int width  = tif->tif_dir.td_imagewidth;
     unsigned int height = tif->tif_dir.td_imagelength;
+    uint16_t bitDepth   = tif->tif_dir.td_bitspersample;
 
-    // Allocate temp memory (must use the tiff library malloc)
-    uint npixels   = width * height;    // Total number of pixels
-    uint32 *raster = (uint32 *) _TIFFmalloc(npixels * sizeof(uint32));
-
-    // Read image
-    if(!TIFFReadRGBAImage(tif, width, height, raster, 0)) {
-      TIFFClose(tif);
-      throw std::runtime_error("Could not read raster of TIFF image");
-    }
-
-    // Create a new matrix of w x h with 8 bits per channel and 4 channels (RGBA)
-    // and itterate through all the pixels of the tif and assign to the opencv matrix
-    cv::Mat image = cv::Mat(width, height, CV_8UC3, 0.0);
-
-    for(uint x = 0; x < width; x++) {
-      for(uint y = 0; y < height; y++) {
-        uint32 &TiffPixel = raster[y * width + x];                   // Read the current pixel of the TIF
-        cv::Vec3b &pixel  = image.at<cv::Vec3b>(cv::Point(y, x));    // Read the current pixel of the matrix
-        pixel[0]          = TIFFGetB(TiffPixel);                     // Set the pixel values as BGRA
-        pixel[1]          = TIFFGetG(TiffPixel);
-        pixel[2]          = TIFFGetR(TiffPixel);
-        // pixel[3]          = TIFFGetA(TiffPixel);    // No alpha channel
+    switch(bitDepth) {
+      case 8: {
+        auto img = ReadGrayScaleImage<TIFF_8BIT_GRAYSCALE>(tif, width, height);
+        TIFFClose(tif);
+        return img;
       }
+      case 16: {
+        auto img = ReadGrayScaleImage<TIFF_16BIT_GRAYSCALE>(tif, width, height);
+        TIFFClose(tif);
+        return img;
+      }
+      default:
+        throw std::runtime_error("Only 8bit and 16bit images are supported!");
     }
-    _TIFFfree(raster);    // Free temp memory
-
-    // Rotate the image 90 degrees couter clockwise
-    image = image.t();
-    cv::flip(image, image, 0);
-    // Convert to a three channel float image, because we need this format for AI
-    cv::Mat imageOut = cv::Mat(width, height, CV_32FC3);
-    image.convertTo(imageOut, CV_32FC3);
-    return imageOut;
   } else {
     throw std::runtime_error("Could not open image!");
   }
