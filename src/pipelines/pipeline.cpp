@@ -111,7 +111,7 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
   for(const auto &[tileIdx, tileData] : result) {
     cv::imwrite(detailReportOutputPath + std::filesystem::path::preferred_separator + "control" +
                     std::to_string(tileIdx) + ".jpg",
-                tileData.controlImage);
+                tileData.controlImage * 255.0F / 65535.0F);
 
     for(const auto &imgData : tileData.result) {
       detailReportTable.appendValueToColumn(colIdx, imgData.confidence);

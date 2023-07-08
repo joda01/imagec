@@ -13,7 +13,10 @@
 
 #include "ai_object_segmentation.hpp"
 #include <string>
+#include "duration_count/duration_count.h"
+#include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
+#include <opencv2/imgproc.hpp>
 
 namespace joda::func::ai {
 
@@ -59,8 +62,13 @@ ObjectSegmentation::ObjectSegmentation(const std::string &onnxNetPath, const std
 ///
 auto ObjectSegmentation::forward(const Mat &inputImageOriginal) -> DetectionResults
 {
-  cv::Mat inputImage = cv::Mat(inputImageOriginal.rows, inputImageOriginal.cols, CV_32FC3);
-  inputImageOriginal.convertTo(inputImage, CV_32FC3);
+  // Normalize the pixel values to [0, 255] float for detection
+  auto id = DurationCount::start("Convert");
+  cv::Mat grayImageFloat;
+  inputImageOriginal.convertTo(grayImageFloat, CV_32F, 255.0 / 65535.0);
+  cv::Mat inputImage;
+  cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
+  DurationCount::stop(id);
 
   DetectionResults output;
   Mat blob;
@@ -164,6 +172,9 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal) -> DetectionResu
 void ObjectSegmentation::getMask(const cv::Mat &image, const Mat &maskProposals, const Mat &maskProtos,
                                  const cv::Vec4d &params, const cv::Size &inputImageShape, DetectionResults &output)
 {
+  if(maskProposals.empty()) {
+    return;
+  }
   Mat protos    = maskProtos.reshape(0, {SEG_CHANNELS, SEG_WIDTH * SEG_HEIGHT});
   Mat matmulRes = (maskProposals * protos).t();
   Mat masks     = matmulRes.reshape(output.size(), {SEG_WIDTH, SEG_HEIGHT});

@@ -38,8 +38,11 @@ ObjectDetector::ObjectDetector(const std::string &onnxNetPath, const std::vector
 ///
 auto ObjectDetector::forward(const cv::Mat &inputImageOriginal) -> DetectionResults
 {
-  cv::Mat inputImage = cv::Mat(inputImageOriginal.rows, inputImageOriginal.cols, CV_32FC3);
-  inputImageOriginal.convertTo(inputImage, CV_32FC3);
+  // Normalize the pixel values to [0, 255] float for detection
+  cv::Mat grayImageFloat;
+  inputImageOriginal.convertTo(grayImageFloat, CV_32F, 255.0 / 65535.0);
+  cv::Mat inputImage;
+  cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
 
   // cv::cuda::setDevice(0);
   cv::Mat blob;
