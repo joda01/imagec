@@ -26,7 +26,7 @@ class Version
 public:
   static auto getVersion() -> std::string
   {
-    return "v1.0.0-alpha2";
+    return "v1.0.0-alpha3";
   }
 
   static void initVersion(const std::string &bin)
