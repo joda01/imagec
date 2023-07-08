@@ -42,7 +42,7 @@ public:
       case settings::json::ChannelInfo::Type::NUCLEUS:
         return joda::algo::ImageProcessor<::joda::algo::NucleusCounter>::executeAlgorithm(
             imgPath, channelSetting, partialProgress, stopReference);
-      case settings::json::ChannelInfo::Type::EV:
+      case settings::json::ChannelInfo::Type::SPOT:
         break;
       case settings::json::ChannelInfo::Type::CELL:
         return joda::algo::ImageProcessor<::joda::algo::CellCounter>::executeAlgorithm(imgPath, channelSetting,

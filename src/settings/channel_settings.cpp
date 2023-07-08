@@ -23,8 +23,8 @@ void ChannelInfo::stringToType()
     enumType = Type::NONE;
   } else if(type == "NUCLEUS") {
     enumType = Type::NUCLEUS;
-  } else if(type == "EV") {
-    enumType = Type::EV;
+  } else if(type == "SPOT") {
+    enumType = Type::SPOT;
   } else if(type == "BACKGROUND") {
     enumType = Type::BACKGROUND;
   } else if(type == "CELL") {

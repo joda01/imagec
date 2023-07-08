@@ -36,6 +36,10 @@ void DummyHandler(const char *module, const char *fmt, va_list ap)
   // ignore errors and warnings (or handle them your own way)
 }
 
+void DummyHandlerExt(thandle_t, const char *, const char *, va_list)
+{
+}
+
 ///
 /// \brief      Init the lib tif to suppress warnings
 ///             This method should be called once at top of main
@@ -45,6 +49,7 @@ void TiffLoader::initLibTif()
 {
   TIFFSetWarningHandler(DummyHandler);
   TIFFSetErrorHandler(DummyHandler);
+  TIFFSetWarningHandlerExt(DummyHandlerExt);
 }
 
 ///
@@ -55,6 +60,8 @@ void TiffLoader::initLibTif()
 ///
 auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo
 {
+  TIFFSetWarningHandler(DummyHandler);
+
   joda::ome::OmeInfo omeInfo;
 
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
@@ -86,6 +93,8 @@ auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::Om
 ///
 auto TiffLoader::getImageProperties(const std::string &filename, uint16_t directory) -> ImageProperties
 {
+  TIFFSetWarningHandler(DummyHandler);
+
   TIFF *tif = TIFFOpen(filename.c_str(), "r");
   if(tif) {
     auto nrOfDirectories = TIFFNumberOfDirectories(tif);
@@ -293,6 +302,8 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
 ///
 cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
 {
+  TIFFSetWarningHandler(DummyHandler);
+
   // return  cv::imread(filename, CV_32FC3);
 
   TIFF *tif = TIFFOpen(filename.c_str(), "r");

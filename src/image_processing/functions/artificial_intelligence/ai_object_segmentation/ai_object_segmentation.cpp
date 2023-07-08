@@ -200,9 +200,8 @@ void ObjectSegmentation::getMask(const cv::Mat &image, const Mat &maskProposals,
 
     // Calculate some more metrics
     {
-      cv::Mat segRoi      = image(temp_rect);
       double intensity    = 0;
-      double intensityMin = 65536;
+      double intensityMin = USHRT_MAX;
       double intensityMax = 0;
 
       uint64_t areaSize = 0;
@@ -212,7 +211,7 @@ void ObjectSegmentation::getMask(const cv::Mat &image, const Mat &maskProposals,
         for(int y = 0; y < temp_rect.height; y++) {
           cv::Vec2b maskPxl = mask.at<cv::Vec2b>(y, x);    // Get the pixel value at (x, y)
           if(maskPxl[0] > 0) {
-            double pixelGrayScale = image.at<cv::Vec3w>(y, x)[0];    // Get the pixel value at (x, y)
+            double pixelGrayScale = image.at<unsigned short>(y, x);    // Get the pixel value at (x, y)
             if(pixelGrayScale < intensityMin) {
               intensityMin = pixelGrayScale;
             }

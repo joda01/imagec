@@ -103,23 +103,28 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
                                     const std::string &detailReportOutputPath,
                                     const settings::json::ChannelSettings &channelSettings, int tempChannelIdx)
 {
-  const int NR_OF_COLUMNS_PER_CHANNEL = 4;
-  detailReportTable.setColumnNames(
-      {{0, "confidence"}, {1, "intensity"}, {2, "Min"}, {3, "Max"}, {4, "areaSize"}, {5, "circularity"}});
-  int colIdx = NR_OF_COLUMNS_PER_CHANNEL * tempChannelIdx;
+  const int NR_OF_COLUMNS_PER_CHANNEL = 6;
+  int colIdx                          = NR_OF_COLUMNS_PER_CHANNEL * tempChannelIdx;
+
+  detailReportTable.setColumnNames({{colIdx + 0, channelSettings.getChannelInfo().getName() + "#confidence"},
+                                    {colIdx + 1, channelSettings.getChannelInfo().getName() + "#intensity"},
+                                    {colIdx + 2, channelSettings.getChannelInfo().getName() + "#Min"},
+                                    {colIdx + 3, channelSettings.getChannelInfo().getName() + "#Max"},
+                                    {colIdx + 4, channelSettings.getChannelInfo().getName() + "#areaSize"},
+                                    {colIdx + 5, channelSettings.getChannelInfo().getName() + "#circularity"}});
 
   for(const auto &[tileIdx, tileData] : result) {
-    cv::imwrite(detailReportOutputPath + std::filesystem::path::preferred_separator + "control" +
-                    std::to_string(tileIdx) + ".jpg",
+    cv::imwrite(detailReportOutputPath + std::filesystem::path::preferred_separator + "control_" +
+                    std::to_string(tempChannelIdx) + "_" + std::to_string(tileIdx) + ".jpg",
                 tileData.controlImage * 255.0F / 65535.0F);
 
     for(const auto &imgData : tileData.result) {
-      detailReportTable.appendValueToColumn(colIdx, imgData.confidence);
-      detailReportTable.appendValueToColumn(colIdx + 1, imgData.intensity);
-      detailReportTable.appendValueToColumn(colIdx + 2, imgData.intensityMin);
-      detailReportTable.appendValueToColumn(colIdx + 3, imgData.intensityMax);
-      detailReportTable.appendValueToColumn(colIdx + 4, imgData.areaSize);
-      detailReportTable.appendValueToColumn(colIdx + 5, imgData.circularity);
+      detailReportTable.appendValueToColumnAtRow(colIdx + 0, imgData.index, imgData.confidence);
+      detailReportTable.appendValueToColumnAtRow(colIdx + 1, imgData.index, imgData.intensity);
+      detailReportTable.appendValueToColumnAtRow(colIdx + 2, imgData.index, imgData.intensityMin);
+      detailReportTable.appendValueToColumnAtRow(colIdx + 3, imgData.index, imgData.intensityMax);
+      detailReportTable.appendValueToColumnAtRow(colIdx + 4, imgData.index, imgData.areaSize);
+      detailReportTable.appendValueToColumnAtRow(colIdx + 5, imgData.index, imgData.circularity);
     }
   }
 }

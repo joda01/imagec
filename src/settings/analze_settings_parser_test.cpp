@@ -15,7 +15,7 @@ TEST_CASE("analze_settings", "[analze_settings]")
   settings.loadConfigFromFile("src/settings/config_test.json");
   CHECK(settings.getOptions().getPixelInMicrometer() == 0.001F);
 
-  auto evChannels = settings.getChannels(joda::settings::json::ChannelInfo::Type::EV);
+  auto evChannels = settings.getChannels(joda::settings::json::ChannelInfo::Type::SPOT);
   CHECK(evChannels.size() == 2);
   CHECK(evChannels[0].getChannelInfo().getLabel() == "CY5");
   CHECK(evChannels[0].getDetectionSettings().getThersholdSettings().getThreshold() ==

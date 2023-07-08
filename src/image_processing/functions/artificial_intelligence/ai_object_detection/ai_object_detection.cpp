@@ -51,7 +51,7 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal) -> DetectionResu
   mNet.setInput(blob);
   std::vector<cv::Mat> outputs;
   mNet.forward(outputs, mNet.getUnconnectedOutLayersNames());
-  return postProcessing(inputImage, outputs);
+  return postProcessing(inputImageOriginal, outputs);
 }
 
 ///
@@ -151,7 +151,39 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const std::vector
   uint32_t index = 0;
   for(int n = 0; n < confidences.size(); n++) {
     if(keptIndexesSet.count(n) == 1) {
-      result.push_back({.index = index, .confidence = confidences[n], .classId = classIds[n], .box = boxes[n]});
+      // Calculate some more metrics
+
+      float intensity    = 0;
+      float intensityMin = USHRT_MAX;
+      float intensityMax = 0;
+      float areaSize     = 0;
+      // Calculate the intensity and area of the polygon ROI
+      for(int x = 0; x < boxes[n].width; x++) {
+        for(int y = 0; y < boxes[n].height; y++) {
+          double pixelGrayScale = inputImage.at<unsigned short>(y, x);    // Get the pixel value at (x, y)
+          if(pixelGrayScale < intensityMin) {
+            intensityMin = pixelGrayScale;
+          }
+          if(pixelGrayScale > intensityMax) {
+            intensityMax = pixelGrayScale;
+          }
+          intensity += pixelGrayScale;
+          areaSize++;
+        }
+      }
+      float intensityAvg = intensity / static_cast<float>(areaSize);
+      result.push_back({
+          .index        = index,
+          .confidence   = confidences[n],
+          .classId      = classIds[n],
+          .box          = boxes[n],
+          .intensity    = intensityAvg,
+          .intensityMin = intensityMin,
+          .intensityMax = intensityMax,
+          .areaSize     = areaSize,
+          .circularity  = 0,
+
+      });
       index++;
     }
   }
