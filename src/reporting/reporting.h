@@ -84,7 +84,7 @@ public:
     return mMax;
   }
 
-  float getMean() const
+  float getAvg() const
   {
     return mMean;
   }
@@ -133,12 +133,14 @@ public:
 
   /////////////////////////////////////////////////////
   void setColumnNames(const std::map<uint64_t, std::string> &);
+  auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
   void setRowName(uint64_t rowIdx, const std::string &);
   auto appendValueToColumn(uint64_t colIdx, float value) -> int64_t;
   auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float value) -> int64_t;
   auto appendValueToColumn(const std::string &rowName, uint64_t colIdx, float value) -> int64_t;
   auto getTable() const -> const Table_t &;
   auto getStatistics() const -> const std::map<uint64_t, Statistics> &;
+  auto getStatistics(uint64_t colIdx) const -> const Statistics &;
   void flushReportToFile(std::string_view fileName) const;
   auto getNrOfColumns() const -> int64_t;
   auto getNrOfRows() const -> int64_t;

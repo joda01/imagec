@@ -27,7 +27,7 @@ SCENARIO("Adding three values to a table", "[table]")
   CHECK(4859 == table.getStatistics().at(0).getSum());
   CHECK(0 == table.getStatistics().at(0).getMin());
   CHECK(889 == table.getStatistics().at(0).getMax());
-  CHECK(485.9 == Catch::Approx(table.getStatistics().at(0).getMean()).epsilon(0.5));
+  CHECK(485.9 == Catch::Approx(table.getStatistics().at(0).getAvg()).epsilon(0.5));
 
   CHECK(table.getNrOfRows() == 10);
   CHECK(table.getNrOfColumns() == 2);
