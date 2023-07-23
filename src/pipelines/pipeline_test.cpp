@@ -21,3 +21,20 @@ TEST_CASE("pipeline:test", "[pipeline_test]")
     sleep(2);
   }
 }
+
+///
+/// \brief  Spot test
+/// \author Joachim Danmayr
+///
+TEST_CASE("pipeline:test:spots", "[pipeline_test_spots]")
+{
+  joda::settings::json::AnalyzeSettings settings;
+  settings.loadConfigFromFile("test_spot/config.json");
+  joda::helper::ImageFileContainer imageFileContainer;
+  imageFileContainer.setWorkingDirectory("test_spot");
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test_spot", &imageFileContainer);
+
+  while(true) {
+    sleep(2);
+  }
+}

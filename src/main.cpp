@@ -13,7 +13,6 @@
 #include <thread>
 #include <vector>
 #include "duration_count/duration_count.h"
-#include "helper/termbox/termbox2.h"
 #include "http/web_server.hpp"
 #include "image/image.hpp"
 #include "image_reader/tif/image_loader_tif.hpp"

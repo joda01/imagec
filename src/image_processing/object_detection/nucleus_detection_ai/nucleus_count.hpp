@@ -28,9 +28,8 @@ class NucleusCounter : public Detection
 public:
   /////////////////////////////////////////////////////
   using Detection::Detection;
-  auto execute(const cv::Mat &img) -> func::DetectionResponse override;
-  static void mergeReport(const std::string &rowName, joda::reporting::Table &mergeTo,
-                          const joda::reporting::Table &mergeFrom);
+  auto execute(const cv::Mat &img, const joda::settings::json::ChannelDetection &channelSetting)
+      -> func::DetectionResponse override;
 };
 
 }    // namespace joda::algo

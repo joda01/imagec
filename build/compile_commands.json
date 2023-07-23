@@ -6,11 +6,6 @@
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/cc -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4 -g -o CMakeFiles/imagec.dir/src/helper/termbox/termbox.c.o -c /workspaces/imagec/src/helper/termbox/termbox.c",
-  "file": "/workspaces/imagec/src/helper/termbox/termbox.c"
-},
-{
-  "directory": "/workspaces/imagec/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/http/web_server.cpp.o -c /workspaces/imagec/src/http/web_server.cpp",
   "file": "/workspaces/imagec/src/http/web_server.cpp"
 },
@@ -51,6 +46,11 @@
 },
 {
   "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_processing/object_detection/spot_detection/spot_detection.cpp.o -c /workspaces/imagec/src/image_processing/object_detection/spot_detection/spot_detection.cpp",
+  "file": "/workspaces/imagec/src/image_processing/object_detection/spot_detection/spot_detection.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_reader/jpg/image_loader_jpg.cpp.o -c /workspaces/imagec/src/image_reader/jpg/image_loader_jpg.cpp",
   "file": "/workspaces/imagec/src/image_reader/jpg/image_loader_jpg.cpp"
 },
@@ -63,6 +63,11 @@
   "directory": "/workspaces/imagec/build",
   "command": "/usr/bin/cc -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4 -g -o CMakeFiles/imagec.dir/src/image_reader/tif/tif_color.c.o -c /workspaces/imagec/src/image_reader/tif/tif_color.c",
   "file": "/workspaces/imagec/src/image_reader/tif/tif_color.c"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_reader/vsi/image_loader_vsi.cpp.o -c /workspaces/imagec/src/image_reader/vsi/image_loader_vsi.cpp",
+  "file": "/workspaces/imagec/src/image_reader/vsi/image_loader_vsi.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
@@ -103,11 +108,6 @@
   "directory": "/workspaces/imagec/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/helper/ome_parser/ome_info.cpp.o -c /workspaces/imagec/src/helper/ome_parser/ome_info.cpp",
   "file": "/workspaces/imagec/src/helper/ome_parser/ome_info.cpp"
-},
-{
-  "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/cc -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4 -g -o CMakeFiles/tests.dir/src/helper/termbox/termbox.c.o -c /workspaces/imagec/src/helper/termbox/termbox.c",
-  "file": "/workspaces/imagec/src/helper/termbox/termbox.c"
 },
 {
   "directory": "/workspaces/imagec/build",
@@ -161,6 +161,11 @@
 },
 {
   "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_processing/object_detection/spot_detection/spot_detection.cpp.o -c /workspaces/imagec/src/image_processing/object_detection/spot_detection/spot_detection.cpp",
+  "file": "/workspaces/imagec/src/image_processing/object_detection/spot_detection/spot_detection.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_reader/jpg/image_loader_jpg.cpp.o -c /workspaces/imagec/src/image_reader/jpg/image_loader_jpg.cpp",
   "file": "/workspaces/imagec/src/image_reader/jpg/image_loader_jpg.cpp"
 },
@@ -178,6 +183,16 @@
   "directory": "/workspaces/imagec/build",
   "command": "/usr/bin/cc -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4 -g -o CMakeFiles/tests.dir/src/image_reader/tif/tif_color.c.o -c /workspaces/imagec/src/image_reader/tif/tif_color.c",
   "file": "/workspaces/imagec/src/image_reader/tif/tif_color.c"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_reader/vsi/image_loader_tif_test.cpp.o -c /workspaces/imagec/src/image_reader/vsi/image_loader_tif_test.cpp",
+  "file": "/workspaces/imagec/src/image_reader/vsi/image_loader_tif_test.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_reader/vsi/image_loader_vsi.cpp.o -c /workspaces/imagec/src/image_reader/vsi/image_loader_vsi.cpp",
+  "file": "/workspaces/imagec/src/image_reader/vsi/image_loader_vsi.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",

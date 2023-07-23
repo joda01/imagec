@@ -13,17 +13,16 @@
 
 #include <cmath>
 #include <mutex>
-#include "image_processing/functions/artificial_intelligence/ai_object_segmentation/ai_object_segmentation.hpp"
-#include "image_processing/object_detection/detection.hpp"
+#include "../detection.hpp"
 
 namespace joda::algo {
 
 ///
-/// \class      CellCounter
+/// \class      NucleusCounter
 /// \author     Joachim Danmayr
 /// \brief      Nucleus counter pipeline
 ///
-class CellCounter : public Detection
+class SpotDetection : public Detection
 {
 public:
   /////////////////////////////////////////////////////

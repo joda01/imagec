@@ -61,7 +61,11 @@ auto Table::getStatistics() const -> const std::map<uint64_t, Statistics> &
 
 auto Table::getStatistics(uint64_t colIdx) const -> const Statistics &
 {
-  return mStatisitcs.at(colIdx);
+  if(mStatisitcs.contains(colIdx)) {
+    return mStatisitcs.at(colIdx);
+  } else {
+    return mEmptyStatistics;
+  }
 }
 
 void Table::setRowName(uint64_t rowIdx, const std::string &name)

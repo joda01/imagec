@@ -36,3 +36,4 @@ deploy/
 build/
 
 test_cell/
+test_spot

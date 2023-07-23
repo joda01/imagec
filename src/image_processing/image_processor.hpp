@@ -172,10 +172,10 @@ private:
     doPreprocessing(image, channelSetting);
     id = DurationCount::start("detection");
 
-    auto detectionResult = doDetection(image);
+    auto detectionResult = doDetection(image, channelSetting);
     DurationCount::stop(id);
 
-    doFiltering(detectionResult);
+    doFiltering(detectionResult, channelSetting);
     return detectionResult;
   }
 
@@ -233,12 +233,12 @@ private:
   /// \param[in]  originalImage  Image the detection should be executed on
   /// \return     Detection results with control image
   ///
-  static func::DetectionResponse doDetection(cv::Mat image)
+  static func::DetectionResponse doDetection(cv::Mat image, const joda::settings::json::ChannelSettings &channelSetting)
   {
     auto id = DurationCount::start("detection int");
 
     ALGORITHM algo;
-    auto ret = algo.execute(image);
+    auto ret = algo.execute(image, channelSetting.getDetectionSettings());
 
     DurationCount::stop(id);
 
@@ -250,7 +250,8 @@ private:
   /// \author     Joachim Danmayr
   /// \param[in,out]  detectionResult  Detection result and removes the filtered objects from the detection results
   ///
-  static void doFiltering(func::DetectionResponse &detectionResult)
+  static void doFiltering(func::DetectionResponse &detectionResult,
+                          const joda::settings::json::ChannelSettings &channelSetting)
   {
   }
 };

@@ -16,6 +16,7 @@
 #include "image/image.hpp"
 #include "image_processing/functions/func_types.hpp"
 #include "reporting/reporting.h"
+#include "settings/channel_settings.hpp"
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
 
@@ -31,6 +32,7 @@ class Detection
 public:
   /////////////////////////////////////////////////////
   Detection();
-  virtual auto execute(const cv::Mat &img) -> func::DetectionResponse = 0;
+  virtual auto execute(const cv::Mat &img, const joda::settings::json::ChannelDetection &channelSetting)
+      -> func::DetectionResponse = 0;
 };
 }    // namespace joda::algo

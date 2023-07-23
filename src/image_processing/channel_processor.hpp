@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include "image_processing/object_detection/cell_detection_ai/cell_count.hpp"
 #include "image_processing/object_detection/nucleus_detection_ai/nucleus_count.hpp"
+#include "image_processing/object_detection/spot_detection/spot_detection.hpp"
 #include "logger/console_logger.hpp"
 #include "settings/channel_settings.hpp"
 #include "image_processor.hpp"
@@ -43,6 +44,8 @@ public:
         return joda::algo::ImageProcessor<::joda::algo::NucleusCounter>::executeAlgorithm(
             imgPath, channelSetting, partialProgress, stopReference);
       case settings::json::ChannelInfo::Type::SPOT:
+        return joda::algo::ImageProcessor<::joda::algo::SpotDetection>::executeAlgorithm(
+            imgPath, channelSetting, partialProgress, stopReference);
         break;
       case settings::json::ChannelInfo::Type::CELL:
         return joda::algo::ImageProcessor<::joda::algo::CellCounter>::executeAlgorithm(imgPath, channelSetting,

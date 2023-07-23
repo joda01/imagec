@@ -26,7 +26,8 @@ namespace joda::algo {
 /// \author     Joachim Danmayr
 /// \param[in]  img     Image to analyze
 ///
-auto NucleusCounter::execute(const cv::Mat &img) -> func::DetectionResponse
+auto NucleusCounter::execute(const cv::Mat &img, const joda::settings::json::ChannelDetection &channelSetting)
+    -> func::DetectionResponse
 {
   auto enhancedContrast = img;
   joda::func::ai::ObjectDetector obj("imagec_models/nucleus_detection_ex_vivo_v1.onnx",
