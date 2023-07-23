@@ -43,3 +43,8 @@ Counts the number of EVs found within a cell area and calculates the colocalizat
 ## Todo
 
 - [ ] Ignore result folder
+
+
+## Debugging
+
+ valgrind --tool=massif --log-file="filename" ./build/build/tests "[pipeline_test_spots]"

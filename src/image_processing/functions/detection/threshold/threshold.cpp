@@ -14,6 +14,7 @@
 #include "threshold.hpp"
 #include <climits>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include "image_processing/functions/func_types.hpp"
 #include <opencv2/core/mat.hpp>
@@ -41,6 +42,9 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg) -> DetectionResponse
   std::vector<std::vector<cv::Point>> contours;
   cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
+  if(contours.size() > 100000) {
+    throw std::runtime_error("Too much spots.");
+  }
   // Create a mask for each contour and draw bounding boxes
   for(size_t i = 0; i < contours.size(); ++i) {
     Detection detect;
@@ -51,9 +55,10 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg) -> DetectionResponse
     detect.box = cv::boundingRect(contours[i]);
 
     // Create a mask for the current contour
-    detect.boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
-    cv::drawContours(detect.boxMask, contours, static_cast<int>(i), cv::Scalar(UCHAR_MAX), cv::FILLED);
-    detect.boxMask = detect.boxMask(detect.box);
+    cv::Mat boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
+    cv::drawContours(boxMask, contours, static_cast<int>(i), cv::Scalar(UCHAR_MAX), cv::FILLED);
+    boxMask        = boxMask(detect.box) >= 1;
+    detect.boxMask = boxMask;
 
     calculateMetrics(detect, srcImg, detect.box, detect.boxMask);
     response.push_back(detect);
