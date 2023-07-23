@@ -59,6 +59,11 @@ auto Table::getStatistics() const -> const std::map<uint64_t, Statistics> &
   return mStatisitcs;
 }
 
+auto Table::getStatistics(uint64_t colIdx) const -> const Statistics &
+{
+  return mStatisitcs.at(colIdx);
+}
+
 void Table::setRowName(uint64_t rowIdx, const std::string &name)
 {
   mRowNames.emplace(rowIdx, name);
@@ -69,6 +74,11 @@ void Table::setColumnNames(const std::map<uint64_t, std::string> &colNames)
   for(const auto &[key, val] : colNames) {
     mColumnName.emplace(key, val);
   }
+}
+
+auto Table::getColumnNameAt(uint64_t colIdx) const -> const std::string
+{
+  return mColumnName.at(colIdx);
 }
 
 ///
@@ -173,7 +183,7 @@ void Table::flushReportToFile(std::string_view fileName) const
 
 auto Statistics::getStatisticsTitle() -> const std::array<std::string, NR_OF_VALUE>
 {
-  return {"Nr", "Sum", "Min", "Max", "Mean"};
+  return {"Nr", "Sum", "Min", "Max", "Avg"};
 }
 auto Statistics::getStatistics() const -> const std::array<float, NR_OF_VALUE>
 {

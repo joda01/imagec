@@ -57,14 +57,17 @@ void Pipeline::runJob(const std::string &inputFolder)
   mImageFileContainer->waitForFinished();
   mProgress.total.total = mImageFileContainer->getNrOfFiles();
 
+  joda::reporting::Table alloverReport;
+
   // Iterate over each image
+  int nrOfChannels = mAnalyzeSettings.getChannels().size();
   for(const auto &imagePath : mImageFileContainer->getFilesList()) {
     //
     // Process channel by channel
     joda::reporting::Table detailReport;
-    int tempChannelIdx = 0;
-    auto detailOutput =
-        mOutputFolder + std::filesystem::path::preferred_separator + helper::getFileNameFromPath(imagePath);
+    int tempChannelIdx    = 0;
+    std::string imageName = helper::getFileNameFromPath(imagePath);
+    auto detailOutput     = mOutputFolder + std::filesystem::path::preferred_separator + imageName;
     std::filesystem::create_directories(detailOutput);
 
     for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
@@ -79,8 +82,9 @@ void Pipeline::runJob(const std::string &inputFolder)
         joda::log::logError(ex.what());
       }
     }
-
     detailReport.flushReportToFile(detailOutput + std::filesystem::path::preferred_separator + "detail.csv");
+
+    appendToAllOverReport(alloverReport, detailReport, imageName, nrOfChannels);
 
     mProgress.total.finished++;
     if(mStop) {
@@ -89,7 +93,7 @@ void Pipeline::runJob(const std::string &inputFolder)
   }
 
   std::string resultsFile = mOutputFolder + std::filesystem::path::preferred_separator + "results.csv";
-  mAllOverReporting.flushReportToFile(resultsFile);
+  alloverReport.flushReportToFile(resultsFile);
   mState = State::FINISHED;
 }
 
@@ -97,21 +101,25 @@ void Pipeline::runJob(const std::string &inputFolder)
 /// \brief      Append to detailed report
 /// \author     Joachim Danmayr
 /// \param[in]  inputFolder Inputfolder of the images
-/// \return     Outputfolder of the results
 ///
 void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::reporting::Table &detailReportTable,
                                     const std::string &detailReportOutputPath,
                                     const settings::json::ChannelSettings &channelSettings, int tempChannelIdx)
 {
-  const int NR_OF_COLUMNS_PER_CHANNEL = 6;
-  int colIdx                          = NR_OF_COLUMNS_PER_CHANNEL * tempChannelIdx;
+  int colIdx = NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT * tempChannelIdx;
 
-  detailReportTable.setColumnNames({{colIdx + 0, channelSettings.getChannelInfo().getName() + "#confidence"},
-                                    {colIdx + 1, channelSettings.getChannelInfo().getName() + "#intensity"},
-                                    {colIdx + 2, channelSettings.getChannelInfo().getName() + "#Min"},
-                                    {colIdx + 3, channelSettings.getChannelInfo().getName() + "#Max"},
-                                    {colIdx + 4, channelSettings.getChannelInfo().getName() + "#areaSize"},
-                                    {colIdx + 5, channelSettings.getChannelInfo().getName() + "#circularity"}});
+  detailReportTable.setColumnNames({{colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
+                                     channelSettings.getChannelInfo().getName() + "#confidence"},
+                                    {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
+                                     channelSettings.getChannelInfo().getName() + "#intensity"},
+                                    {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN),
+                                     channelSettings.getChannelInfo().getName() + "#Min"},
+                                    {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX),
+                                     channelSettings.getChannelInfo().getName() + "#Max"},
+                                    {colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
+                                     channelSettings.getChannelInfo().getName() + "#areaSize"},
+                                    {colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
+                                     channelSettings.getChannelInfo().getName() + "#circularity"}});
 
   for(const auto &[tileIdx, tileData] : result) {
     cv::imwrite(detailReportOutputPath + std::filesystem::path::preferred_separator + "control_" +
@@ -119,16 +127,75 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
                 tileData.controlImage);
 
     for(const auto &imgData : tileData.result) {
-      detailReportTable.appendValueToColumnAtRow(colIdx + 0, imgData.index, imgData.confidence);
-      detailReportTable.appendValueToColumnAtRow(colIdx + 1, imgData.index, imgData.intensity);
-      detailReportTable.appendValueToColumnAtRow(colIdx + 2, imgData.index, imgData.intensityMin);
-      detailReportTable.appendValueToColumnAtRow(colIdx + 3, imgData.index, imgData.intensityMax);
-      detailReportTable.appendValueToColumnAtRow(colIdx + 4, imgData.index, imgData.areaSize);
-      detailReportTable.appendValueToColumnAtRow(colIdx + 5, imgData.index, imgData.circularity);
+      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
+                                                 imgData.index, imgData.confidence);
+      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
+                                                 imgData.index, imgData.intensity);
+      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN),
+                                                 imgData.index, imgData.intensityMin);
+      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX),
+                                                 imgData.index, imgData.intensityMax);
+      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
+                                                 imgData.index, imgData.areaSize);
+      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
+                                                 imgData.index, imgData.circularity);
     }
   }
 }
 
+///
+/// \brief      Append to all over report
+/// \author     Joachim Danmayr
+/// \param[in]  inputFolder Inputfolder of the images
+/// \param[in]  nrOfChannels Nr. of channels
+///
+void Pipeline::appendToAllOverReport(joda::reporting::Table &allOverReport,
+                                     const joda::reporting::Table &detailedReport, const std::string &imageName,
+                                     int nrOfChannels)
+{
+  const int NR_OF_COLUMNS_PER_CHANNEL = 5;
+
+  for(int tempChannelIdx = 0; tempChannelIdx < nrOfChannels; tempChannelIdx++) {
+    int colIdx             = NR_OF_COLUMNS_PER_CHANNEL * tempChannelIdx;
+    int colIdxDetailReport = NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT * tempChannelIdx;
+
+    allOverReport.setColumnNames(
+        {{colIdx + 0, "Count"},
+         {colIdx + 1,
+          detailedReport.getColumnNameAt(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE))},
+         {colIdx + 2,
+          detailedReport.getColumnNameAt(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::INTENSITY)) +
+              "#avg. intensity"},
+         {colIdx + 3,
+          detailedReport.getColumnNameAt(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)) +
+              "#avg. areaSize"},
+         {colIdx + 4, detailedReport.getColumnNameAt(colIdxDetailReport +
+                                                     static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY)) +
+                          "#avg. circularity"}});
+
+    auto colStatistics =
+        detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
+    allOverReport.appendValueToColumn(colIdx + 0, colStatistics.getNr());
+
+    colStatistics =
+        detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
+    allOverReport.appendValueToColumn(colIdx + 1, colStatistics.getAvg());
+
+    colStatistics =
+        detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::INTENSITY));
+    allOverReport.appendValueToColumn(colIdx + 2, colStatistics.getAvg());
+
+    colStatistics =
+        detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE));
+    allOverReport.appendValueToColumn(colIdx + 3, colStatistics.getAvg());
+
+    colStatistics =
+        detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY));
+    int rowIdx = allOverReport.appendValueToColumn(colIdx + 4, colStatistics.getAvg());
+
+    allOverReport.setRowName(rowIdx, imageName);
+  }
+}
 ///
 /// \brief      Creates the output folder for the results and returns the path.
 ///             Outputfolder = <inputFolder>/results/<DATE-TIME>

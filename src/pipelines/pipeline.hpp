@@ -69,6 +69,17 @@ protected:
   }
 
 private:
+  enum class ColumnIndexDetailedReport : int
+  {
+    CONFIDENCE    = 0,
+    INTENSITY     = 1,
+    INTENSITY_MIN = 2,
+    INTENSITY_MAX = 3,
+    AREA_SIZE     = 4,
+    CIRCULARITY   = 5
+  };
+  static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 6;
+
   /////////////////////////////////////////////////////
   void runJob(const std::string &inputFolder);
 
@@ -100,16 +111,17 @@ private:
     return mStop;
   }
 
-  void appendToDetailReport(joda::func::ProcessingResult &result, joda::reporting::Table &detailReportTable,
-                            const std::string &detailReportOutputPath,
-                            const settings::json::ChannelSettings &channelSettings, int tempChannelIdx);
+  static void appendToDetailReport(joda::func::ProcessingResult &result, joda::reporting::Table &detailReportTable,
+                                   const std::string &detailReportOutputPath,
+                                   const settings::json::ChannelSettings &channelSettings, int tempChannelIdx);
+  static void appendToAllOverReport(joda::reporting::Table &allOverReport, const joda::reporting::Table &detailedReport,
+                                    const std::string &imageName, int nrOfChannels);
 
   /////////////////////////////////////////////////////
   std::string mInputFolder;
   std::string mOutputFolder;
   bool mStop = false;
   joda::settings::json::AnalyzeSettings mAnalyzeSettings;
-  joda::reporting::Table mAllOverReporting;
   joda::helper::ImageFileContainer *mImageFileContainer;
 
   ProgressIndicator mProgress;
