@@ -13,6 +13,7 @@
 
 #include <string>
 #include <vector>
+#include "image_processing/functions/detection/detection.hpp"
 #include "image_processing/functions/func_types.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/dnn.hpp>
@@ -26,12 +27,12 @@ namespace joda::func::ai {
 /// \author     Joachim Danmayr
 /// \brief      Object detector using ONNX model
 ///
-class ObjectDetector
+class ObjectDetector : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
   ObjectDetector(const std::string &onnxNet, const std::vector<std::string> &classNames);
-  auto forward(const cv::Mat &inputImage) -> DetectionResponse;
+  auto forward(const cv::Mat &inputImage) -> DetectionResponse override;
 
 private:
   void paintBoundingBox(cv::Mat &inputImage, const DetectionResults &detection);

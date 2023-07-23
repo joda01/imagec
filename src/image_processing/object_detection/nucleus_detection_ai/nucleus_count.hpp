@@ -13,7 +13,7 @@
 
 #include <cmath>
 #include <mutex>
-#include "image_processing/functions/artificial_intelligence/ai_object_detection/ai_object_detection.h"
+#include "image_processing/functions/detection/ai_object_detection/ai_object_detection.h"
 #include "image_processing/object_detection/detection.hpp"
 
 namespace joda::algo {

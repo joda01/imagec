@@ -16,13 +16,18 @@
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_processing/functions/artificial_intelligence/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/imagec/src/image_processing/functions/artificial_intelligence/ai_object_detection/ai_object_detection.cpp",
-  "file": "/workspaces/imagec/src/image_processing/functions/artificial_intelligence/ai_object_detection/ai_object_detection.cpp"
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_processing/functions/detection/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/imagec/src/image_processing/functions/detection/ai_object_detection/ai_object_detection.cpp",
+  "file": "/workspaces/imagec/src/image_processing/functions/detection/ai_object_detection/ai_object_detection.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_processing/functions/artificial_intelligence/ai_object_segmentation/ai_object_segmentation.cpp.o -c /workspaces/imagec/src/image_processing/functions/artificial_intelligence/ai_object_segmentation/ai_object_segmentation.cpp",
-  "file": "/workspaces/imagec/src/image_processing/functions/artificial_intelligence/ai_object_segmentation/ai_object_segmentation.cpp"
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_processing/functions/detection/ai_object_segmentation/ai_object_segmentation.cpp.o -c /workspaces/imagec/src/image_processing/functions/detection/ai_object_segmentation/ai_object_segmentation.cpp",
+  "file": "/workspaces/imagec/src/image_processing/functions/detection/ai_object_segmentation/ai_object_segmentation.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/image_processing/functions/detection/threshold/threshold.cpp.o -c /workspaces/imagec/src/image_processing/functions/detection/threshold/threshold.cpp",
+  "file": "/workspaces/imagec/src/image_processing/functions/detection/threshold/threshold.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
@@ -121,18 +126,23 @@
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_processing/functions/artificial_intelligence/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/imagec/src/image_processing/functions/artificial_intelligence/ai_object_detection/ai_object_detection.cpp",
-  "file": "/workspaces/imagec/src/image_processing/functions/artificial_intelligence/ai_object_detection/ai_object_detection.cpp"
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_processing/functions/detection/ai_object_detection/ai_object_detection.cpp.o -c /workspaces/imagec/src/image_processing/functions/detection/ai_object_detection/ai_object_detection.cpp",
+  "file": "/workspaces/imagec/src/image_processing/functions/detection/ai_object_detection/ai_object_detection.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_processing/functions/artificial_intelligence/ai_object_segmentation/ai_object_seg_test.cpp.o -c /workspaces/imagec/src/image_processing/functions/artificial_intelligence/ai_object_segmentation/ai_object_seg_test.cpp",
-  "file": "/workspaces/imagec/src/image_processing/functions/artificial_intelligence/ai_object_segmentation/ai_object_seg_test.cpp"
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_processing/functions/detection/ai_object_segmentation/ai_object_seg_test.cpp.o -c /workspaces/imagec/src/image_processing/functions/detection/ai_object_segmentation/ai_object_seg_test.cpp",
+  "file": "/workspaces/imagec/src/image_processing/functions/detection/ai_object_segmentation/ai_object_seg_test.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",
-  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_processing/functions/artificial_intelligence/ai_object_segmentation/ai_object_segmentation.cpp.o -c /workspaces/imagec/src/image_processing/functions/artificial_intelligence/ai_object_segmentation/ai_object_segmentation.cpp",
-  "file": "/workspaces/imagec/src/image_processing/functions/artificial_intelligence/ai_object_segmentation/ai_object_segmentation.cpp"
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_processing/functions/detection/ai_object_segmentation/ai_object_segmentation.cpp.o -c /workspaces/imagec/src/image_processing/functions/detection/ai_object_segmentation/ai_object_segmentation.cpp",
+  "file": "/workspaces/imagec/src/image_processing/functions/detection/ai_object_segmentation/ai_object_segmentation.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_processing/functions/detection/threshold/threshold.cpp.o -c /workspaces/imagec/src/image_processing/functions/detection/threshold/threshold.cpp",
+  "file": "/workspaces/imagec/src/image_processing/functions/detection/threshold/threshold.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",

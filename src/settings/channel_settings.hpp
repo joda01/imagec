@@ -67,7 +67,7 @@ public:
     return enumThreshold;
   }
 
-  auto getThresholdMin() const -> float
+  auto getThresholdMin() const -> uint16_t
   {
     return threshold_min;
   }
@@ -90,7 +90,7 @@ private:
   // Minimum threshold value.
   // [0-65535]
   //
-  float threshold_min = 0;
+  uint16_t threshold_min = 0;
 
   //
   // Maximum threshold value (default 65535)

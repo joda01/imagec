@@ -14,6 +14,7 @@
 #pragma once
 
 #include <iostream>
+#include "image_processing/functions/detection/detection.hpp"
 #include "image_processing/functions/func_types.hpp"
 #include <opencv2/opencv.hpp>
 
@@ -26,16 +27,15 @@ namespace joda::func::ai {
 /// \author     Joachim Danmayr
 /// \brief      Object segmentation using ONNX model
 ///
-class ObjectSegmentation
+class ObjectSegmentation : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
   ObjectSegmentation(const std::string &onnxNetPath, const std::vector<std::string> &classNames);
-  auto forward(const cv::Mat &srcImg) -> DetectionResponse;
+  auto forward(const cv::Mat &srcImg) -> DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////
-  void paintBoundingBox(cv::Mat &img, const DetectionResults &result);
 
   void getMask(const cv::Mat &image, const cv::Mat &maskProposals, const cv::Mat &mask_protos, const cv::Vec4d &params,
                const cv::Size &srcImgShape, DetectionResults &output);
@@ -54,7 +54,12 @@ private:
   static constexpr inline float NET_ANCHORS[4][6] = {{19, 27, 44, 40, 38, 94},
                                                      {96, 68, 86, 152, 180, 137},
                                                      {140, 301, 303, 264, 238, 542},
-                                                     {436, 615, 739, 380, 925, 792}};
+                                                     { 436,
+                                                       615,
+                                                       739,
+                                                       380,
+                                                       925,
+                                                       792 }};
 
   static constexpr inline int NET_WIDTH    = 1280;
   static constexpr inline int NET_HEIGHT   = 1280;
@@ -86,10 +91,6 @@ private:
   static constexpr inline float NMS_SCORE_THRESHOLD = BOX_THRESHOLD * CLASS_THRESHOLD;
 
   // Colors
-  const cv::Scalar BLACK  = cv::Scalar(0, 0, 0);
-  const cv::Scalar WHITE  = cv::Scalar(255, 255, 255);
-  const cv::Scalar YELLOW = cv::Scalar(0, 255, 255);
-  const cv::Scalar RED    = cv::Scalar(0, 0, 255);
   std::vector<std::string> mClassNames;
   cv::dnn::Net mNet;
 };

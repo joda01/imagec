@@ -199,49 +199,7 @@ void ObjectSegmentation::getMask(const cv::Mat &image, const Mat &maskProposals,
     output[i].boxMask = mask;
 
     // Calculate some more metrics
-    {
-      double intensity    = 0;
-      double intensityMin = USHRT_MAX;
-      double intensityMax = 0;
-
-      uint64_t areaSize = 0;
-
-      // std::cout << "MAsk " << std::to_string(mask.channels()) << " x " << std::to_string(mask.type()) << std::endl;
-
-      // Calculate the intensity and area of the polygon ROI
-      for(int x = 0; x < temp_rect.width; x++) {
-        for(int y = 0; y < temp_rect.height; y++) {
-          unsigned char maskPxl = mask.at<unsigned char>(y, x);    // Get the pixel value at (x, y)
-          if(maskPxl > 0) {
-            double pixelGrayScale = image.at<unsigned short>(y, x);    // Get the pixel value at (x, y)
-            if(pixelGrayScale < intensityMin) {
-              intensityMin = pixelGrayScale;
-            }
-            if(pixelGrayScale > intensityMax) {
-              intensityMax = pixelGrayScale;
-            }
-            intensity += pixelGrayScale;
-            areaSize++;
-          }
-        }
-      }
-      float intensityAvg     = intensity / static_cast<float>(areaSize);
-      output[i].intensity    = intensityAvg;
-      output[i].intensityMin = intensityMin;
-      output[i].intensityMax = intensityMax;
-      output[i].areaSize     = areaSize;
-
-      std::vector<std::vector<cv::Point>> contours;
-      cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-
-      float circularity = 0;
-      if(!contours.empty()) {
-        double area      = cv::contourArea(contours[0]);
-        double perimeter = cv::arcLength(contours[0], true);
-        circularity      = (4 * M_PI * area) / (perimeter * perimeter);
-      }
-      output[i].circularity = circularity;
-    }
+    calculateMetrics(output[i], image, temp_rect, mask);
   }
 }
 
@@ -308,35 +266,4 @@ void ObjectSegmentation::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::
   cv::copyMakeBorder(outImage, outImage, top, bottom, left, right, cv::BORDER_CONSTANT, color);
 }
 
-///
-/// \brief      Paints the masks and bounding boxes around the found elements
-/// \author     Joachim Danmayr
-/// \param[in]  img    Image where the mask should be painted on
-/// \param[in]  result Prediction result of the forward
-///
-void ObjectSegmentation::paintBoundingBox(cv::Mat &img, const DetectionResults &result)
-{
-  Mat mask = img.clone();
-  for(int i = 0; i < result.size(); i++) {
-    int left      = result[i].box.x;
-    int top       = result[i].box.y;
-    int color_num = i;
-    rectangle(img, result[i].box, RED, 2, 8);
-    mask(result[i].box).setTo(RED, result[i].boxMask);
-    // string label =
-    //     mClassNames[result[i].classId] + ":" + to_string(result[i].confidence) + ":" + to_string(result[i].index);
-
-    string label = to_string(result[i].index);
-
-    int baseLine   = 0;
-    Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-    top            = max(top, labelSize.height);
-    rectangle(img, Point(left, top - int(1.5 * labelSize.height)),
-              Point(left + int(1.5 * labelSize.width), top + baseLine), BLACK, FILLED);
-
-    putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, WHITE, 2);
-  }
-  addWeighted(mask, 0.5, img, 1, 0, img);
-  // imwrite("test/out.jpg", img);
-}
 }    // namespace joda::func::ai

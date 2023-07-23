@@ -29,7 +29,7 @@
                 "mode": "THRESHOLD",
                 "threshold": {
                     "threshold_algorithm": "MANUAL",
-                    "threshold_min": -1,
+                    "threshold_min": 0,
                     "threshold_max": 1
                 },
                 "ai": {
