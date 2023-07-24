@@ -16,13 +16,15 @@
 #include <cstdint>
 #include <stdexcept>
 #include <string>
+#include "image_processing/functions/detection/detection.hpp"
 #include "image_processing/functions/func_types.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 
 namespace joda::func::threshold {
 
-ObjectSegmentation::ObjectSegmentation(uint16_t thresholdValue) : mThresholdValue(thresholdValue)
+ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt, uint16_t thresholdValue) :
+    DetectionFunction(filt), mThresholdValue(thresholdValue)
 {
 }
 

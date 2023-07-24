@@ -18,10 +18,12 @@
 #include <cmath>
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <variant>
 #include <vector>
+#include "image_processing/functions/func_types.hpp"
 
 namespace joda::reporting {
 
@@ -37,7 +39,7 @@ class Statistics
 {
 public:
   /////////////////////////////////////////////////////
-  static constexpr int NR_OF_VALUE = 5;
+  static constexpr int NR_OF_VALUE = 6;
 
   /////////////////////////////////////////////////////
   void addValue(float val)
@@ -55,6 +57,11 @@ public:
     mMean = mSum / mNr;
   }
 
+  void incrementInvalid()
+  {
+    mInvalid++;
+  }
+
   void reset()
   {
     mNr   = 0;
@@ -67,6 +74,11 @@ public:
   uint64_t getNr() const
   {
     return mNr;
+  }
+
+  uint64_t getInvalid() const
+  {
+    return mInvalid;
   }
 
   float getSum() const
@@ -94,11 +106,12 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  uint64_t mNr = 0;
-  float mSum   = 0;
-  float mMin   = 0;
-  float mMax   = 0;
-  float mMean  = 0;
+  uint64_t mNr      = 0;
+  uint64_t mInvalid = 0;
+  float mSum        = 0;
+  float mMin        = 0;
+  float mMax        = 0;
+  float mMean       = 0;
 };
 
 ///
@@ -125,6 +138,7 @@ public:
   struct Row
   {
     float value;
+    std::optional<joda::func::ParticleValidity> validity;
   };
 
   /////////////////////////////////////////////////////
@@ -135,9 +149,12 @@ public:
   void setColumnNames(const std::map<uint64_t, std::string> &);
   auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
   void setRowName(uint64_t rowIdx, const std::string &);
-  auto appendValueToColumn(uint64_t colIdx, float value) -> int64_t;
-  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float value) -> int64_t;
-  auto appendValueToColumn(const std::string &rowName, uint64_t colIdx, float value) -> int64_t;
+  auto appendValueToColumn(uint64_t colIdx, float value, joda::func::ParticleValidity) -> int64_t;
+  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float value, joda::func::ParticleValidity) -> int64_t;
+  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func::ParticleValidity) -> int64_t;
+
+  auto appendValueToColumn(const std::string &rowName, uint64_t colIdx, float value, joda::func::ParticleValidity)
+      -> int64_t;
   auto getTable() const -> const Table_t &;
   auto getStatistics() const -> const std::map<uint64_t, Statistics> &;
   auto getStatistics(uint64_t colIdx) const -> const Statistics &;
@@ -147,8 +164,11 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  static std::string validityToString(joda::func::ParticleValidity val);
+
+  /////////////////////////////////////////////////////
   Table_t mTable;
-  std::map<uint64_t, Statistics> mStatisitcs;
+  std::map<uint64_t, Statistics> mStatistics;
   std::map<uint64_t, std::string> mRowNames;
   std::map<uint64_t, std::string> mColumnName;
   int64_t mRows = 0;

@@ -119,7 +119,9 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
                                     {colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
                                      channelSettings.getChannelInfo().getName() + "#areaSize"},
                                     {colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
-                                     channelSettings.getChannelInfo().getName() + "#circularity"}});
+                                     channelSettings.getChannelInfo().getName() + "#circularity"},
+                                    {colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
+                                     channelSettings.getChannelInfo().getName() + "#validity"}});
 
   for(const auto &[tileIdx, tileData] : result) {
     cv::imwrite(detailReportOutputPath + std::filesystem::path::preferred_separator + "control_" +
@@ -128,17 +130,19 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
 
     for(const auto &imgData : tileData.result) {
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
-                                                 imgData.index, imgData.confidence);
+                                                 imgData.index, imgData.confidence, imgData.validity);
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
-                                                 imgData.index, imgData.intensity);
+                                                 imgData.index, imgData.intensity, imgData.validity);
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN),
-                                                 imgData.index, imgData.intensityMin);
+                                                 imgData.index, imgData.intensityMin, imgData.validity);
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX),
-                                                 imgData.index, imgData.intensityMax);
+                                                 imgData.index, imgData.intensityMax, imgData.validity);
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
-                                                 imgData.index, imgData.areaSize);
+                                                 imgData.index, imgData.areaSize, imgData.validity);
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
-                                                 imgData.index, imgData.circularity);
+                                                 imgData.index, imgData.circularity, imgData.validity);
+      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
+                                                 imgData.index, imgData.validity);
     }
   }
 }
@@ -175,23 +179,24 @@ void Pipeline::appendToAllOverReport(joda::reporting::Table &allOverReport,
 
     auto colStatistics =
         detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
-    allOverReport.appendValueToColumn(colIdx + 0, colStatistics.getNr());
+    allOverReport.appendValueToColumn(colIdx + 0, colStatistics.getNr(), joda::func::ParticleValidity::VALID);
 
     colStatistics =
         detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
-    allOverReport.appendValueToColumn(colIdx + 1, colStatistics.getAvg());
+    allOverReport.appendValueToColumn(colIdx + 1, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
 
     colStatistics =
         detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::INTENSITY));
-    allOverReport.appendValueToColumn(colIdx + 2, colStatistics.getAvg());
+    allOverReport.appendValueToColumn(colIdx + 2, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
 
     colStatistics =
         detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE));
-    allOverReport.appendValueToColumn(colIdx + 3, colStatistics.getAvg());
+    allOverReport.appendValueToColumn(colIdx + 3, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
 
     colStatistics =
         detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY));
-    int rowIdx = allOverReport.appendValueToColumn(colIdx + 4, colStatistics.getAvg());
+    int rowIdx =
+        allOverReport.appendValueToColumn(colIdx + 4, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
 
     allOverReport.setRowName(rowIdx, imageName);
   }

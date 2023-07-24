@@ -238,7 +238,7 @@ private:
     auto id = DurationCount::start("detection int");
 
     ALGORITHM algo;
-    auto ret = algo.execute(image, channelSetting.getDetectionSettings());
+    auto ret = algo.execute(image, channelSetting);
 
     DurationCount::stop(id);
 

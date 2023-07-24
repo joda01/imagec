@@ -31,7 +31,8 @@ class ObjectSegmentation : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectSegmentation(const std::string &onnxNetPath, const std::vector<std::string> &classNames);
+  ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt, const std::string &onnxNetPath,
+                     const std::vector<std::string> &classNames);
   auto forward(const cv::Mat &srcImg) -> DetectionResponse override;
 
 private:

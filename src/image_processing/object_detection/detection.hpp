@@ -32,7 +32,7 @@ class Detection
 public:
   /////////////////////////////////////////////////////
   Detection();
-  virtual auto execute(const cv::Mat &img, const joda::settings::json::ChannelDetection &channelSetting)
+  virtual auto execute(const cv::Mat &img, const joda::settings::json::ChannelSettings &channelSetting)
       -> func::DetectionResponse = 0;
 };
 }    // namespace joda::algo

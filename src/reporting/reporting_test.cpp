@@ -1,3 +1,4 @@
+#include "image_processing/functions/func_types.hpp"
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -6,18 +7,18 @@
 SCENARIO("Adding three values to a table", "[table]")
 {
   joda::reporting::Table table;
-  table.appendValueToColumn(0, 0);
-  table.appendValueToColumn(0, 382);
-  table.appendValueToColumn(0, 527);
-  table.appendValueToColumn(0, 474);
-  table.appendValueToColumn(0, 460);
-  table.appendValueToColumn(0, 498);
-  table.appendValueToColumn(0, 428);
-  table.appendValueToColumn(0, 889);
-  table.appendValueToColumn(0, 798);
-  table.appendValueToColumn(0, 403);
+  table.appendValueToColumn(0, 0, joda::func::ParticleValidity::VALID);
+  table.appendValueToColumn(0, 382, joda::func::ParticleValidity::VALID);
+  table.appendValueToColumn(0, 527, joda::func::ParticleValidity::VALID);
+  table.appendValueToColumn(0, 474, joda::func::ParticleValidity::VALID);
+  table.appendValueToColumn(0, 460, joda::func::ParticleValidity::VALID);
+  table.appendValueToColumn(0, 498, joda::func::ParticleValidity::VALID);
+  table.appendValueToColumn(0, 428, joda::func::ParticleValidity::VALID);
+  table.appendValueToColumn(0, 889, joda::func::ParticleValidity::VALID);
+  table.appendValueToColumn(0, 798, joda::func::ParticleValidity::VALID);
+  table.appendValueToColumn(0, 403, joda::func::ParticleValidity::VALID);
 
-  table.appendValueToColumn(1, 4);
+  table.appendValueToColumn(1, 4, joda::func::ParticleValidity::VALID);
 
   CHECK(0 == table.getTable().at(0).at(0).value);
   CHECK(382 == table.getTable().at(0).at(1).value);

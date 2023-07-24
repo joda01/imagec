@@ -14,6 +14,7 @@
 #include "ai_object_detection.h"
 #include <set>
 #include <string>
+#include "image_processing/functions/detection/detection.hpp"
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/core/mat.hpp>
 
@@ -25,7 +26,9 @@ namespace joda::func::ai {
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-ObjectDetector::ObjectDetector(const std::string &onnxNetPath, const std::vector<std::string> &classNames) :
+ObjectDetector::ObjectDetector(const joda::settings::json::ChannelFiltering &filt, const std::string &onnxNetPath,
+                               const std::vector<std::string> &classNames) :
+    DetectionFunction(filt),
     mNet{cv::dnn::readNet(onnxNetPath)}, mClassNames(classNames)
 {
 }

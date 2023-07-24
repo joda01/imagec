@@ -26,11 +26,11 @@ namespace joda::algo {
 /// \author     Joachim Danmayr
 /// \param[in]  img     Image to analyze
 ///
-auto NucleusCounter::execute(const cv::Mat &img, const joda::settings::json::ChannelDetection &channelSetting)
+auto NucleusCounter::execute(const cv::Mat &img, const joda::settings::json::ChannelSettings &channelSetting)
     -> func::DetectionResponse
 {
   auto enhancedContrast = img;
-  joda::func::ai::ObjectDetector obj("imagec_models/nucleus_detection_ex_vivo_v1.onnx",
+  joda::func::ai::ObjectDetector obj(channelSetting.getFilter(), "imagec_models/nucleus_detection_ex_vivo_v1.onnx",
                                      {"nuclues", "nucleus_no_focus"});
   return obj.forward(enhancedContrast);
 }

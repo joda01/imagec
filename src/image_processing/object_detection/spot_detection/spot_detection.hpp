@@ -27,7 +27,7 @@ class SpotDetection : public Detection
 public:
   /////////////////////////////////////////////////////
   using Detection::Detection;
-  auto execute(const cv::Mat &img, const joda::settings::json::ChannelDetection &channelSetting)
+  auto execute(const cv::Mat &img, const joda::settings::json::ChannelSettings &channelSetting)
       -> func::DetectionResponse override;
 };
 

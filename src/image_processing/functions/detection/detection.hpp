@@ -26,14 +26,20 @@ namespace joda::func {
 class DetectionFunction
 {
 public:
+  DetectionFunction(const joda::settings::json::ChannelFiltering &filt) : mFilterSettings(filt)
+  {
+  }
   /////////////////////////////////////////////////////
   virtual auto forward(const cv::Mat &srcImg) -> DetectionResponse = 0;
+
+protected:
+  /////////////////////////////////////////////////////
 
   ///
   /// \brief      Calculate metrics based on bounding box and mask
   /// \author     Joachim Danmayr
   ///
-  static void calculateMetrics(Detection &detection, const cv::Mat &image, const cv::Rect &rect, const cv::Mat &mask)
+  void calculateMetrics(Detection &detection, const cv::Mat &image, const cv::Rect &rect, const cv::Mat &mask)
   {
     double intensity    = 0;
     double intensityMin = USHRT_MAX;
@@ -83,6 +89,7 @@ public:
       }
     }
     detection.circularity = circularity;
+    detection.applyParticleFilter(mFilterSettings);
   }
 
   ///
@@ -127,5 +134,8 @@ protected:
   const cv::Scalar YELLOW = cv::Scalar(0, 255, 255);
   const cv::Scalar RED    = cv::Scalar(0, 0, 255);
   const cv::Scalar GREEN  = cv::Scalar(0, 255, 0);
+
+private:
+  const joda::settings::json::ChannelFiltering &mFilterSettings;
 };
 }    // namespace joda::func

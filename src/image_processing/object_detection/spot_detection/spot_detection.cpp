@@ -32,10 +32,11 @@ namespace joda::algo {
 /// \author     Joachim Danmayr
 /// \param[in]  img     Image to analyze
 ///
-auto SpotDetection::execute(const cv::Mat &img, const joda::settings::json::ChannelDetection &channelSetting)
+auto SpotDetection::execute(const cv::Mat &img, const joda::settings::json::ChannelSettings &channelSetting)
     -> func::DetectionResponse
 {
-  joda::func::threshold::ObjectSegmentation th(channelSetting.getThersholdSettings().getThresholdMin());
+  joda::func::threshold::ObjectSegmentation th(
+      channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin());
   return th.forward(img);
 }
 }    // namespace joda::algo

@@ -14,6 +14,7 @@
 #include "ai_object_segmentation.hpp"
 #include <string>
 #include "duration_count/duration_count.h"
+#include "image_processing/functions/detection/detection.hpp"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
 #include <opencv2/imgproc.hpp>
@@ -30,7 +31,9 @@ using namespace cv::dnn;
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-ObjectSegmentation::ObjectSegmentation(const std::string &onnxNetPath, const std::vector<std::string> &classNames) :
+ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt,
+                                       const std::string &onnxNetPath, const std::vector<std::string> &classNames) :
+    DetectionFunction(filt),
     mClassNames(classNames)
 {
   mNet        = cv::dnn::readNet(onnxNetPath);

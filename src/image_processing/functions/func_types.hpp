@@ -15,6 +15,7 @@
 
 #include <string>
 #include <vector>
+#include "settings/channel_settings.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/dnn.hpp>
 #include <opencv2/dnn/all_layers.hpp>
@@ -25,6 +26,15 @@ namespace joda::func {
 using Boxes      = cv::Rect;
 using Confidence = float;
 using ClassId    = int;
+
+enum class ParticleValidity
+{
+  UNKNOWN              = 0,
+  VALID                = 0x01,
+  TOO_SMALL            = 0x02,
+  TOO_BIG              = 0x04,
+  TOO_LESS_CIRCULARITY = 0x08
+};
 
 struct Detection
 {
@@ -38,6 +48,26 @@ struct Detection
   float intensityMax;       ///< Max intensity of the masking area
   float areaSize;           ///< size of the masking area [px^2 / px^3]
   float circularity;        ///< Circularity of the masking area [0-1]
+  ParticleValidity validity = ParticleValidity::UNKNOWN;
+
+  ///
+  /// \brief     Applies particle filter and sets the validity
+  ///            based on the detection results
+  /// \author    Joachim Danmayr
+  ///
+  void applyParticleFilter(const joda::settings::json::ChannelFiltering &filter)
+  {
+    if(areaSize > filter.getMaxParticleSize()) {
+      validity = ParticleValidity::TOO_BIG;
+    } else if(areaSize < filter.getMinParticleSize()) {
+      validity = ParticleValidity::TOO_SMALL;
+    } else if(circularity < filter.getMinCircularity()) {
+      validity = ParticleValidity::TOO_LESS_CIRCULARITY;
+    } else {
+      validity = ParticleValidity::VALID;
+    }
+    // filter.getSnapAreaSize();
+  }
 };
 
 using DetectionResults = std::vector<Detection>;

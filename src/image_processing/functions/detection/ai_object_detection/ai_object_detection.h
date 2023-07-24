@@ -31,7 +31,8 @@ class ObjectDetector : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectDetector(const std::string &onnxNet, const std::vector<std::string> &classNames);
+  ObjectDetector(const joda::settings::json::ChannelFiltering &filt, const std::string &onnxNet,
+                 const std::vector<std::string> &classNames);
   auto forward(const cv::Mat &inputImage) -> DetectionResponse override;
 
 private:

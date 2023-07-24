@@ -18,6 +18,7 @@
 #include <mutex>
 #include <string_view>
 #include "duration_count/duration_count.h"
+#include "settings/channel_settings.hpp"
 
 namespace joda::algo {
 
@@ -26,11 +27,12 @@ namespace joda::algo {
 /// \author     Joachim Danmayr
 /// \param[in]  img     Image to analyze
 ///
-auto CellCounter::execute(const cv::Mat &img, const joda::settings::json::ChannelDetection &channelSetting)
+auto CellCounter::execute(const cv::Mat &img, const joda::settings::json::ChannelSettings &channelSetting)
     -> func::DetectionResponse
 {
   auto enhancedContrast = img;
-  joda::func::ai::ObjectSegmentation obj("imagec_models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
+  joda::func::ai::ObjectSegmentation obj(channelSetting.getFilter(),
+                                         "imagec_models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
   return obj.forward(enhancedContrast);
 }
 
