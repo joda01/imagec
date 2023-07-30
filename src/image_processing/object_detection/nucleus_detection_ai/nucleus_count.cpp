@@ -18,6 +18,7 @@
 #include <mutex>
 #include <string_view>
 #include "duration_count/duration_count.h"
+#include "image_processing/functions/detection/threshold/threshold.hpp"
 
 namespace joda::algo {
 
@@ -30,8 +31,16 @@ auto NucleusCounter::execute(const cv::Mat &img, const joda::settings::json::Cha
     -> func::DetectionResponse
 {
   auto enhancedContrast = img;
-  joda::func::ai::ObjectDetector obj(channelSetting.getFilter(), "imagec_models/nucleus_detection_ex_vivo_v1.onnx",
-                                     {"nuclues", "nucleus_no_focus"});
-  return obj.forward(enhancedContrast);
+
+  if(channelSetting.getDetectionSettings().getDetectionMode() ==
+     settings::json::ChannelDetection::DetectionMode::THRESHOLD) {
+    joda::func::threshold::ObjectSegmentation th(
+        channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin());
+    return th.forward(img);
+  } else {
+    joda::func::ai::ObjectDetector obj(channelSetting.getFilter(), "imagec_models/nucleus_detection_ex_vivo_v1.onnx",
+                                       {"nuclues", "nucleus_no_focus"});
+    return obj.forward(enhancedContrast);
+  }
 }
 }    // namespace joda::algo
