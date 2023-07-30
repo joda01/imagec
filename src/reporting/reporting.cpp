@@ -230,19 +230,34 @@ auto Statistics::getStatistics() const -> const std::array<float, NR_OF_VALUE>
 
 std::string Table::validityToString(joda::func::ParticleValidity val)
 {
-  switch(val) {
-    default:
-    case joda::func::ParticleValidity::UNKNOWN:
-      return "-";
-    case joda::func::ParticleValidity::TOO_BIG:
-      return "size(big)";
-    case joda::func::ParticleValidity::TOO_SMALL:
-      return "size(small)";
-    case joda::func::ParticleValidity::TOO_LESS_CIRCULARITY:
-      return "circularity";
-    case joda::func::ParticleValidity::VALID:
-      return "valid";
+  if(val == joda::func::ParticleValidity::UNKNOWN) {
+    return "-";
   }
+  if(val == joda::func::ParticleValidity::VALID) {
+    return "valid";
+  }
+  std::string ret;
+  if((joda::func::ParticleValidity)((int) val & (int) joda::func::ParticleValidity::TOO_BIG) ==
+     joda::func::ParticleValidity::TOO_BIG) {
+    ret += "size(big)";
+  }
+
+  if((joda::func::ParticleValidity)((int) val & (int) joda::func::ParticleValidity::TOO_SMALL) ==
+     joda::func::ParticleValidity::TOO_SMALL) {
+    if(!ret.empty()) {
+      ret += " & ";
+    }
+    ret += "size(small)";
+  }
+
+  if((joda::func::ParticleValidity)((int) val & (int) joda::func::ParticleValidity::TOO_LESS_CIRCULARITY) ==
+     joda::func::ParticleValidity::TOO_LESS_CIRCULARITY) {
+    if(!ret.empty()) {
+      ret += " & ";
+    }
+    ret += "circ.";
+  }
+  return ret;
 }
 
 }    // namespace joda::reporting

@@ -78,7 +78,6 @@ private:
     AREA_SIZE     = 4,
     CIRCULARITY   = 5,
     VALIDITY      = 6
-
   };
   static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 7;
 

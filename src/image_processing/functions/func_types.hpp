@@ -27,7 +27,7 @@ using Boxes      = cv::Rect;
 using Confidence = float;
 using ClassId    = int;
 
-enum class ParticleValidity
+enum class ParticleValidity : int
 {
   UNKNOWN              = 0,
   VALID                = 0x01,
@@ -57,15 +57,23 @@ struct Detection
   ///
   void applyParticleFilter(const joda::settings::json::ChannelFiltering &filter)
   {
+    validity = ParticleValidity::UNKNOWN;
     if(areaSize > filter.getMaxParticleSize()) {
-      validity = ParticleValidity::TOO_BIG;
-    } else if(areaSize < filter.getMinParticleSize()) {
-      validity = ParticleValidity::TOO_SMALL;
-    } else if(circularity < filter.getMinCircularity()) {
-      validity = ParticleValidity::TOO_LESS_CIRCULARITY;
-    } else {
+      validity =
+          static_cast<ParticleValidity>(static_cast<int>(validity) | static_cast<int>(ParticleValidity::TOO_BIG));
+    }
+    if(areaSize < filter.getMinParticleSize()) {
+      validity =
+          static_cast<ParticleValidity>(static_cast<int>(validity) | static_cast<int>(ParticleValidity::TOO_SMALL));
+    }
+    if(circularity < filter.getMinCircularity()) {
+      validity = static_cast<ParticleValidity>(static_cast<int>(validity) |
+                                               static_cast<int>(ParticleValidity::TOO_LESS_CIRCULARITY));
+    }
+    if(validity == ParticleValidity::UNKNOWN) {
       validity = ParticleValidity::VALID;
     }
+
     // filter.getSnapAreaSize();
   }
 };

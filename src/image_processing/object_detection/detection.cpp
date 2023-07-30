@@ -12,7 +12,6 @@
 ///
 
 #include "detection.hpp"
-#include "reporting/reporting.h"
 
 namespace joda::algo {
 
