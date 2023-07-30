@@ -28,8 +28,8 @@ class NucleusCounter : public Detection
 public:
   /////////////////////////////////////////////////////
   using Detection::Detection;
-  auto execute(const cv::Mat &img, const joda::settings::json::ChannelSettings &channelSetting)
-      -> func::DetectionResponse override;
+  auto execute(const cv::Mat &img, const cv::Mat &imgOriginal,
+               const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse override;
 };
 
 }    // namespace joda::algo

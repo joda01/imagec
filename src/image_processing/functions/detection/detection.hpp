@@ -15,6 +15,7 @@
 
 #include <string>
 #include "image_processing/functions/func_types.hpp"
+#include <opencv2/imgproc.hpp>
 
 namespace joda::func {
 
@@ -30,7 +31,7 @@ public:
   {
   }
   /////////////////////////////////////////////////////
-  virtual auto forward(const cv::Mat &srcImg) -> DetectionResponse = 0;
+  virtual auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage) -> DetectionResponse = 0;
 
 protected:
   /////////////////////////////////////////////////////
@@ -45,7 +46,7 @@ protected:
   /// \param[in]  img    Image where the mask should be painted on
   /// \param[in]  result Prediction result of the forward
   ///
-  void paintBoundingBox(cv::Mat &img, const DetectionResults &result)
+  static void paintBoundingBox(cv::Mat &img, const DetectionResults &result, bool paintRectangel = true)
   {
     cv::Mat mask = img.clone();
 
@@ -56,11 +57,15 @@ protected:
       int height    = result[i].getBoundingBox().height;
       int color_num = i;
 
-      rectangle(img, result[i].getBoundingBox(), RED, 1 * THICKNESS);
+      if(paintRectangel) {
+        rectangle(img, result[i].getBoundingBox(), RED, 1 * THICKNESS);
+      }
 
       if(!result[i].getMask().empty()) {
         mask(result[i].getBoundingBox()).setTo(RED, result[i].getMask());
-      } else {
+        std::vector<std::vector<cv::Point>> contours;
+        findContours(result[i].getMask(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+        drawContours(img(result[i].getBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
       }
       std::string label = std::to_string(result[i].getIndex());
       drawLabel(img, label, left, top);
@@ -69,16 +74,16 @@ protected:
   }
 
   /////////////////////////////////////////////////////
-  const cv::Scalar BLACK  = cv::Scalar(0, 0, 0);
-  const cv::Scalar WHITE  = cv::Scalar(255, 255, 255);
-  const cv::Scalar YELLOW = cv::Scalar(0, 255, 255);
-  const cv::Scalar RED    = cv::Scalar(0, 0, 255);
-  const cv::Scalar GREEN  = cv::Scalar(0, 255, 0);
-  const int THICKNESS     = 1;
+  static inline cv::Scalar BLACK  = cv::Scalar(0, 0, 0);
+  static inline cv::Scalar WHITE  = cv::Scalar(255, 255, 255);
+  static inline cv::Scalar YELLOW = cv::Scalar(0, 255, 255);
+  static inline cv::Scalar RED    = cv::Scalar(0, 0, 255);
+  static inline cv::Scalar GREEN  = cv::Scalar(0, 255, 0);
+  static inline int THICKNESS     = 1;
 
   // Text parameters.
-  const float FONT_SCALE = 0.7;
-  const int FONT_FACE    = cv::FONT_HERSHEY_SIMPLEX;
+  static inline float FONT_SCALE = 0.7;
+  static inline int FONT_FACE    = cv::FONT_HERSHEY_SIMPLEX;
 
 private:
   const joda::settings::json::ChannelFiltering *mFilterSettings = nullptr;
@@ -91,7 +96,7 @@ private:
   /// \param[in]      left position to print
   /// \param[in]      top position to print
   ///
-  void drawLabel(cv::Mat &inputImage, const std::string &label, int left, int top)
+  static void drawLabel(cv::Mat &inputImage, const std::string &label, int left, int top)
   {
     // Display the label at the top of the bounding box.
     int baseLine;

@@ -79,6 +79,8 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
   }
   if(filter != nullptr) {
     applyParticleFilter(filter);
+  } else {
+    validity = ParticleValidity::VALID;
   }
 }
 ///

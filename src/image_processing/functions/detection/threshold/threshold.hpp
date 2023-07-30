@@ -25,7 +25,7 @@ class ObjectSegmentation : public DetectionFunction
 public:
   /////////////////////////////////////////////////////
   ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt, uint16_t thresholdValue);
-  auto forward(const cv::Mat &srcImg) -> DetectionResponse override;
+  auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage) -> DetectionResponse override;
 
 private:
   uint16_t mThresholdValue = 0;

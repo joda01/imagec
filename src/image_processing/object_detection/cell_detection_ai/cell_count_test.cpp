@@ -15,5 +15,5 @@ TEST_CASE("cell:counter", "[cell_counter]")
   joda::algo::CellCounter cellCounter;
   auto img = JpgLoader::loadEntireImage("test/cells.jpg");
   joda::settings::json::ChannelSettings set;
-  cellCounter.execute(img, set);
+  cellCounter.execute(img, img, set);
 }

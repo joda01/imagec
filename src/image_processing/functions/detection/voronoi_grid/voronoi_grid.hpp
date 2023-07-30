@@ -48,11 +48,8 @@ public:
     }
   }
 
-  auto forward(const cv::Mat &image) -> DetectionResponse override
+  auto forward(const cv::Mat &image, const cv::Mat &originalImage) -> DetectionResponse override
   {
-    // Keep a copy around
-    cv::Mat img_orig = image.clone();
-
     // Rectangle to be used with Subdiv2D
     cv::Size size = image.size();
     cv::Rect rect(0, 0, size.width, size.height);
@@ -67,14 +64,14 @@ public:
 
     // Draw delaunay triangles
     cv::Scalar delaunay_color(255, 255, 255), points_color(0, 0, 255);
-    drawDelaunay(image, subdiv, delaunay_color);
+    // drawDelaunay(image, subdiv, delaunay_color);
 
     cv::imwrite("test.jpg", image);
 
     // Allocate space for Voronoi Diagram
     cv::Mat img_voronoi = cv::Mat::zeros(image.rows, image.cols, CV_8UC1);
     // Draw Voronoi diagram
-    drawVoronoi(img_voronoi, subdiv);
+    drawVoronoi(img_voronoi, originalImage, subdiv);
 
     cv::Mat grayImageFloat;
     img_voronoi.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UCHAR_MAX);
@@ -83,12 +80,14 @@ public:
     cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
 
     std::cout << std::to_string(img_voronoi.type()) << "|" << std::to_string(img_voronoi.channels()) << "--"
-              << std::to_string(img_orig.type()) << "|" << std::to_string(img_orig.channels()) << std::endl;
-    img_voronoi = inputImage * 0.5 + img_orig;
+              << std::to_string(image.type()) << "|" << std::to_string(image.channels()) << std::endl;
+    img_voronoi = inputImage * 0.5 + image;
 
     cv::imwrite("voronoi.png", inputImage);
 
     cv::imwrite("voronoi_combi.png", img_voronoi);
+
+    return DetectionResponse{};
   }
 
   // Draw delaunay triangles
@@ -122,11 +121,13 @@ public:
   /// \param[out]  img      Image to draw the grid on
   /// \param[in]   subdiv   Sub division points
   ///
-  static void drawVoronoi(const cv::Mat &img, cv::Subdiv2D &subdiv)
+  static auto drawVoronoi(const cv::Mat &img, const cv::Mat &imgOriginal, cv::Subdiv2D &subdiv) -> DetectionResponse
   {
+    DetectionResponse response;
     std::vector<std::vector<cv::Point2f>> facets;
     std::vector<cv::Point2f> centers;
     subdiv.getVoronoiFacetList(std::vector<int>(), facets, centers);
+    response.controlImage = cv::Mat::zeros(img.rows, img.cols, CV_32FC3);
 
     for(size_t i = 0; i < facets.size(); i++) {
       std::vector<cv::Point> ifacet;
@@ -154,10 +155,20 @@ public:
       img += result;
 
       ifacets[0] = ifacet;
-      polylines(img, ifacets, true, cv::Scalar(), 1, cv::LINE_AA, 0);
-      circle(img, centers[i], 3, cv::Scalar(), cv::FILLED, cv::LINE_AA, 0);
+      polylines(response.controlImage, ifacets, true, cv::Scalar(), 1, cv::LINE_AA, 0);
+      circle(response.controlImage, centers[i], 3, cv::Scalar(), cv::FILLED, cv::LINE_AA, 0);
       // circle(img, centers[i], 80, cv::Scalar(0, 0, 0, 255), cv::FILLED, cv::LINE_AA, 0);
+
+      auto box        = cv::boundingRect(result);
+      cv::Mat boxMask = result(box) >= 0.2;
+      ROI roi(i, 1, 0, box, boxMask, imgOriginal);
+      response.result.push_back(roi);
     }
+
+    paintBoundingBox(response.controlImage, response.result, false);
+    cv::imwrite("voronoi_combi_ctrl.jpg", response.controlImage);
+
+    return response;
   }
 
 private:

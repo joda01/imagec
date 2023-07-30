@@ -33,7 +33,7 @@ public:
   /////////////////////////////////////////////////////
   ObjectSegmentation(const joda::settings::json::ChannelFiltering *filt, const std::string &onnxNetPath,
                      const std::vector<std::string> &classNames);
-  auto forward(const cv::Mat &srcImg) -> DetectionResponse override;
+  auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage) -> DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////

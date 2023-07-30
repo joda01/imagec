@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "/workspaces/imagec/build/build/tests",
             "args": [
-                "[pipeline_test_cells]"
+                "[pipeline_test_voronoi]"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

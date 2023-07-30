@@ -40,7 +40,7 @@ ObjectDetector::ObjectDetector(const joda::settings::json::ChannelFiltering *fil
 /// \param[in]  inputImage      Image to analyze
 /// \return     Result of the analysis
 ///
-auto ObjectDetector::forward(const cv::Mat &inputImageOriginal) -> DetectionResponse
+auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &originalImage) -> DetectionResponse
 {
   // Normalize the pixel values to [0, 255] float for detection
   cv::Mat grayImageFloat;
@@ -55,7 +55,7 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal) -> DetectionResp
   mNet.setInput(blob);
   std::vector<cv::Mat> outputs;
   mNet.forward(outputs, mNet.getUnconnectedOutLayersNames());
-  auto results = postProcessing(inputImageOriginal, outputs);
+  auto results = postProcessing(inputImageOriginal, originalImage, outputs);
   paintBoundingBox(inputImage, results);
   return {.result = results, .controlImage = inputImage};
 }
@@ -77,8 +77,8 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal) -> DetectionResp
 /// \param[out] outputs    predictionMatrix Matrix which holds the prediction result (see brief)
 /// \return Retruens the prepared prediction result
 ///
-auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const std::vector<cv::Mat> &predictionMatrix)
-    -> DetectionResults
+auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const cv::Mat &originalImage,
+                                    const std::vector<cv::Mat> &predictionMatrix) -> DetectionResults
 
 {
   // Initialize vectors to hold respective outputs while unwrapping     detections.
@@ -171,7 +171,7 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const std::vector
     if(keptIndexesSet.count(n) == 1) {
       cv::Mat boxMask = cv::Mat::ones(inputImage.size(), CV_8UC1);
       boxMask         = boxMask(boxes[n]) >= 0;
-      ROI roi(index, confidences[n], classIds[n], boxes[n], boxMask, inputImage, getFilterSettings());
+      ROI roi(index, confidences[n], classIds[n], boxes[n], boxMask, originalImage, getFilterSettings());
       result.push_back(roi);
       index++;
     }

@@ -98,8 +98,8 @@ void Pipeline::runJob(const std::string &inputFolder)
     //
     // Execute the next pipeline steps
     //
-    // joda::func::img::VoronoiGrid grid(detectionResults[2].result);
-    // grid.forward(detectionResults[2].controlImage);
+    joda::func::img::VoronoiGrid grid(detectionResults[2].result);
+    grid.forward(detectionResults[2].controlImage, detectionResults[2].originalImage);
 
     //
     // Write report
@@ -145,6 +145,10 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
 
   for(const auto &[tileIdx, tileData] : result) {
     cv::imwrite(detailReportOutputPath + std::filesystem::path::preferred_separator + "control_" +
+                    std::to_string(tempChannelIdx) + "_" + std::to_string(tileIdx) + ".jpg",
+                tileData.controlImage);
+
+    cv::imwrite(detailReportOutputPath + std::filesystem::path::preferred_separator + "original_" +
                     std::to_string(tempChannelIdx) + "_" + std::to_string(tileIdx) + ".jpg",
                 tileData.controlImage);
 

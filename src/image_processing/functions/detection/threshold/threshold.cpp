@@ -28,7 +28,7 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFilter
 {
 }
 
-auto ObjectSegmentation::forward(const cv::Mat &srcImg) -> DetectionResponse
+auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalImage) -> DetectionResponse
 {
   cv::Mat binaryImage;
   cv::threshold(srcImg, binaryImage, mThresholdValue, UINT16_MAX, cv::THRESH_BINARY);
@@ -55,7 +55,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg) -> DetectionResponse
     cv::Mat boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
     cv::drawContours(boxMask, contours, static_cast<int>(i), cv::Scalar(UCHAR_MAX), cv::FILLED);
     boxMask = boxMask(box) >= 1;
-    ROI detect(i, 1, 0, box, boxMask, srcImg, getFilterSettings());
+    ROI detect(i, 1, 0, box, boxMask, originalImage, getFilterSettings());
     response.push_back(detect);
   }
 

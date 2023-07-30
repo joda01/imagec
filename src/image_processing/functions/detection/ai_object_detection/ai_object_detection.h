@@ -33,12 +33,13 @@ public:
   /////////////////////////////////////////////////////
   ObjectDetector(const joda::settings::json::ChannelFiltering *filt, const std::string &onnxNet,
                  const std::vector<std::string> &classNames);
-  auto forward(const cv::Mat &inputImage) -> DetectionResponse override;
+  auto forward(const cv::Mat &inputImage, const cv::Mat &originalImage) -> DetectionResponse override;
 
 private:
   // void paintBoundingBox(cv::Mat &inputImage, const DetectionResults &detection);
   /////////////////////////////////////////////////////
-  auto postProcessing(const cv::Mat &inputImage, const std::vector<cv::Mat> &predictionMatrix) -> DetectionResults;
+  auto postProcessing(const cv::Mat &inputImage, const cv::Mat &originalImage,
+                      const std::vector<cv::Mat> &predictionMatrix) -> DetectionResults;
   void drawLabel(cv::Mat &input_image, const std::string &label, int left, int top);
   /////////////////////////////////////////////////////
   const float INPUT_WIDTH          = 640.0;

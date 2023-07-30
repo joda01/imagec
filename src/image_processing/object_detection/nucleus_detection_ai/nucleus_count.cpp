@@ -27,8 +27,8 @@ namespace joda::algo {
 /// \author     Joachim Danmayr
 /// \param[in]  img     Image to analyze
 ///
-auto NucleusCounter::execute(const cv::Mat &img, const joda::settings::json::ChannelSettings &channelSetting)
-    -> func::DetectionResponse
+auto NucleusCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
+                             const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse
 {
   auto enhancedContrast = img;
 
@@ -36,11 +36,11 @@ auto NucleusCounter::execute(const cv::Mat &img, const joda::settings::json::Cha
      settings::json::ChannelDetection::DetectionMode::THRESHOLD) {
     joda::func::threshold::ObjectSegmentation th(
         channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin());
-    return th.forward(img);
+    return th.forward(img, imgOriginal);
   } else {
     joda::func::ai::ObjectDetector obj(&channelSetting.getFilter(), "imagec_models/nucleus_detection_ex_vivo_v1.onnx",
                                        {"nuclues", "nucleus_no_focus"});
-    return obj.forward(enhancedContrast);
+    return obj.forward(enhancedContrast, imgOriginal);
   }
 }
 }    // namespace joda::algo

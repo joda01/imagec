@@ -63,7 +63,7 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFilter
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-auto ObjectSegmentation::forward(const Mat &inputImageOriginal) -> DetectionResponse
+auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage) -> DetectionResponse
 {
   // Normalize the pixel values to [0, 255] float for detection
   auto id = DurationCount::start("Convert");
@@ -159,7 +159,7 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal) -> DetectionResp
     int idx      = nms_result[i];
     cv::Rect box = boxes[idx] & holeImgRect;
     auto mask    = getMask(maskChannels[i], params, inputImageOriginal.size(), box);
-    ROI roi(i, confidences[idx], classIds[idx], box, mask, inputImage, getFilterSettings());
+    ROI roi(i, confidences[idx], classIds[idx], box, mask, originalImage, getFilterSettings());
     output.push_back(roi);
   }
 

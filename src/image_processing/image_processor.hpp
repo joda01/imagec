@@ -165,17 +165,19 @@ private:
                                               const joda::settings::json::ChannelSettings &channelSetting,
                                               const std::set<uint32_t> &tiffDirectories, int64 idx)
   {
-    auto id    = DurationCount::start("z-projection");
-    auto image = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx);
+    auto id             = DurationCount::start("z-projection");
+    cv::Mat image       = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx);
+    cv::Mat originalImg = image.clone();
     DurationCount::stop(id);
 
     doPreprocessing(image, channelSetting);
     id = DurationCount::start("detection");
 
-    auto detectionResult = doDetection(image, channelSetting);
+    auto detectionResult = doDetection(image, originalImg, channelSetting);
     DurationCount::stop(id);
 
     doFiltering(detectionResult, channelSetting);
+    detectionResult.originalImage = std::move(originalImg);
     return detectionResult;
   }
 
@@ -233,12 +235,13 @@ private:
   /// \param[in]  originalImage  Image the detection should be executed on
   /// \return     Detection results with control image
   ///
-  static func::DetectionResponse doDetection(cv::Mat image, const joda::settings::json::ChannelSettings &channelSetting)
+  static func::DetectionResponse doDetection(const cv::Mat &image, const cv::Mat &originalImg,
+                                             const joda::settings::json::ChannelSettings &channelSetting)
   {
     auto id = DurationCount::start("detection int");
 
     ALGORITHM algo;
-    auto ret = algo.execute(image, channelSetting);
+    auto ret = algo.execute(image, originalImg, channelSetting);
 
     DurationCount::stop(id);
 
