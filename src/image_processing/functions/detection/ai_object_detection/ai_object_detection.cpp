@@ -17,6 +17,7 @@
 #include "image_processing/functions/detection/detection.hpp"
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
 
 namespace joda::func::ai {
 
@@ -120,10 +121,22 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const std::vector
         float w = data[2];
         float h = data[3];
         // Bounding box coordinates.
-        int left   = int((cx - 0.5 * w) * x_factor);
-        int top    = int((cy - 0.5 * h) * y_factor);
-        int width  = int(w * x_factor);
+        int left = int((cx - 0.5 * w) * x_factor);
+        if(left < 0) {
+          left = 0;
+        }
+        int top = int((cy - 0.5 * h) * y_factor);
+        if(top < 0) {
+          top = 0;
+        }
+        int width = int(w * x_factor);
+        if(left + width > inputImage.cols) {
+          width = inputImage.cols - left;
+        }
         int height = int(h * y_factor);
+        if(top + height > inputImage.rows) {
+          height = inputImage.rows - top;
+        }
         // Store good detections in the boxes vector.
         boxes.push_back(cv::Rect(left, top, width, height));
       }
@@ -177,74 +190,31 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const std::vector
         }
       }
       float intensityAvg = intensity / static_cast<float>(areaSize);
-      result.push_back({
+
+      cv::Mat boxMask  = cv::Mat::ones(inputImage.size(), CV_8UC1);
+      boxMask          = boxMask(boxes[n]) >= 0;
+      Detection resTmp = {
           .index        = index,
           .confidence   = confidences[n],
           .classId      = classIds[n],
           .box          = boxes[n],
+          .boxMask      = boxMask,
           .intensity    = intensityAvg,
           .intensityMin = intensityMin,
           .intensityMax = intensityMax,
           .areaSize     = areaSize,
           .circularity  = 0,
 
-      });
+      };
+
+      calculateMetrics(resTmp, inputImage, boxes[n], boxMask);
+      result.push_back(resTmp);
+
       index++;
     }
   }
 
   return result;
-}
-
-///
-/// \brief      Paint bounding boxes around the found regions
-/// \author     Joachim Danmayr
-/// \param[in,out]  inputImage input image where bounding boxes should be painted on
-/// \param[in]      detection Detection result
-///
-void ObjectDetector::paintBoundingBox(cv::Mat &inputImage, const DetectionResults &detection)
-{
-  // Perform Non-Maximum Suppression and draw predictions.
-
-  for(const auto &element : detection) {
-    cv::Rect box = element.box;
-    int left     = box.x;
-    int top      = box.y;
-    int width    = box.width;
-    int height   = box.height;
-    int classi   = element.classId;
-    // Draw bounding box.
-    rectangle(inputImage, cv::Point(left, top), cv::Point(left + width, top + height), BLUE, 1 * THICKNESS);
-    // Get the label for the class name and its confidence.
-    std::string label = cv::format("%d", element.index);
-    // label             = mClassNames[classi] + ": " + label;
-    //  Draw class labels.
-    drawLabel(inputImage, label, left, top);
-  }
-}
-
-///
-/// \brief      Draw labels
-/// \author     Joachim Danmayr
-/// \param[in,out]  inputImage input image where bounding boxes should be painted on
-/// \param[in]      label Text to print in the image
-/// \param[in]      left position to print
-/// \param[in]      top position to print
-///
-void ObjectDetector::drawLabel(cv::Mat &inputImage, const std::string &label, int left, int top)
-{
-  // Display the label at the top of the bounding box.
-  int baseLine;
-  cv::Size label_size = cv::getTextSize(label, FONT_FACE, FONT_SCALE, THICKNESS, &baseLine);
-  top                 = cv::max(top, label_size.height);
-  // Top left corner.
-  cv::Point tlc = cv::Point(left, top);
-  // Bottom right corner.
-  cv::Point brc = cv::Point(left + label_size.width, top + label_size.height + baseLine);
-  // Draw white rectangle.
-  rectangle(inputImage, tlc, brc, BLACK, cv::FILLED);
-  // Put the label on the black rectangle.
-  putText(inputImage, label, cv::Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, WHITE, THICKNESS);
 }
 
 }    // namespace joda::func::ai

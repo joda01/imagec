@@ -103,26 +103,20 @@ protected:
     cv::Mat mask = img.clone();
 
     for(int i = 0; i < result.size(); i++) {
-      if(!result[i].box.empty() && !result[i].boxMask.empty() && !mask.empty()) {
-        int left      = result[i].box.x;
-        int top       = result[i].box.y;
-        int color_num = i;
-        rectangle(img, result[i].box, RED, 1, cv::LINE_4);
+      int left      = result[i].box.x;
+      int top       = result[i].box.y;
+      int width     = result[i].box.width;
+      int height    = result[i].box.height;
+      int color_num = i;
 
+      rectangle(img, result[i].box, RED, 1 * THICKNESS);
+
+      if(!result[i].boxMask.empty()) {
         mask(result[i].box).setTo(RED, result[i].boxMask);
-        //  string label =
-        //      mClassNames[result[i].classId] + ":" + to_string(result[i].confidence) + ":" +
-        //      to_string(result[i].index);
-
-        std::string label = std::to_string(result[i].index);
-
-        int baseLine       = 0;
-        cv::Size labelSize = getTextSize(label, cv::FONT_HERSHEY_PLAIN, 0.5, 1, &baseLine);
-        top                = cv::max(top, labelSize.height);
-        rectangle(img, cv::Point(left, top - int(1.5 * labelSize.height)),
-                  cv::Point(left + int(1.5 * labelSize.width), top + baseLine), BLACK, cv::FILLED);
-        putText(img, label, cv::Point(left, top), cv::FONT_HERSHEY_PLAIN, 0.5, WHITE, 1);
+      } else {
       }
+      std::string label = std::to_string(result[i].index);
+      drawLabel(img, label, left, top);
     }
     addWeighted(mask, 0.5, img, 1, 0, img);
   }
@@ -134,8 +128,37 @@ protected:
   const cv::Scalar YELLOW = cv::Scalar(0, 255, 255);
   const cv::Scalar RED    = cv::Scalar(0, 0, 255);
   const cv::Scalar GREEN  = cv::Scalar(0, 255, 0);
+  const int THICKNESS     = 1;
+
+  // Text parameters.
+  const float FONT_SCALE = 0.7;
+  const int FONT_FACE    = cv::FONT_HERSHEY_SIMPLEX;
 
 private:
   const joda::settings::json::ChannelFiltering &mFilterSettings;
+
+  ///
+  /// \brief      Draw labels
+  /// \author     Joachim Danmayr
+  /// \param[in,out]  inputImage input image where bounding boxes should be painted on
+  /// \param[in]      label Text to print in the image
+  /// \param[in]      left position to print
+  /// \param[in]      top position to print
+  ///
+  void drawLabel(cv::Mat &inputImage, const std::string &label, int left, int top)
+  {
+    // Display the label at the top of the bounding box.
+    int baseLine;
+    cv::Size label_size = cv::getTextSize(label, FONT_FACE, FONT_SCALE, THICKNESS, &baseLine);
+    top                 = cv::max(top, label_size.height);
+    // Top left corner.
+    cv::Point tlc = cv::Point(left, top);
+    // Bottom right corner.
+    cv::Point brc = cv::Point(left + label_size.width, top + label_size.height + baseLine);
+    // Draw white rectangle.
+    rectangle(inputImage, tlc, brc, BLACK, cv::FILLED);
+    // Put the label on the black rectangle.
+    putText(inputImage, label, cv::Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, WHITE, THICKNESS);
+  }
 };
 }    // namespace joda::func
