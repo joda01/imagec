@@ -23,25 +23,25 @@ TEST_CASE("image:loader:vsi:ome", "[image_loader_vsi_ome")
 ///
 TEST_CASE("image:loader:vsi:single", "[image_loader_vsi_single]")
 {
-  std::string inputImage = "test_spot/CD63mNeon_001.vsi";
+  std::string inputImage = "test_areosold_Evs/hoeachst.vsi";
 
-  // std::string cmd = "./lib/bftools/bfconvert -overwrite -tilex 512 -tiley 512 " + inputImage + " tmp.tiff";
-  std::string cmd = "./lib/bftools/bfconvert -overwrite " + inputImage + " tmp.tiff";
+  // std ::string cmd = "./lib/bftools/bfconvert -overwrite -tilex 512 -tiley 512 " + inputImage + " tmp.tiff";
+  std::string cmd = "./lib/bftools/bfconvert -overwrite " + inputImage + " test_areosold_Evs/hoechst.tiff";
   std::system(cmd.c_str());
 
-  auto img = TiffLoader::loadEntireImage("tmp.tiff", 0);
-  img *= 0.003906250;
-  cv::imwrite("test_spot/test_00.jpg", img);    // A JPG FILE IS BEING SAVED
-
-  img = TiffLoader::loadEntireImage("tmp.tiff", 1);
-  img *= 0.003906250;
-  cv::imwrite("test_spot/test_01.jpg", img);    // A JPG FILE IS BEING SAVED
-
-  img = TiffLoader::loadEntireImage("tmp.tiff", 2);
-  img *= 0.003906250;
-  cv::imwrite("test_spot/test_02.jpg", img);    // A JPG FILE IS BEING SAVED
-
-  img = TiffLoader::loadEntireImage("tmp.tiff", 3);
-  img *= 0.003906250;
-  cv::imwrite("test_spot/test_03.jpg", img);    // A JPG FILE IS BEING SAVED
+  // auto img = TiffLoader::loadEntireImage("tmp.tiff", 0);
+  // img *= 0.003906250;
+  // cv::imwrite("test_spot/test_00.jpg", img);    // A JPG FILE IS BEING SAVED
+  //
+  // img = TiffLoader::loadEntireImage("tmp.tiff", 1);
+  // img *= 0.003906250;
+  // cv::imwrite("test_spot/test_01.jpg", img);    // A JPG FILE IS BEING SAVED
+  //
+  // img = TiffLoader::loadEntireImage("tmp.tiff", 2);
+  // img *= 0.003906250;
+  // cv::imwrite("test_spot/test_02.jpg", img);    // A JPG FILE IS BEING SAVED
+  //
+  // img = TiffLoader::loadEntireImage("tmp.tiff", 3);
+  // img *= 0.003906250;
+  // cv::imwrite("test_spot/test_03.jpg", img);    // A JPG FILE IS BEING SAVED
 }

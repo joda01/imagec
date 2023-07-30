@@ -86,7 +86,8 @@
     "files.insertFinalNewline": true,
     "editor.formatOnSave": true,
     "cSpell.words": [
-        "schemaid"
+        "schemaid",
+        "Voronoi"
     ],
     "C_Cpp.errorSquiggles": "Disabled"
 }

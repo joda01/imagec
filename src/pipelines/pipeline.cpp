@@ -19,6 +19,7 @@
 #include <string>
 #include "helper/helper.hpp"
 #include "image_processing/channel_processor.hpp"
+#include "image_processing/functions/voronoi_grid/voronoi_grid.hpp"
 #include "logger/console_logger.hpp"
 #include <opencv2/imgcodecs.hpp>
 
@@ -58,8 +59,11 @@ void Pipeline::runJob(const std::string &inputFolder)
   mProgress.total.total = mImageFileContainer->getNrOfFiles();
 
   joda::reporting::Table alloverReport;
+  std::map<int, joda::func::DetectionResponse> detectionResults;
 
-  // Iterate over each image
+  //
+  // Iterate over each image to do detection
+  //
   int nrOfChannels = mAnalyzeSettings.getChannels().size();
   for(const auto &imagePath : mImageFileContainer->getFilesList()) {
     //
@@ -75,6 +79,14 @@ void Pipeline::runJob(const std::string &inputFolder)
         auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath,
                                                                               &mProgress.image, getStopReference());
 
+        //
+        // Add processing result to the detection result map
+        //
+        detectionResults.emplace(channelSettings.getChannelInfo().getChannelIndex(), processingResult.at(0));
+
+        //
+        // Add to detail report
+        //
         appendToDetailReport(processingResult, detailReport, detailOutput, channelSettings, tempChannelIdx);
         tempChannelIdx++;
 
@@ -82,10 +94,18 @@ void Pipeline::runJob(const std::string &inputFolder)
         joda::log::logError(ex.what());
       }
     }
+
+    //
+    // Execute the next pipeline steps
+    //
+    joda::func::img::VoronoiGrid grid(detectionResults[2].result);
+    grid.execute(detectionResults[2].controlImage);
+
+    //
+    // Write report
+    //
     detailReport.flushReportToFile(detailOutput + std::filesystem::path::preferred_separator + "detail.csv");
-
     appendToAllOverReport(alloverReport, detailReport, imageName, nrOfChannels);
-
     mProgress.total.finished++;
     if(mStop) {
       break;

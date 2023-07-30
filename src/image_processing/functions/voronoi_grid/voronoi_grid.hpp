@@ -1,0 +1,166 @@
+///
+/// \file      margin_crop.hpp
+/// \author    Joachim Danmayr
+/// \date      2023-07-02
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            All rights reserved! This file is subject
+///            to the terms and conditions defined in file
+///            LICENSE.txt, which is part of this package.
+///
+/// \brief     A short description what happens here.
+///
+
+#pragma once
+
+#include <string>
+#include "image_processing/functions/func_types.hpp"
+#include "image_processing/functions/function.hpp"
+#include <opencv2/core.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+namespace joda::func::img {
+
+///
+/// \class      Function
+/// \author     Joachim Danmayr
+/// \brief      Base class for an image processing function
+///
+class VoronoiGrid : public Function
+{
+public:
+  /////////////////////////////////////////////////////
+  explicit VoronoiGrid(const DetectionResults &result)
+  {
+    // Extract points from the result bounding boxes
+    for(const auto &res : result) {
+      if(res.isValid()) {
+        int x = static_cast<int>(static_cast<float>(res.box.x) + static_cast<float>(res.box.width) / 2.0F);
+        int y = static_cast<int>(static_cast<float>(res.box.y) + static_cast<float>(res.box.height) / 2.0F);
+        mPoints.emplace_back(x, y);
+      }
+    }
+  }
+
+  void execute(cv::Mat &image) const override
+  {
+    // Keep a copy around
+    cv::Mat img_orig = image.clone();
+
+    // Rectangle to be used with Subdiv2D
+    cv::Size size = image.size();
+    cv::Rect rect(0, 0, size.width, size.height);
+
+    // Create an instance of Subdiv2D
+    cv::Subdiv2D subdiv(rect);
+
+    // Insert points into subdiv
+    for(auto mPoint : mPoints) {
+      subdiv.insert(mPoint);
+    }
+
+    // Draw delaunay triangles
+    cv::Scalar delaunay_color(255, 255, 255), points_color(0, 0, 255);
+    drawDelaunay(image, subdiv, delaunay_color);
+
+    cv::imwrite("test.jpg", image);
+
+    // Allocate space for Voronoi Diagram
+    cv::Mat img_voronoi = cv::Mat::zeros(image.rows, image.cols, CV_8UC1);
+    // Draw Voronoi diagram
+    drawVoronoi(img_voronoi, subdiv);
+
+    cv::Mat grayImageFloat;
+    img_voronoi.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UCHAR_MAX);
+
+    cv::Mat inputImage;
+    cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
+
+    std::cout << std::to_string(img_voronoi.type()) << "|" << std::to_string(img_voronoi.channels()) << "--"
+              << std::to_string(img_orig.type()) << "|" << std::to_string(img_orig.channels()) << std::endl;
+    img_voronoi = inputImage * 0.5 + img_orig;
+
+    cv::imwrite("voronoi.png", inputImage);
+
+    cv::imwrite("voronoi_combi.png", img_voronoi);
+  }
+
+  // Draw delaunay triangles
+  static void drawDelaunay(cv::Mat &img, cv::Subdiv2D &subdiv, cv::Scalar delaunay_color)
+  {
+    std::vector<cv::Vec6f> triangleList;
+    subdiv.getTriangleList(triangleList);
+    std::vector<cv::Point> pt(3);
+    cv::Size size = img.size();
+    cv::Rect rect(0, 0, size.width, size.height);
+
+    for(size_t i = 0; i < triangleList.size(); i++) {
+      cv::Vec6f t = triangleList[i];
+      pt[0]       = cv::Point(cvRound(t[0]), cvRound(t[1]));
+      pt[1]       = cv::Point(cvRound(t[2]), cvRound(t[3]));
+      pt[2]       = cv::Point(cvRound(t[4]), cvRound(t[5]));
+
+      // Draw rectangles completely inside the image.
+      if(rect.contains(pt[0]) && rect.contains(pt[1]) && rect.contains(pt[2])) {
+        line(img, pt[0], pt[1], delaunay_color, 1, cv::LINE_AA, 0);
+        line(img, pt[1], pt[2], delaunay_color, 1, cv::LINE_AA, 0);
+        line(img, pt[2], pt[0], delaunay_color, 1, cv::LINE_AA, 0);
+      }
+    }
+  }
+
+  ///
+  /// \brief      Draw voronoi grid
+  /// \author     Joachim Danmayr
+  /// \ref        https://learnopencv.com/delaunay-triangulation-and-voronoi-diagram-using-opencv-c-python/
+  /// \param[out]  img      Image to draw the grid on
+  /// \param[in]   subdiv   Sub division points
+  ///
+  static void drawVoronoi(cv::Mat &img, cv::Subdiv2D &subdiv)
+  {
+    std::vector<std::vector<cv::Point2f>> facets;
+    std::vector<cv::Point2f> centers;
+    subdiv.getVoronoiFacetList(std::vector<int>(), facets, centers);
+
+    for(size_t i = 0; i < facets.size(); i++) {
+      std::vector<cv::Point> ifacet;
+      std::vector<std::vector<cv::Point>> ifacets(1);
+
+      cv::Mat points1_array(3, 1, CV_8U);
+      ifacet.resize(facets[i].size());
+      for(size_t j = 0; j < facets[i].size(); j++) {
+        ifacet[j] = facets[i][j];
+      }
+
+      int circleSize = 100;
+      std::vector<cv::Point> circleMask;
+      cv::ellipse2Poly(centers[i], cv::Size(circleSize, circleSize), 0, 0, 360, 1, circleMask);
+
+      cv::Mat mask1 = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+      fillConvexPoly(mask1, ifacet, cv::Scalar(255), 8, 0);
+
+      cv::Mat mask2 = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+      fillConvexPoly(mask2, circleMask, cv::Scalar(255), 8, 0);
+
+      cv::Mat result = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+      cv::bitwise_and(mask1, mask2, result);
+
+      img += result;
+
+      ifacets[0] = ifacet;
+      polylines(img, ifacets, true, cv::Scalar(), 1, cv::LINE_AA, 0);
+      circle(img, centers[i], 3, cv::Scalar(), cv::FILLED, cv::LINE_AA, 0);
+      // circle(img, centers[i], 80, cv::Scalar(0, 0, 0, 255), cv::FILLED, cv::LINE_AA, 0);
+    }
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  int mMarginSize;
+  std::vector<cv::Point2f> mPoints;
+};
+
+}    // namespace joda::func::img

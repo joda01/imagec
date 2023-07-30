@@ -50,6 +50,11 @@ struct Detection
   float circularity;        ///< Circularity of the masking area [0-1]
   ParticleValidity validity = ParticleValidity::UNKNOWN;
 
+  [[nodiscard]] bool isValid() const
+  {
+    return validity == ParticleValidity::VALID;
+  }
+
   ///
   /// \brief     Applies particle filter and sets the validity
   ///            based on the detection results
