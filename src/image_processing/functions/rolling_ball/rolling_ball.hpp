@@ -13,6 +13,8 @@
 ///            https://imagej.net/plugins/rolling-ball-background-subtraction
 ///
 
+#pragma once
+
 #include <cmath>
 #include <vector>
 #include "image_processing/functions/function.hpp"
@@ -48,9 +50,6 @@ private:
   std::shared_ptr<cv::Mat> shrinkImage(cv::Mat &ip, int shrinkfactor) const;
   void interpolateBackground(std::shared_ptr<cv::Mat> background, RollingBall &ball) const;
   void extrapolateBackground(std::shared_ptr<cv::Mat> background, RollingBall &ball) const;
-  std::shared_ptr<cv::Mat> rollBall16(RollingBall &ball, cv::Mat &image, std::shared_ptr<cv::Mat> smallImage) const;
-  void interpolateBackground16(std::shared_ptr<cv::Mat> background, RollingBall &ball) const;
-  void extrapolateBackground16(std::shared_ptr<cv::Mat> background, RollingBall &ball) const;
   void setNPasses(int nPasses);
 
   /////////////////////////////////////////////////////

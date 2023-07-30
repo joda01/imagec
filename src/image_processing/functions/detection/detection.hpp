@@ -68,7 +68,7 @@ protected:
         drawContours(img(result[i].getBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
       }
       std::string label = std::to_string(result[i].getIndex());
-      drawLabel(img, label, left, top);
+      // drawLabel(img, label, left, top);
     }
     addWeighted(mask, 0.5, img, 1, 0, img);
   }

@@ -161,7 +161,7 @@ void RollingBallBackground::subtractBackround(cv::Mat &ip, int ballRadius) const
   if(invert) {
     ip.convertTo(ip, CV_64F);
     cv::invert(ip, ip);
-    ip.convertTo(ip, CV_8U);
+    ip.convertTo(ip, CV_16U);
   }
 
   RollingBall ball(ballRadius);
@@ -173,15 +173,11 @@ void RollingBallBackground::subtractBackround(cv::Mat &ip, int ballRadius) const
 
   // new ImagePlus("small image", smallImage).show();
   std::shared_ptr<cv::Mat> background;
-  if(ip.depth() == CV_16U || ip.depth() == CV_16S) {
-    background = rollBall16(ball, ip, smallImage);
-    interpolateBackground16(background, ball);
-    extrapolateBackground16(background, ball);
-  } else {
-    background = rollBall(ball, ip, smallImage);
-    interpolateBackground(background, ball);
-    extrapolateBackground(background, ball);
-  }
+
+  background = rollBall(ball, ip, smallImage);
+  interpolateBackground(background, ball);
+  extrapolateBackground(background, ball);
+
   //  showProgress(0.9);
 
   // ip.copyBits(background, 0, 0, Blitter.SUBTRACT);
@@ -190,7 +186,7 @@ void RollingBallBackground::subtractBackround(cv::Mat &ip, int ballRadius) const
   if(invert) {
     ip.convertTo(ip, CV_64F);
     cv::invert(ip, ip);
-    ip.convertTo(ip, CV_8U);
+    ip.convertTo(ip, CV_16U);
   }
   //  showProgress(1.0);
 }
@@ -252,7 +248,7 @@ std::shared_ptr<cv::Mat> RollingBallBackground::rollBall(RollingBall &ball, cv::
     for(int xpt = left; xpt <= (right + patchwidth); xpt++) {    // while patch is tangent to edges or within image...
       // xpt is far right edge of ball patch
       // do we have to move the patch up or down to make it tangent to but not above image?...
-      zmin   = 255;    // highest could ever be 255
+      zmin   = 0xffff;    // highest could ever be 255
       ballpt = 0;
       ypt2   = ypt - patchwidth;    // ypt2 is top edge of ball patch
       imgpt  = ypt2 * smallimagewidth + xpt - patchwidth;
@@ -263,8 +259,9 @@ std::shared_ptr<cv::Mat> RollingBallBackground::rollBall(RollingBall &ball, cv::
           if((xpt2 >= left) && (xpt2 <= right) && (ypt2 >= top) && (ypt2 <= bottom)) {
             p1   = ballpt;
             p2   = imgpt;
-            zdif = (smallImage->data[p2] & 255) - (zctr + (ball.data[p1] & 255));    // curve - circle points
-            if(zdif < zmin)    // keep most negative, since ball should always be below curve
+            zdif = (smallImage->at<unsigned short>(p2) & 0xffff) -
+                   (zctr + (ball.data[p1] & 0xffff));    // curve - circle points
+            if(zdif < zmin)                              // keep most negative, since ball should always be below curve
               zmin = zdif;
           }    // if xpt2,ypt2
           ballpt++;
@@ -293,11 +290,11 @@ std::shared_ptr<cv::Mat> RollingBallBackground::rollBall(RollingBall &ball, cv::
         while(xpt2 <= patchwidth) {    // for all the points in the ball patch
           if((xval >= left) && (xval <= right) && (yval >= top) && (yval <= bottom)) {
             p1   = ballpt;
-            zadd = zctr + (ball.data[p1] & 255);
+            zadd = zctr + (ball.data[p1] & 0xffff);
             p1   = backgrpt;
             // if (backgrpt>=backgroundpixels.length) backgrpt = 0; //(debug)
-            if(zadd > (background->data[p1] & 255)) {    // keep largest adjustment}
-              background->data[p1] = (char) zadd;
+            if(zadd > (background->at<unsigned short>(p1) & 0xffff)) {    // keep largest adjustment}
+              background->at<unsigned short>(p1) = (unsigned short) zadd;
             }
           }
           ballpt++;
@@ -340,12 +337,12 @@ std::shared_ptr<cv::Mat> RollingBallBackground::shrinkImage(cv::Mat &ip, int shr
       min      = 65535;
       for(int j = 0; j < shrinkfactor; j++) {
         for(int k = 0; k < shrinkfactor; k++) {
-          thispixel = ip2.at<char>(ymaskmin + k, xmaskmin + j);
+          thispixel = ip2.at<unsigned short>(ymaskmin + k, xmaskmin + j);
           if(thispixel < min)
             min = thispixel;
         }
       }
-      smallImage->at<char>(y, x) = min;    // each point in small image is minimum of its neighborhood
+      smallImage->at<unsigned short>(y, x) = min;    // each point in small image is minimum of its neighborhood
     }
   }
   // new ImagePlus("smallImage", smallImage).show();
@@ -383,22 +380,24 @@ void RollingBallBackground::interpolateBackground(std::shared_ptr<cv::Mat> backg
       hloc += shrinkfactor;
       bgnextptr = vloc * width + hloc;
       bglastptr = bgnextptr - shrinkfactor;
-      nextvalue = background->data[bgnextptr] & 255;
-      lastvalue = background->data[bglastptr] & 255;
+      nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
+      lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
       for(int ii = 1; ii <= (shrinkfactor - 1); ii++) {    // interpolate horizontally
-        p                   = bgnextptr - ii;
-        background->data[p] = (char) (lastvalue + (shrinkfactor - ii) * (nextvalue - lastvalue) / shrinkfactor);
+        p = bgnextptr - ii;
+        background->at<unsigned short>(p) =
+            (unsigned short) (lastvalue + (shrinkfactor - ii) * (nextvalue - lastvalue) / shrinkfactor);
       }
       for(int ii = 0; ii <= (shrinkfactor - 1); ii++) {    // interpolate vertically
         bglastptr = (vloc - shrinkfactor) * width + hloc - ii;
         bgnextptr = vloc * width + hloc - ii;
-        lastvalue = background->data[bglastptr] & 255;
-        nextvalue = background->data[bgnextptr] & 255;
+        lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
+        nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
         vinc      = 0;
         for(int jj = 1; jj <= (shrinkfactor - 1); jj++) {
-          vinc                = vinc - width;
-          p                   = bgnextptr + vinc;
-          background->data[p] = (char) (lastvalue + (shrinkfactor - jj) * (nextvalue - lastvalue) / shrinkfactor);
+          vinc = vinc - width;
+          p    = bgnextptr + vinc;
+          background->at<unsigned short>(p) =
+              (unsigned short) (lastvalue + (shrinkfactor - jj) * (nextvalue - lastvalue) / shrinkfactor);
         }    // for jj
       }      // for ii
     }        // for i
@@ -434,8 +433,8 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
     // extrapolate on top and bottom
     bglastptr = shrinkfactor * width + hloc;
     bgnextptr = (shrinkfactor + 1) * width + hloc;
-    lastvalue = background->data[bglastptr] & 255;
-    nextvalue = background->data[bgnextptr] & 255;
+    lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
+    nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
     edgeslope = nextvalue - lastvalue;
     p         = bglastptr;
     pvalue    = lastvalue;
@@ -443,16 +442,16 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
       p      = p - width;
       pvalue = pvalue - edgeslope;
       if(pvalue < 0)
-        background->data[p] = 0;
-      else if(pvalue > 255)
-        background->data[p] = (char) 255;
+        background->at<unsigned short>(p) = 0;
+      else if(pvalue > 0xffff)
+        background->at<unsigned short>(p) = (unsigned short) 0xffff;
       else
-        background->data[p] = (char) pvalue;
+        background->at<unsigned short>(p) = (unsigned short) pvalue;
     }    // for jj
     bglastptr = (shrinkfactor * (bottomroll - toproll - 1) - 1) * width + hloc;
     bgnextptr = shrinkfactor * (bottomroll - toproll - 1) * width + hloc;
-    lastvalue = background->data[bglastptr] & 255;
-    nextvalue = background->data[bgnextptr] & 255;
+    lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
+    nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
     edgeslope = nextvalue - lastvalue;
     p         = bgnextptr;
     pvalue    = nextvalue;
@@ -460,19 +459,19 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
       p += width;
       pvalue += edgeslope;
       if(pvalue < 0)
-        background->data[p] = 0;
-      else if(pvalue > 255)
-        background->data[p] = (char) 255;
+        background->at<unsigned short>(p) = 0;
+      else if(pvalue > 0xffff)
+        background->at<unsigned short>(p) = (unsigned short) 0xffff;
       else
-        background->data[p] = (char) pvalue;
+        background->at<unsigned short>(p) = (unsigned short) pvalue;
     }    // for jj
   }      // for hloc
   for(int vloc = 0; vloc < height; vloc++) {
     // extrapolate on left and right
     bglastptr = vloc * width + shrinkfactor;
     bgnextptr = bglastptr + 1;
-    lastvalue = background->data[bglastptr] & 255;
-    nextvalue = background->data[bgnextptr] & 255;
+    lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
+    nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
     edgeslope = nextvalue - lastvalue;
     p         = bglastptr;
     pvalue    = lastvalue;
@@ -480,16 +479,16 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
       p--;
       pvalue = pvalue - edgeslope;
       if(pvalue < 0)
-        background->data[p] = 0;
-      else if(pvalue > 255)
-        background->data[p] = (char) 255;
+        background->at<unsigned short>(p) = 0;
+      else if(pvalue > 0xffff)
+        background->at<unsigned short>(p) = (unsigned short) 0xffff;
       else
-        background->data[p] = (char) pvalue;
+        background->at<unsigned short>(p) = (unsigned short) pvalue;
     }    // for ii
     bgnextptr = vloc * width + shrinkfactor * (rightroll - leftroll - 1) - 1;
     bglastptr = bgnextptr - 1;
-    lastvalue = background->data[bglastptr] & 255;
-    nextvalue = background->data[bgnextptr] & 255;
+    lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
+    nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
     edgeslope = nextvalue - lastvalue;
     p         = bgnextptr;
     pvalue    = nextvalue;
@@ -497,263 +496,11 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
       p++;
       pvalue = pvalue + edgeslope;
       if(pvalue < 0)
-        background->data[p] = 0;
-      else if(pvalue > 255)
-        background->data[p] = (char) 255;
+        background->at<unsigned short>(p) = 0;
+      else if(pvalue > 0xffff)
+        background->at<unsigned short>(p) = (unsigned short) 0xffff;
       else
-        background->data[p] = (char) pvalue;
-    }    // for ii
-  }      // for vloc
-}
-
-/** This is a 16-bit version of the rollBall() method. */
-std::shared_ptr<cv::Mat> RollingBallBackground::rollBall16(RollingBall &ball, cv::Mat &image,
-                                                           std::shared_ptr<cv::Mat> smallImage) const
-{
-  int halfpatchwidth;       // distance in x or y from patch center to any edge
-  int ptsbelowlastpatch;    // number of points we may ignore because they were below last patch
-  int xpt2, ypt2;           // current (x,y) point in the patch relative to upper left corner
-  int xval, yval;           // location in ball in shrunken image coordinates
-  int zdif;                 // difference in z (height) between point on ball and point on image
-  int zmin;                 // smallest zdif for ball patch with center at current point
-  int zctr;                 // current height of the center of the sphere of which the patch is a part
-  int zadd;                 // height of a point on patch relative to the xy-plane of the shrunken image
-  int ballpt;               // index to array storing the precomputed ball patch
-  int imgpt;                // index to array storing the shrunken image
-  int backgrpt;             // index to array storing the calculated background
-  int ybackgrpt;            // displacement to current background scan line
-  int p1, p2;               // temporary indexes to background, ball, or small image
-  int ybackgrinc;           // distance in memory between two shrunken y-points in background
-  int smallimagewidth;      // length of a scan line in shrunken image
-  int left, right, top, bottom;
-  // uint16_t *pixels           = (uint16_t *) smallImage->ptr();
-  auto patch                          = ball.data;
-  int width                           = image.cols;
-  int height                          = image.rows;
-  int swidth                          = smallImage->cols;
-  int sheight                         = smallImage->rows;
-  std::shared_ptr<cv::Mat> background = std::make_shared<cv::Mat>(height, width, CV_16U);
-  // uint16_t *backgroundpixels = (uint16_t *) background->ptr();
-  int shrinkfactor = ball.shrinkfactor;
-  int leftroll     = 0;
-  int rightroll    = width / shrinkfactor - 1;
-  int toproll      = 0;
-  int bottomroll   = height / shrinkfactor - 1;
-
-  left            = 1;
-  right           = rightroll - leftroll - 1;
-  top             = 1;
-  bottom          = bottomroll - toproll - 1;
-  smallimagewidth = swidth;
-  int patchwidth  = ball.patchwidth;
-  halfpatchwidth  = patchwidth / 2;
-  ybackgrinc      = shrinkfactor * width;    // real dist btwn 2 adjacent (dy=1) shrunk pts
-  zctr            = 0;                       // start z-center in the xy-plane
-  for(int ypt = top; ypt <= (bottom + patchwidth); ypt++) {
-    for(int xpt = left; xpt <= (right + patchwidth); xpt++) {    // while patch is tangent to edges or within image...
-      // xpt is far right edge of ball patch
-      // do we have to move the patch up or down to make it tangent to but not above image?...
-      zmin   = 65535;    // highest possible value
-      ballpt = 0;
-      ypt2   = ypt - patchwidth;    // ypt2 is top edge of ball patch
-      imgpt  = ypt2 * smallimagewidth + xpt - patchwidth;
-      while(ypt2 <= ypt) {
-        xpt2 = xpt - patchwidth;    // xpt2 is far left edge of ball patch
-        while(xpt2 <= xpt) {        // check every point on ball patch
-          // only examine points on
-          if((xpt2 >= left) && (xpt2 <= right) && (ypt2 >= top) && (ypt2 <= bottom)) {
-            p1   = ballpt;
-            p2   = imgpt;
-            zdif = (smallImage->data[p2] & 0xffff) - (zctr + (patch[p1] & 255));    // curve - circle points
-            if(zdif < zmin)    // keep most negative, since ball should always be below curve
-              zmin = zdif;
-          }    // if xpt2,ypt2
-          ballpt++;
-          xpt2++;
-          imgpt++;
-        }    // while xpt2
-        ypt2++;
-        imgpt = imgpt - patchwidth - 1 + smallimagewidth;
-      }    // while ypt2
-      if(zmin != 0)
-        zctr += zmin;    // move ball up or down if we find a new minimum
-      if(zmin < 0)
-        ptsbelowlastpatch = halfpatchwidth;    // ignore left half of ball patch when dz < 0
-      else
-        ptsbelowlastpatch = 0;
-      // now compare every point on ball with background,  and keep highest number
-      yval      = ypt - patchwidth;
-      ypt2      = 0;
-      ballpt    = 0;
-      ybackgrpt = (yval - top + 1) * ybackgrinc;
-      while(ypt2 <= patchwidth) {
-        xval = xpt - patchwidth + ptsbelowlastpatch;
-        xpt2 = ptsbelowlastpatch;
-        ballpt += ptsbelowlastpatch;
-        backgrpt = ybackgrpt + (xval - left + 1) * shrinkfactor;
-        while(xpt2 <= patchwidth) {    // for all the points in the ball patch
-          if((xval >= left) && (xval <= right) && (yval >= top) && (yval <= bottom)) {
-            p1   = ballpt;
-            zadd = zctr + (patch[p1] & 255);
-            p1   = backgrpt;
-            // if (backgrpt>=backgroundpixels.length) backgrpt = 0; //(debug)
-            if(zadd > (background->data[p1] & 0xffff))    // keep largest adjustment}
-              background->data[p1] = (short) zadd;
-          }
-          ballpt++;
-          xval++;
-          xpt2++;
-          backgrpt += shrinkfactor;    // move to next point in x
-        }                              // while xpt2
-        yval++;
-        ypt2++;
-        ybackgrpt += ybackgrinc;    // move to next point in y
-      }                             // while ypt2
-    }                               // for xpt
-                                    // if(ypt % 20 == 0)
-                                    //   showProgress(0.2 + 0.6 * ypt / (bottom + patchwidth));
-  }                                 // for ypt
-  return background;
-}
-
-/** This is a 16-bit version of the interpolateBackground(0 method. */
-void RollingBallBackground::interpolateBackground16(std::shared_ptr<cv::Mat> background, RollingBall &ball) const
-{
-  int hloc, vloc;              // position of current pixel in calculated background
-  int vinc;                    // memory offset from current calculated pos to current interpolated pos
-  int lastvalue, nextvalue;    // calculated pixel values between which we are interpolating
-  int p;                       // pointer to current interpolated pixel value
-  int bglastptr, bgnextptr;    // pointers to calculated pixel values between which we are interpolating
-
-  int width        = background->cols;
-  int height       = background->rows;
-  int shrinkfactor = ball.shrinkfactor;
-  int leftroll     = 0;
-  int rightroll    = width / shrinkfactor - 1;
-  int toproll      = 0;
-  int bottomroll   = height / shrinkfactor - 1;
-  // uint16_t *pixels = (uint16_t *) background->ptr();
-
-  vloc = 0;
-  for(int j = 1; j <= (bottomroll - toproll - 1); j++) {    // interpolate to find background interior
-    hloc = 0;
-    vloc += shrinkfactor;
-    for(int i = 1; i <= (rightroll - leftroll); i++) {
-      hloc += shrinkfactor;
-      bgnextptr = vloc * width + hloc;
-      bglastptr = bgnextptr - shrinkfactor;
-      nextvalue = background->data[bgnextptr] & 0xffff;
-      lastvalue = background->data[bglastptr] & 0xffff;
-      for(int ii = 1; ii <= (shrinkfactor - 1); ii++) {    // interpolate horizontally
-        p                   = bgnextptr - ii;
-        background->data[p] = (short) (lastvalue + (shrinkfactor - ii) * (nextvalue - lastvalue) / shrinkfactor);
-      }
-      for(int ii = 0; ii <= (shrinkfactor - 1); ii++) {    // interpolate vertically
-        bglastptr = (vloc - shrinkfactor) * width + hloc - ii;
-        bgnextptr = vloc * width + hloc - ii;
-        lastvalue = background->data[bglastptr] & 0xffff;
-        nextvalue = background->data[bgnextptr] & 0xffff;
-        vinc      = 0;
-        for(int jj = 1; jj <= (shrinkfactor - 1); jj++) {
-          vinc                = vinc - width;
-          p                   = bgnextptr + vinc;
-          background->data[p] = (short) (lastvalue + (shrinkfactor - jj) * (nextvalue - lastvalue) / shrinkfactor);
-        }    // for jj
-      }      // for ii
-    }        // for i
-  }          // for j
-}
-
-/** This is a 16-bit version of the extrapolateBackground() method. */
-void RollingBallBackground::extrapolateBackground16(std::shared_ptr<cv::Mat> background, RollingBall &ball) const
-{
-  int edgeslope;               // difference of last two consecutive pixel values on an edge
-  int pvalue;                  // current extrapolated pixel value
-  int lastvalue, nextvalue;    // calculated pixel values from which we are extrapolating
-  int p;                       // pointer to current extrapolated pixel value
-  int bglastptr, bgnextptr;    // pointers to calculated pixel values from which we are extrapolating
-
-  int width        = background->cols;
-  int height       = background->rows;
-  int shrinkfactor = ball.shrinkfactor;
-  int leftroll     = 0;
-  int rightroll    = width / shrinkfactor - 1;
-  int toproll      = 0;
-  int bottomroll   = height / shrinkfactor - 1;
-  // uint16_t *pixels = (uint16_t *) background->ptr();
-
-  for(int hloc = shrinkfactor; hloc <= (shrinkfactor * (rightroll - leftroll) - 1); hloc++) {
-    // extrapolate on top and bottom
-    bglastptr = shrinkfactor * width + hloc;
-    bgnextptr = (shrinkfactor + 1) * width + hloc;
-    lastvalue = background->data[bglastptr] & 0xffff;
-    nextvalue = background->data[bgnextptr] & 0xffff;
-    edgeslope = nextvalue - lastvalue;
-    p         = bglastptr;
-    pvalue    = lastvalue;
-    for(int jj = 1; jj <= shrinkfactor; jj++) {
-      p      = p - width;
-      pvalue = pvalue - edgeslope;
-      if(pvalue < 0)
-        background->data[p] = 0;
-      else if(pvalue > 65535)
-        background->data[p] = (short) 65535;
-      else
-        background->data[p] = (short) pvalue;
-    }    // for jj
-    bglastptr = (shrinkfactor * (bottomroll - toproll - 1) - 1) * width + hloc;
-    bgnextptr = shrinkfactor * (bottomroll - toproll - 1) * width + hloc;
-    lastvalue = background->data[bglastptr] & 0xffff;
-    nextvalue = background->data[bgnextptr] & 0xffff;
-    edgeslope = nextvalue - lastvalue;
-    p         = bgnextptr;
-    pvalue    = nextvalue;
-    for(int jj = 1; jj <= ((height - 1) - shrinkfactor * (bottomroll - toproll - 1)); jj++) {
-      p += width;
-      pvalue += edgeslope;
-      if(pvalue < 0)
-        background->data[p] = 0;
-      else if(pvalue > 65535)
-        background->data[p] = (short) 65535;
-      else
-        background->data[p] = (short) pvalue;
-    }    // for jj
-  }      // for hloc
-  for(int vloc = 0; vloc < height; vloc++) {
-    // extrapolate on left and right
-    bglastptr = vloc * width + shrinkfactor;
-    bgnextptr = bglastptr + 1;
-    lastvalue = background->data[bglastptr] & 0xffff;
-    nextvalue = background->data[bgnextptr] & 0xffff;
-    edgeslope = nextvalue - lastvalue;
-    p         = bglastptr;
-    pvalue    = lastvalue;
-    for(int ii = 1; ii <= shrinkfactor; ii++) {
-      p--;
-      pvalue = pvalue - edgeslope;
-      if(pvalue < 0)
-        background->data[p] = 0;
-      else if(pvalue > 65535)
-        background->data[p] = (short) 65535;
-      else
-        background->data[p] = (short) pvalue;
-    }    // for ii
-    bgnextptr = vloc * width + shrinkfactor * (rightroll - leftroll - 1) - 1;
-    bglastptr = bgnextptr - 1;
-    lastvalue = background->data[bglastptr] & 0xffff;
-    nextvalue = background->data[bgnextptr] & 0xffff;
-    edgeslope = nextvalue - lastvalue;
-    p         = bgnextptr;
-    pvalue    = nextvalue;
-    for(int ii = 1; ii <= ((width - 1) - shrinkfactor * (rightroll - leftroll - 1) + 1); ii++) {
-      p++;
-      pvalue = pvalue + edgeslope;
-      if(pvalue < 0)
-        background->data[p] = 0;
-      else if(pvalue > 65535)
-        background->data[p] = (short) 65535;
-      else
-        background->data[p] = (short) pvalue;
+        background->at<unsigned short>(p) = (unsigned short) pvalue;
     }    // for ii
   }      // for vloc
 }
