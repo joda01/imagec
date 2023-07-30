@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "/workspaces/imagec/build/build/tests",
             "args": [
-                "[pipeline_test_spots]"
+                "[pipeline_test_cells]"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

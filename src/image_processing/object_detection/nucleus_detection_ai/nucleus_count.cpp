@@ -38,7 +38,7 @@ auto NucleusCounter::execute(const cv::Mat &img, const joda::settings::json::Cha
         channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin());
     return th.forward(img);
   } else {
-    joda::func::ai::ObjectDetector obj(channelSetting.getFilter(), "imagec_models/nucleus_detection_ex_vivo_v1.onnx",
+    joda::func::ai::ObjectDetector obj(&channelSetting.getFilter(), "imagec_models/nucleus_detection_ex_vivo_v1.onnx",
                                        {"nuclues", "nucleus_no_focus"});
     return obj.forward(enhancedContrast);
   }

@@ -26,13 +26,30 @@ TEST_CASE("pipeline:test", "[pipeline_test]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:spots", "[pipeline_test_spots]")
+TEST_CASE("pipeline:test:voronoi", "[pipeline_test_voronoi]")
 {
   joda::settings::json::AnalyzeSettings settings;
   settings.loadConfigFromFile("test_areosold_Evs/config.json");
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test_areosold_Evs");
   joda::pipeline::PipelineFactory::startNewJob(settings, "test_areosold_Evs", &imageFileContainer);
+
+  while(true) {
+    sleep(2);
+  }
+}
+
+///
+/// \brief  Spot test
+/// \author Joachim Danmayr
+///
+TEST_CASE("pipeline:test:spots", "[pipeline_test_spots]")
+{
+  joda::settings::json::AnalyzeSettings settings;
+  settings.loadConfigFromFile("test_spot/config.json");
+  joda::helper::ImageFileContainer imageFileContainer;
+  imageFileContainer.setWorkingDirectory("test_spot");
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test_spot", &imageFileContainer);
 
   while(true) {
     sleep(2);

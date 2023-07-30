@@ -31,15 +31,15 @@ class ObjectSegmentation : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt, const std::string &onnxNetPath,
+  ObjectSegmentation(const joda::settings::json::ChannelFiltering *filt, const std::string &onnxNetPath,
                      const std::vector<std::string> &classNames);
   auto forward(const cv::Mat &srcImg) -> DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////
 
-  void getMask(const cv::Mat &image, const cv::Mat &maskProposals, const cv::Mat &mask_protos, const cv::Vec4d &params,
-               const cv::Size &srcImgShape, DetectionResults &output);
+  auto getMask(const cv::Mat &maskChannel, const cv::Vec4d &params, const cv::Size &inputImageShape,
+               const cv::Rect &box) -> cv::Mat;
 
   void letterBox(const cv::Mat &image, cv::Mat &outImage,
                  cv::Vec4d &params,    //[ratio_x,ratio_y,dw,dh]

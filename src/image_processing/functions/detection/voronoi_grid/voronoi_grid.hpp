@@ -14,6 +14,7 @@
 #pragma once
 
 #include <string>
+#include "image_processing/functions/detection/detection.hpp"
 #include "image_processing/functions/func_types.hpp"
 #include "image_processing/functions/function.hpp"
 #include <opencv2/core.hpp>
@@ -29,23 +30,25 @@ namespace joda::func::img {
 /// \author     Joachim Danmayr
 /// \brief      Base class for an image processing function
 ///
-class VoronoiGrid : public Function
+class VoronoiGrid : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  explicit VoronoiGrid(const DetectionResults &result)
+  explicit VoronoiGrid(const DetectionResults &result) : DetectionFunction(nullptr)
   {
     // Extract points from the result bounding boxes
     for(const auto &res : result) {
       if(res.isValid()) {
-        int x = static_cast<int>(static_cast<float>(res.box.x) + static_cast<float>(res.box.width) / 2.0F);
-        int y = static_cast<int>(static_cast<float>(res.box.y) + static_cast<float>(res.box.height) / 2.0F);
+        int x = static_cast<int>(static_cast<float>(res.getBoundingBox().x) +
+                                 static_cast<float>(res.getBoundingBox().width) / 2.0F);
+        int y = static_cast<int>(static_cast<float>(res.getBoundingBox().y) +
+                                 static_cast<float>(res.getBoundingBox().height) / 2.0F);
         mPoints.emplace_back(x, y);
       }
     }
   }
 
-  void execute(cv::Mat &image) const override
+  auto forward(const cv::Mat &image) -> DetectionResponse override
   {
     // Keep a copy around
     cv::Mat img_orig = image.clone();
@@ -89,7 +92,7 @@ public:
   }
 
   // Draw delaunay triangles
-  static void drawDelaunay(cv::Mat &img, cv::Subdiv2D &subdiv, cv::Scalar delaunay_color)
+  static void drawDelaunay(const cv::Mat &img, cv::Subdiv2D &subdiv, cv::Scalar delaunay_color)
   {
     std::vector<cv::Vec6f> triangleList;
     subdiv.getTriangleList(triangleList);
@@ -119,7 +122,7 @@ public:
   /// \param[out]  img      Image to draw the grid on
   /// \param[in]   subdiv   Sub division points
   ///
-  static void drawVoronoi(cv::Mat &img, cv::Subdiv2D &subdiv)
+  static void drawVoronoi(const cv::Mat &img, cv::Subdiv2D &subdiv)
   {
     std::vector<std::vector<cv::Point2f>> facets;
     std::vector<cv::Point2f> centers;

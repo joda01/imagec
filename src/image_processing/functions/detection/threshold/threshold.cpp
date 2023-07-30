@@ -24,7 +24,7 @@
 namespace joda::func::threshold {
 
 ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt, uint16_t thresholdValue) :
-    DetectionFunction(filt), mThresholdValue(thresholdValue)
+    DetectionFunction(&filt), mThresholdValue(thresholdValue)
 {
 }
 
@@ -49,20 +49,13 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg) -> DetectionResponse
   }
   // Create a mask for each contour and draw bounding boxes
   for(size_t i = 0; i < contours.size(); ++i) {
-    Detection detect;
-    detect.index      = i;
-    detect.confidence = 1;
-
     // Find the bounding box for the contour
-    detect.box = cv::boundingRect(contours[i]);
-
+    auto box = cv::boundingRect(contours[i]);
     // Create a mask for the current contour
     cv::Mat boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
     cv::drawContours(boxMask, contours, static_cast<int>(i), cv::Scalar(UCHAR_MAX), cv::FILLED);
-    boxMask        = boxMask(detect.box) >= 1;
-    detect.boxMask = boxMask;
-
-    calculateMetrics(detect, srcImg, detect.box, detect.boxMask);
+    boxMask = boxMask(box) >= 1;
+    ROI detect(i, 1, 0, box, boxMask, srcImg, getFilterSettings());
     response.push_back(detect);
   }
 

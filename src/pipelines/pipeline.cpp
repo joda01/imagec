@@ -19,7 +19,7 @@
 #include <string>
 #include "helper/helper.hpp"
 #include "image_processing/channel_processor.hpp"
-#include "image_processing/functions/voronoi_grid/voronoi_grid.hpp"
+#include "image_processing/functions/detection/voronoi_grid/voronoi_grid.hpp"
 #include "logger/console_logger.hpp"
 #include <opencv2/imgcodecs.hpp>
 
@@ -98,8 +98,8 @@ void Pipeline::runJob(const std::string &inputFolder)
     //
     // Execute the next pipeline steps
     //
-    joda::func::img::VoronoiGrid grid(detectionResults[2].result);
-    grid.execute(detectionResults[2].controlImage);
+    // joda::func::img::VoronoiGrid grid(detectionResults[2].result);
+    // grid.forward(detectionResults[2].controlImage);
 
     //
     // Write report
@@ -150,19 +150,19 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
 
     for(const auto &imgData : tileData.result) {
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
-                                                 imgData.index, imgData.confidence, imgData.validity);
+                                                 imgData.getIndex(), imgData.getConfidence(), imgData.getValidity());
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
-                                                 imgData.index, imgData.intensity, imgData.validity);
+                                                 imgData.getIndex(), imgData.getIntensity(), imgData.getValidity());
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN),
-                                                 imgData.index, imgData.intensityMin, imgData.validity);
+                                                 imgData.getIndex(), imgData.getIntensityMin(), imgData.getValidity());
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX),
-                                                 imgData.index, imgData.intensityMax, imgData.validity);
+                                                 imgData.getIndex(), imgData.getIntensityMax(), imgData.getValidity());
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
-                                                 imgData.index, imgData.areaSize, imgData.validity);
+                                                 imgData.getIndex(), imgData.getAreaSize(), imgData.getValidity());
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
-                                                 imgData.index, imgData.circularity, imgData.validity);
+                                                 imgData.getIndex(), imgData.getCircularity(), imgData.getValidity());
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
-                                                 imgData.index, imgData.validity);
+                                                 imgData.getIndex(), imgData.getValidity());
     }
   }
 }

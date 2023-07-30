@@ -27,7 +27,7 @@ namespace joda::func::ai {
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-ObjectDetector::ObjectDetector(const joda::settings::json::ChannelFiltering &filt, const std::string &onnxNetPath,
+ObjectDetector::ObjectDetector(const joda::settings::json::ChannelFiltering *filt, const std::string &onnxNetPath,
                                const std::vector<std::string> &classNames) :
     DetectionFunction(filt),
     mNet{cv::dnn::readNet(onnxNetPath)}, mClassNames(classNames)
@@ -169,47 +169,10 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const std::vector
   uint32_t index = 0;
   for(int n = 0; n < confidences.size(); n++) {
     if(keptIndexesSet.count(n) == 1) {
-      // Calculate some more metrics
-
-      float intensity    = 0;
-      float intensityMin = USHRT_MAX;
-      float intensityMax = 0;
-      float areaSize     = 0;
-      // Calculate the intensity and area of the polygon ROI
-      for(int x = 0; x < boxes[n].width; x++) {
-        for(int y = 0; y < boxes[n].height; y++) {
-          double pixelGrayScale = inputImage.at<unsigned short>(y, x);    // Get the pixel value at (x, y)
-          if(pixelGrayScale < intensityMin) {
-            intensityMin = pixelGrayScale;
-          }
-          if(pixelGrayScale > intensityMax) {
-            intensityMax = pixelGrayScale;
-          }
-          intensity += pixelGrayScale;
-          areaSize++;
-        }
-      }
-      float intensityAvg = intensity / static_cast<float>(areaSize);
-
-      cv::Mat boxMask  = cv::Mat::ones(inputImage.size(), CV_8UC1);
-      boxMask          = boxMask(boxes[n]) >= 0;
-      Detection resTmp = {
-          .index        = index,
-          .confidence   = confidences[n],
-          .classId      = classIds[n],
-          .box          = boxes[n],
-          .boxMask      = boxMask,
-          .intensity    = intensityAvg,
-          .intensityMin = intensityMin,
-          .intensityMax = intensityMax,
-          .areaSize     = areaSize,
-          .circularity  = 0,
-
-      };
-
-      calculateMetrics(resTmp, inputImage, boxes[n], boxMask);
-      result.push_back(resTmp);
-
+      cv::Mat boxMask = cv::Mat::ones(inputImage.size(), CV_8UC1);
+      boxMask         = boxMask(boxes[n]) >= 0;
+      ROI roi(index, confidences[n], classIds[n], boxes[n], boxMask, inputImage, getFilterSettings());
+      result.push_back(roi);
       index++;
     }
   }

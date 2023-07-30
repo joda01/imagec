@@ -26,7 +26,7 @@ namespace joda::func {
 class DetectionFunction
 {
 public:
-  DetectionFunction(const joda::settings::json::ChannelFiltering &filt) : mFilterSettings(filt)
+  DetectionFunction(const joda::settings::json::ChannelFiltering *filt) : mFilterSettings(filt)
   {
   }
   /////////////////////////////////////////////////////
@@ -34,62 +34,9 @@ public:
 
 protected:
   /////////////////////////////////////////////////////
-
-  ///
-  /// \brief      Calculate metrics based on bounding box and mask
-  /// \author     Joachim Danmayr
-  ///
-  void calculateMetrics(Detection &detection, const cv::Mat &image, const cv::Rect &rect, const cv::Mat &mask)
+  auto getFilterSettings() const -> const joda::settings::json::ChannelFiltering *
   {
-    double intensity    = 0;
-    double intensityMin = USHRT_MAX;
-    double intensityMax = 0;
-
-    uint64_t areaSize = 0;
-
-    // std::cout << "MAsk " << std::to_string(mask.channels()) << " x " << std::to_string(mask.type()) << std::endl;
-
-    // Calculate the intensity and area of the polygon ROI
-    for(int x = 0; x < rect.width; x++) {
-      for(int y = 0; y < rect.height; y++) {
-        unsigned char maskPxl = mask.at<unsigned char>(y, x);    // Get the pixel value at (x, y)
-        if(maskPxl > 0) {
-          double pixelGrayScale = image.at<unsigned short>(y, x);    // Get the pixel value at (x, y)
-          if(pixelGrayScale < intensityMin) {
-            intensityMin = pixelGrayScale;
-          }
-          if(pixelGrayScale > intensityMax) {
-            intensityMax = pixelGrayScale;
-          }
-          intensity += pixelGrayScale;
-          areaSize++;
-        }
-      }
-    }
-    float intensityAvg = 0.0f;
-    if(areaSize > 0) {
-      intensityAvg = intensity / static_cast<float>(areaSize);
-    }
-    detection.intensity    = intensityAvg;
-    detection.intensityMin = intensityMin;
-    detection.intensityMax = intensityMax;
-    detection.areaSize     = areaSize;
-
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-
-    float circularity = 0;
-    if(!contours.empty()) {
-      double area      = cv::contourArea(contours[0]);
-      double perimeter = cv::arcLength(contours[0], true);
-      if(perimeter != 0) {
-        circularity = (4 * M_PI * area) / (perimeter * perimeter);
-      } else {
-        circularity = 1;
-      }
-    }
-    detection.circularity = circularity;
-    detection.applyParticleFilter(mFilterSettings);
+    return mFilterSettings;
   }
 
   ///
@@ -103,25 +50,24 @@ protected:
     cv::Mat mask = img.clone();
 
     for(int i = 0; i < result.size(); i++) {
-      int left      = result[i].box.x;
-      int top       = result[i].box.y;
-      int width     = result[i].box.width;
-      int height    = result[i].box.height;
+      int left      = result[i].getBoundingBox().x;
+      int top       = result[i].getBoundingBox().y;
+      int width     = result[i].getBoundingBox().width;
+      int height    = result[i].getBoundingBox().height;
       int color_num = i;
 
-      rectangle(img, result[i].box, RED, 1 * THICKNESS);
+      rectangle(img, result[i].getBoundingBox(), RED, 1 * THICKNESS);
 
-      if(!result[i].boxMask.empty()) {
-        mask(result[i].box).setTo(RED, result[i].boxMask);
+      if(!result[i].getMask().empty()) {
+        mask(result[i].getBoundingBox()).setTo(RED, result[i].getMask());
       } else {
       }
-      std::string label = std::to_string(result[i].index);
+      std::string label = std::to_string(result[i].getIndex());
       drawLabel(img, label, left, top);
     }
     addWeighted(mask, 0.5, img, 1, 0, img);
   }
 
-protected:
   /////////////////////////////////////////////////////
   const cv::Scalar BLACK  = cv::Scalar(0, 0, 0);
   const cv::Scalar WHITE  = cv::Scalar(255, 255, 255);
@@ -135,7 +81,7 @@ protected:
   const int FONT_FACE    = cv::FONT_HERSHEY_SIMPLEX;
 
 private:
-  const joda::settings::json::ChannelFiltering &mFilterSettings;
+  const joda::settings::json::ChannelFiltering *mFilterSettings = nullptr;
 
   ///
   /// \brief      Draw labels
