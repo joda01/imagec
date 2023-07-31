@@ -108,4 +108,16 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 
   // filter.getSnapAreaSize();
 }
+
+///
+/// \brief      Calculates if an intersection between the ROIs exist
+/// \author     Joachim Danmayr
+/// \param[in]  roi   ROI to check against
+///
+
+[[nodiscard]] bool ROI::doesIntersect(const ROI &roi) const
+{
+  return ((getBoundingBox() & roi.getBoundingBox()).area() > 0);
+}
+
 }    // namespace joda::func

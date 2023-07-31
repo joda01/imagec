@@ -71,7 +71,7 @@ public:
     // Allocate space for Voronoi Diagram
     cv::Mat img_voronoi = cv::Mat::zeros(image.rows, image.cols, CV_8UC1);
     // Draw Voronoi diagram
-    drawVoronoi(img_voronoi, originalImage, subdiv);
+    auto result = drawVoronoi(img_voronoi, originalImage, subdiv);
 
     cv::Mat grayImageFloat;
     img_voronoi.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UCHAR_MAX);
@@ -87,7 +87,7 @@ public:
 
     cv::imwrite("voronoi_combi.png", img_voronoi);
 
-    return DetectionResponse{};
+    return result;
   }
 
   // Draw delaunay triangles

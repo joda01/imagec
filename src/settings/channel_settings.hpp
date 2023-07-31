@@ -167,7 +167,7 @@ public:
     BACKGROUND,
   };
 
-  auto getChannelIndex() const -> uint32_t
+  auto getChannelIndex() const -> int32_t
   {
     return index;
   }
@@ -201,7 +201,7 @@ private:
   // Corresponding channel
   // [0, 1, 2, ...]
   //
-  uint32_t index;
+  int32_t index;
 
   //
   // User defined name of the channel

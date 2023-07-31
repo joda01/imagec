@@ -106,6 +106,8 @@ public:
     return validity;
   }
 
+  [[nodiscard]] bool doesIntersect(const ROI &roi) const;
+
 private:
   /////////////////////////////////////////////////////
   void calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter);

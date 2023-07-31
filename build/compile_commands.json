@@ -91,6 +91,11 @@
 },
 {
   "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/pipelines/count_spots_in_cells/count_spot_in_cells.cpp.o -c /workspaces/imagec/src/pipelines/count_spots_in_cells/count_spot_in_cells.cpp",
+  "file": "/workspaces/imagec/src/pipelines/count_spots_in_cells/count_spot_in_cells.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/imagec.dir/src/pipelines/pipeline.cpp.o -c /workspaces/imagec/src/pipelines/pipeline.cpp",
   "file": "/workspaces/imagec/src/pipelines/pipeline.cpp"
 },
@@ -171,6 +176,11 @@
 },
 {
   "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_processing/functions/rolling_ball/rolling_ball_test.cpp.o -c /workspaces/imagec/src/image_processing/functions/rolling_ball/rolling_ball_test.cpp",
+  "file": "/workspaces/imagec/src/image_processing/functions/rolling_ball/rolling_ball_test.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/image_processing/object_detection/cell_detection_ai/cell_count.cpp.o -c /workspaces/imagec/src/image_processing/object_detection/cell_detection_ai/cell_count.cpp",
   "file": "/workspaces/imagec/src/image_processing/object_detection/cell_detection_ai/cell_count.cpp"
 },
@@ -228,6 +238,11 @@
   "directory": "/workspaces/imagec/build",
   "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/main_test.cpp.o -c /workspaces/imagec/src/main_test.cpp",
   "file": "/workspaces/imagec/src/main_test.cpp"
+},
+{
+  "directory": "/workspaces/imagec/build",
+  "command": "/usr/bin/c++ -DCPPHTTPLIB_OPENSSL_SUPPORT -DUNIT_TEST -I/workspaces/imagec/build -I/workspaces/imagec/./src -I/usr/local/include/libtiff -isystem /usr/local/include/opencv4  -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20 -g -o CMakeFiles/tests.dir/src/pipelines/count_spots_in_cells/count_spot_in_cells.cpp.o -c /workspaces/imagec/src/pipelines/count_spots_in_cells/count_spot_in_cells.cpp",
+  "file": "/workspaces/imagec/src/pipelines/count_spots_in_cells/count_spot_in_cells.cpp"
 },
 {
   "directory": "/workspaces/imagec/build",

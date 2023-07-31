@@ -19,8 +19,8 @@
 #include <string>
 #include "helper/helper.hpp"
 #include "image_processing/channel_processor.hpp"
-#include "image_processing/functions/detection/voronoi_grid/voronoi_grid.hpp"
 #include "logger/console_logger.hpp"
+#include "pipelines/count_spots_in_cells/count_spot_in_cells.hpp"
 #include <opencv2/imgcodecs.hpp>
 
 namespace joda::pipeline {
@@ -95,11 +95,8 @@ void Pipeline::runJob(const std::string &inputFolder)
       }
     }
 
-    //
-    // Execute the next pipeline steps
-    //
-    joda::func::img::VoronoiGrid grid(detectionResults[2].result);
-    grid.forward(detectionResults[2].controlImage, detectionResults[2].originalImage);
+    CountSpotInCells inCellCounting;
+    inCellCounting.execute(mAnalyzeSettings, detectionResults, detailOutput);
 
     //
     // Write report
