@@ -48,3 +48,11 @@ Counts the number of EVs found within a cell area and calculates the colocalizat
 ## Debugging
 
  valgrind --tool=massif --log-file="filename" ./build/build/tests "[pipeline_test_spots]"
+
+
+## Build
+
+
+`docker build --target run -t joda001/imagec:latest .`
+
+`docker run -p 7367:7367 -v /home:/home joda001/imagec`

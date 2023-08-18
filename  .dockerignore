@@ -1,0 +1,7 @@
+test/
+test_spot/
+test_cell/
+test_areosold_Evs/
+build/
+CMakeFiles/
+deploy/

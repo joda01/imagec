@@ -16,10 +16,10 @@ ARG USER_GID=$USER_UID
 
 # [Optional] Update UID/GID if needed
 RUN   if [ "$USER_GID" != "1000" ] || [ "$USER_UID" != "1000" ]; then \
-        groupmod --gid $USER_GID $USERNAME \
-        && usermod --uid $USER_UID --gid $USER_GID $USERNAME \
-        && chown -R $USER_UID:$USER_GID /home/$USERNAME; \
-      fi
+    groupmod --gid $USER_GID $USERNAME \
+    && usermod --uid $USER_UID --gid $USER_GID $USERNAME \
+    && chown -R $USER_UID:$USER_GID /home/$USERNAME; \
+    fi
 
 RUN apt-get update && apt-get install -y autoconf automake libtool curl make g++ unzip checkinstall gdb ninja-build wget libssl-dev
 
@@ -51,11 +51,11 @@ RUN cd ./opencv &&\
 # Catch2 unit test framework
 #
 RUN git clone --recursive -b v3.3.1 --depth 1 https://github.com/catchorg/Catch2.git /catch2 && \
- cd /catch2 && \
- cmake -Bbuild -H. -DBUILD_TESTING=OFF && \
- cmake --build build/ --target install &&\
- cd / &&\
- rm -rf /catch2
+    cd /catch2 && \
+    cmake -Bbuild -H. -DBUILD_TESTING=OFF && \
+    cmake --build build/ --target install &&\
+    cd / &&\
+    rm -rf /catch2
 
 RUN apt install -y default-jre
 
@@ -103,13 +103,13 @@ RUN git clone --recursive -b v3.11.2 --depth 1 https://github.com/nlohmann/json.
 # cpp-httplib
 #
 RUN git clone --recurse-submodules -b v0.12.2 --depth 1 https://github.com/yhirose/cpp-httplib.git && \
-  cd cpp-httplib &&\
-  cmake -S ./  &&\
-  make &&\
-  make install &&\
-  checkinstall  --pkgname="cpp-httplib" --pkgversion="1.0.0" --pkgrelease="1" --install=no --nodoc -D && \
-  cp /cpp-httplib/cpp-httplib_1.0.0-1_amd64.deb /cpp-httplib.deb  && \
-  rm -rf /cpp-httplib
+    cd cpp-httplib &&\
+    cmake -S ./  &&\
+    make &&\
+    make install &&\
+    checkinstall  --pkgname="cpp-httplib" --pkgversion="1.0.0" --pkgrelease="1" --install=no --nodoc -D && \
+    cp /cpp-httplib/cpp-httplib_1.0.0-1_amd64.deb /cpp-httplib.deb  && \
+    rm -rf /cpp-httplib
 
 RUN apt-get update && apt-get install -y libcurl4-openssl-dev
 RUN apt-get update && apt-get install -y uuid-dev
@@ -131,3 +131,23 @@ RUN cd ./pugixml &&\
     cmake .. &&\
     make -j4 &&\
     make install
+
+FROM live as build
+
+RUN mkdir ./build
+COPY ./ ./build
+RUN cd ./build &&\
+    ./cleanup.sh &&\
+    ./build.sh
+
+
+FROM debian:$DEBIAN_VERSION AS run
+
+RUN mkdir -p /imagec
+
+COPY --from=build ./build/build/build/imagec /imagec/imagec
+COPY ./imagec_gui /imagec/imagec_gui
+COPY ./imagec_models /imagec/imagec_models
+
+WORKDIR /imagec
+ENTRYPOINT ["sh", "-c", "cd /imagec && ./imagec"]
