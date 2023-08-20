@@ -165,7 +165,7 @@ provided with libtiff have not been tested or updated.
 	HEADERS
 
 	---- 4.0 ----
-tiff.h		- define int64 and uint64 data type
+tiff.h		- define int64_t and uint64 data type
 		- redefine TIFFheader as union of standard and BigTIFF formats
 		- redefine TIFFDirEntry as union of standard and BigTIFF forms
 		- define TIFF_LONG8, TIFF_SLONG8, TIFF_IFD8 64-bit data types

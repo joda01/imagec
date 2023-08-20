@@ -123,11 +123,11 @@ public:
     //
     if(imgProperties.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
       // Image too big to load at once -> Load image in tiles
-      int64 runs = imgProperties.nrOfTiles / TILES_TO_LOAD_PER_RUN;
+      int64_t runs = imgProperties.nrOfTiles / TILES_TO_LOAD_PER_RUN;
       if(progress != nullptr) {
         progress->total = runs;
       }
-      for(int64 idx = 0; idx < runs; idx++) {
+      for(int64_t idx = 0; idx < runs; idx++) {
         auto result = processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, tiffDirectories, idx);
         processingResult.emplace(idx, result);
         if(progress != nullptr) {
@@ -162,7 +162,7 @@ private:
   template <image_loader_t TIFFLOADER>
   static func::DetectionResponse processImage(const std::string &imagePath,
                                               const joda::settings::json::ChannelSettings &channelSetting,
-                                              const std::set<uint32_t> &tiffDirectories, int64 idx)
+                                              const std::set<uint32_t> &tiffDirectories, int64_t idx)
   {
     auto id             = DurationCount::start("z-projection");
     cv::Mat image       = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx);
@@ -193,7 +193,7 @@ private:
   template <class TIFFLOADER>
   static cv::Mat doZProjection(const std::string &imagePath,
                                const joda::settings::json::ChannelSettings &channelSetting,
-                               const std::set<uint32_t> &tiffDirectories, int64 idx)
+                               const std::set<uint32_t> &tiffDirectories, int64_t idx)
   {
     auto id           = DurationCount::start("load");
     auto actDirectory = tiffDirectories.begin();

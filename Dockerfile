@@ -60,13 +60,12 @@ RUN git clone --recursive -b v3.3.1 --depth 1 https://github.com/catchorg/Catch2
 RUN apt install -y default-jre
 
 
-COPY lib/libtiff-4.1 /libtiff-4.1
-RUN cd /libtiff-4.1 && make
-RUN mkdir -p /usr/local/include/libtiff
-RUN cp -r /libtiff-4.1/tiff-4.1/libtiff/*.h  /usr/local/include/libtiff
-RUN cp -r /libtiff-4.1/libtiff.a  /usr/local/lib/libtiff.a
-RUN cp -r /libtiff-4.1/libz.a /usr/local/lib/libz.a
-RUN cp -r /libtiff-4.1/libjpeg.a /usr/local/lib/libjpeg.a
+RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtiff &&\
+    cd libtiff && \
+    cmake . &&\
+    cmake --build . --config Release --target install &&\
+    cp -r libtiff/*.h  /usr/local/include
+
 
 #
 # LLVM toolchain
@@ -90,18 +89,10 @@ RUN git clone --recursive -b v3.11.2 --depth 1 https://github.com/nlohmann/json.
     rm -rf /json
 
 
-
-#RUN git clone -b v4.0.0 https://github.com/ArthurSonzogni/FTXUI.git &&\
-#    cd FTXUI &&\
-#    mkdir build && cd build &&\
-#    cmake .. &&\
-#    make &&\
-#    ./main
-#
-
 #
 # cpp-httplib
 #
+RUN apt-get install -y autoconf
 RUN git clone --recurse-submodules -b v0.12.2 --depth 1 https://github.com/yhirose/cpp-httplib.git && \
     cd cpp-httplib &&\
     cmake -S ./  &&\
@@ -132,22 +123,22 @@ RUN cd ./pugixml &&\
     make -j4 &&\
     make install
 
-FROM live as build
-
-RUN mkdir ./build
-COPY ./ ./build
-RUN cd ./build &&\
-    ./cleanup.sh &&\
-    ./build.sh
-
-
-FROM debian:$DEBIAN_VERSION AS run
-
-RUN mkdir -p /imagec
-
-COPY --from=build ./build/build/build/imagec /imagec/imagec
-COPY ./imagec_gui /imagec/imagec_gui
-COPY ./imagec_models /imagec/imagec_models
-
-WORKDIR /imagec
-ENTRYPOINT ["sh", "-c", "cd /imagec && ./imagec"]
+#FROM live as build
+#
+#RUN mkdir ./build
+#COPY ./ ./build
+#RUN cd ./build &&\
+#    ./cleanup.sh &&\
+#    ./build.sh
+#
+#
+#FROM debian:$DEBIAN_VERSION AS run
+#
+#RUN mkdir -p /imagec
+#
+#COPY --from=build ./build/build/build/imagec /imagec/imagec
+#COPY ./imagec_gui /imagec/imagec_gui
+#COPY ./imagec_models /imagec/imagec_models
+#
+#WORKDIR /imagec
+#ENTRYPOINT ["sh", "-c", "cd /imagec && ./imagec"]

@@ -31,9 +31,11 @@ inline std::string createUuid() noexcept
 
   return uuidStr;
 }
-#endif
+
+#else
 
 inline std::string createUuid() noexcept
 {
   return "";
 }
+#endif

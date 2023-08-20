@@ -15,3 +15,6 @@ echo "Building with profile ${BUILD_TYPE}"
 
 # Executes cmake and make to build the project
 cmake -S . -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -B build
+
+
+cmake -S . -DCMAKE_BUILD_TYPE="Debug" -B build

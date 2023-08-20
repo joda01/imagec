@@ -11,7 +11,12 @@ option(MAKE_LIBRARY "Builds a library instead of an executable program." OFF)
 
 SET(CMAKE_CXX20_STANDARD 20)
 SET(CMAKE_CXX20_STANDARD_REQUIRED true)
+
+IF (WIN32)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -O2 -lm -std=c++20")
+ELSE()
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
+ENDIF()
 SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
@@ -35,6 +40,8 @@ find_package( TIFF )
 #
 # Link to libraries
 #
+IF (WIN32)
+# WINDOWS (msys)
 set(LIBS
   ${OpenCV_LIBS}
   ${OPENSSL_LIBRARIES}
@@ -42,6 +49,17 @@ set(LIBS
   jpeg
   TIFF  
 )
+ELSE()
+# LINUX
+set(LIBS
+  ${OpenCV_LIBS}
+  ${OPENSSL_LIBRARIES}
+  pugixml
+  tiff
+  uuid
+)
+ENDIF()
+
 
 include_directories("./src")
 
