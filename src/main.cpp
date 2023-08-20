@@ -12,12 +12,12 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "duration_count/duration_count.h"
-#include "http/web_server.hpp"
-#include "image/image.hpp"
-#include "image_reader/tif/image_loader_tif.hpp"
-#include "pipelines/pipeline_factory.hpp"
-#include "reporting/report_printer.h"
+#include "backend/duration_count/duration_count.h"
+#include "backend/image/image.hpp"
+#include "backend/image_reader/tif/image_loader_tif.hpp"
+#include "backend/pipelines/pipeline_factory.hpp"
+#include "backend/reporting/report_printer.h"
+#include "ui/http/web_server.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/dnn.hpp>
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 #ifndef _WIN32
 
   serverThread.join();
-  #endif
+#endif
 
   browserThread.join();
 

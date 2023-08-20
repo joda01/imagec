@@ -62,7 +62,6 @@ set(LIBS
   ${OPENSSL_LIBRARIES}
   pugixml
   tiff
-  uuid
 )
 ENDIF()
 
