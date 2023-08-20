@@ -76,7 +76,16 @@
         "strstream": "cpp",
         "charconv": "cpp",
         "gsl_assert": "cpp",
-        "gsl_util": "cpp"
+        "gsl_util": "cpp",
+        "tiffio.h": "c",
+        "tiffiop.h": "c",
+        "csignal": "cpp",
+        "any": "cpp",
+        "source_location": "cpp",
+        "format": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "shared_mutex": "cpp"
     },
     "files.exclude": {},
     "C_Cpp.intelliSenseEngineFallback": "Disabled",

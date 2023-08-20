@@ -35,6 +35,7 @@ inline auto getFileNameFromPath(const std::string &filePathIn) -> std::string
 
 inline std::string execCommand(const std::string &cmd, int &out_exitStatus)
 {
+#ifndef _WIN32
   out_exitStatus = 0;
   auto pPipe     = ::popen(cmd.c_str(), "r");
   if(pPipe == nullptr) {
@@ -57,6 +58,8 @@ inline std::string execCommand(const std::string &cmd, int &out_exitStatus)
   }
 
   return result;
+#endif
+return "";
 }
 
 inline void stringReplace(std::string &str, const std::string &searchStr, const std::string &replaceStr)

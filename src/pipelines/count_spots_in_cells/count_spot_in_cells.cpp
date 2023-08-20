@@ -61,11 +61,11 @@ void CountSpotInCells::execute(const settings::json::AnalyzeSettings &analyseSet
     }
   }
 
-  detailReport.flushReportToFile(detailoutputPath + std::filesystem::path::preferred_separator + "spots_in_cells.csv");
-  cellReport.flushReportToFile(detailoutputPath + std::filesystem::path::preferred_separator +
+  detailReport.flushReportToFile(detailoutputPath + "/"/*std::filesystem::path::preferred_separator*/ + "spots_in_cells.csv");
+  cellReport.flushReportToFile(detailoutputPath + "/"/*std::filesystem::path::preferred_separator*/ +
                                "approximated_cells.csv");
 
-  cv::imwrite(detailoutputPath + std::filesystem::path::preferred_separator + "control_approximated_cells" + ".jpg",
+  cv::imwrite(detailoutputPath + "/"/*std::filesystem::path::preferred_separator*/ + "control_approximated_cells" + ".jpg",
               voronoiResult.controlImage);
 }
 

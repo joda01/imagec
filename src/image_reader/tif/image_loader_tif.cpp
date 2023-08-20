@@ -28,8 +28,8 @@
 #include <pugixml.hpp>
 
 #define USER_DEFINED_INT64
-#include <libtiff/tiffio.h>
-#include <libtiff/tiffiop.h>
+#include <tiffio.h>
+#include <tiffiop.h>
 
 void DummyHandler(const char *module, const char *fmt, va_list ap)
 {

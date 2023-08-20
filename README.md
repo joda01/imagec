@@ -56,3 +56,10 @@ Counts the number of EVs found within a cell area and calculates the colocalizat
 `docker build --target run -t joda001/imagec:latest .`
 
 `docker run -p 7367:7367 -v /home:/home joda001/imagec`
+# MSYS
+
+pacman -S mingw-w64-x86_64-catch
+pacman -S mingw-w64-x86_64-pugixml
+pacman -S mingw-w64-x86_64-opencv
+pacman -S mingw-w64-x86_64-nlohmann-json
+pacman -S mingw-w64-x86_64-libtiff

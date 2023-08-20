@@ -11,9 +11,13 @@
 /// \brief     A short description what happens here.
 ///
 
+
+#ifndef _WIN32
 #pragma once
 
-#include <httplib.h>
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include "httplib.hpp"
 
 namespace joda::http {
 
@@ -44,3 +48,4 @@ private:
 };
 
 }    // namespace joda::http
+#endif

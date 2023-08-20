@@ -12,12 +12,15 @@
 
 #define UUID_SYSTEM_GENERATOR
 
+#ifndef _WIN32
 #include <uuid/uuid.h>
+#endif
 #include <iostream>
 #include <string>
 #include <utility>
 #include <vector>
 
+#ifndef _WIN32
 inline std::string createUuid() noexcept
 {
   uuid_t uuid;
@@ -27,4 +30,10 @@ inline std::string createUuid() noexcept
   uuid_unparse_lower(uuid, uuidStr);
 
   return uuidStr;
+}
+#endif
+
+inline std::string createUuid() noexcept
+{
+  return "";
 }

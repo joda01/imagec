@@ -11,14 +11,11 @@ option(MAKE_LIBRARY "Builds a library instead of an executable program." OFF)
 
 SET(CMAKE_CXX20_STANDARD 20)
 SET(CMAKE_CXX20_STANDARD_REQUIRED true)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -O2 -lm -std=c++20")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -O2 -lm -std=c++20")
 SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
-
-#list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/opencv-v4.5/")
-#list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/opencv-v4.5/")
 
 
 set(OpenCV_STATIC ON)
@@ -27,30 +24,24 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 find_package(PkgConfig REQUIRED)
+find_package(httplib REQUIRED)
 
-find_package( PugiXML )
-find_package( OpenSSL  )
-find_package( libjpeg-turbo )
-find_package( TIFF )
-
-pkg_search_module(OPENSSL REQUIRED openssl)
 
 #
 # Link to libraries
 #
 set(LIBS
   ${OpenCV_LIBS}
-  ${OPENSSL_LIBRARIES}
-  pugixml
-  libjpeg
-  TIFF  
- # /usr/local/lib/libtiff.a
- # /usr/lib/x86_64-linux-gnu/libuuid.a
- # /usr/local/lib/libpugixml.a
+  /usr/local/lib/libtiff.a
+  #/usr/local/lib/libz.a
+  #/usr/local/lib/libjpeg.a
+  httplib::httplib
+  /usr/lib/x86_64-linux-gnu/libuuid.a
+  /usr/local/lib/libpugixml.a
 )
 
 include_directories("./src")
-#include_directories("/usr/local/include/libtiff")
+include_directories("/usr/local/include/libtiff")
 
 
 ###########################################################################################
@@ -85,8 +76,7 @@ set_target_properties( ${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
-target_link_options(${PROJECT_NAME}  PRIVATE -static-libgcc -static-libstdc++)
-#target_compile_definitions(${PROJECT_NAME} PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+target_compile_definitions(${PROJECT_NAME} PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
 
 ###########################################################################################
 # Unittest

@@ -18,7 +18,6 @@
 #include "image_reader/tif/image_loader_tif.hpp"
 #include "pipelines/pipeline_factory.hpp"
 #include "reporting/report_printer.h"
-#include "updater/updater.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/dnn.hpp>
@@ -45,16 +44,16 @@ static constexpr int LISTENING_PORT_API = 7367;
 int main(int argc, char **argv)
 {
   Version::initVersion(std::string(argv[0]));
-  // joda::upd::Updater updaterService(argc, argv);
   TiffLoader::initLibTif();
   joda::pipeline::PipelineFactory::init();
-  joda::http::HttpServer http;
 
+#ifndef _WIN32
+  joda::http::HttpServer http;
   auto serverThread = std::thread(&joda::http::HttpServer::start, &http, LISTENING_PORT_API);
   while(!http.getServer().is_running()) {
     usleep(100000);
   }
-
+#endif
   joda::log::logInfo("Server is listening on port " + std::to_string(LISTENING_PORT_API));
   joda::log::logInfo("Open imageC UI with http://localhost:" + std::to_string(LISTENING_PORT_API));
   joda::log::logInfo("API reachable under http://localhost:" + std::to_string(LISTENING_PORT_API) + "/api/v1");
@@ -64,7 +63,11 @@ int main(int argc, char **argv)
     joda::helper::execCommand("open http://127.0.0.1:7367", exitState);
   });
 
+#ifndef _WIN32
+
   serverThread.join();
+  #endif
+
   browserThread.join();
 
   joda::pipeline::PipelineFactory::shutdown();

@@ -13,6 +13,8 @@
 
 #include "roi.hpp"
 
+#define M_PI 3.141521
+
 namespace joda::func {
 
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,

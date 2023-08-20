@@ -11,8 +11,8 @@
 #include <opencv2/core/mat.hpp>
 
 #define USER_DEFINED_INT64
-#include <libtiff/tiffio.h>
-#include "tiffiop.h"
+#include <tiffio.h>
+#include <tiffiop.h>
 
 using TIFF_8BIT_GRAYSCALE  = uint8_t;
 using TIFF_16BIT_GRAYSCALE = uint16_t;

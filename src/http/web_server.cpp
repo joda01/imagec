@@ -10,9 +10,9 @@
 ///
 /// \brief     A short description what happens here.
 ///
+#ifndef _WIN32
 
 #include "web_server.hpp"
-#include <httplib.h>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -207,13 +207,13 @@ void HttpServer::start(int listeningPort)
       }
 
       if(startPath.empty()) {
-        startPath = fs::path(getenv("HOME"));
+        startPath = fs::path(getenv("HOME")).string();
       }
       for(const auto &entry : fs::directory_iterator(startPath)) {
         if(fs::is_directory(entry.status())) {
-          directories.emplace(entry.path());
-        } else if(fileExtensionsToShow.contains(entry.path().extension())) {
-          files.emplace(entry.path());
+          directories.emplace(entry.path().string());
+        } else if(fileExtensionsToShow.contains(entry.path().extension().string())) {
+          files.emplace(entry.path().string());
         }
       }
       retDoc["directories"] = directories;
@@ -354,3 +354,4 @@ void HttpServer::addResponseHeader(Response &res)
 }
 
 }    // namespace joda::http
+#endif

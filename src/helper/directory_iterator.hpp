@@ -11,7 +11,6 @@
 /// \brief     A short description what happens here.
 ///
 
-#include <bits/types/FILE.h>
 #include <algorithm>
 #include <filesystem>
 #include <memory>
@@ -125,8 +124,8 @@ private:
 
     for(recursive_directory_iterator i(mWorkingDirectory), end; i != end; ++i) {
       if(!is_directory(i->path())) {
-        if(ALLOWED_EXTENSIONS.contains(i->path().extension())) {
-          mListOfImagePaths.push_back(i->path());
+        if(ALLOWED_EXTENSIONS.contains(i->path().extension().string())) {
+          mListOfImagePaths.push_back(i->path().string());
         }
       }
       if(mIsStopped) {
