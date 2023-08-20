@@ -37,7 +37,10 @@ find_package( OpenCV REQUIRED )
 find_package( PkgConfig REQUIRED )
 find_package( PugiXML )
 find_package( OpenSSL  )
-find_package( libjpeg-turbo )
+IF (WIN32)
+  find_package( libjpeg-turbo )
+ENDIF()
+
 find_package( TIFF )
 
 #
