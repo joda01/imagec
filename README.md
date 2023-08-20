@@ -70,3 +70,6 @@ pacman -S mingw-w64-x86_64-python-mingw-ldd
 `
 mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
 `
+
+
+wx-config --cxxflags --libs

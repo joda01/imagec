@@ -114,13 +114,27 @@ ENV DEBIAN_FRONTEND=dialog
 #
 # XML parser
 #
-RUN git clone -b v1.13 https://github.com/joda01/pugixml.git
+RUN git clone -b v1.13 https://github.com/joda01/pugixml.git 
 RUN cd ./pugixml &&\
     mkdir build &&\
     cd build &&\
     cmake .. &&\
     make -j4 &&\
     make install
+
+#
+# WXWidgets
+#
+RUN git clone --recurse-submodules -b v3.2.2.1 --depth 1  https://github.com/wxWidgets/wxWidgets.git /wxWidgets
+RUN apt install -y libgtk-3-dev
+RUN cd wxWidgets &&\
+    mkdir gtk-build  &&\
+    cd gtk-build  &&\
+    ../configure --disable-shared --with-gtk=3 &&\
+    make -j6 &&\
+    make install
+
+RUN ldconfig
 
 #FROM live as build
 #

@@ -29,6 +29,8 @@
 #include <opencv4/opencv2/imgproc.hpp>
 #include "version.h"
 
+#include "ui/wxwidgets/main_windows.hpp"
+
 using namespace std;
 using namespace cv;
 using namespace dnn;
@@ -41,7 +43,7 @@ static constexpr int LISTENING_PORT_API = 7367;
 /// \brief      Main method
 /// \author     Joachim Danmayr
 ///
-int main(int argc, char **argv)
+int main2(int argc, char **argv)
 {
   Version::initVersion(std::string(argv[0]));
   TiffLoader::initLibTif();

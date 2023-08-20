@@ -15,9 +15,10 @@ SET(CMAKE_CXX20_STANDARD_REQUIRED true)
 IF (WIN32)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -O2 -lm -std=c++20")
 ELSE()
+
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
+
 ENDIF()
-SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
@@ -25,6 +26,8 @@ SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
 IF (WIN32)
 ELSE()
   set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
+
 ENDIF()
 
 
@@ -39,9 +42,18 @@ find_package( PugiXML )
 find_package( OpenSSL  )
 IF (WIN32)
   find_package( libjpeg-turbo )
+  find_package( TIFF )
+
+ELSE ()
+  find_package( Tiff )
 ENDIF()
 
-find_package( TIFF )
+
+set(wxWidgets_USE_LIBS)
+find_package( wxWidgets REQUIRED)
+include(${wxWidgets_USE_FILE})
+include_directories(${wxWidgets_INCLUDE_DIRS})
+
 
 #
 # Link to libraries
@@ -53,7 +65,7 @@ set(LIBS
   ${OPENSSL_LIBRARIES}
   pugixml
   jpeg
-  TIFF  
+  TIFF
 )
 ELSE()
 # LINUX
@@ -62,6 +74,7 @@ set(LIBS
   ${OPENSSL_LIBRARIES}
   pugixml
   tiff
+  ${wxWidgets_LIBRARIES}
 )
 ENDIF()
 
@@ -94,6 +107,18 @@ set_target_properties( ${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} ${LIBS})
 target_link_options(${PROJECT_NAME}  PRIVATE -static-libgcc -static-libstdc++)
 #target_compile_definitions(${PROJECT_NAME} PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+
+IF (WIN32)
+
+ELSE ()
+  target_compile_definitions(${PROJECT_NAME} PUBLIC _FILE_OFFSET_BITS=64)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC __WXGTK__)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC WXUSINGDLL)
+ENDIF()
+
+ # -I/usr/local/lib/wx/include/gtk3-unicode-3.2 -I/usr/local/include/wx-3.2 -D_FILE_OFFSET_BITS=64 -DWXUSINGDLL -D__WXGTK__ -pthread
+
+
 
 ###########################################################################################
 # Unittest
