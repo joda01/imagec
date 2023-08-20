@@ -16,24 +16,23 @@ SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
-
 #list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/opencv-v4.5/")
 #list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/opencv-v4.5/")
 
 
 set(OpenCV_STATIC ON)
-find_package( OpenCV REQUIRED )
+
 include_directories( ${OpenCV_INCLUDE_DIRS} )
-
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-find_package(PkgConfig REQUIRED)
 
+find_package( OpenCV REQUIRED )
+find_package( PkgConfig REQUIRED )
 find_package( PugiXML )
 find_package( OpenSSL  )
 find_package( libjpeg-turbo )
 find_package( TIFF )
 
-pkg_search_module(OPENSSL REQUIRED openssl)
+#pkg_search_module(OPENSSL REQUIRED openssl)
 
 #
 # Link to libraries
@@ -42,7 +41,7 @@ set(LIBS
   ${OpenCV_LIBS}
   ${OPENSSL_LIBRARIES}
   pugixml
-  libjpeg
+  jpeg
   TIFF  
  # /usr/local/lib/libtiff.a
  # /usr/lib/x86_64-linux-gnu/libuuid.a
