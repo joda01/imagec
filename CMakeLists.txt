@@ -13,17 +13,20 @@ SET(CMAKE_CXX20_STANDARD 20)
 SET(CMAKE_CXX20_STANDARD_REQUIRED true)
 
 IF (WIN32)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -O2 -lm -std=c++20")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -O2 -lm -std=c++20")
 ELSE()
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
 ENDIF()
 SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
 
-#list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/opencv-v4.5/")
-#list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/opencv-v4.5/")
+IF (WIN32)
+ELSE()
+  set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
+ENDIF()
+
 
 set(OpenCV_STATIC ON)
 
