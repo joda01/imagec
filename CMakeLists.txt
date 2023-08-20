@@ -16,9 +16,9 @@ SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
+
 #list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/opencv-v4.5/")
 #list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/opencv-v4.5/")
-
 
 set(OpenCV_STATIC ON)
 
@@ -32,8 +32,6 @@ find_package( OpenSSL  )
 find_package( libjpeg-turbo )
 find_package( TIFF )
 
-#pkg_search_module(OPENSSL REQUIRED openssl)
-
 #
 # Link to libraries
 #
@@ -43,13 +41,9 @@ set(LIBS
   pugixml
   jpeg
   TIFF  
- # /usr/local/lib/libtiff.a
- # /usr/lib/x86_64-linux-gnu/libuuid.a
- # /usr/local/lib/libpugixml.a
 )
 
 include_directories("./src")
-#include_directories("/usr/local/include/libtiff")
 
 
 ###########################################################################################
@@ -59,22 +53,13 @@ file(GLOB_RECURSE SOURCES
   ./src/*.cpp
   ./src/*.c
   /usr/local/include/libtiff/*.h
+  version.rc
 )
 
 # Exclude test files from source
 list(FILTER SOURCES EXCLUDE REGEX ".*_test.cpp$")
+add_executable(${PROJECT_NAME} ${SOURCES})
 
-#
-# Create library or executable
-#
-if(MAKE_LIBRARY)
-  add_library(${PROJECT_NAME} SHARED ${SOURCES})
-  # Installation script
-  install(TARGETS ${PROJECT_NAME} DESTINATION lib)
-  install(FILES ./include/${PROJECT_NAME} DESTINATION include)          # Adapt here if neccessary
-else()
-  add_executable(${PROJECT_NAME} ${SOURCES})
-endif()
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
