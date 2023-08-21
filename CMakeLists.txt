@@ -43,14 +43,16 @@ find_package( OpenSSL  )
 IF (WIN32)
   find_package( libjpeg-turbo )
   find_package( TIFF )
-
+  set(ENV{WX_CONFIG} "wx-config-3.2")
+  set(wxWidgets_CONFIG_EXECUTABLE "wx-config-3.2")
 ELSE ()
   find_package( Tiff )
 ENDIF()
 
 
+
 set(wxWidgets_USE_LIBS)
-find_package( wxWidgets REQUIRED)
+find_package( wxWidgets  REQUIRED)
 include(${wxWidgets_USE_FILE})
 include_directories(${wxWidgets_INCLUDE_DIRS})
 

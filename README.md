@@ -58,11 +58,14 @@ Counts the number of EVs found within a cell area and calculates the colocalizat
 `docker run -p 7367:7367 -v /home:/home joda001/imagec`
 # MSYS
 
+pacman -S --needed base-devel mingw-w64-x86_64-toolchain
+
 pacman -S mingw-w64-x86_64-catch
 pacman -S mingw-w64-x86_64-pugixml
 pacman -S mingw-w64-x86_64-opencv
 pacman -S mingw-w64-x86_64-nlohmann-json
 pacman -S mingw-w64-x86_64-libtiff
+pacman -S mingw-w64-x86_64-wxwidgets3.2-msw
 
 
 pacman -S mingw-w64-x86_64-python-mingw-ldd
@@ -73,3 +76,7 @@ mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
 
 
 wx-config --cxxflags --libs
+
+Add to ENV
+
+C:\msys64\usr\bin

@@ -29,7 +29,7 @@
 
 #define USER_DEFINED_INT64
 #include <tiffio.h>
-#include <tiffiop.h>
+// #include <tiffiop.h>
 
 void DummyHandler(const char *module, const char *fmt, va_list ap)
 {
@@ -104,10 +104,14 @@ auto TiffLoader::getImageProperties(const std::string &filename, uint16_t direct
     // Set the directory to load the image from this directory
     TIFFSetDirectory(tif, directory);
 
-    unsigned int width      = tif->tif_dir.td_imagewidth;
-    unsigned int height     = tif->tif_dir.td_imagelength;
-    unsigned int tileWidth  = tif->tif_dir.td_tilewidth;
-    unsigned int tileHeight = tif->tif_dir.td_tilelength;
+    unsigned int width;         //= tif->tif_dir.td_imagewidth;
+    unsigned int height;        //= tif->tif_dir.td_imagelength;
+    unsigned int tileWidth;     //= tif->tif_dir.td_tilewidth;
+    unsigned int tileHeight;    //= tif->tif_dir.td_tilelength;
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
+    TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tileWidth);
+    TIFFGetField(tif, TIFFTAG_TILELENGTH, &tileHeight);
 
     int64_t tileSize  = static_cast<int64_t>(tileWidth) * tileHeight;
     int64_t imageSize = static_cast<int64_t>(width) * height;
@@ -182,11 +186,16 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
     //
     // Load TIF meta data
     //
-    unsigned int width      = tif->tif_dir.td_imagewidth;
-    unsigned int height     = tif->tif_dir.td_imagelength;
-    unsigned int tilewidth  = tif->tif_dir.td_tilewidth;
-    unsigned int tileheight = tif->tif_dir.td_tilelength;
-    uint16_t bitDepth       = tif->tif_dir.td_bitspersample;
+    unsigned int width;         //= tif->tif_dir.td_imagewidth;
+    unsigned int height;        //= tif->tif_dir.td_imagelength;
+    unsigned int tilewidth;     //= tif->tif_dir.td_tilewidth;
+    unsigned int tileheight;    //= tif->tif_dir.td_tilelength;
+    uint16_t bitDepth;          //= tif->tif_dir.td_bitspersample;
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
+    TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tilewidth);
+    TIFFGetField(tif, TIFFTAG_TILELENGTH, &tileheight);
+    TIFFGetField(tif, TIFFTAG_IMAGEDEPTH, &bitDepth);
 
     //
     // Messy piece of code. But I realized that there are TIFFs where the TIFFTAG_TILELENGTH meta is wrong.
@@ -317,9 +326,12 @@ cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
     TIFFSetDirectory(tif, directory);
 
     // Get the size of the tiff
-    unsigned int width  = tif->tif_dir.td_imagewidth;
-    unsigned int height = tif->tif_dir.td_imagelength;
-    uint16_t bitDepth   = tif->tif_dir.td_bitspersample;
+    unsigned int width;     //= tif->tif_dir.td_imagewidth;
+    unsigned int height;    //= tif->tif_dir.td_imagelength;
+    uint16_t bitDepth;      //= tif->tif_dir.td_bitspersample;
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
+    TIFFGetField(tif, TIFFTAG_IMAGEDEPTH, &bitDepth);
 
     switch(bitDepth) {
       case 8: {
