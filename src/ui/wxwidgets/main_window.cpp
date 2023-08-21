@@ -11,10 +11,20 @@
 /// \brief     A short description what happens here.
 ///
 
+#include <wx/gdicmn.h>
+#include <wx/mstream.h>
+#include "icons/icon_16_folder.h"
 #include "main_windows.hpp"
 
-MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "Hello World")
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "imageC")
 {
+  //
+  // Build up menubar
+  //
   wxMenu *menuFile = new wxMenu;
   menuFile->Append(ID_Hello, "&Hello...\tCtrl-H", "Help string shown in status bar for this menu item");
   menuFile->AppendSeparator();
@@ -23,15 +33,34 @@ MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "Hello World")
   wxMenu *menuHelp = new wxMenu;
   menuHelp->Append(wxID_ABOUT);
 
+  // Top level menu
   wxMenuBar *menuBar = new wxMenuBar;
   menuBar->Append(menuFile, "&File");
   menuBar->Append(menuHelp, "&Help");
 
   SetMenuBar(menuBar);
 
-  CreateStatusBar();
-  SetStatusText("Welcome to wxWidgets!");
+  //
+  // Toolbar
+  //
+  wxToolBar *toolBar = CreateToolBar();
+  toolBar->Show(true);
 
+  wxMemoryInputStream stream(icon_16_folder, sizeof(icon_16_folder));
+  wxImage theBitmap;
+  if(!theBitmap.LoadFile(stream, wxBITMAP_TYPE_PNG))
+    return;
+
+  toolBar->AddTool(wxID_OPEN, wxT("Open"), wxBitmap(theBitmap) /*wxBitmap(wxImage(_T("icons/icon_16_folder.png")))*/);
+  toolBar->Realize();
+
+  // Build up toolbar
+  CreateStatusBar();
+
+  // Statusbar
+  SetStatusText("Welcome to imageC!");
+
+  // Bindings
   Bind(wxEVT_MENU, &MainFrame::OnHello, this, ID_Hello);
   Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
   Bind(wxEVT_MENU, &MainFrame::OnExit, this, wxID_EXIT);

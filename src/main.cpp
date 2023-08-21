@@ -59,6 +59,7 @@ wxIMPLEMENT_APP(MainApp);
 ///
 bool MainApp::OnInit()
 {
+  wxInitAllImageHandlers();
   Version::initVersion(std::string(argv[0]));
   TiffLoader::initLibTif();
   joda::pipeline::PipelineFactory::init();
