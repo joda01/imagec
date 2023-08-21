@@ -39,45 +39,31 @@ using namespace dnn;
 
 static constexpr int LISTENING_PORT_API = 7367;
 
+class MainApp : public wxApp
+{
+public:
+  bool OnInit() override;
+};
+
 ///
-/// \brief      Main method
+/// \brief This is the main method
+///
+wxIMPLEMENT_APP(MainApp);
+
+///
+/// \brief      This is the main class
 /// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
 ///
-int main2(int argc, char **argv)
+bool MainApp::OnInit()
 {
   Version::initVersion(std::string(argv[0]));
   TiffLoader::initLibTif();
   joda::pipeline::PipelineFactory::init();
 
-#ifndef _WIN32
-  joda::http::HttpServer http;
-  auto serverThread = std::thread(&joda::http::HttpServer::start, &http, LISTENING_PORT_API);
-  while(!http.getServer().is_running()) {
-    usleep(100000);
-  }
-#endif
-  joda::log::logInfo("Server is listening on port " + std::to_string(LISTENING_PORT_API));
-  joda::log::logInfo("Open imageC UI with http://localhost:" + std::to_string(LISTENING_PORT_API));
-  joda::log::logInfo("API reachable under http://localhost:" + std::to_string(LISTENING_PORT_API) + "/api/v1");
-
-  auto browserThread = std::thread([]() {
-    int exitState = 0;
-    joda::helper::execCommand("open http://127.0.0.1:7367", exitState);
-  });
-
-#ifndef _WIN32
-
-  serverThread.join();
-#endif
-
-  browserThread.join();
-
-  joda::pipeline::PipelineFactory::shutdown();
-
-  // tb_init();
-  // Navigation navigation(&updaterService);
-  // navigation.start();
-  // tb_shutdown();
-
-  return 0;
+  MainFrame *frame = new MainFrame();
+  frame->Show(true);
+  return true;
 }
