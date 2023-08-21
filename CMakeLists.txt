@@ -103,6 +103,7 @@ set(LIBS
   pugixml
   jpeg
   TIFF
+  ${wxWidgets_LIBRARIES}
 )
 ELSE()
 # LINUX
