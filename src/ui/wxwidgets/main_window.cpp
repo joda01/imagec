@@ -48,8 +48,9 @@ MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "imageC")
 
   wxMemoryInputStream stream(icon_16_folder, sizeof(icon_16_folder));
   wxImage theBitmap;
-  if(!theBitmap.LoadFile(stream, wxBITMAP_TYPE_PNG))
+  if(!theBitmap.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
     return;
+  }
 
   toolBar->AddTool(wxID_OPEN, wxT("Open"), wxBitmap(theBitmap) /*wxBitmap(wxImage(_T("icons/icon_16_folder.png")))*/);
   toolBar->Realize();
