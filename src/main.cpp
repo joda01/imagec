@@ -35,10 +35,6 @@ using namespace std;
 using namespace cv;
 using namespace dnn;
 
-////
-
-static constexpr int LISTENING_PORT_API = 7367;
-
 class MainApp : public wxApp
 {
 public:
@@ -48,7 +44,7 @@ public:
 ///
 /// \brief This is the main method
 ///
-wxIMPLEMENT_APP(MainApp);
+wxIMPLEMENT_APP_NO_MAIN(MainApp);
 
 ///
 /// \brief      This is the main class
@@ -59,12 +55,30 @@ wxIMPLEMENT_APP(MainApp);
 ///
 bool MainApp::OnInit()
 {
+  MainFrame *frame = new MainFrame();
+  frame->Show(true);
+  return true;
+}
+
+///
+/// \brief      Main method
+/// \author     Joachim Danmayr
+///
+int main(int argc, char **argv)
+{
   wxInitAllImageHandlers();
   Version::initVersion(std::string(argv[0]));
   TiffLoader::initLibTif();
   joda::pipeline::PipelineFactory::init();
 
-  MainFrame *frame = new MainFrame();
-  frame->Show(true);
-  return true;
+  auto wxThread = std::thread([&]() {
+    wxApp *app = new MainApp();
+    wxApp::SetInstance(app);
+    wxEntry(argc, argv);
+  });
+
+  wxThread.join();
+  joda::pipeline::PipelineFactory::shutdown();
+
+  return 0;
 }
