@@ -1,11 +1,11 @@
 
 
 #include <opencv2/core/hal/interface.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <algorithm>
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -18,18 +18,12 @@
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "backend/reporting/report_printer.h"
 #include "ui/http/web_server.hpp"
-#include <opencv2/core.hpp>
-#include <opencv2/core/mat.hpp>
-#include <opencv2/dnn.hpp>
-#include <opencv2/dnn/all_layers.hpp>
-#include <opencv2/dnn/dnn.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/opencv.hpp>
-#include <opencv4/opencv2/highgui.hpp>
-#include <opencv4/opencv2/imgproc.hpp>
+#include "ui/wxwidgets/main_windows.hpp"
 #include "version.h"
 
-#include "ui/wxwidgets/main_windows.hpp"
+#ifdef _WIN32
+#include "wx/msw/wx.rc"
+#endif
 
 using namespace std;
 using namespace cv;
