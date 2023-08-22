@@ -58,8 +58,13 @@ Counts the number of EVs found within a cell area and calculates the colocalizat
 `docker run -p 7367:7367 -v /home:/home joda001/imagec`
 
 
-# MSYS
+## Compile for Windows
 
+### Preparation
+
+Install MSYS2 and following packages:
+
+```
 pacman -S --needed base-devel mingw-w64-x86_64-toolchain
 pacman -S mingw-w64-x86_64-catch
 pacman -S mingw-w64-x86_64-pugixml
@@ -68,19 +73,23 @@ pacman -S mingw-w64-x86_64-nlohmann-json
 pacman -S mingw-w64-x86_64-libtiff
 pacman -S mingw-w64-x86_64-wxwidgets3.2-msw
 
-
-
-## Check for dll dependencies under windows
-
 pacman -S mingw-w64-x86_64-python-mingw-ldd
+```
 
-`
-mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
-`
+Add following ENV variables:
+
+```
+C:\msys64\usr\bin
+C:\msys64\mingw64\bin
+```
+
+### Compile
+
+Execute `make.bat` and `build.bat`.
+The EXE file will be placed in `build/build/imagec.exe`
 
 
-## Windows build
+### Deploy for windows
 
-Add to ENV to fix wxWidget build under windows.
-
-`C:\msys64\usr\bin``
+Use `mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin` to check dll dependencies.
+Copy the listed dependencies to the EXE folder of the application.
