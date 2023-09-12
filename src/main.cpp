@@ -2,6 +2,7 @@
 
 #include <opencv2/core/hal/interface.h>
 #include <unistd.h>
+#include <wx/app.h>
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
@@ -18,7 +19,7 @@
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "backend/reporting/report_printer.h"
 #include "ui/http/web_server.hpp"
-#include "ui/wxwidgets/main_windows.hpp"
+#include "ui/wxwidgets/wxwidget.h"
 #include "version.h"
 
 #ifdef _WIN32
@@ -49,7 +50,8 @@ wxIMPLEMENT_APP_NO_MAIN(MainApp);
 ///
 bool MainApp::OnInit()
 {
-  MainFrame *frame = new MainFrame();
+  wxSizerFlags::DisableConsistencyChecks();
+  auto *frame = new joda::ui::wxwidget::frameMain(nullptr);
   frame->Show(true);
   return true;
 }

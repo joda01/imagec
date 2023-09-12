@@ -90,7 +90,7 @@ function(embed_resource resource_file_name source_file_name variable_name)
 endfunction()
 
 
-embed_resource("src/ui/wxwidgets/icons/icon_16_folder.png" "src/ui/wxwidgets/icons/icon_16_folder.h" "icon_16_folder")
+#embed_resource("src/ui/wxwidgets/icons/icon_16_folder.png" "src/ui/wxwidgets/icons/icon_16_folder.h" "icon_16_folder")
 
 
 
