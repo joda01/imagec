@@ -19,8 +19,9 @@
 #include <wx/font.h>
 #include <wx/colour.h>
 #include <wx/settings.h>
-#include <wx/textctrl.h>
+#include <wx/filepicker.h>
 #include <wx/toolbar.h>
+#include <wx/textctrl.h>
 #include <wx/choice.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
@@ -57,8 +58,7 @@ namespace joda
 					wxToolBarToolBase* mButtonSave;
 					wxToolBarToolBase* mButtonOpen;
 					wxStaticText* mLabelNrOfFoundFiles;
-					wxTextCtrl* mTextWorkingDirectory;
-					wxToolBarToolBase* mButtonSelectWorkingDirectory;
+					wxDirPickerCtrl* mDirectoryPicker;
 					wxToolBarToolBase* mButtonRun;
 					wxToolBarToolBase* mButtonSettings;
 					wxToolBarToolBase* mButtonAbout;

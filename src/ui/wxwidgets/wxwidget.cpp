@@ -44,17 +44,14 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	mToolBar->AddSeparator();
 
-	mLabelNrOfFoundFiles = new wxStaticText( mToolBar, wxID_ANY, _("80"), wxDefaultPosition, wxSize( 50,-1 ), wxALIGN_CENTER_HORIZONTAL );
+	mLabelNrOfFoundFiles = new wxStaticText( mToolBar, wxID_ANY, _("Images dir: "), wxDefaultPosition, wxSize( -1,-1 ), wxALIGN_LEFT );
 	mLabelNrOfFoundFiles->Wrap( -1 );
-	mLabelNrOfFoundFiles->SetMinSize( wxSize( 50,-1 ) );
-
 	mToolBar->AddControl( mLabelNrOfFoundFiles );
-	mTextWorkingDirectory = new wxTextCtrl( mToolBar, wxID_ANY, _("Direcotry of files to analyze..."), wxDefaultPosition, wxSize( 500,-1 ), 0 );
-	mTextWorkingDirectory->SetMinSize( wxSize( 500,-1 ) );
+	mDirectoryPicker = new wxDirPickerCtrl( mToolBar, wxID_ANY, wxEmptyString, _("Select a folder"), wxDefaultPosition, wxSize( 250,-1 ), wxDIRP_DEFAULT_STYLE|wxDIRP_DIR_MUST_EXIST );
+	mDirectoryPicker->SetMinSize( wxSize( 250,-1 ) );
+	mDirectoryPicker->SetMaxSize( wxSize( 250,-1 ) );
 
-	mToolBar->AddControl( mTextWorkingDirectory );
-	mButtonSelectWorkingDirectory = mToolBar->AddTool( wxID_ANY, _("Stop"), opened_folder_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
-
+	mToolBar->AddControl( mDirectoryPicker );
 	mButtonRun = mToolBar->AddTool( wxID_ANY, _("Start"), start_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
 	mToolBar->AddSeparator();
