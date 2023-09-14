@@ -9,7 +9,6 @@ namespace wxwidget {
 FrameMainController::FrameMainController(wxWindow *parent) : frameMain(parent)
 {
   addChannel();
-  addChannel();
 }
 
 void FrameMainController::addChannel()
@@ -24,6 +23,7 @@ void FrameMainController::addChannel()
   mScrollbarChannels->Layout();
   mSizerChannels->Layout();
 }
+
 void FrameMainController::removeChannel()
 {
 }
