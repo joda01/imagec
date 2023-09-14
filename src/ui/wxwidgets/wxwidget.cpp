@@ -70,7 +70,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mSizerChannelsScrollbar = new wxBoxSizer( wxVERTICAL );
 
 	mScrollbarChannels = new wxScrolledWindow( mPanelChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL );
-	mScrollbarChannels->SetScrollRate( 5, 5 );
+	mScrollbarChannels->SetScrollRate( 5, 0 );
 	mSizerChannels = new wxBoxSizer( wxHORIZONTAL );
 
 	mButtonAddChannel = new wxButton( mScrollbarChannels, wxID_ANY, _("Add Channel"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -167,7 +167,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	sizerMaxCellRadius->Add( sizerMaxCellRadius2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
 
-	mLabelMaxCellRadius = new wxStaticText( panelMaxCellRadius, wxID_ANY, _("Maximum cell radius [px²]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelMaxCellRadius = new wxStaticText( panelMaxCellRadius, wxID_ANY, _("Maximum cell radius [px2]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	mLabelMaxCellRadius->Wrap( -1 );
 	mLabelMaxCellRadius->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
@@ -894,7 +894,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mLabelMinCircularity->Wrap( -1 );
 	mLabelMinCircularity->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
-	sizerMinCircularity->Add( mLabelMinCircularity, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+	sizerMinCircularity->Add( mLabelMinCircularity, 0, wxEXPAND|wxLEFT, 32 );
 
 
 	panelMinCircularity->SetSizer( sizerMinCircularity );
@@ -908,25 +908,25 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	wxBoxSizer* sizerParticleSize;
 	sizerParticleSize = new wxBoxSizer( wxVERTICAL );
 
-	wxBoxSizer* sizerH1121;
-	sizerH1121 = new wxBoxSizer( wxHORIZONTAL );
+	wxBoxSizer* sizerParticleSize2;
+	sizerParticleSize2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iDescription1121 = new wxStaticBitmap( panelParticleSize, wxID_ANY, all_out_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	iDescription1121->SetMaxSize( wxSize( 20,-1 ) );
 
-	sizerH1121->Add( iDescription1121, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+	sizerParticleSize2->Add( iDescription1121, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	m_textCtrl3 = new wxTextCtrl( panelParticleSize, wxID_ANY, _("5-9999"), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerH1121->Add( m_textCtrl3, 1, wxEXPAND, 5 );
+	sizerParticleSize2->Add( m_textCtrl3, 1, wxEXPAND, 5 );
 
 
-	sizerParticleSize->Add( sizerH1121, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+	sizerParticleSize->Add( sizerParticleSize2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
 
-	lDescription1121 = new wxStaticText( panelParticleSize, wxID_ANY, _("Particle size range [px²]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
-	lDescription1121->Wrap( -1 );
-	lDescription1121->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+	mLabelParticleSize = new wxStaticText( panelParticleSize, wxID_ANY, _("Particle size range [px2]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelParticleSize->Wrap( -1 );
+	mLabelParticleSize->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
-	sizerParticleSize->Add( lDescription1121, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+	sizerParticleSize->Add( mLabelParticleSize, 0, wxEXPAND|wxLEFT, 32 );
 
 
 	panelParticleSize->SetSizer( sizerParticleSize );
@@ -934,38 +934,38 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerParticleSize->Fit( panelParticleSize );
 	mSizerChannel->Add( panelParticleSize, 1, wxEXPAND|wxTOP, 5 );
 
-	panelParticleSize111 = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelParticleSize111->SetMaxSize( wxSize( -1,55 ) );
+	panelSnapArea = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelSnapArea->SetMaxSize( wxSize( -1,55 ) );
 
-	wxBoxSizer* sizerParticleSize1;
-	sizerParticleSize1 = new wxBoxSizer( wxVERTICAL );
+	wxBoxSizer* sizerSnapArea1;
+	sizerSnapArea1 = new wxBoxSizer( wxVERTICAL );
 
-	wxBoxSizer* sizerParticleSize2;
-	sizerParticleSize2 = new wxBoxSizer( wxHORIZONTAL );
+	wxBoxSizer* sizerSnapArea2;
+	sizerSnapArea2 = new wxBoxSizer( wxHORIZONTAL );
 
-	iconParticleSize = new wxStaticBitmap( panelParticleSize111, wxID_ANY, centre_point_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	iconParticleSize = new wxStaticBitmap( panelSnapArea, wxID_ANY, centre_point_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	iconParticleSize->SetMaxSize( wxSize( 20,-1 ) );
 
-	sizerParticleSize2->Add( iconParticleSize, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+	sizerSnapArea2->Add( iconParticleSize, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinParticleSize = new wxSpinCtrlDouble( panelParticleSize111, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 256, 0, 1 );
+	mSpinParticleSize = new wxSpinCtrlDouble( panelSnapArea, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 256, 0, 1 );
 	mSpinParticleSize->SetDigits( 0 );
-	sizerParticleSize2->Add( mSpinParticleSize, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
+	sizerSnapArea2->Add( mSpinParticleSize, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 
 
-	sizerParticleSize1->Add( sizerParticleSize2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+	sizerSnapArea1->Add( sizerSnapArea2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
 
-	mLabelParticleSize = new wxStaticText( panelParticleSize111, wxID_ANY, _("Snap area diamater [px²]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
-	mLabelParticleSize->Wrap( -1 );
-	mLabelParticleSize->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+	mLabelSnapArea = new wxStaticText( panelSnapArea, wxID_ANY, _("Snap area diamater [px2]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelSnapArea->Wrap( -1 );
+	mLabelSnapArea->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
-	sizerParticleSize1->Add( mLabelParticleSize, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+	sizerSnapArea1->Add( mLabelSnapArea, 0, wxEXPAND|wxLEFT, 32 );
 
 
-	panelParticleSize111->SetSizer( sizerParticleSize1 );
-	panelParticleSize111->Layout();
-	sizerParticleSize1->Fit( panelParticleSize111 );
-	mSizerChannel->Add( panelParticleSize111, 1, wxEXPAND|wxTOP, 5 );
+	panelSnapArea->SetSizer( sizerSnapArea1 );
+	panelSnapArea->Layout();
+	sizerSnapArea1->Fit( panelSnapArea );
+	mSizerChannel->Add( panelSnapArea, 1, wxEXPAND|wxTOP, 5 );
 
 	mLinePreview = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
 	mLinePreview->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );

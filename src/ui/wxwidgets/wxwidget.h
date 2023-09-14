@@ -226,11 +226,11 @@ namespace joda
 					wxPanel* panelParticleSize;
 					wxStaticBitmap* iDescription1121;
 					wxTextCtrl* m_textCtrl3;
-					wxStaticText* lDescription1121;
-					wxPanel* panelParticleSize111;
+					wxStaticText* mLabelParticleSize;
+					wxPanel* panelSnapArea;
 					wxStaticBitmap* iconParticleSize;
 					wxSpinCtrlDouble* mSpinParticleSize;
-					wxStaticText* mLabelParticleSize;
+					wxStaticText* mLabelSnapArea;
 					wxStaticLine* mLinePreview;
 					wxButton* mButtonPreview;
 					wxStaticLine* mLineRemove;
