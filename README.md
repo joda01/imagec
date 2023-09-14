@@ -88,8 +88,36 @@ C:\msys64\mingw64\bin
 Execute `make.bat` and `build.bat`.
 The EXE file will be placed in `build/build/imagec.exe`
 
+pacman -S mingw-w64-x86_64-wxwidgets3.2-common
+pacman -S mingw-w64-x86_64-wxwidgets3.2-gtk3
+pacman -S mingw-w64-x86_64-wxwidgets3.2-gtk3-libs
+pacman -S mingw-w64-x86_64-wxwidgets3.2-common-libs
+
+
+pacman -S mingw-w64-x86_64-wxwidgets3.2-msw
+
+`
+mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
+`
 
 ### Deploy for windows
 
 Use `mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin` to check dll dependencies.
 Copy the listed dependencies to the EXE folder of the application.
+wx-config --cxxflags --libs
+
+-IC:/Program Files/Git/mingw64/lib/wx/include/msw-unicode-3.2 
+-IC:/Program Files/Git/mingw64/include/wx-3.2 
+-D_FILE_OFFSET_BITS=64 
+-DWXUSINGDLL 
+-D__WXMSW__
+-LC:/Program Files/Git/mingw64/lib   
+-pipe -Wl,--subsystem,windows 
+-mwindows 
+-lwx_mswu_xrc-3.2 
+-lwx_mswu_html-3.2 
+-lwx_mswu_qa-3.2 
+-lwx_mswu_core-3.2 
+-lwx_baseu_xml-3.2 
+-lwx_baseu_net-3.2 
+-lwx_baseu-3.2

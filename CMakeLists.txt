@@ -13,7 +13,7 @@ SET(CMAKE_CXX20_STANDARD 20)
 SET(CMAKE_CXX20_STANDARD_REQUIRED true)
 
 IF (WIN32)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -O2 -lm -std=c++20")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lz -lws2_32 -lwsock32 -lm -std=c++20")
 ELSE()
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
@@ -41,21 +41,22 @@ find_package( PkgConfig REQUIRED )
 find_package( PugiXML )
 find_package( OpenSSL  )
 IF (WIN32)
+set(wxWidgets_INCLUDE_DIRS "C:/msys64/mingw64/include/wx-3.2" "C:/msys64/mingw64/lib/wx/include/msw-unicode-3.2")
+#set(wxWidgets_CONFIG_EXECUTABLE "C:/msys64/mingw64/bin/wx-config")
+
+include_directories(${wxWidgets_INCLUDE_DIRS})
+
   find_package( libjpeg-turbo )
   find_package( TIFF )
   set(ENV{WX_CONFIG} "wx-config-3.2")
   set(wxWidgets_CONFIG_EXECUTABLE "wx-config-3.2")
 ELSE ()
   find_package( Tiff )
+  set(wxWidgets_USE_LIBS)
+  find_package( wxWidgets REQUIRED)
+  include(${wxWidgets_USE_FILE})
+  include_directories(${wxWidgets_INCLUDE_DIRS})
 ENDIF()
-
-
-
-set(wxWidgets_USE_LIBS)
-find_package( wxWidgets  REQUIRED)
-include(${wxWidgets_USE_FILE})
-include_directories(${wxWidgets_INCLUDE_DIRS})
-
 
 
 
@@ -98,6 +99,23 @@ endfunction()
 # Link to libraries
 #
 IF (WIN32)
+
+file(GLOB wxWidgets_LIBRARIES
+  C:/msys64/mingw64/lib/libwx_mswu_*.a
+  C:/msys64/mingw64/lib/libwx_baseu_*.a
+  C:/msys64/mingw64/lib/libwxscintilla-3.2.a
+  C:/msys64/mingw64/lib/libwxscintilla-3.2.dll.a
+  C:/msys64/mingw64/lib/libwx_baseu_xml-3.2.a
+  C:/msys64/mingw64/lib/libwx_baseu_xml-3.2.dll.a
+
+  
+
+  winmm comctl32 uuid oleacc uxtheme rpcrt4 shlwapi version wsock32
+
+)
+
+#message("${wxWidgets_LIBRARIES}")
+
 # WINDOWS (msys)
 set(LIBS
   ${OpenCV_LIBS}
@@ -107,6 +125,8 @@ set(LIBS
   TIFF
   ${wxWidgets_LIBRARIES}
 )
+
+
 ELSE()
 # LINUX
 set(LIBS
