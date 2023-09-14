@@ -21,22 +21,22 @@
 #include <wx/settings.h>
 #include <wx/filepicker.h>
 #include <wx/toolbar.h>
-#include <wx/textctrl.h>
-#include <wx/choice.h>
-#include <wx/sizer.h>
-#include <wx/panel.h>
-#include <wx/statline.h>
-#include <wx/statbmp.h>
-#include <wx/spinctrl.h>
-#include <wx/checkbox.h>
 #include <wx/button.h>
+#include <wx/sizer.h>
 #include <wx/scrolwin.h>
+#include <wx/panel.h>
+#include <wx/statbmp.h>
+#include <wx/choice.h>
+#include <wx/spinctrl.h>
 #include <wx/tglbtn.h>
 #include <wx/notebook.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
 #include <wx/gauge.h>
+#include <wx/statline.h>
 #include <wx/dialog.h>
+#include <wx/textctrl.h>
+#include <wx/checkbox.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -64,7 +64,114 @@ namespace joda
 					wxToolBarToolBase* mButtonAbout;
 					wxNotebook* mNotebookMain;
 					wxPanel* mPanelChannel;
-					wxScrolledWindow* mPannelChannel;
+					wxBoxSizer* mSizerChannelsScrollbar;
+					wxScrolledWindow* mScrollbarChannels;
+					wxBoxSizer* mSizerChannels;
+					wxButton* mButtonAddChannel;
+					wxPanel* mPanelPipelineSteps;
+					wxScrolledWindow* panelPipelineStepCellEstimation;
+					wxStaticText* mLabelCellEstimation;
+					wxPanel* panelNucleusChannel;
+					wxStaticBitmap* iconNucluesChannel;
+					wxChoice* mChoiceNucluesChannel;
+					wxStaticText* mLabelNucleusChannel;
+					wxPanel* panelMaxCellRadius;
+					wxStaticBitmap* iconMaxCellRadius;
+					wxSpinCtrlDouble* mSpinMaxCellRadius;
+					wxStaticText* mLabelMaxCellRadius;
+					wxScrolledWindow* mPanelSpotRemoval;
+					wxStaticText* mLabelSpotRemoval;
+					wxPanel* panelTetraspeckChannel;
+					wxStaticBitmap* iconTetraspeckChannel;
+					wxChoice* mChoiceTetraspeckChannel;
+					wxStaticText* mLabelTetraspeckChannel;
+					wxScrolledWindow* mPanelIntersection;
+					wxStaticText* mLabelIntersection;
+					wxPanel* mPanelIntersectionButtons;
+					wxToggleButton* mButtonIntersectionCh01;
+					wxToggleButton* mButtonIntersectionCh02;
+					wxToggleButton* mButtonIntersectionCh03;
+					wxToggleButton* mButtonIntersectionCh04;
+					wxToggleButton* mButtonIntersectionCh05;
+					wxToggleButton* mButtonIntersectionCh06;
+					wxToggleButton* mButtonIntersectionCh07;
+					wxToggleButton* mButtonIntersectionCh08;
+					wxToggleButton* mButtonIntersectionCh09;
+					wxToggleButton* mButtonIntersectionCh10;
+					wxToggleButton* mButtonIntersectionCh11;
+					wxToggleButton* mButtonIntersectionCh12;
+					wxToggleButton* mButtonIntersectionChEstimatedCell;
+					wxStatusBar* m_statusBar1;
+
+					// Virtual event handlers, override them in your derived class
+					virtual void onAddChannelClicked( wxCommandEvent& event ) { event.Skip(); }
+
+
+				public:
+
+					frameMain( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("imageC"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1920,1080 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+
+					~frameMain();
+
+			};
+
+			///////////////////////////////////////////////////////////////////////////////
+			/// Class dialogProcessing
+			///////////////////////////////////////////////////////////////////////////////
+			class dialogProcessing : public wxDialog
+			{
+				private:
+
+				protected:
+					wxStaticText* mLabelProgressImage;
+					wxGauge* mProgressImage;
+					wxStaticText* mLabelProgressAllOver;
+					wxGauge* mProgressAllOver;
+					wxStaticLine* mLineProgressDialog;
+					wxPanel* mPanelFooter;
+					wxPanel* panelFooterButtons;
+					wxStaticBitmap* iconCpuCores;
+					wxSpinCtrlDouble* mSpinCpuCores;
+					wxButton* mButtonStart;
+					wxButton* mButtonStop;
+					wxStaticText* mLabelCpuCores;
+
+				public:
+
+					dialogProcessing( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Analyze running..."), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 694,191 ), long style = wxDEFAULT_DIALOG_STYLE );
+
+					~dialogProcessing();
+
+			};
+
+			///////////////////////////////////////////////////////////////////////////////
+			/// Class dialogAbout
+			///////////////////////////////////////////////////////////////////////////////
+			class dialogAbout : public wxDialog
+			{
+				private:
+
+				protected:
+					wxStaticBitmap* mIconLogo;
+					wxStaticText* mLabelTitle;
+					wxStaticText* mLabelDescription;
+
+				public:
+
+					dialogAbout( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Info"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 411,267 ), long style = wxDEFAULT_DIALOG_STYLE );
+
+					~dialogAbout();
+
+			};
+
+			///////////////////////////////////////////////////////////////////////////////
+			/// Class PanelChannel
+			///////////////////////////////////////////////////////////////////////////////
+			class PanelChannel : public wxPanel
+			{
+				private:
+
+				protected:
 					wxStaticText* mLabelChannelTitle;
 					wxTextCtrl* mTextChannelName;
 					wxPanel* panelChannelType;
@@ -128,96 +235,14 @@ namespace joda
 					wxButton* mButtonPreview;
 					wxStaticLine* mLineRemove;
 					wxButton* mButtonRemoveChannel;
-					wxButton* mButtonAddChannel;
-					wxPanel* mPanelPipelineSteps;
-					wxScrolledWindow* panelPipelineStepCellEstimation;
-					wxStaticText* mLabelCellEstimation;
-					wxPanel* panelNucleusChannel;
-					wxStaticBitmap* iconNucluesChannel;
-					wxChoice* mChoiceNucluesChannel;
-					wxStaticText* mLabelNucleusChannel;
-					wxPanel* panelMaxCellRadius;
-					wxStaticBitmap* iconMaxCellRadius;
-					wxSpinCtrlDouble* mSpinMaxCellRadius;
-					wxStaticText* mLabelMaxCellRadius;
-					wxScrolledWindow* mPanelSpotRemoval;
-					wxStaticText* mLabelSpotRemoval;
-					wxPanel* panelTetraspeckChannel;
-					wxStaticBitmap* iconTetraspeckChannel;
-					wxChoice* mChoiceTetraspeckChannel;
-					wxStaticText* mLabelTetraspeckChannel;
-					wxScrolledWindow* mPanelIntersection;
-					wxStaticText* mLabelIntersection;
-					wxPanel* mPanelIntersectionButtons;
-					wxToggleButton* mButtonIntersectionCh01;
-					wxToggleButton* mButtonIntersectionCh02;
-					wxToggleButton* mButtonIntersectionCh03;
-					wxToggleButton* mButtonIntersectionCh04;
-					wxToggleButton* mButtonIntersectionCh05;
-					wxToggleButton* mButtonIntersectionCh06;
-					wxToggleButton* mButtonIntersectionCh07;
-					wxToggleButton* mButtonIntersectionCh08;
-					wxToggleButton* mButtonIntersectionCh09;
-					wxToggleButton* mButtonIntersectionCh10;
-					wxToggleButton* mButtonIntersectionCh11;
-					wxToggleButton* mButtonIntersectionCh12;
-					wxToggleButton* mButtonIntersectionChEstimatedCell;
-					wxStatusBar* m_statusBar1;
 
 				public:
+					wxBoxSizer* mSizerForScroll;
+					wxScrolledWindow* mScrolledChannel;
 
-					frameMain( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("imageC"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1920,1080 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 250,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
-					~frameMain();
-
-			};
-
-			///////////////////////////////////////////////////////////////////////////////
-			/// Class dialogProcessing
-			///////////////////////////////////////////////////////////////////////////////
-			class dialogProcessing : public wxDialog
-			{
-				private:
-
-				protected:
-					wxStaticText* mLabelProgressImage;
-					wxGauge* mProgressImage;
-					wxStaticText* mLabelProgressAllOver;
-					wxGauge* mProgressAllOver;
-					wxStaticLine* mLineProgressDialog;
-					wxPanel* mPanelFooter;
-					wxPanel* panelFooterButtons;
-					wxStaticBitmap* iconCpuCores;
-					wxSpinCtrlDouble* mSpinCpuCores;
-					wxButton* mButtonStart;
-					wxButton* mButtonStop;
-					wxStaticText* mLabelCpuCores;
-
-				public:
-
-					dialogProcessing( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Analyze running..."), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 694,191 ), long style = wxDEFAULT_DIALOG_STYLE );
-
-					~dialogProcessing();
-
-			};
-
-			///////////////////////////////////////////////////////////////////////////////
-			/// Class dialogAbout
-			///////////////////////////////////////////////////////////////////////////////
-			class dialogAbout : public wxDialog
-			{
-				private:
-
-				protected:
-					wxStaticBitmap* mIconLogo;
-					wxStaticText* mLabelTitle;
-					wxStaticText* mLabelDescription;
-
-				public:
-
-					dialogAbout( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Info"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 411,267 ), long style = wxDEFAULT_DIALOG_STYLE );
-
-					~dialogAbout();
+					~PanelChannel();
 
 			};
 

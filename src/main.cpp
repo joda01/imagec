@@ -19,6 +19,7 @@
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "backend/reporting/report_printer.h"
 #include "ui/http/web_server.hpp"
+#include "ui/wxwidgets/frame_main_controller.h"
 #include "ui/wxwidgets/wxwidget.h"
 #include "version.h"
 
@@ -51,7 +52,7 @@ wxIMPLEMENT_APP_NO_MAIN(MainApp);
 bool MainApp::OnInit()
 {
   wxSizerFlags::DisableConsistencyChecks();
-  auto *frame = new joda::ui::wxwidget::frameMain(nullptr);
+  auto *frame = new joda::ui::wxwidget::FrameMainController(nullptr);
   frame->Show(true);
   return true;
 }
