@@ -41,15 +41,15 @@ find_package( PkgConfig REQUIRED )
 find_package( PugiXML )
 find_package( OpenSSL  )
 IF (WIN32)
-set(wxWidgets_INCLUDE_DIRS "C:/msys64/mingw64/include/wx-3.2" "C:/msys64/mingw64/lib/wx/include/msw-unicode-3.2")
-#set(wxWidgets_CONFIG_EXECUTABLE "C:/msys64/mingw64/bin/wx-config")
-
-include_directories(${wxWidgets_INCLUDE_DIRS})
-
   find_package( libjpeg-turbo )
   find_package( TIFF )
   set(ENV{WX_CONFIG} "wx-config-3.2")
   set(wxWidgets_CONFIG_EXECUTABLE "wx-config-3.2")
+  set(wxWidgets_USE_LIBS)
+  find_package( wxWidgets  REQUIRED)
+  include(${wxWidgets_USE_FILE})
+  include_directories(${wxWidgets_INCLUDE_DIRS})
+
 ELSE ()
   find_package( Tiff )
   set(wxWidgets_USE_LIBS)
@@ -99,43 +99,26 @@ endfunction()
 # Link to libraries
 #
 IF (WIN32)
-
-file(GLOB wxWidgets_LIBRARIES
-  C:/msys64/mingw64/lib/libwx_mswu_*.a
-  C:/msys64/mingw64/lib/libwx_baseu_*.a
-  C:/msys64/mingw64/lib/libwxscintilla-3.2.a
-  C:/msys64/mingw64/lib/libwxscintilla-3.2.dll.a
-  C:/msys64/mingw64/lib/libwx_baseu_xml-3.2.a
-  C:/msys64/mingw64/lib/libwx_baseu_xml-3.2.dll.a
-
-  
-
-  winmm comctl32 uuid oleacc uxtheme rpcrt4 shlwapi version wsock32
-
-)
-
-#message("${wxWidgets_LIBRARIES}")
-
-# WINDOWS (msys)
-set(LIBS
-  ${OpenCV_LIBS}
-  ${OPENSSL_LIBRARIES}
-  pugixml
-  jpeg
-  TIFF
-  ${wxWidgets_LIBRARIES}
-)
+  # WINDOWS (msys)
+  set(LIBS
+    ${OpenCV_LIBS}
+    ${OPENSSL_LIBRARIES}
+    pugixml
+    jpeg
+    TIFF
+    ${wxWidgets_LIBRARIES}
+  )
 
 
 ELSE()
-# LINUX
-set(LIBS
-  ${OpenCV_LIBS}
-  ${OPENSSL_LIBRARIES}
-  pugixml
-  tiff
-  ${wxWidgets_LIBRARIES}
-)
+  # LINUX
+  set(LIBS
+    ${OpenCV_LIBS}
+    ${OPENSSL_LIBRARIES}
+    pugixml
+    tiff
+    ${wxWidgets_LIBRARIES}
+  )
 ENDIF()
 
 
@@ -149,7 +132,6 @@ file(GLOB_RECURSE SOURCES
   ./src/*.cpp
   ./src/*.c
   /usr/local/include/libtiff/*.h
-  version.rc
 )
 
 # Exclude test files from source

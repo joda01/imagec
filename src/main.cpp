@@ -24,7 +24,7 @@
 #include "version.h"
 
 #ifdef _WIN32
-#include "wx/msw/wx.rc"
+//#include "wx/msw/wx.rc"
 #endif
 
 using namespace std;
