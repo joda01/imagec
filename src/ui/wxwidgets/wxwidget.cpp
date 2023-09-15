@@ -584,7 +584,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelMarginCrop, 1, wxEXPAND|wxTOP, 5 );
 
 	panelMedianBGSubtract = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelMedianBGSubtract->SetMaxSize( wxSize( -1,-65 ) );
+	panelMedianBGSubtract->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerMedianBGSubtract;
 	sizerMedianBGSubtract = new wxBoxSizer( wxVERTICAL );
