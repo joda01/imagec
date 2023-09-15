@@ -106,7 +106,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	mSizerCellEstimation->Add( mLabelCellEstimation, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 
-	panelNucleusChannel = new wxPanel( panelPipelineStepCellEstimation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelNucleusChannel = new wxPanel( panelPipelineStepCellEstimation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	wxBoxSizer* sizerNucleusChannel;
 	sizerNucleusChannel = new wxBoxSizer( wxVERTICAL );
 
@@ -137,7 +137,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	sizerNucleusChannel->Fit( panelNucleusChannel );
 	mSizerCellEstimation->Add( panelNucleusChannel, 1, wxEXPAND|wxTOP, 5 );
 
-	panelMaxCellRadius = new wxPanel( panelPipelineStepCellEstimation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelMaxCellRadius = new wxPanel( panelPipelineStepCellEstimation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	wxBoxSizer* sizerMaxCellRadius;
 	sizerMaxCellRadius = new wxBoxSizer( wxVERTICAL );
 
@@ -192,7 +192,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	mSizerSpotRemoval->Add( mLabelSpotRemoval, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 
-	panelTetraspeckChannel = new wxPanel( mPanelSpotRemoval, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelTetraspeckChannel = new wxPanel( mPanelSpotRemoval, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	wxBoxSizer* sizerTetraspeckChannel;
 	sizerTetraspeckChannel = new wxBoxSizer( wxVERTICAL );
 
@@ -520,7 +520,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	mSizerChannel->Add( mLinePreprocessing, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
-	panelZStack = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelZStack = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelZStack->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerZStack;
@@ -553,7 +553,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerZStack->Fit( panelZStack );
 	mSizerChannel->Add( panelZStack, 1, wxEXPAND|wxTOP, 5 );
 
-	panelMarginCrop = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelMarginCrop = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelMarginCrop->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerMarginCrop;
@@ -583,7 +583,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerMarginCrop->Fit( panelMarginCrop );
 	mSizerChannel->Add( panelMarginCrop, 1, wxEXPAND|wxTOP, 5 );
 
-	panelMedianBGSubtract = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelMedianBGSubtract = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelMedianBGSubtract->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerMedianBGSubtract;
@@ -616,7 +616,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerMedianBGSubtract->Fit( panelMedianBGSubtract );
 	mSizerChannel->Add( panelMedianBGSubtract, 1, wxEXPAND|wxTOP, 5 );
 
-	panelRollingBall = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelRollingBall = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelRollingBall->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerRollingBall;
@@ -646,7 +646,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerRollingBall->Fit( panelRollingBall );
 	mSizerChannel->Add( panelRollingBall, 1, wxEXPAND|wxTOP, 5 );
 
-	panelBGSubtraction = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelBGSubtraction = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelBGSubtraction->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerBGSubtraction;
@@ -679,7 +679,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerBGSubtraction->Fit( panelBGSubtraction );
 	mSizerChannel->Add( panelBGSubtraction, 1, wxEXPAND|wxTOP, 5 );
 
-	panelBluer = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelBluer = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelBluer->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerBluer;
@@ -720,7 +720,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	mSizerChannel->Add( mLineDescription, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
-	panelUseAI = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelUseAI = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelUseAI->SetMaxSize( wxSize( -1,35 ) );
 
 	wxBoxSizer* sizerUseAI;
@@ -744,7 +744,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerUseAI->Fit( panelUseAI );
 	mSizerChannel->Add( panelUseAI, 1, wxEXPAND|wxTOP, 5 );
 
-	panelThresholdMethod = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelThresholdMethod = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelThresholdMethod->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* ThresholdMethod;
@@ -777,7 +777,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	ThresholdMethod->Fit( panelThresholdMethod );
 	mSizerChannel->Add( panelThresholdMethod, 1, wxEXPAND|wxTOP, 5 );
 
-	panelMinThreshold = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelMinThreshold = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelMinThreshold->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerMinThreshold;
@@ -819,7 +819,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	mSizerChannel->Add( mLineFilter, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
-	panelMinCircularity = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelMinCircularity = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelMinCircularity->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerMinCircularity;
@@ -849,7 +849,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerMinCircularity->Fit( panelMinCircularity );
 	mSizerChannel->Add( panelMinCircularity, 1, wxEXPAND|wxTOP, 5 );
 
-	panelParticleSize = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelParticleSize = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelParticleSize->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerParticleSize;
@@ -879,7 +879,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerParticleSize->Fit( panelParticleSize );
 	mSizerChannel->Add( panelParticleSize, 1, wxEXPAND|wxTOP, 5 );
 
-	panelSnapArea = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
+	panelSnapArea = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelSnapArea->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerSnapArea1;
