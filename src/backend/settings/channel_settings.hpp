@@ -161,8 +161,8 @@ public:
   enum class Type
   {
     NONE,
-    NUCLEUS,
     SPOT,
+    NUCLEUS,
     CELL,
     BACKGROUND,
   };
@@ -282,6 +282,7 @@ class ChannelSettings final
 {
 public:
   /////////////////////////////////////////////////////
+
   void interpretConfig()
   {
     info.interpretConfig();
@@ -321,18 +322,7 @@ public:
     return filter;
   }
 
-  auto getMarginCrop() const -> float
-  {
-    return margin_crop;
-  }
-
 private:
-  //
-  // How much of the edge should be cut off.
-  // Value in [px]
-  //
-  float margin_crop;
-
   //
   // Common channel information
   //
@@ -354,7 +344,7 @@ private:
   //
   ChannelFiltering filter;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, info, detection, preprocessing, filter, margin_crop);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, info, detection, preprocessing, filter);
 };
 
 }    // namespace joda::settings::json

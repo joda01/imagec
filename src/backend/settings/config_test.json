@@ -41,8 +41,7 @@
                 "min_particle_size": 5,
                 "max_particle_size": 999999,
                 "min_circularity": 0.8,
-                "snap_area_size": 0,
-                "margin_crop": 0
+                "snap_area_size": 0
             }
         }
     ],
