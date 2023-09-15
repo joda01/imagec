@@ -88,8 +88,15 @@ C:\msys64\mingw64\bin
 Execute `make.bat` and `build.bat`.
 The EXE file will be placed in `build/build/imagec.exe`
 
+`
+mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
+`
 
 ### Deploy for windows
 
 Use `mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin` to check dll dependencies.
 Copy the listed dependencies to the EXE folder of the application.
+
+
+wx-config --cxxflags --libs
+wx-config --rescomp

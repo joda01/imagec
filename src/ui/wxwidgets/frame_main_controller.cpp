@@ -2,9 +2,7 @@
 #include <memory>
 #include "ui/wxwidgets/wxwidget.h"
 
-namespace joda {
-namespace ui {
-namespace wxwidget {
+namespace joda::ui::wxwidget {
 
 FrameMainController::FrameMainController(wxWindow *parent) : frameMain(parent)
 {
@@ -33,6 +31,4 @@ void FrameMainController::onAddChannelClicked(wxCommandEvent &event)
   addChannel();
 }
 
-}    // namespace wxwidget
-}    // namespace ui
 }    // namespace joda

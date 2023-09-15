@@ -119,7 +119,7 @@ auto TiffLoader::getImageProperties(const std::string &filename, uint16_t direct
     TIFFClose(tif);
 
     return ImageProperties{
-        .imageSize = imageSize, .tileSize = tileSize, .nrOfTiles = nrOfTiles, .nrOfDocuments = nrOfDirectories};
+        .imageSize = imageSize, .tileSize = tileSize, .nrOfTiles = nrOfTiles, .nrOfDocuments = (uint16_t) nrOfDirectories};
   }
 
   return ImageProperties{};

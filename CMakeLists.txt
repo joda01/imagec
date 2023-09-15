@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.5)
 project (imagec
          VERSION 1.0.0
          HOMEPAGE_URL https://danmayr.org
-         LANGUAGES CXX C)
+         LANGUAGES CXX C RC)
 
 # 1) Choose option and adapt Line 95 if needed
 option(MAKE_LIBRARY "Builds a library instead of an executable program." OFF)
@@ -13,7 +13,11 @@ SET(CMAKE_CXX20_STANDARD 20)
 SET(CMAKE_CXX20_STANDARD_REQUIRED true)
 
 IF (WIN32)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -O2 -lm -std=c++20")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lz -lws2_32 -lwsock32 -lm -std=c++20")
+  
+  #SET(CMAKE_RC_COMPILER "windres.exe")
+  SET(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} --include-dir C:/msys64/mingw64/include/wx-3.2 --define __WIN32__ --define __GNUWIN32__ --define WX_CPU_AMD64")
+
 ELSE()
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
@@ -40,22 +44,25 @@ find_package( OpenCV REQUIRED )
 find_package( PkgConfig REQUIRED )
 find_package( PugiXML )
 find_package( OpenSSL  )
+
 IF (WIN32)
   find_package( libjpeg-turbo )
   find_package( TIFF )
   set(ENV{WX_CONFIG} "wx-config-3.2")
   set(wxWidgets_CONFIG_EXECUTABLE "wx-config-3.2")
+  set(wxWidgets_USE_LIBS)
+  find_package( wxWidgets  REQUIRED)
+  include(${wxWidgets_USE_FILE})
+  include_directories(${wxWidgets_INCLUDE_DIRS})
+
+
 ELSE ()
   find_package( Tiff )
+  set(wxWidgets_USE_LIBS)
+  find_package( wxWidgets REQUIRED)
+  include(${wxWidgets_USE_FILE})
+  include_directories(${wxWidgets_INCLUDE_DIRS})
 ENDIF()
-
-
-
-set(wxWidgets_USE_LIBS)
-find_package( wxWidgets  REQUIRED)
-include(${wxWidgets_USE_FILE})
-include_directories(${wxWidgets_INCLUDE_DIRS})
-
 
 
 
@@ -98,29 +105,34 @@ endfunction()
 # Link to libraries
 #
 IF (WIN32)
-# WINDOWS (msys)
-set(LIBS
-  ${OpenCV_LIBS}
-  ${OPENSSL_LIBRARIES}
-  pugixml
-  jpeg
-  TIFF
-  ${wxWidgets_LIBRARIES}
-)
+  # WINDOWS (msys)
+  set(LIBS
+    ${OpenCV_LIBS}
+    ${OPENSSL_LIBRARIES}
+    pugixml
+    jpeg
+    TIFF
+    ${wxWidgets_LIBRARIES}
+  )
+
+
 ELSE()
-# LINUX
-set(LIBS
-  ${OpenCV_LIBS}
-  ${OPENSSL_LIBRARIES}
-  pugixml
-  tiff
-  ${wxWidgets_LIBRARIES}
-)
+  # LINUX
+  set(LIBS
+    ${OpenCV_LIBS}
+    ${OPENSSL_LIBRARIES}
+    pugixml
+    tiff
+    ${wxWidgets_LIBRARIES}
+  )
 ENDIF()
 
 
 include_directories("./src")
 
+message("-->")
+message("${wxWidgets_INCLUDE_DIRS}")
+message("<--")
 
 ###########################################################################################
 # Source file
@@ -129,13 +141,13 @@ file(GLOB_RECURSE SOURCES
   ./src/*.cpp
   ./src/*.c
   /usr/local/include/libtiff/*.h
-  version.rc
+ ./src/wx.rc
+#./src/version.rc
 )
 
 # Exclude test files from source
 list(FILTER SOURCES EXCLUDE REGEX ".*_test.cpp$")
 add_executable(${PROJECT_NAME} ${SOURCES})
-
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
