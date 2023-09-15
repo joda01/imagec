@@ -93,6 +93,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	panelPipelineStepCellEstimation = new wxScrolledWindow( mPanelPipelineSteps, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	panelPipelineStepCellEstimation->SetScrollRate( 5, 5 );
 	panelPipelineStepCellEstimation->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+	panelPipelineStepCellEstimation->SetMaxSize( wxSize( 250,-1 ) );
 
 	wxGridSizer* mGridCellEstimation;
 	mGridCellEstimation = new wxGridSizer( 0, 1, 0, 0 );
@@ -183,6 +184,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mPanelSpotRemoval = new wxScrolledWindow( mPanelPipelineSteps, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	mPanelSpotRemoval->SetScrollRate( 5, 5 );
 	mPanelSpotRemoval->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+	mPanelSpotRemoval->SetMaxSize( wxSize( 250,-1 ) );
 
 	wxGridSizer* mGridSpotRemoval;
 	mGridSpotRemoval = new wxGridSizer( 0, 1, 0, 0 );
@@ -240,6 +242,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mPanelIntersection = new wxScrolledWindow( mPanelPipelineSteps, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	mPanelIntersection->SetScrollRate( 5, 5 );
 	mPanelIntersection->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+	mPanelIntersection->SetMaxSize( wxSize( 250,-1 ) );
 
 	wxGridSizer* mGridIntersection2;
 	mGridIntersection2 = new wxGridSizer( 0, 1, 0, 0 );

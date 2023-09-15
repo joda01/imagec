@@ -109,7 +109,7 @@ namespace joda
 
 				public:
 
-					frameMain( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("imageC"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+					frameMain( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("imageC"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxMAXIMIZE|wxTAB_TRAVERSAL );
 
 					~frameMain();
 
