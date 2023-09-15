@@ -13,8 +13,8 @@ FrameMainController::FrameMainController(wxWindow *parent) : frameMain(parent)
 
 void FrameMainController::addChannel()
 {
-  auto channel =
-      std::make_shared<PanelChannel>(mScrollbarChannels, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+  auto channel = std::make_shared<PanelChannelController>(mScrollbarChannels, wxID_ANY, wxDefaultPosition,
+                                                          wxDefaultSize, wxTAB_TRAVERSAL);
 
   channel->mScrolledChannel->SetMinSize(wxSize(250, 9999));
   mChannels.push_back(channel);
