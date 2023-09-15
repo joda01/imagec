@@ -26,7 +26,7 @@
 
 #ifdef _WIN32
 // #include "wx.rc"
-//#include "wx/msw/
+//#include "wx/msw/wx.rc"
 #endif
 
 using namespace std;
