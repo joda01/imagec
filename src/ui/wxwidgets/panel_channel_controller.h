@@ -44,8 +44,22 @@ private:
   static auto indexToType(int idx) -> std::string;
   static auto typeToIndex(const std::string &str) -> int;
 
-  static inline joda::helper::TwoWayMap<int, std::string> myMap{
+  static auto indexToZProjection(int idx) -> std::string;
+  static auto zProjectionToIndex(const std::string &str) -> int;
+
+  static auto indexToThreshold(int idx) -> std::string;
+  static auto thresholdToIndex(const std::string &str) -> int;
+
+  static auto splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>;
+
+  static inline joda::helper::TwoWayMap<int, std::string> CHANNEL_TYPES{
       {{0, "SPOT"}, {1, "NUCLEUS"}, {2, "CELL"}, {3, "BACKGROUND"}}};
+
+  static inline joda::helper::TwoWayMap<int, std::string> Z_STACK_PROJECTION{
+      {{0, "NONE"}, {1, "PROJECT_MAX_INTENSITY"}, {2, "PROJECT_3D"}}};
+
+  static inline joda::helper::TwoWayMap<int, std::string> THRESHOLD_METHOD{
+      {{0, "MANUAL"}, {1, "LI"}, {2, "MIN_ERROR"}, {3, "TRIANGLE"}}};
 };
 }    // namespace joda::ui::wxwidget
 

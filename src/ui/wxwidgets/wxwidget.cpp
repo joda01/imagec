@@ -766,10 +766,10 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	iconThresholdMethod = new wxStaticBitmap( panelThresholdMethod, wxID_ANY, formula_fx_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	izerThresholdMethod2->Add( iconThresholdMethod, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	wxString mChoiceThresholdMethodChoices[] = { _("Manual"), _("Li"), _("Triangle") };
+	wxString mChoiceThresholdMethodChoices[] = { _("Manual"), _("Li"), _("Min. error"), _("Triangle") };
 	int mChoiceThresholdMethodNChoices = sizeof( mChoiceThresholdMethodChoices ) / sizeof( wxString );
 	mChoiceThresholdMethod = new wxChoice( panelThresholdMethod, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceThresholdMethodNChoices, mChoiceThresholdMethodChoices, 0 );
-	mChoiceThresholdMethod->SetSelection( 2 );
+	mChoiceThresholdMethod->SetSelection( 0 );
 	izerThresholdMethod2->Add( mChoiceThresholdMethod, 1, wxEXPAND, 5 );
 
 
@@ -841,8 +841,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	iconMinCircularity = new wxStaticBitmap( panelMinCircularity, wxID_ANY, octagon_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerMinCircularity2->Add( iconMinCircularity, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinMinCircularity = new wxSpinCtrl( panelMinCircularity, wxID_ANY, wxT("0.000000"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0.000000 );
-	sizerMinCircularity2->Add( mSpinMinCircularity, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
+	mSpinMinCircularity = new wxSpinCtrlDouble( panelMinCircularity, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1, 0.000000, 0.01 );
+	mSpinMinCircularity->SetDigits( 2 );
+	sizerMinCircularity2->Add( mSpinMinCircularity, 1, wxALL, 5 );
 
 
 	sizerMinCircularity->Add( sizerMinCircularity2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
@@ -859,7 +860,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerMinCircularity->Fit( panelMinCircularity );
 	mSizerChannel->Add( panelMinCircularity, 1, wxEXPAND|wxTOP, 5 );
 
-	panelParticleSize = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelParticleSize = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelParticleSize->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerParticleSize;
@@ -871,8 +872,8 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	iDescription1121 = new wxStaticBitmap( panelParticleSize, wxID_ANY, all_out_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerParticleSize2->Add( iDescription1121, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	m_textCtrl3 = new wxTextCtrl( panelParticleSize, wxID_ANY, _("5-9999"), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerParticleSize2->Add( m_textCtrl3, 1, wxEXPAND, 5 );
+	mTextParticleSizeRange = new wxTextCtrl( panelParticleSize, wxID_ANY, _("5-9999"), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerParticleSize2->Add( mTextParticleSizeRange, 1, wxEXPAND, 5 );
 
 
 	sizerParticleSize->Add( sizerParticleSize2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
@@ -901,8 +902,8 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	iconParticleSize = new wxStaticBitmap( panelSnapArea, wxID_ANY, centre_point_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerSnapArea2->Add( iconParticleSize, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinParticleSize = new wxSpinCtrl( panelSnapArea, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 256, 0 );
-	sizerSnapArea2->Add( mSpinParticleSize, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
+	mSpinSnapArea = new wxSpinCtrl( panelSnapArea, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 256, 0 );
+	sizerSnapArea2->Add( mSpinSnapArea, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 
 
 	sizerSnapArea1->Add( sizerSnapArea2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );

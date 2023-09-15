@@ -221,15 +221,15 @@ namespace joda
 					wxStaticLine* mLineFilter;
 					wxPanel* panelMinCircularity;
 					wxStaticBitmap* iconMinCircularity;
-					wxSpinCtrl* mSpinMinCircularity;
+					wxSpinCtrlDouble* mSpinMinCircularity;
 					wxStaticText* mLabelMinCircularity;
 					wxPanel* panelParticleSize;
 					wxStaticBitmap* iDescription1121;
-					wxTextCtrl* m_textCtrl3;
+					wxTextCtrl* mTextParticleSizeRange;
 					wxStaticText* mLabelParticleSize;
 					wxPanel* panelSnapArea;
 					wxStaticBitmap* iconParticleSize;
-					wxSpinCtrl* mSpinParticleSize;
+					wxSpinCtrl* mSpinSnapArea;
 					wxStaticText* mLabelSnapArea;
 					wxStaticLine* mLinePreview;
 					wxButton* mButtonPreview;

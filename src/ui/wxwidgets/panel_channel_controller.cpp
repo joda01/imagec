@@ -56,38 +56,87 @@ nlohmann::json PanelChannelController::getValues()
 
   // Preprocessing
   nlohmann::json jsonArray = nlohmann::json::array();    // Initialize an empty JSON array
-  jsonArray.push_back({{"z_stack", {"value", 30}}});
+  jsonArray.push_back({{"z_stack", {"value", indexToZProjection(mChoiceZStack->GetSelection())}}});
   jsonArray.push_back({{"margin_crop", {"value", static_cast<int>(mSpinMarginCrop->GetValue())}}});
   jsonArray.push_back({{"rolling_ball", {"value", static_cast<int>(mSpinRollingBall->GetValue())}}});
   chSettings["preprocessing"] = jsonArray;
 
   // Detections
-  chSettings["detection"]["mode"] = "THRESHOLD";
+  if(mCheckUseAI->IsChecked()) {
+    chSettings["detection"]["mode"] = "AI";
+  } else {
+    chSettings["detection"]["mode"] = "THRESHOLD";
+  }
 
-  chSettings["detection"]["threshold"]["threshold_algorithm"] = "";
-  chSettings["detection"]["threshold"]["threshold_min"]       = static_cast<int>(mSpinMinThreshold->GetValue());
-  chSettings["detection"]["threshold"]["threshold_max"]       = 65535;
+  chSettings["detection"]["threshold"]["threshold_algorithm"] =
+      indexToThreshold(mChoiceThresholdMethod->GetSelection());
+  chSettings["detection"]["threshold"]["threshold_min"] = static_cast<int>(mSpinMinThreshold->GetValue());
+  chSettings["detection"]["threshold"]["threshold_max"] = 65535;
 
   chSettings["detection"]["ai"]["model_name"]      = "AI_MODEL_COMMON_V1";
   chSettings["detection"]["ai"]["probability_min"] = 0.8;
 
   // Filtering
-  chSettings["filter"]["min_particle_size"] = 0;
-  chSettings["filter"]["max_particle_size"] = 0;
-  chSettings["filter"]["min_circularity"]   = 0;
-  chSettings["filter"]["snap_area_size"]    = 0;
+  auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).utf8_string(), '-');
+  chSettings["filter"]["min_particle_size"] = min;
+  chSettings["filter"]["max_particle_size"] = max;
+  chSettings["filter"]["min_circularity"]   = mSpinMinCircularity->GetValue();
+  chSettings["filter"]["snap_area_size"]    = mSpinSnapArea->GetValue();
 
   return chSettings;
 }
 
 auto PanelChannelController::indexToType(int idx) -> std::string
 {
-  return myMap[idx];
+  return CHANNEL_TYPES[idx];
 }
 
 auto PanelChannelController::typeToIndex(const std::string &str) -> int
 {
-  return myMap[str];
+  return CHANNEL_TYPES[str];
+}
+
+auto PanelChannelController::indexToZProjection(int idx) -> std::string
+{
+  return Z_STACK_PROJECTION[idx];
+}
+
+auto PanelChannelController::zProjectionToIndex(const std::string &str) -> int
+{
+  return Z_STACK_PROJECTION[str];
+}
+
+auto PanelChannelController::indexToThreshold(int idx) -> std::string
+{
+  return THRESHOLD_METHOD[idx];
+}
+
+auto PanelChannelController::thresholdToIndex(const std::string &str) -> int
+{
+  return THRESHOLD_METHOD[str];
+}
+
+auto PanelChannelController::splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>
+{
+  std::istringstream ss(input);
+  std::string token;
+  std::vector<std::string> tokens;
+
+  while(std::getline(ss, token, delimiter)) {
+    tokens.push_back(token);
+  }
+  int num1 = 0;
+  int num2 = 0;
+  if(tokens.size() == 2) {
+    num1 = std::stoi(tokens[0]);
+    num2 = std::stoi(tokens[1]);
+  } else {
+    // Handle incorrect format
+    std::cerr << "Incorrect format." << std::endl;
+    num1 = num2 = 0;    // Or any other appropriate action
+  }
+
+  return {num1, num2};
 }
 
 }    // namespace joda::ui::wxwidget

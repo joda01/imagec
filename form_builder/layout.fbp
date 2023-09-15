@@ -3969,7 +3969,7 @@
                                 <property name="border">10</property>
                                 <property name="flag">wxEXPAND|wxLEFT|wxRIGHT</property>
                                 <property name="proportion">1</property>
-                                <object class="wxBoxSizer" expanded="0">
+                                <object class="wxBoxSizer" expanded="1">
                                     <property name="minimum_size"></property>
                                     <property name="name">mSizerChannel</property>
                                     <property name="orient">wxVERTICAL</property>
@@ -6323,11 +6323,11 @@
                                             </object>
                                         </object>
                                     </object>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND|wxTOP</property>
                                         <property name="proportion">1</property>
-                                        <object class="wxPanel" expanded="0">
+                                        <object class="wxPanel" expanded="1">
                                             <property name="BottomDockable">1</property>
                                             <property name="LeftDockable">1</property>
                                             <property name="RightDockable">1</property>
@@ -6378,16 +6378,16 @@
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style">wxBORDER_THEME|wxTAB_TRAVERSAL</property>
-                                            <object class="wxBoxSizer" expanded="0">
+                                            <object class="wxBoxSizer" expanded="1">
                                                 <property name="minimum_size"></property>
                                                 <property name="name">ThresholdMethod</property>
                                                 <property name="orient">wxVERTICAL</property>
                                                 <property name="permission">none</property>
-                                                <object class="sizeritem" expanded="0">
+                                                <object class="sizeritem" expanded="1">
                                                     <property name="border">5</property>
                                                     <property name="flag">wxEXPAND|wxRIGHT|wxTOP</property>
                                                     <property name="proportion">0</property>
-                                                    <object class="wxBoxSizer" expanded="0">
+                                                    <object class="wxBoxSizer" expanded="1">
                                                         <property name="minimum_size"></property>
                                                         <property name="name">izerThresholdMethod2</property>
                                                         <property name="orient">wxHORIZONTAL</property>
@@ -6468,7 +6468,7 @@
                                                                 <property name="caption"></property>
                                                                 <property name="caption_visible">1</property>
                                                                 <property name="center_pane">0</property>
-                                                                <property name="choices">&quot;Manual&quot; &quot;Li&quot; &quot;Triangle&quot;</property>
+                                                                <property name="choices">&quot;Manual&quot; &quot;Li&quot; &quot;Min. error&quot; &quot;Triangle&quot;</property>
                                                                 <property name="close_button">1</property>
                                                                 <property name="context_help"></property>
                                                                 <property name="context_menu">1</property>
@@ -6498,7 +6498,7 @@
                                                                 <property name="pin_button">1</property>
                                                                 <property name="pos"></property>
                                                                 <property name="resize">Resizable</property>
-                                                                <property name="selection">2</property>
+                                                                <property name="selection">0</property>
                                                                 <property name="show">1</property>
                                                                 <property name="size"></property>
                                                                 <property name="style"></property>
@@ -7081,11 +7081,11 @@
                                                                 <property name="window_style"></property>
                                                             </object>
                                                         </object>
-                                                        <object class="sizeritem" expanded="0">
+                                                        <object class="sizeritem" expanded="1">
                                                             <property name="border">5</property>
-                                                            <property name="flag">wxALIGN_CENTER_VERTICAL|wxEXPAND</property>
+                                                            <property name="flag">wxALL</property>
                                                             <property name="proportion">1</property>
-                                                            <object class="wxSpinCtrl" expanded="0">
+                                                            <object class="wxSpinCtrlDouble" expanded="1">
                                                                 <property name="BottomDockable">1</property>
                                                                 <property name="LeftDockable">1</property>
                                                                 <property name="RightDockable">1</property>
@@ -7103,6 +7103,7 @@
                                                                 <property name="context_help"></property>
                                                                 <property name="context_menu">1</property>
                                                                 <property name="default_pane">0</property>
+                                                                <property name="digits">2</property>
                                                                 <property name="dock">Dock</property>
                                                                 <property name="dock_fixed">0</property>
                                                                 <property name="docking">Left</property>
@@ -7111,10 +7112,11 @@
                                                                 <property name="floatable">1</property>
                                                                 <property name="font"></property>
                                                                 <property name="gripper">0</property>
-                                                                <property name="hidden"></property>
+                                                                <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
+                                                                <property name="inc">0.01</property>
                                                                 <property name="initial">0.000000</property>
-                                                                <property name="max">100</property>
+                                                                <property name="max">1</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
                                                                 <property name="maximum_size"></property>
@@ -7137,7 +7139,7 @@
                                                                 <property name="subclass">; ; forward_declare</property>
                                                                 <property name="toolbar_pane">0</property>
                                                                 <property name="tooltip"></property>
-                                                                <property name="value">0.000000</property>
+                                                                <property name="value"></property>
                                                                 <property name="window_extra_style"></property>
                                                                 <property name="window_name"></property>
                                                                 <property name="window_style"></property>
@@ -7209,11 +7211,11 @@
                                             </object>
                                         </object>
                                     </object>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND|wxTOP</property>
                                         <property name="proportion">1</property>
-                                        <object class="wxPanel" expanded="0">
+                                        <object class="wxPanel" expanded="1">
                                             <property name="BottomDockable">1</property>
                                             <property name="LeftDockable">1</property>
                                             <property name="RightDockable">1</property>
@@ -7257,23 +7259,23 @@
                                             <property name="pos"></property>
                                             <property name="resize">Resizable</property>
                                             <property name="show">1</property>
-                                            <property name="size"></property>
+                                            <property name="size">-1,-1</property>
                                             <property name="subclass">; ; forward_declare</property>
                                             <property name="toolbar_pane">0</property>
                                             <property name="tooltip"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style">wxBORDER_THEME|wxTAB_TRAVERSAL</property>
-                                            <object class="wxBoxSizer" expanded="0">
+                                            <object class="wxBoxSizer" expanded="1">
                                                 <property name="minimum_size"></property>
                                                 <property name="name">sizerParticleSize</property>
                                                 <property name="orient">wxVERTICAL</property>
                                                 <property name="permission">none</property>
-                                                <object class="sizeritem" expanded="0">
+                                                <object class="sizeritem" expanded="1">
                                                     <property name="border">5</property>
                                                     <property name="flag">wxEXPAND|wxRIGHT|wxTOP</property>
                                                     <property name="proportion">0</property>
-                                                    <object class="wxBoxSizer" expanded="0">
+                                                    <object class="wxBoxSizer" expanded="1">
                                                         <property name="minimum_size"></property>
                                                         <property name="name">sizerParticleSize2</property>
                                                         <property name="orient">wxHORIZONTAL</property>
@@ -7376,7 +7378,7 @@
                                                                 <property name="minimize_button">0</property>
                                                                 <property name="minimum_size"></property>
                                                                 <property name="moveable">1</property>
-                                                                <property name="name">m_textCtrl3</property>
+                                                                <property name="name">mTextParticleSizeRange</property>
                                                                 <property name="pane_border">1</property>
                                                                 <property name="pane_position"></property>
                                                                 <property name="pane_size"></property>
@@ -7635,7 +7637,7 @@
                                                                 <property name="minimize_button">0</property>
                                                                 <property name="minimum_size"></property>
                                                                 <property name="moveable">1</property>
-                                                                <property name="name">mSpinParticleSize</property>
+                                                                <property name="name">mSpinSnapArea</property>
                                                                 <property name="pane_border">1</property>
                                                                 <property name="pane_position"></property>
                                                                 <property name="pane_size"></property>
