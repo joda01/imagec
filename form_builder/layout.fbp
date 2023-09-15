@@ -355,7 +355,7 @@
                         <object class="notebookpage" expanded="0">
                             <property name="bitmap"></property>
                             <property name="label">Channels</property>
-                            <property name="select">1</property>
+                            <property name="select">0</property>
                             <object class="wxPanel" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
@@ -557,7 +557,7 @@
                         <object class="notebookpage" expanded="0">
                             <property name="bitmap"></property>
                             <property name="label">Pipeline steps</property>
-                            <property name="select">0</property>
+                            <property name="select">1</property>
                             <object class="wxPanel" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
@@ -783,7 +783,7 @@
                                                                 <property name="id">wxID_ANY</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
-                                                                <property name="maximum_size"></property>
+                                                                <property name="maximum_size">-1,65</property>
                                                                 <property name="min_size"></property>
                                                                 <property name="minimize_button">0</property>
                                                                 <property name="minimum_size"></property>
@@ -1040,7 +1040,7 @@
                                                                 <property name="id">wxID_ANY</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
-                                                                <property name="maximum_size"></property>
+                                                                <property name="maximum_size">-1,65</property>
                                                                 <property name="min_size"></property>
                                                                 <property name="minimize_button">0</property>
                                                                 <property name="minimum_size"></property>
@@ -1445,7 +1445,7 @@
                                                                 <property name="id">wxID_ANY</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
-                                                                <property name="maximum_size"></property>
+                                                                <property name="maximum_size">-1,65</property>
                                                                 <property name="min_size"></property>
                                                                 <property name="minimize_button">0</property>
                                                                 <property name="minimum_size"></property>
