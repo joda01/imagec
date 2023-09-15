@@ -107,6 +107,8 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mSizerCellEstimation->Add( mLabelCellEstimation, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 
 	panelNucleusChannel = new wxPanel( panelPipelineStepCellEstimation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelNucleusChannel->SetMaxSize( wxSize( -1,65 ) );
+
 	wxBoxSizer* sizerNucleusChannel;
 	sizerNucleusChannel = new wxBoxSizer( wxVERTICAL );
 
@@ -138,6 +140,8 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mSizerCellEstimation->Add( panelNucleusChannel, 1, wxEXPAND|wxTOP, 5 );
 
 	panelMaxCellRadius = new wxPanel( panelPipelineStepCellEstimation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelMaxCellRadius->SetMaxSize( wxSize( -1,65 ) );
+
 	wxBoxSizer* sizerMaxCellRadius;
 	sizerMaxCellRadius = new wxBoxSizer( wxVERTICAL );
 
@@ -193,6 +197,8 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mSizerSpotRemoval->Add( mLabelSpotRemoval, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 
 	panelTetraspeckChannel = new wxPanel( mPanelSpotRemoval, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelTetraspeckChannel->SetMaxSize( wxSize( -1,65 ) );
+
 	wxBoxSizer* sizerTetraspeckChannel;
 	sizerTetraspeckChannel = new wxBoxSizer( wxVERTICAL );
 
@@ -449,11 +455,11 @@ dialogAbout::~dialogAbout()
 
 PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
 {
-	this->SetMinSize( wxSize( 250,-1 ) );
-	this->SetMaxSize( wxSize( 250,-1 ) );
+	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
-	mSizerForScroll = new wxBoxSizer( wxVERTICAL );
+	mSizerForScroll = new wxBoxSizer( wxHORIZONTAL );
 
+	mSizerForScroll->SetMinSize( wxSize( 250,-1 ) );
 	mScrolledChannel = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	mScrolledChannel->SetScrollRate( 0, 5 );
 	mScrolledChannel->SetBackgroundColour( wxColour( 245, 245, 245 ) );
@@ -946,6 +952,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	this->SetSizer( mSizerForScroll );
 	this->Layout();
+	mSizerForScroll->Fit( this );
 }
 
 PanelChannel::~PanelChannel()

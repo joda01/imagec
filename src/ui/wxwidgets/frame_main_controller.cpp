@@ -13,13 +13,12 @@ void FrameMainController::addChannel()
 {
   auto channel = std::make_shared<PanelChannelController>(mScrollbarChannels, wxID_ANY, wxDefaultPosition,
                                                           wxDefaultSize, wxTAB_TRAVERSAL);
-
-  channel->mScrolledChannel->SetMinSize(wxSize(250, 9999));
-  mChannels.push_back(channel);
-  mSizerChannels->Insert(mChannels.size() - 1, channel.get(), 0, wxEXPAND | wxALL, 5);
-  mSizerChannelsScrollbar->Layout();
+  mSizerChannels->Insert(mChannels.size(), channel.get(), 0, wxEXPAND | wxALL, 5);
   mScrollbarChannels->Layout();
   mSizerChannels->Layout();
+  mSizerChannelsScrollbar->Layout();
+  this->Layout();
+  mChannels.push_back(channel);
 }
 
 void FrameMainController::removeChannel()
@@ -31,4 +30,4 @@ void FrameMainController::onAddChannelClicked(wxCommandEvent &event)
   addChannel();
 }
 
-}    // namespace joda
+}    // namespace joda::ui::wxwidget
