@@ -22,11 +22,10 @@
 #include "ui/wxwidgets/frame_main_controller.h"
 #include "ui/wxwidgets/wxwidget.h"
 #include "version.h"
-#include <wx/msw/rcdefs.h>
 
 #ifdef _WIN32
 // #include "wx.rc"
-//#include "wx/msw/wx.rc"
+// #include "wx/msw/wx.rc"
 #endif
 
 using namespace std;

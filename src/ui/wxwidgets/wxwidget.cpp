@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version 3.10.1-370-gc831f1f7)
+// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3-dirty)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -44,13 +44,10 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	mToolBar->AddSeparator();
 
-	mLabelNrOfFoundFiles = new wxStaticText( mToolBar, wxID_ANY, _("Images dir: "), wxDefaultPosition, wxSize( -1,-1 ), wxALIGN_LEFT );
+	mLabelNrOfFoundFiles = new wxStaticText( mToolBar, wxID_ANY, _("Images dir: "), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	mLabelNrOfFoundFiles->Wrap( -1 );
 	mToolBar->AddControl( mLabelNrOfFoundFiles );
 	mDirectoryPicker = new wxDirPickerCtrl( mToolBar, wxID_ANY, wxEmptyString, _("Select a folder"), wxDefaultPosition, wxSize( 250,-1 ), wxDIRP_DEFAULT_STYLE|wxDIRP_DIR_MUST_EXIST );
-	mDirectoryPicker->SetMinSize( wxSize( 250,-1 ) );
-	mDirectoryPicker->SetMaxSize( wxSize( 250,-1 ) );
-
 	mToolBar->AddControl( mDirectoryPicker );
 	mButtonRun = mToolBar->AddTool( wxID_ANY, _("Start"), start_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
@@ -62,8 +59,8 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	mToolBar->Realize();
 
-	wxBoxSizer* mSizerMain;
-	mSizerMain = new wxBoxSizer( wxVERTICAL );
+	wxBoxSizer* bSizer1;
+	bSizer1 = new wxBoxSizer( wxVERTICAL );
 
 	mNotebookMain = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 	mPanelChannel = new wxPanel( mNotebookMain, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
@@ -82,7 +79,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mScrollbarChannels->SetSizer( mSizerChannels );
 	mScrollbarChannels->Layout();
 	mSizerChannels->Fit( mScrollbarChannels );
-	mSizerChannelsScrollbar->Add( mScrollbarChannels, 1, wxEXPAND | wxALL, 5 );
+	mSizerChannelsScrollbar->Add( mScrollbarChannels, 1, wxEXPAND|wxALL, 5 );
 
 
 	mPanelChannel->SetSizer( mSizerChannelsScrollbar );
@@ -95,9 +92,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	panelPipelineStepCellEstimation = new wxScrolledWindow( mPanelPipelineSteps, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	panelPipelineStepCellEstimation->SetScrollRate( 5, 5 );
-	panelPipelineStepCellEstimation->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNHIGHLIGHT ) );
-	panelPipelineStepCellEstimation->SetMinSize( wxSize( 250,-1 ) );
-	panelPipelineStepCellEstimation->SetMaxSize( wxSize( 250,-1 ) );
+	panelPipelineStepCellEstimation->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxGridSizer* mGridCellEstimation;
 	mGridCellEstimation = new wxGridSizer( 0, 1, 0, 0 );
@@ -112,8 +107,6 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mSizerCellEstimation->Add( mLabelCellEstimation, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 
 	panelNucleusChannel = new wxPanel( panelPipelineStepCellEstimation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelNucleusChannel->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerNucleusChannel;
 	sizerNucleusChannel = new wxBoxSizer( wxVERTICAL );
 
@@ -121,8 +114,6 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	sizerNucleusChannel2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconNucluesChannel = new wxStaticBitmap( panelNucleusChannel, wxID_ANY, bursts_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconNucluesChannel->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerNucleusChannel2->Add( iconNucluesChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	wxString mChoiceNucluesChannelChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
@@ -147,8 +138,6 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mSizerCellEstimation->Add( panelNucleusChannel, 1, wxEXPAND|wxTOP, 5 );
 
 	panelMaxCellRadius = new wxPanel( panelPipelineStepCellEstimation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelMaxCellRadius->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerMaxCellRadius;
 	sizerMaxCellRadius = new wxBoxSizer( wxVERTICAL );
 
@@ -156,12 +145,9 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	sizerMaxCellRadius2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconMaxCellRadius = new wxStaticBitmap( panelMaxCellRadius, wxID_ANY, all_out_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconMaxCellRadius->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerMaxCellRadius2->Add( iconMaxCellRadius, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinMaxCellRadius = new wxSpinCtrlDouble( panelMaxCellRadius, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0.000000, 1 );
-	mSpinMaxCellRadius->SetDigits( 0 );
+	mSpinMaxCellRadius = new wxSpinCtrl( panelMaxCellRadius, wxID_ANY, wxT("0.000000"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0.000000 );
 	sizerMaxCellRadius2->Add( mSpinMaxCellRadius, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 
 
@@ -183,15 +169,16 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mGridCellEstimation->Add( mSizerCellEstimation, 1, wxEXPAND|wxLEFT|wxRIGHT, 10 );
 
 
+	mGridCellEstimation->Add( 0, 0, 1, wxEXPAND, 5 );
+
+
 	panelPipelineStepCellEstimation->SetSizer( mGridCellEstimation );
 	panelPipelineStepCellEstimation->Layout();
 	mSizerPipelineSteps->Add( panelPipelineStepCellEstimation, 1, wxALL|wxEXPAND, 5 );
 
 	mPanelSpotRemoval = new wxScrolledWindow( mPanelPipelineSteps, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	mPanelSpotRemoval->SetScrollRate( 5, 5 );
-	mPanelSpotRemoval->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNHIGHLIGHT ) );
-	mPanelSpotRemoval->SetMinSize( wxSize( 250,-1 ) );
-	mPanelSpotRemoval->SetMaxSize( wxSize( 250,-1 ) );
+	mPanelSpotRemoval->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxGridSizer* mGridSpotRemoval;
 	mGridSpotRemoval = new wxGridSizer( 0, 1, 0, 0 );
@@ -206,8 +193,6 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mSizerSpotRemoval->Add( mLabelSpotRemoval, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 
 	panelTetraspeckChannel = new wxPanel( mPanelSpotRemoval, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelTetraspeckChannel->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerTetraspeckChannel;
 	sizerTetraspeckChannel = new wxBoxSizer( wxVERTICAL );
 
@@ -215,8 +200,6 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	sizerTetraspeckChannel2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconTetraspeckChannel = new wxStaticBitmap( panelTetraspeckChannel, wxID_ANY, bursts_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconTetraspeckChannel->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerTetraspeckChannel2->Add( iconTetraspeckChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	wxString mChoiceTetraspeckChannelChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
@@ -246,13 +229,11 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	mPanelSpotRemoval->SetSizer( mGridSpotRemoval );
 	mPanelSpotRemoval->Layout();
-	mSizerPipelineSteps->Add( mPanelSpotRemoval, 1, wxEXPAND | wxALL, 5 );
+	mSizerPipelineSteps->Add( mPanelSpotRemoval, 1, wxEXPAND|wxALL, 5 );
 
 	mPanelIntersection = new wxScrolledWindow( mPanelPipelineSteps, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	mPanelIntersection->SetScrollRate( 5, 5 );
-	mPanelIntersection->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNHIGHLIGHT ) );
-	mPanelIntersection->SetMinSize( wxSize( 250,-1 ) );
-	mPanelIntersection->SetMaxSize( wxSize( 250,-1 ) );
+	mPanelIntersection->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxGridSizer* mGridIntersection2;
 	mGridIntersection2 = new wxGridSizer( 0, 1, 0, 0 );
@@ -324,7 +305,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	mPanelIntersection->SetSizer( mGridIntersection2 );
 	mPanelIntersection->Layout();
-	mSizerPipelineSteps->Add( mPanelIntersection, 1, wxEXPAND | wxALL, 5 );
+	mSizerPipelineSteps->Add( mPanelIntersection, 1, wxEXPAND|wxALL, 5 );
 
 
 	mPanelPipelineSteps->SetSizer( mSizerPipelineSteps );
@@ -332,10 +313,10 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mSizerPipelineSteps->Fit( mPanelPipelineSteps );
 	mNotebookMain->AddPage( mPanelPipelineSteps, _("Pipeline steps"), false );
 
-	mSizerMain->Add( mNotebookMain, 1, wxEXPAND | wxALL, 5 );
+	bSizer1->Add( mNotebookMain, 1, wxEXPAND | wxALL, 5 );
 
 
-	this->SetSizer( mSizerMain );
+	this->SetSizer( bSizer1 );
 	this->Layout();
 	m_statusBar1 = this->CreateStatusBar( 1, wxSTB_SIZEGRIP, wxID_ANY );
 
@@ -355,7 +336,7 @@ frameMain::~frameMain()
 dialogProcessing::dialogProcessing( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
-	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BACKGROUND ) );
+	this->SetBackgroundColour( wxColour( 255, 255, 255 ) );
 
 	wxBoxSizer* mSizerProcessing;
 	mSizerProcessing = new wxBoxSizer( wxVERTICAL );
@@ -380,15 +361,13 @@ dialogProcessing::dialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 	mSizerProcessing->Add( mProgressAllOver, 0, wxALL|wxEXPAND, 5 );
 
 	mLineProgressDialog = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	mSizerProcessing->Add( mLineProgressDialog, 0, wxEXPAND | wxALL, 5 );
+	mSizerProcessing->Add( mLineProgressDialog, 0, wxEXPAND|wxALL, 5 );
 
 	mPanelFooter = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* mSizerFooter;
 	mSizerFooter = new wxBoxSizer( wxHORIZONTAL );
 
 	panelFooterButtons = new wxPanel( mPanelFooter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	panelFooterButtons->SetMaxSize( wxSize( -1,65 ) );
-
 	wxBoxSizer* sizerFooterButtons;
 	sizerFooterButtons = new wxBoxSizer( wxVERTICAL );
 
@@ -396,12 +375,9 @@ dialogProcessing::dialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 	sizerFooterButtons2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconCpuCores = new wxStaticBitmap( panelFooterButtons, wxID_ANY, cpu_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconCpuCores->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerFooterButtons2->Add( iconCpuCores, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinCpuCores = new wxSpinCtrlDouble( panelFooterButtons, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 100, 1, 1 );
-	mSpinCpuCores->SetDigits( 0 );
+	mSpinCpuCores = new wxSpinCtrl( panelFooterButtons, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 100, 1 );
 	sizerFooterButtons2->Add( mSpinCpuCores, 1, wxALIGN_CENTER_VERTICAL, 5 );
 
 	mButtonStart = new wxButton( panelFooterButtons, wxID_ANY, _("Start"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -453,12 +429,10 @@ dialogAbout::dialogAbout( wxWindow* parent, wxWindowID id, const wxString& title
 	mSizerAbout->Add( mIconLogo, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	mLabelTitle = new wxStaticText( this, wxID_ANY, _("<b>imageC 1.0.0</b>"), wxDefaultPosition, wxDefaultSize, 0 );
-	mLabelTitle->SetLabelMarkup( _("<b>imageC 1.0.0</b>") );
 	mLabelTitle->Wrap( -1 );
 	mSizerAbout->Add( mLabelTitle, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	mLabelDescription = new wxStaticText( this, wxID_ANY, _("Preferably for use in the non-profit research environment.\n\n<b>Many thanks to:</b> Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch\n\n\nIcons from <i>https://icons8.com/</i>\n\n(c) 2023 Joachim Danmayr"), wxDefaultPosition, wxDefaultSize, 0 );
-	mLabelDescription->SetLabelMarkup( _("Preferably for use in the non-profit research environment.\n\n<b>Many thanks to:</b> Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch\n\n\nIcons from <i>https://icons8.com/</i>\n\n(c) 2023 Joachim Danmayr") );
 	mLabelDescription->Wrap( -1 );
 	mSizerAbout->Add( mLabelDescription, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -482,9 +456,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	mScrolledChannel = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	mScrolledChannel->SetScrollRate( 0, 5 );
-	mScrolledChannel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNHIGHLIGHT ) );
-	mScrolledChannel->SetMinSize( wxSize( 250,-1 ) );
-	mScrolledChannel->SetMaxSize( wxSize( 250,-1 ) );
+	mScrolledChannel->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxGridSizer* mSizerGridChannel;
 	mSizerGridChannel = new wxGridSizer( 0, 1, 0, 0 );
@@ -502,15 +474,13 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( mTextChannelName, 0, wxALL|wxEXPAND, 5 );
 
 	panelChannelType = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	panelChannelType->SetMaxSize( wxSize( -1,35 ) );
-
 	wxBoxSizer* sizerChannelType;
 	sizerChannelType = new wxBoxSizer( wxVERTICAL );
 
 	wxString mChoiceChannelTypeChoices[] = { _("Spot"), _("Nucleus"), _("Cell"), _("Background") };
 	int mChoiceChannelTypeNChoices = sizeof( mChoiceChannelTypeChoices ) / sizeof( wxString );
 	mChoiceChannelType = new wxChoice( panelChannelType, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceChannelTypeNChoices, mChoiceChannelTypeChoices, 0 );
-	mChoiceChannelType->SetSelection( 3 );
+	mChoiceChannelType->SetSelection( 0 );
 	sizerChannelType->Add( mChoiceChannelType, 0, wxEXPAND, 5 );
 
 
@@ -520,8 +490,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelChannelType, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 	panelChannelIndex = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	panelChannelIndex->SetMaxSize( wxSize( -1,35 ) );
-
 	wxBoxSizer* sizerChannelIndex;
 	sizerChannelIndex = new wxBoxSizer( wxVERTICAL );
 
@@ -544,13 +512,11 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( mLabelPreprocessing, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 	mLinePreprocessing = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	mLinePreprocessing->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOWTEXT ) );
+	mLinePreprocessing->SetBackgroundColour( wxColour( 0, 0, 0 ) );
 
 	mSizerChannel->Add( mLinePreprocessing, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 	panelZStack = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelZStack->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerZStack;
 	sizerZStack = new wxBoxSizer( wxVERTICAL );
 
@@ -558,8 +524,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerZStack2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconZStack = new wxStaticBitmap( panelZStack, wxID_ANY, layers_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconZStack->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerZStack2->Add( iconZStack, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	wxString mChoiceZStackChoices[] = { _("Off"), _("Max. intensity projection"), _("3D projection") };
@@ -584,8 +548,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelZStack, 1, wxEXPAND|wxTOP, 5 );
 
 	panelMarginCrop = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelMarginCrop->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerMarginCrop;
 	sizerMarginCrop = new wxBoxSizer( wxVERTICAL );
 
@@ -593,12 +555,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerMarginCrop2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconMarginCrop = new wxStaticBitmap( panelMarginCrop, wxID_ANY, crop_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconMarginCrop->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerMarginCrop2->Add( iconMarginCrop, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinMarginCrop = new wxSpinCtrlDouble( panelMarginCrop, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0.000000, 1 );
-	mSpinMarginCrop->SetDigits( 0 );
+	mSpinMarginCrop = new wxSpinCtrl( panelMarginCrop, wxID_ANY, wxT("0.000000"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0.000000 );
 	sizerMarginCrop2->Add( mSpinMarginCrop, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 
 
@@ -617,8 +576,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelMarginCrop, 1, wxEXPAND|wxTOP, 5 );
 
 	panelMedianBGSubtract = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelMedianBGSubtract->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerMedianBGSubtract;
 	sizerMedianBGSubtract = new wxBoxSizer( wxVERTICAL );
 
@@ -626,8 +583,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerMedianBGSubtract2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconMedianBGSubtract = new wxStaticBitmap( panelMedianBGSubtract, wxID_ANY, electrical_threshold_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconMedianBGSubtract->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerMedianBGSubtract2->Add( iconMedianBGSubtract, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	wxString mChoiceMedianBGSubtractChoices[] = { _("Off"), _("On") };
@@ -652,8 +607,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelMedianBGSubtract, 1, wxEXPAND|wxTOP, 5 );
 
 	panelRollingBall = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelRollingBall->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerRollingBall;
 	sizerRollingBall = new wxBoxSizer( wxVERTICAL );
 
@@ -661,12 +614,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerRollingBall2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconRollingBall = new wxStaticBitmap( panelRollingBall, wxID_ANY, sphere_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconRollingBall->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerRollingBall2->Add( iconRollingBall, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinRollingBall = new wxSpinCtrlDouble( panelRollingBall, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 256, 0, 1 );
-	mSpinRollingBall->SetDigits( 0 );
+	mSpinRollingBall = new wxSpinCtrl( panelRollingBall, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 256, 0 );
 	sizerRollingBall2->Add( mSpinRollingBall, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 
 
@@ -685,8 +635,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelRollingBall, 1, wxEXPAND|wxTOP, 5 );
 
 	panelBGSubtraction = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelBGSubtraction->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerBGSubtraction;
 	sizerBGSubtraction = new wxBoxSizer( wxVERTICAL );
 
@@ -694,8 +642,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerBGSubtraction2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconBGSubtraction = new wxStaticBitmap( panelBGSubtraction, wxID_ANY, background_remover_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconBGSubtraction->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerBGSubtraction2->Add( iconBGSubtraction, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	wxString mSpinBGSubtractionChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
@@ -720,8 +666,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelBGSubtraction, 1, wxEXPAND|wxTOP, 5 );
 
 	panelBluer = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelBluer->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerBluer;
 	sizerBluer = new wxBoxSizer( wxVERTICAL );
 
@@ -729,12 +673,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerBluer2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconBluer = new wxStaticBitmap( panelBluer, wxID_ANY, blur_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconBluer->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerBluer2->Add( iconBluer, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinBluer = new wxSpinCtrlDouble( panelBluer, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 128, 0, 1 );
-	mSpinBluer->SetDigits( 0 );
+	mSpinBluer = new wxSpinCtrl( panelBluer, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 128, 0 );
 	sizerBluer2->Add( mSpinBluer, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 
 
@@ -759,13 +700,11 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( mLabelDescription, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 	mLineDescription = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	mLineDescription->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOWTEXT ) );
+	mLineDescription->SetBackgroundColour( wxColour( 0, 0, 0 ) );
 
 	mSizerChannel->Add( mLineDescription, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 	panelUseAI = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelUseAI->SetMaxSize( wxSize( -1,35 ) );
-
 	wxBoxSizer* sizerUseAI;
 	sizerUseAI = new wxBoxSizer( wxVERTICAL );
 
@@ -773,8 +712,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerUseAI2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconUseAI = new wxStaticBitmap( panelUseAI, wxID_ANY, ai_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconUseAI->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerUseAI2->Add( iconUseAI, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	mCheckUseAI = new wxCheckBox( panelUseAI, wxID_ANY, _("Use AI"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -790,8 +727,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelUseAI, 1, wxEXPAND|wxTOP, 5 );
 
 	panelThresholdMethod = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelThresholdMethod->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* ThresholdMethod;
 	ThresholdMethod = new wxBoxSizer( wxVERTICAL );
 
@@ -799,8 +734,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	izerThresholdMethod2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconThresholdMethod = new wxStaticBitmap( panelThresholdMethod, wxID_ANY, formula_fx_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconThresholdMethod->SetMaxSize( wxSize( 20,-1 ) );
-
 	izerThresholdMethod2->Add( iconThresholdMethod, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	wxString mChoiceThresholdMethodChoices[] = { _("Manual"), _("Li"), _("Triangle") };
@@ -825,8 +758,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelThresholdMethod, 1, wxEXPAND|wxTOP, 5 );
 
 	panelMinThreshold = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelMinThreshold->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerMinThreshold;
 	sizerMinThreshold = new wxBoxSizer( wxVERTICAL );
 
@@ -834,12 +765,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerMinThreshold2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconMinThreshold = new wxStaticBitmap( panelMinThreshold, wxID_ANY, contrast_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconMinThreshold->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerMinThreshold2->Add( iconMinThreshold, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinMinThreshold = new wxSpinCtrlDouble( panelMinThreshold, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0, 1 );
-	mSpinMinThreshold->SetDigits( 0 );
+	mSpinMinThreshold = new wxSpinCtrl( panelMinThreshold, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0 );
 	sizerMinThreshold2->Add( mSpinMinThreshold, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 
 
@@ -864,14 +792,12 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( mLabelFilter, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 	mLineFilter = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	mLineFilter->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	mLineFilter->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOWTEXT ) );
+	mLineFilter->SetForegroundColour( wxColour( 255, 255, 255 ) );
+	mLineFilter->SetBackgroundColour( wxColour( 0, 0, 0 ) );
 
 	mSizerChannel->Add( mLineFilter, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 	panelMinCircularity = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelMinCircularity->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerMinCircularity;
 	sizerMinCircularity = new wxBoxSizer( wxVERTICAL );
 
@@ -879,12 +805,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerMinCircularity2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconMinCircularity = new wxStaticBitmap( panelMinCircularity, wxID_ANY, octagon_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconMinCircularity->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerMinCircularity2->Add( iconMinCircularity, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinMinCircularity = new wxSpinCtrlDouble( panelMinCircularity, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0.000000, 1 );
-	mSpinMinCircularity->SetDigits( 0 );
+	mSpinMinCircularity = new wxSpinCtrl( panelMinCircularity, wxID_ANY, wxT("0.000000"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0.000000 );
 	sizerMinCircularity2->Add( mSpinMinCircularity, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 
 
@@ -903,8 +826,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelMinCircularity, 1, wxEXPAND|wxTOP, 5 );
 
 	panelParticleSize = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelParticleSize->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerParticleSize;
 	sizerParticleSize = new wxBoxSizer( wxVERTICAL );
 
@@ -912,8 +833,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerParticleSize2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iDescription1121 = new wxStaticBitmap( panelParticleSize, wxID_ANY, all_out_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iDescription1121->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerParticleSize2->Add( iDescription1121, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	m_textCtrl3 = new wxTextCtrl( panelParticleSize, wxID_ANY, _("5-9999"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -935,8 +854,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelParticleSize, 1, wxEXPAND|wxTOP, 5 );
 
 	panelSnapArea = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL );
-	panelSnapArea->SetMaxSize( wxSize( -1,55 ) );
-
 	wxBoxSizer* sizerSnapArea1;
 	sizerSnapArea1 = new wxBoxSizer( wxVERTICAL );
 
@@ -944,12 +861,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerSnapArea2 = new wxBoxSizer( wxHORIZONTAL );
 
 	iconParticleSize = new wxStaticBitmap( panelSnapArea, wxID_ANY, centre_point_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	iconParticleSize->SetMaxSize( wxSize( 20,-1 ) );
-
 	sizerSnapArea2->Add( iconParticleSize, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinParticleSize = new wxSpinCtrlDouble( panelSnapArea, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 256, 0, 1 );
-	mSpinParticleSize->SetDigits( 0 );
+	mSpinParticleSize = new wxSpinCtrl( panelSnapArea, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 256, 0 );
 	sizerSnapArea2->Add( mSpinParticleSize, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 
 
@@ -968,10 +882,10 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( panelSnapArea, 1, wxEXPAND|wxTOP, 5 );
 
 	mLinePreview = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	mLinePreview->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	mLinePreview->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOWTEXT ) );
+	mLinePreview->SetForegroundColour( wxColour( 255, 255, 255 ) );
+	mLinePreview->SetBackgroundColour( wxColour( 0, 0, 0 ) );
 
-	mSizerChannel->Add( mLinePreview, 0, wxEXPAND | wxALL, 5 );
+	mSizerChannel->Add( mLinePreview, 0, wxEXPAND|wxALL, 5 );
 
 	mButtonPreview = new wxButton( mScrolledChannel, wxID_ANY, _("Preview"), wxDefaultPosition, wxDefaultSize, 0 );
 
@@ -979,13 +893,13 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( mButtonPreview, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	mLineRemove = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	mLineRemove->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	mLineRemove->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOWTEXT ) );
+	mLineRemove->SetForegroundColour( wxColour( 255, 255, 255 ) );
+	mLineRemove->SetBackgroundColour( wxColour( 0, 0, 0 ) );
 
-	mSizerChannel->Add( mLineRemove, 0, wxEXPAND | wxALL, 5 );
+	mSizerChannel->Add( mLineRemove, 0, wxEXPAND|wxALL, 5 );
 
 	mButtonRemoveChannel = new wxButton( mScrolledChannel, wxID_ANY, _("Remove"), wxDefaultPosition, wxDefaultSize, 0 );
-	mButtonRemoveChannel->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BACKGROUND ) );
+	mButtonRemoveChannel->SetForegroundColour( wxColour( 255, 255, 255 ) );
 	mButtonRemoveChannel->SetBackgroundColour( wxColour( 200, 110, 110 ) );
 
 	mSizerChannel->Add( mButtonRemoveChannel, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -999,7 +913,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	mScrolledChannel->SetSizer( mSizerGridChannel );
 	mScrolledChannel->Layout();
-	mSizerForScroll->Add( mScrolledChannel, 0, wxEXPAND | wxALL, 5 );
+	mSizerForScroll->Add( mScrolledChannel, 0, wxEXPAND|wxALL, 5 );
 
 
 	this->SetSizer( mSizerForScroll );
