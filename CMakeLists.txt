@@ -124,6 +124,9 @@ ENDIF()
 
 include_directories("./src")
 
+message("-->")
+message("${wxWidgets_INCLUDE_DIRS}")
+message("<--")
 
 ###########################################################################################
 # Source file
@@ -132,6 +135,8 @@ file(GLOB_RECURSE SOURCES
   ./src/*.cpp
   ./src/*.c
   /usr/local/include/libtiff/*.h
+ wx/msw/wx.rc
+#./src/version.rc
 )
 
 # Exclude test files from source
