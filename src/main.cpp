@@ -54,6 +54,7 @@ bool MainApp::OnInit()
 {
   wxSizerFlags::DisableConsistencyChecks();
   auto *frame = new joda::ui::wxwidget::FrameMainController(nullptr);
+  frame->Maximize();
   frame->Show(true);
   return true;
 }

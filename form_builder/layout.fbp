@@ -44,11 +44,11 @@
             <property name="hidden"></property>
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
-            <property name="minimum_size"></property>
+            <property name="minimum_size">1000,650</property>
             <property name="name">frameMain</property>
             <property name="pos"></property>
-            <property name="size">800,600</property>
-            <property name="style">wxDEFAULT_FRAME_STYLE|wxMAXIMIZE</property>
+            <property name="size">-1,-1</property>
+            <property name="style">wxDEFAULT_FRAME_STYLE</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">imageC</property>
             <property name="tooltip"></property>
@@ -1673,11 +1673,11 @@
                                             </object>
                                         </object>
                                     </object>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND|wxALL</property>
                                         <property name="proportion">1</property>
-                                        <object class="wxScrolledWindow" expanded="0">
+                                        <object class="wxScrolledWindow" expanded="1">
                                             <property name="BottomDockable">1</property>
                                             <property name="LeftDockable">1</property>
                                             <property name="RightDockable">1</property>
