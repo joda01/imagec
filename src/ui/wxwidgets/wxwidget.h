@@ -104,6 +104,8 @@ namespace joda
 					wxStatusBar* m_statusBar1;
 
 					// Virtual event handlers, override them in your derived class
+					virtual void onRunClicked( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onAboutClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAddChannelClicked( wxCommandEvent& event ) { event.Skip(); }
 
 
@@ -116,9 +118,9 @@ namespace joda
 			};
 
 			///////////////////////////////////////////////////////////////////////////////
-			/// Class dialogProcessing
+			/// Class DialogProcessing
 			///////////////////////////////////////////////////////////////////////////////
-			class dialogProcessing : public wxDialog
+			class DialogProcessing : public wxDialog
 			{
 				private:
 
@@ -138,16 +140,16 @@ namespace joda
 
 				public:
 
-					dialogProcessing( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Analyze running..."), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 694,191 ), long style = wxDEFAULT_DIALOG_STYLE );
+					DialogProcessing( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Analyze running..."), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 694,250 ), long style = wxDEFAULT_DIALOG_STYLE );
 
-					~dialogProcessing();
+					~DialogProcessing();
 
 			};
 
 			///////////////////////////////////////////////////////////////////////////////
-			/// Class dialogAbout
+			/// Class DialogAbout
 			///////////////////////////////////////////////////////////////////////////////
-			class dialogAbout : public wxDialog
+			class DialogAbout : public wxDialog
 			{
 				private:
 
@@ -158,9 +160,9 @@ namespace joda
 
 				public:
 
-					dialogAbout( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Info"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 411,267 ), long style = wxDEFAULT_DIALOG_STYLE );
+					DialogAbout( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Info"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 411,267 ), long style = wxDEFAULT_DIALOG_STYLE );
 
-					~dialogAbout();
+					~DialogAbout();
 
 			};
 

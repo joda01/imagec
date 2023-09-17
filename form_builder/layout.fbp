@@ -57,7 +57,7 @@
             <property name="window_name"></property>
             <property name="window_style">wxTAB_TRAVERSAL</property>
             <property name="xrc_skip_sizer">1</property>
-            <object class="wxToolBar" expanded="0">
+            <object class="wxToolBar" expanded="1">
                 <property name="BottomDockable">1</property>
                 <property name="LeftDockable">1</property>
                 <property name="RightDockable">1</property>
@@ -263,6 +263,7 @@
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
                     <property name="tooltip"></property>
+                    <event name="OnToolClicked">onRunClicked</event>
                 </object>
                 <object class="toolSeparator" expanded="0">
                     <property name="permission">protected</property>
@@ -288,6 +289,7 @@
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
                     <property name="tooltip"></property>
+                    <event name="OnToolClicked">onAboutClicked</event>
                 </object>
             </object>
             <object class="wxBoxSizer" expanded="1">
@@ -2842,7 +2844,7 @@
                 <property name="window_style"></property>
             </object>
         </object>
-        <object class="Dialog" expanded="0">
+        <object class="Dialog" expanded="1">
             <property name="aui_managed">0</property>
             <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
             <property name="bg">255,255,255</property>
@@ -2858,9 +2860,9 @@
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
             <property name="minimum_size"></property>
-            <property name="name">dialogProcessing</property>
+            <property name="name">DialogProcessing</property>
             <property name="pos"></property>
-            <property name="size">694,191</property>
+            <property name="size">694,250</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">Analyze running...</property>
@@ -2869,21 +2871,11 @@
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
             <property name="window_style"></property>
-            <object class="wxBoxSizer" expanded="0">
+            <object class="wxBoxSizer" expanded="1">
                 <property name="minimum_size"></property>
                 <property name="name">mSizerProcessing</property>
                 <property name="orient">wxVERTICAL</property>
                 <property name="permission">none</property>
-                <object class="sizeritem" expanded="0">
-                    <property name="border">5</property>
-                    <property name="flag">wxEXPAND</property>
-                    <property name="proportion">1</property>
-                    <object class="spacer" expanded="0">
-                        <property name="height">0</property>
-                        <property name="permission">protected</property>
-                        <property name="width">0</property>
-                    </object>
-                </object>
                 <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND|wxTOP</property>
@@ -3132,6 +3124,16 @@
                         <property name="window_extra_style"></property>
                         <property name="window_name"></property>
                         <property name="window_style"></property>
+                    </object>
+                </object>
+                <object class="sizeritem" expanded="0">
+                    <property name="border">5</property>
+                    <property name="flag">wxEXPAND</property>
+                    <property name="proportion">1</property>
+                    <object class="spacer" expanded="0">
+                        <property name="height">0</property>
+                        <property name="permission">protected</property>
+                        <property name="width">0</property>
                     </object>
                 </object>
                 <object class="sizeritem" expanded="0">
@@ -3674,7 +3676,7 @@
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
             <property name="minimum_size"></property>
-            <property name="name">dialogAbout</property>
+            <property name="name">DialogAbout</property>
             <property name="pos"></property>
             <property name="size">411,267</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE</property>
@@ -3685,7 +3687,7 @@
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
             <property name="window_style"></property>
-            <object class="wxBoxSizer" expanded="0">
+            <object class="wxBoxSizer" expanded="1">
                 <property name="minimum_size"></property>
                 <property name="name">mSizerAbout</property>
                 <property name="orient">wxVERTICAL</property>
@@ -3781,7 +3783,7 @@
                         <property name="hidden"></property>
                         <property name="id">wxID_ANY</property>
                         <property name="label">&lt;b&gt;imageC 1.0.0&lt;/b&gt;</property>
-                        <property name="markup">0</property>
+                        <property name="markup">1</property>
                         <property name="max_size"></property>
                         <property name="maximize_button">0</property>
                         <property name="maximum_size"></property>
@@ -3842,7 +3844,7 @@
                         <property name="hidden"></property>
                         <property name="id">wxID_ANY</property>
                         <property name="label">Preferably for use in the non-profit research environment.&#x0A;&#x0A;&lt;b&gt;Many thanks to:&lt;/b&gt; Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch&#x0A;&#x0A;&#x0A;Icons from &lt;i&gt;https://icons8.com/&lt;/i&gt;&#x0A;&#x0A;(c) 2023 Joachim Danmayr</property>
-                        <property name="markup">0</property>
+                        <property name="markup">1</property>
                         <property name="max_size"></property>
                         <property name="maximize_button">0</property>
                         <property name="maximum_size"></property>

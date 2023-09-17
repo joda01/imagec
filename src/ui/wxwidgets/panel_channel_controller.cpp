@@ -28,22 +28,18 @@ PanelChannelController::PanelChannelController(wxWindow *parent, wxWindowID id, 
 }
 
 ///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
+/// \brief      Initializes the UI elements with the values from the channel settings
+/// \author     Joachim Danmayr
+/// \param[in]  channelSettings  Channel settings
 ///
 void PanelChannelController::loadValues(const joda::settings::json::ChannelSettings &channelSettings)
 {
 }
 
 ///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
+/// \brief        Return the channel settings converted to a JSON object
+/// \author       Joachim Danmayr
+/// \return       JSON object of the settings made in the channel UI
 ///
 nlohmann::json PanelChannelController::getValues()
 {
@@ -56,9 +52,9 @@ nlohmann::json PanelChannelController::getValues()
 
   // Preprocessing
   nlohmann::json jsonArray = nlohmann::json::array();    // Initialize an empty JSON array
-  jsonArray.push_back({{"z_stack", {"value", indexToZProjection(mChoiceZStack->GetSelection())}}});
-  jsonArray.push_back({{"margin_crop", {"value", static_cast<int>(mSpinMarginCrop->GetValue())}}});
-  jsonArray.push_back({{"rolling_ball", {"value", static_cast<int>(mSpinRollingBall->GetValue())}}});
+  jsonArray.push_back({{"z_stack", {{"value", indexToZProjection(mChoiceZStack->GetSelection())}}}});
+  jsonArray.push_back({{"margin_crop", {{"value", static_cast<int>(mSpinMarginCrop->GetValue())}}}});
+  jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mSpinRollingBall->GetValue())}}}});
   chSettings["preprocessing"] = jsonArray;
 
   // Detections
@@ -77,7 +73,7 @@ nlohmann::json PanelChannelController::getValues()
   chSettings["detection"]["ai"]["probability_min"] = 0.8;
 
   // Filtering
-  auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).utf8_string(), '-');
+  auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
   chSettings["filter"]["min_particle_size"] = min;
   chSettings["filter"]["max_particle_size"] = max;
   chSettings["filter"]["min_circularity"]   = mSpinMinCircularity->GetValue();

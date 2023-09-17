@@ -333,26 +333,27 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	this->Centre( wxBOTH );
 
 	// Connect Events
+	this->Connect( mButtonRun->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onRunClicked ) );
+	this->Connect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
 	mButtonAddChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ), NULL, this );
 }
 
 frameMain::~frameMain()
 {
 	// Disconnect Events
+	this->Disconnect( mButtonRun->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onRunClicked ) );
+	this->Disconnect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
 	mButtonAddChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ), NULL, this );
 
 }
 
-dialogProcessing::dialogProcessing( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	this->SetBackgroundColour( wxColour( 255, 255, 255 ) );
 
 	wxBoxSizer* mSizerProcessing;
 	mSizerProcessing = new wxBoxSizer( wxVERTICAL );
-
-
-	mSizerProcessing->Add( 0, 0, 1, wxEXPAND, 5 );
 
 	mLabelProgressImage = new wxStaticText( this, wxID_ANY, _("0/0"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
 	mLabelProgressImage->Wrap( -1 );
@@ -369,6 +370,9 @@ dialogProcessing::dialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 	mProgressAllOver = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
 	mProgressAllOver->SetValue( 0 );
 	mSizerProcessing->Add( mProgressAllOver, 0, wxALL|wxEXPAND, 5 );
+
+
+	mSizerProcessing->Add( 0, 0, 1, wxEXPAND, 5 );
 
 	mLineProgressDialog = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
 	mSizerProcessing->Add( mLineProgressDialog, 0, wxEXPAND|wxALL, 5 );
@@ -424,11 +428,11 @@ dialogProcessing::dialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 	this->Centre( wxBOTH );
 }
 
-dialogProcessing::~dialogProcessing()
+DialogProcessing::~DialogProcessing()
 {
 }
 
-dialogAbout::dialogAbout( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+DialogAbout::DialogAbout( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 
@@ -439,10 +443,12 @@ dialogAbout::dialogAbout( wxWindow* parent, wxWindowID id, const wxString& title
 	mSizerAbout->Add( mIconLogo, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	mLabelTitle = new wxStaticText( this, wxID_ANY, _("<b>imageC 1.0.0</b>"), wxDefaultPosition, wxDefaultSize, 0 );
+	mLabelTitle->SetLabelMarkup( _("<b>imageC 1.0.0</b>") );
 	mLabelTitle->Wrap( -1 );
 	mSizerAbout->Add( mLabelTitle, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	mLabelDescription = new wxStaticText( this, wxID_ANY, _("Preferably for use in the non-profit research environment.\n\n<b>Many thanks to:</b> Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch\n\n\nIcons from <i>https://icons8.com/</i>\n\n(c) 2023 Joachim Danmayr"), wxDefaultPosition, wxDefaultSize, 0 );
+	mLabelDescription->SetLabelMarkup( _("Preferably for use in the non-profit research environment.\n\n<b>Many thanks to:</b> Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch\n\n\nIcons from <i>https://icons8.com/</i>\n\n(c) 2023 Joachim Danmayr") );
 	mLabelDescription->Wrap( -1 );
 	mSizerAbout->Add( mLabelDescription, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -453,7 +459,7 @@ dialogAbout::dialogAbout( wxWindow* parent, wxWindowID id, const wxString& title
 	this->Centre( wxBOTH );
 }
 
-dialogAbout::~dialogAbout()
+DialogAbout::~DialogAbout()
 {
 }
 
