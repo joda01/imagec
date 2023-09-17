@@ -14,6 +14,7 @@
 #pragma once
 
 #include <algorithm>
+#include <exception>
 #include <filesystem>
 #include <memory>
 #include <set>
@@ -134,10 +135,14 @@ private:
     mListOfImagePaths.clear();
 
     for(recursive_directory_iterator i(mWorkingDirectory), end; i != end; ++i) {
-      if(!is_directory(i->path())) {
-        if(ALLOWED_EXTENSIONS.contains(i->path().extension().string())) {
-          mListOfImagePaths.push_back(i->path().string());
+      try {
+        if(!is_directory(i->path())) {
+          if(ALLOWED_EXTENSIONS.contains(i->path().extension().string())) {
+            mListOfImagePaths.push_back(i->path().string());
+          }
         }
+      } catch(const std::exception &ex) {
+        std::cout << ex.what() << std::endl;
       }
       if(mIsStopped) {
         break;
