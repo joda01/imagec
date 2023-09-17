@@ -33,10 +33,12 @@ class PipelineStepCellApproximation final
 {
 public:
   int32_t nucleus_channel_index = -1;
+  int32_t cell_channel_index    = -1;
   int32_t max_cell_radius       = -1;
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepCellApproximation, nucleus_channel_index, max_cell_radius);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepCellApproximation, nucleus_channel_index, cell_channel_index,
+                                              max_cell_radius);
 };
 
 ///

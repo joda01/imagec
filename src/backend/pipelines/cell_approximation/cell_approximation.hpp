@@ -27,8 +27,8 @@ namespace joda::pipeline {
 class CellApproximation : public PipelineStep
 {
 public:
-  CellApproximation(int32_t nucleusChannelIndex, int32_t maxCellRadius) :
-      mNucleusChannelIndex(nucleusChannelIndex), mMaxCellRadius(maxCellRadius)
+  CellApproximation(int32_t nucleusChannelIndex, int32_t cellChannelIndex, int32_t maxCellRadius) :
+      mNucleusChannelIndex(nucleusChannelIndex), mCellChannelIndex(cellChannelIndex), mMaxCellRadius(maxCellRadius)
   {
   }
   /////////////////////////////////////////////////////
@@ -56,6 +56,7 @@ private:
   static void appendToReport(joda::reporting::Table &report, const func::ROI &spot, int cellIndex);
 
   int32_t mNucleusChannelIndex;
+  int32_t mCellChannelIndex;
   int32_t mMaxCellRadius;
 };
 

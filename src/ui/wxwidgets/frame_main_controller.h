@@ -32,6 +32,7 @@ private:
   void onAddChannelClicked(wxCommandEvent &event) override;
   void onRunClicked(wxCommandEvent &event) override;
   void onAboutClicked(wxCommandEvent &event) override;
+  void onCellChannelChoice(wxCommandEvent &event) override;
 
   /////////////////////////////////////////////////////
   std::vector<std::shared_ptr<PanelChannelController>> mChannels;

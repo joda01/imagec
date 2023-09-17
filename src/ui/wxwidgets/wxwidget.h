@@ -8,247 +8,252 @@
 #pragma once
 
 #include <wx/artprov.h>
+#include <wx/xrc/xmlres.h>
+#include <wx/intl.h>
+#include <wx/string.h>
 #include <wx/bitmap.h>
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/choice.h>
-#include <wx/colour.h>
-#include <wx/dialog.h>
-#include <wx/filepicker.h>
+#include <wx/image.h>
+#include <wx/icon.h>
+#include <wx/stattext.h>
+#include <wx/gdicmn.h>
 #include <wx/font.h>
+#include <wx/colour.h>
+#include <wx/settings.h>
+#include <wx/filepicker.h>
+#include <wx/toolbar.h>
+#include <wx/button.h>
+#include <wx/sizer.h>
+#include <wx/scrolwin.h>
+#include <wx/panel.h>
+#include <wx/statbmp.h>
+#include <wx/choice.h>
+#include <wx/spinctrl.h>
+#include <wx/tglbtn.h>
+#include <wx/notebook.h>
+#include <wx/statusbr.h>
 #include <wx/frame.h>
 #include <wx/gauge.h>
-#include <wx/gdicmn.h>
-#include <wx/icon.h>
-#include <wx/image.h>
-#include <wx/intl.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/scrolwin.h>
-#include <wx/settings.h>
-#include <wx/sizer.h>
-#include <wx/spinctrl.h>
-#include <wx/statbmp.h>
 #include <wx/statline.h>
-#include <wx/stattext.h>
-#include <wx/statusbr.h>
-#include <wx/string.h>
+#include <wx/dialog.h>
 #include <wx/textctrl.h>
-#include <wx/tglbtn.h>
-#include <wx/toolbar.h>
-#include <wx/xrc/xmlres.h>
+#include <wx/checkbox.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
-namespace joda {
-namespace ui {
-namespace wxwidget {
-///////////////////////////////////////////////////////////////////////////////
-/// Class frameMain
-///////////////////////////////////////////////////////////////////////////////
-class frameMain : public wxFrame
+namespace joda
 {
-private:
-protected:
-  wxToolBar *mToolBar;
-  wxToolBarToolBase *mButtonSave;
-  wxToolBarToolBase *mButtonOpen;
-  wxStaticText *mLabelNrOfFoundFiles;
-  wxDirPickerCtrl *mDirectoryPicker;
-  wxToolBarToolBase *mButtonRun;
-  wxToolBarToolBase *mButtonSettings;
-  wxToolBarToolBase *mButtonAbout;
-  wxNotebook *mNotebookMain;
-  wxPanel *mPanelChannel;
-  wxBoxSizer *mSizerChannelsScrollbar;
-  wxScrolledWindow *mScrollbarChannels;
-  wxBoxSizer *mSizerChannels;
-  wxButton *mButtonAddChannel;
-  wxPanel *mPanelPipelineSteps;
-  wxScrolledWindow *panelPipelineStepCellApproximation;
-  wxStaticText *mLabelCellEstimation;
-  wxPanel *panelNucleusChannel;
-  wxStaticBitmap *iconNucluesChannel;
-  wxChoice *mChoiceNucluesChannel;
-  wxStaticText *mLabelNucleusChannel;
-  wxPanel *panelMaxCellRadius;
-  wxStaticBitmap *iconMaxCellRadius;
-  wxSpinCtrl *mSpinMaxCellRadius;
-  wxStaticText *mLabelMaxCellRadius;
-  wxScrolledWindow *mPanelSpotRemoval;
-  wxStaticText *mLabelSpotRemoval;
-  wxPanel *panelTetraspeckChannel;
-  wxStaticBitmap *iconTetraspeckChannel;
-  wxChoice *mChoiceTetraspeckChannel;
-  wxStaticText *mLabelTetraspeckChannel;
-  wxScrolledWindow *mPanelIntersection;
-  wxStaticText *mLabelIntersection;
-  wxPanel *mPanelIntersectionButtons;
-  wxToggleButton *mButtonIntersectionCh01;
-  wxToggleButton *mButtonIntersectionCh02;
-  wxToggleButton *mButtonIntersectionCh03;
-  wxToggleButton *mButtonIntersectionCh04;
-  wxToggleButton *mButtonIntersectionCh05;
-  wxToggleButton *mButtonIntersectionCh06;
-  wxToggleButton *mButtonIntersectionCh07;
-  wxToggleButton *mButtonIntersectionCh08;
-  wxToggleButton *mButtonIntersectionCh09;
-  wxToggleButton *mButtonIntersectionCh10;
-  wxToggleButton *mButtonIntersectionCh11;
-  wxToggleButton *mButtonIntersectionCh12;
-  wxToggleButton *mButtonIntersectionChEstimatedCell;
-  wxStatusBar *m_statusBar1;
+	namespace ui
+	{
+		namespace wxwidget
+		{
+			///////////////////////////////////////////////////////////////////////////////
+			/// Class frameMain
+			///////////////////////////////////////////////////////////////////////////////
+			class frameMain : public wxFrame
+			{
+				private:
 
-  // Virtual event handlers, override them in your derived class
-  virtual void onRunClicked(wxCommandEvent &event)
-  {
-    event.Skip();
-  }
-  virtual void onAboutClicked(wxCommandEvent &event)
-  {
-    event.Skip();
-  }
-  virtual void onAddChannelClicked(wxCommandEvent &event)
-  {
-    event.Skip();
-  }
+				protected:
+					wxToolBar* mToolBar;
+					wxToolBarToolBase* mButtonSave;
+					wxToolBarToolBase* mButtonOpen;
+					wxStaticText* mLabelNrOfFoundFiles;
+					wxDirPickerCtrl* mDirectoryPicker;
+					wxToolBarToolBase* mButtonRun;
+					wxToolBarToolBase* mButtonSettings;
+					wxToolBarToolBase* mButtonAbout;
+					wxNotebook* mNotebookMain;
+					wxPanel* mPanelChannel;
+					wxBoxSizer* mSizerChannelsScrollbar;
+					wxScrolledWindow* mScrollbarChannels;
+					wxBoxSizer* mSizerChannels;
+					wxButton* mButtonAddChannel;
+					wxPanel* mPanelPipelineSteps;
+					wxScrolledWindow* panelPipelineStepCellApproximation;
+					wxStaticText* mLabelCellEstimation;
+					wxPanel* panelNucleusChannel;
+					wxStaticBitmap* iconNucluesChannel;
+					wxChoice* mChoiceNucluesChannel;
+					wxStaticText* mLabelNucleusChannel;
+					wxPanel* panelCellChannel;
+					wxStaticBitmap* iconCellChannel;
+					wxChoice* mChoiceCellChannel;
+					wxStaticText* mLabelCellChannel;
+					wxPanel* panelMaxCellRadius;
+					wxStaticBitmap* iconMaxCellRadius;
+					wxSpinCtrl* mSpinMaxCellRadius;
+					wxStaticText* mLabelMaxCellRadius;
+					wxScrolledWindow* mPanelSpotRemoval;
+					wxStaticText* mLabelSpotRemoval;
+					wxPanel* panelTetraspeckChannel;
+					wxStaticBitmap* iconTetraspeckChannel;
+					wxChoice* mChoiceTetraspeckChannel;
+					wxStaticText* mLabelTetraspeckChannel;
+					wxScrolledWindow* mPanelIntersection;
+					wxStaticText* mLabelIntersection;
+					wxPanel* mPanelIntersectionButtons;
+					wxToggleButton* mButtonIntersectionCh01;
+					wxToggleButton* mButtonIntersectionCh02;
+					wxToggleButton* mButtonIntersectionCh03;
+					wxToggleButton* mButtonIntersectionCh04;
+					wxToggleButton* mButtonIntersectionCh05;
+					wxToggleButton* mButtonIntersectionCh06;
+					wxToggleButton* mButtonIntersectionCh07;
+					wxToggleButton* mButtonIntersectionCh08;
+					wxToggleButton* mButtonIntersectionCh09;
+					wxToggleButton* mButtonIntersectionCh10;
+					wxToggleButton* mButtonIntersectionCh11;
+					wxToggleButton* mButtonIntersectionCh12;
+					wxToggleButton* mButtonIntersectionChEstimatedCell;
+					wxStatusBar* m_statusBar1;
 
-public:
-  frameMain(wxWindow *parent, wxWindowID id = wxID_ANY, const wxString &title = _("imageC"),
-            const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(-1, -1),
-            long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
+					// Virtual event handlers, override them in your derived class
+					virtual void onRunClicked( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onAboutClicked( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onAddChannelClicked( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onCellChannelChoice( wxCommandEvent& event ) { event.Skip(); }
 
-  ~frameMain();
-};
 
-///////////////////////////////////////////////////////////////////////////////
-/// Class DialogProcessing
-///////////////////////////////////////////////////////////////////////////////
-class DialogProcessing : public wxDialog
-{
-private:
-protected:
-  wxStaticText *mLabelProgressImage;
-  wxGauge *mProgressImage;
-  wxStaticText *mLabelProgressAllOver;
-  wxGauge *mProgressAllOver;
-  wxStaticLine *mLineProgressDialog;
-  wxPanel *mPanelFooter;
-  wxPanel *panelFooterButtons;
-  wxStaticBitmap *iconCpuCores;
-  wxSpinCtrl *mSpinCpuCores;
-  wxButton *mButtonStart;
-  wxButton *mButtonStop;
-  wxStaticText *mLabelCpuCores;
+				public:
 
-public:
-  DialogProcessing(wxWindow *parent, wxWindowID id = wxID_ANY, const wxString &title = _("Analyze running..."),
-                   const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(694, 250),
-                   long style = wxDEFAULT_DIALOG_STYLE);
+					frameMain( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("imageC"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 
-  ~DialogProcessing();
-};
+					~frameMain();
 
-///////////////////////////////////////////////////////////////////////////////
-/// Class DialogAbout
-///////////////////////////////////////////////////////////////////////////////
-class DialogAbout : public wxDialog
-{
-private:
-protected:
-  wxStaticBitmap *mIconLogo;
-  wxStaticText *mLabelTitle;
-  wxStaticText *mLabelDescription;
+			};
 
-public:
-  DialogAbout(wxWindow *parent, wxWindowID id = wxID_ANY, const wxString &title = _("Info"),
-              const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(411, 267),
-              long style = wxDEFAULT_DIALOG_STYLE);
+			///////////////////////////////////////////////////////////////////////////////
+			/// Class DialogProcessing
+			///////////////////////////////////////////////////////////////////////////////
+			class DialogProcessing : public wxDialog
+			{
+				private:
 
-  ~DialogAbout();
-};
+				protected:
+					wxStaticText* mLabelProgressImage;
+					wxGauge* mProgressImage;
+					wxStaticText* mLabelProgressAllOver;
+					wxGauge* mProgressAllOver;
+					wxStaticLine* mLineProgressDialog;
+					wxPanel* mPanelFooter;
+					wxPanel* panelFooterButtons;
+					wxStaticBitmap* iconCpuCores;
+					wxSpinCtrl* mSpinCpuCores;
+					wxButton* mButtonStart;
+					wxButton* mButtonStop;
+					wxStaticText* mLabelCpuCores;
 
-///////////////////////////////////////////////////////////////////////////////
-/// Class PanelChannel
-///////////////////////////////////////////////////////////////////////////////
-class PanelChannel : public wxPanel
-{
-private:
-protected:
-  wxStaticText *mLabelChannelTitle;
-  wxTextCtrl *mTextChannelName;
-  wxPanel *panelChannelType;
-  wxChoice *mChoiceChannelType;
-  wxPanel *panelChannelIndex;
-  wxChoice *mChoiceChannelIndex;
-  wxStaticText *mLabelPreprocessing;
-  wxStaticLine *mLinePreprocessing;
-  wxPanel *panelZStack;
-  wxStaticBitmap *iconZStack;
-  wxChoice *mChoiceZStack;
-  wxStaticText *mLabelZStack;
-  wxPanel *panelMarginCrop;
-  wxStaticBitmap *iconMarginCrop;
-  wxSpinCtrl *mSpinMarginCrop;
-  wxStaticText *mLabelMarginCrop;
-  wxPanel *panelMedianBGSubtract;
-  wxStaticBitmap *iconMedianBGSubtract;
-  wxChoice *mChoiceMedianBGSubtract;
-  wxStaticText *mLabelMedianBGSubtract;
-  wxPanel *panelRollingBall;
-  wxStaticBitmap *iconRollingBall;
-  wxSpinCtrl *mSpinRollingBall;
-  wxStaticText *mLabelRollingBall;
-  wxPanel *panelBGSubtraction;
-  wxStaticBitmap *iconBGSubtraction;
-  wxChoice *mSpinBGSubtraction;
-  wxStaticText *mLabelBGSubtraction;
-  wxPanel *panelBluer;
-  wxStaticBitmap *iconBluer;
-  wxSpinCtrl *mSpinBluer;
-  wxStaticText *mLabelBluer;
-  wxStaticText *mLabelDescription;
-  wxStaticLine *mLineDescription;
-  wxPanel *panelUseAI;
-  wxStaticBitmap *iconUseAI;
-  wxCheckBox *mCheckUseAI;
-  wxPanel *panelThresholdMethod;
-  wxStaticBitmap *iconThresholdMethod;
-  wxChoice *mChoiceThresholdMethod;
-  wxStaticText *mLabelThresholdMethod;
-  wxPanel *panelMinThreshold;
-  wxStaticBitmap *iconMinThreshold;
-  wxSpinCtrl *mSpinMinThreshold;
-  wxStaticText *mLabelMinThreshold;
-  wxStaticText *mLabelFilter;
-  wxStaticLine *mLineFilter;
-  wxPanel *panelMinCircularity;
-  wxStaticBitmap *iconMinCircularity;
-  wxSpinCtrlDouble *mSpinMinCircularity;
-  wxStaticText *mLabelMinCircularity;
-  wxPanel *panelParticleSize;
-  wxStaticBitmap *iDescription1121;
-  wxTextCtrl *mTextParticleSizeRange;
-  wxStaticText *mLabelParticleSize;
-  wxPanel *panelSnapArea;
-  wxStaticBitmap *iconParticleSize;
-  wxSpinCtrl *mSpinSnapArea;
-  wxStaticText *mLabelSnapArea;
-  wxStaticLine *mLinePreview;
-  wxButton *mButtonPreview;
-  wxStaticLine *mLineRemove;
-  wxButton *mButtonRemoveChannel;
+				public:
 
-public:
-  wxBoxSizer *mSizerForScroll;
-  wxScrolledWindow *mScrolledChannel;
+					DialogProcessing( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Analyze running..."), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 694,250 ), long style = wxDEFAULT_DIALOG_STYLE );
 
-  PanelChannel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition,
-               const wxSize &size = wxSize(-1, -1), long style = wxTAB_TRAVERSAL, const wxString &name = wxEmptyString);
+					~DialogProcessing();
 
-  ~PanelChannel();
-};
+			};
 
-}    // namespace wxwidget
-}    // namespace ui
-}    // namespace joda
+			///////////////////////////////////////////////////////////////////////////////
+			/// Class DialogAbout
+			///////////////////////////////////////////////////////////////////////////////
+			class DialogAbout : public wxDialog
+			{
+				private:
+
+				protected:
+					wxStaticBitmap* mIconLogo;
+					wxStaticText* mLabelTitle;
+					wxStaticText* mLabelDescription;
+
+				public:
+
+					DialogAbout( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Info"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 411,267 ), long style = wxDEFAULT_DIALOG_STYLE );
+
+					~DialogAbout();
+
+			};
+
+			///////////////////////////////////////////////////////////////////////////////
+			/// Class PanelChannel
+			///////////////////////////////////////////////////////////////////////////////
+			class PanelChannel : public wxPanel
+			{
+				private:
+
+				protected:
+					wxStaticText* mLabelChannelTitle;
+					wxTextCtrl* mTextChannelName;
+					wxPanel* panelChannelType;
+					wxChoice* mChoiceChannelType;
+					wxPanel* panelChannelIndex;
+					wxChoice* mChoiceChannelIndex;
+					wxStaticText* mLabelPreprocessing;
+					wxStaticLine* mLinePreprocessing;
+					wxPanel* panelZStack;
+					wxStaticBitmap* iconZStack;
+					wxChoice* mChoiceZStack;
+					wxStaticText* mLabelZStack;
+					wxPanel* panelMarginCrop;
+					wxStaticBitmap* iconMarginCrop;
+					wxSpinCtrl* mSpinMarginCrop;
+					wxStaticText* mLabelMarginCrop;
+					wxPanel* panelMedianBGSubtract;
+					wxStaticBitmap* iconMedianBGSubtract;
+					wxChoice* mChoiceMedianBGSubtract;
+					wxStaticText* mLabelMedianBGSubtract;
+					wxPanel* panelRollingBall;
+					wxStaticBitmap* iconRollingBall;
+					wxSpinCtrl* mSpinRollingBall;
+					wxStaticText* mLabelRollingBall;
+					wxPanel* panelBGSubtraction;
+					wxStaticBitmap* iconBGSubtraction;
+					wxChoice* mSpinBGSubtraction;
+					wxStaticText* mLabelBGSubtraction;
+					wxPanel* panelBluer;
+					wxStaticBitmap* iconBluer;
+					wxSpinCtrl* mSpinBluer;
+					wxStaticText* mLabelBluer;
+					wxStaticText* mLabelDescription;
+					wxStaticLine* mLineDescription;
+					wxPanel* panelUseAI;
+					wxStaticBitmap* iconUseAI;
+					wxCheckBox* mCheckUseAI;
+					wxPanel* panelThresholdMethod;
+					wxStaticBitmap* iconThresholdMethod;
+					wxChoice* mChoiceThresholdMethod;
+					wxStaticText* mLabelThresholdMethod;
+					wxPanel* panelMinThreshold;
+					wxStaticBitmap* iconMinThreshold;
+					wxSpinCtrl* mSpinMinThreshold;
+					wxStaticText* mLabelMinThreshold;
+					wxStaticText* mLabelFilter;
+					wxStaticLine* mLineFilter;
+					wxPanel* panelMinCircularity;
+					wxStaticBitmap* iconMinCircularity;
+					wxSpinCtrlDouble* mSpinMinCircularity;
+					wxStaticText* mLabelMinCircularity;
+					wxPanel* panelParticleSize;
+					wxStaticBitmap* iDescription1121;
+					wxTextCtrl* mTextParticleSizeRange;
+					wxStaticText* mLabelParticleSize;
+					wxPanel* panelSnapArea;
+					wxStaticBitmap* iconParticleSize;
+					wxSpinCtrl* mSpinSnapArea;
+					wxStaticText* mLabelSnapArea;
+					wxStaticLine* mLinePreview;
+					wxButton* mButtonPreview;
+					wxStaticLine* mLineRemove;
+					wxButton* mButtonRemoveChannel;
+
+				public:
+					wxBoxSizer* mSizerForScroll;
+					wxScrolledWindow* mScrolledChannel;
+
+					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+
+					~PanelChannel();
+
+			};
+
+		} // namespace wxwidget
+	} // namespace ui
+} // namespace joda
+

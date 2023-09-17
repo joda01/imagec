@@ -73,6 +73,20 @@ void FrameMainController::onAboutClicked(wxCommandEvent &event)
 }
 
 ///
+/// \brief      Cell channel choice
+/// \author     Joachim Danmayr
+/// \param[in]  event
+///
+void FrameMainController::onCellChannelChoice(wxCommandEvent &event)
+{
+  if(mChoiceCellChannel->GetSelection() > 0) {
+    panelMaxCellRadius->Show(false);
+  } else {
+    panelMaxCellRadius->Show(true);
+  }
+}
+
+///
 /// \brief      Assigns analyze settings to the UI components
 /// \author     Joachim Danmayr
 ///
@@ -99,9 +113,10 @@ nlohmann::json FrameMainController::getValues()
   // Pipeline steps
   //
   nlohmann::json pipelineStepArray = nlohmann::json::array();    // Initialize an empty JSON array
-  if(mChoiceNucluesChannel->GetSelection() > 0) {
+  if(mChoiceNucluesChannel->GetSelection() > 0 || mChoiceCellChannel->GetSelection() > 0) {
     pipelineStepArray.push_back({{"cell_approximation",
                                   {{"nucleus_channel_index", mChoiceNucluesChannel->GetSelection() - 1},
+                                   {"cell_channel_index", mChoiceCellChannel->GetSelection() - 1},
                                    {"max_cell_radius", mSpinMaxCellRadius->GetValue()}}}});
   }
 

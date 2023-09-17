@@ -39,3 +39,4 @@ test_cell/
 test_spot
 test_areosold_Evs
 build/compile_commands.json
+test.json
