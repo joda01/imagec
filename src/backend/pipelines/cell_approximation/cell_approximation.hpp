@@ -51,9 +51,6 @@ private:
   static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 8;
 
   /////////////////////////////////////////////////////
-  static void generateReportHeader(joda::reporting::Table &report,
-                                   const settings::json::ChannelSettings &spotChannelSettings);
-  static void appendToReport(joda::reporting::Table &report, const func::ROI &spot, int cellIndex);
 
   int32_t mNucleusChannelIndex;
   int32_t mCellChannelIndex;

@@ -157,6 +157,11 @@ private:
       orderedChannels.emplace(ch.getChannelInfo().getType(), ch);
       orderedChannelsByChannelIndex.emplace(ch.getChannelInfo().getChannelIndex(), ch);
     }
+
+    for(auto &step : pipeline_steps) {
+      step.interpretConfig();
+    }
+
     // pipeline.interpretConfig();
   }
 
