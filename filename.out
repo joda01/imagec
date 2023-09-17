@@ -1,0 +1,13 @@
+==6298== Massif, a heap profiler
+==6298== Copyright (C) 2003-2017, and GNU GPL'd, by Nicholas Nethercote
+==6298== Using Valgrind-3.16.1 and LibVEX; rerun with -h for copyright info
+==6298== Command: ./build/build/imagec
+==6298== Parent PID: 535
+==6298== 
+--6298-- WARNING: unhandled amd64-linux syscall: 315
+--6298-- You may be able to write your own handler.
+--6298-- Read the file README_MISSING_SYSCALL_OR_IOCTL.
+--6298-- Nevertheless we consider this a bug.  Please report
+--6298-- it at http://valgrind.org/support/bug_reports.html.
+==6663== 
+==6298== 

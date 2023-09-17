@@ -68,16 +68,20 @@ void Pipeline::runJob(const std::string &inputFolder)
   for(const auto &imagePath : mImageFileContainer->getFilesList()) {
     //
     // Process channel by channel
+    //
     joda::reporting::Table detailReport;
     int tempChannelIdx      = 0;
     std::string imageName   = helper::getFileNameFromPath(imagePath);
     auto detailOutputFolder = mOutputFolder + separator + imageName;
     std::filesystem::create_directories(detailOutputFolder);
 
+    //
+    // Execute Preprocessing, Detection and Filtering step
+    //
     for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
       try {
-        auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath,
-                                                                              &mProgress.image, getStopReference());
+        auto processingResult = joda::algo ::ChannelProcessor::processChannel(
+            channelSettings, imagePath, detailOutputFolder, &mProgress.image, getStopReference());
 
         //
         // Add processing result to the detection result map
@@ -149,14 +153,10 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
                                     {colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
                                      channelSettings.getChannelInfo().getName() + "#validity"}});
 
-  for(const auto &[tileIdx, tileData] : result) {
-    cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
-                    std::to_string(tileIdx) + ".jpg",
-                tileData.controlImage);
-
-    cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
-                    std::to_string(tileIdx) + ".jpg",
-                tileData.originalImage);
+  for(auto &[tileIdx, tileData] : result) {
+    // Free memory
+    tileData.controlImage  = cv::Mat{};
+    tileData.originalImage = cv::Mat{};
 
     for(const auto &imgData : tileData.result) {
       detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),

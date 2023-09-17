@@ -297,7 +297,7 @@ void HttpServer::start(int listeningPort)
       std::cout << workingDirectory.getFileAt(0) << std::endl;
       auto id     = DurationCount::start("processing");
       auto result = joda::algo::ChannelProcessor::processChannel(
-          settings.getChannelByArrayIndex(channelIndex), workingDirectory.getFileAt(imgNr), nullptr, stopReference);
+          settings.getChannelByArrayIndex(channelIndex), workingDirectory.getFileAt(imgNr), "", nullptr, stopReference);
       DurationCount::stop(id);
 
       id = DurationCount::start("img encode");

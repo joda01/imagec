@@ -90,7 +90,7 @@ public:
   /// \param[out]
   /// \return
   ///
-  static auto executeAlgorithm(const std::string &imagePath,
+  static auto executeAlgorithm(const std::string &imagePath, const std::string &outputFolder,
                                const joda::settings::json::ChannelSettings &channelSetting,
                                joda::types::Progress *progress, const bool &mStop) -> func::ProcessingResult
   {
@@ -129,7 +129,19 @@ public:
       }
       for(int64_t idx = 0; idx < runs; idx++) {
         auto result = processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, tiffDirectories, idx);
+
+        // Write control images
+        writeControlImages(result, outputFolder, channel, idx);
+
+        // Free memory
+        if(idx > 0) {
+          result.controlImage  = cv::Mat();
+          result.originalImage = cv::Mat();
+        }
+
+        // Add result to output
         processingResult.emplace(idx, result);
+
         if(progress != nullptr) {
           progress->finished = idx + 1;
         }
@@ -140,10 +152,12 @@ public:
     } else {
       if(isJpg) {
         auto result = processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, tiffDirectories, 0);
-        processingResult.emplace(0, result);
+        processingResult.emplace(0, result.result);
+        writeControlImages(result, outputFolder, channel, 0);
       } else {
         auto result = processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, tiffDirectories, 0);
-        processingResult.emplace(0, result);
+        processingResult.emplace(0, result.result);
+        writeControlImages(result, outputFolder, channel, 0);
       }
     }
     return processingResult;
@@ -255,6 +269,27 @@ private:
   static void doFiltering(func::DetectionResponse &detectionResult,
                           const joda::settings::json::ChannelSettings &channelSetting)
   {
+  }
+
+  ///
+  /// \brief      Does some filtering and returns the newly detection response
+  /// \author     Joachim Danmayr
+  /// \param[in,out]  detectionResult  Detection result and removes the filtered objects from the detection results
+  ///
+  static void writeControlImages(const func::DetectionResponse &tileData, const std::string &detailReportOutputPath,
+                                 int channelIdx, int tileIdx)
+  {
+    std::cout << "-" << detailReportOutputPath << std::endl;
+    static const std::string separator(1, std::filesystem::path::preferred_separator);
+    if(!detailReportOutputPath.empty()) {
+      cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(channelIdx) + "_" +
+                      std::to_string(tileIdx) + ".jpg",
+                  tileData.controlImage);
+
+      cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(channelIdx) + "_" +
+                      std::to_string(tileIdx) + ".jpg",
+                  tileData.originalImage);
+    }
   }
 };
 }    // namespace joda::algo

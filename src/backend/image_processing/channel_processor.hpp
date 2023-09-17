@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include "../logger/console_logger.hpp"
 #include "../settings/channel_settings.hpp"
+#include "backend/image_processing/functions/func_types.hpp"
 #include "object_detection/cell_detection_ai/cell_count.hpp"
 #include "object_detection/nucleus_detection_ai/nucleus_count.hpp"
 #include "object_detection/spot_detection/spot_detection.hpp"
@@ -32,7 +33,8 @@ public:
   /// \param[in]  imgPath Path to the image which should be analyzed
   ///
   static auto processChannel(const joda::settings::json::ChannelSettings &channelSetting, const std::string &imgPath,
-                             types::Progress *partialProgress, const bool &stopReference) -> func::ProcessingResult
+                             const std::string &outputFolder, types::Progress *partialProgress,
+                             const bool &stopReference) -> func::ProcessingResult
   {
     //
     // Detection
@@ -42,14 +44,14 @@ public:
         break;
       case settings::json::ChannelInfo::Type::NUCLEUS:
         return joda::algo::ImageProcessor<::joda::algo::NucleusCounter>::executeAlgorithm(
-            imgPath, channelSetting, partialProgress, stopReference);
+            imgPath, outputFolder, channelSetting, partialProgress, stopReference);
       case settings::json::ChannelInfo::Type::SPOT:
         return joda::algo::ImageProcessor<::joda::algo::SpotDetection>::executeAlgorithm(
-            imgPath, channelSetting, partialProgress, stopReference);
+            imgPath, outputFolder, channelSetting, partialProgress, stopReference);
         break;
       case settings::json::ChannelInfo::Type::CELL:
-        return joda::algo::ImageProcessor<::joda::algo::CellCounter>::executeAlgorithm(imgPath, channelSetting,
-                                                                                       partialProgress, stopReference);
+        return joda::algo::ImageProcessor<::joda::algo::CellCounter>::executeAlgorithm(
+            imgPath, outputFolder, channelSetting, partialProgress, stopReference);
       case settings::json::ChannelInfo::Type::BACKGROUND:
         break;
     }
