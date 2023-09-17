@@ -13,21 +13,34 @@
 
 #pragma once
 
+#include "backend/helper/directory_iterator.hpp"
+#include "backend/pipelines/pipeline_factory.hpp"
+#include "backend/settings/pipeline_settings.hpp"
+
 namespace joda::ctrl {
 
+///
+/// \class      Controller
+/// \author     Joachim Danmayr
+/// \brief      Pipeline controller
+///
 class Controller
 {
 public:
+  /////////////////////////////////////////////////////
   Controller();
-  void start();
+  void start(const settings::json::AnalyzeSettings &settings);
   void stop();
-  void getState();
-  void listFolders();
+  std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State> getState();
+  auto getNrOfFoundImages() -> uint32_t;
   void getSettings();
-  void setWorkingDirectory();
+  void setWorkingDirectory(const std::string &dir);
   void preview();
 
 private:
+  /////////////////////////////////////////////////////
+  joda::helper::ImageFileContainer mWorkingDirectory;
+  std::string mActProcessId;
 };
 
 }    // namespace joda::ctrl

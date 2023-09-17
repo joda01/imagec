@@ -366,6 +366,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	this->Centre( wxBOTH );
 
 	// Connect Events
+	mDirectoryPicker->Connect( wxEVT_COMMAND_DIRPICKER_CHANGED, wxFileDirPickerEventHandler( frameMain::onWorkingDirChanged ), NULL, this );
 	this->Connect( mButtonRun->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onRunClicked ) );
 	this->Connect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
 	mButtonAddChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ), NULL, this );
@@ -375,6 +376,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 frameMain::~frameMain()
 {
 	// Disconnect Events
+	mDirectoryPicker->Disconnect( wxEVT_COMMAND_DIRPICKER_CHANGED, wxFileDirPickerEventHandler( frameMain::onWorkingDirChanged ), NULL, this );
 	this->Disconnect( mButtonRun->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onRunClicked ) );
 	this->Disconnect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
 	mButtonAddChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ), NULL, this );
@@ -429,11 +431,11 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 	mSpinCpuCores = new wxSpinCtrl( panelFooterButtons, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 100, 1 );
 	sizerFooterButtons2->Add( mSpinCpuCores, 1, wxALIGN_CENTER_VERTICAL, 5 );
 
-	mButtonStart = new wxButton( panelFooterButtons, wxID_ANY, _("Start"), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerFooterButtons2->Add( mButtonStart, 0, wxALIGN_CENTER|wxALL, 5 );
-
 	mButtonStop = new wxButton( panelFooterButtons, wxID_ANY, _("Stop"), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerFooterButtons2->Add( mButtonStop, 0, wxALL, 5 );
+
+	mButtonStart = new wxButton( panelFooterButtons, wxID_ANY, _("Start"), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerFooterButtons2->Add( mButtonStart, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
 	sizerFooterButtons->Add( sizerFooterButtons2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
@@ -461,10 +463,18 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 	this->Layout();
 
 	this->Centre( wxBOTH );
+
+	// Connect Events
+	mButtonStop->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogProcessing::onStopClicked ), NULL, this );
+	mButtonStart->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogProcessing::onStartClicked ), NULL, this );
 }
 
 DialogProcessing::~DialogProcessing()
 {
+	// Disconnect Events
+	mButtonStop->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogProcessing::onStopClicked ), NULL, this );
+	mButtonStart->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogProcessing::onStartClicked ), NULL, this );
+
 }
 
 DialogAbout::DialogAbout( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )

@@ -18,6 +18,7 @@
 #include "backend/image_reader/tif/image_loader_tif.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "backend/reporting/report_printer.h"
+#include "controller/controller.hpp"
 #include "ui/http/web_server.hpp"
 #include "ui/wxwidgets/frame_main_controller.h"
 #include "ui/wxwidgets/wxwidget.h"
@@ -52,8 +53,9 @@ wxIMPLEMENT_APP_NO_MAIN(MainApp);
 ///
 bool MainApp::OnInit()
 {
+  auto *controller = new joda::ctrl::Controller();
   wxSizerFlags::DisableConsistencyChecks();
-  auto *frame = new joda::ui::wxwidget::FrameMainController(nullptr);
+  auto *frame = new joda::ui::wxwidget::FrameMainController(nullptr, controller);
   frame->Maximize();
   frame->Show(true);
   return true;

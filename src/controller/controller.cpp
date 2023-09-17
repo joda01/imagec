@@ -19,24 +19,69 @@ Controller::Controller()
 {
 }
 
-void Controller::start()
+///
+/// \brief      Start a new process
+/// \author     Joachim Danmayr
+///
+void Controller::start(const settings::json::AnalyzeSettings &settings)
 {
+  try {
+    mActProcessId = joda::pipeline::PipelineFactory::startNewJob(settings, mWorkingDirectory.getWorkingDirectory(),
+                                                                 &mWorkingDirectory);
+    joda::log::logInfo("Analyze started!");
+  } catch(const std::exception &ex) {
+    joda::log::logWarning("Analyze could not be started! Got " + std::string(ex.what()) + ".");
+  }
 }
+
+///
+/// \brief      Stop a running process
+/// \author     Joachim Danmayr
+///
 void Controller::stop()
 {
+  joda::pipeline::PipelineFactory::stopJob(mActProcessId);
 }
-void Controller::getState()
+
+///
+/// \brief      Returns process state
+/// \author     Joachim Danmayr
+///
+std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State> Controller::getState()
 {
+  return joda::pipeline::PipelineFactory::getState(mActProcessId);
 }
-void Controller::listFolders()
-{
-}
+
+///
+/// \brief      Get actual settings
+/// \author     Joachim Danmayr
+///
 void Controller::getSettings()
 {
 }
-void Controller::setWorkingDirectory()
+
+///
+/// \brief      Sets the working directory
+/// \author     Joachim Danmayr
+///
+void Controller::setWorkingDirectory(const std::string &dir)
 {
+  mWorkingDirectory.setWorkingDirectory(dir);
 }
+
+///
+/// \brief      Sets the working directory
+/// \author     Joachim Danmayr
+///
+auto Controller::getNrOfFoundImages() -> uint32_t
+{
+  return mWorkingDirectory.getNrOfFiles();
+}
+
+///
+/// \brief      Returns preview
+/// \author     Joachim Danmayr
+///
 void Controller::preview()
 {
 }

@@ -1,6 +1,8 @@
 #include "frame_main_controller.h"
 #include <exception>
 #include <memory>
+#include <string>
+#include <thread>
 #include "backend/settings/channel_settings.hpp"
 #include "ui/wxwidgets/dialog_processing_controller.h"
 #include "ui/wxwidgets/wxwidget.h"
@@ -8,8 +10,10 @@
 
 namespace joda::ui::wxwidget {
 
-FrameMainController::FrameMainController(wxWindow *parent) : frameMain(parent)
+FrameMainController::FrameMainController(wxWindow *parent, joda::ctrl::Controller *pipelineController) :
+    frameMain(parent), mPipelineController(pipelineController)
 {
+  mRefreshTimer = std::make_shared<std::thread>(&FrameMainController::refreshFunction, this);
   addChannel();
 }
 
@@ -23,6 +27,29 @@ void FrameMainController::addChannel()
   mSizerChannelsScrollbar->Layout();
   this->Layout();
   mChannels.push_back(channel);
+}
+
+FrameMainController::~FrameMainController()
+{
+  mStopped = true;
+  mRefreshTimer->join();
+}
+
+///
+/// \brief      Updates dynamic information
+/// \author     Joachim Danmayr
+///
+void FrameMainController::refreshFunction()
+{
+  while(!mStopped) {
+    if(mPipelineController->getNrOfFoundImages() > 0) {
+      mLabelNrOfFoundFiles->SetLabel(_("Images dir ") + "(" +
+                                     std::to_string(mPipelineController->getNrOfFoundImages()) + "):");
+    } else {
+      mLabelNrOfFoundFiles->SetLabel(_("Images dir: "));
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
 }
 
 void FrameMainController::removeChannel()
@@ -57,8 +84,18 @@ void FrameMainController::onRunClicked(wxCommandEvent &event)
     std::cout << ex.what() << std::endl;
   }
 
-  DialogProcessingController dialog(this, settings);
+  DialogProcessingController dialog(this, mPipelineController, &settings);
   dialog.ShowModal();
+}
+
+///
+/// \brief      Working directory changed
+/// \author     Joachim Danmayr
+/// \param[in]  event
+///
+void FrameMainController::onWorkingDirChanged(wxFileDirPickerEvent &event)
+{
+  mPipelineController->setWorkingDirectory(mDirectoryPicker->GetPath().ToStdString());
 }
 
 ///

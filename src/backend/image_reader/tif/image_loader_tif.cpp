@@ -115,11 +115,16 @@ auto TiffLoader::getImageProperties(const std::string &filename, uint16_t direct
 
     int64_t tileSize  = static_cast<int64_t>(tileWidth) * tileHeight;
     int64_t imageSize = static_cast<int64_t>(width) * height;
-    int64_t nrOfTiles = imageSize / tileSize;
+    int64_t nrOfTiles = 0;
+    if(tileSize > 0) {
+      nrOfTiles = imageSize / tileSize;
+    }
     TIFFClose(tif);
 
-    return ImageProperties{
-        .imageSize = imageSize, .tileSize = tileSize, .nrOfTiles = nrOfTiles, .nrOfDocuments = (uint16_t) nrOfDirectories};
+    return ImageProperties{.imageSize     = imageSize,
+                           .tileSize      = tileSize,
+                           .nrOfTiles     = nrOfTiles,
+                           .nrOfDocuments = (uint16_t) nrOfDirectories};
   }
 
   return ImageProperties{};
@@ -195,7 +200,7 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tilewidth);
     TIFFGetField(tif, TIFFTAG_TILELENGTH, &tileheight);
-    TIFFGetField(tif, TIFFTAG_IMAGEDEPTH, &bitDepth);
+    TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitDepth);
 
     //
     // Messy piece of code. But I realized that there are TIFFs where the TIFFTAG_TILELENGTH meta is wrong.
@@ -331,7 +336,7 @@ cv::Mat TiffLoader::loadEntireImage(const std::string &filename, int directory)
     uint16_t bitDepth;      //= tif->tif_dir.td_bitspersample;
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
-    TIFFGetField(tif, TIFFTAG_IMAGEDEPTH, &bitDepth);
+    TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitDepth);
 
     switch(bitDepth) {
       case 8: {

@@ -108,6 +108,7 @@ namespace joda
 					wxStatusBar* m_statusBar1;
 
 					// Virtual event handlers, override them in your derived class
+					virtual void onWorkingDirChanged( wxFileDirPickerEvent& event ) { event.Skip(); }
 					virtual void onRunClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAboutClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAddChannelClicked( wxCommandEvent& event ) { event.Skip(); }
@@ -139,9 +140,14 @@ namespace joda
 					wxPanel* panelFooterButtons;
 					wxStaticBitmap* iconCpuCores;
 					wxSpinCtrl* mSpinCpuCores;
-					wxButton* mButtonStart;
 					wxButton* mButtonStop;
+					wxButton* mButtonStart;
 					wxStaticText* mLabelCpuCores;
+
+					// Virtual event handlers, override them in your derived class
+					virtual void onStopClicked( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onStartClicked( wxCommandEvent& event ) { event.Skip(); }
+
 
 				public:
 

@@ -11,6 +11,8 @@
 /// \brief     A short description what happens here.
 ///
 
+#pragma once
+
 #include <algorithm>
 #include <filesystem>
 #include <memory>
@@ -49,6 +51,15 @@ public:
         mWorkerThread = std::make_shared<std::thread>(&ImageFileContainer::lookForImagesInFolderAndSubfolder, this);
       }
     }
+  }
+
+  ///
+  /// \brief      Returns the selected working directory
+  /// \author     Joachim Danmayr
+  ///
+  inline const std::string &getWorkingDirectory()
+  {
+    return mWorkingDirectory;
   }
 
   ///
