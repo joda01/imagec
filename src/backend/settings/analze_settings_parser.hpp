@@ -19,10 +19,10 @@
 #include <map>
 #include <optional>
 #include <set>
-#include "../settings/pipeline_settings.hpp"
 #include <catch2/catch_config.hpp>
 #include <nlohmann/json.hpp>
 #include "channel_settings.hpp"
+#include "pipeline_settings.hpp"
 
 namespace joda::settings::json {
 
@@ -128,9 +128,19 @@ public:
     return channels.at(idx);
   }
 
+  [[nodiscard]] auto getChannelByChannelIndex(uint32_t idx) const -> ChannelSettings
+  {
+    return orderedChannelsByChannelIndex.at(idx);
+  }
+
   [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &
   {
     return options;
+  }
+
+  [[nodiscard]] auto getPipelineSteps() const -> const std::vector<PipelineStepSettings> &
+  {
+    return pipeline_steps;
   }
 
 private:
@@ -140,6 +150,7 @@ private:
       ch.interpretConfig();
       // Move from vector to ordered map
       orderedChannels.emplace(ch.getChannelInfo().getType(), ch);
+      orderedChannelsByChannelIndex.emplace(ch.getChannelInfo().getChannelIndex(), ch);
     }
     // pipeline.interpretConfig();
   }
@@ -149,6 +160,7 @@ private:
   //
   std::vector<ChannelSettings> channels;
   std::multimap<ChannelInfo::Type, ChannelSettings> orderedChannels;
+  std::map<int, ChannelSettings> orderedChannelsByChannelIndex;
 
   //
   // Analyses settings options
@@ -158,13 +170,13 @@ private:
   //
   // Analyses settings options
   //
-  // PipelineSettings pipeline;
+  std::vector<PipelineStepSettings> pipeline_steps;
 
   //
   // Original unparsed json
   //
   std::string originalJson;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, channels, options /*, pipeline*/);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, channels, options, pipeline_steps);
 };
 }    // namespace joda::settings::json

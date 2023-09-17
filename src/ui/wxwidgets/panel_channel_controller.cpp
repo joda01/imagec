@@ -53,8 +53,12 @@ nlohmann::json PanelChannelController::getValues()
   // Preprocessing
   nlohmann::json jsonArray = nlohmann::json::array();    // Initialize an empty JSON array
   jsonArray.push_back({{"z_stack", {{"value", indexToZProjection(mChoiceZStack->GetSelection())}}}});
-  jsonArray.push_back({{"margin_crop", {{"value", static_cast<int>(mSpinMarginCrop->GetValue())}}}});
-  jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mSpinRollingBall->GetValue())}}}});
+  if(mSpinMarginCrop->GetValue() > 0) {
+    jsonArray.push_back({{"margin_crop", {{"value", static_cast<int>(mSpinMarginCrop->GetValue())}}}});
+  }
+  if(mSpinRollingBall->GetValue() > 0) {
+    jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mSpinRollingBall->GetValue())}}}});
+  }
   chSettings["preprocessing"] = jsonArray;
 
   // Detections

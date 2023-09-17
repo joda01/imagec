@@ -19,7 +19,7 @@
 #include "../helper/helper.hpp"
 #include "../image_processing/channel_processor.hpp"
 #include "../logger/console_logger.hpp"
-#include "count_spots_in_cells/count_spot_in_cells.hpp"
+#include "cell_approximation/cell_approximation.hpp"
 #include <opencv2/imgcodecs.hpp>
 
 namespace joda::pipeline {
@@ -50,8 +50,8 @@ void Pipeline::runJob(const std::string &inputFolder)
   mOutputFolder = prepareOutputFolder(inputFolder);
 
   // Store configuration
-  mAnalyzeSettings.storeConfigToFile(mOutputFolder + "/" /*std::filesystem::path::preferred_separator*/ +
-                                     "settings.json");
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
+  mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");
 
   // Look for images in the input folder
   mImageFileContainer->setWorkingDirectory(inputFolder);
@@ -59,7 +59,7 @@ void Pipeline::runJob(const std::string &inputFolder)
   mProgress.total.total = mImageFileContainer->getNrOfFiles();
 
   joda::reporting::Table alloverReport;
-  std::map<int, joda::func::DetectionResponse> detectionResults;
+  std::map<int32_t, joda::func::DetectionResponse> detectionResults;
 
   //
   // Iterate over each image to do detection
@@ -69,10 +69,10 @@ void Pipeline::runJob(const std::string &inputFolder)
     //
     // Process channel by channel
     joda::reporting::Table detailReport;
-    int tempChannelIdx    = 0;
-    std::string imageName = helper::getFileNameFromPath(imagePath);
-    auto detailOutput     = mOutputFolder + "/" /*std::filesystem::path::preferred_separator*/ + imageName;
-    std::filesystem::create_directories(detailOutput);
+    int tempChannelIdx      = 0;
+    std::string imageName   = helper::getFileNameFromPath(imagePath);
+    auto detailOutputFolder = mOutputFolder + separator + imageName;
+    std::filesystem::create_directories(detailOutputFolder);
 
     for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
       try {
@@ -87,7 +87,7 @@ void Pipeline::runJob(const std::string &inputFolder)
         //
         // Add to detail report
         //
-        appendToDetailReport(processingResult, detailReport, detailOutput, channelSettings, tempChannelIdx);
+        appendToDetailReport(processingResult, detailReport, detailOutputFolder, channelSettings, tempChannelIdx);
         tempChannelIdx++;
 
       } catch(const std::exception &ex) {
@@ -95,13 +95,20 @@ void Pipeline::runJob(const std::string &inputFolder)
       }
     }
 
-    CountSpotInCells inCellCounting;
-    inCellCounting.execute(mAnalyzeSettings, detectionResults, detailOutput);
+    //
+    // Execute pipeline steps
+    //
+    for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
+      auto [index, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+      if(index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
+        detectionResults.emplace(static_cast<int32_t>(index), response);
+      }
+    }
 
     //
     // Write report
     //
-    detailReport.flushReportToFile(detailOutput + "/" /*std::filesystem::path::preferred_separator*/ + "detail.csv");
+    detailReport.flushReportToFile(detailOutputFolder + separator + "detail.csv");
     appendToAllOverReport(alloverReport, detailReport, imageName, nrOfChannels);
     mProgress.total.finished++;
     if(mStop) {
@@ -109,7 +116,7 @@ void Pipeline::runJob(const std::string &inputFolder)
     }
   }
 
-  std::string resultsFile = mOutputFolder + "/" /*std::filesystem::path::preferred_separator*/ + "results.csv";
+  std::string resultsFile = mOutputFolder + separator + "results.csv";
   alloverReport.flushReportToFile(resultsFile);
   mState = State::FINISHED;
 }
@@ -123,6 +130,8 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
                                     const std::string &detailReportOutputPath,
                                     const settings::json::ChannelSettings &channelSettings, int tempChannelIdx)
 {
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
+
   int colIdx = NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT * tempChannelIdx;
 
   detailReportTable.setColumnNames({{colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
@@ -141,12 +150,12 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
                                      channelSettings.getChannelInfo().getName() + "#validity"}});
 
   for(const auto &[tileIdx, tileData] : result) {
-    cv::imwrite(detailReportOutputPath + "/" /*std::filesystem::path::preferred_separator*/ + "control_" +
-                    std::to_string(tempChannelIdx) + "_" + std::to_string(tileIdx) + ".jpg",
+    cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
+                    std::to_string(tileIdx) + ".jpg",
                 tileData.controlImage);
 
-    cv::imwrite(detailReportOutputPath + "/" /*std::filesystem::path::preferred_separator*/ + "original_" +
-                    std::to_string(tempChannelIdx) + "_" + std::to_string(tileIdx) + ".jpg",
+    cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
+                    std::to_string(tileIdx) + ".jpg",
                 tileData.originalImage);
 
     for(const auto &imgData : tileData.result) {
@@ -236,9 +245,10 @@ void Pipeline::appendToAllOverReport(joda::reporting::Table &allOverReport,
 ///
 [[nodiscard]] auto Pipeline::prepareOutputFolder(const std::string &inputFolder) -> std::string
 {
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
+
   auto nowString    = ::joda::helper::timeNowToString();
-  auto outputFolder = inputFolder + "/" /*std::filesystem::path::preferred_separator*/ + RESULTS_PATH_NAME +
-                      "/" /*std::filesystem::path::preferred_separator*/ + nowString;
+  auto outputFolder = inputFolder + separator + RESULTS_PATH_NAME + separator + nowString;
 
   bool directoryExists = false;
   if(!std::filesystem::exists(outputFolder)) {

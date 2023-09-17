@@ -11,16 +11,19 @@
 /// \brief     A pipeline step
 ///
 
+#pragma once
+
 #include <map>
 #include "../image_processing/functions/func_types.hpp"
-#include "../settings/analze_settings_parser.hpp"
+#include "backend/settings/analze_settings_parser.hpp"
+
 namespace joda::pipeline {
 
 class PipelineStep
 {
 public:
-  virtual void execute(const settings::json::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
-                       const std::string &detailoutputPath) = 0;
+  virtual auto execute(const settings::json::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
+                       const std::string &detailoutputPath) const -> joda::func::DetectionResponse = 0;
 };
 
 }    // namespace joda::pipeline

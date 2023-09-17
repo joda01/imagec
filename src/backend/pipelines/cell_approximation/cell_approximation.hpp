@@ -14,28 +14,29 @@
 #pragma once
 
 #include "../../reporting/reporting.h"
-#include "../../settings/analze_settings_parser.hpp"
 #include "../../settings/channel_settings.hpp"
 #include "../pipeline_step.hpp"
 
 namespace joda::pipeline {
 
 ///
-/// \class      CountSpotInCells
+/// \class      CellApproximation
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class CountSpotInCells : public PipelineStep
+class CellApproximation : public PipelineStep
 {
 public:
-  CountSpotInCells()
+  CellApproximation(int32_t nucleusChannelIndex, int32_t maxCellRadius) :
+      mNucleusChannelIndex(nucleusChannelIndex), mMaxCellRadius(maxCellRadius)
   {
   }
   /////////////////////////////////////////////////////
-  void execute(const settings::json::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
-               const std::string &detailoutputPath) override;
+  auto execute(const settings::json::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
+               const std::string &detailoutputPath) const -> joda::func::DetectionResponse override;
 
 private:
+  /////////////////////////////////////////////////////
   enum class ColumnIndexDetailedReport : int
   {
     CONFIDENCE             = 0,
@@ -50,9 +51,12 @@ private:
   static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 8;
 
   /////////////////////////////////////////////////////
-  void generateReportHeader(joda::reporting::Table &report, const settings::json::ChannelSettings &spotChannelSettings,
-                            bool intersect);
-  void appendToReport(joda::reporting::Table &report, const func::ROI &spot, int cellIndex, bool intersect);
+  static void generateReportHeader(joda::reporting::Table &report,
+                                   const settings::json::ChannelSettings &spotChannelSettings);
+  static void appendToReport(joda::reporting::Table &report, const func::ROI &spot, int cellIndex);
+
+  int32_t mNucleusChannelIndex;
+  int32_t mMaxCellRadius;
 };
 
 }    // namespace joda::pipeline

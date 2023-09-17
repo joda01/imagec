@@ -29,31 +29,28 @@ public:
     MAX_INTENSITY,
     PROJECT_3D
   };
-  std::string function;
   std::string value;
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingZStack, function, value);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingZStack, value);
 };
 
 class PreprocessingRollingBall final
 {
 public:
-  std::string function;
-  float value{};
+  int32_t value{0};
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingRollingBall, function, value);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingRollingBall, value);
 };
 
 class PreprocessingMarginCrop final
 {
 public:
-  std::string function;
-  float value{};
+  int32_t value{0};
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingMarginCrop, function, value);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingMarginCrop, value);
 };
 
 ///
@@ -74,14 +71,14 @@ public:
 
   void interpretConfig()
   {
-    if(!z_stack.function.empty()) {
+    if(!z_stack.value.empty()) {
     }
 
-    if(!rolling_ball.function.empty()) {
+    if(rolling_ball.value > 0) {
       mPreprocessingFunction = std::make_shared<joda::func::img::RollingBallBackground>(rolling_ball.value);
     }
 
-    if(!margin_crop.function.empty()) {
+    if(margin_crop.value > 0) {
       mPreprocessingFunction = std::make_shared<joda::func::img::MarginCrop>(margin_crop.value);
     }
   }
@@ -95,14 +92,14 @@ public:
 
   PreprocessingZStack::ZStackMethod getZStackMethod()
   {
-    if(!z_stack.function.empty()) {
-      if(z_stack.function == "NONE") {
+    if(!z_stack.value.empty()) {
+      if(z_stack.value == "NONE") {
         return PreprocessingZStack::ZStackMethod::NONE;
       }
-      if(z_stack.function == "PROJECT_MAX_INTENSITY") {
+      if(z_stack.value == "PROJECT_MAX_INTENSITY") {
         return PreprocessingZStack::ZStackMethod::MAX_INTENSITY;
       }
-      if(z_stack.function == "PROJECT_3D") {
+      if(z_stack.value == "PROJECT_3D") {
         return PreprocessingZStack::ZStackMethod::PROJECT_3D;
       }
     }

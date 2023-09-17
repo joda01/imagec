@@ -1,7 +1,7 @@
 ///
-/// \file      count_spot_in_cells.cpp
+/// \file      calc_intersection.cpp
 /// \author    Joachim Danmayr
-/// \date      2023-07-31
+/// \date      2023-09-17
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
 ///            All rights reserved! This file is subject
@@ -11,67 +11,38 @@
 /// \brief     A short description what happens here.
 ///
 
-#include "count_spot_in_cells.hpp"
-#include <stdexcept>
-#include "../../image_processing/functions/detection/voronoi_grid/voronoi_grid.hpp"
-#include "../../image_processing/functions/roi/roi.hpp"
+#include "calc_intersection.hpp"
+#include "../../reporting/reporting.h"
 
 namespace joda::pipeline {
 
-void CountSpotInCells::execute(const settings::json::AnalyzeSettings &analyseSettings,
-                               const std::map<int, joda::func::DetectionResponse> &detectionResults,
-                               const std::string &detailoutputPath)
+CalcIntersection::CalcIntersection(const std::set<int32_t> &indexesToIntersect) :
+    mIndexesToIntersect(indexesToIntersect)
 {
-  auto nucleusChannels = analyseSettings.getChannels(joda::settings::json::ChannelInfo::Type::NUCLEUS);
-  if(nucleusChannels.empty()) {
-    throw std::runtime_error("At least one nucleus channel must be selected!");
-  }
+}
 
-  auto spotChannels = analyseSettings.getChannels(joda::settings::json::ChannelInfo::Type::SPOT);
-  if(spotChannels.empty()) {
-    throw std::runtime_error("At least one spot channel must be selected!");
-  }
-
-  auto nucleusChannelIndex = nucleusChannels.at(0).getChannelInfo().getChannelIndex();
-  auto spotChannelIndex    = spotChannels.at(0).getChannelInfo().getChannelIndex();
-
-  //
-  // Calculate a limited voronoi grid based on the center of nucleus
-  //
-  joda::func::img::VoronoiGrid grid(detectionResults.at(nucleusChannelIndex).result);
-  auto voronoiResult = grid.forward(detectionResults.at(nucleusChannelIndex).controlImage,
-                                    detectionResults.at(nucleusChannelIndex).originalImage);
-
+auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
+                               const std::map<int, joda::func::DetectionResponse> &detectionResultsIn,
+                               const std::string &detailoutputPath) const -> joda::func::DetectionResponse
+{
   //
   // Calculate the intersection
   //
   joda::reporting::Table cellReport;
   joda::reporting::Table detailReport;
-  generateReportHeader(detailReport, spotChannels.at(0), true);
-  generateReportHeader(cellReport, spotChannels.at(0), false);
-
-  for(auto const &roiCell : voronoiResult.result) {
-    appendToReport(cellReport, roiCell, roiCell.getIndex(), false);
-
-    for(auto const &roiSpot : detectionResults.at(spotChannelIndex).result) {
-      if(roiCell.doesIntersect(roiSpot)) {
-        // Intersect
-        appendToReport(detailReport, roiSpot, roiCell.getIndex(), true);
-      }
-    }
-  }
-
-  detailReport.flushReportToFile(detailoutputPath + "/" /*std::filesystem::path::preferred_separator*/ +
-                                 "spots_in_cells.csv");
-  cellReport.flushReportToFile(detailoutputPath + "/" /*std::filesystem::path::preferred_separator*/ +
-                               "approximated_cells.csv");
-
-  cv::imwrite(detailoutputPath + "/" /*std::filesystem::path::preferred_separator*/ + "control_approximated_cells" +
-                  ".jpg",
-              voronoiResult.controlImage);
+  // generateReportHeader(detailReport, spotChannels.at(0), true);
+  //
+  // for(auto const &roiCell : voronoiResult.result) {
+  //  for(auto const &roiSpot : detectionResults.at(spotChannelIndex).result) {
+  //    if(roiCell.doesIntersect(roiSpot)) {
+  //      // Intersect
+  //      appendToReport(detailReport, roiSpot, roiCell.getIndex(), true);
+  //    }
+  //  }
+  //}
 }
 
-void CountSpotInCells::appendToReport(joda::reporting::Table &report, const func::ROI &spot, int cellIndex,
+void CalcIntersection::appendToReport(joda::reporting::Table &report, const func::ROI &spot, int cellIndex,
                                       bool intersect)
 {
   int colIdx = 0;
@@ -97,7 +68,7 @@ void CountSpotInCells::appendToReport(joda::reporting::Table &report, const func
   }
 }
 
-void CountSpotInCells::generateReportHeader(joda::reporting::Table &report,
+void CalcIntersection::generateReportHeader(joda::reporting::Table &report,
                                             const settings::json::ChannelSettings &spotChannelSettings, bool intersect)
 {
   int colIdx = 0;

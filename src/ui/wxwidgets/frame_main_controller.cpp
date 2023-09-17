@@ -46,22 +46,7 @@ void FrameMainController::onAddChannelClicked(wxCommandEvent &event)
 ///
 void FrameMainController::onRunClicked(wxCommandEvent &event)
 {
-  nlohmann::json jsonSettings;
-
-  nlohmann::json channelsArray = nlohmann::json::array();    // Initialize an empty JSON array
-  for(const auto &ch : mChannels) {
-    channelsArray.push_back(ch->getValues());
-  }
-  jsonSettings["input_folder"] = static_cast<std::string>(mDirectoryPicker->GetPath().ToStdString());
-  jsonSettings["channels"]     = channelsArray;
-
-  nlohmann::json pipelineStepArray = nlohmann::json::array();    // Initialize an empty JSON array
-  jsonSettings["pipeline"]         = pipelineStepArray;
-
-  jsonSettings["options"]["pixel_in_micrometer"]  = 1;
-  jsonSettings["options"]["with_control_images"]  = true;
-  jsonSettings["options"]["with_detailed_report"] = true;
-
+  auto jsonSettings = getValues();
   settings::json::AnalyzeSettings settings;
   std::string jsonStr = jsonSettings.dump();
   std::cout << jsonStr << std::endl;
@@ -85,6 +70,93 @@ void FrameMainController::onAboutClicked(wxCommandEvent &event)
 {
   DialogAbout about(this);
   about.ShowModal();
+}
+
+///
+/// \brief      Assigns analyze settings to the UI components
+/// \author     Joachim Danmayr
+///
+void FrameMainController::loadValues(const joda::settings::json::AnalyzeSettings &)
+{
+}
+
+///
+/// \brief      Converts the UI settings to a JSON object
+/// \author     Joachim Danmayr
+///
+nlohmann::json FrameMainController::getValues()
+{
+  nlohmann::json jsonSettings;
+
+  nlohmann::json channelsArray = nlohmann::json::array();    // Initialize an empty JSON array
+  for(const auto &ch : mChannels) {
+    channelsArray.push_back(ch->getValues());
+  }
+  jsonSettings["input_folder"] = static_cast<std::string>(mDirectoryPicker->GetPath().ToStdString());
+  jsonSettings["channels"]     = channelsArray;
+
+  //
+  // Pipeline steps
+  //
+  nlohmann::json pipelineStepArray = nlohmann::json::array();    // Initialize an empty JSON array
+  if(mChoiceNucluesChannel->GetSelection() > 0) {
+    pipelineStepArray.push_back({{"cell_approximation",
+                                  {{"nucleus_channel_index", mChoiceNucluesChannel->GetSelection() - 1},
+                                   {"max_cell_radius", mSpinMaxCellRadius->GetValue()}}}});
+  }
+
+  std::set<int32_t> intersectionButtons;
+  if(mButtonIntersectionCh01->GetValue()) {
+    intersectionButtons.emplace(0);
+  }
+  if(mButtonIntersectionCh02->GetValue()) {
+    intersectionButtons.emplace(1);
+  }
+  if(mButtonIntersectionCh03->GetValue()) {
+    intersectionButtons.emplace(2);
+  }
+  if(mButtonIntersectionCh04->GetValue()) {
+    intersectionButtons.emplace(3);
+  }
+  if(mButtonIntersectionCh05->GetValue()) {
+    intersectionButtons.emplace(4);
+  }
+  if(mButtonIntersectionCh06->GetValue()) {
+    intersectionButtons.emplace(5);
+  }
+  if(mButtonIntersectionCh07->GetValue()) {
+    intersectionButtons.emplace(6);
+  }
+  if(mButtonIntersectionCh08->GetValue()) {
+    intersectionButtons.emplace(7);
+  }
+  if(mButtonIntersectionCh09->GetValue()) {
+    intersectionButtons.emplace(8);
+  }
+  if(mButtonIntersectionCh10->GetValue()) {
+    intersectionButtons.emplace(9);
+  }
+  if(mButtonIntersectionCh11->GetValue()) {
+    intersectionButtons.emplace(10);
+  }
+  if(mButtonIntersectionCh12->GetValue()) {
+    intersectionButtons.emplace(11);
+  }
+  if(mButtonIntersectionChEstimatedCell->GetValue()) {
+    intersectionButtons.emplace(
+        static_cast<int32_t>(settings::json::PipelineStepSettings::PipelineStepIndex::CELL_APPROXIMATION));
+  }
+  if(!intersectionButtons.empty()) {
+    pipelineStepArray.push_back({{"channel_index", intersectionButtons}});
+  }
+
+  jsonSettings["pipeline_steps"] = pipelineStepArray;
+
+  jsonSettings["options"]["pixel_in_micrometer"]  = 1;
+  jsonSettings["options"]["with_control_images"]  = true;
+  jsonSettings["options"]["with_detailed_report"] = true;
+
+  return jsonSettings;
 }
 
 }    // namespace joda::ui::wxwidget
