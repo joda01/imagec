@@ -57,7 +57,7 @@
             <property name="window_name"></property>
             <property name="window_style">wxTAB_TRAVERSAL</property>
             <property name="xrc_skip_sizer">1</property>
-            <object class="wxToolBar" expanded="0">
+            <object class="wxToolBar" expanded="1">
                 <property name="BottomDockable">1</property>
                 <property name="LeftDockable">1</property>
                 <property name="RightDockable">1</property>
@@ -134,6 +134,7 @@
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
                     <property name="tooltip"></property>
+                    <event name="OnToolClicked">onOpenSettingsClicked</event>
                 </object>
                 <object class="toolSeparator" expanded="0">
                     <property name="permission">protected</property>
@@ -3137,7 +3138,7 @@
                 <property name="permission">none</property>
                 <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
-                    <property name="flag">wxEXPAND|wxTOP</property>
+                    <property name="flag">wxALIGN_CENTER_HORIZONTAL|wxTOP</property>
                     <property name="proportion">0</property>
                     <object class="wxStaticText" expanded="0">
                         <property name="BottomDockable">1</property>
@@ -3262,7 +3263,7 @@
                 </object>
                 <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
-                    <property name="flag">wxEXPAND|wxTOP</property>
+                    <property name="flag">wxALIGN_CENTER_HORIZONTAL|wxTOP</property>
                     <property name="proportion">0</property>
                     <object class="wxStaticText" expanded="0">
                         <property name="BottomDockable">1</property>
@@ -3665,7 +3666,7 @@
                                                         <property name="dock">Dock</property>
                                                         <property name="dock_fixed">0</property>
                                                         <property name="docking">Left</property>
-                                                        <property name="enabled">1</property>
+                                                        <property name="enabled">0</property>
                                                         <property name="fg"></property>
                                                         <property name="floatable">1</property>
                                                         <property name="font"></property>
@@ -3776,11 +3777,11 @@
                                                         <event name="OnButtonClick">onStopClicked</event>
                                                     </object>
                                                 </object>
-                                                <object class="sizeritem" expanded="0">
+                                                <object class="sizeritem" expanded="1">
                                                     <property name="border">5</property>
-                                                    <property name="flag">wxALIGN_CENTER|wxALL</property>
+                                                    <property name="flag">wxALL</property>
                                                     <property name="proportion">0</property>
-                                                    <object class="wxButton" expanded="0">
+                                                    <object class="wxButton" expanded="1">
                                                         <property name="BottomDockable">1</property>
                                                         <property name="LeftDockable">1</property>
                                                         <property name="RightDockable">1</property>
@@ -3814,7 +3815,7 @@
                                                         <property name="gripper">0</property>
                                                         <property name="hidden"></property>
                                                         <property name="id">wxID_ANY</property>
-                                                        <property name="label">Start</property>
+                                                        <property name="label">Close</property>
                                                         <property name="margins"></property>
                                                         <property name="markup">0</property>
                                                         <property name="max_size"></property>
@@ -3824,7 +3825,7 @@
                                                         <property name="minimize_button">0</property>
                                                         <property name="minimum_size"></property>
                                                         <property name="moveable">1</property>
-                                                        <property name="name">mButtonStart</property>
+                                                        <property name="name">mButtonClose</property>
                                                         <property name="pane_border">1</property>
                                                         <property name="pane_position"></property>
                                                         <property name="pane_size"></property>
@@ -3847,7 +3848,7 @@
                                                         <property name="window_extra_style"></property>
                                                         <property name="window_name"></property>
                                                         <property name="window_style"></property>
-                                                        <event name="OnButtonClick">onStartClicked</event>
+                                                        <event name="OnButtonClick">onCloseClicked</event>
                                                     </object>
                                                 </object>
                                             </object>

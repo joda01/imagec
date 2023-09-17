@@ -26,7 +26,8 @@ public:
 private:
   /////////////////////////////////////////////////////
   void onStopClicked(wxCommandEvent &event) override;
-  void onStartClicked(wxCommandEvent &event) override;
+  void onCloseClicked(wxCommandEvent &event) override;
+  void refreshThread();
   void refreshFunction();
 
   /////////////////////////////////////////////////////

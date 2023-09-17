@@ -12,6 +12,7 @@
 ///
 
 #include "panel_channel_controller.h"
+#include <string>
 #include "backend/helper/two_way_map.hpp"
 #include <nlohmann/json_fwd.hpp>
 
@@ -34,6 +35,37 @@ PanelChannelController::PanelChannelController(wxWindow *parent, wxWindowID id, 
 ///
 void PanelChannelController::loadValues(const joda::settings::json::ChannelSettings &channelSettings)
 {
+  // Channel Info
+  mChoiceChannelIndex->SetSelection(channelSettings.getChannelInfo().getChannelIndex());
+  mChoiceChannelType->SetSelection(typeToIndex(channelSettings.getChannelInfo().getTypeString()));
+  mTextChannelName->SetValue(channelSettings.getChannelInfo().getName());
+
+  // Preprocessing
+  for(const auto &prepro : channelSettings.getPreprocessingFunctions()) {
+    if(prepro.getZStack()) {
+      mChoiceZStack->SetSelection(zProjectionToIndex(prepro.getZStack()->value));
+    }
+    if(prepro.getRollingBall()) {
+      mSpinRollingBall->SetValue(prepro.getRollingBall()->value);
+    }
+    if(prepro.getMarginCrop()) {
+      mSpinMarginCrop->SetValue(prepro.getMarginCrop()->value);
+    }
+  }
+
+  // Detection
+  mCheckUseAI->SetValue(settings::json::ChannelDetection::DetectionMode::AI ==
+                        channelSettings.getDetectionSettings().getDetectionMode());
+  mChoiceThresholdMethod->SetSelection(
+      thresholdToIndex(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdString()));
+  mSpinMinThreshold->SetValue(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdMin());
+
+  // Filtering
+  mSpinMinCircularity->SetValue(channelSettings.getFilter().getMinCircularity());
+  std::string range = std::to_string(channelSettings.getFilter().getMinCircularity()) + "-" +
+                      std::to_string(channelSettings.getFilter().getMaxParticleSize());
+  mTextParticleSizeRange->SetValue(range);
+  mSpinSnapArea->SetValue(channelSettings.getFilter().getSnapAreaSize());
 }
 
 ///

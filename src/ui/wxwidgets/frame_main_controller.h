@@ -25,7 +25,8 @@ public:
   FrameMainController(wxWindow *parent, joda::ctrl::Controller *pipelineController);
   ~FrameMainController();
   void addChannel();
-  void removeChannel();
+  void removeChannel(int32_t channelIndex);
+  void removeAllChannels();
 
 private:
   /////////////////////////////////////////////////////
@@ -37,6 +38,7 @@ private:
   void onAboutClicked(wxCommandEvent &event) override;
   void onCellChannelChoice(wxCommandEvent &event) override;
   void onWorkingDirChanged(wxFileDirPickerEvent &event) override;
+  void onOpenSettingsClicked(wxCommandEvent &event) override;
 
   void refreshFunction();
 

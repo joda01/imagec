@@ -31,6 +31,22 @@ public:
   };
   std::string value;
 
+  ZStackMethod getZStackMethod() const
+  {
+    if(!value.empty()) {
+      if(value == "NONE") {
+        return PreprocessingZStack::ZStackMethod::NONE;
+      }
+      if(value == "PROJECT_MAX_INTENSITY") {
+        return PreprocessingZStack::ZStackMethod::MAX_INTENSITY;
+      }
+      if(value == "PROJECT_3D") {
+        return PreprocessingZStack::ZStackMethod::PROJECT_3D;
+      }
+    }
+    return PreprocessingZStack::ZStackMethod::NONE;
+  }
+
 private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingZStack, value);
 };
@@ -90,20 +106,28 @@ public:
     }
   }
 
-  PreprocessingZStack::ZStackMethod getZStackMethod()
+  [[nodiscard]] auto getZStack() const -> const PreprocessingZStack *
   {
     if(!z_stack.value.empty()) {
-      if(z_stack.value == "NONE") {
-        return PreprocessingZStack::ZStackMethod::NONE;
-      }
-      if(z_stack.value == "PROJECT_MAX_INTENSITY") {
-        return PreprocessingZStack::ZStackMethod::MAX_INTENSITY;
-      }
-      if(z_stack.value == "PROJECT_3D") {
-        return PreprocessingZStack::ZStackMethod::PROJECT_3D;
-      }
+      return &z_stack;
     }
-    return PreprocessingZStack::ZStackMethod::NONE;
+    return nullptr;
+  }
+
+  [[nodiscard]] auto getRollingBall() const -> const PreprocessingRollingBall *
+  {
+    if(rolling_ball.value > 0) {
+      return &rolling_ball;
+    }
+    return nullptr;
+  }
+
+  [[nodiscard]] auto getMarginCrop() const -> const PreprocessingMarginCrop *
+  {
+    if(margin_crop.value > 0) {
+      return &margin_crop;
+    }
+    return nullptr;
   }
 
 private:

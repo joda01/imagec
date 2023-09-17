@@ -17,6 +17,11 @@ FrameMainController::FrameMainController(wxWindow *parent, joda::ctrl::Controlle
   addChannel();
 }
 
+///
+/// \brief      Adds a new channel
+/// \author     Joachim Danmayr
+/// \return
+///
 void FrameMainController::addChannel()
 {
   auto channel = std::make_shared<PanelChannelController>(mScrollbarChannels, wxID_ANY, wxDefaultPosition,
@@ -42,18 +47,66 @@ FrameMainController::~FrameMainController()
 void FrameMainController::refreshFunction()
 {
   while(!mStopped) {
+    wxString newTextDir;
     if(mPipelineController->getNrOfFoundImages() > 0) {
-      mLabelNrOfFoundFiles->SetLabel(_("Images dir ") + "(" +
-                                     std::to_string(mPipelineController->getNrOfFoundImages()) + "):");
+      mToolBar->EnableTool(mButtonRun->GetId(), true);
+      newTextDir = wxString::Format("Images dir (%d):", mPipelineController->getNrOfFoundImages());
+
     } else {
-      mLabelNrOfFoundFiles->SetLabel(_("Images dir: "));
+      mToolBar->EnableTool(mButtonRun->GetId(), false);
+      newTextDir = wxString::Format("Images dir:");
     }
+
+    CallAfter([this, newTextDir]() { mLabelNrOfFoundFiles->SetLabel(newTextDir); });
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 }
 
-void FrameMainController::removeChannel()
+///
+/// \brief      Remove a channel
+/// \author     Joachim Danmayr
+/// \param[in]  event
+///
+void FrameMainController::removeChannel(int32_t channelIndex)
 {
+  mSizerChannels->Remove(channelIndex);
+  auto it = mChannels.begin() + channelIndex;
+  mChannels.erase(it);
+  mScrollbarChannels->Layout();
+  mSizerChannels->Layout();
+  mSizerChannelsScrollbar->Layout();
+  this->Layout();
+}
+
+///
+/// \brief      Remove all channel
+/// \author     Joachim Danmayr
+/// \param[in]  event
+///
+void FrameMainController::removeAllChannels()
+{
+  for(int n = mChannels.size() - 1; n >= 0; n--) {
+    removeChannel(n);
+  }
+}
+
+///
+/// \brief      Open settings clicked
+/// \author     Joachim Danmayr
+/// \param[in]  event
+///
+void FrameMainController::onOpenSettingsClicked(wxCommandEvent &event)
+{
+  wxFileDialog openFileDialog(this, "Open File", "", "", "JSON files (*.json)|*.json",
+                              wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+  if(openFileDialog.ShowModal() == wxID_CANCEL) {
+    return;    // User cancelled the dialog
+  }
+
+  joda::settings::json::AnalyzeSettings settings;
+  settings.loadConfigFromFile(openFileDialog.GetPath().ToStdString());
+  loadValues(settings);
 }
 
 ///
@@ -127,8 +180,71 @@ void FrameMainController::onCellChannelChoice(wxCommandEvent &event)
 /// \brief      Assigns analyze settings to the UI components
 /// \author     Joachim Danmayr
 ///
-void FrameMainController::loadValues(const joda::settings::json::AnalyzeSettings &)
+void FrameMainController::loadValues(const joda::settings::json::AnalyzeSettings &settings)
 {
+  removeAllChannels();
+  for(const auto &channel : settings.getChannelsVector()) {
+    addChannel();
+    std::shared_ptr<PanelChannelController> channelUi = mChannels.at(mChannels.size() - 1);
+    channelUi->loadValues(channel);
+  }
+
+  mButtonIntersectionCh01->SetValue(false);
+  mButtonIntersectionCh02->SetValue(false);
+  mButtonIntersectionCh03->SetValue(false);
+  mButtonIntersectionCh04->SetValue(false);
+  mButtonIntersectionCh05->SetValue(false);
+  mButtonIntersectionCh06->SetValue(false);
+  mButtonIntersectionCh07->SetValue(false);
+  mButtonIntersectionCh08->SetValue(false);
+  mButtonIntersectionCh09->SetValue(false);
+  mButtonIntersectionCh10->SetValue(false);
+  mButtonIntersectionCh11->SetValue(false);
+  mButtonIntersectionCh12->SetValue(false);
+  mButtonIntersectionChEstimatedCell->SetValue(false);
+
+  // mDirectoryPicker->SetPath(const wxString &str);
+  for(const auto &pipelineStep : settings.getPipelineSteps()) {
+    if(pipelineStep.getCellApproximation()) {
+      mChoiceCellChannel->SetSelection(pipelineStep.getCellApproximation()->cell_channel_index + 1);
+      mChoiceNucluesChannel->SetSelection(pipelineStep.getCellApproximation()->nucleus_channel_index + 1);
+      mSpinMaxCellRadius->SetValue(pipelineStep.getCellApproximation()->max_cell_radius);
+    }
+
+    if(pipelineStep.getIntersection()) {
+      const auto &chIdx = pipelineStep.getIntersection()->channel_index;
+      for(const auto idx : chIdx) {
+        if(idx == 0)
+          mButtonIntersectionCh01->SetValue(true);
+        if(idx == 1)
+          mButtonIntersectionCh02->SetValue(true);
+        if(idx == 2)
+          mButtonIntersectionCh03->SetValue(true);
+        if(idx == 3)
+          mButtonIntersectionCh04->SetValue(true);
+        if(idx == 4)
+          mButtonIntersectionCh05->SetValue(true);
+        if(idx == 5)
+          mButtonIntersectionCh06->SetValue(true);
+        if(idx == 6)
+          mButtonIntersectionCh07->SetValue(true);
+        if(idx == 7)
+          mButtonIntersectionCh08->SetValue(true);
+        if(idx == 8)
+          mButtonIntersectionCh09->SetValue(true);
+        if(idx == 9)
+          mButtonIntersectionCh10->SetValue(true);
+        if(idx == 10)
+          mButtonIntersectionCh11->SetValue(true);
+        if(idx == 11)
+          mButtonIntersectionCh12->SetValue(true);
+        if(idx == static_cast<int32_t>(settings::json::PipelineStepSettings::PipelineStepIndex::CELL_APPROXIMATION))
+          mButtonIntersectionChEstimatedCell->SetValue(true);
+      }
+    }
+  }
+
+  // mChoiceNucluesChannel->SetSelection(settings.getPipelineSteps());
 }
 
 ///
@@ -199,7 +315,7 @@ nlohmann::json FrameMainController::getValues()
         static_cast<int32_t>(settings::json::PipelineStepSettings::PipelineStepIndex::CELL_APPROXIMATION));
   }
   if(!intersectionButtons.empty()) {
-    pipelineStepArray.push_back({{"channel_index", intersectionButtons}});
+    pipelineStepArray.push_back({{"intersection", {{"channel_index", intersectionButtons}}}});
   }
 
   jsonSettings["pipeline_steps"] = pipelineStepArray;

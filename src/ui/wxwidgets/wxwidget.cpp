@@ -366,6 +366,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	this->Centre( wxBOTH );
 
 	// Connect Events
+	this->Connect( mButtonOpen->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onOpenSettingsClicked ) );
 	mDirectoryPicker->Connect( wxEVT_COMMAND_DIRPICKER_CHANGED, wxFileDirPickerEventHandler( frameMain::onWorkingDirChanged ), NULL, this );
 	this->Connect( mButtonRun->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onRunClicked ) );
 	this->Connect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
@@ -376,6 +377,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 frameMain::~frameMain()
 {
 	// Disconnect Events
+	this->Disconnect( mButtonOpen->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onOpenSettingsClicked ) );
 	mDirectoryPicker->Disconnect( wxEVT_COMMAND_DIRPICKER_CHANGED, wxFileDirPickerEventHandler( frameMain::onWorkingDirChanged ), NULL, this );
 	this->Disconnect( mButtonRun->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onRunClicked ) );
 	this->Disconnect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
@@ -394,7 +396,7 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 
 	mLabelProgressImage = new wxStaticText( this, wxID_ANY, _("0/0"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
 	mLabelProgressImage->Wrap( -1 );
-	mSizerProcessing->Add( mLabelProgressImage, 0, wxEXPAND|wxTOP, 5 );
+	mSizerProcessing->Add( mLabelProgressImage, 0, wxALIGN_CENTER_HORIZONTAL|wxTOP, 5 );
 
 	mProgressImage = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
 	mProgressImage->SetValue( 0 );
@@ -402,7 +404,7 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 
 	mLabelProgressAllOver = new wxStaticText( this, wxID_ANY, _("0/0"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
 	mLabelProgressAllOver->Wrap( -1 );
-	mSizerProcessing->Add( mLabelProgressAllOver, 0, wxEXPAND|wxTOP, 5 );
+	mSizerProcessing->Add( mLabelProgressAllOver, 0, wxALIGN_CENTER_HORIZONTAL|wxTOP, 5 );
 
 	mProgressAllOver = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
 	mProgressAllOver->SetValue( 0 );
@@ -429,13 +431,15 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 	sizerFooterButtons2->Add( iconCpuCores, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	mSpinCpuCores = new wxSpinCtrl( panelFooterButtons, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 100, 1 );
+	mSpinCpuCores->Enable( false );
+
 	sizerFooterButtons2->Add( mSpinCpuCores, 1, wxALIGN_CENTER_VERTICAL, 5 );
 
 	mButtonStop = new wxButton( panelFooterButtons, wxID_ANY, _("Stop"), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerFooterButtons2->Add( mButtonStop, 0, wxALL, 5 );
 
-	mButtonStart = new wxButton( panelFooterButtons, wxID_ANY, _("Start"), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerFooterButtons2->Add( mButtonStart, 0, wxALIGN_CENTER|wxALL, 5 );
+	mButtonClose = new wxButton( panelFooterButtons, wxID_ANY, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerFooterButtons2->Add( mButtonClose, 0, wxALL, 5 );
 
 
 	sizerFooterButtons->Add( sizerFooterButtons2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
@@ -466,14 +470,14 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 
 	// Connect Events
 	mButtonStop->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogProcessing::onStopClicked ), NULL, this );
-	mButtonStart->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogProcessing::onStartClicked ), NULL, this );
+	mButtonClose->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogProcessing::onCloseClicked ), NULL, this );
 }
 
 DialogProcessing::~DialogProcessing()
 {
 	// Disconnect Events
 	mButtonStop->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogProcessing::onStopClicked ), NULL, this );
-	mButtonStart->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogProcessing::onStartClicked ), NULL, this );
+	mButtonClose->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogProcessing::onCloseClicked ), NULL, this );
 
 }
 

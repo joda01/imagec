@@ -23,7 +23,7 @@ namespace joda::settings::json {
 ///
 void PipelineStepSettings::interpretConfig()
 {
-  if(cell_approximation.nucleus_channel_index >= 0) {
+  if(cell_approximation.nucleus_channel_index >= 0 || cell_approximation.cell_channel_index >= 0) {
     mIndex        = PipelineStepIndex::CELL_APPROXIMATION;
     mPipelineStep = std::make_shared<joda::pipeline::CellApproximation>(cell_approximation.nucleus_channel_index,
                                                                         cell_approximation.cell_channel_index,

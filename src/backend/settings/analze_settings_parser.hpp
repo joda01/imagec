@@ -113,6 +113,11 @@ public:
     return orderedChannels;
   }
 
+  [[nodiscard]] auto getChannelsVector() const -> const std::vector<ChannelSettings> &
+  {
+    return channels;
+  }
+
   [[nodiscard]] auto getChannels(ChannelInfo::Type type) const -> std::vector<ChannelSettings>
   {
     auto range = orderedChannels.equal_range(type);

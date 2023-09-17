@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include "backend/image_processing/functions/func_types.hpp"
 #include <nlohmann/json.hpp>
 
@@ -83,6 +84,22 @@ public:
   ///        Each step has an unique index
   ///
   int32_t getChannelIndex();
+
+  [[nodiscard]] auto getCellApproximation() const -> const PipelineStepCellApproximation *
+  {
+    if(cell_approximation.nucleus_channel_index >= 0 || cell_approximation.cell_channel_index >= 0) {
+      return &cell_approximation;
+    }
+    return nullptr;
+  }
+
+  [[nodiscard]] auto getIntersection() const -> const PipelineStepIntersection *
+  {
+    if(!intersection.channel_index.empty()) {
+      return &intersection;
+    }
+    return nullptr;
+  }
 
 private:
   /////////////////////////////////////////////////////

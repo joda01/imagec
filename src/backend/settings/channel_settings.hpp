@@ -67,6 +67,11 @@ public:
     return enumThreshold;
   }
 
+  auto getThresholdString() const -> const std::string &
+  {
+    return threshold_algorithm;
+  }
+
   auto getThresholdMin() const -> uint16_t
   {
     return threshold_min;
@@ -175,6 +180,11 @@ public:
   auto getType() const -> Type
   {
     return enumType;
+  }
+
+  auto getTypeString() const -> const std::string &
+  {
+    return type;
   }
 
   auto getLabel() const -> std::string
@@ -290,9 +300,9 @@ public:
 
     for(auto &pre : preprocessing) {
       pre.interpretConfig();
-      auto method = pre.getZStackMethod();
-      if(method != PreprocessingZStack::ZStackMethod::NONE) {
-        zStackMethod = method;
+      auto method = pre.getZStack();
+      if(method) {
+        zStackMethod = method->getZStackMethod();
       }
     }
   }

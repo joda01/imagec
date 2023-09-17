@@ -96,7 +96,7 @@ public:
     if(mJobs.contains(jobId)) {
       return mJobs[jobId].pipeline->getState();
     }
-    throw std::invalid_argument("Job with ID >" + jobId + "< not found!");
+    return {mLastJobProgressIndicator, joda::pipeline::Pipeline::State::FINISHED};
   }
 
 private:
@@ -110,10 +110,11 @@ private:
       std::set<std::string> toDelete;
 
       for(const auto &[uid, processor] : mJobs) {
-        auto [_, state] = processor.pipeline->getState();
+        auto [progress, state] = processor.pipeline->getState();
         if(state == Pipeline::State::FINISHED) {
           processor.future.wait();
           toDelete.emplace(uid);
+          mLastJobProgressIndicator = progress;
           joda::log::logInfo("Analyze with process id >" + uid + "< finished!");
         }
       }
@@ -130,6 +131,7 @@ private:
     std::shared_ptr<Pipeline> pipeline;
     std::future<void> future;
   };
+  static inline joda::pipeline::Pipeline::ProgressIndicator mLastJobProgressIndicator;
   static inline std::map<std::string, Job> mJobs;
   static inline std::shared_ptr<std::thread> mMainThread;
   static inline bool mStopped = false;

@@ -28,13 +28,29 @@ DialogProcessingController::DialogProcessingController(wxWindow *parent, joda::c
     DialogProcessing(parent, id, title, pos, size, style),
     mPipelineController(pipelineController), mAnalyzeSettins(settings)
 {
-  mRefreshTimer = std::make_shared<std::thread>(&DialogProcessingController::refreshFunction, this);
+  refreshFunction();
+  mRefreshTimer = std::make_shared<std::thread>(&DialogProcessingController::refreshThread, this);
+  mPipelineController->start(*mAnalyzeSettins);
 }
 
 DialogProcessingController::~DialogProcessingController()
 {
   mStopped = true;
-  mRefreshTimer->join();
+  if(mRefreshTimer->joinable()) {
+    mRefreshTimer->join();
+  }
+}
+
+///
+/// \brief      Updates dynamic information
+/// \author     Joachim Danmayr
+///
+void DialogProcessingController::refreshThread()
+{
+  while(!mStopped) {
+    refreshFunction();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
 }
 
 ///
@@ -43,29 +59,29 @@ DialogProcessingController::~DialogProcessingController()
 ///
 void DialogProcessingController::refreshFunction()
 {
-  while(!mStopped) {
-    try {
-      auto [progress, state] = mPipelineController->getState();
-      std::string image      = std::to_string(progress.image.finished) + "/" + std::to_string(progress.image.total);
-      std::cout << image << std::endl;
+  wxString newTextAllOver                  = "0/0";
+  wxString newTextImage                    = "0/0";
+  joda::pipeline::Pipeline::State actState = joda::pipeline::Pipeline::State::STOPPED;
+  try {
+    auto [progress, state] = mPipelineController->getState();
+    actState               = state;
 
-      std::string total = std::to_string(progress.total.finished) + "/" + std::to_string(progress.total.total);
-      std::cout << total << std::endl;
+    newTextAllOver = wxString::Format("%d/%d", progress.total.finished, progress.total.total);
+    newTextImage   = wxString::Format("%d/%d", progress.image.finished, progress.image.total);
 
-      // mLabelProgressImage->SetLabel(std::to_string(progress.image.finished) + "/" +
-      //                               std::to_string(progress.image.total));
-      // mProgressImage->SetRange(progress.image.total);
-      // mProgressImage->SetValue(progress.image.finished);
-      //
-      // mLabelProgressAllOver->SetLabel(std::to_string(progress.total.finished) + "/" +
-      //                                std::to_string(progress.total.total));
-      // mProgressAllOver->SetRange(progress.total.total);
-      // mProgressAllOver->SetValue(progress.total.finished);
-    } catch(const std::exception &ex) {
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    mProgressImage->SetRange(progress.image.total);
+    mProgressImage->SetValue(progress.image.finished);
+    mProgressAllOver->SetRange(progress.total.total);
+    mProgressAllOver->SetValue(progress.total.finished);
+  } catch(const std::exception &ex) {
   }
+
+  CallAfter([this, actState, newTextAllOver, newTextImage]() {
+    mLabelProgressAllOver->SetLabel(newTextAllOver);
+    mLabelProgressImage->SetLabel(newTextImage);
+    mButtonStop->Enable(actState == joda::pipeline::Pipeline::State::RUNNING);
+    mButtonClose->Enable(actState != joda::pipeline::Pipeline::State::RUNNING);
+  });
 }
 
 ///
@@ -75,9 +91,18 @@ void DialogProcessingController::refreshFunction()
 /// \param[out]
 /// \return
 ///
-void DialogProcessingController::onStartClicked(wxCommandEvent &event)
+void DialogProcessingController::onCloseClicked(wxCommandEvent &event)
 {
-  mPipelineController->start(*mAnalyzeSettins);
+  try {
+    mPipelineController->stop();
+  } catch(const std::exception &) {
+  }
+
+  mStopped = true;
+  if(mRefreshTimer->joinable()) {
+    mRefreshTimer->join();
+  }
+  this->EndModal(wxID_CANCEL);
 }
 
 ///
@@ -89,7 +114,10 @@ void DialogProcessingController::onStartClicked(wxCommandEvent &event)
 ///
 void DialogProcessingController::onStopClicked(wxCommandEvent &event)
 {
-  mPipelineController->stop();
+  try {
+    mPipelineController->stop();
+  } catch(const std::exception &) {
+  }
 }
 
 }    // namespace joda::ui::wxwidget
