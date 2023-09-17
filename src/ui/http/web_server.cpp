@@ -296,13 +296,13 @@ void HttpServer::start(int listeningPort)
       bool stopReference = false;
       std::cout << workingDirectory.getFileAt(0) << std::endl;
       auto id     = DurationCount::start("processing");
-      auto result = joda::algo::ChannelProcessor::processChannel(
-          settings.getChannelByArrayIndex(channelIndex), workingDirectory.getFileAt(imgNr), "", nullptr, stopReference);
+      auto result = joda::algo::ChannelProcessor::processChannel(settings.getChannelByArrayIndex(channelIndex),
+                                                                 workingDirectory.getFileAt(imgNr), 0);
       DurationCount::stop(id);
 
       id = DurationCount::start("img encode");
       std::vector<uchar> buffer;
-      cv::imencode(".jpg", result.at(0).controlImage, buffer);    // Assuming you want to encode as JPEG
+      cv::imencode(".jpg", result.controlImage, buffer);    // Assuming you want to encode as JPEG
       DurationCount::stop(id);
 
       id = DurationCount::start("base64 encode");

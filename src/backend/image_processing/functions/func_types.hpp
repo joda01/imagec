@@ -26,6 +26,4 @@ struct DetectionResponse
   cv::Mat controlImage;
 };
 
-using ProcessingResult = std::map<uint32_t, DetectionResponse>;
-
 }    // namespace joda::func

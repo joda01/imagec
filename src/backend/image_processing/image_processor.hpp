@@ -36,6 +36,13 @@ static constexpr int64_t MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE = 71680768;
 static constexpr int64_t TILES_TO_LOAD_PER_RUN          = 36;
 static constexpr int32_t TIME_FRAME                     = 0;
 
+struct ChannelProperties
+{
+  ImageProperties props;
+  bool isJpg;
+  std::set<uint32_t> tifDirs;
+};
+
 class TiffLoaderEntireWrapper
 {
 public:
@@ -86,81 +93,21 @@ public:
   ///
   /// \brief      Executed the algorithm and generates reporting
   /// \author     Joachim Danmayr
-  /// \param[in]
-  /// \param[out]
-  /// \return
   ///
-  static auto executeAlgorithm(const std::string &imagePath, const std::string &outputFolder,
-                               const joda::settings::json::ChannelSettings &channelSetting,
-                               joda::types::Progress *progress, const bool &mStop) -> func::ProcessingResult
+  static auto executeAlgorithm(const std::string &imagePath,
+                               const joda::settings::json::ChannelSettings &channelSetting, uint64_t tileIndex)
   {
-    uint32_t channel = channelSetting.getChannelInfo().getChannelIndex();
-    func::ProcessingResult processingResult;
-    std::filesystem::path path_obj(imagePath);
-    std::string filename = path_obj.filename().stem().string();
-    ImageProperties imgProperties;
-    bool isJpg = imagePath.ends_with(".jpg");
-
-    //
-    // Load image properties
-    //
-    auto id = DurationCount::start("load img properties");
-    std::set<uint32_t> tiffDirectories;
-    if(isJpg) {
-      imgProperties = JpgLoader::getImageProperties(imagePath);
-    } else {
-      auto omeInfo    = TiffLoader::getOmeInformation(imagePath);
-      tiffDirectories = omeInfo.getDirectoryForChannel(channel, TIME_FRAME);
-      if(tiffDirectories.empty()) {
-        throw std::runtime_error("Selected channel does not contain images!");
-      }
-      imgProperties = TiffLoader::getImageProperties(imagePath, *tiffDirectories.begin());
-    }
-    DurationCount::stop(id);
-
     //
     // Execute the algorithms
     //
-    if(imgProperties.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-      // Image too big to load at once -> Load image in tiles
-      int64_t runs = imgProperties.nrOfTiles / TILES_TO_LOAD_PER_RUN;
-      if(progress != nullptr) {
-        progress->total = runs;
-      }
-      for(int64_t idx = 0; idx < runs; idx++) {
-        auto result = processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, tiffDirectories, idx);
-
-        // Write control images
-        writeControlImages(result, outputFolder, channel, idx);
-
-        // Free memory
-        if(idx > 0) {
-          result.controlImage  = cv::Mat();
-          result.originalImage = cv::Mat();
-        }
-
-        // Add result to output
-        processingResult.emplace(idx, result);
-
-        if(progress != nullptr) {
-          progress->finished = idx + 1;
-        }
-        if(mStop) {
-          break;
-        }
-      }
-    } else {
-      if(isJpg) {
-        auto result = processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, tiffDirectories, 0);
-        processingResult.emplace(0, result.result);
-        writeControlImages(result, outputFolder, channel, 0);
-      } else {
-        auto result = processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, tiffDirectories, 0);
-        processingResult.emplace(0, result.result);
-        writeControlImages(result, outputFolder, channel, 0);
-      }
+    ChannelProperties chProps = loadChannelProperties(imagePath, channelSetting);
+    if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+      return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, chProps.tifDirs, tileIndex);
     }
-    return processingResult;
+    if(chProps.isJpg) {
+      return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0);
+    }
+    return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0);
   }
 
 private:
@@ -272,24 +219,35 @@ private:
   }
 
   ///
-  /// \brief      Does some filtering and returns the newly detection response
+  /// \brief      Load channel properties
   /// \author     Joachim Danmayr
-  /// \param[in,out]  detectionResult  Detection result and removes the filtered objects from the detection results
   ///
-  static void writeControlImages(const func::DetectionResponse &tileData, const std::string &detailReportOutputPath,
-                                 int channelIdx, int tileIdx)
+  static ChannelProperties loadChannelProperties(const std::string &imagePath,
+                                                 const joda::settings::json::ChannelSettings &channelSetting)
   {
-    std::cout << "-" << detailReportOutputPath << std::endl;
-    static const std::string separator(1, std::filesystem::path::preferred_separator);
-    if(!detailReportOutputPath.empty()) {
-      cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(channelIdx) + "_" +
-                      std::to_string(tileIdx) + ".jpg",
-                  tileData.controlImage);
-
-      cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(channelIdx) + "_" +
-                      std::to_string(tileIdx) + ".jpg",
-                  tileData.originalImage);
+    //
+    // Load image properties
+    //
+    uint32_t channel = channelSetting.getChannelInfo().getChannelIndex();
+    std::filesystem::path path_obj(imagePath);
+    std::string filename = path_obj.filename().stem().string();
+    ImageProperties imgProperties;
+    bool isJpg = imagePath.ends_with(".jpg");
+    auto id    = DurationCount::start("load img properties");
+    std::set<uint32_t> tiffDirectories;
+    if(isJpg) {
+      imgProperties = JpgLoader::getImageProperties(imagePath);
+    } else {
+      auto omeInfo    = TiffLoader::getOmeInformation(imagePath);
+      tiffDirectories = omeInfo.getDirectoryForChannel(channel, TIME_FRAME);
+      if(tiffDirectories.empty()) {
+        throw std::runtime_error("Selected channel does not contain images!");
+      }
+      imgProperties = TiffLoader::getImageProperties(imagePath, *tiffDirectories.begin());
     }
+    DurationCount::stop(id);
+
+    return ChannelProperties{.props = imgProperties, .isJpg = isJpg, .tifDirs = tiffDirectories};
   }
 };
 }    // namespace joda::algo

@@ -24,6 +24,11 @@
 
 namespace joda::algo {
 
+///
+/// \class      ChannelProcessor
+/// \author     Joachim Danmayr
+/// \brief      Channel processor
+///
 class ChannelProcessor
 {
 public:
@@ -32,9 +37,8 @@ public:
   /// \author     Joachim Danmayr
   /// \param[in]  imgPath Path to the image which should be analyzed
   ///
-  static auto processChannel(const joda::settings::json::ChannelSettings &channelSetting, const std::string &imgPath,
-                             const std::string &outputFolder, types::Progress *partialProgress,
-                             const bool &stopReference) -> func::ProcessingResult
+  static auto processChannel(const joda::settings::json::ChannelSettings &channelSetting, const std::string &imagePath,
+                             uint64_t tileIndex) -> func::DetectionResponse
   {
     //
     // Detection
@@ -43,15 +47,15 @@ public:
       case settings::json::ChannelInfo::Type::NONE:
         break;
       case settings::json::ChannelInfo::Type::NUCLEUS:
-        return joda::algo::ImageProcessor<::joda::algo::NucleusCounter>::executeAlgorithm(
-            imgPath, outputFolder, channelSetting, partialProgress, stopReference);
+        return joda::algo::ImageProcessor<::joda::algo::NucleusCounter>::executeAlgorithm(imagePath, channelSetting,
+                                                                                          tileIndex);
       case settings::json::ChannelInfo::Type::SPOT:
-        return joda::algo::ImageProcessor<::joda::algo::SpotDetection>::executeAlgorithm(
-            imgPath, outputFolder, channelSetting, partialProgress, stopReference);
+        return joda::algo::ImageProcessor<::joda::algo::SpotDetection>::executeAlgorithm(imagePath, channelSetting,
+                                                                                         tileIndex);
         break;
       case settings::json::ChannelInfo::Type::CELL:
-        return joda::algo::ImageProcessor<::joda::algo::CellCounter>::executeAlgorithm(
-            imgPath, outputFolder, channelSetting, partialProgress, stopReference);
+        return joda::algo::ImageProcessor<::joda::algo::CellCounter>::executeAlgorithm(imagePath, channelSetting,
+                                                                                       tileIndex);
       case settings::json::ChannelInfo::Type::BACKGROUND:
         break;
     }

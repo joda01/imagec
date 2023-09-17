@@ -19,6 +19,7 @@
 #include "../helper/helper.hpp"
 #include "../image_processing/channel_processor.hpp"
 #include "../logger/console_logger.hpp"
+#include "backend/image_reader/image_reader.hpp"
 #include "cell_approximation/cell_approximation.hpp"
 #include <opencv2/imgcodecs.hpp>
 
@@ -66,9 +67,6 @@ void Pipeline::runJob(const std::string &inputFolder)
   //
   int nrOfChannels = mAnalyzeSettings.getChannels().size();
   for(const auto &imagePath : mImageFileContainer->getFilesList()) {
-    //
-    // Process channel by channel
-    //
     joda::reporting::Table detailReport;
     int tempChannelIdx      = 0;
     std::string imageName   = helper::getFileNameFromPath(imagePath);
@@ -76,36 +74,59 @@ void Pipeline::runJob(const std::string &inputFolder)
     std::filesystem::create_directories(detailOutputFolder);
 
     //
-    // Execute Preprocessing, Detection and Filtering step
+    // Execute for each tile
     //
-    for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
-      try {
-        auto processingResult = joda::algo ::ChannelProcessor::processChannel(
-            channelSettings, imagePath, detailOutputFolder, &mProgress.image, getStopReference());
-
-        //
-        // Add processing result to the detection result map
-        //
-        detectionResults.emplace(channelSettings.getChannelInfo().getChannelIndex(), processingResult.at(0));
-
-        //
-        // Add to detail report
-        //
-        appendToDetailReport(processingResult, detailReport, detailOutputFolder, channelSettings, tempChannelIdx);
-        tempChannelIdx++;
-
-      } catch(const std::exception &ex) {
-        joda::log::logError(ex.what());
-      }
+    ImageProperties props;
+    if(imagePath.ends_with(".jpg")) {
+      props = JpgLoader::getImageProperties(imagePath);
+    } else {
+      props = TiffLoader::getImageProperties(imagePath, 0);
     }
+    int64_t runs = 1;
+    if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+      runs = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
+    }
+    mProgress.image.total = runs;
+    for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
+      //
+      // Execute for each channel of the selected tile
+      //
+      for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
+        try {
+          auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath, tileIdx);
 
-    //
-    // Execute pipeline steps
-    //
-    for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
-      auto [index, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
-      if(index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
-        detectionResults.emplace(static_cast<int32_t>(index), response);
+          //
+          // Add processing result to the detection result map
+          //
+          detectionResults.emplace(channelSettings.getChannelInfo().getChannelIndex(), processingResult);
+
+          //
+          // Add to detail report
+          //
+          appendToDetailReport(processingResult, detailReport, detailOutputFolder, channelSettings, tempChannelIdx);
+          tempChannelIdx++;
+
+        } catch(const std::exception &ex) {
+          joda::log::logError(ex.what());
+        }
+      }
+
+      //
+      // Execute pipeline steps
+      //
+      for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
+        auto [index, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+        if(index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
+          detectionResults.emplace(static_cast<int32_t>(index), response);
+        }
+      }
+      mProgress.image.finished = tileIdx + 1;
+      //
+      // Free memory
+      //
+
+      if(mStop) {
+        break;
       }
     }
 
@@ -130,7 +151,7 @@ void Pipeline::runJob(const std::string &inputFolder)
 /// \author     Joachim Danmayr
 /// \param[in]  inputFolder Inputfolder of the images
 ///
-void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::reporting::Table &detailReportTable,
+void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda::reporting::Table &detailReportTable,
                                     const std::string &detailReportOutputPath,
                                     const settings::json::ChannelSettings &channelSettings, int tempChannelIdx)
 {
@@ -153,28 +174,35 @@ void Pipeline::appendToDetailReport(joda::func::ProcessingResult &result, joda::
                                     {colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
                                      channelSettings.getChannelInfo().getName() + "#validity"}});
 
-  for(auto &[tileIdx, tileData] : result) {
-    // Free memory
-    tileData.controlImage  = cv::Mat{};
-    tileData.originalImage = cv::Mat{};
-
-    for(const auto &imgData : tileData.result) {
-      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
-                                                 imgData.getIndex(), imgData.getConfidence(), imgData.getValidity());
-      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
-                                                 imgData.getIndex(), imgData.getIntensity(), imgData.getValidity());
-      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN),
-                                                 imgData.getIndex(), imgData.getIntensityMin(), imgData.getValidity());
-      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX),
-                                                 imgData.getIndex(), imgData.getIntensityMax(), imgData.getValidity());
-      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
-                                                 imgData.getIndex(), imgData.getAreaSize(), imgData.getValidity());
-      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
-                                                 imgData.getIndex(), imgData.getCircularity(), imgData.getValidity());
-      detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
-                                                 imgData.getIndex(), imgData.getValidity());
-    }
-  }
+  // for(const auto &[tileIdx, tileData] : result) {
+  //   // Free memory
+  //   cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
+  //                   std::to_string(tileIdx) + ".jpg",
+  //               tileData.controlImage);
+  //
+  //  cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
+  //                  std::to_string(tileIdx) + ".jpg",
+  //              tileData.originalImage);
+  //
+  //  for(const auto &imgData : tileData.result) {
+  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
+  //                                               imgData.getIndex(), imgData.getConfidence(), imgData.getValidity());
+  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
+  //                                               imgData.getIndex(), imgData.getIntensity(), imgData.getValidity());
+  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN),
+  //                                               imgData.getIndex(), imgData.getIntensityMin(),
+  //                                               imgData.getValidity());
+  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX),
+  //                                               imgData.getIndex(), imgData.getIntensityMax(),
+  //                                               imgData.getValidity());
+  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
+  //                                               imgData.getIndex(), imgData.getAreaSize(), imgData.getValidity());
+  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
+  //                                               imgData.getIndex(), imgData.getCircularity(), imgData.getValidity());
+  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
+  //                                               imgData.getIndex(), imgData.getValidity());
+  //  }
+  //}
 }
 
 ///

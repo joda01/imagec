@@ -21,6 +21,7 @@
 #include "../image_processing/functions/func_types.hpp"
 #include "../reporting/reporting.h"
 #include "../settings/analze_settings_parser.hpp"
+#include "backend/image_reader/image_reader.hpp"
 
 namespace joda::pipeline {
 
@@ -112,7 +113,7 @@ private:
     return mStop;
   }
 
-  static void appendToDetailReport(joda::func::ProcessingResult &result, joda::reporting::Table &detailReportTable,
+  static void appendToDetailReport(joda::func::DetectionResponse &result, joda::reporting::Table &detailReportTable,
                                    const std::string &detailReportOutputPath,
                                    const settings::json::ChannelSettings &channelSettings, int tempChannelIdx);
   static void appendToAllOverReport(joda::reporting::Table &allOverReport, const joda::reporting::Table &detailedReport,
