@@ -113,9 +113,12 @@ private:
     return mStop;
   }
 
+  static void setDetailReportHeader(joda::reporting::Table &detailReportTable,
+                                    const settings::json::ChannelSettings &channelSettings, int tempChannelIdx);
   static void appendToDetailReport(joda::func::DetectionResponse &result, joda::reporting::Table &detailReportTable,
                                    const std::string &detailReportOutputPath,
-                                   const settings::json::ChannelSettings &channelSettings, int tempChannelIdx);
+                                   const settings::json::ChannelSettings &channelSettings, int tempChannelIdx,
+                                   uint32_t tileIdx);
   static void appendToAllOverReport(joda::reporting::Table &allOverReport, const joda::reporting::Table &detailedReport,
                                     const std::string &imageName, int nrOfChannels);
 

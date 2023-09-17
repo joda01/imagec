@@ -60,15 +60,12 @@ void Pipeline::runJob(const std::string &inputFolder)
   mProgress.total.total = mImageFileContainer->getNrOfFiles();
 
   joda::reporting::Table alloverReport;
-  std::map<int32_t, joda::func::DetectionResponse> detectionResults;
 
   //
   // Iterate over each image to do detection
   //
   int nrOfChannels = mAnalyzeSettings.getChannels().size();
   for(const auto &imagePath : mImageFileContainer->getFilesList()) {
-    joda::reporting::Table detailReport;
-    int tempChannelIdx      = 0;
     std::string imageName   = helper::getFileNameFromPath(imagePath);
     auto detailOutputFolder = mOutputFolder + separator + imageName;
     std::filesystem::create_directories(detailOutputFolder);
@@ -87,23 +84,36 @@ void Pipeline::runJob(const std::string &inputFolder)
       runs = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
     }
     mProgress.image.total = runs;
+
+    std::map<int32_t, joda::reporting::Table> detailReports;
     for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
       //
       // Execute for each channel of the selected tile
       //
+      std::map<int32_t, joda::func::DetectionResponse> detectionResults;
+      detailReports.clear();
+      int tempChannelIdx = 0;
+
       for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
+        int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
+
+        if(!detailReports.contains(channelIndex)) {
+          detailReports.emplace(channelIndex, joda::reporting::Table{});
+          setDetailReportHeader(detailReports.at(channelIndex), channelSettings, tempChannelIdx);
+        }
+
         try {
           auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath, tileIdx);
-
           //
           // Add processing result to the detection result map
           //
-          detectionResults.emplace(channelSettings.getChannelInfo().getChannelIndex(), processingResult);
+          detectionResults.emplace(channelIndex, processingResult);
 
           //
           // Add to detail report
           //
-          appendToDetailReport(processingResult, detailReport, detailOutputFolder, channelSettings, tempChannelIdx);
+          appendToDetailReport(processingResult, detailReports.at(channelIndex), detailOutputFolder, channelSettings,
+                               tempChannelIdx, tileIdx);
           tempChannelIdx++;
 
         } catch(const std::exception &ex) {
@@ -124,7 +134,6 @@ void Pipeline::runJob(const std::string &inputFolder)
       //
       // Free memory
       //
-
       if(mStop) {
         break;
       }
@@ -133,8 +142,10 @@ void Pipeline::runJob(const std::string &inputFolder)
     //
     // Write report
     //
-    detailReport.flushReportToFile(detailOutputFolder + separator + "detail.csv");
-    appendToAllOverReport(alloverReport, detailReport, imageName, nrOfChannels);
+    for(const auto &[_, report] : detailReports) {
+      report.flushReportToFile(detailOutputFolder + separator + "detail.csv");
+      appendToAllOverReport(alloverReport, report, imageName, nrOfChannels);
+    }
     mProgress.total.finished++;
     if(mStop) {
       break;
@@ -146,19 +157,10 @@ void Pipeline::runJob(const std::string &inputFolder)
   mState = State::FINISHED;
 }
 
-///
-/// \brief      Append to detailed report
-/// \author     Joachim Danmayr
-/// \param[in]  inputFolder Inputfolder of the images
-///
-void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda::reporting::Table &detailReportTable,
-                                    const std::string &detailReportOutputPath,
-                                    const settings::json::ChannelSettings &channelSettings, int tempChannelIdx)
+void Pipeline::setDetailReportHeader(joda::reporting::Table &detailReportTable,
+                                     const settings::json::ChannelSettings &channelSettings, int tempChannelIdx)
 {
-  static const std::string separator(1, std::filesystem::path::preferred_separator);
-
   int colIdx = NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT * tempChannelIdx;
-
   detailReportTable.setColumnNames({{colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
                                      channelSettings.getChannelInfo().getName() + "#confidence"},
                                     {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
@@ -173,36 +175,47 @@ void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda:
                                      channelSettings.getChannelInfo().getName() + "#circularity"},
                                     {colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
                                      channelSettings.getChannelInfo().getName() + "#validity"}});
+}
 
-  // for(const auto &[tileIdx, tileData] : result) {
-  //   // Free memory
-  //   cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
-  //                   std::to_string(tileIdx) + ".jpg",
-  //               tileData.controlImage);
-  //
-  //  cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
-  //                  std::to_string(tileIdx) + ".jpg",
-  //              tileData.originalImage);
-  //
-  //  for(const auto &imgData : tileData.result) {
-  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
-  //                                               imgData.getIndex(), imgData.getConfidence(), imgData.getValidity());
-  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
-  //                                               imgData.getIndex(), imgData.getIntensity(), imgData.getValidity());
-  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN),
-  //                                               imgData.getIndex(), imgData.getIntensityMin(),
-  //                                               imgData.getValidity());
-  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX),
-  //                                               imgData.getIndex(), imgData.getIntensityMax(),
-  //                                               imgData.getValidity());
-  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
-  //                                               imgData.getIndex(), imgData.getAreaSize(), imgData.getValidity());
-  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
-  //                                               imgData.getIndex(), imgData.getCircularity(), imgData.getValidity());
-  //    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
-  //                                               imgData.getIndex(), imgData.getValidity());
-  //  }
-  //}
+///
+/// \brief      Append to detailed report
+/// \author     Joachim Danmayr
+/// \param[in]  inputFolder Inputfolder of the images
+///
+void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda::reporting::Table &detailReportTable,
+                                    const std::string &detailReportOutputPath,
+                                    const settings::json::ChannelSettings &channelSettings, int tempChannelIdx,
+                                    uint32_t tileIdx)
+{
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
+
+  int colIdx = NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT * tempChannelIdx;
+
+  // Free memory
+  cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
+                  std::to_string(tileIdx) + ".jpg",
+              result.controlImage);
+
+  cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
+                  std::to_string(tileIdx) + ".jpg",
+              result.originalImage);
+
+  for(const auto &imgData : result.result) {
+    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
+                                               imgData.getIndex(), imgData.getConfidence(), imgData.getValidity());
+    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
+                                               imgData.getIndex(), imgData.getIntensity(), imgData.getValidity());
+    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN),
+                                               imgData.getIndex(), imgData.getIntensityMin(), imgData.getValidity());
+    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX),
+                                               imgData.getIndex(), imgData.getIntensityMax(), imgData.getValidity());
+    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
+                                               imgData.getIndex(), imgData.getAreaSize(), imgData.getValidity());
+    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
+                                               imgData.getIndex(), imgData.getCircularity(), imgData.getValidity());
+    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
+                                               imgData.getIndex(), imgData.getValidity());
+  }
 }
 
 ///
