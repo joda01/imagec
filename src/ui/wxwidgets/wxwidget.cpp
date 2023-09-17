@@ -413,6 +413,10 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 
 	mSizerProcessing->Add( 0, 0, 1, wxEXPAND, 5 );
 
+	mLabelReporting = new wxStaticText( this, wxID_ANY, _("..."), wxDefaultPosition, wxDefaultSize, 0 );
+	mLabelReporting->Wrap( -1 );
+	mSizerProcessing->Add( mLabelReporting, 0, wxALL, 5 );
+
 	mLineProgressDialog = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
 	mSizerProcessing->Add( mLineProgressDialog, 0, wxEXPAND|wxALL, 5 );
 

@@ -136,6 +136,7 @@ namespace joda
 					wxGauge* mProgressImage;
 					wxStaticText* mLabelProgressAllOver;
 					wxGauge* mProgressAllOver;
+					wxStaticText* mLabelReporting;
 					wxStaticLine* mLineProgressDialog;
 					wxPanel* mPanelFooter;
 					wxPanel* panelFooterButtons;
