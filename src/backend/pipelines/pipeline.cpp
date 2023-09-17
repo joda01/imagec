@@ -124,8 +124,9 @@ void Pipeline::runJob(const std::string &inputFolder)
         auto [index, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
         if(index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
           detectionResults.emplace(static_cast<int32_t>(index), response);
-          std::cout << std::to_string(tempChannelIdx) << std::endl;
+          setDetailReportHeader(detailReports, "Approx. Cells", tempChannelIdx);
           appendToDetailReport(response, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
+          nrOfChannels++;
         }
       }
 
