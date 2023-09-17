@@ -129,7 +129,6 @@ void FrameMainController::onRunClicked(wxCommandEvent &event)
   auto jsonSettings = getValues();
   settings::json::AnalyzeSettings settings;
   std::string jsonStr = jsonSettings.dump();
-  std::cout << jsonStr << std::endl;
 
   try {
     settings.loadConfigFromString(jsonStr);

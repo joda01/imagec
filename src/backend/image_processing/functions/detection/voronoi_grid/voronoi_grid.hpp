@@ -66,7 +66,7 @@ public:
     cv::Scalar delaunay_color(255, 255, 255), points_color(0, 0, 255);
     // drawDelaunay(image, subdiv, delaunay_color);
 
-    cv::imwrite("test.jpg", image);
+    // cv::imwrite("test.jpg", image);
 
     // Allocate space for Voronoi Diagram
     cv::Mat img_voronoi = cv::Mat::zeros(image.rows, image.cols, CV_8UC1);
@@ -79,13 +79,12 @@ public:
     cv::Mat inputImage;
     cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
 
-    std::cout << std::to_string(img_voronoi.type()) << "|" << std::to_string(img_voronoi.channels()) << "--"
-              << std::to_string(image.type()) << "|" << std::to_string(image.channels()) << std::endl;
+    // std::cout << std::to_string(img_voronoi.type()) << "|" << std::to_string(img_voronoi.channels()) << "--"
+    //           << std::to_string(image.type()) << "|" << std::to_string(image.channels()) << std::endl;
     img_voronoi = inputImage * 0.5 + image;
 
-    cv::imwrite("voronoi.png", inputImage);
-
-    cv::imwrite("voronoi_combi.png", img_voronoi);
+    // cv::imwrite("voronoi.png", inputImage);
+    // cv::imwrite("voronoi_combi.png", img_voronoi);
 
     return result;
   }
@@ -166,7 +165,7 @@ public:
     }
 
     paintBoundingBox(response.controlImage, response.result, false);
-    cv::imwrite("voronoi_combi_ctrl.jpg", response.controlImage);
+    // cv::imwrite("voronoi_combi_ctrl.jpg", response.controlImage);
 
     return response;
   }

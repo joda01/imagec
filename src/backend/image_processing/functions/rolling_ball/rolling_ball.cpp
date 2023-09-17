@@ -311,8 +311,8 @@ std::shared_ptr<cv::Mat> RollingBallBackground::rollBall(RollingBall &ball, cv::
 
   auto end                                      = std::chrono::steady_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
-  std::cout << "RollBall: " << elapsed_seconds.count() << "s"
-            << "\n";
+  // std::cout << "RollBall: " << elapsed_seconds.count() << "s"
+  //           << "\n";
 
   return background;
 }
