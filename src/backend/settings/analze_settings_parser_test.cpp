@@ -1,4 +1,4 @@
-#include "settings/channel_settings.hpp"
+#include "../settings/channel_settings.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 

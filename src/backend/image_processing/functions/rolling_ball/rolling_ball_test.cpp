@@ -1,6 +1,6 @@
-#include "image_reader/jpg/image_loader_jpg.hpp"
-#include "image_reader/tif/image_loader_tif.hpp"
-#include "settings/channel_settings.hpp"
+#include "../../../image_reader/jpg/image_loader_jpg.hpp"
+#include "../../../image_reader/tif/image_loader_tif.hpp"
+#include "../../../settings/channel_settings.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/imgcodecs.hpp>

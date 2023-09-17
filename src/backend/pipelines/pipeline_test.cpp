@@ -1,5 +1,5 @@
-#include "image_reader/jpg/image_loader_jpg.hpp"
-#include "settings/analze_settings_parser.hpp"
+#include "../image_reader/jpg/image_loader_jpg.hpp"
+#include "../settings/analze_settings_parser.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -67,6 +67,23 @@ TEST_CASE("pipeline:test:cells", "[pipeline_test_cells]")
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test_cell");
   joda::pipeline::PipelineFactory::startNewJob(settings, "test_cell", &imageFileContainer);
+
+  while(true) {
+    sleep(2);
+  }
+}
+
+///
+/// \brief  Spot test
+/// \author Joachim Danmayr
+///
+TEST_CASE("pipeline:test:nucleus", "[pipeline_test_nucleus]")
+{
+  joda::settings::json::AnalyzeSettings settings;
+  settings.loadConfigFromFile("test_nucleus/config.json");
+  joda::helper::ImageFileContainer imageFileContainer;
+  imageFileContainer.setWorkingDirectory("test_nucleus");
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test_nucleus", &imageFileContainer);
 
   while(true) {
     sleep(2);
