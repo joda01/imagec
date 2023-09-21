@@ -91,6 +91,10 @@ namespace joda
 					wxStaticText* mLabelTetraspeckChannel;
 					wxScrolledWindow* mPanelIntersection;
 					wxStaticText* mLabelIntersection;
+					wxPanel* panelMinIntersection;
+					wxStaticBitmap* iconMinIntersection;
+					wxSpinCtrlDouble* mSpinMinIntersection;
+					wxStaticText* mLabelMinIntersection;
 					wxPanel* mPanelIntersectionButtons;
 					wxToggleButton* mButtonIntersectionCh01;
 					wxToggleButton* mButtonIntersectionCh02;

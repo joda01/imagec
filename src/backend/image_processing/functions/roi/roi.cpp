@@ -12,6 +12,10 @@
 ///
 
 #include "roi.hpp"
+#include <algorithm>
+#include <iterator>
+#include <string>
+#include <opencv2/core/types.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -51,6 +55,7 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
     for(int y = 0; y < box.height; y++) {
       unsigned char maskPxl = boxMask.at<unsigned char>(y, x);    // Get the pixel value at (x, y)
       if(maskPxl > 0) {
+        // \todo there is a bug
         double pixelGrayScale = imageOriginal.at<unsigned short>(y, x);    // Get the pixel value at (x, y)
         if(pixelGrayScale < intensityMin) {
           intensityMin = pixelGrayScale;
@@ -66,11 +71,13 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
   float intensityAvg = 0.0f;
   if(areaSize > 0) {
     intensityAvg = intensity / static_cast<float>(areaSize);
+  } else {
+    intensityMin = 0;
   }
   intensity = intensityAvg;
 
   std::vector<std::vector<cv::Point>> contours;
-  cv::findContours(boxMask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+  cv::findContours(boxMask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
   if(!contours.empty()) {
     double area      = cv::contourArea(contours[0]);
@@ -117,11 +124,63 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 /// \brief      Calculates if an intersection between the ROIs exist
 /// \author     Joachim Danmayr
 /// \param[in]  roi   ROI to check against
+/// \return     Intersection of the areas in percent
 ///
 
-[[nodiscard]] bool ROI::doesIntersect(const ROI &roi) const
+[[nodiscard]] std::tuple<ROI, bool> ROI::calcIntersection(const ROI &roi, const cv::Mat &imageOriginal,
+                                                          float minIntersection) const
 {
-  return ((getBoundingBox() & roi.getBoundingBox()).area() > 0);
+  // Create an empty mask for the intersection
+  int intersectedMaskRows         = std::max(getMask().rows, roi.getMask().rows);
+  int intersectedMaskCols         = std::max(getMask().cols, roi.getMask().cols);
+  cv::Mat intersectedMask         = cv::Mat::zeros(intersectedMaskRows, intersectedMaskCols, CV_8U);
+  uint32_t nrOfIntersectingPixels = 0;
+  uint32_t nrOfPixelsMask1        = 0;
+  uint32_t nrOfPixelsMask2        = 0;
+
+  // Calculate the intersection of the bounding boxes
+  cv::Rect intersectedRect = getBoundingBox() & roi.getBoundingBox();
+  if(intersectedRect.area() > 0) {
+    // Iterate through the pixels in the intersection and set them in the new mask
+    for(int y = 0; y < intersectedRect.height; ++y) {
+      for(int x = 0; x < intersectedRect.width; ++x) {
+        int xM1      = x + (intersectedRect.x - getBoundingBox().x);
+        int yM1      = y + (intersectedRect.y - getBoundingBox().y);
+        bool mask1On = false;
+        if(xM1 >= 0 && yM1 >= 0) {
+          mask1On = getMask().at<uchar>(yM1, xM1) > 0;
+        }
+
+        int xM2      = x + (intersectedRect.x - roi.getBoundingBox().x);
+        int yM2      = y + (intersectedRect.y - roi.getBoundingBox().y);
+        bool mask2On = false;
+        if(xM2 >= 0 && yM2 >= 0) {
+          mask2On = roi.getMask().at<uchar>(yM2, xM2) > 0;
+        }
+
+        if(mask1On) {
+          nrOfPixelsMask1++;
+        }
+
+        if(mask2On) {
+          nrOfPixelsMask2++;
+        }
+
+        if(mask1On && mask2On) {
+          intersectedMask.at<uchar>(y, x) = 255;
+          nrOfIntersectingPixels++;
+        }
+      }
+    }
+    int biggestMask        = std::max(nrOfPixelsMask1, nrOfPixelsMask2);
+    float intersectionArea = static_cast<float>(nrOfIntersectingPixels) / static_cast<float>(biggestMask);
+    ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, imageOriginal);
+    if(intersectionArea < minIntersection) {
+      intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
+    }
+    return {intersectionROI, true};
+  }
+  return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, cv::Mat{}), false};
 }
 
 }    // namespace joda::func

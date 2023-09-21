@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <exception>
 #include <string>
 #include "../../functions/func_types.hpp"
 #include <opencv2/imgproc.hpp>
@@ -33,13 +34,6 @@ public:
   /////////////////////////////////////////////////////
   virtual auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage) -> DetectionResponse = 0;
 
-protected:
-  /////////////////////////////////////////////////////
-  auto getFilterSettings() const -> const joda::settings::json::ChannelFiltering *
-  {
-    return mFilterSettings;
-  }
-
   ///
   /// \brief      Paints the masks and bounding boxes around the found elements
   /// \author     Joachim Danmayr
@@ -57,20 +51,30 @@ protected:
       int height    = result[i].getBoundingBox().height;
       int color_num = i;
 
-      if(paintRectangel) {
-        rectangle(img, result[i].getBoundingBox(), RED, 1 * THICKNESS);
+      if(paintRectangel && !result[i].getBoundingBox().empty()) {
+        rectangle(img, result[i].getBoundingBox(), RED, 1 * THICKNESS, cv::LINE_4);
       }
 
-      if(!result[i].getMask().empty()) {
-        mask(result[i].getBoundingBox()).setTo(RED, result[i].getMask());
-        std::vector<std::vector<cv::Point>> contours;
-        findContours(result[i].getMask(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-        drawContours(img(result[i].getBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
+      if(!result[i].getMask().empty() && !result[i].getBoundingBox().empty()) {
+        try {
+          mask(result[i].getBoundingBox()).setTo(RED, result[i].getMask());
+          // std::vector<std::vector<cv::Point>> contours;
+          // findContours(result[i].getMask(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+          // drawContours(img(result[i].getBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
+        } catch(const std::exception &ex) {
+        }
       }
       std::string label = std::to_string(result[i].getIndex());
       // drawLabel(img, label, left, top);
     }
     addWeighted(mask, 0.5, img, 1, 0, img);
+  }
+
+protected:
+  /////////////////////////////////////////////////////
+  auto getFilterSettings() const -> const joda::settings::json::ChannelFiltering *
+  {
+    return mFilterSettings;
   }
 
   /////////////////////////////////////////////////////

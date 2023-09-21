@@ -14,6 +14,7 @@
 #include "../../res/blur_20.png.h"
 #include "../../res/bursts_20.png.h"
 #include "../../res/centre_point_20.png.h"
+#include "../../res/combine_20.png.h"
 #include "../../res/contrast_20.png.h"
 #include "../../res/cpu_20.png.h"
 #include "../../res/crop_20.png.h"
@@ -288,6 +289,37 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mLabelIntersection->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
 
 	mSizerIntersection->Add( mLabelIntersection, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
+
+	panelMinIntersection = new wxPanel( mPanelIntersection, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelMinIntersection->SetMaxSize( wxSize( -1,65 ) );
+
+	wxBoxSizer* sizerMinIntersection;
+	sizerMinIntersection = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* sizerMinIntersection2;
+	sizerMinIntersection2 = new wxBoxSizer( wxHORIZONTAL );
+
+	iconMinIntersection = new wxStaticBitmap( panelMinIntersection, wxID_ANY, combine_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerMinIntersection2->Add( iconMinIntersection, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+
+	mSpinMinIntersection = new wxSpinCtrlDouble( panelMinIntersection, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1, 0.8, 0.01 );
+	mSpinMinIntersection->SetDigits( 2 );
+	sizerMinIntersection2->Add( mSpinMinIntersection, 1, 0, 5 );
+
+
+	sizerMinIntersection->Add( sizerMinIntersection2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+
+	mLabelMinIntersection = new wxStaticText( panelMinIntersection, wxID_ANY, _("Min. intersection"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelMinIntersection->Wrap( -1 );
+	mLabelMinIntersection->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
+	sizerMinIntersection->Add( mLabelMinIntersection, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+
+
+	panelMinIntersection->SetSizer( sizerMinIntersection );
+	panelMinIntersection->Layout();
+	sizerMinIntersection->Fit( panelMinIntersection );
+	mSizerIntersection->Add( panelMinIntersection, 1, wxEXPAND|wxTOP, 5 );
 
 	mPanelIntersectionButtons = new wxPanel( mPanelIntersection, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxGridSizer* mGridIntersection;

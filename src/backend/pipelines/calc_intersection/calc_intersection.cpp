@@ -12,12 +12,15 @@
 ///
 
 #include "calc_intersection.hpp"
+#include <string>
+#include "../../image_processing/functions/detection/detection.hpp"
 #include "../../reporting/reporting.h"
+#include "backend/image_processing/functions/func_types.hpp"
 
 namespace joda::pipeline {
 
-CalcIntersection::CalcIntersection(const std::set<int32_t> &indexesToIntersect) :
-    mIndexesToIntersect(indexesToIntersect)
+CalcIntersection::CalcIntersection(const std::set<int32_t> &indexesToIntersect, float minIntersection) :
+    mIndexesToIntersect(indexesToIntersect), mMinIntersection(minIntersection)
 {
 }
 
@@ -25,87 +28,37 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
                                const std::map<int, joda::func::DetectionResponse> &detectionResultsIn,
                                const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {
+  joda::func::DetectionResponse resp;
+
+  const joda::func::DetectionResponse *ch1;
+  const joda::func::DetectionResponse *ch2;
+  if(detectionResultsIn.at(0).result.size() > detectionResultsIn.at(13).result.size()) {
+    ch1 = &detectionResultsIn.at(0);
+    ch2 = &detectionResultsIn.at(13);
+  } else {
+    ch1 = &detectionResultsIn.at(13);
+    ch2 = &detectionResultsIn.at(0);
+  }
+
   //
   // Calculate the intersection
   //
-  joda::reporting::Table cellReport;
-  joda::reporting::Table detailReport;
-  // generateReportHeader(detailReport, spotChannels.at(0), true);
-  //
-  // for(auto const &roiCell : voronoiResult.result) {
-  //  for(auto const &roiSpot : detectionResults.at(spotChannelIndex).result) {
-  //    if(roiCell.doesIntersect(roiSpot)) {
-  //      // Intersect
-  //      appendToReport(detailReport, roiSpot, roiCell.getIndex(), true);
-  //    }
-  //  }
-  //}
-}
-
-void CalcIntersection::appendToReport(joda::reporting::Table &report, const func::ROI &spot, int cellIndex,
-                                      bool intersect)
-{
-  int colIdx = 0;
-
-  report.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE), spot.getIndex(),
-                                  spot.getConfidence(), spot.getValidity());
-  report.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY), spot.getIndex(),
-                                  spot.getIntensity(), spot.getValidity());
-  report.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN), spot.getIndex(),
-                                  spot.getIntensityMin(), spot.getValidity());
-  report.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX), spot.getIndex(),
-                                  spot.getIntensityMax(), spot.getValidity());
-  report.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE), spot.getIndex(),
-                                  spot.getAreaSize(), spot.getValidity());
-  report.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY), spot.getIndex(),
-                                  spot.getCircularity(), spot.getValidity());
-  report.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY), spot.getIndex(),
-                                  spot.getValidity());
-
-  if(intersect) {
-    report.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CELL_INTERSECTING_WITH),
-                                    spot.getIndex(), cellIndex, func::ParticleValidity::VALID);
+  for(auto const &roi01 : ch1->result) {
+    for(auto const &roi02 : ch2->result) {
+      if(roi01.isValid() && roi02.isValid()) {
+        auto [colocROI, ok] = roi01.calcIntersection(roi02, ch1->originalImage, mMinIntersection);
+        // We only log the first occurency of intersestion. Intersection over more particles is not logged yet
+        if(ok) {
+          resp.result.push_back(colocROI);
+          break;
+        }
+      }
+    }
   }
-}
-
-void CalcIntersection::generateReportHeader(joda::reporting::Table &report,
-                                            const settings::json::ChannelSettings &spotChannelSettings, bool intersect)
-{
-  int colIdx = 0;
-
-  if(intersect) {
-    report.setColumnNames({{colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
-                            spotChannelSettings.getChannelInfo().getName() + "#confidence"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
-                            spotChannelSettings.getChannelInfo().getName() + "#intensity"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN),
-                            spotChannelSettings.getChannelInfo().getName() + "#Min"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX),
-                            spotChannelSettings.getChannelInfo().getName() + "#Max"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
-                            spotChannelSettings.getChannelInfo().getName() + "#areaSize"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
-                            spotChannelSettings.getChannelInfo().getName() + "#circularity"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
-                            spotChannelSettings.getChannelInfo().getName() + "#validity"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::CELL_INTERSECTING_WITH),
-                            spotChannelSettings.getChannelInfo().getName() + "#cellIndex"}});
-  } else {
-    report.setColumnNames({{colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),
-                            spotChannelSettings.getChannelInfo().getName() + "#confidence"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY),
-                            spotChannelSettings.getChannelInfo().getName() + "#intensity"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN),
-                            spotChannelSettings.getChannelInfo().getName() + "#Min"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX),
-                            spotChannelSettings.getChannelInfo().getName() + "#Max"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
-                            spotChannelSettings.getChannelInfo().getName() + "#areaSize"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
-                            spotChannelSettings.getChannelInfo().getName() + "#circularity"},
-                           {colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
-                            spotChannelSettings.getChannelInfo().getName() + "#validity"}});
-  }
+  std::cout << "Fin" << std::to_string(resp.result.size()) << std::endl;
+  resp.controlImage = cv::Mat::zeros(ch1->originalImage.rows, ch1->originalImage.cols, CV_32FC3);
+  joda::func::DetectionFunction::paintBoundingBox(resp.controlImage, resp.result, false);
+  return resp;
 }
 
 }    // namespace joda::pipeline

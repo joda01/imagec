@@ -49,9 +49,9 @@ auto Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func
   mTable[colIdx][rowIdx] = Row{.validity = value};
 
   // Only count valid particles
-  /*if(joda::func::ParticleValidity::VALID == validity) {
-    mStatistics[colIdx].addValue(value);
-  }*/
+  if(joda::func::ParticleValidity::VALID == value) {
+    mStatistics[colIdx].incrementInvalid();
+  }
 
   mRows = std::max(mRows, static_cast<int64_t>(rowIdx) + 1);
   return rowIdx;
@@ -204,7 +204,7 @@ void Table::flushReportToFile(std::string_view fileName) const
   outFile << rowBuffer;
 
   //
-  // Write table statistircs
+  // Write table statistics
   //
   for(int n = 0; n < Statistics::NR_OF_VALUE; n++) {
     std::string rowBuffer = Statistics::getStatisticsTitle()[n] + CSV_SEPARATOR;
@@ -248,6 +248,14 @@ std::string Table::validityToString(joda::func::ParticleValidity val)
       ret += " & ";
     }
     ret += "size(small)";
+  }
+
+  if((joda::func::ParticleValidity)((int) val & (int) joda::func::ParticleValidity::TOO_LESS_OVERLAPPING) ==
+     joda::func::ParticleValidity::TOO_LESS_OVERLAPPING) {
+    if(!ret.empty()) {
+      ret += " & ";
+    }
+    ret += "intersect too small";
   }
 
   if((joda::func::ParticleValidity)((int) val & (int) joda::func::ParticleValidity::TOO_LESS_CIRCULARITY) ==

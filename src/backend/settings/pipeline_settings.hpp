@@ -51,9 +51,10 @@ class PipelineStepIntersection final
 {
 public:
   std::set<int32_t> channel_index;
+  float min_intersection;
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepIntersection, channel_index);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepIntersection, channel_index, min_intersection);
 };
 
 ///
@@ -67,8 +68,15 @@ public:
   /////////////////////////////////////////////////////
   enum class PipelineStepIndex : int32_t
   {
-    NONE               = -9999999,
-    CELL_APPROXIMATION = -1,
+    NONE               = 0,
+    CELL_APPROXIMATION = 13,
+    INTERSECTION       = 14
+  };
+
+  struct ChannelSettings
+  {
+    PipelineStepIndex index = PipelineStepIndex::NONE;
+    std::string name;
   };
 
   /////////////////////////////////////////////////////
@@ -77,7 +85,7 @@ public:
   [[nodiscard]] auto execute(const settings::json::AnalyzeSettings &,
                              const std::map<int, joda::func::DetectionResponse> &,
                              const std::string &detailoutputPath) const
-      -> std::tuple<PipelineStepIndex, joda::func::DetectionResponse>;
+      -> std::tuple<ChannelSettings, joda::func::DetectionResponse>;
 
   ///
   /// \brief Returns the channel index of the pipeline step.
@@ -107,7 +115,7 @@ private:
   PipelineStepIntersection intersection;
 
   std::shared_ptr<joda::pipeline::PipelineStep> mPipelineStep;
-  PipelineStepIndex mIndex = PipelineStepIndex::NONE;
+  ChannelSettings mChannelSettings;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepSettings, cell_approximation, intersection);
 };

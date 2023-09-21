@@ -121,12 +121,13 @@ void Pipeline::runJob(const std::string &inputFolder)
       // Execute pipeline steps
       //
       for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
-        auto [index, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
-        if(index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
-          detectionResults.emplace(static_cast<int32_t>(index), response);
-          setDetailReportHeader(detailReports, "Approx. Cells", tempChannelIdx);
+        auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+        if(chSettings.index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
+          detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
+          setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
           appendToDetailReport(response, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
           nrOfChannels++;
+          tempChannelIdx++;
         }
       }
 

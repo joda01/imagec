@@ -20,6 +20,7 @@
 #include "../../../functions/func_types.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 namespace joda::func::threshold {
 
@@ -42,7 +43,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   // Find contours in the binary image
   binaryImage.convertTo(binaryImage, CV_8UC1);
   std::vector<std::vector<cv::Point>> contours;
-  cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+  cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
   if(contours.size() > 100000) {
     throw std::runtime_error("Too much spots.");
