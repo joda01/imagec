@@ -130,14 +130,19 @@ private:
     cv::Mat originalImg = image.clone();
     DurationCount::stop(id);
 
+    id = DurationCount::start("preprocessing");
     doPreprocessing(image, channelSetting);
-    id = DurationCount::start("detection");
+    DurationCount::stop(id);
 
+    id                   = DurationCount::start("detection");
     auto detectionResult = doDetection(image, originalImg, channelSetting);
     DurationCount::stop(id);
 
+    id = DurationCount::start("filtering");
     doFiltering(detectionResult, channelSetting);
     detectionResult.originalImage = std::move(originalImg);
+    DurationCount::stop(id);
+
     return detectionResult;
   }
 
@@ -198,13 +203,8 @@ private:
   static func::DetectionResponse doDetection(const cv::Mat &image, const cv::Mat &originalImg,
                                              const joda::settings::json::ChannelSettings &channelSetting)
   {
-    auto id = DurationCount::start("detection int");
-
     ALGORITHM algo;
     auto ret = algo.execute(image, originalImg, channelSetting);
-
-    DurationCount::stop(id);
-
     return ret;
   }
 

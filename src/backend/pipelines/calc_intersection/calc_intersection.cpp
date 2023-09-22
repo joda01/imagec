@@ -55,7 +55,6 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
       }
     }
   }
-  std::cout << "Fin" << std::to_string(resp.result.size()) << std::endl;
   resp.controlImage = cv::Mat::zeros(ch1->originalImage.rows, ch1->originalImage.cols, CV_32FC3);
   joda::func::DetectionFunction::paintBoundingBox(resp.controlImage, resp.result, false);
   return resp;
