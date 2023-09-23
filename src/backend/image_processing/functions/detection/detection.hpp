@@ -70,6 +70,47 @@ public:
     addWeighted(mask, 0.5, img, 1, 0, img);
   }
 
+  struct OverlaySettings
+  {
+    const DetectionResults &result;
+    cv::Scalar backgroundColor;
+    cv::Scalar borderColor;
+    bool paintRectangel;
+    float opaque;
+  };
+
+  static void paintOverlay(cv::Mat &img, const std::vector<OverlaySettings> &overlays)
+  {
+    for(const auto &ov : overlays) {
+      cv::Mat mask = img.clone();
+
+      for(int i = 0; i < ov.result.size(); i++) {
+        int left      = ov.result[i].getBoundingBox().x;
+        int top       = ov.result[i].getBoundingBox().y;
+        int width     = ov.result[i].getBoundingBox().width;
+        int height    = ov.result[i].getBoundingBox().height;
+        int color_num = i;
+
+        if(ov.paintRectangel && !ov.result[i].getBoundingBox().empty()) {
+          rectangle(mask, ov.result[i].getBoundingBox(), RED, 1 * THICKNESS, cv::LINE_4);
+        }
+        if(!ov.result[i].getMask().empty() && !ov.result[i].getBoundingBox().empty()) {
+          try {
+            mask(ov.result[i].getBoundingBox()).setTo(ov.backgroundColor, ov.result[i].getMask());
+            std::vector<std::vector<cv::Point>> contours;
+            findContours(ov.result[i].getMask(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+            drawContours(mask(ov.result[i].getBoundingBox()), contours, -1, ov.borderColor, 1);
+          } catch(const std::exception &ex) {
+            std::cout << "P" << ex.what() << std::endl;
+          }
+        }
+        std::string label = std::to_string(ov.result[i].getIndex());
+        // drawLabel(img, label, left, top);
+      }
+      addWeighted(mask, ov.opaque, img, 1, 0, img);
+    }
+  }
+
 protected:
   /////////////////////////////////////////////////////
   auto getFilterSettings() const -> const joda::settings::json::ChannelFiltering *

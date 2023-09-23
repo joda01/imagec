@@ -56,7 +56,21 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
     }
   }
   resp.controlImage = cv::Mat::zeros(ch1->originalImage.rows, ch1->originalImage.cols, CV_32FC3);
-  joda::func::DetectionFunction::paintBoundingBox(resp.controlImage, resp.result, false);
+  joda::func::DetectionFunction::paintOverlay(
+      resp.controlImage,
+      {
+          joda::func::DetectionFunction::OverlaySettings{.result          = ch2->result,
+                                                         .backgroundColor = cv::Scalar(255, 255, 255),
+                                                         .borderColor     = cv::Scalar(0, 0, 0),
+                                                         .paintRectangel  = false,
+                                                         .opaque          = 0.1},
+          joda::func::DetectionFunction::OverlaySettings{.result          = resp.result,
+                                                         .backgroundColor = cv::Scalar(0, 0, 255),
+                                                         .borderColor     = cv::Scalar(0, 255, 0),
+                                                         .paintRectangel  = false,
+                                                         .opaque          = 1},
+
+      });
   return resp;
 }
 
