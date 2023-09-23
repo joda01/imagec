@@ -14,6 +14,7 @@
 #include "panel_channel_controller.h"
 #include <string>
 #include "backend/helper/two_way_map.hpp"
+#include "ui/wxwidgets/frame_main_controller.h"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::wxwidget {
@@ -22,10 +23,22 @@ namespace joda::ui::wxwidget {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelChannelController::PanelChannelController(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
-                                               long style, const wxString &name) :
-    PanelChannel(parent, id, pos, size, style, name)
+PanelChannelController::PanelChannelController(FrameMainController *mainFrame, wxWindow *parent, wxWindowID id,
+                                               const wxPoint &pos, const wxSize &size, long style,
+                                               const wxString &name) :
+    PanelChannel(parent, id, pos, size, style, name),
+    mMainFrame(mainFrame)
 {
+}
+
+///
+/// \brief      On remove clicked
+/// \author     Joachim Danmayr
+/// \return
+///
+void PanelChannelController::onRemoveClicked(wxCommandEvent &event)
+{
+  mMainFrame->removeChannel(this);
 }
 
 ///

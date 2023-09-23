@@ -23,6 +23,8 @@
 
 namespace joda::ui::wxwidget {
 
+class FrameMainController;
+
 ///
 /// \class      PanelChannelController
 /// \author     Joachim Danmayr
@@ -32,9 +34,9 @@ class PanelChannelController : public PanelChannel
 {
 public:
   /////////////////////////////////////////////////////
-  explicit PanelChannelController(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition,
-                                  const wxSize &size = wxSize(250, -1), long style = wxTAB_TRAVERSAL,
-                                  const wxString &name = wxEmptyString);
+  explicit PanelChannelController(FrameMainController *mainFrame, wxWindow *parent, wxWindowID id = wxID_ANY,
+                                  const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(250, -1),
+                                  long style = wxTAB_TRAVERSAL, const wxString &name = wxEmptyString);
 
   void loadValues(const joda::settings::json::ChannelSettings &);
   nlohmann::json getValues();
@@ -60,6 +62,11 @@ private:
 
   static inline joda::helper::TwoWayMap<int, std::string> THRESHOLD_METHOD{
       {{0, "MANUAL"}, {1, "LI"}, {2, "MIN_ERROR"}, {3, "TRIANGLE"}}};
+
+private:
+  /////////////////////////////////////////////////////
+  void onRemoveClicked(wxCommandEvent &event) override;
+  FrameMainController *mMainFrame;
 };
 }    // namespace joda::ui::wxwidget
 

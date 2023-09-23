@@ -28,15 +28,15 @@
 #include <wx/statbmp.h>
 #include <wx/choice.h>
 #include <wx/spinctrl.h>
-#include <wx/tglbtn.h>
+#include <wx/statline.h>
 #include <wx/notebook.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
 #include <wx/gauge.h>
-#include <wx/statline.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
+#include <wx/tglbtn.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -69,6 +69,9 @@ namespace joda
 					wxBoxSizer* mSizerChannels;
 					wxButton* mButtonAddChannel;
 					wxPanel* mPanelPipelineSteps;
+					wxBoxSizer* mSizerHorizontalScrolPipelineSteps;
+					wxScrolledWindow* mScrrollbarPipelineStep;
+					wxBoxSizer* mSizerPipelineStep;
 					wxScrolledWindow* panelPipelineStepCellApproximation;
 					wxStaticText* mLabelCellEstimation;
 					wxPanel* panelNucleusChannel;
@@ -83,32 +86,13 @@ namespace joda
 					wxStaticBitmap* iconMaxCellRadius;
 					wxSpinCtrl* mSpinMaxCellRadius;
 					wxStaticText* mLabelMaxCellRadius;
-					wxScrolledWindow* mPanelSpotRemoval;
+					wxStaticLine* m_staticline7;
 					wxStaticText* mLabelSpotRemoval;
 					wxPanel* panelTetraspeckChannel;
 					wxStaticBitmap* iconTetraspeckChannel;
 					wxChoice* mChoiceTetraspeckChannel;
 					wxStaticText* mLabelTetraspeckChannel;
-					wxScrolledWindow* mPanelIntersection;
-					wxStaticText* mLabelIntersection;
-					wxPanel* panelMinIntersection;
-					wxStaticBitmap* iconMinIntersection;
-					wxSpinCtrlDouble* mSpinMinIntersection;
-					wxStaticText* mLabelMinIntersection;
-					wxPanel* mPanelIntersectionButtons;
-					wxToggleButton* mButtonIntersectionCh01;
-					wxToggleButton* mButtonIntersectionCh02;
-					wxToggleButton* mButtonIntersectionCh03;
-					wxToggleButton* mButtonIntersectionCh04;
-					wxToggleButton* mButtonIntersectionCh05;
-					wxToggleButton* mButtonIntersectionCh06;
-					wxToggleButton* mButtonIntersectionCh07;
-					wxToggleButton* mButtonIntersectionCh08;
-					wxToggleButton* mButtonIntersectionCh09;
-					wxToggleButton* mButtonIntersectionCh10;
-					wxToggleButton* mButtonIntersectionCh11;
-					wxToggleButton* mButtonIntersectionCh12;
-					wxToggleButton* mButtonIntersectionChEstimatedCell;
+					wxButton* mButtonAddIntersection;
 					wxStatusBar* m_statusBar1;
 
 					// Virtual event handlers, override them in your derived class
@@ -118,6 +102,7 @@ namespace joda
 					virtual void onAboutClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAddChannelClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onCellChannelChoice( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onAddIntersectionClicked( wxCommandEvent& event ) { event.Skip(); }
 
 
 				public:
@@ -255,6 +240,10 @@ namespace joda
 					wxStaticLine* mLineRemove;
 					wxButton* mButtonRemoveChannel;
 
+					// Virtual event handlers, override them in your derived class
+					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
+
+
 				public:
 					wxBoxSizer* mSizerForScroll;
 					wxScrolledWindow* mScrolledChannel;
@@ -262,6 +251,49 @@ namespace joda
 					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 					~PanelChannel();
+
+			};
+
+			///////////////////////////////////////////////////////////////////////////////
+			/// Class PanelIntersection
+			///////////////////////////////////////////////////////////////////////////////
+			class PanelIntersection : public wxPanel
+			{
+				private:
+
+				protected:
+					wxScrolledWindow* mPanelIntersection;
+					wxStaticText* mLabelIntersection;
+					wxPanel* panelMinIntersection;
+					wxStaticBitmap* iconMinIntersection;
+					wxSpinCtrlDouble* mSpinMinIntersection;
+					wxStaticText* mLabelMinIntersection;
+					wxPanel* mPanelIntersectionButtons;
+					wxToggleButton* mButtonIntersectionCh01;
+					wxToggleButton* mButtonIntersectionCh02;
+					wxToggleButton* mButtonIntersectionCh03;
+					wxToggleButton* mButtonIntersectionCh04;
+					wxToggleButton* mButtonIntersectionCh05;
+					wxToggleButton* mButtonIntersectionCh06;
+					wxToggleButton* mButtonIntersectionCh07;
+					wxToggleButton* mButtonIntersectionCh08;
+					wxToggleButton* mButtonIntersectionCh09;
+					wxToggleButton* mButtonIntersectionCh10;
+					wxToggleButton* mButtonIntersectionCh11;
+					wxToggleButton* mButtonIntersectionCh12;
+					wxToggleButton* mButtonIntersectionChEstimatedCell;
+					wxStaticLine* m_staticline8;
+					wxButton* mButtonRemovePipelineStep;
+
+					// Virtual event handlers, override them in your derived class
+					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
+
+
+				public:
+
+					PanelIntersection( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+
+					~PanelIntersection();
 
 			};
 

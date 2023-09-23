@@ -88,10 +88,13 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mSizerChannelsScrollbar->Fit( mPanelChannel );
 	mNotebookMain->AddPage( mPanelChannel, _("Channels"), true );
 	mPanelPipelineSteps = new wxPanel( mNotebookMain, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxBoxSizer* mSizerPipelineSteps;
-	mSizerPipelineSteps = new wxBoxSizer( wxHORIZONTAL );
+	mSizerHorizontalScrolPipelineSteps = new wxBoxSizer( wxVERTICAL );
 
-	panelPipelineStepCellApproximation = new wxScrolledWindow( mPanelPipelineSteps, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
+	mScrrollbarPipelineStep = new wxScrolledWindow( mPanelPipelineSteps, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
+	mScrrollbarPipelineStep->SetScrollRate( 5, 0 );
+	mSizerPipelineStep = new wxBoxSizer( wxHORIZONTAL );
+
+	panelPipelineStepCellApproximation = new wxScrolledWindow( mScrrollbarPipelineStep, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	panelPipelineStepCellApproximation->SetScrollRate( 5, 5 );
 	panelPipelineStepCellApproximation->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 	panelPipelineStepCellApproximation->SetMaxSize( wxSize( 250,-1 ) );
@@ -204,35 +207,16 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	sizerMaxCellRadius->Fit( panelMaxCellRadius );
 	mSizerCellEstimation->Add( panelMaxCellRadius, 1, wxEXPAND|wxTOP, 5 );
 
+	m_staticline7 = new wxStaticLine( panelPipelineStepCellApproximation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	mSizerCellEstimation->Add( m_staticline7, 0, wxBOTTOM|wxEXPAND|wxTOP, 15 );
 
-	mGridCellEstimation->Add( mSizerCellEstimation, 1, wxEXPAND|wxLEFT|wxRIGHT, 10 );
-
-
-	mGridCellEstimation->Add( 0, 0, 1, wxEXPAND, 5 );
-
-
-	panelPipelineStepCellApproximation->SetSizer( mGridCellEstimation );
-	panelPipelineStepCellApproximation->Layout();
-	mSizerPipelineSteps->Add( panelPipelineStepCellApproximation, 1, wxALL|wxEXPAND, 5 );
-
-	mPanelSpotRemoval = new wxScrolledWindow( mPanelPipelineSteps, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
-	mPanelSpotRemoval->SetScrollRate( 5, 5 );
-	mPanelSpotRemoval->SetBackgroundColour( wxColour( 245, 245, 245 ) );
-	mPanelSpotRemoval->SetMaxSize( wxSize( 250,-1 ) );
-
-	wxGridSizer* mGridSpotRemoval;
-	mGridSpotRemoval = new wxGridSizer( 0, 1, 0, 0 );
-
-	wxBoxSizer* mSizerSpotRemoval;
-	mSizerSpotRemoval = new wxBoxSizer( wxVERTICAL );
-
-	mLabelSpotRemoval = new wxStaticText( mPanelSpotRemoval, wxID_ANY, _("Spot removal"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
+	mLabelSpotRemoval = new wxStaticText( panelPipelineStepCellApproximation, wxID_ANY, _("Spot removal"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
 	mLabelSpotRemoval->Wrap( -1 );
 	mLabelSpotRemoval->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
 
-	mSizerSpotRemoval->Add( mLabelSpotRemoval, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
+	mSizerCellEstimation->Add( mLabelSpotRemoval, 0, wxALIGN_CENTER|wxALL|wxEXPAND|wxTOP, 5 );
 
-	panelTetraspeckChannel = new wxPanel( mPanelSpotRemoval, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelTetraspeckChannel = new wxPanel( panelPipelineStepCellApproximation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelTetraspeckChannel->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerTetraspeckChannel;
@@ -263,128 +247,34 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	panelTetraspeckChannel->SetSizer( sizerTetraspeckChannel );
 	panelTetraspeckChannel->Layout();
 	sizerTetraspeckChannel->Fit( panelTetraspeckChannel );
-	mSizerSpotRemoval->Add( panelTetraspeckChannel, 1, wxEXPAND|wxTOP, 5 );
+	mSizerCellEstimation->Add( panelTetraspeckChannel, 1, wxEXPAND, 5 );
 
 
-	mGridSpotRemoval->Add( mSizerSpotRemoval, 1, wxEXPAND|wxLEFT|wxRIGHT, 10 );
+	mGridCellEstimation->Add( mSizerCellEstimation, 1, wxEXPAND|wxLEFT|wxRIGHT, 10 );
 
 
-	mPanelSpotRemoval->SetSizer( mGridSpotRemoval );
-	mPanelSpotRemoval->Layout();
-	mSizerPipelineSteps->Add( mPanelSpotRemoval, 1, wxEXPAND|wxALL, 5 );
-
-	mPanelIntersection = new wxScrolledWindow( mPanelPipelineSteps, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
-	mPanelIntersection->SetScrollRate( 5, 5 );
-	mPanelIntersection->SetBackgroundColour( wxColour( 245, 245, 245 ) );
-	mPanelIntersection->SetMaxSize( wxSize( 250,-1 ) );
-
-	wxGridSizer* mGridIntersection2;
-	mGridIntersection2 = new wxGridSizer( 0, 1, 0, 0 );
-
-	wxBoxSizer* mSizerIntersection;
-	mSizerIntersection = new wxBoxSizer( wxVERTICAL );
-
-	mLabelIntersection = new wxStaticText( mPanelIntersection, wxID_ANY, _("Intersection"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
-	mLabelIntersection->Wrap( -1 );
-	mLabelIntersection->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
-
-	mSizerIntersection->Add( mLabelIntersection, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
-
-	panelMinIntersection = new wxPanel( mPanelIntersection, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
-	panelMinIntersection->SetMaxSize( wxSize( -1,65 ) );
-
-	wxBoxSizer* sizerMinIntersection;
-	sizerMinIntersection = new wxBoxSizer( wxVERTICAL );
-
-	wxBoxSizer* sizerMinIntersection2;
-	sizerMinIntersection2 = new wxBoxSizer( wxHORIZONTAL );
-
-	iconMinIntersection = new wxStaticBitmap( panelMinIntersection, wxID_ANY, combine_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerMinIntersection2->Add( iconMinIntersection, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
-
-	mSpinMinIntersection = new wxSpinCtrlDouble( panelMinIntersection, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1, 0.8, 0.01 );
-	mSpinMinIntersection->SetDigits( 2 );
-	sizerMinIntersection2->Add( mSpinMinIntersection, 1, 0, 5 );
+	mGridCellEstimation->Add( 0, 0, 1, wxEXPAND, 5 );
 
 
-	sizerMinIntersection->Add( sizerMinIntersection2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+	panelPipelineStepCellApproximation->SetSizer( mGridCellEstimation );
+	panelPipelineStepCellApproximation->Layout();
+	mSizerPipelineStep->Add( panelPipelineStepCellApproximation, 1, wxALL|wxEXPAND, 5 );
 
-	mLabelMinIntersection = new wxStaticText( panelMinIntersection, wxID_ANY, _("Min. intersection"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
-	mLabelMinIntersection->Wrap( -1 );
-	mLabelMinIntersection->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+	mButtonAddIntersection = new wxButton( mScrrollbarPipelineStep, wxID_ANY, _("Add intersection step"), wxDefaultPosition, wxDefaultSize, 0 );
 
-	sizerMinIntersection->Add( mLabelMinIntersection, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
-
-
-	panelMinIntersection->SetSizer( sizerMinIntersection );
-	panelMinIntersection->Layout();
-	sizerMinIntersection->Fit( panelMinIntersection );
-	mSizerIntersection->Add( panelMinIntersection, 1, wxEXPAND|wxTOP, 5 );
-
-	mPanelIntersectionButtons = new wxPanel( mPanelIntersection, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxGridSizer* mGridIntersection;
-	mGridIntersection = new wxGridSizer( 0, 2, 0, 0 );
-
-	mButtonIntersectionCh01 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 01"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh01, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh02 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 02"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh02, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh03 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 03"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh03, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh04 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 04"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh04, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh05 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 05"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh05, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh06 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 06"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh06, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh07 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 07"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh07, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh08 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 08"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh08, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh09 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 09"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh09, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh10 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 10"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh10, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh11 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 11"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh11, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionCh12 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 12"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionCh12, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mButtonIntersectionChEstimatedCell = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Approx Cells"), wxDefaultPosition, wxDefaultSize, 0 );
-	mGridIntersection->Add( mButtonIntersectionChEstimatedCell, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+	mButtonAddIntersection->SetBitmap( plus_math_20_png_to_wx_bitmap() );
+	mSizerPipelineStep->Add( mButtonAddIntersection, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
-	mPanelIntersectionButtons->SetSizer( mGridIntersection );
-	mPanelIntersectionButtons->Layout();
-	mGridIntersection->Fit( mPanelIntersectionButtons );
-	mSizerIntersection->Add( mPanelIntersectionButtons, 0, wxALL|wxEXPAND, 5 );
+	mScrrollbarPipelineStep->SetSizer( mSizerPipelineStep );
+	mScrrollbarPipelineStep->Layout();
+	mSizerPipelineStep->Fit( mScrrollbarPipelineStep );
+	mSizerHorizontalScrolPipelineSteps->Add( mScrrollbarPipelineStep, 1, wxEXPAND | wxALL, 5 );
 
 
-	mSizerIntersection->Add( 0, 0, 1, wxEXPAND, 5 );
-
-
-	mGridIntersection2->Add( mSizerIntersection, 0, wxEXPAND|wxLEFT|wxRIGHT, 10 );
-
-
-	mPanelIntersection->SetSizer( mGridIntersection2 );
-	mPanelIntersection->Layout();
-	mSizerPipelineSteps->Add( mPanelIntersection, 1, wxEXPAND|wxALL, 5 );
-
-
-	mPanelPipelineSteps->SetSizer( mSizerPipelineSteps );
+	mPanelPipelineSteps->SetSizer( mSizerHorizontalScrolPipelineSteps );
 	mPanelPipelineSteps->Layout();
-	mSizerPipelineSteps->Fit( mPanelPipelineSteps );
+	mSizerHorizontalScrolPipelineSteps->Fit( mPanelPipelineSteps );
 	mNotebookMain->AddPage( mPanelPipelineSteps, _("Pipeline steps"), false );
 
 	bSizer1->Add( mNotebookMain, 1, wxEXPAND | wxALL, 5 );
@@ -404,6 +294,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	this->Connect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
 	mButtonAddChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ), NULL, this );
 	mChoiceCellChannel->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( frameMain::onCellChannelChoice ), NULL, this );
+	mButtonAddIntersection->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddIntersectionClicked ), NULL, this );
 }
 
 frameMain::~frameMain()
@@ -415,6 +306,7 @@ frameMain::~frameMain()
 	this->Disconnect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
 	mButtonAddChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ), NULL, this );
 	mChoiceCellChannel->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( frameMain::onCellChannelChoice ), NULL, this );
+	mButtonAddIntersection->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddIntersectionClicked ), NULL, this );
 
 }
 
@@ -860,7 +752,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	wxString mChoiceThresholdMethodChoices[] = { _("Manual"), _("Li"), _("Min. error"), _("Triangle") };
 	int mChoiceThresholdMethodNChoices = sizeof( mChoiceThresholdMethodChoices ) / sizeof( wxString );
 	mChoiceThresholdMethod = new wxChoice( panelThresholdMethod, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceThresholdMethodNChoices, mChoiceThresholdMethodChoices, 0 );
-	mChoiceThresholdMethod->SetSelection( 0 );
+	mChoiceThresholdMethod->SetSelection( 2 );
 	izerThresholdMethod2->Add( mChoiceThresholdMethod, 1, wxEXPAND, 5 );
 
 
@@ -1029,9 +921,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( mLineRemove, 0, wxEXPAND|wxALL, 5 );
 
 	mButtonRemoveChannel = new wxButton( mScrolledChannel, wxID_ANY, _("Remove"), wxDefaultPosition, wxDefaultSize, 0 );
-	mButtonRemoveChannel->SetForegroundColour( wxColour( 255, 255, 255 ) );
-	mButtonRemoveChannel->SetBackgroundColour( wxColour( 200, 110, 110 ) );
-
 	mSizerChannel->Add( mButtonRemoveChannel, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
@@ -1049,8 +938,150 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	this->SetSizer( mSizerForScroll );
 	this->Layout();
 	mSizerForScroll->Fit( this );
+
+	// Connect Events
+	mButtonRemoveChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 }
 
 PanelChannel::~PanelChannel()
 {
+	// Disconnect Events
+	mButtonRemoveChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
+
+}
+
+PanelIntersection::PanelIntersection( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
+{
+	wxBoxSizer* mSizerForScroll;
+	mSizerForScroll = new wxBoxSizer( wxHORIZONTAL );
+
+	mSizerForScroll->SetMinSize( wxSize( 250,-1 ) );
+	mPanelIntersection = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
+	mPanelIntersection->SetScrollRate( 5, 5 );
+	mPanelIntersection->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+	mPanelIntersection->SetMaxSize( wxSize( 250,-1 ) );
+
+	wxGridSizer* mGridIntersection2;
+	mGridIntersection2 = new wxGridSizer( 0, 1, 0, 0 );
+
+	wxBoxSizer* mSizerIntersection;
+	mSizerIntersection = new wxBoxSizer( wxVERTICAL );
+
+	mLabelIntersection = new wxStaticText( mPanelIntersection, wxID_ANY, _("Intersection"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
+	mLabelIntersection->Wrap( -1 );
+	mLabelIntersection->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+
+	mSizerIntersection->Add( mLabelIntersection, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
+
+	panelMinIntersection = new wxPanel( mPanelIntersection, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelMinIntersection->SetMaxSize( wxSize( -1,65 ) );
+
+	wxBoxSizer* sizerMinIntersection;
+	sizerMinIntersection = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* sizerMinIntersection2;
+	sizerMinIntersection2 = new wxBoxSizer( wxHORIZONTAL );
+
+	iconMinIntersection = new wxStaticBitmap( panelMinIntersection, wxID_ANY, combine_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerMinIntersection2->Add( iconMinIntersection, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+
+	mSpinMinIntersection = new wxSpinCtrlDouble( panelMinIntersection, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1, 0.8, 0.01 );
+	mSpinMinIntersection->SetDigits( 2 );
+	sizerMinIntersection2->Add( mSpinMinIntersection, 1, 0, 5 );
+
+
+	sizerMinIntersection->Add( sizerMinIntersection2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+
+	mLabelMinIntersection = new wxStaticText( panelMinIntersection, wxID_ANY, _("Min. intersection"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelMinIntersection->Wrap( -1 );
+	mLabelMinIntersection->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
+	sizerMinIntersection->Add( mLabelMinIntersection, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+
+
+	panelMinIntersection->SetSizer( sizerMinIntersection );
+	panelMinIntersection->Layout();
+	sizerMinIntersection->Fit( panelMinIntersection );
+	mSizerIntersection->Add( panelMinIntersection, 1, wxEXPAND|wxTOP, 5 );
+
+	mPanelIntersectionButtons = new wxPanel( mPanelIntersection, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	wxGridSizer* mGridIntersection;
+	mGridIntersection = new wxGridSizer( 0, 2, 0, 0 );
+
+	mButtonIntersectionCh01 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 01"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh01, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh02 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 02"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh02, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh03 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 03"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh03, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh04 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 04"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh04, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh05 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 05"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh05, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh06 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 06"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh06, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh07 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 07"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh07, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh08 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 08"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh08, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh09 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 09"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh09, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh10 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 10"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh10, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh11 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 11"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh11, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionCh12 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 12"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionCh12, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mButtonIntersectionChEstimatedCell = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Approx Cells"), wxDefaultPosition, wxDefaultSize, 0 );
+	mGridIntersection->Add( mButtonIntersectionChEstimatedCell, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+
+	mPanelIntersectionButtons->SetSizer( mGridIntersection );
+	mPanelIntersectionButtons->Layout();
+	mGridIntersection->Fit( mPanelIntersectionButtons );
+	mSizerIntersection->Add( mPanelIntersectionButtons, 0, wxEXPAND|wxTOP, 5 );
+
+	m_staticline8 = new wxStaticLine( mPanelIntersection, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	mSizerIntersection->Add( m_staticline8, 0, wxEXPAND | wxALL, 5 );
+
+	mButtonRemovePipelineStep = new wxButton( mPanelIntersection, wxID_ANY, _("Remove"), wxDefaultPosition, wxDefaultSize, 0 );
+	mSizerIntersection->Add( mButtonRemovePipelineStep, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	mSizerIntersection->Add( 0, 0, 1, wxEXPAND, 5 );
+
+
+	mGridIntersection2->Add( mSizerIntersection, 0, wxEXPAND|wxLEFT|wxRIGHT, 10 );
+
+
+	mPanelIntersection->SetSizer( mGridIntersection2 );
+	mPanelIntersection->Layout();
+	mSizerForScroll->Add( mPanelIntersection, 1, wxEXPAND|wxALL, 5 );
+
+
+	this->SetSizer( mSizerForScroll );
+	this->Layout();
+	mSizerForScroll->Fit( this );
+
+	// Connect Events
+	mButtonRemovePipelineStep->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelIntersection::onRemoveClicked ), NULL, this );
+}
+
+PanelIntersection::~PanelIntersection()
+{
+	// Disconnect Events
+	mButtonRemovePipelineStep->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelIntersection::onRemoveClicked ), NULL, this );
+
 }

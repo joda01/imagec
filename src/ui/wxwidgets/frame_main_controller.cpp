@@ -17,23 +17,6 @@ FrameMainController::FrameMainController(wxWindow *parent, joda::ctrl::Controlle
   addChannel();
 }
 
-///
-/// \brief      Adds a new channel
-/// \author     Joachim Danmayr
-/// \return
-///
-void FrameMainController::addChannel()
-{
-  auto channel = std::make_shared<PanelChannelController>(mScrollbarChannels, wxID_ANY, wxDefaultPosition,
-                                                          wxDefaultSize, wxTAB_TRAVERSAL);
-  mSizerChannels->Insert(mChannels.size(), channel.get(), 0, wxEXPAND | wxALL, 5);
-  mScrollbarChannels->Layout();
-  mSizerChannels->Layout();
-  mSizerChannelsScrollbar->Layout();
-  this->Layout();
-  mChannels.push_back(channel);
-}
-
 FrameMainController::~FrameMainController()
 {
   mStopped = true;
@@ -63,6 +46,23 @@ void FrameMainController::refreshFunction()
 }
 
 ///
+/// \brief      Adds a new channel
+/// \author     Joachim Danmayr
+/// \return
+///
+void FrameMainController::addChannel()
+{
+  auto channel = std::make_shared<PanelChannelController>(this, mScrollbarChannels, wxID_ANY, wxDefaultPosition,
+                                                          wxDefaultSize, wxTAB_TRAVERSAL);
+  mSizerChannels->Insert(mChannels.size(), channel.get(), 0, wxEXPAND | wxALL, 5);
+  mScrollbarChannels->Layout();
+  mSizerChannels->Layout();
+  mSizerChannelsScrollbar->Layout();
+  this->Layout();
+  mChannels.push_back(channel);
+}
+
+///
 /// \brief      Remove a channel
 /// \author     Joachim Danmayr
 /// \param[in]  event
@@ -78,6 +78,16 @@ void FrameMainController::removeChannel(int32_t channelIndex)
   this->Layout();
 }
 
+void FrameMainController::removeChannel(void *toRemove)
+{
+  for(int n = 0; n < mChannels.size(); n++) {
+    if(mChannels[n].get() == toRemove) {
+      removeChannel(n);
+      break;
+    }
+  }
+}
+
 ///
 /// \brief      Remove all channel
 /// \author     Joachim Danmayr
@@ -87,6 +97,62 @@ void FrameMainController::removeAllChannels()
 {
   for(int n = mChannels.size() - 1; n >= 0; n--) {
     removeChannel(n);
+  }
+}
+
+///
+/// \brief      Adds a new pipelinestep
+/// \author     Joachim Danmayr
+/// \return
+///
+void FrameMainController::addPipelineStep()
+{
+  auto intersectionStep = std::make_shared<PanelIntersectionControl>(this, mScrrollbarPipelineStep, wxID_ANY,
+                                                                     wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+  mSizerPipelineStep->Insert(mIntersections.size() + PIPELINE_STEP_PANEL_INDEX_OFFSET, intersectionStep.get(), 0,
+                             wxEXPAND | wxALL, 5);
+  mScrrollbarPipelineStep->Layout();
+  mSizerPipelineStep->Layout();
+  mSizerHorizontalScrolPipelineSteps->Layout();
+  this->Layout();
+  mIntersections.push_back(intersectionStep);
+}
+
+///
+/// \brief      Removes a pipelinestep
+/// \author     Joachim Danmayr
+/// \return
+///
+void FrameMainController::removePipelineStep(int32_t pipelineStepIndex)
+{
+  mSizerPipelineStep->Remove(pipelineStepIndex + PIPELINE_STEP_PANEL_INDEX_OFFSET);
+  auto it = mIntersections.begin() + pipelineStepIndex;
+  mIntersections.erase(it);
+  mScrrollbarPipelineStep->Layout();
+  mSizerPipelineStep->Layout();
+  mSizerHorizontalScrolPipelineSteps->Layout();
+  this->Layout();
+}
+
+void FrameMainController::removePipelineStep(void *toRemove)
+{
+  for(int n = 0; n < mIntersections.size(); n++) {
+    if(mIntersections[n].get() == toRemove) {
+      removePipelineStep(n);
+      break;
+    }
+  }
+}
+
+///
+/// \brief      Removes all pipelinestep
+/// \author     Joachim Danmayr
+/// \return
+///
+void FrameMainController::removeAllPipelineSteps()
+{
+  for(int n = mIntersections.size() - 1; n >= 0; n--) {
+    removePipelineStep(n);
   }
 }
 
@@ -117,6 +183,16 @@ void FrameMainController::onOpenSettingsClicked(wxCommandEvent &event)
 void FrameMainController::onAddChannelClicked(wxCommandEvent &event)
 {
   addChannel();
+}
+
+///
+/// \brief      Add pipelinestep clicked
+/// \author     Joachim Danmayr
+/// \param[in]  event
+///
+void FrameMainController::onAddIntersectionClicked(wxCommandEvent &event)
+{
+  addPipelineStep();
 }
 
 ///
@@ -182,25 +258,13 @@ void FrameMainController::onCellChannelChoice(wxCommandEvent &event)
 void FrameMainController::loadValues(const joda::settings::json::AnalyzeSettings &settings)
 {
   removeAllChannels();
+  removeAllPipelineSteps();
+
   for(const auto &channel : settings.getChannelsVector()) {
     addChannel();
-    std::shared_ptr<PanelChannelController> channelUi = mChannels.at(mChannels.size() - 1);
+    std::shared_ptr<PanelChannelController> channelUi = mChannels.back();
     channelUi->loadValues(channel);
   }
-
-  mButtonIntersectionCh01->SetValue(false);
-  mButtonIntersectionCh02->SetValue(false);
-  mButtonIntersectionCh03->SetValue(false);
-  mButtonIntersectionCh04->SetValue(false);
-  mButtonIntersectionCh05->SetValue(false);
-  mButtonIntersectionCh06->SetValue(false);
-  mButtonIntersectionCh07->SetValue(false);
-  mButtonIntersectionCh08->SetValue(false);
-  mButtonIntersectionCh09->SetValue(false);
-  mButtonIntersectionCh10->SetValue(false);
-  mButtonIntersectionCh11->SetValue(false);
-  mButtonIntersectionCh12->SetValue(false);
-  mButtonIntersectionChEstimatedCell->SetValue(false);
 
   // mDirectoryPicker->SetPath(const wxString &str);
   for(const auto &pipelineStep : settings.getPipelineSteps()) {
@@ -211,35 +275,9 @@ void FrameMainController::loadValues(const joda::settings::json::AnalyzeSettings
     }
 
     if(pipelineStep.getIntersection()) {
-      const auto &chIdx = pipelineStep.getIntersection()->channel_index;
-      for(const auto idx : chIdx) {
-        if(idx == 0)
-          mButtonIntersectionCh01->SetValue(true);
-        if(idx == 1)
-          mButtonIntersectionCh02->SetValue(true);
-        if(idx == 2)
-          mButtonIntersectionCh03->SetValue(true);
-        if(idx == 3)
-          mButtonIntersectionCh04->SetValue(true);
-        if(idx == 4)
-          mButtonIntersectionCh05->SetValue(true);
-        if(idx == 5)
-          mButtonIntersectionCh06->SetValue(true);
-        if(idx == 6)
-          mButtonIntersectionCh07->SetValue(true);
-        if(idx == 7)
-          mButtonIntersectionCh08->SetValue(true);
-        if(idx == 8)
-          mButtonIntersectionCh09->SetValue(true);
-        if(idx == 9)
-          mButtonIntersectionCh10->SetValue(true);
-        if(idx == 10)
-          mButtonIntersectionCh11->SetValue(true);
-        if(idx == 11)
-          mButtonIntersectionCh12->SetValue(true);
-        if(idx == static_cast<int32_t>(settings::json::PipelineStepSettings::PipelineStepIndex::CELL_APPROXIMATION))
-          mButtonIntersectionChEstimatedCell->SetValue(true);
-      }
+      addPipelineStep();
+      std::shared_ptr<PanelIntersectionControl> intersectUi = mIntersections.back();
+      intersectUi->loadValues(*pipelineStep.getIntersection());
     }
   }
 
@@ -272,49 +310,8 @@ nlohmann::json FrameMainController::getValues()
                                    {"max_cell_radius", mSpinMaxCellRadius->GetValue()}}}});
   }
 
-  std::set<int32_t> intersectionButtons;
-  if(mButtonIntersectionCh01->GetValue()) {
-    intersectionButtons.emplace(0);
-  }
-  if(mButtonIntersectionCh02->GetValue()) {
-    intersectionButtons.emplace(1);
-  }
-  if(mButtonIntersectionCh03->GetValue()) {
-    intersectionButtons.emplace(2);
-  }
-  if(mButtonIntersectionCh04->GetValue()) {
-    intersectionButtons.emplace(3);
-  }
-  if(mButtonIntersectionCh05->GetValue()) {
-    intersectionButtons.emplace(4);
-  }
-  if(mButtonIntersectionCh06->GetValue()) {
-    intersectionButtons.emplace(5);
-  }
-  if(mButtonIntersectionCh07->GetValue()) {
-    intersectionButtons.emplace(6);
-  }
-  if(mButtonIntersectionCh08->GetValue()) {
-    intersectionButtons.emplace(7);
-  }
-  if(mButtonIntersectionCh09->GetValue()) {
-    intersectionButtons.emplace(8);
-  }
-  if(mButtonIntersectionCh10->GetValue()) {
-    intersectionButtons.emplace(9);
-  }
-  if(mButtonIntersectionCh11->GetValue()) {
-    intersectionButtons.emplace(10);
-  }
-  if(mButtonIntersectionCh12->GetValue()) {
-    intersectionButtons.emplace(11);
-  }
-  if(mButtonIntersectionChEstimatedCell->GetValue()) {
-    intersectionButtons.emplace(
-        static_cast<int32_t>(settings::json::PipelineStepSettings::PipelineStepIndex::CELL_APPROXIMATION));
-  }
-  if(!intersectionButtons.empty()) {
-    pipelineStepArray.push_back({{"intersection", {{"channel_index", intersectionButtons}}}});
+  for(const auto &intersect : mIntersections) {
+    pipelineStepArray.push_back(intersect->getValues());
   }
 
   jsonSettings["pipeline_steps"] = pipelineStepArray;

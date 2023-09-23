@@ -29,7 +29,6 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
                                const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {
   joda::func::DetectionResponse resp;
-
   const joda::func::DetectionResponse *ch1;
   const joda::func::DetectionResponse *ch2;
   if(detectionResultsIn.at(0).result.size() > detectionResultsIn.at(13).result.size()) {
@@ -71,6 +70,7 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
                                                          .opaque          = 1},
 
       });
+
   return resp;
 }
 
