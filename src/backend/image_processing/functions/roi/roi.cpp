@@ -56,7 +56,8 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
       unsigned char maskPxl = boxMask.at<unsigned char>(y, x);    // Get the pixel value at (x, y)
       if(maskPxl > 0) {
         // \todo there is a bug
-        double pixelGrayScale = imageOriginal.at<unsigned short>(y, x);    // Get the pixel value at (x, y)
+        double pixelGrayScale =
+            imageOriginal.at<unsigned short>(box.y + y, box.x + x);    // Get the pixel value at (x, y)
         if(pixelGrayScale < intensityMin) {
           intensityMin = pixelGrayScale;
         }
@@ -130,16 +131,14 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 [[nodiscard]] std::tuple<ROI, bool> ROI::calcIntersection(const ROI &roi, const cv::Mat &imageOriginal,
                                                           float minIntersection) const
 {
-  // Create an empty mask for the intersection
-  int intersectedMaskRows         = std::max(getMask().rows, roi.getMask().rows);
-  int intersectedMaskCols         = std::max(getMask().cols, roi.getMask().cols);
-  cv::Mat intersectedMask         = cv::Mat::zeros(intersectedMaskRows, intersectedMaskCols, CV_8U);
   uint32_t nrOfIntersectingPixels = 0;
   uint32_t nrOfPixelsMask1        = 0;
   uint32_t nrOfPixelsMask2        = 0;
 
   // Calculate the intersection of the bounding boxes
   cv::Rect intersectedRect = getBoundingBox() & roi.getBoundingBox();
+  cv::Mat intersectedMask  = cv::Mat::zeros(intersectedRect.height, intersectedRect.width, CV_8UC1);
+
   if(intersectedRect.area() > 0) {
     // Iterate through the pixels in the intersection and set them in the new mask
     for(int y = 0; y < intersectedRect.height; ++y) {
@@ -172,8 +171,11 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
         }
       }
     }
-    int biggestMask        = std::max(nrOfPixelsMask1, nrOfPixelsMask2);
-    float intersectionArea = static_cast<float>(nrOfIntersectingPixels) / static_cast<float>(biggestMask);
+    int smallestMask       = std::min(nrOfPixelsMask1, nrOfPixelsMask2);
+    float intersectionArea = 0;
+    if(smallestMask > 0) {
+      intersectionArea = static_cast<float>(nrOfIntersectingPixels) / static_cast<float>(smallestMask);
+    }
     ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, imageOriginal);
     if(intersectionArea < minIntersection) {
       intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);

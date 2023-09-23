@@ -54,14 +54,14 @@ public:
       if(paintRectangel && !result[i].getBoundingBox().empty()) {
         rectangle(img, result[i].getBoundingBox(), RED, 1 * THICKNESS, cv::LINE_4);
       }
-
       if(!result[i].getMask().empty() && !result[i].getBoundingBox().empty()) {
         try {
           mask(result[i].getBoundingBox()).setTo(RED, result[i].getMask());
-          // std::vector<std::vector<cv::Point>> contours;
-          // findContours(result[i].getMask(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
-          // drawContours(img(result[i].getBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
+          std::vector<std::vector<cv::Point>> contours;
+          findContours(result[i].getMask(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+          drawContours(img(result[i].getBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
         } catch(const std::exception &ex) {
+          std::cout << "P" << ex.what() << std::endl;
         }
       }
       std::string label = std::to_string(result[i].getIndex());
