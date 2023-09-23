@@ -87,22 +87,21 @@ public:
 
   void interpretConfig()
   {
-    if(!z_stack.value.empty()) {
-    }
-
-    if(rolling_ball.value > 0) {
-      mPreprocessingFunction = std::make_shared<joda::func::img::RollingBallBackground>(rolling_ball.value);
-    }
-
-    if(margin_crop.value > 0) {
-      mPreprocessingFunction = std::make_shared<joda::func::img::MarginCrop>(margin_crop.value);
-    }
   }
 
   void execute(cv::Mat &image) const
   {
-    if(mPreprocessingFunction != nullptr) {
-      mPreprocessingFunction->execute(image);
+    if(!z_stack.value.empty()) {
+    }
+
+    if(rolling_ball.value > 0) {
+      joda::func::img::RollingBallBackground function(rolling_ball.value);
+      function.execute(image);
+    }
+
+    if(margin_crop.value > 0) {
+      joda::func::img::MarginCrop function(margin_crop.value);
+      function.execute(image);
     }
   }
 
@@ -135,8 +134,6 @@ private:
   PreprocessingZStack z_stack;
   PreprocessingRollingBall rolling_ball;
   PreprocessingMarginCrop margin_crop;
-
-  std::shared_ptr<joda::func::img::Function> mPreprocessingFunction;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingStep, z_stack, rolling_ball, margin_crop);
 };

@@ -160,7 +160,7 @@ void HttpServer::start(int listeningPort)
 
     nlohmann::json retDoc;
     try {
-      auto [progress, state] = joda::pipeline::PipelineFactory::getState(actProcessorUID);
+      auto [progress, state, error] = joda::pipeline::PipelineFactory::getState(actProcessorUID);
       if(state == joda::pipeline::Pipeline::State::RUNNING) {
         retDoc["status"] = "RUNNING";
       }

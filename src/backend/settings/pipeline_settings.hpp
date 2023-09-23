@@ -113,8 +113,6 @@ private:
   /////////////////////////////////////////////////////
   PipelineStepCellApproximation cell_approximation;
   PipelineStepIntersection intersection;
-
-  std::shared_ptr<joda::pipeline::PipelineStep> mPipelineStep;
   ChannelSettings mChannelSettings;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepSettings, cell_approximation, intersection);

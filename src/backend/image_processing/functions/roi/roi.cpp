@@ -56,16 +56,20 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
       unsigned char maskPxl = boxMask.at<unsigned char>(y, x);    // Get the pixel value at (x, y)
       if(maskPxl > 0) {
         // \todo there is a bug
-        double pixelGrayScale =
-            imageOriginal.at<unsigned short>(box.y + y, box.x + x);    // Get the pixel value at (x, y)
-        if(pixelGrayScale < intensityMin) {
-          intensityMin = pixelGrayScale;
+        int imgx = box.x + x;
+        int imgy = box.y + y;
+
+        if(imgx < imageOriginal.cols && imgy < imageOriginal.rows) {
+          double pixelGrayScale = imageOriginal.at<unsigned short>(imgy, imgx);    // Get the pixel value at (x, y)
+          if(pixelGrayScale < intensityMin) {
+            intensityMin = pixelGrayScale;
+          }
+          if(pixelGrayScale > intensityMax) {
+            intensityMax = pixelGrayScale;
+          }
+          intensity += pixelGrayScale;
+          areaSize++;
         }
-        if(pixelGrayScale > intensityMax) {
-          intensityMax = pixelGrayScale;
-        }
-        intensity += pixelGrayScale;
-        areaSize++;
       }
     }
   }

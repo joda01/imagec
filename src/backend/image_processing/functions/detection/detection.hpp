@@ -107,7 +107,11 @@ public:
         std::string label = std::to_string(ov.result[i].getIndex());
         // drawLabel(img, label, left, top);
       }
-      addWeighted(mask, ov.opaque, img, 1, 0, img);
+      try {
+        addWeighted(mask, ov.opaque, img, 1, 0, img);
+      } catch(const std::exception &ex) {
+        std::cout << "P" << ex.what() << std::endl;
+      }
     }
   }
 

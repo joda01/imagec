@@ -31,7 +31,8 @@ public:
   Controller();
   void start(const settings::json::AnalyzeSettings &settings);
   void stop();
-  std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State> getState();
+  void reset();
+  std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string> getState();
   auto getNrOfFoundImages() -> uint32_t;
   void getSettings();
   void setWorkingDirectory(const std::string &dir);

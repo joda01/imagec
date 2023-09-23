@@ -33,10 +33,11 @@ using namespace std;
 using namespace std::filesystem;
 
 Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
-                   joda::helper::ImageFileContainer *imageFileContainer) :
-    mAnalyzeSettings(settings),
-    mImageFileContainer(imageFileContainer)
+                   joda::helper::ImageFileContainer *imageFileContainer, const std::string &inputFolder) :
+    mInputFolder(inputFolder),
+    mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer)
 {
+  mMainThread = std::make_shared<std::thread>(&Pipeline::runJob, this);
 }
 
 ///
@@ -48,18 +49,19 @@ Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
 /// \author     Joachim Danmayr
 /// \return
 ///
-void Pipeline::runJob(const std::string &inputFolder)
+void Pipeline::runJob()
 {
+  // try {
   mState = State::RUNNING;
   // Prepare
-  mOutputFolder = prepareOutputFolder(inputFolder);
+  mOutputFolder = prepareOutputFolder(mInputFolder);
 
   // Store configuration
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");
 
   // Look for images in the input folder
-  mImageFileContainer->setWorkingDirectory(inputFolder);
+  mImageFileContainer->setWorkingDirectory(mInputFolder);
   mImageFileContainer->waitForFinished();
   mProgress.total.total = mImageFileContainer->getNrOfFiles();
 
@@ -164,6 +166,12 @@ void Pipeline::runJob(const std::string &inputFolder)
   std::string resultsFile = mOutputFolder + separator + "results.csv";
   alloverReport.flushReportToFile(resultsFile);
   mState = State::FINISHED;
+  //} catch(const std::exception &ex) {
+  //  setStateError(ex.what());
+  //}
+  while(!mStop) {
+    sleep(1);
+  }
 }
 
 void Pipeline::setDetailReportHeader(joda::reporting::Table &detailReportTable, const std::string &channelName,
@@ -294,17 +302,20 @@ void Pipeline::appendToAllOverReport(joda::reporting::Table &allOverReport,
 
   auto nowString    = ::joda::helper::timeNowToString();
   auto outputFolder = inputFolder + separator + RESULTS_PATH_NAME + separator + nowString;
-
-  bool directoryExists = false;
-  if(!std::filesystem::exists(outputFolder)) {
-    directoryExists = std::filesystem::create_directories(outputFolder);
-    if(!directoryExists) {
-      throw std::runtime_error("Can not create output folder!");
+  try {
+    bool directoryExists = false;
+    if(!std::filesystem::exists(outputFolder)) {
+      directoryExists = std::filesystem::create_directories(outputFolder);
+      if(!directoryExists) {
+        setStateError("Can not create output folder!");
+      }
+    } else {
+      directoryExists = true;
     }
-  } else {
-    directoryExists = true;
+    return outputFolder;
+  } catch(const std::exception &ex) {
+    setStateError(ex.what());
   }
-  return outputFolder;
 }
 
 }    // namespace joda::pipeline

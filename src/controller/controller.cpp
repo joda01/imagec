@@ -44,10 +44,20 @@ void Controller::stop()
 }
 
 ///
+/// \brief      Stop a running process
+/// \author     Joachim Danmayr
+///
+void Controller::reset()
+{
+  joda::pipeline::PipelineFactory::reset();
+}
+
+///
 /// \brief      Returns process state
 /// \author     Joachim Danmayr
 ///
-std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State> Controller::getState()
+std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string>
+Controller::getState()
 {
   return joda::pipeline::PipelineFactory::getState(mActProcessId);
 }

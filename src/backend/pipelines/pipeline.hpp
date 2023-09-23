@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -50,12 +51,32 @@ public:
     PAUSED,
     STOPPING,
     FINISHED,
+    ERROR,
   };
 
-  Pipeline(const settings::json::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer);
+  Pipeline(const settings::json::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
+           const std::string &inputFolder);
+  ~Pipeline()
+  {
+    stopJob();
+    if(mMainThread->joinable()) {
+      mMainThread->join();
+    }
+    std::cout << "Destroxe" << std::endl;
+  }
+  const std::string &getLastErrorMessage()
+  {
+    return mLastErrorMessage;
+  }
 
 protected:
   /////////////////////////////////////////////////////
+  [[noreturn]] void setStateError(const std::string &what) noexcept(false)
+  {
+    mState            = State::ERROR;
+    mLastErrorMessage = what;
+    throw std::runtime_error(what);
+  }
 
   ///
   /// \brief Returns the analyze settings of this pipeline
@@ -83,7 +104,7 @@ private:
   static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 7;
 
   /////////////////////////////////////////////////////
-  void runJob(const std::string &inputFolder);
+  void runJob();
 
   ///
   /// \brief Stop a running job
@@ -95,9 +116,9 @@ private:
 
   ///
   /// \brief Total progress and state of the analysis
-  [[nodiscard]] auto getState() const -> std::tuple<ProgressIndicator, State>
+  [[nodiscard]] auto getState() const -> std::tuple<ProgressIndicator, State, std::string>
   {
-    return {mProgress, mState};
+    return {mProgress, mState, mLastErrorMessage};
   }
 
 private:
@@ -105,7 +126,7 @@ private:
   static inline const std::string RESULTS_PATH_NAME{"results"};
 
   /////////////////////////////////////////////////////
-  static auto prepareOutputFolder(const std::string &inputFolder) -> std::string;
+  auto prepareOutputFolder(const std::string &inputFolder) -> std::string;
   ///
   /// \brief Returns if the thread should be stopped
   [[nodiscard]] auto shouldThreadBeStopped() const -> bool
@@ -129,6 +150,8 @@ private:
 
   ProgressIndicator mProgress;
   State mState = State::STOPPED;
+  std::string mLastErrorMessage;
+  std::shared_ptr<std::thread> mMainThread;
 };
 
 }    // namespace joda::pipeline

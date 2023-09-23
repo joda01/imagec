@@ -29,12 +29,14 @@ private:
   void onCloseClicked(wxCommandEvent &event) override;
   void refreshThread();
   void refreshFunction();
+  void showErrorDialog(const std::string &what);
 
   /////////////////////////////////////////////////////
   joda::ctrl::Controller *mPipelineController;
   joda::settings::json::AnalyzeSettings *mAnalyzeSettins;
   std::shared_ptr<std::thread> mRefreshTimer;
   bool mStopped = false;
+  std::string mLastErrorMsg;
 };
 }    // namespace joda::ui::wxwidget
 #endif    // __dialog_processing_controller__

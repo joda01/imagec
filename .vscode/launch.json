@@ -8,9 +8,9 @@
             "name": "CMake Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/workspaces/imagec/build/build/tests",
+            "program": "/workspaces/imagec/build/build/imagec",
             "args": [
-                "[pipeline_test_nucleus]"
+                "[pipeline_test]"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

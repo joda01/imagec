@@ -12,6 +12,7 @@
 ///
 
 #include "dialog_processing_controller.h"
+#include <wx/wx.h>
 #include <exception>
 #include <string>
 
@@ -28,6 +29,7 @@ DialogProcessingController::DialogProcessingController(wxWindow *parent, joda::c
     DialogProcessing(parent, id, title, pos, size, style),
     mPipelineController(pipelineController), mAnalyzeSettins(settings)
 {
+  mPipelineController->reset();
   refreshFunction();
   mRefreshTimer = std::make_shared<std::thread>(&DialogProcessingController::refreshThread, this);
   mPipelineController->start(*mAnalyzeSettins);
@@ -63,8 +65,11 @@ void DialogProcessingController::refreshFunction()
   wxString newTextImage                    = "0/0";
   joda::pipeline::Pipeline::State actState = joda::pipeline::Pipeline::State::STOPPED;
   try {
-    auto [progress, state] = mPipelineController->getState();
-    actState               = state;
+    auto [progress, state, errorMsg] = mPipelineController->getState();
+    if(state == joda::pipeline::Pipeline::State::ERROR) {
+      mLastErrorMsg = errorMsg;
+    }
+    actState = state;
 
     newTextAllOver = wxString::Format("%d/%d", progress.total.finished, progress.total.total);
     newTextImage   = wxString::Format("%d/%d", progress.image.finished, progress.image.total);
@@ -73,15 +78,34 @@ void DialogProcessingController::refreshFunction()
     mProgressImage->SetValue(progress.image.finished);
     mProgressAllOver->SetRange(progress.total.total);
     mProgressAllOver->SetValue(progress.total.finished);
+
   } catch(const std::exception &ex) {
+    wxCommandEvent ev;
+    onStopClicked(ev);
   }
 
   CallAfter([this, actState, newTextAllOver, newTextImage]() {
+    if(!mStopped && actState == joda::pipeline::Pipeline::State::ERROR) {
+      mStopped = true;
+      showErrorDialog(mLastErrorMsg);
+    }
     mLabelProgressAllOver->SetLabel(newTextAllOver);
     mLabelProgressImage->SetLabel(newTextImage);
     mButtonStop->Enable(actState == joda::pipeline::Pipeline::State::RUNNING);
     mButtonClose->Enable(actState != joda::pipeline::Pipeline::State::RUNNING);
   });
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogProcessingController::showErrorDialog(const std::string &what)
+{
+  wxMessageBox(what, "Error", wxOK | wxICON_ERROR, this);
 }
 
 ///

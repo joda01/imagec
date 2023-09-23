@@ -46,6 +46,16 @@ public:
   }
 
   ///
+  /// \brief     Reset to default variables
+  /// \author     Joachim Danmayr
+  ///
+  static void reset()
+  {
+    mLastJobProgressIndicator = {};
+    mLastErrorMessage         = "";
+  }
+
+  ///
   /// \brief      Blocking function which stops the main thread
   /// \author     Joachim Danmayr
   ///
@@ -65,38 +75,31 @@ public:
                           joda::helper::ImageFileContainer *imageFileContainer) -> std::string
   {
     std::string jobId = std::to_string(mJobCount++);
-
-    auto pipeline       = std::make_shared<pipeline::Pipeline>(settings, imageFileContainer);
-    auto mainThreadFunc = [=](std::string inputFolder, std::string jobId) {
-      try {
-        pipeline->runJob(inputFolder);
-      } catch(std::exception &ex) {
-        joda::log::logError(ex.what());
-      }
-      // mJobs.erase(jobId);
-    };
-    std::future<void> future = std::async(std::launch::async, mainThreadFunc, inputFolder, jobId);
-    mJobs.emplace(jobId, Job{pipeline, std::move(future)});
+    mJob              = std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder);
 
     return jobId;
   };
 
   static void stopJob(const std::string jobId)
   {
-    if(mJobs.contains(jobId)) {
-      return mJobs[jobId].pipeline->stopJob();
+    if(mJob) {
+      return mJob->stopJob();
     }
 
     throw std::invalid_argument("Job with ID >" + jobId + "< not found!");
   }
 
   static auto getState(const std::string jobId)
-      -> std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State>
+      -> std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string>
   {
-    if(mJobs.contains(jobId)) {
-      return mJobs[jobId].pipeline->getState();
+    if(mJob) {
+      return mJob->getState();
     }
-    return {mLastJobProgressIndicator, joda::pipeline::Pipeline::State::FINISHED};
+    if(mLastErrorMessage.empty()) {
+      return {mLastJobProgressIndicator, joda::pipeline::Pipeline::State::FINISHED, mLastErrorMessage};
+    } else {
+      return {mLastJobProgressIndicator, joda::pipeline::Pipeline::State::ERROR, mLastErrorMessage};
+    }
   }
 
 private:
@@ -108,31 +111,24 @@ private:
   {
     while(!mStopped) {
       std::set<std::string> toDelete;
-
-      for(const auto &[uid, processor] : mJobs) {
-        auto [progress, state] = processor.pipeline->getState();
-        if(state == Pipeline::State::FINISHED) {
-          processor.future.wait();
-          toDelete.emplace(uid);
+      if(mJob) {
+        auto [progress, state, errorMsg] = mJob->getState();
+        if(state == Pipeline::State::FINISHED || state == Pipeline::State::ERROR) {
           mLastJobProgressIndicator = progress;
-          joda::log::logInfo("Analyze with process id >" + uid + "< finished!");
+          mLastErrorMessage         = errorMsg;
+
+          joda::log::logInfo("Analyze finished!");
+          mJob.reset();
         }
       }
 
-      for(const auto &uid : toDelete) {
-        mJobs.erase(uid);
-      }
       std::this_thread::sleep_for(2.5s);
     }
   }
 
-  struct Job
-  {
-    std::shared_ptr<Pipeline> pipeline;
-    std::future<void> future;
-  };
   static inline joda::pipeline::Pipeline::ProgressIndicator mLastJobProgressIndicator;
-  static inline std::map<std::string, Job> mJobs;
+  static inline std::string mLastErrorMessage;
+  static inline std::unique_ptr<Pipeline> mJob = nullptr;
   static inline std::shared_ptr<std::thread> mMainThread;
   static inline bool mStopped = false;
   static inline int mJobCount = 0;

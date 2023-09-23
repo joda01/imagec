@@ -27,16 +27,11 @@ void PipelineStepSettings::interpretConfig()
   if(cell_approximation.nucleus_channel_index >= 0 || cell_approximation.cell_channel_index >= 0) {
     mChannelSettings.index = PipelineStepIndex::CELL_APPROXIMATION;
     mChannelSettings.name  = "Approx. Cells";
-    mPipelineStep = std::make_shared<joda::pipeline::CellApproximation>(cell_approximation.nucleus_channel_index,
-                                                                        cell_approximation.cell_channel_index,
-                                                                        cell_approximation.max_cell_radius);
   }
 
   if(!intersection.channel_index.empty()) {
     mChannelSettings.index = PipelineStepIndex::INTERSECTION;
     mChannelSettings.name  = "Intersection";
-    mPipelineStep =
-        std::make_shared<joda::pipeline::CalcIntersection>(intersection.channel_index, intersection.min_intersection);
   }
 }
 
@@ -49,9 +44,18 @@ auto PipelineStepSettings::execute(const settings::json::AnalyzeSettings &settin
                                    const std::string &detailoutputPath) const
     -> std::tuple<ChannelSettings, joda::func::DetectionResponse>
 {
-  if(mPipelineStep) {
-    return {mChannelSettings, mPipelineStep->execute(settings, responseIn, detailoutputPath)};
+  if(cell_approximation.nucleus_channel_index >= 0 || cell_approximation.cell_channel_index >= 0) {
+    joda::pipeline::CellApproximation function(cell_approximation.nucleus_channel_index,
+                                               cell_approximation.cell_channel_index,
+                                               cell_approximation.max_cell_radius);
+    return {mChannelSettings, function.execute(settings, responseIn, detailoutputPath)};
   }
+
+  if(!intersection.channel_index.empty()) {
+    joda::pipeline::CalcIntersection function(intersection.channel_index, intersection.min_intersection);
+    return {mChannelSettings, function.execute(settings, responseIn, detailoutputPath)};
+  }
+
   return {ChannelSettings{}, joda::func::DetectionResponse{}};
 }
 
