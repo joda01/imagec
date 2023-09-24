@@ -13,6 +13,7 @@
 
 #include "pipeline.hpp"
 #include <algorithm>
+#include <cstdint>
 #include <exception>
 #include <filesystem>
 #include <iostream>
@@ -209,7 +210,7 @@ void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda:
   if(!result.originalImage.empty()) {
     cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
                     std::to_string(tileIdx) + ".jpg",
-                result.originalImage);
+                result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX));
   }
 
   for(const auto &imgData : result.result) {

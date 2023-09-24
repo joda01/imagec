@@ -101,3 +101,7 @@ Copy the listed dependencies to the EXE folder of the application.
 
 wx-config --cxxflags --libs
 wx-config --rescomp
+
+valgrind --leak-check=full --track-origins=yes ./build/build/tests "[pipeline_test]"
+valgrind --tool=massif --stacks=yes --detailed-freq=1 ./imagec
+valgrind --tool=massif --stacks=yes --detailed-freq=1 ./build/build/tests "[pipeline_test]"

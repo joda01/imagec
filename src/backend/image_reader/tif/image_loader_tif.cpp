@@ -69,16 +69,18 @@ auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::Om
     // Set the directory to load the image from this directory
     TIFFSetDirectory(tif, 0);
     char *omeXML = nullptr;
-    TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &omeXML);
+    if(1 == TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &omeXML)) {
+      try {
+        omeInfo.loadOmeInformationFromString(std::string(omeXML));
+      } catch(const std::exception &ex) {
+        // No OME information found, emulate it by just using the TIFF meta data
+        joda::log::logWarning("No OME information found. Use TIFF meta data instead!");
+        omeInfo.emulateOmeInformationFromTiff(getImageProperties(filename, 0));
+      }
+      // _TIFFfree(omeXML);    // Free allocated memory
+    }
     TIFFClose(tif);
 
-    try {
-      omeInfo.loadOmeInformationFromString(std::string(omeXML));
-    } catch(const std::exception &ex) {
-      // No OME information found, emulate it by just using the TIFF meta data
-      joda::log::logWarning("No OME information found. Use TIFF meta data instead!");
-      omeInfo.emulateOmeInformationFromTiff(getImageProperties(filename, 0));
-    }
     return omeInfo;
   }
   return omeInfo;
@@ -104,10 +106,10 @@ auto TiffLoader::getImageProperties(const std::string &filename, uint16_t direct
     // Set the directory to load the image from this directory
     TIFFSetDirectory(tif, directory);
 
-    unsigned int width;         //= tif->tif_dir.td_imagewidth;
-    unsigned int height;        //= tif->tif_dir.td_imagelength;
-    unsigned int tileWidth;     //= tif->tif_dir.td_tilewidth;
-    unsigned int tileHeight;    //= tif->tif_dir.td_tilelength;
+    unsigned int width      = 0;    //= tif->tif_dir.td_imagewidth;
+    unsigned int height     = 0;    //= tif->tif_dir.td_imagelength;
+    unsigned int tileWidth  = 0;    //= tif->tif_dir.td_tilewidth;
+    unsigned int tileHeight = 0;    //= tif->tif_dir.td_tilelength;
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tileWidth);

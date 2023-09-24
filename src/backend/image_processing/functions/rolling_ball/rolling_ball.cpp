@@ -50,9 +50,9 @@ namespace joda::func::img {
 class RollingBall
 {
 public:
-  char *data;
-  int patchwidth;
-  int shrinkfactor;
+  char *data       = nullptr;
+  int patchwidth   = 0;
+  int shrinkfactor = 0;
 
   RollingBall(int radius)
   {
@@ -90,13 +90,15 @@ public:
   ///
   void buildRollingBall(int shrinkfactor, int ballradius, int arcTrimPer)
   {
-    int rsquare;                  // rolling ball radius squared
-    int xtrim;                    // # of pixels trimmed off each end of ball to make patch
-    int xval, yval;               // x,y-values on patch relative to center of rolling ball
-    int smallballradius, diam;    // radius and diameter of rolling ball
-    int temp;                     // value must be >=0 to take square root
-    int halfpatchwidth;           // distance in x or y from center of patch to any edge
-    int ballsize;                 // size of rolling ball array
+    int rsquare         = 0;    // rolling ball radius squared
+    int xtrim           = 0;    // # of pixels trimmed off each end of ball to make patch
+    int xval            = 0;
+    int yval            = 0;    // x,y-values on patch relative to center of rolling ball
+    int smallballradius = 0;
+    int diam            = 0;    // radius and diameter of rolling ball
+    int temp            = 0;    // value must be >=0 to take square root
+    int halfpatchwidth  = 0;    // distance in x or y from center of patch to any edge
+    int ballsize        = 0;    // size of rolling ball array
 
     this->shrinkfactor = shrinkfactor;
     smallballradius    = ballradius / shrinkfactor;
@@ -172,16 +174,15 @@ void RollingBallBackground::subtractBackround(cv::Mat &ip, int ballRadius) const
   auto smallImage = shrinkImage(ip, ball.shrinkfactor);
 
   // new ImagePlus("small image", smallImage).show();
-  std::shared_ptr<cv::Mat> background;
 
-  background = rollBall(ball, ip, smallImage);
+  auto background = rollBall(ball, ip, smallImage);
   interpolateBackground(background, ball);
   extrapolateBackground(background, ball);
 
   //  showProgress(0.9);
 
   // ip.copyBits(background, 0, 0, Blitter.SUBTRACT);
-  cv::subtract(ip, *background, ip);
+  cv::subtract(ip, background, ip);
 
   if(invert) {
     ip.convertTo(ip, CV_64F);
@@ -203,44 +204,49 @@ void RollingBallBackground::subtractBackround(cv::Mat &ip, int ballRadius) const
     before running this procedure is advised due to the fourth-degree complexity
     of the algorithm.
 */
-std::shared_ptr<cv::Mat> RollingBallBackground::rollBall(RollingBall &ball, cv::Mat &image,
-                                                         std::shared_ptr<cv::Mat> smallImage) const
+cv::Mat RollingBallBackground::rollBall(RollingBall &ball, cv::Mat &image, cv::Mat &smallImage) const
 {
-  int halfpatchwidth;       // distance in x or y from patch center to any edge
-  int ptsbelowlastpatch;    // number of points we may ignore because they were below last patch
-  int xpt2, ypt2;           // current (x,y) point in the patch relative to upper left corner
-  int xval, yval;           // location in ball in shrunken image coordinates
-  int zdif;                 // difference in z (height) between point on ball and point on image
-  int zmin;                 // smallest zdif for ball patch with center at current point
-  int zctr;                 // current height of the center of the sphere of which the patch is a part
-  int zadd;                 // height of a point on patch relative to the xy-plane of the shrunken image
-  int ballpt;               // index to array storing the precomputed ball patch
-  int imgpt;                // index to array storing the shrunken image
-  int backgrpt;             // index to array storing the calculated background
-  int ybackgrpt;            // displacement to current background scan line
-  int p1, p2;               // temporary indexes to background, ball, or small image
-  int ybackgrinc;           // distance in memory between two shrunken y-points in background
-  int smallimagewidth;      // length of a scan line in shrunken image
-  int left, right, top, bottom;
-  int width                           = image.cols;
-  int height                          = image.rows;
-  int swidth                          = smallImage->cols;
-  int sheight                         = smallImage->rows;
-  std::shared_ptr<cv::Mat> background = std::make_shared<cv::Mat>(height, width, image.type());
-  int shrinkfactor                    = ball.shrinkfactor;
-  int leftroll                        = 0;
-  int rightroll                       = width / shrinkfactor - 1;
-  int toproll                         = 0;
-  int bottomroll                      = height / shrinkfactor - 1;
-  left                                = 1;
-  right                               = rightroll - leftroll - 1;
-  top                                 = 1;
-  bottom                              = bottomroll - toproll - 1;
-  smallimagewidth                     = swidth;
-  int patchwidth                      = ball.patchwidth;
-  halfpatchwidth                      = patchwidth / 2;
-  ybackgrinc                          = shrinkfactor * width;    // real dist btwn 2 adjacent (dy=1) shrunk pts
-  zctr                                = 0;                       // start z-center in the xy-plane
+  int halfpatchwidth    = 0;    // distance in x or y from patch center to any edge
+  int ptsbelowlastpatch = 0;    // number of points we may ignore because they were below last patch
+  int xpt2              = 0;
+  int ypt2              = 0;    // current (x,y) point in the patch relative to upper left corner
+  int xval              = 0;
+  int yval              = 0;    // location in ball in shrunken image coordinates
+  int zdif              = 0;    // difference in z (height) between point on ball and point on image
+  int zmin              = 0;    // smallest zdif for ball patch with center at current point
+  int zctr              = 0;    // current height of the center of the sphere of which the patch is a part
+  int zadd              = 0;    // height of a point on patch relative to the xy-plane of the shrunken image
+  int ballpt            = 0;    // index to array storing the precomputed ball patch
+  int imgpt             = 0;    // index to array storing the shrunken image
+  int backgrpt          = 0;    // index to array storing the calculated background
+  int ybackgrpt         = 0;    // displacement to current background scan line
+  int p1                = 0;
+  int p2                = 0;    // temporary indexes to background, ball, or small image
+  int ybackgrinc        = 0;    // distance in memory between two shrunken y-points in background
+  int smallimagewidth   = 0;    // length of a scan line in shrunken image
+  int left              = 0;
+  int right             = 0;
+  int top               = 0;
+  int bottom            = 0;
+  int width             = image.cols;
+  int height            = image.rows;
+  int swidth            = smallImage.cols;
+  int sheight           = smallImage.rows;
+  cv::Mat background    = cv::Mat::zeros(height, width, image.type());
+  int shrinkfactor      = ball.shrinkfactor;
+  int leftroll          = 0;
+  int rightroll         = width / shrinkfactor - 1;
+  int toproll           = 0;
+  int bottomroll        = height / shrinkfactor - 1;
+  left                  = 1;
+  right                 = rightroll - leftroll - 1;
+  top                   = 1;
+  bottom                = bottomroll - toproll - 1;
+  smallimagewidth       = swidth;
+  int patchwidth        = ball.patchwidth;
+  halfpatchwidth        = patchwidth / 2;
+  ybackgrinc            = shrinkfactor * width;    // real dist btwn 2 adjacent (dy=1) shrunk pts
+  zctr                  = 0;                       // start z-center in the xy-plane
 
   auto start = std::chrono::steady_clock::now();
 
@@ -259,7 +265,7 @@ std::shared_ptr<cv::Mat> RollingBallBackground::rollBall(RollingBall &ball, cv::
           if((xpt2 >= left) && (xpt2 <= right) && (ypt2 >= top) && (ypt2 <= bottom)) {
             p1   = ballpt;
             p2   = imgpt;
-            zdif = (smallImage->at<unsigned short>(p2) & 0xffff) -
+            zdif = (smallImage.at<unsigned short>(p2) & 0xffff) -
                    (zctr + (ball.data[p1] & 0xffff));    // curve - circle points
             if(zdif < zmin)                              // keep most negative, since ball should always be below curve
               zmin = zdif;
@@ -293,8 +299,8 @@ std::shared_ptr<cv::Mat> RollingBallBackground::rollBall(RollingBall &ball, cv::
             zadd = zctr + (ball.data[p1] & 0xffff);
             p1   = backgrpt;
             // if (backgrpt>=backgroundpixels.length) backgrpt = 0; //(debug)
-            if(zadd > (background->at<unsigned short>(p1) & 0xffff)) {    // keep largest adjustment}
-              background->at<unsigned short>(p1) = (unsigned short) zadd;
+            if(zadd > (background.at<unsigned short>(p1) & 0xffff)) {    // keep largest adjustment}
+              background.at<unsigned short>(p1) = (unsigned short) zadd;
             }
           }
           ballpt++;
@@ -318,7 +324,7 @@ std::shared_ptr<cv::Mat> RollingBallBackground::rollBall(RollingBall &ball, cv::
 }
 
 /** Creates a lower resolution image for ball-rolling. */
-std::shared_ptr<cv::Mat> RollingBallBackground::shrinkImage(cv::Mat &ip, int shrinkfactor) const
+cv::Mat RollingBallBackground::shrinkImage(cv::Mat &ip, int shrinkfactor) const
 {
   int width   = ip.cols;
   int height  = ip.rows;
@@ -328,8 +334,11 @@ std::shared_ptr<cv::Mat> RollingBallBackground::shrinkImage(cv::Mat &ip, int shr
   // std::shared_ptr<cv::Mat>ip2 = new cv::Mat(*ip);
   //   ip2.smooth();
   // cv::medianBlur(*ip2, *ip2, 3);
-  std::shared_ptr<cv::Mat> smallImage = std::make_shared<cv::Mat>(swidth, sheight, ip.type());
-  int xmaskmin, ymaskmin, min, thispixel;
+  cv::Mat smallImage(swidth, sheight, ip.type());
+  int xmaskmin  = 0;
+  int ymaskmin  = 0;
+  int min       = 0;
+  int thispixel = 0;
   for(int y = 0; y < sheight; y++) {
     for(int x = 0; x < swidth; x++) {
       xmaskmin = shrinkfactor * x;
@@ -342,7 +351,7 @@ std::shared_ptr<cv::Mat> RollingBallBackground::shrinkImage(cv::Mat &ip, int shr
             min = thispixel;
         }
       }
-      smallImage->at<unsigned short>(y, x) = min;    // each point in small image is minimum of its neighborhood
+      smallImage.at<unsigned short>(y, x) = min;    // each point in small image is minimum of its neighborhood
     }
   }
   // new ImagePlus("smallImage", smallImage).show();
@@ -355,16 +364,19 @@ std::shared_ptr<cv::Mat> RollingBallBackground::shrinkImage(cv::Mat &ip, int shr
         is certain that no point in the full-scale interpolated background has a higher
         pixel value than the corresponding point in the original image
     */
-void RollingBallBackground::interpolateBackground(std::shared_ptr<cv::Mat> background, RollingBall &ball) const
+void RollingBallBackground::interpolateBackground(cv::Mat &background, RollingBall &ball) const
 {
-  int hloc, vloc;              // position of current pixel in calculated background
-  int vinc;                    // memory offset from current calculated pos to current interpolated pos
-  int lastvalue, nextvalue;    // calculated pixel values between which we are interpolating
-  int p;                       // pointer to current interpolated pixel value
-  int bglastptr, bgnextptr;    // pointers to calculated pixel values between which we are interpolating
+  int hloc      = 0;
+  int vloc      = 0;    // position of current pixel in calculated background
+  int vinc      = 0;    // memory offset from current calculated pos to current interpolated pos
+  int lastvalue = 0;
+  int nextvalue = 0;    // calculated pixel values between which we are interpolating
+  int p         = 0;    // pointer to current interpolated pixel value
+  int bglastptr = 0;
+  int bgnextptr = 0;    // pointers to calculated pixel values between which we are interpolating
 
-  int width        = background->cols;
-  int height       = background->rows;
+  int width        = background.cols;
+  int height       = background.rows;
   int shrinkfactor = ball.shrinkfactor;
   int leftroll     = 0;
   int rightroll    = width / shrinkfactor - 1;
@@ -380,23 +392,23 @@ void RollingBallBackground::interpolateBackground(std::shared_ptr<cv::Mat> backg
       hloc += shrinkfactor;
       bgnextptr = vloc * width + hloc;
       bglastptr = bgnextptr - shrinkfactor;
-      nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
-      lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
+      nextvalue = background.at<unsigned short>(bgnextptr) & 0xffff;
+      lastvalue = background.at<unsigned short>(bglastptr) & 0xffff;
       for(int ii = 1; ii <= (shrinkfactor - 1); ii++) {    // interpolate horizontally
         p = bgnextptr - ii;
-        background->at<unsigned short>(p) =
+        background.at<unsigned short>(p) =
             (unsigned short) (lastvalue + (shrinkfactor - ii) * (nextvalue - lastvalue) / shrinkfactor);
       }
       for(int ii = 0; ii <= (shrinkfactor - 1); ii++) {    // interpolate vertically
         bglastptr = (vloc - shrinkfactor) * width + hloc - ii;
         bgnextptr = vloc * width + hloc - ii;
-        lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
-        nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
+        lastvalue = background.at<unsigned short>(bglastptr) & 0xffff;
+        nextvalue = background.at<unsigned short>(bgnextptr) & 0xffff;
         vinc      = 0;
         for(int jj = 1; jj <= (shrinkfactor - 1); jj++) {
           vinc = vinc - width;
           p    = bgnextptr + vinc;
-          background->at<unsigned short>(p) =
+          background.at<unsigned short>(p) =
               (unsigned short) (lastvalue + (shrinkfactor - jj) * (nextvalue - lastvalue) / shrinkfactor);
         }    // for jj
       }      // for ii
@@ -412,16 +424,18 @@ void RollingBallBackground::interpolateBackground(std::shared_ptr<cv::Mat> backg
     of the left and right edge points.  If extrapolation yields values
     below zero or above 255, then they are set to zero and 255 respectively.
 */
-void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> background, RollingBall &ball) const
+void RollingBallBackground::extrapolateBackground(cv::Mat &background, RollingBall &ball) const
 {
-  int edgeslope;               // difference of last two consecutive pixel values on an edge
-  int pvalue;                  // current extrapolated pixel value
-  int lastvalue, nextvalue;    // calculated pixel values from which we are extrapolating
-  int p;                       // pointer to current extrapolated pixel value
-  int bglastptr, bgnextptr;    // pointers to calculated pixel values from which we are extrapolating
+  int edgeslope = 0;    // difference of last two consecutive pixel values on an edge
+  int pvalue    = 0;    // current extrapolated pixel value
+  int lastvalue = 0;
+  int nextvalue = 0;    // calculated pixel values from which we are extrapolating
+  int p         = 0;    // pointer to current extrapolated pixel value
+  int bglastptr = 0;
+  int bgnextptr = 0;    // pointers to calculated pixel values from which we are extrapolating
 
-  int width        = background->cols;
-  int height       = background->rows;
+  int width        = background.cols;
+  int height       = background.rows;
   int shrinkfactor = ball.shrinkfactor;
   int leftroll     = 0;
   int rightroll    = width / shrinkfactor - 1;
@@ -433,8 +447,8 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
     // extrapolate on top and bottom
     bglastptr = shrinkfactor * width + hloc;
     bgnextptr = (shrinkfactor + 1) * width + hloc;
-    lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
-    nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
+    lastvalue = background.at<unsigned short>(bglastptr) & 0xffff;
+    nextvalue = background.at<unsigned short>(bgnextptr) & 0xffff;
     edgeslope = nextvalue - lastvalue;
     p         = bglastptr;
     pvalue    = lastvalue;
@@ -442,16 +456,16 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
       p      = p - width;
       pvalue = pvalue - edgeslope;
       if(pvalue < 0)
-        background->at<unsigned short>(p) = 0;
+        background.at<unsigned short>(p) = 0;
       else if(pvalue > 0xffff)
-        background->at<unsigned short>(p) = (unsigned short) 0xffff;
+        background.at<unsigned short>(p) = (unsigned short) 0xffff;
       else
-        background->at<unsigned short>(p) = (unsigned short) pvalue;
+        background.at<unsigned short>(p) = (unsigned short) pvalue;
     }    // for jj
     bglastptr = (shrinkfactor * (bottomroll - toproll - 1) - 1) * width + hloc;
     bgnextptr = shrinkfactor * (bottomroll - toproll - 1) * width + hloc;
-    lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
-    nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
+    lastvalue = background.at<unsigned short>(bglastptr) & 0xffff;
+    nextvalue = background.at<unsigned short>(bgnextptr) & 0xffff;
     edgeslope = nextvalue - lastvalue;
     p         = bgnextptr;
     pvalue    = nextvalue;
@@ -459,19 +473,19 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
       p += width;
       pvalue += edgeslope;
       if(pvalue < 0)
-        background->at<unsigned short>(p) = 0;
+        background.at<unsigned short>(p) = 0;
       else if(pvalue > 0xffff)
-        background->at<unsigned short>(p) = (unsigned short) 0xffff;
+        background.at<unsigned short>(p) = (unsigned short) 0xffff;
       else
-        background->at<unsigned short>(p) = (unsigned short) pvalue;
+        background.at<unsigned short>(p) = (unsigned short) pvalue;
     }    // for jj
   }      // for hloc
   for(int vloc = 0; vloc < height; vloc++) {
     // extrapolate on left and right
     bglastptr = vloc * width + shrinkfactor;
     bgnextptr = bglastptr + 1;
-    lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
-    nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
+    lastvalue = background.at<unsigned short>(bglastptr) & 0xffff;
+    nextvalue = background.at<unsigned short>(bgnextptr) & 0xffff;
     edgeslope = nextvalue - lastvalue;
     p         = bglastptr;
     pvalue    = lastvalue;
@@ -479,16 +493,16 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
       p--;
       pvalue = pvalue - edgeslope;
       if(pvalue < 0)
-        background->at<unsigned short>(p) = 0;
+        background.at<unsigned short>(p) = 0;
       else if(pvalue > 0xffff)
-        background->at<unsigned short>(p) = (unsigned short) 0xffff;
+        background.at<unsigned short>(p) = (unsigned short) 0xffff;
       else
-        background->at<unsigned short>(p) = (unsigned short) pvalue;
+        background.at<unsigned short>(p) = (unsigned short) pvalue;
     }    // for ii
     bgnextptr = vloc * width + shrinkfactor * (rightroll - leftroll - 1) - 1;
     bglastptr = bgnextptr - 1;
-    lastvalue = background->at<unsigned short>(bglastptr) & 0xffff;
-    nextvalue = background->at<unsigned short>(bgnextptr) & 0xffff;
+    lastvalue = background.at<unsigned short>(bglastptr) & 0xffff;
+    nextvalue = background.at<unsigned short>(bgnextptr) & 0xffff;
     edgeslope = nextvalue - lastvalue;
     p         = bgnextptr;
     pvalue    = nextvalue;
@@ -496,18 +510,18 @@ void RollingBallBackground::extrapolateBackground(std::shared_ptr<cv::Mat> backg
       p++;
       pvalue = pvalue + edgeslope;
       if(pvalue < 0)
-        background->at<unsigned short>(p) = 0;
+        background.at<unsigned short>(p) = 0;
       else if(pvalue > 0xffff)
-        background->at<unsigned short>(p) = (unsigned short) 0xffff;
+        background.at<unsigned short>(p) = (unsigned short) 0xffff;
       else
-        background->at<unsigned short>(p) = (unsigned short) pvalue;
+        background.at<unsigned short>(p) = (unsigned short) pvalue;
     }    // for ii
   }      // for vloc
 }
 
-void RollingBallBackground::setNPasses(int nPasses)
-{
-  this->nPasses = nPasses;
-  pass          = 0;
-}
+// void RollingBallBackground::setNPasses(int nPasses)
+//{
+//   this->nPasses = nPasses;
+//   pass          = 0;
+// }
 }    // namespace joda::func::img

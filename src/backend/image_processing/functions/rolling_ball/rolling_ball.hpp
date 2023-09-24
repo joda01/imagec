@@ -46,18 +46,18 @@ private:
   /////////////////////////////////////////////////////
   void subtractRGBBackround(cv::Mat &ip, int ballRadius) const;
   void subtractBackround(cv::Mat &ip, int ballRadius) const;
-  std::shared_ptr<cv::Mat> rollBall(RollingBall &ball, cv::Mat &image, std::shared_ptr<cv::Mat> smallImage) const;
-  std::shared_ptr<cv::Mat> shrinkImage(cv::Mat &ip, int shrinkfactor) const;
-  void interpolateBackground(std::shared_ptr<cv::Mat> background, RollingBall &ball) const;
-  void extrapolateBackground(std::shared_ptr<cv::Mat> background, RollingBall &ball) const;
-  void setNPasses(int nPasses);
+  cv::Mat rollBall(RollingBall &ball, cv::Mat &image, cv::Mat &smallImage) const;
+  cv::Mat shrinkImage(cv::Mat &ip, int shrinkfactor) const;
+  void interpolateBackground(cv::Mat &background, RollingBall &ball) const;
+  void extrapolateBackground(cv::Mat &background, RollingBall &ball) const;
+  // void setNPasses(int nPasses);
 
   /////////////////////////////////////////////////////
-  float radius;
-  bool lightBackground = false;
-  bool invert          = false;
-  int nPasses          = 1;
-  int pass{};
-  int flags = 0;    //= DOES_8G | DOES_16 | DOES_RGB | FINAL_PROCESSING | KEEP_PREVIEW | PARALLELIZE_STACKS;
+  const float radius;
+  const bool lightBackground = false;
+  const bool invert          = false;
+  const int nPasses          = 1;
+  const int pass{};
+  const int flags = 0;    //= DOES_8G | DOES_16 | DOES_RGB | FINAL_PROCESSING | KEEP_PREVIEW | PARALLELIZE_STACKS;
 };
 }    // namespace joda::func::img

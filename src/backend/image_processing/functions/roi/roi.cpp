@@ -81,7 +81,7 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
   }
   intensity = intensityAvg;
 
-  std::vector<std::vector<cv::Point>> contours;
+  std::vector<std::vector<cv::Point>> contours = {};
   cv::findContours(boxMask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
   if(!contours.empty()) {

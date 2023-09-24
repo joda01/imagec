@@ -11,14 +11,21 @@
 ///
 TEST_CASE("pipeline:test", "[pipeline_test]")
 {
-  joda::settings::json::AnalyzeSettings settings;
-  settings.loadConfigFromFile("test_areosold_Evs/config.json");
-  joda::helper::ImageFileContainer imageFileContainer;
-  imageFileContainer.setWorkingDirectory("test_areosold_Evs");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test_areosold_Evs", &imageFileContainer);
+  for(int n = 0; n < 4; n++) {
+    joda::settings::json::AnalyzeSettings settings;
+    settings.loadConfigFromFile("test_areosold_Evs/config.json");
+    joda::helper::ImageFileContainer imageFileContainer;
+    imageFileContainer.setWorkingDirectory("test_areosold_Evs");
+    joda::pipeline::PipelineFactory::startNewJob(settings, "test_areosold_Evs", &imageFileContainer);
 
-  while(true) {
-    sleep(2);
+    joda::pipeline::Pipeline::State state = joda::pipeline::Pipeline::State::STOPPED;
+    while(state != joda::pipeline::Pipeline::State::FINISHED) {
+      auto [a, b, c] = joda::pipeline::PipelineFactory::getState("");
+      state          = b;
+      sleep(1);
+    }
+    std::cout << "Run finished" << std::endl;
+    sleep(10);
   }
 }
 
