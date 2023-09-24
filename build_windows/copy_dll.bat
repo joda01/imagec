@@ -29,6 +29,6 @@ cp C:\msys64\mingw64\bin\libwinpthread-1.dll libwinpthread-1.dll
 cp C:\msys64\mingw64\bin\libzstd.dll libzstd.dll
 cp C:\msys64\mingw64\bin\zlib1.dll zlib1.dll
 
-# cp not found msvcrt.dll
-# cp not found opengl32.dll
-# cp not found user32.dll
+REM cp not found msvcrt.dll
+REM cp not found opengl32.dll
+REM cp not found user32.dll
