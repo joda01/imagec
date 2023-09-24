@@ -12,6 +12,8 @@
 ///
 
 #include "controller.hpp"
+#include "backend/image_processing/channel_processor.hpp"
+#include "backend/settings/channel_settings.hpp"
 
 namespace joda::ctrl {
 
@@ -92,8 +94,13 @@ auto Controller::getNrOfFoundImages() -> uint32_t
 /// \brief      Returns preview
 /// \author     Joachim Danmayr
 ///
-void Controller::preview()
+auto Controller::preview(const settings::json::ChannelSettings &settings, int imgIndex) -> Preview
 {
+  auto result = joda::algo::ChannelProcessor::processChannel(settings, mWorkingDirectory.getFileAt(imgIndex), 0);
+  std::vector<uchar> buffer;
+  cv::imencode(".jpg", result.controlImage, buffer);    // Assuming you want to encode as JPEG
+
+  return {.data = buffer, .height = result.controlImage.rows, .width = result.controlImage.cols};
 }
 
 }    // namespace joda::ctrl

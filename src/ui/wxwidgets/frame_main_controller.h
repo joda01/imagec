@@ -34,6 +34,10 @@ public:
   void removePipelineStep(int32_t pipelineStepIndex);
   void removePipelineStep(void *);
   void removeAllPipelineSteps();
+  auto getController() -> joda::ctrl::Controller *
+  {
+    return mPipelineController;
+  }
 
 private:
   /////////////////////////////////////////////////////
@@ -50,7 +54,6 @@ private:
   void onCellChannelChoice(wxCommandEvent &event) override;
   void onWorkingDirChanged(wxFileDirPickerEvent &event) override;
   void onOpenSettingsClicked(wxCommandEvent &event) override;
-
   void refreshFunction();
 
   /////////////////////////////////////////////////////

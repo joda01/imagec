@@ -66,7 +66,10 @@ private:
 private:
   /////////////////////////////////////////////////////
   void onRemoveClicked(wxCommandEvent &event) override;
+  void onPreviewClicked(wxCommandEvent &event) override;
+
   FrameMainController *mMainFrame;
+
 };
 }    // namespace joda::ui::wxwidget
 

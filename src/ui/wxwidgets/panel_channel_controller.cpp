@@ -12,8 +12,11 @@
 ///
 
 #include "panel_channel_controller.h"
+#include <wx/mstream.h>
 #include <string>
 #include "backend/helper/two_way_map.hpp"
+#include "backend/settings/channel_settings.hpp"
+#include "ui/wxwidgets/dialog_image_controller.h"
 #include "ui/wxwidgets/frame_main_controller.h"
 #include <nlohmann/json_fwd.hpp>
 
@@ -39,6 +42,26 @@ PanelChannelController::PanelChannelController(FrameMainController *mainFrame, w
 void PanelChannelController::onRemoveClicked(wxCommandEvent &event)
 {
   mMainFrame->removeChannel(this);
+}
+
+///
+/// \brief      On preview clicked
+/// \author     Joachim Danmayr
+/// \return
+///
+void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
+{
+  settings::json::ChannelSettings chs;
+  chs.loadConfigFromString(getValues().dump());
+  auto ret = mMainFrame->getController()->preview(chs, 0);
+  wxMemoryInputStream stream(ret.data.data(), ret.data.size());
+  wxImage image;
+  if(!image.LoadFile(stream, wxBITMAP_TYPE_JPEG)) {
+    wxLogError("Failed to load JPEG image from bytes.");
+  } else {
+    DialogImageController imgDialog(image, this);
+    imgDialog.ShowModal();
+  }
 }
 
 ///

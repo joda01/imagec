@@ -940,12 +940,14 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerForScroll->Fit( this );
 
 	// Connect Events
+	mButtonPreview->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
 	mButtonRemoveChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 }
 
 PanelChannel::~PanelChannel()
 {
 	// Disconnect Events
+	mButtonPreview->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
 	mButtonRemoveChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 
 }
@@ -1084,4 +1086,16 @@ PanelIntersection::~PanelIntersection()
 	// Disconnect Events
 	mButtonRemovePipelineStep->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelIntersection::onRemoveClicked ), NULL, this );
 
+}
+
+DialogImage::DialogImage( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+
+
+	this->Centre( wxBOTH );
+}
+
+DialogImage::~DialogImage()
+{
 }

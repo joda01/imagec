@@ -293,6 +293,12 @@ class ChannelSettings final
 public:
   /////////////////////////////////////////////////////
 
+  void loadConfigFromString(const std::string &jsonString)
+  {
+    *this = nlohmann::json::parse(jsonString);
+    interpretConfig();
+  }
+
   void interpretConfig()
   {
     info.interpretConfig();

@@ -241,6 +241,7 @@ namespace joda
 					wxButton* mButtonRemoveChannel;
 
 					// Virtual event handlers, override them in your derived class
+					virtual void onPreviewClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
 
 
@@ -294,6 +295,23 @@ namespace joda
 					PanelIntersection( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 					~PanelIntersection();
+
+			};
+
+			///////////////////////////////////////////////////////////////////////////////
+			/// Class DialogImage
+			///////////////////////////////////////////////////////////////////////////////
+			class DialogImage : public wxDialog
+			{
+				private:
+
+				protected:
+
+				public:
+
+					DialogImage( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 424,244 ), long style = wxDEFAULT_DIALOG_STYLE );
+
+					~DialogImage();
 
 			};
 

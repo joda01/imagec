@@ -36,7 +36,13 @@ public:
   auto getNrOfFoundImages() -> uint32_t;
   void getSettings();
   void setWorkingDirectory(const std::string &dir);
-  void preview();
+  struct Preview
+  {
+    std::vector<uchar> data;
+    int height;
+    int width;
+  };
+  auto preview(const settings::json::ChannelSettings &settings, int imgIndex) -> Preview;
 
 private:
   /////////////////////////////////////////////////////
