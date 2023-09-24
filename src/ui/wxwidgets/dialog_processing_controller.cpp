@@ -66,7 +66,7 @@ void DialogProcessingController::refreshFunction()
   joda::pipeline::Pipeline::State actState = joda::pipeline::Pipeline::State::STOPPED;
   try {
     auto [progress, state, errorMsg] = mPipelineController->getState();
-    if(state == joda::pipeline::Pipeline::State::ERROR) {
+    if(state == joda::pipeline::Pipeline::State::ERROR_) {
       mLastErrorMsg = errorMsg;
     }
     actState = state;
@@ -85,7 +85,7 @@ void DialogProcessingController::refreshFunction()
   }
 
   CallAfter([this, actState, newTextAllOver, newTextImage]() {
-    if(!mStopped && actState == joda::pipeline::Pipeline::State::ERROR) {
+    if(!mStopped && actState == joda::pipeline::Pipeline::State::ERROR_) {
       mStopped = true;
       showErrorDialog(mLastErrorMsg);
     }

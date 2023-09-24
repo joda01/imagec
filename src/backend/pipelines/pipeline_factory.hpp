@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <malloc.h>
+//#include <malloc.h>
 #include <exception>
 #include <future>
 #include <map>
@@ -98,7 +98,7 @@ public:
     if(mLastErrorMessage.empty()) {
       return {mLastJobProgressIndicator, joda::pipeline::Pipeline::State::FINISHED, mLastErrorMessage};
     } else {
-      return {mLastJobProgressIndicator, joda::pipeline::Pipeline::State::ERROR, mLastErrorMessage};
+      return {mLastJobProgressIndicator, joda::pipeline::Pipeline::State::ERROR_, mLastErrorMessage};
     }
   }
 
@@ -113,13 +113,13 @@ private:
       std::set<std::string> toDelete;
       if(mJob) {
         auto [progress, state, errorMsg] = mJob->getState();
-        if(state == Pipeline::State::FINISHED || state == Pipeline::State::ERROR) {
+        if(state == Pipeline::State::FINISHED || state == Pipeline::State::ERROR_) {
           mLastJobProgressIndicator = progress;
           mLastErrorMessage         = errorMsg;
 
           joda::log::logInfo("Analyze finished!");
           mJob.reset();
-          malloc_trim(0);
+          //malloc_trim(0);
         }
       }
 

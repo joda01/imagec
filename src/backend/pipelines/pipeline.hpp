@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <memory>
+//#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -44,14 +44,14 @@ public:
     types::Progress image;
   };
 
-  enum class State
+  enum class State : int
   {
-    STOPPED,
-    RUNNING,
-    PAUSED,
-    STOPPING,
-    FINISHED,
-    ERROR,
+    STOPPED=0,
+    RUNNING=1,
+    PAUSED=2,
+    STOPPING=3,
+    FINISHED=4,
+    ERROR_=5
   };
 
   Pipeline(const settings::json::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
@@ -72,7 +72,7 @@ protected:
   /////////////////////////////////////////////////////
   [[noreturn]] void setStateError(const std::string &what) noexcept(false)
   {
-    mState            = State::ERROR;
+    mState            = State::ERROR_;
     mLastErrorMessage = what;
     throw std::runtime_error(what);
   }
