@@ -20,7 +20,7 @@ IF (WIN32)
 
 ELSE()
 
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -g -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
 
 ENDIF()
 SET(CMAKE_GENERATOR "Unix Makefiles")

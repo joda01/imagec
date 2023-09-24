@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <malloc.h>
 #include <exception>
 #include <future>
 #include <map>
@@ -27,7 +28,6 @@
 #include "../reporting/reporting.h"
 #include "../settings/analze_settings_parser.hpp"
 #include "pipeline.hpp"
-
 namespace joda::pipeline {
 
 using namespace std::chrono_literals;
@@ -119,6 +119,7 @@ private:
 
           joda::log::logInfo("Analyze finished!");
           mJob.reset();
+          malloc_trim(0);
         }
       }
 

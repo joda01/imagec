@@ -75,8 +75,8 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
 
   // Filtering
   mSpinMinCircularity->SetValue(channelSettings.getFilter().getMinCircularity());
-  std::string range = std::to_string(channelSettings.getFilter().getMinCircularity()) + "-" +
-                      std::to_string(channelSettings.getFilter().getMaxParticleSize());
+  std::string range = std::to_string(static_cast<uint32_t>(channelSettings.getFilter().getMinParticleSize())) + "-" +
+                      std::to_string(static_cast<uint32_t>(channelSettings.getFilter().getMaxParticleSize()));
   mTextParticleSizeRange->SetValue(range);
   mSpinSnapArea->SetValue(channelSettings.getFilter().getSnapAreaSize());
 }

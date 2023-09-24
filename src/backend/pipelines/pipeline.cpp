@@ -52,124 +52,124 @@ Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
 ///
 void Pipeline::runJob()
 {
-  // try {
-  mState = State::RUNNING;
-  // Prepare
-  mOutputFolder = prepareOutputFolder(mInputFolder);
+  try {
+    mState = State::RUNNING;
+    // Prepare
+    mOutputFolder = prepareOutputFolder(mInputFolder);
 
-  // Store configuration
-  static const std::string separator(1, std::filesystem::path::preferred_separator);
-  mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");
+    // Store configuration
+    static const std::string separator(1, std::filesystem::path::preferred_separator);
+    mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");
 
-  // Look for images in the input folder
-  mImageFileContainer->setWorkingDirectory(mInputFolder);
-  mImageFileContainer->waitForFinished();
-  mProgress.total.total = mImageFileContainer->getNrOfFiles();
+    // Look for images in the input folder
+    mImageFileContainer->setWorkingDirectory(mInputFolder);
+    mImageFileContainer->waitForFinished();
+    mProgress.total.total = mImageFileContainer->getNrOfFiles();
 
-  joda::reporting::Table alloverReport;
-
-  //
-  // Iterate over each image to do detection
-  //
-  int nrOfChannels = mAnalyzeSettings.getChannels().size();
-  for(const auto &imagePath : mImageFileContainer->getFilesList()) {
-    std::string imageName   = helper::getFileNameFromPath(imagePath);
-    auto detailOutputFolder = mOutputFolder + separator + imageName;
-    std::filesystem::create_directories(detailOutputFolder);
+    joda::reporting::Table alloverReport;
 
     //
-    // Execute for each tile
+    // Iterate over each image to do detection
     //
-    ImageProperties props;
-    if(imagePath.ends_with(".jpg")) {
-      props = JpgLoader::getImageProperties(imagePath);
-    } else {
-      props = TiffLoader::getImageProperties(imagePath, 0);
-    }
-    int64_t runs = 1;
-    if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-      runs = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
-    }
-    mProgress.image.total = runs;
+    int nrOfChannels = mAnalyzeSettings.getChannels().size();
+    for(const auto &imagePath : mImageFileContainer->getFilesList()) {
+      std::string imageName   = helper::getFileNameFromPath(imagePath);
+      auto detailOutputFolder = mOutputFolder + separator + imageName;
+      std::filesystem::create_directories(detailOutputFolder);
 
-    joda::reporting::Table detailReports;
-    for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
-      auto ids = DurationCount::start("channels");
       //
-      // Execute for each channel of the selected tile
+      // Execute for each tile
       //
-      std::map<int32_t, joda::func::DetectionResponse> detectionResults;
-      int tempChannelIdx = 0;
+      ImageProperties props;
+      if(imagePath.ends_with(".jpg")) {
+        props = JpgLoader::getImageProperties(imagePath);
+      } else {
+        props = TiffLoader::getImageProperties(imagePath, 0);
+      }
+      int64_t runs = 1;
+      if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+        runs = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
+      }
+      mProgress.image.total = runs;
 
-      for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
-        int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
-        auto id              = DurationCount::start("channel-" + std::to_string(channelIndex));
+      joda::reporting::Table detailReports;
+      for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
+        auto ids = DurationCount::start("channels");
+        //
+        // Execute for each channel of the selected tile
+        //
+        std::map<int32_t, joda::func::DetectionResponse> detectionResults;
+        int tempChannelIdx = 0;
 
-        setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), tempChannelIdx);
+        for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
+          int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
+          auto id              = DurationCount::start("channel-" + std::to_string(channelIndex));
 
-        try {
-          auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath, tileIdx);
-          //
-          // Add processing result to the detection result map
-          //
-          detectionResults.emplace(channelIndex, processingResult);
+          setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), tempChannelIdx);
 
-          //
-          // Add to detail report
-          //
-          appendToDetailReport(processingResult, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
-          tempChannelIdx++;
+          try {
+            auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath, tileIdx);
+            //
+            // Add processing result to the detection result map
+            //
+            detectionResults.emplace(channelIndex, processingResult);
 
-        } catch(const std::exception &ex) {
-          joda::log::logError(ex.what());
+            //
+            // Add to detail report
+            //
+            appendToDetailReport(processingResult, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
+            tempChannelIdx++;
+
+          } catch(const std::exception &ex) {
+            joda::log::logError(ex.what());
+          }
+
+          DurationCount::stop(id);
         }
 
-        DurationCount::stop(id);
-      }
+        DurationCount::stop(ids);
 
-      DurationCount::stop(ids);
+        //
+        // Execute pipeline steps
+        //
+        for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
+          auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+          if(chSettings.index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
+            detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
+            setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
+            appendToDetailReport(response, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
+            nrOfChannels++;
+            tempChannelIdx++;
+          }
+        }
 
-      //
-      // Execute pipeline steps
-      //
-      for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
-        auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
-        if(chSettings.index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
-          detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
-          setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
-          appendToDetailReport(response, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
-          nrOfChannels++;
-          tempChannelIdx++;
+        mProgress.image.finished = tileIdx + 1;
+        //
+        // Free memory
+        //
+        if(mStop) {
+          break;
         }
       }
 
-      mProgress.image.finished = tileIdx + 1;
       //
-      // Free memory
+      // Write report
       //
+      detailReports.flushReportToFile(detailOutputFolder + separator + "detail.csv");
+      appendToAllOverReport(alloverReport, detailReports, imageName, nrOfChannels);
+
+      mProgress.total.finished++;
       if(mStop) {
         break;
       }
     }
 
-    //
-    // Write report
-    //
-    detailReports.flushReportToFile(detailOutputFolder + separator + "detail.csv");
-    appendToAllOverReport(alloverReport, detailReports, imageName, nrOfChannels);
-
-    mProgress.total.finished++;
-    if(mStop) {
-      break;
-    }
+    std::string resultsFile = mOutputFolder + separator + "results.csv";
+    alloverReport.flushReportToFile(resultsFile);
+    mState = State::FINISHED;
+  } catch(const std::exception &ex) {
+    setStateError(ex.what());
   }
-
-  std::string resultsFile = mOutputFolder + separator + "results.csv";
-  alloverReport.flushReportToFile(resultsFile);
-  mState = State::FINISHED;
-  //} catch(const std::exception &ex) {
-  //  setStateError(ex.what());
-  //}
   while(!mStop) {
     sleep(1);
   }

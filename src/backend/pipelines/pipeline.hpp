@@ -62,7 +62,6 @@ public:
     if(mMainThread->joinable()) {
       mMainThread->join();
     }
-    std::cout << "Destroxe" << std::endl;
   }
   const std::string &getLastErrorMessage()
   {
