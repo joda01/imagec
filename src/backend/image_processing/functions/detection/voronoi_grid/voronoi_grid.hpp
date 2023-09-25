@@ -34,7 +34,8 @@ class VoronoiGrid : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  explicit VoronoiGrid(const DetectionResults &result) : DetectionFunction(nullptr)
+  explicit VoronoiGrid(const DetectionResults &result, int maxRadius) :
+      DetectionFunction(nullptr), mMaxRadius(maxRadius)
   {
     // Extract points from the result bounding boxes
     for(const auto &res : result) {
@@ -71,7 +72,7 @@ public:
     // Allocate space for Voronoi Diagram
     cv::Mat img_voronoi = cv::Mat::zeros(image.rows, image.cols, CV_8UC1);
     // Draw Voronoi diagram
-    auto result = drawVoronoi(img_voronoi, originalImage, subdiv);
+    auto result = drawVoronoi(img_voronoi, originalImage, subdiv, mMaxRadius);
 
     cv::Mat grayImageFloat;
     img_voronoi.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UCHAR_MAX);
@@ -120,7 +121,8 @@ public:
   /// \param[out]  img      Image to draw the grid on
   /// \param[in]   subdiv   Sub division points
   ///
-  static auto drawVoronoi(const cv::Mat &img, const cv::Mat &imgOriginal, cv::Subdiv2D &subdiv) -> DetectionResponse
+  static auto drawVoronoi(const cv::Mat &img, const cv::Mat &imgOriginal, cv::Subdiv2D &subdiv, int circleSize)
+      -> DetectionResponse
   {
     DetectionResponse response;
     std::vector<std::vector<cv::Point2f>> facets;
@@ -138,7 +140,6 @@ public:
         ifacet[j] = facets[i][j];
       }
 
-      int circleSize = 100;
       std::vector<cv::Point> circleMask;
       cv::ellipse2Poly(centers[i], cv::Size(circleSize, circleSize), 0, 0, 360, 1, circleMask);
 
@@ -150,7 +151,6 @@ public:
 
       cv::Mat result = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
       cv::bitwise_and(mask1, mask2, result);
-
       img += result;
 
       ifacets[0] = ifacet;
@@ -172,7 +172,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  int mMarginSize;
+  int mMaxRadius;
   std::vector<cv::Point2f> mPoints;
 };
 
