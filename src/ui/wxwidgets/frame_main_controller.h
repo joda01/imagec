@@ -53,6 +53,7 @@ private:
   void onAboutClicked(wxCommandEvent &event) override;
   void onCellChannelChoice(wxCommandEvent &event) override;
   void onWorkingDirChanged(wxFileDirPickerEvent &event) override;
+  void onSaveSettingsClicked(wxCommandEvent &event) override;
   void onOpenSettingsClicked(wxCommandEvent &event) override;
   void refreshFunction();
 

@@ -1,4 +1,5 @@
 #include "frame_main_controller.h"
+#include <wx/filedlg.h>
 #include <exception>
 #include <memory>
 #include <string>
@@ -173,6 +174,24 @@ void FrameMainController::onOpenSettingsClicked(wxCommandEvent &event)
   joda::settings::json::AnalyzeSettings settings;
   settings.loadConfigFromFile(openFileDialog.GetPath().ToStdString());
   loadValues(settings);
+}
+
+///
+/// \brief      Save settings clicked
+/// \author     Joachim Danmayr
+/// \param[in]  event
+///
+void FrameMainController::onSaveSettingsClicked(wxCommandEvent &event)
+{
+  wxFileDialog saveFileDialog(this, "Save File", "", "", "JSON files (*.json)|*.json", wxFD_SAVE);
+
+  if(saveFileDialog.ShowModal() == wxID_CANCEL) {
+    return;    // User cancelled the dialog
+  }
+
+  joda::settings::json::AnalyzeSettings settings;
+  settings.loadConfigFromString(getValues().dump());
+  settings.storeConfigToFile(saveFileDialog.GetPath().ToStdString());
 }
 
 ///
