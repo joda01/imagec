@@ -36,7 +36,8 @@ private:
 
   /////////////////////////////////////////////////////
   wxImage mImage;
-  double mZoomFactor;
+  float mZoomFactor;
+  float mZoomFactorMin;
   bool mDragging = false;
   wxPoint mDragStartPosition;
   wxPoint mImagePositionOnDragStart;

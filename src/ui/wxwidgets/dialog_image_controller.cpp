@@ -41,7 +41,7 @@ DialogImageController::DialogImageController(wxImage &image, wxWindow *parent, w
 ///
 ImageZoomScrollWidget::ImageZoomScrollWidget(wxWindow *parent, wxImage image) :
     wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxHSCROLL), mImage(image),
-    mZoomFactor(1.0)
+    mZoomFactor(800.0 / (float) mImage.GetHeight()), mZoomFactorMin(mZoomFactor)
 {
   SetScrollbars(20, 20, mImage.GetWidth() / mZoomFactor, mImage.GetHeight() / mZoomFactor, 0, 0);
 
@@ -51,9 +51,9 @@ ImageZoomScrollWidget::ImageZoomScrollWidget(wxWindow *parent, wxImage image) :
   Bind(wxEVT_LEFT_UP, &ImageZoomScrollWidget::OnLeftUp, this);
   Bind(wxEVT_MOTION, &ImageZoomScrollWidget::OnMouseMove, this);
 
-  float ratio  = (float) mImage.GetWidth() / (float) mImage.GetHeight();
-  float height = (float) 800 * ratio;
-  SetMinSize(wxSize{(int) height, 800});
+  float ratio = (float) mImage.GetWidth() / (float) mImage.GetHeight();
+  float width = (float) 800 * ratio;
+  SetMinSize(wxSize{(int) width, 800});
 }
 
 void ImageZoomScrollWidget::OnPaint(wxPaintEvent &event)
@@ -75,16 +75,19 @@ void ImageZoomScrollWidget::RenderImage(wxDC &dc)
 void ImageZoomScrollWidget::OnMouseWheel(wxMouseEvent &event)
 {
   // int delta = event.GetWheelRotation();
-  float delta = 0.05 * (event.GetWheelRotation() > 0 ? 1 : -1);
-  mZoomFactor += delta;
+  float delta      = 0.05 * (event.GetWheelRotation() > 0 ? 1 : -1);
+  float zoomFactor = mZoomFactor + delta;
 
-  if(mZoomFactor < 0.1)
-    mZoomFactor = 0.1;
-  if(mZoomFactor > 3)
-    mZoomFactor = 3;
+  if(zoomFactor < mZoomFactorMin) {
+    zoomFactor = mZoomFactorMin;
+  }
+  if(zoomFactor > 3) {
+    zoomFactor = 3;
+  }
 
-  int width  = mImage.GetWidth() * mZoomFactor;
-  int height = mImage.GetHeight() * mZoomFactor;
+  mZoomFactor = zoomFactor;
+  int width   = mImage.GetWidth() * mZoomFactor;
+  int height  = mImage.GetHeight() * mZoomFactor;
 
   fitImagePosition(mActPosition.x, mActPosition.y);
 
