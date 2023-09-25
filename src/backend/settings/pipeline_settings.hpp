@@ -70,7 +70,11 @@ public:
   {
     NONE               = 0,
     CELL_APPROXIMATION = 13,
-    INTERSECTION       = 14
+    INTERSECTION01     = 14,
+    INTERSECTION02     = 15,
+    INTERSECTION03     = 16,
+    INTERSECTION04     = 17,
+    INTERSECTION05     = 18,
   };
 
   struct ChannelSettings
@@ -80,7 +84,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  void interpretConfig();
+  void interpretConfig(int pipelineIndex);
 
   [[nodiscard]] auto execute(const settings::json::AnalyzeSettings &,
                              const std::map<int, joda::func::DetectionResponse> &,

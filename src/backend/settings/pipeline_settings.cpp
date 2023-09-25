@@ -22,7 +22,7 @@ namespace joda::settings::json {
 /// \brief      Creates the method instance for the configured pipeline step
 /// \author     Joachim Danmayr
 ///
-void PipelineStepSettings::interpretConfig()
+void PipelineStepSettings::interpretConfig(int pipelineIndex)
 {
   if(cell_approximation.nucleus_channel_index >= 0 || cell_approximation.cell_channel_index >= 0) {
     mChannelSettings.index = PipelineStepIndex::CELL_APPROXIMATION;
@@ -30,7 +30,7 @@ void PipelineStepSettings::interpretConfig()
   }
 
   if(!intersection.channel_index.empty()) {
-    mChannelSettings.index = PipelineStepIndex::INTERSECTION;
+    mChannelSettings.index = (PipelineStepIndex) ((int) PipelineStepIndex::INTERSECTION01 + pipelineIndex);
     mChannelSettings.name  = "Intersection";
   }
 }

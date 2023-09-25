@@ -158,8 +158,10 @@ private:
       orderedChannelsByChannelIndex.emplace(ch.getChannelInfo().getChannelIndex(), ch);
     }
 
+    int pipelineStepIdx = 0;
     for(auto &step : pipeline_steps) {
-      step.interpretConfig();
+      step.interpretConfig(pipelineStepIdx);
+      pipelineStepIdx++;
     }
 
     // pipeline.interpretConfig();

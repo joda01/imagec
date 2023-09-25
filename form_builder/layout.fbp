@@ -2963,7 +2963,7 @@
                 </object>
             </object>
         </object>
-        <object class="Dialog" expanded="1">
+        <object class="Dialog" expanded="0">
             <property name="aui_managed">0</property>
             <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
             <property name="bg"></property>
@@ -2990,7 +2990,7 @@
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
             <property name="window_style"></property>
-            <object class="wxBoxSizer" expanded="1">
+            <object class="wxBoxSizer" expanded="0">
                 <property name="minimum_size"></property>
                 <property name="name">mSizerAbout</property>
                 <property name="orient">wxVERTICAL</property>
@@ -3114,11 +3114,11 @@
                         <property name="wrap">-1</property>
                     </object>
                 </object>
-                <object class="sizeritem" expanded="1">
+                <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">1</property>
-                    <object class="spacer" expanded="1">
+                    <object class="spacer" expanded="0">
                         <property name="height">0</property>
                         <property name="permission">protected</property>
                         <property name="width">0</property>
@@ -3126,7 +3126,7 @@
                 </object>
             </object>
         </object>
-        <object class="Panel" expanded="1">
+        <object class="Panel" expanded="0">
             <property name="aui_managed">0</property>
             <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
             <property name="bg">wxSYS_COLOUR_WINDOW</property>
@@ -8835,7 +8835,7 @@
             <property name="name">DialogImage</property>
             <property name="pos"></property>
             <property name="size">424,244</property>
-            <property name="style">wxDEFAULT_DIALOG_STYLE</property>
+            <property name="style">wxCAPTION|wxCLOSE_BOX</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title"></property>
             <property name="tooltip"></property>

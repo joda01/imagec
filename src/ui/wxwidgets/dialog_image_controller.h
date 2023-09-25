@@ -14,6 +14,7 @@
 
 #include <wx/dcclient.h>
 #include <wx/gdicmn.h>
+#include <wx/toplevel.h>
 #include <wx/wx.h>
 #include "wxwidget.h"
 
@@ -55,7 +56,7 @@ public:
   /////////////////////////////////////////////////////
   DialogImageController(wxImage &img, wxWindow *parent, wxWindowID id = wxID_ANY, const wxString &title = wxEmptyString,
                         const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(424, 244),
-                        long style = wxDEFAULT_DIALOG_STYLE);
+                        long style = wxCAPTION | wxCLOSE_BOX);
 
 private:
   /////////////////////////////////////////////////////
