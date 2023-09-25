@@ -59,7 +59,9 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
   if(!image.LoadFile(stream, wxBITMAP_TYPE_JPEG)) {
     wxLogError("Failed to load JPEG image from bytes.");
   } else {
-    DialogImageController imgDialog(image, this);
+    DialogImageController imgDialog(image, this, wxID_ANY,
+                                    chs.getChannelInfo().getName() + "(" +
+                                        std::to_string(chs.getChannelInfo().getChannelIndex()) + ")");
     imgDialog.ShowModal();
   }
 }

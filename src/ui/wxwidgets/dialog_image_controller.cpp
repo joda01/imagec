@@ -50,7 +50,10 @@ ImageZoomScrollWidget::ImageZoomScrollWidget(wxWindow *parent, wxImage image) :
   Bind(wxEVT_LEFT_DOWN, &ImageZoomScrollWidget::OnLeftDown, this);
   Bind(wxEVT_LEFT_UP, &ImageZoomScrollWidget::OnLeftUp, this);
   Bind(wxEVT_MOTION, &ImageZoomScrollWidget::OnMouseMove, this);
-  SetMinSize(wxSize{800, 600});
+
+  float ratio  = (float) mImage.GetWidth() / (float) mImage.GetHeight();
+  float height = (float) 800 * ratio;
+  SetMinSize(wxSize{(int) height, 800});
 }
 
 void ImageZoomScrollWidget::OnPaint(wxPaintEvent &event)
@@ -63,22 +66,27 @@ void ImageZoomScrollWidget::RenderImage(wxDC &dc)
 {
   int width  = mImage.GetWidth() * mZoomFactor;
   int height = mImage.GetHeight() * mZoomFactor;
-
-  wxBitmap bmp(mImage.Scale(width, height));
-  dc.DrawBitmap(bmp, mActPosition.x, mActPosition.y);
+  if(mImage.Ok()) {
+    wxBitmap bmp(mImage.Scale(width, height));
+    dc.DrawBitmap(bmp, mActPosition.x, mActPosition.y);
+  }
 }
 
 void ImageZoomScrollWidget::OnMouseWheel(wxMouseEvent &event)
 {
-  int delta = event.GetWheelRotation();
-  std::cout << std::to_string(delta) << std::endl;
-  mZoomFactor += static_cast<double>(delta) / 260.0;
+  // int delta = event.GetWheelRotation();
+  float delta = 0.05 * (event.GetWheelRotation() > 0 ? 1 : -1);
+  mZoomFactor += delta;
 
   if(mZoomFactor < 0.1)
     mZoomFactor = 0.1;
+  if(mZoomFactor > 3)
+    mZoomFactor = 3;
 
   int width  = mImage.GetWidth() * mZoomFactor;
   int height = mImage.GetHeight() * mZoomFactor;
+
+  fitImagePosition(mActPosition.x, mActPosition.y);
 
   SetVirtualSize(width, height);
   Refresh();
@@ -101,11 +109,41 @@ void ImageZoomScrollWidget::OnMouseMove(wxMouseEvent &event)
     int dx                  = (currentPosition.x - mDragStartPosition.x);    /// mZoomFactor;
     int dy                  = (currentPosition.y - mDragStartPosition.y);    /// mZoomFactor;
     // Scroll(dx, dy);
-    mActPosition.x = mImagePositionOnDragStart.x + dx;
-    mActPosition.y = mImagePositionOnDragStart.y + dy;
+    int newX = mImagePositionOnDragStart.x + dx;
+    int newY = mImagePositionOnDragStart.y + dy;
+    fitImagePosition(newX, newY);
+
     // m_dragStartPosition = currentPosition;
     Refresh();
   }
+}
+
+void ImageZoomScrollWidget::fitImagePosition(int newX, int newY)
+{
+  if(newX > 0) {
+    newX = 0;
+  }
+  int minX = GetSize().GetWidth() - mImage.GetWidth() * mZoomFactor;
+  if(minX > 0) {
+    minX = 0;
+  }
+  if(newX < minX) {
+    newX = minX;
+  }
+
+  if(newY > 0) {
+    newY = 0;
+  }
+  int minY = GetSize().GetHeight() - mImage.GetHeight() * mZoomFactor;
+  if(minY > 0) {
+    minY = 0;
+  }
+  if(newY < minY) {
+    newY = minY;
+  }
+
+  mActPosition.x = newX;
+  mActPosition.y = newY;
 }
 
 void ImageZoomScrollWidget::OnLeftUp(wxMouseEvent &event)

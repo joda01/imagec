@@ -32,6 +32,7 @@ private:
   void OnLeftDown(wxMouseEvent &event);
   void OnMouseMove(wxMouseEvent &event);
   void OnLeftUp(wxMouseEvent &event);
+  void fitImagePosition(int newX, int newY);
 
   /////////////////////////////////////////////////////
   wxImage mImage;
