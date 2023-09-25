@@ -159,7 +159,6 @@ namespace joda
 				protected:
 					wxStaticBitmap* mIconLogo;
 					wxStaticText* mLabelTitle;
-					wxStaticText* mLabelDescription;
 
 				public:
 

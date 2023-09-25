@@ -421,15 +421,13 @@ DialogAbout::DialogAbout( wxWindow* parent, wxWindowID id, const wxString& title
 	mIconLogo = new wxStaticBitmap( this, wxID_ANY, about_logo_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	mSizerAbout->Add( mIconLogo, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	mLabelTitle = new wxStaticText( this, wxID_ANY, _("<b>imageC 1.0.0</b>"), wxDefaultPosition, wxDefaultSize, 0 );
-	mLabelTitle->SetLabelMarkup( _("<b>imageC 1.0.0</b>") );
+	mLabelTitle = new wxStaticText( this, wxID_ANY, _("<b>imageC 1.0.0</b>\n\nPreferably for use in the non-profit research\nenvironment.\n\n<b>Many thanks to:</b> Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch\n\nIcons from <i>https://icons8.com/</i>\n(c) 2023 Joachim Danmayr"), wxDefaultPosition, wxDefaultSize, 0 );
+	mLabelTitle->SetLabelMarkup( _("<b>imageC 1.0.0</b>\n\nPreferably for use in the non-profit research\nenvironment.\n\n<b>Many thanks to:</b> Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch\n\nIcons from <i>https://icons8.com/</i>\n(c) 2023 Joachim Danmayr") );
 	mLabelTitle->Wrap( -1 );
 	mSizerAbout->Add( mLabelTitle, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	mLabelDescription = new wxStaticText( this, wxID_ANY, _("Preferably for use in the non-profit research environment.\n\n<b>Many thanks to:</b> Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch\n\n\nIcons from <i>https://icons8.com/</i>\n\n(c) 2023 Joachim Danmayr"), wxDefaultPosition, wxDefaultSize, 0 );
-	mLabelDescription->SetLabelMarkup( _("Preferably for use in the non-profit research environment.\n\n<b>Many thanks to:</b> Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch\n\n\nIcons from <i>https://icons8.com/</i>\n\n(c) 2023 Joachim Danmayr") );
-	mLabelDescription->Wrap( -1 );
-	mSizerAbout->Add( mLabelDescription, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	mSizerAbout->Add( 0, 0, 1, wxEXPAND, 5 );
 
 
 	this->SetSizer( mSizerAbout );
