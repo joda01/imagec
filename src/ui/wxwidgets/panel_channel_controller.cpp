@@ -13,6 +13,7 @@
 
 #include "panel_channel_controller.h"
 #include <wx/mstream.h>
+#include <memory>
 #include <string>
 #include "backend/helper/two_way_map.hpp"
 #include "backend/settings/channel_settings.hpp"
@@ -59,10 +60,11 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
   if(!image.LoadFile(stream, wxBITMAP_TYPE_JPEG)) {
     wxLogError("Failed to load JPEG image from bytes.");
   } else {
-    DialogImageController imgDialog(image, this, wxID_ANY,
-                                    chs.getChannelInfo().getName() + "(" +
-                                        std::to_string(chs.getChannelInfo().getChannelIndex()) + ")");
-    imgDialog.ShowModal();
+    auto imgDialog = std::make_shared<DialogImageController>(
+        image, this, wxID_ANY,
+        chs.getChannelInfo().getName() + "(" + std::to_string(chs.getChannelInfo().getChannelIndex()) + ")");
+    mPreviewDialogs.emplace(chs.getChannelInfo().getChannelIndex(), imgDialog);
+    imgDialog->Show();
   }
 }
 
@@ -88,6 +90,9 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
     }
     if(prepro.getMarginCrop()) {
       mSpinMarginCrop->SetValue(prepro.getMarginCrop()->value);
+    }
+    if(prepro.getGaussianBlur()) {
+      mDropdownBlur->SetSelection(filterKernelToIndex(static_cast<uint16_t>(prepro.getGaussianBlur()->kernel_size)));
     }
   }
 
@@ -129,6 +134,10 @@ nlohmann::json PanelChannelController::getValues()
   if(mSpinRollingBall->GetValue() > 0) {
     jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mSpinRollingBall->GetValue())}}}});
   }
+  if(mDropdownBlur->GetSelection() > 0) {
+    jsonArray.push_back({{"gaussian_blur", {{"kernel_size", indexToFilterKernel(mDropdownBlur->GetSelection())}}}});
+  }
+
   chSettings["preprocessing"] = jsonArray;
 
   // Detections
@@ -184,6 +193,15 @@ auto PanelChannelController::indexToThreshold(int idx) -> std::string
 auto PanelChannelController::thresholdToIndex(const std::string &str) -> int
 {
   return THRESHOLD_METHOD[str];
+}
+
+auto PanelChannelController::indexToFilterKernel(int idx) -> uint16_t
+{
+  return GAUSSIAN_BLUR[idx];
+}
+auto PanelChannelController::filterKernelToIndex(uint16_t kernel) -> int
+{
+  return GAUSSIAN_BLUR[kernel];
 }
 
 auto PanelChannelController::splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>

@@ -18,7 +18,17 @@
 #include "../image_processing/functions/margin_crop/margin_crop.hpp"
 #include "../image_processing/functions/rolling_ball/rolling_ball.hpp"
 
+#include "backend/image_processing/functions/blur/blur.hpp"
 #include <nlohmann/json.hpp>
+
+class PreprocessingBlur final
+{
+public:
+  int kernel_size = 0;
+
+private:
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingBlur, kernel_size);
+};
 
 class PreprocessingZStack final
 {
@@ -103,6 +113,11 @@ public:
       joda::func::img::MarginCrop function(margin_crop.value);
       function.execute(image);
     }
+
+    if(gaussian_blur.kernel_size > 0) {
+      joda::func::img::Blur function(gaussian_blur.kernel_size);
+      function.execute(image);
+    }
   }
 
   [[nodiscard]] auto getZStack() const -> const PreprocessingZStack *
@@ -129,11 +144,20 @@ public:
     return nullptr;
   }
 
+  [[nodiscard]] auto getGaussianBlur() const -> const PreprocessingBlur *
+  {
+    if(gaussian_blur.kernel_size > 0) {
+      return &gaussian_blur;
+    }
+    return nullptr;
+  }
+
 private:
   /////////////////////////////////////////////////////
   PreprocessingZStack z_stack;
   PreprocessingRollingBall rolling_ball;
   PreprocessingMarginCrop margin_crop;
+  PreprocessingBlur gaussian_blur;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingStep, z_stack, rolling_ball, margin_crop);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingStep, z_stack, rolling_ball, margin_crop, gaussian_blur);
 };

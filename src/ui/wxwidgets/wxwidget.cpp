@@ -684,13 +684,16 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	iconBluer = new wxStaticBitmap( panelBluer, wxID_ANY, blur_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerBluer2->Add( iconBluer, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinBluer = new wxSpinCtrl( panelBluer, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 128, 0 );
-	sizerBluer2->Add( mSpinBluer, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
+	wxString mDropdownBlurChoices[] = { _("Off"), _("3x3"), _("5x5"), _("7x7"), _("9x9"), _("11x11") };
+	int mDropdownBlurNChoices = sizeof( mDropdownBlurChoices ) / sizeof( wxString );
+	mDropdownBlur = new wxChoice( panelBluer, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropdownBlurNChoices, mDropdownBlurChoices, 0 );
+	mDropdownBlur->SetSelection( 0 );
+	sizerBluer2->Add( mDropdownBlur, 1, wxEXPAND, 5 );
 
 
 	sizerBluer->Add( sizerBluer2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
 
-	mLabelBluer = new wxStaticText( panelBluer, wxID_ANY, _("Bluer nois reduction [0-65535]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelBluer = new wxStaticText( panelBluer, wxID_ANY, _("Blur nois reduction [0-10]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	mLabelBluer->Wrap( -1 );
 	mLabelBluer->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 

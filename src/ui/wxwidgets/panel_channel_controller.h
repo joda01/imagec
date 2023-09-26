@@ -14,8 +14,11 @@
 #ifndef __panel_channel_controller__
 #define __panel_channel_controller__
 
+#include <map>
+#include <memory>
 #include "backend/helper/two_way_map.hpp"
 #include "backend/settings/channel_settings.hpp"
+#include "ui/wxwidgets/dialog_image_controller.h"
 #include <nlohmann/json_fwd.hpp>
 #include "wxwidget.h"
 
@@ -52,6 +55,9 @@ private:
   static auto indexToThreshold(int idx) -> std::string;
   static auto thresholdToIndex(const std::string &str) -> int;
 
+  static auto indexToFilterKernel(int idx) -> uint16_t;
+  static auto filterKernelToIndex(uint16_t kernel) -> int;
+
   static auto splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>;
 
   static inline joda::helper::TwoWayMap<int, std::string> CHANNEL_TYPES{
@@ -63,13 +69,15 @@ private:
   static inline joda::helper::TwoWayMap<int, std::string> THRESHOLD_METHOD{
       {{0, "MANUAL"}, {1, "LI"}, {2, "MIN_ERROR"}, {3, "TRIANGLE"}}};
 
+  static inline joda::helper::TwoWayMap<int, int16_t> GAUSSIAN_BLUR{{{0, 0}, {1, 3}, {2, 5}, {3, 7}, {4, 11}, {5, 13}}};
+
 private:
   /////////////////////////////////////////////////////
   void onRemoveClicked(wxCommandEvent &event) override;
   void onPreviewClicked(wxCommandEvent &event) override;
 
   FrameMainController *mMainFrame;
-
+  std::multimap<int, std::shared_ptr<DialogImageController>> mPreviewDialogs;
 };
 }    // namespace joda::ui::wxwidget
 

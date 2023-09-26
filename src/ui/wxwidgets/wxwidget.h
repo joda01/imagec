@@ -206,7 +206,7 @@ namespace joda
 					wxStaticText* mLabelBGSubtraction;
 					wxPanel* panelBluer;
 					wxStaticBitmap* iconBluer;
-					wxSpinCtrl* mSpinBluer;
+					wxChoice* mDropdownBlur;
 					wxStaticText* mLabelBluer;
 					wxStaticText* mLabelDescription;
 					wxStaticLine* mLineDescription;
