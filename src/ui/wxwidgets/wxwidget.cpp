@@ -464,7 +464,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( mLabelChannelTitle, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 
 	mTextChannelName = new wxTextCtrl( mScrolledChannel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	mSizerChannel->Add( mTextChannelName, 0, wxALL|wxEXPAND, 5 );
+	mTextChannelName->SetMinSize( wxSize( -1,32 ) );
+
+	mSizerChannel->Add( mTextChannelName, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 	panelChannelType = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	panelChannelType->SetMaxSize( wxSize( -1,35 ) );
@@ -693,7 +695,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	sizerBluer->Add( sizerBluer2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
 
-	mLabelBluer = new wxStaticText( panelBluer, wxID_ANY, _("Blur nois reduction [0-10]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelBluer = new wxStaticText( panelBluer, wxID_ANY, _("Gaussian Blur"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	mLabelBluer->Wrap( -1 );
 	mLabelBluer->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
@@ -829,7 +831,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	mSpinMinCircularity = new wxSpinCtrlDouble( panelMinCircularity, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1, 0.000000, 0.01 );
 	mSpinMinCircularity->SetDigits( 2 );
-	sizerMinCircularity2->Add( mSpinMinCircularity, 1, wxALL, 5 );
+	sizerMinCircularity2->Add( mSpinMinCircularity, 1, wxEXPAND, 5 );
 
 
 	sizerMinCircularity->Add( sizerMinCircularity2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
@@ -859,6 +861,8 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerParticleSize2->Add( iDescription1121, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	mTextParticleSizeRange = new wxTextCtrl( panelParticleSize, wxID_ANY, _("5-9999"), wxDefaultPosition, wxDefaultSize, 0 );
+	mTextParticleSizeRange->SetMinSize( wxSize( -1,35 ) );
+
 	sizerParticleSize2->Add( mTextParticleSizeRange, 1, wxEXPAND, 5 );
 
 

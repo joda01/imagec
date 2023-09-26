@@ -3291,7 +3291,7 @@
                                     </object>
                                     <object class="sizeritem" expanded="0">
                                         <property name="border">5</property>
-                                        <property name="flag">wxALL|wxEXPAND</property>
+                                        <property name="flag">wxEXPAND|wxLEFT|wxRIGHT|wxTOP</property>
                                         <property name="proportion">0</property>
                                         <object class="wxTextCtrl" expanded="0">
                                             <property name="BottomDockable">1</property>
@@ -3327,7 +3327,7 @@
                                             <property name="maxlength">0</property>
                                             <property name="min_size"></property>
                                             <property name="minimize_button">0</property>
-                                            <property name="minimum_size"></property>
+                                            <property name="minimum_size">-1,32</property>
                                             <property name="moveable">1</property>
                                             <property name="name">mTextChannelName</property>
                                             <property name="pane_border">1</property>
@@ -5232,7 +5232,7 @@
                                                         <property name="gripper">0</property>
                                                         <property name="hidden"></property>
                                                         <property name="id">wxID_ANY</property>
-                                                        <property name="label">Blur nois reduction [0-10]</property>
+                                                        <property name="label">Gaussian Blur</property>
                                                         <property name="markup">0</property>
                                                         <property name="max_size"></property>
                                                         <property name="maximize_button">0</property>
@@ -6339,7 +6339,7 @@
                                                         </object>
                                                         <object class="sizeritem" expanded="0">
                                                             <property name="border">5</property>
-                                                            <property name="flag">wxALL</property>
+                                                            <property name="flag">wxEXPAND</property>
                                                             <property name="proportion">1</property>
                                                             <object class="wxSpinCtrlDouble" expanded="0">
                                                                 <property name="BottomDockable">1</property>
@@ -6632,7 +6632,7 @@
                                                                 <property name="maxlength">0</property>
                                                                 <property name="min_size"></property>
                                                                 <property name="minimize_button">0</property>
-                                                                <property name="minimum_size"></property>
+                                                                <property name="minimum_size">-1,35</property>
                                                                 <property name="moveable">1</property>
                                                                 <property name="name">mTextParticleSizeRange</property>
                                                                 <property name="pane_border">1</property>
