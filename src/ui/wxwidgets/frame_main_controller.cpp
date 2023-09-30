@@ -191,7 +191,11 @@ void FrameMainController::onSaveSettingsClicked(wxCommandEvent &event)
 
   joda::settings::json::AnalyzeSettings settings;
   settings.loadConfigFromString(getValues().dump());
-  settings.storeConfigToFile(saveFileDialog.GetPath().ToStdString());
+  std::string path = saveFileDialog.GetPath().ToStdString();
+  if(!path.ends_with(".json")) {
+    path += ".json";
+  }
+  settings.storeConfigToFile(path);
 }
 
 ///
