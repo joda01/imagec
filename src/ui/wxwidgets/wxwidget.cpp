@@ -651,11 +651,11 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	iconBGSubtraction = new wxStaticBitmap( panelBGSubtraction, wxID_ANY, background_remover_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerBGSubtraction2->Add( iconBGSubtraction, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	wxString mSpinBGSubtractionChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
-	int mSpinBGSubtractionNChoices = sizeof( mSpinBGSubtractionChoices ) / sizeof( wxString );
-	mSpinBGSubtraction = new wxChoice( panelBGSubtraction, wxID_ANY, wxDefaultPosition, wxDefaultSize, mSpinBGSubtractionNChoices, mSpinBGSubtractionChoices, 0 );
-	mSpinBGSubtraction->SetSelection( 0 );
-	sizerBGSubtraction2->Add( mSpinBGSubtraction, 1, wxEXPAND, 5 );
+	wxString mChoiceBGSubtractionChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
+	int mChoiceBGSubtractionNChoices = sizeof( mChoiceBGSubtractionChoices ) / sizeof( wxString );
+	mChoiceBGSubtraction = new wxChoice( panelBGSubtraction, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceBGSubtractionNChoices, mChoiceBGSubtractionChoices, 0 );
+	mChoiceBGSubtraction->SetSelection( 0 );
+	sizerBGSubtraction2->Add( mChoiceBGSubtraction, 1, wxEXPAND, 5 );
 
 
 	sizerBGSubtraction->Add( sizerBGSubtraction2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );

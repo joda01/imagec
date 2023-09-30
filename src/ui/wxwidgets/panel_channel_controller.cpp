@@ -97,6 +97,9 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
     if(prepro.getMedianBgSubtraction()) {
       mChoiceMedianBGSubtract->SetSelection(1);
     }
+    if(prepro.getSubtractChannel()) {
+      mChoiceBGSubtraction->SetSelection(prepro.getSubtractChannel()->channel_index + 1);
+    }
   }
 
   // Detection
@@ -142,6 +145,9 @@ nlohmann::json PanelChannelController::getValues()
   }
   if(mChoiceMedianBGSubtract->GetSelection() > 0) {
     jsonArray.push_back({{"median_bg_subtraction", {{"kernel_size", 3}}}});
+  }
+  if(mChoiceBGSubtraction->GetSelection() > 0) {
+    jsonArray.push_back({{"subtract_channel", {{"channel_index", mChoiceBGSubtraction->GetSelection() - 1}}}});
   }
 
   chSettings["preprocessing"] = jsonArray;

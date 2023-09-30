@@ -100,7 +100,7 @@ public:
     //
     // Execute the algorithms
     //
-    ChannelProperties chProps = loadChannelProperties(imagePath, channelSetting);
+    ChannelProperties chProps = loadChannelProperties(imagePath, channelSetting.getChannelInfo().getChannelIndex());
     if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
       return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, chProps.tifDirs, tileIndex);
     }
@@ -159,25 +159,43 @@ private:
   template <class TIFFLOADER>
   static cv::Mat doZProjection(const std::string &imagePath,
                                const joda::settings::json::ChannelSettings &channelSetting,
-                               const std::set<uint32_t> &tiffDirectories, int64_t idx)
+                               const std::set<uint32_t> &tifDirs, int64_t idx)
   {
-    auto id           = DurationCount::start("load");
-    auto actDirectory = tiffDirectories.begin();
-    cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN);
+    auto id = DurationCount::start("load");
+
+    auto loadTileAndToIntensityProjectionIfEnabled =
+        [&imagePath, idx, &channelSetting](const std::set<int32_t> tiffDirectories) -> cv::Mat {
+      auto actDirectory = tiffDirectories.begin();
+      cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN);
+      if(channelSetting.getZProjectionSetting() == PreprocessingZStack::MAX_INTENSITY) {
+        //
+        // Do maximum intensity projection
+        //
+        while(actDirectory != tiffDirectories.end()) {
+          actDirectory = std::next(actDirectory);
+          if(actDirectory == tiffDirectories.end()) {
+            break;
+          }
+          cv::max(tilePart, TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN), tilePart);
+        }
+      }
+      return tilePart;
+    };
+
+    cv::Mat tilePart = loadTileAndToIntensityProjectionIfEnabled(tifDirs);
+
+    //
+    // If channel subtraction is enabled, subtract the channel from the other one
+    //
+    if(channelSetting.getPreprocessingSubtractChannel() >= 0) {
+      ChannelProperties chPropsToSubtract =
+          loadChannelProperties(imagePath, channelSetting.getPreprocessingSubtractChannel());
+      cv::Mat tileToSubtract = loadTileAndToIntensityProjectionIfEnabled(chPropsToSubtract.tifDirs);
+
+      tilePart = tilePart - tileToSubtract;
+    }
     DurationCount::stop(id);
 
-    if(channelSetting.getZProjectionSetting() == PreprocessingZStack::MAX_INTENSITY) {
-      //
-      // Do maximum intensity projection
-      //
-      while(actDirectory != tiffDirectories.end()) {
-        actDirectory = std::next(actDirectory);
-        if(actDirectory == tiffDirectories.end()) {
-          break;
-        }
-        cv::max(tilePart, TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN), tilePart);
-      }
-    }
     return tilePart;
   }
 
@@ -222,13 +240,11 @@ private:
   /// \brief      Load channel properties
   /// \author     Joachim Danmayr
   ///
-  static ChannelProperties loadChannelProperties(const std::string &imagePath,
-                                                 const joda::settings::json::ChannelSettings &channelSetting)
+  static ChannelProperties loadChannelProperties(const std::string &imagePath, const int channelIndex)
   {
     //
     // Load image properties
     //
-    uint32_t channel = channelSetting.getChannelInfo().getChannelIndex();
     std::filesystem::path path_obj(imagePath);
     std::string filename = path_obj.filename().stem().string();
     ImageProperties imgProperties;
@@ -239,7 +255,7 @@ private:
       imgProperties = JpgLoader::getImageProperties(imagePath);
     } else {
       auto omeInfo    = TiffLoader::getOmeInformation(imagePath);
-      tiffDirectories = omeInfo.getDirectoryForChannel(channel, TIME_FRAME);
+      tiffDirectories = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
       if(tiffDirectories.empty()) {
         throw std::runtime_error("Selected channel does not contain images!");
       }

@@ -310,6 +310,11 @@ public:
       if(method) {
         zStackMethod = method->getZStackMethod();
       }
+
+      auto method2 = pre.getSubtractChannel();
+      if(method2) {
+        mSubtractChannel = method2->channel_index;
+      }
     }
   }
 
@@ -333,6 +338,11 @@ public:
     return zStackMethod;
   }
 
+  auto getPreprocessingSubtractChannel() const -> int32_t
+  {
+    return mSubtractChannel;
+  }
+
   auto getFilter() const -> const ChannelFiltering &
   {
     return filter;
@@ -349,6 +359,7 @@ private:
   //
   std::vector<PreprocessingStep> preprocessing;
   PreprocessingZStack::ZStackMethod zStackMethod = PreprocessingZStack::ZStackMethod::NONE;
+  int32_t mSubtractChannel                       = -1;
 
   //
   // Detection settings

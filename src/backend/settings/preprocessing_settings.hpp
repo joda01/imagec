@@ -62,6 +62,15 @@ private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingZStack, value);
 };
 
+class PreprocessingSubtractChannel final
+{
+public:
+  int32_t channel_index{-1};
+
+private:
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingSubtractChannel, channel_index);
+};
+
 class PreprocessingRollingBall final
 {
 public:
@@ -143,6 +152,14 @@ public:
     return nullptr;
   }
 
+  [[nodiscard]] auto getSubtractChannel() const -> const PreprocessingSubtractChannel *
+  {
+    if(subtract_channel.channel_index >= 0) {
+      return &subtract_channel;
+    }
+    return nullptr;
+  }
+
   [[nodiscard]] auto getRollingBall() const -> const PreprocessingRollingBall *
   {
     if(rolling_ball.value > 0) {
@@ -178,11 +195,12 @@ public:
 private:
   /////////////////////////////////////////////////////
   PreprocessingZStack z_stack;
+  PreprocessingSubtractChannel subtract_channel;
   PreprocessingRollingBall rolling_ball;
   PreprocessingMarginCrop margin_crop;
   PreprocessingBlur gaussian_blur;
   PreprocessingMedianBackgroundSubtraction median_bg_subtraction;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingStep, z_stack, rolling_ball, margin_crop, gaussian_blur,
-                                              median_bg_subtraction);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingStep, z_stack, subtract_channel, rolling_ball, margin_crop,
+                                              gaussian_blur, median_bg_subtraction);
 };
