@@ -164,7 +164,7 @@ private:
     auto id = DurationCount::start("load");
 
     auto loadTileAndToIntensityProjectionIfEnabled =
-        [&imagePath, idx, &channelSetting](const std::set<int32_t> tiffDirectories) -> cv::Mat {
+        [&imagePath, idx, &channelSetting](const std::set<uint32_t> &tiffDirectories) -> cv::Mat {
       auto actDirectory = tiffDirectories.begin();
       cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN);
       if(channelSetting.getZProjectionSetting() == PreprocessingZStack::MAX_INTENSITY) {
