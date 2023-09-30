@@ -421,8 +421,8 @@ DialogAbout::DialogAbout( wxWindow* parent, wxWindowID id, const wxString& title
 	mIconLogo = new wxStaticBitmap( this, wxID_ANY, about_logo_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	mSizerAbout->Add( mIconLogo, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	mLabelTitle = new wxStaticText( this, wxID_ANY, _("<b>imageC 1.0.0</b>\n\nPreferably for use in the non-profit research\nenvironment.\n\n<b>Many thanks to:</b> Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch\n\nIcons from <i>https://icons8.com/</i>\n(c) 2023 Joachim Danmayr"), wxDefaultPosition, wxDefaultSize, 0 );
-	mLabelTitle->SetLabelMarkup( _("<b>imageC 1.0.0</b>\n\nPreferably for use in the non-profit research\nenvironment.\n\n<b>Many thanks to:</b> Melanie Schürz, Anna Müller, Tanja Plank, Maria Jartisch\n\nIcons from <i>https://icons8.com/</i>\n(c) 2023 Joachim Danmayr") );
+	mLabelTitle = new wxStaticText( this, wxID_ANY, _("<b>imageC 1.0.0-preview</b>\n<i>Licensed under GPL-v3</i>\n\nPreferably for use in the non-profit research environment.\n\n<b>Many thanks</b> for your help in setting up this project to Melanie Schuerz and Anna Mueller.\n\n<b>I would also like to thank</b>\nMelanie Schuerz, Anna Mueller, Tanja Plank, Maria Jartisch, Heloisa Melobenirschke and Patricia Hrasnova for their support in AI training.\n\nIcons from <i>https://icons8.com/</i>\n\n<i>copyright 2023 Joachim Danmayr</i>\n\n...\n\n"), wxDefaultPosition, wxDefaultSize, 0 );
+	mLabelTitle->SetLabelMarkup( _("<b>imageC 1.0.0-preview</b>\n<i>Licensed under GPL-v3</i>\n\nPreferably for use in the non-profit research environment.\n\n<b>Many thanks</b> for your help in setting up this project to Melanie Schuerz and Anna Mueller.\n\n<b>I would also like to thank</b>\nMelanie Schuerz, Anna Mueller, Tanja Plank, Maria Jartisch, Heloisa Melobenirschke and Patricia Hrasnova for their support in AI training.\n\nIcons from <i>https://icons8.com/</i>\n\n<i>copyright 2023 Joachim Danmayr</i>\n\n...\n\n") );
 	mLabelTitle->Wrap( -1 );
 	mSizerAbout->Add( mLabelTitle, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -464,8 +464,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( mLabelChannelTitle, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 
 	mTextChannelName = new wxTextCtrl( mScrolledChannel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	mTextChannelName->SetMinSize( wxSize( -1,32 ) );
-
 	mSizerChannel->Add( mTextChannelName, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 	panelChannelType = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
@@ -593,7 +591,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	wxString mChoiceMedianBGSubtractChoices[] = { _("Off"), _("On") };
 	int mChoiceMedianBGSubtractNChoices = sizeof( mChoiceMedianBGSubtractChoices ) / sizeof( wxString );
 	mChoiceMedianBGSubtract = new wxChoice( panelMedianBGSubtract, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceMedianBGSubtractNChoices, mChoiceMedianBGSubtractChoices, 0 );
-	mChoiceMedianBGSubtract->SetSelection( 1 );
+	mChoiceMedianBGSubtract->SetSelection( 0 );
 	sizerMedianBGSubtract2->Add( mChoiceMedianBGSubtract, 1, wxEXPAND, 5 );
 
 
@@ -861,8 +859,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerParticleSize2->Add( iDescription1121, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	mTextParticleSizeRange = new wxTextCtrl( panelParticleSize, wxID_ANY, _("5-9999"), wxDefaultPosition, wxDefaultSize, 0 );
-	mTextParticleSizeRange->SetMinSize( wxSize( -1,35 ) );
-
 	sizerParticleSize2->Add( mTextParticleSizeRange, 1, wxEXPAND, 5 );
 
 

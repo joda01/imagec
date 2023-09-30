@@ -19,6 +19,7 @@
 #include "../image_processing/functions/rolling_ball/rolling_ball.hpp"
 
 #include "backend/image_processing/functions/blur/blur.hpp"
+#include "backend/image_processing/functions/median_substraction/median_substraction.hpp"
 #include <nlohmann/json.hpp>
 
 class PreprocessingBlur final
@@ -79,6 +80,15 @@ private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingMarginCrop, value);
 };
 
+class PreprocessingMedianBackgroundSubtraction final
+{
+public:
+  int32_t kernel_size{0};
+
+private:
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingMedianBackgroundSubtraction, kernel_size);
+};
+
 ///
 /// \class      PreprocessingStep
 /// \author     Joachim Danmayr
@@ -118,6 +128,11 @@ public:
       joda::func::img::Blur function(gaussian_blur.kernel_size);
       function.execute(image);
     }
+
+    if(median_bg_subtraction.kernel_size > 0) {
+      joda::func::img::MedianSubtraction function(median_bg_subtraction.kernel_size);
+      function.execute(image);
+    }
   }
 
   [[nodiscard]] auto getZStack() const -> const PreprocessingZStack *
@@ -152,12 +167,22 @@ public:
     return nullptr;
   }
 
+  [[nodiscard]] auto getMedianBgSubtraction() const -> const PreprocessingMedianBackgroundSubtraction *
+  {
+    if(median_bg_subtraction.kernel_size > 0) {
+      return &median_bg_subtraction;
+    }
+    return nullptr;
+  }
+
 private:
   /////////////////////////////////////////////////////
   PreprocessingZStack z_stack;
   PreprocessingRollingBall rolling_ball;
   PreprocessingMarginCrop margin_crop;
   PreprocessingBlur gaussian_blur;
+  PreprocessingMedianBackgroundSubtraction median_bg_subtraction;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingStep, z_stack, rolling_ball, margin_crop, gaussian_blur);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingStep, z_stack, rolling_ball, margin_crop, gaussian_blur,
+                                              median_bg_subtraction);
 };

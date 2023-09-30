@@ -162,7 +162,7 @@ namespace joda
 
 				public:
 
-					DialogAbout( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Info"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 411,267 ), long style = wxDEFAULT_DIALOG_STYLE );
+					DialogAbout( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Info"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 488,388 ), long style = wxDEFAULT_DIALOG_STYLE );
 
 					~DialogAbout();
 
