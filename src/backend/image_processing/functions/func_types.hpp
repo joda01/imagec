@@ -22,8 +22,8 @@ using DetectionResults = std::vector<ROI>;
 struct DetectionResponse
 {
   joda::func::DetectionResults result;
-  cv::Mat originalImage;
-  cv::Mat controlImage;
+  cv::Mat originalImage = {};
+  cv::Mat controlImage  = {};
 };
 
 }    // namespace joda::func

@@ -55,8 +55,8 @@ private:
   static auto indexToThreshold(int idx) -> std::string;
   static auto thresholdToIndex(const std::string &str) -> int;
 
-  static auto indexToFilterKernel(int idx) -> uint16_t;
-  static auto filterKernelToIndex(uint16_t kernel) -> int;
+  static auto indexToFilterKernel(int idx) -> int16_t;
+  static auto filterKernelToIndex(int16_t kernel) -> int;
 
   static auto splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>;
 

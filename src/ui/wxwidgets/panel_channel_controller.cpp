@@ -92,7 +92,7 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
       mSpinMarginCrop->SetValue(prepro.getMarginCrop()->value);
     }
     if(prepro.getGaussianBlur()) {
-      mDropdownBlur->SetSelection(filterKernelToIndex(static_cast<uint16_t>(prepro.getGaussianBlur()->kernel_size)));
+      mDropdownBlur->SetSelection(filterKernelToIndex(static_cast<int16_t>(prepro.getGaussianBlur()->kernel_size)));
       mDropDownBlurRepeat->SetSelection(prepro.getGaussianBlur()->repeat - 1);
     }
     if(prepro.getMedianBgSubtraction()) {
@@ -210,11 +210,11 @@ auto PanelChannelController::thresholdToIndex(const std::string &str) -> int
   return THRESHOLD_METHOD[str];
 }
 
-auto PanelChannelController::indexToFilterKernel(int idx) -> uint16_t
+auto PanelChannelController::indexToFilterKernel(int idx) -> int16_t
 {
   return GAUSSIAN_BLUR[idx];
 }
-auto PanelChannelController::filterKernelToIndex(uint16_t kernel) -> int
+auto PanelChannelController::filterKernelToIndex(int16_t kernel) -> int
 {
   return GAUSSIAN_BLUR[kernel];
 }

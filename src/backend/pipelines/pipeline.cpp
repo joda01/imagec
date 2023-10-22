@@ -199,18 +199,26 @@ void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda:
 {
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
-  int colIdx = NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT * tempChannelIdx;
-
+  int colIdx    = NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT * tempChannelIdx;
+  std::string f = detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
+                  std::to_string(tileIdx) + ".png";
+  std::cout << f << std::endl;
   // Free memory
   if(!result.controlImage.empty()) {
+    std::vector<int> compression_params;
+    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+    compression_params.push_back(9);
     cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
-                    std::to_string(tileIdx) + ".jpg",
-                result.controlImage);
+                    std::to_string(tileIdx) + ".png",
+                result.controlImage, compression_params);
   }
   if(!result.originalImage.empty()) {
+    std::vector<int> compression_params;
+    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+    compression_params.push_back(9);
     cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
-                    std::to_string(tileIdx) + ".jpg",
-                result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX));
+                    std::to_string(tileIdx) + ".png",
+                result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
   }
 
   for(const auto &imgData : result.result) {

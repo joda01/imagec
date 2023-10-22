@@ -96,3 +96,20 @@ TEST_CASE("pipeline:test:nucleus", "[pipeline_test_nucleus]")
     sleep(2);
   }
 }
+
+///
+/// \brief  Spot test
+/// \author Joachim Danmayr
+///
+TEST_CASE("pipeline:test:spots_real", "[pipeline_test_spots_real]")
+{
+  joda::settings::json::AnalyzeSettings settings;
+  settings.loadConfigFromFile("test_spot/evanalyzer_comp/mysettings.json");
+  joda::helper::ImageFileContainer imageFileContainer;
+  imageFileContainer.setWorkingDirectory("test_spot/evanalyzer_comp");
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test_spot/evanalyzer_comp", &imageFileContainer);
+
+  while(true) {
+    sleep(2);
+  }
+}

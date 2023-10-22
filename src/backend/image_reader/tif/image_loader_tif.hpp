@@ -9,6 +9,7 @@
 #include "../image_reader.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #define USER_DEFINED_INT64
 #include <tiffio.h>
@@ -45,9 +46,8 @@ private:
   template <tiffformat T>
   static cv::Mat ReadGrayScaleImage(TIFF *tiff, unsigned int width, unsigned int height)
   {
-    cv::Mat image      = cv::Mat(width, height, CV_16UC1, 0.0);
+    cv::Mat image      = cv::Mat(height, width, CV_16UC1, cv::Scalar(0));
     tsize_t scanlength = TIFFScanlineSize(tiff);
-
     // We scale everything to 16 bit
     float scalingFactor = (USHRT_MAX / (std::pow(2, 8 * sizeof(T)) - 1));
 
@@ -56,7 +56,7 @@ private:
       T *raster = (T *) malloc(scanlength);
       TIFFReadScanline(tiff, raster, y);
       for(unsigned int x = 0; x < scanlength / sizeof(T); x++) {
-        unsigned short &pixel = image.at<unsigned short>(cv::Point(x, y));    // Read the current pixel of the matrix
+        unsigned short &pixel = image.at<unsigned short>(cv::Point(y, x));    // Read the current pixel of the matrix
         pixel                 = static_cast<unsigned short>((static_cast<float>(raster[x]) * scalingFactor));
       }
       _TIFFfree(raster);    // Free temp memory
