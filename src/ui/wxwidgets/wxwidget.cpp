@@ -28,6 +28,7 @@
 #include "../../res/preview_20.png.h"
 #include "../../res/save_20.png.h"
 #include "../../res/settings_20.png.h"
+#include "../../res/smooth_20.png.h"
 #include "../../res/sphere_20.png.h"
 #include "../../res/start_20.png.h"
 
@@ -672,44 +673,77 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerBGSubtraction->Fit( panelBGSubtraction );
 	mSizerChannel->Add( panelBGSubtraction, 1, wxEXPAND|wxTOP, 5 );
 
-	panelBluer = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
-	panelBluer->SetMaxSize( wxSize( -1,65 ) );
+	panelSmoothing = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelSmoothing->SetMaxSize( wxSize( -1,65 ) );
 
-	wxBoxSizer* sizerBluer;
-	sizerBluer = new wxBoxSizer( wxVERTICAL );
+	wxBoxSizer* sizerSmoothing;
+	sizerSmoothing = new wxBoxSizer( wxVERTICAL );
 
-	wxBoxSizer* sizerBluer2;
-	sizerBluer2 = new wxBoxSizer( wxHORIZONTAL );
+	wxBoxSizer* sizerSmoothing2;
+	sizerSmoothing2 = new wxBoxSizer( wxHORIZONTAL );
 
-	iconBluer = new wxStaticBitmap( panelBluer, wxID_ANY, blur_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerBluer2->Add( iconBluer, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+	iconSmoothing = new wxStaticBitmap( panelSmoothing, wxID_ANY, smooth_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerSmoothing2->Add( iconSmoothing, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	wxString mDropdownBlurChoices[] = { _("Off"), _("3x3"), _("5x5"), _("7x7"), _("9x9"), _("11x11") };
-	int mDropdownBlurNChoices = sizeof( mDropdownBlurChoices ) / sizeof( wxString );
-	mDropdownBlur = new wxChoice( panelBluer, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropdownBlurNChoices, mDropdownBlurChoices, 0 );
-	mDropdownBlur->SetSelection( 0 );
-	sizerBluer2->Add( mDropdownBlur, 1, wxEXPAND, 5 );
-
-	wxString mDropDownBlurRepeatChoices[] = { _("x1"), _("x2"), _("x3"), _("x4") };
-	int mDropDownBlurRepeatNChoices = sizeof( mDropDownBlurRepeatChoices ) / sizeof( wxString );
-	mDropDownBlurRepeat = new wxChoice( panelBluer, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropDownBlurRepeatNChoices, mDropDownBlurRepeatChoices, 0 );
-	mDropDownBlurRepeat->SetSelection( 0 );
-	sizerBluer2->Add( mDropDownBlurRepeat, 0, wxEXPAND|wxLEFT, 5 );
+	wxString mDropDownSmoothingRepeatChoices[] = { _("Off"), _("x1"), _("x2"), _("x3"), _("x4") };
+	int mDropDownSmoothingRepeatNChoices = sizeof( mDropDownSmoothingRepeatChoices ) / sizeof( wxString );
+	mDropDownSmoothingRepeat = new wxChoice( panelSmoothing, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropDownSmoothingRepeatNChoices, mDropDownSmoothingRepeatChoices, 0 );
+	mDropDownSmoothingRepeat->SetSelection( 0 );
+	sizerSmoothing2->Add( mDropDownSmoothingRepeat, 1, wxEXPAND, 5 );
 
 
-	sizerBluer->Add( sizerBluer2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+	sizerSmoothing->Add( sizerSmoothing2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
 
-	mLabelBluer = new wxStaticText( panelBluer, wxID_ANY, _("Gaussian Blur"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
-	mLabelBluer->Wrap( -1 );
-	mLabelBluer->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+	mLabelSmoothing = new wxStaticText( panelSmoothing, wxID_ANY, _("Smoothing"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelSmoothing->Wrap( -1 );
+	mLabelSmoothing->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
-	sizerBluer->Add( mLabelBluer, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+	sizerSmoothing->Add( mLabelSmoothing, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
 
 
-	panelBluer->SetSizer( sizerBluer );
-	panelBluer->Layout();
-	sizerBluer->Fit( panelBluer );
-	mSizerChannel->Add( panelBluer, 1, wxEXPAND|wxTOP, 5 );
+	panelSmoothing->SetSizer( sizerSmoothing );
+	panelSmoothing->Layout();
+	sizerSmoothing->Fit( panelSmoothing );
+	mSizerChannel->Add( panelSmoothing, 1, wxEXPAND|wxTOP, 5 );
+
+	panelGausianBlur = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelGausianBlur->SetMaxSize( wxSize( -1,65 ) );
+
+	wxBoxSizer* sizerGausianBlur;
+	sizerGausianBlur = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* sizerGausianBlur2;
+	sizerGausianBlur2 = new wxBoxSizer( wxHORIZONTAL );
+
+	iconGausianBluer = new wxStaticBitmap( panelGausianBlur, wxID_ANY, blur_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerGausianBlur2->Add( iconGausianBluer, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+
+	wxString mDropdownGausianBlurChoices[] = { _("Off"), _("3x3"), _("5x5"), _("7x7"), _("9x9"), _("11x11") };
+	int mDropdownGausianBlurNChoices = sizeof( mDropdownGausianBlurChoices ) / sizeof( wxString );
+	mDropdownGausianBlur = new wxChoice( panelGausianBlur, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropdownGausianBlurNChoices, mDropdownGausianBlurChoices, 0 );
+	mDropdownGausianBlur->SetSelection( 0 );
+	sizerGausianBlur2->Add( mDropdownGausianBlur, 1, wxEXPAND, 5 );
+
+	wxString mDropDownGausianBlurRepeatChoices[] = { _("x1"), _("x2"), _("x3"), _("x4") };
+	int mDropDownGausianBlurRepeatNChoices = sizeof( mDropDownGausianBlurRepeatChoices ) / sizeof( wxString );
+	mDropDownGausianBlurRepeat = new wxChoice( panelGausianBlur, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropDownGausianBlurRepeatNChoices, mDropDownGausianBlurRepeatChoices, 0 );
+	mDropDownGausianBlurRepeat->SetSelection( 0 );
+	sizerGausianBlur2->Add( mDropDownGausianBlurRepeat, 0, wxEXPAND|wxLEFT, 5 );
+
+
+	sizerGausianBlur->Add( sizerGausianBlur2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+
+	mLabelGausianBluer = new wxStaticText( panelGausianBlur, wxID_ANY, _("Gaussian Blur"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelGausianBluer->Wrap( -1 );
+	mLabelGausianBluer->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
+	sizerGausianBlur->Add( mLabelGausianBluer, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+
+
+	panelGausianBlur->SetSizer( sizerGausianBlur );
+	panelGausianBlur->Layout();
+	sizerGausianBlur->Fit( panelGausianBlur );
+	mSizerChannel->Add( panelGausianBlur, 1, wxEXPAND|wxTOP, 5 );
 
 	mLabelDescription = new wxStaticText( mScrolledChannel, wxID_ANY, _("Detection"), wxDefaultPosition, wxDefaultSize, 0 );
 	mLabelDescription->Wrap( -1 );

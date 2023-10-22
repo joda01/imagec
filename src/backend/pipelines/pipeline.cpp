@@ -168,7 +168,9 @@ void Pipeline::runJob()
     alloverReport.flushReportToFile(resultsFile);
     mState = State::FINISHED;
   } catch(const std::exception &ex) {
-    setStateError(ex.what());
+    // setStateError(ex.what());
+    mState            = State::ERROR_;
+    mLastErrorMessage = ex.what();
   }
   while(!mStop) {
     sleep(1);

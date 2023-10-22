@@ -24,7 +24,7 @@ namespace joda::func::img {
 /// \author     Joachim Danmayr
 /// \brief      Gaussian Blur (2D convolution)
 ///
-class Blur : public Function
+class BlurGausian : public Function
 {
 public:
   enum Type
@@ -35,22 +35,19 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  explicit Blur(int repeat) : mRepeat(repeat)
+  explicit BlurGausian(int filterKernelSize, int repeat) : mFilterKernelSize(filterKernelSize), mRepeat(repeat)
   {
   }
   void execute(cv::Mat &image) const override
   {
-    int kernel[3];
     for(int n = 0; n < mRepeat; n++) {
-      // cv::blur(image, image, cv::Size(3, 3));
-      filter3x3(image, BLUR_MORE, kernel);
+      cv::GaussianBlur(image, image, cv::Size(mFilterKernelSize, mFilterKernelSize), 0);
     }
   }
 
 private:
   /////////////////////////////////////////////////////
-  void filter3x3(cv::Mat &image, int type, int kernel[]) const;
-  /////////////////////////////////////////////////////
+  int mFilterKernelSize;
   int mRepeat;
 };
 

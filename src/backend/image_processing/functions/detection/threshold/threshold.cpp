@@ -46,7 +46,8 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
   if(contours.size() > 100000) {
-    throw std::runtime_error("Too much spots.");
+    // throw std::runtime_error("Too much spots.");
+    std::cout << "Too much: " << std::to_string(contours.size()) << std::endl;
   }
   // Create a mask for each contour and draw bounding boxes
   for(size_t i = 0; i < contours.size(); ++i) {

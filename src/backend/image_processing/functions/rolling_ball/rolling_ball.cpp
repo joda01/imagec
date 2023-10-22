@@ -26,6 +26,9 @@
 ///            Institute. Rolling ball algorithm inspired by Stanley
 ///            Sternberg's article, "Biomedical Image Processing",
 ///            IEEE Computer, January 1983.
+///
+/// \ref       https://imagej.nih.gov/ij/source/ij/plugin/filter/BackgroundSubtracter.java
+///
 
 #include "rolling_ball.hpp"
 #include <algorithm>
@@ -132,6 +135,12 @@ public:
 ///
 void RollingBallBackground::execute(cv::Mat &ip) const
 {
+  auto shiftBy = filter3x3(ip, MAXIMUM);    // 3x3 maximum to remove dust etc.
+  filter3x3(ip, MEAN);                      // smoothing to remove noise
+  for(int i = 0; i < ip.cols * ip.rows; i++) {
+    ip.at<unsigned short>(i) -= shiftBy;    // correct for shift by 3x3 maximum
+  }
+
   if(ip.channels() == 3) {
     subtractRGBBackround(ip, radius);
   } else {
@@ -524,4 +533,44 @@ void RollingBallBackground::extrapolateBackground(cv::Mat &background, RollingBa
 //   this->nPasses = nPasses;
 //   pass          = 0;
 // }
+
+double RollingBallBackground::filter3x3(cv::Mat &ip, int type) const
+{
+  int width      = ip.cols;
+  int height     = ip.rows;
+  double shiftBy = 0;
+  for(int y = 0; y < height; y++) {
+    shiftBy += filter3(ip, width, y * width, 1, type);
+  }
+  for(int x = 0; x < width; x++) {
+    shiftBy += filter3(ip, height, x, width, type);
+  }
+  return shiftBy / static_cast<double>(width) / static_cast<double>(height);
+}
+
+/** Filter a line: maximum or average of 3-pixel neighborhood */
+double RollingBallBackground::filter3(cv::Mat &ip, int length, int pixel0, int inc, int type) const
+{
+  double shiftBy = 0;
+  double v3      = ip.at<unsigned short>(pixel0);    // will be pixel[i+1]
+  double v2      = v3;                               // will be pixel[i]
+  double v1;                                         // will be pixel[i-1]
+  for(int i = 0, p = pixel0; i < length; i++, p += inc) {
+    v1 = v2;
+    v2 = v3;
+    if(i < length - 1)
+      v3 = ip.at<unsigned short>(p + inc);
+    if(type == MAXIMUM) {
+      double max = v1 > v3 ? v1 : v3;
+      if(v2 > max) {
+        max = v2;
+      }
+      shiftBy += max - v2;
+      ip.at<unsigned short>(p) = max;
+    } else
+      ip.at<unsigned short>(p) = (v1 + v2 + v3) * 0.33333333f;
+  }
+  return shiftBy;
+}
+
 }    // namespace joda::func::img

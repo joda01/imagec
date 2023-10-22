@@ -44,12 +44,18 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  static int constexpr MAXIMUM = 0;
+  static int constexpr MEAN    = 1;    // filter types of filter3x3
+
+  /////////////////////////////////////////////////////
   void subtractRGBBackround(cv::Mat &ip, int ballRadius) const;
   void subtractBackround(cv::Mat &ip, int ballRadius) const;
   cv::Mat rollBall(RollingBall &ball, cv::Mat &image, cv::Mat &smallImage) const;
   cv::Mat shrinkImage(cv::Mat &ip, int shrinkfactor) const;
   void interpolateBackground(cv::Mat &background, RollingBall &ball) const;
   void extrapolateBackground(cv::Mat &background, RollingBall &ball) const;
+  double filter3x3(cv::Mat &ip, int type) const;
+  double filter3(cv::Mat &ip, int length, int pixel0, int inc, int type) const;
   // void setNPasses(int nPasses);
 
   /////////////////////////////////////////////////////

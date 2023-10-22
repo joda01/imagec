@@ -12,6 +12,7 @@
 ///
 
 #include "panel_channel_controller.h"
+#include <wx/gdicmn.h>
 #include <wx/mstream.h>
 #include <memory>
 #include <string>
@@ -57,8 +58,8 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
   auto ret = mMainFrame->getController()->preview(chs, 0);
   wxMemoryInputStream stream(ret.data.data(), ret.data.size());
   wxImage image;
-  if(!image.LoadFile(stream, wxBITMAP_TYPE_JPEG)) {
-    wxLogError("Failed to load JPEG image from bytes.");
+  if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
+    wxLogError("Failed to load PNG image from bytes.");
   } else {
     auto imgDialog = std::make_shared<DialogImageController>(
         image, this, wxID_ANY,
@@ -92,8 +93,12 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
       mSpinMarginCrop->SetValue(prepro.getMarginCrop()->value);
     }
     if(prepro.getGaussianBlur()) {
-      mDropdownBlur->SetSelection(filterKernelToIndex(static_cast<int16_t>(prepro.getGaussianBlur()->kernel_size)));
-      mDropDownBlurRepeat->SetSelection(prepro.getGaussianBlur()->repeat - 1);
+      mDropdownGausianBlur->SetSelection(
+          filterKernelToIndex(static_cast<int16_t>(prepro.getGaussianBlur()->kernel_size)));
+      mDropDownGausianBlurRepeat->SetSelection(prepro.getGaussianBlur()->repeat - 1);
+    }
+    if(prepro.getSmoothing()) {
+      mDropDownSmoothingRepeat->SetSelection(prepro.getSmoothing()->repeat);
     }
     if(prepro.getMedianBgSubtraction()) {
       mChoiceMedianBGSubtract->SetSelection(1);
@@ -141,10 +146,13 @@ nlohmann::json PanelChannelController::getValues()
   if(mSpinRollingBall->GetValue() > 0) {
     jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mSpinRollingBall->GetValue())}}}});
   }
-  if(mDropdownBlur->GetSelection() > 0) {
+  if(mDropdownGausianBlur->GetSelection() > 0) {
     jsonArray.push_back({{"gaussian_blur",
-                          {{"kernel_size", indexToFilterKernel(mDropdownBlur->GetSelection())},
-                           {"repeat", mDropDownBlurRepeat->GetSelection() + 1}}}});
+                          {{"kernel_size", indexToFilterKernel(mDropdownGausianBlur->GetSelection())},
+                           {"repeat", mDropDownGausianBlurRepeat->GetSelection() + 1}}}});
+  }
+  if(mDropDownSmoothingRepeat->GetSelection() > 0) {
+    jsonArray.push_back({{"smoothing", {{"repeat", mDropDownSmoothingRepeat->GetSelection()}}}});
   }
   if(mChoiceMedianBGSubtract->GetSelection() > 0) {
     jsonArray.push_back({{"median_bg_subtraction", {{"kernel_size", 3}}}});

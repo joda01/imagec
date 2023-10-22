@@ -19,17 +19,27 @@
 #include "../image_processing/functions/rolling_ball/rolling_ball.hpp"
 
 #include "backend/image_processing/functions/blur/blur.hpp"
+#include "backend/image_processing/functions/blur_gausian/blur_gausian.hpp"
 #include "backend/image_processing/functions/median_substraction/median_substraction.hpp"
 #include <nlohmann/json.hpp>
 
-class PreprocessingBlur final
+class PreprocessingGausianBlur final
 {
 public:
   int kernel_size = 0;
   int repeat      = 1;
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingBlur, kernel_size, repeat);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingGausianBlur, kernel_size, repeat);
+};
+
+class PreprocessingSmoothing final
+{
+public:
+  int repeat = 0;
+
+private:
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingSmoothing, repeat);
 };
 
 class PreprocessingZStack final
@@ -135,7 +145,12 @@ public:
     }
 
     if(gaussian_blur.kernel_size > 0) {
-      joda::func::img::Blur function(gaussian_blur.kernel_size, gaussian_blur.repeat);
+      joda::func::img::BlurGausian function(gaussian_blur.kernel_size, gaussian_blur.repeat);
+      function.execute(image);
+    }
+
+    if(smoothing.repeat > 0) {
+      joda::func::img::Blur function(smoothing.repeat);
       function.execute(image);
     }
 
@@ -177,10 +192,18 @@ public:
     return nullptr;
   }
 
-  [[nodiscard]] auto getGaussianBlur() const -> const PreprocessingBlur *
+  [[nodiscard]] auto getGaussianBlur() const -> const PreprocessingGausianBlur *
   {
     if(gaussian_blur.kernel_size > 0) {
       return &gaussian_blur;
+    }
+    return nullptr;
+  }
+
+  [[nodiscard]] auto getSmoothing() const -> const PreprocessingSmoothing *
+  {
+    if(smoothing.repeat > 0) {
+      return &smoothing;
     }
     return nullptr;
   }
@@ -199,9 +222,10 @@ private:
   PreprocessingSubtractChannel subtract_channel;
   PreprocessingRollingBall rolling_ball;
   PreprocessingMarginCrop margin_crop;
-  PreprocessingBlur gaussian_blur;
+  PreprocessingGausianBlur gaussian_blur;
+  PreprocessingSmoothing smoothing;
   PreprocessingMedianBackgroundSubtraction median_bg_subtraction;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingStep, z_stack, subtract_channel, rolling_ball, margin_crop,
-                                              gaussian_blur, median_bg_subtraction);
+                                              smoothing, gaussian_blur, median_bg_subtraction);
 };

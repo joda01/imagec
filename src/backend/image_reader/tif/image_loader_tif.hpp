@@ -56,7 +56,7 @@ private:
       T *raster = (T *) malloc(scanlength);
       TIFFReadScanline(tiff, raster, y);
       for(unsigned int x = 0; x < scanlength / sizeof(T); x++) {
-        unsigned short &pixel = image.at<unsigned short>(cv::Point(y, x));    // Read the current pixel of the matrix
+        unsigned short &pixel = image.at<unsigned short>(cv::Point(x, y));    // Read the current pixel of the matrix
         pixel                 = static_cast<unsigned short>((static_cast<float>(raster[x]) * scalingFactor));
       }
       _TIFFfree(raster);    // Free temp memory

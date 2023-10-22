@@ -235,8 +235,13 @@ void FrameMainController::onRunClicked(wxCommandEvent &event)
     std::cout << ex.what() << std::endl;
   }
 
-  DialogProcessingController dialog(this, mPipelineController, &settings);
-  dialog.ShowModal();
+  try {
+    DialogProcessingController dialog(this, mPipelineController, &settings);
+    dialog.ShowModal();
+  } catch(const std::exception &ex) {
+    std::cout << ex.what() << std::endl;
+    showErrorDialog(ex.what());
+  }
 }
 
 ///
@@ -344,6 +349,18 @@ nlohmann::json FrameMainController::getValues()
   jsonSettings["options"]["with_detailed_report"] = true;
 
   return jsonSettings;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void FrameMainController::showErrorDialog(const std::string &what)
+{
+  wxMessageBox(what, "Error", wxOK | wxICON_ERROR, this);
 }
 
 }    // namespace joda::ui::wxwidget

@@ -56,6 +56,7 @@ private:
   void onSaveSettingsClicked(wxCommandEvent &event) override;
   void onOpenSettingsClicked(wxCommandEvent &event) override;
   void refreshFunction();
+  void showErrorDialog(const std::string &what);
 
   /////////////////////////////////////////////////////
   std::vector<std::shared_ptr<PanelChannelController>> mChannels;
