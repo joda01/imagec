@@ -175,16 +175,18 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
         }
       }
     }
-    int smallestMask       = std::min(nrOfPixelsMask1, nrOfPixelsMask2);
-    float intersectionArea = 0;
-    if(smallestMask > 0) {
-      intersectionArea = static_cast<float>(nrOfIntersectingPixels) / static_cast<float>(smallestMask);
+    if(nrOfIntersectingPixels > 0) {
+      int smallestMask       = std::min(nrOfPixelsMask1, nrOfPixelsMask2);
+      float intersectionArea = 0;
+      if(smallestMask > 0) {
+        intersectionArea = static_cast<float>(nrOfIntersectingPixels) / static_cast<float>(smallestMask);
+      }
+      ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, imageOriginal);
+      if(intersectionArea < minIntersection) {
+        intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
+      }
+      return {intersectionROI, true};
     }
-    ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, imageOriginal);
-    if(intersectionArea < minIntersection) {
-      intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
-    }
-    return {intersectionROI, true};
   }
   return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, cv::Mat{}), false};
 }

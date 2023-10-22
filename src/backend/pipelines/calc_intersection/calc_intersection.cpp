@@ -31,12 +31,15 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
   joda::func::DetectionResponse resp;
   const joda::func::DetectionResponse *ch1;
   const joda::func::DetectionResponse *ch2;
-  if(detectionResultsIn.at(0).result.size() > detectionResultsIn.at(13).result.size()) {
-    ch1 = &detectionResultsIn.at(0);
-    ch2 = &detectionResultsIn.at(13);
+  int idx1 = *mIndexesToIntersect.begin();
+  int idx2 = *(std::next(mIndexesToIntersect.begin()));
+
+  if(detectionResultsIn.at(idx1).result.size() > detectionResultsIn.at(idx2).result.size()) {
+    ch1 = &detectionResultsIn.at(idx1);
+    ch2 = &detectionResultsIn.at(idx2);
   } else {
-    ch1 = &detectionResultsIn.at(13);
-    ch2 = &detectionResultsIn.at(0);
+    ch1 = &detectionResultsIn.at(idx2);
+    ch2 = &detectionResultsIn.at(idx1);
   }
 
   //
@@ -55,21 +58,40 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
     }
   }
   resp.controlImage = cv::Mat::zeros(ch1->originalImage.rows, ch1->originalImage.cols, CV_32FC3);
-  joda::func::DetectionFunction::paintOverlay(
-      resp.controlImage,
-      {
-          joda::func::DetectionFunction::OverlaySettings{.result          = ch2->result,
-                                                         .backgroundColor = cv::Scalar(255, 255, 255),
-                                                         .borderColor     = cv::Scalar(0, 0, 0),
-                                                         .paintRectangel  = false,
-                                                         .opaque          = 0.1},
-          joda::func::DetectionFunction::OverlaySettings{.result          = resp.result,
-                                                         .backgroundColor = cv::Scalar(0, 0, 255),
-                                                         .borderColor     = cv::Scalar(0, 255, 0),
-                                                         .paintRectangel  = false,
-                                                         .opaque          = 1},
+  // joda::func::DetectionFunction::paintOverlay(
+  //     resp.controlImage,
+  //     {
+  //         joda::func::DetectionFunction::OverlaySettings{.result          = ch2->result,
+  //                                                        .backgroundColor = cv::Scalar(255, 255, 255),
+  //                                                        .borderColor     = cv::Scalar(0, 0, 0),
+  //                                                        .paintRectangel  = false,
+  //                                                        .opaque          = 0.1},
+  //         joda::func::DetectionFunction::OverlaySettings{.result          = resp.result,
+  //                                                        .backgroundColor = cv::Scalar(0, 0, 255),
+  //                                                        .borderColor     = cv::Scalar(0, 255, 0),
+  //                                                        .paintRectangel  = false,
+  //                                                        .opaque          = 1},
+  //
+  //    });
 
-      });
+  joda::func::DetectionFunction::paintOverlay(
+      resp.controlImage, {joda::func::DetectionFunction::OverlaySettings{.result          = resp.result,
+                                                                         .backgroundColor = cv::Scalar(0, 0, 255),
+                                                                         .borderColor     = cv::Scalar(0, 0, 0),
+                                                                         .paintRectangel  = false,
+                                                                         .opaque          = 1},
+                          joda::func::DetectionFunction::OverlaySettings{.result          = ch2->result,
+                                                                         .backgroundColor = cv::Scalar(220, 220, 220),
+                                                                         .borderColor     = cv::Scalar(0, 0, 0),
+                                                                         .paintRectangel  = false,
+                                                                         .opaque          = 0.1},
+                          joda::func::DetectionFunction::OverlaySettings{.result          = ch1->result,
+                                                                         .backgroundColor = cv::Scalar(220, 220, 220),
+                                                                         .borderColor     = cv::Scalar(0, 0, 0),
+                                                                         .paintRectangel  = false,
+                                                                         .opaque          = 0.1}
+
+                         });
 
   return resp;
 }
