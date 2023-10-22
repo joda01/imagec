@@ -690,6 +690,12 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mDropdownBlur->SetSelection( 0 );
 	sizerBluer2->Add( mDropdownBlur, 1, wxEXPAND, 5 );
 
+	wxString mDropDownBlurRepeatChoices[] = { _("x1"), _("x2"), _("x3"), _("x4") };
+	int mDropDownBlurRepeatNChoices = sizeof( mDropDownBlurRepeatChoices ) / sizeof( wxString );
+	mDropDownBlurRepeat = new wxChoice( panelBluer, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropDownBlurRepeatNChoices, mDropDownBlurRepeatChoices, 0 );
+	mDropDownBlurRepeat->SetSelection( 0 );
+	sizerBluer2->Add( mDropDownBlurRepeat, 0, wxEXPAND|wxLEFT, 5 );
+
 
 	sizerBluer->Add( sizerBluer2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
 
@@ -940,7 +946,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	this->SetSizer( mSizerForScroll );
 	this->Layout();
-	mSizerForScroll->Fit( this );
 
 	// Connect Events
 	mButtonPreview->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );

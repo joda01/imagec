@@ -207,6 +207,7 @@ namespace joda
 					wxPanel* panelBluer;
 					wxStaticBitmap* iconBluer;
 					wxChoice* mDropdownBlur;
+					wxChoice* mDropDownBlurRepeat;
 					wxStaticText* mLabelBluer;
 					wxStaticText* mLabelDescription;
 					wxStaticLine* mLineDescription;
@@ -249,7 +250,7 @@ namespace joda
 					wxBoxSizer* mSizerForScroll;
 					wxScrolledWindow* mScrolledChannel;
 
-					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 280,1235 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 					~PanelChannel();
 

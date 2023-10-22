@@ -28,17 +28,20 @@ class Blur : public Function
 {
 public:
   /////////////////////////////////////////////////////
-  explicit Blur(int filterKernelSize) : mFilterKernelSize(filterKernelSize)
+  explicit Blur(int filterKernelSize, int repeat) : mFilterKernelSize(filterKernelSize), mRepeat(repeat)
   {
   }
   void execute(cv::Mat &image) const override
   {
-    cv::GaussianBlur(image, image, cv::Size(mFilterKernelSize, mFilterKernelSize), 0);
+    for(int n = 0; n < mRepeat; n++) {
+      cv::GaussianBlur(image, image, cv::Size(mFilterKernelSize, mFilterKernelSize), 0);
+    }
   }
 
 private:
   /////////////////////////////////////////////////////
   int mFilterKernelSize;
+  int mRepeat;
 };
 
 }    // namespace joda::func::img

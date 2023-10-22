@@ -26,9 +26,10 @@ class PreprocessingBlur final
 {
 public:
   int kernel_size = 0;
+  int repeat      = 1;
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingBlur, kernel_size);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingBlur, kernel_size, repeat);
 };
 
 class PreprocessingZStack final
@@ -134,7 +135,7 @@ public:
     }
 
     if(gaussian_blur.kernel_size > 0) {
-      joda::func::img::Blur function(gaussian_blur.kernel_size);
+      joda::func::img::Blur function(gaussian_blur.kernel_size, gaussian_blur.repeat);
       function.execute(image);
     }
 

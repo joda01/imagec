@@ -93,6 +93,7 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
     }
     if(prepro.getGaussianBlur()) {
       mDropdownBlur->SetSelection(filterKernelToIndex(static_cast<uint16_t>(prepro.getGaussianBlur()->kernel_size)));
+      mDropDownBlurRepeat->SetSelection(prepro.getGaussianBlur()->repeat - 1);
     }
     if(prepro.getMedianBgSubtraction()) {
       mChoiceMedianBGSubtract->SetSelection(1);
@@ -141,7 +142,9 @@ nlohmann::json PanelChannelController::getValues()
     jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mSpinRollingBall->GetValue())}}}});
   }
   if(mDropdownBlur->GetSelection() > 0) {
-    jsonArray.push_back({{"gaussian_blur", {{"kernel_size", indexToFilterKernel(mDropdownBlur->GetSelection())}}}});
+    jsonArray.push_back({{"gaussian_blur",
+                          {{"kernel_size", indexToFilterKernel(mDropdownBlur->GetSelection())},
+                           {"repeat", mDropDownBlurRepeat->GetSelection() + 1}}}});
   }
   if(mChoiceMedianBGSubtract->GetSelection() > 0) {
     jsonArray.push_back({{"median_bg_subtraction", {{"kernel_size", 3}}}});
