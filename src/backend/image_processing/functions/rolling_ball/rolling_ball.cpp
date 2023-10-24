@@ -37,6 +37,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "backend/duration_count/duration_count.h"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/utility.hpp>
@@ -135,16 +136,21 @@ public:
 ///
 void RollingBallBackground::execute(cv::Mat &ip) const
 {
+  auto id = DurationCount::start("rolling ball prefilter");
+
   auto shiftBy = filter3x3(ip, MAXIMUM);    // 3x3 maximum to remove dust etc.
   filter3x3(ip, MEAN);                      // smoothing to remove noise
   for(int i = 0; i < ip.cols * ip.rows; i++) {
     ip.at<unsigned short>(i) -= shiftBy;    // correct for shift by 3x3 maximum
   }
+  DurationCount::stop(id);
 
   if(ip.channels() == 3) {
     subtractRGBBackround(ip, radius);
   } else {
+    id = DurationCount::start("rolling ball bgsub");
     subtractBackround(ip, radius);
+    DurationCount::stop(id);
   }
 }
 
@@ -179,14 +185,21 @@ void RollingBallBackground::subtractBackround(cv::Mat &ip, int ballRadius) const
 
   // new ImagePlus("ball", new ByteProcessor(ball.patchwidth+1, ball.patchwidth+1, ball.data, null)).show();
   // ImageProcessor smallImage = ip.resize(ip.cols/ball.shrinkfactor, ip.rows/ball.shrinkfactor);
-
+  auto id         = DurationCount::start("rolling ball shrink");
   auto smallImage = shrinkImage(ip, ball.shrinkfactor);
+  DurationCount::stop(id);
 
   // new ImagePlus("small image", smallImage).show();
 
+  id              = DurationCount::start("rolling ball roll");
   auto background = rollBall(ball, ip, smallImage);
+  DurationCount::stop(id);
+
+  id = DurationCount::start("rolling ball interpolate");
+
   interpolateBackground(background, ball);
   extrapolateBackground(background, ball);
+  DurationCount::stop(id);
 
   //  showProgress(0.9);
 
@@ -226,11 +239,8 @@ cv::Mat RollingBallBackground::rollBall(RollingBall &ball, cv::Mat &image, cv::M
   int zctr              = 0;    // current height of the center of the sphere of which the patch is a part
   int zadd              = 0;    // height of a point on patch relative to the xy-plane of the shrunken image
   int ballpt            = 0;    // index to array storing the precomputed ball patch
-  int imgpt             = 0;    // index to array storing the shrunken image
   int backgrpt          = 0;    // index to array storing the calculated background
   int ybackgrpt         = 0;    // displacement to current background scan line
-  int p1                = 0;
-  int p2                = 0;    // temporary indexes to background, ball, or small image
   int ybackgrinc        = 0;    // distance in memory between two shrunken y-points in background
   int smallimagewidth   = 0;    // length of a scan line in shrunken image
   int left              = 0;
@@ -257,77 +267,65 @@ cv::Mat RollingBallBackground::rollBall(RollingBall &ball, cv::Mat &image, cv::M
   ybackgrinc            = shrinkfactor * width;    // real dist btwn 2 adjacent (dy=1) shrunk pts
   zctr                  = 0;                       // start z-center in the xy-plane
 
-  auto start = std::chrono::steady_clock::now();
-
+  int loopRuns = 0;
   for(int ypt = top; ypt <= (bottom + patchwidth); ypt++) {
     for(int xpt = left; xpt <= (right + patchwidth); xpt++) {    // while patch is tangent to edges or within image...
       // xpt is far right edge of ball patch
       // do we have to move the patch up or down to make it tangent to but not above image?...
-      zmin   = 0xffff;    // highest could ever be 255
+      zmin   = 0xffff;    // highest could ever be 65535
       ballpt = 0;
       ypt2   = ypt - patchwidth;    // ypt2 is top edge of ball patch
-      imgpt  = ypt2 * smallimagewidth + xpt - patchwidth;
       while(ypt2 <= ypt) {
         xpt2 = xpt - patchwidth;    // xpt2 is far left edge of ball patch
         while(xpt2 <= xpt) {        // check every point on ball patch
           // only examine points on
           if((xpt2 >= left) && (xpt2 <= right) && (ypt2 >= top) && (ypt2 <= bottom)) {
-            p1   = ballpt;
-            p2   = imgpt;
-            zdif = (smallImage.at<unsigned short>(p2) & 0xffff) -
-                   (zctr + (ball.data[p1] & 0xffff));    // curve - circle points
-            if(zdif < zmin)                              // keep most negative, since ball should always be below curve
+            zdif = (smallImage.ptr<unsigned short>(ypt2)[xpt2]) -
+                   (zctr + (ball.data[ballpt] & 0xffff));    // curve - circle points
+            if(zdif < zmin) {    // keep most negative, since ball should always be below curve
               zmin = zdif;
+            }
           }    // if xpt2,ypt2
           ballpt++;
           xpt2++;
-          imgpt++;
+          loopRuns++;
         }    // while xpt2
         ypt2++;
-        imgpt = imgpt - patchwidth - 1 + smallimagewidth;
-      }    // while ypt2
-      if(zmin != 0)
-        zctr += zmin;    // move ball up or down if we find a new minimum
-      if(zmin < 0)
+      }                // while ypt2
+      zctr += zmin;    // move ball up or down if we find a new minimum
+      if(zmin < 0) {
         ptsbelowlastpatch = halfpatchwidth;    // ignore left half of ball patch when dz < 0
-      else
+      } else {
         ptsbelowlastpatch = 0;
+      }
       // now compare every point on ball with background,  and keep highest number
-      yval      = ypt - patchwidth;
-      ypt2      = 0;
-      ballpt    = 0;
-      ybackgrpt = (yval - top + 1) * ybackgrinc;
+      yval   = ypt - patchwidth;
+      ypt2   = 0;
+      ballpt = 0;
       while(ypt2 <= patchwidth) {
         xval = xpt - patchwidth + ptsbelowlastpatch;
         xpt2 = ptsbelowlastpatch;
         ballpt += ptsbelowlastpatch;
-        backgrpt = ybackgrpt + (xval - left + 1) * shrinkfactor;
         while(xpt2 <= patchwidth) {    // for all the points in the ball patch
           if((xval >= left) && (xval <= right) && (yval >= top) && (yval <= bottom)) {
-            p1   = ballpt;
-            zadd = zctr + (ball.data[p1] & 0xffff);
-            p1   = backgrpt;
-            // if (backgrpt>=backgroundpixels.length) backgrpt = 0; //(debug)
-            if(zadd > (background.at<unsigned short>(p1) & 0xffff)) {    // keep largest adjustment}
-              background.at<unsigned short>(p1) = (unsigned short) zadd;
+            zadd      = zctr + (ball.data[ballpt] & 0xffff);
+            auto *ppx = &background.ptr<unsigned short>(yval)[xval];
+            if(zadd > *ppx) {
+              *ppx = static_cast<unsigned short>(zadd);
             }
           }
           ballpt++;
           xval++;
           xpt2++;
-          backgrpt += shrinkfactor;    // move to next point in x
-        }                              // while xpt2
+          loopRuns++;
+        }    // while xpt2
         yval++;
         ypt2++;
-        ybackgrpt += ybackgrinc;    // move to next point in y
-      }                             // while ypt2
-    }                               // for xpt
+      }    // while ypt2
+    }      // for xpt
   }
 
-  auto end                                      = std::chrono::steady_clock::now();
-  std::chrono::duration<double> elapsed_seconds = end - start;
-  // std::cout << "RollBall: " << elapsed_seconds.count() << "s"
-  //           << "\n";
+  std::cout << "runs " << std::to_string(loopRuns) << std::endl;
 
   return background;
 }
