@@ -63,6 +63,7 @@ private:
   std::vector<std::shared_ptr<PanelIntersectionControl>> mIntersections;
   joda::ctrl::Controller *mPipelineController;
   std::shared_ptr<std::thread> mRefreshTimer;
+  std::string mLastOpenedFolder;
   bool mStopped = false;
 };
 }    // namespace joda::ui::wxwidget

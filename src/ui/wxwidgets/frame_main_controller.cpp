@@ -164,7 +164,7 @@ void FrameMainController::removeAllPipelineSteps()
 ///
 void FrameMainController::onOpenSettingsClicked(wxCommandEvent &event)
 {
-  wxFileDialog openFileDialog(this, "Open File", "", "", "JSON files (*.json)|*.json",
+  wxFileDialog openFileDialog(this, "Open File", mLastOpenedFolder, "", "JSON files (*.json)|*.json",
                               wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
   if(openFileDialog.ShowModal() == wxID_CANCEL) {
@@ -172,8 +172,10 @@ void FrameMainController::onOpenSettingsClicked(wxCommandEvent &event)
   }
 
   joda::settings::json::AnalyzeSettings settings;
-  settings.loadConfigFromFile(openFileDialog.GetPath().ToStdString());
+  std::string path = openFileDialog.GetPath().ToStdString();
+  settings.loadConfigFromFile(path);
   loadValues(settings);
+  mLastOpenedFolder = path;
 }
 
 ///
@@ -183,7 +185,7 @@ void FrameMainController::onOpenSettingsClicked(wxCommandEvent &event)
 ///
 void FrameMainController::onSaveSettingsClicked(wxCommandEvent &event)
 {
-  wxFileDialog saveFileDialog(this, "Save File", "", "", "JSON files (*.json)|*.json", wxFD_SAVE);
+  wxFileDialog saveFileDialog(this, "Save File", mLastOpenedFolder, "", "JSON files (*.json)|*.json", wxFD_SAVE);
 
   if(saveFileDialog.ShowModal() == wxID_CANCEL) {
     return;    // User cancelled the dialog
@@ -196,6 +198,7 @@ void FrameMainController::onSaveSettingsClicked(wxCommandEvent &event)
     path += ".json";
   }
   settings.storeConfigToFile(path);
+  mLastOpenedFolder = path;
 }
 
 ///
@@ -251,7 +254,9 @@ void FrameMainController::onRunClicked(wxCommandEvent &event)
 ///
 void FrameMainController::onWorkingDirChanged(wxFileDirPickerEvent &event)
 {
-  mPipelineController->setWorkingDirectory(mDirectoryPicker->GetPath().ToStdString());
+  std::string path = mDirectoryPicker->GetPath().ToStdString();
+  mPipelineController->setWorkingDirectory(path);
+  mLastOpenedFolder = path;
 }
 
 ///
