@@ -68,6 +68,9 @@ void Pipeline::runJob()
 
     joda::reporting::Table alloverReport;
 
+    int cpus = std::thread::hardware_concurrency();
+    std::cout << "CPUS" << std::to_string(cpus) << std::endl;
+
     //
     // Iterate over each image to do detection
     //
@@ -132,6 +135,8 @@ void Pipeline::runJob()
         //
         // Execute pipeline steps
         //
+        ids = DurationCount::start("coloc");
+
         for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
           auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
           if(chSettings.index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
@@ -142,6 +147,7 @@ void Pipeline::runJob()
             tempChannelIdx++;
           }
         }
+        DurationCount::stop(ids);
 
         mProgress.image.finished = tileIdx + 1;
         //
@@ -201,10 +207,7 @@ void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda:
 {
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
-  int colIdx    = NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT * tempChannelIdx;
-  std::string f = detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
-                  std::to_string(tileIdx) + ".png";
-  std::cout << f << std::endl;
+  int colIdx = NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT * tempChannelIdx;
   // Free memory
   if(!result.controlImage.empty()) {
     std::vector<int> compression_params;

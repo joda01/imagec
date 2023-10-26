@@ -208,7 +208,10 @@ private:
   {
     auto preprocessing = channelSetting.getPreprocessingFunctions();
     for(auto const &func : preprocessing) {
+      auto id = DurationCount::start("preprocessing step");
+
       func.execute(image);
+      DurationCount::stop(id);
     }
   }
 
