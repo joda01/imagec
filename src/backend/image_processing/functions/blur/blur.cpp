@@ -19,7 +19,7 @@
 
 namespace joda::func::img {
 
-void Blur::filter3x3(cv::Mat &image, int type, int kernel[]) const
+void Blur::filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize) const
 {
   int v1    = 0;
   int v2    = 0;
@@ -50,7 +50,7 @@ void Blur::filter3x3(cv::Mat &image, int type, int kernel[]) const
     k7 = kernel[6];
     k8 = kernel[7];
     k9 = kernel[8];
-    for(int i = 0; i < sizeof(kernel) / sizeof(kernel[0]); i++)
+    for(int i = 0; i < kernelArraySize; i++)
       scale += kernel[i];
     if(scale == 0)
       scale = 1;

@@ -40,16 +40,16 @@ public:
   }
   void execute(cv::Mat &image) const override
   {
-    int kernel[3];
+    int kernel[3];    //= {-1, -1, -1, -1, 12, -1, -1, -1, -1};
     for(int n = 0; n < mRepeat; n++) {
       // cv::blur(image, image, cv::Size(3, 3));
-      filter3x3(image, BLUR_MORE, kernel);
+      filter3x3(image, BLUR_MORE, kernel, 3);
     }
   }
 
 private:
   /////////////////////////////////////////////////////
-  void filter3x3(cv::Mat &image, int type, int kernel[]) const;
+  void filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize) const;
   /////////////////////////////////////////////////////
   int mRepeat;
 };

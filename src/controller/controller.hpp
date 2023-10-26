@@ -43,6 +43,26 @@ public:
     int width;
   };
   auto preview(const settings::json::ChannelSettings &settings, int imgIndex) -> Preview;
+  auto getImageProperties(int imgIndex) -> ImageProperties;
+  struct Resources
+  {
+    uint64_t ramTotal;    // RAM in bytes
+    uint64_t ramAvailable;
+    uint32_t cpus;    // Nr. of CPUs
+  };
+  static auto getSystemRescources() -> Resources;
+
+  struct Threads
+  {
+    enum Type
+    {
+      IMAGES,
+      TILES,
+      CHANNELS
+    };
+    std::map<Type, int32_t> cores;
+  };
+  auto calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex) -> Threads;
 
 private:
   /////////////////////////////////////////////////////

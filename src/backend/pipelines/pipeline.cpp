@@ -24,6 +24,7 @@
 #include "../helper/helper.hpp"
 #include "../image_processing/channel_processor.hpp"
 #include "../logger/console_logger.hpp"
+#include "backend/helper/system_resources.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "cell_approximation/cell_approximation.hpp"
 #include <opencv2/imgcodecs.hpp>
@@ -68,9 +69,7 @@ void Pipeline::runJob()
 
     joda::reporting::Table alloverReport;
 
-    int cpus = std::thread::hardware_concurrency();
-    std::cout << "CPUS" << std::to_string(cpus) << std::endl;
-
+ 
     //
     // Iterate over each image to do detection
     //
@@ -95,6 +94,9 @@ void Pipeline::runJob()
       }
       mProgress.image.total = runs;
 
+      //
+      // Iterate over each tile
+      //
       joda::reporting::Table detailReports;
       for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
         auto ids = DurationCount::start("channels");
@@ -104,6 +106,9 @@ void Pipeline::runJob()
         std::map<int32_t, joda::func::DetectionResponse> detectionResults;
         int tempChannelIdx = 0;
 
+        //
+        // Iterate over each channel
+        //
         for(const auto &[_, channelSettings] : mAnalyzeSettings.getChannels()) {
           int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
           auto id              = DurationCount::start("channel-" + std::to_string(channelIndex));

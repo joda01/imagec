@@ -12,7 +12,11 @@
 ///
 
 #include "controller.hpp"
+#include <algorithm>
+#include <ranges>
+#include "backend/helper/system_resources.hpp"
 #include "backend/image_processing/channel_processor.hpp"
+#include "backend/settings/analze_settings_parser.hpp"
 #include "backend/settings/channel_settings.hpp"
 
 namespace joda::ctrl {
@@ -104,6 +108,79 @@ auto Controller::preview(const settings::json::ChannelSettings &settings, int im
   cv::imencode(".png", result.controlImage, buffer, compression_params);    // Assuming you want to encode as JPEG
 
   return {.data = buffer, .height = result.controlImage.rows, .width = result.controlImage.cols};
+}
+
+///
+/// \brief      Returns properties of given image
+/// \author     Joachim Danmayr
+///
+auto Controller::getImageProperties(int imgIndex) -> ImageProperties
+{
+  auto imagePath = mWorkingDirectory.getFileAt(imgIndex);
+
+  ImageProperties props;
+  if(imagePath.ends_with(".jpg")) {
+    props = JpgLoader::getImageProperties(imagePath);
+  } else {
+    props = TiffLoader::getImageProperties(imagePath, 0);
+  }
+  return props;
+}
+
+///
+/// \brief      Returns properties of given image
+/// \author     Joachim Danmayr
+///
+auto Controller::getSystemRescources() -> Resources
+{
+  return {.ramTotal     = system::getTotalSystemMemory(),
+          .ramAvailable = system::getAvailableSystemMemory(),
+          .cpus         = system::getNrOfCPUs()};
+}
+
+///
+/// \brief      Calc optimal number of threads
+/// \author     Joachim Danmayr
+///
+auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex) -> Threads
+{
+  auto props        = getImageProperties(imgIndex);
+  int64_t imgNr     = mWorkingDirectory.getNrOfFiles();
+  int64_t tileNr    = 1;
+  int64_t channelNr = settings.getChannels().size();
+  if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    tileNr = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
+  }
+
+  auto imageSizePerChannel = props.imageSize;
+  auto systemRecources     = getSystemRescources();
+
+  // Maximum number of cores depends on the available RAM.
+  int32_t maxNumberOfCoresToAssign =
+      std::min(static_cast<uint64_t>(systemRecources.cpus),
+               static_cast<uint64_t>(systemRecources.ramAvailable / imageSizePerChannel));
+  if(maxNumberOfCoresToAssign <= 0) {
+    maxNumberOfCoresToAssign = 1;
+  }
+
+  std::map<int64_t, Threads::Type> numbers = {
+      {imgNr, Threads::IMAGES}, {tileNr, Threads::TILES}, {channelNr, Threads::CHANNELS}};
+
+  // Iterate through the set in reverse order
+  Threads threads;
+  for(auto rit = numbers.rbegin(); rit != numbers.rend(); ++rit) {
+    uint64_t cores = 1;
+    if(maxNumberOfCoresToAssign > 1) {
+      cores = std::min(static_cast<uint64_t>(rit->first), static_cast<uint64_t>(maxNumberOfCoresToAssign));
+      maxNumberOfCoresToAssign -= cores;
+      if(maxNumberOfCoresToAssign <= 0) {
+        maxNumberOfCoresToAssign = 1;
+      }
+    }
+    threads.cores[rit->second] = cores;
+  }
+
+  return threads;
 }
 
 }    // namespace joda::ctrl
