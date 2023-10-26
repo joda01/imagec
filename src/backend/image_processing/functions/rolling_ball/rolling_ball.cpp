@@ -136,21 +136,16 @@ public:
 ///
 void RollingBallBackground::execute(cv::Mat &ip) const
 {
-  auto id = DurationCount::start("rolling ball prefilter");
-
   auto shiftBy = filter3x3(ip, MAXIMUM);    // 3x3 maximum to remove dust etc.
   filter3x3(ip, MEAN);                      // smoothing to remove noise
   for(int i = 0; i < ip.cols * ip.rows; i++) {
     ip.at<unsigned short>(i) -= shiftBy;    // correct for shift by 3x3 maximum
   }
-  DurationCount::stop(id);
 
   if(ip.channels() == 3) {
     subtractRGBBackround(ip, radius);
   } else {
-    id = DurationCount::start("rolling ball bgsub");
     subtractBackround(ip, radius);
-    DurationCount::stop(id);
   }
 }
 
@@ -185,21 +180,14 @@ void RollingBallBackground::subtractBackround(cv::Mat &ip, int ballRadius) const
 
   // new ImagePlus("ball", new ByteProcessor(ball.patchwidth+1, ball.patchwidth+1, ball.data, null)).show();
   // ImageProcessor smallImage = ip.resize(ip.cols/ball.shrinkfactor, ip.rows/ball.shrinkfactor);
-  auto id         = DurationCount::start("rolling ball shrink");
   auto smallImage = shrinkImage(ip, ball.shrinkfactor);
-  DurationCount::stop(id);
 
   // new ImagePlus("small image", smallImage).show();
 
-  id              = DurationCount::start("rolling ball roll");
-  auto background = rollBall(ball, ip, smallImage);
-  DurationCount::stop(id);
-
-  id = DurationCount::start("rolling ball interpolate");
+  auto background = rollBallOriginal(ball, ip, smallImage);
 
   interpolateBackground(background, ball);
   extrapolateBackground(background, ball);
-  DurationCount::stop(id);
 
   //  showProgress(0.9);
 
@@ -245,7 +233,6 @@ cv::Mat RollingBallBackground::rollBall(RollingBall &ball, cv::Mat &image, cv::M
   int ybackgrinc     = shrinkfactor * width;    // real dist btwn 2 adjacent (dy=1) shrunk pts
   int zctr           = 0;                       // start z-center in the xy-plane
 
-  int loopRuns = 0;
   for(int ypt = top; ypt <= (bottom + patchwidth); ypt++) {
     for(int xpt = left; xpt <= (right + patchwidth); xpt++) {
       int xpt2 = xpt - patchwidth;
@@ -266,7 +253,6 @@ cv::Mat RollingBallBackground::rollBall(RollingBall &ball, cv::Mat &image, cv::M
               zmin = zdif;
             }
           }
-          loopRuns++;
         }
       }
       zctr += zmin;
@@ -283,15 +269,12 @@ cv::Mat RollingBallBackground::rollBall(RollingBall &ball, cv::Mat &image, cv::M
 
             if(zadd > *ppx) {
               *ppx = static_cast<unsigned short>(zadd);
-              loopRuns++;
             }
           }
         }
       }
     }
   }
-
-  std::cout << "runs " << std::to_string(loopRuns) << std::endl;
 
   return background;
 }

@@ -13,7 +13,7 @@
 
 #pragma once
 
-//#include <memory>
+// #include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -46,12 +46,12 @@ public:
 
   enum class State : int
   {
-    STOPPED=0,
-    RUNNING=1,
-    PAUSED=2,
-    STOPPING=3,
-    FINISHED=4,
-    ERROR_=5
+    STOPPED  = 0,
+    RUNNING  = 1,
+    PAUSED   = 2,
+    STOPPING = 3,
+    FINISHED = 4,
+    ERROR_   = 5
   };
 
   Pipeline(const settings::json::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
@@ -139,6 +139,11 @@ private:
                                    const std::string &detailReportOutputPath, int tempChannelIdx, uint32_t tileIdx);
   static void appendToAllOverReport(joda::reporting::Table &allOverReport, const joda::reporting::Table &detailedReport,
                                     const std::string &imageName, int nrOfChannels);
+
+  static void analyszeChannel(joda::reporting::Table &detailReports,
+                              std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
+                              joda::settings::json::ChannelSettings &channelSettings, std::string imagePath,
+                              std::string detailOutputFolder, int chIdx, int tileIdx);
 
   /////////////////////////////////////////////////////
   std::string mInputFolder;
