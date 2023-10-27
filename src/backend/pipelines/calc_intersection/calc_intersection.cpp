@@ -15,6 +15,7 @@
 #include <string>
 #include "../../image_processing/functions/detection/detection.hpp"
 #include "../../reporting/reporting.h"
+#include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/functions/func_types.hpp"
 
 namespace joda::pipeline {
@@ -45,6 +46,7 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
   //
   // Calculate the intersection
   //
+  auto id = DurationCount::start("intersect");
   for(auto const &roi01 : ch1->result) {
     for(auto const &roi02 : ch2->result) {
       if(roi01.isValid() && roi02.isValid()) {
@@ -57,6 +59,8 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
       }
     }
   }
+  DurationCount::stop(id);
+
   resp.controlImage = cv::Mat::zeros(ch1->originalImage.rows, ch1->originalImage.cols, CV_32FC3);
   // joda::func::DetectionFunction::paintOverlay(
   //     resp.controlImage,
