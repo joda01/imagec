@@ -165,15 +165,15 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 [[nodiscard]] std::tuple<ROI, bool> ROI::calcIntersection(const ROI &roi, const cv::Mat &imageOriginal,
                                                           float minIntersection) const
 {
-  uint32_t nrOfIntersectingPixels = 0;
-  uint32_t nrOfPixelsMask1        = 0;
-  uint32_t nrOfPixelsMask2        = 0;
-
   // Calculate the intersection of the bounding boxes
   cv::Rect intersectedRect = getBoundingBox() & roi.getBoundingBox();
-  cv::Mat intersectedMask  = cv::Mat::zeros(intersectedRect.height, intersectedRect.width, CV_8UC1);
 
   if(intersectedRect.area() > 0) {
+    uint32_t nrOfIntersectingPixels = 0;
+    uint32_t nrOfPixelsMask1        = 0;
+    uint32_t nrOfPixelsMask2        = 0;
+    cv::Mat intersectedMask         = cv::Mat::zeros(intersectedRect.height, intersectedRect.width, CV_8UC1);
+
     // Iterate through the pixels in the intersection and set them in the new mask
     for(int y = 0; y < intersectedRect.height; ++y) {
       for(int x = 0; x < intersectedRect.width; ++x) {
