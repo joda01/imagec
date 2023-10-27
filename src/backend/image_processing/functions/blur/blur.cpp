@@ -89,16 +89,17 @@ void Blur::filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize)
             p6++;
             p9++;
           }
-          v1                          = v2;
-          v2                          = v3;
-          v3                          = image.at<unsigned short>(p3) & 0xffff;
-          v4                          = v5;
-          v5                          = v6;
-          v6                          = image.at<unsigned short>(p6) & 0xffff;
-          v7                          = v8;
-          v8                          = v9;
-          v9                          = image.at<unsigned short>(p9) & 0xffff;
-          image.at<unsigned short>(p) = (unsigned short) ((v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + v9 + 4) / 9);
+          v1 = v2;
+          v2 = v3;
+          v3 = image.at<unsigned short>(p3) & 0xffff;
+          v4 = v5;
+          v5 = v6;
+          v6 = image.at<unsigned short>(p6) & 0xffff;
+          v7 = v8;
+          v8 = v9;
+          v9 = image.at<unsigned short>(p9) & 0xffff;
+          image.at<unsigned short>(p) =
+              (unsigned short) ((float) (v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + v9 + 4) / 9.0F);
         }
         break;
       case FIND_EDGES:

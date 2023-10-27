@@ -52,7 +52,7 @@ public:
       int color_num = i;
 
       if(paintRectangel && !result[i].getBoundingBox().empty()) {
-        rectangle(img, result[i].getBoundingBox(), RED, 1 * THICKNESS, cv::LINE_4);
+        // rectangle(img, result[i].getBoundingBox(), RED, 1 * THICKNESS, cv::LINE_4);
       }
       if(!result[i].getMask().empty() && !result[i].getBoundingBox().empty()) {
         try {
@@ -131,7 +131,7 @@ protected:
   static inline int THICKNESS     = 1;
 
   // Text parameters.
-  static inline float FONT_SCALE = 0.7;
+  static inline float FONT_SCALE = 0.3;
   static inline int FONT_FACE    = cv::FONT_HERSHEY_SIMPLEX;
 
 private:
