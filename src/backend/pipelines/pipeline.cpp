@@ -256,6 +256,7 @@ void Pipeline::setDetailReportHeader(joda::reporting::Table &detailReportTable, 
        {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN), channelName + "#Min"},
        {colIdx + static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX), channelName + "#Max"},
        {colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE), channelName + "#areaSize"},
+       {colIdx + static_cast<int>(ColumnIndexDetailedReport::PERIMETER), channelName + "#perimeter"},
        {colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY), channelName + "#circularity"},
        {colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY), channelName + "#validity"}});
 }
@@ -300,6 +301,8 @@ void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda:
                                                imgData.getIndex(), imgData.getIntensityMax(), imgData.getValidity());
     detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE),
                                                imgData.getIndex(), imgData.getAreaSize(), imgData.getValidity());
+    detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::PERIMETER),
+                                               imgData.getIndex(), imgData.getPerimeter(), imgData.getValidity());
     detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY),
                                                imgData.getIndex(), imgData.getCircularity(), imgData.getValidity());
     detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::VALIDITY),
@@ -317,7 +320,7 @@ void Pipeline::appendToAllOverReport(joda::reporting::Table &allOverReport,
                                      const joda::reporting::Table &detailedReport, const std::string &imageName,
                                      int nrOfChannels)
 {
-  const int NR_OF_COLUMNS_PER_CHANNEL = 6;
+  const int NR_OF_COLUMNS_PER_CHANNEL = 7;
 
   for(int tempChannelIdx = 0; tempChannelIdx < nrOfChannels; tempChannelIdx++) {
     int colIdx             = NR_OF_COLUMNS_PER_CHANNEL * tempChannelIdx;
@@ -334,7 +337,10 @@ void Pipeline::appendToAllOverReport(joda::reporting::Table &allOverReport,
          {colIdx + 4,
           detailedReport.getColumnNameAt(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)) +
               "#avg. areaSize"},
-         {colIdx + 5, detailedReport.getColumnNameAt(colIdxDetailReport +
+         {colIdx + 5,
+          detailedReport.getColumnNameAt(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::PERIMETER)) +
+              "#avg. perimeter"},
+         {colIdx + 6, detailedReport.getColumnNameAt(colIdxDetailReport +
                                                      static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY)) +
                           "#avg. circularity"}});
 
@@ -357,11 +363,13 @@ void Pipeline::appendToAllOverReport(joda::reporting::Table &allOverReport,
     colStatistics =
         detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE));
     allOverReport.appendValueToColumn(colIdx + 4, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
-
+    colStatistics =
+        detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::PERIMETER));
+    allOverReport.appendValueToColumn(colIdx + 5, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
     colStatistics =
         detailedReport.getStatistics(colIdxDetailReport + static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY));
     int rowIdx =
-        allOverReport.appendValueToColumn(colIdx + 5, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
+        allOverReport.appendValueToColumn(colIdx + 6, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
 
     allOverReport.setRowName(rowIdx, imageName);
   }

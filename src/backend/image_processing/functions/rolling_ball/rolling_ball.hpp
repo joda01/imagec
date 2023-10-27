@@ -48,14 +48,12 @@ private:
   static int constexpr MEAN    = 1;    // filter types of filter3x3
 
   /////////////////////////////////////////////////////
-  void subtractRGBBackround(cv::Mat &ip, int ballRadius) const;
-  void subtractBackround(cv::Mat &ip, int ballRadius) const;
-  cv::Mat rollBall(RollingBall &ball, cv::Mat &image, cv::Mat &smallImage) const;
-  cv::Mat rollBallOriginal(RollingBall &ball, cv::Mat &image, cv::Mat &smallImage) const;
+  void rollingBallFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth, RollingBall *ball) const;
+  cv::Mat shrinkImage(const cv::Mat &ip, int shrinkFactor) const;
+  void enlargeImage(const cv::Mat &smallImage, cv::Mat &fp, int shrinkFactor) const;
+  void rollBall(RollingBall *ball, cv::Mat &fp) const;
+  static void makeInterpolationArrays(int *smallIndices, float *weights, int length, int smallLength, int shrinkFactor);
 
-  cv::Mat shrinkImage(cv::Mat &ip, int shrinkfactor) const;
-  void interpolateBackground(cv::Mat &background, RollingBall &ball) const;
-  void extrapolateBackground(cv::Mat &background, RollingBall &ball) const;
   double filter3x3(cv::Mat &ip, int type) const;
   double filter3(cv::Mat &ip, int length, int pixel0, int inc, int type) const;
   // void setNPasses(int nPasses);
@@ -63,9 +61,7 @@ private:
   /////////////////////////////////////////////////////
   const float radius;
   const bool lightBackground = false;
-  const bool invert          = false;
   const int nPasses          = 1;
-  const int pass{};
   const int flags = 0;    //= DOES_8G | DOES_16 | DOES_RGB | FINAL_PROCESSING | KEEP_PREVIEW | PARALLELIZE_STACKS;
 };
 }    // namespace joda::func::img

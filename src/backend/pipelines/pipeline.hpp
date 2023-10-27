@@ -97,10 +97,11 @@ private:
     INTENSITY_MIN = 2,
     INTENSITY_MAX = 3,
     AREA_SIZE     = 4,
-    CIRCULARITY   = 5,
-    VALIDITY      = 6
+    PERIMETER     = 5,
+    CIRCULARITY   = 6,
+    VALIDITY      = 7
   };
-  static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 7;
+  static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 8;
 
   /////////////////////////////////////////////////////
   void runJob();

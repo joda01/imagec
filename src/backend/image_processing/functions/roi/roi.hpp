@@ -100,6 +100,11 @@ public:
     return circularity;
   }
 
+  [[nodiscard]] auto getPerimeter() const
+  {
+    return perimeter;
+  }
+
   [[nodiscard]] bool isValid() const
   {
     return validity == ParticleValidity::VALID;

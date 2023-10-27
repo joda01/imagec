@@ -75,6 +75,9 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
         int imgy = box.y + y;
 
         if(imgx < imageOriginal.cols && imgy < imageOriginal.rows) {
+          //
+          // Intensity
+          //
           double pixelGrayScale = imageOriginal.at<unsigned short>(imgy, imgx);
           if(pixelGrayScale < intensityMin) {
             intensityMin = pixelGrayScale;
@@ -84,23 +87,26 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
           }
           intensity += pixelGrayScale;
 
-          // Check the 8-connected neighbors
-          bool isBoundary = false;
-          for(int dy = -1; dy <= 1; dy++) {
-            for(int dx = -1; dx <= 1; dx++) {
-              int yB = y + dy;
-              int xB = x + dx;
-              if(yB <= 0 || xB <= 0 || boxMask.at<uchar>(yB, xB) == 0) {
-                perimeter++;
-                isBoundary = true;
-                break;
-              }
-            }
-            if(isBoundary) {
-              break;
-            }
-          }
+          //
+          // Area size
+          //
           areaSize++;
+
+          //
+          // Calculate boundary
+          //
+          if(x > 1 && y > 1) {
+            auto isBoundary = boxMask.at<uchar>(y - 1, x - 1) & boxMask.at<uchar>(y - 1, x + 0) &
+                              boxMask.at<uchar>(y - 1, x + 1) & boxMask.at<uchar>(y + 0, x - 1) &
+                              boxMask.at<uchar>(y + 0, x + 1) & boxMask.at<uchar>(y + 1, x - 1) &
+                              boxMask.at<uchar>(y + 1, x + 0) & boxMask.at<uchar>(y + 1, x + 1);
+
+            if(isBoundary > 0) {
+              perimeter++;
+            }
+          } else {
+            perimeter++;
+          }
         }
       }
     }
