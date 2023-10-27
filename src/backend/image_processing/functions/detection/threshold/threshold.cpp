@@ -18,6 +18,7 @@
 #include <string>
 #include "../../../functions/detection/detection.hpp"
 #include "../../../functions/func_types.hpp"
+#include "backend/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -41,27 +42,36 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
 
   // Find contours in the binary image
+  auto id = DurationCount::start("detection_find");
+
   binaryImage.convertTo(binaryImage, CV_8UC1);
   std::vector<std::vector<cv::Point>> contours;
-  cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+  cv::findContours(binaryImage, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+  DurationCount::stop(id);
 
   if(contours.size() > 100000) {
     // throw std::runtime_error("Too much spots.");
     std::cout << "Too much: " << std::to_string(contours.size()) << std::endl;
   }
+  id = DurationCount::start("detection_mask");
+
+  cv::Mat boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
+  cv::fillPoly(boxMask, contours, cv::Scalar(255));
+
   // Create a mask for each contour and draw bounding boxes
   for(size_t i = 0; i < contours.size(); ++i) {
     // Find the bounding box for the contour
-    auto box = cv::boundingRect(contours[i]);
-    // Create a mask for the current contour
-    cv::Mat boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
-    cv::drawContours(boxMask, contours, static_cast<int>(i), cv::Scalar(UCHAR_MAX), cv::FILLED);
-    boxMask = boxMask(box) >= 1;
-    ROI detect(i, 1, 0, box, boxMask, originalImage, getFilterSettings());
+    auto box     = cv::boundingRect(contours[i]);
+    cv::Mat mask = boxMask(box) >= 1;
+    ROI detect(i, 1, 0, box, mask, originalImage, getFilterSettings());
     response.push_back(detect);
   }
+  DurationCount::stop(id);
+
+  id = DurationCount::start("detection_paint");
 
   paintBoundingBox(inputImage, response);
+  DurationCount::stop(id);
 
   return {.result = response, .controlImage = inputImage};
 }
