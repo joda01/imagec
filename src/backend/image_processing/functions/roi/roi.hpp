@@ -46,11 +46,14 @@ class ROI
 {
 public:
   /////////////////////////////////////////////////////
+  ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask);
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
       const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
       const cv::Mat &imageOriginal);
+
+  void calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter);
 
   [[nodiscard]] auto getIndex() const
   {
@@ -117,7 +120,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  void calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter);
   void applyParticleFilter(const joda::settings::json::ChannelFiltering *filter);
 
   /////////////////////////////////////////////////////
@@ -130,6 +132,7 @@ private:
   float intensityMin = USHRT_MAX;    ///< Min intensity of the masking area
   float intensityMax = 0;            ///< Max intensity of the masking area
   uint64_t areaSize  = 0;            ///< size of the masking area [px^2 / px^3]
+  uint64_t perimeter = 0;            ///< Perimter (boundary size) [px]
   float circularity{};               ///< Circularity of the masking area [0-1]
   ParticleValidity validity = ParticleValidity::UNKNOWN;
 };

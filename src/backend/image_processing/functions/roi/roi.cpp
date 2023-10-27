@@ -23,6 +23,10 @@
 
 namespace joda::func {
 
+ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask) :
+    index(index), confidence(confidence), classId(classId), box(boundingBox), boxMask(mask)
+{
+}
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter) :
     index(index),
@@ -40,6 +44,18 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
 
 ///
 /// \brief      Calculate metrics based on bounding box and mask
+///
+/// cv::Mat optimalCircle = cv::Mat::zeros(box.height, box.width, CV_8UC1);
+/// double radius         = std::min(box.height, box.width) / 2;
+/// circle(optimalCircle, cv::Point(box.height / 2, box.width / 2), radius, cv::Scalar(255, 255, 255), cv::FILLED,
+///        cv::LINE_AA, 0);
+/// int pointsInCircle = 0;
+///  Calculate the intensity and area of the polygon ROI
+/// unsigned char circleMask = optimalCircle.at<unsigned char>(y, x);    // Get the pixel value at (x, y)
+/// if(circleMask > 0) {
+///   pointsInCircle++;
+/// }
+///
 /// \author     Joachim Danmayr
 ///
 void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter)
@@ -49,18 +65,17 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
   intensityMax = 0;
   areaSize     = 0;
   circularity  = 0;
+  perimeter    = 0;
 
-  // Calculate the intensity and area of the polygon ROI
-  for(int x = 0; x < box.width; x++) {
-    for(int y = 0; y < box.height; y++) {
-      unsigned char maskPxl = boxMask.at<unsigned char>(y, x);    // Get the pixel value at (x, y)
+  for(int y = 0; y < box.height; y++) {
+    for(int x = 0; x < box.width; x++) {
+      unsigned char maskPxl = boxMask.at<unsigned char>(y, x);
       if(maskPxl > 0) {
-        // \todo there is a bug
         int imgx = box.x + x;
         int imgy = box.y + y;
 
         if(imgx < imageOriginal.cols && imgy < imageOriginal.rows) {
-          double pixelGrayScale = imageOriginal.at<unsigned short>(imgy, imgx);    // Get the pixel value at (x, y)
+          double pixelGrayScale = imageOriginal.at<unsigned short>(imgy, imgx);
           if(pixelGrayScale < intensityMin) {
             intensityMin = pixelGrayScale;
           }
@@ -68,31 +83,46 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
             intensityMax = pixelGrayScale;
           }
           intensity += pixelGrayScale;
+
+          // Check the 8-connected neighbors
+          bool isBoundary = false;
+          for(int dy = -1; dy <= 1; dy++) {
+            for(int dx = -1; dx <= 1; dx++) {
+              int yB = y + dy;
+              int xB = x + dx;
+              if(yB <= 0 || xB <= 0 || boxMask.at<uchar>(yB, xB) == 0) {
+                perimeter++;
+                isBoundary = true;
+                break;
+              }
+            }
+            if(isBoundary) {
+              break;
+            }
+          }
           areaSize++;
         }
       }
     }
   }
+
   float intensityAvg = 0.0f;
   if(areaSize > 0) {
     intensityAvg = intensity / static_cast<float>(areaSize);
+    // circularity  = static_cast<float>(pointsInCircle) / static_cast<float>(areaSize);
+    float perimterSquare = static_cast<float>(perimeter) * static_cast<float>(perimeter);
+    float dividend       = 4.0 * M_PI * static_cast<float>(areaSize);
+    if(dividend < perimterSquare) {
+      circularity = dividend / perimterSquare;
+    } else {
+      circularity = 1;
+    }
+
   } else {
     intensityMin = 0;
   }
   intensity = intensityAvg;
 
-  std::vector<std::vector<cv::Point>> contours = {};
-  cv::findContours(boxMask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
-
-  if(!contours.empty()) {
-    double area      = cv::contourArea(contours[0]);
-    double perimeter = cv::arcLength(contours[0], true);
-    if(perimeter != 0) {
-      circularity = (4 * M_PI * area) / (perimeter * perimeter);
-    } else {
-      circularity = 1;
-    }
-  }
   if(filter != nullptr) {
     applyParticleFilter(filter);
   } else {
