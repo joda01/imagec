@@ -126,19 +126,22 @@ public:
 private:
   /////////////////////////////////////////////////////
   void applyParticleFilter(const joda::settings::json::ChannelFiltering *filter);
-
+  [[nodiscard]] double calcPerimeter(const std::vector<cv::Point> &) const;
+  [[nodiscard]] double getSmoothedLineLength(const std::vector<cv::Point> &) const;
+  [[nodiscard]] double getLength(const std::vector<cv::Point> &points, bool closeShape) const;
+  [[nodiscard]] double getTracedPerimeter(const std::vector<cv::Point> &points) const;
   /////////////////////////////////////////////////////
-  uint32_t index;                    ///< Index in the prediction array
-  Confidence confidence;             ///< Probability
-  ClassId classId;                   ///< Class id
-  Boxes box;                         ///< Rectangle around the prediction
-  cv::Mat boxMask;                   ///< Segmentation mask
-  float intensity    = 0;            ///< Avg intensity of the masking area
-  float intensityMin = USHRT_MAX;    ///< Min intensity of the masking area
-  float intensityMax = 0;            ///< Max intensity of the masking area
-  uint64_t areaSize  = 0;            ///< size of the masking area [px^2 / px^3]
-  uint64_t perimeter = 0;            ///< Perimter (boundary size) [px]
-  float circularity{};               ///< Circularity of the masking area [0-1]
+  uint32_t index;                     ///< Index in the prediction array
+  Confidence confidence;              ///< Probability
+  ClassId classId;                    ///< Class id
+  Boxes box;                          ///< Rectangle around the prediction
+  cv::Mat boxMask;                    ///< Segmentation mask
+  double intensity    = 0;            ///< Avg intensity of the masking area
+  double intensityMin = USHRT_MAX;    ///< Min intensity of the masking area
+  double intensityMax = 0;            ///< Max intensity of the masking area
+  uint64_t areaSize   = 0;            ///< size of the masking area [px^2 / px^3]
+  double perimeter    = 0;            ///< Perimter (boundary size) [px]
+  float circularity{};                ///< Circularity of the masking area [0-1]
   ParticleValidity validity = ParticleValidity::UNKNOWN;
 };
 }    // namespace joda::func
