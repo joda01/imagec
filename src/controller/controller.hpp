@@ -29,7 +29,8 @@ class Controller
 public:
   /////////////////////////////////////////////////////
   Controller();
-  void start(const settings::json::AnalyzeSettings &settings);
+  void start(const settings::json::AnalyzeSettings &settings,
+             const pipeline::Pipeline::ThreadingSettings &threadSettings);
   void stop();
   void reset();
   std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string> getState();

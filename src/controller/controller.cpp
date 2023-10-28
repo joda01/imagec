@@ -30,11 +30,12 @@ Controller::Controller()
 /// \brief      Start a new process
 /// \author     Joachim Danmayr
 ///
-void Controller::start(const settings::json::AnalyzeSettings &settings)
+void Controller::start(const settings::json::AnalyzeSettings &settings,
+                       const pipeline::Pipeline::ThreadingSettings &threadSettings)
 {
   try {
-    mActProcessId = joda::pipeline::PipelineFactory::startNewJob(
-        settings, mWorkingDirectory.getWorkingDirectory(), &mWorkingDirectory, calcOptimalThreadNumber(settings, 0));
+    mActProcessId = joda::pipeline::PipelineFactory::startNewJob(settings, mWorkingDirectory.getWorkingDirectory(),
+                                                                 &mWorkingDirectory, threadSettings);
     joda::log::logInfo("Analyze started!");
   } catch(const std::exception &ex) {
     joda::log::logWarning("Analyze could not be started! Got " + std::string(ex.what()) + ".");

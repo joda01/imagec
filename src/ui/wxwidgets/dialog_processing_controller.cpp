@@ -30,17 +30,17 @@ DialogProcessingController::DialogProcessingController(wxWindow *parent, joda::c
     DialogProcessing(parent, id, title, pos, size, style),
     mPipelineController(pipelineController), mAnalyzeSettins(settings)
 {
+  auto rescources = pipelineController->calcOptimalThreadNumber(*settings, 0);
+
   mPipelineController->reset();
   refreshFunction();
   mRefreshTimer = std::make_shared<std::thread>(&DialogProcessingController::refreshThread, this);
-  mPipelineController->start(*mAnalyzeSettins);
+  mPipelineController->start(*mAnalyzeSettins, rescources);
   mStartedTime = std::chrono::high_resolution_clock::now();
 
   //
   // Show uses RAM and threads
   //
-  auto rescources = pipelineController->calcOptimalThreadNumber(*settings, 0);
-
   auto [ramPerImg, expoperImg] = exponentForRam(rescources.ramPerImage);
   auto [ramFree, expoFree]     = exponentForRam(rescources.ramFree);
   auto [ramTotal, expoTotal]   = exponentForRam(rescources.ramTotal);
