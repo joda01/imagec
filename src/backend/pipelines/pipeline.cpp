@@ -159,7 +159,10 @@ void Pipeline::runJob()
                 }
                 DurationCount::stop(idColoc);
 
-                mProgress.image.finished++;
+                {
+                  std::lock_guard<std::mutex> lock(mWriteLock);
+                  mProgress.image.finished++;
+                }
               },
               tileIdx);
           //
