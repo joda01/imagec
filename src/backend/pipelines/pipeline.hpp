@@ -178,7 +178,6 @@ private:
   std::string mLastErrorMessage;
   std::shared_ptr<std::thread> mMainThread;
   ThreadingSettings mThreadingSettings;
-  std::mutex mWriteLock;
 };
 
 }    // namespace joda::pipeline

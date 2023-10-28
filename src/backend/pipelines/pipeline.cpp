@@ -159,10 +159,7 @@ void Pipeline::runJob()
                 }
                 DurationCount::stop(idColoc);
 
-                {
-                  std::lock_guard<std::mutex> lock(mWriteLock);
-                  mProgress.image.finished++;
-                }
+                mProgress.image.finished++;
               },
               tileIdx);
           //
@@ -187,10 +184,7 @@ void Pipeline::runJob()
         auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
         appendToAllOverReport(alloverReport, detailReports, imageName, nrOfChannels);
 
-        {
-          std::lock_guard<std::mutex> lock(mWriteLock);
-          mProgress.total.finished++;
-        }
+        mProgress.total.finished++;
       });
 
       while(imageThreadPool.get_tasks_total() > (threadPoolImage + THREAD_POOL_BUFFER)) {
