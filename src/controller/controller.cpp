@@ -13,6 +13,7 @@
 
 #include "controller.hpp"
 #include <algorithm>
+#include <map>
 #include <ranges>
 #include "backend/helper/system_resources.hpp"
 #include "backend/image_processing/channel_processor.hpp"
@@ -162,6 +163,13 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
   threads.ramTotal         = systemRecources.ramTotal;
   threads.coresAvailable   = systemRecources.cpus;
 
+  // No multi threading when AI is used, sinze AI is still using all cPUs
+  // for(const auto &ch : settings.getChannelsVector()) {
+  //  if(ch.getDetectionSettings().getDetectionMode() == settings::json::ChannelDetection::DetectionMode::AI) {
+  //    // return threads;
+  //  }
+  //}
+
   // Maximum number of cores depends on the available RAM.
   int32_t maxNumberOfCoresToAssign =
       std::min(static_cast<uint64_t>(systemRecources.cpus),
@@ -170,7 +178,7 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
     maxNumberOfCoresToAssign = 1;
   }
 
-  std::map<int64_t, pipeline::Pipeline::ThreadingSettings::Type> numbers = {
+  std::multimap<int64_t, pipeline::Pipeline::ThreadingSettings::Type> numbers = {
       {imgNr, pipeline::Pipeline::ThreadingSettings::IMAGES},
       {tileNr, pipeline::Pipeline::ThreadingSettings::TILES},
       {channelNr, pipeline::Pipeline::ThreadingSettings::CHANNELS}};

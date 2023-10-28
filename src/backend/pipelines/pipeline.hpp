@@ -14,6 +14,7 @@
 #pragma once
 
 // #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 #include <vector>
@@ -120,6 +121,7 @@ private:
     VALIDITY      = 7
   };
   static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 8;
+  static const int THREAD_POOL_BUFFER                         = 5;
 
   /////////////////////////////////////////////////////
   void runJob();
@@ -152,17 +154,17 @@ private:
     return mStop;
   }
 
-  static void setDetailReportHeader(joda::reporting::Table &detailReportTable, const std::string &channelName,
-                                    int tempChannelIdx);
-  static void appendToDetailReport(joda::func::DetectionResponse &result, joda::reporting::Table &detailReportTable,
-                                   const std::string &detailReportOutputPath, int tempChannelIdx, uint32_t tileIdx);
-  static void appendToAllOverReport(joda::reporting::Table &allOverReport, const joda::reporting::Table &detailedReport,
-                                    const std::string &imageName, int nrOfChannels);
+  void setDetailReportHeader(joda::reporting::Table &detailReportTable, const std::string &channelName,
+                             int tempChannelIdx);
+  void appendToDetailReport(joda::func::DetectionResponse &result, joda::reporting::Table &detailReportTable,
+                            const std::string &detailReportOutputPath, int tempChannelIdx, uint32_t tileIdx);
+  void appendToAllOverReport(joda::reporting::Table &allOverReport, const joda::reporting::Table &detailedReport,
+                             const std::string &imageName, int nrOfChannels);
 
-  static void analyszeChannel(joda::reporting::Table &detailReports,
-                              std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
-                              joda::settings::json::ChannelSettings &channelSettings, std::string imagePath,
-                              std::string detailOutputFolder, int chIdx, int tileIdx);
+  void analyszeChannel(joda::reporting::Table &detailReports,
+                       std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
+                       joda::settings::json::ChannelSettings &channelSettings, std::string imagePath,
+                       std::string detailOutputFolder, int chIdx, int tileIdx);
 
   /////////////////////////////////////////////////////
   std::string mInputFolder;

@@ -96,13 +96,13 @@ std::tuple<double, std::string> DialogProcessingController::exponentForRam(doubl
 ///
 std::tuple<double, std::string> DialogProcessingController::exponentForTime(double timeMs)
 {
-  if(timeMs > 1e3) {
-    return {timeMs / 1e3, " s"};
-  }
   if(timeMs > 1e3 * 60) {
     return {timeMs / (1e3 * 60), " min"};
   }
 
+  if(timeMs > 1e3) {
+    return {timeMs / 1e3, " s"};
+  }
   return {timeMs, " ms"};
 }
 

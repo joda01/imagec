@@ -15,6 +15,8 @@ namespace joda::reporting {
 int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float value,
                                         joda::func::ParticleValidity validity)
 {
+  std::lock_guard<std::mutex> lock(mWriteMutex);
+
   if(!mTable.contains(colIdx)) {
     mTable.emplace(colIdx, Row_t{});
   }
@@ -38,6 +40,8 @@ int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float v
 
 auto Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func::ParticleValidity value) -> int64_t
 {
+  std::lock_guard<std::mutex> lock(mWriteMutex);
+
   if(!mTable.contains(colIdx)) {
     mTable.emplace(colIdx, Row_t{});
   }
@@ -100,11 +104,13 @@ auto Table::getStatistics(uint64_t colIdx) const -> const Statistics &
 
 void Table::setRowName(uint64_t rowIdx, const std::string &name)
 {
+  std::lock_guard<std::mutex> lock(mWriteMutex);
   mRowNames.emplace(rowIdx, name);
 }
 
 void Table::setColumnNames(const std::map<uint64_t, std::string> &colNames)
 {
+  std::lock_guard<std::mutex> lock(mWriteMutex);
   for(const auto &[key, val] : colNames) {
     mColumnName.emplace(key, val);
   }

@@ -82,7 +82,6 @@ void Pipeline::runJob()
     //
     // Iterate over each image to do detection
     //
-    auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size();
     for(const auto &imagePath : mImageFileContainer->getFilesList()) {
       imageThreadPool.push_task([&] {
         std::string imageName   = helper::getFileNameFromPath(imagePath);
@@ -108,10 +107,12 @@ void Pipeline::runJob()
         // Iterate over each tile
         //
         joda::reporting::Table detailReports;
+        std::mutex writeDetailReportMutex;
+
         for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
           tileThreadPool.push_task(
-              [this, &detailReports, &channelThreadPool, &imagePath, &detailOutputFolder, &threadPoolChannel,
-               &nrOfChannels](int tileIdx) {
+              [this, &detailReports, &channelThreadPool, &imagePath, &detailOutputFolder,
+               &threadPoolChannel](int tileIdx) {
                 auto idChannels = DurationCount::start("channels");
                 //
                 // Execute for each channel of the selected tile
@@ -130,7 +131,7 @@ void Pipeline::runJob()
                                         chIdx, tileIdx);
                       },
                       chIdx, tileIdx);
-                  while(channelThreadPool.get_tasks_total() > threadPoolChannel) {
+                  while(channelThreadPool.get_tasks_total() > (threadPoolChannel + THREAD_POOL_BUFFER)) {
                     std::this_thread::sleep_for(100us);
                   }
                   if(mStop) {
@@ -153,20 +154,19 @@ void Pipeline::runJob()
                     detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
                     setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
                     appendToDetailReport(response, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
-                    nrOfChannels++;
                     tempChannelIdx++;
                   }
                 }
                 DurationCount::stop(idColoc);
 
-                mProgress.image.finished = tileIdx + 1;
+                mProgress.image.finished++;
               },
               tileIdx);
           //
           // Free memory
           //
 
-          while(tileThreadPool.get_tasks_total() > threadPoolTile) {
+          while(tileThreadPool.get_tasks_total() > (threadPoolTile + THREAD_POOL_BUFFER)) {
             std::this_thread::sleep_for(100us);
           }
           if(mStop) {
@@ -174,17 +174,20 @@ void Pipeline::runJob()
           }
         }
         tileThreadPool.wait_for_tasks();
+        channelThreadPool.wait_for_tasks();
 
         //
         // Write report
         //
         detailReports.flushReportToFile(detailOutputFolder + separator + "detail.csv");
+
+        auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
         appendToAllOverReport(alloverReport, detailReports, imageName, nrOfChannels);
 
         mProgress.total.finished++;
       });
 
-      while(imageThreadPool.get_tasks_total() > threadPoolImage) {
+      while(imageThreadPool.get_tasks_total() > (threadPoolImage + THREAD_POOL_BUFFER)) {
         std::this_thread::sleep_for(100us);
       }
       if(mStop) {
@@ -220,7 +223,6 @@ void Pipeline::analyszeChannel(joda::reporting::Table &detailReports,
                                std::string detailOutputFolder, int chIdx, int tileIdx)
 {
   int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
-  auto id              = DurationCount::start("channel-" + std::to_string(channelIndex));
 
   setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), chIdx);
 
@@ -229,18 +231,20 @@ void Pipeline::analyszeChannel(joda::reporting::Table &detailReports,
     //
     // Add processing result to the detection result map
     //
+    auto id = DurationCount::start("emplace");
     detectionResults.emplace(channelIndex, processingResult);
+    DurationCount::stop(id);
 
     //
     // Add to detail report
     //
+    id = DurationCount::start("append");
     appendToDetailReport(processingResult, detailReports, detailOutputFolder, chIdx, tileIdx);
+    DurationCount::stop(id);
 
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
   }
-
-  DurationCount::stop(id);
 }
 
 ///
@@ -274,22 +278,22 @@ void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda:
 
   int colIdx = NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT * tempChannelIdx;
   // Free memory
+  std::vector<int> compression_params;
+  compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+  compression_params.push_back(0);
+
+  auto id = DurationCount::start("write-control-image");
   if(!result.controlImage.empty()) {
-    std::vector<int> compression_params;
-    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-    compression_params.push_back(9);
     cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
                     std::to_string(tileIdx) + ".png",
                 result.controlImage, compression_params);
   }
   if(!result.originalImage.empty()) {
-    std::vector<int> compression_params;
-    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-    compression_params.push_back(9);
     cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
                     std::to_string(tileIdx) + ".png",
                 result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
   }
+  DurationCount::stop(id);
 
   for(const auto &imgData : result.result) {
     detailReportTable.appendValueToColumnAtRow(colIdx + static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE),

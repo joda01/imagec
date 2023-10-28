@@ -47,7 +47,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	mToolBar->AddSeparator();
 
-	mLabelNrOfFoundFiles = new wxStaticText( mToolBar, wxID_ANY, _("Images dir: "), wxDefaultPosition, wxSize( 120,-1 ), wxALIGN_LEFT );
+	mLabelNrOfFoundFiles = new wxStaticText( mToolBar, wxID_ANY, _("Images dir: "), wxDefaultPosition, wxSize( 140,-1 ), wxALIGN_LEFT );
 	mLabelNrOfFoundFiles->Wrap( -1 );
 	mToolBar->AddControl( mLabelNrOfFoundFiles );
 	mDirectoryPicker = new wxDirPickerCtrl( mToolBar, wxID_ANY, wxEmptyString, _("Select a folder"), wxDefaultPosition, wxSize( 250,-1 ), wxDIRP_DEFAULT_STYLE|wxDIRP_DIR_MUST_EXIST );
@@ -322,7 +322,7 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 	wxBoxSizer* mSizerProcessing;
 	mSizerProcessing = new wxBoxSizer( wxVERTICAL );
 
-	mLabelProgressImage = new wxStaticText( this, wxID_ANY, _("0/0"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
+	mLabelProgressImage = new wxStaticText( this, wxID_ANY, _("0/0"), wxDefaultPosition, wxSize( 200,-1 ), wxALIGN_CENTER_HORIZONTAL );
 	mLabelProgressImage->Wrap( -1 );
 	mSizerProcessing->Add( mLabelProgressImage, 0, wxALIGN_CENTER_HORIZONTAL|wxTOP, 5 );
 
@@ -330,7 +330,7 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 	mProgressImage->SetValue( 0 );
 	mSizerProcessing->Add( mProgressImage, 0, wxALL|wxEXPAND, 5 );
 
-	mLabelProgressAllOver = new wxStaticText( this, wxID_ANY, _("0/0"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
+	mLabelProgressAllOver = new wxStaticText( this, wxID_ANY, _("0/0"), wxDefaultPosition, wxSize( 200,-1 ), wxALIGN_CENTER_HORIZONTAL );
 	mLabelProgressAllOver->Wrap( -1 );
 	mSizerProcessing->Add( mLabelProgressAllOver, 0, wxALIGN_CENTER_HORIZONTAL|wxTOP, 5 );
 

@@ -173,6 +173,7 @@ private:
   std::map<uint64_t, std::string> mColumnName;
   int64_t mRows = 0;
   Statistics mEmptyStatistics;
+  std::mutex mWriteMutex;
 };
 
 }    // namespace joda::reporting
