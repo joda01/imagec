@@ -184,7 +184,10 @@ void Pipeline::runJob()
         auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
         appendToAllOverReport(alloverReport, detailReports, imageName, nrOfChannels);
 
-        mProgress.total.finished++;
+        {
+          std::lock_guard<std::mutex> lock(mWriteLock);
+          mProgress.total.finished++;
+        }
       });
 
       while(imageThreadPool.get_tasks_total() > (threadPoolImage + THREAD_POOL_BUFFER)) {
