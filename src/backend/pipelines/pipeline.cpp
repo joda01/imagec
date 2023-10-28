@@ -294,11 +294,11 @@ void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda:
                     std::to_string(tileIdx) + ".png",
                 result.controlImage, compression_params);
   }
-  if(!result.originalImage.empty()) {
-    cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
-                    std::to_string(tileIdx) + ".png",
-                result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
-  }
+  // if(!result.originalImage.empty()) {
+  //   cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
+  //                   std::to_string(tileIdx) + ".png",
+  //               result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
+  // }
   DurationCount::stop(id);
 
   for(const auto &imgData : result.result) {
