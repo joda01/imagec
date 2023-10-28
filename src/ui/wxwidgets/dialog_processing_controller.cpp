@@ -141,9 +141,13 @@ void DialogProcessingController::refreshFunction()
     newTextImage   = wxString::Format("%d/%d", progress.image.finished, progress.image.total);
 
     mProgressImage->SetRange(progress.image.total);
-    mProgressImage->SetValue(progress.image.finished);
+    if(progress.image.finished <= progress.image.total) {
+      mProgressImage->SetValue(progress.image.finished);
+    }
     mProgressAllOver->SetRange(progress.total.total);
-    mProgressAllOver->SetValue(progress.total.finished);
+    if(progress.total.finished <= progress.total.total) {
+      mProgressAllOver->SetValue(progress.total.finished);
+    }
 
   } catch(const std::exception &ex) {
     wxCommandEvent ev;
