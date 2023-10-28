@@ -25,7 +25,16 @@
 #include "sys/sysinfo.h"
 #include "sys/types.h"
 
+#else
+
+#include <windows.h>
+#include <iostream>
+
+#endif
+
 namespace joda::system {
+
+#ifndef _WIN32
 
 inline uint64_t getTotalSystemMemory()
 {
@@ -74,8 +83,7 @@ inline uint64_t getAvailableSystemMemory()
 }
 
 #else
-#include <windows.h>
-#include <iostream>
+
 
 inline uint64_t getTotalSystemMemory()
 {
@@ -90,7 +98,7 @@ inline uint64_t getAvailableSystemMemory()
   MEMORYSTATUSEX status;
   status.dwLength = sizeof(status);
   GlobalMemoryStatusEx(&status);
-  return memInfo.ullAvailPhys;
+  return status.ullAvailPhys;
 }
 
 #endif
