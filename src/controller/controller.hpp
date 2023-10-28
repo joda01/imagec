@@ -52,17 +52,8 @@ public:
   };
   static auto getSystemRescources() -> Resources;
 
-  struct Threads
-  {
-    enum Type
-    {
-      IMAGES,
-      TILES,
-      CHANNELS
-    };
-    std::map<Type, int32_t> cores;
-  };
-  auto calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex) -> Threads;
+  auto calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex)
+      -> pipeline::Pipeline::ThreadingSettings;
 
 private:
   /////////////////////////////////////////////////////

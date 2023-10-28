@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <string>
+#include "backend/pipelines/pipeline.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include "controller.hpp"
@@ -17,9 +18,10 @@ TEST_CASE("controller:test", "[optimal_thread_number_tile]")
   settings.loadConfigFromFile("test_nucleus/config.json");
   auto result = ctrl.calcOptimalThreadNumber(settings, 0);
 
-  std::cout << "Img: " << std::to_string(result.cores[joda::ctrl::Controller::Threads::IMAGES])
-            << " | Chs: " << std::to_string(result.cores[joda::ctrl::Controller::Threads::CHANNELS])
-            << " |Tils: " << std::to_string(result.cores[joda::ctrl::Controller::Threads::TILES]) << std::endl;
+  std::cout << "Img: " << std::to_string(result.cores[joda::pipeline::Pipeline::ThreadingSettings::IMAGES])
+            << " | Chs: " << std::to_string(result.cores[joda::pipeline::Pipeline::ThreadingSettings::CHANNELS])
+            << " |Tils: " << std::to_string(result.cores[joda::pipeline::Pipeline::ThreadingSettings::TILES])
+            << std::endl;
 }
 
 ///
@@ -35,7 +37,8 @@ TEST_CASE("controller:test", "[optimal_thread_number_img]")
   settings.loadConfigFromFile("test_areosold_Evs/settings.json");
   auto result = ctrl.calcOptimalThreadNumber(settings, 0);
 
-  std::cout << "Img: " << std::to_string(result.cores[joda::ctrl::Controller::Threads::IMAGES])
-            << " | Chs: " << std::to_string(result.cores[joda::ctrl::Controller::Threads::CHANNELS])
-            << " |Tils: " << std::to_string(result.cores[joda::ctrl::Controller::Threads::TILES]) << std::endl;
+  std::cout << "Img: " << std::to_string(result.cores[joda::pipeline::Pipeline::ThreadingSettings::IMAGES])
+            << " | Chs: " << std::to_string(result.cores[joda::pipeline::Pipeline::ThreadingSettings::CHANNELS])
+            << " |Tils: " << std::to_string(result.cores[joda::pipeline::Pipeline::ThreadingSettings::TILES])
+            << std::endl;
 }

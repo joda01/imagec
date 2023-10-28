@@ -44,6 +44,20 @@ public:
     types::Progress image;
   };
 
+  struct ThreadingSettings
+  {
+    ThreadingSettings()
+    {
+    }
+    enum Type
+    {
+      IMAGES,
+      TILES,
+      CHANNELS
+    };
+    std::map<Type, int32_t> cores{{IMAGES, 1}, {TILES, 1}, {CHANNELS, 1}};
+  };
+
   enum class State : int
   {
     STOPPED  = 0,
@@ -55,7 +69,7 @@ public:
   };
 
   Pipeline(const settings::json::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
-           const std::string &inputFolder);
+           const std::string &inputFolder, const ThreadingSettings &threadingSettings = ThreadingSettings());
   ~Pipeline()
   {
     stopJob();
@@ -157,6 +171,7 @@ private:
   State mState = State::STOPPED;
   std::string mLastErrorMessage;
   std::shared_ptr<std::thread> mMainThread;
+  ThreadingSettings mThreadingSettings;
 };
 
 }    // namespace joda::pipeline

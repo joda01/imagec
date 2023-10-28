@@ -13,7 +13,7 @@
 
 #pragma once
 
-//#include <malloc.h>
+// #include <malloc.h>
 #include <exception>
 #include <future>
 #include <map>
@@ -71,11 +71,14 @@ public:
   /// \brief      Generate a new pipeline job
   /// \author     Joachim Danmayr
   ///
-  static auto startNewJob(const settings::json::AnalyzeSettings &settings, const std::string &inputFolder,
-                          joda::helper::ImageFileContainer *imageFileContainer) -> std::string
+  static auto
+  startNewJob(const settings::json::AnalyzeSettings &settings, const std::string &inputFolder,
+              joda::helper::ImageFileContainer *imageFileContainer,
+              const pipeline::Pipeline::ThreadingSettings &threadingSettings = pipeline::Pipeline::ThreadingSettings())
+      -> std::string
   {
     std::string jobId = std::to_string(mJobCount++);
-    mJob              = std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder);
+    mJob = std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder, threadingSettings);
 
     return jobId;
   };
@@ -119,7 +122,7 @@ private:
 
           joda::log::logInfo("Analyze finished!");
           mJob.reset();
-          //malloc_trim(0);
+          // malloc_trim(0);
         }
       }
 

@@ -32,8 +32,8 @@ Controller::Controller()
 void Controller::start(const settings::json::AnalyzeSettings &settings)
 {
   try {
-    mActProcessId = joda::pipeline::PipelineFactory::startNewJob(settings, mWorkingDirectory.getWorkingDirectory(),
-                                                                 &mWorkingDirectory);
+    mActProcessId = joda::pipeline::PipelineFactory::startNewJob(
+        settings, mWorkingDirectory.getWorkingDirectory(), &mWorkingDirectory, calcOptimalThreadNumber(settings, 0));
     joda::log::logInfo("Analyze started!");
   } catch(const std::exception &ex) {
     joda::log::logWarning("Analyze could not be started! Got " + std::string(ex.what()) + ".");
@@ -142,7 +142,8 @@ auto Controller::getSystemRescources() -> Resources
 /// \brief      Calc optimal number of threads
 /// \author     Joachim Danmayr
 ///
-auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex) -> Threads
+auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex)
+    -> pipeline::Pipeline::ThreadingSettings
 {
   auto props        = getImageProperties(imgIndex);
   int64_t imgNr     = mWorkingDirectory.getNrOfFiles();
@@ -163,11 +164,13 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
     maxNumberOfCoresToAssign = 1;
   }
 
-  std::map<int64_t, Threads::Type> numbers = {
-      {imgNr, Threads::IMAGES}, {tileNr, Threads::TILES}, {channelNr, Threads::CHANNELS}};
+  std::map<int64_t, pipeline::Pipeline::ThreadingSettings::Type> numbers = {
+      {imgNr, pipeline::Pipeline::ThreadingSettings::IMAGES},
+      {tileNr, pipeline::Pipeline::ThreadingSettings::TILES},
+      {channelNr, pipeline::Pipeline::ThreadingSettings::CHANNELS}};
 
   // Iterate through the set in reverse order
-  Threads threads;
+  pipeline::Pipeline::ThreadingSettings threads;
   for(auto rit = numbers.rbegin(); rit != numbers.rend(); ++rit) {
     uint64_t cores = 1;
     if(maxNumberOfCoresToAssign > 1) {

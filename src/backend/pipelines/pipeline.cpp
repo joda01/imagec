@@ -37,9 +37,10 @@ using namespace std;
 using namespace std::filesystem;
 
 Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
-                   joda::helper::ImageFileContainer *imageFileContainer, const std::string &inputFolder) :
+                   joda::helper::ImageFileContainer *imageFileContainer, const std::string &inputFolder,
+                   const ThreadingSettings &threadingSettings) :
     mInputFolder(inputFolder),
-    mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer)
+    mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mThreadingSettings(threadingSettings)
 {
   mMainThread = std::make_shared<std::thread>(&Pipeline::runJob, this);
 }
@@ -71,9 +72,9 @@ void Pipeline::runJob()
 
     joda::reporting::Table alloverReport;
 
-    int threadPoolImage   = 4;
-    int threadPoolTile    = 4;
-    int threadPoolChannel = 4;
+    int threadPoolImage   = mThreadingSettings.cores[ThreadingSettings::IMAGES];
+    int threadPoolTile    = mThreadingSettings.cores[ThreadingSettings::TILES];
+    int threadPoolChannel = mThreadingSettings.cores[ThreadingSettings::CHANNELS];
     BS::thread_pool imageThreadPool(threadPoolImage);
     BS::thread_pool tileThreadPool(threadPoolTile);
     BS::thread_pool channelThreadPool(threadPoolChannel);

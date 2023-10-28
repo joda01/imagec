@@ -1,5 +1,6 @@
 #include "../image_reader/jpg/image_loader_jpg.hpp"
 #include "../settings/analze_settings_parser.hpp"
+#include "controller/controller.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -103,11 +104,15 @@ TEST_CASE("pipeline:test:nucleus", "[pipeline_test_nucleus]")
 ///
 TEST_CASE("pipeline:test:spots_real", "[pipeline_test_spots_real]")
 {
+  joda::ctrl::Controller controller;
+  controller.setWorkingDirectory("test_spot/evanalyzer_comp");
   joda::settings::json::AnalyzeSettings settings;
   settings.loadConfigFromFile("test_spot/evanalyzer_comp/mysettings.json");
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test_spot/evanalyzer_comp");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test_spot/evanalyzer_comp", &imageFileContainer);
+  sleep(1);
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test_spot/evanalyzer_comp", &imageFileContainer,
+                                               controller.calcOptimalThreadNumber(settings, 0));
 
   while(true) {
     sleep(2);
