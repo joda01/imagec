@@ -16,6 +16,7 @@
 #include <iterator>
 #include <string>
 #include <opencv2/core.hpp>
+#include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -71,7 +72,42 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(boxMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
 
-    perimeter = calcPerimeter(contours[0]);
+    cv::Mat boundary        = cv::Mat::zeros(boxMask.rows + 4, boxMask.cols + 4, CV_8UC1);
+    cv::Mat boxMaskExpanded = cv::Mat::zeros(boxMask.rows + 4, boxMask.cols + 4, CV_8UC1);
+    cv::drawContours(boundary, contours, 0, cv::Scalar(255), 2, cv::LINE_4, cv::noArray(), INT_MAX, cv::Point(2, 2));
+    boxMask.copyTo(boxMaskExpanded(cv::Rect(2, 2, boxMask.cols, boxMask.rows)));
+    cv::bitwise_xor(boundary, boxMaskExpanded, boundary);
+
+    std::vector<cv::Point> points;
+    cv::findNonZero(boundary, points);
+    perimeter = calcPerimeter(points);
+
+    if(areaSize >= 4 && areaSize <= 4) {
+      std::cout << "--------------" << std::endl;
+      for(int i = 0; i < boxMask.rows; i++) {
+        for(int j = 0; j < boxMask.cols; j++) {
+          std::cout << std::to_string(boxMask.at<uint8_t>(i, j)) << "\t";
+        }
+        std::cout << std::endl;    // Move to the next row
+      }
+      std::cout << "--------------" << std::endl;
+
+      std::cout << "--------------" << std::endl;
+      for(int y = 0; y < boundary.rows; y++) {
+        for(int x = 0; x < boundary.cols; x++) {
+          std::cout << std::to_string(boundary.at<uint8_t>(y, x)) << "\t";
+        }
+        std::cout << std::endl;    // Move to the next row
+      }
+      std::cout << "--------------" << std::endl;
+      for(int y = 0; y < points.size(); y++) {
+        std::cout << std::to_string(points.at(y).x) << "x" << std::to_string(points.at(y).y) << "\t";
+        std::cout << std::endl;    // Move to the next row
+      }
+      std::cout << std::to_string(perimeter) << std::endl;
+
+      std::cout << "--------------" << std::endl;
+    }
 
     float dividend       = 4.0 * M_PI * static_cast<float>(areaSize);
     float perimterSquare = static_cast<float>(perimeter) * static_cast<float>(perimeter);
@@ -134,9 +170,12 @@ double ROI::getTracedPerimeter(const std::vector<cv::Point> &points) const
   int dy1      = points[0].y - points[nPoints - 1].y;
   int side1    = std::abs(dx1) + std::abs(dy1);    // one of these is 0
   bool corner  = false;
-  int nexti, dx2, dy2, side2;
+  int nexti;
+  int dx2;
+  int dy2;
+  int side2;
   for(int i = 0; i < nPoints; i++) {
-    nexti = i + 1;
+    int nexti = i + 1;
     if(nexti == nPoints)
       nexti = 0;
     dx2 = points[nexti].x - points[i].x;
@@ -153,9 +192,10 @@ double ROI::getTracedPerimeter(const std::vector<cv::Point> &points) const
     dy1   = dy2;
     side1 = side2;
   }
-  double w = 1.0, h = 1.0;
+  double w = 1.0;
+  double h = 1.0;
 
-  return sumdx * w + sumdy * h - (nCorners * ((w + h) - std::sqrt(w * w + h * h)));
+  return (sumdx * w + sumdy * h - (nCorners * ((w + h) - std::sqrt(w * w + h * h)))) / std::sqrt(nPoints);
 }
 
 /** Returns the length of a polygon with integer coordinates. Uses no calibration if imp is null. */
