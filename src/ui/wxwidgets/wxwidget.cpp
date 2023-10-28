@@ -26,6 +26,7 @@
 #include "../../res/opened_folder_20.png.h"
 #include "../../res/plus_math_20.png.h"
 #include "../../res/preview_20.png.h"
+#include "../../res/ram_20.png.h"
 #include "../../res/save_20.png.h"
 #include "../../res/settings_20.png.h"
 #include "../../res/smooth_20.png.h"
@@ -46,7 +47,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	mToolBar->AddSeparator();
 
-	mLabelNrOfFoundFiles = new wxStaticText( mToolBar, wxID_ANY, _("Images dir: "), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelNrOfFoundFiles = new wxStaticText( mToolBar, wxID_ANY, _("Images dir: "), wxDefaultPosition, wxSize( 120,-1 ), wxALIGN_LEFT );
 	mLabelNrOfFoundFiles->Wrap( -1 );
 	mToolBar->AddControl( mLabelNrOfFoundFiles );
 	mDirectoryPicker = new wxDirPickerCtrl( mToolBar, wxID_ANY, wxEmptyString, _("Select a folder"), wxDefaultPosition, wxSize( 250,-1 ), wxDIRP_DEFAULT_STYLE|wxDIRP_DIR_MUST_EXIST );
@@ -358,13 +359,23 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 	wxBoxSizer* sizerFooterButtons2;
 	sizerFooterButtons2 = new wxBoxSizer( wxHORIZONTAL );
 
+	m_bitmap21 = new wxStaticBitmap( panelFooterButtons, wxID_ANY, ram_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerFooterButtons2->Add( m_bitmap21, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	labelRAM = new wxStaticText( panelFooterButtons, wxID_ANY, _("10.10 GB / 10.10 MB / 10.10 MB"), wxDefaultPosition, wxSize( 250,-1 ), 0 );
+	labelRAM->Wrap( -1 );
+	labelRAM->SetToolTip( _("RAM per image / Free RAM / Available RAM") );
+
+	sizerFooterButtons2->Add( labelRAM, 0, wxALIGN_CENTER|wxALL, 5 );
+
 	iconCpuCores = new wxStaticBitmap( panelFooterButtons, wxID_ANY, cpu_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerFooterButtons2->Add( iconCpuCores, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mSpinCpuCores = new wxSpinCtrl( panelFooterButtons, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 100, 1 );
-	mSpinCpuCores->Enable( false );
+	labelAvailableCores = new wxStaticText( panelFooterButtons, wxID_ANY, _("99 / 99 /  99 / 100"), wxDefaultPosition, wxSize( 120,-1 ), 0 );
+	labelAvailableCores->Wrap( -1 );
+	labelAvailableCores->SetToolTip( _("Cores per Image / Cores per Tile / Cores per Channel / Availabel cores") );
 
-	sizerFooterButtons2->Add( mSpinCpuCores, 1, wxALIGN_CENTER_VERTICAL, 5 );
+	sizerFooterButtons2->Add( labelAvailableCores, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	mButtonStop = new wxButton( panelFooterButtons, wxID_ANY, _("Stop"), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerFooterButtons2->Add( mButtonStop, 0, wxALL, 5 );
@@ -374,12 +385,6 @@ DialogProcessing::DialogProcessing( wxWindow* parent, wxWindowID id, const wxStr
 
 
 	sizerFooterButtons->Add( sizerFooterButtons2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
-
-	mLabelCpuCores = new wxStaticText( panelFooterButtons, wxID_ANY, _("CPU cores to use"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
-	mLabelCpuCores->Wrap( -1 );
-	mLabelCpuCores->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-
-	sizerFooterButtons->Add( mLabelCpuCores, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
 
 
 	panelFooterButtons->SetSizer( sizerFooterButtons );

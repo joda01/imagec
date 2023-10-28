@@ -130,11 +130,12 @@ namespace joda
 					wxStaticLine* mLineProgressDialog;
 					wxPanel* mPanelFooter;
 					wxPanel* panelFooterButtons;
+					wxStaticBitmap* m_bitmap21;
+					wxStaticText* labelRAM;
 					wxStaticBitmap* iconCpuCores;
-					wxSpinCtrl* mSpinCpuCores;
+					wxStaticText* labelAvailableCores;
 					wxButton* mButtonStop;
 					wxButton* mButtonClose;
-					wxStaticText* mLabelCpuCores;
 
 					// Virtual event handlers, override them in your derived class
 					virtual void onStopClicked( wxCommandEvent& event ) { event.Skip(); }

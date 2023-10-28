@@ -15,6 +15,7 @@
 #include <wx/wx.h>
 #include <exception>
 #include <string>
+#include "backend/pipelines/pipeline.hpp"
 
 namespace joda::ui::wxwidget {
 
@@ -33,6 +34,34 @@ DialogProcessingController::DialogProcessingController(wxWindow *parent, joda::c
   refreshFunction();
   mRefreshTimer = std::make_shared<std::thread>(&DialogProcessingController::refreshThread, this);
   mPipelineController->start(*mAnalyzeSettins);
+  mStartedTime = std::chrono::high_resolution_clock::now();
+
+  //
+  // Show uses RAM and threads
+  //
+  auto rescources = pipelineController->calcOptimalThreadNumber(*settings, 0);
+
+  auto [ramPerImg, expoperImg] = exponentForRam(rescources.ramPerImage);
+  auto [ramFree, expoFree]     = exponentForRam(rescources.ramFree);
+  auto [ramTotal, expoTotal]   = exponentForRam(rescources.ramTotal);
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(2) << ramPerImg << " " << expoperImg << " / " << std::fixed
+         << std::setprecision(2) << ramFree << " " << expoFree << " / " << std::fixed << std::setprecision(2)
+         << ramTotal << " " << expoTotal;
+  auto ramStr = stream.str();
+
+  std::stringstream streamCpu;
+  streamCpu << std::fixed << std::setprecision(0)
+            << std::to_string(rescources.cores[pipeline::Pipeline::ThreadingSettings::Type::IMAGES]) << " / "
+            << std::to_string(rescources.cores[pipeline::Pipeline::ThreadingSettings::Type::TILES]) << " / "
+            << std::to_string(rescources.cores[pipeline::Pipeline::ThreadingSettings::Type::CHANNELS]) << " / "
+            << std::to_string(rescources.coresAvailable);
+  auto cpuStr = streamCpu.str();
+
+  CallAfter([this, ramStr, cpuStr]() {
+    labelAvailableCores->SetLabel(cpuStr);
+    labelRAM->SetLabel(ramStr);
+  });
 }
 
 DialogProcessingController::~DialogProcessingController()
@@ -44,6 +73,40 @@ DialogProcessingController::~DialogProcessingController()
 }
 
 ///
+/// \brief      Finds the best exponent view
+/// \author     Joachim Danmayr
+///
+std::tuple<double, std::string> DialogProcessingController::exponentForRam(double ram)
+{
+  if(ram > 1e9) {
+    return {ram / 1e9, "GB"};
+  }
+  if(ram > 1e6) {
+    return {ram / 1e6, "MB"};
+  }
+  if(ram > 1e3) {
+    return {ram / 1e3, "kB"};
+  }
+  return {ram, "Byte"};
+}
+
+///
+/// \brief      Finds the best exponent view
+/// \author     Joachim Danmayr
+///
+std::tuple<double, std::string> DialogProcessingController::exponentForTime(double timeMs)
+{
+  if(timeMs > 1e3) {
+    return {timeMs / 1e3, " s"};
+  }
+  if(timeMs > 1e3 * 60) {
+    return {timeMs / (1e3 * 60), " min"};
+  }
+
+  return {timeMs, " ms"};
+}
+
+///
 /// \brief      Updates dynamic information
 /// \author     Joachim Danmayr
 ///
@@ -51,7 +114,7 @@ void DialogProcessingController::refreshThread()
 {
   while(!mStopped) {
     refreshFunction();
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 }
 
@@ -69,6 +132,9 @@ void DialogProcessingController::refreshFunction()
     if(state == joda::pipeline::Pipeline::State::ERROR_) {
       mLastErrorMsg = errorMsg;
     }
+    if(state == joda::pipeline::Pipeline::State::RUNNING) {
+      mEndedTime = std::chrono::high_resolution_clock::now();
+    }
     actState = state;
 
     newTextAllOver = wxString::Format("%d/%d", progress.total.finished, progress.total.total);
@@ -83,8 +149,13 @@ void DialogProcessingController::refreshFunction()
     wxCommandEvent ev;
     onStopClicked(ev);
   }
+  double elapsedTimeMs = std::chrono::duration<double, std::milli>(mEndedTime - mStartedTime).count();
+  auto [timeDiff, exp] = exponentForTime(elapsedTimeMs);
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(2) << timeDiff << " " << exp;
+  std::string timeDiffStr = stream.str();
 
-  CallAfter([this, actState, newTextAllOver, newTextImage]() {
+  CallAfter([this, actState, newTextAllOver, newTextImage, timeDiffStr]() {
     if(!mStopped && actState == joda::pipeline::Pipeline::State::ERROR_) {
       mStopped = true;
       showErrorDialog(mLastErrorMsg);
@@ -93,6 +164,7 @@ void DialogProcessingController::refreshFunction()
     mLabelProgressImage->SetLabel(newTextImage);
     mButtonStop->Enable(actState == joda::pipeline::Pipeline::State::RUNNING);
     mButtonClose->Enable(actState != joda::pipeline::Pipeline::State::RUNNING);
+    mLabelReporting->SetLabel(timeDiffStr);
   });
 }
 

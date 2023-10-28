@@ -145,6 +145,8 @@ auto Controller::getSystemRescources() -> Resources
 auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex)
     -> pipeline::Pipeline::ThreadingSettings
 {
+  pipeline::Pipeline::ThreadingSettings threads;
+
   auto props        = getImageProperties(imgIndex);
   int64_t imgNr     = mWorkingDirectory.getNrOfFiles();
   int64_t tileNr    = 1;
@@ -155,6 +157,10 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
 
   auto imageSizePerChannel = props.imageSize;
   auto systemRecources     = getSystemRescources();
+  threads.ramPerImage      = imageSizePerChannel;
+  threads.ramFree          = systemRecources.ramAvailable;
+  threads.ramTotal         = systemRecources.ramTotal;
+  threads.coresAvailable   = systemRecources.cpus;
 
   // Maximum number of cores depends on the available RAM.
   int32_t maxNumberOfCoresToAssign =
@@ -170,7 +176,6 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
       {channelNr, pipeline::Pipeline::ThreadingSettings::CHANNELS}};
 
   // Iterate through the set in reverse order
-  pipeline::Pipeline::ThreadingSettings threads;
   for(auto rit = numbers.rbegin(); rit != numbers.rend(); ++rit) {
     uint64_t cores = 1;
     if(maxNumberOfCoresToAssign > 1) {
