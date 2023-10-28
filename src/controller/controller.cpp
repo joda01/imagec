@@ -153,16 +153,17 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
   int64_t imgNr     = mWorkingDirectory.getNrOfFiles();
   int64_t tileNr    = 1;
   int64_t channelNr = settings.getChannels().size();
-  if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-    tileNr = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
-  }
 
-  auto imageSizePerChannel = props.imageSize;
-  auto systemRecources     = getSystemRescources();
-  threads.ramPerImage      = imageSizePerChannel;
-  threads.ramFree          = systemRecources.ramAvailable;
-  threads.ramTotal         = systemRecources.ramTotal;
-  threads.coresAvailable   = systemRecources.cpus;
+  auto systemRecources = getSystemRescources();
+  if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    tileNr              = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
+    threads.ramPerImage = props.tileSize * joda::algo::TILES_TO_LOAD_PER_RUN;
+  } else {
+    threads.ramPerImage = props.imageSize;
+  }
+  threads.ramFree        = systemRecources.ramAvailable;
+  threads.ramTotal       = systemRecources.ramTotal;
+  threads.coresAvailable = systemRecources.cpus;
 
   // No multi threading when AI is used, sinze AI is still using all cPUs
   // for(const auto &ch : settings.getChannelsVector()) {
@@ -174,9 +175,13 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
   // Maximum number of cores depends on the available RAM.
   int32_t maxNumberOfCoresToAssign =
       std::min(static_cast<uint64_t>(systemRecources.cpus),
-               static_cast<uint64_t>(systemRecources.ramAvailable / imageSizePerChannel));
+               static_cast<uint64_t>(systemRecources.ramAvailable / threads.ramPerImage));
   if(maxNumberOfCoresToAssign <= 0) {
     maxNumberOfCoresToAssign = 1;
+  }
+  if(maxNumberOfCoresToAssign > 1 && maxNumberOfCoresToAssign == systemRecources.cpus) {
+    // Don't use all CPU cores if there are more than 1
+    maxNumberOfCoresToAssign--;
   }
 
   std::multimap<int64_t, pipeline::Pipeline::ThreadingSettings::Type> numbers = {
