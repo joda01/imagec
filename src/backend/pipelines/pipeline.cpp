@@ -68,6 +68,7 @@ void Pipeline::runJob()
     mImageFileContainer->setWorkingDirectory(mInputFolder);
     mImageFileContainer->waitForFinished();
     mProgress.total.total = mImageFileContainer->getNrOfFiles();
+    mProgress.image.total = mThreadingSettings.totalRuns;
 
     int threadPoolImage = mThreadingSettings.cores[ThreadingSettings::IMAGES];
     BS::thread_pool imageThreadPool(threadPoolImage);
@@ -131,7 +132,6 @@ void Pipeline::analyzeImage(joda::reporting::Table &alloverReport, const std::st
   if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
     runs = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
   }
-  mProgress.image.total = runs;
 
   //
   // Iterate over each tile
@@ -221,8 +221,6 @@ void Pipeline::analyzeTile(joda::reporting::Table &detailReports, std::string im
     }
   }
   DurationCount::stop(idColoc);
-
-  mProgress.image.finished++;
 }
 
 ///
@@ -257,6 +255,7 @@ void Pipeline::analyszeChannel(joda::reporting::Table &detailReports,
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
   }
+  mProgress.image.finished++;
 }
 
 ///

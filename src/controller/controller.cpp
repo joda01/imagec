@@ -212,6 +212,8 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
          threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
   }
 
+  threads.totalRuns = imgNr * tileNr * channelNr;
+
   return threads;
 }
 

@@ -59,7 +59,7 @@ inline std::string execCommand(const std::string &cmd, int &out_exitStatus)
 
   return result;
 #endif
-return "";
+  return "";
 }
 
 inline void stringReplace(std::string &str, const std::string &searchStr, const std::string &replaceStr)
