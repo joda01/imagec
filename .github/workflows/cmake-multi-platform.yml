@@ -39,14 +39,14 @@ jobs:
         run: |
           echo "Workspace: $GITHUB_WORKSPACE"
           ls
-          cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=C:\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=C:\msys64\mingw64\bin\g++.exe -SC:$GITHUB_WORKSPACE/imagec -Bc:$GITHUB_WORKSPACE/imagec/build -G "MinGW Makefiles"
+          cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=C:\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=C:\msys64\mingw64\bin\g++.exe -SC:"$GITHUB_WORKSPACE" -Bc:"$GITHUB_WORKSPACE/build" -G "MinGW Makefiles"
           cmake --build build --target imagec --parallel 4
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: imagec-x64-win
-          path: ${GITHUB_WORKSPACE}/imagec/build/build
+          path: ${GITHUB_WORKSPACE}/build/build
 
 
   build-linux:
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: imagec-x64-linux
-          path: ${GITHUB_WORKSPACE}/imagec/build/build
+          path: ${GITHUB_WORKSPACE}/build/build
 
       
   release:
@@ -79,6 +79,6 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ${GITHUB_WORKSPACE}/imagec/build/build
+          files: ${GITHUB_WORKSPACE}/build/build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
