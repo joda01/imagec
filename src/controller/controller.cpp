@@ -204,12 +204,12 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
 
   nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
        threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
-       threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
+       threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES];
   while(nr > maxNumberOfCoresToAssign) {
     threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES]--;
     nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
          threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
-         threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
+         threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES];
   }
 
   threads.totalRuns = imgNr * tileNr * channelNr;
