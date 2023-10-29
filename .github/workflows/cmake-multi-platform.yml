@@ -1,0 +1,127 @@
+name: C++ Build
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            git
+            curl
+            base-devel
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-catch
+            mingw-w64-x86_64-pugixml
+            mingw-w64-x86_64-opencv
+            mingw-w64-x86_64-nlohmann-json
+            mingw-w64-x86_64-libtiff
+            mingw-w64-x86_64-wxwidgets3.2-msw
+            mingw-w64-x86_64-python-mingw-ldd
+
+      - name: Put MSYS2_MinGW64 on PATH
+        run: |
+          echo "D:/a/_temp/msys64/mingw64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "D:/a/_temp/msys64/usr/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build imageC for Windows
+        run: |
+          echo "Workspace: $env:GITHUB_WORKSPACE"
+          ls
+          cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=D:\a\_temp\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=D:\a\_temp\msys64\mingw64\bin\g++.exe -S"$env:GITHUB_WORKSPACE" -B"$env:GITHUB_WORKSPACE/build" -G "MinGW Makefiles"
+          
+          # This is a dirty hack, because the resource compiler did not create windows path correctly
+          (Get-Content -Path "build/CMakeFiles/imagec.dir/build.make") | ForEach-Object { $_ -replace "D:\\a\\imagec\\imagec\\src\\wx.rc", "D:/a/imagec/imagec/src/wx.rc" } | Set-Content -Path "build/CMakeFiles/imagec.dir/build.make"
+
+          cmake --build build --target imagec --parallel 4
+          strip.exe build/build/imagec.exe
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: imagec-x64-win
+          path: build/build
+          if-no-files-found: error
+
+
+  build-linux:
+    runs-on: ubuntu-latest
+    container: 
+      image: joda001/imagec:v1.0.0
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build imageC for Linux
+        run: |
+          ./make.sh
+          cmake --build build --target imagec --parallel 4
+          strip build/build/imagec
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: imagec-x64-linux
+          path: build/build
+          if-no-files-found: error
+
+      
+  release:
+    needs:
+      - build-windows
+      - build-linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: imagec-x64-linux
+          path: build/build
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: imagec-x64-win
+          path: build/build
+
+      - name: Rename files through architecture
+        run: |
+          mv build/build/imagec build/build/imagec-x64-linux
+          mv build/build/imagec.exe build/build/imagec-x64-win.exe
+
+      - name: Upload Additional Files
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            build/build/imagec-x64-linux
+            build/build/imagec-x64-win.exe
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+
+          

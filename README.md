@@ -91,6 +91,7 @@ The EXE file will be placed in `build/build/imagec.exe`
 
 `
 mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
+strip.exe imagec.exe
 `
 
 ### Deploy for windows
