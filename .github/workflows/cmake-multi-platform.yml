@@ -89,27 +89,10 @@ jobs:
       - build-linux
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      - name: Install dependencies
-        run: npm install --save-dev semantic-release @semantic-release/changelog @semantic-release/exec
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release > CHANGELOG.txt
-
       - name: Upload Additional Files
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          body_path: CHANGELOG.txt
           files: |
             build/build
         env:
