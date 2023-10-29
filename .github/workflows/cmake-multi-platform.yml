@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
 
     steps:
@@ -35,24 +35,25 @@ jobs:
 
       - name: Build C++ program for Windows
         run: |
-          make.bat
-          build.bat
+          ./make.bat
+          ./build.bat
 
       - name: Run the compiled program for Windows
         run: myprogram
 
   build-linux:
     runs-on: ubuntu-latest
-    container: joda001/imagec:v1.0.0
+    container: 
+      image: joda001/imagec:v1.0.0
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Pull and use the custom Ubuntu Docker image
+      - name: Build imageC
         run: |
           ./make.sh
           ./build.sh
 
-      - name: Run the compiled program for Linux
-        run: ./myprogram
+      - name: Push to server
+        run: echo "Hello world"
