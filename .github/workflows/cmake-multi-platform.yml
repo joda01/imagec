@@ -10,38 +10,49 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+    steps:
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            git
+            curl
+            base-devel
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-catch
+            mingw-w64-x86_64-pugixml
+            mingw-w64-x86_64-opencv
+            mingw-w64-x86_64-nlohmann-json
+            mingw-w64-x86_64-libtiff
+            mingw-w64-x86_64-wxwidgets3.2-msw
+            mingw-w64-x86_64-python-mingw-ldd
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build C++ program for Windows
+        run: |
+          make.bat
+          build.bat
+
+      - name: Run the compiled program for Windows
+        run: myprogram
+
+  build-linux:
+    runs-on: ubuntu-latest
+    container: joda001/imagec:v1.0.0
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Setup MSYS2 and MinGW (for Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Pull and use the custom Ubuntu Docker image
         run: |
-          choco install msys2 -y
-          refreshenv
-          pacman -Syu --noconfirm
-          pacman -S --noconfirm mingw-w64-x86_64-toolchain
+          ./make.sh
+          ./build.sh
 
-      - name: Install build tools (for Linux and Windows)
-        run: |
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            sudo apt-get update -y
-            sudo apt-get install -y g++
-          fi
-
-      - name: Build C++ program
-        run: |
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            g++ -o myprogram main.cpp
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-            x86_64-w64-mingw32-g++ -o myprogram main.cpp
-          fi
-
-      - name: Run the compiled program (optional)
+      - name: Run the compiled program for Linux
         run: ./myprogram
