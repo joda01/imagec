@@ -62,7 +62,6 @@ void Pipeline::runJob()
     mOutputFolder = prepareOutputFolder(mInputFolder);
 
     // Store configuration
-    static const std::string separator(1, std::filesystem::path::preferred_separator);
     mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");
 
     // Look for images in the input folder
@@ -70,125 +69,20 @@ void Pipeline::runJob()
     mImageFileContainer->waitForFinished();
     mProgress.total.total = mImageFileContainer->getNrOfFiles();
 
-    joda::reporting::Table alloverReport;
-
-    int threadPoolImage   = mThreadingSettings.cores[ThreadingSettings::IMAGES];
-    int threadPoolTile    = mThreadingSettings.cores[ThreadingSettings::TILES];
-    int threadPoolChannel = mThreadingSettings.cores[ThreadingSettings::CHANNELS];
+    int threadPoolImage = mThreadingSettings.cores[ThreadingSettings::IMAGES];
     BS::thread_pool imageThreadPool(threadPoolImage);
-    BS::thread_pool tileThreadPool(threadPoolTile);
-    BS::thread_pool channelThreadPool(threadPoolChannel);
-    auto idStart = DurationCount::start("start");
-    //
-    // Iterate over each image to do detection
-    //
+    auto idStart = DurationCount::start("analyze");
+
+    joda::reporting::Table alloverReport;
     for(const auto &imagePath : mImageFileContainer->getFilesList()) {
-      imageThreadPool.push_task([&] {
-        std::string imageName   = helper::getFileNameFromPath(imagePath);
-        auto detailOutputFolder = mOutputFolder + separator + imageName;
-        std::filesystem::create_directories(detailOutputFolder);
+      if(threadPoolImage > 1) {
+        imageThreadPool.push_task([this, &alloverReport, imagePath] { analyzeImage(alloverReport, imagePath); });
 
-        //
-        // Execute for each tile
-        //
-        ImageProperties props;
-        if(imagePath.ends_with(".jpg")) {
-          props = JpgLoader::getImageProperties(imagePath);
-        } else {
-          props = TiffLoader::getImageProperties(imagePath, 0);
+        while(imageThreadPool.get_tasks_total() > (threadPoolImage + THREAD_POOL_BUFFER)) {
+          std::this_thread::sleep_for(100us);
         }
-        int64_t runs = 1;
-        if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-          runs = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
-        }
-        mProgress.image.total = runs;
-
-        //
-        // Iterate over each tile
-        //
-        joda::reporting::Table detailReports;
-        std::mutex writeDetailReportMutex;
-
-        for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
-          tileThreadPool.push_task(
-              [this, &detailReports, &channelThreadPool, &imagePath, &detailOutputFolder,
-               &threadPoolChannel](int tileIdx) {
-                auto idChannels = DurationCount::start("channels");
-                //
-                // Execute for each channel of the selected tile
-                //
-                std::map<int32_t, joda::func::DetectionResponse> detectionResults;
-
-                //
-                // Iterate over each channel
-                //
-                for(int chIdx = 0; chIdx < mAnalyzeSettings.getChannelsVector().size(); chIdx++) {
-                  channelThreadPool.push_task(
-                      [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder](int chIdx,
-                                                                                                 int tileIdx) {
-                        auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
-                        analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder,
-                                        chIdx, tileIdx);
-                      },
-                      chIdx, tileIdx);
-                  while(channelThreadPool.get_tasks_total() > (threadPoolChannel + THREAD_POOL_BUFFER)) {
-                    std::this_thread::sleep_for(100us);
-                  }
-                  if(mStop) {
-                    break;
-                  }
-                }
-                channelThreadPool.wait_for_tasks();
-
-                DurationCount::stop(idChannels);
-
-                //
-                // Execute pipeline steps
-                //
-                auto idColoc       = DurationCount::start("coloc");
-                int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
-                for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
-                  auto [chSettings, response] =
-                      pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
-                  if(chSettings.index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
-                    detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
-                    setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
-                    appendToDetailReport(response, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
-                    tempChannelIdx++;
-                  }
-                }
-                DurationCount::stop(idColoc);
-
-                mProgress.image.finished++;
-              },
-              tileIdx);
-          //
-          // Free memory
-          //
-
-          while(tileThreadPool.get_tasks_total() > (threadPoolTile + THREAD_POOL_BUFFER)) {
-            std::this_thread::sleep_for(100us);
-          }
-          if(mStop) {
-            break;
-          }
-        }
-        tileThreadPool.wait_for_tasks();
-        channelThreadPool.wait_for_tasks();
-
-        //
-        // Write report
-        //
-        detailReports.flushReportToFile(detailOutputFolder + separator + "detail.csv");
-
-        auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
-        appendToAllOverReport(alloverReport, detailReports, imageName, nrOfChannels);
-
-        mProgress.total.finished++;
-      });
-
-      while(imageThreadPool.get_tasks_total() > (threadPoolImage + THREAD_POOL_BUFFER)) {
-        std::this_thread::sleep_for(100us);
+      } else {
+        analyzeImage(alloverReport, imagePath);
       }
       if(mStop) {
         break;
@@ -196,8 +90,6 @@ void Pipeline::runJob()
     }
 
     imageThreadPool.wait_for_tasks();
-    tileThreadPool.wait_for_tasks();
-    channelThreadPool.wait_for_tasks();
     DurationCount::stop(idStart);
 
     std::string resultsFile = mOutputFolder + separator + "results.csv";
@@ -211,6 +103,126 @@ void Pipeline::runJob()
   while(!mStop) {
     sleep(1);
   }
+}
+
+///
+/// \brief      Analyze image
+/// \author     Joachim Danmayr
+///
+void Pipeline::analyzeImage(joda::reporting::Table &alloverReport, const std::string &imagePath)
+{
+  int threadPoolTile = mThreadingSettings.cores[ThreadingSettings::TILES];
+  BS::thread_pool tileThreadPool(threadPoolTile);
+
+  std::string imageName   = helper::getFileNameFromPath(imagePath);
+  auto detailOutputFolder = mOutputFolder + separator + imageName;
+  std::filesystem::create_directories(detailOutputFolder);
+
+  //
+  // Execute for each tile
+  //
+  ImageProperties props;
+  if(imagePath.ends_with(".jpg")) {
+    props = JpgLoader::getImageProperties(imagePath);
+  } else {
+    props = TiffLoader::getImageProperties(imagePath, 0);
+  }
+  int64_t runs = 1;
+  if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    runs = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
+  }
+  mProgress.image.total = runs;
+
+  //
+  // Iterate over each tile
+  //
+  joda::reporting::Table detailReports;
+  std::mutex writeDetailReportMutex;
+
+  for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
+    if(threadPoolTile > 1) {
+      tileThreadPool.push_task([this, &detailReports, &imagePath, &detailOutputFolder](
+                                   int tileIdx) { analyzeTile(detailReports, imagePath, detailOutputFolder, tileIdx); },
+                               tileIdx);
+
+      while(tileThreadPool.get_tasks_total() > (threadPoolTile + THREAD_POOL_BUFFER)) {
+        std::this_thread::sleep_for(100us);
+      }
+    } else {
+      analyzeTile(detailReports, imagePath, detailOutputFolder, tileIdx);
+    }
+    if(mStop) {
+      break;
+    }
+  }
+  tileThreadPool.wait_for_tasks();
+
+  //
+  // Write report
+  //
+  detailReports.flushReportToFile(detailOutputFolder + separator + "detail.csv");
+
+  auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
+  appendToAllOverReport(alloverReport, detailReports, imageName, nrOfChannels);
+
+  mProgress.total.finished++;
+}
+
+///
+/// \brief      Analyze tile
+/// \author     Joachim Danmayr
+///
+void Pipeline::analyzeTile(joda::reporting::Table &detailReports, std::string imagePath, std::string detailOutputFolder,
+                           int tileIdx)
+{
+  auto idChannels = DurationCount::start("channels");
+  std::map<int32_t, joda::func::DetectionResponse> detectionResults;
+  int threadPoolChannel = mThreadingSettings.cores[ThreadingSettings::CHANNELS];
+  BS::thread_pool channelThreadPool(threadPoolChannel);
+
+  //
+  // Iterate over each channel
+  //
+  for(int chIdx = 0; chIdx < mAnalyzeSettings.getChannelsVector().size(); chIdx++) {
+    if(threadPoolChannel > 1) {
+      channelThreadPool.push_task(
+          [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder](int chIdx, int tileIdx) {
+            auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
+            analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx,
+                            tileIdx);
+          },
+          chIdx, tileIdx);
+      while(channelThreadPool.get_tasks_total() > (threadPoolChannel + THREAD_POOL_BUFFER)) {
+        std::this_thread::sleep_for(100us);
+      }
+    } else {
+      auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
+      analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx, tileIdx);
+    }
+    if(mStop) {
+      break;
+    }
+  }
+  channelThreadPool.wait_for_tasks();
+  DurationCount::stop(idChannels);
+
+  //
+  // Execute pipeline steps
+  //
+  auto idColoc       = DurationCount::start("preprocessing");
+  int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
+  for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
+    auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+    if(chSettings.index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
+      detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
+      setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
+      appendToDetailReport(response, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
+      tempChannelIdx++;
+    }
+  }
+  DurationCount::stop(idColoc);
+
+  mProgress.image.finished++;
 }
 
 ///

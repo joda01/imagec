@@ -184,22 +184,32 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
     maxNumberOfCoresToAssign--;
   }
 
-  std::multimap<int64_t, pipeline::Pipeline::ThreadingSettings::Type> numbers = {
-      {imgNr, pipeline::Pipeline::ThreadingSettings::IMAGES},
-      {tileNr, pipeline::Pipeline::ThreadingSettings::TILES},
-      {channelNr, pipeline::Pipeline::ThreadingSettings::CHANNELS}};
+  threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES]   = imgNr;
+  threads.cores[pipeline::Pipeline::ThreadingSettings::TILES]    = tileNr;
+  threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] = channelNr;
 
-  // Iterate through the set in reverse order
-  for(auto rit = numbers.rbegin(); rit != numbers.rend(); ++rit) {
-    uint64_t cores = 1;
-    if(maxNumberOfCoresToAssign > 1) {
-      cores = std::min(static_cast<uint64_t>(rit->first), static_cast<uint64_t>(maxNumberOfCoresToAssign));
-      maxNumberOfCoresToAssign -= cores;
-      if(maxNumberOfCoresToAssign <= 0) {
-        maxNumberOfCoresToAssign = 1;
-      }
-    }
-    threads.cores[rit->second] = cores;
+  uint64_t nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
+  while(nr > maxNumberOfCoresToAssign) {
+    threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS]--;
+    nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
+  }
+
+  nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
+       threads.cores[pipeline::Pipeline::ThreadingSettings::TILES];
+  while(nr > maxNumberOfCoresToAssign) {
+    threads.cores[pipeline::Pipeline::ThreadingSettings::TILES]--;
+    nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
+         threads.cores[pipeline::Pipeline::ThreadingSettings::TILES];
+  }
+
+  nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
+       threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
+       threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
+  while(nr > maxNumberOfCoresToAssign) {
+    threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS]--;
+    nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
+         threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
+         threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
   }
 
   return threads;

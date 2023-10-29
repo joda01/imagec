@@ -144,6 +144,7 @@ private:
 private:
   /////////////////////////////////////////////////////
   static inline const std::string RESULTS_PATH_NAME{"results"};
+  static inline const std::string separator = {1, std::filesystem::path::preferred_separator};
 
   /////////////////////////////////////////////////////
   auto prepareOutputFolder(const std::string &inputFolder) -> std::string;
@@ -161,6 +162,10 @@ private:
   void appendToAllOverReport(joda::reporting::Table &allOverReport, const joda::reporting::Table &detailedReport,
                              const std::string &imageName, int nrOfChannels);
 
+  void analyzeImage(joda::reporting::Table &alloverReport, const std::string &imagePath);
+
+  void analyzeTile(joda::reporting::Table &detailReports, std::string imagePath, std::string detailOutputFolder,
+                   int tileIdx);
   void analyszeChannel(joda::reporting::Table &detailReports,
                        std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
                        joda::settings::json::ChannelSettings &channelSettings, std::string imagePath,
