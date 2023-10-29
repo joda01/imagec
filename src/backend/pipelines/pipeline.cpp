@@ -62,6 +62,7 @@ void Pipeline::runJob()
     mOutputFolder = prepareOutputFolder(mInputFolder);
 
     // Store configuration
+    static const std::string separator(1, std::filesystem::path::preferred_separator);
     mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");
 
     // Look for images in the input folder
@@ -115,8 +116,10 @@ void Pipeline::analyzeImage(joda::reporting::Table &alloverReport, const std::st
   int threadPoolTile = mThreadingSettings.cores[ThreadingSettings::TILES];
   BS::thread_pool tileThreadPool(threadPoolTile);
 
-  std::string imageName   = helper::getFileNameFromPath(imagePath);
+  std::string imageName = helper::getFileNameFromPath(imagePath);
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
   auto detailOutputFolder = mOutputFolder + separator + imageName;
+
   std::filesystem::create_directories(detailOutputFolder);
 
   //

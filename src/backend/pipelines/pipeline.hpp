@@ -145,7 +145,6 @@ private:
 private:
   /////////////////////////////////////////////////////
   static inline const std::string RESULTS_PATH_NAME{"results"};
-  static inline const std::string separator = {1, std::filesystem::path::preferred_separator};
 
   /////////////////////////////////////////////////////
   auto prepareOutputFolder(const std::string &inputFolder) -> std::string;
