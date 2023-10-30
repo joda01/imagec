@@ -20,8 +20,13 @@
 
 namespace joda::pipeline {
 
-CalcIntersection::CalcIntersection(const std::set<int32_t> &indexesToIntersect, float minIntersection) :
+CalcIntersection::CalcIntersection(const std::vector<int32_t> &indexesToIntersect, float minIntersection) :
     mIndexesToIntersect(indexesToIntersect), mMinIntersection(minIntersection)
+{
+}
+
+CalcIntersection::CalcIntersection(const std::set<int32_t> &indexesToIntersect, float minIntersection) :
+    mIndexesToIntersect(indexesToIntersect.begin(), indexesToIntersect.end()), mMinIntersection(minIntersection)
 {
 }
 
@@ -29,75 +34,81 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
                                const std::map<int, joda::func::DetectionResponse> &detectionResultsIn,
                                const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {
-  joda::func::DetectionResponse resp;
-  const joda::func::DetectionResponse *ch1;
-  const joda::func::DetectionResponse *ch2;
+  if(mIndexesToIntersect.empty() || !detectionResultsIn.contains(*mIndexesToIntersect.begin())) {
+    return joda::func::DetectionResponse{};
+  }
+
+  std::vector<const joda::func::DetectionResponse *> channelsToIntersect;
   int idx1 = *mIndexesToIntersect.begin();
   int idx2 = *(std::next(mIndexesToIntersect.begin()));
 
-  if(detectionResultsIn.at(idx1).result.size() > detectionResultsIn.at(idx2).result.size()) {
-    ch1 = &detectionResultsIn.at(idx1);
-    ch2 = &detectionResultsIn.at(idx2);
-  } else {
-    ch1 = &detectionResultsIn.at(idx2);
-    ch2 = &detectionResultsIn.at(idx1);
+  for(const auto idxToIntersect : mIndexesToIntersect) {
+    if(detectionResultsIn.contains(idxToIntersect)) {
+      channelsToIntersect.push_back(&detectionResultsIn.at(idxToIntersect));
+    }
   }
+
+  // Sort in descending order (largest first)
+  auto compareByX = [](const joda::func::DetectionResponse *a, const joda::func::DetectionResponse *b) -> bool {
+    {
+      return a->result.size() > b->result.size();
+    }
+  };
+
+  std::sort(channelsToIntersect.begin(), channelsToIntersect.end(), compareByX);
 
   //
   // Calculate the intersection
   //
+  std::vector<func::DetectionFunction::OverlaySettings> overlayPainting;
+  joda::func::DetectionResponse response;
+  response = *channelsToIntersect[0];
+  overlayPainting.push_back({.result          = &channelsToIntersect[0]->result,
+                             .backgroundColor = cv::Scalar(0, 0, 255),
+                             .borderColor     = cv::Scalar(0, 0, 0),
+                             .paintRectangel  = false,
+                             .opaque          = 0.1});
+
   auto id = DurationCount::start("intersect");
-  for(auto const &roi01 : ch1->result) {
-    for(auto const &roi02 : ch2->result) {
-      if(roi01.isValid() && roi02.isValid()) {
-        auto [colocROI, ok] = roi01.calcIntersection(roi02, ch1->originalImage, mMinIntersection);
-        // We only log the first occurency of intersestion. Intersection over more particles is not logged yet
-        if(ok) {
-          resp.result.push_back(colocROI);
-          break;
+  for(auto n = 1; n < channelsToIntersect.size(); n++) {
+    const auto *ch1 = channelsToIntersect[n];
+
+    overlayPainting.push_back({.result          = &ch1->result,
+                               .backgroundColor = cv::Scalar(0, 0, 255),
+                               .borderColor     = cv::Scalar(0, 0, 0),
+                               .paintRectangel  = false,
+                               .opaque          = 0.1});
+
+    joda::func::DetectionResponse respTmp;
+    for(auto const &roi01 : response.result) {
+      for(auto const &roi02 : ch1->result) {
+        if(roi01.isValid() && roi02.isValid()) {
+          auto [colocROI, ok] = roi01.calcIntersection(roi02, ch1->originalImage, mMinIntersection);
+          // We only log the first occurency of intersestion. Intersection over more particles is not logged yet
+          if(ok) {
+            respTmp.result.push_back(colocROI);
+            break;
+          }
         }
       }
     }
+    response = respTmp;
   }
   DurationCount::stop(id);
 
-  resp.controlImage = cv::Mat::zeros(ch1->originalImage.rows, ch1->originalImage.cols, CV_32FC3);
-  // joda::func::DetectionFunction::paintOverlay(
-  //     resp.controlImage,
-  //     {
-  //         joda::func::DetectionFunction::OverlaySettings{.result          = ch2->result,
-  //                                                        .backgroundColor = cv::Scalar(255, 255, 255),
-  //                                                        .borderColor     = cv::Scalar(0, 0, 0),
-  //                                                        .paintRectangel  = false,
-  //                                                        .opaque          = 0.1},
-  //         joda::func::DetectionFunction::OverlaySettings{.result          = resp.result,
-  //                                                        .backgroundColor = cv::Scalar(0, 0, 255),
-  //                                                        .borderColor     = cv::Scalar(0, 255, 0),
-  //                                                        .paintRectangel  = false,
-  //                                                        .opaque          = 1},
-  //
-  //    });
+  overlayPainting.insert(overlayPainting.begin(),
+                         func::DetectionFunction::OverlaySettings{.result          = &response.result,
+                                                                  .backgroundColor = cv::Scalar(0, 0, 255),
+                                                                  .borderColor     = cv::Scalar(0, 0, 0),
+                                                                  .paintRectangel  = false,
+                                                                  .opaque          = 1});
 
-  joda::func::DetectionFunction::paintOverlay(
-      resp.controlImage, {joda::func::DetectionFunction::OverlaySettings{.result          = resp.result,
-                                                                         .backgroundColor = cv::Scalar(0, 0, 255),
-                                                                         .borderColor     = cv::Scalar(0, 0, 0),
-                                                                         .paintRectangel  = false,
-                                                                         .opaque          = 1},
-                          joda::func::DetectionFunction::OverlaySettings{.result          = ch2->result,
-                                                                         .backgroundColor = cv::Scalar(220, 220, 220),
-                                                                         .borderColor     = cv::Scalar(0, 0, 0),
-                                                                         .paintRectangel  = false,
-                                                                         .opaque          = 0.1},
-                          joda::func::DetectionFunction::OverlaySettings{.result          = ch1->result,
-                                                                         .backgroundColor = cv::Scalar(220, 220, 220),
-                                                                         .borderColor     = cv::Scalar(0, 0, 0),
-                                                                         .paintRectangel  = false,
-                                                                         .opaque          = 0.1}
+  response.controlImage =
+      cv::Mat::zeros(channelsToIntersect[0]->originalImage.rows, channelsToIntersect[0]->originalImage.cols, CV_32FC3);
 
-                         });
+  joda::func::DetectionFunction::paintOverlay(response.controlImage, overlayPainting);
 
-  return resp;
+  return response;
 }
 
 }    // namespace joda::pipeline

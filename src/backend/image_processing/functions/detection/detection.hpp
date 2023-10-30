@@ -31,7 +31,7 @@ public:
   /////////////////////////////////////////////////////
   struct OverlaySettings
   {
-    const DetectionResults &result;
+    const DetectionResults *result;
     cv::Scalar backgroundColor;
     cv::Scalar borderColor;
     bool paintRectangel;
