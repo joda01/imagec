@@ -34,7 +34,8 @@ enum class ParticleValidity : int
   TOO_SMALL            = 0x02,
   TOO_BIG              = 0x04,
   TOO_LESS_CIRCULARITY = 0x08,
-  TOO_LESS_OVERLAPPING = 0x10
+  TOO_LESS_OVERLAPPING = 0x10,
+  TETRASPECK           = 0x20,
 };
 
 ///

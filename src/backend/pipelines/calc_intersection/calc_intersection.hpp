@@ -27,7 +27,6 @@ class CalcIntersection : public PipelineStep
 public:
   /////////////////////////////////////////////////////
   CalcIntersection(const std::set<int32_t> &indexesToIntersect, float minIntersection);
-  CalcIntersection(const std::vector<int32_t> &indexesToIntersect, float minIntersection);
 
   auto execute(const settings::json::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
                const std::string &detailoutputPath) const -> joda::func::DetectionResponse override;
