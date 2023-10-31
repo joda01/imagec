@@ -27,6 +27,7 @@
 #include "../reporting/reporting.h"
 #include "../settings/analze_settings_parser.hpp"
 #include "../settings/preprocessing_settings.hpp"
+#include "backend/logger/console_logger.hpp"
 #include "object_detection/detection.hpp"
 #include <opencv2/core/mat.hpp>
 
@@ -94,20 +95,25 @@ public:
   /// \brief      Executed the algorithm and generates reporting
   /// \author     Joachim Danmayr
   ///
-  static auto executeAlgorithm(const std::string &imagePath,
-                               const joda::settings::json::ChannelSettings &channelSetting, uint64_t tileIndex)
+  static auto
+  executeAlgorithm(const std::string &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
+                   uint64_t tileIndex,
+                   const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults = nullptr)
   {
     //
     // Execute the algorithms
     //
     ChannelProperties chProps = loadChannelProperties(imagePath, channelSetting.getChannelInfo().getChannelIndex());
     if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-      return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, chProps.tifDirs, tileIndex);
+      return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, chProps.tifDirs, tileIndex,
+                                                 referenceChannelResults);
     }
     if(chProps.isJpg) {
-      return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0);
+      return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
+                                                  referenceChannelResults);
     }
-    return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0);
+    return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
+                                                 referenceChannelResults);
   }
 
 private:
@@ -121,9 +127,10 @@ private:
   /// \return     Processed image
   ///
   template <image_loader_t TIFFLOADER>
-  static func::DetectionResponse processImage(const std::string &imagePath,
-                                              const joda::settings::json::ChannelSettings &channelSetting,
-                                              const std::set<uint32_t> &tiffDirectories, int64_t idx)
+  static func::DetectionResponse
+  processImage(const std::string &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
+               const std::set<uint32_t> &tiffDirectories, int64_t idx,
+               const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults)
   {
     auto id             = DurationCount::start("z-projection");
     cv::Mat image       = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx);
@@ -139,7 +146,7 @@ private:
     DurationCount::stop(id);
 
     id = DurationCount::start("filtering");
-    doFiltering(detectionResult, channelSetting);
+    doFiltering(detectionResult, channelSetting, referenceChannelResults);
     detectionResult.originalImage = std::move(originalImg);
     DurationCount::stop(id);
 
@@ -235,8 +242,31 @@ private:
   /// \param[in,out]  detectionResult  Detection result and removes the filtered objects from the detection results
   ///
   static void doFiltering(func::DetectionResponse &detectionResult,
-                          const joda::settings::json::ChannelSettings &channelSetting)
+                          const joda::settings::json::ChannelSettings &channelSetting,
+                          const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults)
   {
+    if(nullptr != referenceChannelResults) {
+      int32_t referenceSpotChannelIndex = channelSetting.getFilter().getReferenceSpotChannelIndex();
+      auto referenceSpotChannel         = referenceChannelResults->find(referenceSpotChannelIndex);
+      if(referenceSpotChannel != referenceChannelResults->end()) {
+        //
+        // Remove reference spots
+        //
+        for(auto const &referenceRoi : referenceSpotChannel->second.result) {
+          for(auto &spot : detectionResult.result) {
+            if(referenceRoi.isValid() && spot.isValid()) {
+              auto isIntersecting = referenceRoi.isIntersecting(spot, 0.7);
+              if(isIntersecting) {
+                spot.setValidity(func::ParticleValidity::REFERENCE_SPOT);
+                break;
+              }
+            }
+          }
+        }
+      } else {
+        joda::log::logWarning("A reference channel index was selected which is not part of the channel list.");
+      }
+    }
   }
 
   ///

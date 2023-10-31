@@ -151,8 +151,9 @@ public:
 private:
   void interpretConfig()
   {
-    for(auto &ch : channels) {
-      ch.interpretConfig();
+    for(int idx = 0; idx < channels.size(); idx++) {
+      auto &ch = channels[idx];
+      ch.interpretConfig(idx);
       // Move from vector to ordered map
       orderedChannels.emplace(ch.getChannelInfo().getType(), ch);
       orderedChannelsByChannelIndex.emplace(ch.getChannelInfo().getChannelIndex(), ch);

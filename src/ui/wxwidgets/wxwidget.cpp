@@ -209,48 +209,6 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	sizerMaxCellRadius->Fit( panelMaxCellRadius );
 	mSizerCellEstimation->Add( panelMaxCellRadius, 1, wxEXPAND|wxTOP, 5 );
 
-	m_staticline7 = new wxStaticLine( panelPipelineStepCellApproximation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	mSizerCellEstimation->Add( m_staticline7, 0, wxBOTTOM|wxEXPAND|wxTOP, 15 );
-
-	mLabelSpotRemoval = new wxStaticText( panelPipelineStepCellApproximation, wxID_ANY, _("Spot removal"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
-	mLabelSpotRemoval->Wrap( -1 );
-	mLabelSpotRemoval->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
-
-	mSizerCellEstimation->Add( mLabelSpotRemoval, 0, wxALIGN_CENTER|wxALL|wxEXPAND|wxTOP, 5 );
-
-	panelTetraspeckChannel = new wxPanel( panelPipelineStepCellApproximation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
-	panelTetraspeckChannel->SetMaxSize( wxSize( -1,65 ) );
-
-	wxBoxSizer* sizerTetraspeckChannel;
-	sizerTetraspeckChannel = new wxBoxSizer( wxVERTICAL );
-
-	wxBoxSizer* sizerTetraspeckChannel2;
-	sizerTetraspeckChannel2 = new wxBoxSizer( wxHORIZONTAL );
-
-	iconTetraspeckChannel = new wxStaticBitmap( panelTetraspeckChannel, wxID_ANY, bursts_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerTetraspeckChannel2->Add( iconTetraspeckChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
-
-	wxString mChoiceTetraspeckChannelChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
-	int mChoiceTetraspeckChannelNChoices = sizeof( mChoiceTetraspeckChannelChoices ) / sizeof( wxString );
-	mChoiceTetraspeckChannel = new wxChoice( panelTetraspeckChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceTetraspeckChannelNChoices, mChoiceTetraspeckChannelChoices, 0 );
-	mChoiceTetraspeckChannel->SetSelection( 0 );
-	sizerTetraspeckChannel2->Add( mChoiceTetraspeckChannel, 1, wxEXPAND, 5 );
-
-
-	sizerTetraspeckChannel->Add( sizerTetraspeckChannel2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
-
-	mLabelTetraspeckChannel = new wxStaticText( panelTetraspeckChannel, wxID_ANY, _("Tetraspeck Spot channel"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
-	mLabelTetraspeckChannel->Wrap( -1 );
-	mLabelTetraspeckChannel->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-
-	sizerTetraspeckChannel->Add( mLabelTetraspeckChannel, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
-
-
-	panelTetraspeckChannel->SetSizer( sizerTetraspeckChannel );
-	panelTetraspeckChannel->Layout();
-	sizerTetraspeckChannel->Fit( panelTetraspeckChannel );
-	mSizerCellEstimation->Add( panelTetraspeckChannel, 1, wxEXPAND, 5 );
-
 
 	mGridCellEstimation->Add( mSizerCellEstimation, 1, wxEXPAND|wxLEFT|wxRIGHT, 10 );
 
@@ -478,7 +436,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	wxBoxSizer* sizerChannelType;
 	sizerChannelType = new wxBoxSizer( wxVERTICAL );
 
-	wxString mChoiceChannelTypeChoices[] = { _("Spot"), _("Nucleus"), _("Cell"), _("Background") };
+	wxString mChoiceChannelTypeChoices[] = { _("Spot"), _("Spot (Reference)"), _("Nucleus"), _("Cell"), _("Background") };
 	int mChoiceChannelTypeNChoices = sizeof( mChoiceChannelTypeChoices ) / sizeof( wxString );
 	mChoiceChannelType = new wxChoice( panelChannelType, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceChannelTypeNChoices, mChoiceChannelTypeChoices, 0 );
 	mChoiceChannelType->SetSelection( 0 );
@@ -800,7 +758,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	wxString mChoiceThresholdMethodChoices[] = { _("Manual"), _("Li"), _("Min. error"), _("Triangle") };
 	int mChoiceThresholdMethodNChoices = sizeof( mChoiceThresholdMethodChoices ) / sizeof( wxString );
 	mChoiceThresholdMethod = new wxChoice( panelThresholdMethod, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceThresholdMethodNChoices, mChoiceThresholdMethodChoices, 0 );
-	mChoiceThresholdMethod->SetSelection( 2 );
+	mChoiceThresholdMethod->SetSelection( 0 );
 	izerThresholdMethod2->Add( mChoiceThresholdMethod, 1, wxEXPAND, 5 );
 
 
@@ -903,7 +861,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	iDescription1121 = new wxStaticBitmap( panelParticleSize, wxID_ANY, all_out_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerParticleSize2->Add( iDescription1121, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mTextParticleSizeRange = new wxTextCtrl( panelParticleSize, wxID_ANY, _("5-9999"), wxDefaultPosition, wxDefaultSize, 0 );
+	mTextParticleSizeRange = new wxTextCtrl( panelParticleSize, wxID_ANY, _("5-2147483647"), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerParticleSize2->Add( mTextParticleSizeRange, 1, wxEXPAND, 5 );
 
 
@@ -950,6 +908,39 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	panelSnapArea->Layout();
 	sizerSnapArea1->Fit( panelSnapArea );
 	mSizerChannel->Add( panelSnapArea, 1, wxEXPAND|wxTOP, 5 );
+
+	panelTetraspeckChannel = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelTetraspeckChannel->SetMaxSize( wxSize( -1,65 ) );
+
+	wxBoxSizer* sizerTetraspeckChannel;
+	sizerTetraspeckChannel = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* sizerTetraspeckChannel2;
+	sizerTetraspeckChannel2 = new wxBoxSizer( wxHORIZONTAL );
+
+	iconTetraspeckChannel = new wxStaticBitmap( panelTetraspeckChannel, wxID_ANY, bursts_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerTetraspeckChannel2->Add( iconTetraspeckChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+
+	wxString mChoiceReferenceSpotChannelChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
+	int mChoiceReferenceSpotChannelNChoices = sizeof( mChoiceReferenceSpotChannelChoices ) / sizeof( wxString );
+	mChoiceReferenceSpotChannel = new wxChoice( panelTetraspeckChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceReferenceSpotChannelNChoices, mChoiceReferenceSpotChannelChoices, 0 );
+	mChoiceReferenceSpotChannel->SetSelection( 0 );
+	sizerTetraspeckChannel2->Add( mChoiceReferenceSpotChannel, 1, wxEXPAND, 5 );
+
+
+	sizerTetraspeckChannel->Add( sizerTetraspeckChannel2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+
+	mLabelTetraspeckChannel = new wxStaticText( panelTetraspeckChannel, wxID_ANY, _("Remove reference spots"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelTetraspeckChannel->Wrap( -1 );
+	mLabelTetraspeckChannel->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
+	sizerTetraspeckChannel->Add( mLabelTetraspeckChannel, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+
+
+	panelTetraspeckChannel->SetSizer( sizerTetraspeckChannel );
+	panelTetraspeckChannel->Layout();
+	sizerTetraspeckChannel->Fit( panelTetraspeckChannel );
+	mSizerChannel->Add( panelTetraspeckChannel, 1, wxEXPAND|wxTOP, 5 );
 
 	mLinePreview = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
 	mLinePreview->SetForegroundColour( wxColour( 255, 255, 255 ) );

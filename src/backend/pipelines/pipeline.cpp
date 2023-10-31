@@ -28,6 +28,7 @@
 #include "backend/helper/thread_pool.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/settings/channel_settings.hpp"
+#include "backend/settings/pipeline_settings.hpp"
 #include "cell_approximation/cell_approximation.hpp"
 #include <opencv2/imgcodecs.hpp>
 
@@ -184,23 +185,53 @@ void Pipeline::analyzeTile(joda::reporting::Table &detailReports, std::string im
   BS::thread_pool channelThreadPool(threadPoolChannel);
 
   //
-  // Iterate over each channel
+  // Analyze the refernce spots first
+  //
+  auto referenceSpotChannels = this->mAnalyzeSettings.getChannels(settings::json::ChannelInfo::Type::SPOT_REFERENCE);
+  if(!referenceSpotChannels.empty()) {
+    for(const auto &referenceSpot : referenceSpotChannels) {
+      if(threadPoolChannel > 1) {
+        channelThreadPool.push_task(
+            [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder](int chIdx, int tileIdx) {
+              auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
+              analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx,
+                              tileIdx);
+            },
+            referenceSpot.getArrayIndex(), tileIdx);
+        while(channelThreadPool.get_tasks_total() > (threadPoolChannel + THREAD_POOL_BUFFER)) {
+          std::this_thread::sleep_for(100us);
+        }
+      } else {
+        auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(referenceSpot.getArrayIndex());
+        analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder,
+                        referenceSpot.getArrayIndex(), tileIdx);
+      }
+    }
+    channelThreadPool.wait_for_tasks();
+  }
+
+  //
+  // Iterate over each channel except reference spots
   //
   for(int chIdx = 0; chIdx < mAnalyzeSettings.getChannelsVector().size(); chIdx++) {
-    if(threadPoolChannel > 1) {
-      channelThreadPool.push_task(
-          [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder](int chIdx, int tileIdx) {
-            auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
-            analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx,
-                            tileIdx);
-          },
-          chIdx, tileIdx);
-      while(channelThreadPool.get_tasks_total() > (threadPoolChannel + THREAD_POOL_BUFFER)) {
-        std::this_thread::sleep_for(100us);
+    if(this->mAnalyzeSettings.getChannelsVector().at(chIdx).getChannelInfo().getType() !=
+       settings::json::ChannelInfo::Type::SPOT_REFERENCE) {
+      if(threadPoolChannel > 1) {
+        channelThreadPool.push_task(
+            [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder](int chIdx, int tileIdx) {
+              auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
+              analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx,
+                              tileIdx);
+            },
+            chIdx, tileIdx);
+        while(channelThreadPool.get_tasks_total() > (threadPoolChannel + THREAD_POOL_BUFFER)) {
+          std::this_thread::sleep_for(100us);
+        }
+      } else {
+        auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
+        analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx,
+                        tileIdx);
       }
-    } else {
-      auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
-      analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx, tileIdx);
     }
     if(mStop) {
       break;
@@ -232,7 +263,7 @@ void Pipeline::analyzeTile(joda::reporting::Table &detailReports, std::string im
 ///
 void Pipeline::analyszeChannel(joda::reporting::Table &detailReports,
                                std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
-                               joda::settings::json::ChannelSettings &channelSettings, std::string imagePath,
+                               const joda::settings::json::ChannelSettings &channelSettings, std::string imagePath,
                                std::string detailOutputFolder, int chIdx, int tileIdx)
 {
   int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
@@ -240,7 +271,8 @@ void Pipeline::analyszeChannel(joda::reporting::Table &detailReports,
   setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), chIdx);
 
   try {
-    auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath, tileIdx);
+    auto processingResult =
+        joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath, tileIdx, &detectionResults);
     //
     // Add processing result to the detection result map
     //

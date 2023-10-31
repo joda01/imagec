@@ -28,11 +28,11 @@
 #include <wx/statbmp.h>
 #include <wx/choice.h>
 #include <wx/spinctrl.h>
-#include <wx/statline.h>
 #include <wx/notebook.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
 #include <wx/gauge.h>
+#include <wx/statline.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
@@ -86,12 +86,6 @@ namespace joda
 					wxStaticBitmap* iconMaxCellRadius;
 					wxSpinCtrl* mSpinMaxCellRadius;
 					wxStaticText* mLabelMaxCellRadius;
-					wxStaticLine* m_staticline7;
-					wxStaticText* mLabelSpotRemoval;
-					wxPanel* panelTetraspeckChannel;
-					wxStaticBitmap* iconTetraspeckChannel;
-					wxChoice* mChoiceTetraspeckChannel;
-					wxStaticText* mLabelTetraspeckChannel;
 					wxButton* mButtonAddIntersection;
 					wxStatusBar* m_statusBar1;
 
@@ -241,6 +235,10 @@ namespace joda
 					wxStaticBitmap* iconParticleSize;
 					wxSpinCtrl* mSpinSnapArea;
 					wxStaticText* mLabelSnapArea;
+					wxPanel* panelTetraspeckChannel;
+					wxStaticBitmap* iconTetraspeckChannel;
+					wxChoice* mChoiceReferenceSpotChannel;
+					wxStaticText* mLabelTetraspeckChannel;
 					wxStaticLine* mLinePreview;
 					wxButton* mButtonPreview;
 					wxStaticLine* mLineRemove;

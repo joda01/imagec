@@ -20,11 +20,6 @@
 
 namespace joda::pipeline {
 
-CalcIntersection::CalcIntersection(const std::vector<int32_t> &indexesToIntersect, float minIntersection) :
-    mIndexesToIntersect(indexesToIntersect), mMinIntersection(minIntersection)
-{
-}
-
 CalcIntersection::CalcIntersection(const std::set<int32_t> &indexesToIntersect, float minIntersection) :
     mIndexesToIntersect(indexesToIntersect.begin(), indexesToIntersect.end()), mMinIntersection(minIntersection)
 {

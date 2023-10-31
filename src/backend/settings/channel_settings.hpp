@@ -167,6 +167,7 @@ public:
   {
     NONE,
     SPOT,
+    SPOT_REFERENCE,
     NUCLEUS,
     CELL,
     BACKGROUND,
@@ -258,6 +259,11 @@ public:
     return snap_area_size;
   }
 
+  auto getReferenceSpotChannelIndex() const -> int32_t
+  {
+    return reference_spot_channel_index;
+  }
+
   /////////////////////////////////////////////////////
 private:
   //
@@ -284,8 +290,14 @@ private:
   //
   float snap_area_size;
 
+  //
+  // Index of the reference spot channel.
+  // If bigger than 0 this channel will be used to remove reference spots from the channel
+  //
+  int32_t reference_spot_channel_index = -1;
+
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelFiltering, min_particle_size, max_particle_size, min_circularity,
-                                              snap_area_size);
+                                              snap_area_size, reference_spot_channel_index);
 };
 
 class ChannelSettings final
@@ -296,11 +308,12 @@ public:
   void loadConfigFromString(const std::string &jsonString)
   {
     *this = nlohmann::json::parse(jsonString);
-    interpretConfig();
+    interpretConfig(-1);
   }
 
-  void interpretConfig()
+  void interpretConfig(int arrayIndex)
   {
+    mArrayIndex = arrayIndex;
     info.interpretConfig();
     detection.interpretConfig();
 
@@ -316,6 +329,11 @@ public:
         mSubtractChannel = method2->channel_index;
       }
     }
+  }
+
+  auto getArrayIndex() const -> int32_t
+  {
+    return mArrayIndex;
   }
 
   auto getChannelInfo() const -> const ChannelInfo &
@@ -372,6 +390,11 @@ private:
   ChannelFiltering filter;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, info, detection, preprocessing, filter);
+
+  //
+  // For internal needs. Not stored in the json: Actual index in the channel array
+  //
+  int32_t mArrayIndex = -1;
 };
 
 }    // namespace joda::settings::json

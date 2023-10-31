@@ -168,7 +168,7 @@ private:
                    int tileIdx);
   void analyszeChannel(joda::reporting::Table &detailReports,
                        std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
-                       joda::settings::json::ChannelSettings &channelSettings, std::string imagePath,
+                       const joda::settings::json::ChannelSettings &channelSettings, std::string imagePath,
                        std::string detailOutputFolder, int chIdx, int tileIdx);
 
   /////////////////////////////////////////////////////

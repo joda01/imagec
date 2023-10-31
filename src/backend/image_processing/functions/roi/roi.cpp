@@ -236,6 +236,19 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 }
 
 ///
+/// \brief      Calculates if an intersection between the ROIs exist without any measurement
+/// \author     Joachim Danmayr
+/// \param[in]  roi   ROI to check against
+/// \return     Intersection of the areas in percent
+///
+
+[[nodiscard]] bool ROI::isIntersecting(const ROI &roi, float minIntersection) const
+{
+  auto [_, intersecting] = calcIntersection(roi, cv::Mat{}, minIntersection, false);
+  return intersecting;
+}
+
+///
 /// \brief      Calculates if an intersection between the ROIs exist
 /// \author     Joachim Danmayr
 /// \param[in]  roi   ROI to check against
@@ -243,7 +256,7 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 ///
 
 [[nodiscard]] std::tuple<ROI, bool> ROI::calcIntersection(const ROI &roi, const cv::Mat &imageOriginal,
-                                                          float minIntersection) const
+                                                          float minIntersection, bool createRoi) const
 {
   // Calculate the intersection of the bounding boxes
   cv::Rect intersectedRect = getBoundingBox() & roi.getBoundingBox();
@@ -291,11 +304,15 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
       if(smallestMask > 0) {
         intersectionArea = static_cast<float>(nrOfIntersectingPixels) / static_cast<float>(smallestMask);
       }
-      ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, imageOriginal);
-      if(intersectionArea < minIntersection) {
-        intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
+      if(true == createRoi) {
+        ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, imageOriginal);
+        if(intersectionArea < minIntersection) {
+          intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
+        }
+        return {intersectionROI, true};
+      } else {
+        return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, cv::Mat{}), true};
       }
-      return {intersectionROI, true};
     }
   }
   return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, cv::Mat{}), false};

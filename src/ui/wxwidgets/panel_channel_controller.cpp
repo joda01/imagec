@@ -121,6 +121,7 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
                       std::to_string(static_cast<uint32_t>(channelSettings.getFilter().getMaxParticleSize()));
   mTextParticleSizeRange->SetValue(range);
   mSpinSnapArea->SetValue(channelSettings.getFilter().getSnapAreaSize());
+  mChoiceReferenceSpotChannel->SetSelection(channelSettings.getFilter().getReferenceSpotChannelIndex() + 1);
 }
 
 ///
@@ -180,10 +181,11 @@ nlohmann::json PanelChannelController::getValues()
 
   // Filtering
   auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
-  chSettings["filter"]["min_particle_size"] = min;
-  chSettings["filter"]["max_particle_size"] = max;
-  chSettings["filter"]["min_circularity"]   = mSpinMinCircularity->GetValue();
-  chSettings["filter"]["snap_area_size"]    = mSpinSnapArea->GetValue();
+  chSettings["filter"]["min_particle_size"]            = min;
+  chSettings["filter"]["max_particle_size"]            = max;
+  chSettings["filter"]["min_circularity"]              = mSpinMinCircularity->GetValue();
+  chSettings["filter"]["snap_area_size"]               = mSpinSnapArea->GetValue();
+  chSettings["filter"]["reference_spot_channel_index"] = mChoiceReferenceSpotChannel->GetSelection() - 1;
 
   return chSettings;
 }

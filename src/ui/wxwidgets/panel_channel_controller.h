@@ -61,7 +61,7 @@ private:
   static auto splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>;
 
   static inline joda::helper::TwoWayMap<int, std::string> CHANNEL_TYPES{
-      {{0, "SPOT"}, {1, "NUCLEUS"}, {2, "CELL"}, {3, "BACKGROUND"}}};
+      {{0, "SPOT"}, {1, "SPOT_REFERENCE"}, {2, "NUCLEUS"}, {3, "CELL"}, {4, "BACKGROUND"}}};
 
   static inline joda::helper::TwoWayMap<int, std::string> Z_STACK_PROJECTION{
       {{0, "NONE"}, {1, "PROJECT_MAX_INTENSITY"}, {2, "PROJECT_3D"}}};
