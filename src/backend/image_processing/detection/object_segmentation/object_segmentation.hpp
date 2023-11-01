@@ -1,5 +1,5 @@
 ///
-/// \file      threshold.hpp
+/// \file      object_segmentation.hpp
 /// \author    Joachim Danmayr
 /// \date      2023-07-23
 ///

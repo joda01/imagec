@@ -11,7 +11,7 @@
 /// \brief     A short description what happens here.
 ///
 
-#include "threshold.hpp"
+#include "object_segmentation.hpp"
 #include <climits>
 #include <cstdint>
 #include <stdexcept>

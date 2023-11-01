@@ -18,7 +18,7 @@
 #include <mutex>
 #include <string_view>
 #include "backend/image_processing/detection/ai_object_detection/ai_object_detection.h"
-#include "backend/image_processing/detection/threshold/threshold.hpp"
+#include "backend/image_processing/detection/object_segmentation/object_segmentation.hpp"
 
 namespace joda::pipeline::detection {
 

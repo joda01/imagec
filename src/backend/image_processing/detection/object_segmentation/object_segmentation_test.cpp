@@ -4,7 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/dnn/dnn.hpp>
 
-#include "threshold.hpp"
+#include "object_segmentation.hpp"
 
 ///
 /// \brief  Load a config file
