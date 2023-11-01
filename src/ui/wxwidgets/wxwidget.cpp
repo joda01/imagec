@@ -22,6 +22,7 @@
 #include "../../res/formula_fx_20.png.h"
 #include "../../res/info_20.png.h"
 #include "../../res/layers_20.png.h"
+#include "../../res/minus_20.png.h"
 #include "../../res/octagon_20.png.h"
 #include "../../res/opened_folder_20.png.h"
 #include "../../res/plus_math_20.png.h"
@@ -411,9 +412,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerForScroll = new wxBoxSizer( wxHORIZONTAL );
 
 	mSizerForScroll->SetMinSize( wxSize( 250,-1 ) );
-	mScrolledChannel = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
+	mScrolledChannel = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxVSCROLL );
 	mScrolledChannel->SetScrollRate( 0, 5 );
-	mScrolledChannel->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+	mScrolledChannel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
 	wxGridSizer* mSizerGridChannel;
 	mSizerGridChannel = new wxGridSizer( 0, 1, 0, 0 );
@@ -918,7 +919,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	wxBoxSizer* sizerTetraspeckChannel2;
 	sizerTetraspeckChannel2 = new wxBoxSizer( wxHORIZONTAL );
 
-	iconTetraspeckChannel = new wxStaticBitmap( panelTetraspeckChannel, wxID_ANY, bursts_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	iconTetraspeckChannel = new wxStaticBitmap( panelTetraspeckChannel, wxID_ANY, minus_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerTetraspeckChannel2->Add( iconTetraspeckChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	wxString mChoiceReferenceSpotChannelChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
