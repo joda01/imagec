@@ -35,6 +35,17 @@ PanelChannelController::PanelChannelController(FrameMainController *mainFrame, w
     PanelChannel(parent, id, pos, size, style, name),
     mMainFrame(mainFrame)
 {
+  mPreviewRefreshThread = std::make_shared<std::thread>(&PanelChannelController::refreshPreviewThread, this);
+}
+
+///
+/// \brief      Destructor
+/// \author     Joachim Danmayr
+///
+PanelChannelController::~PanelChannelController()
+{
+  mStopped = true;
+  mPreviewRefreshThread->join();
 }
 
 ///
@@ -77,20 +88,43 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
 ///
 void PanelChannelController::updatePreview()
 {
-  settings::json::ChannelSettings chs;
-  chs.loadConfigFromString(getValues().dump());
-  auto chIdx              = chs.getChannelInfo().getChannelIndex();
-  auto firstPreviewDialog = mPreviewDialogs.find(chIdx);
-  // Check if there is an open preview dialog
-  if(firstPreviewDialog != mPreviewDialogs.end()) {
-    auto ret = mMainFrame->getController()->preview(chs, 0);
-    wxMemoryInputStream stream(ret.data.data(), ret.data.size());
-    wxImage image;
-    if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
-      wxLogError("Failed to load PNG image from bytes.");
-    } else {
-      firstPreviewDialog->second->updateImage(image);
+  mLastPreviewUpdateRequest = std::chrono::high_resolution_clock::now();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelController::refreshPreviewThread()
+{
+  while(!mStopped) {
+    auto actTime = std::chrono::high_resolution_clock::now();
+
+    if(mLastPreviewUpdateRequest > mLastPreviewUpdate) {
+      settings::json::ChannelSettings chs;
+      chs.loadConfigFromString(getValues().dump());
+      auto chIdx              = chs.getChannelInfo().getChannelIndex();
+      auto firstPreviewDialog = mPreviewDialogs.find(chIdx);
+      // Check if there is an open preview dialog
+      if(firstPreviewDialog != mPreviewDialogs.end()) {
+        auto ret = mMainFrame->getController()->preview(chs, 0);
+        wxMemoryInputStream stream(ret.data.data(), ret.data.size());
+        wxImage image;
+        if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
+          wxLogError("Failed to load PNG image from bytes.");
+        } else {
+          firstPreviewDialog->second->updateImage(image);
+        }
+      }
+
+      mLastPreviewUpdate = std::chrono::high_resolution_clock::now();
+      // Update only once per second
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 }
 

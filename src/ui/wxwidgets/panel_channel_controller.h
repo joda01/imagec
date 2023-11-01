@@ -16,6 +16,7 @@
 
 #include <map>
 #include <memory>
+#include <thread>
 #include "backend/helper/two_way_map.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "ui/wxwidgets/dialog_image_controller.h"
@@ -41,6 +42,7 @@ public:
                                   const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(250, -1),
                                   long style = wxTAB_TRAVERSAL, const wxString &name = wxEmptyString);
 
+  ~PanelChannelController();
   void loadValues(const joda::settings::json::ChannelSettings &);
   nlohmann::json getValues();
 
@@ -74,7 +76,7 @@ private:
 private:
   /////////////////////////////////////////////////////
   void updatePreview();
-
+  void refreshPreviewThread();
   void onRemoveClicked(wxCommandEvent &event) override;
   void onPreviewClicked(wxCommandEvent &event) override;
   void onChannelTypeChanged(wxCommandEvent &event) override;
@@ -98,6 +100,12 @@ private:
   /////////////////////////////////////////////////////
   FrameMainController *mMainFrame;
   std::multimap<int, std::shared_ptr<DialogImageController>> mPreviewDialogs;
+  std::chrono::system_clock::time_point mLastPreviewUpdateRequest;
+  std::chrono::system_clock::time_point mLastPreviewUpdate;
+
+  std::shared_ptr<std::thread> mPreviewRefreshThread;
+
+  bool mStopped = false;
 };
 }    // namespace joda::ui::wxwidget
 
