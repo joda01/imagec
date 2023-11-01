@@ -14,8 +14,11 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 #include "../detection.hpp"
 #include "../detection_response.hpp"
+#include "backend/image_processing/functions/threshold/threshold.hpp"
+#include "backend/settings/channel_settings.hpp"
 #include <opencv2/opencv.hpp>
 
 namespace joda::func::threshold {
@@ -24,11 +27,12 @@ class ObjectSegmentation : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt, uint16_t thresholdValue);
+  ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt, uint16_t thresholdValue,
+                     joda::settings::json::ThresholdSettings::Threshold method);
   auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage) -> DetectionResponse override;
 
 private:
-  uint16_t mThresholdValue = 0;
+  std::shared_ptr<img::Threshold> mThresoldMethod;
 };
 
 }    // namespace joda::func::threshold

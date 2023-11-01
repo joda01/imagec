@@ -54,7 +54,19 @@ public:
     MANUAL,
     LI,
     MIN_ERROR,
-    TRIANGLE
+    TRIANGLE,
+    MOMENTS,
+    HUANG,
+    INTERMODES,
+    ISODATA,
+    MAX_ENTROPY,
+    MEAN,
+    MINIMUM,
+    OTSU,
+    PERCENTILE,
+    RENYI_ENTROPY,
+    SHANBHAG,
+    YEN
   };
 
   void interpretConfig()
@@ -72,7 +84,7 @@ public:
     return threshold_algorithm;
   }
 
-  auto getThresholdMin() const -> uint16_t
+  auto getThresholdMinError() const -> uint16_t
   {
     return threshold_min;
   }

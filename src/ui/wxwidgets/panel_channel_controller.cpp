@@ -114,7 +114,7 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
                         channelSettings.getDetectionSettings().getDetectionMode());
   mChoiceThresholdMethod->SetSelection(
       thresholdToIndex(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdString()));
-  mSpinMinThreshold->SetValue(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdMin());
+  mSpinMinThreshold->SetValue(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdMinError());
 
   // Filtering
   mSpinMinCircularity->SetValue(channelSettings.getFilter().getMinCircularity());
@@ -264,6 +264,21 @@ void PanelChannelController::onChannelTypeChanged(wxCommandEvent &event)
     panelReferenceChannel->Enable(false);
   } else {
     panelReferenceChannel->Enable(true);
+  }
+}
+
+///
+/// \brief      Disable threshold if AI is clicked
+/// \author     Joachim Danmayr
+///
+void PanelChannelController::onAiCheckBox(wxCommandEvent &event)
+{
+  if(mCheckUseAI->GetValue()) {
+    panelThresholdMethod->Enable(false);
+    panelMinThreshold->Enable(false);
+  } else {
+    panelThresholdMethod->Enable(true);
+    panelMinThreshold->Enable(true);
   }
 }
 
