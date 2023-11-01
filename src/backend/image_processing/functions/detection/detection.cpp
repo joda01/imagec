@@ -38,9 +38,19 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
     if(!result[i].getMask().empty() && !result[i].getBoundingBox().empty()) {
       try {
         mask(result[i].getBoundingBox()).setTo(RED, result[i].getMask());
-        std::vector<std::vector<cv::Point>> contours;
-        findContours(result[i].getMask(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
-        drawContours(img(result[i].getBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
+        {
+          std::vector<std::vector<cv::Point>> contours;
+          contours.push_back(result[i].getContour());
+          if(!contours.empty())
+            drawContours(img(result[i].getBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
+        }
+        if(result[i].hasSnapArea()) {
+          std::vector<std::vector<cv::Point>> contours;
+          contours.push_back(result[i].getSnapAreaContour());
+          if(!contours.empty())
+            drawContours(img(result[i].getSnapAreaBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
+        }
+
       } catch(const std::exception &ex) {
         std::cout << "P" << ex.what() << std::endl;
       }

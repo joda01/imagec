@@ -28,22 +28,79 @@
 namespace joda::func {
 
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask) :
-    index(index), confidence(confidence), classId(classId), box(boundingBox), boxMask(mask)
+    index(index), confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask)
 {
+  calculateSnapAreaAndContours(0, -1, -1);
 }
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter) :
     index(index),
-    confidence(confidence), classId(classId), box(boundingBox), boxMask(mask)
+    confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask)
 {
+  if(filter != nullptr) {
+    calculateSnapAreaAndContours(filter->getSnapAreaSize(), imageOriginal.cols, imageOriginal.rows);
+  } else {
+    calculateSnapAreaAndContours(0, imageOriginal.cols, imageOriginal.rows);
+  }
   calculateMetrics(imageOriginal, filter);
 }
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const cv::Mat &imageOriginal) :
     index(index),
-    confidence(confidence), classId(classId), box(boundingBox), boxMask(mask)
+    confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask)
 {
+  calculateSnapAreaAndContours(0, imageOriginal.cols, imageOriginal.rows);
   calculateMetrics(imageOriginal, nullptr);
+}
+
+///
+/// \brief      Calculates a snap area and applies this to the snap area elements
+/// \author     Joachim Danmayr
+///
+void ROI::calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int32_t maxHeight)
+{
+  {
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(mMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+    if(!contours.empty()) {
+      mMaskContours = contours[0];
+    }
+  }
+
+  if(snapAreaSize > 0) {
+    // Get center of mass
+    auto x = mBoundingBox.x + (mBoundingBox.width - snapAreaSize) / 2.0F;
+    if(x < 0) {
+      x = 0;
+    }
+    auto y = mBoundingBox.y + (mBoundingBox.height - snapAreaSize) / 2.0F;
+    if(y < 0) {
+      y = 0;
+    }
+    int32_t boundingBoxWith   = snapAreaSize;
+    int32_t boundingBoxHeight = snapAreaSize;
+    if(x + boundingBoxWith > maxWidth) {
+      boundingBoxWith = (maxWidth - x);
+    }
+    if(y + boundingBoxHeight > maxHeight) {
+      boundingBoxHeight = (maxHeight - y);
+    }
+
+    mSnapAreaBoundingBox = cv::Rect(x, y, boundingBoxWith, boundingBoxHeight);
+    mSnapAreaMask        = cv::Mat::zeros(boundingBoxHeight, boundingBoxWith, CV_8UC1);
+    auto circleRadius    = snapAreaSize / 2.0F;
+    circle(mSnapAreaMask, cv::Point(circleRadius, circleRadius), circleRadius, cv::Scalar(255), -1);
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(mSnapAreaMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+    if(!contours.empty()) {
+      mSnapAreaMaskContours = contours[0];
+    }
+    mHasSnapArea = true;
+
+  } else {
+    mSnapAreaBoundingBox = mBoundingBox;
+    mSnapAreaMask        = mMask;
+  }
 }
 
 ///
@@ -64,15 +121,12 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
 ///
 void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter)
 {
-  if(!imageOriginal.empty() && !box.empty() && !boxMask.empty()) {
-    cv::Mat maskImg = imageOriginal(box);
-    areaSize        = cv::countNonZero(boxMask);
-    intensity       = cv::mean(maskImg, boxMask)[0];
-    cv::minMaxLoc(maskImg, &intensityMin, &intensityMax, nullptr, nullptr, boxMask);
-
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(boxMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
-    perimeter = getTracedPerimeter(contours[0]);
+  if(!imageOriginal.empty() && !mBoundingBox.empty() && !mMask.empty()) {
+    cv::Mat maskImg = imageOriginal(mBoundingBox);
+    areaSize        = cv::countNonZero(mMask);
+    intensity       = cv::mean(maskImg, mMask)[0];
+    cv::minMaxLoc(maskImg, &intensityMin, &intensityMax, nullptr, nullptr, mMask);
+    perimeter = getTracedPerimeter(mMaskContours);
 
     float dividend       = 4.0 * M_PI * static_cast<float>(areaSize);
     float perimterSquare = static_cast<float>(perimeter) * static_cast<float>(perimeter);
@@ -259,7 +313,7 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
                                                           float minIntersection, bool createRoi) const
 {
   // Calculate the intersection of the bounding boxes
-  cv::Rect intersectedRect = getBoundingBox() & roi.getBoundingBox();
+  cv::Rect intersectedRect = getSnapAreaBoundingBox() & roi.getSnapAreaBoundingBox();
 
   if(intersectedRect.area() > 0) {
     uint32_t nrOfIntersectingPixels = 0;
@@ -270,18 +324,18 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
     // Iterate through the pixels in the intersection and set them in the new mask
     for(int y = 0; y < intersectedRect.height; ++y) {
       for(int x = 0; x < intersectedRect.width; ++x) {
-        int xM1      = x + (intersectedRect.x - getBoundingBox().x);
-        int yM1      = y + (intersectedRect.y - getBoundingBox().y);
+        int xM1      = x + (intersectedRect.x - getSnapAreaBoundingBox().x);
+        int yM1      = y + (intersectedRect.y - getSnapAreaBoundingBox().y);
         bool mask1On = false;
         if(xM1 >= 0 && yM1 >= 0) {
-          mask1On = getMask().at<uchar>(yM1, xM1) > 0;
+          mask1On = getSnapAreaMask().at<uchar>(yM1, xM1) > 0;
         }
 
-        int xM2      = x + (intersectedRect.x - roi.getBoundingBox().x);
-        int yM2      = y + (intersectedRect.y - roi.getBoundingBox().y);
+        int xM2      = x + (intersectedRect.x - roi.getSnapAreaBoundingBox().x);
+        int yM2      = y + (intersectedRect.y - roi.getSnapAreaBoundingBox().y);
         bool mask2On = false;
         if(xM2 >= 0 && yM2 >= 0) {
-          mask2On = roi.getMask().at<uchar>(yM2, xM2) > 0;
+          mask2On = roi.getSnapAreaMask().at<uchar>(yM2, xM2) > 0;
         }
 
         if(mask1On) {
