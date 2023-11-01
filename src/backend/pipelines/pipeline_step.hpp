@@ -14,7 +14,6 @@
 #pragma once
 
 #include <map>
-#include "../image_processing/functions/func_types.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 
 namespace joda::pipeline {

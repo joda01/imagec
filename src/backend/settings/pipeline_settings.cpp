@@ -12,8 +12,8 @@
 ///
 
 #include "pipeline_settings.hpp"
-#include "backend/pipelines/calc_intersection/calc_intersection.hpp"
-#include "backend/pipelines/cell_approximation/cell_approximation.hpp"
+#include "backend/pipelines/pipeline_steps/calc_intersection/calc_intersection.hpp"
+#include "backend/pipelines/pipeline_steps/cell_approximation/cell_approximation.hpp"
 #include "backend/settings/channel_settings.hpp"
 
 namespace joda::settings::json {

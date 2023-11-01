@@ -20,7 +20,7 @@
 #include <vector>
 #include "../helper/directory_iterator.hpp"
 #include "../helper/helper.hpp"
-#include "../image_processing/functions/func_types.hpp"
+#include "../image_processing/detection/detection_response.hpp"
 #include "../reporting/reporting.h"
 #include "../settings/analze_settings_parser.hpp"
 #include "backend/image_reader/image_reader.hpp"

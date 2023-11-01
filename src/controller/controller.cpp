@@ -16,7 +16,7 @@
 #include <map>
 #include <ranges>
 #include "backend/helper/system_resources.hpp"
-#include "backend/image_processing/channel_processor.hpp"
+#include "backend/pipelines/processor/channel_processor.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 #include "backend/settings/channel_settings.hpp"
 

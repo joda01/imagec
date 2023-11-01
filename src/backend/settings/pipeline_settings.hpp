@@ -14,7 +14,7 @@
 #pragma once
 
 #include <cstddef>
-#include "backend/image_processing/functions/func_types.hpp"
+#include "backend/image_processing/detection/detection_response.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::pipeline {

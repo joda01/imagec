@@ -23,7 +23,7 @@
 #include <string_view>
 #include <variant>
 #include <vector>
-#include "../image_processing/functions/func_types.hpp"
+#include "../image_processing/detection/detection_response.hpp"
 
 namespace joda::reporting {
 

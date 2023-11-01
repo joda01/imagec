@@ -22,14 +22,14 @@
 #include <thread>
 #include <vector>
 #include "../helper/helper.hpp"
-#include "../image_processing/channel_processor.hpp"
 #include "../logger/console_logger.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/helper/thread_pool.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
-#include "cell_approximation/cell_approximation.hpp"
+#include "pipeline_steps/cell_approximation/cell_approximation.hpp"
+#include "processor/channel_processor.hpp"
 #include <opencv2/imgcodecs.hpp>
 
 namespace joda::pipeline {

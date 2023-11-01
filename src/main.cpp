@@ -14,12 +14,10 @@
 #include <thread>
 #include <vector>
 #include "backend/duration_count/duration_count.h"
-#include "backend/image/image.hpp"
 #include "backend/image_reader/tif/image_loader_tif.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "backend/reporting/report_printer.h"
 #include "controller/controller.hpp"
-#include "ui/http/web_server.hpp"
 #include "ui/wxwidgets/frame_main_controller.h"
 #include "ui/wxwidgets/wxwidget.h"
 #include "version.h"
