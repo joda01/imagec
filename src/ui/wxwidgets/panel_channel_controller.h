@@ -75,6 +75,7 @@ private:
   /////////////////////////////////////////////////////
   void onRemoveClicked(wxCommandEvent &event) override;
   void onPreviewClicked(wxCommandEvent &event) override;
+  void onChannelTypeChanged(wxCommandEvent &event) override;
 
   FrameMainController *mMainFrame;
   std::multimap<int, std::shared_ptr<DialogImageController>> mPreviewDialogs;

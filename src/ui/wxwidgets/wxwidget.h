@@ -187,6 +187,7 @@ namespace joda
 					wxStaticBitmap* iconMarginCrop;
 					wxSpinCtrl* mSpinMarginCrop;
 					wxStaticText* mLabelMarginCrop;
+					wxStaticLine* mLineDescription;
 					wxPanel* panelMedianBGSubtract;
 					wxStaticBitmap* iconMedianBGSubtract;
 					wxChoice* mChoiceMedianBGSubtract;
@@ -209,7 +210,6 @@ namespace joda
 					wxChoice* mDropDownGausianBlurRepeat;
 					wxStaticText* mLabelGausianBluer;
 					wxStaticText* mLabelDescription;
-					wxStaticLine* mLineDescription;
 					wxPanel* panelUseAI;
 					wxStaticBitmap* iconUseAI;
 					wxCheckBox* mCheckUseAI;
@@ -235,7 +235,7 @@ namespace joda
 					wxStaticBitmap* iconParticleSize;
 					wxSpinCtrl* mSpinSnapArea;
 					wxStaticText* mLabelSnapArea;
-					wxPanel* panelTetraspeckChannel;
+					wxPanel* panelReferenceChannel;
 					wxStaticBitmap* iconTetraspeckChannel;
 					wxChoice* mChoiceReferenceSpotChannel;
 					wxStaticText* mLabelTetraspeckChannel;
@@ -245,6 +245,7 @@ namespace joda
 					wxButton* mButtonRemoveChannel;
 
 					// Virtual event handlers, override them in your derived class
+					virtual void onChannelTypeChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onPreviewClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
 
@@ -253,7 +254,7 @@ namespace joda
 					wxBoxSizer* mSizerForScroll;
 					wxScrolledWindow* mScrolledChannel;
 
-					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 280,1235 ), long style = wxBORDER_THEME|wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 280,1235 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 					~PanelChannel();
 

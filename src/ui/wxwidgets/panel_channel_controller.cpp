@@ -12,6 +12,7 @@
 ///
 
 #include "panel_channel_controller.h"
+#include <tiffconf.h>
 #include <wx/gdicmn.h>
 #include <wx/mstream.h>
 #include <memory>
@@ -250,6 +251,20 @@ auto PanelChannelController::splitAndConvert(const std::string &input, char deli
   }
 
   return {num1, num2};
+}
+
+///
+/// \brief      Channel type has been changed
+///             Make reference spot panel invisible if not a spot channel
+/// \author     Joachim Danmayr
+///
+void PanelChannelController::onChannelTypeChanged(wxCommandEvent &event)
+{
+  if(mChoiceChannelType->GetSelection() != 0) {
+    panelReferenceChannel->Enable(false);
+  } else {
+    panelReferenceChannel->Enable(true);
+  }
 }
 
 }    // namespace joda::ui::wxwidget

@@ -148,6 +148,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mSizerCellEstimation->Add( panelNucleusChannel, 1, wxEXPAND|wxTOP, 5 );
 
 	panelCellChannel = new wxPanel( panelPipelineStepCellApproximation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelCellChannel->Enable( false );
 	panelCellChannel->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerCellChannel;
@@ -412,9 +413,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerForScroll = new wxBoxSizer( wxHORIZONTAL );
 
 	mSizerForScroll->SetMinSize( wxSize( 250,-1 ) );
-	mScrolledChannel = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxVSCROLL );
+	mScrolledChannel = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	mScrolledChannel->SetScrollRate( 0, 5 );
-	mScrolledChannel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
+	mScrolledChannel->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxGridSizer* mSizerGridChannel;
 	mSizerGridChannel = new wxGridSizer( 0, 1, 0, 0 );
@@ -540,6 +541,11 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	panelMarginCrop->Layout();
 	sizerMarginCrop->Fit( panelMarginCrop );
 	mSizerChannel->Add( panelMarginCrop, 1, wxEXPAND|wxTOP, 5 );
+
+	mLineDescription = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	mLineDescription->SetBackgroundColour( wxColour( 0, 0, 0 ) );
+
+	mSizerChannel->Add( mLineDescription, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 	panelMedianBGSubtract = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelMedianBGSubtract->SetMaxSize( wxSize( -1,65 ) );
@@ -714,11 +720,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mLabelDescription->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
 
 	mSizerChannel->Add( mLabelDescription, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-	mLineDescription = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	mLineDescription->SetBackgroundColour( wxColour( 0, 0, 0 ) );
-
-	mSizerChannel->Add( mLineDescription, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 	panelUseAI = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelUseAI->SetMaxSize( wxSize( -1,35 ) );
@@ -910,8 +911,8 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerSnapArea1->Fit( panelSnapArea );
 	mSizerChannel->Add( panelSnapArea, 1, wxEXPAND|wxTOP, 5 );
 
-	panelTetraspeckChannel = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
-	panelTetraspeckChannel->SetMaxSize( wxSize( -1,65 ) );
+	panelReferenceChannel = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelReferenceChannel->SetMaxSize( wxSize( -1,65 ) );
 
 	wxBoxSizer* sizerTetraspeckChannel;
 	sizerTetraspeckChannel = new wxBoxSizer( wxVERTICAL );
@@ -919,29 +920,29 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	wxBoxSizer* sizerTetraspeckChannel2;
 	sizerTetraspeckChannel2 = new wxBoxSizer( wxHORIZONTAL );
 
-	iconTetraspeckChannel = new wxStaticBitmap( panelTetraspeckChannel, wxID_ANY, minus_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	iconTetraspeckChannel = new wxStaticBitmap( panelReferenceChannel, wxID_ANY, minus_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerTetraspeckChannel2->Add( iconTetraspeckChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
 	wxString mChoiceReferenceSpotChannelChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
 	int mChoiceReferenceSpotChannelNChoices = sizeof( mChoiceReferenceSpotChannelChoices ) / sizeof( wxString );
-	mChoiceReferenceSpotChannel = new wxChoice( panelTetraspeckChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceReferenceSpotChannelNChoices, mChoiceReferenceSpotChannelChoices, 0 );
+	mChoiceReferenceSpotChannel = new wxChoice( panelReferenceChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceReferenceSpotChannelNChoices, mChoiceReferenceSpotChannelChoices, 0 );
 	mChoiceReferenceSpotChannel->SetSelection( 0 );
 	sizerTetraspeckChannel2->Add( mChoiceReferenceSpotChannel, 1, wxEXPAND, 5 );
 
 
 	sizerTetraspeckChannel->Add( sizerTetraspeckChannel2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
 
-	mLabelTetraspeckChannel = new wxStaticText( panelTetraspeckChannel, wxID_ANY, _("Remove reference spots"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelTetraspeckChannel = new wxStaticText( panelReferenceChannel, wxID_ANY, _("Remove reference spots"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	mLabelTetraspeckChannel->Wrap( -1 );
 	mLabelTetraspeckChannel->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
 	sizerTetraspeckChannel->Add( mLabelTetraspeckChannel, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
 
 
-	panelTetraspeckChannel->SetSizer( sizerTetraspeckChannel );
-	panelTetraspeckChannel->Layout();
-	sizerTetraspeckChannel->Fit( panelTetraspeckChannel );
-	mSizerChannel->Add( panelTetraspeckChannel, 1, wxEXPAND|wxTOP, 5 );
+	panelReferenceChannel->SetSizer( sizerTetraspeckChannel );
+	panelReferenceChannel->Layout();
+	sizerTetraspeckChannel->Fit( panelReferenceChannel );
+	mSizerChannel->Add( panelReferenceChannel, 1, wxEXPAND|wxTOP, 5 );
 
 	mLinePreview = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
 	mLinePreview->SetForegroundColour( wxColour( 255, 255, 255 ) );
@@ -979,6 +980,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	this->Layout();
 
 	// Connect Events
+	mChoiceChannelType->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onChannelTypeChanged ), NULL, this );
 	mButtonPreview->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
 	mButtonRemoveChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 }
@@ -986,6 +988,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 PanelChannel::~PanelChannel()
 {
 	// Disconnect Events
+	mChoiceChannelType->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onChannelTypeChanged ), NULL, this );
 	mButtonPreview->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
 	mButtonRemoveChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 
