@@ -54,7 +54,19 @@ public:
     MANUAL,
     LI,
     MIN_ERROR,
-    TRIANGLE
+    TRIANGLE,
+    MOMENTS,
+    HUANG,
+    INTERMODES,
+    ISODATA,
+    MAX_ENTROPY,
+    MEAN,
+    MINIMUM,
+    OTSU,
+    PERCENTILE,
+    RENYI_ENTROPY,
+    SHANBHAG,
+    YEN
   };
 
   void interpretConfig()

@@ -23,7 +23,9 @@
 #include "backend/image_processing/functions/threshold/threshold_li.hpp"
 #include "backend/image_processing/functions/threshold/threshold_manual.hpp"
 #include "backend/image_processing/functions/threshold/threshold_min_error.hpp"
+#include "backend/image_processing/functions/threshold/threshold_moments.hpp"
 #include "backend/image_processing/functions/threshold/threshold_triangel.hpp"
+#include "backend/logger/console_logger.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -44,7 +46,22 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFilter
     case joda::settings::json::ThresholdSettings::Threshold::MIN_ERROR:
       mThresoldMethod = std::make_shared<img::ThresholdMinError>(thresholdValue);
       break;
+    case joda::settings::json::ThresholdSettings::Threshold::MOMENTS:
+      mThresoldMethod = std::make_shared<img::ThresholdMoments>(thresholdValue);
+      break;
     default:
+    case joda::settings::json::ThresholdSettings::Threshold::HUANG:
+    case joda::settings::json::ThresholdSettings::Threshold::INTERMODES:
+    case joda::settings::json::ThresholdSettings::Threshold::ISODATA:
+    case joda::settings::json::ThresholdSettings::Threshold::MAX_ENTROPY:
+    case joda::settings::json::ThresholdSettings::Threshold::MEAN:
+    case joda::settings::json::ThresholdSettings::Threshold::MINIMUM:
+    case joda::settings::json::ThresholdSettings::Threshold::OTSU:
+    case joda::settings::json::ThresholdSettings::Threshold::PERCENTILE:
+    case joda::settings::json::ThresholdSettings::Threshold::RENYI_ENTROPY:
+    case joda::settings::json::ThresholdSettings::Threshold::SHANBHAG:
+    case joda::settings::json::ThresholdSettings::Threshold::YEN:
+      joda::log::logWarning("Not supported threshold algorithm selected. Using MANUAL as fallback.");
     case joda::settings::json::ThresholdSettings::Threshold::MANUAL:
       mThresoldMethod = std::make_shared<img::ThresholdManual>(thresholdValue);
       break;

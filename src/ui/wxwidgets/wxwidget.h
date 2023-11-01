@@ -246,6 +246,7 @@ namespace joda
 
 					// Virtual event handlers, override them in your derived class
 					virtual void onChannelTypeChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onAiCheckBox( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onPreviewClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
 

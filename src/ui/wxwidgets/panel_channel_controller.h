@@ -67,7 +67,7 @@ private:
       {{0, "NONE"}, {1, "PROJECT_MAX_INTENSITY"}, {2, "PROJECT_3D"}}};
 
   static inline joda::helper::TwoWayMap<int, std::string> THRESHOLD_METHOD{
-      {{0, "MANUAL"}, {1, "LI"}, {2, "MIN_ERROR"}, {3, "TRIANGLE"}}};
+      {{0, "MANUAL"}, {1, "LI"}, {2, "MIN_ERROR"}, {3, "TRIANGLE"}, {4, "MOMENTS"}}};
 
   static inline joda::helper::TwoWayMap<int, int16_t> GAUSSIAN_BLUR{{{0, 0}, {1, 3}, {2, 5}, {3, 7}, {4, 11}, {5, 13}}};
 
@@ -76,6 +76,7 @@ private:
   void onRemoveClicked(wxCommandEvent &event) override;
   void onPreviewClicked(wxCommandEvent &event) override;
   void onChannelTypeChanged(wxCommandEvent &event) override;
+  void onAiCheckBox(wxCommandEvent &event) override;
 
   FrameMainController *mMainFrame;
   std::multimap<int, std::shared_ptr<DialogImageController>> mPreviewDialogs;

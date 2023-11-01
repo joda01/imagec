@@ -267,4 +267,19 @@ void PanelChannelController::onChannelTypeChanged(wxCommandEvent &event)
   }
 }
 
+///
+/// \brief      Disable threshold if AI is clicked
+/// \author     Joachim Danmayr
+///
+void PanelChannelController::onAiCheckBox(wxCommandEvent &event)
+{
+  if(mCheckUseAI->GetValue()) {
+    panelThresholdMethod->Enable(false);
+    panelMinThreshold->Enable(false);
+  } else {
+    panelThresholdMethod->Enable(true);
+    panelMinThreshold->Enable(true);
+  }
+}
+
 }    // namespace joda::ui::wxwidget
