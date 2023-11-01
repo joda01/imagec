@@ -28,11 +28,11 @@
 #include <wx/statbmp.h>
 #include <wx/choice.h>
 #include <wx/spinctrl.h>
-#include <wx/statline.h>
 #include <wx/notebook.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
 #include <wx/gauge.h>
+#include <wx/statline.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
@@ -86,12 +86,6 @@ namespace joda
 					wxStaticBitmap* iconMaxCellRadius;
 					wxSpinCtrl* mSpinMaxCellRadius;
 					wxStaticText* mLabelMaxCellRadius;
-					wxStaticLine* m_staticline7;
-					wxStaticText* mLabelSpotRemoval;
-					wxPanel* panelTetraspeckChannel;
-					wxStaticBitmap* iconTetraspeckChannel;
-					wxChoice* mChoiceTetraspeckChannel;
-					wxStaticText* mLabelTetraspeckChannel;
 					wxButton* mButtonAddIntersection;
 					wxStatusBar* m_statusBar1;
 
@@ -193,6 +187,7 @@ namespace joda
 					wxStaticBitmap* iconMarginCrop;
 					wxSpinCtrl* mSpinMarginCrop;
 					wxStaticText* mLabelMarginCrop;
+					wxStaticLine* mLineDescription;
 					wxPanel* panelMedianBGSubtract;
 					wxStaticBitmap* iconMedianBGSubtract;
 					wxChoice* mChoiceMedianBGSubtract;
@@ -215,7 +210,6 @@ namespace joda
 					wxChoice* mDropDownGausianBlurRepeat;
 					wxStaticText* mLabelGausianBluer;
 					wxStaticText* mLabelDescription;
-					wxStaticLine* mLineDescription;
 					wxPanel* panelUseAI;
 					wxStaticBitmap* iconUseAI;
 					wxCheckBox* mCheckUseAI;
@@ -241,12 +235,17 @@ namespace joda
 					wxStaticBitmap* iconParticleSize;
 					wxSpinCtrl* mSpinSnapArea;
 					wxStaticText* mLabelSnapArea;
+					wxPanel* panelReferenceChannel;
+					wxStaticBitmap* iconTetraspeckChannel;
+					wxChoice* mChoiceReferenceSpotChannel;
+					wxStaticText* mLabelTetraspeckChannel;
 					wxStaticLine* mLinePreview;
 					wxButton* mButtonPreview;
 					wxStaticLine* mLineRemove;
 					wxButton* mButtonRemoveChannel;
 
 					// Virtual event handlers, override them in your derived class
+					virtual void onChannelTypeChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onPreviewClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
 

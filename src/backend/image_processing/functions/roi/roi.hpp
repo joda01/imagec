@@ -34,7 +34,8 @@ enum class ParticleValidity : int
   TOO_SMALL            = 0x02,
   TOO_BIG              = 0x04,
   TOO_LESS_CIRCULARITY = 0x08,
-  TOO_LESS_OVERLAPPING = 0x10
+  TOO_LESS_OVERLAPPING = 0x10,
+  REFERENCE_SPOT       = 0x20,
 };
 
 ///
@@ -121,7 +122,9 @@ public:
   }
 
   [[nodiscard]] std::tuple<ROI, bool> calcIntersection(const ROI &roi, const cv::Mat &imageOriginal,
-                                                       float minIntersection) const;
+                                                       float minIntersection, bool createRoi = true) const;
+
+  [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;
 
 private:
   /////////////////////////////////////////////////////

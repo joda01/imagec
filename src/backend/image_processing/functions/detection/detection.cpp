@@ -65,27 +65,29 @@ void DetectionFunction::paintOverlay(cv::Mat &img, const std::vector<OverlaySett
   for(const auto &ov : overlays) {
     cv::Mat mask = img.clone();
 
-    for(int i = 0; i < ov.result.size(); i++) {
-      int left      = ov.result[i].getBoundingBox().x;
-      int top       = ov.result[i].getBoundingBox().y;
-      int width     = ov.result[i].getBoundingBox().width;
-      int height    = ov.result[i].getBoundingBox().height;
+    for(int i = 0; i < ov.result->size(); i++) {
+      auto resultI = ov.result->at(i);
+
+      int left      = resultI.getBoundingBox().x;
+      int top       = resultI.getBoundingBox().y;
+      int width     = resultI.getBoundingBox().width;
+      int height    = resultI.getBoundingBox().height;
       int color_num = i;
 
-      if(ov.paintRectangel && !ov.result[i].getBoundingBox().empty()) {
-        rectangle(mask, ov.result[i].getBoundingBox(), RED, 1 * THICKNESS, cv::LINE_4);
+      if(ov.paintRectangel && !resultI.getBoundingBox().empty()) {
+        rectangle(mask, resultI.getBoundingBox(), RED, 1 * THICKNESS, cv::LINE_4);
       }
-      if(!ov.result[i].getMask().empty() && !ov.result[i].getBoundingBox().empty()) {
+      if(!resultI.getMask().empty() && !resultI.getBoundingBox().empty()) {
         try {
-          mask(ov.result[i].getBoundingBox()).setTo(ov.backgroundColor, ov.result[i].getMask());
+          mask(resultI.getBoundingBox()).setTo(ov.backgroundColor, resultI.getMask());
           std::vector<std::vector<cv::Point>> contours;
-          findContours(ov.result[i].getMask(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
-          drawContours(mask(ov.result[i].getBoundingBox()), contours, -1, ov.borderColor, 1);
+          findContours(resultI.getMask(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+          drawContours(mask(resultI.getBoundingBox()), contours, -1, ov.borderColor, 1);
         } catch(const std::exception &ex) {
           std::cout << "P" << ex.what() << std::endl;
         }
       }
-      std::string label = std::to_string(ov.result[i].getIndex());
+      std::string label = std::to_string(resultI.getIndex());
       // drawLabel(img, label, left, top);
     }
     try {

@@ -12,6 +12,7 @@
 ///
 
 #include "panel_channel_controller.h"
+#include <tiffconf.h>
 #include <wx/gdicmn.h>
 #include <wx/mstream.h>
 #include <memory>
@@ -121,6 +122,7 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
                       std::to_string(static_cast<uint32_t>(channelSettings.getFilter().getMaxParticleSize()));
   mTextParticleSizeRange->SetValue(range);
   mSpinSnapArea->SetValue(channelSettings.getFilter().getSnapAreaSize());
+  mChoiceReferenceSpotChannel->SetSelection(channelSettings.getFilter().getReferenceSpotChannelIndex() + 1);
 }
 
 ///
@@ -180,10 +182,11 @@ nlohmann::json PanelChannelController::getValues()
 
   // Filtering
   auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
-  chSettings["filter"]["min_particle_size"] = min;
-  chSettings["filter"]["max_particle_size"] = max;
-  chSettings["filter"]["min_circularity"]   = mSpinMinCircularity->GetValue();
-  chSettings["filter"]["snap_area_size"]    = mSpinSnapArea->GetValue();
+  chSettings["filter"]["min_particle_size"]            = min;
+  chSettings["filter"]["max_particle_size"]            = max;
+  chSettings["filter"]["min_circularity"]              = mSpinMinCircularity->GetValue();
+  chSettings["filter"]["snap_area_size"]               = mSpinSnapArea->GetValue();
+  chSettings["filter"]["reference_spot_channel_index"] = mChoiceReferenceSpotChannel->GetSelection() - 1;
 
   return chSettings;
 }
@@ -248,6 +251,20 @@ auto PanelChannelController::splitAndConvert(const std::string &input, char deli
   }
 
   return {num1, num2};
+}
+
+///
+/// \brief      Channel type has been changed
+///             Make reference spot panel invisible if not a spot channel
+/// \author     Joachim Danmayr
+///
+void PanelChannelController::onChannelTypeChanged(wxCommandEvent &event)
+{
+  if(mChoiceChannelType->GetSelection() != 0) {
+    panelReferenceChannel->Enable(false);
+  } else {
+    panelReferenceChannel->Enable(true);
+  }
 }
 
 }    // namespace joda::ui::wxwidget

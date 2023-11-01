@@ -25,6 +25,8 @@ void ChannelInfo::stringToType()
     enumType = Type::NUCLEUS;
   } else if(type == "SPOT") {
     enumType = Type::SPOT;
+  } else if(type == "SPOT_REFERENCE") {
+    enumType = Type::SPOT_REFERENCE;
   } else if(type == "BACKGROUND") {
     enumType = Type::BACKGROUND;
   } else if(type == "CELL") {
