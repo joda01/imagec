@@ -542,11 +542,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerMarginCrop->Fit( panelMarginCrop );
 	mSizerChannel->Add( panelMarginCrop, 1, wxEXPAND|wxTOP, 5 );
 
-	mLineDescription = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	mLineDescription->SetBackgroundColour( wxColour( 0, 0, 0 ) );
-
-	mSizerChannel->Add( mLineDescription, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
-
 	panelMedianBGSubtract = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelMedianBGSubtract->SetMaxSize( wxSize( -1,65 ) );
 
@@ -720,6 +715,11 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mLabelDescription->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
 
 	mSizerChannel->Add( mLabelDescription, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	mLineDescription = new wxStaticLine( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	mLineDescription->SetBackgroundColour( wxColour( 0, 0, 0 ) );
+
+	mSizerChannel->Add( mLineDescription, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 	panelUseAI = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelUseAI->SetMaxSize( wxSize( -1,35 ) );
@@ -981,7 +981,22 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	// Connect Events
 	mChoiceChannelType->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onChannelTypeChanged ), NULL, this );
+	mChoiceChannelIndex->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onChannelIndexChanged ), NULL, this );
+	mChoiceZStack->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onZStackSettingsChanged ), NULL, this );
+	mSpinMarginCrop->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onMarginCropChanged ), NULL, this );
+	mChoiceMedianBGSubtract->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onMedianBGSubtractChanged ), NULL, this );
+	mSpinRollingBall->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onRollingBallChanged ), NULL, this );
+	mChoiceBGSubtraction->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onBgSubtractChanged ), NULL, this );
+	mDropDownSmoothingRepeat->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSmoothingChanged ), NULL, this );
+	mDropdownGausianBlur->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
+	mDropDownGausianBlurRepeat->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
 	mCheckUseAI->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PanelChannel::onAiCheckBox ), NULL, this );
+	mChoiceThresholdMethod->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onThresholdMethodChanged ), NULL, this );
+	mSpinMinThreshold->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onMinThresholdChanged ), NULL, this );
+	mSpinMinCircularity->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( PanelChannel::onMinCircularityChanged ), NULL, this );
+	mTextParticleSizeRange->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PanelChannel::onParticleSizeChanged ), NULL, this );
+	mSpinSnapArea->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onSnapAreaChanged ), NULL, this );
+	mChoiceReferenceSpotChannel->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSpotRemovalChanged ), NULL, this );
 	mButtonPreview->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
 	mButtonRemoveChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 }
@@ -990,7 +1005,22 @@ PanelChannel::~PanelChannel()
 {
 	// Disconnect Events
 	mChoiceChannelType->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onChannelTypeChanged ), NULL, this );
+	mChoiceChannelIndex->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onChannelIndexChanged ), NULL, this );
+	mChoiceZStack->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onZStackSettingsChanged ), NULL, this );
+	mSpinMarginCrop->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onMarginCropChanged ), NULL, this );
+	mChoiceMedianBGSubtract->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onMedianBGSubtractChanged ), NULL, this );
+	mSpinRollingBall->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onRollingBallChanged ), NULL, this );
+	mChoiceBGSubtraction->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onBgSubtractChanged ), NULL, this );
+	mDropDownSmoothingRepeat->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSmoothingChanged ), NULL, this );
+	mDropdownGausianBlur->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
+	mDropDownGausianBlurRepeat->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
 	mCheckUseAI->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PanelChannel::onAiCheckBox ), NULL, this );
+	mChoiceThresholdMethod->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onThresholdMethodChanged ), NULL, this );
+	mSpinMinThreshold->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onMinThresholdChanged ), NULL, this );
+	mSpinMinCircularity->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( PanelChannel::onMinCircularityChanged ), NULL, this );
+	mTextParticleSizeRange->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PanelChannel::onParticleSizeChanged ), NULL, this );
+	mSpinSnapArea->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onSnapAreaChanged ), NULL, this );
+	mChoiceReferenceSpotChannel->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSpotRemovalChanged ), NULL, this );
 	mButtonPreview->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
 	mButtonRemoveChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 

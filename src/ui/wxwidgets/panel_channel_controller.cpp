@@ -71,6 +71,30 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
 }
 
 ///
+/// \brief      On preview clicked
+/// \author     Joachim Danmayr
+/// \return
+///
+void PanelChannelController::updatePreview()
+{
+  settings::json::ChannelSettings chs;
+  chs.loadConfigFromString(getValues().dump());
+  auto chIdx              = chs.getChannelInfo().getChannelIndex();
+  auto firstPreviewDialog = mPreviewDialogs.find(chIdx);
+  // Check if there is an open preview dialog
+  if(firstPreviewDialog != mPreviewDialogs.end()) {
+    auto ret = mMainFrame->getController()->preview(chs, 0);
+    wxMemoryInputStream stream(ret.data.data(), ret.data.size());
+    wxImage image;
+    if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
+      wxLogError("Failed to load PNG image from bytes.");
+    } else {
+      firstPreviewDialog->second->updateImage(image);
+    }
+  }
+}
+
+///
 /// \brief      Initializes the UI elements with the values from the channel settings
 /// \author     Joachim Danmayr
 /// \param[in]  channelSettings  Channel settings
@@ -123,6 +147,10 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
   mTextParticleSizeRange->SetValue(range);
   mSpinSnapArea->SetValue(channelSettings.getFilter().getSnapAreaSize());
   mChoiceReferenceSpotChannel->SetSelection(channelSettings.getFilter().getReferenceSpotChannelIndex() + 1);
+
+  wxCommandEvent a;
+  onChannelTypeChanged(a);
+  onAiCheckBox(a);
 }
 
 ///
@@ -265,6 +293,7 @@ void PanelChannelController::onChannelTypeChanged(wxCommandEvent &event)
   } else {
     panelReferenceChannel->Enable(true);
   }
+  updatePreview();
 }
 
 ///
@@ -280,6 +309,72 @@ void PanelChannelController::onAiCheckBox(wxCommandEvent &event)
     panelThresholdMethod->Enable(true);
     panelMinThreshold->Enable(true);
   }
+  updatePreview();
+}
+
+///
+/// \brief      Min threshold changed
+/// \author     Joachim Danmayr
+///
+void PanelChannelController::onMinThresholdChanged(wxSpinEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onChannelIndexChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onZStackSettingsChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onMarginCropChanged(wxSpinEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onMedianBGSubtractChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onRollingBallChanged(wxSpinEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onBgSubtractChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onSmoothingChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onGausianBlurChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onGausianBlurRepeatChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onThresholdMethodChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onMinCircularityChanged(wxSpinDoubleEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onParticleSizeChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onSnapAreaChanged(wxSpinEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onSpotRemovalChanged(wxCommandEvent &event)
+{
+  updatePreview();
 }
 
 }    // namespace joda::ui::wxwidget

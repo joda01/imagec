@@ -73,11 +73,29 @@ private:
 
 private:
   /////////////////////////////////////////////////////
+  void updatePreview();
+
   void onRemoveClicked(wxCommandEvent &event) override;
   void onPreviewClicked(wxCommandEvent &event) override;
   void onChannelTypeChanged(wxCommandEvent &event) override;
   void onAiCheckBox(wxCommandEvent &event) override;
+  void onMinThresholdChanged(wxSpinEvent &event) override;
+  void onChannelIndexChanged(wxCommandEvent &event) override;
+  void onZStackSettingsChanged(wxCommandEvent &event) override;
+  void onMarginCropChanged(wxSpinEvent &event) override;
+  void onMedianBGSubtractChanged(wxCommandEvent &event) override;
+  void onRollingBallChanged(wxSpinEvent &event) override;
+  void onBgSubtractChanged(wxCommandEvent &event) override;
+  void onSmoothingChanged(wxCommandEvent &event) override;
+  void onGausianBlurChanged(wxCommandEvent &event) override;
+  void onGausianBlurRepeatChanged(wxCommandEvent &event) override;
+  void onThresholdMethodChanged(wxCommandEvent &event) override;
+  void onMinCircularityChanged(wxSpinDoubleEvent &event) override;
+  void onParticleSizeChanged(wxCommandEvent &event) override;
+  void onSnapAreaChanged(wxSpinEvent &event) override;
+  void onSpotRemovalChanged(wxCommandEvent &event) override;
 
+  /////////////////////////////////////////////////////
   FrameMainController *mMainFrame;
   std::multimap<int, std::shared_ptr<DialogImageController>> mPreviewDialogs;
 };

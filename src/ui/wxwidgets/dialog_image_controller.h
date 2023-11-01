@@ -23,7 +23,9 @@ namespace joda::ui::wxwidget {
 class ImageZoomScrollWidget : public wxScrolledWindow
 {
 public:
-  ImageZoomScrollWidget(wxWindow *parent, wxImage image);
+  ImageZoomScrollWidget(wxWindow *parent, wxImage &image);
+
+  void updateImage(wxImage& image);
 
 private:
   /////////////////////////////////////////////////////
@@ -57,6 +59,8 @@ public:
   DialogImageController(wxImage &img, wxWindow *parent, wxWindowID id = wxID_ANY, const wxString &title = wxEmptyString,
                         const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(424, 244),
                         long style = wxCAPTION | wxCLOSE_BOX);
+
+  void updateImage(wxImage &image);
 
 private:
   /////////////////////////////////////////////////////

@@ -187,7 +187,6 @@ namespace joda
 					wxStaticBitmap* iconMarginCrop;
 					wxSpinCtrl* mSpinMarginCrop;
 					wxStaticText* mLabelMarginCrop;
-					wxStaticLine* mLineDescription;
 					wxPanel* panelMedianBGSubtract;
 					wxStaticBitmap* iconMedianBGSubtract;
 					wxChoice* mChoiceMedianBGSubtract;
@@ -210,6 +209,7 @@ namespace joda
 					wxChoice* mDropDownGausianBlurRepeat;
 					wxStaticText* mLabelGausianBluer;
 					wxStaticText* mLabelDescription;
+					wxStaticLine* mLineDescription;
 					wxPanel* panelUseAI;
 					wxStaticBitmap* iconUseAI;
 					wxCheckBox* mCheckUseAI;
@@ -246,7 +246,22 @@ namespace joda
 
 					// Virtual event handlers, override them in your derived class
 					virtual void onChannelTypeChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onChannelIndexChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onZStackSettingsChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onMarginCropChanged( wxSpinEvent& event ) { event.Skip(); }
+					virtual void onMedianBGSubtractChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onRollingBallChanged( wxSpinEvent& event ) { event.Skip(); }
+					virtual void onBgSubtractChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onSmoothingChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onGausianBlurChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onGausianBlurRepeatChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAiCheckBox( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onThresholdMethodChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onMinThresholdChanged( wxSpinEvent& event ) { event.Skip(); }
+					virtual void onMinCircularityChanged( wxSpinDoubleEvent& event ) { event.Skip(); }
+					virtual void onParticleSizeChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onSnapAreaChanged( wxSpinEvent& event ) { event.Skip(); }
+					virtual void onSpotRemovalChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onPreviewClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
 

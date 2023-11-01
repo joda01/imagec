@@ -24,14 +24,28 @@ namespace joda::ui::wxwidget {
 ///
 DialogImageController::DialogImageController(wxImage &image, wxWindow *parent, wxWindowID id, const wxString &title,
                                              const wxPoint &pos, const wxSize &size, long style) :
-    DialogImage(parent, id, title, pos, size, style)
+    DialogImage(parent, id, title, pos, size, style),
+    mZoomScrollWidget(new ImageZoomScrollWidget(this, image))
 {
   SetMinSize(wxSize{800, 600});
-  mZoomScrollWidget = new ImageZoomScrollWidget(this, image);
-  wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+  auto *sizer = new wxBoxSizer(wxVERTICAL);
   sizer->Add(mZoomScrollWidget, 1, wxEXPAND | wxALL, 10);
   SetSizerAndFit(sizer);
   Layout();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageController::updateImage(wxImage &image)
+{
+  if(nullptr != mZoomScrollWidget) {
+    mZoomScrollWidget->updateImage(image);
+  }
 }
 
 ///
@@ -39,7 +53,7 @@ DialogImageController::DialogImageController(wxImage &image, wxWindow *parent, w
 /// \author
 /// \brief
 ///
-ImageZoomScrollWidget::ImageZoomScrollWidget(wxWindow *parent, wxImage image) :
+ImageZoomScrollWidget::ImageZoomScrollWidget(wxWindow *parent, wxImage &image) :
     wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxHSCROLL), mImage(image),
     mZoomFactor(800.0 / (float) mImage.GetHeight()), mZoomFactorMin(mZoomFactor)
 {
@@ -54,6 +68,19 @@ ImageZoomScrollWidget::ImageZoomScrollWidget(wxWindow *parent, wxImage image) :
   float ratio = (float) mImage.GetWidth() / (float) mImage.GetHeight();
   float width = (float) 800 * ratio;
   SetMinSize(wxSize{(int) width, 800});
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ImageZoomScrollWidget::updateImage(wxImage &image)
+{
+  mImage = image;
+  Refresh();
 }
 
 void ImageZoomScrollWidget::OnPaint(wxPaintEvent &event)
