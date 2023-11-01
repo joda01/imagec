@@ -247,24 +247,26 @@ private:
   {
     if(nullptr != referenceChannelResults) {
       int32_t referenceSpotChannelIndex = channelSetting.getFilter().getReferenceSpotChannelIndex();
-      auto referenceSpotChannel         = referenceChannelResults->find(referenceSpotChannelIndex);
-      if(referenceSpotChannel != referenceChannelResults->end()) {
-        //
-        // Remove reference spots
-        //
-        for(auto const &referenceRoi : referenceSpotChannel->second.result) {
-          for(auto &spot : detectionResult.result) {
-            if(referenceRoi.isValid() && spot.isValid()) {
-              auto isIntersecting = referenceRoi.isIntersecting(spot, 0.7);
-              if(isIntersecting) {
-                spot.setValidity(func::ParticleValidity::REFERENCE_SPOT);
-                break;
+      if(referenceSpotChannelIndex >= 0) {
+        auto referenceSpotChannel = referenceChannelResults->find(referenceSpotChannelIndex);
+        if(referenceSpotChannel != referenceChannelResults->end()) {
+          //
+          // Remove reference spots
+          //
+          for(auto const &referenceRoi : referenceSpotChannel->second.result) {
+            for(auto &spot : detectionResult.result) {
+              if(referenceRoi.isValid() && spot.isValid()) {
+                auto isIntersecting = referenceRoi.isIntersecting(spot, 0.7);
+                if(isIntersecting) {
+                  spot.setValidity(func::ParticleValidity::REFERENCE_SPOT);
+                  break;
+                }
               }
             }
           }
+        } else {
+          joda::log::logWarning("A reference channel index was selected which is not part of the channel list.");
         }
-      } else {
-        joda::log::logWarning("A reference channel index was selected which is not part of the channel list.");
       }
     }
   }

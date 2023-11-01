@@ -271,6 +271,14 @@ std::string Table::validityToString(joda::func::ParticleValidity val)
     }
     ret += "circ.";
   }
+
+  if((joda::func::ParticleValidity)((int) val & (int) joda::func::ParticleValidity::REFERENCE_SPOT) ==
+     joda::func::ParticleValidity::REFERENCE_SPOT) {
+    if(!ret.empty()) {
+      ret += " & ";
+    }
+    ret += "ref spot.";
+  }
   return ret;
 }
 

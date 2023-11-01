@@ -52,6 +52,7 @@ public:
       case settings::json::ChannelInfo::Type::NUCLEUS:
         return joda::algo::ImageProcessor<::joda::algo::NucleusCounter>::executeAlgorithm(
             imagePath, channelSetting, tileIndex, referenceChannelResults);
+      case settings::json::ChannelInfo::Type::SPOT_REFERENCE:
       case settings::json::ChannelInfo::Type::SPOT:
         return joda::algo::ImageProcessor<::joda::algo::SpotDetection>::executeAlgorithm(
             imagePath, channelSetting, tileIndex, referenceChannelResults);

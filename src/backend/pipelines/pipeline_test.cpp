@@ -105,13 +105,13 @@ TEST_CASE("pipeline:test:nucleus", "[pipeline_test_nucleus]")
 TEST_CASE("pipeline:test:spots_real", "[pipeline_test_spots_real]")
 {
   joda::ctrl::Controller controller;
-  controller.setWorkingDirectory("test_spot/evanalyzer_comp");
+  controller.setWorkingDirectory("test/test_spot/evanalyzer_comp");
   joda::settings::json::AnalyzeSettings settings;
-  settings.loadConfigFromFile("test_spot/evanalyzer_comp/mysettings.json");
+  settings.loadConfigFromFile("test/test_spot/evanalyzer_comp/mysettings.json");
   joda::helper::ImageFileContainer imageFileContainer;
-  imageFileContainer.setWorkingDirectory("test_spot/evanalyzer_comp");
+  imageFileContainer.setWorkingDirectory("test/test_spot/evanalyzer_comp");
   sleep(1);
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test_spot/evanalyzer_comp", &imageFileContainer,
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_spot/evanalyzer_comp", &imageFileContainer,
                                                controller.calcOptimalThreadNumber(settings, 0));
 
   while(true) {
