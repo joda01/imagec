@@ -68,12 +68,46 @@ public:
 
   [[nodiscard]] auto getBoundingBox() const -> const Boxes &
   {
-    return box;
+    return mBoundingBox;
   }
 
   [[nodiscard]] auto getMask() const -> const cv::Mat &
   {
-    return boxMask;
+    return mMask;
+  }
+
+  [[nodiscard]] auto getContour() const -> const std::vector<cv::Point> &
+  {
+    return mMaskContours;
+  }
+
+  [[nodiscard]] auto getSnapAreaBoundingBox() const -> const Boxes &
+  {
+    if(hasSnapArea()) {
+      return mSnapAreaBoundingBox;
+    }
+    return mBoundingBox;
+  }
+
+  [[nodiscard]] auto getSnapAreaMask() const -> const cv::Mat &
+  {
+    if(hasSnapArea()) {
+      return mSnapAreaMask;
+    }
+    return mMask;
+  }
+
+  [[nodiscard]] auto getSnapAreaContour() const -> const std::vector<cv::Point> &
+  {
+    if(hasSnapArea()) {
+      return mSnapAreaMaskContours;
+    }
+    return mMaskContours;
+  }
+
+  [[nodiscard]] auto hasSnapArea() const -> bool
+  {
+    return mHasSnapArea;
   }
 
   [[nodiscard]] auto getIntensity() const
@@ -128,23 +162,32 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  void calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int32_t maxHeight);
   void applyParticleFilter(const joda::settings::json::ChannelFiltering *filter);
   [[nodiscard]] double calcPerimeter(const std::vector<cv::Point> &) const;
   [[nodiscard]] double getSmoothedLineLength(const std::vector<cv::Point> &) const;
   [[nodiscard]] double getLength(const std::vector<cv::Point> &points, bool closeShape) const;
   [[nodiscard]] double getTracedPerimeter(const std::vector<cv::Point> &points) const;
   /////////////////////////////////////////////////////
-  uint32_t index;                     ///< Index in the prediction array
-  Confidence confidence;              ///< Probability
-  ClassId classId;                    ///< Class id
-  Boxes box;                          ///< Rectangle around the prediction
-  cv::Mat boxMask;                    ///< Segmentation mask
-  double intensity    = 0;            ///< Avg intensity of the masking area
-  double intensityMin = USHRT_MAX;    ///< Min intensity of the masking area
-  double intensityMax = 0;            ///< Max intensity of the masking area
-  uint64_t areaSize   = 0;            ///< size of the masking area [px^2 / px^3]
-  double perimeter    = 0;            ///< Perimter (boundary size) [px]
-  float circularity{};                ///< Circularity of the masking area [0-1]
+  uint32_t index;           ///< Index in the prediction array
+  Confidence confidence;    ///< Probability
+  ClassId classId;          ///< Class id
+
+  Boxes mBoundingBox;    ///< Rectangle around the prediction
+  cv::Mat mMask;         ///< Segmentation mask
+  std::vector<cv::Point> mMaskContours;
+
+  Boxes mSnapAreaBoundingBox;    ///< Rectangle around the prediction with snap area
+  cv::Mat mSnapAreaMask;         ///< Segmentation mask with snap area
+  std::vector<cv::Point> mSnapAreaMaskContours;
+
+  double intensity          = 0;    ///< Avg intensity of the masking area
+  double intensityMin       = 0;    ///< Min intensity of the masking area
+  double intensityMax       = 0;    ///< Max intensity of the masking area
+  uint64_t areaSize         = 0;    ///< size of the masking area [px^2 / px^3]
+  double perimeter          = 0;    ///< Perimter (boundary size) [px]
+  float circularity         = 0;    ///< Circularity of the masking area [0-1]
   ParticleValidity validity = ParticleValidity::UNKNOWN;
+  bool mHasSnapArea         = false;
 };
 }    // namespace joda::func
