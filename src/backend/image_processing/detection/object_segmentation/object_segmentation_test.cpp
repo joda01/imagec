@@ -14,7 +14,8 @@ TEST_CASE("thresholdt", "[tjreshold]")
 {
   cv::Mat img = JpgLoader::loadEntireImage("test_cell/test.jpg");
   ::joda::settings::json::ChannelSettings ch;
-  joda::func::threshold::ObjectSegmentation seg(ch.getFilter(), 1000);
+  joda::func::threshold::ObjectSegmentation seg(ch.getFilter(), 1000,
+                                                joda::settings::json::ThresholdSettings::Threshold::MANUAL);
   cv::Mat res;
   auto result = seg.forward(img, img);
   // CHECK(result.result.size() == 15);
