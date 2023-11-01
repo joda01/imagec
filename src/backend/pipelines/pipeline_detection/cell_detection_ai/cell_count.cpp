@@ -18,6 +18,7 @@
 #include <mutex>
 #include <string_view>
 #include "backend/image_processing/detection/ai_object_segmentation/ai_object_segmentation.hpp"
+#include "backend/image_processing/detection/object_segmentation/object_segmentation.hpp"
 
 namespace joda::pipeline::detection {
 
@@ -29,10 +30,17 @@ namespace joda::pipeline::detection {
 auto CellCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
                           const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse
 {
-  auto enhancedContrast = img;
-  joda::func::ai::ObjectSegmentation obj(&channelSetting.getFilter(),
-                                         "imagec_models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
-  return obj.forward(enhancedContrast, imgOriginal);
+  if(channelSetting.getDetectionSettings().getDetectionMode() ==
+     settings::json::ChannelDetection::DetectionMode::THRESHOLD) {
+    joda::func::threshold::ObjectSegmentation th(
+        channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMinError(),
+        channelSetting.getDetectionSettings().getThersholdSettings().getThreshold());
+    return th.forward(img, imgOriginal);
+  } else {
+    joda::func::ai::ObjectSegmentation obj(&channelSetting.getFilter(),
+                                           "imagec_models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
+    return obj.forward(img, imgOriginal);
+  }
 }
 
 }    // namespace joda::pipeline::detection

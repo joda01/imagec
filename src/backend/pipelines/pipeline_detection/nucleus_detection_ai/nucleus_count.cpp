@@ -30,8 +30,6 @@ namespace joda::pipeline::detection {
 auto NucleusCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
                              const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse
 {
-  auto enhancedContrast = img;
-
   if(channelSetting.getDetectionSettings().getDetectionMode() ==
      settings::json::ChannelDetection::DetectionMode::THRESHOLD) {
     joda::func::threshold::ObjectSegmentation th(
@@ -41,7 +39,7 @@ auto NucleusCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
   } else {
     joda::func::ai::ObjectDetector obj(&channelSetting.getFilter(), "imagec_models/nucleus_detection_ex_vivo_v1.onnx",
                                        {"nuclues", "nucleus_no_focus"});
-    return obj.forward(enhancedContrast, imgOriginal);
+    return obj.forward(img, imgOriginal);
   }
 }
 }    // namespace joda::pipeline::detection

@@ -106,7 +106,7 @@ auto Controller::preview(const settings::json::ChannelSettings &settings, int im
   std::vector<uchar> buffer;
   std::vector<int> compression_params;
   compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-  compression_params.push_back(9);
+  compression_params.push_back(0);
   cv::imencode(".png", result.controlImage, buffer, compression_params);    // Assuming you want to encode as JPEG
 
   return {.data = buffer, .height = result.controlImage.rows, .width = result.controlImage.cols};
