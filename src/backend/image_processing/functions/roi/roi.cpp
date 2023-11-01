@@ -67,39 +67,42 @@ void ROI::calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int
     }
   }
 
-  if(snapAreaSize > 0) {
-    // Get center of mass
-    auto x = mBoundingBox.x + (mBoundingBox.width - snapAreaSize) / 2.0F;
-    if(x < 0) {
-      x = 0;
-    }
-    auto y = mBoundingBox.y + (mBoundingBox.height - snapAreaSize) / 2.0F;
-    if(y < 0) {
-      y = 0;
-    }
-    int32_t boundingBoxWith   = snapAreaSize;
-    int32_t boundingBoxHeight = snapAreaSize;
-    if(x + boundingBoxWith > maxWidth) {
-      boundingBoxWith = (maxWidth - x);
-    }
-    if(y + boundingBoxHeight > maxHeight) {
-      boundingBoxHeight = (maxHeight - y);
-    }
+  if(snapAreaSize > 1) {
+    // Snap area must be bigger than actual bounding box
+    if(snapAreaSize > mBoundingBox.width && snapAreaSize > mBoundingBox.height) {
+      // Get center of mass
+      auto x = mBoundingBox.x + (mBoundingBox.width - snapAreaSize) / 2.0F;
+      if(x < 0) {
+        x = 0;
+      }
+      auto y = mBoundingBox.y + (mBoundingBox.height - snapAreaSize) / 2.0F;
+      if(y < 0) {
+        y = 0;
+      }
+      int32_t boundingBoxWith   = snapAreaSize;
+      int32_t boundingBoxHeight = snapAreaSize;
 
-    mSnapAreaBoundingBox = cv::Rect(x, y, boundingBoxWith, boundingBoxHeight);
-    mSnapAreaMask        = cv::Mat::zeros(boundingBoxHeight, boundingBoxWith, CV_8UC1);
-    auto circleRadius    = snapAreaSize / 2.0F;
-    circle(mSnapAreaMask, cv::Point(circleRadius, circleRadius), circleRadius, cv::Scalar(255), -1);
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(mSnapAreaMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
-    if(!contours.empty()) {
-      mSnapAreaMaskContours = contours[0];
+      if(x + boundingBoxWith > maxWidth) {
+        boundingBoxWith = (maxWidth - x);
+      }
+      if(y + boundingBoxHeight > maxHeight) {
+        boundingBoxHeight = (maxHeight - y);
+      }
+
+      mSnapAreaBoundingBox = cv::Rect(x, y, boundingBoxWith, boundingBoxHeight);
+      mSnapAreaMask        = cv::Mat::zeros(boundingBoxHeight, boundingBoxWith, CV_8UC1);
+      auto circleRadius    = snapAreaSize / 2.0F;
+      circle(mSnapAreaMask, cv::Point(circleRadius, circleRadius), circleRadius, cv::Scalar(255), -1);
+      std::vector<std::vector<cv::Point>> contours;
+      cv::findContours(mSnapAreaMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+      if(!contours.empty()) {
+        mSnapAreaMaskContours = contours[0];
+      }
+      mHasSnapArea = true;
     }
-    mHasSnapArea = true;
 
   } else {
-    mSnapAreaBoundingBox = mBoundingBox;
-    mSnapAreaMask        = mMask;
+    mHasSnapArea = false;
   }
 }
 

@@ -83,17 +83,26 @@ public:
 
   [[nodiscard]] auto getSnapAreaBoundingBox() const -> const Boxes &
   {
-    return mSnapAreaBoundingBox;
+    if(hasSnapArea()) {
+      return mSnapAreaBoundingBox;
+    }
+    return mBoundingBox;
   }
 
   [[nodiscard]] auto getSnapAreaMask() const -> const cv::Mat &
   {
-    return mSnapAreaMask;
+    if(hasSnapArea()) {
+      return mSnapAreaMask;
+    }
+    return mMask;
   }
 
   [[nodiscard]] auto getSnapAreaContour() const -> const std::vector<cv::Point> &
   {
-    return mSnapAreaMaskContours;
+    if(hasSnapArea()) {
+      return mSnapAreaMaskContours;
+    }
+    return mMaskContours;
   }
 
   [[nodiscard]] auto hasSnapArea() const -> bool
