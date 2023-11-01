@@ -22,7 +22,12 @@ namespace joda::func::img {
 ///
 /// \class      ThresholdTriangle
 /// \author     Joachim Danmayr
-/// \brief      Triangle thershold calculation
+/// \brief      Zack, G. W., Rogers, W. E. and Latt, S. A., 1977,
+///             Automatic Measurement of Sister Chromatid Exchange Frequency,
+///             Journal of Histochemistry and Cytochemistry 25 (7), pp. 741-753
+///             modified from Johannes Schindelin plugin
+///
+/// \ref        Ported from https://imagej.net/ij/developer/source/ij/process/AutoThresholder.java.html
 ///
 class ThresholdTriangle final : public Threshold
 {
@@ -30,49 +35,109 @@ public:
   using Threshold::Threshold;
 
 private:
-  [[nodiscard]] uint16_t calcThresholdValue(const cv::Mat &srcImg) const
+  [[nodiscard]] uint16_t calcThresholdValue(cv::Mat &histogram) const override
   {
-    // Calculate the histogram of the image
-    cv::Mat histogram;
-    int histSize           = UINT16_MAX;         // Number of bins
-    float range[]          = {0, UINT16_MAX};    // Pixel value range
-    const float *histRange = {range};
-    cv::calcHist(&srcImg, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange);
-
-    int threshold      = 0;
-    double minVariance = std::numeric_limits<double>::max();
-
-    for(int t = 0; t < histSize; t++) {
-      double sumLower        = 0.0;
-      double sumUpper        = 0.0;
-      double sumLowerSquares = 0.0;
-      double sumUpperSquares = 0.0;
-
-      // Calculate sums for the lower and upper classes
-      for(int i = 0; i <= t; i++) {
-        sumLower += histogram.at<float>(i);
-        sumLowerSquares += i * histogram.at<float>(i);
-      }
-      for(int i = t + 1; i < histSize; i++) {
-        sumUpper += histogram.at<float>(i);
-        sumUpperSquares += i * histogram.at<float>(i);
-      }
-
-      // Calculate variances for the lower and upper classes
-      double varianceLower = (sumLowerSquares / sumLower) - (sumLower / sumLower);
-      double varianceUpper = (sumUpperSquares / sumUpper) - (sumUpper / sumUpper);
-
-      // Calculate the weighted sum of variances
-      double weightedVariance = (sumLower * varianceLower + sumUpper * varianceUpper) / (sumLower + sumUpper);
-
-      // Update the threshold if it minimizes the weighted variance
-      if(weightedVariance < minVariance) {
-        minVariance = weightedVariance;
-        threshold   = t;
+    // find min and max
+    int min  = 0;
+    int dmax = 0;
+    int max  = 0;
+    int min2 = 0;
+    for(int i = 0; i < histogram.total(); i++) {
+      if(histogram.at<float>(i) > 0) {
+        min = i;
+        break;
       }
     }
+    if(min > 0) {
+      min--;    // line to the (p==0) point, not to data[min]
+    }
 
-    return std::max(getMinThreshold(), static_cast<uint16_t>(threshold));
+    // The Triangle algorithm cannot tell whether the data is skewed to one side or another.
+    // This causes a problem as there are 2 possible thresholds between the max and the 2 extremes
+    // of the histogram.
+    // Here I propose to find out to which side of the max point the data is furthest, and use that as
+    //  the other extreme.
+    for(int i = 255; i > 0; i--) {
+      if(histogram.at<float>(i) > 0) {
+        min2 = i;
+        break;
+      }
+    }
+    if(min2 < 255) {
+      min2++;    // line to the (p==0) point, not to data[min]
+    }
+
+    for(int i = 0; i < 256; i++) {
+      if(histogram.at<float>(i) > dmax) {
+        max  = i;
+        dmax = histogram.at<float>(i);
+      }
+    }
+    // find which is the furthest side
+    // IJ.log(""+min+" "+max+" "+min2);
+    bool inverted = false;
+    if((max - min) < (min2 - max)) {
+      // reverse the histogram
+      // IJ.log("Reversing histogram.");
+      inverted  = true;
+      int left  = 0;      // index of leftmost element
+      int right = 255;    // index of rightmost element
+      while(left < right) {
+        // exchange the left and right elements
+        int temp                   = histogram.at<float>(left);
+        histogram.at<float>(left)  = histogram.at<float>(right);
+        histogram.at<float>(right) = temp;
+        // move the bounds toward the center
+        left++;
+        right--;
+      }
+      min = 255 - min2;
+      max = 255 - max;
+    }
+
+    if(min == max) {
+      // IJ.log("Triangle:  min == max.");
+      return min;
+    }
+
+    // describe line by nx * x + ny * y - d = 0
+    double nx;
+    double ny;
+    double d;
+    // nx is just the max frequency as the other point has freq=0
+    nx = histogram.at<float>(max);    //-min; // data[min]; //  lowest value bmin = (p=0)% in the image
+    ny = min - max;
+    d  = std::sqrt(nx * nx + ny * ny);
+    nx /= d;
+    ny /= d;
+    d = nx * min + ny * histogram.at<float>(min);
+
+    // find split point
+    int split            = min;
+    double splitDistance = 0;
+    for(int i = min + 1; i <= max; i++) {
+      double newDistance = nx * i + ny * histogram.at<float>(i) - d;
+      if(newDistance > splitDistance) {
+        split         = i;
+        splitDistance = newDistance;
+      }
+    }
+    split--;
+
+    if(inverted) {
+      // The histogram might be used for something else, so let's reverse it back
+      int left  = 0;
+      int right = 255;
+      while(left < right) {
+        int temp                   = histogram.at<float>(left);
+        histogram.at<float>(left)  = histogram.at<float>(right);
+        histogram.at<float>(right) = temp;
+        left++;
+        right--;
+      }
+      return (255 - split);
+    }
+    return split;
   }
 };
 

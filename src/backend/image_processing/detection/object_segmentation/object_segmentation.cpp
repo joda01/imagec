@@ -42,7 +42,7 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFilter
       mThresoldMethod = std::make_shared<img::ThresholdTriangle>(thresholdValue);
       break;
     case joda::settings::json::ThresholdSettings::Threshold::MIN_ERROR:
-      mThresoldMethod = std::make_shared<img::ThresholdMin>(thresholdValue);
+      mThresoldMethod = std::make_shared<img::ThresholdMinError>(thresholdValue);
       break;
     default:
     case joda::settings::json::ThresholdSettings::Threshold::MANUAL:

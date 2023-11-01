@@ -33,7 +33,7 @@ auto SpotDetection::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
                             const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse
 {
   joda::func::threshold::ObjectSegmentation th(
-      channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin(),
+      channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMinError(),
       channelSetting.getDetectionSettings().getThersholdSettings().getThreshold());
   return th.forward(img, imgOriginal);
 }

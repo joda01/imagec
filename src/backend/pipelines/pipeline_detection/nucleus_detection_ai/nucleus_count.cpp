@@ -35,7 +35,7 @@ auto NucleusCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
   if(channelSetting.getDetectionSettings().getDetectionMode() ==
      settings::json::ChannelDetection::DetectionMode::THRESHOLD) {
     joda::func::threshold::ObjectSegmentation th(
-        channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin(),
+        channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMinError(),
         channelSetting.getDetectionSettings().getThersholdSettings().getThreshold());
     return th.forward(img, imgOriginal);
   } else {

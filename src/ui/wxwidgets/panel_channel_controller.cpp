@@ -114,7 +114,7 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
                         channelSettings.getDetectionSettings().getDetectionMode());
   mChoiceThresholdMethod->SetSelection(
       thresholdToIndex(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdString()));
-  mSpinMinThreshold->SetValue(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdMin());
+  mSpinMinThreshold->SetValue(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdMinError());
 
   // Filtering
   mSpinMinCircularity->SetValue(channelSettings.getFilter().getMinCircularity());

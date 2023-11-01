@@ -72,7 +72,7 @@ public:
     return threshold_algorithm;
   }
 
-  auto getThresholdMin() const -> uint16_t
+  auto getThresholdMinError() const -> uint16_t
   {
     return threshold_min;
   }

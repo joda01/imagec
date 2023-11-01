@@ -25,10 +25,17 @@ namespace joda::func::img {
 class ThresholdManual final : public Threshold
 {
 public:
+  /////////////////////////////////////////////////////
   using Threshold::Threshold;
 
 private:
-  [[nodiscard]] uint16_t calcThresholdValue(const cv::Mat &srcImg) const
+  /////////////////////////////////////////////////////
+  [[nodiscard]] uint16_t autoThreshold(const cv::Mat & /*srcImg*/) const override
+  {
+    return getMinThreshold();
+  }
+
+  [[nodiscard]] uint16_t calcThresholdValue(cv::Mat & /*histogram*/) const override
   {
     return getMinThreshold();
   }
