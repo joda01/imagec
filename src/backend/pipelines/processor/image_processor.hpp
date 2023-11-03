@@ -23,6 +23,7 @@
 #include "backend/duration_count/duration_count.h"
 #include "backend/helper/helper.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
+#include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/image_reader/jpg/image_loader_jpg.hpp"
 #include "backend/image_reader/tif/image_loader_tif.hpp"
@@ -37,10 +38,17 @@ static constexpr int64_t MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE = 71680768;
 static constexpr int64_t TILES_TO_LOAD_PER_RUN          = 36;
 static constexpr int32_t TIME_FRAME                     = 0;
 
+enum class DataType
+{
+  TIFF,
+  JPG,
+  BIOFORMATS
+};
+
 struct ChannelProperties
 {
   ImageProperties props;
-  bool isJpg;
+  DataType type;
   std::set<uint32_t> tifDirs;
 };
 
@@ -71,6 +79,15 @@ public:
   }
 };
 
+class BioformatsEntireWrapper
+{
+public:
+  static cv::Mat loadImage(const std::string &filename, uint16_t directory, int offset, int nrOfTilesToRead)
+  {
+    return BioformatsLoader::loadEntireImage(filename, directory);
+  }
+};
+
 //
 // Concept detection classes
 //
@@ -83,7 +100,7 @@ concept detection_t = std::is_base_of<joda::pipeline::detection::Detection, T>::
 template <class T>
 concept image_loader_t =
     std::is_base_of<TiffLoaderEntireWrapper, T>::value || std::is_base_of<TiffLoaderTileWrapper, T>::value ||
-    std::is_base_of<JpgLoaderEntireWrapper, T>::value;
+    std::is_base_of<JpgLoaderEntireWrapper, T>::value || std::is_base_of<BioformatsEntireWrapper, T>::value;
 
 ///< Processing result. Key is the image tile index, value os the detection result of this tile
 
@@ -104,15 +121,19 @@ public:
     // Execute the algorithms
     //
     ChannelProperties chProps = loadChannelProperties(imagePath, channelSetting.getChannelInfo().getChannelIndex());
-    if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE && chProps.type == DataType::TIFF) {
       return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, chProps.tifDirs, tileIndex,
                                                  referenceChannelResults);
     }
-    if(chProps.isJpg) {
+    if(chProps.type == DataType::JPG) {
       return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
                                                   referenceChannelResults);
     }
-    return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
+    if(chProps.type == DataType::TIFF) {
+      return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
+                                                   referenceChannelResults);
+    }
+    return processImage<BioformatsEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
                                                  referenceChannelResults);
   }
 
@@ -283,22 +304,50 @@ private:
     std::filesystem::path path_obj(imagePath);
     std::string filename = path_obj.filename().stem().string();
     ImageProperties imgProperties;
-    bool isJpg = imagePath.ends_with(".jpg");
-    auto id    = DurationCount::start("load img properties");
+    auto id = DurationCount::start("load img properties");
     std::set<uint32_t> tiffDirectories;
-    if(isJpg) {
-      imgProperties = JpgLoader::getImageProperties(imagePath);
-    } else {
-      auto omeInfo    = TiffLoader::getOmeInformation(imagePath);
-      tiffDirectories = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
-      if(tiffDirectories.empty()) {
-        throw std::runtime_error("Selected channel does not contain images!");
+    auto type = getDataType(imagePath);
+    switch(type) {
+      case DataType::JPG: {
+        imgProperties = JpgLoader::getImageProperties(imagePath);
+      } break;
+      case DataType::TIFF: {
+        auto omeInfo    = TiffLoader::getOmeInformation(imagePath);
+        tiffDirectories = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
+        if(tiffDirectories.empty()) {
+          throw std::runtime_error("Selected channel does not contain images!");
+        }
+        imgProperties = TiffLoader::getImageProperties(imagePath, *tiffDirectories.begin());
+      } break;
+      case DataType::BIOFORMATS: {
+        auto [omeInfo, props] = BioformatsLoader::getOmeInformation(imagePath);
+        tiffDirectories       = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
+        if(tiffDirectories.empty()) {
+          throw std::runtime_error("Selected channel does not contain images!");
+        }
+        imgProperties = TiffLoader::getImageProperties(imagePath, *tiffDirectories.begin());
       }
-      imgProperties = TiffLoader::getImageProperties(imagePath, *tiffDirectories.begin());
     }
-    DurationCount::stop(id);
 
-    return ChannelProperties{.props = imgProperties, .isJpg = isJpg, .tifDirs = tiffDirectories};
+    DurationCount::stop(id);
+    return ChannelProperties{.props = imgProperties, .type = type, .tifDirs = tiffDirectories};
+  }
+
+  ///
+  /// \brief      Get data type
+  /// \author     Joachim Danmayr
+  ///
+  static DataType getDataType(const std::string &imagePath)
+  {
+    if(imagePath.ends_with(".jpg") || imagePath.ends_with(".JPG")) {
+      return DataType::JPG;
+    }
+    if(imagePath.ends_with(".tif") || imagePath.ends_with(".TIF") || imagePath.ends_with(".tiff") ||
+       imagePath.ends_with(".TIFF")) {
+      return DataType::TIFF;
+    }
+
+    return DataType::BIOFORMATS;
   }
 };
 }    // namespace joda::algo

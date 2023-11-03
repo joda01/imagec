@@ -25,6 +25,7 @@
 #include "../logger/console_logger.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/helper/thread_pool.hpp"
+#include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
@@ -129,8 +130,10 @@ void Pipeline::analyzeImage(joda::reporting::Table &alloverReport, const std::st
   ImageProperties props;
   if(imagePath.ends_with(".jpg")) {
     props = JpgLoader::getImageProperties(imagePath);
-  } else {
+  } else if(imagePath.ends_with(".tif") || imagePath.ends_with(".tiff")) {
     props = TiffLoader::getImageProperties(imagePath, 0);
+  } else {
+    auto [ome, props] = BioformatsLoader::getOmeInformation(imagePath);
   }
   int64_t runs = 1;
   if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {

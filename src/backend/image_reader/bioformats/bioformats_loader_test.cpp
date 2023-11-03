@@ -11,5 +11,11 @@
 ///
 TEST_CASE("image:loader:bioformats", "[image_loader_bioformats]")
 {
-  auto prop = BioformatsLoader::loadEntireImage("test/test_spot/CD63mNeon_001.vsi", 0);
+  auto img = BioformatsLoader::loadEntireImage("test/test_histo/cond1_MEVnoP_178.vsi", 14);
+
+  // img = img * (256.0F / 65536);
+  cv::Mat grayImageFloat;
+  img.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UINT16_MAX);
+  grayImageFloat *= 12;
+  cv::imwrite("test/img/test_bioformats.png", grayImageFloat);    // A JPG FILE IS BEING SAVED
 }
