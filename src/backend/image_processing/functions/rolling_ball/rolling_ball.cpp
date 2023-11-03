@@ -200,8 +200,8 @@ cv::Mat RollingBallBackground::shrinkImage(const cv::Mat &ip, int shrinkFactor) 
 {
   int width          = ip.cols;
   int height         = ip.rows;
-  int sWidth         = (width + shrinkFactor - 1) / shrinkFactor;
-  int sHeight        = (height + shrinkFactor - 1) / shrinkFactor;
+  int sWidth         = ((float) width + (float) shrinkFactor - 1) / (float) shrinkFactor;
+  int sHeight        = ((float) height + (float) shrinkFactor - 1) / (float) shrinkFactor;
   cv::Mat smallImage = cv::Mat(sHeight, sWidth, CV_32FC1, cv::Scalar(0));
   float min, thispixel;
   for(int ySmall = 0; ySmall < sHeight; ySmall++) {
@@ -209,7 +209,7 @@ cv::Mat RollingBallBackground::shrinkImage(const cv::Mat &ip, int shrinkFactor) 
       min = std::numeric_limits<float>::max();
       for(int j = 0, y = shrinkFactor * ySmall; j < shrinkFactor && y < height; j++, y++) {
         for(int k = 0, x = shrinkFactor * xSmall; k < shrinkFactor && x < width; k++, x++) {
-          thispixel = smallImage.at<float>(x + y * width);
+          thispixel = ip.at<float>(x + y * width);
           if(thispixel < min)
             min = thispixel;
         }
