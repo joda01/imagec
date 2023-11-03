@@ -72,7 +72,7 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
   cv::Mat retValue;
   {
     jmethodID mid =
-        myEnv->GetStaticMethodID(cls, "readImage", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)[[S");
+        myEnv->GetStaticMethodID(cls, "readImage", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)[[I");
     jstring filePath     = myEnv->NewStringUTF(filename.c_str());
     jstring directoryStr = myEnv->NewStringUTF(std::to_string(directory).c_str());
     jstring seriesStr    = myEnv->NewStringUTF(std::to_string(series).c_str());
@@ -92,8 +92,8 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
       row  = (jintArray) myEnv->GetObjectArrayElement(result, i);
       cols = myEnv->GetArrayLength(row);
       data = myEnv->GetIntArrayElements(row, nullptr);
-      for(int j = 0; j < cols; i++) {
-        retValue.at<uint16_t>(i, j) = data[j];
+      for(int j = 0; j < cols; j++) {
+        retValue.at<uint16_t>(j, i) = (uint16_t) (data[j] & 0xFFFF);
       }
       myEnv->ReleaseIntArrayElements(row, data, JNI_ABORT);
     }

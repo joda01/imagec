@@ -6,7 +6,7 @@ import loci.common.DebugTools;
 import loci.formats.IFormatReader;
 
 public class BioFormatsWrapper {
-    public static short[][] readImage(String imagePath, String directory, String series) {
+    public static int[][] readImage(String imagePath, String directory, String series) {
         DebugTools.setRootLevel("OFF");
 
         try {
@@ -24,12 +24,12 @@ public class BioFormatsWrapper {
             int height = formatReader.getSizeY();
             int width = formatReader.getSizeX();
 
-            short[][] mat = new short[height][width];
+            int[][] mat = new int[height][width];
 
             if (bits == 8) {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
-                        int index = (y * width + x) * 2;
+                        int index = (y * width + x);
                         mat[y][x] = imageBytes[index];
                     }
                 }
@@ -38,7 +38,7 @@ public class BioFormatsWrapper {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
                         int index = (y * width + x) * 2;
-                        mat[y][x] = (short) (imageBytes[index] | imageBytes[index + 1] << 8);
+                        mat[y][x] = (imageBytes[index] & 0xFF) | ((imageBytes[index + 1] & 0xFF) << 8);
                     }
                 }
             }
@@ -52,7 +52,7 @@ public class BioFormatsWrapper {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        short[][] imageBytes = new short[1][1];
+        int[][] imageBytes = new int[1][1];
         imageBytes[0][0] = 7;
         return imageBytes;
     }
