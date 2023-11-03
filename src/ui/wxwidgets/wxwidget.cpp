@@ -14,6 +14,8 @@
 #include "../../res/blur_20.png.h"
 #include "../../res/bursts_20.png.h"
 #include "../../res/centre_point_20.png.h"
+#include "../../res/circle_20.png.h"
+#include "../../res/circle_x_20.png.h"
 #include "../../res/combine_20.png.h"
 #include "../../res/contrast_20.png.h"
 #include "../../res/cpu_20.png.h"
@@ -387,8 +389,8 @@ DialogAbout::DialogAbout( wxWindow* parent, wxWindowID id, const wxString& title
 	mIconLogo = new wxStaticBitmap( this, wxID_ANY, about_logo_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	mSizerAbout->Add( mIconLogo, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	mLabelTitle = new wxStaticText( this, wxID_ANY, _("<b>imageC 1.0.0-preview</b>\n<i>Licensed under GPL-v3</i>\n\nPreferably for use in the non-profit research environment.\n\n<b>Many thanks</b> for your help in setting up this project to Melanie Schuerz and Anna Mueller.\n\n<b>I would also like to thank</b>\nMelanie Schuerz, Anna Mueller, Tanja Plank, Maria Jartisch, Heloisa Melobenirschke and Patricia Hrasnova for their support in AI training.\n\nIcons from <i>https://icons8.com/</i>\n\n<i>copyright 2023 Joachim Danmayr</i>\n\n...\n\n"), wxDefaultPosition, wxDefaultSize, 0 );
-	mLabelTitle->SetLabelMarkup( _("<b>imageC 1.0.0-preview</b>\n<i>Licensed under GPL-v3</i>\n\nPreferably for use in the non-profit research environment.\n\n<b>Many thanks</b> for your help in setting up this project to Melanie Schuerz and Anna Mueller.\n\n<b>I would also like to thank</b>\nMelanie Schuerz, Anna Mueller, Tanja Plank, Maria Jartisch, Heloisa Melobenirschke and Patricia Hrasnova for their support in AI training.\n\nIcons from <i>https://icons8.com/</i>\n\n<i>copyright 2023 Joachim Danmayr</i>\n\n...\n\n") );
+	mLabelTitle = new wxStaticText( this, wxID_ANY, _("<b>imageC 1.0.0-preview</b>\n<i>Licensed under GPL-v3</i>\n\nPreferably for use in the non-profit research environment.\n\n<b>Many thanks</b> for your help in setting up this project to Melanie Schuerz and Anna Mueller.\n\n<b>I would also like to thank</b>\nMelanie Schuerz, Anna Mueller, Tanja Plank, Maria Jartisch, Heloisa Melobenirschke and Patricia Hrasnova for their support in AI training.\n\nIcons from <i>https://icons8.com/</i>\n\n<i>copyright 2023 Joachim Danmayr</i>\n"), wxDefaultPosition, wxSize( -1,350 ), 0 );
+	mLabelTitle->SetLabelMarkup( _("<b>imageC 1.0.0-preview</b>\n<i>Licensed under GPL-v3</i>\n\nPreferably for use in the non-profit research environment.\n\n<b>Many thanks</b> for your help in setting up this project to Melanie Schuerz and Anna Mueller.\n\n<b>I would also like to thank</b>\nMelanie Schuerz, Anna Mueller, Tanja Plank, Maria Jartisch, Heloisa Melobenirschke and Patricia Hrasnova for their support in AI training.\n\nIcons from <i>https://icons8.com/</i>\n\n<i>copyright 2023 Joachim Danmayr</i>\n") );
 	mLabelTitle->Wrap( -1 );
 	mSizerAbout->Add( mLabelTitle, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -863,7 +865,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	iDescription1121 = new wxStaticBitmap( panelParticleSize, wxID_ANY, all_out_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerParticleSize2->Add( iDescription1121, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	mTextParticleSizeRange = new wxTextCtrl( panelParticleSize, wxID_ANY, _("5-2147483647"), wxDefaultPosition, wxDefaultSize, 0 );
+	mTextParticleSizeRange = new wxTextCtrl( panelParticleSize, wxID_ANY, _("0-Inf."), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerParticleSize2->Add( mTextParticleSizeRange, 1, wxEXPAND, 5 );
 
 
@@ -1166,6 +1168,30 @@ DialogImage::DialogImage( wxWindow* parent, wxWindowID id, const wxString& title
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 
+	mSizer = new wxBoxSizer( wxVERTICAL );
+
+	mImageDisplayProgress = new wxGauge( this, wxID_ANY, 2000, wxDefaultPosition, wxSize( -1,-1 ), wxGA_HORIZONTAL );
+	mImageDisplayProgress->SetValue( 1 );
+	mSizer->Add( mImageDisplayProgress, 0, wxALL|wxEXPAND, 5 );
+
+	m_toolBar3 = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
+	m_bitmap24 = new wxStaticBitmap( m_toolBar3, wxID_ANY, circle_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	m_toolBar3->AddControl( m_bitmap24 );
+	mValidSpots = new wxStaticText( m_toolBar3, wxID_ANY, _(" Valid: ..."), wxDefaultPosition, wxSize( 100,-1 ), 0 );
+	mValidSpots->Wrap( -1 );
+	m_toolBar3->AddControl( mValidSpots );
+	m_bitmap22 = new wxStaticBitmap( m_toolBar3, wxID_ANY, circle_x_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	m_toolBar3->AddControl( m_bitmap22 );
+	mInvalidSpots = new wxStaticText( m_toolBar3, wxID_ANY, _(" Filtered: ..."), wxDefaultPosition, wxSize( 100,-1 ), 0 );
+	mInvalidSpots->Wrap( -1 );
+	m_toolBar3->AddControl( mInvalidSpots );
+	m_toolBar3->Realize();
+
+	mSizer->Add( m_toolBar3, 0, wxEXPAND, 5 );
+
+
+	this->SetSizer( mSizer );
+	this->Layout();
 
 	this->Centre( wxBOTH );
 }

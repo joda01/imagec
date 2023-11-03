@@ -15,6 +15,7 @@ FrameMainController::FrameMainController(wxWindow *parent, joda::ctrl::Controlle
     frameMain(parent), mPipelineController(pipelineController)
 {
   mRefreshTimer = std::make_shared<std::thread>(&FrameMainController::refreshFunction, this);
+  mButtonSettings->Enable(false);
   addChannel();
 }
 

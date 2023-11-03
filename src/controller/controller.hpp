@@ -42,6 +42,7 @@ public:
     std::vector<uchar> data;
     int height;
     int width;
+    joda::func::DetectionResults detectionResult;
   };
   auto preview(const settings::json::ChannelSettings &settings, int imgIndex) -> Preview;
   auto getImageProperties(int imgIndex) -> ImageProperties;

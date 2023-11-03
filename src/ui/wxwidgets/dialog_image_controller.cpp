@@ -11,9 +11,13 @@
 
 #include "dialog_image_controller.h"
 #include <wx/dcbuffer.h>
+#include <memory>
 #include <string>
+#include <thread>
 
 namespace joda::ui::wxwidget {
+
+using namespace std::chrono_literals;
 
 ///
 /// \brief
@@ -27,10 +31,10 @@ DialogImageController::DialogImageController(wxWindow *parent, wxWindowID id, co
     DialogImage(parent, id, title, pos, size, style),
     mZoomScrollWidget(new ImageZoomScrollWidget(this))
 {
+  mProgressThread = std::make_shared<std::thread>(&DialogImageController::progressThread, this);
   SetMinSize(wxSize{800, 600});
-  auto *sizer = new wxBoxSizer(wxVERTICAL);
-  sizer->Add(mZoomScrollWidget, 1, wxEXPAND | wxALL, 10);
-  SetSizerAndFit(sizer);
+  mSizer->Add(mZoomScrollWidget, 1, wxEXPAND | wxALL, 10);
+  Fit();
   Layout();
 }
 
@@ -41,11 +45,87 @@ DialogImageController::DialogImageController(wxWindow *parent, wxWindowID id, co
 /// \param[out]
 /// \return
 ///
-void DialogImageController::updateImage(wxImage &image)
+DialogImageController::~DialogImageController()
+{
+  mStopped = true;
+  if(mProgressThread) {
+    mProgressThread->join();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageController::updateImage(const wxImage &image, const SmallStatistics &result)
 {
   if(nullptr != mZoomScrollWidget) {
+    CallAfter([this, result]() {
+      mValidSpots->SetLabel(" Valid: " + std::to_string(result.valid));
+      mInvalidSpots->SetLabel(" Filtered: " + std::to_string(result.invalid));
+    });
+
     mZoomScrollWidget->updateImage(image);
+    stopProgress();
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageController::progressThread()
+{
+  while(!mStopped) {
+    mProgressMutex.lock();
+    auto actValue = mImageDisplayProgress->GetValue();
+    auto maxValue = mImageDisplayProgress->GetRange();
+    mProgressMutex.unlock();
+
+    actValue += 10;
+    if(actValue < maxValue) {
+      CallAfter([this, actValue]() { mImageDisplayProgress->SetValue(actValue); });
+
+      std::this_thread::sleep_for(10ms);
+    } else {
+      std::this_thread::sleep_for(100ms);
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageController::startProgress(int maxTimeMs)
+{
+  std::lock_guard<std::mutex> lock(mProgressMutex);    // Lock the mutex
+  CallAfter([this, maxTimeMs]() {
+    mImageDisplayProgress->SetValue(0);
+    mImageDisplayProgress->SetRange(maxTimeMs);
+    mImageDisplayProgress->Show(true);
+  });
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageController::stopProgress()
+{
+  mImageDisplayProgress->Show(false);
 }
 
 ///
@@ -57,7 +137,6 @@ ImageZoomScrollWidget::ImageZoomScrollWidget(wxWindow *parent) :
     wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxHSCROLL)
 {
   SetMinSize(wxSize{(int) 800, 800});
-
   Bind(wxEVT_PAINT, &ImageZoomScrollWidget::OnPaint, this);
   Bind(wxEVT_MOUSEWHEEL, &ImageZoomScrollWidget::OnMouseWheel, this);
   Bind(wxEVT_LEFT_DOWN, &ImageZoomScrollWidget::OnLeftDown, this);
@@ -72,7 +151,7 @@ ImageZoomScrollWidget::ImageZoomScrollWidget(wxWindow *parent) :
 /// \param[out]
 /// \return
 ///
-void ImageZoomScrollWidget::updateImage(wxImage &image)
+void ImageZoomScrollWidget::updateImage(const wxImage &image)
 {
   if(!mImage.IsOk() || (image.GetWidth() != mImage.GetWidth()) || image.GetHeight() != mImage.GetHeight()) {
     mZoomFactor    = 800.0 / (float) image.GetHeight();

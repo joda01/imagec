@@ -16,6 +16,10 @@
 #include <wx/gdicmn.h>
 #include <wx/toplevel.h>
 #include <wx/wx.h>
+#include <memory>
+#include <mutex>
+#include <thread>
+#include "backend/image_processing/detection/detection_response.hpp"
 #include "wxwidget.h"
 
 namespace joda::ui::wxwidget {
@@ -25,7 +29,7 @@ class ImageZoomScrollWidget : public wxScrolledWindow
 public:
   ImageZoomScrollWidget(wxWindow *parent);
 
-  void updateImage(wxImage &image);
+  void updateImage(const wxImage &image);
 
 private:
   /////////////////////////////////////////////////////
@@ -59,14 +63,27 @@ public:
   DialogImageController(wxWindow *parent, wxWindowID id = wxID_ANY, const wxString &title = wxEmptyString,
                         const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(424, 244),
                         long style = wxCAPTION | wxCLOSE_BOX);
+  ~DialogImageController();
 
-  void updateImage(wxImage &image);
+  struct SmallStatistics
+  {
+    int64_t valid   = 0;
+    int64_t invalid = 0;
+  };
+
+  void startProgress(int maxTimeMs);
+  void updateImage(const wxImage &image, const SmallStatistics &result);
 
 private:
   /////////////////////////////////////////////////////
-  void showImage();
+  void progressThread();
+  void stopProgress();
+
   /////////////////////////////////////////////////////
   ImageZoomScrollWidget *mZoomScrollWidget;
+  std::shared_ptr<std::thread> mProgressThread;
+  std::mutex mProgressMutex;
+  bool mStopped = false;
 };
 }    // namespace joda::ui::wxwidget
 #endif    // __dialog_image_controller__

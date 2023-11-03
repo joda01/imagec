@@ -151,6 +151,7 @@ void PanelChannelController::refreshPreviewThread()
 ///
 void PanelChannelController::refreshPreview(std::shared_ptr<DialogImageController> dialog)
 {
+  dialog->startProgress(2000);
   settings::json::ChannelSettings chs;
   chs.loadConfigFromString(getValues().dump());
   auto ret = mMainFrame->getController()->preview(chs, 0);
@@ -159,7 +160,18 @@ void PanelChannelController::refreshPreview(std::shared_ptr<DialogImageControlle
   if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
     wxLogError("Failed to load PNG image from bytes.");
   } else {
-    dialog->updateImage(image);
+    int64_t valid   = 0;
+    int64_t inValid = 0;
+
+    for(const auto &roi : ret.detectionResult) {
+      if(roi.isValid()) {
+        valid++;
+      } else {
+        inValid++;
+      }
+    }
+
+    dialog->updateImage(image, {.valid = valid, .invalid = inValid});
   }
 }
 
