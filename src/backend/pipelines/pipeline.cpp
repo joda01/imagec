@@ -243,7 +243,7 @@ void Pipeline::analyzeTile(joda::reporting::Table &detailReports, std::string im
   //
   // Execute pipeline steps
   //
-  auto idColoc       = DurationCount::start("preprocessing");
+  auto idColoc       = DurationCount::start("pipelinesteps");
   int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
   for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
     auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);

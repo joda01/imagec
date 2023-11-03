@@ -12,6 +12,7 @@
 ///
 
 #include "detection.hpp"
+#include <opencv2/core/types.hpp>
 
 namespace joda::func {
 
@@ -37,18 +38,28 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
     }
     if(!result[i].getMask().empty() && !result[i].getBoundingBox().empty()) {
       try {
-        mask(result[i].getBoundingBox()).setTo(RED, result[i].getMask());
+        cv::Scalar areaColor    = RED;
+        cv::Scalar contourColor = GREEN;
+
+        if(!result[i].isValid()) {
+          areaColor    = WHITE;
+          contourColor = BLACK;
+        }
+
+        // Paint particle
+        mask(result[i].getBoundingBox()).setTo(areaColor, result[i].getMask());
+
         {
           std::vector<std::vector<cv::Point>> contours;
           contours.push_back(result[i].getContour());
           if(!contours.empty())
-            drawContours(img(result[i].getBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
+            drawContours(img(result[i].getBoundingBox()), contours, -1, contourColor, 1);
         }
         if(result[i].hasSnapArea()) {
           std::vector<std::vector<cv::Point>> contours;
           contours.push_back(result[i].getSnapAreaContour());
           if(!contours.empty())
-            drawContours(img(result[i].getSnapAreaBoundingBox()), contours, -1, cv::Scalar(0, 255, 0), 1);
+            drawContours(img(result[i].getSnapAreaBoundingBox()), contours, -1, contourColor, 1);
         }
 
       } catch(const std::exception &ex) {
