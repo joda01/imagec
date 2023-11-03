@@ -99,14 +99,10 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
 void PanelChannelController::onPreviewDialogClosed(wxCloseEvent &ev)
 {
   auto id = ev.GetId();
-  // mPreviewDialogs[id]->Close();
   mPreviewDialogs.erase(id);
-  if(id == 0 && mPreviewDialogs.size() > 1) {
-    // Zero windows was closed, make new zero window
-    auto oldId = mPreviewDialogs.begin()->second->GetId();
-    mPreviewDialogs.begin()->second->SetId(0);
-    mPreviewDialogs[0] = mPreviewDialogs.begin()->second;
-    mPreviewDialogs.erase(oldId);
+  if(id == 0) {
+    // Close all preview windows if reference window is closed
+    mPreviewDialogs.clear();
   }
 }
 
