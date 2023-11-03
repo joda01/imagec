@@ -16,6 +16,8 @@
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/mstream.h>
+#include <cstdint>
+#include <exception>
 #include <memory>
 #include <string>
 #include <thread>
@@ -270,15 +272,22 @@ nlohmann::json PanelChannelController::getValues()
   chSettings["detection"]["threshold"]["threshold_algorithm"] =
       indexToThreshold(mChoiceThresholdMethod->GetSelection());
   chSettings["detection"]["threshold"]["threshold_min"] = static_cast<int>(mSpinMinThreshold->GetValue());
-  chSettings["detection"]["threshold"]["threshold_max"] = 65535;
+  chSettings["detection"]["threshold"]["threshold_max"] = UINT16_MAX;
 
   chSettings["detection"]["ai"]["model_name"]      = "AI_MODEL_COMMON_V1";
   chSettings["detection"]["ai"]["probability_min"] = 0.8;
 
   // Filtering
-  auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
-  chSettings["filter"]["min_particle_size"]            = min;
-  chSettings["filter"]["max_particle_size"]            = max;
+  try {
+    auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
+    chSettings["filter"]["min_particle_size"] = min;
+    chSettings["filter"]["max_particle_size"] = max;
+  } catch(const std::exception &) {
+    // Invalid input number format
+    chSettings["filter"]["min_particle_size"] = 0;
+    chSettings["filter"]["max_particle_size"] = 0;
+  }
+
   chSettings["filter"]["min_circularity"]              = mSpinMinCircularity->GetValue();
   chSettings["filter"]["snap_area_size"]               = mSpinSnapArea->GetValue();
   chSettings["filter"]["reference_spot_channel_index"] = mChoiceReferenceSpotChannel->GetSelection() - 1;
@@ -337,8 +346,17 @@ auto PanelChannelController::splitAndConvert(const std::string &input, char deli
   int num1 = 0;
   int num2 = 0;
   if(tokens.size() == 2) {
-    num1 = std::stoi(tokens[0]);
-    num2 = std::stoi(tokens[1]);
+    if(tokens[0] == "Inf.") {
+      num1 = INT32_MAX;
+    } else {
+      num1 = std::stoi(tokens[0]);
+    }
+    if(tokens[1] == "Inf.") {
+      num2 = INT32_MAX;
+    } else {
+      num2 = std::stoi(tokens[1]);
+    }
+
   } else {
     // Handle incorrect format
     std::cerr << "Incorrect format." << std::endl;
@@ -433,7 +451,15 @@ void PanelChannelController::onMinCircularityChanged(wxSpinDoubleEvent &event)
 }
 void PanelChannelController::onParticleSizeChanged(wxCommandEvent &event)
 {
-  updatePreview();
+  try {
+    auto [min, max]         = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
+    wxColour defaultBgColor = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    mTextParticleSizeRange->SetBackgroundColour(defaultBgColor);
+    updatePreview();
+  } catch(const std::exception &) {
+    // Invalid input number format
+    mTextParticleSizeRange->SetBackgroundColour(wxColour(255, 0, 0));
+  }
 }
 void PanelChannelController::onSnapAreaChanged(wxSpinEvent &event)
 {
