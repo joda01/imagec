@@ -13,15 +13,14 @@ SET(CMAKE_CXX20_STANDARD 20)
 SET(CMAKE_CXX20_STANDARD_REQUIRED true)
 
 IF (WIN32)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lz -lws2_32 -lwsock32 -lm -std=c++20")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O0 -lz -lws2_32 -lwsock32 -lm -std=c++20")
   
   #SET(CMAKE_RC_COMPILER "windres.exe")
   SET(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} --include-dir C:/msys64/mingw64/include/wx-3.2 --define __WIN32__ --define __GNUWIN32__ --define WX_CPU_AMD64")
 
 ELSE()
 
-  #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -g -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O0 -lm -std=c++20")
 
 ENDIF()
 SET(CMAKE_GENERATOR "Unix Makefiles")
@@ -46,6 +45,7 @@ find_package( PkgConfig REQUIRED )
 find_package( PugiXML )
 find_package( OpenSSL  )
 find_package(JNI REQUIRED )
+find_package(Java COMPONENTS REQUIRED)
 
 include_directories(${JNI_INCLUDE_DIRS})
 
@@ -83,7 +83,9 @@ IF (WIN32)
     jpeg
     TIFF
     ${wxWidgets_LIBRARIES}
-    ${Java_JVM_LIBRARY}
+    JNI::JVM
+    JNI::JNI
+    JNI::AWT
   )
 
 
@@ -95,7 +97,9 @@ ELSE()
     pugixml
     tiff
     ${wxWidgets_LIBRARIES}
-    ${Java_JVM_LIBRARY}
+    JNI::JVM
+    JNI::JNI
+    JNI::AWT
   )
 ENDIF()
 

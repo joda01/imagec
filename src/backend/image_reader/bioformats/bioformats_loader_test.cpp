@@ -9,7 +9,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("image:loader:bioformats", "[image_loader_bioformats")
+TEST_CASE("image:loader:bioformats", "[image_loader_bioformats]")
 {
   auto prop = BioformatsLoader::loadEntireImage("test/test_spot/CD63mNeon_001.vsi", 0);
 }
