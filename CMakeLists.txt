@@ -45,6 +45,10 @@ find_package( OpenCV REQUIRED )
 find_package( PkgConfig REQUIRED )
 find_package( PugiXML )
 find_package( OpenSSL  )
+find_package(JNI REQUIRED )
+
+include_directories(${JNI_INCLUDE_DIRS})
+
 
 IF (WIN32)
   find_package( libjpeg-turbo )
@@ -79,6 +83,7 @@ IF (WIN32)
     jpeg
     TIFF
     ${wxWidgets_LIBRARIES}
+    ${Java_JVM_LIBRARY}
   )
 
 
@@ -90,6 +95,7 @@ ELSE()
     pugixml
     tiff
     ${wxWidgets_LIBRARIES}
+    ${Java_JVM_LIBRARY}
   )
 ENDIF()
 

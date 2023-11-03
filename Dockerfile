@@ -136,6 +136,9 @@ RUN cd wxWidgets &&\
 
 RUN ldconfig
 
+
+RUN apt install default-jdk
+
 #FROM live as build
 #
 #RUN mkdir ./build
