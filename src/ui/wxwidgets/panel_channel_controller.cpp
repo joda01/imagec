@@ -13,10 +13,12 @@
 
 #include "panel_channel_controller.h"
 #include <tiffconf.h>
+#include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/mstream.h>
 #include <memory>
 #include <string>
+#include <thread>
 #include "backend/helper/two_way_map.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "ui/wxwidgets/dialog_image_controller.h"
@@ -67,17 +69,36 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
 {
   settings::json::ChannelSettings chs;
   chs.loadConfigFromString(getValues().dump());
-  auto ret = mMainFrame->getController()->preview(chs, 0);
-  wxMemoryInputStream stream(ret.data.data(), ret.data.size());
-  wxImage image;
-  if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
-    wxLogError("Failed to load PNG image from bytes.");
-  } else {
-    auto imgDialog = std::make_shared<DialogImageController>(
-        image, this, wxID_ANY,
-        chs.getChannelInfo().getName() + "(" + std::to_string(chs.getChannelInfo().getChannelIndex()) + ")");
-    mPreviewDialogs.emplace(chs.getChannelInfo().getChannelIndex(), imgDialog);
-    imgDialog->Show();
+
+  wxWindowID winId = mPreviewDialogs.size();
+  if(!mPreviewDialogs.contains(0)) {
+    // There must be always onw window with zero.
+    winId = 0;
+  }
+  auto imgDialog = std::make_shared<DialogImageController>(
+      this, winId, chs.getChannelInfo().getName() + "(" + std::to_string(chs.getChannelInfo().getChannelIndex()) + ")");
+  mPreviewDialogs.emplace(winId, imgDialog);
+  imgDialog->Bind(wxEVT_CLOSE_WINDOW, &PanelChannelController::onPreviewDialogClosed, this);
+  imgDialog->Show();
+  std::thread([this, &imgDialog] { refreshPreview(imgDialog); }).detach();
+}
+
+///
+/// \brief      Closed
+/// \author     Joachim Danmayr
+/// \return
+///
+void PanelChannelController::onPreviewDialogClosed(wxCloseEvent &ev)
+{
+  auto id = ev.GetId();
+  // mPreviewDialogs[id]->Close();
+  mPreviewDialogs.erase(id);
+  if(id == 0 && mPreviewDialogs.size() > 1) {
+    // Zero windows was closed, make new zero window
+    auto oldId = mPreviewDialogs.begin()->second->GetId();
+    mPreviewDialogs.begin()->second->SetId(0);
+    mPreviewDialogs[0] = mPreviewDialogs.begin()->second;
+    mPreviewDialogs.erase(oldId);
   }
 }
 
@@ -104,27 +125,35 @@ void PanelChannelController::refreshPreviewThread()
     auto actTime = std::chrono::high_resolution_clock::now();
 
     if(mLastPreviewUpdateRequest > mLastPreviewUpdate) {
-      settings::json::ChannelSettings chs;
-      chs.loadConfigFromString(getValues().dump());
-      auto chIdx              = chs.getChannelInfo().getChannelIndex();
-      auto firstPreviewDialog = mPreviewDialogs.find(chIdx);
-      // Check if there is an open preview dialog
-      if(firstPreviewDialog != mPreviewDialogs.end()) {
-        auto ret = mMainFrame->getController()->preview(chs, 0);
-        wxMemoryInputStream stream(ret.data.data(), ret.data.size());
-        wxImage image;
-        if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
-          wxLogError("Failed to load PNG image from bytes.");
-        } else {
-          firstPreviewDialog->second->updateImage(image);
-        }
-      }
-
       mLastPreviewUpdate = std::chrono::high_resolution_clock::now();
+      if(mPreviewDialogs.contains(0)) {
+        refreshPreview(mPreviewDialogs[0]);
+      }
       // Update only once per second
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelController::refreshPreview(std::shared_ptr<DialogImageController> dialog)
+{
+  settings::json::ChannelSettings chs;
+  chs.loadConfigFromString(getValues().dump());
+  auto ret = mMainFrame->getController()->preview(chs, 0);
+  wxMemoryInputStream stream(ret.data.data(), ret.data.size());
+  wxImage image;
+  if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
+    wxLogError("Failed to load PNG image from bytes.");
+  } else {
+    dialog->updateImage(image);
   }
 }
 

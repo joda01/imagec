@@ -77,6 +77,8 @@ private:
   /////////////////////////////////////////////////////
   void updatePreview();
   void refreshPreviewThread();
+  void refreshPreview(std::shared_ptr<DialogImageController> dialog);
+
   void onRemoveClicked(wxCommandEvent &event) override;
   void onPreviewClicked(wxCommandEvent &event) override;
   void onChannelTypeChanged(wxCommandEvent &event) override;
@@ -97,9 +99,10 @@ private:
   void onSnapAreaChanged(wxSpinEvent &event) override;
   void onSpotRemovalChanged(wxCommandEvent &event) override;
 
+  void onPreviewDialogClosed(wxCloseEvent &);
   /////////////////////////////////////////////////////
   FrameMainController *mMainFrame;
-  std::multimap<int, std::shared_ptr<DialogImageController>> mPreviewDialogs;
+  std::map<wxWindowID, std::shared_ptr<DialogImageController>> mPreviewDialogs;
   std::chrono::system_clock::time_point mLastPreviewUpdateRequest;
   std::chrono::system_clock::time_point mLastPreviewUpdate;
 
