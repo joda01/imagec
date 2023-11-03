@@ -75,8 +75,16 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
     // There must be always onw window with zero.
     winId = 0;
   }
-  auto imgDialog = std::make_shared<DialogImageController>(
-      this, winId, chs.getChannelInfo().getName() + "(" + std::to_string(chs.getChannelInfo().getChannelIndex()) + ")");
+  std::string title = "Channel: " + std::to_string(chs.getChannelInfo().getChannelIndex()) + " (" +
+                      chs.getChannelInfo().getName() + ")";
+
+  if(winId == 0) {
+    title += " LIVE";
+  } else {
+    title += " Snapshot";
+  }
+
+  auto imgDialog = std::make_shared<DialogImageController>(this, winId, title);
   mPreviewDialogs.emplace(winId, imgDialog);
   imgDialog->Bind(wxEVT_CLOSE_WINDOW, &PanelChannelController::onPreviewDialogClosed, this);
   imgDialog->Show();
