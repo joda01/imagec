@@ -59,11 +59,20 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
 ///
 void ROI::calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int32_t maxHeight)
 {
+  // Find the contour of the ROI
   {
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(mMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
     if(!contours.empty()) {
-      mMaskContours = contours[0];
+      int biggestCont = 0;
+      int max         = contours[0].size();
+      for(int idx = 1; idx < contours.size(); idx++) {
+        if(max < contours[idx].size()) {
+          max         = contours[idx].size();
+          biggestCont = idx;
+        }
+      }
+      mMaskContours = contours[biggestCont];
     }
   }
 

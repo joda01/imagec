@@ -42,26 +42,27 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
         cv::Scalar contourColor = GREEN;
 
         if(!result[i].isValid()) {
-          areaColor    = WHITE;
-          contourColor = BLACK;
+          areaColor = WHITE;
         }
 
         // Paint particle
         mask(result[i].getBoundingBox()).setTo(areaColor, result[i].getMask());
 
-        {
-          std::vector<std::vector<cv::Point>> contours;
-          contours.push_back(result[i].getContour());
-          if(!contours.empty())
-            drawContours(img(result[i].getBoundingBox()), contours, -1, contourColor, 1);
+        // Paint contour only for valid particles
+        if(result[i].isValid()) {
+          {
+            std::vector<std::vector<cv::Point>> contours;
+            contours.push_back(result[i].getContour());
+            if(!contours.empty())
+              drawContours(img(result[i].getBoundingBox()), contours, -1, contourColor, 1);
+          }
+          if(result[i].hasSnapArea()) {
+            std::vector<std::vector<cv::Point>> contours;
+            contours.push_back(result[i].getSnapAreaContour());
+            if(!contours.empty())
+              drawContours(img(result[i].getSnapAreaBoundingBox()), contours, -1, contourColor, 1);
+          }
         }
-        if(result[i].hasSnapArea()) {
-          std::vector<std::vector<cv::Point>> contours;
-          contours.push_back(result[i].getSnapAreaContour());
-          if(!contours.empty())
-            drawContours(img(result[i].getSnapAreaBoundingBox()), contours, -1, contourColor, 1);
-        }
-
       } catch(const std::exception &ex) {
         std::cout << "P" << ex.what() << std::endl;
       }
@@ -102,7 +103,7 @@ void DetectionFunction::paintOverlay(cv::Mat &img, const std::vector<OverlaySett
         try {
           mask(resultI.getBoundingBox()).setTo(ov.backgroundColor, resultI.getMask());
           std::vector<std::vector<cv::Point>> contours;
-          findContours(resultI.getMask(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+          findContours(resultI.getMask(), contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
           drawContours(mask(resultI.getBoundingBox()), contours, -1, ov.borderColor, 1);
         } catch(const std::exception &ex) {
           std::cout << "P" << ex.what() << std::endl;
