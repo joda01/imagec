@@ -11,9 +11,13 @@
 
 #include "dialog_image_controller.h"
 #include <wx/dcbuffer.h>
+#include <memory>
 #include <string>
+#include <thread>
 
 namespace joda::ui::wxwidget {
+
+using namespace std::chrono_literals;
 
 ///
 /// \brief
@@ -22,16 +26,106 @@ namespace joda::ui::wxwidget {
 /// \param[out]
 /// \return
 ///
-DialogImageController::DialogImageController(wxImage &image, wxWindow *parent, wxWindowID id, const wxString &title,
-                                             const wxPoint &pos, const wxSize &size, long style) :
-    DialogImage(parent, id, title, pos, size, style)
+DialogImageController::DialogImageController(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos,
+                                             const wxSize &size, long style) :
+    DialogImage(parent, id, title, pos, size, style),
+    mZoomScrollWidget(new ImageZoomScrollWidget(this))
 {
+  mProgressThread = std::make_shared<std::thread>(&DialogImageController::progressThread, this);
   SetMinSize(wxSize{800, 600});
-  mZoomScrollWidget = new ImageZoomScrollWidget(this, image);
-  wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-  sizer->Add(mZoomScrollWidget, 1, wxEXPAND | wxALL, 10);
-  SetSizerAndFit(sizer);
+  mSizer->Add(mZoomScrollWidget, 1, wxEXPAND | wxALL, 10);
+  Fit();
   Layout();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+DialogImageController::~DialogImageController()
+{
+  mStopped = true;
+  if(mProgressThread) {
+    mProgressThread->join();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageController::updateImage(const wxImage &image, const SmallStatistics &result)
+{
+  if(nullptr != mZoomScrollWidget) {
+    CallAfter([this, result]() {
+      mValidSpots->SetLabel(" Valid: " + std::to_string(result.valid));
+      mInvalidSpots->SetLabel(" Filtered: " + std::to_string(result.invalid));
+    });
+
+    mZoomScrollWidget->updateImage(image);
+    stopProgress();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageController::progressThread()
+{
+  while(!mStopped) {
+    mProgressMutex.lock();
+    auto actValue = mImageDisplayProgress->GetValue();
+    auto maxValue = mImageDisplayProgress->GetRange();
+    mProgressMutex.unlock();
+
+    actValue += 10;
+    if(actValue < maxValue) {
+      CallAfter([this, actValue]() { mImageDisplayProgress->SetValue(actValue); });
+
+      std::this_thread::sleep_for(10ms);
+    } else {
+      std::this_thread::sleep_for(100ms);
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageController::startProgress(int maxTimeMs)
+{
+  std::lock_guard<std::mutex> lock(mProgressMutex);    // Lock the mutex
+  CallAfter([this, maxTimeMs]() {
+    mImageDisplayProgress->SetValue(0);
+    mImageDisplayProgress->SetRange(maxTimeMs);
+    mImageDisplayProgress->Show(true);
+  });
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageController::stopProgress()
+{
+  mImageDisplayProgress->Show(false);
 }
 
 ///
@@ -39,21 +133,38 @@ DialogImageController::DialogImageController(wxImage &image, wxWindow *parent, w
 /// \author
 /// \brief
 ///
-ImageZoomScrollWidget::ImageZoomScrollWidget(wxWindow *parent, wxImage image) :
-    wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxHSCROLL), mImage(image),
-    mZoomFactor(800.0 / (float) mImage.GetHeight()), mZoomFactorMin(mZoomFactor)
+ImageZoomScrollWidget::ImageZoomScrollWidget(wxWindow *parent) :
+    wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxHSCROLL)
 {
-  SetScrollbars(20, 20, mImage.GetWidth() / mZoomFactor, mImage.GetHeight() / mZoomFactor, 0, 0);
-
+  SetMinSize(wxSize{(int) 800, 800});
   Bind(wxEVT_PAINT, &ImageZoomScrollWidget::OnPaint, this);
   Bind(wxEVT_MOUSEWHEEL, &ImageZoomScrollWidget::OnMouseWheel, this);
   Bind(wxEVT_LEFT_DOWN, &ImageZoomScrollWidget::OnLeftDown, this);
   Bind(wxEVT_LEFT_UP, &ImageZoomScrollWidget::OnLeftUp, this);
   Bind(wxEVT_MOTION, &ImageZoomScrollWidget::OnMouseMove, this);
+}
 
-  float ratio = (float) mImage.GetWidth() / (float) mImage.GetHeight();
-  float width = (float) 800 * ratio;
-  SetMinSize(wxSize{(int) width, 800});
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ImageZoomScrollWidget::updateImage(const wxImage &image)
+{
+  if(!mImage.IsOk() || (image.GetWidth() != mImage.GetWidth()) || image.GetHeight() != mImage.GetHeight()) {
+    mZoomFactor    = 800.0 / (float) image.GetHeight();
+    mZoomFactorMin = mZoomFactor;
+
+    SetScrollbars(20, 20, image.GetWidth() / mZoomFactor, image.GetHeight() / mZoomFactor, 0, 0);
+    float ratio = (float) image.GetWidth() / (float) image.GetHeight();
+    float width = (float) 800 * ratio;
+    SetMinSize(wxSize{(int) width, 800});
+  }
+  mImage = image;
+
+  Refresh();
 }
 
 void ImageZoomScrollWidget::OnPaint(wxPaintEvent &event)
@@ -64,96 +175,108 @@ void ImageZoomScrollWidget::OnPaint(wxPaintEvent &event)
 
 void ImageZoomScrollWidget::RenderImage(wxDC &dc)
 {
-  int width  = mImage.GetWidth() * mZoomFactor;
-  int height = mImage.GetHeight() * mZoomFactor;
-  if(mImage.Ok()) {
-    wxBitmap bmp(mImage.Scale(width, height));
-    dc.DrawBitmap(bmp, mActPosition.x, mActPosition.y);
+  if(mImage.IsOk()) {
+    int width  = mImage.GetWidth() * mZoomFactor;
+    int height = mImage.GetHeight() * mZoomFactor;
+    if(mImage.Ok()) {
+      wxBitmap bmp(mImage.Scale(width, height));
+      dc.DrawBitmap(bmp, mActPosition.x, mActPosition.y);
+    }
   }
 }
 
 void ImageZoomScrollWidget::OnMouseWheel(wxMouseEvent &event)
 {
-  // int delta = event.GetWheelRotation();
-  float delta      = 0.05 * (event.GetWheelRotation() > 0 ? 1 : -1);
-  float zoomFactor = mZoomFactor + delta;
+  if(mImage.IsOk()) {
+    // int delta = event.GetWheelRotation();
+    float delta      = 0.05 * (event.GetWheelRotation() > 0 ? 1 : -1);
+    float zoomFactor = mZoomFactor + delta;
 
-  if(zoomFactor < mZoomFactorMin) {
-    zoomFactor = mZoomFactorMin;
+    if(zoomFactor < mZoomFactorMin) {
+      zoomFactor = mZoomFactorMin;
+    }
+    if(zoomFactor > 3) {
+      zoomFactor = 3;
+    }
+
+    mZoomFactor = zoomFactor;
+    int width   = mImage.GetWidth() * mZoomFactor;
+    int height  = mImage.GetHeight() * mZoomFactor;
+
+    fitImagePosition(mActPosition.x, mActPosition.y);
+
+    SetVirtualSize(width, height);
+    Refresh();
   }
-  if(zoomFactor > 3) {
-    zoomFactor = 3;
-  }
-
-  mZoomFactor = zoomFactor;
-  int width   = mImage.GetWidth() * mZoomFactor;
-  int height  = mImage.GetHeight() * mZoomFactor;
-
-  fitImagePosition(mActPosition.x, mActPosition.y);
-
-  SetVirtualSize(width, height);
-  Refresh();
 }
 
 void ImageZoomScrollWidget::OnLeftDown(wxMouseEvent &event)
 {
-  if(!mDragging) {
-    mDragging                 = true;
-    mDragStartPosition        = event.GetPosition();
-    mImagePositionOnDragStart = mActPosition;
-    CaptureMouse();
+  if(mImage.IsOk()) {
+    if(!mDragging) {
+      mDragging                 = true;
+      mDragStartPosition        = event.GetPosition();
+      mImagePositionOnDragStart = mActPosition;
+      CaptureMouse();
+    }
   }
 }
 
 void ImageZoomScrollWidget::OnMouseMove(wxMouseEvent &event)
 {
-  if(mDragging) {
-    wxPoint currentPosition = event.GetPosition();
-    int dx                  = (currentPosition.x - mDragStartPosition.x);    /// mZoomFactor;
-    int dy                  = (currentPosition.y - mDragStartPosition.y);    /// mZoomFactor;
-    // Scroll(dx, dy);
-    int newX = mImagePositionOnDragStart.x + dx;
-    int newY = mImagePositionOnDragStart.y + dy;
-    fitImagePosition(newX, newY);
+  if(mImage.IsOk()) {
+    if(mDragging) {
+      wxPoint currentPosition = event.GetPosition();
+      int dx                  = (currentPosition.x - mDragStartPosition.x);    /// mZoomFactor;
+      int dy                  = (currentPosition.y - mDragStartPosition.y);    /// mZoomFactor;
+      // Scroll(dx, dy);
+      int newX = mImagePositionOnDragStart.x + dx;
+      int newY = mImagePositionOnDragStart.y + dy;
+      fitImagePosition(newX, newY);
 
-    // m_dragStartPosition = currentPosition;
-    Refresh();
+      // m_dragStartPosition = currentPosition;
+      Refresh();
+    }
   }
 }
 
 void ImageZoomScrollWidget::fitImagePosition(int newX, int newY)
 {
-  if(newX > 0) {
-    newX = 0;
-  }
-  int minX = GetSize().GetWidth() - mImage.GetWidth() * mZoomFactor;
-  if(minX > 0) {
-    minX = 0;
-  }
-  if(newX < minX) {
-    newX = minX;
-  }
+  if(mImage.IsOk()) {
+    if(newX > 0) {
+      newX = 0;
+    }
+    int minX = GetSize().GetWidth() - mImage.GetWidth() * mZoomFactor;
+    if(minX > 0) {
+      minX = 0;
+    }
+    if(newX < minX) {
+      newX = minX;
+    }
 
-  if(newY > 0) {
-    newY = 0;
-  }
-  int minY = GetSize().GetHeight() - mImage.GetHeight() * mZoomFactor;
-  if(minY > 0) {
-    minY = 0;
-  }
-  if(newY < minY) {
-    newY = minY;
-  }
+    if(newY > 0) {
+      newY = 0;
+    }
+    int minY = GetSize().GetHeight() - mImage.GetHeight() * mZoomFactor;
+    if(minY > 0) {
+      minY = 0;
+    }
+    if(newY < minY) {
+      newY = minY;
+    }
 
-  mActPosition.x = newX;
-  mActPosition.y = newY;
+    mActPosition.x = newX;
+    mActPosition.y = newY;
+  }
 }
 
 void ImageZoomScrollWidget::OnLeftUp(wxMouseEvent &event)
 {
-  if(mDragging) {
-    mDragging = false;
-    ReleaseMouse();
+  if(mImage.IsOk()) {
+    if(mDragging) {
+      mDragging = false;
+      ReleaseMouse();
+    }
   }
 }
 

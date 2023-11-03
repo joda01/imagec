@@ -16,6 +16,7 @@
 
 #include <map>
 #include <memory>
+#include <thread>
 #include "backend/helper/two_way_map.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "ui/wxwidgets/dialog_image_controller.h"
@@ -41,6 +42,7 @@ public:
                                   const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(250, -1),
                                   long style = wxTAB_TRAVERSAL, const wxString &name = wxEmptyString);
 
+  ~PanelChannelController();
   void loadValues(const joda::settings::json::ChannelSettings &);
   nlohmann::json getValues();
 
@@ -73,13 +75,40 @@ private:
 
 private:
   /////////////////////////////////////////////////////
+  void updatePreview();
+  void refreshPreviewThread();
+  void refreshPreview(std::shared_ptr<DialogImageController> dialog);
+
   void onRemoveClicked(wxCommandEvent &event) override;
   void onPreviewClicked(wxCommandEvent &event) override;
   void onChannelTypeChanged(wxCommandEvent &event) override;
   void onAiCheckBox(wxCommandEvent &event) override;
+  void onMinThresholdChanged(wxSpinEvent &event) override;
+  void onChannelIndexChanged(wxCommandEvent &event) override;
+  void onZStackSettingsChanged(wxCommandEvent &event) override;
+  void onMarginCropChanged(wxSpinEvent &event) override;
+  void onMedianBGSubtractChanged(wxCommandEvent &event) override;
+  void onRollingBallChanged(wxSpinEvent &event) override;
+  void onBgSubtractChanged(wxCommandEvent &event) override;
+  void onSmoothingChanged(wxCommandEvent &event) override;
+  void onGausianBlurChanged(wxCommandEvent &event) override;
+  void onGausianBlurRepeatChanged(wxCommandEvent &event) override;
+  void onThresholdMethodChanged(wxCommandEvent &event) override;
+  void onMinCircularityChanged(wxSpinDoubleEvent &event) override;
+  void onParticleSizeChanged(wxCommandEvent &event) override;
+  void onSnapAreaChanged(wxSpinEvent &event) override;
+  void onSpotRemovalChanged(wxCommandEvent &event) override;
 
+  void onPreviewDialogClosed(wxCloseEvent &);
+  /////////////////////////////////////////////////////
   FrameMainController *mMainFrame;
-  std::multimap<int, std::shared_ptr<DialogImageController>> mPreviewDialogs;
+  std::map<wxWindowID, std::shared_ptr<DialogImageController>> mPreviewDialogs;
+  std::chrono::system_clock::time_point mLastPreviewUpdateRequest;
+  std::chrono::system_clock::time_point mLastPreviewUpdate;
+
+  std::shared_ptr<std::thread> mPreviewRefreshThread;
+
+  bool mStopped = false;
 };
 }    // namespace joda::ui::wxwidget
 

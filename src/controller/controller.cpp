@@ -109,7 +109,10 @@ auto Controller::preview(const settings::json::ChannelSettings &settings, int im
   compression_params.push_back(0);
   cv::imencode(".png", result.controlImage, buffer, compression_params);    // Assuming you want to encode as JPEG
 
-  return {.data = buffer, .height = result.controlImage.rows, .width = result.controlImage.cols};
+  return {.data            = buffer,
+          .height          = result.controlImage.rows,
+          .width           = result.controlImage.cols,
+          .detectionResult = result.result};
 }
 
 ///

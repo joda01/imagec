@@ -13,10 +13,14 @@
 
 #include "panel_channel_controller.h"
 #include <tiffconf.h>
+#include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/mstream.h>
+#include <cstdint>
+#include <exception>
 #include <memory>
 #include <string>
+#include <thread>
 #include "backend/helper/two_way_map.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "ui/wxwidgets/dialog_image_controller.h"
@@ -35,6 +39,17 @@ PanelChannelController::PanelChannelController(FrameMainController *mainFrame, w
     PanelChannel(parent, id, pos, size, style, name),
     mMainFrame(mainFrame)
 {
+  mPreviewRefreshThread = std::make_shared<std::thread>(&PanelChannelController::refreshPreviewThread, this);
+}
+
+///
+/// \brief      Destructor
+/// \author     Joachim Danmayr
+///
+PanelChannelController::~PanelChannelController()
+{
+  mStopped = true;
+  mPreviewRefreshThread->join();
 }
 
 ///
@@ -56,17 +71,107 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
 {
   settings::json::ChannelSettings chs;
   chs.loadConfigFromString(getValues().dump());
+
+  wxWindowID winId = mPreviewDialogs.size();
+  if(!mPreviewDialogs.contains(0)) {
+    // There must be always onw window with zero.
+    winId = 0;
+  }
+  std::string title = "Channel: " + std::to_string(chs.getChannelInfo().getChannelIndex()) + " (" +
+                      chs.getChannelInfo().getName() + ")";
+
+  if(winId == 0) {
+    title += " LIVE";
+  } else {
+    title += " Snapshot";
+  }
+
+  auto imgDialog = std::make_shared<DialogImageController>(this, winId, title);
+  mPreviewDialogs.emplace(winId, imgDialog);
+  imgDialog->Bind(wxEVT_CLOSE_WINDOW, &PanelChannelController::onPreviewDialogClosed, this);
+  imgDialog->Show();
+  std::thread([this, &imgDialog] { refreshPreview(imgDialog); }).detach();
+}
+
+///
+/// \brief      Closed
+/// \author     Joachim Danmayr
+/// \return
+///
+void PanelChannelController::onPreviewDialogClosed(wxCloseEvent &ev)
+{
+  auto id = ev.GetId();
+  mPreviewDialogs.erase(id);
+  if(id == 0) {
+    // Close all preview windows if reference window is closed
+    mPreviewDialogs.clear();
+  }
+}
+
+///
+/// \brief      On preview clicked
+/// \author     Joachim Danmayr
+/// \return
+///
+void PanelChannelController::updatePreview()
+{
+  mLastPreviewUpdateRequest = std::chrono::high_resolution_clock::now();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelController::refreshPreviewThread()
+{
+  while(!mStopped) {
+    auto actTime = std::chrono::high_resolution_clock::now();
+
+    if(mLastPreviewUpdateRequest > mLastPreviewUpdate) {
+      mLastPreviewUpdate = std::chrono::high_resolution_clock::now();
+      if(mPreviewDialogs.contains(0)) {
+        refreshPreview(mPreviewDialogs[0]);
+      }
+      // Update only once per second
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelController::refreshPreview(std::shared_ptr<DialogImageController> dialog)
+{
+  dialog->startProgress(2000);
+  settings::json::ChannelSettings chs;
+  chs.loadConfigFromString(getValues().dump());
   auto ret = mMainFrame->getController()->preview(chs, 0);
   wxMemoryInputStream stream(ret.data.data(), ret.data.size());
   wxImage image;
   if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
     wxLogError("Failed to load PNG image from bytes.");
   } else {
-    auto imgDialog = std::make_shared<DialogImageController>(
-        image, this, wxID_ANY,
-        chs.getChannelInfo().getName() + "(" + std::to_string(chs.getChannelInfo().getChannelIndex()) + ")");
-    mPreviewDialogs.emplace(chs.getChannelInfo().getChannelIndex(), imgDialog);
-    imgDialog->Show();
+    int64_t valid   = 0;
+    int64_t inValid = 0;
+
+    for(const auto &roi : ret.detectionResult) {
+      if(roi.isValid()) {
+        valid++;
+      } else {
+        inValid++;
+      }
+    }
+
+    dialog->updateImage(image, {.valid = valid, .invalid = inValid});
   }
 }
 
@@ -123,6 +228,10 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
   mTextParticleSizeRange->SetValue(range);
   mSpinSnapArea->SetValue(channelSettings.getFilter().getSnapAreaSize());
   mChoiceReferenceSpotChannel->SetSelection(channelSettings.getFilter().getReferenceSpotChannelIndex() + 1);
+
+  wxCommandEvent a;
+  onChannelTypeChanged(a);
+  onAiCheckBox(a);
 }
 
 ///
@@ -175,15 +284,22 @@ nlohmann::json PanelChannelController::getValues()
   chSettings["detection"]["threshold"]["threshold_algorithm"] =
       indexToThreshold(mChoiceThresholdMethod->GetSelection());
   chSettings["detection"]["threshold"]["threshold_min"] = static_cast<int>(mSpinMinThreshold->GetValue());
-  chSettings["detection"]["threshold"]["threshold_max"] = 65535;
+  chSettings["detection"]["threshold"]["threshold_max"] = UINT16_MAX;
 
   chSettings["detection"]["ai"]["model_name"]      = "AI_MODEL_COMMON_V1";
   chSettings["detection"]["ai"]["probability_min"] = 0.8;
 
   // Filtering
-  auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
-  chSettings["filter"]["min_particle_size"]            = min;
-  chSettings["filter"]["max_particle_size"]            = max;
+  try {
+    auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
+    chSettings["filter"]["min_particle_size"] = min;
+    chSettings["filter"]["max_particle_size"] = max;
+  } catch(const std::exception &) {
+    // Invalid input number format
+    chSettings["filter"]["min_particle_size"] = 0;
+    chSettings["filter"]["max_particle_size"] = 0;
+  }
+
   chSettings["filter"]["min_circularity"]              = mSpinMinCircularity->GetValue();
   chSettings["filter"]["snap_area_size"]               = mSpinSnapArea->GetValue();
   chSettings["filter"]["reference_spot_channel_index"] = mChoiceReferenceSpotChannel->GetSelection() - 1;
@@ -242,8 +358,17 @@ auto PanelChannelController::splitAndConvert(const std::string &input, char deli
   int num1 = 0;
   int num2 = 0;
   if(tokens.size() == 2) {
-    num1 = std::stoi(tokens[0]);
-    num2 = std::stoi(tokens[1]);
+    if(tokens[0] == "Inf.") {
+      num1 = INT32_MAX;
+    } else {
+      num1 = std::stoi(tokens[0]);
+    }
+    if(tokens[1] == "Inf.") {
+      num2 = INT32_MAX;
+    } else {
+      num2 = std::stoi(tokens[1]);
+    }
+
   } else {
     // Handle incorrect format
     std::cerr << "Incorrect format." << std::endl;
@@ -265,6 +390,7 @@ void PanelChannelController::onChannelTypeChanged(wxCommandEvent &event)
   } else {
     panelReferenceChannel->Enable(true);
   }
+  updatePreview();
 }
 
 ///
@@ -280,6 +406,80 @@ void PanelChannelController::onAiCheckBox(wxCommandEvent &event)
     panelThresholdMethod->Enable(true);
     panelMinThreshold->Enable(true);
   }
+  updatePreview();
+}
+
+///
+/// \brief      Min threshold changed
+/// \author     Joachim Danmayr
+///
+void PanelChannelController::onMinThresholdChanged(wxSpinEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onChannelIndexChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onZStackSettingsChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onMarginCropChanged(wxSpinEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onMedianBGSubtractChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onRollingBallChanged(wxSpinEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onBgSubtractChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onSmoothingChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onGausianBlurChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onGausianBlurRepeatChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onThresholdMethodChanged(wxCommandEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onMinCircularityChanged(wxSpinDoubleEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onParticleSizeChanged(wxCommandEvent &event)
+{
+  try {
+    auto [min, max]         = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
+    wxColour defaultBgColor = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    mTextParticleSizeRange->SetBackgroundColour(defaultBgColor);
+    updatePreview();
+  } catch(const std::exception &) {
+    // Invalid input number format
+    mTextParticleSizeRange->SetBackgroundColour(wxColour(255, 0, 0));
+  }
+}
+void PanelChannelController::onSnapAreaChanged(wxSpinEvent &event)
+{
+  updatePreview();
+}
+void PanelChannelController::onSpotRemovalChanged(wxCommandEvent &event)
+{
+  updatePreview();
 }
 
 }    // namespace joda::ui::wxwidget
