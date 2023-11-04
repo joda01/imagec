@@ -152,7 +152,7 @@ private:
   }
 
   /////////////////////////////////////////////////////
-  static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
+  static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf", ".vsi"};
   std::string mWorkingDirectory;
   std::vector<std::string> mListOfImagePaths;
   bool mIsStopped = false;

@@ -110,5 +110,5 @@ valgrind --tool=massif --stacks=yes --detailed-freq=1 ./build/build/tests "[pipe
 
 ### Deploy docker image
 
-docker build --target live -t joda001/imagec:v1.1.0
+docker build --target live -t joda001/imagec:v1.1.0 .
 docker push  joda001/imagec:v1.1.0

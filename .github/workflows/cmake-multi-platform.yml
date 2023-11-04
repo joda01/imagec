@@ -64,7 +64,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     container: 
-      image: joda001/imagec:v1.1.0
+      image: joda001/imagec:v1.1.1
 
     steps:
       - name: Checkout code

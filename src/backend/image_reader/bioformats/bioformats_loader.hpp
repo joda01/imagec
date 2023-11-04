@@ -12,7 +12,9 @@
 ///
 
 #pragma once
+#include <jni.h>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include <opencv2/core/mat.hpp>
@@ -20,6 +22,18 @@
 class BioformatsLoader
 {
 public:
+  /////////////////////////////////////////////////////
   static cv::Mat loadEntireImage(const std::string &filename, int directory);
   static auto getOmeInformation(const std::string &filename) -> std::tuple<joda::ome::OmeInfo, ImageProperties>;
+  static void init();
+  static void destroy();
+
+private:
+  /////////////////////////////////////////////////////
+  static inline std::mutex mReadMutex;
+  static inline JavaVMOption options[1]; /* Options array -- use options to set classpath */
+  static inline JavaVMInitArgs initArgs; /* Virtual Machine (VM) initialization structure, passed by*/
+  static inline jobjectArray args;       /* The String[] itself */
+  static inline JavaVM *myJVM;           /* JavaVM pointer set by call to JNI_CreateJavaVM */
+  static inline JNIEnv *myEnv;           /* JNIEnv pointer set by call to JNI_CreateJavaVM */
 };

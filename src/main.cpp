@@ -14,6 +14,7 @@
 #include <thread>
 #include <vector>
 #include "backend/duration_count/duration_count.h"
+#include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/tif/image_loader_tif.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "backend/reporting/report_printer.h"
@@ -68,6 +69,7 @@ int main(int argc, char **argv)
   wxInitAllImageHandlers();
   Version::initVersion(std::string(argv[0]));
   TiffLoader::initLibTif();
+  BioformatsLoader::init();
   joda::pipeline::PipelineFactory::init();
 
   auto wxThread = std::thread([&]() {
@@ -78,6 +80,7 @@ int main(int argc, char **argv)
 
   wxThread.join();
   joda::pipeline::PipelineFactory::shutdown();
+  BioformatsLoader::destroy();
 
   return 0;
 }
