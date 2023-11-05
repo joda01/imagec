@@ -70,7 +70,7 @@ private:
   /////////////////////////////////////////////////////
   static inline const std::set<std::string> JPG_EXTENSIONS        = {".jpg", ".jpeg"};
   static inline const std::set<std::string> TIF_EXTENSIONS        = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
-  static inline const std::set<std::string> BIOFORMATS_EXTENSIONS = {".vsi"};
+  static inline const std::set<std::string> BIOFORMATS_EXTENSIONS = {".vsi", ".ics", ".czi"};
 
   std::string mPath;
   Decoder mDecoder = Decoder::UNSUPPORTED;
