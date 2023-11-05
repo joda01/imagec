@@ -190,6 +190,11 @@ public:
     return index;
   }
 
+  auto getChannelSeries() const -> int32_t
+  {
+    return series;
+  }
+
   auto getType() const -> Type
   {
     return enumType;
@@ -227,6 +232,12 @@ private:
   int32_t index;
 
   //
+  // Series to analyze
+  // [0, 1, 2, ...]
+  //
+  int32_t series = 0;
+
+  //
   // User defined name of the channel
   //
   std::string name;
@@ -245,7 +256,7 @@ private:
   //
   std::string label;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelInfo, index, name, type, label);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelInfo, index, series, name, type, label);
 };
 
 class ChannelFiltering final

@@ -59,6 +59,10 @@ private:
   void showErrorDialog(const std::string &what);
 
   /////////////////////////////////////////////////////
+  // Sync functions
+  void syncSeries(int series);
+
+  /////////////////////////////////////////////////////
   std::vector<std::shared_ptr<PanelChannelController>> mChannels;
   std::vector<std::shared_ptr<PanelIntersectionControl>> mIntersections;
   joda::ctrl::Controller *mPipelineController;

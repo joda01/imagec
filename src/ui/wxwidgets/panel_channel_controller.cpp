@@ -151,27 +151,31 @@ void PanelChannelController::refreshPreviewThread()
 ///
 void PanelChannelController::refreshPreview(std::shared_ptr<DialogImageController> dialog)
 {
-  dialog->startProgress(2000);
-  settings::json::ChannelSettings chs;
-  chs.loadConfigFromString(getValues().dump());
-  auto ret = mMainFrame->getController()->preview(chs, 0);
-  wxMemoryInputStream stream(ret.data.data(), ret.data.size());
-  wxImage image;
-  if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
-    wxLogError("Failed to load PNG image from bytes.");
-  } else {
-    int64_t valid   = 0;
-    int64_t inValid = 0;
+  try {
+    dialog->startProgress(2000);
+    settings::json::ChannelSettings chs;
+    chs.loadConfigFromString(getValues().dump());
+    auto ret = mMainFrame->getController()->preview(chs, 0);
+    wxMemoryInputStream stream(ret.data.data(), ret.data.size());
+    wxImage image;
+    if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
+      wxLogError("Failed to load PNG image from bytes.");
+    } else {
+      int64_t valid   = 0;
+      int64_t inValid = 0;
 
-    for(const auto &roi : ret.detectionResult) {
-      if(roi.isValid()) {
-        valid++;
-      } else {
-        inValid++;
+      for(const auto &roi : ret.detectionResult) {
+        if(roi.isValid()) {
+          valid++;
+        } else {
+          inValid++;
+        }
       }
-    }
 
-    dialog->updateImage(image, {.valid = valid, .invalid = inValid});
+      dialog->updateImage(image, {.valid = valid, .invalid = inValid});
+    }
+  } catch(const std::exception &ex) {
+    // showErrorDialog(ex.what());
   }
 }
 
@@ -184,6 +188,7 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
 {
   // Channel Info
   mChoiceChannelIndex->SetSelection(channelSettings.getChannelInfo().getChannelIndex());
+  mMainFrame->mChoiceSeries->SetSelection(channelSettings.getChannelInfo().getChannelSeries());
   mChoiceChannelType->SetSelection(typeToIndex(channelSettings.getChannelInfo().getTypeString()));
   mTextChannelName->SetValue(channelSettings.getChannelInfo().getName());
 
@@ -243,10 +248,11 @@ nlohmann::json PanelChannelController::getValues()
 {
   nlohmann::json chSettings;
 
-  chSettings["info"]["index"] = mChoiceChannelIndex->GetSelection();
-  chSettings["info"]["type"]  = indexToType(mChoiceChannelType->GetSelection());
-  chSettings["info"]["label"] = "";
-  chSettings["info"]["name"]  = mTextChannelName->GetValue();
+  chSettings["info"]["index"]  = mChoiceChannelIndex->GetSelection();
+  chSettings["info"]["series"] = mMainFrame->mChoiceSeries->GetSelection();
+  chSettings["info"]["type"]   = indexToType(mChoiceChannelType->GetSelection());
+  chSettings["info"]["label"]  = "";
+  chSettings["info"]["name"]   = mTextChannelName->GetValue();
 
   // Preprocessing
   nlohmann::json jsonArray = nlohmann::json::array();    // Initialize an empty JSON array
@@ -421,6 +427,7 @@ void PanelChannelController::onChannelIndexChanged(wxCommandEvent &event)
 {
   updatePreview();
 }
+
 void PanelChannelController::onZStackSettingsChanged(wxCommandEvent &event)
 {
   updatePreview();
@@ -480,6 +487,18 @@ void PanelChannelController::onSnapAreaChanged(wxSpinEvent &event)
 void PanelChannelController::onSpotRemovalChanged(wxCommandEvent &event)
 {
   updatePreview();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelController::showErrorDialog(const std::string &what)
+{
+  wxMessageBox(what, "Error", wxOK | wxICON_ERROR, this);
 }
 
 }    // namespace joda::ui::wxwidget

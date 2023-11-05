@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 #include "backend/duration_count/duration_count.h"
+#include "backend/helper/file_info.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
@@ -38,24 +39,17 @@ static constexpr int64_t MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE = 71680768;
 static constexpr int64_t TILES_TO_LOAD_PER_RUN          = 36;
 static constexpr int32_t TIME_FRAME                     = 0;
 
-enum class DataType
-{
-  TIFF,
-  JPG,
-  BIOFORMATS
-};
-
 struct ChannelProperties
 {
   ImageProperties props;
-  DataType type;
   std::set<uint32_t> tifDirs;
 };
 
 class TiffLoaderEntireWrapper
 {
 public:
-  static cv::Mat loadImage(const std::string &filename, uint16_t directory, int offset, int nrOfTilesToRead)
+  static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
+                           int nrOfTilesToRead)
   {
     return TiffLoader::loadEntireImage(filename, directory);
   }
@@ -64,7 +58,8 @@ public:
 class TiffLoaderTileWrapper
 {
 public:
-  static cv::Mat loadImage(const std::string &filename, uint16_t directory, int offset, int nrOfTilesToRead)
+  static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
+                           int nrOfTilesToRead)
   {
     return TiffLoader::loadImageTile(filename, directory, offset, nrOfTilesToRead);
   }
@@ -73,7 +68,8 @@ public:
 class JpgLoaderEntireWrapper
 {
 public:
-  static cv::Mat loadImage(const std::string &filename, uint16_t directory, int offset, int nrOfTilesToRead)
+  static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
+                           int nrOfTilesToRead)
   {
     return JpgLoader::loadEntireImage(filename);
   }
@@ -82,9 +78,10 @@ public:
 class BioformatsEntireWrapper
 {
 public:
-  static cv::Mat loadImage(const std::string &filename, uint16_t directory, int offset, int nrOfTilesToRead)
+  static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
+                           int nrOfTilesToRead)
   {
-    return BioformatsLoader::loadEntireImage(filename, directory);
+    return BioformatsLoader::loadEntireImage(filename, directory, series);
   }
 };
 
@@ -113,23 +110,24 @@ public:
   /// \author     Joachim Danmayr
   ///
   static auto
-  executeAlgorithm(const std::string &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
+  executeAlgorithm(const FileInfo &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
                    uint64_t tileIndex,
                    const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults = nullptr)
   {
     //
     // Execute the algorithms
     //
-    ChannelProperties chProps = loadChannelProperties(imagePath, channelSetting.getChannelInfo().getChannelIndex());
-    if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE && chProps.type == DataType::TIFF) {
+    ChannelProperties chProps = loadChannelProperties(imagePath, channelSetting.getChannelInfo().getChannelIndex(),
+                                                      channelSetting.getChannelInfo().getChannelSeries());
+    if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE && imagePath.getDecoder() == FileInfo::Decoder::TIFF) {
       return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, chProps.tifDirs, tileIndex,
                                                  referenceChannelResults);
     }
-    if(chProps.type == DataType::JPG) {
+    if(imagePath.getDecoder() == FileInfo::Decoder::JPG) {
       return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
                                                   referenceChannelResults);
     }
-    if(chProps.type == DataType::TIFF) {
+    if(imagePath.getDecoder() == FileInfo::Decoder::TIFF) {
       return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
                                                    referenceChannelResults);
     }
@@ -149,7 +147,7 @@ private:
   ///
   template <image_loader_t TIFFLOADER>
   static func::DetectionResponse
-  processImage(const std::string &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
+  processImage(const FileInfo &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
                const std::set<uint32_t> &tiffDirectories, int64_t idx,
                const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults)
   {
@@ -185,16 +183,16 @@ private:
   /// \return     Processed image
   ///
   template <class TIFFLOADER>
-  static cv::Mat doZProjection(const std::string &imagePath,
-                               const joda::settings::json::ChannelSettings &channelSetting,
+  static cv::Mat doZProjection(const FileInfo &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
                                const std::set<uint32_t> &tifDirs, int64_t idx)
   {
-    auto id = DurationCount::start("load");
+    auto id         = DurationCount::start("load");
+    uint16_t series = channelSetting.getChannelInfo().getChannelSeries();
 
     auto loadTileAndToIntensityProjectionIfEnabled =
-        [&imagePath, idx, &channelSetting](const std::set<uint32_t> &tiffDirectories) -> cv::Mat {
+        [&imagePath, idx, &series, &channelSetting](const std::set<uint32_t> &tiffDirectories) -> cv::Mat {
       auto actDirectory = tiffDirectories.begin();
-      cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN);
+      cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath.getPath(), *actDirectory, series, idx, TILES_TO_LOAD_PER_RUN);
       if(channelSetting.getZProjectionSetting() == PreprocessingZStack::MAX_INTENSITY) {
         //
         // Do maximum intensity projection
@@ -204,7 +202,9 @@ private:
           if(actDirectory == tiffDirectories.end()) {
             break;
           }
-          cv::max(tilePart, TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN), tilePart);
+          cv::max(tilePart,
+                  TIFFLOADER::loadImage(imagePath.getPath(), *actDirectory, series, idx, TILES_TO_LOAD_PER_RUN),
+                  tilePart);
         }
       }
       return tilePart;
@@ -217,7 +217,7 @@ private:
     //
     if(channelSetting.getPreprocessingSubtractChannel() >= 0) {
       ChannelProperties chPropsToSubtract =
-          loadChannelProperties(imagePath, channelSetting.getPreprocessingSubtractChannel());
+          loadChannelProperties(imagePath.getPath(), channelSetting.getPreprocessingSubtractChannel(), series);
       cv::Mat tileToSubtract = loadTileAndToIntensityProjectionIfEnabled(chPropsToSubtract.tifDirs);
 
       tilePart = tilePart - tileToSubtract;
@@ -296,58 +296,38 @@ private:
   /// \brief      Load channel properties
   /// \author     Joachim Danmayr
   ///
-  static ChannelProperties loadChannelProperties(const std::string &imagePath, const int channelIndex)
+  static ChannelProperties loadChannelProperties(const FileInfo &imagePath, int channelIndex, uint16_t series)
   {
     //
     // Load image properties
     //
-    std::filesystem::path path_obj(imagePath);
-    std::string filename = path_obj.filename().stem().string();
     ImageProperties imgProperties;
     auto id = DurationCount::start("load img properties");
     std::set<uint32_t> tiffDirectories;
-    auto type = getDataType(imagePath);
-    switch(type) {
-      case DataType::JPG: {
-        imgProperties = JpgLoader::getImageProperties(imagePath);
+    switch(imagePath.getDecoder()) {
+      case FileInfo::Decoder::JPG: {
+        imgProperties = JpgLoader::getImageProperties(imagePath.getPath());
       } break;
-      case DataType::TIFF: {
-        auto omeInfo    = TiffLoader::getOmeInformation(imagePath);
+      case FileInfo::Decoder::TIFF: {
+        auto omeInfo    = TiffLoader::getOmeInformation(imagePath.getPath());
         tiffDirectories = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
         if(tiffDirectories.empty()) {
           throw std::runtime_error("Selected channel does not contain images!");
         }
-        imgProperties = TiffLoader::getImageProperties(imagePath, *tiffDirectories.begin());
+        imgProperties = TiffLoader::getImageProperties(imagePath.getPath(), *tiffDirectories.begin());
       } break;
-      case DataType::BIOFORMATS: {
-        auto [omeInfo, props] = BioformatsLoader::getOmeInformation(imagePath);
+      case FileInfo::Decoder::BIOFORMATS: {
+        auto [omeInfo, props] = BioformatsLoader::getOmeInformation(imagePath.getPath(), series);
         tiffDirectories       = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
         if(tiffDirectories.empty()) {
           throw std::runtime_error("Selected channel does not contain images!");
         }
-        imgProperties = TiffLoader::getImageProperties(imagePath, *tiffDirectories.begin());
-      }
+        imgProperties = TiffLoader::getImageProperties(imagePath.getPath(), *tiffDirectories.begin());
+      } break;
     }
 
     DurationCount::stop(id);
-    return ChannelProperties{.props = imgProperties, .type = type, .tifDirs = tiffDirectories};
-  }
-
-  ///
-  /// \brief      Get data type
-  /// \author     Joachim Danmayr
-  ///
-  static DataType getDataType(const std::string &imagePath)
-  {
-    if(imagePath.ends_with(".jpg") || imagePath.ends_with(".JPG")) {
-      return DataType::JPG;
-    }
-    if(imagePath.ends_with(".tif") || imagePath.ends_with(".TIF") || imagePath.ends_with(".tiff") ||
-       imagePath.ends_with(".TIFF")) {
-      return DataType::TIFF;
-    }
-
-    return DataType::BIOFORMATS;
+    return ChannelProperties{.props = imgProperties, .tifDirs = tiffDirectories};
   }
 };
 }    // namespace joda::algo

@@ -45,7 +45,7 @@ public:
     joda::func::DetectionResults detectionResult;
   };
   auto preview(const settings::json::ChannelSettings &settings, int imgIndex) -> Preview;
-  auto getImageProperties(int imgIndex) -> ImageProperties;
+  auto getImageProperties(int imgIndex, int series) -> ImageProperties;
   struct Resources
   {
     uint64_t ramTotal;    // RAM in bytes

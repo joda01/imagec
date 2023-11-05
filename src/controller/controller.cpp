@@ -15,7 +15,9 @@
 #include <algorithm>
 #include <map>
 #include <ranges>
+#include "backend/helper/file_info.hpp"
 #include "backend/helper/system_resources.hpp"
+#include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/processor/channel_processor.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 #include "backend/settings/channel_settings.hpp"
@@ -119,16 +121,24 @@ auto Controller::preview(const settings::json::ChannelSettings &settings, int im
 /// \brief      Returns properties of given image
 /// \author     Joachim Danmayr
 ///
-auto Controller::getImageProperties(int imgIndex) -> ImageProperties
+auto Controller::getImageProperties(int imgIndex, int series) -> ImageProperties
 {
   auto imagePath = mWorkingDirectory.getFileAt(imgIndex);
 
   ImageProperties props;
-  if(imagePath.ends_with(".jpg")) {
-    props = JpgLoader::getImageProperties(imagePath);
-  } else {
-    props = TiffLoader::getImageProperties(imagePath, 0);
+  switch(imagePath.getDecoder()) {
+    case FileInfo::Decoder::JPG:
+      props = JpgLoader::getImageProperties(imagePath);
+      break;
+    case FileInfo::Decoder::TIFF:
+      props = TiffLoader::getImageProperties(imagePath, 0);
+      break;
+    case FileInfo::Decoder::BIOFORMATS:
+      auto [_, propIn] = BioformatsLoader::getOmeInformation(imagePath, series);
+      props            = propIn;
+      break;
   }
+
   return props;
 }
 
@@ -151,8 +161,13 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
     -> pipeline::Pipeline::ThreadingSettings
 {
   pipeline::Pipeline::ThreadingSettings threads;
+  int series = 0;
 
-  auto props        = getImageProperties(imgIndex);
+  if(!settings.getChannelsVector().empty()) {
+    series = settings.getChannelsVector()[0].getChannelInfo().getChannelSeries();
+  }
+
+  auto props        = getImageProperties(imgIndex, series);
   int64_t imgNr     = mWorkingDirectory.getNrOfFiles();
   int64_t tileNr    = 1;
   int64_t channelNr = settings.getChannels().size();

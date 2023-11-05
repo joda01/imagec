@@ -23,8 +23,9 @@ class BioformatsLoader
 {
 public:
   /////////////////////////////////////////////////////
-  static cv::Mat loadEntireImage(const std::string &filename, int directory);
-  static auto getOmeInformation(const std::string &filename) -> std::tuple<joda::ome::OmeInfo, ImageProperties>;
+  static cv::Mat loadEntireImage(const std::string &filename, int directory, uint16_t series);
+  static auto getOmeInformation(const std::string &filename, uint16_t series)
+      -> std::tuple<joda::ome::OmeInfo, ImageProperties>;
   static void init();
   static void destroy();
 

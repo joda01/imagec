@@ -64,7 +64,7 @@ ImageProperties OmeInfo::loadOmeInformationFromJsonString(const std::string &ome
   int64_t tileSize = (int32_t) parsedJson["tile_height"] * (int32_t) parsedJson["tile_width"];
 
   int chIdx = 0;
-  for(const auto &channel : parsedJson["orders"]) {
+  for(const auto &channel : parsedJson["orders"][0]) {
     int zIdx = 0;
     for(const auto &zStack : channel) {
       int tIdx = 0;

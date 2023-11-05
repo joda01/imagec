@@ -55,6 +55,11 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mToolBar->AddControl( mLabelNrOfFoundFiles );
 	mDirectoryPicker = new wxDirPickerCtrl( mToolBar, wxID_ANY, wxEmptyString, _("Select a folder"), wxDefaultPosition, wxSize( 250,-1 ), wxDIRP_DEFAULT_STYLE|wxDIRP_DIR_MUST_EXIST );
 	mToolBar->AddControl( mDirectoryPicker );
+	wxString mChoiceSeriesChoices[] = { _("Series 0"), _("Series 1"), _("Series 2"), _("Series 3") };
+	int mChoiceSeriesNChoices = sizeof( mChoiceSeriesChoices ) / sizeof( wxString );
+	mChoiceSeries = new wxChoice( mToolBar, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceSeriesNChoices, mChoiceSeriesChoices, 0 );
+	mChoiceSeries->SetSelection( 0 );
+	mToolBar->AddControl( mChoiceSeries );
 	mButtonRun = mToolBar->AddTool( wxID_ANY, _("Start"), start_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
 	mToolBar->AddSeparator();
@@ -128,7 +133,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	iconNucluesChannel = new wxStaticBitmap( panelNucleusChannel, wxID_ANY, bursts_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerNucleusChannel2->Add( iconNucluesChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	wxString mChoiceNucluesChannelChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
+	wxString mChoiceNucluesChannelChoices[] = { _("Off"), _("Channel 0"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11") };
 	int mChoiceNucluesChannelNChoices = sizeof( mChoiceNucluesChannelChoices ) / sizeof( wxString );
 	mChoiceNucluesChannel = new wxChoice( panelNucleusChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceNucluesChannelNChoices, mChoiceNucluesChannelChoices, 0 );
 	mChoiceNucluesChannel->SetSelection( 0 );
@@ -162,7 +167,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	iconCellChannel = new wxStaticBitmap( panelCellChannel, wxID_ANY, bursts_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerCellChannel2->Add( iconCellChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	wxString mChoiceCellChannelChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
+	wxString mChoiceCellChannelChoices[] = { _("Off"), _("Channel 0"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11") };
 	int mChoiceCellChannelNChoices = sizeof( mChoiceCellChannelChoices ) / sizeof( wxString );
 	mChoiceCellChannel = new wxChoice( panelCellChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceCellChannelNChoices, mChoiceCellChannelChoices, 0 );
 	mChoiceCellChannel->SetSelection( 0 );
@@ -255,6 +260,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	this->Connect( mButtonSave->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onSaveSettingsClicked ) );
 	this->Connect( mButtonOpen->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onOpenSettingsClicked ) );
 	mDirectoryPicker->Connect( wxEVT_COMMAND_DIRPICKER_CHANGED, wxFileDirPickerEventHandler( frameMain::onWorkingDirChanged ), NULL, this );
+	mChoiceSeries->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( frameMain::onSeriesChanged ), NULL, this );
 	this->Connect( mButtonRun->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onRunClicked ) );
 	this->Connect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
 	mButtonAddChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ), NULL, this );
@@ -268,6 +274,7 @@ frameMain::~frameMain()
 	this->Disconnect( mButtonSave->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onSaveSettingsClicked ) );
 	this->Disconnect( mButtonOpen->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onOpenSettingsClicked ) );
 	mDirectoryPicker->Disconnect( wxEVT_COMMAND_DIRPICKER_CHANGED, wxFileDirPickerEventHandler( frameMain::onWorkingDirChanged ), NULL, this );
+	mChoiceSeries->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( frameMain::onSeriesChanged ), NULL, this );
 	this->Disconnect( mButtonRun->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onRunClicked ) );
 	this->Disconnect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
 	mButtonAddChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ), NULL, this );
@@ -456,19 +463,19 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	panelChannelIndex->SetMaxSize( wxSize( -1,35 ) );
 
 	wxBoxSizer* sizerChannelIndex;
-	sizerChannelIndex = new wxBoxSizer( wxVERTICAL );
+	sizerChannelIndex = new wxBoxSizer( wxHORIZONTAL );
 
-	wxString mChoiceChannelIndexChoices[] = { _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
+	wxString mChoiceChannelIndexChoices[] = { _("Channel 0"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11") };
 	int mChoiceChannelIndexNChoices = sizeof( mChoiceChannelIndexChoices ) / sizeof( wxString );
 	mChoiceChannelIndex = new wxChoice( panelChannelIndex, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceChannelIndexNChoices, mChoiceChannelIndexChoices, 0 );
 	mChoiceChannelIndex->SetSelection( 0 );
-	sizerChannelIndex->Add( mChoiceChannelIndex, 0, wxEXPAND, 5 );
+	sizerChannelIndex->Add( mChoiceChannelIndex, 1, wxEXPAND|wxRIGHT, 1 );
 
 
 	panelChannelIndex->SetSizer( sizerChannelIndex );
 	panelChannelIndex->Layout();
 	sizerChannelIndex->Fit( panelChannelIndex );
-	mSizerChannel->Add( panelChannelIndex, 1, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+	mSizerChannel->Add( panelChannelIndex, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 	mLabelPreprocessing = new wxStaticText( mScrolledChannel, wxID_ANY, _("Preprocessing"), wxDefaultPosition, wxDefaultSize, 0 );
 	mLabelPreprocessing->Wrap( -1 );
@@ -619,7 +626,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	iconBGSubtraction = new wxStaticBitmap( panelBGSubtraction, wxID_ANY, background_remover_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerBGSubtraction2->Add( iconBGSubtraction, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	wxString mChoiceBGSubtractionChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
+	wxString mChoiceBGSubtractionChoices[] = { _("Off"), _("Channel 0"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11") };
 	int mChoiceBGSubtractionNChoices = sizeof( mChoiceBGSubtractionChoices ) / sizeof( wxString );
 	mChoiceBGSubtraction = new wxChoice( panelBGSubtraction, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceBGSubtractionNChoices, mChoiceBGSubtractionChoices, 0 );
 	mChoiceBGSubtraction->SetSelection( 0 );
@@ -925,7 +932,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	iconTetraspeckChannel = new wxStaticBitmap( panelReferenceChannel, wxID_ANY, minus_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerTetraspeckChannel2->Add( iconTetraspeckChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
 
-	wxString mChoiceReferenceSpotChannelChoices[] = { _("Off"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12") };
+	wxString mChoiceReferenceSpotChannelChoices[] = { _("Off"), _("Channel 0"), _("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11") };
 	int mChoiceReferenceSpotChannelNChoices = sizeof( mChoiceReferenceSpotChannelChoices ) / sizeof( wxString );
 	mChoiceReferenceSpotChannel = new wxChoice( panelReferenceChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceReferenceSpotChannelNChoices, mChoiceReferenceSpotChannelChoices, 0 );
 	mChoiceReferenceSpotChannel->SetSelection( 0 );
@@ -1086,40 +1093,40 @@ PanelIntersection::PanelIntersection( wxWindow* parent, wxWindowID id, const wxP
 	wxGridSizer* mGridIntersection;
 	mGridIntersection = new wxGridSizer( 0, 2, 0, 0 );
 
-	mButtonIntersectionCh01 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 01"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh01 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 0"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh01, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh02 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 02"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh02 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 1"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh02, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh03 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 03"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh03 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 2"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh03, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh04 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 04"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh04 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 3"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh04, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh05 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 05"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh05 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 4"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh05, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh06 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 06"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh06 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 5"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh06, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh07 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 07"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh07 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 6"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh07, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh08 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 08"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh08 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 7"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh08, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh09 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 09"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh09 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 8"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh09, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh10 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 10"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh10 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 9"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh10, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh11 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 11"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh11 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 10"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh11, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	mButtonIntersectionCh12 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 12"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonIntersectionCh12 = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Channel 11"), wxDefaultPosition, wxDefaultSize, 0 );
 	mGridIntersection->Add( mButtonIntersectionCh12, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 	mButtonIntersectionChEstimatedCell = new wxToggleButton( mPanelIntersectionButtons, wxID_ANY, _("Approx Cells"), wxDefaultPosition, wxDefaultSize, 0 );

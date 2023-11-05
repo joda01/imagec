@@ -72,11 +72,9 @@ void BioformatsLoader::destroy()
 /// \param[out]
 /// \return
 ///
-cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int directory)
+cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int directory, uint16_t series)
 {
   std::lock_guard<std::mutex> lock(mReadMutex);
-
-  int series = 0;
 
   myJVM->AttachCurrentThread((void **) &myEnv, NULL);
   // Call the BioFormatsWrapper.readImageBytes() method
@@ -126,11 +124,11 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
 /// \param[out]
 /// \return
 ///
-auto BioformatsLoader::getOmeInformation(const std::string &filename) -> std::tuple<joda::ome::OmeInfo, ImageProperties>
+auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t series)
+    -> std::tuple<joda::ome::OmeInfo, ImageProperties>
 {
   std::lock_guard<std::mutex> lock(mReadMutex);
   myJVM->AttachCurrentThread((void **) &myEnv, NULL);
-  int series = 0;
   // Call the BioFormatsWrapper.readImageBytes() method
   jclass cls    = myEnv->FindClass("BioFormatsWrapper");
   jmethodID mid = myEnv->GetStaticMethodID(
@@ -146,6 +144,7 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename) -> std::tu
   myEnv->ReleaseStringUTFChars(result, stringChars);
   joda::ome::OmeInfo omeInfo;
   ImageProperties props = omeInfo.loadOmeInformationFromJsonString(jsonResult);
+  std::cout << jsonResult << std::endl;
   myJVM->DetachCurrentThread();
 
   return {omeInfo, props};

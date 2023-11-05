@@ -14,6 +14,7 @@
 #pragma once
 
 #include <stdexcept>
+#include "backend/helper/file_info.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/pipelines/pipeline_detection/cell_detection_ai/cell_count.hpp"
 #include "backend/pipelines/pipeline_detection/nucleus_detection_ai/nucleus_count.hpp"
@@ -38,7 +39,7 @@ public:
   /// \param[in]  imgPath Path to the image which should be analyzed
   ///
   static auto
-  processChannel(const joda::settings::json::ChannelSettings &channelSetting, const std::string &imagePath,
+  processChannel(const joda::settings::json::ChannelSettings &channelSetting, const FileInfo &imagePath,
                  uint64_t tileIndex,
                  const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults = nullptr)
       -> func::DetectionResponse

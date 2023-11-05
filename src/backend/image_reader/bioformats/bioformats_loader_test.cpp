@@ -13,7 +13,7 @@ TEST_CASE("image:loader:bioformats", "[image_loader_bioformats]")
 {
   BioformatsLoader::init();
 
-  auto img = BioformatsLoader::loadEntireImage("test/test_histo/cond1_MEVnoP_178.vsi", 4);
+  auto img = BioformatsLoader::loadEntireImage("test/test_histo/cond1_MEVnoP_178.vsi", 4, 0);
 
   // img = img * (256.0F / 65536);
   cv::Mat grayImageFloat;

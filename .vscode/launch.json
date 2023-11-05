@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "/workspaces/imagec/build/build/tests",
             "args": [
-                "[image_loader_bioformats]"
+                "[pipeline_test_histo]"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
