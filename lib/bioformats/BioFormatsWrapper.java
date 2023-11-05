@@ -61,21 +61,25 @@ public class BioFormatsWrapper {
     /// \brief Returns a JSON object with the image properties.
     /// The orders is a 3D array containg the index of the channels of the Z-Stack
     /// of the time stack
-    /// [
     /// [ # Channel 0
-    /// [0,1,2], # Channel 0 | Z-Stack 0
-    /// [0,1,2], # Channel 0 | Z-Stack 1
-    /// ]
-    /// [ # Channel 1
-    /// [0,1,2], # Channel 1 | Z-Stack 0
-    /// [0,1,2], # Channel 1 | Z-Stack 1
-    /// ]
+    /// [ # Time Frame 0
+    /// [0,1,2] # Z-Index
+    /// # Time Frame 1
+    /// [0,1,2] # Z-Index
+    /// ], # Channel 1
+    /// [ # Time Frame 0
+    /// [0,1,2] # Z-Index
+    /// # Time Frame 1
+    /// [0,1,2] # Z-Index
+    /// ],
     /// ]
     ///
     /// Real world example:
     /// {"width":2048,"height":2048,"bits":16,"ch":5,"series_count":
     /// "2","dim_order": "XYCZT","orders":
-    /// [[[[0],[5],[10]],[[1],[6],[11]],[[2],[7],[12]],[[3],[8],[13]],[[4],[9],[14]]]]}
+    /// {"width":2048,"height":2048,"bits":16,"ch":5,"planes":15,"tile_height":2048,"tile_width":2048,"series_count":
+    /// "2","dim_order": "XYCZT","orders":
+    /// [[[0,5,10]],[[1,6,11]],[[2,7,12]],[[3,8,13]],[[4,9,14]]]}
     ///
     /// \author Joachim Danmayr
     /// \param[in] imagePath Path of the image to load
@@ -98,32 +102,31 @@ public class BioFormatsWrapper {
 
             // OMEXMLMetadata omeMetadata = (OMEXMLMetadata)
             // formatReader.getMetadataStore();
-            String channelOrder = "[";
+            String channelOrder = "";
             for (int c = 0; c < formatReader.getSizeC(); c++) {
-                String zOrder = "[";
+                String tOrder = "[";
 
-                for (int z = 0; z < formatReader.getSizeZ(); z++) {
-                    String tOrder = "[";
-                    for (int t = 0; t < formatReader.getSizeT(); t++) {
-                        tOrder = tOrder.concat(String.valueOf(formatReader.getIndex(z, c, t)));
-                        if (t + 1 < formatReader.getSizeT()) {
-                            tOrder = tOrder.concat(",");
+                for (int t = 0; t < formatReader.getSizeT(); t++) {
+                    String zOrder = "[";
+                    for (int z = 0; z < formatReader.getSizeZ(); z++) {
+                        zOrder = zOrder.concat(String.valueOf(formatReader.getIndex(z, c, t)));
+                        if (z + 1 < formatReader.getSizeZ()) {
+                            zOrder = zOrder.concat(",");
                         }
                     }
-                    tOrder = tOrder.concat("]");
-                    zOrder = zOrder.concat(tOrder);
+                    zOrder = zOrder.concat("]");
+                    tOrder = tOrder.concat(zOrder);
 
-                    if (z + 1 < formatReader.getSizeZ()) {
+                    if (t + 1 < formatReader.getSizeT()) {
                         zOrder = zOrder.concat(",");
                     }
                 }
-                zOrder = zOrder.concat("]");
-                channelOrder = channelOrder.concat(zOrder);
+                tOrder = tOrder.concat("]");
+                channelOrder = channelOrder.concat(tOrder);
                 if (c + 1 < formatReader.getSizeC()) {
                     channelOrder = channelOrder.concat(",");
                 }
             }
-            channelOrder = channelOrder.concat("]");
 
             ret = ("{");
             ret = ret.concat("\"width\":" + String.valueOf(formatReader.getSizeX()) + ",");
@@ -139,7 +142,6 @@ public class BioFormatsWrapper {
             ret = ret.concat(channelOrder);
             ret = ret.concat("]");
             ret = ret.concat("}");
-
             formatReader.close();
 
         } catch (Exception e) {

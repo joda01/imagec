@@ -322,7 +322,7 @@ private:
         if(tiffDirectories.empty()) {
           throw std::runtime_error("Selected channel does not contain images!");
         }
-        imgProperties = TiffLoader::getImageProperties(imagePath.getPath(), *tiffDirectories.begin());
+        imgProperties = props;
       } break;
     }
 

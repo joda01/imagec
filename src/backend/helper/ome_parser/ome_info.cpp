@@ -34,21 +34,22 @@ OmeInfo::OmeInfo()
 /// \brief      Reads OME image information from a JSON object defined as
 ///             The orders is a 3D array containg the index of the channels of the Z-Stack
 ///             of the time stack
-///             [
-///               [ # Channel 0
-///                 [0,1,2], # Channel 0 | Z-Stack 0
-///                 [0,1,2], # Channel 0 | Z-Stack 1
-///               ]
-///               [ # Channel 1
-///                 [0,1,2], # Channel 1 | Z-Stack 1
-///                 [0,1,2], # Channel 1 | Z-Stack 0
-///               ]
+///             [ # Channel 0
+///                 [ # Time Frame 0
+///                     [0,1,2]     # Z-Index
+///                   # Time Frame 1
+///                     [0,1,2]     # Z-Index
+///                 ], # Channel 1
+///                 [ # Time Frame 0
+///                     [0,1,2]     # Z-Index
+///                   # Time Frame 1
+///                     [0,1,2]     # Z-Index
+///                 ],
 ///             ]
 ///
 ///             Real world example:
-///             {"width":2048,"height":2048,"bits":16,"ch":5,"series_count":
-///             "2","dim_order": "XYCZT","orders":
-///             [[[[0],[5],[10]],[[1],[6],[11]],[[2],[7],[12]],[[3],[8],[13]],[[4],[9],[14]]]]}
+///             {"width":2048,"height":2048,"bits":16,"ch":5,"planes":15,"tile_height":2048,"tile_width":2048,"series_count":
+///             "2","dim_order": "XYCZT","orders": [[[0,5,10]],[[1,6,11]],[[2,7,12]],[[3,8,13]],[[4,9,14]]]}
 ///
 /// \author     Joachim Danmayr
 /// \param[in]  omeJson  Read OME JSON data as string
@@ -64,13 +65,11 @@ ImageProperties OmeInfo::loadOmeInformationFromJsonString(const std::string &ome
   int64_t tileSize = (int32_t) parsedJson["tile_height"] * (int32_t) parsedJson["tile_width"];
 
   int chIdx = 0;
-  for(const auto &channel : parsedJson["orders"][0]) {
+  for(const auto &channel : parsedJson["orders"]) {
     int zIdx = 0;
     for(const auto &zStack : channel) {
-      int tIdx = 0;
       for(const auto &timeStack : zStack) {
-        mChannels[chIdx].zStackForTimeFrame[zIdx].emplace(tIdx);
-        tIdx++;
+        mChannels[chIdx].zStackForTimeFrame[zIdx].emplace((int32_t) timeStack);
       }
       zIdx++;
     }
