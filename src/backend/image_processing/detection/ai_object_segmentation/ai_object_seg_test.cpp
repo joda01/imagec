@@ -15,7 +15,7 @@ TEST_CASE("cell:counter:ai", "[cell_counter_ai]")
   cv::Mat img = JpgLoader::loadEntireImage("test/cells.jpg");
   ::joda::settings::json::ChannelSettings ch;
   joda::func::ai::ObjectSegmentation seg(&ch.getFilter(),
-                                         "imagec_models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
+                                         "models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
   auto result = seg.forward(img, img);
   CHECK(result.result.size() == 15);
 }
