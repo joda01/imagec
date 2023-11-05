@@ -23,8 +23,10 @@
 #include <vector>
 #include "../helper/helper.hpp"
 #include "../logger/console_logger.hpp"
+#include "backend/helper/file_info.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/helper/thread_pool.hpp"
+#include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
@@ -112,12 +114,12 @@ void Pipeline::runJob()
 /// \brief      Analyze image
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeImage(joda::reporting::Table &alloverReport, const std::string &imagePath)
+void Pipeline::analyzeImage(joda::reporting::Table &alloverReport, const FileInfo &imagePath)
 {
   int threadPoolTile = mThreadingSettings.cores[ThreadingSettings::TILES];
   BS::thread_pool tileThreadPool(threadPoolTile);
 
-  std::string imageName = helper::getFileNameFromPath(imagePath);
+  std::string imageName = helper::getFileNameFromPath(imagePath.getPath());
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   auto detailOutputFolder = mOutputFolder + separator + imageName;
 
@@ -127,10 +129,15 @@ void Pipeline::analyzeImage(joda::reporting::Table &alloverReport, const std::st
   // Execute for each tile
   //
   ImageProperties props;
-  if(imagePath.ends_with(".jpg")) {
-    props = JpgLoader::getImageProperties(imagePath);
+  if(imagePath.getDecoder() == FileInfo::Decoder::JPG) {
+    props = JpgLoader::getImageProperties(imagePath.getPath());
+  } else if(imagePath.getDecoder() == FileInfo::Decoder::TIFF) {
+    props = TiffLoader::getImageProperties(imagePath.getPath(), 0);
   } else {
-    props = TiffLoader::getImageProperties(imagePath, 0);
+    if(!mAnalyzeSettings.getChannelsVector().empty()) {
+      auto series       = mAnalyzeSettings.getChannelsVector()[0].getChannelInfo().getChannelSeries();
+      auto [ome, props] = BioformatsLoader::getOmeInformation(imagePath.getPath(), series);
+    }
   }
   int64_t runs = 1;
   if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
@@ -176,7 +183,7 @@ void Pipeline::analyzeImage(joda::reporting::Table &alloverReport, const std::st
 /// \brief      Analyze tile
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeTile(joda::reporting::Table &detailReports, std::string imagePath, std::string detailOutputFolder,
+void Pipeline::analyzeTile(joda::reporting::Table &detailReports, FileInfo imagePath, std::string detailOutputFolder,
                            int tileIdx)
 {
   auto idChannels = DurationCount::start("channels");
@@ -263,7 +270,7 @@ void Pipeline::analyzeTile(joda::reporting::Table &detailReports, std::string im
 ///
 void Pipeline::analyszeChannel(joda::reporting::Table &detailReports,
                                std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
-                               const joda::settings::json::ChannelSettings &channelSettings, std::string imagePath,
+                               const joda::settings::json::ChannelSettings &channelSettings, FileInfo imagePath,
                                std::string detailOutputFolder, int chIdx, int tileIdx)
 {
   int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
@@ -273,6 +280,9 @@ void Pipeline::analyszeChannel(joda::reporting::Table &detailReports,
   try {
     auto processingResult =
         joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath, tileIdx, &detectionResults);
+
+    std::cout << "RES " << std::to_string(processingResult.result.size()) << std::endl;
+
     //
     // Add processing result to the detection result map
     //

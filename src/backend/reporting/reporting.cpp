@@ -76,7 +76,7 @@ int64_t Table::appendValueToColumn(const std::string &rowName, uint64_t colIdx, 
 
 auto Table::getNrOfColumns() const -> int64_t
 {
-  return mTable.size();
+  return std::max(static_cast<int64_t>(mTable.size()), static_cast<int64_t>(mColumnName.size()));
 }
 
 auto Table::getNrOfRows() const -> int64_t
@@ -158,7 +158,7 @@ void Table::flushReportToFile(std::string_view fileName) const
   //
   for(int64_t rowIdx = 0; rowIdx < getNrOfRows(); rowIdx++) {
     std::string rowBuffer = "";
-    for(int64_t colIdx = 0; colIdx < getNrOfColumns(); colIdx++) {
+    for(int64_t colIdx = 0; colIdx < columns; colIdx++) {
       //
       // Write row data
       //
@@ -173,7 +173,7 @@ void Table::flushReportToFile(std::string_view fileName) const
         }
       }
 
-      if(mTable.at(colIdx).contains(rowIdx)) {
+      if(mTable.contains(colIdx) && mTable.at(colIdx).contains(rowIdx)) {
         if(!mTable.at(colIdx).at(rowIdx).validity.has_value()) {
           rowBuffer += std::to_string(mTable.at(colIdx).at(rowIdx).value) + CSV_SEPARATOR;
         } else {
@@ -214,9 +214,15 @@ void Table::flushReportToFile(std::string_view fileName) const
   //
   for(int n = 0; n < Statistics::NR_OF_VALUE; n++) {
     std::string rowBuffer = Statistics::getStatisticsTitle()[n] + CSV_SEPARATOR;
-    for(const auto &[_, statistics] : mStatistics) {
-      rowBuffer += std::to_string(statistics.getStatistics()[n]) + CSV_SEPARATOR;
+    for(int64_t colIdx = 0; colIdx < columns; colIdx++) {
+      if(mStatistics.contains(colIdx)) {
+        auto statistics = mStatistics.at(colIdx);
+        rowBuffer += std::to_string(statistics.getStatistics()[n]) + CSV_SEPARATOR;
+      } else {
+        rowBuffer += CSV_SEPARATOR;
+      }
     }
+
     rowBuffer.pop_back();    // Remove trailing CSV_SEPARATOR
     rowBuffer += "\n";
     outFile << rowBuffer;

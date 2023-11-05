@@ -25,10 +25,10 @@ auto JpgLoader::readImageMeta(const std::string &filename) -> std::string
 }
 auto JpgLoader::getImageProperties(const std::string &filename) -> ImageProperties
 {
-  auto image = cv::imread(filename, cv::IMREAD_COLOR);
-  int width  = image.cols;
-  int height = image.rows;
-  int size   = width * height;
+  auto image   = cv::imread(filename, cv::IMREAD_COLOR);
+  int width    = image.cols;
+  int height   = image.rows;
+  int64_t size = width * height;
 
   return ImageProperties{.imageSize = size, .tileSize = size, .nrOfTiles = 1, .nrOfDocuments = 1};
 }

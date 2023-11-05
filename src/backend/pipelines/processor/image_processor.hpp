@@ -21,8 +21,10 @@
 #include <string>
 #include <utility>
 #include "backend/duration_count/duration_count.h"
+#include "backend/helper/file_info.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
+#include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/image_reader/jpg/image_loader_jpg.hpp"
 #include "backend/image_reader/tif/image_loader_tif.hpp"
@@ -40,14 +42,14 @@ static constexpr int32_t TIME_FRAME                     = 0;
 struct ChannelProperties
 {
   ImageProperties props;
-  bool isJpg;
   std::set<uint32_t> tifDirs;
 };
 
 class TiffLoaderEntireWrapper
 {
 public:
-  static cv::Mat loadImage(const std::string &filename, uint16_t directory, int offset, int nrOfTilesToRead)
+  static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
+                           int nrOfTilesToRead)
   {
     return TiffLoader::loadEntireImage(filename, directory);
   }
@@ -56,7 +58,8 @@ public:
 class TiffLoaderTileWrapper
 {
 public:
-  static cv::Mat loadImage(const std::string &filename, uint16_t directory, int offset, int nrOfTilesToRead)
+  static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
+                           int nrOfTilesToRead)
   {
     return TiffLoader::loadImageTile(filename, directory, offset, nrOfTilesToRead);
   }
@@ -65,9 +68,20 @@ public:
 class JpgLoaderEntireWrapper
 {
 public:
-  static cv::Mat loadImage(const std::string &filename, uint16_t directory, int offset, int nrOfTilesToRead)
+  static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
+                           int nrOfTilesToRead)
   {
     return JpgLoader::loadEntireImage(filename);
+  }
+};
+
+class BioformatsEntireWrapper
+{
+public:
+  static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
+                           int nrOfTilesToRead)
+  {
+    return BioformatsLoader::loadEntireImage(filename, directory, series);
   }
 };
 
@@ -83,7 +97,7 @@ concept detection_t = std::is_base_of<joda::pipeline::detection::Detection, T>::
 template <class T>
 concept image_loader_t =
     std::is_base_of<TiffLoaderEntireWrapper, T>::value || std::is_base_of<TiffLoaderTileWrapper, T>::value ||
-    std::is_base_of<JpgLoaderEntireWrapper, T>::value;
+    std::is_base_of<JpgLoaderEntireWrapper, T>::value || std::is_base_of<BioformatsEntireWrapper, T>::value;
 
 ///< Processing result. Key is the image tile index, value os the detection result of this tile
 
@@ -96,23 +110,28 @@ public:
   /// \author     Joachim Danmayr
   ///
   static auto
-  executeAlgorithm(const std::string &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
+  executeAlgorithm(const FileInfo &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
                    uint64_t tileIndex,
                    const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults = nullptr)
   {
     //
     // Execute the algorithms
     //
-    ChannelProperties chProps = loadChannelProperties(imagePath, channelSetting.getChannelInfo().getChannelIndex());
-    if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    ChannelProperties chProps = loadChannelProperties(imagePath, channelSetting.getChannelInfo().getChannelIndex(),
+                                                      channelSetting.getChannelInfo().getChannelSeries());
+    if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE && imagePath.getDecoder() == FileInfo::Decoder::TIFF) {
       return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, chProps.tifDirs, tileIndex,
                                                  referenceChannelResults);
     }
-    if(chProps.isJpg) {
+    if(imagePath.getDecoder() == FileInfo::Decoder::JPG) {
       return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
                                                   referenceChannelResults);
     }
-    return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
+    if(imagePath.getDecoder() == FileInfo::Decoder::TIFF) {
+      return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
+                                                   referenceChannelResults);
+    }
+    return processImage<BioformatsEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
                                                  referenceChannelResults);
   }
 
@@ -128,7 +147,7 @@ private:
   ///
   template <image_loader_t TIFFLOADER>
   static func::DetectionResponse
-  processImage(const std::string &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
+  processImage(const FileInfo &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
                const std::set<uint32_t> &tiffDirectories, int64_t idx,
                const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults)
   {
@@ -164,16 +183,16 @@ private:
   /// \return     Processed image
   ///
   template <class TIFFLOADER>
-  static cv::Mat doZProjection(const std::string &imagePath,
-                               const joda::settings::json::ChannelSettings &channelSetting,
+  static cv::Mat doZProjection(const FileInfo &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
                                const std::set<uint32_t> &tifDirs, int64_t idx)
   {
-    auto id = DurationCount::start("load");
+    auto id         = DurationCount::start("load");
+    uint16_t series = channelSetting.getChannelInfo().getChannelSeries();
 
     auto loadTileAndToIntensityProjectionIfEnabled =
-        [&imagePath, idx, &channelSetting](const std::set<uint32_t> &tiffDirectories) -> cv::Mat {
+        [&imagePath, idx, &series, &channelSetting](const std::set<uint32_t> &tiffDirectories) -> cv::Mat {
       auto actDirectory = tiffDirectories.begin();
-      cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN);
+      cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath.getPath(), *actDirectory, series, idx, TILES_TO_LOAD_PER_RUN);
       if(channelSetting.getZProjectionSetting() == PreprocessingZStack::MAX_INTENSITY) {
         //
         // Do maximum intensity projection
@@ -183,7 +202,9 @@ private:
           if(actDirectory == tiffDirectories.end()) {
             break;
           }
-          cv::max(tilePart, TIFFLOADER::loadImage(imagePath, *actDirectory, idx, TILES_TO_LOAD_PER_RUN), tilePart);
+          cv::max(tilePart,
+                  TIFFLOADER::loadImage(imagePath.getPath(), *actDirectory, series, idx, TILES_TO_LOAD_PER_RUN),
+                  tilePart);
         }
       }
       return tilePart;
@@ -196,7 +217,7 @@ private:
     //
     if(channelSetting.getPreprocessingSubtractChannel() >= 0) {
       ChannelProperties chPropsToSubtract =
-          loadChannelProperties(imagePath, channelSetting.getPreprocessingSubtractChannel());
+          loadChannelProperties(imagePath.getPath(), channelSetting.getPreprocessingSubtractChannel(), series);
       cv::Mat tileToSubtract = loadTileAndToIntensityProjectionIfEnabled(chPropsToSubtract.tifDirs);
 
       tilePart = tilePart - tileToSubtract;
@@ -275,30 +296,38 @@ private:
   /// \brief      Load channel properties
   /// \author     Joachim Danmayr
   ///
-  static ChannelProperties loadChannelProperties(const std::string &imagePath, const int channelIndex)
+  static ChannelProperties loadChannelProperties(const FileInfo &imagePath, int channelIndex, uint16_t series)
   {
     //
     // Load image properties
     //
-    std::filesystem::path path_obj(imagePath);
-    std::string filename = path_obj.filename().stem().string();
     ImageProperties imgProperties;
-    bool isJpg = imagePath.ends_with(".jpg");
-    auto id    = DurationCount::start("load img properties");
+    auto id = DurationCount::start("load img properties");
     std::set<uint32_t> tiffDirectories;
-    if(isJpg) {
-      imgProperties = JpgLoader::getImageProperties(imagePath);
-    } else {
-      auto omeInfo    = TiffLoader::getOmeInformation(imagePath);
-      tiffDirectories = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
-      if(tiffDirectories.empty()) {
-        throw std::runtime_error("Selected channel does not contain images!");
-      }
-      imgProperties = TiffLoader::getImageProperties(imagePath, *tiffDirectories.begin());
+    switch(imagePath.getDecoder()) {
+      case FileInfo::Decoder::JPG: {
+        imgProperties = JpgLoader::getImageProperties(imagePath.getPath());
+      } break;
+      case FileInfo::Decoder::TIFF: {
+        auto omeInfo    = TiffLoader::getOmeInformation(imagePath.getPath());
+        tiffDirectories = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
+        if(tiffDirectories.empty()) {
+          throw std::runtime_error("Selected channel does not contain images!");
+        }
+        imgProperties = TiffLoader::getImageProperties(imagePath.getPath(), *tiffDirectories.begin());
+      } break;
+      case FileInfo::Decoder::BIOFORMATS: {
+        auto [omeInfo, props] = BioformatsLoader::getOmeInformation(imagePath.getPath(), series);
+        tiffDirectories       = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
+        if(tiffDirectories.empty()) {
+          throw std::runtime_error("Selected channel does not contain images!");
+        }
+        imgProperties = props;
+      } break;
     }
-    DurationCount::stop(id);
 
-    return ChannelProperties{.props = imgProperties, .isJpg = isJpg, .tifDirs = tiffDirectories};
+    DurationCount::stop(id);
+    return ChannelProperties{.props = imgProperties, .tifDirs = tiffDirectories};
   }
 };
 }    // namespace joda::algo

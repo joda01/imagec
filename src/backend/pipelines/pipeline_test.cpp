@@ -1,9 +1,9 @@
 #include "../image_reader/jpg/image_loader_jpg.hpp"
 #include "../settings/analze_settings_parser.hpp"
+#include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "controller/controller.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
-
 #include "pipeline_factory.hpp"
 
 ///
@@ -112,6 +112,29 @@ TEST_CASE("pipeline:test:spots_real", "[pipeline_test_spots_real]")
   imageFileContainer.setWorkingDirectory("test/test_spot/evanalyzer_comp");
   sleep(1);
   joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_spot/evanalyzer_comp", &imageFileContainer,
+                                               controller.calcOptimalThreadNumber(settings, 0));
+
+  while(true) {
+    sleep(2);
+  }
+}
+
+///
+/// \brief  Spot test
+/// \author Joachim Danmayr
+///
+TEST_CASE("pipeline:test:histo", "[pipeline_test_histo]")
+{
+  BioformatsLoader::init();
+
+  joda::ctrl::Controller controller;
+  controller.setWorkingDirectory("test/test_histo");
+  joda::settings::json::AnalyzeSettings settings;
+  settings.loadConfigFromFile("test/test_histo/settings.json");
+  joda::helper::ImageFileContainer imageFileContainer;
+  imageFileContainer.setWorkingDirectory("test/test_histo");
+  sleep(1);
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_histo", &imageFileContainer,
                                                controller.calcOptimalThreadNumber(settings, 0));
 
   while(true) {

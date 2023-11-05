@@ -100,6 +100,8 @@ private:
   void onSpotRemovalChanged(wxCommandEvent &event) override;
 
   void onPreviewDialogClosed(wxCloseEvent &);
+
+  void showErrorDialog(const std::string &what);
   /////////////////////////////////////////////////////
   FrameMainController *mMainFrame;
   std::map<wxWindowID, std::shared_ptr<DialogImageController>> mPreviewDialogs;

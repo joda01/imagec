@@ -18,7 +18,8 @@
 		"ms-vscode.cpptools",
 		"llvm-vs-code-extensions.vscode-clangd",
 		"GrapeCity.gc-excelviewer",
-		"streetsidesoftware.code-spell-checker"
+		"streetsidesoftware.code-spell-checker",
+		"vscjava.vscode-java-pack"
 	]
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],

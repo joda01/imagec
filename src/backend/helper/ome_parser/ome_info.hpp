@@ -40,6 +40,7 @@ public:
   OmeInfo();
 
   void loadOmeInformationFromString(const std::string &omeXML);
+  ImageProperties loadOmeInformationFromJsonString(const std::string &omeJson);
   void emulateOmeInformationFromTiff(const ImageProperties &);
 
   [[nodiscard]] int getNrOfChannels() const;
@@ -59,7 +60,7 @@ private:
 
   /////////////////////////////////////////////////////
   int mNrOfChannels;
-  uint64_t mImageSize;
+  int64_t mImageSize;
   std::map<uint32_t, ChannelInfo> mChannels;    ///< Contains the channel information <channelIdx | channelinfo>
 };
 }    // namespace joda::ome

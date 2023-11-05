@@ -20,13 +20,13 @@
 #include <wx/colour.h>
 #include <wx/settings.h>
 #include <wx/filepicker.h>
+#include <wx/choice.h>
 #include <wx/toolbar.h>
 #include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/scrolwin.h>
 #include <wx/panel.h>
 #include <wx/statbmp.h>
-#include <wx/choice.h>
 #include <wx/spinctrl.h>
 #include <wx/notebook.h>
 #include <wx/statusbr.h>
@@ -93,6 +93,7 @@ namespace joda
 					virtual void onSaveSettingsClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onOpenSettingsClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onWorkingDirChanged( wxFileDirPickerEvent& event ) { event.Skip(); }
+					virtual void onSeriesChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onRunClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAboutClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAddChannelClicked( wxCommandEvent& event ) { event.Skip(); }
@@ -101,6 +102,7 @@ namespace joda
 
 
 				public:
+					wxChoice* mChoiceSeries;
 
 					frameMain( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("imageC"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 

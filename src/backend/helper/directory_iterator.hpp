@@ -19,6 +19,7 @@
 #include <memory>
 #include <set>
 #include <thread>
+#include "file_info.hpp"
 #include "helper.hpp"
 
 namespace joda::helper {
@@ -97,7 +98,7 @@ public:
   /// \brief      Returns list of found files
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFilesList() const -> const std::vector<std::string> &
+  [[nodiscard]] auto getFilesList() const -> const std::vector<FileInfo> &
   {
     return mListOfImagePaths;
   }
@@ -106,12 +107,12 @@ public:
   /// \brief      Returns a file on a specific index
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFileAt(uint32_t idx) const -> std::string
+  [[nodiscard]] auto getFileAt(uint32_t idx) const -> FileInfo
   {
     if(idx < mListOfImagePaths.size()) {
       return mListOfImagePaths.at(idx);
     }
-    return "";
+    return FileInfo{};
   }
 
   ///
@@ -137,8 +138,9 @@ private:
     for(recursive_directory_iterator i(mWorkingDirectory), end; i != end; ++i) {
       try {
         if(!is_directory(i->path())) {
-          if(ALLOWED_EXTENSIONS.contains(i->path().extension().string())) {
-            mListOfImagePaths.push_back(i->path().string());
+          FileInfo fi(*i);
+          if(fi.isSupported()) {
+            mListOfImagePaths.push_back(fi);
           }
         }
       } catch(const std::exception &ex) {
@@ -152,9 +154,9 @@ private:
   }
 
   /////////////////////////////////////////////////////
-  static inline const std::set<std::string> ALLOWED_EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
+
   std::string mWorkingDirectory;
-  std::vector<std::string> mListOfImagePaths;
+  std::vector<FileInfo> mListOfImagePaths;
   bool mIsStopped = false;
   bool mIsRunning = false;
   std::shared_ptr<std::thread> mWorkerThread;

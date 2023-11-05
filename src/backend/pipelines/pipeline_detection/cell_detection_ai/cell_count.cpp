@@ -38,7 +38,7 @@ auto CellCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
     return th.forward(img, imgOriginal);
   } else {
     joda::func::ai::ObjectSegmentation obj(&channelSetting.getFilter(),
-                                           "imagec_models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
+                                           "models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
     return obj.forward(img, imgOriginal);
   }
 }

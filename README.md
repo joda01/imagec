@@ -106,3 +106,9 @@ wx-config --rescomp
 valgrind --leak-check=full --track-origins=yes ./build/build/tests "[pipeline_test]"
 valgrind --tool=massif --stacks=yes --detailed-freq=1 ./imagec
 valgrind --tool=massif --stacks=yes --detailed-freq=1 ./build/build/tests "[pipeline_test]"
+
+
+### Deploy docker image
+
+docker build --target live -t joda001/imagec:v1.1.0 .
+docker push  joda001/imagec:v1.1.0

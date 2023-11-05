@@ -20,7 +20,6 @@ IF (WIN32)
 
 ELSE()
 
-  #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -g -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lopencv_imgcodecs -Wno-unknown-pragmas -O2 -lm -std=c++20")
 
 ENDIF()
@@ -45,6 +44,11 @@ find_package( OpenCV REQUIRED )
 find_package( PkgConfig REQUIRED )
 find_package( PugiXML )
 find_package( OpenSSL  )
+find_package(JNI REQUIRED )
+find_package(Java COMPONENTS REQUIRED)
+
+include_directories(${JNI_INCLUDE_DIRS})
+
 
 IF (WIN32)
   find_package( libjpeg-turbo )
@@ -79,6 +83,9 @@ IF (WIN32)
     jpeg
     TIFF
     ${wxWidgets_LIBRARIES}
+    JNI::JVM
+    JNI::JNI
+    JNI::AWT
   )
 
 
@@ -90,6 +97,9 @@ ELSE()
     pugixml
     tiff
     ${wxWidgets_LIBRARIES}
+    JNI::JVM
+    JNI::JNI
+    JNI::AWT
   )
 ENDIF()
 

@@ -134,7 +134,11 @@ RUN cd wxWidgets &&\
     make -j6 &&\
     make install
 
+
+RUN apt-get update && apt-get install -y default-jdk
+
 RUN ldconfig
+
 
 #FROM live as build
 #
