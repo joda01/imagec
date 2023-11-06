@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - pack
     tags:
       - '*'
   pull_request:
