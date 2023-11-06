@@ -140,7 +140,7 @@ set_target_properties( ${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
-target_link_options(${PROJECT_NAME}  PRIVATE -static-libgcc -static-libstdc++ -static)
+target_link_options(${PROJECT_NAME}  PRIVATE -static-libgcc -static-libstdc++)
 #target_compile_definitions(${PROJECT_NAME} PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
 
 IF (WIN32)
