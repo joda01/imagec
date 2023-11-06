@@ -54,6 +54,7 @@ jobs:
           strip.exe build/build/imagec.exe
           cd build/build
           ldd imagec.exe
+          ls $JAVA_HOME
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
