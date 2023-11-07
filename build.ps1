@@ -7,10 +7,12 @@ cd build/build
 $jvmdll = "$env:JAVA_HOME"
 $dll = "\bin\server\jvm.dll"
 
+ls $jvmdll
+
+
 $jvmdll = "$jvmdll$dll"
 echo "HO: $jvmdll"
 
-ls $jvmdll
 Copy-Item -Path "$jvmdll" -Destination "./dlls" -Force
 
 
