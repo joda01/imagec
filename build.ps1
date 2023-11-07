@@ -10,6 +10,7 @@ $dll = "\bin\server\jvm.dll"
 $jvmdll = "$jvmdll$dll"
 echo "HO: $jvmdll"
 
+ls $jvmdll
 Copy-Item -Path "$jvmdll" -Destination "./dlls" -Force
 
 
