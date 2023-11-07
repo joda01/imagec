@@ -94,6 +94,8 @@ mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
 strip.exe imagec.exe
 `
 
+set-executionpolicy remotesigned
+
 ### Deploy for windows
 
 Use `mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin` to check dll dependencies.
