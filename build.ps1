@@ -1,7 +1,7 @@
 
 
 $mingwBasePath =  '/d/a/_temp/msys64/mingw64'
-
+$mingwBasePathWin =  'D:\a\_temp\msys64\mingw64'
 
 cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=D:\a\_temp\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=D:\a\_temp\msys64\mingw64\bin\g++.exe -S"$env:GITHUB_WORKSPACE" -B"$env:GITHUB_WORKSPACE/build" -G "MinGW Makefiles"
 # This is a dirty hack, because the resource compiler did not create windows path correctly
@@ -38,9 +38,9 @@ foreach ($item in $result) {
 
 $destinationDirectory = "./dlls"
 
-Get-ChildItem -Path "$mingwBasePath/bin/" -Filter "libOpenEXR*" | Copy-Item -Destination "$destinationDirectory" -Force
+Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libOpenEXR*" | Copy-Item -Destination "$destinationDirectory" -Force
 
-$filesToCopy = Get-ChildItem -Path "$mingwBasePath/bin" -Filter "libabsl*"
+$filesToCopy = Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libabsl*"
 foreach ($file in $filesToCopy) {
     $destinationPath = Join-Path -Path $destinationDirectory -ChildPath $file.Name
     Copy-Item -Path $file.FullName -Destination $destinationPath -Force
