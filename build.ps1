@@ -42,8 +42,7 @@ Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libOpenEXR*" | Copy-Item -D
 
 $filesToCopy = Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libabsl*"
 foreach ($file in $filesToCopy) {
-    $destinationPath = Join-Path -Path $destinationDirectory -ChildPath $file.Name
-    Copy-Item -Path $file.FullName -Destination $destinationPath -Force
+    Copy-Item -Path $file.FullName -Destination "./dlls" -Force
 }
 
 
