@@ -5,34 +5,10 @@ cd build/build
 
 
 $jvmdll = "$env:JAVA_HOME"
-$dll = "\bin\server\jvm.dll"
-
-ls $jvmdll
-
-$jvmdll1 = "$jvmdll\bin"
-ls $jvmdll1
-
-
-$jvmdll1 = "$jvmdll\lib"
-ls $jvmdll1
-
-$jvmdll1 = "$jvmdll\jre"
-ls $jvmdll1
-
-$jvmdll1 = "$jvmdll\jre\bin"
-ls $jvmdll1
-
-$jvmdll1 = "$jvmdll\jre\lib"
-ls $jvmdll1
-
-$jvmdll1 = "$jvmdll\jre\bin\server"
-ls $jvmdll1
-
+$dll = "\jre\bin\server\jvm.dll"
 $jvmdll = "$jvmdll$dll"
-echo "HO: $jvmdll"
 
 Copy-Item -Path "$jvmdll" -Destination "./dlls" -Force
-
 
 cmake --build build --target imagec --parallel 4
 
