@@ -8,6 +8,8 @@ cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPIL
 (Get-Content -Path "build/CMakeFiles/imagec.dir/build.make") | ForEach-Object { $_ -replace "D:\\a\\imagec\\imagec\\src\\wx.rc", "D:/a/imagec/imagec/src/wx.rc" } | Set-Content -Path "build/CMakeFiles/imagec.dir/build.make"
 cd build/build
 
+ni "dlls" -ItemType Directory
+
 
 $jvmdll = "$env:JAVA_HOME"
 $dll = "\jre\bin\server\jvm.dll"
