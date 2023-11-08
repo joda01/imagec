@@ -9,6 +9,15 @@ $dll = "\bin\server\jvm.dll"
 
 ls $jvmdll
 
+$jvmdll1 = "$jvmdll\bin\server"
+ls $jvmdll1
+
+
+$jvmdll1 = "$jvmdll\lib"
+ls $jvmdll1
+
+$jvmdll1 = "$jvmdll\jre"
+ls $jvmdll1
 
 $jvmdll = "$jvmdll$dll"
 echo "HO: $jvmdll"
