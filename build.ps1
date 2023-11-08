@@ -1,3 +1,8 @@
+
+
+$mingwBasePath =  '/d/a/_temp/msys64/mingw64'
+
+
 cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=D:\a\_temp\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=D:\a\_temp\msys64\mingw64\bin\g++.exe -S"$env:GITHUB_WORKSPACE" -B"$env:GITHUB_WORKSPACE/build" -G "MinGW Makefiles"
 # This is a dirty hack, because the resource compiler did not create windows path correctly
 (Get-Content -Path "build/CMakeFiles/imagec.dir/build.make") | ForEach-Object { $_ -replace "D:\\a\\imagec\\imagec\\src\\wx.rc", "D:/a/imagec/imagec/src/wx.rc" } | Set-Content -Path "build/CMakeFiles/imagec.dir/build.make"
@@ -20,7 +25,7 @@ $result = ($(echo "$input" | grep -o '=> [^(]*' | cut -c 4-))
 ldd imagec.exe
 
 foreach ($item in $result) {
-    $item = $item -replace '/mingw64', '/d/a/_temp/msys64/mingw64'
+    $item = $item -replace '/mingw64', $mingwBasePath
 
     if ($item -match "^/") {
         $item = $item -replace '/(.)/', '$1:/'
@@ -31,8 +36,8 @@ foreach ($item in $result) {
     }
 }
 
-Copy-Item -Path "/d/a/_temp/msys64/mingw6/bin/libOpenEXR-3_1.dll" -Destination "./dlls" -Force
-$filesToCopy = Get-ChildItem -Path "/d/a/_temp/msys64/mingw6/bin" -Filter "libabsl*"
+Copy-Item -Path "$mingwBasePath/bin/libOpenEXR-3_1.dll" -Destination "./dlls" -Force
+$filesToCopy = Get-ChildItem -Path "$mingwBasePath/bin" -Filter "libabsl*"
 
 
 $destinationDirectory = "./dlls"
