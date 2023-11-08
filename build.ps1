@@ -48,6 +48,4 @@ strip imagec.exe
 
 Compress-Archive -Path ./dlls -DestinationPath win-dlls.zip
 
-Remove-Item -Recurse -Force ./dlls
-
 cd ../..
