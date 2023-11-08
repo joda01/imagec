@@ -34,6 +34,8 @@ foreach ($item in $result) {
 Copy-Item -Path "/d/a/_temp/msys64/mingw6/bin/libOpenEXR-3_1.dll" -Destination "./dlls" -Force
 $filesToCopy = Get-ChildItem -Path "/d/a/_temp/msys64/mingw6/bin" -Filter "libabsl*"
 
+
+$destinationDirectory = "./dlls"
 foreach ($file in $filesToCopy) {
     $destinationPath = Join-Path -Path $destinationDirectory -ChildPath $file.Name
     Copy-Item -Path $file.FullName -Destination $destinationPath -Force
