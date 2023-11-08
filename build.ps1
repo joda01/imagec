@@ -14,9 +14,6 @@ cd ../..
 cmake --build build --target imagec --parallel 8
 cd build/build
 
-Remove-Item -Path "./dlls" -Recurse -Force
-
-
 $input = $(ldd imagec.exe)
 $result = ($(echo "$input" | grep -o '=> [^(]*' | cut -c 4-))
 
@@ -42,5 +39,6 @@ strip imagec.exe
 
 Compress-Archive -Path ./dlls -DestinationPath win-dlls.zip
 
+Remove-Item -Recurse -Force ./dlls
+
 cd ../..
-# cmake --build build --target tests --parallel 4
