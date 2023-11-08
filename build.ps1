@@ -10,7 +10,9 @@ $jvmdll = "$jvmdll$dll"
 
 Copy-Item -Path "$jvmdll" -Destination "./dlls" -Force
 
-cmake --build build --target imagec --parallel 4
+cd ../..
+cmake --build build --target imagec --parallel 8
+cd build/build
 
 Remove-Item -Path "./dlls" -Recurse -Force
 
