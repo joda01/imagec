@@ -39,11 +39,7 @@ foreach ($item in $result) {
 $destinationDirectory = "./dlls"
 
 Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libOpenEXR*" | Copy-Item -Destination "$destinationDirectory" -Force
-
-$filesToCopy = Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libabsl*"
-foreach ($file in $filesToCopy) {
-    Copy-Item -Path $file.FullName -Destination "./dlls" -Force
-}
+Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libabsl*" | Copy-Item -Destination "$destinationDirectory" -Force
 
 
 ls ./dlls
