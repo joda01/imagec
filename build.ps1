@@ -42,8 +42,7 @@ $destinationDirectory = "./dlls"
 
 Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libOpenEXR*" | Copy-Item -Destination "$destinationDirectory" -Force
 Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libabsl*" | Copy-Item -Destination "$destinationDirectory" -Force
-
-Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter ".dll" | Copy-Item -Destination "$destinationDirectory" -Force
+Copy-Item -Path "$mingwBasePathWin\bin\*.dll" -Destination "$destinationDirectory" -Force
 
 
 ls ./dlls
