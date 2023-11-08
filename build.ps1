@@ -9,7 +9,7 @@ $dll = "\bin\server\jvm.dll"
 
 ls $jvmdll
 
-$jvmdll1 = "$jvmdll\bin\server"
+$jvmdll1 = "$jvmdll\bin"
 ls $jvmdll1
 
 
