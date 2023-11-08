@@ -25,7 +25,7 @@ ni "dlls" -ItemType Directory
 
 
 foreach ($item in $result) {
-    $item = $item -replace '/mingw64', '/c/msys64/mingw64'
+    $item = $item -replace '/mingw64', '/d/a/_temp/msys64/mingw64'
 
     if ($item -match "^/") {
         $item = $item -replace '/(.)/', '$1:/'
