@@ -18,8 +18,6 @@ $input = $(ldd imagec.exe)
 $result = ($(echo "$input" | grep -o '=> [^(]*' | cut -c 4-))
 
 ldd imagec.exe
-ni "dlls" -ItemType Directory
-
 
 foreach ($item in $result) {
     $item = $item -replace '/mingw64', '/d/a/_temp/msys64/mingw64'
@@ -32,6 +30,15 @@ foreach ($item in $result) {
         echo "$item"
     }
 }
+
+Copy-Item -Path "/d/a/_temp/msys64/mingw6/bin/libOpenEXR-3_1.dll" -Destination "./dlls" -Force
+$filesToCopy = Get-ChildItem -Path "/d/a/_temp/msys64/mingw6/bin" -Filter "libabsl*"
+
+foreach ($file in $filesToCopy) {
+    $destinationPath = Join-Path -Path $destinationDirectory -ChildPath $file.Name
+    Copy-Item -Path $file.FullName -Destination $destinationPath -Force
+}
+
 
 ls ./dlls
 
