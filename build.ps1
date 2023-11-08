@@ -36,11 +36,11 @@ foreach ($item in $result) {
     }
 }
 
-Copy-Item -Path "$mingwBasePath/bin/libOpenEXR-3_1.dll" -Destination "./dlls" -Force
-$filesToCopy = Get-ChildItem -Path "$mingwBasePath/bin" -Filter "libabsl*"
-
-
 $destinationDirectory = "./dlls"
+
+Get-ChildItem -Path "$mingwBasePath/bin/" -Filter "libOpenEXR*" | Copy-Item -Destination "$destinationDirectory" -Force
+
+$filesToCopy = Get-ChildItem -Path "$mingwBasePath/bin" -Filter "libabsl*"
 foreach ($file in $filesToCopy) {
     $destinationPath = Join-Path -Path $destinationDirectory -ChildPath $file.Name
     Copy-Item -Path $file.FullName -Destination $destinationPath -Force
