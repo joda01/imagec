@@ -38,5 +38,7 @@ ls ./dlls
 
 strip imagec.exe
 
+Compress-Archive -Path ./dlls -DestinationPath win-dlls.zip
+
 cd ../..
 # cmake --build build --target tests --parallel 4
