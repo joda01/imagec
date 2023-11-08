@@ -43,11 +43,15 @@ $destinationDirectory = "./dlls"
 Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libOpenEXR*" | Copy-Item -Destination "$destinationDirectory" -Force
 Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libabsl*" | Copy-Item -Destination "$destinationDirectory" -Force
 
+Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter ".dll" | Copy-Item -Destination "$destinationDirectory" -Force
+
 
 ls ./dlls
 
 strip imagec.exe
 
 Compress-Archive -Path ./dlls -DestinationPath win-dlls.zip
+
+Remove-Item -Recurse -Force ./dlls
 
 cd ../..
