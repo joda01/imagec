@@ -11,11 +11,10 @@ cd build/build
 ni "dlls" -ItemType Directory
 
 
-$jvmdll = "$env:JAVA_HOME"
-$dll = "\jre\bin\server\jvm.dll"
-$jvmdll = "$jvmdll$dll"
-
-Copy-Item -Path "$jvmdll" -Destination "./dlls" -Force
+#$jvmdll = "$env:JAVA_HOME"
+#$dll = "\jre\bin\server\jvm.dll"
+#$jvmdll = "$jvmdll$dll"
+#Copy-Item -Path "$jvmdll" -Destination "./dlls" -Force
 
 cd ../..
 cmake --build build --target imagec --parallel 8
