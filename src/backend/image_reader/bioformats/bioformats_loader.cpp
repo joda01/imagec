@@ -17,6 +17,16 @@
 #include "backend/image_reader/image_reader.hpp"
 #include <opencv2/core/mat.hpp>
 
+#ifdef _WIN32
+
+const inline std::string JVM_PATH{"jre_win"};
+
+#else
+
+const inline std::string JVM_PATH{"jre_linux"};
+
+#endif
+
 ///
 /// \brief
 /// \author
@@ -26,6 +36,8 @@
 ///
 void BioformatsLoader::init()
 {
+  std::cout << "Start Init" << std::endl;
+
   try {
     /*  Set the version field of the initialization arguments for JNI v1.4. */
     initArgs.version = JNI_VERSION_1_8;
@@ -36,6 +48,8 @@ void BioformatsLoader::init()
      *       blocks of code in #pragma convert statements.
      */
     options[0].optionString = "-Djava.class.path=java/bioformats.jar:java";
+    std::string jvmPath     = "-Djava.library.path=./java/" + JVM_PATH;
+    options[1].optionString = jvmPath.data();
 
     initArgs.options  = options; /* Pass in the classpath that has been set up. */
     initArgs.nOptions = 1;       /* Pass in classpath and version options */

@@ -26,6 +26,8 @@
 #ifdef _WIN32
 // #include "wx.rc"
 // #include "wx/msw/wx.rc"
+#include <windows.h>
+
 #endif
 
 using namespace std;
@@ -66,6 +68,16 @@ bool MainApp::OnInit()
 ///
 int main(int argc, char **argv)
 {
+  std::cout << "Main" << std::endl;
+#ifdef _WIN32
+  HINSTANCE jvmDll = LoadLibrary("./java/jre_win/bin/server/jvm.dll");
+
+  if(jvmDll == NULL) {
+    std::cerr << "Failed to load jvm.dll" << std::endl;
+    return 1;
+  }
+#endif
+
   wxInitAllImageHandlers();
   Version::initVersion(std::string(argv[0]));
   TiffLoader::initLibTif();
