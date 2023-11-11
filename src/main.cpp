@@ -69,18 +69,7 @@ bool MainApp::OnInit()
 int main(int argc, char **argv)
 {
   std::cout << "Main" << std::endl;
-#ifdef _WIN32
-  const char *libraryPath = "./java/jre_win/bin/server/jvm.dll";
-  int size_needed         = MultiByteToWideChar(CP_UTF8, 0, libraryPath, -1, NULL, 0);
-  wchar_t *wlibraryPath   = new wchar_t[size_needed];
-  MultiByteToWideChar(CP_UTF8, 0, libraryPath, -1, wlibraryPath, size_needed);
-  HINSTANCE jvmDll = LoadLibrary(wlibraryPath);
 
-  if(jvmDll == NULL) {
-    std::cerr << "Failed to load jvm.dll" << std::endl;
-    return 1;
-  }
-#endif
 
   wxInitAllImageHandlers();
   Version::initVersion(std::string(argv[0]));

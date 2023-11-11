@@ -69,6 +69,16 @@ ELSE ()
   include_directories(${wxWidgets_INCLUDE_DIRS})
 ENDIF()
 
+# Define libdl name
+IF (NOT LIB_DL)
+	IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		# Windows
+		SET(LIB_DL "kernel32")
+	ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		# Linux
+		SET(LIB_DL "dl")
+	ENDIF()
+ENDIF()
 
 
 #
@@ -83,25 +93,30 @@ IF (WIN32)
     jpeg
     TIFF
     ${wxWidgets_LIBRARIES}
-    JNI::JVM
-    JNI::JNI
-    JNI::AWT
+    ${LIB_DL}
+    #JNI::JVM
+    #JNI::JNI
+    #JNI::AWT
   )
 
 
 ELSE()
-  # LINUX
+  # c
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
     pugixml
     tiff
     ${wxWidgets_LIBRARIES}
-    JNI::JVM
-    JNI::JNI
-    JNI::AWT
+    ${LIB_DL}
+    #JNI::JVM
+    #JNI::JNI
+    #JNI::AWT
   )
 ENDIF()
+
+
+
 
 
 include_directories("./src")

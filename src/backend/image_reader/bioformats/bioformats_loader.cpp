@@ -14,17 +14,36 @@
 #include "bioformats_loader.hpp"
 
 #include <jni.h>
+#include <stdio.h>
+#include <cstdlib>
+#include <iostream>
 #include "backend/image_reader/image_reader.hpp"
 #include <opencv2/core/mat.hpp>
 
 #ifdef _WIN32
+#include <windows.h>
 
 const inline std::string JVM_PATH{"jre_win"};
 
 #else
+#include <dlfcn.h>    // Dynamic Loading library for Unix-like systems
 
 const inline std::string JVM_PATH{"jre_linux"};
 
+#endif
+
+#ifdef _WIN32
+static const char *default_library_paths[4] = {"java/jre_win/bin/client/jvm.dll", "bin/client/jvm.dll",
+                                               "java/jre_win/bin/server/jvm.dll", "bin/server/jvm.dll"};
+#else
+static const char *default_library_paths[8] = {"lib/i386/server/libjvm.so",  "jre/lib/i386/server/libjvm.so",
+                                               "lib/i386/client/libjvm.so",  "jre/lib/i386/client/libjvm.so",
+                                               "lib/amd64/server/libjvm.so", "jre/lib/amd64/server/libjvm.so",
+                                               "lib/server/libjvm.so",       "jre/lib/server/libjvm.so"};
+#endif
+
+#ifndef JNI_CREATEVM
+#define JNI_CREATEVM "JNI_CreateJavaVM"
 #endif
 
 ///
@@ -37,8 +56,34 @@ const inline std::string JVM_PATH{"jre_linux"};
 void BioformatsLoader::init()
 {
   std::cout << "Start Init" << std::endl;
+#ifdef _WIN32
+  _putenv_s("JAVA_HOME", "java/jre_win/");
+#else
+  setenv("JAVA_HOME", "java/jre_linux/", 1);
+#endif
+
+#ifdef _WIN32
+  HINSTANCE jvmDll = LoadLibrary(TEXT("./java/jre_win/bin/server/jvm.dll"));
+#else
+  void *jvmDll     = dlopen("./java/jre_linux/bin/server/jvm.dll", RTLD_LAZY);
+#endif
+
+  if(jvmDll == NULL) {
+    std::cerr << "Failed to load jvm.dll" << std::endl;
+  }
+
+  using jint = int (*)(JavaVM **pvm, void **penv, void *args);
+  jint JNI_CreateJavaVM;
+
+#ifdef _WIN32
+  JNI_CreateJavaVM = reinterpret_cast<jint>(GetProcAddress(jvmDll, TEXT(JNI_CREATEVM)));
+#else
+  JNI_CreateJavaVM = reinterpret_cast<jint>(dlsym(jvmDll, JNI_CREATEVM));
+#endif
 
   try {
+    std::string jvmPath = "-Djava.library.path=./java/" + JVM_PATH;
+
     /*  Set the version field of the initialization arguments for JNI v1.4. */
     initArgs.version = JNI_VERSION_1_8;
 
@@ -48,7 +93,6 @@ void BioformatsLoader::init()
      *       blocks of code in #pragma convert statements.
      */
     options[0].optionString = "-Djava.class.path=java/bioformats.jar:java";
-    std::string jvmPath     = "-Djava.library.path=./java/" + JVM_PATH;
     options[1].optionString = jvmPath.data();
 
     initArgs.options  = options; /* Pass in the classpath that has been set up. */
