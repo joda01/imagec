@@ -130,7 +130,7 @@ RUN apt install -y libgtk-3-dev
 RUN cd wxWidgets &&\
     mkdir gtk-build  &&\
     cd gtk-build  &&\
-    ../configure --disable-shared --with-gtk=3 &&\
+    ../configure --disable-shared --enable-unicode --with-gtk=3 &&\
     make -j6 &&\
     make install
 
