@@ -103,6 +103,7 @@ private:
 
   void showErrorDialog(const std::string &what);
   /////////////////////////////////////////////////////
+  std::mutex mPreviewMutex;
   FrameMainController *mMainFrame;
   std::map<wxWindowID, std::shared_ptr<DialogImageController>> mPreviewDialogs;
   std::chrono::system_clock::time_point mLastPreviewUpdateRequest;

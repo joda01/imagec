@@ -48,7 +48,8 @@ DialogImageController::DialogImageController(wxWindow *parent, wxWindowID id, co
 DialogImageController::~DialogImageController()
 {
   mStopped = true;
-  if(mProgressThread) {
+  std::lock_guard<std::mutex> lock(mProgressMutex);    // Lock the mutex
+  if(mProgressThread && mProgressThread->joinable()) {
     mProgressThread->join();
   }
 }
@@ -86,7 +87,7 @@ void DialogImageController::progressThread()
     uint32_t actValue = 0;
     uint32_t maxValue = 0;
     {
-      std::lock_guard<std::recursive_mutex> lock(mProgressMutex);    // Lock the mutex
+      std::lock_guard<std::mutex> lock(mProgressMutex);    // Lock the mutex
       actValue = mImageDisplayProgress->GetValue();
       maxValue = mImageDisplayProgress->GetRange();
     }
@@ -111,7 +112,7 @@ void DialogImageController::progressThread()
 ///
 void DialogImageController::startProgress(int maxTimeMs)
 {
-  std::lock_guard<std::recursive_mutex> lock(mProgressMutex);    // Lock the mutex
+  std::lock_guard<std::mutex> lock(mProgressMutex);    // Lock the mutex
   CallAfter([this, maxTimeMs]() {
     mImageDisplayProgress->SetValue(0);
     mImageDisplayProgress->SetRange(maxTimeMs);

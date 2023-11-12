@@ -100,12 +100,16 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
 ///
 void PanelChannelController::onPreviewDialogClosed(wxCloseEvent &ev)
 {
+  std::lock_guard<std::mutex> lock(mPreviewMutex);    // Lock the mutex
   auto id = ev.GetId();
-  mPreviewDialogs.erase(id);
-  if(id == 0) {
-    // Close all preview windows if reference window is closed
-    mPreviewDialogs.clear();
-  }
+  mPreviewDialogs.at(id)->Show(false);
+  CallAfter([this, id]() {
+    mPreviewDialogs.erase(id);
+    if(id == 0) {
+      //     Close all preview windows if reference window is closed
+      mPreviewDialogs.clear();
+    }
+  });
 }
 
 ///
@@ -132,8 +136,11 @@ void PanelChannelController::refreshPreviewThread()
 
     if(mLastPreviewUpdateRequest > mLastPreviewUpdate) {
       mLastPreviewUpdate = std::chrono::high_resolution_clock::now();
-      if(mPreviewDialogs.contains(0)) {
-        refreshPreview(mPreviewDialogs[0]);
+      {
+        std::lock_guard<std::mutex> lock(mPreviewMutex);    // Lock the mutex
+        if(mPreviewDialogs.contains(0)) {
+          refreshPreview(mPreviewDialogs[0]);
+        }
       }
       // Update only once per second
       std::this_thread::sleep_for(std::chrono::seconds(1));
