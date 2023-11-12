@@ -23,6 +23,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <dlfcn.h>
 #endif
 
 #ifndef JNI_CREATEVM
@@ -67,7 +69,7 @@ void BioformatsLoader::init()
 {
   setPath();
 
-  using myFunc = jint (*)(JavaVM **pvm, void **penv, void *args);
+  using myFunc = jint (*)(JavaVM * *pvm, void **penv, void *args);
   myFunc JNI_CreateJavaVM;
 
 #ifdef _WIN32
