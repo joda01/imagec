@@ -17,29 +17,12 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include "backend/image_reader/image_reader.hpp"
 #include <opencv2/core/mat.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
-
-const inline std::string JVM_PATH{"jre_win"};
-
-#else
-#include <dlfcn.h>    // Dynamic Loading library for Unix-like systems
-
-const inline std::string JVM_PATH{"jre_linux"};
-
-#endif
-
-#ifdef _WIN32
-static const char *default_library_paths[4] = {"java/jre_win/bin/client/jvm.dll", "bin/client/jvm.dll",
-                                               "java/jre_win/bin/server/jvm.dll", "bin/server/jvm.dll"};
-#else
-static const char *default_library_paths[8] = {"lib/i386/server/libjvm.so",  "jre/lib/i386/server/libjvm.so",
-                                               "lib/i386/client/libjvm.so",  "jre/lib/i386/client/libjvm.so",
-                                               "lib/amd64/server/libjvm.so", "jre/lib/amd64/server/libjvm.so",
-                                               "lib/server/libjvm.so",       "jre/lib/server/libjvm.so"};
 #endif
 
 #ifndef JNI_CREATEVM
@@ -53,14 +36,39 @@ static const char *default_library_paths[8] = {"lib/i386/server/libjvm.so",  "jr
 /// \param[out]
 /// \return
 ///
+void BioformatsLoader::setPath()
+{
+#ifdef _WIN32
+  std::string javaHome = "java\\jre_win";
+  std::string javaBin  = javaHome + "\\bin";
+  SetEnvironmentVariable("JAVA_HOME", javaHome.data());
+  const char *path    = std::getenv("PATH");
+  std::string newPath = javaBin + std::string(";") + path;
+  SetEnvironmentVariable("PATH", javaBin.c_str());
+
+#else
+  std::string javaHome = "java/jre_win";
+  std::string javaBin  = javaHome + "/bin";
+  setenv("JAVA_HOME", javaHome.c_str(), 1);
+  std::string path = std::getenv("PATH");
+  path             = javaBin + ":" + path;
+  setenv("PATH", path.c_str(), 1);
+#endif
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void BioformatsLoader::init()
 {
-  std::cout << "Start Init" << std::endl;
-#ifdef _WIN32
-  _putenv_s("JAVA_HOME", "java/jre_win/");
-#else
-  setenv("JAVA_HOME", "java/jre_linux/", 1);
-#endif
+  setPath();
+
+  using myFunc = jint (*)(JavaVM **pvm, void **penv, void *args);
+  myFunc JNI_CreateJavaVM;
 
 #ifdef _WIN32
   HINSTANCE jvmDll = LoadLibrary(TEXT("./java/jre_win/bin/server/jvm.dll"));
@@ -72,28 +80,26 @@ void BioformatsLoader::init()
     std::cerr << "Failed to load jvm.dll" << std::endl;
   }
 
-  using jint = int (*)(JavaVM **pvm, void **penv, void *args);
-  jint JNI_CreateJavaVM;
-
 #ifdef _WIN32
-  JNI_CreateJavaVM = reinterpret_cast<jint>(GetProcAddress(jvmDll, TEXT(JNI_CREATEVM)));
+  JNI_CreateJavaVM = reinterpret_cast<myFunc>(GetProcAddress(jvmDll, TEXT(JNI_CREATEVM)));
 #else
-  JNI_CreateJavaVM = reinterpret_cast<jint>(dlsym(jvmDll, JNI_CREATEVM));
+  JNI_CreateJavaVM = reinterpret_cast<myFunc>(dlsym(jvmDll, JNI_CREATEVM));
 #endif
 
   try {
-    std::string jvmPath = "-Djava.library.path=./java/" + JVM_PATH;
-
     /*  Set the version field of the initialization arguments for JNI v1.4. */
     initArgs.version = JNI_VERSION_1_8;
 
-    /* Now, you want to specify the directory for the class to run in the classpath.
-     * with  Java2, classpath is passed in as an option.
-     * Note: You must specify the directory name in UTF-8 format. So, you wrap
-     *       blocks of code in #pragma convert statements.
-     */
-    options[0].optionString = "-Djava.class.path=java/bioformats.jar:java";
-    options[1].optionString = jvmPath.data();
+/* Now, you want to specify the directory for the class to run in the classpath.
+ * with  Java2, classpath is passed in as an option.
+ * Note: You must specify the directory name in UTF-8 format. So, you wrap
+ *       blocks of code in #pragma convert statements.
+ */
+#ifdef _WIN32
+    options[0].optionString = const_cast<char *>("-Djava.class.path=./;java/bioformats.jar;java");
+#else
+    options[0].optionString = const_cast<char *>("-Djava.class.path=./:java/bioformats.jar:java");
+#endif
 
     initArgs.options  = options; /* Pass in the classpath that has been set up. */
     initArgs.nOptions = 1;       /* Pass in classpath and version options */
@@ -106,13 +112,12 @@ void BioformatsLoader::init()
      *  variable to the home directory of the JVM you want to use
      *  (prior to the CreateJavaVM() call).
      */
-    if(JNI_CreateJavaVM(&myJVM, (void **) &myEnv, (void *) &initArgs) != 0) {
+    if(JNI_CreateJavaVM(&myJVM, (void **) &myEnv, &initArgs) != 0) {
       std::cout << "JAVA VM ERROR" << std::endl;
       mJVMInitialised = false;
     } else {
       mJVMInitialised = true;
     }
-    std::cout << "Init" << std::endl;
   } catch(const std::exception &ex) {
     std::cout << "JAVA VM ERROR: " << ex.what() << std::endl;
     mJVMInitialised = false;
@@ -140,50 +145,77 @@ void BioformatsLoader::destroy()
 /// \param[out]
 /// \return
 ///
+std::string BioformatsLoader::getJavaVersion()
+{
+  jclass systemClass = myEnv->FindClass("java/lang/System");
+  jmethodID getPropertyMethod =
+      myEnv->GetStaticMethodID(systemClass, "getProperty", "(Ljava/lang/String;)Ljava/lang/String;");
+  jstring propertyName = myEnv->NewStringUTF("java.version");
+  jstring javaVersion =
+      static_cast<jstring>(myEnv->CallStaticObjectMethod(systemClass, getPropertyMethod, propertyName));
+  const char *javaVersionStr = myEnv->GetStringUTFChars(javaVersion, nullptr);
+  myEnv->ReleaseStringUTFChars(javaVersion, javaVersionStr);
+  return javaVersionStr;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int directory, uint16_t series)
 {
   if(mJVMInitialised) {
     std::lock_guard<std::mutex> lock(mReadMutex);
 
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
+
     // Call the BioFormatsWrapper.readImageBytes() method
     jclass cls = myEnv->FindClass("BioFormatsWrapper");
-
-    //
-    // Read image
-    //
-    jmethodID mid =
-        myEnv->GetStaticMethodID(cls, "readImage", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)[[I");
-    jstring filePath     = myEnv->NewStringUTF(filename.c_str());
-    jstring directoryStr = myEnv->NewStringUTF(std::to_string(directory).c_str());
-    jstring seriesStr    = myEnv->NewStringUTF(std::to_string(series).c_str());
-
-    jobjectArray result = (jobjectArray) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
-    myEnv->DeleteLocalRef(filePath);
-
-    jsize rows = myEnv->GetArrayLength(result);
-
-    jintArray row = (jintArray) myEnv->GetObjectArrayElement(result, 0);
-    jsize cols    = myEnv->GetArrayLength(row);
-
-    jint *data;
-
-    cv::Mat retValue = cv::Mat::zeros(cols, rows, CV_16UC1);
-    for(int i = 0; i < rows; i++) {
-      row  = (jintArray) myEnv->GetObjectArrayElement(result, i);
-      cols = myEnv->GetArrayLength(row);
-      data = myEnv->GetIntArrayElements(row, nullptr);
-      for(int j = 0; j < cols; j++) {
-        retValue.at<uint16_t>(j, i) = (uint16_t) (data[j] & 0xFFFF);
+    if(cls == NULL) {
+      if(myEnv->ExceptionOccurred()) {
+        myEnv->ExceptionDescribe();
       }
-      myEnv->ReleaseIntArrayElements(row, data, JNI_ABORT);
+      std::cout << "Error: Class not found!" << std::endl;
+    } else {
+      //
+      // Read image
+      //
+      jmethodID mid =
+          myEnv->GetStaticMethodID(cls, "readImage", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)[[I");
+      jstring filePath     = myEnv->NewStringUTF(filename.c_str());
+      jstring directoryStr = myEnv->NewStringUTF(std::to_string(directory).c_str());
+      jstring seriesStr    = myEnv->NewStringUTF(std::to_string(series).c_str());
+
+      jobjectArray result = (jobjectArray) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
+      myEnv->DeleteLocalRef(filePath);
+
+      jsize rows = myEnv->GetArrayLength(result);
+
+      jintArray row = (jintArray) myEnv->GetObjectArrayElement(result, 0);
+      jsize cols    = myEnv->GetArrayLength(row);
+
+      jint *data;
+
+      cv::Mat retValue = cv::Mat::zeros(cols, rows, CV_16UC1);
+      for(int i = 0; i < rows; i++) {
+        row  = (jintArray) myEnv->GetObjectArrayElement(result, i);
+        cols = myEnv->GetArrayLength(row);
+        data = myEnv->GetIntArrayElements(row, nullptr);
+        for(int j = 0; j < cols; j++) {
+          retValue.at<uint16_t>(j, i) = (uint16_t) (data[j] & 0xFFFF);
+        }
+        myEnv->ReleaseIntArrayElements(row, data, JNI_ABORT);
+      }
+
+      myJVM->DetachCurrentThread();
+      // Clean up
+      // myEnv->ReleaseObjectArrayElements(result, bytes, 0);
+
+      return retValue;
     }
-
-    myJVM->DetachCurrentThread();
-    // Clean up
-    // myEnv->ReleaseObjectArrayElements(result, bytes, 0);
-
-    return retValue;
   }
   return cv::Mat{};
 }
@@ -202,7 +234,13 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
     std::lock_guard<std::mutex> lock(mReadMutex);
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
     // Call the BioFormatsWrapper.readImageBytes() method
-    jclass cls    = myEnv->FindClass("BioFormatsWrapper");
+    jclass cls = myEnv->FindClass("BioFormatsWrapper");
+    if(cls == NULL) {
+      // Print diagnostic information
+      printf("Error: Class not found!\n");
+      myEnv->ExceptionDescribe();    // Print more information about the exception
+    }
+
     jmethodID mid = myEnv->GetStaticMethodID(
         cls, "getImageProperties", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
     jstring filePath     = myEnv->NewStringUTF(filename.c_str());

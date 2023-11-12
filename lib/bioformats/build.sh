@@ -1,2 +1,2 @@
-javac -cp bioformats.jar BioFormatsWrapper.java
+javac -source 1.8 -target 1.8 -cp bioformats.jar BioFormatsWrapper.java
 cp BioFormatsWrapper.class ../../bioformats/BioFormatsWrapper.class

@@ -90,7 +90,7 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
   mPreviewDialogs.emplace(winId, imgDialog);
   imgDialog->Bind(wxEVT_CLOSE_WINDOW, &PanelChannelController::onPreviewDialogClosed, this);
   imgDialog->Show();
-  std::thread([this, &imgDialog] { refreshPreview(imgDialog); }).detach();
+  std::thread([this, imgDialog] { refreshPreview(imgDialog); }).detach();
 }
 
 ///

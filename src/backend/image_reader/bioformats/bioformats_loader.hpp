@@ -28,11 +28,15 @@ public:
       -> std::tuple<joda::ome::OmeInfo, ImageProperties>;
   static void init();
   static void destroy();
+  static std::string getJavaVersion();
 
 private:
   /////////////////////////////////////////////////////
-  static inline std::mutex mReadMutex;
-  static inline JavaVMOption options[2];        /* Options array -- use options to set classpath */
+  static void setPath();
+
+  /////////////////////////////////////////////////////
+  static inline std::mutex mReadMutex{};
+  static inline JavaVMOption options[1];        /* Options array -- use options to set classpath */
   static inline JavaVMInitArgs initArgs;        /* Virtual Machine (VM) initialization structure, passed by*/
   static inline jobjectArray args;              /* The String[] itself */
   static inline JavaVM *myJVM        = nullptr; /* JavaVM pointer set by call to JNI_CreateJavaVM */

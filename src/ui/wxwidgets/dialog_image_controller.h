@@ -82,7 +82,7 @@ private:
   /////////////////////////////////////////////////////
   ImageZoomScrollWidget *mZoomScrollWidget;
   std::shared_ptr<std::thread> mProgressThread;
-  std::mutex mProgressMutex;
+  std::recursive_mutex mProgressMutex;
   bool mStopped = false;
 };
 }    // namespace joda::ui::wxwidget

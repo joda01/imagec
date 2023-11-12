@@ -29,7 +29,7 @@ using namespace std::chrono_literals;
 DialogImageController::DialogImageController(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos,
                                              const wxSize &size, long style) :
     DialogImage(parent, id, title, pos, size, style),
-    mZoomScrollWidget(new ImageZoomScrollWidget(this))
+    mZoomScrollWidget(new ImageZoomScrollWidget(this)), mProgressMutex()
 {
   mProgressThread = std::make_shared<std::thread>(&DialogImageController::progressThread, this);
   SetMinSize(wxSize{800, 600});
@@ -83,10 +83,13 @@ void DialogImageController::updateImage(const wxImage &image, const SmallStatist
 void DialogImageController::progressThread()
 {
   while(!mStopped) {
-    mProgressMutex.lock();
-    auto actValue = mImageDisplayProgress->GetValue();
-    auto maxValue = mImageDisplayProgress->GetRange();
-    mProgressMutex.unlock();
+    uint32_t actValue = 0;
+    uint32_t maxValue = 0;
+    {
+      std::lock_guard<std::recursive_mutex> lock(mProgressMutex);    // Lock the mutex
+      actValue = mImageDisplayProgress->GetValue();
+      maxValue = mImageDisplayProgress->GetRange();
+    }
 
     actValue += 10;
     if(actValue < maxValue) {
@@ -108,7 +111,7 @@ void DialogImageController::progressThread()
 ///
 void DialogImageController::startProgress(int maxTimeMs)
 {
-  std::lock_guard<std::mutex> lock(mProgressMutex);    // Lock the mutex
+  std::lock_guard<std::recursive_mutex> lock(mProgressMutex);    // Lock the mutex
   CallAfter([this, maxTimeMs]() {
     mImageDisplayProgress->SetValue(0);
     mImageDisplayProgress->SetRange(maxTimeMs);
