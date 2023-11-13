@@ -23,8 +23,6 @@ cd build/build
 $input = $(ldd imagec.exe)
 $result = ($(echo "$input" | grep -o '=> [^(]*' | cut -c 4-))
 
-#ldd imagec.exe
-
 foreach ($item in $result) {
     $item = $item -replace '/mingw64', $mingwBasePath
 
@@ -39,8 +37,6 @@ foreach ($item in $result) {
 
 $destinationDirectory = "./dlls"
 
-Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libOpenEXR*" | Copy-Item -Destination "$destinationDirectory" -Force
-Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libabsl*" | Copy-Item -Destination "$destinationDirectory" -Force
 Copy-Item -Path "$mingwBasePathWin\bin\*.dll" -Destination "$destinationDirectory" -Force
 
 

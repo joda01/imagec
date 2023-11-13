@@ -20,36 +20,33 @@ cd ../..
 cmake --build build --target imagec --parallel 8
 cd build/build
 
-$input = $(ldd imagec.exe)
-$result = ($(echo "$input" | grep -o '=> [^(]*' | cut -c 4-))
-
-ldd imagec.exe
-
-foreach ($item in $result) {
-    $item = $item -replace '/mingw64', $mingwBasePath
-
-    if ($item -match "^/") {
-        $item = $item -replace '/(.)/', '$1:/'
-        Write-Output $item
-        Copy-Item -Path "$item" -Destination "./dlls" -Force
-    }else{
-        echo "$item"
-    }
-}
+# Copy dlls listed by ldd
+#$input = $(ldd imagec.exe)
+#$result = ($(echo "$input" | grep -o '=> [^(]*' | cut -c 4-))
+#
+#ldd imagec.exe
+#
+#foreach ($item in $result) {
+#    $item = $item -replace '/mingw64', $mingwBasePath
+#
+#    if ($item -match "^/") {
+#        $item = $item -replace '/(.)/', '$1:/'
+#        Write-Output $item
+#        Copy-Item -Path "$item" -Destination "./dlls" -Force
+#    }else{
+#        echo "$item"
+#    }
+#}
 
 $destinationDirectory = "./dlls"
 
-Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libOpenEXR*" | Copy-Item -Destination "$destinationDirectory" -Force
-Get-ChildItem -Path "$mingwBasePathWin\bin" -Filter "libabsl*" | Copy-Item -Destination "$destinationDirectory" -Force
 Copy-Item -Path "$mingwBasePathWin\bin\*.dll" -Destination "$destinationDirectory" -Force
 
 
 ls ./dlls
 
 strip imagec.exe
-
 Compress-Archive -Path ./dlls -DestinationPath win-dlls.zip
-
 Remove-Item -Recurse -Force ./dlls
 
 cd ../..

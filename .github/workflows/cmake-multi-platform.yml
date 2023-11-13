@@ -82,6 +82,9 @@ jobs:
       - build-linux
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v3
         with:
           name: imagec-x64-linux
@@ -96,6 +99,9 @@ jobs:
         run: |
           mv build/build/imagec build/build/imagec-x64-linux
           mv build/build/imagec.exe build/build/imagec-x64-win.exe
+          mv java/jre_linux.zip java/jre-linux.zip
+          mv java/jre_win.zip java/jre-win.zip
+          zip java/bioformats-jni-wrapper.zip java/bioformats.jar java/BioFormatsWrapper.class
 
 
       - name: Upload Additional Files
@@ -106,6 +112,9 @@ jobs:
             build/build/imagec-x64-linux
             build/build/imagec-x64-win.exe
             build/build/win-dlls.zip
+            java/jre-linux.zip
+            java/jre-win.zip
+            java/bioformats-jni-wrapper.zip
       
       
       
