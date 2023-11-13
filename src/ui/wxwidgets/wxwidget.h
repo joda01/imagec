@@ -35,6 +35,7 @@
 #include <wx/statline.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
+#include <wx/collpane.h>
 #include <wx/checkbox.h>
 #include <wx/tglbtn.h>
 
@@ -179,8 +180,8 @@ namespace joda
 					wxChoice* mChoiceChannelType;
 					wxPanel* panelChannelIndex;
 					wxChoice* mChoiceChannelIndex;
-					wxStaticText* mLabelPreprocessing;
-					wxStaticLine* mLinePreprocessing;
+					wxCollapsiblePane* mCollapaablePreprocessing;
+					wxStaticLine* mLineDescription1;
 					wxPanel* panelZStack;
 					wxStaticBitmap* iconZStack;
 					wxChoice* mChoiceZStack;
@@ -210,7 +211,7 @@ namespace joda
 					wxChoice* mDropdownGausianBlur;
 					wxChoice* mDropDownGausianBlurRepeat;
 					wxStaticText* mLabelGausianBluer;
-					wxStaticText* mLabelDescription;
+					wxCollapsiblePane* mCollapsibleDetection;
 					wxStaticLine* mLineDescription;
 					wxPanel* panelUseAI;
 					wxStaticBitmap* iconUseAI;
@@ -223,7 +224,7 @@ namespace joda
 					wxStaticBitmap* iconMinThreshold;
 					wxSpinCtrl* mSpinMinThreshold;
 					wxStaticText* mLabelMinThreshold;
-					wxStaticText* mLabelFilter;
+					wxCollapsiblePane* mCollapsibleFiltering;
 					wxStaticLine* mLineFilter;
 					wxPanel* panelMinCircularity;
 					wxStaticBitmap* iconMinCircularity;
@@ -241,14 +242,14 @@ namespace joda
 					wxStaticBitmap* iconTetraspeckChannel;
 					wxChoice* mChoiceReferenceSpotChannel;
 					wxStaticText* mLabelTetraspeckChannel;
-					wxStaticLine* mLinePreview;
+					wxPanel* mPanelFooter;
 					wxButton* mButtonPreview;
-					wxStaticLine* mLineRemove;
 					wxButton* mButtonRemoveChannel;
 
 					// Virtual event handlers, override them in your derived class
 					virtual void onChannelTypeChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onChannelIndexChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onCollapsibleChanged( wxCollapsiblePaneEvent& event ) { event.Skip(); }
 					virtual void onZStackSettingsChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onMarginCropChanged( wxSpinEvent& event ) { event.Skip(); }
 					virtual void onMedianBGSubtractChanged( wxCommandEvent& event ) { event.Skip(); }

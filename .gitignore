@@ -42,3 +42,5 @@ test_areosold_Evs
 build/compile_commands.json
 test.json
 test_nucleus/
+java/jre_win
+java/jre_linux

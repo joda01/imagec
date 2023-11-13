@@ -98,6 +98,7 @@ private:
   void onParticleSizeChanged(wxCommandEvent &event) override;
   void onSnapAreaChanged(wxSpinEvent &event) override;
   void onSpotRemovalChanged(wxCommandEvent &event) override;
+  void onCollapsibleChanged(wxCollapsiblePaneEvent &event) override;
 
   void onPreviewDialogClosed(wxCloseEvent &);
 

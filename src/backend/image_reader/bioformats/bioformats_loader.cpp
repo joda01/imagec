@@ -75,11 +75,11 @@ void BioformatsLoader::init()
 #ifdef _WIN32
   HINSTANCE jvmDll = LoadLibrary(TEXT("./java/jre_win/bin/server/jvm.dll"));
 #else
-  void *jvmDll     = dlopen("./java/jre_linux/bin/server/jvm.dll", RTLD_LAZY);
+  void *jvmDll     = dlopen("./java/jre_linux/lib/amd64/server/libjvm.so", RTLD_LAZY);
 #endif
 
   if(jvmDll == NULL) {
-    std::cerr << "Failed to load jvm.dll" << std::endl;
+    std::cerr << "Failed to load jvm lib" << std::endl;
   }
 
 #ifdef _WIN32

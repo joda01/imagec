@@ -426,6 +426,15 @@ void PanelChannelController::onAiCheckBox(wxCommandEvent &event)
 /// \brief      Min threshold changed
 /// \author     Joachim Danmayr
 ///
+void PanelChannelController::onCollapsibleChanged(wxCollapsiblePaneEvent &event)
+{
+  Layout();
+}
+
+///
+/// \brief      Min threshold changed
+/// \author     Joachim Danmayr
+///
 void PanelChannelController::onMinThresholdChanged(wxSpinEvent &event)
 {
   updatePreview();
