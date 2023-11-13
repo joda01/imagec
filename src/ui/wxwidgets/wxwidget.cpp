@@ -31,6 +31,7 @@
 #include "../../res/plus_math_20.png.h"
 #include "../../res/preview_20.png.h"
 #include "../../res/ram_20.png.h"
+#include "../../res/rectangle_20.png.h"
 #include "../../res/save_20.png.h"
 #include "../../res/settings_20.png.h"
 #include "../../res/smooth_20.png.h"
@@ -436,14 +437,36 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel = new wxBoxSizer( wxVERTICAL );
 
 	mSizerChannel->SetMinSize( wxSize( 250,-1 ) );
-	mLabelChannelTitle = new wxStaticText( mScrolledChannel, wxID_ANY, _("Channel"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
+	mPanelFooter = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* sizerFooter;
+	sizerFooter = new wxBoxSizer( wxHORIZONTAL );
+
+	mLabelChannelTitle = new wxStaticText( mPanelFooter, wxID_ANY, _("Channel"), wxDefaultPosition, wxDefaultSize, 0 );
 	mLabelChannelTitle->Wrap( -1 );
 	mLabelChannelTitle->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+	mLabelChannelTitle->SetMinSize( wxSize( 150,-1 ) );
 
-	mSizerChannel->Add( mLabelChannelTitle, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
+	sizerFooter->Add( mLabelChannelTitle, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxTOP, 8 );
+
+
+	sizerFooter->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	mButtonRemoveChannel = new wxButton( mPanelFooter, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE|wxBU_EXACTFIT|wxBU_NOTEXT );
+
+	mButtonRemoveChannel->SetBitmap( delete_20_png_to_wx_bitmap() );
+	mButtonRemoveChannel->SetToolTip( _("Delete channel") );
+	mButtonRemoveChannel->SetMaxSize( wxSize( 25,-1 ) );
+
+	sizerFooter->Add( mButtonRemoveChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxEXPAND|wxLEFT|wxRIGHT, 5 );
+
+
+	mPanelFooter->SetSizer( sizerFooter );
+	mPanelFooter->Layout();
+	sizerFooter->Fit( mPanelFooter );
+	mSizerChannel->Add( mPanelFooter, 0, wxEXPAND, 0 );
 
 	mTextChannelName = new wxTextCtrl( mScrolledChannel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	mSizerChannel->Add( mTextChannelName, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+	mSizerChannel->Add( mTextChannelName, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 8 );
 
 	panelChannelType = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	panelChannelType->SetMaxSize( wxSize( -1,35 ) );
@@ -461,7 +484,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	panelChannelType->SetSizer( sizerChannelType );
 	panelChannelType->Layout();
 	sizerChannelType->Fit( panelChannelType );
-	mSizerChannel->Add( panelChannelType, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+	mSizerChannel->Add( panelChannelType, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 8 );
 
 	panelChannelIndex = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	panelChannelIndex->SetMaxSize( wxSize( -1,35 ) );
@@ -479,12 +502,17 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	panelChannelIndex->SetSizer( sizerChannelIndex );
 	panelChannelIndex->Layout();
 	sizerChannelIndex->Fit( panelChannelIndex );
-	mSizerChannel->Add( panelChannelIndex, 1, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+	mSizerChannel->Add( panelChannelIndex, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 8 );
+
+	mButtonPreview = new wxButton( mScrolledChannel, wxID_ANY, _("Preview"), wxDefaultPosition, wxDefaultSize, 0 );
+
+	mButtonPreview->SetBitmap( preview_20_png_to_wx_bitmap() );
+	mSizerChannel->Add( mButtonPreview, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 8 );
 
 	mCollapaablePreprocessing = new wxCollapsiblePane( mScrolledChannel, wxID_ANY, _("Preprocessing"), wxDefaultPosition, wxDefaultSize, wxCP_DEFAULT_STYLE|wxCP_NO_TLW_RESIZE );
-	mCollapaablePreprocessing->Collapse( true );
+	mCollapaablePreprocessing->Collapse( false );
 
-	mCollapaablePreprocessing->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+	mCollapaablePreprocessing->SetFont( wxFont( 10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
 
 	wxBoxSizer* bSizer55;
 	bSizer55 = new wxBoxSizer( wxVERTICAL );
@@ -733,16 +761,57 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerGausianBlur->Fit( panelGausianBlur );
 	bSizer55->Add( panelGausianBlur, 1, wxEXPAND|wxTOP, 5 );
 
+	panelEdgeDetection = new wxPanel( mCollapaablePreprocessing->GetPane(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelEdgeDetection->SetFont( wxFont( 9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+	panelEdgeDetection->SetMinSize( wxSize( -1,65 ) );
+	panelEdgeDetection->SetMaxSize( wxSize( -1,65 ) );
+
+	wxBoxSizer* sizerEdgeDetection;
+	sizerEdgeDetection = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* sizerEdgeDetection1;
+	sizerEdgeDetection1 = new wxBoxSizer( wxHORIZONTAL );
+
+	iconEdgeDetection = new wxStaticBitmap( panelEdgeDetection, wxID_ANY, rectangle_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerEdgeDetection1->Add( iconEdgeDetection, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+
+	wxString mDropdownEdgeDetectionChoices[] = { _("Off"), _("Sobel"), _("Canny") };
+	int mDropdownEdgeDetectionNChoices = sizeof( mDropdownEdgeDetectionChoices ) / sizeof( wxString );
+	mDropdownEdgeDetection = new wxChoice( panelEdgeDetection, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropdownEdgeDetectionNChoices, mDropdownEdgeDetectionChoices, 0 );
+	mDropdownEdgeDetection->SetSelection( 0 );
+	sizerEdgeDetection1->Add( mDropdownEdgeDetection, 1, wxEXPAND, 5 );
+
+	wxString mDropdownEdgeDetectionDirectionChoices[] = { _("xy"), _("x"), _("y") };
+	int mDropdownEdgeDetectionDirectionNChoices = sizeof( mDropdownEdgeDetectionDirectionChoices ) / sizeof( wxString );
+	mDropdownEdgeDetectionDirection = new wxChoice( panelEdgeDetection, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropdownEdgeDetectionDirectionNChoices, mDropdownEdgeDetectionDirectionChoices, 0 );
+	mDropdownEdgeDetectionDirection->SetSelection( 0 );
+	sizerEdgeDetection1->Add( mDropdownEdgeDetectionDirection, 0, wxEXPAND|wxLEFT, 5 );
+
+
+	sizerEdgeDetection->Add( sizerEdgeDetection1, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+
+	mLabelEdgeDetection = new wxStaticText( panelEdgeDetection, wxID_ANY, _("Edge detection"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelEdgeDetection->Wrap( -1 );
+	mLabelEdgeDetection->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
+	sizerEdgeDetection->Add( mLabelEdgeDetection, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+
+
+	panelEdgeDetection->SetSizer( sizerEdgeDetection );
+	panelEdgeDetection->Layout();
+	sizerEdgeDetection->Fit( panelEdgeDetection );
+	bSizer55->Add( panelEdgeDetection, 1, wxEXPAND|wxTOP, 5 );
+
 
 	mCollapaablePreprocessing->GetPane()->SetSizer( bSizer55 );
 	mCollapaablePreprocessing->GetPane()->Layout();
 	bSizer55->Fit( mCollapaablePreprocessing->GetPane() );
-	mSizerChannel->Add( mCollapaablePreprocessing, 0, wxEXPAND|wxTOP, 5 );
+	mSizerChannel->Add( mCollapaablePreprocessing, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 8 );
 
 	mCollapsibleDetection = new wxCollapsiblePane( mScrolledChannel, wxID_ANY, _("Detection"), wxDefaultPosition, wxDefaultSize, wxCP_DEFAULT_STYLE|wxCP_NO_TLW_RESIZE );
 	mCollapsibleDetection->Collapse( true );
 
-	mCollapsibleDetection->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+	mCollapsibleDetection->SetFont( wxFont( 10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
 
 	wxBoxSizer* bSizer56;
 	bSizer56 = new wxBoxSizer( wxVERTICAL );
@@ -846,12 +915,12 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mCollapsibleDetection->GetPane()->SetSizer( bSizer56 );
 	mCollapsibleDetection->GetPane()->Layout();
 	bSizer56->Fit( mCollapsibleDetection->GetPane() );
-	mSizerChannel->Add( mCollapsibleDetection, 0, wxEXPAND|wxTOP, 5 );
+	mSizerChannel->Add( mCollapsibleDetection, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 8 );
 
 	mCollapsibleFiltering = new wxCollapsiblePane( mScrolledChannel, wxID_ANY, _("Filtering"), wxDefaultPosition, wxDefaultSize, wxCP_DEFAULT_STYLE|wxCP_NO_TLW_RESIZE );
 	mCollapsibleFiltering->Collapse( true );
 
-	mCollapsibleFiltering->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+	mCollapsibleFiltering->SetFont( wxFont( 10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
 
 	wxBoxSizer* bSizer57;
 	bSizer57 = new wxBoxSizer( wxVERTICAL );
@@ -994,36 +1063,13 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mCollapsibleFiltering->GetPane()->SetSizer( bSizer57 );
 	mCollapsibleFiltering->GetPane()->Layout();
 	bSizer57->Fit( mCollapsibleFiltering->GetPane() );
-	mSizerChannel->Add( mCollapsibleFiltering, 0, wxBOTTOM|wxEXPAND|wxTOP, 5 );
-
-	mPanelFooter = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxBoxSizer* sizerFooter;
-	sizerFooter = new wxBoxSizer( wxHORIZONTAL );
-
-	mButtonPreview = new wxButton( mPanelFooter, wxID_ANY, _("Preview"), wxDefaultPosition, wxDefaultSize, 0 );
-
-	mButtonPreview->SetBitmap( preview_20_png_to_wx_bitmap() );
-	sizerFooter->Add( mButtonPreview, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxRIGHT, 5 );
-
-	mButtonRemoveChannel = new wxButton( mPanelFooter, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-
-	mButtonRemoveChannel->SetBitmap( delete_20_png_to_wx_bitmap() );
-	mButtonRemoveChannel->SetToolTip( _("Delete channel") );
-	mButtonRemoveChannel->SetMaxSize( wxSize( 45,-1 ) );
-
-	sizerFooter->Add( mButtonRemoveChannel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxLEFT, 5 );
-
-
-	mPanelFooter->SetSizer( sizerFooter );
-	mPanelFooter->Layout();
-	sizerFooter->Fit( mPanelFooter );
-	mSizerChannel->Add( mPanelFooter, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL, 0 );
+	mSizerChannel->Add( mCollapsibleFiltering, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 8 );
 
 
 	mSizerChannel->Add( 0, 0, 1, wxEXPAND|wxSHAPED, 5 );
 
 
-	mSizerGridChannel->Add( mSizerChannel, 1, wxEXPAND|wxLEFT|wxRIGHT, 10 );
+	mSizerGridChannel->Add( mSizerChannel, 0, wxEXPAND, 10 );
 
 
 	mScrolledChannel->SetSizer( mSizerGridChannel );
@@ -1035,8 +1081,10 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	this->Layout();
 
 	// Connect Events
+	mButtonRemoveChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 	mChoiceChannelType->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onChannelTypeChanged ), NULL, this );
 	mChoiceChannelIndex->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onChannelIndexChanged ), NULL, this );
+	mButtonPreview->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
 	mCollapaablePreprocessing->Connect( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEventHandler( PanelChannel::onCollapsibleChanged ), NULL, this );
 	mChoiceZStack->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onZStackSettingsChanged ), NULL, this );
 	mSpinMarginCrop->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onMarginCropChanged ), NULL, this );
@@ -1046,6 +1094,8 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mDropDownSmoothingRepeat->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSmoothingChanged ), NULL, this );
 	mDropdownGausianBlur->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
 	mDropDownGausianBlurRepeat->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
+	mDropdownEdgeDetection->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
+	mDropdownEdgeDetectionDirection->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
 	mCollapsibleDetection->Connect( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEventHandler( PanelChannel::onCollapsibleChanged ), NULL, this );
 	mCheckUseAI->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PanelChannel::onAiCheckBox ), NULL, this );
 	mChoiceThresholdMethod->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onThresholdMethodChanged ), NULL, this );
@@ -1055,15 +1105,15 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mTextParticleSizeRange->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PanelChannel::onParticleSizeChanged ), NULL, this );
 	mSpinSnapArea->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onSnapAreaChanged ), NULL, this );
 	mChoiceReferenceSpotChannel->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSpotRemovalChanged ), NULL, this );
-	mButtonPreview->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
-	mButtonRemoveChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 }
 
 PanelChannel::~PanelChannel()
 {
 	// Disconnect Events
+	mButtonRemoveChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 	mChoiceChannelType->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onChannelTypeChanged ), NULL, this );
 	mChoiceChannelIndex->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onChannelIndexChanged ), NULL, this );
+	mButtonPreview->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
 	mCollapaablePreprocessing->Disconnect( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEventHandler( PanelChannel::onCollapsibleChanged ), NULL, this );
 	mChoiceZStack->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onZStackSettingsChanged ), NULL, this );
 	mSpinMarginCrop->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onMarginCropChanged ), NULL, this );
@@ -1073,6 +1123,8 @@ PanelChannel::~PanelChannel()
 	mDropDownSmoothingRepeat->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSmoothingChanged ), NULL, this );
 	mDropdownGausianBlur->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
 	mDropDownGausianBlurRepeat->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
+	mDropdownEdgeDetection->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
+	mDropdownEdgeDetectionDirection->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
 	mCollapsibleDetection->Disconnect( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEventHandler( PanelChannel::onCollapsibleChanged ), NULL, this );
 	mCheckUseAI->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PanelChannel::onAiCheckBox ), NULL, this );
 	mChoiceThresholdMethod->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onThresholdMethodChanged ), NULL, this );
@@ -1082,8 +1134,6 @@ PanelChannel::~PanelChannel()
 	mTextParticleSizeRange->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PanelChannel::onParticleSizeChanged ), NULL, this );
 	mSpinSnapArea->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onSnapAreaChanged ), NULL, this );
 	mChoiceReferenceSpotChannel->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSpotRemovalChanged ), NULL, this );
-	mButtonPreview->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
-	mButtonRemoveChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onRemoveClicked ), NULL, this );
 
 }
 

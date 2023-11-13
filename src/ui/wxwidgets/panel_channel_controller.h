@@ -60,6 +60,12 @@ private:
   static auto indexToFilterKernel(int idx) -> int16_t;
   static auto filterKernelToIndex(int16_t kernel) -> int;
 
+  static auto indexToEdgeDetectionAlgorithm(int idx) -> std::string;
+  static auto edgeDetectionAlgorithmToIndex(const std::string &str) -> int;
+
+  static auto indexToDirection(int idx) -> std::string;
+  static auto directionToIndex(const std::string &str) -> int;
+
   static auto splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>;
 
   static inline joda::helper::TwoWayMap<int, std::string> CHANNEL_TYPES{
@@ -70,6 +76,11 @@ private:
 
   static inline joda::helper::TwoWayMap<int, std::string> THRESHOLD_METHOD{
       {{0, "MANUAL"}, {1, "LI"}, {2, "MIN_ERROR"}, {3, "TRIANGLE"}, {4, "MOMENTS"}}};
+
+  static inline joda::helper::TwoWayMap<int, std::string> EDGE_DETECTION_ALGORTHM{
+      {{0, "NONE"}, {1, "SOBEL"}, {2, "CANNY"}}};
+
+  static inline joda::helper::TwoWayMap<int, std::string> EDGE_DETECTION_DIRECTION{{{0, "XY"}, {1, "X"}, {2, "Y"}}};
 
   static inline joda::helper::TwoWayMap<int, int16_t> GAUSSIAN_BLUR{{{0, 0}, {1, 3}, {2, 5}, {3, 7}, {4, 11}, {5, 13}}};
 

@@ -20,8 +20,51 @@
 
 #include "backend/image_processing/functions/blur/blur.hpp"
 #include "backend/image_processing/functions/blur_gausian/blur_gausian.hpp"
+#include "backend/image_processing/functions/edge_detection/edge_detection.hpp"
 #include "backend/image_processing/functions/median_substraction/median_substraction.hpp"
 #include <nlohmann/json.hpp>
+
+class PreprocessingEdgeDetection
+{
+public:
+  std::string value;
+  std::string direction;
+
+  [[nodiscard]] joda::func::img::EdgeDetection::Algorithm getAlgorithm() const
+  {
+    if(!value.empty()) {
+      if(value == "NONE") {
+        return joda::func::img::EdgeDetection::Algorithm::NONE;
+      }
+      if(value == "SOBEL") {
+        return joda::func::img::EdgeDetection::Algorithm::SOBEL;
+      }
+      if(value == "CANNY") {
+        return joda::func::img::EdgeDetection::Algorithm::CANNY;
+      }
+    }
+    return joda::func::img::EdgeDetection::Algorithm::NONE;
+  }
+
+  [[nodiscard]] joda::func::img::EdgeDetection::Direction getDirection() const
+  {
+    if(!value.empty()) {
+      if(value == "XY") {
+        return joda::func::img::EdgeDetection::Direction::XY;
+      }
+      if(value == "X") {
+        return joda::func::img::EdgeDetection::Direction::X;
+      }
+      if(value == "Y") {
+        return joda::func::img::EdgeDetection::Direction::Y;
+      }
+    }
+    return joda::func::img::EdgeDetection::Direction::XY;
+  }
+
+private:
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingEdgeDetection, value, direction);
+};
 
 class PreprocessingGausianBlur final
 {
@@ -158,6 +201,11 @@ public:
       joda::func::img::MedianSubtraction function(median_bg_subtraction.kernel_size);
       function.execute(image);
     }
+
+    if(!edge_detection.value.empty()) {
+      joda::func::img::EdgeDetection function(edge_detection.getAlgorithm(), edge_detection.getDirection());
+      function.execute(image);
+    }
   }
 
   [[nodiscard]] auto getZStack() const -> const PreprocessingZStack *
@@ -216,6 +264,14 @@ public:
     return nullptr;
   }
 
+  [[nodiscard]] auto getEdgeDetection() const -> const PreprocessingEdgeDetection *
+  {
+    if(!edge_detection.value.empty()) {
+      return &edge_detection;
+    }
+    return nullptr;
+  }
+
 private:
   /////////////////////////////////////////////////////
   PreprocessingZStack z_stack;
@@ -225,7 +281,8 @@ private:
   PreprocessingGausianBlur gaussian_blur;
   PreprocessingSmoothing smoothing;
   PreprocessingMedianBackgroundSubtraction median_bg_subtraction;
+  PreprocessingEdgeDetection edge_detection;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingStep, z_stack, subtract_channel, rolling_ball, margin_crop,
-                                              smoothing, gaussian_blur, median_bg_subtraction);
+                                              smoothing, gaussian_blur, median_bg_subtraction, edge_detection);
 };

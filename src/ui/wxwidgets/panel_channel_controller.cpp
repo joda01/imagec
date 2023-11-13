@@ -224,6 +224,12 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
     if(prepro.getSubtractChannel()) {
       mChoiceBGSubtraction->SetSelection(prepro.getSubtractChannel()->channel_index + 1);
     }
+    if(prepro.getEdgeDetection()) {
+      mDropdownEdgeDetection->SetSelection(edgeDetectionAlgorithmToIndex(prepro.getEdgeDetection()->value));
+      mDropdownEdgeDetectionDirection->SetSelection(directionToIndex(prepro.getEdgeDetection()->direction));
+    } else {
+      mDropdownEdgeDetection->SetSelection(0);
+    }
   }
 
   // Detection
@@ -283,6 +289,11 @@ nlohmann::json PanelChannelController::getValues()
   }
   if(mChoiceBGSubtraction->GetSelection() > 0) {
     jsonArray.push_back({{"subtract_channel", {{"channel_index", mChoiceBGSubtraction->GetSelection() - 1}}}});
+  }
+  if(mDropdownEdgeDetection->GetSelection() > 0) {
+    jsonArray.push_back({{"edge_detection",
+                          {{"value", indexToEdgeDetectionAlgorithm(mDropdownEdgeDetection->GetSelection())},
+                           {"direction", indexToDirection(mDropdownEdgeDetectionDirection->GetSelection())}}}});
   }
 
   chSettings["preprocessing"] = jsonArray;
@@ -357,6 +368,24 @@ auto PanelChannelController::indexToFilterKernel(int idx) -> int16_t
 auto PanelChannelController::filterKernelToIndex(int16_t kernel) -> int
 {
   return GAUSSIAN_BLUR[kernel];
+}
+
+auto PanelChannelController::indexToEdgeDetectionAlgorithm(int idx) -> std::string
+{
+  return EDGE_DETECTION_ALGORTHM[idx];
+}
+auto PanelChannelController::edgeDetectionAlgorithmToIndex(const std::string &str) -> int
+{
+  return EDGE_DETECTION_ALGORTHM[str];
+}
+
+auto PanelChannelController::indexToDirection(int idx) -> std::string
+{
+  return EDGE_DETECTION_DIRECTION[idx];
+}
+auto PanelChannelController::directionToIndex(const std::string &str) -> int
+{
+  return EDGE_DETECTION_DIRECTION[str];
 }
 
 auto PanelChannelController::splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>
