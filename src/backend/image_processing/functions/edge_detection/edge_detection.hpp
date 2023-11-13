@@ -1,5 +1,5 @@
 ///
-/// \file      margin_crop.hpp
+/// \file      edge_detection.hpp
 /// \author    Joachim Danmayr
 /// \date      2023-07-02
 ///
@@ -53,7 +53,8 @@ public:
         cv::Canny(image, image, 100, 200, 3, false);
         break;
       case Algorithm::SOBEL:
-        cv::Sobel(image, image, CV_64F, 1, 1, 5);
+        // cv::Sobel(image, image, CV_16UC1, 1, 1, K_SIZE);
+        filter3x3(image);
         break;
 
       default:
@@ -62,6 +63,10 @@ public:
   }
 
 private:
+  /////////////////////////////////////////////////////
+  static constexpr int K_SIZE = 3;
+  void filter3x3(cv::Mat &image) const;
+
   /////////////////////////////////////////////////////
   Algorithm mValue;
   Direction mDirection;
