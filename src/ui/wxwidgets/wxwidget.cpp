@@ -510,7 +510,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( mButtonPreview, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 8 );
 
 	mCollapaablePreprocessing = new wxCollapsiblePane( mScrolledChannel, wxID_ANY, _("Preprocessing"), wxDefaultPosition, wxDefaultSize, wxCP_DEFAULT_STYLE|wxCP_NO_TLW_RESIZE );
-	mCollapaablePreprocessing->Collapse( false );
+	mCollapaablePreprocessing->Collapse( true );
 
 	mCollapaablePreprocessing->SetFont( wxFont( 10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
 
@@ -620,6 +620,47 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	panelMedianBGSubtract->Layout();
 	sizerMedianBGSubtract->Fit( panelMedianBGSubtract );
 	bSizer55->Add( panelMedianBGSubtract, 1, wxEXPAND|wxTOP, 5 );
+
+	panelEdgeDetection = new wxPanel( mCollapaablePreprocessing->GetPane(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelEdgeDetection->SetFont( wxFont( 9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+	panelEdgeDetection->SetMinSize( wxSize( -1,65 ) );
+	panelEdgeDetection->SetMaxSize( wxSize( -1,65 ) );
+
+	wxBoxSizer* sizerEdgeDetection;
+	sizerEdgeDetection = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* sizerEdgeDetection1;
+	sizerEdgeDetection1 = new wxBoxSizer( wxHORIZONTAL );
+
+	iconEdgeDetection = new wxStaticBitmap( panelEdgeDetection, wxID_ANY, rectangle_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerEdgeDetection1->Add( iconEdgeDetection, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+
+	wxString mDropdownEdgeDetectionChoices[] = { _("Off"), _("Sobel"), _("Canny") };
+	int mDropdownEdgeDetectionNChoices = sizeof( mDropdownEdgeDetectionChoices ) / sizeof( wxString );
+	mDropdownEdgeDetection = new wxChoice( panelEdgeDetection, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropdownEdgeDetectionNChoices, mDropdownEdgeDetectionChoices, 0 );
+	mDropdownEdgeDetection->SetSelection( 0 );
+	sizerEdgeDetection1->Add( mDropdownEdgeDetection, 1, wxEXPAND, 5 );
+
+	wxString mDropdownEdgeDetectionDirectionChoices[] = { _("xy"), _("x"), _("y") };
+	int mDropdownEdgeDetectionDirectionNChoices = sizeof( mDropdownEdgeDetectionDirectionChoices ) / sizeof( wxString );
+	mDropdownEdgeDetectionDirection = new wxChoice( panelEdgeDetection, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropdownEdgeDetectionDirectionNChoices, mDropdownEdgeDetectionDirectionChoices, 0 );
+	mDropdownEdgeDetectionDirection->SetSelection( 0 );
+	sizerEdgeDetection1->Add( mDropdownEdgeDetectionDirection, 0, wxEXPAND|wxLEFT, 5 );
+
+
+	sizerEdgeDetection->Add( sizerEdgeDetection1, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+
+	mLabelEdgeDetection = new wxStaticText( panelEdgeDetection, wxID_ANY, _("Edge detection"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelEdgeDetection->Wrap( -1 );
+	mLabelEdgeDetection->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
+	sizerEdgeDetection->Add( mLabelEdgeDetection, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+
+
+	panelEdgeDetection->SetSizer( sizerEdgeDetection );
+	panelEdgeDetection->Layout();
+	sizerEdgeDetection->Fit( panelEdgeDetection );
+	bSizer55->Add( panelEdgeDetection, 1, wxEXPAND|wxTOP, 5 );
 
 	panelRollingBall = new wxPanel( mCollapaablePreprocessing->GetPane(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
 	panelRollingBall->SetFont( wxFont( 9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
@@ -760,47 +801,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	panelGausianBlur->Layout();
 	sizerGausianBlur->Fit( panelGausianBlur );
 	bSizer55->Add( panelGausianBlur, 1, wxEXPAND|wxTOP, 5 );
-
-	panelEdgeDetection = new wxPanel( mCollapaablePreprocessing->GetPane(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
-	panelEdgeDetection->SetFont( wxFont( 9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-	panelEdgeDetection->SetMinSize( wxSize( -1,65 ) );
-	panelEdgeDetection->SetMaxSize( wxSize( -1,65 ) );
-
-	wxBoxSizer* sizerEdgeDetection;
-	sizerEdgeDetection = new wxBoxSizer( wxVERTICAL );
-
-	wxBoxSizer* sizerEdgeDetection1;
-	sizerEdgeDetection1 = new wxBoxSizer( wxHORIZONTAL );
-
-	iconEdgeDetection = new wxStaticBitmap( panelEdgeDetection, wxID_ANY, rectangle_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerEdgeDetection1->Add( iconEdgeDetection, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
-
-	wxString mDropdownEdgeDetectionChoices[] = { _("Off"), _("Sobel"), _("Canny") };
-	int mDropdownEdgeDetectionNChoices = sizeof( mDropdownEdgeDetectionChoices ) / sizeof( wxString );
-	mDropdownEdgeDetection = new wxChoice( panelEdgeDetection, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropdownEdgeDetectionNChoices, mDropdownEdgeDetectionChoices, 0 );
-	mDropdownEdgeDetection->SetSelection( 0 );
-	sizerEdgeDetection1->Add( mDropdownEdgeDetection, 1, wxEXPAND, 5 );
-
-	wxString mDropdownEdgeDetectionDirectionChoices[] = { _("xy"), _("x"), _("y") };
-	int mDropdownEdgeDetectionDirectionNChoices = sizeof( mDropdownEdgeDetectionDirectionChoices ) / sizeof( wxString );
-	mDropdownEdgeDetectionDirection = new wxChoice( panelEdgeDetection, wxID_ANY, wxDefaultPosition, wxDefaultSize, mDropdownEdgeDetectionDirectionNChoices, mDropdownEdgeDetectionDirectionChoices, 0 );
-	mDropdownEdgeDetectionDirection->SetSelection( 0 );
-	sizerEdgeDetection1->Add( mDropdownEdgeDetectionDirection, 0, wxEXPAND|wxLEFT, 5 );
-
-
-	sizerEdgeDetection->Add( sizerEdgeDetection1, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
-
-	mLabelEdgeDetection = new wxStaticText( panelEdgeDetection, wxID_ANY, _("Edge detection"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
-	mLabelEdgeDetection->Wrap( -1 );
-	mLabelEdgeDetection->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-
-	sizerEdgeDetection->Add( mLabelEdgeDetection, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
-
-
-	panelEdgeDetection->SetSizer( sizerEdgeDetection );
-	panelEdgeDetection->Layout();
-	sizerEdgeDetection->Fit( panelEdgeDetection );
-	bSizer55->Add( panelEdgeDetection, 1, wxEXPAND|wxTOP, 5 );
 
 
 	mCollapaablePreprocessing->GetPane()->SetSizer( bSizer55 );
@@ -1089,13 +1089,13 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mChoiceZStack->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onZStackSettingsChanged ), NULL, this );
 	mSpinMarginCrop->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onMarginCropChanged ), NULL, this );
 	mChoiceMedianBGSubtract->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onMedianBGSubtractChanged ), NULL, this );
+	mDropdownEdgeDetection->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
+	mDropdownEdgeDetectionDirection->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
 	mSpinRollingBall->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onRollingBallChanged ), NULL, this );
 	mChoiceBGSubtraction->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onBgSubtractChanged ), NULL, this );
 	mDropDownSmoothingRepeat->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSmoothingChanged ), NULL, this );
 	mDropdownGausianBlur->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
 	mDropDownGausianBlurRepeat->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
-	mDropdownEdgeDetection->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
-	mDropdownEdgeDetectionDirection->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
 	mCollapsibleDetection->Connect( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEventHandler( PanelChannel::onCollapsibleChanged ), NULL, this );
 	mCheckUseAI->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PanelChannel::onAiCheckBox ), NULL, this );
 	mChoiceThresholdMethod->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onThresholdMethodChanged ), NULL, this );
@@ -1118,13 +1118,13 @@ PanelChannel::~PanelChannel()
 	mChoiceZStack->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onZStackSettingsChanged ), NULL, this );
 	mSpinMarginCrop->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onMarginCropChanged ), NULL, this );
 	mChoiceMedianBGSubtract->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onMedianBGSubtractChanged ), NULL, this );
+	mDropdownEdgeDetection->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
+	mDropdownEdgeDetectionDirection->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
 	mSpinRollingBall->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onRollingBallChanged ), NULL, this );
 	mChoiceBGSubtraction->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onBgSubtractChanged ), NULL, this );
 	mDropDownSmoothingRepeat->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSmoothingChanged ), NULL, this );
 	mDropdownGausianBlur->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
 	mDropDownGausianBlurRepeat->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
-	mDropdownEdgeDetection->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurChanged ), NULL, this );
-	mDropdownEdgeDetectionDirection->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onGausianBlurRepeatChanged ), NULL, this );
 	mCollapsibleDetection->Disconnect( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEventHandler( PanelChannel::onCollapsibleChanged ), NULL, this );
 	mCheckUseAI->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PanelChannel::onAiCheckBox ), NULL, this );
 	mChoiceThresholdMethod->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onThresholdMethodChanged ), NULL, this );

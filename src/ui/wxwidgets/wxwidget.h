@@ -197,6 +197,11 @@ namespace joda
 					wxStaticBitmap* iconMedianBGSubtract;
 					wxChoice* mChoiceMedianBGSubtract;
 					wxStaticText* mLabelMedianBGSubtract;
+					wxPanel* panelEdgeDetection;
+					wxStaticBitmap* iconEdgeDetection;
+					wxChoice* mDropdownEdgeDetection;
+					wxChoice* mDropdownEdgeDetectionDirection;
+					wxStaticText* mLabelEdgeDetection;
 					wxPanel* panelRollingBall;
 					wxStaticBitmap* iconRollingBall;
 					wxSpinCtrl* mSpinRollingBall;
@@ -214,11 +219,6 @@ namespace joda
 					wxChoice* mDropdownGausianBlur;
 					wxChoice* mDropDownGausianBlurRepeat;
 					wxStaticText* mLabelGausianBluer;
-					wxPanel* panelEdgeDetection;
-					wxStaticBitmap* iconEdgeDetection;
-					wxChoice* mDropdownEdgeDetection;
-					wxChoice* mDropdownEdgeDetectionDirection;
-					wxStaticText* mLabelEdgeDetection;
 					wxCollapsiblePane* mCollapsibleDetection;
 					wxStaticLine* mLineDescription;
 					wxPanel* panelUseAI;
@@ -260,11 +260,11 @@ namespace joda
 					virtual void onZStackSettingsChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onMarginCropChanged( wxSpinEvent& event ) { event.Skip(); }
 					virtual void onMedianBGSubtractChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onGausianBlurChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onGausianBlurRepeatChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onRollingBallChanged( wxSpinEvent& event ) { event.Skip(); }
 					virtual void onBgSubtractChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onSmoothingChanged( wxCommandEvent& event ) { event.Skip(); }
-					virtual void onGausianBlurChanged( wxCommandEvent& event ) { event.Skip(); }
-					virtual void onGausianBlurRepeatChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAiCheckBox( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onThresholdMethodChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onMinThresholdChanged( wxSpinEvent& event ) { event.Skip(); }

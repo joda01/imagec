@@ -273,6 +273,12 @@ nlohmann::json PanelChannelController::getValues()
   if(mSpinMarginCrop->GetValue() > 0) {
     jsonArray.push_back({{"margin_crop", {{"value", static_cast<int>(mSpinMarginCrop->GetValue())}}}});
   }
+  if(mDropdownEdgeDetection->GetSelection() > 0) {
+    jsonArray.push_back({{"edge_detection",
+                          {{"value", indexToEdgeDetectionAlgorithm(mDropdownEdgeDetection->GetSelection())},
+                           {"direction", indexToDirection(mDropdownEdgeDetectionDirection->GetSelection())}}}});
+  }
+
   if(mSpinRollingBall->GetValue() > 0) {
     jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mSpinRollingBall->GetValue())}}}});
   }
@@ -289,11 +295,6 @@ nlohmann::json PanelChannelController::getValues()
   }
   if(mChoiceBGSubtraction->GetSelection() > 0) {
     jsonArray.push_back({{"subtract_channel", {{"channel_index", mChoiceBGSubtraction->GetSelection() - 1}}}});
-  }
-  if(mDropdownEdgeDetection->GetSelection() > 0) {
-    jsonArray.push_back({{"edge_detection",
-                          {{"value", indexToEdgeDetectionAlgorithm(mDropdownEdgeDetection->GetSelection())},
-                           {"direction", indexToDirection(mDropdownEdgeDetectionDirection->GetSelection())}}}});
   }
 
   chSettings["preprocessing"] = jsonArray;
