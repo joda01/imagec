@@ -421,7 +421,7 @@ DialogAbout::~DialogAbout()
 
 PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
 {
-	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
 	mSizerForScroll = new wxBoxSizer( wxVERTICAL );
 
@@ -452,7 +452,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mPanelHeade->SetSizer( sizerFooter );
 	mPanelHeade->Layout();
 	sizerFooter->Fit( mPanelHeade );
-	mSizerForScroll->Add( mPanelHeade, 0, wxEXPAND, 0 );
+	mSizerForScroll->Add( mPanelHeade, 0, wxEXPAND|wxLEFT|wxRIGHT, 8 );
 
 	mPanelToolbar = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* sizerFooter1;

@@ -114,6 +114,8 @@ private:
   void onPreviewDialogClosed(wxCloseEvent &);
 
   void showErrorDialog(const std::string &what);
+  void OnPaint(wxPaintEvent &event);
+
   static std::string particleSizeFilterSoString(uint64_t number);
   /////////////////////////////////////////////////////
   std::mutex mPreviewMutex;
@@ -126,6 +128,7 @@ private:
 
   bool mStopped = false;
 };
+
 }    // namespace joda::ui::wxwidget
 
 #endif    // __panel_channel_controller__

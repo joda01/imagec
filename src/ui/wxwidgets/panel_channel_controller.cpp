@@ -39,6 +39,8 @@ PanelChannelController::PanelChannelController(FrameMainController *mainFrame, w
     PanelChannel(parent, id, pos, size, style, name),
     mMainFrame(mainFrame)
 {
+  Bind(wxEVT_PAINT, &PanelChannelController::OnPaint, this);
+
   mPreviewRefreshThread = std::make_shared<std::thread>(&PanelChannelController::refreshPreviewThread, this);
 }
 
@@ -560,6 +562,29 @@ std::string PanelChannelController::particleSizeFilterSoString(uint64_t number)
     return "Inf.";
   }
   return std::to_string(number);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelController::OnPaint(wxPaintEvent &event)
+{
+  wxPaintDC dc(this);
+  // Set the pen color and width for the border
+  wxPen borderPen(wxColour(241, 240, 238), 2, wxPENSTYLE_SOLID);
+  dc.SetPen(borderPen);
+
+  // Set the brush color for the panel background
+  // 241, 240, 238
+  wxBrush backgroundBrush(wxColour(241, 240, 238), wxBRUSHSTYLE_SOLID);
+  dc.SetBrush(backgroundBrush);
+
+  // Draw the rounded rectangle
+  dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), 18);
 }
 
 }    // namespace joda::ui::wxwidget

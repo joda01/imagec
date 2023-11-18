@@ -2870,7 +2870,7 @@
         <object class="Panel" expanded="1">
             <property name="aui_managed">0</property>
             <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
-            <property name="bg">wxSYS_COLOUR_BTNFACE</property>
+            <property name="bg">wxSYS_COLOUR_WINDOW</property>
             <property name="context_help"></property>
             <property name="context_menu">1</property>
             <property name="enabled">1</property>
@@ -2896,8 +2896,8 @@
                 <property name="orient">wxVERTICAL</property>
                 <property name="permission">public</property>
                 <object class="sizeritem" expanded="1">
-                    <property name="border">0</property>
-                    <property name="flag">wxEXPAND</property>
+                    <property name="border">8</property>
+                    <property name="flag">wxEXPAND|wxLEFT|wxRIGHT</property>
                     <property name="proportion">0</property>
                     <object class="wxPanel" expanded="0">
                         <property name="BottomDockable">1</property>
