@@ -426,6 +426,8 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerForScroll = new wxBoxSizer( wxVERTICAL );
 
 	mPanelHeade = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	mPanelHeade->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+
 	wxBoxSizer* sizerFooter;
 	sizerFooter = new wxBoxSizer( wxHORIZONTAL );
 
@@ -452,9 +454,11 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mPanelHeade->SetSizer( sizerFooter );
 	mPanelHeade->Layout();
 	sizerFooter->Fit( mPanelHeade );
-	mSizerForScroll->Add( mPanelHeade, 0, wxEXPAND|wxLEFT|wxRIGHT, 8 );
+	mSizerForScroll->Add( mPanelHeade, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 8 );
 
 	mPanelToolbar = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	mPanelToolbar->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+
 	wxBoxSizer* sizerFooter1;
 	sizerFooter1 = new wxBoxSizer( wxVERTICAL );
 
@@ -1053,6 +1057,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerForScroll->Add( 0, 0, 0, wxSHAPED, 5 );
 
 	mPanelFooter = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxSize( -1,35 ), wxTAB_TRAVERSAL );
+	mPanelFooter->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 	mPanelFooter->SetMinSize( wxSize( -1,35 ) );
 	mPanelFooter->SetMaxSize( wxSize( -1,35 ) );
 
