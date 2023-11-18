@@ -84,7 +84,8 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
 
   binaryImage.convertTo(binaryImage, CV_8UC1);
   std::vector<std::vector<cv::Point>> contours;
-  cv::findContours(binaryImage, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+  std::vector<cv::Vec4i> hierarchy;
+  cv::findContours(binaryImage, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
   DurationCount::stop(id);
 
   if(contours.size() > 100000) {
@@ -98,18 +99,23 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
 
   // Create a mask for each contour and draw bounding boxes
   for(size_t i = 0; i < contours.size(); ++i) {
-    // Find the bounding box for the contour
-    auto box     = cv::boundingRect(contours[i]);
-    cv::Mat mask = boxMask(box) >= 1;
+    // Do not paint a contour for elements inside an element.
+    // In other words if there is a particle with a hole, ignore the hole.
+    // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
+    if(hierarchy[i][3] == -1) {
+      // Find the bounding box for the contour
+      auto box     = cv::boundingRect(contours[i]);
+      cv::Mat mask = boxMask(box) >= 1;
 
-    // Bring the contours box in the area of the bounding box
-    for(auto &point : contours[i]) {
-      point.x = point.x - box.x;
-      point.y = point.y - box.y;
+      // Bring the contours box in the area of the bounding box
+      for(auto &point : contours[i]) {
+        point.x = point.x - box.x;
+        point.y = point.y - box.y;
+      }
+
+      ROI detect(i, usedThersholdVal, 0, box, mask, contours[i], originalImage, getFilterSettings());
+      response.push_back(detect);
     }
-
-    ROI detect(i, usedThersholdVal, 0, box, mask, contours[i], originalImage, getFilterSettings());
-    response.push_back(detect);
   }
   DurationCount::stop(id);
 

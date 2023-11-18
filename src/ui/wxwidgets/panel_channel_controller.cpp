@@ -227,8 +227,6 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
     if(prepro.getEdgeDetection()) {
       mDropdownEdgeDetection->SetSelection(edgeDetectionAlgorithmToIndex(prepro.getEdgeDetection()->value));
       mDropdownEdgeDetectionDirection->SetSelection(directionToIndex(prepro.getEdgeDetection()->direction));
-    } else {
-      mDropdownEdgeDetection->SetSelection(0);
     }
   }
 
@@ -241,8 +239,9 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
 
   // Filtering
   mSpinMinCircularity->SetValue(channelSettings.getFilter().getMinCircularity());
-  std::string range = std::to_string(static_cast<uint32_t>(channelSettings.getFilter().getMinParticleSize())) + "-" +
-                      std::to_string(static_cast<uint32_t>(channelSettings.getFilter().getMaxParticleSize()));
+  std::string range =
+      particleSizeFilterSoString(static_cast<uint64_t>(channelSettings.getFilter().getMinParticleSize())) + "-" +
+      particleSizeFilterSoString(static_cast<uint64_t>(channelSettings.getFilter().getMaxParticleSize()));
   mTextParticleSizeRange->SetValue(range);
   mSpinSnapArea->SetValue(channelSettings.getFilter().getSnapAreaSize());
   mChoiceReferenceSpotChannel->SetSelection(channelSettings.getFilter().getReferenceSpotChannelIndex() + 1);
@@ -373,11 +372,11 @@ auto PanelChannelController::filterKernelToIndex(int16_t kernel) -> int
 
 auto PanelChannelController::indexToEdgeDetectionAlgorithm(int idx) -> std::string
 {
-  return EDGE_DETECTION_ALGORTHM[idx];
+  return EDGE_DETECTION_ALGORITHM[idx];
 }
 auto PanelChannelController::edgeDetectionAlgorithmToIndex(const std::string &str) -> int
 {
-  return EDGE_DETECTION_ALGORTHM[str];
+  return EDGE_DETECTION_ALGORITHM[str];
 }
 
 auto PanelChannelController::indexToDirection(int idx) -> std::string
@@ -545,6 +544,21 @@ void PanelChannelController::onSpotRemovalChanged(wxCommandEvent &event)
 void PanelChannelController::showErrorDialog(const std::string &what)
 {
   wxMessageBox(what, "Error", wxOK | wxICON_ERROR, this);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::string PanelChannelController::particleSizeFilterSoString(uint64_t number)
+{
+  if(number >= INT32_MAX) {
+    return "Inf.";
+  }
+  return std::to_string(number);
 }
 
 }    // namespace joda::ui::wxwidget

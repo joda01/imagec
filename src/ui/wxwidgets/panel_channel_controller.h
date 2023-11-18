@@ -77,7 +77,7 @@ private:
   static inline joda::helper::TwoWayMap<int, std::string> THRESHOLD_METHOD{
       {{0, "MANUAL"}, {1, "LI"}, {2, "MIN_ERROR"}, {3, "TRIANGLE"}, {4, "MOMENTS"}}};
 
-  static inline joda::helper::TwoWayMap<int, std::string> EDGE_DETECTION_ALGORTHM{
+  static inline joda::helper::TwoWayMap<int, std::string> EDGE_DETECTION_ALGORITHM{
       {{0, "NONE"}, {1, "SOBEL"}, {2, "CANNY"}}};
 
   static inline joda::helper::TwoWayMap<int, std::string> EDGE_DETECTION_DIRECTION{{{0, "XY"}, {1, "X"}, {2, "Y"}}};
@@ -114,6 +114,7 @@ private:
   void onPreviewDialogClosed(wxCloseEvent &);
 
   void showErrorDialog(const std::string &what);
+  static std::string particleSizeFilterSoString(uint64_t number);
   /////////////////////////////////////////////////////
   std::mutex mPreviewMutex;
   FrameMainController *mMainFrame;
