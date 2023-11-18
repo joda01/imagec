@@ -27,15 +27,18 @@
 
 namespace joda::func {
 
-ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask) :
-    index(index), confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask)
+ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
+         const std::vector<cv::Point> &contour) :
+    index(index),
+    confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask), mMaskContours(contour)
 {
   calculateSnapAreaAndContours(0, -1, -1);
 }
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-         const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter) :
+         const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal,
+         const joda::settings::json::ChannelFiltering *filter) :
     index(index),
-    confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask)
+    confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask), mMaskContours(contour)
 {
   if(filter != nullptr) {
     calculateSnapAreaAndContours(filter->getSnapAreaSize(), imageOriginal.cols, imageOriginal.rows);
@@ -45,9 +48,9 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
   calculateMetrics(imageOriginal, filter);
 }
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-         const cv::Mat &imageOriginal) :
+         const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal) :
     index(index),
-    confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask)
+    confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask), mMaskContours(contour)
 {
   calculateSnapAreaAndContours(0, imageOriginal.cols, imageOriginal.rows);
   calculateMetrics(imageOriginal, nullptr);
@@ -59,23 +62,6 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
 ///
 void ROI::calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int32_t maxHeight)
 {
-  // Find the contour of the ROI
-  {
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(mMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
-    if(!contours.empty()) {
-      int biggestCont = 0;
-      int max         = contours[0].size();
-      for(int idx = 1; idx < contours.size(); idx++) {
-        if(max < contours[idx].size()) {
-          max         = contours[idx].size();
-          biggestCont = idx;
-        }
-      }
-      mMaskContours = contours[biggestCont];
-    }
-  }
-
   if(snapAreaSize > 1) {
     // Snap area must be bigger than actual bounding box
     if(snapAreaSize > mBoundingBox.width && snapAreaSize > mBoundingBox.height) {

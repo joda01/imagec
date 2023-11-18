@@ -159,7 +159,21 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
     int idx      = nms_result[i];
     cv::Rect box = boxes[idx] & holeImgRect;
     auto mask    = getMask(maskChannels[i], params, inputImageOriginal.size(), box);
-    ROI roi(i, confidences[idx], classIds[idx], box, mask, originalImage, getFilterSettings());
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(mask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+    if(contours.empty()) {
+      contours.emplace_back();
+    }
+    // Look for the biggest contour area
+    int idxMax = 0;
+    for(int i = 1; i < contours.size(); i++) {
+      if(contours[i - 1].size() < contours[i].size()) {
+        idxMax = i;
+      }
+    }
+
+    ROI roi(i, confidences[idx], classIds[idx], box, mask, contours[idxMax], originalImage, getFilterSettings());
     output.push_back(roi);
   }
 

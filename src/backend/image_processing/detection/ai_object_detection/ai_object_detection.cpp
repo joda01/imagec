@@ -171,7 +171,13 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const cv::Mat &or
     if(keptIndexesSet.count(n) == 1) {
       cv::Mat boxMask = cv::Mat::ones(inputImage.size(), CV_8UC1);
       boxMask         = boxMask(boxes[n]) >= 0;
-      ROI roi(index, confidences[n], classIds[n], boxes[n], boxMask, originalImage, getFilterSettings());
+
+      std::vector<std::vector<cv::Point>> contours;
+      cv::findContours(boxMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+      if(contours.empty()) {
+        contours.emplace_back();
+      }
+      ROI roi(index, confidences[n], classIds[n], boxes[n], boxMask, contours[0], originalImage, getFilterSettings());
       result.push_back(roi);
       index++;
     }

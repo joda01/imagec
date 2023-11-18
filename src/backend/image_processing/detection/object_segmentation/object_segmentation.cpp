@@ -101,7 +101,14 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
     // Find the bounding box for the contour
     auto box     = cv::boundingRect(contours[i]);
     cv::Mat mask = boxMask(box) >= 1;
-    ROI detect(i, usedThersholdVal, 0, box, mask, originalImage, getFilterSettings());
+
+    // Bring the contours box in the area of the bounding box
+    for(auto &point : contours[i]) {
+      point.x = point.x - box.x;
+      point.y = point.y - box.y;
+    }
+
+    ROI detect(i, usedThersholdVal, 0, box, mask, contours[i], originalImage, getFilterSettings());
     response.push_back(detect);
   }
   DurationCount::stop(id);
