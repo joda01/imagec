@@ -174,15 +174,14 @@ namespace joda
 				private:
 
 				protected:
-					wxPanel* mPanelFooter;
+					wxPanel* mPanelHeade;
 					wxStaticText* mLabelChannelTitle;
 					wxButton* mButtonRemoveChannel;
+					wxPanel* mPanelToolbar;
 					wxTextCtrl* mTextChannelName;
-					wxPanel* panelChannelType;
 					wxChoice* mChoiceChannelType;
-					wxPanel* panelChannelIndex;
 					wxChoice* mChoiceChannelIndex;
-					wxButton* mButtonPreview;
+					wxBoxSizer* mSizerChannel;
 					wxCollapsiblePane* mCollapaablePreprocessing;
 					wxStaticLine* mLineDescription1;
 					wxPanel* panelZStack;
@@ -250,12 +249,13 @@ namespace joda
 					wxStaticBitmap* iconTetraspeckChannel;
 					wxChoice* mChoiceReferenceSpotChannel;
 					wxStaticText* mLabelTetraspeckChannel;
+					wxPanel* mPanelFooter;
+					wxButton* mButtonPreview1;
 
 					// Virtual event handlers, override them in your derived class
 					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onChannelTypeChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onChannelIndexChanged( wxCommandEvent& event ) { event.Skip(); }
-					virtual void onPreviewClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onCollapsibleChanged( wxCollapsiblePaneEvent& event ) { event.Skip(); }
 					virtual void onZStackSettingsChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onMarginCropChanged( wxSpinEvent& event ) { event.Skip(); }
@@ -272,13 +272,14 @@ namespace joda
 					virtual void onParticleSizeChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onSnapAreaChanged( wxSpinEvent& event ) { event.Skip(); }
 					virtual void onSpotRemovalChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onPreviewClicked( wxCommandEvent& event ) { event.Skip(); }
 
 
 				public:
 					wxBoxSizer* mSizerForScroll;
 					wxScrolledWindow* mScrolledChannel;
 
-					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 250,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 257,577 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 					~PanelChannel();
 

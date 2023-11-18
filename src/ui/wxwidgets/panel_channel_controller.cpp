@@ -457,6 +457,7 @@ void PanelChannelController::onAiCheckBox(wxCommandEvent &event)
 ///
 void PanelChannelController::onCollapsibleChanged(wxCollapsiblePaneEvent &event)
 {
+  // mScrolledChannel->SetMinSize({250, 800});
   Layout();
 }
 
