@@ -278,7 +278,7 @@ namespace joda
 					wxBoxSizer* mSizerForScroll;
 					wxScrolledWindow* mScrolledChannel;
 
-					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 250,1235 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 250,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 					~PanelChannel();
 

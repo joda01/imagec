@@ -425,10 +425,9 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	mSizerForScroll = new wxBoxSizer( wxHORIZONTAL );
 
-	mSizerForScroll->SetMinSize( wxSize( 250,-1 ) );
 	mScrolledChannel = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxBORDER_NONE|wxVSCROLL );
 	mScrolledChannel->SetScrollRate( 0, 5 );
-	mScrolledChannel->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+	mScrolledChannel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
 	wxGridSizer* mSizerGridChannel;
 	mSizerGridChannel = new wxGridSizer( 0, 1, 0, 0 );
@@ -436,7 +435,6 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	wxBoxSizer* mSizerChannel;
 	mSizerChannel = new wxBoxSizer( wxVERTICAL );
 
-	mSizerChannel->SetMinSize( wxSize( 250,-1 ) );
 	mPanelFooter = new wxPanel( mScrolledChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* sizerFooter;
 	sizerFooter = new wxBoxSizer( wxHORIZONTAL );
@@ -1069,7 +1067,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerChannel->Add( 0, 0, 1, wxEXPAND|wxSHAPED, 5 );
 
 
-	mSizerGridChannel->Add( mSizerChannel, 0, wxEXPAND, 10 );
+	mSizerGridChannel->Add( mSizerChannel, 0, wxEXPAND|wxRIGHT, 15 );
 
 
 	mScrolledChannel->SetSizer( mSizerGridChannel );
