@@ -106,6 +106,7 @@ jobs:
           mv jre_linux_unzip/jre_linux imagec-x64-linux-bundle/java/jre_linux
           zip -r imagec-x64-linux-bundle.zip imagec-x64-linux-bundle
           
+
           mkdir imagec-x64-win-bundle
           mkdir -p imagec-x64-win-bundle/java
           cp build/build/imagec.exe imagec-x64-win-bundle/imagec.exe
@@ -113,10 +114,11 @@ jobs:
           cp java/BioFormatsWrapper.class imagec-x64-win-bundle/java/BioFormatsWrapper.class
           unzip java/jre_win.zip -d jre_win_unzip
           mv jre_win_unzip/jre_win imagec-x64-win-bundle/java/jre_win
-          unzip build/build/win-dlls.zip -d imagec-x64-win-bundle/
-          mv imagec-x64-win-bundle/dlls/* imagec-x64-win-bundle/*
-          rm -rf imagec-x64-win-bundle/dlls
+          unzip build/build/win-dlls.zip -d win_dll_unzip
+          mv win_dll_unzip/dlls/* imagec-x64-win-bundle/*
           zip -r imagec-x64-win-bundle.zip imagec-x64-win-bundle
+
+
 
           mv build/build/imagec build/build/imagec-x64-linux
           mv build/build/imagec.exe build/build/imagec-x64-win.exe
