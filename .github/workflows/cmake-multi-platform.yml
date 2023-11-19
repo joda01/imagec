@@ -103,7 +103,7 @@ jobs:
           cp java/bioformats.jar imagec-x64-linux-bundle/java/bioformats.jar
           cp java/BioFormatsWrapper.class imagec-x64-linux-bundle/java/BioFormatsWrapper.class
           unzip java/jre_linux.zip -d jre_linux_unzip
-          mv jre_linux_unzip/jre_linux/jre_linux imagec-x64-linux-bundle/java/jre_linux
+          mv jre_linux_unzip/jre_linux imagec-x64-linux-bundle/java/jre_linux
           zip -r imagec-x64-linux-bundle.zip imagec-x64-linux-bundle
           
           mkdir imagec-x64-win-bundle
