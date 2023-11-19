@@ -97,6 +97,23 @@ jobs:
 
       - name: Rename files through architecture
         run: |
+          mkdir imagec-x64-linux-bundle
+          mkdir -p imagec-x64-linux-bundle/java
+          cp build/build/imagec imagec-x64-linux-bundle/imagec
+          cp java/bioformats.jar imagec-x64-linux-bundle/java/bioformats.jar
+          cp java/BioFormatsWrapper.jar imagec-x64-linux-bundle/java/BioFormatsWrapper.jar
+          unzip java/jre_linux.zip -d imagec-x64-linux-bundle/jre_linux
+          zip -r imagec-x64-linux-bundle.zip imagec-x64-linux-bundle
+          
+          mkdir imagec-x64-win-bundle
+          mkdir -p imagec-x64-win-bundle/java
+          cp build/build/imagec.exe imagec-x64-win-bundle/imagec.exe
+          cp java/bioformats.jar imagec-x64-win-bundle/java/bioformats.jar
+          cp java/BioFormatsWrapper.jar imagec-x64-win-bundle/java/BioFormatsWrapper.jar
+          unzip java/jre_win.zip -d imagec-x64-win-bundle/jre_win
+          unzip build/build/win-dlls.zip -d imagec-x64-win-bundle/
+          zip -r imagec-x64-win-bundle.zip imagec-x64-win-bundle
+
           mv build/build/imagec build/build/imagec-x64-linux
           mv build/build/imagec.exe build/build/imagec-x64-win.exe
           mv java/jre_linux.zip java/jre-linux.zip
@@ -115,6 +132,8 @@ jobs:
             java/jre-linux.zip
             java/jre-win.zip
             java/bioformats-jni-wrapper.zip
+            imagec-x64-linux-bundle.zip
+            imagec-x64-win-bundle.zip
       
       
       
