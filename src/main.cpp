@@ -26,6 +26,8 @@
 #ifdef _WIN32
 // #include "wx.rc"
 // #include "wx/msw/wx.rc"
+#include <windows.h>
+
 #endif
 
 using namespace std;
@@ -66,6 +68,9 @@ bool MainApp::OnInit()
 ///
 int main(int argc, char **argv)
 {
+  std::cout << "Main" << std::endl;
+
+
   wxInitAllImageHandlers();
   Version::initVersion(std::string(argv[0]));
   TiffLoader::initLibTif();

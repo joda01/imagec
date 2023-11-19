@@ -60,6 +60,12 @@ private:
   static auto indexToFilterKernel(int idx) -> int16_t;
   static auto filterKernelToIndex(int16_t kernel) -> int;
 
+  static auto indexToEdgeDetectionAlgorithm(int idx) -> std::string;
+  static auto edgeDetectionAlgorithmToIndex(const std::string &str) -> int;
+
+  static auto indexToDirection(int idx) -> std::string;
+  static auto directionToIndex(const std::string &str) -> int;
+
   static auto splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>;
 
   static inline joda::helper::TwoWayMap<int, std::string> CHANNEL_TYPES{
@@ -70,6 +76,11 @@ private:
 
   static inline joda::helper::TwoWayMap<int, std::string> THRESHOLD_METHOD{
       {{0, "MANUAL"}, {1, "LI"}, {2, "MIN_ERROR"}, {3, "TRIANGLE"}, {4, "MOMENTS"}}};
+
+  static inline joda::helper::TwoWayMap<int, std::string> EDGE_DETECTION_ALGORITHM{
+      {{0, "NONE"}, {1, "SOBEL"}, {2, "CANNY"}}};
+
+  static inline joda::helper::TwoWayMap<int, std::string> EDGE_DETECTION_DIRECTION{{{0, "XY"}, {1, "X"}, {2, "Y"}}};
 
   static inline joda::helper::TwoWayMap<int, int16_t> GAUSSIAN_BLUR{{{0, 0}, {1, 3}, {2, 5}, {3, 7}, {4, 11}, {5, 13}}};
 
@@ -98,11 +109,16 @@ private:
   void onParticleSizeChanged(wxCommandEvent &event) override;
   void onSnapAreaChanged(wxSpinEvent &event) override;
   void onSpotRemovalChanged(wxCommandEvent &event) override;
+  void onCollapsibleChanged(wxCollapsiblePaneEvent &event) override;
 
   void onPreviewDialogClosed(wxCloseEvent &);
 
   void showErrorDialog(const std::string &what);
+  void OnPaint(wxPaintEvent &event);
+
+  static std::string particleSizeFilterSoString(uint64_t number);
   /////////////////////////////////////////////////////
+  std::mutex mPreviewMutex;
   FrameMainController *mMainFrame;
   std::map<wxWindowID, std::shared_ptr<DialogImageController>> mPreviewDialogs;
   std::chrono::system_clock::time_point mLastPreviewUpdateRequest;
@@ -112,6 +128,7 @@ private:
 
   bool mStopped = false;
 };
+
 }    // namespace joda::ui::wxwidget
 
 #endif    // __panel_channel_controller__

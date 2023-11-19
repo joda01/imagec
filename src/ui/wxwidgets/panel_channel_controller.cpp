@@ -39,6 +39,8 @@ PanelChannelController::PanelChannelController(FrameMainController *mainFrame, w
     PanelChannel(parent, id, pos, size, style, name),
     mMainFrame(mainFrame)
 {
+  Bind(wxEVT_PAINT, &PanelChannelController::OnPaint, this);
+
   mPreviewRefreshThread = std::make_shared<std::thread>(&PanelChannelController::refreshPreviewThread, this);
 }
 
@@ -90,7 +92,7 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
   mPreviewDialogs.emplace(winId, imgDialog);
   imgDialog->Bind(wxEVT_CLOSE_WINDOW, &PanelChannelController::onPreviewDialogClosed, this);
   imgDialog->Show();
-  std::thread([this, &imgDialog] { refreshPreview(imgDialog); }).detach();
+  std::thread([this, imgDialog] { refreshPreview(imgDialog); }).detach();
 }
 
 ///
@@ -100,12 +102,16 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
 ///
 void PanelChannelController::onPreviewDialogClosed(wxCloseEvent &ev)
 {
+  std::lock_guard<std::mutex> lock(mPreviewMutex);    // Lock the mutex
   auto id = ev.GetId();
-  mPreviewDialogs.erase(id);
-  if(id == 0) {
-    // Close all preview windows if reference window is closed
-    mPreviewDialogs.clear();
-  }
+  mPreviewDialogs.at(id)->Show(false);
+  CallAfter([this, id]() {
+    mPreviewDialogs.erase(id);
+    if(id == 0) {
+      //     Close all preview windows if reference window is closed
+      mPreviewDialogs.clear();
+    }
+  });
 }
 
 ///
@@ -132,8 +138,11 @@ void PanelChannelController::refreshPreviewThread()
 
     if(mLastPreviewUpdateRequest > mLastPreviewUpdate) {
       mLastPreviewUpdate = std::chrono::high_resolution_clock::now();
-      if(mPreviewDialogs.contains(0)) {
-        refreshPreview(mPreviewDialogs[0]);
+      {
+        std::lock_guard<std::mutex> lock(mPreviewMutex);    // Lock the mutex
+        if(mPreviewDialogs.contains(0)) {
+          refreshPreview(mPreviewDialogs[0]);
+        }
       }
       // Update only once per second
       std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -217,6 +226,10 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
     if(prepro.getSubtractChannel()) {
       mChoiceBGSubtraction->SetSelection(prepro.getSubtractChannel()->channel_index + 1);
     }
+    if(prepro.getEdgeDetection()) {
+      mDropdownEdgeDetection->SetSelection(edgeDetectionAlgorithmToIndex(prepro.getEdgeDetection()->value));
+      mDropdownEdgeDetectionDirection->SetSelection(directionToIndex(prepro.getEdgeDetection()->direction));
+    }
   }
 
   // Detection
@@ -228,8 +241,9 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
 
   // Filtering
   mSpinMinCircularity->SetValue(channelSettings.getFilter().getMinCircularity());
-  std::string range = std::to_string(static_cast<uint32_t>(channelSettings.getFilter().getMinParticleSize())) + "-" +
-                      std::to_string(static_cast<uint32_t>(channelSettings.getFilter().getMaxParticleSize()));
+  std::string range =
+      particleSizeFilterSoString(static_cast<uint64_t>(channelSettings.getFilter().getMinParticleSize())) + "-" +
+      particleSizeFilterSoString(static_cast<uint64_t>(channelSettings.getFilter().getMaxParticleSize()));
   mTextParticleSizeRange->SetValue(range);
   mSpinSnapArea->SetValue(channelSettings.getFilter().getSnapAreaSize());
   mChoiceReferenceSpotChannel->SetSelection(channelSettings.getFilter().getReferenceSpotChannelIndex() + 1);
@@ -260,6 +274,12 @@ nlohmann::json PanelChannelController::getValues()
   if(mSpinMarginCrop->GetValue() > 0) {
     jsonArray.push_back({{"margin_crop", {{"value", static_cast<int>(mSpinMarginCrop->GetValue())}}}});
   }
+  if(mDropdownEdgeDetection->GetSelection() > 0) {
+    jsonArray.push_back({{"edge_detection",
+                          {{"value", indexToEdgeDetectionAlgorithm(mDropdownEdgeDetection->GetSelection())},
+                           {"direction", indexToDirection(mDropdownEdgeDetectionDirection->GetSelection())}}}});
+  }
+
   if(mSpinRollingBall->GetValue() > 0) {
     jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mSpinRollingBall->GetValue())}}}});
   }
@@ -352,6 +372,24 @@ auto PanelChannelController::filterKernelToIndex(int16_t kernel) -> int
   return GAUSSIAN_BLUR[kernel];
 }
 
+auto PanelChannelController::indexToEdgeDetectionAlgorithm(int idx) -> std::string
+{
+  return EDGE_DETECTION_ALGORITHM[idx];
+}
+auto PanelChannelController::edgeDetectionAlgorithmToIndex(const std::string &str) -> int
+{
+  return EDGE_DETECTION_ALGORITHM[str];
+}
+
+auto PanelChannelController::indexToDirection(int idx) -> std::string
+{
+  return EDGE_DETECTION_DIRECTION[idx];
+}
+auto PanelChannelController::directionToIndex(const std::string &str) -> int
+{
+  return EDGE_DETECTION_DIRECTION[str];
+}
+
 auto PanelChannelController::splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>
 {
   std::istringstream ss(input);
@@ -413,6 +451,16 @@ void PanelChannelController::onAiCheckBox(wxCommandEvent &event)
     panelMinThreshold->Enable(true);
   }
   updatePreview();
+}
+
+///
+/// \brief      Min threshold changed
+/// \author     Joachim Danmayr
+///
+void PanelChannelController::onCollapsibleChanged(wxCollapsiblePaneEvent &event)
+{
+  // mScrolledChannel->SetMinSize({250, 800});
+  Layout();
 }
 
 ///
@@ -499,6 +547,44 @@ void PanelChannelController::onSpotRemovalChanged(wxCommandEvent &event)
 void PanelChannelController::showErrorDialog(const std::string &what)
 {
   wxMessageBox(what, "Error", wxOK | wxICON_ERROR, this);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::string PanelChannelController::particleSizeFilterSoString(uint64_t number)
+{
+  if(number >= INT32_MAX) {
+    return "Inf.";
+  }
+  return std::to_string(number);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelController::OnPaint(wxPaintEvent &event)
+{
+  wxPaintDC dc(this);
+  // Set the pen color and width for the border
+  wxPen borderPen(wxColour(241, 240, 238), 2, wxPENSTYLE_SOLID);
+  dc.SetPen(borderPen);
+
+  // Set the brush color for the panel background
+  // 241, 240, 238
+  wxBrush backgroundBrush(wxColour(241, 240, 238), wxBRUSHSTYLE_SOLID);
+  dc.SetBrush(backgroundBrush);
+
+  // Draw the rounded rectangle
+  dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), 18);
 }
 
 }    // namespace joda::ui::wxwidget

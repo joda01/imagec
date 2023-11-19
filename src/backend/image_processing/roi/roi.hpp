@@ -47,12 +47,14 @@ class ROI
 {
 public:
   /////////////////////////////////////////////////////
-  ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask);
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-      const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter);
+      const std::vector<cv::Point> &contour);
+  ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
+      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal,
+      const joda::settings::json::ChannelFiltering *filter);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-      const cv::Mat &imageOriginal);
+      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal);
 
   void calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter);
 

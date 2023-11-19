@@ -104,6 +104,10 @@ auto Controller::getNrOfFoundImages() -> uint32_t
 ///
 auto Controller::preview(const settings::json::ChannelSettings &settings, int imgIndex) -> Preview
 {
+  // To also preview tetraspeck removal we must first process the reference spot channels
+  // This is a little bit more complicated therefor not supported yet
+
+  // Now we can process the original channel
   auto result = joda::algo::ChannelProcessor::processChannel(settings, mWorkingDirectory.getFileAt(imgIndex), 0);
   std::vector<uchar> buffer;
   std::vector<int> compression_params;

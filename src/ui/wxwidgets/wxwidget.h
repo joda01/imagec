@@ -35,6 +35,7 @@
 #include <wx/statline.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
+#include <wx/collpane.h>
 #include <wx/checkbox.h>
 #include <wx/tglbtn.h>
 
@@ -173,14 +174,16 @@ namespace joda
 				private:
 
 				protected:
+					wxPanel* mPanelHeade;
 					wxStaticText* mLabelChannelTitle;
+					wxButton* mButtonRemoveChannel;
+					wxPanel* mPanelToolbar;
 					wxTextCtrl* mTextChannelName;
-					wxPanel* panelChannelType;
 					wxChoice* mChoiceChannelType;
-					wxPanel* panelChannelIndex;
 					wxChoice* mChoiceChannelIndex;
-					wxStaticText* mLabelPreprocessing;
-					wxStaticLine* mLinePreprocessing;
+					wxBoxSizer* mSizerChannel;
+					wxCollapsiblePane* mCollapaablePreprocessing;
+					wxStaticLine* mLineDescription1;
 					wxPanel* panelZStack;
 					wxStaticBitmap* iconZStack;
 					wxChoice* mChoiceZStack;
@@ -193,6 +196,11 @@ namespace joda
 					wxStaticBitmap* iconMedianBGSubtract;
 					wxChoice* mChoiceMedianBGSubtract;
 					wxStaticText* mLabelMedianBGSubtract;
+					wxPanel* panelEdgeDetection;
+					wxStaticBitmap* iconEdgeDetection;
+					wxChoice* mDropdownEdgeDetection;
+					wxChoice* mDropdownEdgeDetectionDirection;
+					wxStaticText* mLabelEdgeDetection;
 					wxPanel* panelRollingBall;
 					wxStaticBitmap* iconRollingBall;
 					wxSpinCtrl* mSpinRollingBall;
@@ -210,7 +218,7 @@ namespace joda
 					wxChoice* mDropdownGausianBlur;
 					wxChoice* mDropDownGausianBlurRepeat;
 					wxStaticText* mLabelGausianBluer;
-					wxStaticText* mLabelDescription;
+					wxCollapsiblePane* mCollapsibleDetection;
 					wxStaticLine* mLineDescription;
 					wxPanel* panelUseAI;
 					wxStaticBitmap* iconUseAI;
@@ -223,7 +231,7 @@ namespace joda
 					wxStaticBitmap* iconMinThreshold;
 					wxSpinCtrl* mSpinMinThreshold;
 					wxStaticText* mLabelMinThreshold;
-					wxStaticText* mLabelFilter;
+					wxCollapsiblePane* mCollapsibleFiltering;
 					wxStaticLine* mLineFilter;
 					wxPanel* panelMinCircularity;
 					wxStaticBitmap* iconMinCircularity;
@@ -241,22 +249,22 @@ namespace joda
 					wxStaticBitmap* iconTetraspeckChannel;
 					wxChoice* mChoiceReferenceSpotChannel;
 					wxStaticText* mLabelTetraspeckChannel;
-					wxStaticLine* mLinePreview;
-					wxButton* mButtonPreview;
-					wxStaticLine* mLineRemove;
-					wxButton* mButtonRemoveChannel;
+					wxPanel* mPanelFooter;
+					wxButton* mButtonPreview1;
 
 					// Virtual event handlers, override them in your derived class
+					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onChannelTypeChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onChannelIndexChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onCollapsibleChanged( wxCollapsiblePaneEvent& event ) { event.Skip(); }
 					virtual void onZStackSettingsChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onMarginCropChanged( wxSpinEvent& event ) { event.Skip(); }
 					virtual void onMedianBGSubtractChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onGausianBlurChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onGausianBlurRepeatChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onRollingBallChanged( wxSpinEvent& event ) { event.Skip(); }
 					virtual void onBgSubtractChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onSmoothingChanged( wxCommandEvent& event ) { event.Skip(); }
-					virtual void onGausianBlurChanged( wxCommandEvent& event ) { event.Skip(); }
-					virtual void onGausianBlurRepeatChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAiCheckBox( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onThresholdMethodChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onMinThresholdChanged( wxSpinEvent& event ) { event.Skip(); }
@@ -265,14 +273,13 @@ namespace joda
 					virtual void onSnapAreaChanged( wxSpinEvent& event ) { event.Skip(); }
 					virtual void onSpotRemovalChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onPreviewClicked( wxCommandEvent& event ) { event.Skip(); }
-					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
 
 
 				public:
 					wxBoxSizer* mSizerForScroll;
 					wxScrolledWindow* mScrolledChannel;
 
-					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 280,1235 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 257,577 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 					~PanelChannel();
 
