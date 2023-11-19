@@ -1,15 +1,15 @@
 # imageC
 
-ImageC is a high performance image analysis tool designed to analyse microscopy images in the biological sciences.
-With the help of pipelines images can be analyzed via batch processing.
+Designed for analyzing microscopy images in the biological sciences, ImageC is a powerful image analysis tool.
 
 ## Features
 
-- Reads tiff and big tiff images.
+- Support for big tiff.
+- Support for [Bio-Formats](https://www.openmicroscopy.org/bio-formats/) image reader.
 - Multi channel batch analysis of images with up to 12 different channels per image.
 - Can interpret the [OME-XML](https://docs.openmicroscopy.org/ome-model/5.6.3/ome-xml/) description stored in the image.
-- AI based ROI (region of interest) detection.
-- Supporting following channel types: `EV`, `CELL`, `NUCLEUS`, `TETRASPECK BEAD`.
+- AI or Threshold based ROI (region of interest) detection.
+- Supporting channel types: `SPOT`, `CELL`, `NUCLEUS`, `TETRASPECK BEAD`.
 - Automatic CSV report generation.
 - Single vesicle/cell/nucleus analysis and detailed reporting.
 
@@ -20,15 +20,7 @@ With the help of pipelines images can be analyzed via batch processing.
 Allows to count `EVs`, `CELLs` and `NUCLEI` in the different channels of an image.
 Single particle analysis is done and data are stored as detailed and summery in CSV report files.
 
-#### Colocalization
 
-**Planned**
-Calculate the colocalization of EVs in multiple channels and store the results to a CSV report.
-
-#### In cell counting
-
-**Planned**
-Counts the number of EVs found within a cell area and calculates the colocalization.
 
 ## Example pictures
 
@@ -43,25 +35,29 @@ Counts the number of EVs found within a cell area and calculates the colocalizat
 ## Todo
 
 - [ ] Ignore result folder
+- [ ] Support for reference spot removal in preview.
 
 
 ## Debugging
 
  valgrind --tool=massif --log-file="filename" ./build/build/tests "[pipeline_test_spots]"
-
  valgrind --gen-suppressions=all --tool=massif --log-file="filename" ./build/build/tests "[pipeline_test_nucleus]"
+
 
 ## Build
 
+### Build for Linux
 
 `docker build --target run -t joda001/imagec:latest .`
 
-`docker run -p 7367:7367 -v /home:/home joda001/imagec`
+### Deploy build docker image
 
+docker build --target live -t joda001/imagec:v1.1.0 .
+docker push  joda001/imagec:v1.1.0
 
-## Compile for Windows
+### Build for Windows
 
-### Preparation
+#### Preparation
 
 Install MSYS2 and following packages:
 
@@ -73,7 +69,6 @@ pacman -S mingw-w64-x86_64-opencv
 pacman -S mingw-w64-x86_64-nlohmann-json
 pacman -S mingw-w64-x86_64-libtiff
 pacman -S mingw-w64-x86_64-wxwidgets3.2-msw
-
 pacman -S mingw-w64-x86_64-python-mingw-ldd
 ```
 
@@ -84,33 +79,16 @@ C:\msys64\usr\bin
 C:\msys64\mingw64\bin
 ```
 
-### Compile
+Add powershell permissions:
 
-Execute `make.bat` and `build.bat`.
+`set-executionpolicy remotesigned`
+
+#### Compile
+
+Execute `make.ps1` and `build_local.ps1`.
 The EXE file will be placed in `build/build/imagec.exe`
 
 `
 mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
 strip.exe imagec.exe
 `
-
-set-executionpolicy remotesigned
-
-### Deploy for windows
-
-Use `mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin` to check dll dependencies.
-Copy the listed dependencies to the EXE folder of the application.
-
-
-wx-config --cxxflags --libs
-wx-config --rescomp
-
-valgrind --leak-check=full --track-origins=yes ./build/build/tests "[pipeline_test]"
-valgrind --tool=massif --stacks=yes --detailed-freq=1 ./imagec
-valgrind --tool=massif --stacks=yes --detailed-freq=1 ./build/build/tests "[pipeline_test]"
-
-
-### Deploy docker image
-
-docker build --target live -t joda001/imagec:v1.1.0 .
-docker push  joda001/imagec:v1.1.0
