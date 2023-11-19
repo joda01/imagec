@@ -177,7 +177,6 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
     output.push_back(roi);
   }
 
-  paintBoundingBox(inputImage, output);
   return {.result = output, .controlImage = inputImage};
 }
 

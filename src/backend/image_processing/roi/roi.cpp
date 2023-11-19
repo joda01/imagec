@@ -373,12 +373,11 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
           intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
         }
         return {intersectionROI, true};
-      } else {
-        return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, cv::Mat{}), true};
       }
+      return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{}, cv::Mat{}), true};
     }
   }
-  return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, cv::Mat{}), false};
+  return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{}, cv::Mat{}), false};
 }
 
 }    // namespace joda::func

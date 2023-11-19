@@ -56,7 +56,6 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &o
   std::vector<cv::Mat> outputs;
   mNet.forward(outputs, mNet.getUnconnectedOutLayersNames());
   auto results = postProcessing(inputImageOriginal, originalImage, outputs);
-  paintBoundingBox(inputImage, results);
   return {.result = results, .controlImage = inputImage};
 }
 

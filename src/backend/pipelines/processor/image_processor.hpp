@@ -23,6 +23,7 @@
 #include "backend/duration_count/duration_count.h"
 #include "backend/helper/file_info.hpp"
 #include "backend/helper/helper.hpp"
+#include "backend/image_processing/detection/detection.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/image_reader.hpp"
@@ -169,6 +170,8 @@ private:
     detectionResult.originalImage = std::move(originalImg);
     DurationCount::stop(id);
 
+    generateControlImage(detectionResult);
+
     return detectionResult;
   }
 
@@ -290,6 +293,15 @@ private:
         }
       }
     }
+  }
+
+  ///
+  /// \brief      Generate the control image
+  /// \author     Joachim Danmayr
+  ///
+  static void generateControlImage(func::DetectionResponse &detectionResult)
+  {
+    joda::func::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result);
   }
 
   ///

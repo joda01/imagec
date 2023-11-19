@@ -158,3 +158,20 @@ TEST_CASE("pipeline:test:histo", "[pipeline_test_histo]")
     sleep(2);
   }
 }
+
+///
+/// \brief  Spot test
+/// \author Joachim Danmayr
+///
+TEST_CASE("pipeline:test:spots:tetraspeck", "[pipeline_test_spots_tetraspeck]")
+{
+  joda::settings::json::AnalyzeSettings settings;
+  settings.loadConfigFromFile("test/test_spot/config_tetra.json");
+  joda::helper::ImageFileContainer imageFileContainer;
+  imageFileContainer.setWorkingDirectory("test/test_spot");
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_spot", &imageFileContainer);
+
+  while(true) {
+    sleep(2);
+  }
+}

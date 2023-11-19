@@ -74,10 +74,6 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   uint16_t usedThersholdVal = mThresoldMethod->execute(srcImg, binaryImage);
 
   DetectionResults response;
-  cv::Mat grayImageFloat;
-  srcImg.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UINT16_MAX);
-  cv::Mat inputImage;
-  cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
 
   // Find contours in the binary image
   auto id = DurationCount::start("detection_find");
@@ -119,11 +115,10 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   }
   DurationCount::stop(id);
 
-  id = DurationCount::start("detection_paint");
-
-  paintBoundingBox(inputImage, response);
-  DurationCount::stop(id);
-
+  cv::Mat grayImageFloat;
+  srcImg.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UINT16_MAX);
+  cv::Mat inputImage;
+  cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
   return {.result = response, .controlImage = inputImage};
 }
 }    // namespace joda::func::threshold

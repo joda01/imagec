@@ -192,7 +192,7 @@ void Pipeline::analyzeTile(joda::reporting::Table &detailReports, FileInfo image
   BS::thread_pool channelThreadPool(threadPoolChannel);
 
   //
-  // Analyze the refernce spots first
+  // Analyze the reference spots first
   //
   auto referenceSpotChannels = this->mAnalyzeSettings.getChannels(settings::json::ChannelInfo::Type::SPOT_REFERENCE);
   if(!referenceSpotChannels.empty()) {
