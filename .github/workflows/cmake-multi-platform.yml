@@ -115,7 +115,7 @@ jobs:
           unzip java/jre_win.zip -d jre_win_unzip
           mv jre_win_unzip/jre_win imagec-x64-win-bundle/java/jre_win
           unzip build/build/win-dlls.zip -d win_dll_unzip
-          mv win_dll_unzip/dlls/* imagec-x64-win-bundle/*
+          mv win_dll_unzip/dlls/* imagec-x64-win-bundle/
           zip -r imagec-x64-win-bundle.zip imagec-x64-win-bundle
 
 
