@@ -41,7 +41,6 @@ Single particle analysis is done and data are stored as detailed and summery in 
  valgrind --tool=massif --log-file="filename" ./build/build/tests "[pipeline_test_spots]"
  valgrind --gen-suppressions=all --tool=massif --log-file="filename" ./build/build/tests "[pipeline_test_nucleus]"
 
-
 ## Build
 
 ### Build for Linux
