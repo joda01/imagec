@@ -20,8 +20,6 @@ Designed for analyzing microscopy images in the biological sciences, ImageC is a
 Allows to count `EVs`, `CELLs` and `NUCLEI` in the different channels of an image.
 Single particle analysis is done and data are stored as detailed and summery in CSV report files.
 
-
-
 ## Example pictures
 
 *cell segmentation*
