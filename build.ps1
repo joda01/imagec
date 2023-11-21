@@ -60,7 +60,7 @@ signtool sign /fd SHA256 /f "mycert.pfx" /t http://zeitstempel.dfn.de "imagec.ex
 # Cleanup
 Remove-Item -Force mycert.pfx
 Remove-Item -Force privkey.key
-Remove-Item -Force pubkey.key
+Remove-Item -Force pubkey.pem
 
 
 Compress-Archive -Path ./dlls -DestinationPath win-dlls.zip
