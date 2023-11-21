@@ -54,18 +54,14 @@ Remove-Item -Recurse -Force ./dlls
 # Start signing process
 #
 
-ls -l 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0'
-ls -l 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x86'
-ls -l 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64'
-
-cd "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x86/"
+cd "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/"
 
 # Write priv key to file
 "$env:PRIV_KEY" | Set-Content -Path privkey.key
 "$env:PUB_KEY" | Set-Content -Path pubkey.pem
 
 # Create pfx certificate
-openssl pkcs12 -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
+openssl pkcs12 -password pass: -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
 # Sign the exe
 
 ./signtool.exe sign /fd SHA256 /f "mycert.pfx" /t http://zeitstempel.dfn.de "imagec.exe"
