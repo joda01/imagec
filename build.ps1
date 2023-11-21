@@ -54,8 +54,11 @@ Remove-Item -Recurse -Force ./dlls
 # Start signing process
 #
 
-ls -l 'C:/Program Files (x86)/Windows Kits/10/bin'
-cd "C:/Program Files (x86)/Windows Kits/10/bin/10.1.22621.2428/x86/"
+ls -l 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0'
+ls -l 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x86'
+ls -l 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64'
+
+cd "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x86/"
 
 # Write priv key to file
 "$env:PRIV_KEY" | Set-Content -Path privkey.key
