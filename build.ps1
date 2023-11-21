@@ -46,6 +46,23 @@ Copy-Item -Path "$mingwBasePathWin\bin\*.dll" -Destination "$destinationDirector
 ls ./dlls
 
 strip imagec.exe
+
+
+# Write priv key to file
+"$env:PRIV_KEY" | Set-Content -Path privkey.key
+"$env:PUB_KEY" | Set-Content -Path pubkey.key
+
+# Create pfx certificate
+openssl pkcs12 -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
+# Sign the exe
+signtool sign /fd SHA256 /f "mycert.pfx" /t http://zeitstempel.dfn.de "imagec.exe"
+
+# Cleanup
+Remove-Item -Force mycert.pfx
+Remove-Item -Force privkey.key
+Remove-Item -Force pubkey.key
+
+
 Compress-Archive -Path ./dlls -DestinationPath win-dlls.zip
 Remove-Item -Recurse -Force ./dlls
 
