@@ -55,7 +55,8 @@ strip imagec.exe
 # Create pfx certificate
 openssl pkcs12 -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
 # Sign the exe
-'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /fd SHA256 /f "mycert.pfx" /t http://zeitstempel.dfn.de "imagec.exe"
+ls -l 'C:/Program Files (x86)/Windows Kits/10/bin'
+'C:/Program Files (x86)/Windows Kits/10/bin/10.1.22621.2428/x86/signtool.exe' sign /fd SHA256 /f "mycert.pfx" /t http://zeitstempel.dfn.de "imagec.exe"
 
 # Cleanup
 Remove-Item -Force mycert.pfx
