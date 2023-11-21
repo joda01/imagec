@@ -47,6 +47,15 @@ ls ./dlls
 
 strip imagec.exe
 
+Compress-Archive -Path ./dlls -DestinationPath win-dlls.zip
+Remove-Item -Recurse -Force ./dlls
+
+#
+# Start signing process
+#
+
+ls -l 'C:/Program Files (x86)/Windows Kits/10/bin'
+cd "C:/Program Files (x86)/Windows Kits/10/bin/10.1.22621.2428/x86/"
 
 # Write priv key to file
 "$env:PRIV_KEY" | Set-Content -Path privkey.key
@@ -55,16 +64,10 @@ strip imagec.exe
 # Create pfx certificate
 openssl pkcs12 -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
 # Sign the exe
-ls -l 'C:/Program Files (x86)/Windows Kits/10/bin'
-'C:/Program Files (x86)/Windows Kits/10/bin/10.1.22621.2428/x86/signtool.exe' sign /fd SHA256 /f "mycert.pfx" /t http://zeitstempel.dfn.de "imagec.exe"
+
+signtool.exe sign /fd SHA256 /f "mycert.pfx" /t http://zeitstempel.dfn.de "imagec.exe"
 
 # Cleanup
 Remove-Item -Force mycert.pfx
 Remove-Item -Force privkey.key
 Remove-Item -Force pubkey.pem
-
-
-Compress-Archive -Path ./dlls -DestinationPath win-dlls.zip
-Remove-Item -Recurse -Force ./dlls
-
-cd ../..
