@@ -50,7 +50,7 @@ strip imagec.exe
 
 # Write priv key to file
 "$env:PRIV_KEY" | Set-Content -Path privkey.key
-"$env:PUB_KEY" | Set-Content -Path pubkey.key
+"$env:PUB_KEY" | Set-Content -Path pubkey.pem
 
 # Create pfx certificate
 openssl pkcs12 -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
