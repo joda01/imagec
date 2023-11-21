@@ -62,7 +62,7 @@ Remove-Item -Recurse -Force ./dlls
 openssl pkcs12 -password pass: -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
 # Sign the exe
 
-& "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe" sign /fd SHA256 /f "mycert.pfx" /tr http://timestamp.digicert.com "imagec.exe"
+& "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe" sign /fd SHA256 /td sha256 /f "mycert.pfx" /tr http://timestamp.digicert.com "imagec.exe"
 
 # Cleanup
 Remove-Item -Force mycert.pfx
