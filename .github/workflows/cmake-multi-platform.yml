@@ -13,9 +13,6 @@ on:
 
 jobs:
   test:
-    needs:
-      - build-windows
-      - build-linux
     runs-on: ubuntu-latest
       - name: Upload to imagec.org
         env:
