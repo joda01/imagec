@@ -177,11 +177,11 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY_IMAGEC }}
           SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}
         run: |
-          echo ${{ env.SSH_KEY }} > ssh_key_for_github
-          scp -i ssh_key_for_github imagec-x64-linux-bundle.zip github@${{ env.SERVER_NAME }}:/var/www/html/downloads/imagec-x64-linux-bundle.zip
-          scp -i ssh_key_for_github imagec-x64-linux-bundle.json github@${{ env.SERVER_NAME }}:/var/www/html/downloads/imagec-x64-linux-bundle.json
-          scp -i ssh_key_for_github imagec-x64-win-bundle.zip github@${{ env.SERVER_NAME }}:/var/www/html/downloads/imagec-x64-win-bundle.zip
-          scp -i ssh_key_for_github imagec-x64-win-bundle.json github@${{ env.SERVER_NAME }}:/var/www/html/downloads/imagec-x64-win-bundle.json
+          echo $SSH_KEY > ssh_key_for_github
+          scp -i ssh_key_for_github imagec-x64-linux-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.zip
+          scp -i ssh_key_for_github imagec-x64-linux-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.json
+          scp -i ssh_key_for_github imagec-x64-win-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.zip
+          scp -i ssh_key_for_github imagec-x64-win-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.json
           rm -rf ssh_key_for_github
 
 
