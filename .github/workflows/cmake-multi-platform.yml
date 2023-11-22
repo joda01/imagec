@@ -20,7 +20,7 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY_IMAGEC }}
           SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}
         run: |
-          echo $SSH_KEY > ssh_key_for_github
+          echo "$SSH_KEY" > ssh_key_for_github
           chmod 400 ssh_key_for_github
           touch test.txt
           scp -o StrictHostKeyChecking=no -i ssh_key_for_github test.txt github@$SERVER_NAME:/var/www/html/downloads/test.txt
