@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - signing
+      - auto-upload
     tags:
       - '*'
   pull_request:
@@ -12,6 +12,7 @@ on:
       - main
 
 jobs:
+
   build-windows:
     runs-on: windows-2022
 
@@ -122,14 +123,41 @@ jobs:
           mv win_dll_unzip/dlls/* imagec-x64-win-bundle/
           zip -r imagec-x64-win-bundle.zip imagec-x64-win-bundle
 
-
-
           mv build/build/imagec build/build/imagec-x64-linux
           mv build/build/imagec.exe build/build/imagec-x64-win.exe
           mv java/jre_linux.zip java/jre-linux.zip
           mv java/jre_win.zip java/jre-win.zip
           zip java/bioformats-jni-wrapper.zip java/bioformats.jar java/BioFormatsWrapper.class
 
+          
+          timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+          hash_value_linux=$(sha256sum imagec-x64-linux-bundle/imagec | cut -d ' ' -f 1)
+          hash_value_win=$(sha256sum imagec-x64-win-bundle/imagec.exe | cut -d ' ' -f 1)
+          version="${GITHUB_REF#refs/tags/}"
+          
+          json_string_linux=$(cat <<-EOF
+          {
+            "version": "$version",
+            "sha256": "$hash_value_linux",
+            "timestamp": "$timestamp"
+          }
+          EOF
+          )
+          
+          json_string_win=$(cat <<-EOF
+          {
+            "version": "$version",
+            "sha256": "$hash_value_win",
+            "timestamp": "$timestamp"
+          }
+          EOF
+          )
+
+          echo "$json_string_linux"
+          echo "$json_string_win"
+
+          echo "$json_string_linux" > imagec-x64-linux-bundle.json
+          echo "$json_string_win" > imagec-x64-win-bundle.json
 
       - name: Upload Additional Files
         uses: softprops/action-gh-release@v1
@@ -145,16 +173,26 @@ jobs:
             imagec-x64-linux-bundle.zip
             imagec-x64-win-bundle.zip
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+      - name: Upload to imagec.org
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY_IMAGEC }}
+          SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}
+        run: |
+          echo "$SSH_KEY" > ssh_key_for_github
+          chmod 400 ssh_key_for_github
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.json
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.json
+          rm -rf ssh_key_for_github
 
 
-          
+      
+      
+      
+      
+      
+      
+      
+         
