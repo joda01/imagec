@@ -137,7 +137,7 @@ jobs:
           json_string_linux=$(cat <<-EOF
           {
             "version": "$version",
-            "SHA256": "$hash_value_linux",
+            "sha256": "$hash_value_linux",
             "timestamp": "$timestamp"
           }
           EOF
@@ -146,7 +146,7 @@ jobs:
           json_string_win=$(cat <<-EOF
           {
             "version": "$version",
-            "SHA256": "$hash_value_win",
+            "sha256": "$hash_value_win",
             "timestamp": "$timestamp"
           }
           EOF
@@ -178,10 +178,10 @@ jobs:
           SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}
         run: |
           echo ${{ env.SSH_KEY }} > ssh_key_for_github
-          scp -i ssh_key_for_github imagec-x64-linux-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.zip
-          scp -i ssh_key_for_github imagec-x64-linux-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.json
-          scp -i ssh_key_for_github imagec-x64-win-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.zip
-          scp -i ssh_key_for_github imagec-x64-win-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.json
+          scp -i ssh_key_for_github imagec-x64-linux-bundle.zip github@${{ env.SERVER_NAME }}:/var/www/html/downloads/imagec-x64-linux-bundle.zip
+          scp -i ssh_key_for_github imagec-x64-linux-bundle.json github@${{ env.SERVER_NAME }}:/var/www/html/downloads/imagec-x64-linux-bundle.json
+          scp -i ssh_key_for_github imagec-x64-win-bundle.zip github@${{ env.SERVER_NAME }}:/var/www/html/downloads/imagec-x64-win-bundle.zip
+          scp -i ssh_key_for_github imagec-x64-win-bundle.json github@${{ env.SERVER_NAME }}:/var/www/html/downloads/imagec-x64-win-bundle.json
           rm -rf ssh_key_for_github
 
 
