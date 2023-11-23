@@ -16,6 +16,7 @@
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/mstream.h>
+#include <wx/settings.h>
 #include <cstdint>
 #include <exception>
 #include <memory>
@@ -575,12 +576,12 @@ void PanelChannelController::OnPaint(wxPaintEvent &event)
 {
   wxPaintDC dc(this);
   // Set the pen color and width for the border
-  wxPen borderPen(wxColour(241, 240, 238), 2, wxPENSTYLE_SOLID);
+  wxPen borderPen(wxSystemSettings::GetColour(wxSYS_COLOUR_MENU), 2, wxPENSTYLE_SOLID);
   dc.SetPen(borderPen);
 
   // Set the brush color for the panel background
   // 241, 240, 238
-  wxBrush backgroundBrush(wxColour(241, 240, 238), wxBRUSHSTYLE_SOLID);
+  wxBrush backgroundBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_MENU), wxBRUSHSTYLE_SOLID);
   dc.SetBrush(backgroundBrush);
 
   // Draw the rounded rectangle

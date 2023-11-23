@@ -426,7 +426,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerForScroll = new wxBoxSizer( wxVERTICAL );
 
 	mPanelHeade = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	mPanelHeade->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+	mPanelHeade->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
 
 	wxBoxSizer* sizerFooter;
 	sizerFooter = new wxBoxSizer( wxHORIZONTAL );
@@ -444,7 +444,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mButtonRemoveChannel = new wxButton( mPanelHeade, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE|wxBU_EXACTFIT|wxBU_NOTEXT );
 
 	mButtonRemoveChannel->SetBitmap( delete_20_png_to_wx_bitmap() );
-	mButtonRemoveChannel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+	mButtonRemoveChannel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
 	mButtonRemoveChannel->SetToolTip( _("Delete channel") );
 	mButtonRemoveChannel->SetMaxSize( wxSize( 25,25 ) );
 
@@ -457,7 +457,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerForScroll->Add( mPanelHeade, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 8 );
 
 	mPanelToolbar = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	mPanelToolbar->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+	mPanelToolbar->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
 
 	wxBoxSizer* sizerFooter1;
 	sizerFooter1 = new wxBoxSizer( wxVERTICAL );
@@ -485,7 +485,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	mScrolledChannel = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxSize( 250,-1 ), wxALWAYS_SHOW_SB|wxBORDER_NONE|wxVSCROLL );
 	mScrolledChannel->SetScrollRate( 0, 5 );
-	mScrolledChannel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+	mScrolledChannel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
 	mScrolledChannel->SetMinSize( wxSize( 250,-1 ) );
 
 	mSizerChannel = new wxBoxSizer( wxVERTICAL );
@@ -1057,7 +1057,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mSizerForScroll->Add( 0, 0, 0, wxSHAPED, 5 );
 
 	mPanelFooter = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxSize( -1,35 ), wxTAB_TRAVERSAL );
-	mPanelFooter->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+	mPanelFooter->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
 	mPanelFooter->SetMinSize( wxSize( -1,35 ) );
 	mPanelFooter->SetMaxSize( wxSize( -1,35 ) );
 

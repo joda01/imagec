@@ -2909,7 +2909,7 @@
                         <property name="aui_position"></property>
                         <property name="aui_row"></property>
                         <property name="best_size"></property>
-                        <property name="bg">wxSYS_COLOUR_BTNFACE</property>
+                        <property name="bg">wxSYS_COLOUR_MENU</property>
                         <property name="caption"></property>
                         <property name="caption_visible">1</property>
                         <property name="center_pane">0</property>
@@ -3041,7 +3041,7 @@
                                     <property name="aui_row"></property>
                                     <property name="auth_needed">0</property>
                                     <property name="best_size"></property>
-                                    <property name="bg">wxSYS_COLOUR_BTNFACE</property>
+                                    <property name="bg">wxSYS_COLOUR_MENU</property>
                                     <property name="bitmap">Load From Embedded File; icons/delete_20.png</property>
                                     <property name="caption"></property>
                                     <property name="caption_visible">1</property>
@@ -3117,7 +3117,7 @@
                         <property name="aui_position"></property>
                         <property name="aui_row"></property>
                         <property name="best_size"></property>
-                        <property name="bg">wxSYS_COLOUR_BTNFACE</property>
+                        <property name="bg">wxSYS_COLOUR_MENU</property>
                         <property name="caption"></property>
                         <property name="caption_visible">1</property>
                         <property name="center_pane">0</property>
@@ -3374,7 +3374,7 @@
                         <property name="aui_position"></property>
                         <property name="aui_row"></property>
                         <property name="best_size"></property>
-                        <property name="bg">wxSYS_COLOUR_BTNFACE</property>
+                        <property name="bg">wxSYS_COLOUR_MENU</property>
                         <property name="caption"></property>
                         <property name="caption_visible">1</property>
                         <property name="center_pane">0</property>
@@ -7767,7 +7767,7 @@
                         <property name="aui_position"></property>
                         <property name="aui_row"></property>
                         <property name="best_size"></property>
-                        <property name="bg">wxSYS_COLOUR_BTNFACE</property>
+                        <property name="bg">wxSYS_COLOUR_MENU</property>
                         <property name="caption"></property>
                         <property name="caption_visible">1</property>
                         <property name="center_pane">0</property>
