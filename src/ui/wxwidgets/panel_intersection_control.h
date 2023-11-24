@@ -16,6 +16,7 @@
 
 #include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
+#include "ui/wxwidgets/panel_ui_pipelinestep.h"
 #include <nlohmann/json_fwd.hpp>
 #include "wxwidget.h"
 
@@ -28,7 +29,7 @@ class FrameMainController;
 /// \author     Joachim Danmayr
 /// \brief      Panel intersection controller class
 ///
-class PanelIntersectionControl : public PanelIntersection
+class PanelIntersectionControl : public PanelIntersection, public PanelUiPipelineStep
 {
 public:
   /////////////////////////////////////////////////////
@@ -36,12 +37,15 @@ public:
                            const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(-1, -1),
                            long style = wxTAB_TRAVERSAL, const wxString &name = wxEmptyString);
 
+  void loadValues(const joda::settings::json::PipelineStepSettings &) override;
   void loadValues(const joda::settings::json::PipelineStepIntersection &);
-  nlohmann::json getValues();
+  nlohmann::json getValues() override;
 
 private:
   /////////////////////////////////////////////////////
   void onRemoveClicked(wxCommandEvent &event) override;
+  void OnPaint(wxPaintEvent &event);
+
   FrameMainController *mMainFrame;
 };
 

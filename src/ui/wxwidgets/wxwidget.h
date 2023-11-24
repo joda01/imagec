@@ -26,15 +26,15 @@
 #include <wx/sizer.h>
 #include <wx/scrolwin.h>
 #include <wx/panel.h>
-#include <wx/statbmp.h>
-#include <wx/spinctrl.h>
 #include <wx/notebook.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
 #include <wx/gauge.h>
 #include <wx/statline.h>
+#include <wx/statbmp.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
+#include <wx/spinctrl.h>
 #include <wx/collpane.h>
 #include <wx/checkbox.h>
 #include <wx/tglbtn.h>
@@ -73,20 +73,8 @@ namespace joda
 					wxBoxSizer* mSizerHorizontalScrolPipelineSteps;
 					wxScrolledWindow* mScrrollbarPipelineStep;
 					wxBoxSizer* mSizerPipelineStep;
-					wxScrolledWindow* panelPipelineStepCellApproximation;
-					wxStaticText* mLabelCellEstimation;
-					wxPanel* panelNucleusChannel;
-					wxStaticBitmap* iconNucluesChannel;
-					wxChoice* mChoiceNucluesChannel;
-					wxStaticText* mLabelNucleusChannel;
-					wxPanel* panelCellChannel;
-					wxStaticBitmap* iconCellChannel;
-					wxChoice* mChoiceCellChannel;
-					wxStaticText* mLabelCellChannel;
-					wxPanel* panelMaxCellRadius;
-					wxStaticBitmap* iconMaxCellRadius;
-					wxSpinCtrl* mSpinMaxCellRadius;
-					wxStaticText* mLabelMaxCellRadius;
+					wxPanel* PanelAddButtons;
+					wxButton* mButtonAddIntersection1;
 					wxButton* mButtonAddIntersection;
 					wxStatusBar* m_statusBar1;
 
@@ -98,7 +86,7 @@ namespace joda
 					virtual void onRunClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAboutClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAddChannelClicked( wxCommandEvent& event ) { event.Skip(); }
-					virtual void onCellChannelChoice( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onAddCellApproxClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onAddIntersectionClicked( wxCommandEvent& event ) { event.Skip(); }
 
 
@@ -218,6 +206,7 @@ namespace joda
 					wxChoice* mDropdownGausianBlur;
 					wxChoice* mDropDownGausianBlurRepeat;
 					wxStaticText* mLabelGausianBluer;
+					wxPanel* m_panel31;
 					wxCollapsiblePane* mCollapsibleDetection;
 					wxStaticLine* mLineDescription;
 					wxPanel* panelUseAI;
@@ -279,7 +268,7 @@ namespace joda
 					wxBoxSizer* mSizerForScroll;
 					wxScrolledWindow* mScrolledChannel;
 
-					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 257,577 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+					PanelChannel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 250,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 					~PanelChannel();
 
@@ -293,8 +282,10 @@ namespace joda
 				private:
 
 				protected:
+					wxPanel* mPanelHeade;
+					wxStaticText* mLabelChannelTitle;
+					wxButton* mButtonRemoveChannel;
 					wxScrolledWindow* mPanelIntersection;
-					wxStaticText* mLabelIntersection;
 					wxPanel* panelMinIntersection;
 					wxStaticBitmap* iconMinIntersection;
 					wxSpinCtrlDouble* mSpinMinIntersection;
@@ -313,8 +304,6 @@ namespace joda
 					wxToggleButton* mButtonIntersectionCh11;
 					wxToggleButton* mButtonIntersectionCh12;
 					wxToggleButton* mButtonIntersectionChEstimatedCell;
-					wxStaticLine* m_staticline8;
-					wxButton* mButtonRemovePipelineStep;
 
 					// Virtual event handlers, override them in your derived class
 					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
@@ -322,9 +311,49 @@ namespace joda
 
 				public:
 
-					PanelIntersection( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+					PanelIntersection( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 250,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 					~PanelIntersection();
+
+			};
+
+			///////////////////////////////////////////////////////////////////////////////
+			/// Class PanelCellApproximation
+			///////////////////////////////////////////////////////////////////////////////
+			class PanelCellApproximation : public wxPanel
+			{
+				private:
+
+				protected:
+					wxBoxSizer* mSizerHorizontalScrolPipelineSteps;
+					wxPanel* mPanelHeade;
+					wxStaticText* mLabelChannelTitle;
+					wxButton* mButtonRemoveChannel;
+					wxScrolledWindow* mScrrollbarPipelineStep;
+					wxScrolledWindow* panelPipelineStepCellApproximation;
+					wxPanel* panelNucleusChannel;
+					wxStaticBitmap* iconNucluesChannel;
+					wxChoice* mChoiceNucluesChannel;
+					wxStaticText* mLabelNucleusChannel;
+					wxPanel* panelCellChannel;
+					wxStaticBitmap* iconCellChannel;
+					wxChoice* mChoiceCellChannel;
+					wxStaticText* mLabelCellChannel;
+					wxPanel* panelMaxCellRadius;
+					wxStaticBitmap* iconMaxCellRadius;
+					wxSpinCtrl* mSpinMaxCellRadius;
+					wxStaticText* mLabelMaxCellRadius;
+
+					// Virtual event handlers, override them in your derived class
+					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onCellChannelChoice( wxCommandEvent& event ) { event.Skip(); }
+
+
+				public:
+
+					PanelCellApproximation( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 250,-1 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+
+					~PanelCellApproximation();
 
 			};
 
