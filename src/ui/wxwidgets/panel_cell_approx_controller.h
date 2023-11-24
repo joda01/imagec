@@ -28,6 +28,7 @@ public:
   void loadValues(const joda::settings::json::PipelineStepSettings &) override;
   void loadValues(const joda::settings::json::PipelineStepCellApproximation &);
   nlohmann::json getValues() override;
+  uint64_t getUniqueID() override;
 
 protected:
   /////////////////////////////////////////////////////

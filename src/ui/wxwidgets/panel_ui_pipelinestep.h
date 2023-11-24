@@ -21,7 +21,9 @@ namespace joda::ui::wxwidget {
 class PanelUiPipelineStep
 {
 public:
+  /////////////////////////////////////////////////////
   virtual void loadValues(const joda::settings::json::PipelineStepSettings &) = 0;
   virtual nlohmann::json getValues()                                          = 0;
+  virtual uint64_t getUniqueID()                                              = 0;
 };
 }    // namespace joda::ui::wxwidget

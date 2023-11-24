@@ -34,7 +34,7 @@ public:
   void addPipelineStep();
   void addPipelineStepCellApprox();
   void removePipelineStep(int32_t pipelineStepIndex);
-  void removePipelineStep(void *);
+  void removePipelineStepById(wxWindowID id);
   void removeAllPipelineSteps();
   auto getController() -> joda::ctrl::Controller *
   {
@@ -71,7 +71,8 @@ private:
   joda::ctrl::Controller *mPipelineController;
   std::shared_ptr<std::thread> mRefreshTimer;
   std::string mLastOpenedFolder;
-  bool mStopped = false;
+  bool mStopped     = false;
+  uint64_t mCounter = 0;
 };
 }    // namespace joda::ui::wxwidget
 #endif    // __frame_main_controller__

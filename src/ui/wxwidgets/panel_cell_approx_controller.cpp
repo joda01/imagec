@@ -14,7 +14,8 @@ PanelCellApproxController::PanelCellApproxController(FrameMainController *mainFr
 
 void PanelCellApproxController::onRemoveClicked(wxCommandEvent &event)
 {
-  mMainFrame->removePipelineStep(this);
+  std::cout << "RM" << std::endl;
+  mMainFrame->removePipelineStepById(GetId());
 }
 
 void PanelCellApproxController::loadValues(const joda::settings::json::PipelineStepSettings &settings)
@@ -75,5 +76,9 @@ void PanelCellApproxController::OnPaint(wxPaintEvent &event)
 
   // Draw the rounded rectangle
   dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), 18);
+}
+uint64_t PanelCellApproxController::getUniqueID()
+{
+  return GetId();
 }
 }    // namespace joda::ui::wxwidget

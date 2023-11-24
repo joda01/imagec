@@ -37,7 +37,7 @@ PanelIntersectionControl::PanelIntersectionControl(FrameMainController *mainFram
 ///
 void PanelIntersectionControl::onRemoveClicked(wxCommandEvent &event)
 {
-  mMainFrame->removePipelineStep(this);
+  mMainFrame->removePipelineStepById(GetId());
 }
 
 void PanelIntersectionControl::loadValues(const joda::settings::json::PipelineStepSettings &settings)
@@ -173,4 +173,8 @@ void PanelIntersectionControl::OnPaint(wxPaintEvent &event)
   dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), 18);
 }
 
+uint64_t PanelIntersectionControl::getUniqueID()
+{
+  return GetId();
+}
 }    // namespace joda::ui::wxwidget

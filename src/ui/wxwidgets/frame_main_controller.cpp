@@ -56,7 +56,7 @@ void FrameMainController::refreshFunction()
 ///
 void FrameMainController::addChannel()
 {
-  auto channel = std::make_shared<PanelChannelController>(this, mScrollbarChannels, wxID_ANY, wxDefaultPosition,
+  auto channel = std::make_shared<PanelChannelController>(this, mScrollbarChannels, mCounter, wxDefaultPosition,
                                                           wxDefaultSize, wxTAB_TRAVERSAL);
   mSizerChannels->Insert(mChannels.size(), channel.get(), 0, wxEXPAND | wxALL, 5);
   mScrollbarChannels->Layout();
@@ -64,6 +64,7 @@ void FrameMainController::addChannel()
   mSizerChannelsScrollbar->Layout();
   this->Layout();
   mChannels.push_back(channel);
+  mCounter++;
 }
 
 ///
@@ -111,7 +112,7 @@ void FrameMainController::removeAllChannels()
 ///
 void FrameMainController::addPipelineStep()
 {
-  auto intersectionStep = std::make_shared<PanelIntersectionControl>(this, mScrrollbarPipelineStep, wxID_ANY,
+  auto intersectionStep = std::make_shared<PanelIntersectionControl>(this, mScrrollbarPipelineStep, mCounter,
                                                                      wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
   mSizerPipelineStep->Insert(mPipelineStep.size() + PIPELINE_STEP_PANEL_INDEX_OFFSET, intersectionStep.get(), 0,
                              wxEXPAND | wxALL, 5);
@@ -120,6 +121,7 @@ void FrameMainController::addPipelineStep()
   mSizerHorizontalScrolPipelineSteps->Layout();
   this->Layout();
   mPipelineStep.push_back(intersectionStep);
+  mCounter++;
 }
 
 ///
@@ -129,7 +131,7 @@ void FrameMainController::addPipelineStep()
 ///
 void FrameMainController::addPipelineStepCellApprox()
 {
-  auto cellApproxStep = std::make_shared<PanelCellApproxController>(this, mScrrollbarPipelineStep, wxID_ANY,
+  auto cellApproxStep = std::make_shared<PanelCellApproxController>(this, mScrrollbarPipelineStep, mCounter,
                                                                     wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
   mSizerPipelineStep->Insert(mPipelineStep.size() + PIPELINE_STEP_PANEL_INDEX_OFFSET, cellApproxStep.get(), 0,
                              wxEXPAND | wxALL, 5);
@@ -138,6 +140,7 @@ void FrameMainController::addPipelineStepCellApprox()
   mSizerHorizontalScrolPipelineSteps->Layout();
   this->Layout();
   mPipelineStep.push_back(cellApproxStep);
+  mCounter++;
 }
 
 ///
@@ -156,10 +159,10 @@ void FrameMainController::removePipelineStep(int32_t pipelineStepIndex)
   this->Layout();
 }
 
-void FrameMainController::removePipelineStep(void *toRemove)
+void FrameMainController::removePipelineStepById(wxWindowID id)
 {
   for(int n = 0; n < mPipelineStep.size(); n++) {
-    if(mPipelineStep[n].get() == toRemove) {
+    if(mPipelineStep[n]->getUniqueID() == id) {
       removePipelineStep(n);
       break;
     }

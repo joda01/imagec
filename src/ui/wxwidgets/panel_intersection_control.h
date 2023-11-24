@@ -40,6 +40,7 @@ public:
   void loadValues(const joda::settings::json::PipelineStepSettings &) override;
   void loadValues(const joda::settings::json::PipelineStepIntersection &);
   nlohmann::json getValues() override;
+  uint64_t getUniqueID() override;
 
 private:
   /////////////////////////////////////////////////////
