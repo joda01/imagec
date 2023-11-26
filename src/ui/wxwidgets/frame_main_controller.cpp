@@ -4,8 +4,10 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <variant>
 #include "backend/settings/channel_settings.hpp"
 #include "ui/wxwidgets/dialog_processing_controller.h"
+#include "ui/wxwidgets/panel_cell_approx_controller.h"
 #include "ui/wxwidgets/wxwidget.h"
 #include <nlohmann/json_fwd.hpp>
 
@@ -54,7 +56,7 @@ void FrameMainController::refreshFunction()
 ///
 void FrameMainController::addChannel()
 {
-  auto channel = std::make_shared<PanelChannelController>(this, mScrollbarChannels, wxID_ANY, wxDefaultPosition,
+  auto channel = std::make_shared<PanelChannelController>(this, mScrollbarChannels, mCounter, wxDefaultPosition,
                                                           wxDefaultSize, wxTAB_TRAVERSAL);
   mSizerChannels->Insert(mChannels.size(), channel.get(), 0, wxEXPAND | wxALL, 5);
   mScrollbarChannels->Layout();
@@ -62,6 +64,7 @@ void FrameMainController::addChannel()
   mSizerChannelsScrollbar->Layout();
   this->Layout();
   mChannels.push_back(channel);
+  mCounter++;
 }
 
 ///
@@ -109,15 +112,33 @@ void FrameMainController::removeAllChannels()
 ///
 void FrameMainController::addPipelineStep()
 {
-  auto intersectionStep = std::make_shared<PanelIntersectionControl>(this, mScrrollbarPipelineStep, wxID_ANY,
+  auto intersectionStep = std::make_shared<PanelIntersectionControl>(this, mScrrollbarPipelineStep, mCounter,
                                                                      wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-  mSizerPipelineStep->Insert(mIntersections.size() + PIPELINE_STEP_PANEL_INDEX_OFFSET, intersectionStep.get(), 0,
-                             wxEXPAND | wxALL, 5);
+  mSizerPipelineStep->Insert(mPipelineStep.size(), intersectionStep.get(), 0, wxEXPAND | wxALL, 5);
   mScrrollbarPipelineStep->Layout();
   mSizerPipelineStep->Layout();
   mSizerHorizontalScrolPipelineSteps->Layout();
   this->Layout();
-  mIntersections.push_back(intersectionStep);
+  mPipelineStep.push_back(intersectionStep);
+  mCounter++;
+}
+
+///
+/// \brief      Adds a new pipelinestep
+/// \author     Joachim Danmayr
+/// \return
+///
+void FrameMainController::addPipelineStepCellApprox()
+{
+  auto cellApproxStep = std::make_shared<PanelCellApproxController>(this, mScrrollbarPipelineStep, mCounter,
+                                                                    wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+  mSizerPipelineStep->Insert(mPipelineStep.size(), cellApproxStep.get(), 0, wxEXPAND | wxALL, 5);
+  mScrrollbarPipelineStep->Layout();
+  mSizerPipelineStep->Layout();
+  mSizerHorizontalScrolPipelineSteps->Layout();
+  this->Layout();
+  mPipelineStep.push_back(cellApproxStep);
+  mCounter++;
 }
 
 ///
@@ -127,19 +148,19 @@ void FrameMainController::addPipelineStep()
 ///
 void FrameMainController::removePipelineStep(int32_t pipelineStepIndex)
 {
-  mSizerPipelineStep->Remove(pipelineStepIndex + PIPELINE_STEP_PANEL_INDEX_OFFSET);
-  auto it = mIntersections.begin() + pipelineStepIndex;
-  mIntersections.erase(it);
+  mSizerPipelineStep->Remove(pipelineStepIndex);
+  auto it = mPipelineStep.begin() + pipelineStepIndex;
+  mPipelineStep.erase(it);
   mScrrollbarPipelineStep->Layout();
   mSizerPipelineStep->Layout();
   mSizerHorizontalScrolPipelineSteps->Layout();
   this->Layout();
 }
 
-void FrameMainController::removePipelineStep(void *toRemove)
+void FrameMainController::removePipelineStepById(wxWindowID id)
 {
-  for(int n = 0; n < mIntersections.size(); n++) {
-    if(mIntersections[n].get() == toRemove) {
+  for(int n = 0; n < mPipelineStep.size(); n++) {
+    if(mPipelineStep[n]->getUniqueID() == id) {
       removePipelineStep(n);
       break;
     }
@@ -153,7 +174,7 @@ void FrameMainController::removePipelineStep(void *toRemove)
 ///
 void FrameMainController::removeAllPipelineSteps()
 {
-  for(int n = mIntersections.size() - 1; n >= 0; n--) {
+  for(int n = mPipelineStep.size() - 1; n >= 0; n--) {
     removePipelineStep(n);
   }
 }
@@ -210,16 +231,29 @@ void FrameMainController::onSaveSettingsClicked(wxCommandEvent &event)
 void FrameMainController::onAddChannelClicked(wxCommandEvent &event)
 {
   addChannel();
+  mNotebookMain->SetSelection(0);
 }
 
 ///
-/// \brief      Add pipelinestep clicked
+/// \brief      Add pipeline step clicked
 /// \author     Joachim Danmayr
 /// \param[in]  event
 ///
 void FrameMainController::onAddIntersectionClicked(wxCommandEvent &event)
 {
   addPipelineStep();
+  mNotebookMain->SetSelection(1);
+}
+
+///
+/// \brief      Add cell approx clicked
+/// \author     Joachim Danmayr
+/// \param[in]  event
+///
+void FrameMainController::onAddCellApproxClicked(wxCommandEvent &event)
+{
+  addPipelineStepCellApprox();
+  mNotebookMain->SetSelection(1);
 }
 
 ///
@@ -272,20 +306,6 @@ void FrameMainController::onAboutClicked(wxCommandEvent &event)
 }
 
 ///
-/// \brief      Cell channel choice
-/// \author     Joachim Danmayr
-/// \param[in]  event
-///
-void FrameMainController::onCellChannelChoice(wxCommandEvent &event)
-{
-  if(mChoiceCellChannel->GetSelection() > 0) {
-    panelMaxCellRadius->Show(false);
-  } else {
-    panelMaxCellRadius->Show(true);
-  }
-}
-
-///
 /// \brief      Assigns analyze settings to the UI components
 /// \author     Joachim Danmayr
 ///
@@ -303,15 +323,15 @@ void FrameMainController::loadValues(const joda::settings::json::AnalyzeSettings
   // mDirectoryPicker->SetPath(const wxString &str);
   for(const auto &pipelineStep : settings.getPipelineSteps()) {
     if(pipelineStep.getCellApproximation()) {
-      mChoiceCellChannel->SetSelection(pipelineStep.getCellApproximation()->cell_channel_index + 1);
-      mChoiceNucluesChannel->SetSelection(pipelineStep.getCellApproximation()->nucleus_channel_index + 1);
-      mSpinMaxCellRadius->SetValue(pipelineStep.getCellApproximation()->max_cell_radius);
+      addPipelineStepCellApprox();
+      auto intersectUi = mPipelineStep.back();
+      intersectUi->loadValues(pipelineStep);
     }
 
     if(pipelineStep.getIntersection()) {
       addPipelineStep();
-      std::shared_ptr<PanelIntersectionControl> intersectUi = mIntersections.back();
-      intersectUi->loadValues(*pipelineStep.getIntersection());
+      auto intersectUi = mPipelineStep.back();
+      intersectUi->loadValues(pipelineStep);
     }
   }
 
@@ -337,15 +357,12 @@ nlohmann::json FrameMainController::getValues()
   // Pipeline steps
   //
   nlohmann::json pipelineStepArray = nlohmann::json::array();    // Initialize an empty JSON array
-  if(mChoiceNucluesChannel->GetSelection() > 0 || mChoiceCellChannel->GetSelection() > 0) {
-    pipelineStepArray.push_back({{"cell_approximation",
-                                  {{"nucleus_channel_index", mChoiceNucluesChannel->GetSelection() - 1},
-                                   {"cell_channel_index", mChoiceCellChannel->GetSelection() - 1},
-                                   {"max_cell_radius", mSpinMaxCellRadius->GetValue()}}}});
-  }
 
-  for(const auto &intersect : mIntersections) {
-    pipelineStepArray.push_back(intersect->getValues());
+  for(const auto &intersect : mPipelineStep) {
+    auto data = intersect->getValues();
+    if(!data.empty()) {
+      pipelineStepArray.push_back(data);
+    }
   }
 
   jsonSettings["pipeline_steps"] = pipelineStepArray;

@@ -27,6 +27,7 @@ PanelIntersectionControl::PanelIntersectionControl(FrameMainController *mainFram
     PanelIntersection(parent, id, pos, size, style, name),
     mMainFrame(mainFrame)
 {
+  Bind(wxEVT_PAINT, &PanelIntersectionControl::OnPaint, this);
 }
 
 ///
@@ -36,7 +37,12 @@ PanelIntersectionControl::PanelIntersectionControl(FrameMainController *mainFram
 ///
 void PanelIntersectionControl::onRemoveClicked(wxCommandEvent &event)
 {
-  mMainFrame->removePipelineStep(this);
+  mMainFrame->removePipelineStepById(GetId());
+}
+
+void PanelIntersectionControl::loadValues(const joda::settings::json::PipelineStepSettings &settings)
+{
+  loadValues(*settings.getIntersection());
 }
 
 void PanelIntersectionControl::loadValues(const joda::settings::json::PipelineStepIntersection &intersect)
@@ -141,7 +147,34 @@ nlohmann::json PanelIntersectionControl::getValues()
     return {{"intersection",
              {{"channel_index", intersectionButtons}, {"min_intersection", mSpinMinIntersection->GetValue()}}}};
   }
-  return {{"intersection", {{"channel_index", {}}}}};
+  return {};
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelIntersectionControl::OnPaint(wxPaintEvent &event)
+{
+  wxPaintDC dc(this);
+  // Set the pen color and width for the border
+  wxPen borderPen(wxSystemSettings::GetColour(wxSYS_COLOUR_MENU), 2, wxPENSTYLE_SOLID);
+  dc.SetPen(borderPen);
+
+  // Set the brush color for the panel background
+  // 241, 240, 238
+  wxBrush backgroundBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_MENU), wxBRUSHSTYLE_SOLID);
+  dc.SetBrush(backgroundBrush);
+
+  // Draw the rounded rectangle
+  dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), 18);
+}
+
+uint64_t PanelIntersectionControl::getUniqueID()
+{
+  return GetId();
+}
 }    // namespace joda::ui::wxwidget
