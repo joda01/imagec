@@ -87,7 +87,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	mToolBarVertical->AddSeparator();
 
-	mTitlePipelineSteps = new wxStaticText( mToolBarVertical, wxID_ANY, _("Pipeline"), wxDefaultPosition, wxDefaultSize, 0 );
+	mTitlePipelineSteps = new wxStaticText( mToolBarVertical, wxID_ANY, _("Functions"), wxDefaultPosition, wxDefaultSize, 0 );
 	mTitlePipelineSteps->Wrap( -1 );
 	mToolBarVertical->AddControl( mTitlePipelineSteps );
 	mButtonAddCellApproximation = mToolBarVertical->AddTool( wxID_ANY, _("Add cell approx step"), cell_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Add cell approximation step"), _("Add cell approximation step"), NULL );
@@ -134,7 +134,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mPanelPipelineSteps->SetSizer( mSizerHorizontalScrolPipelineSteps );
 	mPanelPipelineSteps->Layout();
 	mSizerHorizontalScrolPipelineSteps->Fit( mPanelPipelineSteps );
-	mNotebookMain->AddPage( mPanelPipelineSteps, _("Pipeline steps"), false );
+	mNotebookMain->AddPage( mPanelPipelineSteps, _("Functions"), false );
 
 	bSizer1->Add( mNotebookMain, 1, wxEXPAND | wxALL, 5 );
 
