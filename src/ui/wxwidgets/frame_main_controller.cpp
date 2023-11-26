@@ -114,8 +114,7 @@ void FrameMainController::addPipelineStep()
 {
   auto intersectionStep = std::make_shared<PanelIntersectionControl>(this, mScrrollbarPipelineStep, mCounter,
                                                                      wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-  mSizerPipelineStep->Insert(mPipelineStep.size() + PIPELINE_STEP_PANEL_INDEX_OFFSET, intersectionStep.get(), 0,
-                             wxEXPAND | wxALL, 5);
+  mSizerPipelineStep->Insert(mPipelineStep.size(), intersectionStep.get(), 0, wxEXPAND | wxALL, 5);
   mScrrollbarPipelineStep->Layout();
   mSizerPipelineStep->Layout();
   mSizerHorizontalScrolPipelineSteps->Layout();
@@ -133,8 +132,7 @@ void FrameMainController::addPipelineStepCellApprox()
 {
   auto cellApproxStep = std::make_shared<PanelCellApproxController>(this, mScrrollbarPipelineStep, mCounter,
                                                                     wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-  mSizerPipelineStep->Insert(mPipelineStep.size() + PIPELINE_STEP_PANEL_INDEX_OFFSET, cellApproxStep.get(), 0,
-                             wxEXPAND | wxALL, 5);
+  mSizerPipelineStep->Insert(mPipelineStep.size(), cellApproxStep.get(), 0, wxEXPAND | wxALL, 5);
   mScrrollbarPipelineStep->Layout();
   mSizerPipelineStep->Layout();
   mSizerHorizontalScrolPipelineSteps->Layout();
@@ -150,7 +148,7 @@ void FrameMainController::addPipelineStepCellApprox()
 ///
 void FrameMainController::removePipelineStep(int32_t pipelineStepIndex)
 {
-  mSizerPipelineStep->Remove(pipelineStepIndex + PIPELINE_STEP_PANEL_INDEX_OFFSET);
+  mSizerPipelineStep->Remove(pipelineStepIndex);
   auto it = mPipelineStep.begin() + pipelineStepIndex;
   mPipelineStep.erase(it);
   mScrrollbarPipelineStep->Layout();

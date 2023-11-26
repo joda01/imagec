@@ -13,6 +13,7 @@
 #include "../../res/background_remover_20.png.h"
 #include "../../res/blur_20.png.h"
 #include "../../res/bursts_20.png.h"
+#include "../../res/cell_20.png.h"
 #include "../../res/centre_point_20.png.h"
 #include "../../res/circle_20.png.h"
 #include "../../res/circle_x_20.png.h"
@@ -28,7 +29,6 @@
 #include "../../res/minus_20.png.h"
 #include "../../res/octagon_20.png.h"
 #include "../../res/opened_folder_20.png.h"
-#include "../../res/plus_math_20.png.h"
 #include "../../res/preview_20.png.h"
 #include "../../res/ram_20.png.h"
 #include "../../res/rectangle_20.png.h"
@@ -46,9 +46,9 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	this->SetSizeHints( wxSize( 1000,650 ), wxDefaultSize );
 
 	mToolBar = this->CreateToolBar( wxTB_HORIZONTAL|wxTB_HORZ_TEXT, wxID_ANY );
-	mButtonSave = mToolBar->AddTool( wxID_ANY, _("Save"), save_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	mButtonSave = mToolBar->AddTool( wxID_ANY, _("Save"), save_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Save pipeline"), _("Save pipeline"), NULL );
 
-	mButtonOpen = mToolBar->AddTool( wxID_ANY, _("Open"), opened_folder_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	mButtonOpen = mToolBar->AddTool( wxID_ANY, _("Open"), opened_folder_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Open pipeline"), _("Open pipeline"), NULL );
 
 	mToolBar->AddSeparator();
 
@@ -75,7 +75,28 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mToolBar->Realize();
 
 	wxBoxSizer* bSizer1;
-	bSizer1 = new wxBoxSizer( wxVERTICAL );
+	bSizer1 = new wxBoxSizer( wxHORIZONTAL );
+
+	mToolBarVertical = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_VERTICAL );
+	mToolBarVertical->AddSeparator();
+
+	mTitleChannel = new wxStaticText( mToolBarVertical, wxID_ANY, _("Channels"), wxDefaultPosition, wxDefaultSize, 0 );
+	mTitleChannel->Wrap( -1 );
+	mToolBarVertical->AddControl( mTitleChannel );
+	mButtonAddChannel = mToolBarVertical->AddTool( wxID_ANY, _("Add channel"), bursts_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Add channel"), _("Add channel"), NULL );
+
+	mToolBarVertical->AddSeparator();
+
+	mTitlePipelineSteps = new wxStaticText( mToolBarVertical, wxID_ANY, _("Pipeline"), wxDefaultPosition, wxDefaultSize, 0 );
+	mTitlePipelineSteps->Wrap( -1 );
+	mToolBarVertical->AddControl( mTitlePipelineSteps );
+	mButtonAddCellApproximation = mToolBarVertical->AddTool( wxID_ANY, _("Add cell approx step"), cell_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Add cell approximation step"), _("Add cell approximation step"), NULL );
+
+	mButtonAddIntersection = mToolBarVertical->AddTool( wxID_ANY, _("Add intersection step"), combine_20_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Add intersection step"), _("Add intersection step"), NULL );
+
+	mToolBarVertical->Realize();
+
+	bSizer1->Add( mToolBarVertical, 0, wxEXPAND, 5 );
 
 	mNotebookMain = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 	mPanelChannel = new wxPanel( mNotebookMain, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
@@ -84,11 +105,6 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mScrollbarChannels = new wxScrolledWindow( mPanelChannel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL );
 	mScrollbarChannels->SetScrollRate( 5, 0 );
 	mSizerChannels = new wxBoxSizer( wxHORIZONTAL );
-
-	mButtonAddChannel = new wxButton( mScrollbarChannels, wxID_ANY, _("Add Channel"), wxDefaultPosition, wxDefaultSize, 0 );
-
-	mButtonAddChannel->SetBitmap( plus_math_20_png_to_wx_bitmap() );
-	mSizerChannels->Add( mButtonAddChannel, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
 	mScrollbarChannels->SetSizer( mSizerChannels );
@@ -108,26 +124,6 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mScrrollbarPipelineStep->SetScrollRate( 5, 5 );
 	mSizerPipelineStep = new wxBoxSizer( wxHORIZONTAL );
 
-	PanelAddButtons = new wxPanel( mScrrollbarPipelineStep, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxBoxSizer* sizerAddButtons;
-	sizerAddButtons = new wxBoxSizer( wxVERTICAL );
-
-	mButtonAddIntersection1 = new wxButton( PanelAddButtons, wxID_ANY, _("Add cell approx."), wxDefaultPosition, wxDefaultSize, 0 );
-
-	mButtonAddIntersection1->SetBitmap( plus_math_20_png_to_wx_bitmap() );
-	sizerAddButtons->Add( mButtonAddIntersection1, 0, wxALL, 5 );
-
-	mButtonAddIntersection = new wxButton( PanelAddButtons, wxID_ANY, _("Add intersection step"), wxDefaultPosition, wxDefaultSize, 0 );
-
-	mButtonAddIntersection->SetBitmap( plus_math_20_png_to_wx_bitmap() );
-	sizerAddButtons->Add( mButtonAddIntersection, 0, wxALL, 5 );
-
-
-	PanelAddButtons->SetSizer( sizerAddButtons );
-	PanelAddButtons->Layout();
-	sizerAddButtons->Fit( PanelAddButtons );
-	mSizerPipelineStep->Add( PanelAddButtons, 0, wxALL, 5 );
-
 
 	mScrrollbarPipelineStep->SetSizer( mSizerPipelineStep );
 	mScrrollbarPipelineStep->Layout();
@@ -146,7 +142,7 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	this->SetSizer( bSizer1 );
 	this->Layout();
 	bSizer1->Fit( this );
-	m_statusBar1 = this->CreateStatusBar( 1, wxSTB_SIZEGRIP, wxID_ANY );
+	mStatusBar = this->CreateStatusBar( 1, wxSTB_SIZEGRIP, wxID_ANY );
 
 	this->Centre( wxBOTH );
 
@@ -157,9 +153,9 @@ frameMain::frameMain( wxWindow* parent, wxWindowID id, const wxString& title, co
 	mChoiceSeries->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( frameMain::onSeriesChanged ), NULL, this );
 	this->Connect( mButtonRun->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onRunClicked ) );
 	this->Connect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
-	mButtonAddChannel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ), NULL, this );
-	mButtonAddIntersection1->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddCellApproxClicked ), NULL, this );
-	mButtonAddIntersection->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddIntersectionClicked ), NULL, this );
+	this->Connect( mButtonAddChannel->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ) );
+	this->Connect( mButtonAddCellApproximation->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAddCellApproxClicked ) );
+	this->Connect( mButtonAddIntersection->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAddIntersectionClicked ) );
 }
 
 frameMain::~frameMain()
@@ -171,9 +167,9 @@ frameMain::~frameMain()
 	mChoiceSeries->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( frameMain::onSeriesChanged ), NULL, this );
 	this->Disconnect( mButtonRun->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onRunClicked ) );
 	this->Disconnect( mButtonAbout->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAboutClicked ) );
-	mButtonAddChannel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ), NULL, this );
-	mButtonAddIntersection1->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddCellApproxClicked ), NULL, this );
-	mButtonAddIntersection->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( frameMain::onAddIntersectionClicked ), NULL, this );
+	this->Disconnect( mButtonAddChannel->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAddChannelClicked ) );
+	this->Disconnect( mButtonAddCellApproximation->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAddCellApproxClicked ) );
+	this->Disconnect( mButtonAddIntersection->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( frameMain::onAddIntersectionClicked ) );
 
 }
 

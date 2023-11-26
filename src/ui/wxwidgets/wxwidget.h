@@ -22,7 +22,6 @@
 #include <wx/filepicker.h>
 #include <wx/choice.h>
 #include <wx/toolbar.h>
-#include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/scrolwin.h>
 #include <wx/panel.h>
@@ -32,6 +31,7 @@
 #include <wx/gauge.h>
 #include <wx/statline.h>
 #include <wx/statbmp.h>
+#include <wx/button.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/spinctrl.h>
@@ -63,20 +63,22 @@ namespace joda
 					wxToolBarToolBase* mButtonRun;
 					wxToolBarToolBase* mButtonSettings;
 					wxToolBarToolBase* mButtonAbout;
+					wxToolBar* mToolBarVertical;
+					wxStaticText* mTitleChannel;
+					wxToolBarToolBase* mButtonAddChannel;
+					wxStaticText* mTitlePipelineSteps;
+					wxToolBarToolBase* mButtonAddCellApproximation;
+					wxToolBarToolBase* mButtonAddIntersection;
 					wxNotebook* mNotebookMain;
 					wxPanel* mPanelChannel;
 					wxBoxSizer* mSizerChannelsScrollbar;
 					wxScrolledWindow* mScrollbarChannels;
 					wxBoxSizer* mSizerChannels;
-					wxButton* mButtonAddChannel;
 					wxPanel* mPanelPipelineSteps;
 					wxBoxSizer* mSizerHorizontalScrolPipelineSteps;
 					wxScrolledWindow* mScrrollbarPipelineStep;
 					wxBoxSizer* mSizerPipelineStep;
-					wxPanel* PanelAddButtons;
-					wxButton* mButtonAddIntersection1;
-					wxButton* mButtonAddIntersection;
-					wxStatusBar* m_statusBar1;
+					wxStatusBar* mStatusBar;
 
 					// Virtual event handlers, override them in your derived class
 					virtual void onSaveSettingsClicked( wxCommandEvent& event ) { event.Skip(); }

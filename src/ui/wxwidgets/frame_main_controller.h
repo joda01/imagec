@@ -43,9 +43,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  static constexpr int PIPELINE_STEP_PANEL_INDEX_OFFSET = 1;
-
-  /////////////////////////////////////////////////////
   void loadValues(const joda::settings::json::AnalyzeSettings &);
   nlohmann::json getValues();
 
