@@ -231,6 +231,7 @@ void FrameMainController::onSaveSettingsClicked(wxCommandEvent &event)
 void FrameMainController::onAddChannelClicked(wxCommandEvent &event)
 {
   addChannel();
+  mNotebookMain->SetSelection(0);
 }
 
 ///
@@ -241,6 +242,7 @@ void FrameMainController::onAddChannelClicked(wxCommandEvent &event)
 void FrameMainController::onAddIntersectionClicked(wxCommandEvent &event)
 {
   addPipelineStep();
+  mNotebookMain->SetSelection(1);
 }
 
 ///
@@ -251,6 +253,7 @@ void FrameMainController::onAddIntersectionClicked(wxCommandEvent &event)
 void FrameMainController::onAddCellApproxClicked(wxCommandEvent &event)
 {
   addPipelineStepCellApprox();
+  mNotebookMain->SetSelection(1);
 }
 
 ///
