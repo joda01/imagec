@@ -1,18 +1,5 @@
 
 
-#include <opencv2/core/hal/interface.h>
-#include <unistd.h>
-#include <wx/app.h>
-#include <algorithm>
-#include <chrono>
-#include <cstdio>
-#include <cstdlib>
-#include <exception>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <thread>
-#include <vector>
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/tif/image_loader_tif.hpp"
@@ -22,6 +9,19 @@
 #include "ui/wxwidgets/frame_main_controller.h"
 #include "ui/wxwidgets/wxwidget.h"
 #include "version.h"
+#include <algorithm>
+#include <chrono>
+#include <cstdio>
+#include <cstdlib>
+#include <exception>
+#include <fstream>
+#include <iostream>
+#include <opencv2/core/hal/interface.h>
+#include <string>
+#include <thread>
+#include <unistd.h>
+#include <vector>
+#include <wx/app.h>
 
 #ifdef _WIN32
 // #include "wx.rc"
@@ -34,8 +34,7 @@ using namespace std;
 using namespace cv;
 using namespace dnn;
 
-class MainApp : public wxApp
-{
+class MainApp : public wxApp {
 public:
   bool OnInit() override;
 };
@@ -52,11 +51,11 @@ wxIMPLEMENT_APP_NO_MAIN(MainApp);
 /// \param[out]
 /// \return
 ///
-bool MainApp::OnInit()
-{
+bool MainApp::OnInit() {
   auto *controller = new joda::ctrl::Controller();
   wxSizerFlags::DisableConsistencyChecks();
-  auto *frame = new joda::ui::wxwidget::FrameMainController(nullptr, controller);
+  auto *frame =
+      new joda::ui::wxwidget::FrameMainController(nullptr, controller);
   frame->Maximize();
   frame->Show(true);
   return true;
@@ -66,10 +65,8 @@ bool MainApp::OnInit()
 /// \brief      Main method
 /// \author     Joachim Danmayr
 ///
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   std::cout << "Main" << std::endl;
-
 
   wxInitAllImageHandlers();
   Version::initVersion(std::string(argv[0]));

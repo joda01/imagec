@@ -367,8 +367,14 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
       if(smallestMask > 0) {
         intersectionArea = static_cast<float>(nrOfIntersectingPixels) / static_cast<float>(smallestMask);
       }
-      if(true == createRoi) {
-        ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, imageOriginal);
+      if(createRoi) {
+        std::vector<std::vector<cv::Point>> contours;
+        std::vector<cv::Point> contour={};
+        cv::findContours(intersectedMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+        if(!contours.empty()) {
+          contour = contours[0];
+        }
+        ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, contour, imageOriginal);
         if(intersectionArea < minIntersection) {
           intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
         }
