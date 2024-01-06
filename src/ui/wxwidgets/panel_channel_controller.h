@@ -14,14 +14,14 @@
 #ifndef __panel_channel_controller__
 #define __panel_channel_controller__
 
-#include <map>
-#include <memory>
-#include <thread>
 #include "backend/helper/two_way_map.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "ui/wxwidgets/dialog_image_controller.h"
-#include <nlohmann/json_fwd.hpp>
 #include "wxwidget.h"
+#include <map>
+#include <memory>
+#include <nlohmann/json_fwd.hpp>
+#include <thread>
 
 //// end generated include
 
@@ -34,13 +34,15 @@ class FrameMainController;
 /// \author     Joachim Danmayr
 /// \brief      Panel channel controller class
 ///
-class PanelChannelController : public PanelChannel
-{
+class PanelChannelController : public PanelChannel {
 public:
   /////////////////////////////////////////////////////
-  explicit PanelChannelController(FrameMainController *mainFrame, wxWindow *parent, wxWindowID id = wxID_ANY,
-                                  const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxSize(250, -1),
-                                  long style = wxTAB_TRAVERSAL, const wxString &name = wxEmptyString);
+  explicit PanelChannelController(FrameMainController *mainFrame,
+                                  wxWindow *parent, wxWindowID id = wxID_ANY,
+                                  const wxPoint &pos = wxDefaultPosition,
+                                  const wxSize &size = wxSize(250, -1),
+                                  long style = wxTAB_TRAVERSAL,
+                                  const wxString &name = wxEmptyString);
 
   ~PanelChannelController();
   void loadValues(const joda::settings::json::ChannelSettings &);
@@ -66,23 +68,34 @@ private:
   static auto indexToDirection(int idx) -> std::string;
   static auto directionToIndex(const std::string &str) -> int;
 
-  static auto splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>;
+  static auto splitAndConvert(const std::string &input, char delimiter)
+      -> std::tuple<int, int>;
 
   static inline joda::helper::TwoWayMap<int, std::string> CHANNEL_TYPES{
-      {{0, "SPOT"}, {1, "SPOT_REFERENCE"}, {2, "NUCLEUS"}, {3, "CELL"}, {4, "BACKGROUND"}}};
+      {{0, "SPOT"},
+       {1, "SPOT_REFERENCE"},
+       {2, "NUCLEUS"},
+       {3, "CELL"},
+       {4, "BACKGROUND"}}};
 
   static inline joda::helper::TwoWayMap<int, std::string> Z_STACK_PROJECTION{
       {{0, "NONE"}, {1, "PROJECT_MAX_INTENSITY"}, {2, "PROJECT_3D"}}};
 
   static inline joda::helper::TwoWayMap<int, std::string> THRESHOLD_METHOD{
-      {{0, "MANUAL"}, {1, "LI"}, {2, "MIN_ERROR"}, {3, "TRIANGLE"}, {4, "MOMENTS"}}};
+      {{0, "MANUAL"},
+       {1, "LI"},
+       {2, "MIN_ERROR"},
+       {3, "TRIANGLE"},
+       {4, "MOMENTS"}}};
 
-  static inline joda::helper::TwoWayMap<int, std::string> EDGE_DETECTION_ALGORITHM{
-      {{0, "NONE"}, {1, "SOBEL"}, {2, "CANNY"}}};
+  static inline joda::helper::TwoWayMap<int, std::string>
+      EDGE_DETECTION_ALGORITHM{{{0, "NONE"}, {1, "SOBEL"}, {2, "CANNY"}}};
 
-  static inline joda::helper::TwoWayMap<int, std::string> EDGE_DETECTION_DIRECTION{{{0, "XY"}, {1, "X"}, {2, "Y"}}};
+  static inline joda::helper::TwoWayMap<int, std::string>
+      EDGE_DETECTION_DIRECTION{{{0, "XY"}, {1, "X"}, {2, "Y"}}};
 
-  static inline joda::helper::TwoWayMap<int, int16_t> GAUSSIAN_BLUR{{{0, 0}, {1, 3}, {2, 5}, {3, 7}, {4, 11}, {5, 13}}};
+  static inline joda::helper::TwoWayMap<int, int16_t> GAUSSIAN_BLUR{
+      {{0, 0}, {1, 3}, {2, 5}, {3, 7}, {4, 11}, {5, 13}}};
 
 private:
   /////////////////////////////////////////////////////
@@ -110,6 +123,10 @@ private:
   void onSnapAreaChanged(wxSpinEvent &event) override;
   void onSpotRemovalChanged(wxCommandEvent &event) override;
   void onCollapsibleChanged(wxCollapsiblePaneEvent &event) override;
+  void onPrevImageClicked(wxCommandEvent &event) override;
+  void onPrevTileClicked(wxCommandEvent &event) override;
+  void onNextTileClicked(wxCommandEvent &event) override;
+  void onNextImageClicked(wxCommandEvent &event) override;
 
   void onPreviewDialogClosed(wxCloseEvent &);
 
@@ -127,8 +144,10 @@ private:
   std::shared_ptr<std::thread> mPreviewRefreshThread;
 
   bool mStopped = false;
+  int32_t mPreviewImageIndex = 0;
+  int32_t mPreviewTileIndex = 0;
 };
 
-}    // namespace joda::ui::wxwidget
+} // namespace joda::ui::wxwidget
 
-#endif    // __panel_channel_controller__
+#endif // __panel_channel_controller__

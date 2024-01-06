@@ -937,17 +937,39 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mPanelFooter->SetMaxSize( wxSize( -1,35 ) );
 
 	wxBoxSizer* sizerFooter11;
-	sizerFooter11 = new wxBoxSizer( wxVERTICAL );
+	sizerFooter11 = new wxBoxSizer( wxHORIZONTAL );
 
-	mButtonPreview1 = new wxButton( mPanelFooter, wxID_ANY, _("Preview"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonPrev = new wxButton( mPanelFooter, wxID_ANY, _("<<"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonPrev->SetMaxSize( wxSize( 42,-1 ) );
+
+	sizerFooter11->Add( mButtonPrev, 0, wxBOTTOM|wxTOP, 5 );
+
+	mPrevTile = new wxButton( mPanelFooter, wxID_ANY, _("<"), wxDefaultPosition, wxDefaultSize, 0 );
+	mPrevTile->SetMaxSize( wxSize( 42,-1 ) );
+
+	sizerFooter11->Add( mPrevTile, 0, wxBOTTOM|wxLEFT|wxTOP, 5 );
+
+	mButtonPreview1 = new wxButton( mPanelFooter, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 
 	mButtonPreview1->SetBitmap( preview_20_png_to_wx_bitmap() );
+	mButtonPreview1->SetMaxSize( wxSize( 42,-1 ) );
+
 	sizerFooter11->Add( mButtonPreview1, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT, 8 );
+
+	mNextTile = new wxButton( mPanelFooter, wxID_ANY, _(">"), wxDefaultPosition, wxDefaultSize, 0 );
+	mNextTile->SetMaxSize( wxSize( 42,-1 ) );
+
+	sizerFooter11->Add( mNextTile, 0, wxBOTTOM|wxRIGHT|wxTOP, 5 );
+
+	mButtonNext = new wxButton( mPanelFooter, wxID_ANY, _(">>"), wxDefaultPosition, wxDefaultSize, 0 );
+	mButtonNext->SetMaxSize( wxSize( 42,-1 ) );
+
+	sizerFooter11->Add( mButtonNext, 0, wxBOTTOM|wxTOP, 5 );
 
 
 	mPanelFooter->SetSizer( sizerFooter11 );
 	mPanelFooter->Layout();
-	mSizerForScroll->Add( mPanelFooter, 1, wxEXPAND | wxALL, 5 );
+	mSizerForScroll->Add( mPanelFooter, 1, wxALL|wxEXPAND, 5 );
 
 
 	this->SetSizer( mSizerForScroll );
@@ -977,7 +999,11 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mTextParticleSizeRange->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PanelChannel::onParticleSizeChanged ), NULL, this );
 	mSpinSnapArea->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onSnapAreaChanged ), NULL, this );
 	mChoiceReferenceSpotChannel->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSpotRemovalChanged ), NULL, this );
+	mButtonPrev->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPrevImageClicked ), NULL, this );
+	mPrevTile->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPrevTileClicked ), NULL, this );
 	mButtonPreview1->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
+	mNextTile->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onNextTileClicked ), NULL, this );
+	mButtonNext->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onNextImageClicked ), NULL, this );
 }
 
 PanelChannel::~PanelChannel()
@@ -1006,7 +1032,11 @@ PanelChannel::~PanelChannel()
 	mTextParticleSizeRange->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PanelChannel::onParticleSizeChanged ), NULL, this );
 	mSpinSnapArea->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onSnapAreaChanged ), NULL, this );
 	mChoiceReferenceSpotChannel->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onSpotRemovalChanged ), NULL, this );
+	mButtonPrev->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPrevImageClicked ), NULL, this );
+	mPrevTile->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPrevTileClicked ), NULL, this );
 	mButtonPreview1->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onPreviewClicked ), NULL, this );
+	mNextTile->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onNextTileClicked ), NULL, this );
+	mButtonNext->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PanelChannel::onNextImageClicked ), NULL, this );
 
 }
 
@@ -1361,20 +1391,32 @@ DialogImage::DialogImage( wxWindow* parent, wxWindowID id, const wxString& title
 	mImageDisplayProgress->SetValue( 1 );
 	mSizer->Add( mImageDisplayProgress, 0, wxALL|wxEXPAND, 5 );
 
-	m_toolBar3 = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
-	m_bitmap24 = new wxStaticBitmap( m_toolBar3, wxID_ANY, circle_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	m_toolBar3->AddControl( m_bitmap24 );
-	mValidSpots = new wxStaticText( m_toolBar3, wxID_ANY, _(" Valid: ..."), wxDefaultPosition, wxSize( 100,-1 ), 0 );
+	mToolbar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
+	m_bitmap24 = new wxStaticBitmap( mToolbar, wxID_ANY, circle_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	mToolbar->AddControl( m_bitmap24 );
+	mValidSpots = new wxStaticText( mToolbar, wxID_ANY, _(" Valid: ..."), wxDefaultPosition, wxSize( 100,-1 ), 0 );
 	mValidSpots->Wrap( -1 );
-	m_toolBar3->AddControl( mValidSpots );
-	m_bitmap22 = new wxStaticBitmap( m_toolBar3, wxID_ANY, circle_x_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	m_toolBar3->AddControl( m_bitmap22 );
-	mInvalidSpots = new wxStaticText( m_toolBar3, wxID_ANY, _(" Filtered: ..."), wxDefaultPosition, wxSize( 100,-1 ), 0 );
-	mInvalidSpots->Wrap( -1 );
-	m_toolBar3->AddControl( mInvalidSpots );
-	m_toolBar3->Realize();
+	mValidSpots->SetFont( wxFont( 9, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Sans") ) );
 
-	mSizer->Add( m_toolBar3, 0, wxEXPAND, 5 );
+	mToolbar->AddControl( mValidSpots );
+	m_bitmap22 = new wxStaticBitmap( mToolbar, wxID_ANY, circle_x_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	mToolbar->AddControl( m_bitmap22 );
+	mInvalidSpots = new wxStaticText( mToolbar, wxID_ANY, _(" Filtered: ..."), wxDefaultPosition, wxSize( 100,-1 ), 0 );
+	mInvalidSpots->Wrap( -1 );
+	mInvalidSpots->SetFont( wxFont( 9, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Sans") ) );
+
+	mToolbar->AddControl( mInvalidSpots );
+	mToolbar->Realize();
+
+	mSizer->Add( mToolbar, 0, wxEXPAND, 5 );
+
+	mImagePath = new wxStaticText( this, wxID_ANY, _("/home/joachim/image"), wxDefaultPosition, wxDefaultSize, 0 );
+	mImagePath->Wrap( -1 );
+	mImagePath->SetFont( wxFont( 8, wxFONTFAMILY_SWISS, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxT("Sans") ) );
+	mImagePath->SetMinSize( wxSize( 500,-1 ) );
+	mImagePath->SetMaxSize( wxSize( -1,12 ) );
+
+	mSizer->Add( mImagePath, 0, wxALL|wxEXPAND, 5 );
 
 
 	this->SetSizer( mSizer );

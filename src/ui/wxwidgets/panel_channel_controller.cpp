@@ -12,21 +12,21 @@
 ///
 
 #include "panel_channel_controller.h"
+#include "backend/helper/two_way_map.hpp"
+#include "backend/settings/channel_settings.hpp"
+#include "ui/wxwidgets/dialog_image_controller.h"
+#include "ui/wxwidgets/frame_main_controller.h"
+#include <cstdint>
+#include <exception>
+#include <memory>
+#include <nlohmann/json_fwd.hpp>
+#include <string>
+#include <thread>
 #include <tiffconf.h>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/mstream.h>
 #include <wx/settings.h>
-#include <cstdint>
-#include <exception>
-#include <memory>
-#include <string>
-#include <thread>
-#include "backend/helper/two_way_map.hpp"
-#include "backend/settings/channel_settings.hpp"
-#include "ui/wxwidgets/dialog_image_controller.h"
-#include "ui/wxwidgets/frame_main_controller.h"
-#include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::wxwidget {
 
@@ -34,23 +34,23 @@ namespace joda::ui::wxwidget {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelChannelController::PanelChannelController(FrameMainController *mainFrame, wxWindow *parent, wxWindowID id,
-                                               const wxPoint &pos, const wxSize &size, long style,
-                                               const wxString &name) :
-    PanelChannel(parent, id, pos, size, style, name),
-    mMainFrame(mainFrame)
-{
+PanelChannelController::PanelChannelController(FrameMainController *mainFrame,
+                                               wxWindow *parent, wxWindowID id,
+                                               const wxPoint &pos,
+                                               const wxSize &size, long style,
+                                               const wxString &name)
+    : PanelChannel(parent, id, pos, size, style, name), mMainFrame(mainFrame) {
   Bind(wxEVT_PAINT, &PanelChannelController::OnPaint, this);
 
-  mPreviewRefreshThread = std::make_shared<std::thread>(&PanelChannelController::refreshPreviewThread, this);
+  mPreviewRefreshThread = std::make_shared<std::thread>(
+      &PanelChannelController::refreshPreviewThread, this);
 }
 
 ///
 /// \brief      Destructor
 /// \author     Joachim Danmayr
 ///
-PanelChannelController::~PanelChannelController()
-{
+PanelChannelController::~PanelChannelController() {
   mStopped = true;
   mPreviewRefreshThread->join();
 }
@@ -60,8 +60,7 @@ PanelChannelController::~PanelChannelController()
 /// \author     Joachim Danmayr
 /// \return
 ///
-void PanelChannelController::onRemoveClicked(wxCommandEvent &event)
-{
+void PanelChannelController::onRemoveClicked(wxCommandEvent &event) {
   mMainFrame->removeChannel(this);
 }
 
@@ -70,20 +69,23 @@ void PanelChannelController::onRemoveClicked(wxCommandEvent &event)
 /// \author     Joachim Danmayr
 /// \return
 ///
-void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
-{
+void PanelChannelController::onPreviewClicked(wxCommandEvent &event) {
   settings::json::ChannelSettings chs;
   chs.loadConfigFromString(getValues().dump());
 
   wxWindowID winId = mPreviewDialogs.size();
-  if(!mPreviewDialogs.contains(0)) {
+  if (!mPreviewDialogs.contains(0)) {
     // There must be always onw window with zero.
     winId = 0;
   }
-  std::string title = "Channel: " + std::to_string(chs.getChannelInfo().getChannelIndex()) + " (" +
-                      chs.getChannelInfo().getName() + ")";
+  std::string title =
+      "Channel: " + std::to_string(chs.getChannelInfo().getChannelIndex()) +
+      " (" + chs.getChannelInfo().getName() + ")";
 
-  if(winId == 0) {
+  if (winId == 0) {
+    // Open new preview image
+    mPreviewTileIndex = 0;
+    mPreviewImageIndex = 0;
     title += " LIVE";
   } else {
     title += " Snapshot";
@@ -91,7 +93,8 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
 
   auto imgDialog = std::make_shared<DialogImageController>(this, winId, title);
   mPreviewDialogs.emplace(winId, imgDialog);
-  imgDialog->Bind(wxEVT_CLOSE_WINDOW, &PanelChannelController::onPreviewDialogClosed, this);
+  imgDialog->Bind(wxEVT_CLOSE_WINDOW,
+                  &PanelChannelController::onPreviewDialogClosed, this);
   imgDialog->Show();
   std::thread([this, imgDialog] { refreshPreview(imgDialog); }).detach();
 }
@@ -101,14 +104,13 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
 /// \author     Joachim Danmayr
 /// \return
 ///
-void PanelChannelController::onPreviewDialogClosed(wxCloseEvent &ev)
-{
-  std::lock_guard<std::mutex> lock(mPreviewMutex);    // Lock the mutex
+void PanelChannelController::onPreviewDialogClosed(wxCloseEvent &ev) {
+  std::lock_guard<std::mutex> lock(mPreviewMutex); // Lock the mutex
   auto id = ev.GetId();
   mPreviewDialogs.at(id)->Show(false);
   CallAfter([this, id]() {
     mPreviewDialogs.erase(id);
-    if(id == 0) {
+    if (id == 0) {
       //     Close all preview windows if reference window is closed
       mPreviewDialogs.clear();
     }
@@ -120,8 +122,7 @@ void PanelChannelController::onPreviewDialogClosed(wxCloseEvent &ev)
 /// \author     Joachim Danmayr
 /// \return
 ///
-void PanelChannelController::updatePreview()
-{
+void PanelChannelController::updatePreview() {
   mLastPreviewUpdateRequest = std::chrono::high_resolution_clock::now();
 }
 
@@ -132,16 +133,15 @@ void PanelChannelController::updatePreview()
 /// \param[out]
 /// \return
 ///
-void PanelChannelController::refreshPreviewThread()
-{
-  while(!mStopped) {
+void PanelChannelController::refreshPreviewThread() {
+  while (!mStopped) {
     auto actTime = std::chrono::high_resolution_clock::now();
 
-    if(mLastPreviewUpdateRequest > mLastPreviewUpdate) {
+    if (mLastPreviewUpdateRequest > mLastPreviewUpdate) {
       mLastPreviewUpdate = std::chrono::high_resolution_clock::now();
       {
-        std::lock_guard<std::mutex> lock(mPreviewMutex);    // Lock the mutex
-        if(mPreviewDialogs.contains(0)) {
+        std::lock_guard<std::mutex> lock(mPreviewMutex); // Lock the mutex
+        if (mPreviewDialogs.contains(0)) {
           refreshPreview(mPreviewDialogs[0]);
         }
       }
@@ -159,95 +159,114 @@ void PanelChannelController::refreshPreviewThread()
 /// \param[out]
 /// \return
 ///
-void PanelChannelController::refreshPreview(std::shared_ptr<DialogImageController> dialog)
-{
+void PanelChannelController::refreshPreview(
+    std::shared_ptr<DialogImageController> dialog) {
   try {
     dialog->startProgress(2000);
     settings::json::ChannelSettings chs;
     chs.loadConfigFromString(getValues().dump());
-    auto ret = mMainFrame->getController()->preview(chs, 0);
+    auto ret = mMainFrame->getController()->preview(chs, mPreviewImageIndex,
+                                                    mPreviewTileIndex);
     wxMemoryInputStream stream(ret.data.data(), ret.data.size());
     wxImage image;
-    if(!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
+    if (!image.LoadFile(stream, wxBITMAP_TYPE_PNG)) {
       wxLogError("Failed to load PNG image from bytes.");
     } else {
-      int64_t valid   = 0;
+      int64_t valid = 0;
       int64_t inValid = 0;
 
-      for(const auto &roi : ret.detectionResult) {
-        if(roi.isValid()) {
+      for (const auto &roi : ret.detectionResult) {
+        if (roi.isValid()) {
           valid++;
         } else {
           inValid++;
         }
       }
 
-      dialog->updateImage(image, {.valid = valid, .invalid = inValid});
+      dialog->updateImage(image, ret.imageFileName,
+                          {.valid = valid, .invalid = inValid});
     }
-  } catch(const std::exception &ex) {
+  } catch (const std::exception &ex) {
     // showErrorDialog(ex.what());
   }
 }
 
 ///
-/// \brief      Initializes the UI elements with the values from the channel settings
-/// \author     Joachim Danmayr
-/// \param[in]  channelSettings  Channel settings
+/// \brief      Initializes the UI elements with the values from the channel
+/// settings \author     Joachim Danmayr \param[in]  channelSettings  Channel
+/// settings
 ///
-void PanelChannelController::loadValues(const joda::settings::json::ChannelSettings &channelSettings)
-{
+void PanelChannelController::loadValues(
+    const joda::settings::json::ChannelSettings &channelSettings) {
   // Channel Info
-  mChoiceChannelIndex->SetSelection(channelSettings.getChannelInfo().getChannelIndex());
-  mMainFrame->mChoiceSeries->SetSelection(channelSettings.getChannelInfo().getChannelSeries());
-  mChoiceChannelType->SetSelection(typeToIndex(channelSettings.getChannelInfo().getTypeString()));
+  mChoiceChannelIndex->SetSelection(
+      channelSettings.getChannelInfo().getChannelIndex());
+  mMainFrame->mChoiceSeries->SetSelection(
+      channelSettings.getChannelInfo().getChannelSeries());
+  mChoiceChannelType->SetSelection(
+      typeToIndex(channelSettings.getChannelInfo().getTypeString()));
   mTextChannelName->SetValue(channelSettings.getChannelInfo().getName());
 
   // Preprocessing
-  for(const auto &prepro : channelSettings.getPreprocessingFunctions()) {
-    if(prepro.getZStack()) {
-      mChoiceZStack->SetSelection(zProjectionToIndex(prepro.getZStack()->value));
+  for (const auto &prepro : channelSettings.getPreprocessingFunctions()) {
+    if (prepro.getZStack()) {
+      mChoiceZStack->SetSelection(
+          zProjectionToIndex(prepro.getZStack()->value));
     }
-    if(prepro.getRollingBall()) {
+    if (prepro.getRollingBall()) {
       mSpinRollingBall->SetValue(prepro.getRollingBall()->value);
     }
-    if(prepro.getMarginCrop()) {
+    if (prepro.getMarginCrop()) {
       mSpinMarginCrop->SetValue(prepro.getMarginCrop()->value);
     }
-    if(prepro.getGaussianBlur()) {
-      mDropdownGausianBlur->SetSelection(
-          filterKernelToIndex(static_cast<int16_t>(prepro.getGaussianBlur()->kernel_size)));
-      mDropDownGausianBlurRepeat->SetSelection(prepro.getGaussianBlur()->repeat - 1);
+    if (prepro.getGaussianBlur()) {
+      mDropdownGausianBlur->SetSelection(filterKernelToIndex(
+          static_cast<int16_t>(prepro.getGaussianBlur()->kernel_size)));
+      mDropDownGausianBlurRepeat->SetSelection(
+          prepro.getGaussianBlur()->repeat - 1);
     }
-    if(prepro.getSmoothing()) {
+    if (prepro.getSmoothing()) {
       mDropDownSmoothingRepeat->SetSelection(prepro.getSmoothing()->repeat);
     }
-    if(prepro.getMedianBgSubtraction()) {
+    if (prepro.getMedianBgSubtraction()) {
       mChoiceMedianBGSubtract->SetSelection(1);
     }
-    if(prepro.getSubtractChannel()) {
-      mChoiceBGSubtraction->SetSelection(prepro.getSubtractChannel()->channel_index + 1);
+    if (prepro.getSubtractChannel()) {
+      mChoiceBGSubtraction->SetSelection(
+          prepro.getSubtractChannel()->channel_index + 1);
     }
-    if(prepro.getEdgeDetection()) {
-      mDropdownEdgeDetection->SetSelection(edgeDetectionAlgorithmToIndex(prepro.getEdgeDetection()->value));
-      mDropdownEdgeDetectionDirection->SetSelection(directionToIndex(prepro.getEdgeDetection()->direction));
+    if (prepro.getEdgeDetection()) {
+      mDropdownEdgeDetection->SetSelection(
+          edgeDetectionAlgorithmToIndex(prepro.getEdgeDetection()->value));
+      mDropdownEdgeDetectionDirection->SetSelection(
+          directionToIndex(prepro.getEdgeDetection()->direction));
     }
   }
 
   // Detection
-  mCheckUseAI->SetValue(settings::json::ChannelDetection::DetectionMode::AI ==
-                        channelSettings.getDetectionSettings().getDetectionMode());
+  mCheckUseAI->SetValue(
+      settings::json::ChannelDetection::DetectionMode::AI ==
+      channelSettings.getDetectionSettings().getDetectionMode());
   mChoiceThresholdMethod->SetSelection(
-      thresholdToIndex(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdString()));
-  mSpinMinThreshold->SetValue(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdMinError());
+      thresholdToIndex(channelSettings.getDetectionSettings()
+                           .getThersholdSettings()
+                           .getThresholdString()));
+  mSpinMinThreshold->SetValue(channelSettings.getDetectionSettings()
+                                  .getThersholdSettings()
+                                  .getThresholdMinError());
 
   // Filtering
-  mSpinMinCircularity->SetValue(channelSettings.getFilter().getMinCircularity());
-  std::string range =
-      particleSizeFilterSoString(static_cast<uint64_t>(channelSettings.getFilter().getMinParticleSize())) + "-" +
-      particleSizeFilterSoString(static_cast<uint64_t>(channelSettings.getFilter().getMaxParticleSize()));
+  mSpinMinCircularity->SetValue(
+      channelSettings.getFilter().getMinCircularity());
+  std::string range = particleSizeFilterSoString(static_cast<uint64_t>(
+                          channelSettings.getFilter().getMinParticleSize())) +
+                      "-" +
+                      particleSizeFilterSoString(static_cast<uint64_t>(
+                          channelSettings.getFilter().getMaxParticleSize()));
   mTextParticleSizeRange->SetValue(range);
   mSpinSnapArea->SetValue(channelSettings.getFilter().getSnapAreaSize());
-  mChoiceReferenceSpotChannel->SetSelection(channelSettings.getFilter().getReferenceSpotChannelIndex() + 1);
+  mChoiceReferenceSpotChannel->SetSelection(
+      channelSettings.getFilter().getReferenceSpotChannelIndex() + 1);
 
   wxCommandEvent a;
   onChannelTypeChanged(a);
@@ -259,50 +278,65 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
 /// \author       Joachim Danmayr
 /// \return       JSON object of the settings made in the channel UI
 ///
-nlohmann::json PanelChannelController::getValues()
-{
+nlohmann::json PanelChannelController::getValues() {
   nlohmann::json chSettings;
 
-  chSettings["info"]["index"]  = mChoiceChannelIndex->GetSelection();
+  chSettings["info"]["index"] = mChoiceChannelIndex->GetSelection();
   chSettings["info"]["series"] = mMainFrame->mChoiceSeries->GetSelection();
-  chSettings["info"]["type"]   = indexToType(mChoiceChannelType->GetSelection());
-  chSettings["info"]["label"]  = "";
-  chSettings["info"]["name"]   = mTextChannelName->GetValue();
+  chSettings["info"]["type"] = indexToType(mChoiceChannelType->GetSelection());
+  chSettings["info"]["label"] = "";
+  chSettings["info"]["name"] = mTextChannelName->GetValue();
 
   // Preprocessing
-  nlohmann::json jsonArray = nlohmann::json::array();    // Initialize an empty JSON array
-  jsonArray.push_back({{"z_stack", {{"value", indexToZProjection(mChoiceZStack->GetSelection())}}}});
-  if(mSpinMarginCrop->GetValue() > 0) {
-    jsonArray.push_back({{"margin_crop", {{"value", static_cast<int>(mSpinMarginCrop->GetValue())}}}});
+  nlohmann::json jsonArray =
+      nlohmann::json::array(); // Initialize an empty JSON array
+  jsonArray.push_back(
+      {{"z_stack",
+        {{"value", indexToZProjection(mChoiceZStack->GetSelection())}}}});
+  if (mSpinMarginCrop->GetValue() > 0) {
+    jsonArray.push_back(
+        {{"margin_crop",
+          {{"value", static_cast<int>(mSpinMarginCrop->GetValue())}}}});
   }
-  if(mDropdownEdgeDetection->GetSelection() > 0) {
-    jsonArray.push_back({{"edge_detection",
-                          {{"value", indexToEdgeDetectionAlgorithm(mDropdownEdgeDetection->GetSelection())},
-                           {"direction", indexToDirection(mDropdownEdgeDetectionDirection->GetSelection())}}}});
+  if (mDropdownEdgeDetection->GetSelection() > 0) {
+    jsonArray.push_back(
+        {{"edge_detection",
+          {{"value", indexToEdgeDetectionAlgorithm(
+                         mDropdownEdgeDetection->GetSelection())},
+           {"direction", indexToDirection(mDropdownEdgeDetectionDirection
+                                              ->GetSelection())}}}});
   }
 
-  if(mSpinRollingBall->GetValue() > 0) {
-    jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mSpinRollingBall->GetValue())}}}});
+  if (mSpinRollingBall->GetValue() > 0) {
+    jsonArray.push_back(
+        {{"rolling_ball",
+          {{"value", static_cast<int>(mSpinRollingBall->GetValue())}}}});
   }
-  if(mDropdownGausianBlur->GetSelection() > 0) {
-    jsonArray.push_back({{"gaussian_blur",
-                          {{"kernel_size", indexToFilterKernel(mDropdownGausianBlur->GetSelection())},
-                           {"repeat", mDropDownGausianBlurRepeat->GetSelection() + 1}}}});
+  if (mDropdownGausianBlur->GetSelection() > 0) {
+    jsonArray.push_back(
+        {{"gaussian_blur",
+          {{"kernel_size",
+            indexToFilterKernel(mDropdownGausianBlur->GetSelection())},
+           {"repeat", mDropDownGausianBlurRepeat->GetSelection() + 1}}}});
   }
-  if(mDropDownSmoothingRepeat->GetSelection() > 0) {
-    jsonArray.push_back({{"smoothing", {{"repeat", mDropDownSmoothingRepeat->GetSelection()}}}});
+  if (mDropDownSmoothingRepeat->GetSelection() > 0) {
+    jsonArray.push_back(
+        {{"smoothing",
+          {{"repeat", mDropDownSmoothingRepeat->GetSelection()}}}});
   }
-  if(mChoiceMedianBGSubtract->GetSelection() > 0) {
+  if (mChoiceMedianBGSubtract->GetSelection() > 0) {
     jsonArray.push_back({{"median_bg_subtraction", {{"kernel_size", 3}}}});
   }
-  if(mChoiceBGSubtraction->GetSelection() > 0) {
-    jsonArray.push_back({{"subtract_channel", {{"channel_index", mChoiceBGSubtraction->GetSelection() - 1}}}});
+  if (mChoiceBGSubtraction->GetSelection() > 0) {
+    jsonArray.push_back(
+        {{"subtract_channel",
+          {{"channel_index", mChoiceBGSubtraction->GetSelection() - 1}}}});
   }
 
   chSettings["preprocessing"] = jsonArray;
 
   // Detections
-  if(mCheckUseAI->IsChecked()) {
+  if (mCheckUseAI->IsChecked()) {
     chSettings["detection"]["mode"] = "AI";
   } else {
     chSettings["detection"]["mode"] = "THRESHOLD";
@@ -310,105 +344,99 @@ nlohmann::json PanelChannelController::getValues()
 
   chSettings["detection"]["threshold"]["threshold_algorithm"] =
       indexToThreshold(mChoiceThresholdMethod->GetSelection());
-  chSettings["detection"]["threshold"]["threshold_min"] = static_cast<int>(mSpinMinThreshold->GetValue());
+  chSettings["detection"]["threshold"]["threshold_min"] =
+      static_cast<int>(mSpinMinThreshold->GetValue());
   chSettings["detection"]["threshold"]["threshold_max"] = UINT16_MAX;
 
-  chSettings["detection"]["ai"]["model_name"]      = "AI_MODEL_COMMON_V1";
+  chSettings["detection"]["ai"]["model_name"] = "AI_MODEL_COMMON_V1";
   chSettings["detection"]["ai"]["probability_min"] = 0.8;
 
   // Filtering
   try {
-    auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
+    auto [min, max] = splitAndConvert(
+        mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
     chSettings["filter"]["min_particle_size"] = min;
     chSettings["filter"]["max_particle_size"] = max;
-  } catch(const std::exception &) {
+  } catch (const std::exception &) {
     // Invalid input number format
     chSettings["filter"]["min_particle_size"] = 0;
     chSettings["filter"]["max_particle_size"] = 0;
   }
 
-  chSettings["filter"]["min_circularity"]              = mSpinMinCircularity->GetValue();
-  chSettings["filter"]["snap_area_size"]               = mSpinSnapArea->GetValue();
-  chSettings["filter"]["reference_spot_channel_index"] = mChoiceReferenceSpotChannel->GetSelection() - 1;
+  chSettings["filter"]["min_circularity"] = mSpinMinCircularity->GetValue();
+  chSettings["filter"]["snap_area_size"] = mSpinSnapArea->GetValue();
+  chSettings["filter"]["reference_spot_channel_index"] =
+      mChoiceReferenceSpotChannel->GetSelection() - 1;
 
   return chSettings;
 }
 
-auto PanelChannelController::indexToType(int idx) -> std::string
-{
+auto PanelChannelController::indexToType(int idx) -> std::string {
   return CHANNEL_TYPES[idx];
 }
 
-auto PanelChannelController::typeToIndex(const std::string &str) -> int
-{
+auto PanelChannelController::typeToIndex(const std::string &str) -> int {
   return CHANNEL_TYPES[str];
 }
 
-auto PanelChannelController::indexToZProjection(int idx) -> std::string
-{
+auto PanelChannelController::indexToZProjection(int idx) -> std::string {
   return Z_STACK_PROJECTION[idx];
 }
 
-auto PanelChannelController::zProjectionToIndex(const std::string &str) -> int
-{
+auto PanelChannelController::zProjectionToIndex(const std::string &str) -> int {
   return Z_STACK_PROJECTION[str];
 }
 
-auto PanelChannelController::indexToThreshold(int idx) -> std::string
-{
+auto PanelChannelController::indexToThreshold(int idx) -> std::string {
   return THRESHOLD_METHOD[idx];
 }
 
-auto PanelChannelController::thresholdToIndex(const std::string &str) -> int
-{
+auto PanelChannelController::thresholdToIndex(const std::string &str) -> int {
   return THRESHOLD_METHOD[str];
 }
 
-auto PanelChannelController::indexToFilterKernel(int idx) -> int16_t
-{
+auto PanelChannelController::indexToFilterKernel(int idx) -> int16_t {
   return GAUSSIAN_BLUR[idx];
 }
-auto PanelChannelController::filterKernelToIndex(int16_t kernel) -> int
-{
+auto PanelChannelController::filterKernelToIndex(int16_t kernel) -> int {
   return GAUSSIAN_BLUR[kernel];
 }
 
-auto PanelChannelController::indexToEdgeDetectionAlgorithm(int idx) -> std::string
-{
+auto PanelChannelController::indexToEdgeDetectionAlgorithm(int idx)
+    -> std::string {
   return EDGE_DETECTION_ALGORITHM[idx];
 }
-auto PanelChannelController::edgeDetectionAlgorithmToIndex(const std::string &str) -> int
-{
+auto PanelChannelController::edgeDetectionAlgorithmToIndex(
+    const std::string &str) -> int {
   return EDGE_DETECTION_ALGORITHM[str];
 }
 
-auto PanelChannelController::indexToDirection(int idx) -> std::string
-{
+auto PanelChannelController::indexToDirection(int idx) -> std::string {
   return EDGE_DETECTION_DIRECTION[idx];
 }
-auto PanelChannelController::directionToIndex(const std::string &str) -> int
-{
+auto PanelChannelController::directionToIndex(const std::string &str) -> int {
   return EDGE_DETECTION_DIRECTION[str];
 }
 
-auto PanelChannelController::splitAndConvert(const std::string &input, char delimiter) -> std::tuple<int, int>
-{
+auto PanelChannelController::splitAndConvert(const std::string &input,
+                                             char delimiter)
+    -> std::tuple<int, int> {
   std::istringstream ss(input);
   std::string token;
   std::vector<std::string> tokens;
 
-  while(std::getline(ss, token, delimiter)) {
+  while (std::getline(ss, token, delimiter)) {
     tokens.push_back(token);
   }
   int num1 = 0;
   int num2 = 0;
-  if(tokens.size() == 2) {
-    if(tokens[0] == "Inf.") {
+  if (tokens.size() == 2) {
+    if (tokens[0] == "Inf.") {
       num1 = INT32_MAX;
     } else {
       num1 = std::stoi(tokens[0]);
     }
-    if(tokens[1] == "Inf.") {
+    if (tokens[1] == "Inf.") {
       num2 = INT32_MAX;
     } else {
       num2 = std::stoi(tokens[1]);
@@ -417,7 +445,7 @@ auto PanelChannelController::splitAndConvert(const std::string &input, char deli
   } else {
     // Handle incorrect format
     std::cerr << "Incorrect format." << std::endl;
-    num1 = num2 = 0;    // Or any other appropriate action
+    num1 = num2 = 0; // Or any other appropriate action
   }
 
   return {num1, num2};
@@ -428,9 +456,8 @@ auto PanelChannelController::splitAndConvert(const std::string &input, char deli
 ///             Make reference spot panel invisible if not a spot channel
 /// \author     Joachim Danmayr
 ///
-void PanelChannelController::onChannelTypeChanged(wxCommandEvent &event)
-{
-  if(mChoiceChannelType->GetSelection() != 0) {
+void PanelChannelController::onChannelTypeChanged(wxCommandEvent &event) {
+  if (mChoiceChannelType->GetSelection() != 0) {
     panelReferenceChannel->Enable(false);
   } else {
     panelReferenceChannel->Enable(true);
@@ -442,9 +469,8 @@ void PanelChannelController::onChannelTypeChanged(wxCommandEvent &event)
 /// \brief      Disable threshold if AI is clicked
 /// \author     Joachim Danmayr
 ///
-void PanelChannelController::onAiCheckBox(wxCommandEvent &event)
-{
-  if(mCheckUseAI->GetValue()) {
+void PanelChannelController::onAiCheckBox(wxCommandEvent &event) {
+  if (mCheckUseAI->GetValue()) {
     panelThresholdMethod->Enable(false);
     panelMinThreshold->Enable(false);
   } else {
@@ -458,8 +484,8 @@ void PanelChannelController::onAiCheckBox(wxCommandEvent &event)
 /// \brief      Min threshold changed
 /// \author     Joachim Danmayr
 ///
-void PanelChannelController::onCollapsibleChanged(wxCollapsiblePaneEvent &event)
-{
+void PanelChannelController::onCollapsibleChanged(
+    wxCollapsiblePaneEvent &event) {
   // mScrolledChannel->SetMinSize({250, 800});
   Layout();
 }
@@ -468,73 +494,81 @@ void PanelChannelController::onCollapsibleChanged(wxCollapsiblePaneEvent &event)
 /// \brief      Min threshold changed
 /// \author     Joachim Danmayr
 ///
-void PanelChannelController::onMinThresholdChanged(wxSpinEvent &event)
-{
+void PanelChannelController::onMinThresholdChanged(wxSpinEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onChannelIndexChanged(wxCommandEvent &event)
-{
+void PanelChannelController::onChannelIndexChanged(wxCommandEvent &event) {
   updatePreview();
 }
 
-void PanelChannelController::onZStackSettingsChanged(wxCommandEvent &event)
-{
+void PanelChannelController::onZStackSettingsChanged(wxCommandEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onMarginCropChanged(wxSpinEvent &event)
-{
+void PanelChannelController::onMarginCropChanged(wxSpinEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onMedianBGSubtractChanged(wxCommandEvent &event)
-{
+void PanelChannelController::onMedianBGSubtractChanged(wxCommandEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onRollingBallChanged(wxSpinEvent &event)
-{
+void PanelChannelController::onRollingBallChanged(wxSpinEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onBgSubtractChanged(wxCommandEvent &event)
-{
+void PanelChannelController::onBgSubtractChanged(wxCommandEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onSmoothingChanged(wxCommandEvent &event)
-{
+void PanelChannelController::onSmoothingChanged(wxCommandEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onGausianBlurChanged(wxCommandEvent &event)
-{
+void PanelChannelController::onGausianBlurChanged(wxCommandEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onGausianBlurRepeatChanged(wxCommandEvent &event)
-{
+void PanelChannelController::onGausianBlurRepeatChanged(wxCommandEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onThresholdMethodChanged(wxCommandEvent &event)
-{
+void PanelChannelController::onThresholdMethodChanged(wxCommandEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onMinCircularityChanged(wxSpinDoubleEvent &event)
-{
+void PanelChannelController::onMinCircularityChanged(wxSpinDoubleEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onParticleSizeChanged(wxCommandEvent &event)
-{
+
+void PanelChannelController::onPrevImageClicked(wxCommandEvent &event) {
+  if (mPreviewImageIndex > 0) {
+    mPreviewImageIndex--;
+    updatePreview();
+  }
+}
+void PanelChannelController::onPrevTileClicked(wxCommandEvent &event) {
+  if (mPreviewTileIndex > 0) {
+    mPreviewTileIndex--;
+    updatePreview();
+  }
+}
+void PanelChannelController::onNextTileClicked(wxCommandEvent &event) {
+  mPreviewTileIndex++;
+  updatePreview();
+}
+void PanelChannelController::onNextImageClicked(wxCommandEvent &event) {
+  mPreviewImageIndex++;
+  updatePreview();
+}
+
+void PanelChannelController::onParticleSizeChanged(wxCommandEvent &event) {
   try {
-    auto [min, max]         = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
+    auto [min, max] = splitAndConvert(
+        mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
     wxColour defaultBgColor = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     mTextParticleSizeRange->SetBackgroundColour(defaultBgColor);
     updatePreview();
-  } catch(const std::exception &) {
+  } catch (const std::exception &) {
     // Invalid input number format
     mTextParticleSizeRange->SetBackgroundColour(wxColour(255, 0, 0));
   }
 }
-void PanelChannelController::onSnapAreaChanged(wxSpinEvent &event)
-{
+void PanelChannelController::onSnapAreaChanged(wxSpinEvent &event) {
   updatePreview();
 }
-void PanelChannelController::onSpotRemovalChanged(wxCommandEvent &event)
-{
+void PanelChannelController::onSpotRemovalChanged(wxCommandEvent &event) {
   updatePreview();
 }
 
@@ -545,8 +579,7 @@ void PanelChannelController::onSpotRemovalChanged(wxCommandEvent &event)
 /// \param[out]
 /// \return
 ///
-void PanelChannelController::showErrorDialog(const std::string &what)
-{
+void PanelChannelController::showErrorDialog(const std::string &what) {
   wxMessageBox(what, "Error", wxOK | wxICON_ERROR, this);
 }
 
@@ -557,9 +590,9 @@ void PanelChannelController::showErrorDialog(const std::string &what)
 /// \param[out]
 /// \return
 ///
-std::string PanelChannelController::particleSizeFilterSoString(uint64_t number)
-{
-  if(number >= INT32_MAX) {
+std::string
+PanelChannelController::particleSizeFilterSoString(uint64_t number) {
+  if (number >= INT32_MAX) {
     return "Inf.";
   }
   return std::to_string(number);
@@ -572,20 +605,22 @@ std::string PanelChannelController::particleSizeFilterSoString(uint64_t number)
 /// \param[out]
 /// \return
 ///
-void PanelChannelController::OnPaint(wxPaintEvent &event)
-{
+void PanelChannelController::OnPaint(wxPaintEvent &event) {
   wxPaintDC dc(this);
   // Set the pen color and width for the border
-  wxPen borderPen(wxSystemSettings::GetColour(wxSYS_COLOUR_MENU), 2, wxPENSTYLE_SOLID);
+  wxPen borderPen(wxSystemSettings::GetColour(wxSYS_COLOUR_MENU), 2,
+                  wxPENSTYLE_SOLID);
   dc.SetPen(borderPen);
 
   // Set the brush color for the panel background
   // 241, 240, 238
-  wxBrush backgroundBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_MENU), wxBRUSHSTYLE_SOLID);
+  wxBrush backgroundBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_MENU),
+                          wxBRUSHSTYLE_SOLID);
   dc.SetBrush(backgroundBrush);
 
   // Draw the rounded rectangle
-  dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), 18);
+  dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(),
+                          18);
 }
 
-}    // namespace joda::ui::wxwidget
+} // namespace joda::ui::wxwidget

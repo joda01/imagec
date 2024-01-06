@@ -241,7 +241,11 @@ namespace joda
 					wxChoice* mChoiceReferenceSpotChannel;
 					wxStaticText* mLabelTetraspeckChannel;
 					wxPanel* mPanelFooter;
+					wxButton* mButtonPrev;
+					wxButton* mPrevTile;
 					wxButton* mButtonPreview1;
+					wxButton* mNextTile;
+					wxButton* mButtonNext;
 
 					// Virtual event handlers, override them in your derived class
 					virtual void onRemoveClicked( wxCommandEvent& event ) { event.Skip(); }
@@ -263,7 +267,11 @@ namespace joda
 					virtual void onParticleSizeChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onSnapAreaChanged( wxSpinEvent& event ) { event.Skip(); }
 					virtual void onSpotRemovalChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onPrevImageClicked( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onPrevTileClicked( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onPreviewClicked( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onNextTileClicked( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onNextImageClicked( wxCommandEvent& event ) { event.Skip(); }
 
 
 				public:
@@ -369,11 +377,12 @@ namespace joda
 				protected:
 					wxBoxSizer* mSizer;
 					wxGauge* mImageDisplayProgress;
-					wxToolBar* m_toolBar3;
+					wxToolBar* mToolbar;
 					wxStaticBitmap* m_bitmap24;
 					wxStaticText* mValidSpots;
 					wxStaticBitmap* m_bitmap22;
 					wxStaticText* mInvalidSpots;
+					wxStaticText* mImagePath;
 
 				public:
 

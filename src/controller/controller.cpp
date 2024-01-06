@@ -12,35 +12,35 @@
 ///
 
 #include "controller.hpp"
-#include <algorithm>
-#include <map>
-#include <ranges>
 #include "backend/helper/file_info.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/processor/channel_processor.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 #include "backend/settings/channel_settings.hpp"
+#include <algorithm>
+#include <map>
+#include <ranges>
 
 namespace joda::ctrl {
 
-Controller::Controller()
-{
-}
+Controller::Controller() {}
 
 ///
 /// \brief      Start a new process
 /// \author     Joachim Danmayr
 ///
-void Controller::start(const settings::json::AnalyzeSettings &settings,
-                       const pipeline::Pipeline::ThreadingSettings &threadSettings)
-{
+void Controller::start(
+    const settings::json::AnalyzeSettings &settings,
+    const pipeline::Pipeline::ThreadingSettings &threadSettings) {
   try {
-    mActProcessId = joda::pipeline::PipelineFactory::startNewJob(settings, mWorkingDirectory.getWorkingDirectory(),
-                                                                 &mWorkingDirectory, threadSettings);
+    mActProcessId = joda::pipeline::PipelineFactory::startNewJob(
+        settings, mWorkingDirectory.getWorkingDirectory(), &mWorkingDirectory,
+        threadSettings);
     joda::log::logInfo("Analyze started!");
-  } catch(const std::exception &ex) {
-    joda::log::logWarning("Analyze could not be started! Got " + std::string(ex.what()) + ".");
+  } catch (const std::exception &ex) {
+    joda::log::logWarning("Analyze could not be started! Got " +
+                          std::string(ex.what()) + ".");
   }
 }
 
@@ -48,8 +48,7 @@ void Controller::start(const settings::json::AnalyzeSettings &settings,
 /// \brief      Stop a running process
 /// \author     Joachim Danmayr
 ///
-void Controller::stop()
-{
+void Controller::stop() {
   joda::pipeline::PipelineFactory::stopJob(mActProcessId);
 }
 
@@ -57,18 +56,15 @@ void Controller::stop()
 /// \brief      Stop a running process
 /// \author     Joachim Danmayr
 ///
-void Controller::reset()
-{
-  joda::pipeline::PipelineFactory::reset();
-}
+void Controller::reset() { joda::pipeline::PipelineFactory::reset(); }
 
 ///
 /// \brief      Returns process state
 /// \author     Joachim Danmayr
 ///
-std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string>
-Controller::getState()
-{
+std::tuple<joda::pipeline::Pipeline::ProgressIndicator,
+           joda::pipeline::Pipeline::State, std::string>
+Controller::getState() {
   return joda::pipeline::PipelineFactory::getState(mActProcessId);
 }
 
@@ -76,16 +72,13 @@ Controller::getState()
 /// \brief      Get actual settings
 /// \author     Joachim Danmayr
 ///
-void Controller::getSettings()
-{
-}
+void Controller::getSettings() {}
 
 ///
 /// \brief      Sets the working directory
 /// \author     Joachim Danmayr
 ///
-void Controller::setWorkingDirectory(const std::string &dir)
-{
+void Controller::setWorkingDirectory(const std::string &dir) {
   mWorkingDirectory.setWorkingDirectory(dir);
 }
 
@@ -93,8 +86,7 @@ void Controller::setWorkingDirectory(const std::string &dir)
 /// \brief      Sets the working directory
 /// \author     Joachim Danmayr
 ///
-auto Controller::getNrOfFoundImages() -> uint32_t
-{
+auto Controller::getNrOfFoundImages() -> uint32_t {
   return mWorkingDirectory.getNrOfFiles();
 }
 
@@ -102,45 +94,49 @@ auto Controller::getNrOfFoundImages() -> uint32_t
 /// \brief      Returns preview
 /// \author     Joachim Danmayr
 ///
-auto Controller::preview(const settings::json::ChannelSettings &settings, int imgIndex) -> Preview
-{
-  // To also preview tetraspeck removal we must first process the reference spot channels
-  // This is a little bit more complicated therefor not supported yet
+auto Controller::preview(const settings::json::ChannelSettings &settings,
+                         int imgIndex, int tileIndex) -> Preview {
+  // To also preview tetraspeck removal we must first process the reference spot
+  // channels This is a little bit more complicated therefor not supported yet
 
   // Now we can process the original channel
-  auto result = joda::algo::ChannelProcessor::processChannel(settings, mWorkingDirectory.getFileAt(imgIndex), 0);
+  auto imageFileName = mWorkingDirectory.getFileAt(imgIndex);
+  auto result = joda::algo::ChannelProcessor::processChannel(
+      settings, imageFileName, tileIndex);
   std::vector<uchar> buffer;
   std::vector<int> compression_params;
   compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
   compression_params.push_back(0);
-  cv::imencode(".png", result.controlImage, buffer, compression_params);    // Assuming you want to encode as JPEG
+  cv::imencode(".png", result.controlImage, buffer,
+               compression_params); // Assuming you want to encode as JPEG
 
-  return {.data            = buffer,
-          .height          = result.controlImage.rows,
-          .width           = result.controlImage.cols,
-          .detectionResult = result.result};
+  return {.data = buffer,
+          .height = result.controlImage.rows,
+          .width = result.controlImage.cols,
+          .detectionResult = result.result,
+          .imageFileName = imageFileName};
 }
 
 ///
 /// \brief      Returns properties of given image
 /// \author     Joachim Danmayr
 ///
-auto Controller::getImageProperties(int imgIndex, int series) -> ImageProperties
-{
+auto Controller::getImageProperties(int imgIndex, int series)
+    -> ImageProperties {
   auto imagePath = mWorkingDirectory.getFileAt(imgIndex);
 
   ImageProperties props;
-  switch(imagePath.getDecoder()) {
-    case FileInfo::Decoder::JPG:
-      props = JpgLoader::getImageProperties(imagePath);
-      break;
-    case FileInfo::Decoder::TIFF:
-      props = TiffLoader::getImageProperties(imagePath, 0);
-      break;
-    case FileInfo::Decoder::BIOFORMATS:
-      auto [_, propIn] = BioformatsLoader::getOmeInformation(imagePath, series);
-      props            = propIn;
-      break;
+  switch (imagePath.getDecoder()) {
+  case FileInfo::Decoder::JPG:
+    props = JpgLoader::getImageProperties(imagePath);
+    break;
+  case FileInfo::Decoder::TIFF:
+    props = TiffLoader::getImageProperties(imagePath, 0);
+    break;
+  case FileInfo::Decoder::BIOFORMATS:
+    auto [_, propIn] = BioformatsLoader::getOmeInformation(imagePath, series);
+    props = propIn;
+    break;
   }
 
   return props;
@@ -150,46 +146,47 @@ auto Controller::getImageProperties(int imgIndex, int series) -> ImageProperties
 /// \brief      Returns properties of given image
 /// \author     Joachim Danmayr
 ///
-auto Controller::getSystemRescources() -> Resources
-{
-  return {.ramTotal     = system::getTotalSystemMemory(),
+auto Controller::getSystemResources() -> Resources {
+  return {.ramTotal = system::getTotalSystemMemory(),
           .ramAvailable = system::getAvailableSystemMemory(),
-          .cpus         = system::getNrOfCPUs()};
+          .cpus = system::getNrOfCPUs()};
 }
 
 ///
 /// \brief      Calc optimal number of threads
 /// \author     Joachim Danmayr
 ///
-auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex)
-    -> pipeline::Pipeline::ThreadingSettings
-{
+auto Controller::calcOptimalThreadNumber(
+    const settings::json::AnalyzeSettings &settings, int imgIndex)
+    -> pipeline::Pipeline::ThreadingSettings {
   pipeline::Pipeline::ThreadingSettings threads;
   int series = 0;
 
-  if(!settings.getChannelsVector().empty()) {
-    series = settings.getChannelsVector()[0].getChannelInfo().getChannelSeries();
+  if (!settings.getChannelsVector().empty()) {
+    series =
+        settings.getChannelsVector()[0].getChannelInfo().getChannelSeries();
   }
 
-  auto props        = getImageProperties(imgIndex, series);
-  int64_t imgNr     = mWorkingDirectory.getNrOfFiles();
-  int64_t tileNr    = 1;
+  auto props = getImageProperties(imgIndex, series);
+  int64_t imgNr = mWorkingDirectory.getNrOfFiles();
+  int64_t tileNr = 1;
   int64_t channelNr = settings.getChannels().size();
 
-  auto systemRecources = getSystemRescources();
-  if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-    tileNr              = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
+  auto systemRecources = getSystemResources();
+  if (props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    tileNr = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
     threads.ramPerImage = props.tileSize * joda::algo::TILES_TO_LOAD_PER_RUN;
   } else {
     threads.ramPerImage = props.imageSize;
   }
-  threads.ramFree        = systemRecources.ramAvailable;
-  threads.ramTotal       = systemRecources.ramTotal;
+  threads.ramFree = systemRecources.ramAvailable;
+  threads.ramTotal = systemRecources.ramTotal;
   threads.coresAvailable = systemRecources.cpus;
 
   // No multi threading when AI is used, sinze AI is still using all cPUs
   // for(const auto &ch : settings.getChannelsVector()) {
-  //  if(ch.getDetectionSettings().getDetectionMode() == settings::json::ChannelDetection::DetectionMode::AI) {
+  //  if(ch.getDetectionSettings().getDetectionMode() ==
+  //  settings::json::ChannelDetection::DetectionMode::AI) {
   //    // return threads;
   //  }
   //}
@@ -197,28 +194,30 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
   // Maximum number of cores depends on the available RAM.
   int32_t maxNumberOfCoresToAssign =
       std::min(static_cast<uint64_t>(systemRecources.cpus),
-               static_cast<uint64_t>(systemRecources.ramAvailable / threads.ramPerImage));
-  if(maxNumberOfCoresToAssign <= 0) {
+               static_cast<uint64_t>(systemRecources.ramAvailable /
+                                     threads.ramPerImage));
+  if (maxNumberOfCoresToAssign <= 0) {
     maxNumberOfCoresToAssign = 1;
   }
-  if(maxNumberOfCoresToAssign > 1 && maxNumberOfCoresToAssign == systemRecources.cpus) {
+  if (maxNumberOfCoresToAssign > 1 &&
+      maxNumberOfCoresToAssign == systemRecources.cpus) {
     // Don't use all CPU cores if there are more than 1
     maxNumberOfCoresToAssign--;
   }
 
-  threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES]   = imgNr;
-  threads.cores[pipeline::Pipeline::ThreadingSettings::TILES]    = tileNr;
+  threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES] = imgNr;
+  threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] = tileNr;
   threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] = channelNr;
 
   uint64_t nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
-  while(nr > maxNumberOfCoresToAssign) {
+  while (nr > maxNumberOfCoresToAssign) {
     threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS]--;
     nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
   }
 
   nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
        threads.cores[pipeline::Pipeline::ThreadingSettings::TILES];
-  while(nr > maxNumberOfCoresToAssign) {
+  while (nr > maxNumberOfCoresToAssign) {
     threads.cores[pipeline::Pipeline::ThreadingSettings::TILES]--;
     nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
          threads.cores[pipeline::Pipeline::ThreadingSettings::TILES];
@@ -227,7 +226,7 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
   nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
        threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
        threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES];
-  while(nr > maxNumberOfCoresToAssign) {
+  while (nr > maxNumberOfCoresToAssign) {
     threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES]--;
     nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
          threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
@@ -239,4 +238,4 @@ auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &
   return threads;
 }
 
-}    // namespace joda::ctrl
+} // namespace joda::ctrl
