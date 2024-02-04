@@ -34,37 +34,20 @@ RUN wget https://github.com/Kitware/CMake/archive/refs/tags/v3.25.2.tar.gz -O cm
     cd .. && \
     rm -rf CMake*
 
-RUN apt-get update && apt-get install -y pkg-config git
-
-
-RUN git clone -b 4.7.0 https://github.com/opencv/opencv.git
-RUN cd ./opencv &&\
-    mkdir build &&\
-    cd build &&\
-    cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local .. &&\
-    make -j4 &&\
-    make install
-
+RUN apt-get update && apt-get install -y pkg-config git default-jre google-mock libgmock-dev
 
 
 #
 # Catch2 unit test framework
 #
-RUN git clone --recursive -b v3.3.1 --depth 1 https://github.com/catchorg/Catch2.git /catch2 && \
+RUN git clone --recursive -b v3.3.1 --depth=1 https://github.com/catchorg/Catch2.git /catch2 && \
     cd /catch2 && \
     cmake -Bbuild -H. -DBUILD_TESTING=OFF && \
     cmake --build build/ --target install &&\
     cd / &&\
     rm -rf /catch2
 
-RUN apt install -y default-jre
 
-
-RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtiff &&\
-    cd libtiff && \
-    cmake -DBUILD_SHARED_LIBS=OFF . &&\
-    cmake --build . --config Release --target install &&\
-    cp -r libtiff/*.h  /usr/local/include
 
 
 #
@@ -77,7 +60,9 @@ RUN echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-15 main" >> 
     ln -s /usr/bin/clang-format-15 /usr/bin/clang-format
 
 
-
+#
+# JSON
+#
 RUN git clone --recursive -b v3.11.2 --depth 1 https://github.com/nlohmann/json.git /json && \
     cd /json &&\
     cmake -S ./ -DJSON_BuildTests=OFF  &&\
@@ -89,25 +74,9 @@ RUN git clone --recursive -b v3.11.2 --depth 1 https://github.com/nlohmann/json.
     rm -rf /json
 
 
-#
-# cpp-httplib
-#
-#RUN apt-get install -y autoconf
-#RUN git clone --recurse-submodules -b v0.12.2 --depth 1 https://github.com/yhirose/cpp-httplib.git && \
-#    cd cpp-httplib &&\
-#    cmake -S ./  &&\
-#    make &&\
-#    make install &&\
-#    checkinstall  --pkgname="cpp-httplib" --pkgversion="1.0.0" --pkgrelease="1" --install=no --nodoc -D && \
-#    cp /cpp-httplib/cpp-httplib_1.0.0-1_amd64.deb /cpp-httplib.deb  && \
-#    rm -rf /cpp-httplib
-
 RUN apt-get update && apt-get install -y libcurl4-openssl-dev
-
 RUN ldconfig
-
 RUN useradd $USERNAME
-
 ENV DEBIAN_FRONTEND=dialog
 
 
@@ -137,8 +106,39 @@ RUN cd wxWidgets &&\
 
 RUN apt-get update && apt-get install -y default-jdk
 
+
+#
+# protobuf
+#
+RUN git clone --recurse-submodules -b v25.2 --depth 1  https://github.com/protocolbuffers/protobuf.git
+RUN cd protobuf &&\
+    cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=17 -DABSL_PROPAGATE_CXX_STD=ON . &&\
+    cmake --build . --parallel 4 &&\
+    cmake --install .
+
 RUN ldconfig
 
+#
+# OPENCV
+#
+RUN git clone -b 4.9.0 --depth 1 https://github.com/opencv/opencv.git
+RUN cd ./opencv &&\
+    mkdir build &&\
+    cd build &&\
+    cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local .. &&\
+    make -j7 &&\
+    make install
+
+
+
+#
+# libtiff
+#
+RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtiff &&\
+    cd libtiff && \
+    cmake -DBUILD_SHARED_LIBS=OFF . &&\
+    cmake --build . --config Release --target install &&\
+    cp -r libtiff/*.h  /usr/local/include
 
 #FROM live as build
 #

@@ -28,6 +28,7 @@ jobs:
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-catch
             mingw-w64-x86_64-pugixml
+            mingw-w64-protobuf
             mingw-w64-x86_64-opencv
             mingw-w64-x86_64-nlohmann-json
             mingw-w64-x86_64-libtiff
@@ -61,7 +62,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-22.04
     container: 
-      image: joda001/imagec:v1.1.1
+      image: joda001/imagec:v1.2.0
 
     steps:
       - name: Checkout code

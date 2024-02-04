@@ -471,12 +471,19 @@ void PanelChannelController::onChannelTypeChanged(wxCommandEvent &event) {
 ///
 void PanelChannelController::onAiCheckBox(wxCommandEvent &event) {
   if (mCheckUseAI->GetValue()) {
-    panelThresholdMethod->Enable(false);
-    panelMinThreshold->Enable(false);
+    panelThresholdMethod->Hide();
+    panelMinThreshold->Hide();
+
+    panelAImodel->Show();
+    panelMinProbability->Show();
   } else {
-    panelThresholdMethod->Enable(true);
-    panelMinThreshold->Enable(true);
+    panelThresholdMethod->Show();
+    panelMinThreshold->Show();
+
+    panelAImodel->Hide();
+    panelMinProbability->Hide();
   }
+  Layout();
   updatePreview();
 }
 
@@ -529,6 +536,12 @@ void PanelChannelController::onThresholdMethodChanged(wxCommandEvent &event) {
   updatePreview();
 }
 void PanelChannelController::onMinCircularityChanged(wxSpinDoubleEvent &event) {
+  updatePreview();
+}
+void PanelChannelController::onAImodelChanged(wxCommandEvent &event) {
+  updatePreview();
+}
+void PanelChannelController::onAIMinProbabilityChanged(wxSpinEvent &event) {
   updatePreview();
 }
 

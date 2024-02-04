@@ -25,10 +25,12 @@
 #include "../../res/electrical_threshold_20.png.h"
 #include "../../res/formula_fx_20.png.h"
 #include "../../res/info_20.png.h"
+#include "../../res/keydb_20.png.h"
 #include "../../res/layers_20.png.h"
 #include "../../res/minus_20.png.h"
 #include "../../res/octagon_20.png.h"
 #include "../../res/opened_folder_20.png.h"
+#include "../../res/percent_20.png.h"
 #include "../../res/preview_20.png.h"
 #include "../../res/ram_20.png.h"
 #include "../../res/rectangle_20.png.h"
@@ -761,7 +763,7 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	sizerMinThreshold->Add( sizerMinThreshold2, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
 
-	mLabelMinThreshold = new wxStaticText( panelMinThreshold, wxID_ANY, _("Min. Threshold [0-65535)"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelMinThreshold = new wxStaticText( panelMinThreshold, wxID_ANY, _("Min. Threshold [0-65535]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	mLabelMinThreshold->Wrap( -1 );
 	mLabelMinThreshold->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
@@ -772,6 +774,71 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	panelMinThreshold->Layout();
 	sizerMinThreshold->Fit( panelMinThreshold );
 	mSizerDetection->Add( panelMinThreshold, 1, wxEXPAND|wxTOP, 5 );
+
+	panelAImodel = new wxPanel( mCollapsibleDetection->GetPane(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelAImodel->SetFont( wxFont( 9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+	panelAImodel->Hide();
+
+	wxBoxSizer* sizerAImodel;
+	sizerAImodel = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* sizerAImodel1;
+	sizerAImodel1 = new wxBoxSizer( wxHORIZONTAL );
+
+	iconAImodel = new wxStaticBitmap( panelAImodel, wxID_ANY, keydb_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerAImodel1->Add( iconAImodel, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+
+	wxString mChoiceAImodelChoices[] = { _("None") };
+	int mChoiceAImodelNChoices = sizeof( mChoiceAImodelChoices ) / sizeof( wxString );
+	mChoiceAImodel = new wxChoice( panelAImodel, wxID_ANY, wxDefaultPosition, wxDefaultSize, mChoiceAImodelNChoices, mChoiceAImodelChoices, 0 );
+	mChoiceAImodel->SetSelection( 0 );
+	sizerAImodel1->Add( mChoiceAImodel, 1, wxEXPAND, 5 );
+
+
+	sizerAImodel->Add( sizerAImodel1, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+
+	mLabelAImodel = new wxStaticText( panelAImodel, wxID_ANY, _("AI model"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelAImodel->Wrap( -1 );
+	mLabelAImodel->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
+	sizerAImodel->Add( mLabelAImodel, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+
+
+	panelAImodel->SetSizer( sizerAImodel );
+	panelAImodel->Layout();
+	sizerAImodel->Fit( panelAImodel );
+	mSizerDetection->Add( panelAImodel, 1, wxEXPAND|wxTOP, 5 );
+
+	panelMinProbability = new wxPanel( mCollapsibleDetection->GetPane(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME|wxTAB_TRAVERSAL );
+	panelMinProbability->SetFont( wxFont( 9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+	panelMinProbability->Hide();
+
+	wxBoxSizer* sizerMinProbability;
+	sizerMinProbability = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* sizerMinProbability1;
+	sizerMinProbability1 = new wxBoxSizer( wxHORIZONTAL );
+
+	iconMinProbability = new wxStaticBitmap( panelMinProbability, wxID_ANY, percent_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerMinProbability1->Add( iconMinProbability, 0, wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT, 5 );
+
+	mSpinMinProbability = new wxSpinCtrl( panelMinProbability, wxID_ANY, wxT("80"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 100, 80 );
+	sizerMinProbability1->Add( mSpinMinProbability, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
+
+
+	sizerMinProbability->Add( sizerMinProbability1, 0, wxEXPAND|wxRIGHT|wxTOP, 5 );
+
+	mLabelMinProbability = new wxStaticText( panelMinProbability, wxID_ANY, _("Min. Probability [0-100]"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	mLabelMinProbability->Wrap( -1 );
+	mLabelMinProbability->SetFont( wxFont( 8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
+	sizerMinProbability->Add( mLabelMinProbability, 0, wxALIGN_LEFT|wxALIGN_TOP|wxEXPAND|wxLEFT, 32 );
+
+
+	panelMinProbability->SetSizer( sizerMinProbability );
+	panelMinProbability->Layout();
+	sizerMinProbability->Fit( panelMinProbability );
+	mSizerDetection->Add( panelMinProbability, 1, wxEXPAND|wxTOP, 5 );
 
 
 	mCollapsibleDetection->GetPane()->SetSizer( mSizerDetection );
@@ -994,6 +1061,8 @@ PanelChannel::PanelChannel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	mCheckUseAI->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PanelChannel::onAiCheckBox ), NULL, this );
 	mChoiceThresholdMethod->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onThresholdMethodChanged ), NULL, this );
 	mSpinMinThreshold->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onMinThresholdChanged ), NULL, this );
+	mChoiceAImodel->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onAImodelChanged ), NULL, this );
+	mSpinMinProbability->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onAIMinProbabilityChanged ), NULL, this );
 	mCollapsibleFiltering->Connect( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEventHandler( PanelChannel::onCollapsibleChanged ), NULL, this );
 	mSpinMinCircularity->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( PanelChannel::onMinCircularityChanged ), NULL, this );
 	mTextParticleSizeRange->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PanelChannel::onParticleSizeChanged ), NULL, this );
@@ -1027,6 +1096,8 @@ PanelChannel::~PanelChannel()
 	mCheckUseAI->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PanelChannel::onAiCheckBox ), NULL, this );
 	mChoiceThresholdMethod->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onThresholdMethodChanged ), NULL, this );
 	mSpinMinThreshold->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onMinThresholdChanged ), NULL, this );
+	mChoiceAImodel->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( PanelChannel::onAImodelChanged ), NULL, this );
+	mSpinMinProbability->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( PanelChannel::onAIMinProbabilityChanged ), NULL, this );
 	mCollapsibleFiltering->Disconnect( wxEVT_COLLAPSIBLEPANE_CHANGED, wxCollapsiblePaneEventHandler( PanelChannel::onCollapsibleChanged ), NULL, this );
 	mSpinMinCircularity->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( PanelChannel::onMinCircularityChanged ), NULL, this );
 	mTextParticleSizeRange->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PanelChannel::onParticleSizeChanged ), NULL, this );

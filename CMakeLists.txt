@@ -46,8 +46,12 @@ find_package( PugiXML )
 find_package( OpenSSL  )
 find_package(JNI REQUIRED )
 find_package(Java COMPONENTS REQUIRED)
+find_package( protobuf CONFIG REQUIRED )
+
 
 include_directories(${JNI_INCLUDE_DIRS})
+
+#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS foo.proto)
 
 
 IF (WIN32)
@@ -89,6 +93,8 @@ IF (WIN32)
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
+    protobuf::gmock
+    ${Protobuf_LIBRARIES}
     pugixml
     jpeg
     TIFF
@@ -105,6 +111,8 @@ ELSE()
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
+    protobuf::gmock
+    ${Protobuf_LIBRARIES}
     pugixml
     tiff
     ${wxWidgets_LIBRARIES}
@@ -131,6 +139,7 @@ message("<--")
 IF (WIN32)
 file(GLOB_RECURSE SOURCES
   ./src/*.cpp
+  ./src/*.cc
   ./src/*.c
   /usr/local/include/libtiff/*.h
  ./src/wx.rc
@@ -138,6 +147,7 @@ file(GLOB_RECURSE SOURCES
 ELSE()
 file(GLOB_RECURSE SOURCES
   ./src/*.cpp
+  ./src/*.cc
   ./src/*.c
   /usr/local/include/libtiff/*.h
 )
@@ -177,6 +187,7 @@ set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
 
 file(GLOB_RECURSE TEST_SOURCES
   ./src/*.cpp
+  ./src/*.cc
   ./src/*.c
   ./test/*.cpp
 )

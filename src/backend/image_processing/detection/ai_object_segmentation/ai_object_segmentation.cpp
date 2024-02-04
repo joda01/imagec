@@ -51,14 +51,18 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFilter
 /// \brief      Post process the prediction.
 ///             YOLO produces an ouput array with following format
 ///             +-+-+-+-+----------+-------------+-------------+-------+--------------+---------------
-///             |x|y|w|h|confidence|class score 1|class score 2|.....  |class score n | masking ...
+///             |x|y|w|h|confidence|class score 1|class score 2|.....  |class
+///             score n | masking ...
 ///             +-+-+-+-+----------+-------------+-------------+-------+--------------+---------------
-///             The first two places are normalized center coordinates of the detected bounding box.
-///             Then comes the normalized width and height. Index 4 has the confidence score that tells the
-///             probability of the detection being an object. The following entries tell the class scores.
+///             The first two places are normalized center coordinates of the
+///             detected bounding box. Then comes the normalized width and
+///             height. Index 4 has the confidence score that tells the
+///             probability of the detection being an object. The following
+///             entries tell the class scores.
 ///
 /// \author     Joachim Danmayr
-/// \ref        https://learnopencv.com/object-detection-using-yolov5-and-opencv-dnn-in-c-and-python/
+/// \ref
+/// https://learnopencv.com/object-detection-using-yolov5-and-opencv-dnn-in-c-and-python/
 ///
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
@@ -106,7 +110,8 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
       for(int i = 0; i < grid_y; ++i) {
         for(int j = 0; j < grid_x; ++j) {
           float box_score = pdata[4];
-          ;    // Get the probability that an object is contained in the box of each row
+          ;    // Get the probability that an object is contained in the box of
+               // each row
           if(box_score >= BOX_THRESHOLD) {
             cv::Mat scores(1, mClassNames.size(), CV_32FC1, pdata + 5);
             Point classIdPoint;
@@ -134,7 +139,8 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
     }
   }
 
-  // Perform non-maximum suppression to remove redundant overlapping boxes with lower confidence
+  // Perform non-maximum suppression to remove redundant overlapping boxes with
+  // lower confidence
   vector<int> nms_result;
   NMSBoxes(boxes, confidences, NMS_SCORE_THRESHOLD, NMS_THRESHOLD, nms_result);
 

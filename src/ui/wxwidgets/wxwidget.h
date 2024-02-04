@@ -222,6 +222,14 @@ namespace joda
 					wxStaticBitmap* iconMinThreshold;
 					wxSpinCtrl* mSpinMinThreshold;
 					wxStaticText* mLabelMinThreshold;
+					wxPanel* panelAImodel;
+					wxStaticBitmap* iconAImodel;
+					wxChoice* mChoiceAImodel;
+					wxStaticText* mLabelAImodel;
+					wxPanel* panelMinProbability;
+					wxStaticBitmap* iconMinProbability;
+					wxSpinCtrl* mSpinMinProbability;
+					wxStaticText* mLabelMinProbability;
 					wxCollapsiblePane* mCollapsibleFiltering;
 					wxStaticLine* mLineFilter;
 					wxPanel* panelMinCircularity;
@@ -263,6 +271,8 @@ namespace joda
 					virtual void onAiCheckBox( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onThresholdMethodChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onMinThresholdChanged( wxSpinEvent& event ) { event.Skip(); }
+					virtual void onAImodelChanged( wxCommandEvent& event ) { event.Skip(); }
+					virtual void onAIMinProbabilityChanged( wxSpinEvent& event ) { event.Skip(); }
 					virtual void onMinCircularityChanged( wxSpinDoubleEvent& event ) { event.Skip(); }
 					virtual void onParticleSizeChanged( wxCommandEvent& event ) { event.Skip(); }
 					virtual void onSnapAreaChanged( wxSpinEvent& event ) { event.Skip(); }

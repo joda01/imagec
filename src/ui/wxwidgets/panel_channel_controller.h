@@ -127,6 +127,8 @@ private:
   void onPrevTileClicked(wxCommandEvent &event) override;
   void onNextTileClicked(wxCommandEvent &event) override;
   void onNextImageClicked(wxCommandEvent &event) override;
+  void onAImodelChanged(wxCommandEvent &event) override;
+  void onAIMinProbabilityChanged(wxSpinEvent &event) override;
 
   void onPreviewDialogClosed(wxCloseEvent &);
 

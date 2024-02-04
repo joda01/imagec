@@ -43,14 +43,11 @@ Single particle analysis is done and data are stored as detailed and summery in 
 
 ## Build
 
-### Build for Linux
-
-`docker build --target run -t joda001/imagec:latest .`
 
 ### Deploy build docker image
 
-docker build --target live -t joda001/imagec:v1.1.0 .
-docker push  joda001/imagec:v1.1.0
+docker build --target live -t joda001/imagec:v1.3.0 .
+docker push  joda001/imagec:v1.3.0
 
 ### Build for Windows
 
@@ -62,6 +59,7 @@ Install MSYS2 and following packages:
 pacman -S --needed base-devel mingw-w64-x86_64-toolchain
 pacman -S mingw-w64-x86_64-catch
 pacman -S mingw-w64-x86_64-pugixml
+pacman -S mingw-w64-protobuf
 pacman -S mingw-w64-x86_64-opencv
 pacman -S mingw-w64-x86_64-nlohmann-json
 pacman -S mingw-w64-x86_64-libtiff
@@ -89,3 +87,8 @@ The EXE file will be placed in `build/build/imagec.exe`
 mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
 strip.exe imagec.exe
 `
+
+### ONNX model reader
+
+git clone https://github.com/onnx/onnx.git
+protoc onnx/onnx.proto --cpp_out="out"
