@@ -24,6 +24,7 @@
 #include <thread>
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/two_way_map.hpp"
+#include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "ui/wxwidgets/dialog_image_controller.h"
 #include "ui/wxwidgets/frame_main_controller.h"
@@ -94,6 +95,13 @@ void PanelChannelController::onPreviewClicked(wxCommandEvent &event)
     // Open new preview image
     mPreviewTileIndex  = 0;
     mPreviewImageIndex = 0;
+
+    auto props =
+        mMainFrame->getController()->getImageProperties(mPreviewImageIndex, mMainFrame->mChoiceSeries->GetSelection());
+
+    // Since the borders ore often black, start in the middle
+    mPreviewTileIndex = (props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN) / 2;
+
     title += " LIVE";
   } else {
     title += " Snapshot";
@@ -192,7 +200,7 @@ void PanelChannelController::refreshPreview(std::shared_ptr<DialogImageControlle
         }
       }
 
-      dialog->updateImage(image, ret.imageFileName, {.valid = valid, .invalid = inValid});
+      dialog->updateImage(image, ret.imageFileName, mPreviewTileIndex, {.valid = valid, .invalid = inValid});
     }
   } catch(const std::exception &ex) {
     // showErrorDialog(ex.what());

@@ -15,8 +15,6 @@
 #include "../../res/bursts_20.png.h"
 #include "../../res/cell_20.png.h"
 #include "../../res/centre_point_20.png.h"
-#include "../../res/circle_20.png.h"
-#include "../../res/circle_x_20.png.h"
 #include "../../res/combine_20.png.h"
 #include "../../res/contrast_20.png.h"
 #include "../../res/cpu_20.png.h"
@@ -1461,25 +1459,6 @@ DialogImage::DialogImage( wxWindow* parent, wxWindowID id, const wxString& title
 	mImageDisplayProgress = new wxGauge( this, wxID_ANY, 2000, wxDefaultPosition, wxSize( -1,-1 ), wxGA_HORIZONTAL );
 	mImageDisplayProgress->SetValue( 1 );
 	mSizer->Add( mImageDisplayProgress, 0, wxALL|wxEXPAND, 5 );
-
-	mToolbar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
-	m_bitmap24 = new wxStaticBitmap( mToolbar, wxID_ANY, circle_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	mToolbar->AddControl( m_bitmap24 );
-	mValidSpots = new wxStaticText( mToolbar, wxID_ANY, _(" Valid: ..."), wxDefaultPosition, wxSize( 100,-1 ), 0 );
-	mValidSpots->Wrap( -1 );
-	mValidSpots->SetFont( wxFont( 9, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Sans") ) );
-
-	mToolbar->AddControl( mValidSpots );
-	m_bitmap22 = new wxStaticBitmap( mToolbar, wxID_ANY, circle_x_20_png_to_wx_bitmap(), wxDefaultPosition, wxDefaultSize, 0 );
-	mToolbar->AddControl( m_bitmap22 );
-	mInvalidSpots = new wxStaticText( mToolbar, wxID_ANY, _(" Filtered: ..."), wxDefaultPosition, wxSize( 100,-1 ), 0 );
-	mInvalidSpots->Wrap( -1 );
-	mInvalidSpots->SetFont( wxFont( 9, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Sans") ) );
-
-	mToolbar->AddControl( mInvalidSpots );
-	mToolbar->Realize();
-
-	mSizer->Add( mToolbar, 0, wxEXPAND, 5 );
 
 	mImagePath = new wxStaticText( this, wxID_ANY, _("/home/joachim/image"), wxDefaultPosition, wxDefaultSize, 0 );
 	mImagePath->Wrap( -1 );

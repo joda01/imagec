@@ -57,20 +57,20 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
   joda::func::DetectionResponse response;
   response = *channelsToIntersect[0];
   overlayPainting.push_back({.result          = &channelsToIntersect[0]->result,
-                             .backgroundColor = cv::Scalar(0, 0, 255),
+                             .backgroundColor = cv::Scalar(255, 0, 0),
                              .borderColor     = cv::Scalar(0, 0, 0),
                              .paintRectangel  = false,
-                             .opaque          = 0.1});
+                             .opaque          = 0.3});
 
   auto id = DurationCount::start("intersect");
   for(auto n = 1; n < channelsToIntersect.size(); n++) {
     const auto *ch1 = channelsToIntersect[n];
 
     overlayPainting.push_back({.result          = &ch1->result,
-                               .backgroundColor = cv::Scalar(0, 0, 255),
+                               .backgroundColor = cv::Scalar(0, 255, 0),
                                .borderColor     = cv::Scalar(0, 0, 0),
                                .paintRectangel  = false,
-                               .opaque          = 0.1});
+                               .opaque          = 0.3});
 
     joda::func::DetectionResponse respTmp;
     for(auto const &roi01 : response.result) {

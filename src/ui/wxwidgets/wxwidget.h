@@ -387,16 +387,11 @@ namespace joda
 				protected:
 					wxBoxSizer* mSizer;
 					wxGauge* mImageDisplayProgress;
-					wxToolBar* mToolbar;
-					wxStaticBitmap* m_bitmap24;
-					wxStaticText* mValidSpots;
-					wxStaticBitmap* m_bitmap22;
-					wxStaticText* mInvalidSpots;
 					wxStaticText* mImagePath;
 
 				public:
 
-					DialogImage( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 538,345 ), long style = wxCAPTION|wxCLOSE_BOX );
+					DialogImage( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 538,345 ), long style = wxCAPTION|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER );
 
 					~DialogImage();
 
