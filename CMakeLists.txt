@@ -50,8 +50,8 @@ find_package( protobuf CONFIG REQUIRED )
 
 
 include_directories(${JNI_INCLUDE_DIRS})
-
-#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS foo.proto)
+include_directories(${Protobuf_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
 IF (WIN32)
@@ -139,16 +139,16 @@ message("<--")
 IF (WIN32)
 file(GLOB_RECURSE SOURCES
   ./src/*.cpp
-  ./src/*.cc
   ./src/*.c
+  ./src/*.cc
   /usr/local/include/libtiff/*.h
  ./src/wx.rc
 )
 ELSE()
 file(GLOB_RECURSE SOURCES
   ./src/*.cpp
-  ./src/*.cc
   ./src/*.c
+  ./src/*.cc
   /usr/local/include/libtiff/*.h
 )
 ENDIF()
@@ -156,6 +156,23 @@ ENDIF()
 # Exclude test files from source
 list(FILTER SOURCES EXCLUDE REGEX ".*_test.cpp$")
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+#
+# Protobuf generate
+#
+
+# Specify the path to your .proto files
+#set(PROTO_FILES src/onnx/onnx.proto 
+#)
+#set(PROTO_IMPORT_DIRS src/onnx/)
+#protobuf_generate(
+#  LANGUAGE cpp
+#  TARGET ${PROJECT_NAME}
+#  IMPORT_DIRS ${PROTO_IMPORT_DIRS}
+#  PROTOS ${PROTO_FILES}
+#  PROTOC_OUT_DIR "/workspaces/imagec/src/onnx"
+#  )
+
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES

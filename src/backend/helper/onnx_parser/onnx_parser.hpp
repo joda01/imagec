@@ -45,51 +45,52 @@ public:
   {
     std::map<std::string, Data> onnxFiles;
     for(const auto &entry : fs::recursive_directory_iterator(directory)) {
-      if(entry.is_regular_file() && entry.path().extension() == ".onnx") {
+      if(entry.is_regular_file() && entry.path().extension().string() == ".onnx") {
         auto data = readMetaJson(entry.path().string());
 
         std::ifstream inputFile(entry.path().string(), std::ios::binary);
-        // ModelProto model;
+        std::cout << "Fount " << entry.path().string() << std::endl;
+        //::onnx::ModelProto model;
         // model.ParseFromIstream(&inputFile);
-
-        // Read and print class names from the ONNX model
+        //
+        //// Read and print class names from the ONNX model
         // readClassNames(model);
 
         if(!data.classes.empty()) {
-          onnxFiles.emplace(entry.path().string(), data);
         }
+        onnxFiles.emplace(entry.path().string(), data);
       }
     }
     return onnxFiles;
   };
 
 private:
-  /*  static void readClassNames(const ::onnx::ModelProto &model)
-    {
-      // Access the graph from the ONNX model
-      const GraphProto &graph = model.graph();
+  /* static void readClassNames(const ::onnx::ModelProto &model)
+   {
+     // Access the graph from the ONNX model
+     const ::onnx::GraphProto &graph = model.graph();
 
-      // Iterate through the nodes in the graph
-      for(const NodeProto &node : graph.node()) {
-        // Check if the node is an initializer (contains class names)
-        if(node.op_type() == "Constant" && node.attribute_size() > 0) {
-          const AttributeProto &attribute = node.attribute(0);
+     // Iterate through the nodes in the graph
+     for(const ::onnx::NodeProto &node : graph.node()) {
+       // Check if the node is an initializer (contains class names)
+       if(node.op_type() == "Constant" && node.attribute_size() > 0) {
+         const ::onnx::AttributeProto &attribute = node.attribute(0);
 
-          // Check if the attribute is a tensor
-          if(attribute.type() == AttributeProto_AttributeType::AttributeProto_AttributeType_TENSOR) {
-            const TensorProto &tensor = attribute.t();
+         // Check if the attribute is a tensor
+         if(attribute.type() == ::onnx::AttributeProto_AttributeType::AttributeProto_AttributeType_TENSOR) {
+           const ::onnx::TensorProto &tensor = attribute.t();
 
-            // Check if the tensor has string data
-            if(tensor.data_type() == TensorProto_DataType::TensorProto_DataType_STRING) {
-              // Iterate through the strings in the tensor (class names)
-              for(const std::string &className : tensor.string_data()) {
-                std::cout << "Class Name: " << className << std::endl;
-              }
-            }
-          }
-        }
-      }
-    }*/
+           // Check if the tensor has string data
+           if(tensor.data_type() == ::onnx::TensorProto_DataType::TensorProto_DataType_STRING) {
+             // Iterate through the strings in the tensor (class names)
+             for(const std::string &className : tensor.string_data()) {
+               std::cout << "Class Name: " << className << std::endl;
+             }
+           }
+         }
+       }
+     }
+   }*/
 
   static auto readMetaJson(std::string onnxFile) -> Data
   {
