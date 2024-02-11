@@ -93,7 +93,6 @@ IF (WIN32)
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
-    protobuf::gmock
     ${Protobuf_LIBRARIES}
     pugixml
     jpeg
@@ -111,7 +110,6 @@ ELSE()
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
-    protobuf::gmock
     ${Protobuf_LIBRARIES}
     pugixml
     tiff
