@@ -28,7 +28,7 @@ jobs:
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-catch
             mingw-w64-x86_64-pugixml
-            mingw-w64-protobuf
+            mingw-w64-x86_64-protobuf
             mingw-w64-x86_64-opencv
             mingw-w64-x86_64-nlohmann-json
             mingw-w64-x86_64-libtiff
