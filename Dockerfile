@@ -140,6 +140,29 @@ RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtif
     cmake --build . --config Release --target install &&\
     cp -r libtiff/*.h  /usr/local/include
 
+
+#
+# QT
+#
+
+RUN apt-get update &&\
+    apt-get install build-essential perl python git &&\
+    apt-get install libfontconfig1-dev libdbus-1-dev libfreetype6-dev libicu-dev libinput-dev libxkbcommon-dev libsqlite3-dev libssl-dev
+
+
+RUN git clone https://code.qt.io/qt/qt5.git qt6
+RUN cd qt6 &&\
+    git switch 6.3 &&\
+    perl init-repository &&\
+    mkdir qt6-build &&\
+    cd qt6-build &&\
+    ../qt6/configure -opensource -confirm-license -release -prefix /opt/Qt6 &&\
+    cmake --build . --parallel 6 &&\
+    cmake --install .
+
+
+
+
 #FROM live as build
 #
 #RUN mkdir ./build

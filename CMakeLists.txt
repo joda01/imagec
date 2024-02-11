@@ -48,6 +48,10 @@ find_package(JNI REQUIRED )
 find_package(Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
 
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+qt_standard_project_setup()
+
+
 
 include_directories(${JNI_INCLUDE_DIRS})
 include_directories(${Protobuf_INCLUDE_DIRS})
@@ -93,11 +97,11 @@ IF (WIN32)
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
-    protobuf::gmock
     ${Protobuf_LIBRARIES}
     pugixml
     jpeg
     TIFF
+    Qt6::Widgets
     ${wxWidgets_LIBRARIES}
     ${LIB_DL}
     #JNI::JVM
@@ -111,10 +115,10 @@ ELSE()
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
-    protobuf::gmock
     ${Protobuf_LIBRARIES}
     pugixml
     tiff
+    Qt6::Widgets
     ${wxWidgets_LIBRARIES}
     ${LIB_DL}
     #JNI::JVM
@@ -155,7 +159,24 @@ ENDIF()
 
 # Exclude test files from source
 list(FILTER SOURCES EXCLUDE REGEX ".*_test.cpp$")
+
+
+#qt_add_resources(helloworld imageresources
+#    PREFIX "/images"
+#    FILES logo.png splashscreen.png
+#)
+#
+#qt_add_translations(helloworld
+#    TS_FILES helloworld_de.ts helloworld_fr.ts)
+
+qt_add_executable(${PROJECT_NAME} ${SOURCES})
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    WIN32_EXECUTABLE ON
+    MACOSX_BUNDLE ON
+)
 
 #
 # Protobuf generate
