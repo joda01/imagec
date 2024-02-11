@@ -34,6 +34,11 @@ public:
     return model_name;
   }
 
+  auto getProbability() const -> float
+  {
+    return probability_min;
+  }
+
 private:
   //
   // Name of the onnx AI model which should be used for detection.

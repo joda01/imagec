@@ -258,6 +258,10 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
       thresholdToIndex(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdString()));
   mSpinMinThreshold->SetValue(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdMinError());
 
+  // AI detection
+  // mChoiceAImodel->SetString(unsigned int n, channelSettings.getDetectionSettings().getDetectionMode());
+  mSpinMinProbability->SetValue(channelSettings.getDetectionSettings().getAiSettings().getProbability());
+
   // Filtering
   mSpinMinCircularity->SetValue(channelSettings.getFilter().getMinCircularity());
   std::string range =
@@ -331,8 +335,8 @@ nlohmann::json PanelChannelController::getValues()
   chSettings["detection"]["threshold"]["threshold_min"] = static_cast<int>(mSpinMinThreshold->GetValue());
   chSettings["detection"]["threshold"]["threshold_max"] = UINT16_MAX;
 
-  chSettings["detection"]["ai"]["model_name"]      = "AI_MODEL_COMMON_V1";
-  chSettings["detection"]["ai"]["probability_min"] = 0.8;
+  chSettings["detection"]["ai"]["model_name"]      = mChoiceAImodel->GetString(mChoiceAImodel->GetSelection());
+  chSettings["detection"]["ai"]["probability_min"] = mSpinMinProbability->GetValue();
 
   // Filtering
   try {
