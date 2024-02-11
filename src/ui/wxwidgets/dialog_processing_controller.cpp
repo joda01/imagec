@@ -14,6 +14,7 @@
 #include "dialog_processing_controller.h"
 #include <wx/wx.h>
 #include <exception>
+#include <mutex>
 #include <string>
 #include "backend/pipelines/pipeline.hpp"
 
@@ -114,7 +115,7 @@ void DialogProcessingController::refreshThread()
 {
   while(!mStopped) {
     refreshFunction();
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 }
 
@@ -124,6 +125,7 @@ void DialogProcessingController::refreshThread()
 ///
 void DialogProcessingController::refreshFunction()
 {
+  std::lock_guard<std::mutex> mutex(mRefreshMutex);
   wxString newTextAllOver                  = "0/0";
   wxString newTextImage                    = "0/0";
   joda::pipeline::Pipeline::State actState = joda::pipeline::Pipeline::State::STOPPED;
@@ -160,6 +162,7 @@ void DialogProcessingController::refreshFunction()
   std::string timeDiffStr = stream.str();
 
   CallAfter([this, actState, newTextAllOver, newTextImage, timeDiffStr]() {
+    std::lock_guard<std::mutex> mutex(mRefreshCallAfterMutex);
     if(!mStopped && actState == joda::pipeline::Pipeline::State::ERROR_) {
       mStopped = true;
       showErrorDialog(mLastErrorMsg);
