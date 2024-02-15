@@ -48,8 +48,8 @@ find_package(JNI REQUIRED )
 find_package(Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
-qt_standard_project_setup()
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+#qt_standard_project_setup()
 
 
 
@@ -169,9 +169,9 @@ list(FILTER SOURCES EXCLUDE REGEX ".*_test.cpp$")
 #qt_add_translations(helloworld
 #    TS_FILES helloworld_de.ts helloworld_fr.ts)
 
-qt_add_executable(${PROJECT_NAME} ${SOURCES})
 add_executable(${PROJECT_NAME} ${SOURCES})
 
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     WIN32_EXECUTABLE ON
@@ -247,6 +247,9 @@ find_package(Catch2 3 REQUIRED)
 set(TESTING_LIBS
   Catch2::Catch2
 )
+
+set_property(TARGET tests PROPERTY CXX_STANDARD 20)
+
 
 target_link_libraries(tests ${LIBS} ${TESTING_LIBS})
 #include(CTest)

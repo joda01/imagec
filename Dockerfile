@@ -34,7 +34,7 @@ RUN wget https://github.com/Kitware/CMake/archive/refs/tags/v3.25.2.tar.gz -O cm
     cd .. && \
     rm -rf CMake*
 
-RUN apt-get update && apt-get install -y pkg-config git default-jre google-mock libgmock-dev
+RUN apt-get update && apt-get install -y pkg-config git default-jre
 
 
 #
@@ -112,6 +112,7 @@ RUN apt-get update && apt-get install -y default-jdk
 #
 RUN git clone --recurse-submodules -b v25.2 --depth 1  https://github.com/protocolbuffers/protobuf.git
 RUN cd protobuf &&\
+    cmake . &&\
     cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=17 -DABSL_PROPAGATE_CXX_STD=ON . &&\
     cmake --build . --parallel 4 &&\
     cmake --install .
@@ -132,6 +133,30 @@ RUN cd ./opencv &&\
 
 
 #
+# QT
+#
+
+RUN apt-get update &&\
+    apt-get install -y build-essential perl python git &&\
+    apt-get install -y libfontconfig1-dev libdbus-1-dev libfreetype6-dev libicu-dev libinput-dev libxkbcommon-dev libsqlite3-dev libssl-dev
+
+
+RUN git clone https://code.qt.io/qt/qt5.git qt6
+RUN cd qt6 &&\
+    git switch 6.3 &&\
+    perl init-repository
+RUN mkdir qt6-build &&\
+    cd qt6-build &&\
+    ls -l ../qt6/ &&\
+    rm -rf ../qt6/qtwebengine &&\
+    ../qt6/configure -opensource -confirm-license -release -prefix /opt/Qt6 &&\
+    cmake --build . --parallel 6 &&\
+    cmake --install .
+
+
+
+
+#
 # libtiff
 #
 RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtiff &&\
@@ -139,27 +164,6 @@ RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtif
     cmake -DBUILD_SHARED_LIBS=OFF . &&\
     cmake --build . --config Release --target install &&\
     cp -r libtiff/*.h  /usr/local/include
-
-
-#
-# QT
-#
-
-RUN apt-get update &&\
-    apt-get install build-essential perl python git &&\
-    apt-get install libfontconfig1-dev libdbus-1-dev libfreetype6-dev libicu-dev libinput-dev libxkbcommon-dev libsqlite3-dev libssl-dev
-
-
-RUN git clone https://code.qt.io/qt/qt5.git qt6
-RUN cd qt6 &&\
-    git switch 6.3 &&\
-    perl init-repository &&\
-    mkdir qt6-build &&\
-    cd qt6-build &&\
-    ../qt6/configure -opensource -confirm-license -release -prefix /opt/Qt6 &&\
-    cmake --build . --parallel 6 &&\
-    cmake --install .
-
 
 
 
