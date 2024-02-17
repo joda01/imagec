@@ -1,6 +1,7 @@
 // For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.117.1/containers/cpp
 {
+	// docker run   your_image_name
 	"name": "C++",
 	"dockerFile": "Dockerfile",
 	"runArgs": [

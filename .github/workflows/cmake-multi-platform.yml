@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - auto-upload
+      - switch-to-qt
     tags:
       - '*'
   pull_request:
@@ -63,7 +63,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-22.04
     container: 
-      image: joda001/imagec:v1.2.0
+      image: joda001/imagec:v1.4.0
 
     steps:
       - name: Checkout code
@@ -175,19 +175,19 @@ jobs:
             imagec-x64-linux-bundle.zip
             imagec-x64-win-bundle.zip
       
-      - name: Upload to imagec.org
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          SSH_KEY: ${{ secrets.SSH_KEY_IMAGEC }}
-          SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}
-        run: |
-          echo "$SSH_KEY" > ssh_key_for_github
-          chmod 400 ssh_key_for_github
-          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.zip
-          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.json
-          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.zip
-          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.json
-          rm -rf ssh_key_for_github
+      #- name: Upload to imagec.org
+      #  if: startsWith(github.ref, 'refs/tags/')
+      #  env:
+      #    SSH_KEY: ${{ secrets.SSH_KEY_IMAGEC }}
+      #    SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}
+      #  run: |
+      #    echo "$SSH_KEY" > ssh_key_for_github
+      #    chmod 400 ssh_key_for_github
+      #    scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.zip
+      #    scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.json
+      #    scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.zip
+      #    scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.json
+      #    rm -rf ssh_key_for_github
 
 
       
