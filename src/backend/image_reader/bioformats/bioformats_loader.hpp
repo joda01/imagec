@@ -34,15 +34,6 @@ private:
   /////////////////////////////////////////////////////
   static void setPath();
 
-#ifdef _WIN32
-  wchar_t *convertCharArrayToLPCWSTR(const char *charArray)
-  {
-    wchar_t *wString = new wchar_t[4096];
-    MultiByteToWideChar(CP_ACP, 0, charArray, -1, wString, 4096);
-    return wString;
-  }
-#endif
-
   /////////////////////////////////////////////////////
   static inline std::mutex mReadMutex{};
   static inline JavaVMOption options[1];        /* Options array -- use options to set classpath */

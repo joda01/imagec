@@ -31,6 +31,22 @@
 #define JNI_CREATEVM "JNI_CreateJavaVM"
 #endif
 
+#ifdef _WIN32
+wchar_t *ConvertToWideString(const char *narrowString)
+{
+  // Get the required buffer size
+  int bufferSize = MultiByteToWideChar(CP_ACP, 0, narrowString, -1, NULL, 0);
+
+  // Allocate a buffer
+  wchar_t *wideString = new wchar_t[bufferSize];
+
+  // Convert the narrow string to wide string
+  MultiByteToWideChar(CP_ACP, 0, narrowString, -1, wideString, bufferSize);
+
+  return wideString;
+}
+#endif
+
 ///
 /// \brief
 /// \author
@@ -43,10 +59,10 @@ void BioformatsLoader::setPath()
 #ifdef _WIN32
   std::string javaHome = "java\\jre_win";
   std::string javaBin  = javaHome + "\\bin";
-  SetEnvironmentVariable(L"JAVA_HOME", convertCharArrayToLPCWSTR(javaHome.data()));
+  SetEnvironmentVariable(L"JAVA_HOME", ConvertToWideString(javaHome.data()));
   const char *path    = std::getenv("PATH");
   std::string newPath = javaBin + std::string(";") + path;
-  SetEnvironmentVariable(L"PATH", convertCharArrayToLPCWSTR(javaBin.c_str()));
+  SetEnvironmentVariable(L"PATH", ConvertToWideString(javaBin.c_str()));
 
 #else
   std::string javaHome = "java/jre_win";
@@ -83,7 +99,7 @@ void BioformatsLoader::init()
   }
 
 #ifdef _WIN32
-  JNI_CreateJavaVM = reinterpret_cast<myFunc>(GetProcAddress(jvmDll, _T(JNI_CREATEVM)));
+  JNI_CreateJavaVM = reinterpret_cast<myFunc>(GetProcAddress(jvmDll, JNI_CREATEVM));
 #else
   JNI_CreateJavaVM = reinterpret_cast<myFunc>(dlsym(jvmDll, JNI_CREATEVM));
 #endif
