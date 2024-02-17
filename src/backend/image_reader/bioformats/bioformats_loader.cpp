@@ -43,10 +43,10 @@ void BioformatsLoader::setPath()
 #ifdef _WIN32
   std::string javaHome = "java\\jre_win";
   std::string javaBin  = javaHome + "\\bin";
-  SetEnvironmentVariable("JAVA_HOME", javaHome.data());
+  SetEnvironmentVariable(L"JAVA_HOME", javaHome.data());
   const char *path    = std::getenv("PATH");
   std::string newPath = javaBin + std::string(";") + path;
-  SetEnvironmentVariable("PATH", javaBin.c_str());
+  SetEnvironmentVariable(L"PATH", javaBin.c_str());
 
 #else
   std::string javaHome = "java/jre_win";
