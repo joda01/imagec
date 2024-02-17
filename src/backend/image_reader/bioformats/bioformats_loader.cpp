@@ -43,10 +43,10 @@ void BioformatsLoader::setPath()
 #ifdef _WIN32
   std::string javaHome = "java\\jre_win";
   std::string javaBin  = javaHome + "\\bin";
-  SetEnvironmentVariable(L"JAVA_HOME", javaHome.data());
+  SetEnvironmentVariable(L"JAVA_HOME", convertCharArrayToLPCWSTR(javaHome.data()));
   const char *path    = std::getenv("PATH");
   std::string newPath = javaBin + std::string(";") + path;
-  SetEnvironmentVariable(L"PATH", javaBin.c_str());
+  SetEnvironmentVariable(L"PATH", convertCharArrayToLPCWSTR(javaBin.c_str()));
 
 #else
   std::string javaHome = "java/jre_win";
@@ -83,7 +83,7 @@ void BioformatsLoader::init()
   }
 
 #ifdef _WIN32
-  JNI_CreateJavaVM = reinterpret_cast<myFunc>(GetProcAddress(jvmDll, TEXT(JNI_CREATEVM)));
+  JNI_CreateJavaVM = reinterpret_cast<myFunc>(GetProcAddress(jvmDll, _T(JNI_CREATEVM)));
 #else
   JNI_CreateJavaVM = reinterpret_cast<myFunc>(dlsym(jvmDll, JNI_CREATEVM));
 #endif
