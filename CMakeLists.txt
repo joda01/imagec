@@ -128,6 +128,11 @@ ELSE()
 ENDIF()
 
 
+set(RESOURCE_FILES
+    resources/icons.qrc
+)
+
+qt_add_resources(RESOURCE_SOURCES ${RESOURCE_FILES})
 
 
 
@@ -147,6 +152,7 @@ file(GLOB_RECURSE SOURCES
   ./src/*.cc
   /usr/local/include/libtiff/*.h
  ./src/wx.rc
+ ${RESOURCE_SOURCES}
 )
 ELSE()
 file(GLOB_RECURSE SOURCES
@@ -154,6 +160,7 @@ file(GLOB_RECURSE SOURCES
   ./src/*.c
   ./src/*.cc
   /usr/local/include/libtiff/*.h
+  ${RESOURCE_SOURCES}
 )
 ENDIF()
 
@@ -161,13 +168,7 @@ ENDIF()
 list(FILTER SOURCES EXCLUDE REGEX ".*_test.cpp$")
 
 
-#qt_add_resources(helloworld imageresources
-#    PREFIX "/images"
-#    FILES logo.png splashscreen.png
-#)
-#
-#qt_add_translations(helloworld
-#    TS_FILES helloworld_de.ts helloworld_fr.ts)
+
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
@@ -177,6 +178,13 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
 )
+
+target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
+
+
+
+
+
 
 #
 # Protobuf generate

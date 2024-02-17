@@ -21,7 +21,8 @@
 		"GrapeCity.gc-excelviewer",
 		"streetsidesoftware.code-spell-checker",
 		"vscjava.vscode-java-pack",
-		"xaver.clang-format"
+		"xaver.clang-format",
+		"felgo.felgo"
 	]
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],

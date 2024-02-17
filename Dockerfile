@@ -60,6 +60,8 @@ RUN echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-15 main" >> 
     ln -s /usr/bin/clang-format-15 /usr/bin/clang-format
 
 
+## LIBS ###################################################
+
 #
 # JSON
 #
@@ -165,6 +167,52 @@ RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtif
     cmake --build . --config Release --target install &&\
     cp -r libtiff/*.h  /usr/local/include
 
+
+#
+# This target is used to build the project
+#
+FROM debian:$DEBIAN_VERSION AS build
+
+
+RUN apt-get update && apt-get install -y autoconf automake libtool curl make g++ unzip checkinstall gdb ninja-build wget libssl-dev
+
+
+RUN wget https://github.com/Kitware/CMake/archive/refs/tags/v3.25.2.tar.gz -O cmake.tar.gz && \
+    tar xf cmake.tar.gz && \
+    rm cmake.tar.gz &&\
+    cd CMake-* && \
+    ./bootstrap --prefix=/usr --no-qt-gui --parallel=8 && \
+    make -j8 && \
+    make install && \
+    cd .. && \
+    rm -rf CMake*
+
+RUN apt-get update && apt-get install -y pkg-config git default-jre
+RUN apt-get update && apt-get install -y libcurl4-openssl-dev default-jdk
+
+
+
+
+#
+# LLVM toolchain
+#
+RUN echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-15 main" >> /etc/apt/sources.list &&\
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key| apt-key add - &&\
+    apt-get update && apt-get install -y clang-format-15 clangd-15 &&\
+    ln -s /usr/bin/clangd-15 /usr/bin/clangd &&\
+    ln -s /usr/bin/clang-format-15 /usr/bin/clang-format
+
+
+
+COPY --from=live /opt /opt
+COPY --from=live /usr /usr
+COPY --from=live /lib /lib
+COPY --from=live /bin /bin
+
+
+
+
+RUN ldconfig
 
 
 #FROM live as build

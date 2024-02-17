@@ -1,4 +1,5 @@
 #include <QtWidgets>
+#include "ui/qt/window_main.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -7,10 +8,8 @@ int main(int argc, char *argv[])
   // Option 1, like in the mentioned stackoverflow answer
   // QWidget window;
 
-  // Option 2, to test If maybe the QWidget above was the problem
-  QMainWindow window;
-  window.setWindowTitle("Test");
+  joda::ui::qt::WindowMain mainWindow;
 
-  window.show();
+  mainWindow.show();
   return app.exec();
 }
