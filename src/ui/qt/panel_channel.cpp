@@ -21,10 +21,11 @@ namespace joda::ui::qt {
 PanelChannel::PanelChannel()
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
+  setObjectName("panelChannel");
   setMinimumWidth(250);
   setMaximumWidth(250);
   QVBoxLayout *layout = new QVBoxLayout(this);
-
+  setStyleSheet("QWidget#panelChannel {border: 1px solid black;  border-radius: 8px; }");
   //
   // Header
   //
@@ -40,6 +41,9 @@ PanelChannel::PanelChannel()
   // Body
   //
   QScrollArea *scrollArea = new QScrollArea(this);
+  // scrollArea->setStyleSheet("QScrollArea { border: none; }");
+  scrollArea->setFrameStyle(0);
+  scrollArea->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(scrollArea);
   setLayout(layout);
 
@@ -50,9 +54,10 @@ PanelChannel::PanelChannel()
 
   // Create a horizontal layout for the panels
   QVBoxLayout *verticalLayout = new QVBoxLayout(contentWidget);
+  verticalLayout->setContentsMargins(0, 0, 0, 0);
   contentWidget->setLayout(verticalLayout);
 
-  for(int i = 0; i < 10; ++i) {
+  for(int i = 0; i < 20; ++i) {
     PanelFunction *widget = new PanelFunction(this);
     verticalLayout->addWidget(widget);
   }
