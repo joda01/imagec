@@ -21,10 +21,13 @@ IF (WIN32)
 ELSE()
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -O2 -lm -std=c++20")
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
 
 ENDIF()
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 
 
 IF (WIN32)
@@ -48,7 +51,7 @@ find_package(JNI REQUIRED )
 find_package(Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Quick QuickControls2)
 #qt_standard_project_setup()
 
 
@@ -102,6 +105,9 @@ IF (WIN32)
     jpeg
     TIFF
     Qt6::Widgets
+    Qt6::Quick
+    Qt6::Core
+    Qt6::QuickControls2
     ${wxWidgets_LIBRARIES}
     ${LIB_DL}
     #JNI::JVM
@@ -119,6 +125,9 @@ ELSE()
     pugixml
     tiff
     Qt6::Widgets
+    Qt6::Quick
+    Qt6::Core
+    Qt6::QuickControls2
     ${wxWidgets_LIBRARIES}
     ${LIB_DL}
     #JNI::JVM
@@ -130,6 +139,7 @@ ENDIF()
 
 set(RESOURCE_FILES
     resources/icons.qrc
+    resources/qml.qrc
 )
 
 qt_add_resources(RESOURCE_SOURCES ${RESOURCE_FILES})
@@ -177,6 +187,7 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
+    CMAKE_AUTOMOC ON
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
@@ -265,3 +276,11 @@ target_link_libraries(tests ${LIBS} ${TESTING_LIBS})
 
 #catch_discover_tests(tests)
 target_compile_definitions(tests PUBLIC UNIT_TEST)
+
+
+
+#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory /opt/Qt6/bin $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
+#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory /opt/Qt6/plugins $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
+#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory /opt/Qt6/qml $<TARGET_FILE_DIR:${PROJECT_NAME}>)

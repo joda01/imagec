@@ -4,6 +4,7 @@
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
+  QApplication::setStyle("Fusion");
 
   // Option 1, like in the mentioned stackoverflow answer
   // QWidget window;
@@ -13,3 +14,20 @@ int main(int argc, char *argv[])
   mainWindow.show();
   return app.exec();
 }
+
+/*
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+
+int main(int argc, char *argv[])
+{
+  QGuiApplication app(argc, argv);
+
+  QCoreApplication::addLibraryPath("./");
+
+  QQmlApplicationEngine engine;
+  engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+
+  return app.exec();
+}
+*/

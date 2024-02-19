@@ -16,23 +16,92 @@
 #include <QIcon>
 #include <QMainWindow>
 #include <QToolBar>
+#include "ui/qt/panel_channel.hpp"
 
 namespace joda::ui::qt {
 
 WindowMain::WindowMain()
 {
   setWindowTitle("imageC");
+  createToolbar();
+  createChannelScrollArea();
+  setMinimumSize(800, 600);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::createToolbar()
+{
   auto *toolbar = addToolBar("toolbar");
 
   // Create an action with an icon
-  QAction *myAction = new QAction(QIcon(":/icons/opened_folder_20.png"), "My Action", this);
-  myAction->setToolTip("Tooltip for My Action");
+  auto *saveProject = new QAction(QIcon(":/icons/save_20.png"), "Save", this);
+  saveProject->setToolTip("Save project!");
+  connect(saveProject, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
+  toolbar->addAction(saveProject);
 
-  // Connect the action to a slot or function if needed
-  // connect(myAction, &QAction::triggered, this, &WindowMain::onMyActionTriggered);
+  auto *openFolder = new QAction(QIcon(":/icons/opened_folder_20.png"), "Open", this);
+  openFolder->setToolTip("Open folder!");
+  connect(openFolder, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
+  toolbar->addAction(openFolder);
 
-  // Add the action to the toolbar
-  toolbar->addAction(myAction);
+  toolbar->addSeparator();
+
+  auto *start = new QAction(QIcon(":/icons/start_20.png"), "Start", this);
+  start->setToolTip("Start analysis!");
+  connect(start, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
+  toolbar->addAction(start);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::createChannelScrollArea()
+{
+  QScrollArea *scrollArea = new QScrollArea(this);
+  setCentralWidget(scrollArea);
+
+  // Create a widget to hold the panels
+  QWidget *contentWidget = new QWidget;
+  scrollArea->setWidget(contentWidget);
+  scrollArea->setWidgetResizable(true);
+
+  // Create a horizontal layout for the panels
+  QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
+  contentWidget->setLayout(horizontalLayout);
+
+  // Add some panels (QLabels in this example)
+  for(int i = 0; i < 10; ++i) {
+    PanelChannel *panel = new PanelChannel();
+    horizontalLayout->addWidget(panel);
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onOpenFolderClicked()
+{
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onSaveProjectClicked()
+{
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onStartClicked()
+{
 }
 
 }    // namespace joda::ui::qt

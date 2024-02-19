@@ -147,11 +147,38 @@ RUN git clone https://code.qt.io/qt/qt5.git qt6
 RUN cd qt6 &&\
     git switch 6.3 &&\
     perl init-repository
+
+RUN apt-get update && apt-get install -y libxcb-util-dev libxkbcommon-x11-dev \
+                                         libfontconfig1-dev \
+                                         libfreetype6-dev \
+                                         libx11-dev \
+                                         libx11-xcb-dev \
+                                         libxext-dev \
+                                         libxfixes-dev \
+                                         libxi-dev \
+                                         libxrender-dev \
+                                         libxcb1-dev \
+                                         libxcb-cursor-dev \
+                                         libxcb-glx0-dev \
+                                         libxcb-keysyms1-dev \
+                                         libxcb-image0-dev \
+                                         libxcb-shm0-dev \
+                                         libxcb-icccm4-dev \
+                                         libxcb-sync-dev \
+                                         libxcb-xfixes0-dev \
+                                         libxcb-shape0-dev \
+                                         libxcb-randr0-dev \
+                                         libxcb-render-util0-dev \
+                                         libxcb-util-dev \
+                                         libxcb-xinerama0-dev \
+                                         libxcb-xkb-dev \
+                                         libxkbcommon-dev
+
 RUN mkdir qt6-build &&\
     cd qt6-build &&\
     ls -l ../qt6/ &&\
     rm -rf ../qt6/qtwebengine &&\
-    ../qt6/configure -opensource -confirm-license -release -prefix /opt/Qt6 &&\
+    ../qt6/configure -opensource -confirm-license -release -xcb -xcb-xlib -bundled-xcb-xinput -prefix /opt/Qt6 &&\
     cmake --build . --parallel 6 &&\
     cmake --install .
 

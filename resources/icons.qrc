@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/icons">
+        <file>save_20.png</file>
         <file>opened_folder_20.png</file>
+        <file>start_20.png</file>
     </qresource>
 </RCC>
