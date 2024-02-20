@@ -27,6 +27,8 @@ class WindowMain : public QMainWindow
 {
 public:
   WindowMain();
+  void showOverview();
+  void showChannelEdit();
 
 private:
   void createToolbar();

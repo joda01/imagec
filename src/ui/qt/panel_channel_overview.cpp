@@ -17,10 +17,11 @@
 #include <qlineedit.h>
 #include "ui/qt/panel_label_overview.hpp"
 #include "panel_function.hpp"
+#include "window_main.hpp"
 
 namespace joda::ui::qt {
 
-PanelChannelOverview::PanelChannelOverview()
+PanelChannelOverview::PanelChannelOverview(WindowMain *wm) : mWindowMain(wm)
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelChannelOverview");
@@ -51,6 +52,15 @@ PanelChannelOverview::PanelChannelOverview()
   layout->addWidget(new PanelLabelOverview("icons8-final-state-50.png", "OFF"), 5, 1);
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+}
+
+void PanelChannelOverview::mousePressEvent(QMouseEvent *event)
+{
+  if(event->button() == Qt::LeftButton) {
+    // Left mouse button clicked
+    qDebug() << "Widget Clicked!";
+    mWindowMain->showChannelEdit();
+  }
 }
 
 }    // namespace joda::ui::qt

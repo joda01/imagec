@@ -18,10 +18,16 @@
 
 namespace joda::ui::qt {
 
+class WindowMain;
+
 class PanelChannelOverview : public QWidget
 {
 public:
-  PanelChannelOverview();
+  PanelChannelOverview(WindowMain *);
+
+private:
+  void mousePressEvent(QMouseEvent *event) override;
+  WindowMain *mWindowMain;
 };
 
 }    // namespace joda::ui::qt

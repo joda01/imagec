@@ -186,7 +186,7 @@ QWidget *WindowMain::createOverviewWidget()
 ///
 QWidget *WindowMain::createChannelWidget()
 {
-  return new PanelChannel();
+  return new PanelChannel(this);
 }
 
 ///
@@ -230,10 +230,19 @@ void WindowMain::onAddChannelClicked()
 
   int row                      = mChannels.size() / 3;
   int col                      = mChannels.size() % 3;
-  PanelChannelOverview *panel1 = new PanelChannelOverview();
+  PanelChannelOverview *panel1 = new PanelChannelOverview(this);
   mLayoutChannelOverview->addWidget(panel1, row, col);
   mChannels.push_back(panel1);
-  // mStackedWidget->setCurrentIndex(1);
+}
+
+void WindowMain::showOverview()
+{
+  mStackedWidget->setCurrentIndex(0);
+}
+
+void WindowMain::showChannelEdit()
+{
+  mStackedWidget->setCurrentIndex(1);
 }
 
 }    // namespace joda::ui::qt

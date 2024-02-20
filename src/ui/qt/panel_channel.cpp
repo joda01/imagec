@@ -16,10 +16,11 @@
 #include <qlineedit.h>
 #include <qpushbutton.h>
 #include "panel_function.hpp"
+#include "window_main.hpp"
 
 namespace joda::ui::qt {
 
-PanelChannel::PanelChannel()
+PanelChannel::PanelChannel(WindowMain *wm) : mWindowMain(wm)
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("panelChannel");
@@ -27,7 +28,7 @@ PanelChannel::PanelChannel()
   auto *horizontalLayout = createLayout();
 
   auto *verticalLayoutContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto *verticalLayoutMeta      = addVerticalPanel(verticalLayoutContainer, "rgb(218, 226, 255)");
+  auto *verticalLayoutMeta      = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
 
   {
     PanelFunction *widget = new PanelFunction("icons8-text-50.png", "...", "Channel name", this);
@@ -47,9 +48,12 @@ PanelChannel::PanelChannel()
     verticalLayoutMeta->addWidget(widget);
   }
 
-  auto *verticalLayoutPreview = addVerticalPanel(verticalLayoutContainer, "rgb(218, 226, 255)");
+  auto *verticalLayoutPreview = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
 
-  verticalLayoutPreview->addWidget(new QPushButton("Preview"));
+  QPushButton *back = new QPushButton("Back");
+  connect(back, &QPushButton::pressed, this, &PanelChannel::onBackClicked);
+
+  verticalLayoutPreview->addWidget(back);
 
   verticalLayoutMeta->addStretch();
   verticalLayoutContainer->addStretch();
@@ -260,6 +264,11 @@ QVBoxLayout *PanelChannel::addVerticalPanel(QLayout *horizontalLayout, const QSt
   scrollArea->setMaximumWidth(250);
 
   return layout;
+}
+
+void PanelChannel::onBackClicked()
+{
+  mWindowMain->showOverview();
 }
 
 }    // namespace joda::ui::qt

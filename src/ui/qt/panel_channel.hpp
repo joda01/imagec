@@ -14,18 +14,25 @@
 #pragma once
 
 #include <QtWidgets>
+#include "ui/qt/window_main.hpp"
 #include "panel_function.hpp"
 
 namespace joda::ui::qt {
 
+class WindowMain;
+
 class PanelChannel : public QWidget
 {
 public:
-  PanelChannel();
+  PanelChannel(WindowMain *wm);
 
 private:
   QHBoxLayout *createLayout();
   QVBoxLayout *addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor, int margin = 16) const;
+  WindowMain *mWindowMain;
+
+private slots:
+  void onBackClicked();
 };
 
 }    // namespace joda::ui::qt
