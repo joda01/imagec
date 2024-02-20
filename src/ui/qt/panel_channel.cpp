@@ -25,30 +25,63 @@ PanelChannel::PanelChannel()
   setMinimumWidth(250);
   setMaximumWidth(250);
   QVBoxLayout *layout = new QVBoxLayout(this);
-  setStyleSheet("QWidget#panelChannel {border: 1px solid black;  border-radius: 8px; }");
+  setStyleSheet(
+      "QWidget#panelChannel { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
+      "padding-bottom: 10px;"
+      "background-color: rgba(0, 104, 117, 0.05);}");
   //
-  // Header
+  //  Header
   //
-  auto *header       = new QWidget();
-  auto *headerLayout = new QVBoxLayout(header);
-  headerLayout->setContentsMargins(0, 0, 0, 0);
-  header->setLayout(headerLayout);
-  headerLayout->addWidget(new PanelFunction());
+  // auto *header       = new QWidget();
+  // auto *headerLayout = new QVBoxLayout(header);
+  // headerLayout->setContentsMargins(0, 0, 0, 0);
+  // header->setLayout(headerLayout);
+  // headerLayout->addWidget(new PanelFunction());
 
-  layout->addWidget(header);
-
+  // layout->addWidget(header);
+  // #dae2ff
   //
   // Body
   //
   QScrollArea *scrollArea = new QScrollArea(this);
-  // scrollArea->setStyleSheet("QScrollArea { border: none; }");
+  scrollArea->setObjectName("scrollArea");
+  scrollArea->setStyleSheet("QScrollArea#scrollArea { background-color: rgba(0, 0, 0, 0);}");
   scrollArea->setFrameStyle(0);
   scrollArea->setContentsMargins(0, 0, 0, 0);
+  scrollArea->verticalScrollBar()->setStyleSheet(
+      "QScrollBar:vertical {"
+      "    border: none;"
+      "    background: rgba(0, 0, 0, 0);"
+      "    width: 6px;"
+      "    margin: 0px 0px 0px 0px;"
+      "}"
+      "QScrollBar::handle:vertical {"
+      "    background: rgba(32, 27, 23, 0.6);"
+      "    min-height: 20px;"
+      "    border-radius: 12px;"
+      "}"
+      "QScrollBar::add-line:vertical {"
+      "    border: none;"
+      "    background: rgba(0, 0, 0, 0);"
+      "    height: 20px;"
+      "    subcontrol-position: bottom;"
+      "    subcontrol-origin: margin;"
+      "}"
+      "QScrollBar::sub-line:vertical {"
+      "    border: none;"
+      "    background: rgba(0, 0, 0, 0);"
+      "    height: 20px;"
+      "    subcontrol-position: top;"
+      "    subcontrol-origin: margin;"
+      "}");
   layout->addWidget(scrollArea);
   setLayout(layout);
 
   // Create a widget to hold the panels
   QWidget *contentWidget = new QWidget;
+  contentWidget->setObjectName("verticalLayout");
+  contentWidget->setStyleSheet("QWidget#verticalLayout { background-color: rgba(0, 104, 117, 0);}");
+
   scrollArea->setWidget(contentWidget);
   scrollArea->setWidgetResizable(true);
 
@@ -57,10 +90,53 @@ PanelChannel::PanelChannel()
   verticalLayout->setContentsMargins(0, 0, 0, 0);
   contentWidget->setLayout(verticalLayout);
 
-  for(int i = 0; i < 20; ++i) {
-    PanelFunction *widget = new PanelFunction(this);
+  {
+    PanelFunction *widget = new PanelFunction("icons8-text-50.png", "...", "Channel name", this);
+    widget->setContentsMargins(0, 0, 0, 0);
     verticalLayout->addWidget(widget);
   }
+
+  verticalLayout->addWidget(new QLabel(" "));
+
+  {
+    PanelFunction *widget = new PanelFunction("icons8-bubble-50.png", "[0-50]", "Rolling ball", this);
+    widget->setContentsMargins(0, 0, 0, 0);
+    verticalLayout->addWidget(widget);
+  }
+  {
+    PanelFunction *widget = new PanelFunction("icons8-crop-50.png", "[0-65535]", "Margin Crop", this);
+    widget->setContentsMargins(0, 0, 0, 0);
+    verticalLayout->addWidget(widget);
+  }
+  {
+    PanelFunction *widget = new PanelFunction("icons8-blur-50.png", "[0-4]", "Smoothing", this);
+    widget->setContentsMargins(0, 0, 0, 0);
+    verticalLayout->addWidget(widget);
+  }
+  {
+    PanelFunction *widget =
+        new PanelFunction("icons8-background-remover-50.png", "Channel Nr", "Background subtraction", this);
+    widget->setContentsMargins(0, 0, 0, 0);
+    verticalLayout->addWidget(widget);
+  }
+
+  {
+    PanelFunction *widget = new PanelFunction("icons8-ellipse-50.png", "[0-1]", "Circularity", this);
+    widget->setContentsMargins(0, 0, 0, 0);
+    verticalLayout->addWidget(widget);
+  }
+  {
+    PanelFunction *widget = new PanelFunction("icons8-all-out-50.png", "[0-65536]", "Object size", this);
+    widget->setContentsMargins(0, 0, 0, 0);
+    verticalLayout->addWidget(widget);
+  }
+  {
+    PanelFunction *widget = new PanelFunction("icons8-initial-state-50.png", "[0-65536]", "Snap area", this);
+    widget->setContentsMargins(0, 0, 0, 0);
+    verticalLayout->addWidget(widget);
+  }
+
+  verticalLayout->addStretch();
 }
 
 }    // namespace joda::ui::qt

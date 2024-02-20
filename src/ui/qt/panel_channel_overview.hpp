@@ -1,5 +1,5 @@
 ///
-/// \file      window_main.hpp
+/// \file      panel_channel.hpp
 /// \author    Joachim Danmayr
 /// \date      2024-02-17
 ///
@@ -14,32 +14,14 @@
 #pragma once
 
 #include <QtWidgets>
+#include "panel_function.hpp"
 
 namespace joda::ui::qt {
 
-///
-/// \class
-/// \author
-/// \brief
-///
-class WindowMain : public QMainWindow
+class PanelChannelOverview : public QWidget
 {
 public:
-  WindowMain();
-
-private:
-  void createToolbar();
-  QWidget *createStackedWidget();
-  QWidget *createOverviewWidget();
-  QWidget *createChannelScrollArea();
-
-  QStackedWidget *mStackedWidget;
-
-private slots:
-  void onOpenFolderClicked();
-  void onSaveProjectClicked();
-  void onStartClicked();
-  void onAddChannelClicked();
+  PanelChannelOverview();
 };
 
 }    // namespace joda::ui::qt
