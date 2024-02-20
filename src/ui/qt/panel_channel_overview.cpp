@@ -12,8 +12,10 @@
 ///
 
 #include "panel_channel_overview.hpp"
+#include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include "ui/qt/panel_label_overview.hpp"
 #include "panel_function.hpp"
 
 namespace joda::ui::qt {
@@ -22,33 +24,33 @@ PanelChannelOverview::PanelChannelOverview()
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelChannelOverview");
-  setMinimumWidth(250);
-  setMaximumWidth(250);
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  setMinimumWidth(350);
+  setMaximumWidth(350);
+  QGridLayout *layout = new QGridLayout(this);
   setStyleSheet(
       "QWidget#PanelChannelOverview { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
       "padding-bottom: 10px;"
       "background-color: rgba(0, 104, 117, 0.05);}");
 
   setLayout(layout);
+  layout->setSpacing(0);
+  layout->addWidget(new PanelLabelOverview("icons8-text-50.png", "Channel 1 (CY3)"), 0, 0, 1, 3);
+  layout->addWidget(new PanelLabelOverview("icons8-lambda-50.png", "Li"), 1, 0);
+  layout->addWidget(new PanelLabelOverview("icons8-grayscale-50.png", "1000"), 1, 1);
+  layout->addWidget(new PanelLabelOverview("icons8-ellipse-50.png", "50 %"), 1, 2);
+  layout->addWidget(new PanelLabelOverview("icons8-all-out-50.png", "0-65 px"), 2, 0);
+  layout->addWidget(new PanelLabelOverview("icons8-initial-state-50.png", "0 px"), 2, 1);
+  layout->addWidget(new PanelLabelOverview("icons8-layers-50.png", "z-project"), 2, 2);
+  layout->addWidget(new PanelLabelOverview("icons8-crop-50.png", "0 px"), 3, 0);
+  layout->addWidget(new PanelLabelOverview("icons8-sheets-50.png", "ON"), 3, 1);
+  layout->addWidget(new PanelLabelOverview("icons8-baseline-50.png", "OFF"), 3, 2);
+  layout->addWidget(new PanelLabelOverview("icons8-bubble-50.png", "4 px"), 4, 0);
+  layout->addWidget(new PanelLabelOverview("icons8-blur-50.png", "4 px"), 4, 1);
+  layout->addWidget(new PanelLabelOverview("icons8-cleanup-noise-50.png", "OFF"), 4, 2);
+  layout->addWidget(new PanelLabelOverview("icons8-triangle-50.png", "OFF"), 5, 0);
+  layout->addWidget(new PanelLabelOverview("icons8-final-state-50.png", "OFF"), 5, 1);
 
-  // Create a widget to hold the panels
-  QWidget *contentWidget = new QWidget;
-  contentWidget->setObjectName("verticalLayoutOverview");
-  contentWidget->setStyleSheet("QWidget#verticalLayoutOverview { background-color: rgba(0, 104, 117, 0);}");
-
-  // Create a horizontal layout for the panels
-  QVBoxLayout *verticalLayout = new QVBoxLayout(contentWidget);
-  verticalLayout->setContentsMargins(0, 0, 0, 0);
-  contentWidget->setLayout(verticalLayout);
-
-  {
-    PanelFunction *widget = new PanelFunction("icons8-text-50.png", "...", "Channel name", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayout->addWidget(widget);
-  }
-  verticalLayout->addStretch();
-  layout->addLayout(verticalLayout);
+  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 
 }    // namespace joda::ui::qt

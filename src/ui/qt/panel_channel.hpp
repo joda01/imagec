@@ -22,6 +22,10 @@ class PanelChannel : public QWidget
 {
 public:
   PanelChannel();
+
+private:
+  QHBoxLayout *createLayout();
+  QVBoxLayout *addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor, int margin = 16) const;
 };
 
 }    // namespace joda::ui::qt

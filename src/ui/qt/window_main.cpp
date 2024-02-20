@@ -12,6 +12,9 @@
 ///
 
 #include "window_main.hpp"
+#include <qgridlayout.h>
+#include <qlabel.h>
+#include <qlayout.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
 #include <QAction>
@@ -27,7 +30,7 @@ WindowMain::WindowMain()
 {
   setWindowTitle("imageC");
   createToolbar();
-  setMinimumSize(800, 600);
+  setMinimumSize(1300, 900);
   setObjectName("windowMain");
   setStyleSheet("QMainWindow#windowMain {background-color: rgb(251, 252, 253); border: none;}");
 
@@ -79,7 +82,7 @@ QWidget *WindowMain::createStackedWidget()
   mStackedWidget = new QStackedWidget();
 
   mStackedWidget->addWidget(createOverviewWidget());
-  mStackedWidget->addWidget(createChannelScrollArea());
+  mStackedWidget->addWidget(createChannelWidget());
 
   return mStackedWidget;
 }
@@ -109,24 +112,20 @@ QWidget *WindowMain::createOverviewWidget()
   horizontalLayout->setSpacing(16);    // Adjust this value as needed
   contentWidget->setLayout(horizontalLayout);
 
-  auto createVerticalContainer = []() -> std::tuple<QVBoxLayout *, QWidget *> {
+  auto createVerticalContainer = []() -> std::tuple<QGridLayout *, QWidget *> {
     QWidget *contentWidget = new QWidget;
-    QVBoxLayout *layout    = new QVBoxLayout(contentWidget);
+    QGridLayout *layout    = new QGridLayout(contentWidget);
     layout->setContentsMargins(16, 16, 16, 16);
-    layout->setSpacing(16);    // Adjust this value as needed
+    layout->setSpacing(8);    // Adjust this value as needed
     contentWidget->setLayout(layout);
     return {layout, contentWidget};
   };
 
   {
     auto [channelsOverViewLayout, channelsOverviewWidget] = createVerticalContainer();
-    PanelChannelOverview *panel1                          = new PanelChannelOverview();
-    channelsOverViewLayout->addWidget(panel1);
-    PanelChannelOverview *panel2 = new PanelChannelOverview();
-    channelsOverViewLayout->addWidget(panel2);
-
-    QPushButton *addChannel = new QPushButton();
-    addChannel->setStyleSheet(
+    mLayoutChannelOverview                                = channelsOverViewLayout;
+    mAddChannelButton                                     = new QPushButton();
+    mAddChannelButton->setStyleSheet(
         "QPushButton {"
         "   background-color: rgba(0, 0, 0, 0);"
         "   border: 1px solid rgb(111, 121, 123);"
@@ -146,16 +145,26 @@ QWidget *WindowMain::createOverviewWidget()
         "QPushButton:pressed {"
         "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
         "}");
-    addChannel->setText("Add Channel");
-    connect(addChannel, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
+    mAddChannelButton->setText("Add Channel");
+    connect(mAddChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
 
-    channelsOverViewLayout->addWidget(addChannel);
+    channelsOverViewLayout->addWidget(mAddChannelButton);
+    mLastElement = new QLabel();
+    channelsOverViewLayout->addWidget(mLastElement, 1, 0, 1, 3);
 
-    channelsOverViewLayout->addStretch();
+    channelsOverViewLayout->setRowStretch(0, 1);
+    channelsOverViewLayout->setRowStretch(1, 1);
+    channelsOverViewLayout->setRowStretch(2, 1);
+    channelsOverViewLayout->setRowStretch(4, 3);
+
+    // channelsOverViewLayout->addStretch();
+
+    horizontalLayout->addStretch();
     horizontalLayout->addWidget(channelsOverviewWidget);
   }
 
   {
+    /*
     auto [channelsOverViewLayout, channelsOverviewWidget] = createVerticalContainer();
     PanelChannelOverview *panel1                          = new PanelChannelOverview();
     channelsOverViewLayout->addWidget(panel1);
@@ -163,6 +172,7 @@ QWidget *WindowMain::createOverviewWidget()
     channelsOverViewLayout->addWidget(panel2);
     channelsOverViewLayout->addStretch();
     horizontalLayout->addWidget(channelsOverviewWidget);
+    */
   }
 
   horizontalLayout->addStretch();
@@ -174,36 +184,9 @@ QWidget *WindowMain::createOverviewWidget()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-QWidget *WindowMain::createChannelScrollArea()
+QWidget *WindowMain::createChannelWidget()
 {
-  QScrollArea *scrollArea = new QScrollArea(this);
-  scrollArea->setFrameStyle(0);
-  scrollArea->setObjectName("scrollAreaMainWindow");
-  scrollArea->setStyleSheet("QScrollArea#scrollAreaMainWindow { background-color: rgb(251, 252, 253);}");
-
-  // Create a widget to hold the panels
-  QWidget *contentWidget = new QWidget;
-  contentWidget->setObjectName("contentWidget");
-  contentWidget->setStyleSheet("QWidget#contentWidget { background-color: rgb(251, 252, 253);}");
-
-  scrollArea->setWidget(contentWidget);
-  scrollArea->setWidgetResizable(true);
-
-  // Create a horizontal layout for the panels
-  QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
-  horizontalLayout->setContentsMargins(16, 16, 16, 16);
-  horizontalLayout->setSpacing(16);    // Adjust this value as needed
-  contentWidget->setLayout(horizontalLayout);
-
-  // Add some panels (QLabels in this example)
-  for(int i = 0; i < 3; ++i) {
-    PanelChannel *panel = new PanelChannel();
-    horizontalLayout->addWidget(panel);
-  }
-
-  horizontalLayout->addStretch();
-
-  return scrollArea;
+  return new PanelChannel();
 }
 
 ///
@@ -236,7 +219,21 @@ void WindowMain::onStartClicked()
 ///
 void WindowMain::onAddChannelClicked()
 {
-  mStackedWidget->setCurrentIndex(1);
+  {
+    int row = (mChannels.size() + 1) / 3;
+    int col = (mChannels.size() + 1) % 3;
+    mLayoutChannelOverview->removeWidget(mAddChannelButton);
+    mLayoutChannelOverview->removeWidget(mLastElement);
+    mLayoutChannelOverview->addWidget(mAddChannelButton, row, col);
+    mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
+  }
+
+  int row                      = mChannels.size() / 3;
+  int col                      = mChannels.size() % 3;
+  PanelChannelOverview *panel1 = new PanelChannelOverview();
+  mLayoutChannelOverview->addWidget(panel1, row, col);
+  mChannels.push_back(panel1);
+  // mStackedWidget->setCurrentIndex(1);
 }
 
 }    // namespace joda::ui::qt

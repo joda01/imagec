@@ -18,9 +18,6 @@ public:
         "QLineEdit { border-radius: 4px; border: 1px solid rgba(32, 27, 23, 0.6); padding-top: 10px; padding-bottom: "
         "10px;}"
         "QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
-    setAcceptDrops(true);
-    // setMaximumHeight(80);
-    // setMinimumHeight(80);
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(8, 8, 8, 0);
 
@@ -49,9 +46,7 @@ public:
     font.setWeight(QFont::Light);
     helperText->setFont(font);
     helperText->setStyleSheet("QLabel#functionHelperText { color : #808080; }");
-
     layout->addWidget(helperText);
-
     setLayout(layout);
   }
 
