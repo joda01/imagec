@@ -59,7 +59,7 @@ void PanelChannelOverview::mousePressEvent(QMouseEvent *event)
   if(event->button() == Qt::LeftButton) {
     // Left mouse button clicked
     qDebug() << "Widget Clicked!";
-    mWindowMain->showChannelEdit();
+    mWindowMain->showChannelEdit(this);
   }
 }
 

@@ -14,6 +14,7 @@
 #pragma once
 
 #include <QtWidgets>
+#include <set>
 #include "ui/qt/panel_channel_overview.hpp"
 
 namespace joda::ui::qt {
@@ -28,7 +29,8 @@ class WindowMain : public QMainWindow
 public:
   WindowMain();
   void showOverview();
-  void showChannelEdit();
+  void showChannelEdit(PanelChannelOverview *);
+  void removeChannel();
 
 private:
   void createToolbar();
@@ -38,9 +40,11 @@ private:
 
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;
-  std::vector<PanelChannelOverview *> mChannels;
+  std::set<PanelChannelOverview *> mChannels;
   QPushButton *mAddChannelButton;
   QLabel *mLastElement;
+
+  PanelChannelOverview *mSelectedChannel = nullptr;
 
 private slots:
   void onOpenFolderClicked();

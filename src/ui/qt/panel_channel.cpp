@@ -52,8 +52,11 @@ PanelChannel::PanelChannel(WindowMain *wm) : mWindowMain(wm)
 
   QPushButton *back = new QPushButton("Back");
   connect(back, &QPushButton::pressed, this, &PanelChannel::onBackClicked);
-
   verticalLayoutPreview->addWidget(back);
+
+  QPushButton *remove = new QPushButton("Remove");
+  connect(remove, &QPushButton::pressed, this, &PanelChannel::onRemoveClicked);
+  verticalLayoutPreview->addWidget(remove);
 
   verticalLayoutMeta->addStretch();
   verticalLayoutContainer->addStretch();
@@ -268,6 +271,12 @@ QVBoxLayout *PanelChannel::addVerticalPanel(QLayout *horizontalLayout, const QSt
 
 void PanelChannel::onBackClicked()
 {
+  mWindowMain->showOverview();
+}
+
+void PanelChannel::onRemoveClicked()
+{
+  mWindowMain->removeChannel();
   mWindowMain->showOverview();
 }
 

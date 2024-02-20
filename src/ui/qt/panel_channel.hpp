@@ -33,6 +33,7 @@ private:
 
 private slots:
   void onBackClicked();
+  void onRemoveClicked();
 };
 
 }    // namespace joda::ui::qt

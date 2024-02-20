@@ -232,17 +232,38 @@ void WindowMain::onAddChannelClicked()
   int col                      = mChannels.size() % 3;
   PanelChannelOverview *panel1 = new PanelChannelOverview(this);
   mLayoutChannelOverview->addWidget(panel1, row, col);
-  mChannels.push_back(panel1);
+  mChannels.emplace(panel1);
 }
 
 void WindowMain::showOverview()
 {
+  mSelectedChannel = nullptr;
   mStackedWidget->setCurrentIndex(0);
 }
 
-void WindowMain::showChannelEdit()
+void WindowMain::showChannelEdit(PanelChannelOverview *sel)
 {
+  mSelectedChannel = sel;
   mStackedWidget->setCurrentIndex(1);
+}
+
+void WindowMain::removeChannel()
+{
+  /// \todo reorder
+  if(mSelectedChannel != nullptr) {
+    mChannels.erase(mSelectedChannel);
+    mLayoutChannelOverview->removeWidget(mSelectedChannel);
+
+    {
+      int row = (mChannels.size() + 1) / 3;
+      int col = (mChannels.size() + 1) % 3;
+
+      mLayoutChannelOverview->removeWidget(mAddChannelButton);
+      mLayoutChannelOverview->removeWidget(mLastElement);
+      mLayoutChannelOverview->addWidget(mAddChannelButton, row, col);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
+    }
+  }
 }
 
 }    // namespace joda::ui::qt
