@@ -45,7 +45,7 @@ public:
   };
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
-                    VALUE_T defaultVal, VALUE_T minVal, VALUE_T maxVal, QWidget *parent = nullptr)
+                    std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal, QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>
       : mUnit(unit)
   {
@@ -54,8 +54,8 @@ public:
     comboxEditingFinished();
   }
 
-  ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, VALUE_T defaultVal,
-                    QWidget *parent = nullptr)
+  ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText,
+                    std::optional<VALUE_T> defaultVal, QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, QString>
       : mUnit("")
   {
@@ -65,7 +65,8 @@ public:
   }
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
-                    VALUE_T defaultVal, const std::vector<ComboEntry> &options, QWidget *parent = nullptr)
+                    std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
+                    QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int>
       : mUnit(unit)
   {
@@ -184,7 +185,7 @@ private:
   }
 
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
-                            VALUE_T defaultVal, VALUE_T min = 0, VALUE_T max = 0)
+                            std::optional<VALUE_T> defaultVal, VALUE_T min = 0, VALUE_T max = 0)
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> || std::same_as<VALUE_T, QString>
   {
     mEditable = new QWidget();
@@ -211,17 +212,23 @@ private:
     if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>) {
       QIntValidator *validator = new QIntValidator(min, max, mLineEdit);
       mLineEdit->setValidator(validator);
-      mLineEdit->setText(QString::number(defaultVal));
+      if(defaultVal.has_value()) {
+        mLineEdit->setText(QString::number(defaultVal.value()));
+      }
     } else {
-      mLineEdit->setText(defaultVal);
+      if(defaultVal.has_value()) {
+        mLineEdit->setText(defaultVal.value());
+      }
     }
+    lineEditingChanged(mLineEdit->text());
 
     createHelperText(layout, helpText);
     mEditable->setLayout(layout);
   }
 
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
-                            const QString &unit, const std::vector<ComboEntry> &options, const VALUE_T &defaultVal)
+                            const QString &unit, const std::vector<ComboEntry> &options,
+                            const std::optional<VALUE_T> &defaultVal)
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, bool>
   {
     mEditable = new QWidget();
@@ -283,7 +290,10 @@ private:
     mComboBox->setPlaceholderText(placeHolderText);
     layout->addWidget(mComboBox);
     connect(mComboBox, &QComboBox::currentIndexChanged, this, &ContainerFunction::comboxEditingFinished);
-    auto idx = mComboBox->findData(defaultVal);
+    int32_t idx = 0;
+    if(defaultVal.has_value()) {
+      idx = mComboBox->findData(defaultVal.value());
+    }
     if(idx >= 0) {
       mComboBox->setCurrentIndex(idx);
     }
