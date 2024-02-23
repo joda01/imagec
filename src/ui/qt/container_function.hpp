@@ -22,7 +22,6 @@
 #include <QtWidgets>
 #include <cstddef>
 #include <string>
-#include <unordered_map>
 
 namespace joda::ui::qt {
 
@@ -39,6 +38,12 @@ template <IntFloatConcept VALUE_T>
 class ContainerFunction : public ContainerFunctionBase
 {
 public:
+  struct ComboEntry
+  {
+    VALUE_T key;
+    QString label;
+  };
+
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
                     VALUE_T defaultVal, VALUE_T minVal, VALUE_T maxVal, QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>
@@ -60,7 +65,7 @@ public:
   }
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
-                    VALUE_T defaultVal, const std::unordered_map<VALUE_T, QString> &options, QWidget *parent = nullptr)
+                    VALUE_T defaultVal, const std::vector<ComboEntry> &options, QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int>
       : mUnit(unit)
   {
@@ -216,8 +221,7 @@ private:
   }
 
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
-                            const QString &unit, const std::unordered_map<VALUE_T, QString> &options,
-                            const VALUE_T &defaultVal)
+                            const QString &unit, const std::vector<ComboEntry> &options, const VALUE_T &defaultVal)
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, bool>
   {
     mEditable = new QWidget();
@@ -272,8 +276,8 @@ private:
     mComboBox->addAction(myIcon, "");    // const QIcon &icon, const QString &text
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
-    for(const auto &[key, label] : options) {
-      mComboBox->addItem(myIcon, label, QVariant(key));    // unorderd_map stored items in reverse order
+    for(const auto &data : options) {
+      mComboBox->addItem(myIcon, data.label, QVariant(data.key));
     }
     mComboBox->setFont(fontLineEdit);
     mComboBox->setPlaceholderText(placeHolderText);
