@@ -51,7 +51,7 @@ find_package(JNI REQUIRED )
 find_package(Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Quick QuickControls2)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
 #qt_standard_project_setup()
 
 
@@ -105,9 +105,7 @@ IF (WIN32)
     jpeg
     TIFF
     Qt6::Widgets
-    Qt6::Quick
     Qt6::Core
-    Qt6::QuickControls2
     ${wxWidgets_LIBRARIES}
     ${LIB_DL}
     #JNI::JVM
@@ -125,9 +123,7 @@ ELSE()
     pugixml
     tiff
     Qt6::Widgets
-    Qt6::Quick
     Qt6::Core
-    Qt6::QuickControls2
     ${wxWidgets_LIBRARIES}
     ${LIB_DL}
     #JNI::JVM
@@ -139,12 +135,9 @@ ENDIF()
 
 set(RESOURCE_FILES
     resources/icons.qrc
-    resources/qml.qrc
 )
 
 qt_add_resources(RESOURCE_SOURCES ${RESOURCE_FILES})
-
-
 
 include_directories("./src")
 
