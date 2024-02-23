@@ -27,7 +27,8 @@ public:
 
 private:
   QHBoxLayout *createLayout();
-  QVBoxLayout *addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor, int margin = 16) const;
+  QVBoxLayout *addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor, int margin = 16,
+                                bool enableScrolling = true) const;
   WindowMain *mWindowMain;
 
 private slots:

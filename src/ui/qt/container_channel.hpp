@@ -47,7 +47,25 @@ public:
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<ContainerFunction<QString>> mChannelName;
-  std::shared_ptr<ContainerFunction<int>> mChannelSelector;
+  std::shared_ptr<ContainerFunction<int>> mChannelIndex;
+  std::shared_ptr<ContainerFunction<QString>> mChannelType;
+  std::shared_ptr<ContainerFunction<QString>> mThresholdAlgorithm;
+  std::shared_ptr<ContainerFunction<int>> mThresholdValueMin;
+  std::shared_ptr<ContainerFunction<float>> mMinCircularity;
+  std::shared_ptr<ContainerFunction<int>> mMinParticleSize;
+  std::shared_ptr<ContainerFunction<int>> mSnapAreaSize;
+
+  std::shared_ptr<ContainerFunction<QString>> mZProjection;
+  std::shared_ptr<ContainerFunction<int>> mMarginCrop;
+  std::shared_ptr<ContainerFunction<int>> mSubtractChannel;
+  std::shared_ptr<ContainerFunction<bool>> mMedianBackgroundSubtraction;
+  std::shared_ptr<ContainerFunction<int>> mRollingBall;
+  std::shared_ptr<ContainerFunction<int>> mGaussianBlur;
+  std::shared_ptr<ContainerFunction<int>> mSmoothing;
+  std::shared_ptr<ContainerFunction<QString>> mEdgeDetection;
+  std::shared_ptr<ContainerFunction<int>> mTetraspeckRemoval;
+
+  /////////////////////////////////////////////////////
   std::shared_ptr<PanelChannelOverview> mPanelOverview;
   std::shared_ptr<PanelChannelEdit> mPanelEdit;
 };

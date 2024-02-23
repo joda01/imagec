@@ -39,7 +39,28 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
 
   // Add the functions
   layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
-  layout->addWidget(parent->mChannelSelector->getLabelWidget(), 1, 0);
+
+  layout->addWidget(parent->mChannelIndex->getLabelWidget(), 1, 0);
+  layout->addWidget(parent->mChannelType->getLabelWidget(), 1, 1);
+  layout->addWidget(parent->mThresholdAlgorithm->getLabelWidget(), 1, 2);
+
+  layout->addWidget(parent->mThresholdValueMin->getLabelWidget(), 2, 0);
+  layout->addWidget(parent->mMinCircularity->getLabelWidget(), 2, 1);
+  layout->addWidget(parent->mMinParticleSize->getLabelWidget(), 2, 2);
+
+  layout->addWidget(parent->mSnapAreaSize->getLabelWidget(), 3, 0);
+  layout->addWidget(parent->mZProjection->getLabelWidget(), 3, 1);
+  layout->addWidget(parent->mMarginCrop->getLabelWidget(), 3, 2);
+
+  layout->addWidget(parent->mSubtractChannel->getLabelWidget(), 4, 0);
+  layout->addWidget(parent->mMedianBackgroundSubtraction->getLabelWidget(), 4, 1);
+  layout->addWidget(parent->mRollingBall->getLabelWidget(), 4, 2);
+
+  layout->addWidget(parent->mGaussianBlur->getLabelWidget(), 5, 0);
+  layout->addWidget(parent->mSmoothing->getLabelWidget(), 5, 1);
+  layout->addWidget(parent->mEdgeDetection->getLabelWidget(), 5, 2);
+
+  layout->addWidget(parent->mTetraspeckRemoval->getLabelWidget(), 6, 0);
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
