@@ -164,7 +164,7 @@ private:
     mDisplayLabel->setToolTip(helpText);
 
     // Create a QPixmap for the icon (you may need to adjust the path)
-    QIcon bmp(":/icons/" + icon);
+    QIcon bmp(":/icons/outlined/" + icon);
 
     // Set the icon for the label
     label->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
@@ -191,7 +191,7 @@ private:
     QVBoxLayout *layout = new QVBoxLayout(mParent);
     layout->setContentsMargins(8, 8, 8, 0);
 
-    const QIcon myIcon(":/icons/" + icon);
+    const QIcon myIcon(":/icons/outlined/" + icon);
 
     mLineEdit = new QLineEdit();
     QFont fontLineEdit;
@@ -234,10 +234,9 @@ private:
         "   background-color: #fff;"
         "   selection-background-color: rgba(48,140,198,0.7);"
         "}"
-
         "QComboBox:editable {"
         "   background: #fff;"
-        "   padding-left: 10px;"
+        "   padding-left: 20px;"
         "}"
 
         "QComboBox::drop-down {"
@@ -250,7 +249,7 @@ private:
         "}"
 
         "QComboBox::down-arrow {"
-        "   image: url(:/icons/icons8-sort-down-50.png);"
+        "   image: url(:/icons/outlined/icons8-sort-down-50.png);"
         "   width: 16px;"
         "   background: #fff;"
         "}"
@@ -267,13 +266,14 @@ private:
     QVBoxLayout *layout = new QVBoxLayout(mParent);
     layout->setContentsMargins(8, 8, 8, 0);
 
-    const QIcon myIcon(":/icons/" + icon);
+    const QIcon myIcon(":/icons/outlined/" + icon);
 
     mComboBox = new QComboBox();
+    mComboBox->addAction(myIcon, "");    // const QIcon &icon, const QString &text
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
     for(const auto &[key, label] : options) {
-      mComboBox->insertItem(0, label, QVariant(key));    // unorderd_map stored items in reverse order
+      mComboBox->addItem(myIcon, label, QVariant(key));    // unorderd_map stored items in reverse order
     }
     mComboBox->setFont(fontLineEdit);
     mComboBox->setPlaceholderText(placeHolderText);

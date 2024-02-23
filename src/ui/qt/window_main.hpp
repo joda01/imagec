@@ -30,7 +30,6 @@ class WindowMain : public QMainWindow
 {
 public:
   WindowMain();
-  void showOverview();
   void showChannelEdit(ContainerChannel *);
   void removeChannel();
 
@@ -45,12 +44,14 @@ private:
   std::set<std::shared_ptr<ContainerChannel>> mChannels;
   QPushButton *mAddChannelButton;
   QLabel *mLastElement;
+  QAction *mBackButton;
 
 private slots:
   void onOpenFolderClicked();
   void onSaveProjectClicked();
   void onStartClicked();
   void onAddChannelClicked();
+  void onBackClicked();
 };
 
 }    // namespace joda::ui::qt

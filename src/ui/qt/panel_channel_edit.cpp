@@ -31,15 +31,12 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   auto *verticalLayoutContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto *verticalLayoutMeta      = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
 
+  verticalLayoutMeta->addWidget(createTitle("Meta"));
   verticalLayoutMeta->addWidget(parentContainer->mChannelName->getEditableWidget());
   verticalLayoutMeta->addWidget(parentContainer->mChannelIndex->getEditableWidget());
   verticalLayoutMeta->addWidget(parentContainer->mChannelType->getEditableWidget());
 
   auto *verticalLayoutPreview = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
-
-  QPushButton *back = new QPushButton("Back");
-  connect(back, &QPushButton::pressed, this, &PanelChannelEdit::onBackClicked);
-  verticalLayoutPreview->addWidget(back);
 
   QPushButton *remove = new QPushButton("Remove");
   connect(remove, &QPushButton::pressed, this, &PanelChannelEdit::onRemoveClicked);
@@ -52,10 +49,12 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   auto *detectionContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto *detection          = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
 
+  detection->addWidget(createTitle("Detection"));
   detection->addWidget(parentContainer->mThresholdAlgorithm->getEditableWidget());
   detection->addWidget(parentContainer->mThresholdValueMin->getEditableWidget());
 
   auto *verticalLayoutFilter = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
+  verticalLayoutFilter->addWidget(createTitle("Filtering"));
   verticalLayoutFilter->addWidget(parentContainer->mMinCircularity->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mSnapAreaSize->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mTetraspeckRemoval->getEditableWidget());
@@ -68,6 +67,7 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
 
   auto *verticalLayoutFuctions = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
 
+  verticalLayoutFuctions->addWidget(createTitle("Preprocessing"));
   verticalLayoutFuctions->addWidget(parentContainer->mZProjection->getEditableWidget());
   verticalLayoutFuctions->addWidget(parentContainer->mMarginCrop->getEditableWidget());
   verticalLayoutFuctions->addWidget(parentContainer->mSubtractChannel->getEditableWidget());
@@ -83,6 +83,18 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
 
   horizontalLayout->addStretch();
   setLayout(horizontalLayout);
+}
+
+QLabel *PanelChannelEdit::createTitle(const QString &title)
+{
+  auto *label = new QLabel();
+  QFont font;
+  font.setPixelSize(16);
+  font.setBold(true);
+  label->setFont(font);
+  label->setText(title);
+
+  return label;
 }
 
 QHBoxLayout *PanelChannelEdit::createLayout()
@@ -196,15 +208,9 @@ QVBoxLayout *PanelChannelEdit::addVerticalPanel(QLayout *horizontalLayout, const
   return layout;
 }
 
-void PanelChannelEdit::onBackClicked()
-{
-  mWindowMain->showOverview();
-}
-
 void PanelChannelEdit::onRemoveClicked()
 {
   mWindowMain->removeChannel();
-  mWindowMain->showOverview();
 }
 
 }    // namespace joda::ui::qt

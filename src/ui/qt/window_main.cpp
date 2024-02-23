@@ -48,26 +48,33 @@ void WindowMain::createToolbar()
   toolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
 
   // Create an action with an icon
-  auto *saveProject = new QAction(QIcon(":/icons/icons8-save-50.png"), "Save", this);
+  mBackButton = new QAction(QIcon(":/icons/outlined/icons8-left-50.png"), "Back", this);
+  mBackButton->setEnabled(false);
+  connect(mBackButton, &QAction::triggered, this, &WindowMain::onBackClicked);
+  toolbar->addAction(mBackButton);
+  toolbar->addSeparator();
+
+  // Create an action with an icon
+  auto *saveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", this);
   saveProject->setToolTip("Save project!");
   connect(saveProject, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
   toolbar->addAction(saveProject);
 
-  auto *openFolder = new QAction(QIcon(":/icons/icons8-folder-50.png"), "Open", this);
+  auto *openFolder = new QAction(QIcon(":/icons/outlined/icons8-folder-50.png"), "Open", this);
   openFolder->setToolTip("Open folder!");
   connect(openFolder, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
   toolbar->addAction(openFolder);
 
   toolbar->addSeparator();
 
-  auto *start = new QAction(QIcon(":/icons/icons8-play-50.png"), "Start", this);
+  auto *start = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", this);
   start->setToolTip("Start analysis!");
   connect(start, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
   toolbar->addAction(start);
 
   toolbar->addSeparator();
 
-  auto *settings = new QAction(QIcon(":/icons/icons8-settings-50.png"), "Settings", this);
+  auto *settings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", this);
   settings->setToolTip("Settings");
   connect(settings, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
   toolbar->addAction(settings);
@@ -217,6 +224,24 @@ void WindowMain::onStartClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
+void WindowMain::onBackClicked()
+{
+  mBackButton->setEnabled(false);
+  mStackedWidget->setCurrentIndex(0);
+}
+
+void WindowMain::showChannelEdit(ContainerChannel *selectedChannel)
+{
+  mBackButton->setEnabled(true);
+  mStackedWidget->removeWidget(mStackedWidget->widget(1));
+  mStackedWidget->addWidget(selectedChannel->getEditPanel().get());
+  mStackedWidget->setCurrentIndex(1);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
 void WindowMain::onAddChannelClicked()
 {
   {
@@ -233,18 +258,6 @@ void WindowMain::onAddChannelClicked()
   auto panel1 = std::shared_ptr<ContainerChannel>(new ContainerChannel(this));
   mLayoutChannelOverview->addWidget(panel1->getOverviewPanel().get(), row, col);
   mChannels.emplace(panel1);
-}
-
-void WindowMain::showOverview()
-{
-  mStackedWidget->setCurrentIndex(0);
-}
-
-void WindowMain::showChannelEdit(ContainerChannel *selectedChannel)
-{
-  mStackedWidget->removeWidget(mStackedWidget->widget(1));
-  mStackedWidget->addWidget(selectedChannel->getEditPanel().get());
-  mStackedWidget->setCurrentIndex(1);
 }
 
 void WindowMain::removeChannel()
