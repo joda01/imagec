@@ -15,13 +15,14 @@
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
-#include "ui/qt/panel_label_overview.hpp"
-#include "panel_function.hpp"
+#include "container_channel.hpp"
+#include "container_function.hpp"
 #include "window_main.hpp"
 
 namespace joda::ui::qt {
 
-PanelChannelOverview::PanelChannelOverview(WindowMain *wm) : mWindowMain(wm)
+PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *parent) :
+    mWindowMain(wm), mParentContainer(parent)
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelChannelOverview");
@@ -35,31 +36,22 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm) : mWindowMain(wm)
 
   setLayout(layout);
   layout->setSpacing(0);
-  layout->addWidget(new PanelLabelOverview("icons8-text-50.png", "Channel 1 (CY3)"), 0, 0, 1, 3);
-  layout->addWidget(new PanelLabelOverview("icons8-lambda-50.png", "Li"), 1, 0);
-  layout->addWidget(new PanelLabelOverview("icons8-grayscale-50.png", "1000"), 1, 1);
-  layout->addWidget(new PanelLabelOverview("icons8-ellipse-50.png", "50 %"), 1, 2);
-  layout->addWidget(new PanelLabelOverview("icons8-all-out-50.png", "0-65 px"), 2, 0);
-  layout->addWidget(new PanelLabelOverview("icons8-initial-state-50.png", "0 px"), 2, 1);
-  layout->addWidget(new PanelLabelOverview("icons8-layers-50.png", "z-project"), 2, 2);
-  layout->addWidget(new PanelLabelOverview("icons8-crop-50.png", "0 px"), 3, 0);
-  layout->addWidget(new PanelLabelOverview("icons8-sheets-50.png", "ON"), 3, 1);
-  layout->addWidget(new PanelLabelOverview("icons8-baseline-50.png", "OFF"), 3, 2);
-  layout->addWidget(new PanelLabelOverview("icons8-bubble-50.png", "4 px"), 4, 0);
-  layout->addWidget(new PanelLabelOverview("icons8-blur-50.png", "4 px"), 4, 1);
-  layout->addWidget(new PanelLabelOverview("icons8-cleanup-noise-50.png", "OFF"), 4, 2);
-  layout->addWidget(new PanelLabelOverview("icons8-triangle-50.png", "OFF"), 5, 0);
-  layout->addWidget(new PanelLabelOverview("icons8-final-state-50.png", "OFF"), 5, 1);
+
+  // Add the functions
+  layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
+  layout->addWidget(parent->mChannelSelector->getLabelWidget(), 1, 0);
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
 void PanelChannelOverview::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-    // Left mouse button clicked
-    qDebug() << "Widget Clicked!";
-    mWindowMain->showChannelEdit(this);
+    mWindowMain->showChannelEdit(mParentContainer);
   }
 }
 

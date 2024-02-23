@@ -14,19 +14,23 @@
 #pragma once
 
 #include <QtWidgets>
-#include "panel_function.hpp"
+#include <memory>
 
 namespace joda::ui::qt {
 
 class WindowMain;
+class ContainerChannel;
 
 class PanelChannelOverview : public QWidget
 {
 public:
-  PanelChannelOverview(WindowMain *);
+  /////////////////////////////////////////////////////
+  PanelChannelOverview(WindowMain *, ContainerChannel *);
 
 private:
+  /////////////////////////////////////////////////////
   void mousePressEvent(QMouseEvent *event) override;
+  ContainerChannel *mParentContainer;
   WindowMain *mWindowMain;
 };
 

@@ -14,17 +14,16 @@
 #pragma once
 
 #include <QtWidgets>
-#include "ui/qt/window_main.hpp"
-#include "panel_function.hpp"
 
 namespace joda::ui::qt {
 
 class WindowMain;
+class ContainerChannel;
 
-class PanelChannel : public QWidget
+class PanelChannelEdit : public QWidget
 {
 public:
-  PanelChannel(WindowMain *wm);
+  PanelChannelEdit(WindowMain *wm, ContainerChannel *);
 
 private:
   QHBoxLayout *createLayout();

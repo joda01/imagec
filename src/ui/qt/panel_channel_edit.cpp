@@ -11,158 +11,150 @@
 /// \brief     A short description what happens here.
 ///
 
-#include "panel_channel.hpp"
+#include "panel_channel_edit.hpp"
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qpushbutton.h>
-#include "panel_function.hpp"
+#include "container_channel.hpp"
+#include "container_function.hpp"
 #include "window_main.hpp"
 
 namespace joda::ui::qt {
 
-PanelChannel::PanelChannel(WindowMain *wm) : mWindowMain(wm)
+PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentContainer) : mWindowMain(wm)
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
-  setObjectName("panelChannel");
+  setObjectName("PanelChannelEdit");
 
   auto *horizontalLayout = createLayout();
 
   auto *verticalLayoutContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto *verticalLayoutMeta      = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-text-50.png", "...", "Channel name", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutMeta->addWidget(widget);
-  }
-
-  {
-    PanelFunction *widget = new PanelFunction("icons8-unknown-status-50.png", "...", "Channel type", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutMeta->addWidget(widget);
-  }
-
-  {
-    PanelFunction *widget = new PanelFunction("icons8-sheets-50.png", "0,1,2,3", "Channel index", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutMeta->addWidget(widget);
-  }
-
+  verticalLayoutMeta->addWidget(parentContainer->mChannelName->getEditableWidget());
+  verticalLayoutMeta->addWidget(parentContainer->mChannelSelector->getEditableWidget());
+  /*
+    {
+      PanelFunction *widget = new PanelFunction("icons8-unknown-status-50.png", "...", "Channel type", this);
+      widget->setContentsMargins(0, 0, 0, 0);
+      verticalLayoutMeta->addWidget(widget);
+    }
+*/
   auto *verticalLayoutPreview = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
 
   QPushButton *back = new QPushButton("Back");
-  connect(back, &QPushButton::pressed, this, &PanelChannel::onBackClicked);
+  connect(back, &QPushButton::pressed, this, &PanelChannelEdit::onBackClicked);
   verticalLayoutPreview->addWidget(back);
 
   QPushButton *remove = new QPushButton("Remove");
-  connect(remove, &QPushButton::pressed, this, &PanelChannel::onRemoveClicked);
+  connect(remove, &QPushButton::pressed, this, &PanelChannelEdit::onRemoveClicked);
   verticalLayoutPreview->addWidget(remove);
 
   verticalLayoutMeta->addStretch();
   verticalLayoutContainer->addStretch();
   verticalLayoutPreview->addStretch();
+  /*
+      auto *detectionContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
+      auto *detection          = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
 
-  auto *detectionContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto *detection          = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
+      {
+        PanelFunction *widget = new PanelFunction("icons8-lambda-50.png", "[0-50]", "Threshold algorithm", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        detection->addWidget(widget);
+      }
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-lambda-50.png", "[0-50]", "Threshold algorithm", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    detection->addWidget(widget);
-  }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-grayscale-50.png", "[0-50]", "Min. threshold", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        detection->addWidget(widget);
+      }
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-grayscale-50.png", "[0-50]", "Min. threshold", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    detection->addWidget(widget);
-  }
+      auto *verticalLayoutFilter = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
 
-  auto *verticalLayoutFilter = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
+      {
+        PanelFunction *widget = new PanelFunction("icons8-ellipse-50.png", "[0-1]", "Min. Circularity", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFilter->addWidget(widget);
+      }
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-ellipse-50.png", "[0-1]", "Min. Circularity", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFilter->addWidget(widget);
-  }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-all-out-50.png", "0 - 65536", "Size range", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFilter->addWidget(widget);
+      }
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-all-out-50.png", "0 - 65536", "Size range", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFilter->addWidget(widget);
-  }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-initial-state-50.png", "[0-65535]", "Snap area size", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFilter->addWidget(widget);
+      }
+      verticalLayoutFilter->addStretch();
+      detection->addStretch();
+      detectionContainer->addStretch();
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-initial-state-50.png", "[0-65535]", "Snap area size", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFilter->addWidget(widget);
-  }
-  verticalLayoutFilter->addStretch();
-  detection->addStretch();
-  detectionContainer->addStretch();
+      auto *functionContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
 
-  auto *functionContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
+      auto *verticalLayoutFuctions = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)");
 
-  auto *verticalLayoutFuctions = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)");
+      {
+        PanelFunction *widget = new PanelFunction("icons8-layers-50.png", "[0-50]", "Z-Projection", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFuctions->addWidget(widget);
+      }
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-layers-50.png", "[0-50]", "Z-Projection", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFuctions->addWidget(widget);
-  }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-crop-50.png", "[0-50]", "Margin crop", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFuctions->addWidget(widget);
+      }
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-crop-50.png", "[0-50]", "Margin crop", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFuctions->addWidget(widget);
-  }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-sheets-50.png", "[0,1,2]", "Subtract channel", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFuctions->addWidget(widget);
+      }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-baseline-50.png", "[0-4]", "Median bg. subtraction", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFuctions->addWidget(widget);
+      }
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-sheets-50.png", "[0,1,2]", "Subtract channel", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFuctions->addWidget(widget);
-  }
-  {
-    PanelFunction *widget = new PanelFunction("icons8-baseline-50.png", "[0-4]", "Median bg. subtraction", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFuctions->addWidget(widget);
-  }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-bubble-50.png", "[0-50]", "Rolling ball", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFuctions->addWidget(widget);
+      }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-blur-50.png", "[0-4]", "Gaussian blur", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFuctions->addWidget(widget);
+      }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-cleanup-noise-50.png", "[0-4]", "Smoothing", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFuctions->addWidget(widget);
+      }
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-bubble-50.png", "[0-50]", "Rolling ball", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFuctions->addWidget(widget);
-  }
-  {
-    PanelFunction *widget = new PanelFunction("icons8-blur-50.png", "[0-4]", "Gaussian blur", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFuctions->addWidget(widget);
-  }
-  {
-    PanelFunction *widget = new PanelFunction("icons8-cleanup-noise-50.png", "[0-4]", "Smoothing", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFuctions->addWidget(widget);
-  }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-triangle-50.png", "[0-4]", "Edge detection", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFuctions->addWidget(widget);
+      }
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-triangle-50.png", "[0-4]", "Edge detection", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFuctions->addWidget(widget);
-  }
+      {
+        PanelFunction *widget = new PanelFunction("icons8-final-state-50.png", "[0-4]", "Tetraspeck removal", this);
+        widget->setContentsMargins(0, 0, 0, 0);
+        verticalLayoutFuctions->addWidget(widget);
+      }
 
-  {
-    PanelFunction *widget = new PanelFunction("icons8-final-state-50.png", "[0-4]", "Tetraspeck removal", this);
-    widget->setContentsMargins(0, 0, 0, 0);
-    verticalLayoutFuctions->addWidget(widget);
-  }
-
-  verticalLayoutFuctions->addStretch();
-  // functionContainer->addStretch();
-
+    verticalLayoutFuctions->addStretch();
+    // functionContainer->addStretch();
+  */
   horizontalLayout->addStretch();
   setLayout(horizontalLayout);
 }
 
-QHBoxLayout *PanelChannel::createLayout()
+QHBoxLayout *PanelChannelEdit::createLayout()
 {
   QScrollArea *scrollArea = new QScrollArea(this);
   scrollArea->setObjectName("scrollArea");
@@ -212,7 +204,7 @@ QHBoxLayout *PanelChannel::createLayout()
   return horizontalLayout;
 }
 
-QVBoxLayout *PanelChannel::addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor, int margin) const
+QVBoxLayout *PanelChannelEdit::addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor, int margin) const
 {
   QScrollArea *scrollArea = new QScrollArea();
   scrollArea->setObjectName("scrollArea");
@@ -269,12 +261,12 @@ QVBoxLayout *PanelChannel::addVerticalPanel(QLayout *horizontalLayout, const QSt
   return layout;
 }
 
-void PanelChannel::onBackClicked()
+void PanelChannelEdit::onBackClicked()
 {
   mWindowMain->showOverview();
 }
 
-void PanelChannel::onRemoveClicked()
+void PanelChannelEdit::onRemoveClicked()
 {
   mWindowMain->removeChannel();
   mWindowMain->showOverview();

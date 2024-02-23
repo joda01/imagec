@@ -21,8 +21,8 @@
 #include <QIcon>
 #include <QMainWindow>
 #include <QToolBar>
-#include "ui/qt/panel_channel.hpp"
-#include "ui/qt/panel_channel_overview.hpp"
+#include <memory>
+#include "container_channel.hpp"
 
 namespace joda::ui::qt {
 
@@ -186,7 +186,7 @@ QWidget *WindowMain::createOverviewWidget()
 ///
 QWidget *WindowMain::createChannelWidget()
 {
-  return new PanelChannel(this);
+  return new QWidget(this);
 }
 
 ///
@@ -228,27 +228,28 @@ void WindowMain::onAddChannelClicked()
     mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
   }
 
-  int row                      = mChannels.size() / 3;
-  int col                      = mChannels.size() % 3;
-  PanelChannelOverview *panel1 = new PanelChannelOverview(this);
-  mLayoutChannelOverview->addWidget(panel1, row, col);
+  int row     = mChannels.size() / 3;
+  int col     = mChannels.size() % 3;
+  auto panel1 = std::shared_ptr<ContainerChannel>(new ContainerChannel(this));
+  mLayoutChannelOverview->addWidget(panel1->getOverviewPanel().get(), row, col);
   mChannels.emplace(panel1);
 }
 
 void WindowMain::showOverview()
 {
-  mSelectedChannel = nullptr;
   mStackedWidget->setCurrentIndex(0);
 }
 
-void WindowMain::showChannelEdit(PanelChannelOverview *sel)
+void WindowMain::showChannelEdit(ContainerChannel *selectedChannel)
 {
-  mSelectedChannel = sel;
+  mStackedWidget->removeWidget(mStackedWidget->widget(1));
+  mStackedWidget->addWidget(selectedChannel->getEditPanel().get());
   mStackedWidget->setCurrentIndex(1);
 }
 
 void WindowMain::removeChannel()
 {
+  /*
   /// \todo reorder
   if(mSelectedChannel != nullptr) {
     mChannels.erase(mSelectedChannel);
@@ -263,7 +264,7 @@ void WindowMain::removeChannel()
       mLayoutChannelOverview->addWidget(mAddChannelButton, row, col);
       mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
     }
-  }
+  }*/
 }
 
 }    // namespace joda::ui::qt
