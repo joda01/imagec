@@ -161,12 +161,14 @@ private:
 
     // Set text for the label
     mDisplayLabel->setText(mDisplayText);
+    mDisplayLabel->setToolTip(helpText);
 
     // Create a QPixmap for the icon (you may need to adjust the path)
     QIcon bmp(":/icons/" + icon);
 
     // Set the icon for the label
     label->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
+    label->setToolTip(helpText);
 
     // Create a QHBoxLayout to arrange the text and icon horizontally
     QHBoxLayout *layout = new QHBoxLayout;
@@ -189,14 +191,14 @@ private:
     QVBoxLayout *layout = new QVBoxLayout(mParent);
     layout->setContentsMargins(8, 8, 8, 0);
 
-    const QIcon passwordIcon(":/icons/" + icon);
+    const QIcon myIcon(":/icons/" + icon);
 
     mLineEdit = new QLineEdit();
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
     mLineEdit->setFont(fontLineEdit);
     mLineEdit->setClearButtonEnabled(true);
-    mLineEdit->addAction(passwordIcon, QLineEdit::LeadingPosition);
+    mLineEdit->addAction(myIcon, QLineEdit::LeadingPosition);
     mLineEdit->setPlaceholderText(placeHolderText);
     layout->addWidget(mLineEdit);
     // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);

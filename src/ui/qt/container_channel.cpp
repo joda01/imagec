@@ -89,7 +89,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain)
       new ContainerFunction<QString>("icons8-triangle-50.png", "Threshold", "Threshold algorithm", "", "NONE",
                                      {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}));
   mTetraspeckRemoval = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-final-state-50.png", "Index", "Channel index", "", 0,
+      new ContainerFunction<int>("icons8-final-state-50.png", "Index", "Tetraspeck removal", "", 0,
                                  {{0, "Channel 1"}, {1, "Channel 2"}, {2, "Channel 3"}, {3, "Channel 4"}}));
 
   //
