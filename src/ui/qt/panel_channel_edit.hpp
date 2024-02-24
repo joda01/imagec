@@ -30,6 +30,7 @@ private:
   QVBoxLayout *addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor, int margin = 16,
                                 bool enableScrolling = true) const;
   WindowMain *mWindowMain;
+  ContainerChannel *mParentContainer;
   QLabel *createTitle(const QString &);
 
 private slots:

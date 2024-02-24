@@ -21,7 +21,8 @@
 
 namespace joda::ui::qt {
 
-PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentContainer) : mWindowMain(wm)
+PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentContainer) :
+    mWindowMain(wm), mParentContainer(parentContainer)
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelChannelEdit");
@@ -210,7 +211,7 @@ QVBoxLayout *PanelChannelEdit::addVerticalPanel(QLayout *horizontalLayout, const
 
 void PanelChannelEdit::onRemoveClicked()
 {
-  mWindowMain->removeChannel();
+  mWindowMain->removeChannel(this->mParentContainer);
 }
 
 }    // namespace joda::ui::qt

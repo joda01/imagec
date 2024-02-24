@@ -56,7 +56,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain)
       new ContainerFunction<int>("icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "px", 1000, 0, 65535));
 
   mMinCircularity = std::shared_ptr<ContainerFunction<float>>(
-      new ContainerFunction<float>("icons8-ellipse-50.png", "[0 - 1]", "Min. circularity", "%", 0.8, 0, 1));
+      new ContainerFunction<float>("icons8-ellipse-50.png", "[0 - 1]", "Min. circularity", "%", 0.1, 0, 1));
 
   mMinParticleSize = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
@@ -99,8 +99,8 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain)
   //
   // Create panels -> Must be after creating the functions
   //
-  mPanelOverview = std::shared_ptr<PanelChannelOverview>(new PanelChannelOverview(windowMain, this));
-  mPanelEdit     = std::shared_ptr<PanelChannelEdit>(new PanelChannelEdit(windowMain, this));
+  mPanelOverview = new PanelChannelOverview(windowMain, this);
+  mPanelEdit     = new PanelChannelEdit(windowMain, this);
 }
 
 }    // namespace joda::ui::qt

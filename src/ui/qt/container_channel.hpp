@@ -35,11 +35,11 @@ class ContainerChannel : std::enable_shared_from_this<ContainerChannel>
 public:
   /////////////////////////////////////////////////////
   ContainerChannel(WindowMain *windowMain);
-  std::shared_ptr<PanelChannelOverview> getOverviewPanel()
+  PanelChannelOverview *getOverviewPanel()
   {
     return mPanelOverview;
   }
-  std::shared_ptr<PanelChannelEdit> getEditPanel()
+  PanelChannelEdit *getEditPanel()
   {
     return mPanelEdit;
   }
@@ -66,8 +66,8 @@ private:
   std::shared_ptr<ContainerFunction<int>> mTetraspeckRemoval;
 
   /////////////////////////////////////////////////////
-  std::shared_ptr<PanelChannelOverview> mPanelOverview;
-  std::shared_ptr<PanelChannelEdit> mPanelEdit;
+  PanelChannelOverview *mPanelOverview;
+  PanelChannelEdit *mPanelEdit;
 };
 
 }    // namespace joda::ui::qt

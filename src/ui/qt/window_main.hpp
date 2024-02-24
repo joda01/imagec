@@ -31,7 +31,7 @@ class WindowMain : public QMainWindow
 public:
   WindowMain();
   void showChannelEdit(ContainerChannel *);
-  void removeChannel();
+  void removeChannel(ContainerChannel *toRemove);
 
 private:
   void createToolbar();
@@ -41,8 +41,8 @@ private:
 
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;
-  std::set<std::shared_ptr<ContainerChannel>> mChannels;
-  QPushButton *mAddChannelButton;
+  std::set<ContainerChannel *> mChannels;
+  QWidget *mAddChannelPanel;
   QLabel *mLastElement;
   QAction *mBackButton;
 
@@ -52,6 +52,7 @@ private slots:
   void onStartClicked();
   void onAddChannelClicked();
   void onBackClicked();
+  QWidget *createAddChannelPanel();
 };
 
 }    // namespace joda::ui::qt

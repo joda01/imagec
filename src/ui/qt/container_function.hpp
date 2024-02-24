@@ -16,8 +16,10 @@
 
 #include <qcombobox.h>
 #include <qlabel.h>
+#include <qlocale.h>
 #include <qobject.h>
 #include <qtmetamacros.h>
+#include <qvalidator.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <cstddef>
@@ -210,7 +212,14 @@ private:
     // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);
     connect(mLineEdit, &QLineEdit::textChanged, this, &ContainerFunction::lineEditingChanged);
     if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>) {
-      QIntValidator *validator = new QIntValidator(min, max, mLineEdit);
+      QValidator *validator;
+      if constexpr(std::same_as<VALUE_T, int>) {
+        validator = new QIntValidator(min, max, mLineEdit);
+      }
+      if constexpr(std::same_as<VALUE_T, float>) {
+        validator = new QDoubleValidator(min, max, 2, mLineEdit);
+        ((QDoubleValidator *) validator)->setLocale(QLocale::C);
+      }
       mLineEdit->setValidator(validator);
       if(defaultVal.has_value()) {
         mLineEdit->setText(QString::number(defaultVal.value()));

@@ -17,6 +17,7 @@
 #include <qlayout.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
+#include <qwidget.h>
 #include <QAction>
 #include <QIcon>
 #include <QMainWindow>
@@ -131,31 +132,8 @@ QWidget *WindowMain::createOverviewWidget()
   {
     auto [channelsOverViewLayout, channelsOverviewWidget] = createVerticalContainer();
     mLayoutChannelOverview                                = channelsOverViewLayout;
-    mAddChannelButton                                     = new QPushButton();
-    mAddChannelButton->setStyleSheet(
-        "QPushButton {"
-        "   background-color: rgba(0, 0, 0, 0);"
-        "   border: 1px solid rgb(111, 121, 123);"
-        "   color: rgb(0, 104, 117);"
-        "   padding: 10px 20px;"
-        "   border-radius: 12px;"
-        "   font-size: 14px;"
-        "   font-weight: normal;"
-        "   text-align: center;"
-        "   text-decoration: none;"
-        "}"
 
-        "QPushButton:hover {"
-        "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-        "}"
-
-        "QPushButton:pressed {"
-        "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-        "}");
-    mAddChannelButton->setText("Add Channel");
-    connect(mAddChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
-
-    channelsOverViewLayout->addWidget(mAddChannelButton);
+    channelsOverViewLayout->addWidget(createAddChannelPanel());
     mLastElement = new QLabel();
     channelsOverViewLayout->addWidget(mLastElement, 1, 0, 1, 3);
 
@@ -196,6 +174,55 @@ QWidget *WindowMain::createChannelWidget()
   return new QWidget(this);
 }
 
+QWidget *WindowMain::createAddChannelPanel()
+{
+  QWidget *addChannelWidget = new QWidget();
+  // setStyleSheet("border: 1px solid black; padding: 10px;");
+  addChannelWidget->setObjectName("PanelChannelOverview");
+  addChannelWidget->setMinimumHeight(250);
+  addChannelWidget->setMinimumWidth(350);
+  addChannelWidget->setMaximumWidth(350);
+  QGridLayout *layout = new QGridLayout(this);
+  addChannelWidget->setStyleSheet(
+      "QWidget#PanelChannelOverview { border-radius: 12px; border: 2px solid rgba(0, 104, 117, 0.05); padding-top: "
+      "10px; "
+      "padding-bottom: 10px;"
+      "background-color: rgba(0, 104, 117, 0);}");
+
+  addChannelWidget->setLayout(layout);
+  layout->setSpacing(0);
+
+  QPushButton *addChannelButton = new QPushButton();
+  addChannelButton->setStyleSheet(
+      "QPushButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgb(111, 121, 123);"
+      "   color: rgb(0, 104, 117);"
+      "   padding: 10px 20px;"
+      "   border-radius: 12px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}");
+  addChannelButton->setText("Add Channel");
+  connect(addChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
+  layout->addWidget(addChannelButton);
+
+  addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+
+  mAddChannelPanel = addChannelWidget;
+  return addChannelWidget;
+}
+
 ///
 /// \brief
 /// \author     Joachim Danmayr
@@ -234,7 +261,7 @@ void WindowMain::showChannelEdit(ContainerChannel *selectedChannel)
 {
   mBackButton->setEnabled(true);
   mStackedWidget->removeWidget(mStackedWidget->widget(1));
-  mStackedWidget->addWidget(selectedChannel->getEditPanel().get());
+  mStackedWidget->addWidget(selectedChannel->getEditPanel());
   mStackedWidget->setCurrentIndex(1);
 }
 
@@ -244,40 +271,52 @@ void WindowMain::showChannelEdit(ContainerChannel *selectedChannel)
 ///
 void WindowMain::onAddChannelClicked()
 {
-  {
-    int row = (mChannels.size() + 1) / 3;
-    int col = (mChannels.size() + 1) % 3;
-    mLayoutChannelOverview->removeWidget(mAddChannelButton);
-    mLayoutChannelOverview->removeWidget(mLastElement);
-    mLayoutChannelOverview->addWidget(mAddChannelButton, row, col);
-    mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
-  }
-
-  int row     = mChannels.size() / 3;
-  int col     = mChannels.size() % 3;
-  auto panel1 = std::shared_ptr<ContainerChannel>(new ContainerChannel(this));
-  mLayoutChannelOverview->addWidget(panel1->getOverviewPanel().get(), row, col);
-  mChannels.emplace(panel1);
-}
-
-void WindowMain::removeChannel()
-{
-  /*
-  /// \todo reorder
-  if(mSelectedChannel != nullptr) {
-    mChannels.erase(mSelectedChannel);
-    mLayoutChannelOverview->removeWidget(mSelectedChannel);
-
+  if(mAddChannelPanel != nullptr) {
     {
       int row = (mChannels.size() + 1) / 3;
       int col = (mChannels.size() + 1) % 3;
-
-      mLayoutChannelOverview->removeWidget(mAddChannelButton);
+      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
       mLayoutChannelOverview->removeWidget(mLastElement);
-      mLayoutChannelOverview->addWidget(mAddChannelButton, row, col);
+      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
       mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
     }
-  }*/
+
+    int row     = mChannels.size() / 3;
+    int col     = mChannels.size() % 3;
+    auto panel1 = new ContainerChannel(this);
+    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+    mChannels.emplace(panel1);
+  }
+}
+
+void WindowMain::removeChannel(ContainerChannel *toRemove)
+{
+  /// \todo reorder
+  if(toRemove != nullptr) {
+    mChannels.erase(toRemove);
+    mLayoutChannelOverview->removeWidget(toRemove->getOverviewPanel());
+    toRemove->getOverviewPanel()->setParent(nullptr);
+
+    // Reorder all panels
+    int cnt = 0;
+    for(const auto &panelToReorder : mChannels) {
+      mLayoutChannelOverview->removeWidget(panelToReorder->getOverviewPanel());
+      int row = (cnt) / 3;
+      int col = (cnt) % 3;
+      mLayoutChannelOverview->addWidget(panelToReorder->getOverviewPanel(), row, col);
+      cnt++;
+    }
+
+    {
+      int row = (mChannels.size()) / 3;
+      int col = (mChannels.size()) % 3;
+      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
+      mLayoutChannelOverview->removeWidget(mLastElement);
+      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
+    }
+    onBackClicked();
+  }
 }
 
 }    // namespace joda::ui::qt
