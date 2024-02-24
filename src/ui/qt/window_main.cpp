@@ -22,7 +22,9 @@
 #include <QIcon>
 #include <QMainWindow>
 #include <QToolBar>
+#include <iostream>
 #include <memory>
+#include <string>
 #include "container_channel.hpp"
 
 namespace joda::ui::qt {
@@ -33,9 +35,15 @@ WindowMain::WindowMain()
   createToolbar();
   setMinimumSize(1300, 900);
   setObjectName("windowMain");
-  setStyleSheet("QMainWindow#windowMain {background-color: rgb(251, 252, 253); border: none;}");
-
+  setStyleSheet(
+      "QMainWindow#windowMain {"
+      "   background-color: rgb(251, 252, 253); "
+      "   border: none;"
+      "}");
   setCentralWidget(createStackedWidget());
+
+  // Start with the main page
+  onBackClicked();
 }
 
 ///
@@ -53,32 +61,40 @@ void WindowMain::createToolbar()
   mBackButton->setEnabled(false);
   connect(mBackButton, &QAction::triggered, this, &WindowMain::onBackClicked);
   toolbar->addAction(mBackButton);
-  toolbar->addSeparator();
+  mFirstSeparator = toolbar->addSeparator();
 
   // Create an action with an icon
-  auto *saveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", this);
-  saveProject->setToolTip("Save project!");
-  connect(saveProject, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
-  toolbar->addAction(saveProject);
+  mSaveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", this);
+  mSaveProject->setToolTip("Save project!");
+  connect(mSaveProject, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
+  toolbar->addAction(mSaveProject);
 
-  auto *openFolder = new QAction(QIcon(":/icons/outlined/icons8-folder-50.png"), "Open", this);
-  openFolder->setToolTip("Open folder!");
-  connect(openFolder, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
-  toolbar->addAction(openFolder);
+  mOPenProject = new QAction(QIcon(":/icons/outlined/icons8-folder-50.png"), "Open", this);
+  mOPenProject->setToolTip("Open folder!");
+  connect(mOPenProject, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
+  toolbar->addAction(mOPenProject);
+
+  mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", this);
+  mStartAnalysis->setToolTip("Start analysis!");
+  connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
+  toolbar->addAction(mStartAnalysis);
+
+  mSecondSeparator      = toolbar->addSeparator();
+  QWidget *spacerWidget = new QWidget();
+  spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  toolbar->addWidget(spacerWidget);
 
   toolbar->addSeparator();
 
-  auto *start = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", this);
-  start->setToolTip("Start analysis!");
-  connect(start, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
-  toolbar->addAction(start);
+  mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Start", this);
+  mDeleteChannel->setToolTip("Delete channel!");
+  connect(mDeleteChannel, &QAction::triggered, this, &WindowMain::onRemoveChannelClicked);
+  toolbar->addAction(mDeleteChannel);
 
-  toolbar->addSeparator();
-
-  auto *settings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", this);
-  settings->setToolTip("Settings");
-  connect(settings, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
-  toolbar->addAction(settings);
+  mSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", this);
+  mSettings->setToolTip("Settings");
+  connect(mSettings, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
+  toolbar->addAction(mSettings);
 }
 
 ///
@@ -254,15 +270,65 @@ void WindowMain::onStartClicked()
 void WindowMain::onBackClicked()
 {
   mBackButton->setEnabled(false);
+  mSaveProject->setVisible(true);
+  mSaveProject->setVisible(true);
+  mOPenProject->setVisible(true);
+  mStartAnalysis->setVisible(true);
+  mSettings->setVisible(true);
+  mDeleteChannel->setVisible(false);
+  mFirstSeparator->setVisible(true);
+  mSecondSeparator->setVisible(true);
+
   mStackedWidget->setCurrentIndex(0);
+  mSelectedChannel = nullptr;
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
 void WindowMain::showChannelEdit(ContainerChannel *selectedChannel)
 {
+  mSelectedChannel = selectedChannel;
+
   mBackButton->setEnabled(true);
+  mSaveProject->setVisible(false);
+  mSaveProject->setVisible(false);
+  mOPenProject->setVisible(false);
+  mStartAnalysis->setVisible(false);
+  mSettings->setVisible(false);
+  mDeleteChannel->setVisible(true);
+  mFirstSeparator->setVisible(false);
+  mSecondSeparator->setVisible(false);
+
   mStackedWidget->removeWidget(mStackedWidget->widget(1));
   mStackedWidget->addWidget(selectedChannel->getEditPanel());
   mStackedWidget->setCurrentIndex(1);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onRemoveChannelClicked()
+{
+  if(mSelectedChannel != nullptr) {
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Dialog);
+    // messageBox.setAttribute(Qt::WA_TranslucentBackground);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Remove channel?");
+    messageBox.setText("Do you want to remove the channel?");
+    messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    auto reply = messageBox.exec();
+    std::cout << std::to_string(reply) << std::endl;
+    if(reply == 1) {
+      removeChannel(mSelectedChannel);
+    }
+    std::cout << "UPS" << std::endl;
+  }
 }
 
 ///

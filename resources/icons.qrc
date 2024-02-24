@@ -255,5 +255,6 @@
         <file>outlined/icons8-zoom-to-extents-50.png</file>
         <file>outlined/icons8-sort-down-50.png</file>
         <file>outlined/icons8-left-50.png</file>
+        <file>outlined/icons8-warning-50.png</file>
     </qresource>
 </RCC>

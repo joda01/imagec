@@ -46,12 +46,24 @@ private:
   QLabel *mLastElement;
   QAction *mBackButton;
 
+  ContainerChannel *mSelectedChannel = nullptr;
+
+  ////ToolbarIcons/////////////////////////////////////////////////
+  QAction *mSaveProject     = nullptr;
+  QAction *mOPenProject     = nullptr;
+  QAction *mStartAnalysis   = nullptr;
+  QAction *mSettings        = nullptr;
+  QAction *mDeleteChannel   = nullptr;
+  QAction *mFirstSeparator  = nullptr;
+  QAction *mSecondSeparator = nullptr;
+
 private slots:
   void onOpenFolderClicked();
   void onSaveProjectClicked();
   void onStartClicked();
   void onAddChannelClicked();
   void onBackClicked();
+  void onRemoveChannelClicked();
   QWidget *createAddChannelPanel();
 };
 
