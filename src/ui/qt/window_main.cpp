@@ -148,10 +148,9 @@ void WindowMain::createToolbar()
 QWidget *WindowMain::createStackedWidget()
 {
   mStackedWidget = new QStackedWidget();
-
+  mStackedWidget->setObjectName("stackedWidget");
   mStackedWidget->addWidget(createOverviewWidget());
   mStackedWidget->addWidget(createChannelWidget());
-
   return mStackedWidget;
 }
 
@@ -176,6 +175,7 @@ QWidget *WindowMain::createOverviewWidget()
 
   // Create a horizontal layout for the panels
   QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
+  horizontalLayout->setObjectName("mainWindowHLayout");
   horizontalLayout->setContentsMargins(16, 16, 16, 16);
   horizontalLayout->setSpacing(16);    // Adjust this value as needed
   contentWidget->setLayout(horizontalLayout);
@@ -183,6 +183,7 @@ QWidget *WindowMain::createOverviewWidget()
   auto createVerticalContainer = []() -> std::tuple<QGridLayout *, QWidget *> {
     QWidget *contentWidget = new QWidget;
     QGridLayout *layout    = new QGridLayout(contentWidget);
+    layout->setObjectName("mainWindowGridLayout");
     layout->setContentsMargins(16, 16, 16, 16);
     layout->setSpacing(8);    // Adjust this value as needed
     contentWidget->setLayout(layout);
@@ -243,6 +244,7 @@ QWidget *WindowMain::createAddChannelPanel()
   addChannelWidget->setMinimumWidth(350);
   addChannelWidget->setMaximumWidth(350);
   QGridLayout *layout = new QGridLayout(this);
+  layout->setObjectName("mainWindowChannelGridLayout");
   addChannelWidget->setStyleSheet(
       "QWidget#PanelChannelOverview { border-radius: 12px; border: 2px solid rgba(0, 104, 117, 0.05); padding-top: "
       "10px; "
@@ -289,13 +291,17 @@ QWidget *WindowMain::createAddChannelPanel()
 ///
 void WindowMain::onOpenProjectClicked()
 {
-  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", QDir::homePath());
-
-  if(!selectedDirectory.isEmpty()) {
-    mSelectedWorkingDirectory = selectedDirectory;
-  } else {
-    mSelectedWorkingDirectory = selectedDirectory;
+  QString folderToOpen = QDir::homePath();
+  if(mSelectedWorkingDirectory.isEmpty()) {
+    folderToOpen = mSelectedWorkingDirectory;
   }
+  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen);
+
+  if(selectedDirectory.isEmpty()) {
+    return;
+  }
+  mSelectedWorkingDirectory = selectedDirectory;
+
   std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
   mFoundFilesHint->setText("Looking for images ...");
   mFoundFilesCombo->clear();
@@ -320,7 +326,7 @@ void WindowMain::waitForFileSearchFinished()
           break;
         }
       }
-      std::this_thread::sleep_for(1s);
+      std::this_thread::sleep_for(2s);
     }
     while(mController->isLookingForFiles()) {
       std::this_thread::sleep_for(500ms);
@@ -343,7 +349,6 @@ void WindowMain::onLookingForFilesFinished()
     mFoundFilesCombo->addItem(QString(file.getFilename().data()), QString(file.getPath().data()));
   }
   if(mController->getNrOfFoundImages() > 0) {
-    std::cout << "SET FALSE" << std::endl;
     mFoundFilesCombo->setCurrentIndex(0);
     mFoundFilesHint->setText("Finished");
     mFileSearchHintLabel->setVisible(false);
@@ -435,7 +440,6 @@ void WindowMain::onRemoveChannelClicked()
     if(reply == 1) {
       removeChannel(mSelectedChannel);
     }
-    std::cout << "UPS" << std::endl;
   }
 }
 
