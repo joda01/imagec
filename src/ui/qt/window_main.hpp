@@ -19,6 +19,7 @@
 #include <mutex>
 #include <set>
 #include "controller/controller.hpp"
+#include "ui/qt/helper/clickablelabel.hpp"
 
 namespace joda::ui::qt {
 
@@ -60,7 +61,7 @@ private:
   QComboBox *mFoundFilesCombo;
   QComboBox *mImageSeriesCombo;
 
-  QLabel *mFoundFilesHint;
+  ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
   bool mNewFolderSelected = false;
 

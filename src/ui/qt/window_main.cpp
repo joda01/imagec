@@ -115,10 +115,10 @@ void WindowMain::createToolbar()
     mImageSeriesComboBox = toolbar->addWidget(mImageSeriesCombo);
     mImageSeriesComboBox->setVisible(false);
 
-    mFoundFilesHint = new QLabel(toolbar);
+    mFoundFilesHint = new ClickableLabel(toolbar);
     mFoundFilesHint->setText("Please open a working directory ...");
     mFileSearchHintLabel = toolbar->addWidget(mFoundFilesHint);
-    // connect(this, &QLabel::cl, this, &WindowMain::onOpenProjectClicked);
+    connect(mFoundFilesHint, &ClickableLabel::clicked, this, &WindowMain::onOpenProjectClicked);
   }
 
   // Right
