@@ -97,6 +97,15 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain)
       {{-1, "Off"}, {0, "Channel 1"}, {1, "Channel 2"}, {2, "Channel 3"}, {3, "Channel 4"}}));
 
   //
+  // Cell approximation
+  //
+  mEnableCellApproximation = std::shared_ptr<ContainerFunction<bool>>(
+      new ContainerFunction<bool>("dom-voronoi-50.png", "On/Off", "Enable cell approximation.", false));
+  mMaxCellRadius = std::shared_ptr<ContainerFunction<int>>(
+      new ContainerFunction<int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
+                                 "Max. cell radius", "px", 100, 0, INT32_MAX));
+
+  //
   // Create panels -> Must be after creating the functions
   //
   mPanelOverview = new PanelChannelOverview(windowMain, this);

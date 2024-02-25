@@ -24,17 +24,13 @@
 #include <QtWidgets>
 #include <cstddef>
 #include <string>
+#include "container_function_base.hpp"
 
 namespace joda::ui::qt {
 
 template <typename T>
 concept IntFloatConcept =
     std::same_as<T, int> || std::same_as<T, float> || std::same_as<T, bool> || std::same_as<T, QString>;
-
-class ContainerFunctionBase : public QWidget
-{
-public:
-};
 
 template <IntFloatConcept VALUE_T>
 class ContainerFunction : public ContainerFunctionBase
@@ -121,7 +117,7 @@ public:
     requires std::same_as<VALUE_T, bool>
   {
     try {
-      return mLineEdit->text().toInt();
+      return mComboBox->currentData().toBool();
     } catch(const std::exception &) {
       return false;
     }
@@ -151,7 +147,13 @@ public:
     requires std::same_as<VALUE_T, QString>
   {
     try {
-      return mLineEdit->text();
+      if(mLineEdit != nullptr) {
+        return mLineEdit->text();
+      } else if(mComboBox != nullptr) {
+        return mComboBox->currentData().toString();
+      } else {
+        return "";
+      }
     } catch(const std::exception &) {
       return "";
     }
@@ -356,6 +358,7 @@ private slots:
         mDisplayText = "- " + mUnit;
       }
       updateDisplayText();
+      ContainerFunction<VALUE_T>::triggerValueChanged();
     }
   }
 
@@ -364,6 +367,7 @@ private slots:
     if(mComboBox != nullptr) {
       mDisplayText = mComboBox->currentText();
       updateDisplayText();
+      ContainerFunction<VALUE_T>::triggerValueChanged();
     }
   }
 };

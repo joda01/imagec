@@ -44,6 +44,9 @@ public:
     return mPanelEdit;
   }
 
+  std::string toJson();
+  void fromJson();
+
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<ContainerFunction<QString>> mChannelName;
@@ -64,6 +67,10 @@ private:
   std::shared_ptr<ContainerFunction<int>> mSmoothing;
   std::shared_ptr<ContainerFunction<QString>> mEdgeDetection;
   std::shared_ptr<ContainerFunction<int>> mTetraspeckRemoval;
+
+  // Cell approximation//////////////////////////////////
+  std::shared_ptr<ContainerFunction<bool>> mEnableCellApproximation;
+  std::shared_ptr<ContainerFunction<int>> mMaxCellRadius;
 
   /////////////////////////////////////////////////////
   PanelChannelOverview *mPanelOverview;

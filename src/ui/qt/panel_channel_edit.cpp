@@ -29,33 +29,39 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
 
   auto *horizontalLayout = createLayout();
 
-  auto *verticalLayoutContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto *verticalLayoutMeta      = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
-
+  auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
+  auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   verticalLayoutMeta->addWidget(createTitle("Meta"));
   verticalLayoutMeta->addWidget(parentContainer->mChannelName->getEditableWidget());
   verticalLayoutMeta->addWidget(parentContainer->mChannelIndex->getEditableWidget());
   verticalLayoutMeta->addWidget(parentContainer->mChannelType->getEditableWidget());
+  connect(parentContainer->mChannelType.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::onChannelTypeChanged);
 
-  auto *verticalLayoutPreview = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
-
-  QPushButton *remove = new QPushButton("Remove");
-  connect(remove, &QPushButton::pressed, this, &PanelChannelEdit::onRemoveClicked);
-  verticalLayoutPreview->addWidget(remove);
+  auto [layoutCellApproximation, _3] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
+  mScrollAreaCellApprox              = _3;
+  layoutCellApproximation->addWidget(createTitle("Cell approximation"));
+  layoutCellApproximation->addWidget(parentContainer->mEnableCellApproximation->getEditableWidget());
+  layoutCellApproximation->addWidget(parentContainer->mMaxCellRadius->getEditableWidget());
+  mParentContainer->mMaxCellRadius->getEditableWidget()->setVisible(false);
+  connect(parentContainer->mEnableCellApproximation.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::onCellApproximationChanged);
 
   verticalLayoutMeta->addStretch();
   verticalLayoutContainer->addStretch();
-  verticalLayoutPreview->addStretch();
+  layoutCellApproximation->addStretch();
+  mScrollAreaCellApprox->setVisible(false);
 
-  auto *detectionContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto *detection          = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
+  auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
+  auto [detection, _5]          = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
 
   detection->addWidget(createTitle("Detection"));
   detection->addWidget(parentContainer->mThresholdAlgorithm->getEditableWidget());
   detection->addWidget(parentContainer->mThresholdValueMin->getEditableWidget());
 
-  auto *verticalLayoutFilter = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
+  auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
   verticalLayoutFilter->addWidget(createTitle("Filtering"));
+  verticalLayoutFilter->addWidget(parentContainer->mMinParticleSize->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mMinCircularity->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mSnapAreaSize->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mTetraspeckRemoval->getEditableWidget());
@@ -64,9 +70,9 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   detection->addStretch();
   detectionContainer->addStretch();
 
-  auto *functionContainer = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
+  auto [functionContainer, _7] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
 
-  auto *verticalLayoutFuctions = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
+  auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
 
   verticalLayoutFuctions->addWidget(createTitle("Preprocessing"));
   verticalLayoutFuctions->addWidget(parentContainer->mZProjection->getEditableWidget());
@@ -148,8 +154,9 @@ QHBoxLayout *PanelChannelEdit::createLayout()
   return horizontalLayout;
 }
 
-QVBoxLayout *PanelChannelEdit::addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor, int margin,
-                                                bool enableScrolling) const
+std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout *horizontalLayout,
+                                                                        const QString &bgColor, int margin,
+                                                                        bool enableScrolling) const
 {
   QScrollArea *scrollArea = new QScrollArea();
   if(!enableScrolling) {
@@ -206,12 +213,22 @@ QVBoxLayout *PanelChannelEdit::addVerticalPanel(QLayout *horizontalLayout, const
   scrollArea->setMinimumWidth(250);
   scrollArea->setMaximumWidth(250);
 
-  return layout;
+  return {layout, scrollArea};
 }
 
-void PanelChannelEdit::onRemoveClicked()
+void PanelChannelEdit::onCellApproximationChanged()
 {
-  mWindowMain->removeChannel(this->mParentContainer);
+  mParentContainer->mMaxCellRadius->getEditableWidget()->setVisible(
+      mParentContainer->mEnableCellApproximation->getValue());
+}
+
+void PanelChannelEdit::onChannelTypeChanged()
+{
+  if(mParentContainer->mChannelType->getValue() == "NUCLEUS") {
+    mScrollAreaCellApprox->setVisible(true);
+  } else {
+    mScrollAreaCellApprox->setVisible(false);
+  }
 }
 
 }    // namespace joda::ui::qt

@@ -27,14 +27,17 @@ public:
 
 private:
   QHBoxLayout *createLayout();
-  QVBoxLayout *addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor, int margin = 16,
-                                bool enableScrolling = true) const;
+  std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
+                                                        int margin = 16, bool enableScrolling = true) const;
   WindowMain *mWindowMain;
   ContainerChannel *mParentContainer;
   QLabel *createTitle(const QString &);
 
+  QWidget *mScrollAreaCellApprox = nullptr;
+
 private slots:
-  void onRemoveClicked();
+  void onChannelTypeChanged();
+  void onCellApproximationChanged();
 };
 
 }    // namespace joda::ui::qt
