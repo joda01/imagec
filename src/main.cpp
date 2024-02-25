@@ -1,4 +1,5 @@
 #include <QtWidgets>
+#include "controller/controller.hpp"
 #include "ui/qt/window_main.hpp"
 
 int main(int argc, char *argv[])
@@ -56,25 +57,9 @@ int main(int argc, char *argv[])
   // Option 1, like in the mentioned stackoverflow answer
   // QWidget window;
 
-  joda::ui::qt::WindowMain mainWindow;
+  auto *controller = new joda::ctrl::Controller();
+  joda::ui::qt::WindowMain mainWindow(controller);
 
   mainWindow.show();
   return app.exec();
 }
-
-/*
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-
-int main(int argc, char *argv[])
-{
-  QGuiApplication app(argc, argv);
-
-  QCoreApplication::addLibraryPath("./");
-
-  QQmlApplicationEngine engine;
-  engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
-
-  return app.exec();
-}
-*/

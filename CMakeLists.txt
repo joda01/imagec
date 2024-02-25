@@ -11,6 +11,8 @@ option(MAKE_LIBRARY "Builds a library instead of an executable program." OFF)
 
 SET(CMAKE_CXX20_STANDARD 20)
 SET(CMAKE_CXX20_STANDARD_REQUIRED true)
+set(CMAKE_AUTOMOC ON)
+
 
 IF (WIN32)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -O2 -lz -lws2_32 -lwsock32 -lm -std=c++20")
@@ -184,9 +186,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
-
-
-
 
 
 

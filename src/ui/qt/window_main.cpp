@@ -12,11 +12,14 @@
 ///
 
 #include "window_main.hpp"
+#include <qcombobox.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlayout.h>
+#include <qobject.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
+#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QAction>
 #include <QIcon>
@@ -24,12 +27,16 @@
 #include <QToolBar>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include "container_channel.hpp"
 
 namespace joda::ui::qt {
 
-WindowMain::WindowMain()
+using namespace std::chrono_literals;
+
+WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller)
 {
   setWindowTitle("imageC");
   createToolbar();
@@ -44,6 +51,9 @@ WindowMain::WindowMain()
 
   // Start with the main page
   onBackClicked();
+
+  mMainThread = new std::thread(&WindowMain::waitForFileSearchFinished, this);
+  connect(this, &WindowMain::lookingForFilesFinished, this, &WindowMain::onLookingForFilesFinished);
 }
 
 ///
@@ -56,44 +66,78 @@ void WindowMain::createToolbar()
   toolbar->setMovable(false);
   toolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
 
-  // Create an action with an icon
-  mBackButton = new QAction(QIcon(":/icons/outlined/icons8-left-50.png"), "Back", this);
-  mBackButton->setEnabled(false);
-  connect(mBackButton, &QAction::triggered, this, &WindowMain::onBackClicked);
-  toolbar->addAction(mBackButton);
-  mFirstSeparator = toolbar->addSeparator();
+  // Left
+  {
+    mBackButton = new QAction(QIcon(":/icons/outlined/icons8-left-50.png"), "Back", toolbar);
+    mBackButton->setEnabled(false);
+    connect(mBackButton, &QAction::triggered, this, &WindowMain::onBackClicked);
+    toolbar->addAction(mBackButton);
+    mFirstSeparator = toolbar->addSeparator();
 
-  // Create an action with an icon
-  mSaveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", this);
-  mSaveProject->setToolTip("Save project!");
-  connect(mSaveProject, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
-  toolbar->addAction(mSaveProject);
+    mSaveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", toolbar);
+    mSaveProject->setToolTip("Save project!");
+    connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProjectClicked);
+    toolbar->addAction(mSaveProject);
 
-  mOPenProject = new QAction(QIcon(":/icons/outlined/icons8-folder-50.png"), "Open", this);
-  mOPenProject->setToolTip("Open folder!");
-  connect(mOPenProject, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
-  toolbar->addAction(mOPenProject);
+    mOPenProject = new QAction(QIcon(":/icons/outlined/icons8-folder-50.png"), "Open", toolbar);
+    mOPenProject->setToolTip("Open folder!");
+    connect(mOPenProject, &QAction::triggered, this, &WindowMain::onOpenProjectClicked);
+    toolbar->addAction(mOPenProject);
 
-  mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", this);
-  mStartAnalysis->setToolTip("Start analysis!");
-  connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
-  toolbar->addAction(mStartAnalysis);
+    mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
+    mStartAnalysis->setToolTip("Start analysis!");
+    connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onStartClicked);
+    toolbar->addAction(mStartAnalysis);
+    mSecondSeparator = toolbar->addSeparator();
+  }
 
-  mSecondSeparator      = toolbar->addSeparator();
-  QWidget *spacerWidget = new QWidget();
-  spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  toolbar->addWidget(spacerWidget);
+  {
+    // Add a spacer to push the next action to the middle
+    QWidget *spacerWidget = new QWidget();
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    toolbar->addWidget(spacerWidget);
+  }
+
+  // Middle
+  {
+    // Add the QComboBox in the middle
+    mFoundFilesCombo = new QComboBox(toolbar);
+    mFoundFilesCombo->setMinimumWidth(250);
+    mFoundFilesCombo->setMaximumWidth(300);
+    mFileSelectorComboBox = toolbar->addWidget(mFoundFilesCombo);
+    mFileSelectorComboBox->setVisible(false);
+
+    mImageSeriesCombo = new QComboBox(toolbar);
+    mImageSeriesCombo->addItem("Series 0", 0);
+    mImageSeriesCombo->addItem("Series 1", 1);
+    mImageSeriesCombo->addItem("Series 2", 2);
+    mImageSeriesCombo->addItem("Series 3", 3);
+    mImageSeriesComboBox = toolbar->addWidget(mImageSeriesCombo);
+    mImageSeriesComboBox->setVisible(false);
+
+    mFoundFilesHint = new QLabel(toolbar);
+    mFoundFilesHint->setText("Please open a working directory ...");
+    mFileSearchHintLabel = toolbar->addWidget(mFoundFilesHint);
+    // connect(this, &QLabel::cl, this, &WindowMain::onOpenProjectClicked);
+  }
+
+  // Right
+  {
+    QWidget *spacerWidget = new QWidget();
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    toolbar->addWidget(spacerWidget);
+  }
 
   toolbar->addSeparator();
 
-  mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Start", this);
+  mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Start", toolbar);
   mDeleteChannel->setToolTip("Delete channel!");
   connect(mDeleteChannel, &QAction::triggered, this, &WindowMain::onRemoveChannelClicked);
   toolbar->addAction(mDeleteChannel);
 
-  mSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", this);
+  mSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", toolbar);
   mSettings->setToolTip("Settings");
-  connect(mSettings, &QAction::triggered, this, &WindowMain::onOpenFolderClicked);
+  connect(mSettings, &QAction::triggered, this, &WindowMain::onOpenProjectClicked);
   toolbar->addAction(mSettings);
 }
 
@@ -243,8 +287,72 @@ QWidget *WindowMain::createAddChannelPanel()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onOpenFolderClicked()
+void WindowMain::onOpenProjectClicked()
 {
+  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", QDir::homePath());
+
+  if(!selectedDirectory.isEmpty()) {
+    mSelectedWorkingDirectory = selectedDirectory;
+  } else {
+    mSelectedWorkingDirectory = selectedDirectory;
+  }
+  std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
+  mFoundFilesHint->setText("Looking for images ...");
+  mFoundFilesCombo->clear();
+  mFileSelectorComboBox->setVisible(false);
+  mImageSeriesComboBox->setVisible(false);
+  mFileSearchHintLabel->setVisible(true);
+  mController->setWorkingDirectory(mSelectedWorkingDirectory.toStdString());
+  mNewFolderSelected = true;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::waitForFileSearchFinished()
+{
+  while(true) {
+    while(true) {
+      {
+        std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
+        if(mNewFolderSelected) {
+          break;
+        }
+      }
+      std::this_thread::sleep_for(1s);
+    }
+    while(mController->isLookingForFiles()) {
+      std::this_thread::sleep_for(500ms);
+    }
+    {
+      std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
+      mNewFolderSelected = false;
+    }
+    emit lookingForFilesFinished();
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onLookingForFilesFinished()
+{
+  for(const auto &file : mController->getListOfFoundImages()) {
+    mFoundFilesCombo->addItem(QString(file.getFilename().data()), QString(file.getPath().data()));
+  }
+  if(mController->getNrOfFoundImages() > 0) {
+    std::cout << "SET FALSE" << std::endl;
+    mFoundFilesCombo->setCurrentIndex(0);
+    mFoundFilesHint->setText("Finished");
+    mFileSearchHintLabel->setVisible(false);
+    mFileSelectorComboBox->setVisible(true);
+    mImageSeriesComboBox->setVisible(true);
+  } else {
+    // mFoundFilesCombo->setVisible(false);
+    mFoundFilesHint->setText("No images found!");
+  }
 }
 
 ///

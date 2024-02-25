@@ -13,9 +13,12 @@
 
 #pragma once
 
+#include <qcombobox.h>
 #include <QtWidgets>
 #include <memory>
+#include <mutex>
 #include <set>
+#include "controller/controller.hpp"
 
 namespace joda::ui::qt {
 
@@ -28,43 +31,66 @@ class ContainerChannel;
 ///
 class WindowMain : public QMainWindow
 {
+  Q_OBJECT
+
 public:
-  WindowMain();
+  WindowMain(joda::ctrl::Controller *controller);
+  ~WindowMain()
+  {
+  }
   void showChannelEdit(ContainerChannel *);
   void removeChannel(ContainerChannel *toRemove);
+
+signals:
+  void lookingForFilesFinished();
 
 private:
   void createToolbar();
   QWidget *createStackedWidget();
   QWidget *createOverviewWidget();
   QWidget *createChannelWidget();
+  void waitForFileSearchFinished();
 
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;
-  std::set<ContainerChannel *> mChannels;
   QWidget *mAddChannelPanel;
   QLabel *mLastElement;
   QAction *mBackButton;
+  joda::ctrl::Controller *mController;
+  QComboBox *mFoundFilesCombo;
+  QComboBox *mImageSeriesCombo;
 
+  QLabel *mFoundFilesHint;
+  std::thread *mMainThread;
+  bool mNewFolderSelected = false;
+
+  ////Made project settings/////////////////////////////////////////////////
   ContainerChannel *mSelectedChannel = nullptr;
+  std::set<ContainerChannel *> mChannels;
+  QString mSelectedWorkingDirectory;
+  std::mutex mLookingForFilesMutex;
 
   ////ToolbarIcons/////////////////////////////////////////////////
-  QAction *mSaveProject     = nullptr;
-  QAction *mOPenProject     = nullptr;
-  QAction *mStartAnalysis   = nullptr;
-  QAction *mSettings        = nullptr;
-  QAction *mDeleteChannel   = nullptr;
-  QAction *mFirstSeparator  = nullptr;
-  QAction *mSecondSeparator = nullptr;
+  QAction *mFileSelectorComboBox = nullptr;
+  QAction *mImageSeriesComboBox  = nullptr;
+  QAction *mFileSearchHintLabel  = nullptr;
+  QAction *mSaveProject          = nullptr;
+  QAction *mOPenProject          = nullptr;
+  QAction *mStartAnalysis        = nullptr;
+  QAction *mSettings             = nullptr;
+  QAction *mDeleteChannel        = nullptr;
+  QAction *mFirstSeparator       = nullptr;
+  QAction *mSecondSeparator      = nullptr;
 
 private slots:
-  void onOpenFolderClicked();
+  void onOpenProjectClicked();
   void onSaveProjectClicked();
   void onStartClicked();
   void onAddChannelClicked();
   void onBackClicked();
   void onRemoveChannelClicked();
   QWidget *createAddChannelPanel();
+  void onLookingForFilesFinished();
 };
 
 }    // namespace joda::ui::qt

@@ -99,6 +99,33 @@ auto Controller::getNrOfFoundImages() -> uint32_t
 }
 
 ///
+/// \brief      Returns true as long as the thread is looking for files
+/// \author     Joachim Danmayr
+///
+auto Controller::isLookingForFiles() -> bool
+{
+  return mWorkingDirectory.isRunning();
+}
+
+///
+/// \brief      Sends a stop request and waits until the file looking has been ended
+/// \author     Joachim Danmayr
+///
+void Controller::stopLookingForFiles()
+{
+  mWorkingDirectory.stop();
+}
+
+///
+/// \brief      Sets the working directory
+/// \author     Joachim Danmayr
+///
+auto Controller::getListOfFoundImages() -> const std::vector<FileInfo> &
+{
+  return mWorkingDirectory.getFilesList();
+}
+
+///
 /// \brief      Returns preview
 /// \author     Joachim Danmayr
 ///
