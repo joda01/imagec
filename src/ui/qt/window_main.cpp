@@ -130,15 +130,24 @@ void WindowMain::createToolbar()
 
   toolbar->addSeparator();
 
-  mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Start", toolbar);
-  mDeleteChannel->setToolTip("Delete channel!");
-  connect(mDeleteChannel, &QAction::triggered, this, &WindowMain::onRemoveChannelClicked);
-  toolbar->addAction(mDeleteChannel);
+  {
+    mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
+    mDeleteChannel->setToolTip("Delete channel!");
+    connect(mDeleteChannel, &QAction::triggered, this, &WindowMain::onRemoveChannelClicked);
+    toolbar->addAction(mDeleteChannel);
 
-  mSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", toolbar);
-  mSettings->setToolTip("Settings");
-  connect(mSettings, &QAction::triggered, this, &WindowMain::onOpenProjectClicked);
-  toolbar->addAction(mSettings);
+    mSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", toolbar);
+    mSettings->setToolTip("Settings");
+    connect(mSettings, &QAction::triggered, this, &WindowMain::onOpenProjectClicked);
+    toolbar->addAction(mSettings);
+
+    toolbar->addSeparator();
+
+    mShowInfoDialog = new QAction(QIcon(":/icons/outlined/icons8-info-50.png"), "Info", toolbar);
+    mShowInfoDialog->setToolTip("Info");
+    connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
+    toolbar->addAction(mShowInfoDialog);
+  }
 }
 
 ///
@@ -495,6 +504,24 @@ void WindowMain::removeChannel(ContainerChannel *toRemove)
     }
     onBackClicked();
   }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \return
+///
+void WindowMain::onShowInfoDialog()
+{
+  QMessageBox messageBox(this);
+  // auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+  messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Dialog);
+  // messageBox.setAttribute(Qt::WA_TranslucentBackground);
+  // messageBox.setIconPixmap(icon->pixmap(42, 42));
+  messageBox.setWindowTitle("Info");
+  messageBox.setText("<html>imageC 1.0.0-alpha.1</html>");
+  messageBox.addButton(tr("Close"), QMessageBox::AcceptRole);
+  messageBox.exec();
 }
 
 }    // namespace joda::ui::qt

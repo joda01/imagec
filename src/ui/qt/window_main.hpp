@@ -80,6 +80,7 @@ private:
   QAction *mStartAnalysis        = nullptr;
   QAction *mSettings             = nullptr;
   QAction *mDeleteChannel        = nullptr;
+  QAction *mShowInfoDialog       = nullptr;
   QAction *mFirstSeparator       = nullptr;
   QAction *mSecondSeparator      = nullptr;
 
@@ -90,6 +91,7 @@ private slots:
   void onAddChannelClicked();
   void onBackClicked();
   void onRemoveChannelClicked();
+  void onShowInfoDialog();
   QWidget *createAddChannelPanel();
   void onLookingForFilesFinished();
 };
