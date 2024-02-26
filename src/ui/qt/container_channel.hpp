@@ -69,6 +69,7 @@ private:
   std::shared_ptr<ContainerFunction<int>> mThresholdValueMin;
   std::shared_ptr<ContainerFunction<float>> mMinCircularity;
   std::shared_ptr<ContainerFunction<int>> mMinParticleSize;
+  std::shared_ptr<ContainerFunction<int>> mMaxParticleSize;
   std::shared_ptr<ContainerFunction<int>> mSnapAreaSize;
 
   std::shared_ptr<ContainerFunction<QString>> mZProjection;
@@ -80,6 +81,10 @@ private:
   std::shared_ptr<ContainerFunction<int>> mSmoothing;
   std::shared_ptr<ContainerFunction<QString>> mEdgeDetection;
   std::shared_ptr<ContainerFunction<int>> mTetraspeckRemoval;
+
+  std::shared_ptr<ContainerFunction<QString>> mUsedDetectionMode;
+  std::shared_ptr<ContainerFunction<float>> mMinProbability;
+  std::shared_ptr<ContainerFunction<QString>> mAIModels;
 
   // Cell approximation//////////////////////////////////
   std::shared_ptr<ContainerFunction<bool>> mEnableCellApproximation;

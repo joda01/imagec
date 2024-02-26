@@ -38,6 +38,7 @@ private:
 private slots:
   void onChannelTypeChanged();
   void onCellApproximationChanged();
+  void onDetectionModechanged();
 };
 
 }    // namespace joda::ui::qt

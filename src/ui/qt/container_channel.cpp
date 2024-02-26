@@ -58,8 +58,12 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                       {"CELL", "Cell"},
                                       {"BACKGROUND", "Background"}}));
 
+  mUsedDetectionMode = std::shared_ptr<ContainerFunction<QString>>(
+      new ContainerFunction<QString>("icons8-mesh-50.png", "Threshold", "Detection mode", "", "THRESHOLD",
+                                     {{"THRESHOLD", "Threshold"}, {"AI", "Artificial intelligence"}}));
+
   mThresholdAlgorithm = std::shared_ptr<ContainerFunction<QString>>(
-      new ContainerFunction<QString>("icons8-lambda-50.png", "Threshold", "Threshold algorithm", "", "MANUAL",
+      new ContainerFunction<QString>("icons8-ksi-50.png", "Threshold", "Threshold algorithm", "", "MANUAL",
                                      {{"MANUAL", "Manual"},
                                       {"LI", "Li"},
                                       {"MIN_ERROR", "Min. error"},
@@ -69,12 +73,21 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
   mThresholdValueMin = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "px", 1000, 0, 65535));
 
+  mMinProbability = std::shared_ptr<ContainerFunction<float>>(
+      new ContainerFunction<float>("icons8-percentage-50.png", "[0 - 1]", "Min. probability", "%", 0.5, 0, 1));
+
+  mAIModels = std::shared_ptr<ContainerFunction<QString>>(
+      new ContainerFunction<QString>("icons8-mind-map-50.png", "AI model", "AI model", "", "OFF", {{"OFF", "Off"}}));
+
   mMinCircularity = std::shared_ptr<ContainerFunction<float>>(
       new ContainerFunction<float>("icons8-ellipse-50.png", "[0 - 1]", "Min. circularity", "%", 0.1, 0, 1));
 
   mMinParticleSize = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
                                  "Min. particle size", "px", 1, 0, INT32_MAX));
+  mMaxParticleSize = std::shared_ptr<ContainerFunction<int>>(
+      new ContainerFunction<int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
+                                 "Max. particle size", "px", 1, 0, INT32_MAX));
 
   mSnapAreaSize = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>(
       "icons8-initial-state-50.png", "[0 - 65535]", "Snap area size", "px", std::nullopt, 0, 65535));
@@ -88,7 +101,8 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                  std::nullopt, 0, INT32_MAX));
   mSubtractChannel = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-layers-50.png", "Index", "Subtract other channel", "", -1,
-                                 {{0, "Channel 0"},
+                                 {{-1, "Off"},
+                                  {0, "Channel 0"},
                                   {1, "Channel 1"},
                                   {2, "Channel 2"},
                                   {3, "Channel 3"},
@@ -110,14 +124,14 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
 
   mGaussianBlur = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>(
       "icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur", "px", -1,
-      {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}}, {{-1, "Off"}, {1, "1x"}, {2, "2x"}, {3, "3x"}}));
+      {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}}, {{1, "1x"}, {2, "2x"}, {3, "3x"}}));
 
   mSmoothing = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-cleanup-noise-50.png", "Kernel size", "Smoothing", "", -1,
-                                 {{-1, "Off"}, {1, "1x"}, {2, "2x"}, {3, "3x"}}));
-  mEdgeDetection = std::shared_ptr<ContainerFunction<QString>>(
-      new ContainerFunction<QString>("icons8-triangle-50.png", "Threshold", "Threshold algorithm", "", "NONE",
-                                     {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}));
+                                 {{-1, "Off"}, {1, "x1"}, {2, "x2"}, {3, "x3"}}));
+  mEdgeDetection     = std::shared_ptr<ContainerFunction<QString>>(new ContainerFunction<QString>(
+      "icons8-triangle-50.png", "Threshold", "Edge detection", "", "NONE",
+      {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}, {{"XY", "xy"}, {"X", "x"}, {"Y", "y"}}));
   mTetraspeckRemoval = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-final-state-50.png", "Index", "Tetraspeck removal", "", -1,
                                  {{0, "Channel 0"},
@@ -180,62 +194,57 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
     jsonArray.push_back({{"margin_crop", {{"value", static_cast<int>(mMarginCrop->getValue())}}}});
   }
   if(mEdgeDetection->getValue() != "NONE") {
-    jsonArray.push_back({{"edge_detection", {{"value", mEdgeDetection->getValue().toStdString()}, {"direction", ""}}}});
+    jsonArray.push_back({{"edge_detection",
+                          {{"value", mEdgeDetection->getValue().toStdString()},
+                           {"direction", mEdgeDetection->getValueSecond().toStdString()}}}});
   }
 
   if(mRollingBall->hasValue()) {
     jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mRollingBall->getValue())}}}});
   }
 
-  /*
-  if(mDropdownGausianBlur->GetSelection() > 0) {
-    jsonArray.push_back({{"gaussian_blur",
-                          {{"kernel_size", indexToFilterKernel(mDropdownGausianBlur->GetSelection())},
-                           {"repeat", mDropDownGausianBlurRepeat->GetSelection() + 1}}}});
+  if(mGaussianBlur->hasValue()) {
+    jsonArray.push_back(
+        {{"gaussian_blur", {{"kernel_size", mGaussianBlur->getValue()}, {"repeat", mGaussianBlur->getValue()}}}});
   }
-  if(mDropDownSmoothingRepeat->GetSelection() > 0) {
-    jsonArray.push_back({{"smoothing", {{"repeat", mDropDownSmoothingRepeat->GetSelection()}}}});
+  if(mSmoothing->hasValue()) {
+    jsonArray.push_back({{"smoothing", {{"repeat", mSmoothing->getValue()}}}});
   }
-  if(mChoiceMedianBGSubtract->GetSelection() > 0) {
+  if(mMedianBackgroundSubtraction->hasValue()) {
     jsonArray.push_back({{"median_bg_subtraction", {{"kernel_size", 3}}}});
   }
-  if(mChoiceBGSubtraction->GetSelection() > 0) {
-    jsonArray.push_back({{"subtract_channel", {{"channel_index", mChoiceBGSubtraction->GetSelection() - 1}}}});
+  if(mSubtractChannel->hasValue()) {
+    jsonArray.push_back({{"subtract_channel", {{"channel_index", mSubtractChannel->getValue()}}}});
   }
 
   chSettings["preprocessing"] = jsonArray;
 
   // Detections
-  if(mCheckUseAI->IsChecked()) {
-    chSettings["detection"]["mode"] = "AI";
-  } else {
-    chSettings["detection"]["mode"] = "THRESHOLD";
-  }
+  chSettings["detection"]["mode"] = mUsedDetectionMode->getValue().toStdString();
 
-  chSettings["detection"]["threshold"]["threshold_algorithm"] =
-      indexToThreshold(mChoiceThresholdMethod->GetSelection());
-  chSettings["detection"]["threshold"]["threshold_min"] = static_cast<int>(mSpinMinThreshold->GetValue());
-  chSettings["detection"]["threshold"]["threshold_max"] = UINT16_MAX;
+  chSettings["detection"]["threshold"]["threshold_algorithm"] = mThresholdAlgorithm->getValue().toStdString();
+  chSettings["detection"]["threshold"]["threshold_min"]       = static_cast<int>(mThresholdValueMin->getValue());
+  chSettings["detection"]["threshold"]["threshold_max"]       = UINT16_MAX;
 
-  chSettings["detection"]["ai"]["model_name"]      = mChoiceAImodel->GetString(mChoiceAImodel->GetSelection());
-  chSettings["detection"]["ai"]["probability_min"] = mSpinMinProbability->GetValue();
+  chSettings["detection"]["ai"]["model_name"]      = mAIModels->getValue().toStdString();
+  chSettings["detection"]["ai"]["probability_min"] = mMinProbability->getValue();
 
   // Filtering
-  try {
-    auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
-    chSettings["filter"]["min_particle_size"] = min;
-    chSettings["filter"]["max_particle_size"] = max;
-  } catch(const std::exception &) {
-    // Invalid input number format
+  if(mMinParticleSize->hasValue()) {
+    chSettings["filter"]["min_particle_size"] = mMinParticleSize->getValue();
+  } else {
     chSettings["filter"]["min_particle_size"] = 0;
-    chSettings["filter"]["max_particle_size"] = 0;
   }
 
-  chSettings["filter"]["min_circularity"]              = mSpinMinCircularity->GetValue();
-  chSettings["filter"]["snap_area_size"]               = mSpinSnapArea->GetValue();
-  chSettings["filter"]["reference_spot_channel_index"] = mChoiceReferenceSpotChannel->GetSelection() - 1;
+  if(mMaxParticleSize->hasValue()) {
+    chSettings["filter"]["max_particle_size"] = mMaxParticleSize->getValue();
+  } else {
+    chSettings["filter"]["max_particle_size"] = INT32_MAX;
+  }
 
-*/
+  chSettings["filter"]["min_circularity"]              = mMinCircularity->getValue();
+  chSettings["filter"]["snap_area_size"]               = mSnapAreaSize->getValue();
+  chSettings["filter"]["reference_spot_channel_index"] = mTetraspeckRemoval->getValue();
 }
 
 }    // namespace joda::ui::qt

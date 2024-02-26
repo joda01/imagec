@@ -21,6 +21,7 @@
 #include <qtmetamacros.h>
 #include <qvalidator.h>
 #include <qwidget.h>
+#include <QSizePolicy>
 #include <QtWidgets>
 #include <cstddef>
 #include <string>
@@ -108,6 +109,14 @@ public:
   {
     if(mLineEdit != nullptr) {
       return !mLineEdit->text().isEmpty();
+    }
+    if(mComboBox != nullptr) {
+      if constexpr(std::same_as<VALUE_T, int>) {
+        return mComboBox->currentData().toInt() >= 0;
+      }
+      if constexpr(std::same_as<VALUE_T, QString>) {
+        return mComboBox->currentData().toString() != "NONE";
+      }
     }
     return true;
   }
@@ -470,6 +479,18 @@ private:
   QComboBox *createSecondCombo(const std::vector<ComboEntry> &optionsSecond)
   {
     mComboBoxSecond = new QComboBox();
+    mComboBoxSecond->setObjectName("SecondCombo");
+    mComboBoxSecond->setStyleSheet(
+        "QComboBox#SecondCombo {"
+        "   border: 1px solid rgba(32, 27, 23, 0.6);"
+        "   border-radius: 4px;"
+        "   padding-top: 10px;"
+        "   padding-bottom: 10px;"
+        "   padding-left: 5px;"
+        "   color: #333;"
+        "   background-color: #fff;"
+        "   selection-background-color: rgba(48,140,198,0.7);"
+        "}");
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
     for(const auto &data : optionsSecond) {
@@ -477,7 +498,7 @@ private:
     }
     mComboBoxSecond->setFont(fontLineEdit);
     mComboBoxSecond->setPlaceholderText("");
-    mComboBoxSecond->setMaximumWidth(10);
+    mComboBoxSecond->setMaximumWidth(50);
     return mComboBoxSecond;
   }
 

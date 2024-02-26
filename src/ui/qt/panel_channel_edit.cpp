@@ -56,12 +56,21 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   auto [detection, _5]          = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
 
   detection->addWidget(createTitle("Detection"));
+  detection->addWidget(parentContainer->mUsedDetectionMode->getEditableWidget());
+  connect(parentContainer->mUsedDetectionMode.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::onDetectionModechanged);
+
   detection->addWidget(parentContainer->mThresholdAlgorithm->getEditableWidget());
   detection->addWidget(parentContainer->mThresholdValueMin->getEditableWidget());
+
+  detection->addWidget(parentContainer->mAIModels->getEditableWidget());
+  detection->addWidget(parentContainer->mMinProbability->getEditableWidget());
+  onDetectionModechanged();
 
   auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
   verticalLayoutFilter->addWidget(createTitle("Filtering"));
   verticalLayoutFilter->addWidget(parentContainer->mMinParticleSize->getEditableWidget());
+  verticalLayoutFilter->addWidget(parentContainer->mMaxParticleSize->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mMinCircularity->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mSnapAreaSize->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mTetraspeckRemoval->getEditableWidget());
@@ -77,12 +86,12 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   verticalLayoutFuctions->addWidget(createTitle("Preprocessing"));
   verticalLayoutFuctions->addWidget(parentContainer->mZProjection->getEditableWidget());
   verticalLayoutFuctions->addWidget(parentContainer->mMarginCrop->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mSubtractChannel->getEditableWidget());
   verticalLayoutFuctions->addWidget(parentContainer->mMedianBackgroundSubtraction->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mRollingBall->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mGaussianBlur->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mSmoothing->getEditableWidget());
   verticalLayoutFuctions->addWidget(parentContainer->mEdgeDetection->getEditableWidget());
+  verticalLayoutFuctions->addWidget(parentContainer->mRollingBall->getEditableWidget());
+  verticalLayoutFuctions->addWidget(parentContainer->mSubtractChannel->getEditableWidget());
+  verticalLayoutFuctions->addWidget(parentContainer->mSmoothing->getEditableWidget());
+  verticalLayoutFuctions->addWidget(parentContainer->mGaussianBlur->getEditableWidget());
 
   verticalLayoutFuctions->addStretch();
   // Comment out
@@ -228,6 +237,24 @@ void PanelChannelEdit::onChannelTypeChanged()
     mScrollAreaCellApprox->setVisible(true);
   } else {
     mScrollAreaCellApprox->setVisible(false);
+  }
+}
+
+void PanelChannelEdit::onDetectionModechanged()
+{
+  if(mParentContainer->mUsedDetectionMode->getValue() == "AI") {
+    mParentContainer->mMinProbability->getEditableWidget()->setVisible(true);
+    mParentContainer->mAIModels->getEditableWidget()->setVisible(true);
+
+    mParentContainer->mThresholdAlgorithm->getEditableWidget()->setVisible(false);
+    mParentContainer->mThresholdValueMin->getEditableWidget()->setVisible(false);
+
+  } else {
+    mParentContainer->mMinProbability->getEditableWidget()->setVisible(false);
+    mParentContainer->mAIModels->getEditableWidget()->setVisible(false);
+
+    mParentContainer->mThresholdAlgorithm->getEditableWidget()->setVisible(true);
+    mParentContainer->mThresholdValueMin->getEditableWidget()->setVisible(true);
   }
 }
 
