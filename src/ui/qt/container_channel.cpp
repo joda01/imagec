@@ -108,13 +108,13 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
       new ContainerFunction<int>("icons8-bubble-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Rolling ball",
                                  "px", std::nullopt, 0, INT32_MAX));
 
-  mGaussianBlur = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur",
-                                 "px", std::nullopt, 0, INT32_MAX));
+  mGaussianBlur = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>(
+      "icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur", "px", -1,
+      {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}}, {{-1, "Off"}, {1, "1x"}, {2, "2x"}, {3, "3x"}}));
 
   mSmoothing = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-cleanup-noise-50.png", "Kernel size", "Smoothing", "", -1,
-                                 {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}}));
+                                 {{-1, "Off"}, {1, "1x"}, {2, "2x"}, {3, "3x"}}));
   mEdgeDetection = std::shared_ptr<ContainerFunction<QString>>(
       new ContainerFunction<QString>("icons8-triangle-50.png", "Threshold", "Threshold algorithm", "", "NONE",
                                      {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}));

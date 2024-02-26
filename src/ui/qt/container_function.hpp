@@ -69,7 +69,18 @@ public:
       : mUnit(unit)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
-    createEditableWidget(icon, placeHolderText, helpText, unit, options, defaultVal);
+    createEditableWidget(icon, placeHolderText, helpText, unit, options, {}, defaultVal);
+    comboxEditingFinished();
+  }
+
+  ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
+                    std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
+                    const std::vector<ComboEntry> &optionsSecond, QWidget *parent = nullptr)
+    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int>
+      : mUnit(unit)
+  {
+    createDisplayAbleWidget(icon, placeHolderText, helpText);
+    createEditableWidget(icon, placeHolderText, helpText, unit, options, optionsSecond, defaultVal);
     comboxEditingFinished();
   }
 
@@ -79,7 +90,7 @@ public:
       : mUnit("")
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
-    createEditableWidget(icon, placeHolderText, helpText, "", {{0, "Off"}, {1, "On"}}, defaultVal);
+    createEditableWidget(icon, placeHolderText, helpText, "", {{0, "Off"}, {1, "On"}}, {}, defaultVal);
     comboxEditingFinished();
   }
 
@@ -122,6 +133,24 @@ public:
         mComboBox->setCurrentIndex(idx);
       } else {
         mComboBox->setCurrentIndex(0);
+      }
+    }
+  }
+
+  ///
+  /// \brief      Creates an editable element
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
+  void setValueSecond(VALUE_T newValue)
+    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> || std::same_as<VALUE_T, QString>
+  {
+    if(mComboBoxSecond != nullptr) {
+      auto idx = mComboBoxSecond->findData(newValue);
+      if(idx >= 0) {
+        mComboBoxSecond->setCurrentIndex(idx);
+      } else {
+        mComboBoxSecond->setCurrentIndex(0);
       }
     }
   }
@@ -221,6 +250,43 @@ public:
     }
   }
 
+  ///
+  /// \brief      Creates an editable element
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
+  float getValueSecond()
+    requires std::same_as<VALUE_T, float>
+  {
+    try {
+      if(mComboBoxSecond != nullptr) {
+        return mComboBoxSecond->currentData().toFloat();
+      }
+      return 0.0;
+    } catch(const std::exception &) {
+      return 0.0;
+    }
+  }
+
+  ///
+  /// \brief      Creates an editable element
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
+  QString getValueSecond()
+    requires std::same_as<VALUE_T, QString>
+  {
+    try {
+      if(mComboBoxSecond != nullptr) {
+        return mComboBoxSecond->currentData().toString();
+      } else {
+        return "";
+      }
+    } catch(const std::exception &) {
+      return "";
+    }
+  }
+
 private:
   /////////////////////////////////////////////////////
   void createDisplayAbleWidget(const QString &icon, const QString &placeHolderText, const QString &helpText)
@@ -301,7 +367,7 @@ private:
 
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
                             const QString &unit, const std::vector<ComboEntry> &options,
-                            const std::optional<VALUE_T> &defaultVal)
+                            const std::vector<ComboEntry> &optionsSecond, const std::optional<VALUE_T> &defaultVal)
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, bool>
   {
     mEditable = new QWidget();
@@ -347,11 +413,14 @@ private:
         "   background-color: #fff;"
         "}"
         "QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
-    QVBoxLayout *layout = new QVBoxLayout(mParent);
-    layout->setContentsMargins(8, 8, 8, 0);
+    QVBoxLayout *layoutVertical = new QVBoxLayout(mParent);
+    layoutVertical->setContentsMargins(8, 8, 8, 0);
+
+    QWidget *horizontaContainer   = new QWidget();
+    QHBoxLayout *layoutHorizontal = new QHBoxLayout(mParent);
+    layoutHorizontal->setContentsMargins(0, 0, 0, 0);
 
     const QIcon myIcon(":/icons/outlined/" + icon);
-
     mComboBox = new QComboBox();
     mComboBox->addAction(myIcon, "");    // const QIcon &icon, const QString &text
     QFont fontLineEdit;
@@ -361,7 +430,7 @@ private:
     }
     mComboBox->setFont(fontLineEdit);
     mComboBox->setPlaceholderText(placeHolderText);
-    layout->addWidget(mComboBox);
+    layoutHorizontal->addWidget(mComboBox);
     connect(mComboBox, &QComboBox::currentIndexChanged, this, &ContainerFunction::comboxEditingFinished);
     int32_t idx = 0;
     if(defaultVal.has_value()) {
@@ -371,8 +440,14 @@ private:
       mComboBox->setCurrentIndex(idx);
     }
 
-    createHelperText(layout, helpText);
-    mEditable->setLayout(layout);
+    if(!optionsSecond.empty()) {
+      layoutHorizontal->addWidget(createSecondCombo(optionsSecond));
+    }
+    horizontaContainer->setLayout(layoutHorizontal);
+    layoutVertical->addWidget(horizontaContainer);
+
+    createHelperText(layoutVertical, helpText);
+    mEditable->setLayout(layoutVertical);
   }
 
   void createHelperText(QVBoxLayout *layout, const QString &helpText)
@@ -392,6 +467,20 @@ private:
     layout->addWidget(helperText);
   }
 
+  QComboBox *createSecondCombo(const std::vector<ComboEntry> &optionsSecond)
+  {
+    mComboBoxSecond = new QComboBox();
+    QFont fontLineEdit;
+    fontLineEdit.setPixelSize(16);
+    for(const auto &data : optionsSecond) {
+      mComboBoxSecond->addItem(data.label, QVariant(data.key));
+    }
+    mComboBoxSecond->setFont(fontLineEdit);
+    mComboBoxSecond->setPlaceholderText("");
+    mComboBoxSecond->setMaximumWidth(10);
+    return mComboBoxSecond;
+  }
+
   void updateDisplayText()
   {
     mDisplayLabel->setText(mDisplayText);
@@ -401,9 +490,10 @@ private:
   QString mDisplayText = "";
 
   /////////////////////////////////////////////////////
-  QLineEdit *mLineEdit  = nullptr;
-  QComboBox *mComboBox  = nullptr;
-  QLabel *mDisplayLabel = nullptr;
+  QLineEdit *mLineEdit       = nullptr;
+  QComboBox *mComboBox       = nullptr;
+  QComboBox *mComboBoxSecond = nullptr;
+  QLabel *mDisplayLabel      = nullptr;
   QString mUnit;
 
   QWidget *mParent      = nullptr;
