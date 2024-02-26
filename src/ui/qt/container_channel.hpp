@@ -14,11 +14,17 @@
 ///
 
 #pragma once
+
 #include <QtWidgets>
 #include <memory>
+#include <optional>
+#include "backend/settings/analze_settings_parser.hpp"
+#include "backend/settings/channel_settings.hpp"
+#include "backend/settings/pipeline_settings.hpp"
 #include "ui/qt/container_function.hpp"
 #include "ui/qt/panel_channel_edit.hpp"
 #include "ui/qt/panel_channel_overview.hpp"
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
 
@@ -44,8 +50,15 @@ public:
     return mPanelEdit;
   }
 
-  std::string toJson();
-  void fromJson();
+  struct ConvertedChannels
+  {
+    nlohmann::json channelSettings;
+    nlohmann::json pipelineStep;
+  };
+
+  void fromJson(const joda::settings::json::ChannelSettings &,
+                std::optional<joda::settings::json::PipelineStepCellApproximation>);
+  ConvertedChannels toJson() const;
 
 private:
   /////////////////////////////////////////////////////
@@ -73,6 +86,7 @@ private:
   std::shared_ptr<ContainerFunction<int>> mMaxCellRadius;
 
   /////////////////////////////////////////////////////
+  WindowMain *mWindowMain;
   PanelChannelOverview *mPanelOverview;
   PanelChannelEdit *mPanelEdit;
 };

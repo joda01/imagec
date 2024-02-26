@@ -41,6 +41,10 @@ public:
   }
   void showChannelEdit(ContainerChannel *);
   void removeChannel(ContainerChannel *toRemove);
+  int getSelectedSeries() const
+  {
+    return mImageSeriesCombo->currentData().toInt();
+  }
 
 signals:
   void lookingForFilesFinished();
@@ -60,7 +64,6 @@ private:
   joda::ctrl::Controller *mController;
   QComboBox *mFoundFilesCombo;
   QComboBox *mImageSeriesCombo;
-
   ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
   bool mNewFolderSelected = false;

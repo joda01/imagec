@@ -19,7 +19,9 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include "backend/settings/channel_settings.hpp"
 #include "ui/qt/panel_channel_overview.hpp"
+#include "window_main.hpp"
 
 namespace joda::ui::qt {
 
@@ -27,14 +29,26 @@ namespace joda::ui::qt {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-ContainerChannel::ContainerChannel(WindowMain *windowMain)
+ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowMain)
 {
   mChannelName = std::shared_ptr<ContainerFunction<QString>>(
       new ContainerFunction<QString>("icons8-text-50.png", "Name", "Channel Name", "Name"));
 
-  mChannelIndex = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-layers-50.png", "Index", "Channel index", "", 0,
-                                 {{0, "Channel 1"}, {1, "Channel 2"}, {2, "Channel 3"}, {3, "Channel 4"}}));
+  mChannelIndex = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>("icons8-layers-50.png", "Index",
+                                                                                     "Channel index", "", 0,
+                                                                                     {{0, "Channel 0"},
+                                                                                      {1, "Channel 1"},
+                                                                                      {2, "Channel 2"},
+                                                                                      {3, "Channel 3"},
+                                                                                      {4, "Channel 4"},
+                                                                                      {5, "Channel 5"},
+                                                                                      {6, "Channel 6"},
+                                                                                      {7, "Channel 7"},
+                                                                                      {8, "Channel 8"},
+                                                                                      {9, "Channel 9"},
+                                                                                      {10, "Channel 10"},
+                                                                                      {11, "Channel 11"},
+                                                                                      {12, "Channel 12"}}));
 
   mChannelType = std::shared_ptr<ContainerFunction<QString>>(
       new ContainerFunction<QString>("icons8-unknown-status-50.png", "Type", "Channel type", "", "SPOT",
@@ -72,9 +86,21 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain)
   mMarginCrop = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-crop-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Crop margin", "px",
                                  std::nullopt, 0, INT32_MAX));
-  mSubtractChannel = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>(
-      "icons8-layers-50.png", "Index", "Subtract other channel", "", -1,
-      {{-1, "Off"}, {0, "Channel 1"}, {1, "Channel 2"}, {2, "Channel 3"}, {3, "Channel 4"}}));
+  mSubtractChannel = std::shared_ptr<ContainerFunction<int>>(
+      new ContainerFunction<int>("icons8-layers-50.png", "Index", "Subtract other channel", "", -1,
+                                 {{0, "Channel 0"},
+                                  {1, "Channel 1"},
+                                  {2, "Channel 2"},
+                                  {3, "Channel 3"},
+                                  {4, "Channel 4"},
+                                  {5, "Channel 5"},
+                                  {6, "Channel 6"},
+                                  {7, "Channel 7"},
+                                  {8, "Channel 8"},
+                                  {9, "Channel 9"},
+                                  {10, "Channel 10"},
+                                  {11, "Channel 11"},
+                                  {12, "Channel 12"}}));
 
   mMedianBackgroundSubtraction = std::shared_ptr<ContainerFunction<bool>>(
       new ContainerFunction<bool>("icons8-baseline-50.png", "On/Off", "Median background subtraction", false));
@@ -92,9 +118,21 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain)
   mEdgeDetection = std::shared_ptr<ContainerFunction<QString>>(
       new ContainerFunction<QString>("icons8-triangle-50.png", "Threshold", "Threshold algorithm", "", "NONE",
                                      {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}));
-  mTetraspeckRemoval = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>(
-      "icons8-final-state-50.png", "Index", "Tetraspeck removal", "", -1,
-      {{-1, "Off"}, {0, "Channel 1"}, {1, "Channel 2"}, {2, "Channel 3"}, {3, "Channel 4"}}));
+  mTetraspeckRemoval = std::shared_ptr<ContainerFunction<int>>(
+      new ContainerFunction<int>("icons8-final-state-50.png", "Index", "Tetraspeck removal", "", -1,
+                                 {{0, "Channel 0"},
+                                  {1, "Channel 1"},
+                                  {2, "Channel 2"},
+                                  {3, "Channel 3"},
+                                  {4, "Channel 4"},
+                                  {5, "Channel 5"},
+                                  {6, "Channel 6"},
+                                  {7, "Channel 7"},
+                                  {8, "Channel 8"},
+                                  {9, "Channel 9"},
+                                  {10, "Channel 10"},
+                                  {11, "Channel 11"},
+                                  {12, "Channel 12"}}));
 
   //
   // Cell approximation
@@ -110,6 +148,94 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain)
   //
   mPanelOverview = new PanelChannelOverview(windowMain, this);
   mPanelEdit     = new PanelChannelEdit(windowMain, this);
+}
+
+///
+/// \brief      Load values
+/// \author     Joachim Danmayr
+///
+void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chSettings,
+                                std::optional<joda::settings::json::PipelineStepCellApproximation> cellApprox)
+{
+}
+
+///
+/// \brief      Get values
+/// \author     Joachim Danmayr
+///
+ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
+{
+  nlohmann::json chSettings;
+
+  chSettings["info"]["index"]  = mChannelIndex->getValue();
+  chSettings["info"]["series"] = mWindowMain->getSelectedSeries();
+  chSettings["info"]["type"]   = mChannelType->getValue().toStdString();
+  chSettings["info"]["label"]  = "";
+  chSettings["info"]["name"]   = mChannelName->getValue().toStdString();
+
+  // Preprocessing
+  nlohmann::json jsonArray = nlohmann::json::array();    // Initialize an empty JSON array
+  jsonArray.push_back({{"z_stack", {{"value", mZProjection->getValue().toStdString()}}}});
+  if(mMarginCrop->hasValue()) {
+    jsonArray.push_back({{"margin_crop", {{"value", static_cast<int>(mMarginCrop->getValue())}}}});
+  }
+  if(mEdgeDetection->getValue() != "NONE") {
+    jsonArray.push_back({{"edge_detection", {{"value", mEdgeDetection->getValue().toStdString()}, {"direction", ""}}}});
+  }
+
+  if(mRollingBall->hasValue()) {
+    jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mRollingBall->getValue())}}}});
+  }
+
+  /*
+  if(mDropdownGausianBlur->GetSelection() > 0) {
+    jsonArray.push_back({{"gaussian_blur",
+                          {{"kernel_size", indexToFilterKernel(mDropdownGausianBlur->GetSelection())},
+                           {"repeat", mDropDownGausianBlurRepeat->GetSelection() + 1}}}});
+  }
+  if(mDropDownSmoothingRepeat->GetSelection() > 0) {
+    jsonArray.push_back({{"smoothing", {{"repeat", mDropDownSmoothingRepeat->GetSelection()}}}});
+  }
+  if(mChoiceMedianBGSubtract->GetSelection() > 0) {
+    jsonArray.push_back({{"median_bg_subtraction", {{"kernel_size", 3}}}});
+  }
+  if(mChoiceBGSubtraction->GetSelection() > 0) {
+    jsonArray.push_back({{"subtract_channel", {{"channel_index", mChoiceBGSubtraction->GetSelection() - 1}}}});
+  }
+
+  chSettings["preprocessing"] = jsonArray;
+
+  // Detections
+  if(mCheckUseAI->IsChecked()) {
+    chSettings["detection"]["mode"] = "AI";
+  } else {
+    chSettings["detection"]["mode"] = "THRESHOLD";
+  }
+
+  chSettings["detection"]["threshold"]["threshold_algorithm"] =
+      indexToThreshold(mChoiceThresholdMethod->GetSelection());
+  chSettings["detection"]["threshold"]["threshold_min"] = static_cast<int>(mSpinMinThreshold->GetValue());
+  chSettings["detection"]["threshold"]["threshold_max"] = UINT16_MAX;
+
+  chSettings["detection"]["ai"]["model_name"]      = mChoiceAImodel->GetString(mChoiceAImodel->GetSelection());
+  chSettings["detection"]["ai"]["probability_min"] = mSpinMinProbability->GetValue();
+
+  // Filtering
+  try {
+    auto [min, max] = splitAndConvert(mTextParticleSizeRange->GetLineText(0).ToStdString(), '-');
+    chSettings["filter"]["min_particle_size"] = min;
+    chSettings["filter"]["max_particle_size"] = max;
+  } catch(const std::exception &) {
+    // Invalid input number format
+    chSettings["filter"]["min_particle_size"] = 0;
+    chSettings["filter"]["max_particle_size"] = 0;
+  }
+
+  chSettings["filter"]["min_circularity"]              = mSpinMinCircularity->GetValue();
+  chSettings["filter"]["snap_area_size"]               = mSpinSnapArea->GetValue();
+  chSettings["filter"]["reference_spot_channel_index"] = mChoiceReferenceSpotChannel->GetSelection() - 1;
+
+*/
 }
 
 }    // namespace joda::ui::qt

@@ -93,6 +93,56 @@ public:
     return mEditable;
   }
 
+  bool hasValue()
+  {
+    if(mLineEdit != nullptr) {
+      return !mLineEdit->text().isEmpty();
+    }
+    return true;
+  }
+
+  ///
+  /// \brief      Creates an editable element
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
+  void setValue(VALUE_T newValue)
+    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> || std::same_as<VALUE_T, QString>
+  {
+    if(mLineEdit != nullptr) {
+      if constexpr(std::same_as<VALUE_T, QString>) {
+        mLineEdit->setText(newValue);
+      } else {
+        mLineEdit->setText(QString::number(newValue));
+      }
+    }
+    if(mComboBox != nullptr) {
+      auto idx = mComboBox->findData(newValue);
+      if(idx >= 0) {
+        mComboBox->setCurrentIndex(idx);
+      } else {
+        mComboBox->setCurrentIndex(0);
+      }
+    }
+  }
+
+  ///
+  /// \brief      Creates an editable element
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
+  void setValue(bool newValue)
+    requires std::same_as<VALUE_T, bool>
+  {
+    if(mComboBox != nullptr) {
+      if(newValue) {
+        mComboBox->setCurrentIndex(1);
+      } else {
+        mComboBox->setCurrentIndex(0);
+      }
+    }
+  }
+
   ///
   /// \brief      Creates an editable element
   /// \author     Joachim Danmayr
@@ -102,7 +152,13 @@ public:
     requires std::same_as<VALUE_T, int>
   {
     try {
-      return mLineEdit->text().toInt();
+      if(mLineEdit != nullptr) {
+        return mLineEdit->text().toInt();
+      }
+      if(mComboBox != nullptr) {
+        return mComboBox->currentData().toInt();
+      }
+      return 0;
     } catch(const std::exception &) {
       return 0;
     }
@@ -132,9 +188,15 @@ public:
     requires std::same_as<VALUE_T, float>
   {
     try {
-      return mLineEdit->text().toFloat();
+      if(mLineEdit != nullptr) {
+        return mLineEdit->text().toFloat();
+      }
+      if(mComboBox != nullptr) {
+        return mComboBox->currentData().toFloat();
+      }
+      return 0.0;
     } catch(const std::exception &) {
-      return 0;
+      return 0.0;
     }
   }
 
