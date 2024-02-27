@@ -87,7 +87,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                  "Min. particle size", "px", 1, 0, INT32_MAX));
   mMaxParticleSize = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
-                                 "Max. particle size", "px", 1, 0, INT32_MAX));
+                                 "Max. particle size", "px", std::nullopt, 0, INT32_MAX));
 
   mSnapAreaSize = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>(
       "icons8-initial-state-50.png", "[0 - 65535]", "Snap area size", "px", std::nullopt, 0, 65535));

@@ -15,6 +15,7 @@
 
 #include <QtWidgets>
 #include <mutex>
+#include "ui/qt/panel_preview.hpp"
 
 namespace joda::ui::qt {
 
@@ -35,7 +36,7 @@ private:
   ContainerChannel *mParentContainer;
   QLabel *createTitle(const QString &);
   QWidget *mScrollAreaCellApprox = nullptr;
-  QLabel *mPreviewImage          = nullptr;
+  PreviewLabel *mPreviewImage    = nullptr;
   QLabel *mPreviewInfo           = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter;

@@ -139,9 +139,9 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   // Preview
   //
   auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 500);
-  mPreviewImage      = new QLabel("");
+  mPreviewImage      = new PreviewLabel();
   QIcon bmp(":/icons/outlined/placeholder_view_vector.svg.png");
-  mPreviewImage->setPixmap(bmp.pixmap(350, 350));
+  mPreviewImage->setPixmap(bmp.pixmap(350, 350), 350, 350);
   preview->addWidget(mPreviewImage);
 
   mPreviewInfo = new QLabel("-");
@@ -341,7 +341,7 @@ void PanelChannelEdit::updatePreview()
           QImage image;
           if(image.loadFromData(byteArray, "PNG")) {
             QPixmap pixmap = QPixmap::fromImage(image);
-            mPreviewImage->setPixmap(pixmap.scaled(350, 350));
+            mPreviewImage->setPixmap(pixmap.scaled(preview.width, preview.height), 350, 350);
             int valid   = 0;
             int invalid = 0;
             for(const auto &roi : preview.detectionResult) {
