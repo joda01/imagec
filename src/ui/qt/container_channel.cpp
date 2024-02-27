@@ -245,6 +245,8 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
   chSettings["filter"]["min_circularity"]              = mMinCircularity->getValue();
   chSettings["filter"]["snap_area_size"]               = mSnapAreaSize->getValue();
   chSettings["filter"]["reference_spot_channel_index"] = mTetraspeckRemoval->getValue();
+
+  return {.channelSettings = chSettings, .pipelineStep = {}};
 }
 
 }    // namespace joda::ui::qt

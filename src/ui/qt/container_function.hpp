@@ -349,7 +349,9 @@ private:
     mLineEdit->setPlaceholderText(placeHolderText);
     layout->addWidget(mLineEdit);
     // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);
-    connect(mLineEdit, &QLineEdit::textChanged, this, &ContainerFunction::lineEditingChanged);
+    connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingChanged);
+    connect(mLineEdit, &QLineEdit::returnPressed, this, &ContainerFunction::lineEditingChanged);
+
     if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>) {
       QValidator *validator;
       if constexpr(std::same_as<VALUE_T, int>) {
@@ -368,7 +370,7 @@ private:
         mLineEdit->setText(defaultVal.value());
       }
     }
-    lineEditingChanged(mLineEdit->text());
+    lineEditingChanged();
 
     createHelperText(layout, helpText);
     mEditable->setLayout(layout);
@@ -522,11 +524,11 @@ private:
   QWidget *mEditable    = nullptr;
 
 private slots:
-  void lineEditingChanged(const QString &text)
+  void lineEditingChanged()
   {
     if(mLineEdit != nullptr) {
-      if(!text.isNull() && !text.isEmpty()) {
-        mDisplayText = text + " " + mUnit;
+      if(!mLineEdit->text().isNull() && !mLineEdit->text().isEmpty()) {
+        mDisplayText = mLineEdit->text() + " " + mUnit;
       } else {
         mDisplayText = "- " + mUnit;
       }

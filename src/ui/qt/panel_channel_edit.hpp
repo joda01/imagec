@@ -14,6 +14,7 @@
 #pragma once
 
 #include <QtWidgets>
+#include <mutex>
 
 namespace joda::ui::qt {
 
@@ -34,12 +35,16 @@ private:
   ContainerChannel *mParentContainer;
   QLabel *createTitle(const QString &);
   QWidget *mScrollAreaCellApprox = nullptr;
-  QLabel *mPreviewImage;
+  QLabel *mPreviewImage          = nullptr;
+  QLabel *mPreviewInfo           = nullptr;
+  std::mutex mPreviewMutex;
+  int mPreviewCounter;
 
 private slots:
   void onChannelTypeChanged();
   void onCellApproximationChanged();
   void onDetectionModechanged();
+  void updatePreview();
 };
 
 }    // namespace joda::ui::qt

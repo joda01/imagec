@@ -45,6 +45,10 @@ public:
   {
     return mImageSeriesCombo->currentData().toInt();
   }
+  joda::ctrl::Controller *getController()
+  {
+    return mController;
+  }
 
 signals:
   void lookingForFilesFinished();

@@ -15,11 +15,15 @@
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qpushbutton.h>
+#include <mutex>
+#include <thread>
 #include "container_channel.hpp"
 #include "container_function.hpp"
 #include "window_main.hpp"
 
 namespace joda::ui::qt {
+
+using namespace std::chrono_literals;
 
 PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentContainer) :
     mWindowMain(wm), mParentContainer(parentContainer)
@@ -38,6 +42,8 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   connect(parentContainer->mChannelType.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::onChannelTypeChanged);
+  connect(parentContainer->mChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
 
   auto [layoutCellApproximation, _3] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   mScrollAreaCellApprox              = _3;
@@ -68,6 +74,15 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   _5->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   onDetectionModechanged();
 
+  connect(parentContainer->mThresholdAlgorithm.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mThresholdValueMin.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mAIModels.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mMinProbability.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+
   auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
   verticalLayoutFilter->addWidget(createTitle("Filtering"));
   verticalLayoutFilter->addWidget(parentContainer->mMinParticleSize->getEditableWidget());
@@ -77,6 +92,17 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   verticalLayoutFilter->addWidget(parentContainer->mTetraspeckRemoval->getEditableWidget());
   verticalLayoutFilter->addStretch();
   _6->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+  connect(parentContainer->mMinParticleSize.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mMaxParticleSize.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mMinCircularity.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mSnapAreaSize.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mTetraspeckRemoval.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
 
   auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
@@ -92,19 +118,34 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   _7->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
+  connect(parentContainer->mZProjection.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mMarginCrop.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mMedianBackgroundSubtraction.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mEdgeDetection.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mRollingBall.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mSubtractChannel.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mSmoothing.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mGaussianBlur.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+
   //
   // Preview
   //
   auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 500);
-  mPreviewImage      = new QLabel("...");
-
-  // Load the image using QPixmap
+  mPreviewImage      = new QLabel("");
   QIcon bmp(":/icons/outlined/placeholder_view_vector.svg.png");
-
-  // Set the image on the label
   mPreviewImage->setPixmap(bmp.pixmap(350, 350));
-
   preview->addWidget(mPreviewImage);
+
+  mPreviewInfo = new QLabel("-");
+  preview->addWidget(mPreviewInfo);
 
   setLayout(horizontalLayout);
   horizontalLayout->addStretch();
@@ -243,6 +284,7 @@ void PanelChannelEdit::onCellApproximationChanged()
 {
   mParentContainer->mMaxCellRadius->getEditableWidget()->setVisible(
       mParentContainer->mEnableCellApproximation->getValue());
+  updatePreview();
 }
 
 void PanelChannelEdit::onChannelTypeChanged()
@@ -252,6 +294,8 @@ void PanelChannelEdit::onChannelTypeChanged()
   } else {
     mScrollAreaCellApprox->setVisible(false);
   }
+
+  updatePreview();
 }
 
 void PanelChannelEdit::onDetectionModechanged()
@@ -269,6 +313,60 @@ void PanelChannelEdit::onDetectionModechanged()
 
     mParentContainer->mThresholdAlgorithm->getEditableWidget()->setVisible(true);
     mParentContainer->mThresholdValueMin->getEditableWidget()->setVisible(true);
+  }
+
+  updatePreview();
+}
+
+void PanelChannelEdit::updatePreview()
+{
+  std::cout << "UD" << std::endl;
+  if(mPreviewCounter == 0) {
+    {
+      std::lock_guard<std::mutex> lock(mPreviewMutex);
+      mPreviewCounter++;
+    }
+    std::thread([this]() {
+      int previewCounter = 0;
+      std::this_thread::sleep_for(500ms);
+      do {
+        if(nullptr != mPreviewImage) {
+          settings::json::ChannelSettings chs;
+          chs.loadConfigFromString(mParentContainer->toJson().channelSettings.dump());
+          auto *controller = mWindowMain->getController();
+          auto preview     = controller->preview(chs, 0, 0);
+
+          // Create a QByteArray from the char array
+          QByteArray byteArray(reinterpret_cast<const char *>(preview.data.data()), preview.data.size());
+          QImage image;
+          if(image.loadFromData(byteArray, "PNG")) {
+            QPixmap pixmap = QPixmap::fromImage(image);
+            mPreviewImage->setPixmap(pixmap.scaled(350, 350));
+            int valid   = 0;
+            int invalid = 0;
+            for(const auto &roi : preview.detectionResult) {
+              if(roi.isValid()) {
+                valid++;
+              } else {
+                invalid++;
+              }
+            }
+
+            mPreviewInfo->setText("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
+          }
+        }
+        std::this_thread::sleep_for(500ms);
+        {
+          std::lock_guard<std::mutex> lock(mPreviewMutex);
+          previewCounter = mPreviewCounter;
+          previewCounter--;
+          mPreviewCounter = previewCounter;
+        }
+      } while(previewCounter > 0);
+    }).detach();
+  } else {
+    std::lock_guard<std::mutex> lock(mPreviewMutex);
+    mPreviewCounter++;
   }
 }
 
