@@ -28,7 +28,7 @@ public:
 private:
   QHBoxLayout *createLayout();
   std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
-                                                        int margin = 16, bool enableScrolling = true) const;
+                                                        int margin = 16, bool enableScrolling = false) const;
   WindowMain *mWindowMain;
   ContainerChannel *mParentContainer;
   QLabel *createTitle(const QString &);

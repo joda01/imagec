@@ -35,6 +35,7 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   verticalLayoutMeta->addWidget(parentContainer->mChannelName->getEditableWidget());
   verticalLayoutMeta->addWidget(parentContainer->mChannelIndex->getEditableWidget());
   verticalLayoutMeta->addWidget(parentContainer->mChannelType->getEditableWidget());
+  _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   connect(parentContainer->mChannelType.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::onChannelTypeChanged);
 
@@ -44,12 +45,13 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   layoutCellApproximation->addWidget(parentContainer->mEnableCellApproximation->getEditableWidget());
   layoutCellApproximation->addWidget(parentContainer->mMaxCellRadius->getEditableWidget());
   mParentContainer->mMaxCellRadius->getEditableWidget()->setVisible(false);
+  _3->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
   connect(parentContainer->mEnableCellApproximation.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::onCellApproximationChanged);
 
-  verticalLayoutMeta->addStretch();
-  verticalLayoutContainer->addStretch();
-  layoutCellApproximation->addStretch();
+  verticalLayoutContainer->addStretch(0);
+
   mScrollAreaCellApprox->setVisible(false);
 
   auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
@@ -59,30 +61,25 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   detection->addWidget(parentContainer->mUsedDetectionMode->getEditableWidget());
   connect(parentContainer->mUsedDetectionMode.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::onDetectionModechanged);
-
   detection->addWidget(parentContainer->mThresholdAlgorithm->getEditableWidget());
   detection->addWidget(parentContainer->mThresholdValueMin->getEditableWidget());
-
   detection->addWidget(parentContainer->mAIModels->getEditableWidget());
   detection->addWidget(parentContainer->mMinProbability->getEditableWidget());
+  _5->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   onDetectionModechanged();
 
-  auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
+  auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
   verticalLayoutFilter->addWidget(createTitle("Filtering"));
   verticalLayoutFilter->addWidget(parentContainer->mMinParticleSize->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mMaxParticleSize->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mMinCircularity->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mSnapAreaSize->getEditableWidget());
   verticalLayoutFilter->addWidget(parentContainer->mTetraspeckRemoval->getEditableWidget());
-
   verticalLayoutFilter->addStretch();
-  detection->addStretch();
-  detectionContainer->addStretch();
+  _6->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-  auto [functionContainer, _7] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-
+  auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
-
   verticalLayoutFuctions->addWidget(createTitle("Preprocessing"));
   verticalLayoutFuctions->addWidget(parentContainer->mZProjection->getEditableWidget());
   verticalLayoutFuctions->addWidget(parentContainer->mMarginCrop->getEditableWidget());
@@ -92,13 +89,11 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   verticalLayoutFuctions->addWidget(parentContainer->mSubtractChannel->getEditableWidget());
   verticalLayoutFuctions->addWidget(parentContainer->mSmoothing->getEditableWidget());
   verticalLayoutFuctions->addWidget(parentContainer->mGaussianBlur->getEditableWidget());
+  _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  _7->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-  verticalLayoutFuctions->addStretch();
-  // Comment out
-  // functionContainer->addStretch();
-
-  horizontalLayout->addStretch();
   setLayout(horizontalLayout);
+  horizontalLayout->addStretch();
 }
 
 QLabel *PanelChannelEdit::createTitle(const QString &title)
@@ -167,62 +162,67 @@ std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout 
                                                                         const QString &bgColor, int margin,
                                                                         bool enableScrolling) const
 {
-  QScrollArea *scrollArea = new QScrollArea();
-  if(!enableScrolling) {
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
-  }
-  scrollArea->setObjectName("scrollArea");
-  scrollArea->setStyleSheet("QScrollArea#scrollArea { background-color: rgba(0, 0, 0, 0);}");
-  scrollArea->setFrameStyle(0);
-  scrollArea->setContentsMargins(0, 0, 0, 0);
-  scrollArea->verticalScrollBar()->setStyleSheet(
-      "QScrollBar:vertical {"
-      "    border: none;"
-      "    background: rgba(0, 0, 0, 0);"
-      "    width: 6px;"
-      "    margin: 0px 0px 0px 0px;"
-      "}"
-      "QScrollBar::handle:vertical {"
-      "    background: rgba(32, 27, 23, 0.6);"
-      "    min-height: 20px;"
-      "    border-radius: 12px;"
-      "}"
-      "QScrollBar::add-line:vertical {"
-      "    border: none;"
-      "    background: rgba(0, 0, 0, 0);"
-      "    height: 20px;"
-      "    subcontrol-position: bottom;"
-      "    subcontrol-origin: margin;"
-      "}"
-      "QScrollBar::sub-line:vertical {"
-      "    border: none;"
-      "    background: rgba(0, 0, 0, 0);"
-      "    height: 20px;"
-      "    subcontrol-position: top;"
-      "    subcontrol-origin: margin;"
-      "}");
+  QVBoxLayout *layout    = new QVBoxLayout();
+  QWidget *contentWidget = new QWidget();
 
-  QWidget *contentWidget = new QWidget;
-  contentWidget->setObjectName("verticalContentChannel");
-
-  scrollArea->setWidget(contentWidget);
-  scrollArea->setWidgetResizable(true);
-
-  QVBoxLayout *layout = new QVBoxLayout(contentWidget);
   layout->setContentsMargins(margin, margin, margin, margin);
-  contentWidget->setLayout(layout);
-  horizontalLayout->addWidget(scrollArea);
+  layout->setAlignment(Qt::AlignTop);
 
+  contentWidget->setObjectName("verticalContentChannel");
+  contentWidget->setLayout(layout);
   contentWidget->setStyleSheet(
       "QWidget#verticalContentChannel { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
       "padding-bottom: 10px;"
       "background-color: " +
       bgColor + ";}");
 
-  scrollArea->setMinimumWidth(250);
-  scrollArea->setMaximumWidth(250);
+  if(enableScrolling) {
+    QScrollArea *scrollArea = new QScrollArea();
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
+    scrollArea->setObjectName("scrollArea");
+    scrollArea->setStyleSheet("QScrollArea#scrollArea { background-color: rgba(0, 0, 0, 0);}");
+    scrollArea->setFrameStyle(0);
+    scrollArea->setContentsMargins(0, 0, 0, 0);
+    scrollArea->verticalScrollBar()->setStyleSheet(
+        "QScrollBar:vertical {"
+        "    border: none;"
+        "    background: rgba(0, 0, 0, 0);"
+        "    width: 6px;"
+        "    margin: 0px 0px 0px 0px;"
+        "}"
+        "QScrollBar::handle:vertical {"
+        "    background: rgba(32, 27, 23, 0.6);"
+        "    min-height: 20px;"
+        "    border-radius: 12px;"
+        "}"
+        "QScrollBar::add-line:vertical {"
+        "    border: none;"
+        "    background: rgba(0, 0, 0, 0);"
+        "    height: 20px;"
+        "    subcontrol-position: bottom;"
+        "    subcontrol-origin: margin;"
+        "}"
+        "QScrollBar::sub-line:vertical {"
+        "    border: none;"
+        "    background: rgba(0, 0, 0, 0);"
+        "    height: 20px;"
+        "    subcontrol-position: top;"
+        "    subcontrol-origin: margin;"
+        "}");
 
-  return {layout, scrollArea};
+    scrollArea->setWidget(contentWidget);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setMinimumWidth(250);
+    scrollArea->setMaximumWidth(250);
+
+    horizontalLayout->addWidget(scrollArea);
+    return {layout, scrollArea};
+  }
+  contentWidget->setMinimumWidth(250);
+  contentWidget->setMaximumWidth(250);
+  horizontalLayout->addWidget(contentWidget);
+
+  return {layout, contentWidget};
 }
 
 void PanelChannelEdit::onCellApproximationChanged()
