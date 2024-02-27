@@ -92,6 +92,20 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   _7->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
+  //
+  // Preview
+  //
+  auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 500);
+  mPreviewImage      = new QLabel("...");
+
+  // Load the image using QPixmap
+  QIcon bmp(":/icons/outlined/placeholder_view_vector.svg.png");
+
+  // Set the image on the label
+  mPreviewImage->setPixmap(bmp.pixmap(350, 350));
+
+  preview->addWidget(mPreviewImage);
+
   setLayout(horizontalLayout);
   horizontalLayout->addStretch();
 }
@@ -160,7 +174,7 @@ QHBoxLayout *PanelChannelEdit::createLayout()
 
 std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout *horizontalLayout,
                                                                         const QString &bgColor, int margin,
-                                                                        bool enableScrolling) const
+                                                                        bool enableScrolling, int maxWidth) const
 {
   QVBoxLayout *layout    = new QVBoxLayout();
   QWidget *contentWidget = new QWidget();
@@ -212,14 +226,14 @@ std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout 
 
     scrollArea->setWidget(contentWidget);
     scrollArea->setWidgetResizable(true);
-    scrollArea->setMinimumWidth(250);
-    scrollArea->setMaximumWidth(250);
+    scrollArea->setMinimumWidth(maxWidth);
+    scrollArea->setMaximumWidth(maxWidth);
 
     horizontalLayout->addWidget(scrollArea);
     return {layout, scrollArea};
   }
-  contentWidget->setMinimumWidth(250);
-  contentWidget->setMaximumWidth(250);
+  contentWidget->setMinimumWidth(maxWidth);
+  contentWidget->setMaximumWidth(maxWidth);
   horizontalLayout->addWidget(contentWidget);
 
   return {layout, contentWidget};

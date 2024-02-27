@@ -28,12 +28,13 @@ public:
 private:
   QHBoxLayout *createLayout();
   std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
-                                                        int margin = 16, bool enableScrolling = false) const;
+                                                        int margin = 16, bool enableScrolling = false,
+                                                        int maxWidth = 250) const;
   WindowMain *mWindowMain;
   ContainerChannel *mParentContainer;
   QLabel *createTitle(const QString &);
-
   QWidget *mScrollAreaCellApprox = nullptr;
+  QLabel *mPreviewImage;
 
 private slots:
   void onChannelTypeChanged();

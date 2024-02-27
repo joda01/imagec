@@ -258,5 +258,6 @@
         <file>outlined/icons8-warning-50.png</file>
         <file>outlined/dom-voronoi-50.png</file>
         <file>outlined/icons8-ksi-50.png</file>
+        <file>outlined/placeholder_view_vector.svg.png</file>
     </qresource>
 </RCC>
