@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include "backend/settings/analze_settings_parser.hpp"
 #include "controller/controller.hpp"
 #include "ui/qt/helper/clickablelabel.hpp"
 
@@ -77,6 +78,8 @@ private:
   QWidget *createChannelWidget();
   void waitForFileSearchFinished();
   nlohmann::json toJson();
+  void fromJson(const settings::json::AnalyzeSettings &);
+  void setWorkingDirectory(const std::string &workingDir);
 
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;

@@ -309,7 +309,16 @@ void WindowMain::onOpenProjectClicked()
   if(selectedDirectory.isEmpty()) {
     return;
   }
-  mSelectedWorkingDirectory = selectedDirectory;
+  setWorkingDirectory(selectedDirectory.toStdString());
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::setWorkingDirectory(const std::string &workingDir)
+{
+  mSelectedWorkingDirectory = workingDir.data();
 
   std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
   mFoundFilesHint->setText("Looking for images ...");
@@ -376,6 +385,15 @@ nlohmann::json WindowMain::toJson()
   jsonSettings["options"]["with_detailed_report"] = true;
 
   return jsonSettings;
+}
+
+///
+/// \brief      Generate JSON document
+/// \author     Joachim Danmayr
+///
+void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
+{
+  // setWorkingDirectory(settings.);
 }
 
 ///
