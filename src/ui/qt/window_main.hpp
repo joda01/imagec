@@ -76,6 +76,7 @@ private:
   QWidget *createOverviewWidget();
   QWidget *createChannelWidget();
   void waitForFileSearchFinished();
+  nlohmann::json toJson();
 
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;

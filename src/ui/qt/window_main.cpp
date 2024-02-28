@@ -349,6 +349,36 @@ void WindowMain::waitForFileSearchFinished()
 }
 
 ///
+/// \brief      Generate JSON document
+/// \author     Joachim Danmayr
+///
+nlohmann::json WindowMain::toJson()
+{
+  nlohmann::json jsonSettings;
+
+  nlohmann::json channelsArray     = nlohmann::json::array();    // Initialize an empty JSON array
+  nlohmann::json pipelineStepArray = nlohmann::json::array();    // Initialize an empty JSON array
+
+  for(const auto &ch : mChannels) {
+    auto converter = ch->toJson();
+    if(!converter.channelSettings.empty()) {
+      channelsArray.push_back(converter.channelSettings);
+    }
+    if(!converter.pipelineStep.empty()) {
+      pipelineStepArray.push_back(converter.pipelineStep);
+    }
+  }
+  jsonSettings["input_folder"]                    = static_cast<std::string>(mSelectedWorkingDirectory.toStdString());
+  jsonSettings["channels"]                        = channelsArray;
+  jsonSettings["pipeline_steps"]                  = pipelineStepArray;
+  jsonSettings["options"]["pixel_in_micrometer"]  = 1;
+  jsonSettings["options"]["with_control_images"]  = true;
+  jsonSettings["options"]["with_detailed_report"] = true;
+
+  return jsonSettings;
+}
+
+///
 /// \brief
 /// \author     Joachim Danmayr
 ///
@@ -377,6 +407,18 @@ void WindowMain::onLookingForFilesFinished()
 ///
 void WindowMain::onSaveProjectClicked()
 {
+  QString filePath =
+      QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "JSON Files (*.json);;All Files (*)");
+
+  if(!filePath.isEmpty()) {
+    joda::settings::json::AnalyzeSettings settings;
+    settings.loadConfigFromString(toJson().dump());
+    std::string path = filePath.toStdString();
+    if(!path.ends_with(".json")) {
+      path += ".json";
+    }
+    settings.storeConfigToFile(path);
+  }
 }
 
 ///
