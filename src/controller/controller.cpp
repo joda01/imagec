@@ -136,19 +136,22 @@ auto Controller::preview(const settings::json::ChannelSettings &settings, int im
 
   // Now we can process the original channel
   auto imageFileName = mWorkingDirectory.getFileAt(imgIndex);
-  auto result        = joda::algo::ChannelProcessor::processChannel(settings, imageFileName, tileIndex);
-  std::vector<uchar> buffer;
-  std::vector<int> compression_params;
-  compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-  compression_params.push_back(0);
-  cv::imencode(".png", result.controlImage, buffer,
-               compression_params);    // Assuming you want to encode as JPEG
+  if(!imageFileName.getFilename().empty()) {
+    auto result = joda::algo::ChannelProcessor::processChannel(settings, imageFileName, tileIndex);
+    std::vector<uchar> buffer;
+    std::vector<int> compression_params;
+    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+    compression_params.push_back(0);
+    cv::imencode(".png", result.controlImage, buffer,
+                 compression_params);    // Assuming you want to encode as JPEG
 
-  return {.data            = buffer,
-          .height          = result.controlImage.rows,
-          .width           = result.controlImage.cols,
-          .detectionResult = result.result,
-          .imageFileName   = imageFileName};
+    return {.data            = buffer,
+            .height          = result.controlImage.rows,
+            .width           = result.controlImage.cols,
+            .detectionResult = result.result,
+            .imageFileName   = imageFileName};
+  }
+  return {.data = {}, .height = 0, .width = 0, .detectionResult = {}, .imageFileName = {}};
 }
 
 ///

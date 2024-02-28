@@ -45,9 +45,26 @@ public:
   {
     return mImageSeriesCombo->currentData().toInt();
   }
+  int getSelectedFileIndex() const
+  {
+    if(mFoundFilesCombo->count() > 0) {
+      return mFoundFilesCombo->currentData().toInt();
+    } else {
+      return -1;
+    }
+  }
   joda::ctrl::Controller *getController()
   {
     return mController;
+  }
+
+  [[nodiscard]] const QComboBox *getFoundFilesCombo() const
+  {
+    return mFoundFilesCombo;
+  }
+  [[nodiscard]] const QComboBox *getImageSeriesCombo() const
+  {
+    return mImageSeriesCombo;
   }
 
 signals:

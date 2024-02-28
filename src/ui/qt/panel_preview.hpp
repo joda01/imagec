@@ -84,7 +84,6 @@ protected:
       zoomedPixmap = zoomedPixmap.copy(cropRect);
       painter.fillRect(magnifierRect, Qt::white);
       painter.drawPixmap(magnifierRect, zoomedPixmap);
-      std::cout << "P " << std::to_string(originalPixmap.width()) << std::endl;
     }
   }
 

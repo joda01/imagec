@@ -13,8 +13,10 @@
 
 #pragma once
 
+#include <qtmetamacros.h>
 #include <QtWidgets>
 #include <mutex>
+#include "helper/waitingspinnerwidget.hpp"
 #include "ui/qt/panel_preview.hpp"
 
 namespace joda::ui::qt {
@@ -24,6 +26,12 @@ class ContainerChannel;
 
 class PanelChannelEdit : public QWidget
 {
+  Q_OBJECT
+
+signals:
+  void updatePreviewStarted();
+  void updatePreviewFinished();
+
 public:
   PanelChannelEdit(WindowMain *wm, ContainerChannel *);
 
@@ -38,6 +46,7 @@ private:
   QWidget *mScrollAreaCellApprox = nullptr;
   PreviewLabel *mPreviewImage    = nullptr;
   QLabel *mPreviewInfo           = nullptr;
+  WaitingSpinnerWidget *mSpinner = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter;
 

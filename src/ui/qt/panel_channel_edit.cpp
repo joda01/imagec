@@ -11,10 +11,13 @@
 /// \brief     A short description what happens here.
 ///
 
-#include "panel_channel_edit.hpp"
+#include <qboxlayout.h>
+#include <qcombobox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qpushbutton.h>
+#include <qwidget.h>
+#include <exception>
 #include <mutex>
 #include <thread>
 #include "container_channel.hpp"
@@ -138,17 +141,50 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   //
   // Preview
   //
-  auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 500);
+  auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 350);
   mPreviewImage      = new PreviewLabel();
   QIcon bmp(":/icons/outlined/placeholder_view_vector.svg.png");
   mPreviewImage->setPixmap(bmp.pixmap(350, 350), 350, 350);
   preview->addWidget(mPreviewImage);
+  QWidget *imageSubTitleWidget = new QWidget();
+  imageSubTitleWidget->setMinimumHeight(50);
+  QHBoxLayout *imageSubTitle = new QHBoxLayout();
+  imageSubTitleWidget->setLayout(imageSubTitle);
 
   mPreviewInfo = new QLabel("-");
-  preview->addWidget(mPreviewInfo);
+  imageSubTitle->addWidget(mPreviewInfo);
+
+  mSpinner = new WaitingSpinnerWidget(imageSubTitleWidget);
+  mSpinner->setRoundness(10.0);
+  mSpinner->setMinimumTrailOpacity(15.0);
+  mSpinner->setTrailFadePercentage(70.0);
+  mSpinner->setNumberOfLines(8);
+  mSpinner->setLineLength(5);
+  mSpinner->setLineWidth(2);
+  mSpinner->setInnerRadius(5);
+  mSpinner->setRevolutionsPerSecond(1);
+  mSpinner->start();    // gets the show on the road!
+
+  //
+  // Signals from extern
+  //
+  connect(this, &PanelChannelEdit::updatePreviewStarted, mSpinner, &WaitingSpinnerWidget::start);
+  connect(this, &PanelChannelEdit::updatePreviewFinished, mSpinner, &WaitingSpinnerWidget::stop);
+
+  imageSubTitle->addWidget(mSpinner);
+
+  imageSubTitle->addStretch(1);
+
+  preview->addWidget(imageSubTitleWidget);
 
   setLayout(horizontalLayout);
   horizontalLayout->addStretch();
+
+  //
+  // Signals from extern
+  //
+  connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
+  connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
 }
 
 QLabel *PanelChannelEdit::createTitle(const QString &title)
@@ -320,42 +356,56 @@ void PanelChannelEdit::onDetectionModechanged()
 
 void PanelChannelEdit::updatePreview()
 {
-  std::cout << "UD" << std::endl;
   if(mPreviewCounter == 0) {
     {
       std::lock_guard<std::mutex> lock(mPreviewMutex);
       mPreviewCounter++;
+      emit updatePreviewStarted();
     }
     std::thread([this]() {
       int previewCounter = 0;
       std::this_thread::sleep_for(500ms);
       do {
         if(nullptr != mPreviewImage) {
-          settings::json::ChannelSettings chs;
-          chs.loadConfigFromString(mParentContainer->toJson().channelSettings.dump());
-          auto *controller = mWindowMain->getController();
-          auto preview     = controller->preview(chs, 0, 0);
+          int imgIndex = mWindowMain->getSelectedFileIndex();
+          if(imgIndex >= 0) {
+            settings::json::ChannelSettings chs;
+            chs.loadConfigFromString(mParentContainer->toJson().channelSettings.dump());
+            auto *controller = mWindowMain->getController();
+            try {
+              auto preview = controller->preview(chs, imgIndex, 0);
+              if(!preview.data.empty()) {
+                // Create a QByteArray from the char array
+                QByteArray byteArray(reinterpret_cast<const char *>(preview.data.data()), preview.data.size());
+                QImage image;
+                if(image.loadFromData(byteArray, "PNG")) {
+                  QPixmap pixmap = QPixmap::fromImage(image);
+                  mPreviewImage->setPixmap(pixmap.scaled(preview.width, preview.height), 350, 350);
+                  int valid   = 0;
+                  int invalid = 0;
+                  for(const auto &roi : preview.detectionResult) {
+                    if(roi.isValid()) {
+                      valid++;
+                    } else {
+                      invalid++;
+                    }
+                  }
 
-          // Create a QByteArray from the char array
-          QByteArray byteArray(reinterpret_cast<const char *>(preview.data.data()), preview.data.size());
-          QImage image;
-          if(image.loadFromData(byteArray, "PNG")) {
-            QPixmap pixmap = QPixmap::fromImage(image);
-            mPreviewImage->setPixmap(pixmap.scaled(preview.width, preview.height), 350, 350);
-            int valid   = 0;
-            int invalid = 0;
-            for(const auto &roi : preview.detectionResult) {
-              if(roi.isValid()) {
-                valid++;
-              } else {
-                invalid++;
+                  mPreviewInfo->setText("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
+                } else {
+                  QIcon bmp(":/icons/outlined/placeholder_view_vector.svg.png");
+                  mPreviewImage->setPixmap(bmp.pixmap(350, 350), 350, 350);
+                  mPreviewInfo->setText("");
+                }
               }
+            } catch(const std::exception &error) {
+              QIcon bmp(":/icons/outlined/placeholder_view_vector.svg.png");
+              mPreviewImage->setPixmap(bmp.pixmap(350, 350), 350, 350);
+              mPreviewInfo->setText(error.what());
             }
-
-            mPreviewInfo->setText("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
           }
         }
-        std::this_thread::sleep_for(500ms);
+        std::this_thread::sleep_for(250ms);
         {
           std::lock_guard<std::mutex> lock(mPreviewMutex);
           previewCounter = mPreviewCounter;
@@ -363,6 +413,9 @@ void PanelChannelEdit::updatePreview()
           mPreviewCounter = previewCounter;
         }
       } while(previewCounter > 0);
+      if(mSpinner != nullptr) {
+        emit updatePreviewFinished();
+      }
     }).detach();
   } else {
     std::lock_guard<std::mutex> lock(mPreviewMutex);

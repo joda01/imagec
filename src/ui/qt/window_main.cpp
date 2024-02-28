@@ -354,8 +354,10 @@ void WindowMain::waitForFileSearchFinished()
 ///
 void WindowMain::onLookingForFilesFinished()
 {
+  int idx = 0;
   for(const auto &file : mController->getListOfFoundImages()) {
-    mFoundFilesCombo->addItem(QString(file.getFilename().data()), QString(file.getPath().data()));
+    mFoundFilesCombo->addItem(QString(file.getFilename().data()), idx);
+    idx++;
   }
   if(mController->getNrOfFoundImages() > 0) {
     mFoundFilesCombo->setCurrentIndex(0);
