@@ -171,6 +171,71 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
 void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chSettings,
                                 std::optional<joda::settings::json::PipelineStepCellApproximation> cellApprox)
 {
+  // Meta
+  mChannelIndex->setValue(chSettings.getChannelInfo().getChannelIndex());
+  mChannelType->setValue(QString(chSettings.getChannelInfo().getTypeString().data()));
+  mChannelName->setValue(QString(chSettings.getChannelInfo().getName().data()));
+
+  mZProjection->resetToDefault();
+  mRollingBall->resetToDefault();
+  mMarginCrop->resetToDefault();
+  mGaussianBlur->resetToDefault();
+  mSmoothing->resetToDefault();
+  mMedianBackgroundSubtraction->resetToDefault();
+  mSubtractChannel->resetToDefault();
+  mEdgeDetection->resetToDefault();
+
+  // Preprocessing
+  for(const auto &prepro : chSettings.getPreprocessingFunctions()) {
+    if(prepro.getZStack()) {
+      mZProjection->setValue(QString(prepro.getZStack()->value.data()));
+    }
+    if(prepro.getRollingBall()) {
+      mRollingBall->setValue(prepro.getRollingBall()->value);
+    }
+    if(prepro.getMarginCrop()) {
+      mMarginCrop->setValue(prepro.getMarginCrop()->value);
+    }
+    if(prepro.getGaussianBlur()) {
+      mGaussianBlur->setValue(prepro.getGaussianBlur()->kernel_size);
+      mGaussianBlur->setValueSecond(prepro.getGaussianBlur()->repeat);
+    }
+    if(prepro.getSmoothing()) {
+      mSmoothing->setValue(prepro.getSmoothing()->repeat);
+    }
+    if(prepro.getMedianBgSubtraction()) {
+      mMedianBackgroundSubtraction->setValue(true);
+    }
+    if(prepro.getSubtractChannel()) {
+      mSubtractChannel->setValue(prepro.getSubtractChannel()->channel_index);
+    }
+    if(prepro.getEdgeDetection()) {
+      mEdgeDetection->setValue(prepro.getEdgeDetection()->value.data());
+      mEdgeDetection->setValueSecond(prepro.getEdgeDetection()->direction.data());
+    }
+  }
+
+  // Detection
+  mUsedDetectionMode->setValue(chSettings.getDetectionSettings().getDetectionModeString().data());
+  mThresholdAlgorithm->setValue(chSettings.getDetectionSettings().getThersholdSettings().getThresholdString().data());
+  mThresholdValueMin->setValue(chSettings.getDetectionSettings().getThersholdSettings().getThresholdMin());
+  mAIModels->setValue(chSettings.getDetectionSettings().getAiSettings().getModelName().data());
+  mMinProbability->setValue(chSettings.getDetectionSettings().getAiSettings().getProbability());
+
+  // Filtering
+  mMinParticleSize->setValue(chSettings.getFilter().getMinParticleSize());
+  mMaxParticleSize->setValue(chSettings.getFilter().getMaxParticleSize());
+  mMinCircularity->setValue(chSettings.getFilter().getMinCircularity());
+  mSnapAreaSize->setValue(chSettings.getFilter().getSnapAreaSize());
+  mTetraspeckRemoval->setValue(chSettings.getFilter().getReferenceSpotChannelIndex());
+
+  // Cell approx
+  if(cellApprox.has_value() && cellApprox->nucleus_channel_index == chSettings.getChannelInfo().getChannelIndex()) {
+    mEnableCellApproximation->setValue(true);
+    mMaxCellRadius->setValue(cellApprox->max_cell_radius);
+  } else {
+    mEnableCellApproximation->setValue(false);
+  }
 }
 
 ///

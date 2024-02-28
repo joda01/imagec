@@ -256,7 +256,7 @@ void PanelChannelController::loadValues(const joda::settings::json::ChannelSetti
                         channelSettings.getDetectionSettings().getDetectionMode());
   mChoiceThresholdMethod->SetSelection(
       thresholdToIndex(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdString()));
-  mSpinMinThreshold->SetValue(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdMinError());
+  mSpinMinThreshold->SetValue(channelSettings.getDetectionSettings().getThersholdSettings().getThresholdMin());
 
   // AI detection
   // mChoiceAImodel->SetString(unsigned int n, channelSettings.getDetectionSettings().getDetectionMode());

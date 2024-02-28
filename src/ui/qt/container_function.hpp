@@ -45,8 +45,9 @@ public:
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
                     std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal, QWidget *parent = nullptr)
+
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>
-      : mUnit(unit)
+      : mUnit(unit), mDefaultValue(defaultVal)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, defaultVal, minVal, maxVal);
@@ -56,7 +57,7 @@ public:
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText,
                     std::optional<VALUE_T> defaultVal, QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, QString>
-      : mUnit("")
+      : mUnit(""), mDefaultValue(defaultVal)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, defaultVal);
@@ -67,7 +68,7 @@ public:
                     std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
                     QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int>
-      : mUnit(unit)
+      : mUnit(unit), mDefaultValue(defaultVal)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, unit, options, {}, defaultVal);
@@ -78,7 +79,7 @@ public:
                     std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
                     const std::vector<ComboEntry> &optionsSecond, QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int>
-      : mUnit(unit)
+      : mUnit(unit), mDefaultValue(defaultVal)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, unit, options, optionsSecond, defaultVal);
@@ -88,7 +89,7 @@ public:
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, bool defaultVal,
                     QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, bool>
-      : mUnit("")
+      : mUnit(""), mDefaultValue(defaultVal)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, "", {{0, "Off"}, {1, "On"}}, {}, defaultVal);
@@ -119,6 +120,23 @@ public:
       }
     }
     return true;
+  }
+
+  void resetToDefault()
+  {
+    if(mDefaultValue.has_value()) {
+      setValue(mDefaultValue.value());
+    } else {
+      if(mComboBox != nullptr) {
+        mComboBox->setCurrentIndex(0);
+      }
+      if(mLineEdit != nullptr) {
+        mLineEdit->setText("");
+      }
+    }
+    if(mComboBoxSecond != nullptr) {
+      mComboBoxSecond->setCurrentIndex(0);
+    }
   }
 
   ///
@@ -511,6 +529,7 @@ private:
 
   /////////////////////////////////////////////////////
   QString mDisplayText = "";
+  std::optional<VALUE_T> mDefaultValue;
 
   /////////////////////////////////////////////////////
   QLineEdit *mLineEdit       = nullptr;

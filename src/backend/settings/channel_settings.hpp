@@ -89,7 +89,7 @@ public:
     return threshold_algorithm;
   }
 
-  auto getThresholdMinError() const -> uint16_t
+  auto getThresholdMin() const -> uint16_t
   {
     return threshold_min;
   }
@@ -136,6 +136,11 @@ public:
   auto getDetectionMode() const -> const DetectionMode &
   {
     return enumDetectionMode;
+  }
+
+  auto getDetectionModeString() const -> const std::string &
+  {
+    return mode;
   }
 
   auto getThersholdSettings() const -> const ThresholdSettings &
