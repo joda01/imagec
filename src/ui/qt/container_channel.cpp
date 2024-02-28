@@ -275,7 +275,7 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
   if(mSmoothing->hasValue()) {
     jsonArray.push_back({{"smoothing", {{"repeat", mSmoothing->getValue()}}}});
   }
-  if(mMedianBackgroundSubtraction->hasValue()) {
+  if(mMedianBackgroundSubtraction->hasValue() && mMedianBackgroundSubtraction->getValue()) {
     jsonArray.push_back({{"median_bg_subtraction", {{"kernel_size", 3}}}});
   }
   if(mSubtractChannel->hasValue()) {
