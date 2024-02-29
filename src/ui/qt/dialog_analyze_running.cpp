@@ -16,8 +16,11 @@
 #include <qlabel.h>
 #include <qnamespace.h>
 #include <memory>
+#include <thread>
 
 namespace joda::ui::qt {
+
+using namespace std::chrono_literals;
 
 ///
 /// \brief
@@ -73,62 +76,68 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain) : QDialog(win
   // Start analyze
   //
   mRefreshThread = std::make_shared<std::thread>(&DialogAnalyzeRunning::refreshEvent, this);
-
-  settings::json::AnalyzeSettings settings(windowMain->toJson());
-  auto threadSettings = windowMain->getController()->calcOptimalThreadNumber(settings, 0);
-  windowMain->getController()->reset();
-  windowMain->getController()->start(settings, threadSettings);
 }
 
 void DialogAnalyzeRunning::onStopClicked()
 {
+  mStopped = true;
+  mRefreshThread->join();
 }
 void DialogAnalyzeRunning::onCloseClicked()
 {
+  mStopped = true;
+  mRefreshThread->join();
   close();
 }
 
 void DialogAnalyzeRunning::refreshEvent()
 {
-  std::lock_guard<std::mutex> mutex(mRefreshMutex);
-  QString newTextAllOver                   = "Processing Image 0/0";
-  QString newTextImage                     = "Processing Tile 0/0";
-  joda::pipeline::Pipeline::State actState = joda::pipeline::Pipeline::State::STOPPED;
-  try {
-    auto [progress, state, errorMsg] = mWindowMain->getController()->getState();
-    if(state == joda::pipeline::Pipeline::State::ERROR_) {
-      mLastErrorMsg = errorMsg;
-    }
-    if(state == joda::pipeline::Pipeline::State::RUNNING) {
-      mEndedTime = std::chrono::high_resolution_clock::now();
-    }
-    actState = state;
+  settings::json::AnalyzeSettings settings(mWindowMain->toJson());
+  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(settings, 0);
+  mWindowMain->getController()->reset();
+  mWindowMain->getController()->start(settings, threadSettings);
 
-    newTextAllOver = QString("Processing Image %1/%2").arg(progress.total.finished).arg(progress.total.total);
-    newTextImage   = QString("Processing Tile %1/%2").arg(progress.image.finished).arg(progress.image.total);
+  while(!mStopped) {
+    QString newTextAllOver                   = "Processing Image 0/0";
+    QString newTextImage                     = "Processing Tile 0/0";
+    joda::pipeline::Pipeline::State actState = joda::pipeline::Pipeline::State::STOPPED;
+    try {
+      auto [progress, state, errorMsg] = mWindowMain->getController()->getState();
+      if(state == joda::pipeline::Pipeline::State::ERROR_) {
+        mLastErrorMsg = errorMsg;
+      }
+      if(state == joda::pipeline::Pipeline::State::RUNNING) {
+        mEndedTime = std::chrono::high_resolution_clock::now();
+      }
+      actState = state;
 
-    progressBar->setMaximum(progress.total.total);
-    if(progress.total.finished <= progress.total.total) {
-      progressBar->setValue(progress.total.finished);
+      newTextAllOver = QString("Processing Image %1/%2").arg(progress.total.finished).arg(progress.total.total);
+      newTextImage   = QString("Processing Tile %1/%2").arg(progress.image.finished).arg(progress.image.total);
+
+      progressBar->setMaximum(progress.total.total);
+      if(progress.total.finished <= progress.total.total) {
+        progressBar->setValue(progress.total.finished);
+      }
+
+    } catch(const std::exception &ex) {
+      onStopClicked();
     }
+    double elapsedTimeMs = std::chrono::duration<double, std::milli>(mEndedTime - mStartedTime).count();
+    auto [timeDiff, exp] = exponentForTime(elapsedTimeMs);
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(2) << timeDiff << " " << exp;
+    std::string timeDiffStr = stream.str();
 
-  } catch(const std::exception &ex) {
-    onStopClicked();
+    if(!mStopped && actState == joda::pipeline::Pipeline::State::ERROR_) {
+      mStopped = true;
+      // showErrorDialog(mLastErrorMsg);
+    }
+    mProgressText->setText("<html>" + newTextAllOver + "<br/>" + newTextImage);
+    stopButton->setEnabled(actState == joda::pipeline::Pipeline::State::RUNNING);
+    closeButton->setEnabled(actState != joda::pipeline::Pipeline::State::RUNNING);
+    // mLabelReporting->SetLabel(timeDiffStr);
+    std::this_thread::sleep_for(500ms);
   }
-  double elapsedTimeMs = std::chrono::duration<double, std::milli>(mEndedTime - mStartedTime).count();
-  auto [timeDiff, exp] = exponentForTime(elapsedTimeMs);
-  std::stringstream stream;
-  stream << std::fixed << std::setprecision(2) << timeDiff << " " << exp;
-  std::string timeDiffStr = stream.str();
-
-  if(!mStopped && actState == joda::pipeline::Pipeline::State::ERROR_) {
-    mStopped = true;
-    // showErrorDialog(mLastErrorMsg);
-  }
-  mProgressText->setText("<html>" + newTextAllOver + "<br/" + newTextImage);
-  stopButton->setEnabled(actState == joda::pipeline::Pipeline::State::RUNNING);
-  closeButton->setEnabled(actState != joda::pipeline::Pipeline::State::RUNNING);
-  // mLabelReporting->SetLabel(timeDiffStr);
 }
 
 ///
@@ -145,32 +154,6 @@ std::tuple<double, std::string> DialogAnalyzeRunning::exponentForTime(double tim
     return {timeMs / 1e3, " s"};
   }
   return {timeMs, " ms"};
-}
-
-void DialogAnalyzeRunning::paintEvent(QPaintEvent *event)
-{
-  QDialog::paintEvent(event);
-  return;
-  // Draw the rounded borders
-  QPainter painter(this);
-  painter.setRenderHint(QPainter::Antialiasing);
-
-  // Rounded rectangle path
-  QPainterPath path;
-  path.addRoundedRect(rect(), 10, 10);
-
-  // Set the clip region to the rounded rectangle
-  painter.setClipRegion(QRegion(path.toFillPolygon().toPolygon()));
-
-  // Fill the background with a semi-transparent color
-  painter.fillRect(rect(), QColor(255, 255, 255, 200));
-
-  // Draw the content of the window
-  // You can add your own drawing code or widgets here
-
-  // Draw a sample text in the center
-  painter.setPen(Qt::black);
-  painter.drawText(rect(), Qt::AlignCenter, "Rounded Window");
 }
 
 }    // namespace joda::ui::qt

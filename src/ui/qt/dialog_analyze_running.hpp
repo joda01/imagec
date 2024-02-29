@@ -28,7 +28,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  void paintEvent(QPaintEvent *event) override;
   void refreshEvent();
   std::tuple<double, std::string> exponentForTime(double timeMs);
 
