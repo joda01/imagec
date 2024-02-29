@@ -80,6 +80,7 @@ private:
   nlohmann::json toJson();
   void fromJson(const settings::json::AnalyzeSettings &);
   void setWorkingDirectory(const std::string &workingDir);
+  ContainerChannel *addChannel();
 
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;

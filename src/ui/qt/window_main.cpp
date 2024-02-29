@@ -28,8 +28,10 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
+#include "backend/settings/pipeline_settings.hpp"
 #include "container_channel.hpp"
 
 namespace joda::ui::qt {
@@ -393,7 +395,39 @@ nlohmann::json WindowMain::toJson()
 ///
 void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
 {
-  // setWorkingDirectory(settings.);
+  // Remove all channels
+  for(auto *const channel : mChannels) {
+    removeChannel(channel);
+  }
+
+  // Load functions
+  std::map<int32_t, const joda::settings::json::PipelineStepCellApproximation *> cellApproxMap;
+  std::set<const joda::settings::json::PipelineStepIntersection *> intersectionMap;
+  for(const auto &pipelineStep : settings.getPipelineSteps()) {
+    if(pipelineStep.getCellApproximation() != nullptr) {
+      cellApproxMap.emplace(pipelineStep.getCellApproximation()->cell_channel_index,
+                            pipelineStep.getCellApproximation());
+    }
+    if(pipelineStep.getIntersection() != nullptr) {
+      intersectionMap.emplace(pipelineStep.getIntersection());
+    }
+  }
+
+  int series = 0;
+  // Load channels
+  for(const auto &[_, channel] : settings.getChannels()) {
+    series             = channel.getChannelInfo().getChannelSeries();
+    auto *channelAdded = addChannel();
+    if(nullptr != channelAdded) {
+      std::optional<joda::settings::json::PipelineStepCellApproximation> cellApprox;
+      if(cellApproxMap.contains(channel.getChannelInfo().getChannelIndex())) {
+        cellApprox = *cellApproxMap.at(channel.getChannelInfo().getChannelIndex());
+      }
+      channelAdded->fromJson(channel, cellApprox);
+    }
+  }
+
+  mImageSeriesCombo->setCurrentIndex(series);
 }
 
 ///
@@ -518,7 +552,7 @@ void WindowMain::onRemoveChannelClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onAddChannelClicked()
+ContainerChannel *WindowMain::addChannel()
 {
   if(mAddChannelPanel != nullptr) {
     {
@@ -535,7 +569,18 @@ void WindowMain::onAddChannelClicked()
     auto panel1 = new ContainerChannel(this);
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
     mChannels.emplace(panel1);
+    return panel1;
   }
+  return nullptr;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onAddChannelClicked()
+{
+  addChannel();
 }
 
 void WindowMain::removeChannel(ContainerChannel *toRemove)
