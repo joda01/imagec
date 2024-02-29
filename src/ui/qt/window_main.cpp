@@ -25,6 +25,7 @@
 #include <QIcon>
 #include <QMainWindow>
 #include <QToolBar>
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -265,6 +266,9 @@ QWidget *WindowMain::createAddChannelPanel()
   addChannelWidget->setLayout(layout);
   layout->setSpacing(0);
 
+  //
+  // Add channel
+  //
   QPushButton *addChannelButton = new QPushButton();
   addChannelButton->setStyleSheet(
       "QPushButton {"
@@ -288,7 +292,35 @@ QWidget *WindowMain::createAddChannelPanel()
       "}");
   addChannelButton->setText("Add Channel");
   connect(addChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
-  layout->addWidget(addChannelButton);
+  layout->addWidget(addChannelButton, 0, 0);
+
+  //
+  // Open settings
+  //
+  QPushButton *openSettingsButton = new QPushButton();
+  openSettingsButton->setStyleSheet(
+      "QPushButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgb(111, 121, 123);"
+      "   color: rgb(0, 104, 117);"
+      "   padding: 10px 20px;"
+      "   border-radius: 12px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}");
+  openSettingsButton->setText("Open settings");
+  connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenSettingsClicked);
+  layout->addWidget(openSettingsButton, 0, 1);
 
   addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
@@ -303,7 +335,7 @@ QWidget *WindowMain::createAddChannelPanel()
 void WindowMain::onOpenProjectClicked()
 {
   QString folderToOpen = QDir::homePath();
-  if(mSelectedWorkingDirectory.isEmpty()) {
+  if(!mSelectedWorkingDirectory.isEmpty()) {
     folderToOpen = mSelectedWorkingDirectory;
   }
   QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen);
@@ -312,6 +344,41 @@ void WindowMain::onOpenProjectClicked()
     return;
   }
   setWorkingDirectory(selectedDirectory.toStdString());
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onOpenSettingsClicked()
+{
+  QString folderToOpen = QDir::homePath();
+  if(!mSelectedWorkingDirectory.isEmpty()) {
+    folderToOpen = mSelectedWorkingDirectory;
+  }
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Open File", QDir::homePath(), "JSON Files (*.json);;All Files (*)");
+
+  if(filePath.isEmpty()) {
+    return;
+  }
+
+  try {
+    settings::json::AnalyzeSettings settings;
+    settings.loadConfigFromFile(filePath.toStdString());
+    fromJson(settings);
+  } catch(const std::exception &ex) {
+    if(mSelectedChannel != nullptr) {
+      QMessageBox messageBox(this);
+      auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+      messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Dialog);
+      messageBox.setIconPixmap(icon->pixmap(42, 42));
+      messageBox.setWindowTitle("Could not load settings!");
+      messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
+      messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+      auto reply = messageBox.exec();
+    }
+  }
 }
 
 ///

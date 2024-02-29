@@ -123,6 +123,7 @@ private slots:
   void onShowInfoDialog();
   QWidget *createAddChannelPanel();
   void onLookingForFilesFinished();
+  void onOpenSettingsClicked();
 };
 
 }    // namespace joda::ui::qt
