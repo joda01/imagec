@@ -34,6 +34,7 @@ signals:
 
 public:
   PanelChannelEdit(WindowMain *wm, ContainerChannel *);
+  ~PanelChannelEdit();
 
 private:
   QHBoxLayout *createLayout();

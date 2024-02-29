@@ -11,6 +11,7 @@
 /// \brief     A short description what happens here.
 ///
 
+#include "ui/qt/panel_channel_edit.hpp"
 #include <qboxlayout.h>
 #include <qcombobox.h>
 #include <qlabel.h>
@@ -185,6 +186,14 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   //
   connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
   connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
+}
+
+PanelChannelEdit::~PanelChannelEdit()
+{
+  delete mScrollAreaCellApprox;
+  delete mPreviewImage;
+  delete mPreviewInfo;
+  delete mSpinner;
 }
 
 QLabel *PanelChannelEdit::createTitle(const QString &title)
