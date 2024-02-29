@@ -41,6 +41,7 @@ class ContainerChannel : std::enable_shared_from_this<ContainerChannel>
 public:
   /////////////////////////////////////////////////////
   ContainerChannel(WindowMain *windowMain);
+  ~ContainerChannel();
   PanelChannelOverview *getOverviewPanel()
   {
     return mPanelOverview;

@@ -169,6 +169,16 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
 /// \brief      Load values
 /// \author     Joachim Danmayr
 ///
+ContainerChannel::~ContainerChannel()
+{
+  delete mPanelOverview;
+  delete mPanelEdit;
+}
+
+///
+/// \brief      Load values
+/// \author     Joachim Danmayr
+///
 void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chSettings,
                                 std::optional<joda::settings::json::PipelineStepCellApproximation> cellApprox)
 {

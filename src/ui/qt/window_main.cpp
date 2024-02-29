@@ -463,9 +463,11 @@ nlohmann::json WindowMain::toJson()
 void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
 {
   // Remove all channels
-  for(auto *const channel : mChannels) {
+  std::set<ContainerChannel *> channelsToDelete = mChannels;
+  for(auto *const channel : channelsToDelete) {
     removeChannel(channel);
   }
+  channelsToDelete.clear();
 
   // Load functions
   std::map<int32_t, const joda::settings::json::PipelineStepCellApproximation *> cellApproxMap;
@@ -655,8 +657,10 @@ void WindowMain::removeChannel(ContainerChannel *toRemove)
   /// \todo reorder
   if(toRemove != nullptr) {
     mChannels.erase(toRemove);
+
     mLayoutChannelOverview->removeWidget(toRemove->getOverviewPanel());
     toRemove->getOverviewPanel()->setParent(nullptr);
+    delete toRemove;
 
     // Reorder all panels
     int cnt = 0;
