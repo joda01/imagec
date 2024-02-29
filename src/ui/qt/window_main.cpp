@@ -33,6 +33,7 @@
 #include <string>
 #include <thread>
 #include "backend/settings/pipeline_settings.hpp"
+#include "ui/qt/dialog_analyze_running.hpp"
 #include "container_channel.hpp"
 
 namespace joda::ui::qt {
@@ -548,6 +549,8 @@ void WindowMain::onSaveProjectClicked()
 ///
 void WindowMain::onStartClicked()
 {
+  DialogAnalyzeRunning dialg(this);
+  dialg.exec();
 }
 
 ///

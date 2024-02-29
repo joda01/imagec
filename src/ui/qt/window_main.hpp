@@ -68,6 +68,8 @@ public:
     return mImageSeriesCombo;
   }
 
+  nlohmann::json toJson();
+  void fromJson(const settings::json::AnalyzeSettings &);
 signals:
   void lookingForFilesFinished();
 
@@ -77,8 +79,6 @@ private:
   QWidget *createOverviewWidget();
   QWidget *createChannelWidget();
   void waitForFileSearchFinished();
-  nlohmann::json toJson();
-  void fromJson(const settings::json::AnalyzeSettings &);
   void setWorkingDirectory(const std::string &workingDir);
   ContainerChannel *addChannel();
 
