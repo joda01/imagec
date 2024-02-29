@@ -472,7 +472,7 @@ void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
   std::set<const joda::settings::json::PipelineStepIntersection *> intersectionMap;
   for(const auto &pipelineStep : settings.getPipelineSteps()) {
     if(pipelineStep.getCellApproximation() != nullptr) {
-      cellApproxMap.emplace(pipelineStep.getCellApproximation()->cell_channel_index,
+      cellApproxMap.emplace(pipelineStep.getCellApproximation()->nucleus_channel_index,
                             pipelineStep.getCellApproximation());
     }
     if(pipelineStep.getIntersection() != nullptr) {

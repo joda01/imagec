@@ -134,7 +134,8 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
       {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}, {{"XY", "xy"}, {"X", "x"}, {"Y", "y"}}));
   mTetraspeckRemoval = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-final-state-50.png", "Index", "Tetraspeck removal", "", -1,
-                                 {{0, "Channel 0"},
+                                 {{-1, "Off"},
+                                  {0, "Channel 0"},
                                   {1, "Channel 1"},
                                   {2, "Channel 2"},
                                   {3, "Channel 3"},
@@ -224,7 +225,11 @@ void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chS
 
   // Filtering
   mMinParticleSize->setValue(chSettings.getFilter().getMinParticleSize());
-  mMaxParticleSize->setValue(chSettings.getFilter().getMaxParticleSize());
+  if(chSettings.getFilter().getMaxParticleSize() >= INT32_MAX) {
+    mMaxParticleSize->clearValue();
+  } else {
+    mMaxParticleSize->setValue(chSettings.getFilter().getMaxParticleSize());
+  }
   mMinCircularity->setValue(chSettings.getFilter().getMinCircularity());
   mSnapAreaSize->setValue(chSettings.getFilter().getSnapAreaSize());
   mTetraspeckRemoval->setValue(chSettings.getFilter().getReferenceSpotChannelIndex());
@@ -291,8 +296,8 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
   chSettings["detection"]["threshold"]["threshold_min"]       = static_cast<int>(mThresholdValueMin->getValue());
   chSettings["detection"]["threshold"]["threshold_max"]       = UINT16_MAX;
 
-  chSettings["detection"]["ai"]["model_name"]      = mAIModels->getValue().toStdString();
-  chSettings["detection"]["ai"]["probability_min"] = mMinProbability->getValue();
+  chSettings["detection"]["ai_settings"]["model_name"]      = mAIModels->getValue().toStdString();
+  chSettings["detection"]["ai_settings"]["probability_min"] = mMinProbability->getValue();
 
   // Filtering
   if(mMinParticleSize->hasValue()) {
@@ -311,7 +316,15 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
   chSettings["filter"]["snap_area_size"]               = mSnapAreaSize->getValue();
   chSettings["filter"]["reference_spot_channel_index"] = mTetraspeckRemoval->getValue();
 
-  return {.channelSettings = chSettings, .pipelineStep = {}};
+  // Pipeline steps
+  nlohmann::json pipelineStep;
+  if(mEnableCellApproximation->getValue()) {
+    pipelineStep["cell_approximation"]["nucleus_channel_index"] = mChannelIndex->getValue();
+    pipelineStep["cell_approximation"]["cell_channel_index"]    = -1;
+    pipelineStep["cell_approximation"]["max_cell_radius"]       = mMaxCellRadius->getValue();
+  }
+
+  return {.channelSettings = chSettings, .pipelineStep = pipelineStep};
 }
 
 }    // namespace joda::ui::qt

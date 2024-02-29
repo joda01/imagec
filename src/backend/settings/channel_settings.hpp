@@ -44,7 +44,7 @@ private:
   // Name of the onnx AI model which should be used for detection.
   //
   std::string model_name;
-  float probability_min;
+  float probability_min = 0;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiSettings, model_name, probability_min);
 };

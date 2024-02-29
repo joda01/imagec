@@ -139,6 +139,19 @@ public:
     }
   }
 
+  void clearValue()
+  {
+    if(mComboBox != nullptr) {
+      mComboBox->setCurrentIndex(0);
+    }
+    if(mLineEdit != nullptr) {
+      mLineEdit->setText("");
+    }
+    if(mComboBoxSecond != nullptr) {
+      mComboBoxSecond->setCurrentIndex(0);
+    }
+  }
+
   ///
   /// \brief      Creates an editable element
   /// \author     Joachim Danmayr
