@@ -92,6 +92,11 @@ void WindowMain::createToolbar()
     connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onStartClicked);
     toolbar->addAction(mStartAnalysis);
     mSecondSeparator = toolbar->addSeparator();
+
+    mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
+    mDeleteChannel->setToolTip("Delete channel!");
+    connect(mDeleteChannel, &QAction::triggered, this, &WindowMain::onRemoveChannelClicked);
+    toolbar->addAction(mDeleteChannel);
   }
 
   {
@@ -134,11 +139,6 @@ void WindowMain::createToolbar()
   toolbar->addSeparator();
 
   {
-    mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
-    mDeleteChannel->setToolTip("Delete channel!");
-    connect(mDeleteChannel, &QAction::triggered, this, &WindowMain::onRemoveChannelClicked);
-    toolbar->addAction(mDeleteChannel);
-
     mSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", toolbar);
     mSettings->setToolTip("Settings");
     connect(mSettings, &QAction::triggered, this, &WindowMain::onOpenProjectClicked);
@@ -561,7 +561,6 @@ void WindowMain::onBackClicked()
   mSaveProject->setVisible(true);
   mOPenProject->setVisible(true);
   mStartAnalysis->setVisible(true);
-  mSettings->setVisible(true);
   mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(true);
   mSecondSeparator->setVisible(true);
@@ -583,7 +582,6 @@ void WindowMain::showChannelEdit(ContainerChannel *selectedChannel)
   mSaveProject->setVisible(false);
   mOPenProject->setVisible(false);
   mStartAnalysis->setVisible(false);
-  mSettings->setVisible(false);
   mDeleteChannel->setVisible(true);
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(false);
