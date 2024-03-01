@@ -107,11 +107,6 @@ void DialogAnalyzeRunning::refreshThread()
     emit refreshEvent();
     std::this_thread::sleep_for(500ms);
   }
-
-  progressBar->setRange(0, 100);
-  progressBar->setMaximum(100);
-  progressBar->setMinimum(0);
-  progressBar->setValue(100);
 }
 
 void DialogAnalyzeRunning::onRefreshData()
@@ -155,6 +150,10 @@ void DialogAnalyzeRunning::onRefreshData()
   closeButton->setEnabled(actState != joda::pipeline::Pipeline::State::RUNNING);
   if(actState != joda::pipeline::Pipeline::State::RUNNING) {
     mStopped = true;
+    progressBar->setRange(0, 100);
+    progressBar->setMaximum(100);
+    progressBar->setMinimum(0);
+    progressBar->setValue(100);
   }
   // mLabelReporting->SetLabel(timeDiffStr);
 }
