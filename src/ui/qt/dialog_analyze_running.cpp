@@ -62,7 +62,9 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain) : QDialog(win
   // Create and set up the buttons
   QHBoxLayout *buttonLayout = new QHBoxLayout;
   closeButton               = new QPushButton("Close", this);
-  stopButton                = new QPushButton("Stop", this);
+  closeButton->setEnabled(false);
+  stopButton = new QPushButton("Stop", this);
+  stopButton->setEnabled(true);
 
   connect(closeButton, &QPushButton::clicked, this, &DialogAnalyzeRunning::onCloseClicked);
   connect(stopButton, &QPushButton::clicked, this, &DialogAnalyzeRunning::onStopClicked);
@@ -84,13 +86,16 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain) : QDialog(win
 
 void DialogAnalyzeRunning::onStopClicked()
 {
+  stopButton->setEnabled(false);
+  mWindowMain->getController()->stop();
   mStopped = true;
-  mRefreshThread->join();
 }
 void DialogAnalyzeRunning::onCloseClicked()
 {
   mStopped = true;
-  mRefreshThread->join();
+  if(mRefreshThread && mRefreshThread->joinable()) {
+    mRefreshThread->join();
+  }
   close();
 }
 
@@ -107,6 +112,8 @@ void DialogAnalyzeRunning::refreshThread()
     emit refreshEvent();
     std::this_thread::sleep_for(500ms);
   }
+
+  emit refreshEvent();
 }
 
 void DialogAnalyzeRunning::onRefreshData()
@@ -146,9 +153,9 @@ void DialogAnalyzeRunning::onRefreshData()
     // showErrorDialog(mLastErrorMsg);
   }
   mProgressText->setText("<html>" + newTextAllOver + "<br/>" + newTextImage);
-  stopButton->setEnabled(actState == joda::pipeline::Pipeline::State::RUNNING);
-  closeButton->setEnabled(actState != joda::pipeline::Pipeline::State::RUNNING);
-  if(actState != joda::pipeline::Pipeline::State::RUNNING) {
+  if(actState != joda::pipeline::Pipeline::State::RUNNING || actState == joda::pipeline::Pipeline::State::STOPPED) {
+    closeButton->setEnabled(true);
+    stopButton->setEnabled(false);
     mStopped = true;
     progressBar->setRange(0, 100);
     progressBar->setMaximum(100);
