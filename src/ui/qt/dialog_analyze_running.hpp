@@ -14,6 +14,7 @@
 #pragma once
 
 #include <qdialog.h>
+#include <qtmetamacros.h>
 #include <memory>
 #include <thread>
 #include "ui/qt/window_main.hpp"
@@ -22,13 +23,18 @@ namespace joda::ui::qt {
 
 class DialogAnalyzeRunning : public QDialog
 {
+  Q_OBJECT
+
 public:
   /////////////////////////////////////////////////////
   DialogAnalyzeRunning(WindowMain *windowMain);
 
+signals:
+  void refreshEvent();
+
 private:
   /////////////////////////////////////////////////////
-  void refreshEvent();
+  void refreshThread();
   std::tuple<double, std::string> exponentForTime(double timeMs);
 
   std::shared_ptr<std::thread> mRefreshThread;
@@ -48,6 +54,7 @@ private:
 private slots:
   void onStopClicked();
   void onCloseClicked();
+  void onRefreshData();
 };
 
 }    // namespace joda::ui::qt
