@@ -90,6 +90,7 @@ private:
   // Cell approximation//////////////////////////////////
   std::shared_ptr<ContainerFunction<bool>> mEnableCellApproximation;
   std::shared_ptr<ContainerFunction<int>> mMaxCellRadius;
+  std::shared_ptr<ContainerFunction<int>> mColocGroupCellApproximation;
 
   // Colocalization//////////////////////////////////
   std::shared_ptr<ContainerFunction<int>> mColocGroup;

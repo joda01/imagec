@@ -65,7 +65,9 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   layoutCellApproximation->addWidget(createTitle("Cell approximation"));
   layoutCellApproximation->addWidget(parentContainer->mEnableCellApproximation->getEditableWidget());
   layoutCellApproximation->addWidget(parentContainer->mMaxCellRadius->getEditableWidget());
+  layoutCellApproximation->addWidget(parentContainer->mColocGroupCellApproximation->getEditableWidget());
   mParentContainer->mMaxCellRadius->getEditableWidget()->setVisible(false);
+  mParentContainer->mColocGroupCellApproximation->getEditableWidget()->setVisible(false);
   _3->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   connect(parentContainer->mEnableCellApproximation.get(), &ContainerFunctionBase::valueChanged, this,
@@ -340,6 +342,9 @@ void PanelChannelEdit::onCellApproximationChanged()
 {
   mParentContainer->mMaxCellRadius->getEditableWidget()->setVisible(
       mParentContainer->mEnableCellApproximation->getValue());
+  mParentContainer->mColocGroupCellApproximation->getEditableWidget()->setVisible(
+      mParentContainer->mEnableCellApproximation->getValue());
+
   updatePreview();
 }
 
