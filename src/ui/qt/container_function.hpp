@@ -77,9 +77,9 @@ public:
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
                     std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
-                    const std::vector<ComboEntry> &optionsSecond, QWidget *parent = nullptr)
+                    const std::vector<ComboEntry> &optionsSecond, VALUE_T comboSecondDefault, QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int>
-      : mUnit(unit), mDefaultValue(defaultVal)
+      : mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, unit, options, optionsSecond, defaultVal);
@@ -135,7 +135,10 @@ public:
       }
     }
     if(mComboBoxSecond != nullptr) {
-      mComboBoxSecond->setCurrentIndex(0);
+      auto idx = mComboBoxSecond->findData(mComboSecondDefaultValue);
+      if(idx >= 0) {
+        mComboBoxSecond->setCurrentIndex(idx);
+      }
     }
   }
 
@@ -532,6 +535,10 @@ private:
     mComboBoxSecond->setFont(fontLineEdit);
     mComboBoxSecond->setPlaceholderText("");
     mComboBoxSecond->setMaximumWidth(50);
+    auto idx = mComboBoxSecond->findData(mComboSecondDefaultValue);
+    if(idx >= 0) {
+      mComboBoxSecond->setCurrentIndex(idx);
+    }
     connect(mComboBoxSecond, &QComboBox::currentIndexChanged, this, &ContainerFunction::comboxEditingFinished);
 
     return mComboBoxSecond;
@@ -545,6 +552,7 @@ private:
   /////////////////////////////////////////////////////
   QString mDisplayText = "";
   std::optional<VALUE_T> mDefaultValue;
+  VALUE_T mComboSecondDefaultValue;
 
   /////////////////////////////////////////////////////
   QLineEdit *mLineEdit       = nullptr;
@@ -574,6 +582,14 @@ private slots:
   void comboxEditingFinished()
   {
     if(mComboBox != nullptr) {
+      if(mComboBoxSecond != nullptr) {
+        if(!hasValue()) {
+          mComboBoxSecond->setEnabled(false);
+        } else {
+          mComboBoxSecond->setEnabled(true);
+        }
+      }
+
       if(mComboBoxSecond != nullptr && hasValue()) {
         mDisplayText = mComboBox->currentText() + " (" + mComboBoxSecond->currentText() + ")";
       } else {

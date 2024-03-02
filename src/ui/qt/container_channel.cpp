@@ -124,14 +124,14 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
 
   mGaussianBlur = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>(
       "icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur", "px", -1,
-      {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}}, {{1, "1x"}, {2, "2x"}, {3, "3x"}}));
+      {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}}, {{1, "1x"}, {2, "2x"}, {3, "3x"}}, 1));
 
   mSmoothing = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-cleanup-noise-50.png", "Kernel size", "Smoothing", "", -1,
                                  {{-1, "Off"}, {1, "x1"}, {2, "x2"}, {3, "x3"}}));
   mEdgeDetection     = std::shared_ptr<ContainerFunction<QString>>(new ContainerFunction<QString>(
       "icons8-triangle-50.png", "Threshold", "Edge detection", "", "NONE",
-      {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}, {{"XY", "xy"}, {"X", "x"}, {"Y", "y"}}));
+      {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}, {{"XY", "xy"}, {"X", "x"}, {"Y", "y"}}, "XY"));
   mTetraspeckRemoval = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-final-state-50.png", "Index", "Tetraspeck removal", "", -1,
                                  {{-1, "Off"},
@@ -174,7 +174,8 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                   {70, "70 %"},
                                   {80, "80 %"},
                                   {90, "90 %"},
-                                  {100, "100 %"}}));
+                                  {100, "100 %"}},
+                                 80));
 
   //
   // Create panels -> Must be after creating the functions
@@ -213,6 +214,7 @@ void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chS
   mMedianBackgroundSubtraction->resetToDefault();
   mSubtractChannel->resetToDefault();
   mEdgeDetection->resetToDefault();
+  mColocGroup->resetToDefault();
 
   // Preprocessing
   for(const auto &prepro : chSettings.getPreprocessingFunctions()) {
