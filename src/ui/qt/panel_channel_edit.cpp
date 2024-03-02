@@ -49,6 +49,17 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   connect(parentContainer->mChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::updatePreview);
 
+  //
+  // Coloc
+  //
+  auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
+  llayoutColoc->addWidget(createTitle("Coloc"));
+  llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
+  _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+  //
+  // Cell approx
+  //
   auto [layoutCellApproximation, _3] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   mScrollAreaCellApprox              = _3;
   layoutCellApproximation->addWidget(createTitle("Cell approximation"));

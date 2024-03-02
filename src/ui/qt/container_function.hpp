@@ -532,6 +532,8 @@ private:
     mComboBoxSecond->setFont(fontLineEdit);
     mComboBoxSecond->setPlaceholderText("");
     mComboBoxSecond->setMaximumWidth(50);
+    connect(mComboBoxSecond, &QComboBox::currentIndexChanged, this, &ContainerFunction::comboxEditingFinished);
+
     return mComboBoxSecond;
   }
 
@@ -572,7 +574,11 @@ private slots:
   void comboxEditingFinished()
   {
     if(mComboBox != nullptr) {
-      mDisplayText = mComboBox->currentText();
+      if(mComboBoxSecond != nullptr && hasValue()) {
+        mDisplayText = mComboBox->currentText() + " (" + mComboBoxSecond->currentText() + ")";
+      } else {
+        mDisplayText = mComboBox->currentText();
+      }
       updateDisplayText();
       ContainerFunction<VALUE_T>::triggerValueChanged();
     }

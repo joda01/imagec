@@ -159,6 +159,24 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                  "Max. cell radius", "px", 100, 0, INT32_MAX));
 
   //
+  // Coloc
+  //
+  mColocGroup = std::shared_ptr<ContainerFunction<int>>(
+      new ContainerFunction<int>("icons8-query-outer-join-left-50.png", "Group", "Coloc group and min. overlap", "", -1,
+                                 {{-1, "Off"}, {0, "A"}, {1, "B"}, {3, "C"}},
+                                 {{0, "0 %"},
+                                  {10, "10 %"},
+                                  {20, "20 %"},
+                                  {30, "30 %"},
+                                  {40, "40 %"},
+                                  {50, "50 %"},
+                                  {60, "60 %"},
+                                  {70, "70 %"},
+                                  {80, "80 %"},
+                                  {90, "90 %"},
+                                  {100, "100 %"}}));
+
+  //
   // Create panels -> Must be after creating the functions
   //
   mPanelOverview = new PanelChannelOverview(windowMain, this);

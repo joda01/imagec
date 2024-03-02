@@ -91,6 +91,9 @@ private:
   std::shared_ptr<ContainerFunction<bool>> mEnableCellApproximation;
   std::shared_ptr<ContainerFunction<int>> mMaxCellRadius;
 
+  // Colocalization//////////////////////////////////
+  std::shared_ptr<ContainerFunction<int>> mColocGroup;
+
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
   PanelChannelOverview *mPanelOverview;
