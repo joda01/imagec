@@ -38,7 +38,8 @@ private:
   std::tuple<double, std::string> exponentForTime(double timeMs);
 
   std::shared_ptr<std::thread> mRefreshThread;
-  bool mStopped = false;
+  bool mStopped  = false;
+  bool mStopping = false;
   std::string mLastErrorMsg;
   std::chrono::system_clock::time_point mStartedTime;
   std::chrono::system_clock::time_point mEndedTime;

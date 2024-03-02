@@ -88,11 +88,11 @@ void DialogAnalyzeRunning::onStopClicked()
 {
   stopButton->setEnabled(false);
   mWindowMain->getController()->stop();
-  mStopped = true;
+  mStopping = true;
 }
 void DialogAnalyzeRunning::onCloseClicked()
 {
-  mStopped = true;
+  mStopping = true;
   if(mRefreshThread && mRefreshThread->joinable()) {
     mRefreshThread->join();
   }
