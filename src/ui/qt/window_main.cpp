@@ -682,7 +682,6 @@ void WindowMain::onRemoveChannelClicked()
     messageBox.addButton(tr("No"), QMessageBox::NoRole);
     messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
     auto reply = messageBox.exec();
-    std::cout << std::to_string(reply) << std::endl;
     if(reply == 1) {
       removeChannel(mSelectedChannel);
     }
