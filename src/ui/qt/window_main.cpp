@@ -440,6 +440,7 @@ nlohmann::json WindowMain::toJson()
   nlohmann::json pipelineStepArray = nlohmann::json::array();    // Initialize an empty JSON array
 
   ContainerChannel::IntersectionSettings intersectionChannels;
+  std::map<int32_t, float> minIntersectionPerGroup;
 
   for(const auto &ch : mChannels) {
     auto converter = ch->toJson();
@@ -453,16 +454,22 @@ nlohmann::json WindowMain::toJson()
     for(const auto &[group, ch] : converter.intersection) {
       if(intersectionChannels.contains(group)) {
         intersectionChannels.at(group).channel.insert(ch.channel.begin(), ch.channel.end());
+        // There may be differences in the min intersections even if there should not be.
+        // Use the biggest one if there is a difference.
+        if(minIntersectionPerGroup.at(group) < ch.minIntersect) {
+          minIntersectionPerGroup[group] = ch.minIntersect;
+        }
       } else {
         intersectionChannels.emplace(group, ch);
+        minIntersectionPerGroup.emplace(group, ch.minIntersect);
       }
     }
   }
 
   // Intersection settings
-  for(const auto &[_, intersectGroup] : intersectionChannels) {
+  for(const auto &[group, intersectGroup] : intersectionChannels) {
     nlohmann::json colocPipelineStep;
-    colocPipelineStep["intersection"]["min_intersection"] = intersectGroup.minIntersect;
+    colocPipelineStep["intersection"]["min_intersection"] = minIntersectionPerGroup[group];
     colocPipelineStep["intersection"]["channel_index"]    = intersectGroup.channel;
     pipelineStepArray.push_back(colocPipelineStep);
   }
@@ -587,6 +594,20 @@ void WindowMain::onSaveProjectClicked()
 }
 
 ///
+/// \brief      Two channels in the same coloc group are not allowed to have different min intersection
+/// \author     Joachim Danmayr
+///
+void WindowMain::syncColocSettings()
+{
+  if(mSelectedChannel != nullptr) {
+    auto [group, factor] = mSelectedChannel->getMinColocFactor();
+    for(const auto &ch : mChannels) {
+      ch->setMinColocFactor(group, factor);
+    }
+  }
+}
+
+///
 /// \brief
 /// \author     Joachim Danmayr
 ///
@@ -610,7 +631,7 @@ void WindowMain::onBackClicked()
   mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(true);
   mSecondSeparator->setVisible(true);
-
+  syncColocSettings();
   mStackedWidget->setCurrentIndex(0);
   mSelectedChannel = nullptr;
 }

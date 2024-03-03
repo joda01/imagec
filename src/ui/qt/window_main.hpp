@@ -81,6 +81,7 @@ private:
   void waitForFileSearchFinished();
   void setWorkingDirectory(const std::string &workingDir);
   ContainerChannel *addChannel();
+  void syncColocSettings();
 
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;

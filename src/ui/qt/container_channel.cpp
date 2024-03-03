@@ -150,19 +150,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                   {12, "Channel 12"}}));
   mColocGroupCellApproximation = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-query-outer-join-left-50.png", "Group", "Coloc group and min. overlap", "", -1,
-                                 {{-1, "Off"}, {0, "A"}, {1, "B"}, {3, "C"}},
-                                 {{0, "0%"},
-                                  {10, "10%"},
-                                  {20, "20%"},
-                                  {30, "30%"},
-                                  {40, "40%"},
-                                  {50, "50%"},
-                                  {60, "60%"},
-                                  {70, "70%"},
-                                  {80, "80%"},
-                                  {90, "90%"},
-                                  {100, "100%"}},
-                                 80));
+                                 {{-1, "Off"}, {0, "A"}, {1, "B"}, {3, "C"}}));
 
   //
   // Cell approximation
@@ -296,7 +284,6 @@ void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chS
   }
   if(cellApproxIntersection.has_value()) {
     mColocGroupCellApproximation->setValue(cellApproxIntersection->intersectionGroup);
-    mColocGroupCellApproximation->setValueSecond(static_cast<int>(cellApproxIntersection->minColocFactor * 100.0F));
   }
 }
 
@@ -397,7 +384,7 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
                 {mChannelIndex->getValue() +
                  settings::json::PipelineStepSettings::CELL_APPROX_INDEX_OFFSET},    // The cell approx channel index is
                                                                                      // the nucleus index + 100
-            .minIntersect = static_cast<float>(mColocGroupCellApproximation->getValueSecond()) / 100.0F});
+            .minIntersect = 0});
   }
 
   return {.channelSettings = chSettings, .pipelineStep = pipelineStep, .intersection = intersectSettings};

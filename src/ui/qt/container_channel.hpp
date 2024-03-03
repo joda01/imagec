@@ -83,6 +83,21 @@ public:
                 std::optional<IntersectionRead> cellApproxIntersection);
   ConvertedChannels toJson() const;
 
+  std::tuple<int32_t, float> getMinColocFactor()
+  {
+    if(mColocGroup->hasValue()) {
+      return {mColocGroup->getValue(), mColocGroup->getValueSecond() / 100.0F};
+    }
+    return {-1, 0};
+  }
+
+  void setMinColocFactor(int group, float newValue)
+  {
+    if(group == mColocGroup->getValue()) {
+      mColocGroup->setValueSecond(newValue * 100.0F);
+    }
+  }
+
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<ContainerFunction<QString>> mChannelName;
