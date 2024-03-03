@@ -93,21 +93,7 @@ RUN cd ./pugixml &&\
     make -j4 &&\
     make install
 
-#
-# WXWidgets
-#
-RUN git clone --recurse-submodules -b v3.2.2.1 --depth 1  https://github.com/wxWidgets/wxWidgets.git /wxWidgets
-RUN apt install -y libgtk-3-dev
-RUN cd wxWidgets &&\
-    mkdir gtk-build  &&\
-    cd gtk-build  &&\
-    ../configure --disable-shared --enable-unicode --with-gtk=3 &&\
-    make -j6 &&\
-    make install
-
-
 RUN apt-get update && apt-get install -y default-jdk
-
 
 #
 # protobuf
@@ -236,28 +222,4 @@ COPY --from=live /usr /usr
 COPY --from=live /lib /lib
 COPY --from=live /bin /bin
 
-
-
-
 RUN ldconfig
-
-
-#FROM live as build
-#
-#RUN mkdir ./build
-#COPY ./ ./build
-#RUN cd ./build &&\
-#    ./cleanup.sh &&\
-#    ./build.sh
-#
-#
-#FROM debian:$DEBIAN_VERSION AS run
-#
-#RUN mkdir -p /imagec
-#
-#COPY --from=build ./build/build/build/imagec /imagec/imagec
-#COPY ./imagec_gui /imagec/imagec_gui
-#COPY ./imagec_models /imagec/imagec_models
-#
-#WORKDIR /imagec
-#ENTRYPOINT ["sh", "-c", "cd /imagec && ./imagec"]

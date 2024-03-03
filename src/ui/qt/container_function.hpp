@@ -316,6 +316,24 @@ public:
   /// \author     Joachim Danmayr
   /// \return
   ///
+  int getValueSecond()
+    requires std::same_as<VALUE_T, int>
+  {
+    try {
+      if(mComboBoxSecond != nullptr) {
+        return mComboBoxSecond->currentData().toInt();
+      }
+      return 0.0;
+    } catch(const std::exception &) {
+      return 0.0;
+    }
+  }
+
+  ///
+  /// \brief      Creates an editable element
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
   QString getValueSecond()
     requires std::same_as<VALUE_T, QString>
   {

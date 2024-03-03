@@ -27,6 +27,7 @@
 #include <QToolBar>
 #include <exception>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -438,6 +439,8 @@ nlohmann::json WindowMain::toJson()
   nlohmann::json channelsArray     = nlohmann::json::array();    // Initialize an empty JSON array
   nlohmann::json pipelineStepArray = nlohmann::json::array();    // Initialize an empty JSON array
 
+  ContainerChannel::IntersectionSettings intersectionChannels;
+
   for(const auto &ch : mChannels) {
     auto converter = ch->toJson();
     if(!converter.channelSettings.empty()) {
@@ -446,7 +449,24 @@ nlohmann::json WindowMain::toJson()
     if(!converter.pipelineStep.empty()) {
       pipelineStepArray.push_back(converter.pipelineStep);
     }
+
+    for(const auto &[group, ch] : converter.intersection) {
+      if(intersectionChannels.contains(group)) {
+        intersectionChannels.at(group).channel.insert(ch.channel.begin(), ch.channel.end());
+      } else {
+        intersectionChannels.emplace(group, ch);
+      }
+    }
   }
+
+  // Intersection settings
+  for(const auto &[_, intersectGroup] : intersectionChannels) {
+    nlohmann::json colocPipelineStep;
+    colocPipelineStep["intersection"]["min_intersection"] = intersectGroup.minIntersect;
+    colocPipelineStep["intersection"]["channel_index"]    = intersectGroup.channel;
+    pipelineStepArray.push_back(colocPipelineStep);
+  }
+
   jsonSettings["input_folder"]                    = static_cast<std::string>(mSelectedWorkingDirectory.toStdString());
   jsonSettings["channels"]                        = channelsArray;
   jsonSettings["pipeline_steps"]                  = pipelineStepArray;
@@ -472,20 +492,31 @@ void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
 
   // Load functions
   std::map<int32_t, const joda::settings::json::PipelineStepCellApproximation *> cellApproxMap;
-  std::set<const joda::settings::json::PipelineStepIntersection *> intersectionMap;
+  std::vector<const joda::settings::json::PipelineStepIntersection *> intersectionMap;
   for(const auto &pipelineStep : settings.getPipelineSteps()) {
     if(pipelineStep.getCellApproximation() != nullptr) {
       cellApproxMap.emplace(pipelineStep.getCellApproximation()->nucleus_channel_index,
                             pipelineStep.getCellApproximation());
     }
     if(pipelineStep.getIntersection() != nullptr) {
-      intersectionMap.emplace(pipelineStep.getIntersection());
+      intersectionMap.push_back(pipelineStep.getIntersection());
     }
+  }
+
+  std::map<int32_t, ContainerChannel::IntersectionRead> intersectReadVal;
+  int intersectionGroup = 0;
+  for(const auto &intersect : intersectionMap) {
+    for(const auto &chIdx : intersect->channel_index) {
+      intersectReadVal.emplace(chIdx,
+                               ContainerChannel::IntersectionRead{.intersectionGroup = intersectionGroup,
+                                                                  .minColocFactor    = intersect->min_intersection});
+    }
+    intersectionGroup++;
   }
 
   int series = 0;
   // Load channels
-  for(const auto &[_, channel] : settings.getChannels()) {
+  for(const auto &[_, channel] : settings.getChannelsOrderedByChannelIndex()) {
     series             = channel.getChannelInfo().getChannelSeries();
     auto *channelAdded = addChannel();
     if(nullptr != channelAdded) {
@@ -493,7 +524,19 @@ void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
       if(cellApproxMap.contains(channel.getChannelInfo().getChannelIndex())) {
         cellApprox = *cellApproxMap.at(channel.getChannelInfo().getChannelIndex());
       }
-      channelAdded->fromJson(channel, cellApprox);
+
+      std::optional<ContainerChannel::IntersectionRead> channelIntersection;
+      std::optional<ContainerChannel::IntersectionRead> cellApproxIntersection;
+      if(intersectReadVal.contains(channel.getChannelInfo().getChannelIndex())) {
+        channelIntersection = intersectReadVal.at(channel.getChannelInfo().getChannelIndex());
+      }
+      if(intersectReadVal.contains(channel.getChannelInfo().getChannelIndex() +
+                                   settings::json::PipelineStepSettings::CELL_APPROX_INDEX_OFFSET)) {
+        cellApproxIntersection = intersectReadVal.at(channel.getChannelInfo().getChannelIndex() +
+                                                     settings::json::PipelineStepSettings::CELL_APPROX_INDEX_OFFSET);
+      }
+
+      channelAdded->fromJson(channel, cellApprox, channelIntersection, cellApproxIntersection);
     }
   }
 
@@ -534,7 +577,7 @@ void WindowMain::onSaveProjectClicked()
 
   if(!filePath.isEmpty()) {
     joda::settings::json::AnalyzeSettings settings;
-    settings.loadConfigFromString(toJson().dump());
+    settings.loadConfigFromString(toJson().dump(2));
     std::string path = filePath.toStdString();
     if(!path.ends_with(".json")) {
       path += ".json";

@@ -16,6 +16,7 @@
 #pragma once
 
 #include <QtWidgets>
+#include <map>
 #include <memory>
 #include <optional>
 #include "backend/settings/analze_settings_parser.hpp"
@@ -39,6 +40,10 @@ class ContainerChannel : std::enable_shared_from_this<ContainerChannel>
   friend class PanelChannelEdit;
 
 public:
+  ContainerChannel(const ContainerChannel &)            = default;
+  ContainerChannel(ContainerChannel &&)                 = delete;
+  ContainerChannel &operator=(const ContainerChannel &) = default;
+  ContainerChannel &operator=(ContainerChannel &&)      = delete;
   /////////////////////////////////////////////////////
   ContainerChannel(WindowMain *windowMain);
   ~ContainerChannel();
@@ -51,14 +56,31 @@ public:
     return mPanelEdit;
   }
 
+  using IntersectionGroup = int;
+  struct IntersectionChannel
+  {
+    std::set<int> channel = {};
+    float minIntersect    = 0;
+  };
+  using IntersectionSettings = std::map<IntersectionGroup, IntersectionChannel>;
+
+  struct IntersectionRead
+  {
+    int32_t intersectionGroup = -1;
+    float minColocFactor      = 0;
+  };
+
   struct ConvertedChannels
   {
     nlohmann::json channelSettings;
     nlohmann::json pipelineStep;
+    IntersectionSettings intersection;
   };
 
   void fromJson(const joda::settings::json::ChannelSettings &,
-                std::optional<joda::settings::json::PipelineStepCellApproximation>);
+                std::optional<joda::settings::json::PipelineStepCellApproximation>,
+                std::optional<IntersectionRead> channelIntersection,
+                std::optional<IntersectionRead> cellApproxIntersection);
   ConvertedChannels toJson() const;
 
 private:

@@ -254,7 +254,7 @@ void Pipeline::analyzeTile(joda::reporting::Table &detailReports, FileInfo image
   int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
   for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
     auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
-    if(chSettings.index != settings::json::PipelineStepSettings::PipelineStepIndex::NONE) {
+    if(chSettings.index != settings::json::PipelineStepSettings::NONE_PIPELINE_STEP) {
       detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
       setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
       appendToDetailReport(response, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);

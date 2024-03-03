@@ -214,7 +214,9 @@ ContainerChannel::~ContainerChannel()
 /// \author     Joachim Danmayr
 ///
 void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chSettings,
-                                std::optional<joda::settings::json::PipelineStepCellApproximation> cellApprox)
+                                std::optional<joda::settings::json::PipelineStepCellApproximation> cellApprox,
+                                std::optional<IntersectionRead> channelIntersection,
+                                std::optional<IntersectionRead> cellApproxIntersection)
 {
   // Meta
   mChannelIndex->setValue(chSettings.getChannelInfo().getChannelIndex());
@@ -285,6 +287,16 @@ void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chS
     mMaxCellRadius->setValue(cellApprox->max_cell_radius);
   } else {
     mEnableCellApproximation->setValue(false);
+  }
+
+  // Coloc
+  if(channelIntersection.has_value()) {
+    mColocGroup->setValue(channelIntersection->intersectionGroup);
+    mColocGroup->setValueSecond(static_cast<int>(channelIntersection->minColocFactor * 100.0F));
+  }
+  if(cellApproxIntersection.has_value()) {
+    mColocGroupCellApproximation->setValue(cellApproxIntersection->intersectionGroup);
+    mColocGroupCellApproximation->setValueSecond(static_cast<int>(cellApproxIntersection->minColocFactor * 100.0F));
   }
 }
 
@@ -369,7 +381,26 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
     pipelineStep["cell_approximation"]["max_cell_radius"]       = mMaxCellRadius->getValue();
   }
 
-  return {.channelSettings = chSettings, .pipelineStep = pipelineStep};
+  // Coloc
+  IntersectionSettings intersectSettings;
+  if(mColocGroup->hasValue()) {
+    intersectSettings.emplace(
+        mColocGroup->getValue(),
+        IntersectionChannel{.channel      = {mChannelIndex->getValue()},
+                            .minIntersect = static_cast<float>(mColocGroup->getValueSecond()) / 100.0F});
+  }
+  if(mColocGroupCellApproximation->hasValue()) {
+    intersectSettings.emplace(
+        mColocGroupCellApproximation->getValue(),
+        IntersectionChannel{
+            .channel =
+                {mChannelIndex->getValue() +
+                 settings::json::PipelineStepSettings::CELL_APPROX_INDEX_OFFSET},    // The cell approx channel index is
+                                                                                     // the nucleus index + 100
+            .minIntersect = static_cast<float>(mColocGroupCellApproximation->getValueSecond()) / 100.0F});
+  }
+
+  return {.channelSettings = chSettings, .pipelineStep = pipelineStep, .intersection = intersectSettings};
 }
 
 }    // namespace joda::ui::qt

@@ -6,7 +6,7 @@ mkdir -p ./build/build/platforms
 cmake --build build --target imagec --parallel 4
 #cmake --build build --target tests --parallel 4
 
-#exit 0
+exit 0
 
 cp /usr/lib/x86_64-linux-gnu/libicuio.so.67 ./build/build
 cp /usr/lib/x86_64-linux-gnu/libicui18n.so.67 ./build/build

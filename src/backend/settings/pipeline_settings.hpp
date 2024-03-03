@@ -66,20 +66,12 @@ class PipelineStepSettings final
 {
 public:
   /////////////////////////////////////////////////////
-  enum class PipelineStepIndex : int32_t
-  {
-    NONE               = 0,
-    CELL_APPROXIMATION = 13,
-    INTERSECTION01     = 14,
-    INTERSECTION02     = 15,
-    INTERSECTION03     = 16,
-    INTERSECTION04     = 17,
-    INTERSECTION05     = 18,
-  };
-
+  static constexpr int32_t NONE_PIPELINE_STEP        = -1;
+  static constexpr int32_t CELL_APPROX_INDEX_OFFSET  = 100;
+  static constexpr int32_t INTERSECTION_INDEX_OFFSET = 200;
   struct ChannelSettings
   {
-    PipelineStepIndex index = PipelineStepIndex::NONE;
+    int32_t index = NONE_PIPELINE_STEP;
     std::string name;
   };
 
