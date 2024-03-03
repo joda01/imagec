@@ -71,7 +71,7 @@ jobs:
       - name: Build imageC for Linux
         run: |
           ./make.sh
-          cmake --build build --target imagec --parallel 4
+          ./build.sh
           strip build/build/imagec
 
       - name: Upload Artifact
@@ -105,7 +105,7 @@ jobs:
         run: |
           mkdir imagec-x64-linux-bundle
           mkdir -p imagec-x64-linux-bundle/java
-          cp build/build/imagec imagec-x64-linux-bundle/imagec
+          cp build/build/* imagec-x64-linux-bundle/*
           cp java/bioformats.jar imagec-x64-linux-bundle/java/bioformats.jar
           cp java/BioFormatsWrapper.class imagec-x64-linux-bundle/java/BioFormatsWrapper.class
           unzip java/jre_linux.zip -d jre_linux_unzip
