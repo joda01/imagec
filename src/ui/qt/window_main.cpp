@@ -375,7 +375,7 @@ void WindowMain::onOpenSettingsClicked()
     if(mSelectedChannel != nullptr) {
       QMessageBox messageBox(this);
       auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-      messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Dialog);
+      messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
       messageBox.setIconPixmap(icon->pixmap(42, 42));
       messageBox.setWindowTitle("Could not load settings!");
       messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
@@ -669,7 +669,7 @@ void WindowMain::onRemoveChannelClicked()
   if(mSelectedChannel != nullptr) {
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Dialog);
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
     // messageBox.setAttribute(Qt::WA_TranslucentBackground);
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Remove channel?");
@@ -759,13 +759,29 @@ void WindowMain::removeChannel(ContainerChannel *toRemove)
 void WindowMain::onShowInfoDialog()
 {
   QMessageBox messageBox(this);
-  // auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-  messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Dialog);
+  auto *icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
+
+  messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+  messageBox.setIconPixmap(icon->pixmap(42, 42));
   // messageBox.setAttribute(Qt::WA_TranslucentBackground);
   // messageBox.setIconPixmap(icon->pixmap(42, 42));
   messageBox.setWindowTitle("Info");
-  messageBox.setText("<html>imageC" + QString(Version::getVersion().data()) + "<br/>" +
-                     QString(Version::getBuildTime().data()) + "</html>");
+  messageBox.setText(
+      "<p style=\"text-align: left;\"><strong>imageC " + QString(Version::getVersion().data()) + " (" +
+      QString(Version::getBuildTime().data()) +
+      ")</strong></p>"
+      "<p style=\"text-align: left;\"><em>Licensed under GPL-v3<br />Preferable for use in the non-profit research "
+      "environment.</em></p>"
+      "<p style=\"text-align: left;\"><strong>Many thanks</strong> for help in setting this project to Melanie "
+      "Schuerz</p>"
+      "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI models</strong><br "
+      "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke and Patricia Hrasnova</p>"
+      "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
+      "Dominik Handl</em></p>"
+      "<p style=\"text-align: left;\">copyright 2022-2023 Joachim Danmayr</p>");
+  QFont font;
+  font.setPixelSize(10);
+  messageBox.setFont(font);
   messageBox.addButton(tr("Close"), QMessageBox::AcceptRole);
   messageBox.exec();
 }
