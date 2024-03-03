@@ -9,6 +9,7 @@ cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPIL
 cd build/build
 
 ni "dlls" -ItemType Directory
+ni "dlls\platforms" -ItemType Directory
 
 
 #$jvmdll = "$env:JAVA_HOME"
@@ -21,8 +22,8 @@ cmake --build build --target imagec --parallel 8
 cd build/build
 
 
-$destinationDirectory = "./dlls"
-$destinationDirectoryPlatforms = "./dlls/platforms"
+$destinationDirectory = ".\dlls"
+$destinationDirectoryPlatforms = ".\dlls\platforms"
 
 Copy-Item -Path "$mingwBasePathWin\bin\*.dll" -Destination "$destinationDirectory" -Force
 Copy-Item -Path "$mingwQtPlatformsPath\*.dll" -Destination "$destinationDirectoryPlatforms" -Force
