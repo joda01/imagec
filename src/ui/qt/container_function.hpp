@@ -397,7 +397,7 @@ private:
     fontLineEdit.setPixelSize(16);
     mLineEdit->setFont(fontLineEdit);
     mLineEdit->setClearButtonEnabled(true);
-    mLineEdit->addAction(myIcon, QLineEdit::LeadingPosition);
+    mLineEdit->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
     mLineEdit->setPlaceholderText(placeHolderText);
     layout->addWidget(mLineEdit);
     // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);
@@ -489,7 +489,7 @@ private:
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
     for(const auto &data : options) {
-      mComboBox->addItem(myIcon, data.label, QVariant(data.key));
+      mComboBox->addItem(QIcon(myIcon.pixmap(28, 28)), data.label, QVariant(data.key));
     }
     mComboBox->setFont(fontLineEdit);
     mComboBox->setPlaceholderText(placeHolderText);

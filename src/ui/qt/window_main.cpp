@@ -47,7 +47,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 {
   setWindowTitle("imageC");
   createToolbar();
-  setMinimumSize(1300, 900);
+  setMinimumSize(1300, 800);
   setObjectName("windowMain");
   setStyleSheet(
       "QMainWindow#windowMain {"
@@ -108,6 +108,7 @@ void WindowMain::createToolbar()
     // Add a spacer to push the next action to the middle
     QWidget *spacerWidget = new QWidget();
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    toolbar->setMaximumHeight(32);
     toolbar->addWidget(spacerWidget);
   }
 

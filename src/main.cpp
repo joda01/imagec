@@ -1,9 +1,26 @@
 #include <QtWidgets>
+#include "backend/duration_count/duration_count.h"
+#include "backend/image_reader/bioformats/bioformats_loader.hpp"
+#include "backend/image_reader/tif/image_loader_tif.hpp"
+#include "backend/pipelines/pipeline_factory.hpp"
+#include "backend/reporting/report_printer.h"
 #include "controller/controller.hpp"
 #include "ui/qt/window_main.hpp"
+#include "version.h"
 
 int main(int argc, char *argv[])
 {
+  //
+  // Init
+  //
+  Version::initVersion(std::string(argv[0]));
+  TiffLoader::initLibTif();
+  BioformatsLoader::init();
+  joda::pipeline::PipelineFactory::init();
+
+  //
+  // Start UI
+  //
   QApplication app(argc, argv);
   QApplication::setStyle("Fusion");
 
@@ -61,5 +78,9 @@ int main(int argc, char *argv[])
   joda::ui::qt::WindowMain mainWindow(controller);
 
   mainWindow.show();
-  return app.exec();
+
+  auto ret = app.exec();
+  joda::pipeline::PipelineFactory::shutdown();
+  BioformatsLoader::destroy();
+  return ret;
 }
