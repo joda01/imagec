@@ -62,6 +62,8 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
 
   layout->addWidget(parent->mTetraspeckRemoval->getLabelWidget(), 6, 0);
   layout->addWidget(parent->mColocGroup->getLabelWidget(), 6, 1);
+  layout->addWidget(parent->mEnableCellApproximation->getLabelWidget(), 6, 2);
+  // layout->addWidget(parent->mColocGroupCellApproximation->getLabelWidget(), 6, 3);
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }

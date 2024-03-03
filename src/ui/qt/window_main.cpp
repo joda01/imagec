@@ -439,7 +439,16 @@ void WindowMain::onOpenTemplateClicked()
     settings::json::ChannelSettings settings;
     settings.loadConfigFromFile(filePath.toStdString());
     auto *newChannel = addChannel();
-    newChannel->fromJson(settings, std::nullopt, std::nullopt, std::nullopt);
+
+    std::optional<joda::settings::json::PipelineStepCellApproximation> cellApprox;
+    if(settings.getChannelInfo().getType() == settings::json::ChannelInfo::Type::NUCLEUS) {
+      cellApprox = joda::settings::json::PipelineStepCellApproximation{.nucleus_channel_index =
+                                                                           settings.getChannelInfo().getChannelIndex(),
+                                                                       .cell_channel_index = -1,
+                                                                       .max_cell_radius    = 500};
+    }
+
+    newChannel->fromJson(settings, cellApprox, std::nullopt, std::nullopt);
   } catch(const std::exception &ex) {
     if(mSelectedChannel != nullptr) {
       QMessageBox messageBox(this);

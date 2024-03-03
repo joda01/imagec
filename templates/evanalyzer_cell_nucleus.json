@@ -23,7 +23,7 @@
         "label": "",
         "name": "Nucleus",
         "series": 0,
-        "type": "CELL"
+        "type": "NUCLEUS"
     },
     "preprocessing": [
         {
