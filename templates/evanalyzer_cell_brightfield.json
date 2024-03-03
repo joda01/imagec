@@ -14,7 +14,7 @@
     "filter": {
         "max_particle_size": 2147483647,
         "min_circularity": 0,
-        "min_particle_size": 5,
+        "min_particle_size": 2000,
         "reference_spot_channel_index": -1,
         "snap_area_size": 0
     },
