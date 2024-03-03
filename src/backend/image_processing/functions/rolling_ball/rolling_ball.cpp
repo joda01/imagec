@@ -42,7 +42,6 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/utility.hpp>
 #include <opencv2/imgproc.hpp>
-#include "par_for.h"
 
 namespace joda::func::img {
 

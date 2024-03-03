@@ -6,6 +6,15 @@ project (imagec
          HOMEPAGE_URL https://danmayr.org
          LANGUAGES CXX C)
 
+# Get the current date and time
+string(TIMESTAMP BUILD_DATE "%Y-%m-%d")
+string(TIMESTAMP BUILD_TIME "%H:%M:%S")
+
+# Get the current user and host
+execute_process(COMMAND whoami OUTPUT_VARIABLE BUILD_USER OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND hostname OUTPUT_VARIABLE BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+
 # 1) Choose option and adapt Line 95 if needed
 option(MAKE_LIBRARY "Builds a library instead of an executable program." OFF)
 
@@ -156,7 +165,6 @@ file(GLOB_RECURSE SOURCES
   ./src/*.c
   ./src/*.cc
   /usr/local/include/libtiff/*.h
- ./src/wx.rc
  ${RESOURCE_SOURCES}
 )
 ELSE()
@@ -173,8 +181,6 @@ ENDIF()
 list(FILTER SOURCES EXCLUDE REGEX ".*_test.cpp$")
 
 
-
-
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
@@ -186,6 +192,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
+
 
 
 
@@ -215,7 +222,6 @@ set_target_properties( ${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
 target_link_options(${PROJECT_NAME}  PRIVATE -static-libgcc -static-libstdc++)
-#target_compile_definitions(${PROJECT_NAME} PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
 
 IF (WIN32)
 
@@ -225,7 +231,14 @@ ELSE ()
   target_compile_definitions(${PROJECT_NAME} PUBLIC WXUSINGDLL)
 ENDIF()
 
- # -I/usr/local/lib/wx/include/gtk3-unicode-3.2 -I/usr/local/include/wx-3.2 -D_FILE_OFFSET_BITS=64 -DWXUSINGDLL -D__WXGTK__ -pthread
+
+string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
+
+configure_file(
+  "${PROJECT_SOURCE_DIR}/src/build_info.h.in"
+  "${PROJECT_SOURCE_DIR}/src/build_info.h"
+)
+
 
 
 

@@ -1,0 +1,7 @@
+#ifndef BUILD_TIME_H
+#define BUILD_TIME_H
+
+// Placeholder for build time
+#cmakedefine BUILD_TIME "@BUILD_TIME@"
+
+#endif    // BUILD_TIME_H

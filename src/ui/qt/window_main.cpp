@@ -35,7 +35,9 @@
 #include <thread>
 #include "backend/settings/pipeline_settings.hpp"
 #include "ui/qt/dialog_analyze_running.hpp"
+#include "build_info.h"
 #include "container_channel.hpp"
+#include "version.h"
 
 namespace joda::ui::qt {
 
@@ -762,7 +764,8 @@ void WindowMain::onShowInfoDialog()
   // messageBox.setAttribute(Qt::WA_TranslucentBackground);
   // messageBox.setIconPixmap(icon->pixmap(42, 42));
   messageBox.setWindowTitle("Info");
-  messageBox.setText("<html>imageC 1.0.0-alpha.1</html>");
+  messageBox.setText("<html>imageC" + QString(Version::getVersion().data()) + "<br/>" +
+                     QString(Version::getBuildTime().data()) + "</html>");
   messageBox.addButton(tr("Close"), QMessageBox::AcceptRole);
   messageBox.exec();
 }
