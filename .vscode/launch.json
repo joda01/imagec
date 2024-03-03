@@ -8,10 +8,8 @@
             "name": "CMake Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/workspaces/imagec/build/build/tests",
-            "args": [
-                "[onnx_parser_test]"
-            ],
+            "program": "/workspaces/imagec/build/build/imagec",
+            "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [

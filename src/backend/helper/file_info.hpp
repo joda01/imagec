@@ -61,6 +61,13 @@ public:
     return mPath;
   }
 
+  [[nodiscard]] std::string getFilename() const
+  {
+    std::filesystem::path filePath(getPath());
+    std::string filename = filePath.filename().string();
+    return filename;
+  }
+
   operator const std::string &() const
   {
     return mPath;

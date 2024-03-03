@@ -25,12 +25,12 @@ namespace joda::settings::json {
 void PipelineStepSettings::interpretConfig(int pipelineIndex)
 {
   if(cell_approximation.nucleus_channel_index >= 0 || cell_approximation.cell_channel_index >= 0) {
-    mChannelSettings.index = PipelineStepIndex::CELL_APPROXIMATION;
+    mChannelSettings.index = cell_approximation.nucleus_channel_index + CELL_APPROX_INDEX_OFFSET;
     mChannelSettings.name  = "Approx. Cells";
   }
 
   if(!intersection.channel_index.empty()) {
-    mChannelSettings.index = (PipelineStepIndex) ((int) PipelineStepIndex::INTERSECTION01 + pipelineIndex);
+    mChannelSettings.index = INTERSECTION_INDEX_OFFSET + pipelineIndex;
     mChannelSettings.name  = "Intersection";
   }
 }

@@ -6,11 +6,22 @@ project (imagec
          HOMEPAGE_URL https://danmayr.org
          LANGUAGES CXX C)
 
+# Get the current date and time
+string(TIMESTAMP BUILD_DATE "%Y-%m-%d")
+string(TIMESTAMP BUILD_TIME "%H:%M:%S")
+
+# Get the current user and host
+execute_process(COMMAND whoami OUTPUT_VARIABLE BUILD_USER OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND hostname OUTPUT_VARIABLE BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+
 # 1) Choose option and adapt Line 95 if needed
 option(MAKE_LIBRARY "Builds a library instead of an executable program." OFF)
 
 SET(CMAKE_CXX20_STANDARD 20)
 SET(CMAKE_CXX20_STANDARD_REQUIRED true)
+set(CMAKE_AUTOMOC ON)
+
 
 IF (WIN32)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -O2 -lz -lws2_32 -lwsock32 -lm -std=c++20")
@@ -21,10 +32,13 @@ IF (WIN32)
 ELSE()
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -O2 -lm -std=c++20")
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
 
 ENDIF()
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 
 
 IF (WIN32)
@@ -47,6 +61,10 @@ find_package( OpenSSL  )
 find_package(JNI REQUIRED )
 find_package(Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
+
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
+#qt_standard_project_setup()
+
 
 
 include_directories(${JNI_INCLUDE_DIRS})
@@ -97,6 +115,8 @@ IF (WIN32)
     pugixml
     jpeg
     TIFF
+    Qt6::Widgets
+    Qt6::Core
     ${wxWidgets_LIBRARIES}
     ${LIB_DL}
     #JNI::JVM
@@ -113,6 +133,8 @@ ELSE()
     ${Protobuf_LIBRARIES}
     pugixml
     tiff
+    Qt6::Widgets
+    Qt6::Core
     ${wxWidgets_LIBRARIES}
     ${LIB_DL}
     #JNI::JVM
@@ -122,8 +144,11 @@ ELSE()
 ENDIF()
 
 
+set(RESOURCE_FILES
+    resources/icons.qrc
+)
 
-
+qt_add_resources(RESOURCE_SOURCES ${RESOURCE_FILES})
 
 include_directories("./src")
 
@@ -140,7 +165,7 @@ file(GLOB_RECURSE SOURCES
   ./src/*.c
   ./src/*.cc
   /usr/local/include/libtiff/*.h
- ./src/wx.rc
+ ${RESOURCE_SOURCES}
 )
 ELSE()
 file(GLOB_RECURSE SOURCES
@@ -148,12 +173,28 @@ file(GLOB_RECURSE SOURCES
   ./src/*.c
   ./src/*.cc
   /usr/local/include/libtiff/*.h
+  ${RESOURCE_SOURCES}
 )
 ENDIF()
 
 # Exclude test files from source
 list(FILTER SOURCES EXCLUDE REGEX ".*_test.cpp$")
+
+
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    WIN32_EXECUTABLE ON
+    MACOSX_BUNDLE ON
+    CMAKE_AUTOMOC ON
+)
+
+target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
+
+
+
 
 #
 # Protobuf generate
@@ -181,7 +222,6 @@ set_target_properties( ${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
 target_link_options(${PROJECT_NAME}  PRIVATE -static-libgcc -static-libstdc++)
-#target_compile_definitions(${PROJECT_NAME} PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
 
 IF (WIN32)
 
@@ -191,7 +231,14 @@ ELSE ()
   target_compile_definitions(${PROJECT_NAME} PUBLIC WXUSINGDLL)
 ENDIF()
 
- # -I/usr/local/lib/wx/include/gtk3-unicode-3.2 -I/usr/local/include/wx-3.2 -D_FILE_OFFSET_BITS=64 -DWXUSINGDLL -D__WXGTK__ -pthread
+
+string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
+
+configure_file(
+  "${PROJECT_SOURCE_DIR}/src/build_info.h.in"
+  "${PROJECT_SOURCE_DIR}/src/build_info.h"
+)
+
 
 
 
@@ -225,9 +272,20 @@ set(TESTING_LIBS
   Catch2::Catch2
 )
 
+set_property(TARGET tests PROPERTY CXX_STANDARD 20)
+
+
 target_link_libraries(tests ${LIBS} ${TESTING_LIBS})
 #include(CTest)
 #include(Catch)
 
 #catch_discover_tests(tests)
 target_compile_definitions(tests PUBLIC UNIT_TEST)
+
+
+
+#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory /opt/Qt6/bin $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
+#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory /opt/Qt6/plugins $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
+#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory /opt/Qt6/qml $<TARGET_FILE_DIR:${PROJECT_NAME}>)

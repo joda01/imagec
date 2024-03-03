@@ -5,7 +5,6 @@ $mingwBasePathWin =  'C:\msys64\mingw64'
 
 cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=C:\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=C:\msys64\mingw64\bin\g++.exe -S"./" -B"./build" -G "MinGW Makefiles"
 # This is a dirty hack, because the resource compiler did not create windows path correctly
-(Get-Content -Path "build/CMakeFiles/imagec.dir/build.make") | ForEach-Object { $_ -replace "C:\\Users\\joachim\\Documents\\github\\imagec\\src\\wx.rcc", "C:/Users/joachim/Documents/github/imagec/src/wx.rcc" } | Set-Content -Path "build/CMakeFiles/imagec.dir/build.make"
 cd build/build
 
 ni "dlls" -ItemType Directory

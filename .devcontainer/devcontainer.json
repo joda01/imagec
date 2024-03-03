@@ -1,6 +1,7 @@
 // For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.117.1/containers/cpp
 {
+	// docker run   your_image_name
 	"name": "C++",
 	"dockerFile": "Dockerfile",
 	"runArgs": [
@@ -20,7 +21,8 @@
 		"GrapeCity.gc-excelviewer",
 		"streetsidesoftware.code-spell-checker",
 		"vscjava.vscode-java-pack",
-		"xaver.clang-format"
+		"xaver.clang-format",
+		"felgo.felgo"
 	]
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],

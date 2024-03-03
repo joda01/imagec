@@ -24,7 +24,8 @@ namespace joda::ctrl {
 /// \author     Joachim Danmayr
 /// \brief      Pipeline controller
 ///
-class Controller {
+class Controller
+{
 public:
   /////////////////////////////////////////////////////
   Controller();
@@ -32,31 +33,32 @@ public:
              const pipeline::Pipeline::ThreadingSettings &threadSettings);
   void stop();
   void reset();
-  std::tuple<joda::pipeline::Pipeline::ProgressIndicator,
-             joda::pipeline::Pipeline::State, std::string>
-  getState();
+  std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string> getState();
   auto getNrOfFoundImages() -> uint32_t;
+  auto getListOfFoundImages() -> const std::vector<FileInfo> &;
+  bool isLookingForFiles();
+  void stopLookingForFiles();
   void getSettings();
   void setWorkingDirectory(const std::string &dir);
-  struct Preview {
+  struct Preview
+  {
     std::vector<uchar> data;
     int height;
     int width;
     joda::func::DetectionResults detectionResult;
     std::string imageFileName;
   };
-  auto preview(const settings::json::ChannelSettings &settings, int imgIndex,
-               int tileIndex) -> Preview;
+  auto preview(const settings::json::ChannelSettings &settings, int imgIndex, int tileIndex) -> Preview;
   auto getImageProperties(int imgIndex, int series) -> ImageProperties;
-  struct Resources {
-    uint64_t ramTotal; // RAM in bytes
+  struct Resources
+  {
+    uint64_t ramTotal;    // RAM in bytes
     uint64_t ramAvailable;
-    uint32_t cpus; // Nr. of CPUs
+    uint32_t cpus;    // Nr. of CPUs
   };
   static auto getSystemResources() -> Resources;
 
-  auto calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings,
-                               int imgIndex)
+  auto calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex)
       -> pipeline::Pipeline::ThreadingSettings;
 
 private:
@@ -65,4 +67,4 @@ private:
   std::string mActProcessId;
 };
 
-} // namespace joda::ctrl
+}    // namespace joda::ctrl

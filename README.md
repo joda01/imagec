@@ -46,8 +46,9 @@ Single particle analysis is done and data are stored as detailed and summery in 
 
 ### Deploy build docker image
 
-docker build --target live -t joda001/imagec:v1.3.0 .
-docker push  joda001/imagec:v1.3.0
+docker build --target live -t joda001/imagec:live .
+docker build --target build -t joda001/imagec:v1.4.0 .
+docker push  joda001/imagec:v1.4.0
 
 ### Build for Windows
 
@@ -92,3 +93,19 @@ strip.exe imagec.exe
 
 git clone https://github.com/onnx/onnx.git
 protoc onnx/onnx.proto --cpp_out="out"
+
+
+```
+export LD_LIBRARY_PATH=/Documents/privat/github/imagec/imagec/build/build:$LD_LIBRARY_PATH
+export QT_QPA_PLATFORM_PLUGIN_PATH=/Documents/privat/github/imagec/imagec/build/build/platforms
+
+```
+sudo apt-get install libxcb-xinerama0
+sudo apt-get install libxkbcommon-x11-0
+apt-get install --reinstall libxcb-xinerama0
+
+
+sudo apt-get install libxcb-util-dev
+
+
+apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
