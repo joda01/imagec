@@ -752,6 +752,7 @@ void WindowMain::removeChannel(ContainerChannel *toRemove)
       mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
       mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
     }
+    mSelectedChannel = nullptr;
     onBackClicked();
   }
 }
