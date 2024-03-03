@@ -92,6 +92,7 @@ void WindowMain::createToolbar()
     toolbar->addAction(mOPenProject);
 
     mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
+    mStartAnalysis->setEnabled(false);
     mStartAnalysis->setToolTip("Start analysis!");
     connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onStartClicked);
     toolbar->addAction(mStartAnalysis);
@@ -259,7 +260,7 @@ QWidget *WindowMain::createAddChannelPanel()
   addChannelWidget->setMinimumHeight(250);
   addChannelWidget->setMinimumWidth(350);
   addChannelWidget->setMaximumWidth(350);
-  QGridLayout *layout = new QGridLayout(this);
+  QVBoxLayout *layout = new QVBoxLayout(); /*this*/
   layout->setObjectName("mainWindowChannelGridLayout");
   addChannelWidget->setStyleSheet(
       "QWidget#PanelChannelOverview { border-radius: 12px; border: 2px solid rgba(0, 104, 117, 0.05); padding-top: "
@@ -296,7 +297,7 @@ QWidget *WindowMain::createAddChannelPanel()
       "}");
   addChannelButton->setText("Add Channel");
   connect(addChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
-  layout->addWidget(addChannelButton, 0, 0);
+  layout->addWidget(addChannelButton);
 
   //
   // Open settings
@@ -324,8 +325,10 @@ QWidget *WindowMain::createAddChannelPanel()
       "}");
   openSettingsButton->setText("Open settings");
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenSettingsClicked);
-  layout->addWidget(openSettingsButton, 0, 1);
+  layout->addWidget(openSettingsButton);
 
+  layout->setSpacing(4);    // Adjust this value as needed
+  layout->addStretch();
   addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
   mAddChannelPanel = addChannelWidget;
@@ -569,9 +572,11 @@ void WindowMain::onLookingForFilesFinished()
     mFileSearchHintLabel->setVisible(false);
     mFileSelectorComboBox->setVisible(true);
     mImageSeriesComboBox->setVisible(true);
+    mStartAnalysis->setEnabled(true);
   } else {
     // mFoundFilesCombo->setVisible(false);
     mFoundFilesHint->setText("No images found!");
+    mStartAnalysis->setEnabled(false);
   }
 }
 
