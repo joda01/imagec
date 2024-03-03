@@ -126,9 +126,18 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
       "icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur", "px", -1,
       {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}}, {{1, "1x"}, {2, "2x"}, {3, "3x"}}, 1));
 
-  mSmoothing = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-cleanup-noise-50.png", "Kernel size", "Smoothing", "", -1,
-                                 {{-1, "Off"}, {1, "x1"}, {2, "x2"}, {3, "x3"}}));
+  mSmoothing         = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>("icons8-cleanup-noise-50.png",
+                                                                                  "Kernel size", "Smoothing", "", -1,
+                                                                                  {{-1, "Off"},
+                                                                                           {1, "x1"},
+                                                                                           {2, "x2"},
+                                                                                           {3, "x3"},
+                                                                                           {4, "x4"},
+                                                                                           {5, "x5"},
+                                                                                           {6, "x6"},
+                                                                                           {7, "x7"},
+                                                                                           {8, "x8"},
+                                                                                           {9, "x9"}}));
   mEdgeDetection     = std::shared_ptr<ContainerFunction<QString>>(new ContainerFunction<QString>(
       "icons8-triangle-50.png", "Threshold", "Edge detection", "", "NONE",
       {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}, {{"XY", "xy"}, {"X", "x"}, {"Y", "y"}}, "XY"));

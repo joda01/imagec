@@ -1,0 +1,45 @@
+{
+    "detection": {
+        "ai_settings": {
+            "model_name": "OFF",
+            "probability_min": 0.5
+        },
+        "mode": "THRESHOLD",
+        "threshold": {
+            "threshold_algorithm": "LI",
+            "threshold_max": 65535,
+            "threshold_min": 0
+        }
+    },
+    "filter": {
+        "max_particle_size": 2147483647,
+        "min_circularity": 0,
+        "min_particle_size": 5,
+        "reference_spot_channel_index": -1,
+        "snap_area_size": 0
+    },
+    "info": {
+        "index": 0,
+        "label": "",
+        "name": "EV in cell channel",
+        "series": 0,
+        "type": "SPOT"
+    },
+    "preprocessing": [
+        {
+            "z_stack": {
+                "value": "OFF"
+            }
+        },
+        {
+            "median_bg_subtraction": {
+                "kernel_size": 3
+            }
+        },
+        {
+            "smoothing": {
+                "repeat": 1
+            }
+        }
+    ]
+}

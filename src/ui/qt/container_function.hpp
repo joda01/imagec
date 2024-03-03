@@ -169,6 +169,7 @@ public:
       } else {
         mLineEdit->setText(QString::number(newValue));
       }
+      lineEditingChanged();
     }
     if(mComboBox != nullptr) {
       auto idx = mComboBox->findData(newValue);

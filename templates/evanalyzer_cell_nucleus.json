@@ -1,0 +1,45 @@
+{
+    "detection": {
+        "ai_settings": {
+            "model_name": "OFF",
+            "probability_min": 0.5
+        },
+        "mode": "THRESHOLD",
+        "threshold": {
+            "threshold_algorithm": "TRIANGLE",
+            "threshold_max": 65535,
+            "threshold_min": 0
+        }
+    },
+    "filter": {
+        "max_particle_size": 2147483647,
+        "min_circularity": 0,
+        "min_particle_size": 5,
+        "reference_spot_channel_index": -1,
+        "snap_area_size": 0
+    },
+    "info": {
+        "index": 4,
+        "label": "",
+        "name": "Nucleus",
+        "series": 0,
+        "type": "CELL"
+    },
+    "preprocessing": [
+        {
+            "z_stack": {
+                "value": "OFF"
+            }
+        },
+        {
+            "rolling_ball": {
+                "value": 4
+            }
+        },
+        {
+            "smoothing": {
+                "repeat": 2
+            }
+        }
+    ]
+}

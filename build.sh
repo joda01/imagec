@@ -2,6 +2,8 @@
 mkdir -p ./build/build
 mkdir -p ./build/build/plugins
 mkdir -p ./build/build/platforms
+mkdir -p ./build/build/templates
+
 
 cmake --build build --target imagec --parallel 4
 #cmake --build build --target tests --parallel 4
@@ -30,4 +32,5 @@ cp /opt/Qt6/lib/libQt6DBus.so.6.3.3 ./build/build
 cp -r /opt/Qt6/plugins/* ./build/build/plugins
 cp /opt/Qt6/plugins/platforms/* ./build/build/platforms/
 cp imagec.sh ./build/build
+cp -r ./templates/*.json ./build/build/templates
 chmod +x ./build/build/imagec.sh

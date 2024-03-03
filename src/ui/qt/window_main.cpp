@@ -33,6 +33,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
 #include "ui/qt/dialog_analyze_running.hpp"
 #include "build_info.h"
@@ -328,6 +329,34 @@ QWidget *WindowMain::createAddChannelPanel()
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenSettingsClicked);
   layout->addWidget(openSettingsButton);
 
+  //
+  // Open template
+  //
+  QPushButton *openTemplate = new QPushButton();
+  openTemplate->setStyleSheet(
+      "QPushButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgb(111, 121, 123);"
+      "   color: rgb(0, 104, 117);"
+      "   padding: 10px 20px;"
+      "   border-radius: 12px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}");
+  openTemplate->setText("Open template");
+  connect(openTemplate, &QPushButton::pressed, this, &WindowMain::onOpenTemplateClicked);
+  layout->addWidget(openTemplate);
+
   layout->setSpacing(4);    // Adjust this value as needed
   layout->addStretch();
   addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -375,6 +404,42 @@ void WindowMain::onOpenSettingsClicked()
     settings::json::AnalyzeSettings settings;
     settings.loadConfigFromFile(filePath.toStdString());
     fromJson(settings);
+  } catch(const std::exception &ex) {
+    if(mSelectedChannel != nullptr) {
+      QMessageBox messageBox(this);
+      auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+      messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+      messageBox.setIconPixmap(icon->pixmap(42, 42));
+      messageBox.setWindowTitle("Could not load settings!");
+      messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
+      messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+      auto reply = messageBox.exec();
+    }
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onOpenTemplateClicked()
+{
+  QString folderToOpen = QDir::homePath();
+  if(!mSelectedWorkingDirectory.isEmpty()) {
+    folderToOpen = mSelectedWorkingDirectory;
+  }
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Open template", "./templates", "JSON Files (*.json);;All Files (*)");
+
+  if(filePath.isEmpty()) {
+    return;
+  }
+
+  try {
+    settings::json::ChannelSettings settings;
+    settings.loadConfigFromFile(filePath.toStdString());
+    auto *newChannel = addChannel();
+    newChannel->fromJson(settings, std::nullopt, std::nullopt, std::nullopt);
   } catch(const std::exception &ex) {
     if(mSelectedChannel != nullptr) {
       QMessageBox messageBox(this);

@@ -125,6 +125,7 @@ private slots:
   QWidget *createAddChannelPanel();
   void onLookingForFilesFinished();
   void onOpenSettingsClicked();
+  void onOpenTemplateClicked();
 };
 
 }    // namespace joda::ui::qt

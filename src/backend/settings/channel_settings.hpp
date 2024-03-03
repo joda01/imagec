@@ -344,6 +344,17 @@ public:
     interpretConfig(-1);
   }
 
+  void loadConfigFromFile(const std::string &cfgPath)
+  {
+    std::ifstream input(cfgPath);
+    std::ostringstream oss;
+    oss << input.rdbuf();    // Read the file buffer into the ostringstream
+    std::string read = oss.str();
+    *this            = nlohmann::json::parse(read);
+    interpretConfig(-1);
+    input.close();
+  }
+
   void interpretConfig(int arrayIndex)
   {
     mArrayIndex = arrayIndex;

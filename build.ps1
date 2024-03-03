@@ -10,7 +10,7 @@ cd build/build
 
 ni "dlls" -ItemType Directory
 ni "dlls\platforms" -ItemType Directory
-
+ni "dlls\templates" -ItemType Directory
 
 #$jvmdll = "$env:JAVA_HOME"
 #$dll = "\jre\bin\server\jvm.dll"
@@ -24,9 +24,13 @@ cd build/build
 
 $destinationDirectory = ".\dlls"
 $destinationDirectoryPlatforms = ".\dlls\platforms"
+$destinationDirectoryTemplates = ".\dlls\templates"
 
 Copy-Item -Path "$mingwBasePathWin\bin\*.dll" -Destination "$destinationDirectory" -Force
 Copy-Item -Path "$mingwQtPlatformsPath\*.dll" -Destination "$destinationDirectoryPlatforms" -Force
+Copy-Item -Path "..\..\templates\*.json" -Destination "$destinationDirectoryTemplates" -Force
+
+
 
 ls ./dlls
 
