@@ -51,7 +51,7 @@ class PipelineStepIntersection final
 {
 public:
   std::set<int32_t> channel_index;
-  float min_intersection;
+  float min_intersection = 0;
 
 private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepIntersection, channel_index, min_intersection);

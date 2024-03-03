@@ -127,7 +127,8 @@ public:
     std::vector<std::vector<cv::Point2f>> facets;
     std::vector<cv::Point2f> centers;
     subdiv.getVoronoiFacetList(std::vector<int>(), facets, centers);
-    response.controlImage = cv::Mat::zeros(img.rows, img.cols, CV_32FC3);
+    response.controlImage  = cv::Mat::zeros(img.rows, img.cols, CV_32FC3);
+    response.originalImage = imgOriginal;
 
     for(size_t i = 0; i < facets.size(); i++) {
       std::vector<cv::Point> ifacet;
@@ -159,7 +160,21 @@ public:
 
       auto box        = cv::boundingRect(result);
       cv::Mat boxMask = result(box) >= 0.2;
-      ROI roi(i, 1, 0, box, boxMask, imgOriginal);
+
+      std::vector<std::vector<cv::Point>> contours;
+      cv::findContours(boxMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+      if(contours.empty()) {
+        contours.emplace_back();
+      }
+      // Look for the biggest contour area
+      int idxMax = 0;
+      for(int i = 1; i < contours.size(); i++) {
+        if(contours[i - 1].size() < contours[i].size()) {
+          idxMax = i;
+        }
+      }
+
+      ROI roi(i, 1, 0, box, boxMask, contours[idxMax], imgOriginal);
       response.result.push_back(roi);
     }
 

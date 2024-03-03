@@ -99,14 +99,19 @@ void DetectionFunction::paintOverlay(cv::Mat &img, const std::vector<OverlaySett
       if(ov.paintRectangel && !resultI.getBoundingBox().empty()) {
         rectangle(mask, resultI.getBoundingBox(), RED, 1 * THICKNESS, cv::LINE_4);
       }
-      if(!resultI.getMask().empty() && !resultI.getBoundingBox().empty()) {
+      if(!resultI.getMask().empty() && !resultI.getBoundingBox().empty() && resultI.getBoundingBox().x >= 0 &&
+         resultI.getBoundingBox().y >= 0 && resultI.getBoundingBox().width >= 0 &&
+         resultI.getBoundingBox().height >= 0 &&
+         resultI.getBoundingBox().x + resultI.getBoundingBox().width <= mask.cols &&
+         resultI.getBoundingBox().y + resultI.getBoundingBox().height <= mask.rows) {
         try {
           mask(resultI.getBoundingBox()).setTo(ov.backgroundColor, resultI.getMask());
           std::vector<std::vector<cv::Point>> contours;
           findContours(resultI.getMask(), contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
           drawContours(mask(resultI.getBoundingBox()), contours, -1, ov.borderColor, 1);
+
         } catch(const std::exception &ex) {
-          std::cout << "P" << ex.what() << std::endl;
+          std::cout << "PA: " << ex.what() << std::endl;
         }
       }
       std::string label = std::to_string(resultI.getIndex());
@@ -115,8 +120,12 @@ void DetectionFunction::paintOverlay(cv::Mat &img, const std::vector<OverlaySett
     try {
       addWeighted(mask, ov.opaque, img, 1, 0, img);
     } catch(const std::exception &ex) {
-      std::cout << "P" << ex.what() << std::endl;
+      std::cout << "PP: " << ex.what() << std::endl;
     }
+
+    // PP: OpenCV(4.9.0) /opencv/modules/core/src/arithm.cpp:647: error: (-209:Sizes of input arguments do not match)
+    // The operation is neither 'array op array' (where arrays have the same size and the same number of channels), nor
+    // 'array op scalar', nor 'scalar op array' in function 'arithm_op'
   }
 }
 

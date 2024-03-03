@@ -343,6 +343,8 @@ void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result, joda:
     cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
                     std::to_string(tileIdx) + ".png",
                 result.controlImage, compression_params);
+  } else {
+    std::cout << "CTRL img null" << std::endl;
   }
   // if(!result.originalImage.empty()) {
   //   cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
