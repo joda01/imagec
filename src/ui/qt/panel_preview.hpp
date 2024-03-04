@@ -23,93 +23,25 @@ namespace joda::ui::qt {
 class PreviewLabel : public QLabel
 {
 public:
-  PreviewLabel(QWidget *parent = nullptr) : QLabel(parent), magnificationFactor(4.0)
-  {
-    setMouseTracking(true);
-  }
-
-  void setPixmap(const QPixmap &pix, int width, int height)
-  {
-    QLabel::setPixmap(pix.scaled(width, height));
-    originalPixmap = pix;
-  }
+  PreviewLabel(QWidget *parent = nullptr);
+  void setPixmap(const QPixmap &pix, int width, int height);
 
 protected:
-  void mouseMoveEvent(QMouseEvent *event) override
-  {
-    magnify(event->pos());
-  }
+  void mouseMoveEvent(QMouseEvent *event) override;
 
-  void enterEvent(QEnterEvent *) override
-  {
-    magnificationFactor = 4.0;
-    setCursor(Qt::CrossCursor);
-  }
+  void enterEvent(QEnterEvent *) override;
 
-  void leaveEvent(QEvent *) override
-  {
-    resetMagnifier();
-  }
+  void leaveEvent(QEvent *) override;
 
-  void wheelEvent(QWheelEvent *event) override
-  {
-    int delta = event->angleDelta().y();
-    if(delta > 0) {
-      magnificationFactor++;
-    } else {
-      if(magnificationFactor > 1) {
-        magnificationFactor--;
-      }
-    }
-    update();
-  }
+  void wheelEvent(QWheelEvent *event) override;
 
-  void paintEvent(QPaintEvent *event) override
-  {
-    QLabel::paintEvent(event);
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::SmoothPixmapTransform);
-
-    if(magnifierActive) {
-      QRect magnifierRect     = magnifierRectFromMousePos(magnifierPosition);
-      QPixmap magnifiedPixmap = originalPixmap.copy(magnifierRect);
-      QPixmap zoomedPixmap    = magnifiedPixmap.scaled((int) ((float) magnifiedPixmap.width() * magnificationFactor),
-                                                       (int) ((float) magnifiedPixmap.height() * magnificationFactor),
-                                                       Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-      QRect cropRect((zoomedPixmap.width() - magnifiedPixmap.width()) / 2.0f,
-                     (zoomedPixmap.height() - magnifiedPixmap.height()) / 2.0f, magnifierRect.width(),
-                     magnifierRect.height());
-
-      zoomedPixmap = zoomedPixmap.copy(cropRect);
-      painter.fillRect(magnifierRect, Qt::white);
-      painter.drawPixmap(magnifierRect, zoomedPixmap);
-    }
-  }
+  void paintEvent(QPaintEvent *event) override;
 
 private:
-  void magnify(const QPoint &mousePos)
-  {
-    magnifierPosition = mousePos;
-    magnifierActive   = true;
-    update();
-  }
+  void magnify(const QPoint &mousePos);
+  void resetMagnifier();
 
-  void resetMagnifier()
-  {
-    magnifierActive = false;
-    update();
-  }
-
-  QRect magnifierRectFromMousePos(const QPoint &mousePos)
-  {
-    int halfWidth  = magnifierSize.width() / 2;
-    int halfHeight = magnifierSize.height() / 2;
-    int x          = qMax(0, qMin(mousePos.x() - halfWidth, originalPixmap.width() - magnifierSize.width()));
-    int y          = qMax(0, qMin(mousePos.y() - halfHeight, originalPixmap.height() - magnifierSize.height()));
-
-    return QRect(x, y, magnifierSize.width(), magnifierSize.height());
-  }
+  QRect magnifierRectFromMousePos(const QPoint &mousePos);
 
   QPixmap originalPixmap;
   QSize magnifierSize{200, 200};

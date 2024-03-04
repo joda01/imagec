@@ -42,6 +42,11 @@ public:
   }
 
 private:
+  static constexpr int32_t PREVIEW_BASE_SIZE     = 450;
+  static constexpr int32_t PLACEHOLDER_BASE_SIZE = 450;
+
+  static inline const QString PLACEHOLDER{":/icons/outlined/icons8-picture-1000-lightgray.png"};
+
   QHBoxLayout *createLayout();
   std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
                                                         int margin = 16, bool enableScrolling = false,

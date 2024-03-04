@@ -128,7 +128,6 @@
         <file>filled/icons8-zoom-to-extents-50.png</file>
         <file>filled/icons8-sort-down-50.png</file>
         <file>filled/icons8-left-50.png</file>
-        
         <file>outlined/icons8-25-50.png</file>
         <file>outlined/icons8-50-50.png</file>
         <file>outlined/icons8-activity-50.png</file>
@@ -260,5 +259,7 @@
         <file>outlined/icons8-ksi-50.png</file>
         <file>outlined/placeholder_view_vector.svg.png</file>
         <file>outlined/icons8-info-50-blue.png</file>
+        <file>outlined/icons8-picture-1000.png</file>
+        <file>outlined/icons8-picture-1000-lightgray.png</file>
     </qresource>
 </RCC>

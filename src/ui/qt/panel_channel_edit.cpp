@@ -155,10 +155,11 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   //
   // Preview
   //
-  auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 350);
+  auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE);
   mPreviewImage      = new PreviewLabel();
-  QIcon bmp(":/icons/outlined/placeholder_view_vector.svg.png");
-  mPreviewImage->setPixmap(bmp.pixmap(350, 350), 350, 350);
+  QIcon bmp(PLACEHOLDER);
+  mPreviewImage->setPixmap(bmp.pixmap(PLACEHOLDER_BASE_SIZE, PLACEHOLDER_BASE_SIZE), PREVIEW_BASE_SIZE,
+                           PREVIEW_BASE_SIZE);
   preview->addWidget(mPreviewImage);
   QWidget *imageSubTitleWidget = new QWidget();
   imageSubTitleWidget->setMinimumHeight(50);
@@ -405,7 +406,8 @@ void PanelChannelEdit::updatePreview()
                 QImage image;
                 if(image.loadFromData(byteArray, "PNG")) {
                   QPixmap pixmap = QPixmap::fromImage(image);
-                  mPreviewImage->setPixmap(pixmap.scaled(preview.width, preview.height), 350, 350);
+                  mPreviewImage->setPixmap(pixmap.scaled(preview.width, preview.height), PREVIEW_BASE_SIZE,
+                                           PREVIEW_BASE_SIZE);
                   int valid   = 0;
                   int invalid = 0;
                   for(const auto &roi : preview.detectionResult) {
@@ -418,14 +420,16 @@ void PanelChannelEdit::updatePreview()
 
                   mPreviewInfo->setText("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
                 } else {
-                  QIcon bmp(":/icons/outlined/placeholder_view_vector.svg.png");
-                  mPreviewImage->setPixmap(bmp.pixmap(350, 350), 350, 350);
+                  QIcon bmp(PLACEHOLDER);
+                  mPreviewImage->setPixmap(bmp.pixmap(PLACEHOLDER_BASE_SIZE, PLACEHOLDER_BASE_SIZE), PREVIEW_BASE_SIZE,
+                                           PREVIEW_BASE_SIZE);
                   mPreviewInfo->setText("");
                 }
               }
             } catch(const std::exception &error) {
-              QIcon bmp(":/icons/outlined/placeholder_view_vector.svg.png");
-              mPreviewImage->setPixmap(bmp.pixmap(350, 350), 350, 350);
+              QIcon bmp(PLACEHOLDER);
+              mPreviewImage->setPixmap(bmp.pixmap(PLACEHOLDER_BASE_SIZE, PREVIEW_BASE_SIZE), PREVIEW_BASE_SIZE,
+                                       PREVIEW_BASE_SIZE);
               mPreviewInfo->setText(error.what());
             }
           }
