@@ -98,6 +98,13 @@ public:
     }
   }
 
+  void stopPreviewGeneration()
+  {
+    if(mPanelEdit != nullptr) {
+      mPanelEdit->stopPreviewGeneration();
+    }
+  }
+
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<ContainerFunction<QString>> mChannelName;

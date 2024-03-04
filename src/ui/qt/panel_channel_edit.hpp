@@ -35,6 +35,11 @@ signals:
 public:
   PanelChannelEdit(WindowMain *wm, ContainerChannel *);
   ~PanelChannelEdit();
+  void stopPreviewGeneration()
+  {
+    std::lock_guard<std::mutex> lock(mPreviewMutex);
+    mPreviewCounter = 0;
+  }
 
 private:
   QHBoxLayout *createLayout();

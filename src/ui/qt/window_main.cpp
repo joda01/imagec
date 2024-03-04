@@ -715,7 +715,10 @@ void WindowMain::onBackClicked()
   mSecondSeparator->setVisible(true);
   syncColocSettings();
   mStackedWidget->setCurrentIndex(0);
-  mSelectedChannel = nullptr;
+  if(mSelectedChannel != nullptr) {
+    mSelectedChannel->stopPreviewGeneration();
+    mSelectedChannel = nullptr;
+  }
 }
 
 ///
