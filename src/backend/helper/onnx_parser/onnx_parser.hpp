@@ -49,7 +49,6 @@ public:
         auto data = readMetaJson(entry.path().string());
 
         std::ifstream inputFile(entry.path().string(), std::ios::binary);
-        std::cout << "Fount " << entry.path().string() << std::endl;
         //::onnx::ModelProto model;
         // model.ParseFromIstream(&inputFile);
         //

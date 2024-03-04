@@ -19,7 +19,10 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
+#include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/settings/channel_settings.hpp"
+#include "ui/qt/container_function.hpp"
 #include "ui/qt/panel_channel_overview.hpp"
 #include "window_main.hpp"
 
@@ -76,8 +79,15 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
   mMinProbability = std::shared_ptr<ContainerFunction<float>>(
       new ContainerFunction<float>("icons8-percentage-50.png", "[0 - 1]", "Min. probability", "%", 0.5, 0, 1));
 
+  auto foundAIModels = joda::onnx::Onnx::findOnnxFiles();
+  std::vector<ContainerFunction<QString>::ComboEntry> aiModelsConverted;
+  aiModelsConverted.reserve(foundAIModels.size());
+  for(const auto &[path, model] : foundAIModels) {
+    aiModelsConverted.push_back(ContainerFunction<QString>::ComboEntry{.key = path.data(), .label = path.data()});
+  }
+
   mAIModels = std::shared_ptr<ContainerFunction<QString>>(
-      new ContainerFunction<QString>("icons8-mind-map-50.png", "AI model", "AI model", "", "OFF", {{"OFF", "Off"}}));
+      new ContainerFunction<QString>("icons8-mind-map-50.png", "AI model", "AI model", "", "", aiModelsConverted));
 
   mMinCircularity = std::shared_ptr<ContainerFunction<float>>(
       new ContainerFunction<float>("icons8-ellipse-50.png", "[0 - 1]", "Min. circularity", "%", 0.1, 0, 1));
