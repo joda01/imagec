@@ -135,30 +135,32 @@ RUN cd qt6 &&\
     perl init-repository
 
 RUN apt-get update && apt-get install -y libxcb-util-dev libxkbcommon-x11-dev \
-                                         libfontconfig1-dev \
-                                         libfreetype6-dev \
-                                         libx11-dev \
-                                         libx11-xcb-dev \
-                                         libxext-dev \
-                                         libxfixes-dev \
-                                         libxi-dev \
-                                         libxrender-dev \
-                                         libxcb1-dev \
-                                         libxcb-cursor-dev \
-                                         libxcb-glx0-dev \
-                                         libxcb-keysyms1-dev \
-                                         libxcb-image0-dev \
-                                         libxcb-shm0-dev \
-                                         libxcb-icccm4-dev \
-                                         libxcb-sync-dev \
-                                         libxcb-xfixes0-dev \
-                                         libxcb-shape0-dev \
-                                         libxcb-randr0-dev \
-                                         libxcb-render-util0-dev \
-                                         libxcb-util-dev \
-                                         libxcb-xinerama0-dev \
-                                         libxcb-xkb-dev \
-                                         libxkbcommon-dev
+    libfontconfig1-dev \
+    libfreetype6-dev \
+    libx11-dev \
+    libx11-xcb-dev \
+    libxext-dev \
+    libxfixes-dev \
+    libxi-dev \
+    libxrender-dev \
+    libxcb1-dev \
+    libxcb-cursor-dev \
+    libxcb-glx0-dev \
+    libxcb-keysyms1-dev \
+    libxcb-image0-dev \
+    libxcb-shm0-dev \
+    libxcb-icccm4-dev \
+    libxcb-sync-dev \
+    libxcb-xfixes0-dev \
+    libxcb-shape0-dev \
+    libxcb-randr0-dev \
+    libxcb-render-util0-dev \
+    libxcb-util-dev \
+    libxcb-xinerama0-dev \
+    libxcb-xkb-dev \
+    libxkbcommon-dev
+
+RUN apt install -y libgl1-mesa-dev libglu1-mesa-dev libx11-xcb-dev
 
 RUN mkdir qt6-build &&\
     cd qt6-build &&\
@@ -179,6 +181,22 @@ RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtif
     cmake -DBUILD_SHARED_LIBS=OFF . &&\
     cmake --build . --config Release --target install &&\
     cp -r libtiff/*.h  /usr/local/include
+
+
+
+#
+# xlsx writer
+#
+RUN git clone -b RELEASE_1.1.5 --depth 1 https://github.com/jmcnamara/libxlsxwriter.git /libxlsxwriter &&\
+    cd libxlsxwriter && \
+    mkdir build &&\
+    cd build &&\
+    cmake .. &&\
+    cmake --build . &&\
+    make install
+
+
+
 
 
 #

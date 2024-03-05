@@ -47,8 +47,8 @@ Single particle analysis is done and data are stored as detailed and summery in 
 ### Deploy build docker image
 
 docker build --target live -t joda001/imagec:live .
-docker build --target build -t joda001/imagec:v1.4.0 .
-docker push  joda001/imagec:v1.4.0
+docker build --target build -t joda001/imagec:v1.6.0 .
+docker push  joda001/imagec:v1.6.0
 
 ### Build for Windows
 
@@ -64,8 +64,9 @@ pacman -S mingw-w64-protobuf
 pacman -S mingw-w64-x86_64-opencv
 pacman -S mingw-w64-x86_64-nlohmann-json
 pacman -S mingw-w64-x86_64-libtiff
-pacman -S mingw-w64-x86_64-wxwidgets3.2-msw
 pacman -S mingw-w64-x86_64-python-mingw-ldd
+pacman -S mingw-w64-x86_64-qt6-base
+pacman -S mingw-w64-x86_64-libxlsxwriter
 ```
 
 Add following ENV variables:
