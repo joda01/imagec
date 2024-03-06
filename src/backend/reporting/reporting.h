@@ -140,6 +140,11 @@ public:
     float value;
     std::optional<joda::func::ParticleValidity> validity;
   };
+  enum class OutputFormat
+  {
+    XLSX,
+    CSV
+  };
 
   /////////////////////////////////////////////////////
   using Row_t   = std::map<uint32_t, Row>;
@@ -158,13 +163,15 @@ public:
   auto getTable() const -> const Table_t &;
   auto getStatistics() const -> const std::map<uint64_t, Statistics> &;
   auto getStatistics(uint64_t colIdx) const -> const Statistics &;
-  void flushReportToFile(std::string_view fileName) const;
+  void flushReportToFile(std::string_view fileName, OutputFormat format = OutputFormat::XLSX) const;
   auto getNrOfColumns() const -> int64_t;
   auto getNrOfRows() const -> int64_t;
 
 private:
   /////////////////////////////////////////////////////
   static std::string validityToString(joda::func::ParticleValidity val);
+  void flushReportToFileCsv(std::string_view fileName) const;
+  void flushReportToFileXlsx(std::string_view fileName) const;
 
   /////////////////////////////////////////////////////
   Table_t mTable;

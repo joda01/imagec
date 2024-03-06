@@ -45,7 +45,6 @@ IF (WIN32)
 ELSE()
   set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
   SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
-
 ENDIF()
 
 
@@ -58,12 +57,11 @@ find_package( OpenCV REQUIRED )
 find_package( PkgConfig REQUIRED )
 find_package( PugiXML )
 find_package( OpenSSL  )
-find_package(JNI REQUIRED )
-find_package(Java COMPONENTS REQUIRED)
+find_package( JNI REQUIRED )
+find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
-
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
-#qt_standard_project_setup()
+pkg_check_modules(Xlsxwriter REQUIRED IMPORTED_TARGET xlsxwriter)
 
 
 
@@ -75,20 +73,8 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 IF (WIN32)
   find_package( libjpeg-turbo )
   find_package( TIFF )
-  set(ENV{WX_CONFIG} "wx-config-3.2")
-  set(wxWidgets_CONFIG_EXECUTABLE "wx-config-3.2")
-  set(wxWidgets_USE_LIBS)
-  find_package( wxWidgets  REQUIRED)
-  include(${wxWidgets_USE_FILE})
-  include_directories(${wxWidgets_INCLUDE_DIRS})
-
-
 ELSE ()
   find_package( Tiff )
-  set(wxWidgets_USE_LIBS)
-  find_package( wxWidgets REQUIRED)
-  include(${wxWidgets_USE_FILE})
-  include_directories(${wxWidgets_INCLUDE_DIRS})
 ENDIF()
 
 # Define libdl name
@@ -117,7 +103,7 @@ IF (WIN32)
     TIFF
     Qt6::Widgets
     Qt6::Core
-    ${wxWidgets_LIBRARIES}
+    PkgConfig::Xlsxwriter
     ${LIB_DL}
     #JNI::JVM
     #JNI::JNI
@@ -135,7 +121,7 @@ ELSE()
     tiff
     Qt6::Widgets
     Qt6::Core
-    ${wxWidgets_LIBRARIES}
+    PkgConfig::Xlsxwriter
     ${LIB_DL}
     #JNI::JVM
     #JNI::JNI
@@ -152,9 +138,6 @@ qt_add_resources(RESOURCE_SOURCES ${RESOURCE_FILES})
 
 include_directories("./src")
 
-message("-->")
-message("${wxWidgets_INCLUDE_DIRS}")
-message("<--")
 
 ###########################################################################################
 # Source file
@@ -223,14 +206,6 @@ set_target_properties( ${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} ${LIBS})
 target_link_options(${PROJECT_NAME}  PRIVATE -static-libgcc -static-libstdc++)
 
-IF (WIN32)
-
-ELSE ()
-  target_compile_definitions(${PROJECT_NAME} PUBLIC _FILE_OFFSET_BITS=64)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC __WXGTK__)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC WXUSINGDLL)
-ENDIF()
-
 
 string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
 
@@ -252,17 +227,28 @@ file(GLOB_RECURSE TEST_SOURCES
   ./src/*.cc
   ./src/*.c
   ./test/*.cpp
+   ${RESOURCE_SOURCES}
+
 )
 # Exclude main file from source
-list(FILTER TEST_SOURCES EXCLUDE REGEX "main.cpp")
+list(FILTER TEST_SOURCES EXCLUDE REGEX "/main\\.cpp$")
 
 add_executable(tests ${TEST_SOURCES})
+
+set_property(TARGET tests PROPERTY CXX_STANDARD 20)
+
+
+target_sources(tests PRIVATE ${RESOURCE_SOURCES})
+
 
 set_target_properties( tests
   PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
+  WIN32_EXECUTABLE ON
+  MACOSX_BUNDLE ON
+  CMAKE_AUTOMOC ON
 )
 
 find_package(Catch2 3 REQUIRED)
