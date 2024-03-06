@@ -24,6 +24,7 @@
 #include <variant>
 #include <vector>
 #include "../image_processing/detection/detection_response.hpp"
+#include "xlsxwriter.h"
 
 namespace joda::reporting {
 
@@ -135,6 +136,7 @@ class Table
 {
 public:
   /////////////////////////////////////////////////////
+
   struct Row
   {
     float value;
@@ -151,6 +153,7 @@ public:
   using Table_t = std::map<uint64_t, Row_t>;
 
   /////////////////////////////////////////////////////
+  void setTableName(const std::string &name);
   void setColumnNames(const std::map<uint64_t, std::string> &);
   auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
   void setRowName(uint64_t rowIdx, const std::string &);
@@ -163,15 +166,14 @@ public:
   auto getTable() const -> const Table_t &;
   auto getStatistics() const -> const std::map<uint64_t, Statistics> &;
   auto getStatistics(uint64_t colIdx) const -> const Statistics &;
-  void flushReportToFile(std::string_view fileName, OutputFormat format = OutputFormat::XLSX) const;
+  int flushReportToFileXlsx(int colOffset, lxw_worksheet *worksheet, lxw_format *header,
+                            lxw_format *merge_format) const;
   auto getNrOfColumns() const -> int64_t;
   auto getNrOfRows() const -> int64_t;
 
 private:
   /////////////////////////////////////////////////////
   static std::string validityToString(joda::func::ParticleValidity val);
-  void flushReportToFileCsv(std::string_view fileName) const;
-  void flushReportToFileXlsx(std::string_view fileName) const;
 
   /////////////////////////////////////////////////////
   Table_t mTable;
@@ -181,6 +183,7 @@ private:
   int64_t mRows = 0;
   Statistics mEmptyStatistics;
   std::mutex mWriteMutex;
+  std::string mTableName;
 };
 
 }    // namespace joda::reporting

@@ -13,6 +13,11 @@
 
 namespace joda::reporting {
 
+void Table::setTableName(const std::string &name)
+{
+  mTableName = name;
+}
+
 int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float value,
                                         joda::func::ParticleValidity validity)
 {
@@ -120,18 +125,6 @@ void Table::setColumnNames(const std::map<uint64_t, std::string> &colNames)
 auto Table::getColumnNameAt(uint64_t colIdx) const -> const std::string
 {
   return mColumnName.at(colIdx);
-}
-
-void Table::flushReportToFile(std::string_view fileName, Table::OutputFormat format) const
-{
-  switch(format) {
-    case OutputFormat::CSV:
-      flushReportToFileCsv(fileName);
-      break;
-    case OutputFormat::XLSX:
-      flushReportToFileXlsx(fileName);
-      break;
-  }
 }
 
 auto Statistics::getStatisticsTitle() -> const std::array<std::string, NR_OF_VALUE>

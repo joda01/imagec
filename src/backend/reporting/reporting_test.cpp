@@ -20,7 +20,7 @@ SCENARIO("Adding three values to a table", "[table]")
   table.appendValueToColumn(1, 4, joda::func::ParticleValidity::VALID);
   table.setColumnNames({{0, "Col 1"}, {1, "Col 2"}});
 
-  table.flushReportToFile("output_test.xlsx");
+  // table.flushReportToFile("output_test.xlsx");
 
   CHECK(0 == table.getTable().at(0).at(0).value);
   CHECK(382 == table.getTable().at(0).at(1).value);

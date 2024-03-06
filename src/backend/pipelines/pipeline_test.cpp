@@ -37,10 +37,10 @@ TEST_CASE("pipeline:test", "[pipeline_test]")
 TEST_CASE("pipeline:test:voronoi", "[pipeline_test_voronoi]")
 {
   joda::settings::json::AnalyzeSettings settings;
-  settings.loadConfigFromFile("test_areosold_Evs/config.json");
+  settings.loadConfigFromFile("test/test_areosold_Evs/config.json");
   joda::helper::ImageFileContainer imageFileContainer;
-  imageFileContainer.setWorkingDirectory("test_areosold_Evs");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test_areosold_Evs", &imageFileContainer);
+  imageFileContainer.setWorkingDirectory("test/test_areosold_Evs");
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_areosold_Evs", &imageFileContainer);
 
   while(true) {
     sleep(2);
@@ -54,10 +54,10 @@ TEST_CASE("pipeline:test:voronoi", "[pipeline_test_voronoi]")
 TEST_CASE("pipeline:test:spots", "[pipeline_test_spots]")
 {
   joda::settings::json::AnalyzeSettings settings;
-  settings.loadConfigFromFile("test_spot/config.json");
+  settings.loadConfigFromFile("test/test_spot/config.json");
   joda::helper::ImageFileContainer imageFileContainer;
-  imageFileContainer.setWorkingDirectory("test_spot");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test_spot", &imageFileContainer);
+  imageFileContainer.setWorkingDirectory("test/test_spot");
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_spot", &imageFileContainer);
 
   while(true) {
     sleep(2);

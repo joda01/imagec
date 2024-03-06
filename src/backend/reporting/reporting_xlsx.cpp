@@ -1,5 +1,7 @@
 
 
+#include <xlsxwriter/worksheet.h>
+#include <string>
 #include "reporting.h"
 #include "xlsxwriter.h"
 
@@ -10,23 +12,27 @@ namespace joda::reporting {
 /// \author     Joachim Danmayr
 /// \param[in]  fileName  Name of the output report file
 ///
-void Table::flushReportToFileXlsx(std::string_view fileName) const
+int Table::flushReportToFileXlsx(int colOffset, lxw_worksheet *worksheet, lxw_format *header,
+                                 lxw_format *merge_format) const
 {
-  /* Create a new workbook and add a worksheet. */
-  lxw_workbook *workbook   = workbook_new(fileName.data());
-  lxw_worksheet *worksheet = workbook_add_worksheet(workbook, NULL);
-
-  /* Add a format. */
-  lxw_format *header = workbook_add_format(workbook);
-
   /* Set the bold property for the format */
   format_set_bold(header);
   format_set_pattern(header, LXW_PATTERN_SOLID);
   format_set_bg_color(header, LXW_COLOR_YELLOW);
   format_set_border(header, LXW_BORDER_THIN);
 
-  int ROW_OFFSET = 1;
-  int COL_OFFSET = 1;
+  int ROW_OFFSET = 2;
+  int COL_OFFSET = colOffset + 1;
+
+  //
+  // Write name
+  //
+  worksheet_merge_range(worksheet, 0, COL_OFFSET, 0, COL_OFFSET + getNrOfColumns() - 1, "-", merge_format);
+  if(!mTableName.empty()) {
+    worksheet_write_string(worksheet, 0, COL_OFFSET, mTableName.data(), header);
+  } else {
+    worksheet_write_string(worksheet, 0, COL_OFFSET, std::to_string(COL_OFFSET).data(), header);
+  }
 
   //
   // Write header
@@ -34,9 +40,9 @@ void Table::flushReportToFileXlsx(std::string_view fileName) const
   int64_t columns = std::max(getNrOfColumns(), static_cast<int64_t>(mColumnName.size()));
   for(int64_t colIdx = 0; colIdx < columns; colIdx++) {
     if(mColumnName.contains(colIdx)) {
-      worksheet_write_string(worksheet, 0, colIdx + COL_OFFSET, mColumnName.at(colIdx).data(), header);
+      worksheet_write_string(worksheet, 1, colIdx + COL_OFFSET, mColumnName.at(colIdx).data(), header);
     } else {
-      worksheet_write_string(worksheet, 0, colIdx + COL_OFFSET, std::to_string(colIdx).data(), header);
+      worksheet_write_string(worksheet, 1, colIdx + COL_OFFSET, std::to_string(colIdx).data(), header);
     }
     worksheet_set_column(worksheet, colIdx + COL_OFFSET, colIdx + COL_OFFSET, 20, NULL);
   }
@@ -77,7 +83,7 @@ void Table::flushReportToFileXlsx(std::string_view fileName) const
     }
   }
 
-  ROW_OFFSET = rowIdx + 2;
+  ROW_OFFSET = ROW_OFFSET += (rowIdx + 2);
 
   //
   // Write measurement data
@@ -106,6 +112,6 @@ void Table::flushReportToFileXlsx(std::string_view fileName) const
    worksheet_write_number(worksheet, 3, 0, 123.456, NULL);
    worksheet_insert_image(worksheet, 1, 2, "logo.png");*/
 
-  workbook_close(workbook);
+  return columns;
 }
 }    // namespace joda::reporting

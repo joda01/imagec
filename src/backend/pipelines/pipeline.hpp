@@ -24,6 +24,7 @@
 #include "../reporting/reporting.h"
 #include "../settings/analze_settings_parser.hpp"
 #include "backend/image_reader/image_reader.hpp"
+#include "backend/reporting/reporting_container.hpp"
 
 namespace joda::pipeline {
 
@@ -155,18 +156,20 @@ private:
     return mStop;
   }
 
-  void setDetailReportHeader(joda::reporting::Table &detailReportTable, const std::string &channelName,
+  void setDetailReportHeader(joda::reporting::ReportingContainer &detailReportTable, const std::string &channelName,
                              int tempChannelIdx);
-  void appendToDetailReport(joda::func::DetectionResponse &result, joda::reporting::Table &detailReportTable,
+  void appendToDetailReport(joda::func::DetectionResponse &result,
+                            joda::reporting::ReportingContainer &detailReportTable,
                             const std::string &detailReportOutputPath, int tempChannelIdx, uint32_t tileIdx);
-  void appendToAllOverReport(joda::reporting::Table &allOverReport, const joda::reporting::Table &detailedReport,
-                             const std::string &imageName, int nrOfChannels);
+  void appendToAllOverReport(joda::reporting::ReportingContainer &allOverReport,
+                             const joda::reporting::ReportingContainer &detailedReport, const std::string &imageName,
+                             int nrOfChannels);
 
-  void analyzeImage(joda::reporting::Table &alloverReport, const FileInfo &imagePath);
+  void analyzeImage(joda::reporting::ReportingContainer &alloverReport, const FileInfo &imagePath);
 
-  void analyzeTile(joda::reporting::Table &detailReports, FileInfo imagePath, std::string detailOutputFolder,
-                   int tileIdx);
-  void analyszeChannel(joda::reporting::Table &detailReports,
+  void analyzeTile(joda::reporting::ReportingContainer &detailReports, FileInfo imagePath,
+                   std::string detailOutputFolder, int tileIdx);
+  void analyszeChannel(joda::reporting::ReportingContainer &detailReports,
                        std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
                        const joda::settings::json::ChannelSettings &channelSettings, FileInfo imagePath,
                        std::string detailOutputFolder, int chIdx, int tileIdx);
