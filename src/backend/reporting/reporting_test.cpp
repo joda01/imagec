@@ -18,6 +18,7 @@ SCENARIO("Adding three values to a table", "[table]")
   table.appendValueToColumn(0, 403, joda::func::ParticleValidity::VALID);
 
   table.appendValueToColumn(1, 4, joda::func::ParticleValidity::VALID);
+  table.setColumnNames({{0, "Col 1"}, {1, "Col 2"}});
 
   table.flushReportToFile("output_test.xlsx");
 

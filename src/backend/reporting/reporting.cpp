@@ -129,7 +129,7 @@ void Table::flushReportToFile(std::string_view fileName, Table::OutputFormat for
       flushReportToFileCsv(fileName);
       break;
     case OutputFormat::XLSX:
-      flushReportToFileCsv(fileName);
+      flushReportToFileXlsx(fileName);
       break;
   }
 }
