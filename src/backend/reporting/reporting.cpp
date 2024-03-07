@@ -18,6 +18,11 @@ void Table::setTableName(const std::string &name)
   mTableName = name;
 }
 
+const std::string &Table::getTableName() const
+{
+  return mTableName;
+}
+
 int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float value,
                                         joda::func::ParticleValidity validity)
 {

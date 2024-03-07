@@ -394,7 +394,7 @@ void Pipeline::appendToAllOverReport(joda::reporting::ReportingContainer &allOve
   const int NR_OF_COLUMNS_PER_CHANNEL = 7;
 
   for(int tempChannelIdx = 0; tempChannelIdx < nrOfChannels; tempChannelIdx++) {
-    allOverReport.getTableAt(tempChannelIdx, "")
+    allOverReport.getTableAt(tempChannelIdx, detailedReport.getTableAt(tempChannelIdx).getTableName())
         .setColumnNames({{0, "#valid"},
                          {1, "#invalid"},
                          {2, detailedReport.getTableAt(tempChannelIdx)

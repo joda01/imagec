@@ -150,6 +150,7 @@ public:
   /////////////////////////////////////////////////////
   void setTableName(const std::string &name);
   void setColumnNames(const std::map<uint64_t, std::string> &);
+  const std::string &getTableName() const;
   auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
   void setRowName(uint64_t rowIdx, const std::string &);
   auto appendValueToColumn(uint64_t colIdx, float value, joda::func::ParticleValidity) -> int64_t;
