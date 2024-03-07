@@ -43,7 +43,7 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(int colOffset, int 
     }
   }
 
-  colOffset += Statistics::NR_OF_VALUE;
+  colOffset += (Statistics::NR_OF_VALUE + 1);
 
   //
   // Write image header
