@@ -168,6 +168,9 @@ public:
   auto getStatistics(uint64_t colIdx) const -> const Statistics &;
   int flushReportToFileXlsx(int colOffset, lxw_worksheet *worksheet, lxw_format *header,
                             lxw_format *merge_format) const;
+  std::tuple<int, int> flushReportToFileXlsxTransponded(int colOffset, int rowOffset, lxw_worksheet *worksheet,
+                                                        lxw_format *header, lxw_format *merge_format,
+                                                        lxw_format *numberFormat) const;
   auto getNrOfColumns() const -> int64_t;
   auto getNrOfRows() const -> int64_t;
 
