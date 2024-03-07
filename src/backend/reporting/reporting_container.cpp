@@ -58,8 +58,8 @@ void ReportingContainer::flushReportToFile(std::string_view fileName, OutputForm
     if(OutputFormat::VERTICAL == format) {
       auto [colOffset, rowOffset] =
           table.flushReportToFileXlsx(colOffsetIn, rowOffsetIn, worksheet, header, merge_format, numberFormat);
-      colOffsetIn = colOffset + 1;
-      rowOffsetIn = rowOffset;
+      colOffsetIn += colOffset + 1;
+      rowOffsetIn += rowOffset;
     }
   }
 
