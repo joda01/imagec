@@ -98,7 +98,7 @@ void Pipeline::runJob()
     DurationCount::stop(idStart);
 
     std::string resultsFile = mOutputFolder + separator + "results.xlsx";
-    alloverReport.flushReportToFile(resultsFile);
+    alloverReport.flushReportToFile(resultsFile, reporting::ReportingContainer::OutputFormat::HORIZONTAL);
     mState = State::FINISHED;
   } catch(const std::exception &ex) {
     // setStateError(ex.what());
@@ -171,7 +171,8 @@ void Pipeline::analyzeImage(joda::reporting::ReportingContainer &alloverReport, 
   //
   // Write report
   //
-  detailReports.flushReportToFile(detailOutputFolder + separator + "detail.xlsx");
+  detailReports.flushReportToFile(detailOutputFolder + separator + "detail.xlsx",
+                                  reporting::ReportingContainer::OutputFormat::VERTICAL);
 
   auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
   appendToAllOverReport(alloverReport, detailReports, imageName, nrOfChannels);

@@ -12,8 +12,9 @@ namespace joda::reporting {
 /// \author     Joachim Danmayr
 /// \param[in]  fileName  Name of the output report file
 ///
-int Table::flushReportToFileXlsx(int colOffset, lxw_worksheet *worksheet, lxw_format *header,
-                                 lxw_format *merge_format) const
+std::tuple<int, int> Table::flushReportToFileXlsx(int colOffset, int /*rowOffset*/, lxw_worksheet *worksheet,
+                                                  lxw_format *header, lxw_format *merge_format,
+                                                  lxw_format *numberFormat) const
 {
   /* Set the bold property for the format */
   format_set_bold(header);
@@ -50,6 +51,27 @@ int Table::flushReportToFileXlsx(int colOffset, lxw_worksheet *worksheet, lxw_fo
   worksheet_set_column(worksheet, 0, 0, 10, NULL);
 
   //
+  // Write statistic data
+  //
+  int rowIdxStat = 0;
+  for(rowIdxStat = 0; rowIdxStat < Statistics::NR_OF_VALUE; rowIdxStat++) {
+    worksheet_write_string(worksheet, ROW_OFFSET + rowIdxStat, 0, Statistics::getStatisticsTitle()[rowIdxStat].data(),
+                           header);
+
+    for(int64_t colIdx = 0; colIdx < columns; colIdx++) {
+      if(mStatistics.contains(colIdx)) {
+        auto statistics = mStatistics.at(colIdx);
+
+        worksheet_write_number(worksheet, ROW_OFFSET + rowIdxStat, colIdx + COL_OFFSET,
+                               statistics.getStatistics()[rowIdxStat], numberFormat);
+
+      } else {
+      }
+    }
+  }
+  ROW_OFFSET = ROW_OFFSET += (rowIdxStat + 2);
+
+  //
   // Write table data
   //
   int64_t rowIdx = 0;
@@ -72,7 +94,7 @@ int Table::flushReportToFileXlsx(int colOffset, lxw_worksheet *worksheet, lxw_fo
       if(mTable.contains(colIdx) && mTable.at(colIdx).contains(rowIdx)) {
         if(!mTable.at(colIdx).at(rowIdx).validity.has_value()) {
           worksheet_write_number(worksheet, ROW_OFFSET + rowIdx, colIdx + COL_OFFSET,
-                                 mTable.at(colIdx).at(rowIdx).value, NULL);
+                                 mTable.at(colIdx).at(rowIdx).value, numberFormat);
         } else {
           worksheet_write_string(worksheet, ROW_OFFSET + rowIdx, colIdx + COL_OFFSET,
                                  validityToString(mTable.at(colIdx).at(rowIdx).validity.value()).data(), NULL);
@@ -83,35 +105,6 @@ int Table::flushReportToFileXlsx(int colOffset, lxw_worksheet *worksheet, lxw_fo
     }
   }
 
-  ROW_OFFSET = ROW_OFFSET += (rowIdx + 2);
-
-  //
-  // Write measurement data
-  //
-  for(int rowIdx = 0; rowIdx < Statistics::NR_OF_VALUE; rowIdx++) {
-    worksheet_write_string(worksheet, ROW_OFFSET + rowIdx, 0, Statistics::getStatisticsTitle()[rowIdx].data(), header);
-
-    for(int64_t colIdx = 0; colIdx < columns; colIdx++) {
-      if(mStatistics.contains(colIdx)) {
-        auto statistics = mStatistics.at(colIdx);
-
-        worksheet_write_number(worksheet, ROW_OFFSET + rowIdx, colIdx + COL_OFFSET, statistics.getStatistics()[rowIdx],
-                               NULL);
-
-      } else {
-      }
-    }
-  }
-
-  /* Write some simple text. */
-  /* worksheet_write_string(worksheet, 0, 0, "Hello", NULL);
-
-   worksheet_write_string(worksheet, 1, 0, "World", format);
-
-   worksheet_write_number(worksheet, 2, 0, 123, NULL);
-   worksheet_write_number(worksheet, 3, 0, 123.456, NULL);
-   worksheet_insert_image(worksheet, 1, 2, "logo.png");*/
-
-  return columns;
+  return {columns, 2};
 }
 }    // namespace joda::reporting

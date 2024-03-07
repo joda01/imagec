@@ -20,7 +20,7 @@ ReportingContainer::ReportingContainer()
 {
 }
 
-void ReportingContainer::flushReportToFile(std::string_view fileName, Table::OutputFormat format)
+void ReportingContainer::flushReportToFile(std::string_view fileName, OutputFormat format)
 {
   lxw_workbook *workbook   = workbook_new(fileName.data());
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, NULL);
@@ -49,10 +49,18 @@ void ReportingContainer::flushReportToFile(std::string_view fileName, Table::Out
   int rowOffsetIn = 0;
   for(const auto &[idx, table] : mColumns) {
     // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
-    auto [colOffset, rowOffset] =
-        table.flushReportToFileXlsxTransponded(colOffsetIn, rowOffsetIn, worksheet, header, merge_format, numberFormat);
-    colOffsetIn = colOffset;
-    rowOffsetIn = rowOffset;
+    if(OutputFormat::HORIZONTAL == format) {
+      auto [colOffset, rowOffset] = table.flushReportToFileXlsxTransponded(colOffsetIn, rowOffsetIn, worksheet, header,
+                                                                           merge_format, numberFormat);
+      colOffsetIn                 = colOffset;
+      rowOffsetIn                 = rowOffset;
+    }
+    if(OutputFormat::VERTICAL == format) {
+      auto [colOffset, rowOffset] =
+          table.flushReportToFileXlsx(colOffsetIn, rowOffsetIn, worksheet, header, merge_format, numberFormat);
+      colOffsetIn = colOffset + 1;
+      rowOffsetIn = rowOffset;
+    }
   }
 
   workbook_close(workbook);

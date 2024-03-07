@@ -49,15 +49,17 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(int colOffset, int 
   // Write image header
   //
   //
-  if(rowOffset == 0 || WRITE_HEADER_FOR_EACH_CHANNEL) {
+  int headerColumnRowOffset = 0;
+  if(headerColumnRowOffset == 0 || WRITE_HEADER_FOR_EACH_CHANNEL) {
     for(int32_t colIdx = 0; colIdx < getNrOfRows(); colIdx++) {
       if(mRowNames.contains(colIdx)) {
         std::string filePath = "external:.\\" + mRowNames.at(colIdx) + "/detail.xlsx";
-        worksheet_write_url(worksheet, rowOffset, colIdx + colOffset, filePath.data(), NULL);
-        worksheet_write_string(worksheet, rowOffset, colIdx + colOffset, mRowNames.at(colIdx).data(), header);
-
+        worksheet_write_url(worksheet, headerColumnRowOffset, colIdx + colOffset, filePath.data(), NULL);
+        worksheet_write_string(worksheet, headerColumnRowOffset, colIdx + colOffset, mRowNames.at(colIdx).data(),
+                               header);
       } else {
-        worksheet_write_string(worksheet, rowOffset, colIdx + colOffset, std::to_string(colIdx).data(), header);
+        worksheet_write_string(worksheet, headerColumnRowOffset, colIdx + colOffset, std::to_string(colIdx).data(),
+                               header);
       }
       worksheet_set_column(worksheet, colIdx + colOffset, colIdx + colOffset, 20, NULL);
     }
@@ -108,15 +110,6 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(int colOffset, int 
   }
 
   rowOffset = rowOffset + columns;
-
-  /* Write some simple text. */
-  /* worksheet_write_string(worksheet, 0, 0, "Hello", NULL);
-
-   worksheet_write_string(worksheet, 1, 0, "World", format);
-
-   worksheet_write_number(worksheet, 2, 0, 123, NULL);
-   worksheet_write_number(worksheet, 3, 0, 123.456, NULL);
-   worksheet_insert_image(worksheet, 1, 2, "logo.png");*/
 
   return {colOffset, rowOffset};
 }

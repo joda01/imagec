@@ -12,6 +12,12 @@ namespace joda::reporting {
 class ReportingContainer
 {
 public:
+  enum class OutputFormat
+  {
+    VERTICAL,
+    HORIZONTAL
+  };
+
   ReportingContainer();
   Table &getTableAt(int32_t key, const std::string &channelName)
   {
@@ -30,7 +36,7 @@ public:
     throw std::invalid_argument("Table does not exist!");
   }
 
-  void flushReportToFile(std::string_view fileName, Table::OutputFormat format = Table::OutputFormat::XLSX);
+  void flushReportToFile(std::string_view fileName, OutputFormat format);
 
   std::map<int32_t, Table> mColumns;
 };
