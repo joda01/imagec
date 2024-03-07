@@ -110,6 +110,7 @@ private:
   std::shared_ptr<ContainerFunction<QString>> mChannelName;
   std::shared_ptr<ContainerFunction<int>> mChannelIndex;
   std::shared_ptr<ContainerFunction<QString>> mChannelType;
+
   std::shared_ptr<ContainerFunction<QString>> mThresholdAlgorithm;
   std::shared_ptr<ContainerFunction<int>> mThresholdValueMin;
   std::shared_ptr<ContainerFunction<float>> mMinCircularity;

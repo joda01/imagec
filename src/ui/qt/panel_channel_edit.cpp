@@ -19,6 +19,7 @@
 #include <qpushbutton.h>
 #include <qwidget.h>
 #include <exception>
+#include <memory>
 #include <mutex>
 #include <thread>
 #include "container_channel.hpp"
@@ -204,6 +205,15 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
 
 PanelChannelEdit::~PanelChannelEdit()
 {
+  {
+    std::lock_guard<std::mutex> lock(mPreviewMutex);
+    mPreviewCounter = 0;
+  }
+  if(mPreviewThread != nullptr) {
+    if(mPreviewThread->joinable()) {
+      mPreviewThread->join();
+    }
+  }
   delete mScrollAreaCellApprox;
   delete mPreviewImage;
   delete mPreviewInfo;
@@ -388,7 +398,12 @@ void PanelChannelEdit::updatePreview()
       mPreviewCounter++;
       emit updatePreviewStarted();
     }
-    std::thread([this]() {
+    if(mPreviewThread != nullptr) {
+      if(mPreviewThread->joinable()) {
+        mPreviewThread->join();
+      }
+    }
+    mPreviewThread = std::make_unique<std::thread>([this]() {
       int previewCounter = 0;
       std::this_thread::sleep_for(500ms);
       do {
@@ -445,7 +460,7 @@ void PanelChannelEdit::updatePreview()
       if(mSpinner != nullptr) {
         emit updatePreviewFinished();
       }
-    }).detach();
+    });
   } else {
     std::lock_guard<std::mutex> lock(mPreviewMutex);
     mPreviewCounter++;

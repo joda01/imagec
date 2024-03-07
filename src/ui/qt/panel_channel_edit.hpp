@@ -15,6 +15,7 @@
 
 #include <qtmetamacros.h>
 #include <QtWidgets>
+#include <memory>
 #include <mutex>
 #include "helper/waitingspinnerwidget.hpp"
 #include "ui/qt/panel_preview.hpp"
@@ -60,6 +61,7 @@ private:
   WaitingSpinnerWidget *mSpinner = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter;
+  std::unique_ptr<std::thread> mPreviewThread = nullptr;
 
 private slots:
   void onChannelTypeChanged();

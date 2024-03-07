@@ -90,7 +90,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
       new ContainerFunction<QString>("icons8-mind-map-50.png", "AI model", "AI model", "", "", aiModelsConverted));
 
   mMinCircularity = std::shared_ptr<ContainerFunction<float>>(
-      new ContainerFunction<float>("icons8-ellipse-50.png", "[0 - 1]", "Min. circularity", "%", 0.1, 0, 1));
+      new ContainerFunction<float>("icons8-ellipse-50.png", "[0 - 1]", "Min. circularity", "%", std::nullopt, 0, 1));
 
   mMinParticleSize = std::shared_ptr<ContainerFunction<int>>(
       new ContainerFunction<int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
@@ -230,15 +230,31 @@ void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chS
   mChannelType->setValue(QString(chSettings.getChannelInfo().getTypeString().data()));
   mChannelName->setValue(QString(chSettings.getChannelInfo().getName().data()));
 
-  mZProjection->resetToDefault();
-  mRollingBall->resetToDefault();
-  mMarginCrop->resetToDefault();
-  mGaussianBlur->resetToDefault();
-  mSmoothing->resetToDefault();
-  mMedianBackgroundSubtraction->resetToDefault();
-  mSubtractChannel->resetToDefault();
-  mEdgeDetection->resetToDefault();
-  mColocGroup->resetToDefault();
+  mThresholdAlgorithm->clearValue();
+  mThresholdValueMin->clearValue();
+  mMinCircularity->clearValue();
+  mMinParticleSize->clearValue();
+  mMaxParticleSize->clearValue();
+  mSnapAreaSize->clearValue();
+
+  mZProjection->clearValue();
+  mMarginCrop->clearValue();
+  mSubtractChannel->clearValue();
+  mMedianBackgroundSubtraction->clearValue();
+  mRollingBall->clearValue();
+  mGaussianBlur->clearValue();
+  mSmoothing->clearValue();
+  mEdgeDetection->clearValue();
+  mTetraspeckRemoval->clearValue();
+
+  mUsedDetectionMode->clearValue();
+  mMinProbability->clearValue();
+  mAIModels->clearValue();
+
+  mEnableCellApproximation->clearValue();
+  mMaxCellRadius->clearValue();
+  mColocGroupCellApproximation->clearValue();
+  mColocGroup->clearValue();
 
   // Preprocessing
   for(const auto &prepro : chSettings.getPreprocessingFunctions()) {

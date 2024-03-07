@@ -443,7 +443,6 @@ private:
         "   padding-top: 10px;"
         "   padding-bottom: 10px;"
         "   padding-left: 10px;"
-        "   min-width: 6em;"
         "   color: #333;"
         "   background-color: #fff;"
         "   selection-background-color: rgba(48,140,198,0.7);"
@@ -483,6 +482,7 @@ private:
     QWidget *horizontaContainer   = new QWidget();
     QHBoxLayout *layoutHorizontal = new QHBoxLayout(mParent);
     layoutHorizontal->setContentsMargins(0, 0, 0, 0);
+    layoutHorizontal->setSpacing(4);
 
     const QIcon myIcon(":/icons/outlined/" + icon);
     mComboBox = new QComboBox();
@@ -535,17 +535,6 @@ private:
   {
     mComboBoxSecond = new QComboBox();
     mComboBoxSecond->setObjectName("SecondCombo");
-    mComboBoxSecond->setStyleSheet(
-        "QComboBox#SecondCombo {"
-        "   border: 1px solid rgba(32, 27, 23, 0.6);"
-        "   border-radius: 4px;"
-        "   padding-top: 10px;"
-        "   padding-bottom: 10px;"
-        "   padding-left: 5px;"
-        "   color: #333;"
-        "   background-color: #fff;"
-        "   selection-background-color: rgba(48,140,198,0.7);"
-        "}");
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
     for(const auto &data : optionsSecond) {
@@ -553,7 +542,6 @@ private:
     }
     mComboBoxSecond->setFont(fontLineEdit);
     mComboBoxSecond->setPlaceholderText("");
-    mComboBoxSecond->setMaximumWidth(50);
     auto idx = mComboBoxSecond->findData(mComboSecondDefaultValue);
     if(idx >= 0) {
       mComboBoxSecond->setCurrentIndex(idx);
