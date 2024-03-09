@@ -72,8 +72,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 IF (WIN32)
   find_package( libjpeg-turbo )
   find_package( TIFF )
-  find_package(xlsxwriter REQUIRED)
-
 ELSE ()
   find_package( Tiff )
   pkg_check_modules(Xlsxwriter REQUIRED IMPORTED_TARGET xlsxwriter)
@@ -106,7 +104,7 @@ IF (WIN32)
     TIFF
     Qt6::Widgets
     Qt6::Core
-    PkgConfig::Xlsxwriter
+    xlsxwriter
     ${LIB_DL}
     #JNI::JVM
     #JNI::JNI
