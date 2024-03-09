@@ -61,7 +61,6 @@ find_package( JNI REQUIRED )
 find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
-pkg_check_modules(Xlsxwriter REQUIRED IMPORTED_TARGET xlsxwriter)
 
 
 
@@ -73,8 +72,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 IF (WIN32)
   find_package( libjpeg-turbo )
   find_package( TIFF )
+  find_package(xlsxwriter REQUIRED)
+
 ELSE ()
   find_package( Tiff )
+  pkg_check_modules(Xlsxwriter REQUIRED IMPORTED_TARGET xlsxwriter)
+
 ENDIF()
 
 # Define libdl name
