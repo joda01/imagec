@@ -12,7 +12,8 @@ namespace joda::reporting {
 /// \author     Joachim Danmayr
 /// \param[in]  fileName  Name of the output report file
 ///
-std::tuple<int, int> Table::flushReportToFileXlsxTransponded(int colOffset, int rowOffset, lxw_worksheet *worksheet,
+std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &headerText, int colOffset,
+                                                             int rowOffset, int startRow, lxw_worksheet *worksheet,
                                                              lxw_format *header, lxw_format *merge_format,
                                                              lxw_format *numberFormat) const
 {
@@ -23,10 +24,18 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(int colOffset, int 
   int64_t columns = std::max(getNrOfColumns(), static_cast<int64_t>(mColumnName.size()));
 
   //
+  // Write header text
+  //
+  if(rowOffset == startRow) {
+    worksheet_merge_range(worksheet, rowOffset, 0, rowOffset, 1, "-", merge_format);
+    worksheet_write_string(worksheet, rowOffset, 0, headerText.data(), header);
+  }
+
+  //
   // Write statistics data
   //
   for(int colIdx = 0; colIdx < Statistics::NR_OF_VALUE; colIdx++) {
-    if(rowOffset == 0 || WRITE_HEADER_FOR_EACH_CHANNEL) {
+    if(rowOffset == startRow || WRITE_HEADER_FOR_EACH_CHANNEL) {
       worksheet_write_string(worksheet, rowOffset, colIdx + colOffset, Statistics::getStatisticsTitle()[colIdx].data(),
                              header);
     }
@@ -49,8 +58,8 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(int colOffset, int 
   // Write image header
   //
   //
-  int headerColumnRowOffset = 0;
-  if(headerColumnRowOffset == 0 || WRITE_HEADER_FOR_EACH_CHANNEL) {
+  int headerColumnRowOffset = rowOffset;
+  if(headerColumnRowOffset == startRow || WRITE_HEADER_FOR_EACH_CHANNEL) {
     for(int32_t colIdx = 0; colIdx < getNrOfRows(); colIdx++) {
       if(mRowNames.contains(colIdx)) {
         std::string filePath = "external:.\\" + mRowNames.at(colIdx) + "/detail.xlsx";

@@ -20,7 +20,8 @@ ReportingContainer::ReportingContainer()
 {
 }
 
-void ReportingContainer::flushReportToFile(std::string_view fileName, OutputFormat format)
+void ReportingContainer::flushReportToFile(const std::map<std::string, ReportingContainer> &containers,
+                                           std::string_view fileName, OutputFormat format)
 {
   lxw_workbook *workbook   = workbook_new(fileName.data());
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, NULL);
@@ -45,25 +46,39 @@ void ReportingContainer::flushReportToFile(std::string_view fileName, OutputForm
   lxw_format *numberFormat = workbook_add_format(workbook);
   format_set_num_format(numberFormat, "0.00");
 
-  int colOffsetIn = 0;
-  int rowOffsetIn = 0;
-  for(const auto &[idx, table] : mColumns) {
-    // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
-    if(OutputFormat::HORIZONTAL == format) {
-      auto [colOffset, rowOffset] = table.flushReportToFileXlsxTransponded(colOffsetIn, rowOffsetIn, worksheet, header,
-                                                                           merge_format, numberFormat);
-      colOffsetIn                 = colOffset;
-      rowOffsetIn                 = rowOffset;
+  int colOffsetIn    = 0;
+  int rowOffsetIn    = 0;
+  int rowOffsetStart = 0;
+  for(const auto &[folderName, table] : containers) {
+    for(const auto &[idx, table] : table.mColumns) {
+      // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
+      if(OutputFormat::HORIZONTAL == format) {
+        auto [colOffset, rowOffset] = table.flushReportToFileXlsxTransponded(
+            folderName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format, numberFormat);
+        colOffsetIn = colOffset;
+        rowOffsetIn = rowOffset;
+      }
+      if(OutputFormat::VERTICAL == format) {
+        auto [colOffset, rowOffset] =
+            table.flushReportToFileXlsx(colOffsetIn, rowOffsetIn, worksheet, header, merge_format, numberFormat);
+        colOffsetIn += colOffset + 1;
+        rowOffsetIn += rowOffset;
+      }
     }
-    if(OutputFormat::VERTICAL == format) {
-      auto [colOffset, rowOffset] =
-          table.flushReportToFileXlsx(colOffsetIn, rowOffsetIn, worksheet, header, merge_format, numberFormat);
-      colOffsetIn += colOffset + 1;
-      rowOffsetIn += rowOffset;
+    if(OutputFormat::HORIZONTAL == format) {
+      rowOffsetStart = rowOffsetIn += 2;
+      rowOffsetIn    = rowOffsetStart;
     }
   }
 
   workbook_close(workbook);
+}
+
+// Return <collOFfset, rowOffset>
+void ReportingContainer::flushReportToFile(std::string_view fileName, OutputFormat format) const
+{
+  // std::map<std::string, ReportingContainer> data{{"", *this}};
+  // ReportingContainer::flushReportToFile(data, fileName, format);
 }
 
 }    // namespace joda::reporting

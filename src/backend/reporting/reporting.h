@@ -165,9 +165,9 @@ public:
   std::tuple<int, int> flushReportToFileXlsx(int colOffset, int /*rowOffset*/, lxw_worksheet *worksheet,
                                              lxw_format *header, lxw_format *merge_format,
                                              lxw_format *numberFormat) const;
-  std::tuple<int, int> flushReportToFileXlsxTransponded(int colOffset, int rowOffset, lxw_worksheet *worksheet,
-                                                        lxw_format *header, lxw_format *merge_format,
-                                                        lxw_format *numberFormat) const;
+  std::tuple<int, int> flushReportToFileXlsxTransponded(const std::string &headerText, int colOffset, int rowOffset,
+                                                        int startRow, lxw_worksheet *worksheet, lxw_format *header,
+                                                        lxw_format *merge_format, lxw_format *numberFormat) const;
   auto getNrOfColumns() const -> int64_t;
   auto getNrOfRows() const -> int64_t;
 

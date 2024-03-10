@@ -161,11 +161,12 @@ private:
   void appendToDetailReport(joda::func::DetectionResponse &result,
                             joda::reporting::ReportingContainer &detailReportTable,
                             const std::string &detailReportOutputPath, int tempChannelIdx, uint32_t tileIdx);
-  void appendToAllOverReport(joda::reporting::ReportingContainer &allOverReport,
-                             const joda::reporting::ReportingContainer &detailedReport, const std::string &imageName,
-                             int nrOfChannels);
+  void appendToAllOverReport(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
+                             const joda::reporting::ReportingContainer &detailedReport, const std::string &imagePath,
+                             const std::string &imageName, int nrOfChannels);
 
-  void analyzeImage(joda::reporting::ReportingContainer &alloverReport, const FileInfo &imagePath);
+  void analyzeImage(std::map<std::string, joda::reporting::ReportingContainer> &alloverReport,
+                    const FileInfo &imagePath);
 
   void analyzeTile(joda::reporting::ReportingContainer &detailReports, FileInfo imagePath,
                    std::string detailOutputFolder, int tileIdx);

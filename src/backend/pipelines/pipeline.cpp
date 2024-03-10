@@ -78,7 +78,7 @@ void Pipeline::runJob()
     BS::thread_pool imageThreadPool(threadPoolImage);
     auto idStart = DurationCount::start("analyze");
 
-    joda::reporting::ReportingContainer alloverReport;
+    std::map<std::string, joda::reporting::ReportingContainer> alloverReport;
     for(const auto &imagePath : mImageFileContainer->getFilesList()) {
       if(threadPoolImage > 1) {
         imageThreadPool.push_task([this, &alloverReport, imagePath] { analyzeImage(alloverReport, imagePath); });
@@ -98,7 +98,10 @@ void Pipeline::runJob()
     DurationCount::stop(idStart);
 
     std::string resultsFile = mOutputFolder + separator + "results.xlsx";
-    alloverReport.flushReportToFile(resultsFile, reporting::ReportingContainer::OutputFormat::HORIZONTAL);
+
+    reporting::ReportingContainer::flushReportToFile(alloverReport, resultsFile,
+                                                     reporting::ReportingContainer::OutputFormat::HORIZONTAL);
+
     mState = State::FINISHED;
   } catch(const std::exception &ex) {
     // setStateError(ex.what());
@@ -114,12 +117,15 @@ void Pipeline::runJob()
 /// \brief      Analyze image
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeImage(joda::reporting::ReportingContainer &alloverReport, const FileInfo &imagePath)
+void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingContainer> &alloverReport,
+                            const FileInfo &imagePath)
 {
   int threadPoolTile = mThreadingSettings.cores[ThreadingSettings::TILES];
   BS::thread_pool tileThreadPool(threadPoolTile);
 
-  std::string imageName = helper::getFileNameFromPath(imagePath.getPath());
+  std::string imageName       = helper::getFileNameFromPath(imagePath.getPath());
+  std::string imageParentPath = helper::getFolderNameFromPath(imagePath.getPath());
+
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   auto detailOutputFolder = mOutputFolder + separator + imageName;
 
@@ -175,7 +181,7 @@ void Pipeline::analyzeImage(joda::reporting::ReportingContainer &alloverReport, 
                                   reporting::ReportingContainer::OutputFormat::VERTICAL);
 
   auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
-  appendToAllOverReport(alloverReport, detailReports, imageName, nrOfChannels);
+  appendToAllOverReport(alloverReport, detailReports, imageParentPath, imageName, nrOfChannels);
 
   mProgress.total.finished++;
 }
@@ -387,14 +393,15 @@ void Pipeline::appendToDetailReport(joda::func::DetectionResponse &result,
 /// \param[in]  inputFolder Inputfolder of the images
 /// \param[in]  nrOfChannels Nr. of channels
 ///
-void Pipeline::appendToAllOverReport(joda::reporting::ReportingContainer &allOverReport,
+void Pipeline::appendToAllOverReport(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
                                      const joda::reporting::ReportingContainer &detailedReport,
-                                     const std::string &imageName, int nrOfChannels)
+                                     const std::string &imagePath, const std::string &imageName, int nrOfChannels)
 {
   const int NR_OF_COLUMNS_PER_CHANNEL = 7;
 
   for(int tempChannelIdx = 0; tempChannelIdx < nrOfChannels; tempChannelIdx++) {
-    allOverReport.getTableAt(tempChannelIdx, detailedReport.getTableAt(tempChannelIdx).getTableName())
+    allOverReport[imagePath]
+        .getTableAt(tempChannelIdx, detailedReport.getTableAt(tempChannelIdx).getTableName())
         .setColumnNames({{0, "#valid"},
                          {1, "#invalid"},
                          {2, detailedReport.getTableAt(tempChannelIdx)
@@ -410,38 +417,45 @@ void Pipeline::appendToAllOverReport(joda::reporting::ReportingContainer &allOve
 
     auto colStatistics = detailedReport.getTableAt(tempChannelIdx)
                              .getStatistics(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
-    allOverReport.getTableAt(tempChannelIdx, "")
+    allOverReport[imagePath]
+        .getTableAt(tempChannelIdx, "")
         .appendValueToColumn(0, colStatistics.getNr(), joda::func::ParticleValidity::VALID);
 
     colStatistics = detailedReport.getTableAt(tempChannelIdx)
                         .getStatistics(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
-    allOverReport.getTableAt(tempChannelIdx, "")
+    allOverReport[imagePath]
+        .getTableAt(tempChannelIdx, "")
         .appendValueToColumn(1, colStatistics.getInvalid(), joda::func::ParticleValidity::VALID);
 
     colStatistics = detailedReport.getTableAt(tempChannelIdx)
                         .getStatistics(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
-    allOverReport.getTableAt(tempChannelIdx, "")
+    allOverReport[imagePath]
+        .getTableAt(tempChannelIdx, "")
         .appendValueToColumn(2, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
 
     colStatistics =
         detailedReport.getTableAt(tempChannelIdx).getStatistics(static_cast<int>(ColumnIndexDetailedReport::INTENSITY));
-    allOverReport.getTableAt(tempChannelIdx, "")
+    allOverReport[imagePath]
+        .getTableAt(tempChannelIdx, "")
         .appendValueToColumn(3, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
 
     colStatistics =
         detailedReport.getTableAt(tempChannelIdx).getStatistics(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE));
-    allOverReport.getTableAt(tempChannelIdx, "")
+    allOverReport[imagePath]
+        .getTableAt(tempChannelIdx, "")
         .appendValueToColumn(4, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
     colStatistics =
         detailedReport.getTableAt(tempChannelIdx).getStatistics(static_cast<int>(ColumnIndexDetailedReport::PERIMETER));
-    allOverReport.getTableAt(tempChannelIdx, "")
+    allOverReport[imagePath]
+        .getTableAt(tempChannelIdx, "")
         .appendValueToColumn(5, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
     colStatistics = detailedReport.getTableAt(tempChannelIdx)
                         .getStatistics(static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY));
-    int rowIdx = allOverReport.getTableAt(tempChannelIdx, "")
+    int rowIdx = allOverReport[imagePath]
+                     .getTableAt(tempChannelIdx, "")
                      .appendValueToColumn(6, colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
 
-    allOverReport.getTableAt(tempChannelIdx, "").setRowName(rowIdx, imageName);
+    allOverReport[imagePath].getTableAt(tempChannelIdx, "").setRowName(rowIdx, imageName);
   }
 }
 ///
