@@ -37,12 +37,10 @@ public:
     throw std::invalid_argument("Table does not exist!");
   }
 
-  static void flushReportToFile(const std::map<std::string, ReportingContainer> &containers, std::string_view fileName,
-                                OutputFormat format);
+  static void flushReportToFile(const std::map<std::string, ReportingContainer> &containers,
+                                const std::string &fileName, OutputFormat format);
 
-  void flushReportToFile(std::string_view fileName, OutputFormat format) const;
-
-  std::map<int32_t, Table> mColumns;
+  std::map<int32_t, Table> mColumns;    // Each column is the representation of a channel
 };
 
 }    // namespace joda::reporting

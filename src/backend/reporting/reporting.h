@@ -167,7 +167,8 @@ public:
                                              lxw_format *numberFormat) const;
   std::tuple<int, int> flushReportToFileXlsxTransponded(const std::string &headerText, int colOffset, int rowOffset,
                                                         int startRow, lxw_worksheet *worksheet, lxw_format *header,
-                                                        lxw_format *merge_format, lxw_format *numberFormat) const;
+                                                        lxw_format *merge_format, lxw_format *numberFormat,
+                                                        lxw_format *imageHeaderHyperlinkFormat) const;
   auto getNrOfColumns() const -> int64_t;
   auto getNrOfRows() const -> int64_t;
 

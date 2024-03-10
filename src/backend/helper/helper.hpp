@@ -37,7 +37,7 @@ inline auto getFolderNameFromPath(const std::string &filePathIn) -> std::string
 {
   std::filesystem::path filePath(filePathIn);
 
-  std::regex pattern("[^a-zA-Z0-9_-]");
+  std::regex pattern("[^\\/\\a-zA-Z0-9_-]");
 
   // Use the regex_replace function to replace all matches with an empty string
   return std::regex_replace(filePath.parent_path().string(), pattern, "");

@@ -17,6 +17,7 @@
 #include <exception>
 #include <filesystem>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <thread>
@@ -28,6 +29,7 @@
 #include "backend/helper/thread_pool.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/image_reader.hpp"
+#include "backend/reporting/reporting_container.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
 #include "pipeline_steps/cell_approximation/cell_approximation.hpp"
@@ -153,20 +155,22 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
   //
   // Iterate over each tile
   //
-  joda::reporting::ReportingContainer detailReports;
+  std::map<std::string, reporting::ReportingContainer> detailReports;
   std::mutex writeDetailReportMutex;
 
   for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
     if(threadPoolTile > 1) {
-      tileThreadPool.push_task([this, &detailReports, &imagePath, &detailOutputFolder](
-                                   int tileIdx) { analyzeTile(detailReports, imagePath, detailOutputFolder, tileIdx); },
-                               tileIdx);
+      tileThreadPool.push_task(
+          [this, &detailReports, &imagePath, &detailOutputFolder](int tileIdx) {
+            analyzeTile(detailReports[""], imagePath, detailOutputFolder, tileIdx);
+          },
+          tileIdx);
 
       while(tileThreadPool.get_tasks_total() > (threadPoolTile + THREAD_POOL_BUFFER)) {
         std::this_thread::sleep_for(100us);
       }
     } else {
-      analyzeTile(detailReports, imagePath, detailOutputFolder, tileIdx);
+      analyzeTile(detailReports[""], imagePath, detailOutputFolder, tileIdx);
     }
     if(mStop) {
       break;
@@ -177,11 +181,11 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
   //
   // Write report
   //
-  detailReports.flushReportToFile(detailOutputFolder + separator + "detail.xlsx",
-                                  reporting::ReportingContainer::OutputFormat::VERTICAL);
+  reporting::ReportingContainer::flushReportToFile(detailReports, detailOutputFolder + separator + "detail.xlsx",
+                                                   reporting::ReportingContainer::OutputFormat::VERTICAL);
 
   auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
-  appendToAllOverReport(alloverReport, detailReports, imageParentPath, imageName, nrOfChannels);
+  appendToAllOverReport(alloverReport, detailReports[""], imageParentPath, imageName, nrOfChannels);
 
   mProgress.total.finished++;
 }

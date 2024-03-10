@@ -15,8 +15,15 @@ namespace joda::reporting {
 std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &headerText, int colOffset,
                                                              int rowOffset, int startRow, lxw_worksheet *worksheet,
                                                              lxw_format *header, lxw_format *merge_format,
-                                                             lxw_format *numberFormat) const
+                                                             lxw_format *numberFormat,
+                                                             lxw_format *imageHeaderHyperlinkFormat) const
 {
+  // Sort rows
+  // std::map<std::string, uint64_t> sortedRow;
+  // for(const auto &[idx, name] : mRowNames) {
+  //  sortedRow.emplace(name, idx);
+  //}
+
   bool WRITE_HEADER_FOR_EACH_CHANNEL = false;
 
   colOffset = 2;
@@ -38,6 +45,7 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
     if(rowOffset == startRow || WRITE_HEADER_FOR_EACH_CHANNEL) {
       worksheet_write_string(worksheet, rowOffset, colIdx + colOffset, Statistics::getStatisticsTitle()[colIdx].data(),
                              header);
+      worksheet_set_column(worksheet, colIdx + colOffset, colIdx + colOffset, 15, NULL);
     }
 
     for(int64_t rowIdx = 0; rowIdx < columns; rowIdx++) {
@@ -63,14 +71,16 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
     for(int32_t colIdx = 0; colIdx < getNrOfRows(); colIdx++) {
       if(mRowNames.contains(colIdx)) {
         std::string filePath = "external:.\\" + mRowNames.at(colIdx) + "/detail.xlsx";
-        worksheet_write_url(worksheet, headerColumnRowOffset, colIdx + colOffset, filePath.data(), NULL);
+
+        worksheet_write_url(worksheet, headerColumnRowOffset, colIdx + colOffset, filePath.data(),
+                            imageHeaderHyperlinkFormat);
         worksheet_write_string(worksheet, headerColumnRowOffset, colIdx + colOffset, mRowNames.at(colIdx).data(),
-                               header);
+                               imageHeaderHyperlinkFormat);
       } else {
         worksheet_write_string(worksheet, headerColumnRowOffset, colIdx + colOffset, std::to_string(colIdx).data(),
-                               header);
+                               imageHeaderHyperlinkFormat);
       }
-      worksheet_set_column(worksheet, colIdx + colOffset, colIdx + colOffset, 20, NULL);
+      worksheet_set_column(worksheet, colIdx + colOffset, colIdx + colOffset, 15, NULL);
     }
   }
 

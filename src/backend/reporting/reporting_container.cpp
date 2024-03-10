@@ -12,6 +12,7 @@
 ///
 
 #include "reporting_container.hpp"
+#include <xlsxwriter/format.h>
 #include "xlsxwriter.h"
 
 namespace joda::reporting {
@@ -21,7 +22,7 @@ ReportingContainer::ReportingContainer()
 }
 
 void ReportingContainer::flushReportToFile(const std::map<std::string, ReportingContainer> &containers,
-                                           std::string_view fileName, OutputFormat format)
+                                           const std::string &fileName, OutputFormat format)
 {
   lxw_workbook *workbook   = workbook_new(fileName.data());
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, NULL);
@@ -30,8 +31,17 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
   lxw_format *header = workbook_add_format(workbook);
   format_set_bold(header);
   format_set_pattern(header, LXW_PATTERN_SOLID);
-  format_set_bg_color(header, LXW_COLOR_YELLOW);
+  format_set_bg_color(header, 0x002242);
+  format_set_font_color(header, 0xFFFFFF);
   format_set_border(header, LXW_BORDER_THIN);
+
+  lxw_format *imageHeaderHyperlinkFormat = workbook_add_format(workbook);
+  format_set_bold(imageHeaderHyperlinkFormat);
+  format_set_pattern(imageHeaderHyperlinkFormat, LXW_PATTERN_SOLID);
+  format_set_bg_color(imageHeaderHyperlinkFormat, 0x002242);
+  format_set_font_color(imageHeaderHyperlinkFormat, 0xFFFFFF);
+  format_set_border(imageHeaderHyperlinkFormat, LXW_BORDER_THIN);
+  format_set_underline(imageHeaderHyperlinkFormat, LXW_UNDERLINE_SINGLE);
 
   // Define the cell format for the merged cells.
   lxw_format *merge_format = workbook_add_format(workbook);
@@ -39,7 +49,8 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
   format_set_align(merge_format, LXW_ALIGN_VERTICAL_CENTER);
   format_set_bold(merge_format);
   format_set_pattern(merge_format, LXW_PATTERN_SOLID);
-  format_set_bg_color(merge_format, LXW_COLOR_YELLOW);
+  format_set_bg_color(merge_format, 0x002242);
+  format_set_font_color(merge_format, 0xFFFFFF);
   format_set_border(merge_format, LXW_BORDER_THIN);
 
   // Number format
@@ -53,8 +64,9 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
     for(const auto &[idx, table] : table.mColumns) {
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
-        auto [colOffset, rowOffset] = table.flushReportToFileXlsxTransponded(
-            folderName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format, numberFormat);
+        auto [colOffset, rowOffset] =
+            table.flushReportToFileXlsxTransponded(folderName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet,
+                                                   header, merge_format, numberFormat, imageHeaderHyperlinkFormat);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }
@@ -72,13 +84,6 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
   }
 
   workbook_close(workbook);
-}
-
-// Return <collOFfset, rowOffset>
-void ReportingContainer::flushReportToFile(std::string_view fileName, OutputFormat format) const
-{
-  // std::map<std::string, ReportingContainer> data{{"", *this}};
-  // ReportingContainer::flushReportToFile(data, fileName, format);
 }
 
 }    // namespace joda::reporting

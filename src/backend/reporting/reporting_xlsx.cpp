@@ -16,12 +16,6 @@ std::tuple<int, int> Table::flushReportToFileXlsx(int colOffset, int /*rowOffset
                                                   lxw_format *header, lxw_format *merge_format,
                                                   lxw_format *numberFormat) const
 {
-  /* Set the bold property for the format */
-  format_set_bold(header);
-  format_set_pattern(header, LXW_PATTERN_SOLID);
-  format_set_bg_color(header, LXW_COLOR_YELLOW);
-  format_set_border(header, LXW_BORDER_THIN);
-
   int ROW_OFFSET = 2;
   int COL_OFFSET = colOffset + 1;
 
