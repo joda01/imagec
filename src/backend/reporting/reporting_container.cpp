@@ -34,6 +34,7 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
   format_set_bg_color(header, 0x002242);
   format_set_font_color(header, 0xFFFFFF);
   format_set_border(header, LXW_BORDER_THIN);
+  format_set_font_size(header, 10);
 
   lxw_format *imageHeaderHyperlinkFormat = workbook_add_format(workbook);
   format_set_bold(imageHeaderHyperlinkFormat);
@@ -42,6 +43,7 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
   format_set_font_color(imageHeaderHyperlinkFormat, 0xFFFFFF);
   format_set_border(imageHeaderHyperlinkFormat, LXW_BORDER_THIN);
   format_set_underline(imageHeaderHyperlinkFormat, LXW_UNDERLINE_SINGLE);
+  format_set_font_size(imageHeaderHyperlinkFormat, 10);
 
   // Define the cell format for the merged cells.
   lxw_format *merge_format = workbook_add_format(workbook);
@@ -52,10 +54,12 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
   format_set_bg_color(merge_format, 0x002242);
   format_set_font_color(merge_format, 0xFFFFFF);
   format_set_border(merge_format, LXW_BORDER_THIN);
+  format_set_font_size(merge_format, 10);
 
   // Number format
   lxw_format *numberFormat = workbook_add_format(workbook);
   format_set_num_format(numberFormat, "0.00");
+  format_set_font_size(numberFormat, 10);
 
   int colOffsetIn    = 0;
   int rowOffsetIn    = 0;
