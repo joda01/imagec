@@ -99,7 +99,9 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
   response.controlImage =
       cv::Mat::zeros(channelsToIntersect[0]->originalImage.rows, channelsToIntersect[0]->originalImage.cols, CV_32FC3);
 
+  id = DurationCount::start("intersect paint");
   joda::func::DetectionFunction::paintOverlay(response.controlImage, overlayPainting);
+  DurationCount::stop(id);
 
   return response;
 }

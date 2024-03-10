@@ -217,13 +217,13 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
 
       jint *data;
 
-      cv::Mat retValue = cv::Mat::zeros(cols, rows, CV_16UC1);
+      cv::Mat retValue = cv::Mat::zeros(rows, cols, CV_16UC1);
       for(int i = 0; i < rows; i++) {
         row  = (jintArray) myEnv->GetObjectArrayElement(result, i);
         cols = myEnv->GetArrayLength(row);
         data = myEnv->GetIntArrayElements(row, nullptr);
         for(int j = 0; j < cols; j++) {
-          retValue.at<uint16_t>(j, i) = (uint16_t) (data[j] & 0xFFFF);
+          retValue.at<uint16_t>(i, j) = (uint16_t) (data[j] & 0xFFFF);
         }
         myEnv->ReleaseIntArrayElements(row, data, JNI_ABORT);
       }

@@ -21,6 +21,7 @@ public:
   ReportingContainer();
   Table &getTableAt(int32_t key, const std::string &channelName)
   {
+    /// \todo Not thread safe
     if(!mColumns.contains(key)) {
       mColumns[key].setTableName(channelName);
     }

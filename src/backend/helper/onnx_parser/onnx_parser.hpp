@@ -44,20 +44,22 @@ public:
   static auto findOnnxFiles(const std::string &directory = "models") -> std::map<std::string, Data>
   {
     std::map<std::string, Data> onnxFiles;
-    for(const auto &entry : fs::recursive_directory_iterator(directory)) {
-      if(entry.is_regular_file() && entry.path().extension().string() == ".onnx") {
-        auto data = readMetaJson(entry.path().string());
+    if(fs::exists(directory) && fs::is_directory(directory)) {
+      for(const auto &entry : fs::recursive_directory_iterator(directory)) {
+        if(entry.is_regular_file() && entry.path().extension().string() == ".onnx") {
+          auto data = readMetaJson(entry.path().string());
 
-        std::ifstream inputFile(entry.path().string(), std::ios::binary);
-        //::onnx::ModelProto model;
-        // model.ParseFromIstream(&inputFile);
-        //
-        //// Read and print class names from the ONNX model
-        // readClassNames(model);
+          std::ifstream inputFile(entry.path().string(), std::ios::binary);
+          //::onnx::ModelProto model;
+          // model.ParseFromIstream(&inputFile);
+          //
+          //// Read and print class names from the ONNX model
+          // readClassNames(model);
 
-        if(!data.classes.empty()) {
+          if(!data.classes.empty()) {
+          }
+          onnxFiles.emplace(entry.path().string(), data);
         }
-        onnxFiles.emplace(entry.path().string(), data);
       }
     }
     return onnxFiles;
