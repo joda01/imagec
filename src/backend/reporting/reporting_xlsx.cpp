@@ -39,7 +39,7 @@ std::tuple<int, int> Table::flushReportToFileXlsx(int colOffset, int /*rowOffset
     } else {
       worksheet_write_string(worksheet, 1, colIdx + COL_OFFSET, std::to_string(colIdx).data(), header);
     }
-    worksheet_set_column(worksheet, colIdx + COL_OFFSET, colIdx + COL_OFFSET, 20, NULL);
+    worksheet_set_column(worksheet, colIdx + COL_OFFSET, colIdx + COL_OFFSET, 10, NULL);
   }
 
   worksheet_set_column(worksheet, 0, 0, 10, NULL);
