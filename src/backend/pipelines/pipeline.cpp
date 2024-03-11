@@ -419,6 +419,7 @@ void Pipeline::appendToAllOverReport(std::map<std::string, joda::reporting::Repo
                          {6, detailedReport.getTableAt(tempChannelIdx)
                                  .getColumnNameAt(static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY))}});
 
+    /// \todo Copy constructor ia called here
     auto colStatistics = detailedReport.getTableAt(tempChannelIdx)
                              .getStatistics(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
     allOverReport[imagePath]

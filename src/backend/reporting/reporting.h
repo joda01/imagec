@@ -18,6 +18,7 @@
 #include <cmath>
 #include <cstdint>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -41,10 +42,30 @@ class Statistics
 public:
   /////////////////////////////////////////////////////
   static constexpr int NR_OF_VALUE = 6;
+  Statistics()                     = default;
+  ~Statistics()                    = default;
+  /// \todo mark copy constructor as deleted
+  Statistics(const Statistics &other) :
+      mNr(other.mNr), mInvalid(other.mInvalid), mSum(other.mSum), mMin(other.mMin), mMax(other.mMax), mMean(other.mMean)
+  {
+  }
+
+  Statistics &operator=(const Statistics other)
+  {
+    mNr      = other.mNr;
+    mInvalid = other.mInvalid;
+    mSum     = other.mSum;
+    mMin     = other.mMin;
+    mMax     = other.mMax;
+    mMean    = other.mMean;
+
+    return *this;
+  }
 
   /////////////////////////////////////////////////////
   void addValue(float val)
   {
+    std::lock_guard<std::mutex> lock(mAddMutex);
     if(mNr == 0) {
       mMin = val;
       mMax = val;
@@ -55,11 +76,12 @@ public:
     mNr++;
 
     mSum += val;
-    mMean = mSum / mNr;
+    mMean = mSum / static_cast<float>(mNr);
   }
 
   void incrementInvalid()
   {
+    std::lock_guard<std::mutex> lock(mAddMutex);
     mInvalid++;
   }
 
@@ -113,6 +135,7 @@ private:
   float mMin        = 0;
   float mMax        = 0;
   float mMean       = 0;
+  std::mutex mAddMutex;
 };
 
 ///
