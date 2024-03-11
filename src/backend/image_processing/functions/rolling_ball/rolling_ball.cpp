@@ -144,7 +144,7 @@ void RollingBallBackground::execute(cv::Mat &ip) const
   cv::Mat fp;
   ip.convertTo(fp, CV_32FC1);
   if(useParaboloid) {
-    slidingParaboloidFloatBackground(ip, (float) radius, invert, doPresmooth, correctCorners);
+    slidingParaboloidFloatBackground(fp, (float) radius, invert, doPresmooth, correctCorners);
   } else {
     rollingBallFloatBackground(fp, radius, invert, doPresmooth, ball);
   }
