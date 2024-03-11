@@ -127,17 +127,17 @@ public:
     return intensityMax;
   }
 
-  [[nodiscard]] auto getAreaSize() const
+  [[nodiscard]] uint64_t getAreaSize() const
   {
     return areaSize;
   }
 
-  [[nodiscard]] auto getCircularity() const
+  [[nodiscard]] float getCircularity() const
   {
     return circularity;
   }
 
-  [[nodiscard]] auto getPerimeter() const
+  [[nodiscard]] float getPerimeter() const
   {
     return perimeter;
   }
@@ -187,7 +187,7 @@ private:
   double intensityMin       = 0;    ///< Min intensity of the masking area
   double intensityMax       = 0;    ///< Max intensity of the masking area
   uint64_t areaSize         = 0;    ///< size of the masking area [px^2 / px^3]
-  double perimeter          = 0;    ///< Perimter (boundary size) [px]
+  float perimeter           = 0;    ///< Perimter (boundary size) [px]
   float circularity         = 0;    ///< Circularity of the masking area [0-1]
   ParticleValidity validity = ParticleValidity::UNKNOWN;
   bool mHasSnapArea         = false;

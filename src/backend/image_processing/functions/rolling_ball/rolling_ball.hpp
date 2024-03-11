@@ -34,8 +34,15 @@ class RollingBall;
 class RollingBallBackground : public Function
 {
 public:
+  enum class Configuration
+  {
+    BALL,
+    PARABOLOID
+  };
+
   /////////////////////////////////////////////////////
-  explicit RollingBallBackground(float ballSize = 50.0F) : radius(ballSize)
+  explicit RollingBallBackground(Configuration slidingParaboloid, float ballSize = 50.0F) :
+      mUseSlidingParaboloid(slidingParaboloid == Configuration::PARABOLOID), radius(ballSize)
   {
   }
 
@@ -44,11 +51,22 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  static int constexpr MAXIMUM = 0;
-  static int constexpr MEAN    = 1;    // filter types of filter3x3
+  static int constexpr MAXIMUM     = 0;
+  static int constexpr MEAN        = 1;    // filter types of filter3x3
+  static int constexpr X_DIRECTION = 0, Y_DIRECTION = 1, DIAGONAL_1A = 2, DIAGONAL_1B = 3, DIAGONAL_2A = 4,
+                       DIAGONAL_2B = 5;    // filter directions
 
   /////////////////////////////////////////////////////
   void rollingBallFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth, RollingBall *ball) const;
+
+  void slidingParaboloidFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth,
+                                        bool correctCorners) const;
+
+  void correctCorners(cv::Mat &fp, float coeff2, float *cache, int *nextPoint) const;
+  void filter1D(cv::Mat &fp, int direction, float coeff2, float *cache, int *nextPoint) const;
+  float *lineSlideParabola(cv::Mat &pixels, int start, int inc, int length, float coeff2, float *cache, int *nextPoint,
+                           float *correctedEdges) const;
+
   cv::Mat shrinkImage(const cv::Mat &ip, int shrinkFactor) const;
   void enlargeImage(const cv::Mat &smallImage, cv::Mat &fp, int shrinkFactor) const;
   void rollBall(RollingBall *ball, cv::Mat &fp) const;
@@ -59,6 +77,7 @@ private:
   // void setNPasses(int nPasses);
 
   /////////////////////////////////////////////////////
+  bool mUseSlidingParaboloid = false;
   const float radius;
   const bool lightBackground = false;
   const int nPasses          = 1;

@@ -129,9 +129,23 @@ class PreprocessingRollingBall final
 {
 public:
   int32_t value{0};
+  std::string mode;
+
+  [[nodiscard]] joda::func::img::RollingBallBackground::Configuration getBallType() const
+  {
+    if(!mode.empty()) {
+      if(mode == "BALL") {
+        return joda::func::img::RollingBallBackground::Configuration::BALL;
+      }
+      if(mode == "PARABOLOID") {
+        return joda::func::img::RollingBallBackground::Configuration::PARABOLOID;
+      }
+    }
+    return joda::func::img::RollingBallBackground::Configuration::BALL;
+  }
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingRollingBall, value);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PreprocessingRollingBall, value, mode);
 };
 
 class PreprocessingMarginCrop final
@@ -178,7 +192,7 @@ public:
     }
 
     if(rolling_ball.value > 0) {
-      joda::func::img::RollingBallBackground function(rolling_ball.value);
+      joda::func::img::RollingBallBackground function(rolling_ball.getBallType(), rolling_ball.value);
       function.execute(image);
     }
 

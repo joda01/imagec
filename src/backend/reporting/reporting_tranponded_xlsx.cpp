@@ -2,6 +2,7 @@
 
 #include <xlsxwriter/worksheet.h>
 #include <string>
+#include <unordered_map>
 #include "reporting.h"
 #include "xlsxwriter.h"
 
@@ -18,12 +19,26 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
                                                              lxw_format *numberFormat,
                                                              lxw_format *imageHeaderHyperlinkFormat) const
 {
+  //
   // Sort rows
-  // std::map<std::string, uint64_t> sortedRow;
-  // for(const auto &[idx, name] : mRowNames) {
-  //  sortedRow.emplace(name, idx);
-  //}
+  //
+  std::map<std::string, uint64_t> sortedRow;
+  for(const auto &[idx, name] : mRowNames) {
+    sortedRow.emplace(name, idx);
+  }
 
+  std::vector<uint64_t> indexMapping(sortedRow.size());
+  uint64_t cnt = 0;
+  for(const auto &[_, idx] : sortedRow) {
+    indexMapping[cnt] = idx;
+    cnt++;
+  }
+
+  auto getIndexOfSortedMap = [&indexMapping](int idx) { return indexMapping[idx]; };
+
+  //
+  //
+  //
   bool WRITE_HEADER_FOR_EACH_CHANNEL = false;
 
   colOffset = 2;
@@ -68,19 +83,19 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
   //
   int headerColumnRowOffset = rowOffset;
   if(headerColumnRowOffset == startRow || WRITE_HEADER_FOR_EACH_CHANNEL) {
-    for(int32_t colIdx = 0; colIdx < getNrOfRows(); colIdx++) {
-      if(mRowNames.contains(colIdx)) {
-        std::string filePath = "external:.\\" + mRowNames.at(colIdx) + "/detail.xlsx";
+    for(int32_t rowIndex = 0; rowIndex < getNrOfRows(); rowIndex++) {
+      if(mRowNames.contains(getIndexOfSortedMap(rowIndex))) {
+        std::string filePath = "external:.\\" + mRowNames.at(getIndexOfSortedMap(rowIndex)) + "/detail.xlsx";
 
-        worksheet_write_url(worksheet, headerColumnRowOffset, colIdx + colOffset, filePath.data(),
+        worksheet_write_url(worksheet, headerColumnRowOffset, rowIndex + colOffset, filePath.data(),
                             imageHeaderHyperlinkFormat);
-        worksheet_write_string(worksheet, headerColumnRowOffset, colIdx + colOffset, mRowNames.at(colIdx).data(),
-                               imageHeaderHyperlinkFormat);
+        worksheet_write_string(worksheet, headerColumnRowOffset, rowIndex + colOffset,
+                               mRowNames.at(getIndexOfSortedMap(rowIndex)).data(), imageHeaderHyperlinkFormat);
       } else {
-        worksheet_write_string(worksheet, headerColumnRowOffset, colIdx + colOffset, std::to_string(colIdx).data(),
-                               imageHeaderHyperlinkFormat);
+        worksheet_write_string(worksheet, headerColumnRowOffset, rowIndex + colOffset,
+                               std::to_string(getIndexOfSortedMap(rowIndex)).data(), imageHeaderHyperlinkFormat);
       }
-      worksheet_set_column(worksheet, colIdx + colOffset, colIdx + colOffset, 15, NULL);
+      worksheet_set_column(worksheet, rowIndex + colOffset, rowIndex + colOffset, 15, NULL);
     }
   }
 
@@ -112,15 +127,16 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
   //
   // Write table data
   //
-  for(int64_t colIdx = 0; colIdx < getNrOfRows(); colIdx++) {
-    for(int64_t rowIdx = 0; rowIdx < columns; rowIdx++) {
-      if(mTable.contains(rowIdx) && mTable.at(rowIdx).contains(colIdx)) {
-        if(!mTable.at(rowIdx).at(colIdx).validity.has_value()) {
-          worksheet_write_number(worksheet, rowOffset + rowIdx, colIdx + colOffset, mTable.at(rowIdx).at(colIdx).value,
-                                 numberFormat);
+  for(int64_t rowIndex = 0; rowIndex < getNrOfRows(); rowIndex++) {
+    for(int64_t colIndex = 0; colIndex < columns; colIndex++) {
+      if(mTable.contains(colIndex) && mTable.at(colIndex).contains(getIndexOfSortedMap(rowIndex))) {
+        if(!mTable.at(colIndex).at(rowIndex).validity.has_value()) {
+          worksheet_write_number(worksheet, rowOffset + colIndex, rowIndex + colOffset,
+                                 mTable.at(colIndex).at(getIndexOfSortedMap(rowIndex)).value, numberFormat);
         } else {
-          worksheet_write_string(worksheet, rowOffset + rowIdx, colIdx + colOffset,
-                                 validityToString(mTable.at(rowIdx).at(colIdx).validity.value()).data(), NULL);
+          worksheet_write_string(
+              worksheet, rowOffset + colIndex, rowIndex + colOffset,
+              validityToString(mTable.at(colIndex).at(getIndexOfSortedMap(rowIndex)).validity.value()).data(), NULL);
         }
       } else {
         // Empty table entry

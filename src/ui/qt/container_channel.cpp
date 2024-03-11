@@ -34,170 +34,171 @@ namespace joda::ui::qt {
 ///
 ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowMain)
 {
-  mChannelName = std::shared_ptr<ContainerFunction<QString>>(
-      new ContainerFunction<QString>("icons8-text-50.png", "Name", "Channel Name", "Name"));
+  mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(
+      new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name"));
 
-  mChannelIndex = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>("icons8-layers-50.png", "Index",
-                                                                                     "Channel index", "", 0,
-                                                                                     {{0, "Channel 0"},
-                                                                                      {1, "Channel 1"},
-                                                                                      {2, "Channel 2"},
-                                                                                      {3, "Channel 3"},
-                                                                                      {4, "Channel 4"},
-                                                                                      {5, "Channel 5"},
-                                                                                      {6, "Channel 6"},
-                                                                                      {7, "Channel 7"},
-                                                                                      {8, "Channel 8"},
-                                                                                      {9, "Channel 9"},
-                                                                                      {10, "Channel 10"},
-                                                                                      {11, "Channel 11"},
-                                                                                      {12, "Channel 12"}}));
+  mChannelIndex = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-layers-50.png", "Index", "Channel index", "", 0,
+                                      {{0, "Channel 0"},
+                                       {1, "Channel 1"},
+                                       {2, "Channel 2"},
+                                       {3, "Channel 3"},
+                                       {4, "Channel 4"},
+                                       {5, "Channel 5"},
+                                       {6, "Channel 6"},
+                                       {7, "Channel 7"},
+                                       {8, "Channel 8"},
+                                       {9, "Channel 9"},
+                                       {10, "Channel 10"},
+                                       {11, "Channel 11"},
+                                       {12, "Channel 12"}}));
 
-  mChannelType = std::shared_ptr<ContainerFunction<QString>>(
-      new ContainerFunction<QString>("icons8-unknown-status-50.png", "Type", "Channel type", "", "SPOT",
-                                     {{"SPOT", "Spot"},
-                                      {"SPOT_REFERENCE", "Reference Spot"},
-                                      {"NUCLEUS", "Nucleus"},
-                                      {"CELL", "Cell"},
-                                      {"BACKGROUND", "Background"}}));
+  mChannelType = std::shared_ptr<ContainerFunction<QString, QString>>(
+      new ContainerFunction<QString, QString>("icons8-unknown-status-50.png", "Type", "Channel type", "", "SPOT",
+                                              {{"SPOT", "Spot"},
+                                               {"SPOT_REFERENCE", "Reference Spot"},
+                                               {"NUCLEUS", "Nucleus"},
+                                               {"CELL", "Cell"},
+                                               {"BACKGROUND", "Background"}}));
 
-  mUsedDetectionMode = std::shared_ptr<ContainerFunction<QString>>(
-      new ContainerFunction<QString>("icons8-mesh-50.png", "Threshold", "Detection mode", "", "THRESHOLD",
-                                     {{"THRESHOLD", "Threshold"}, {"AI", "Artificial intelligence"}}));
+  mUsedDetectionMode = std::shared_ptr<ContainerFunction<QString, QString>>(
+      new ContainerFunction<QString, QString>("icons8-mesh-50.png", "Threshold", "Detection mode", "", "THRESHOLD",
+                                              {{"THRESHOLD", "Threshold"}, {"AI", "Artificial intelligence"}}));
 
-  mThresholdAlgorithm = std::shared_ptr<ContainerFunction<QString>>(
-      new ContainerFunction<QString>("icons8-ksi-50.png", "Threshold", "Threshold algorithm", "", "MANUAL",
-                                     {{"MANUAL", "Manual"},
-                                      {"LI", "Li"},
-                                      {"MIN_ERROR", "Min. error"},
-                                      {"TRIANGLE", "Triangle"},
-                                      {"MOMENTS", "Moments"}}));
+  mThresholdAlgorithm = std::shared_ptr<ContainerFunction<QString, QString>>(
+      new ContainerFunction<QString, QString>("icons8-ksi-50.png", "Threshold", "Threshold algorithm", "", "MANUAL",
+                                              {{"MANUAL", "Manual"},
+                                               {"LI", "Li"},
+                                               {"MIN_ERROR", "Min. error"},
+                                               {"TRIANGLE", "Triangle"},
+                                               {"MOMENTS", "Moments"}}));
 
-  mThresholdValueMin = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "px", 1000, 0, 65535));
+  mThresholdValueMin = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
+      "icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "px", 1000, 0, 65535));
 
-  mMinProbability = std::shared_ptr<ContainerFunction<float>>(
-      new ContainerFunction<float>("icons8-percentage-50.png", "[0 - 1]", "Min. probability", "%", 0.5, 0, 1));
+  mMinProbability = std::shared_ptr<ContainerFunction<float, float>>(
+      new ContainerFunction<float, float>("icons8-percentage-50.png", "[0 - 1]", "Min. probability", "%", 0.5, 0, 1));
 
   auto foundAIModels = joda::onnx::Onnx::findOnnxFiles();
-  std::vector<ContainerFunction<QString>::ComboEntry> aiModelsConverted;
+  std::vector<ContainerFunction<QString, QString>::ComboEntry> aiModelsConverted;
   aiModelsConverted.reserve(foundAIModels.size());
   for(const auto &[path, model] : foundAIModels) {
-    aiModelsConverted.push_back(ContainerFunction<QString>::ComboEntry{.key = path.data(), .label = path.data()});
+    aiModelsConverted.push_back(
+        ContainerFunction<QString, QString>::ComboEntry{.key = path.data(), .label = path.data()});
   }
 
-  mAIModels = std::shared_ptr<ContainerFunction<QString>>(
-      new ContainerFunction<QString>("icons8-mind-map-50.png", "AI model", "AI model", "", "", aiModelsConverted));
+  mAIModels = std::shared_ptr<ContainerFunction<QString, QString>>(new ContainerFunction<QString, QString>(
+      "icons8-mind-map-50.png", "AI model", "AI model", "", "", aiModelsConverted));
 
-  mMinCircularity = std::shared_ptr<ContainerFunction<float>>(
-      new ContainerFunction<float>("icons8-ellipse-50.png", "[0 - 1]", "Min. circularity", "%", std::nullopt, 0, 1));
+  mMinCircularity = std::shared_ptr<ContainerFunction<float, float>>(new ContainerFunction<float, float>(
+      "icons8-ellipse-50.png", "[0 - 1]", "Min. circularity", "%", std::nullopt, 0, 1));
 
-  mMinParticleSize = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
-                                 "Min. particle size", "px", 1, 0, INT32_MAX));
-  mMaxParticleSize = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
-                                 "Max. particle size", "px", std::nullopt, 0, INT32_MAX));
+  mMinParticleSize = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
+                                      "Min. particle size", "px", 1, 0, INT32_MAX));
+  mMaxParticleSize = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
+                                      "Max. particle size", "px", std::nullopt, 0, INT32_MAX));
 
-  mSnapAreaSize = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>(
+  mSnapAreaSize = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
       "icons8-initial-state-50.png", "[0 - 65535]", "Snap area size", "px", std::nullopt, 0, 65535));
 
-  mZProjection = std::shared_ptr<ContainerFunction<QString>>(new ContainerFunction<QString>(
+  mZProjection = std::shared_ptr<ContainerFunction<QString, QString>>(new ContainerFunction<QString, QString>(
       "icons8-layers-50.png", "Z-Projection", "Z-Projection", "", "OFF",
       {{"OFF", "Off"}, {"MAX_INTENSITY", "Max. intensity"}, {"PROJECTION_3D", "3D projection"}}));
 
-  mMarginCrop = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-crop-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Crop margin", "px",
-                                 std::nullopt, 0, INT32_MAX));
-  mSubtractChannel = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-layers-50.png", "Index", "Subtract other channel", "", -1,
-                                 {{-1, "Off"},
-                                  {0, "Channel 0"},
-                                  {1, "Channel 1"},
-                                  {2, "Channel 2"},
-                                  {3, "Channel 3"},
-                                  {4, "Channel 4"},
-                                  {5, "Channel 5"},
-                                  {6, "Channel 6"},
-                                  {7, "Channel 7"},
-                                  {8, "Channel 8"},
-                                  {9, "Channel 9"},
-                                  {10, "Channel 10"},
-                                  {11, "Channel 11"},
-                                  {12, "Channel 12"}}));
+  mMarginCrop = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-crop-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Crop margin",
+                                      "px", std::nullopt, 0, INT32_MAX));
+  mSubtractChannel = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-layers-50.png", "Index", "Subtract other channel", "", -1,
+                                      {{-1, "Off"},
+                                       {0, "Channel 0"},
+                                       {1, "Channel 1"},
+                                       {2, "Channel 2"},
+                                       {3, "Channel 3"},
+                                       {4, "Channel 4"},
+                                       {5, "Channel 5"},
+                                       {6, "Channel 6"},
+                                       {7, "Channel 7"},
+                                       {8, "Channel 8"},
+                                       {9, "Channel 9"},
+                                       {10, "Channel 10"},
+                                       {11, "Channel 11"},
+                                       {12, "Channel 12"}}));
 
-  mMedianBackgroundSubtraction = std::shared_ptr<ContainerFunction<bool>>(
-      new ContainerFunction<bool>("icons8-baseline-50.png", "On/Off", "Median background subtraction", false));
-  mRollingBall = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-bubble-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Rolling ball",
-                                 "px", std::nullopt, 0, INT32_MAX));
+  mMedianBackgroundSubtraction = std::shared_ptr<ContainerFunction<bool, bool>>(
+      new ContainerFunction<bool, bool>("icons8-baseline-50.png", "On/Off", "Median background subtraction", false));
+  mRollingBall = std::shared_ptr<ContainerFunction<int, QString>>(new ContainerFunction<int, QString>(
+      "icons8-bubble-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Rolling ball", "px", std::nullopt, 0,
+      INT32_MAX, {{"BALL", "Ball"}, {"PARABOLOID", "Paraboloid"}}, "BALL"));
 
-  mGaussianBlur = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>(
+  mGaussianBlur = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
       "icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur", "px", -1,
       {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}}, {{1, "1x"}, {2, "2x"}, {3, "3x"}}, 1));
 
-  mSmoothing         = std::shared_ptr<ContainerFunction<int>>(new ContainerFunction<int>("icons8-cleanup-noise-50.png",
-                                                                                  "Kernel size", "Smoothing", "", -1,
-                                                                                  {{-1, "Off"},
-                                                                                           {1, "x1"},
-                                                                                           {2, "x2"},
-                                                                                           {3, "x3"},
-                                                                                           {4, "x4"},
-                                                                                           {5, "x5"},
-                                                                                           {6, "x6"},
-                                                                                           {7, "x7"},
-                                                                                           {8, "x8"},
-                                                                                           {9, "x9"}}));
-  mEdgeDetection     = std::shared_ptr<ContainerFunction<QString>>(new ContainerFunction<QString>(
+  mSmoothing = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-cleanup-noise-50.png", "Kernel size", "Smoothing", "", -1,
+                                      {{-1, "Off"},
+                                       {1, "x1"},
+                                       {2, "x2"},
+                                       {3, "x3"},
+                                       {4, "x4"},
+                                       {5, "x5"},
+                                       {6, "x6"},
+                                       {7, "x7"},
+                                       {8, "x8"},
+                                       {9, "x9"}}));
+  mEdgeDetection     = std::shared_ptr<ContainerFunction<QString, QString>>(new ContainerFunction<QString, QString>(
       "icons8-triangle-50.png", "Threshold", "Edge detection", "", "NONE",
       {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}, {{"XY", "xy"}, {"X", "x"}, {"Y", "y"}}, "XY"));
-  mTetraspeckRemoval = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-final-state-50.png", "Index", "Tetraspeck removal", "", -1,
-                                 {{-1, "Off"},
-                                  {0, "Channel 0"},
-                                  {1, "Channel 1"},
-                                  {2, "Channel 2"},
-                                  {3, "Channel 3"},
-                                  {4, "Channel 4"},
-                                  {5, "Channel 5"},
-                                  {6, "Channel 6"},
-                                  {7, "Channel 7"},
-                                  {8, "Channel 8"},
-                                  {9, "Channel 9"},
-                                  {10, "Channel 10"},
-                                  {11, "Channel 11"},
-                                  {12, "Channel 12"}}));
-  mColocGroupCellApproximation = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-query-outer-join-left-50.png", "Group", "Coloc group and min. overlap", "", -1,
-                                 {{-1, "Off"}, {0, "A"}, {1, "B"}, {3, "C"}}));
+  mTetraspeckRemoval = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-final-state-50.png", "Index", "Tetraspeck removal", "", -1,
+                                      {{-1, "Off"},
+                                       {0, "Channel 0"},
+                                       {1, "Channel 1"},
+                                       {2, "Channel 2"},
+                                       {3, "Channel 3"},
+                                       {4, "Channel 4"},
+                                       {5, "Channel 5"},
+                                       {6, "Channel 6"},
+                                       {7, "Channel 7"},
+                                       {8, "Channel 8"},
+                                       {9, "Channel 9"},
+                                       {10, "Channel 10"},
+                                       {11, "Channel 11"},
+                                       {12, "Channel 12"}}));
+  mColocGroupCellApproximation = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-query-outer-join-left-50.png", "Group", "Coloc group and min. overlap",
+                                      "", -1, {{-1, "Off"}, {0, "A"}, {1, "B"}, {3, "C"}}));
 
   //
   // Cell approximation
   //
-  mEnableCellApproximation = std::shared_ptr<ContainerFunction<bool>>(
-      new ContainerFunction<bool>("dom-voronoi-50.png", "On/Off", "Enable cell approximation.", false));
-  mMaxCellRadius = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
-                                 "Max. cell radius", "px", 100, 0, INT32_MAX));
+  mEnableCellApproximation = std::shared_ptr<ContainerFunction<bool, bool>>(
+      new ContainerFunction<bool, bool>("dom-voronoi-50.png", "On/Off", "Enable cell approximation.", false));
+  mMaxCellRadius = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
+                                      "Max. cell radius", "px", 100, 0, INT32_MAX));
 
   //
   // Coloc
   //
-  mColocGroup = std::shared_ptr<ContainerFunction<int>>(
-      new ContainerFunction<int>("icons8-query-outer-join-left-50.png", "Group", "Coloc group and min. overlap", "", -1,
-                                 {{-1, "Off"}, {0, "A"}, {1, "B"}, {3, "C"}},
-                                 {{0, "0%"},
-                                  {10, "10%"},
-                                  {20, "20%"},
-                                  {30, "30%"},
-                                  {40, "40%"},
-                                  {50, "50%"},
-                                  {60, "60%"},
-                                  {70, "70%"},
-                                  {80, "80%"},
-                                  {90, "90%"},
-                                  {100, "100%"}},
-                                 80));
+  mColocGroup = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-query-outer-join-left-50.png", "Group", "Coloc group and min. overlap",
+                                      "", -1, {{-1, "Off"}, {0, "A"}, {1, "B"}, {3, "C"}},
+                                      {{0, "0%"},
+                                       {10, "10%"},
+                                       {20, "20%"},
+                                       {30, "30%"},
+                                       {40, "40%"},
+                                       {50, "50%"},
+                                       {60, "60%"},
+                                       {70, "70%"},
+                                       {80, "80%"},
+                                       {90, "90%"},
+                                       {100, "100%"}},
+                                      80));
 
   //
   // Create panels -> Must be after creating the functions
@@ -263,6 +264,7 @@ void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chS
     }
     if(prepro.getRollingBall()) {
       mRollingBall->setValue(prepro.getRollingBall()->value);
+      mRollingBall->setValueSecond(prepro.getRollingBall()->mode.data());
     }
     if(prepro.getMarginCrop()) {
       mMarginCrop->setValue(prepro.getMarginCrop()->value);
@@ -349,7 +351,9 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
   }
 
   if(mRollingBall->hasValue()) {
-    jsonArray.push_back({{"rolling_ball", {{"value", static_cast<int>(mRollingBall->getValue())}}}});
+    jsonArray.push_back({{"rolling_ball",
+                          {{"value", static_cast<int>(mRollingBall->getValue())},
+                           {"mode", mRollingBall->getValueSecond().toStdString()}}}});
   }
 
   if(mGaussianBlur->hasValue()) {

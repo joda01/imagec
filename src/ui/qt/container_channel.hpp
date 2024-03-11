@@ -107,38 +107,38 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::shared_ptr<ContainerFunction<QString>> mChannelName;
-  std::shared_ptr<ContainerFunction<int>> mChannelIndex;
-  std::shared_ptr<ContainerFunction<QString>> mChannelType;
+  std::shared_ptr<ContainerFunction<QString, QString>> mChannelName;
+  std::shared_ptr<ContainerFunction<int, int>> mChannelIndex;
+  std::shared_ptr<ContainerFunction<QString, QString>> mChannelType;
 
-  std::shared_ptr<ContainerFunction<QString>> mThresholdAlgorithm;
-  std::shared_ptr<ContainerFunction<int>> mThresholdValueMin;
-  std::shared_ptr<ContainerFunction<float>> mMinCircularity;
-  std::shared_ptr<ContainerFunction<int>> mMinParticleSize;
-  std::shared_ptr<ContainerFunction<int>> mMaxParticleSize;
-  std::shared_ptr<ContainerFunction<int>> mSnapAreaSize;
+  std::shared_ptr<ContainerFunction<QString, QString>> mThresholdAlgorithm;
+  std::shared_ptr<ContainerFunction<int, int>> mThresholdValueMin;
+  std::shared_ptr<ContainerFunction<float, float>> mMinCircularity;
+  std::shared_ptr<ContainerFunction<int, int>> mMinParticleSize;
+  std::shared_ptr<ContainerFunction<int, int>> mMaxParticleSize;
+  std::shared_ptr<ContainerFunction<int, int>> mSnapAreaSize;
 
-  std::shared_ptr<ContainerFunction<QString>> mZProjection;
-  std::shared_ptr<ContainerFunction<int>> mMarginCrop;
-  std::shared_ptr<ContainerFunction<int>> mSubtractChannel;
-  std::shared_ptr<ContainerFunction<bool>> mMedianBackgroundSubtraction;
-  std::shared_ptr<ContainerFunction<int>> mRollingBall;
-  std::shared_ptr<ContainerFunction<int>> mGaussianBlur;
-  std::shared_ptr<ContainerFunction<int>> mSmoothing;
-  std::shared_ptr<ContainerFunction<QString>> mEdgeDetection;
-  std::shared_ptr<ContainerFunction<int>> mTetraspeckRemoval;
+  std::shared_ptr<ContainerFunction<QString, QString>> mZProjection;
+  std::shared_ptr<ContainerFunction<int, int>> mMarginCrop;
+  std::shared_ptr<ContainerFunction<int, int>> mSubtractChannel;
+  std::shared_ptr<ContainerFunction<bool, bool>> mMedianBackgroundSubtraction;
+  std::shared_ptr<ContainerFunction<int, QString>> mRollingBall;
+  std::shared_ptr<ContainerFunction<int, int>> mGaussianBlur;
+  std::shared_ptr<ContainerFunction<int, int>> mSmoothing;
+  std::shared_ptr<ContainerFunction<QString, QString>> mEdgeDetection;
+  std::shared_ptr<ContainerFunction<int, int>> mTetraspeckRemoval;
 
-  std::shared_ptr<ContainerFunction<QString>> mUsedDetectionMode;
-  std::shared_ptr<ContainerFunction<float>> mMinProbability;
-  std::shared_ptr<ContainerFunction<QString>> mAIModels;
+  std::shared_ptr<ContainerFunction<QString, QString>> mUsedDetectionMode;
+  std::shared_ptr<ContainerFunction<float, float>> mMinProbability;
+  std::shared_ptr<ContainerFunction<QString, QString>> mAIModels;
 
   // Cell approximation//////////////////////////////////
-  std::shared_ptr<ContainerFunction<bool>> mEnableCellApproximation;
-  std::shared_ptr<ContainerFunction<int>> mMaxCellRadius;
-  std::shared_ptr<ContainerFunction<int>> mColocGroupCellApproximation;
+  std::shared_ptr<ContainerFunction<bool, bool>> mEnableCellApproximation;
+  std::shared_ptr<ContainerFunction<int, int>> mMaxCellRadius;
+  std::shared_ptr<ContainerFunction<int, int>> mColocGroupCellApproximation;
 
   // Colocalization//////////////////////////////////
-  std::shared_ptr<ContainerFunction<int>> mColocGroup;
+  std::shared_ptr<ContainerFunction<int, int>> mColocGroup;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

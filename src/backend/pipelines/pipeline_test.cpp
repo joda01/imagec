@@ -175,3 +175,22 @@ TEST_CASE("pipeline:test:spots:tetraspeck", "[pipeline_test_spots_tetraspeck]")
     sleep(2);
   }
 }
+
+///
+/// \brief  Spot test
+/// \author Joachim Danmayr
+///
+TEST_CASE("pipeline:test:svi_tanja", "[pipeline_test_svi_tanja]")
+{
+  BioformatsLoader::init();
+
+  joda::settings::json::AnalyzeSettings settings;
+  settings.loadConfigFromFile("test/test_svi_tanja/config.json");
+  joda::helper::ImageFileContainer imageFileContainer;
+  imageFileContainer.setWorkingDirectory("test/test_svi_tanja");
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_svi_tanja", &imageFileContainer);
+
+  while(true) {
+    sleep(2);
+  }
+}

@@ -137,7 +137,7 @@ void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::j
     cv::minMaxLoc(maskImg, &intensityMin, &intensityMax, nullptr, nullptr, mMask);
     perimeter = getTracedPerimeter(mMaskContours);
 
-    float dividend       = 4.0 * M_PI * static_cast<float>(areaSize);
+    float dividend       = 4.0F * M_PI * static_cast<float>(areaSize);
     float perimterSquare = static_cast<float>(perimeter) * static_cast<float>(perimeter);
     if(dividend < perimterSquare) {
       circularity = dividend / perimterSquare;
@@ -210,10 +210,10 @@ double ROI::getTracedPerimeter(const std::vector<cv::Point> &points) const
   int dy1      = points[0].y - points[nPoints - 1].y;
   int side1    = std::abs(dx1) + std::abs(dy1);    // one of these is 0
   bool corner  = false;
-  int nexti;
-  int dx2;
-  int dy2;
-  int side2;
+  int nexti    = 0;
+  int dx2      = 0;
+  int dy2      = 0;
+  int side2    = 0;
   for(int i = 0; i < nPoints; i++) {
     int nexti = i + 1;
     if(nexti == nPoints)
@@ -226,14 +226,15 @@ double ROI::getTracedPerimeter(const std::vector<cv::Point> &points) const
     if(side1 > 1 || !corner) {
       corner = true;
       nCorners++;
-    } else
+    } else {
       corner = false;
+    }
     dx1   = dx2;
     dy1   = dy2;
     side1 = side2;
   }
 
-  return sumdx + sumdy - (nCorners * (2 - std::sqrt(2)));
+  return static_cast<float>(sumdx) + static_cast<float>(sumdy) - (static_cast<float>(nCorners) * (2.0F - std::sqrt(2)));
 }
 
 /** Returns the length of a polygon with integer coordinates. Uses no calibration if imp is null. */
@@ -369,7 +370,7 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
       }
       if(createRoi) {
         std::vector<std::vector<cv::Point>> contours;
-        std::vector<cv::Point> contour={};
+        std::vector<cv::Point> contour = {};
         cv::findContours(intersectedMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
         if(!contours.empty()) {
           contour = contours[0];
