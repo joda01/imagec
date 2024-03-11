@@ -3,11 +3,6 @@
 /// \author    Joachim Danmayr
 /// \date      2023-02-20
 ///
-/// \copyright Copyright 2019 Joachim Danmayr
-///            All rights reserved! This file is subject
-///            to the terms and conditions defined in file
-///            LICENSE.txt, which is part of this package.
-///
 /// \brief     C++ implementation of rolling ball algorithm based on
 ///            ImageJ rolling ball suggested by Michael Castle and Janice Keller
 ///            https://imagej.net/plugins/rolling-ball-background-subtraction
@@ -129,7 +124,6 @@ public:
 void RollingBallBackground::execute(cv::Mat &ip) const
 {
   // Settings
-  bool useParaboloid    = true;
   bool createBackground = false;
   bool doPresmooth      = true;
   bool correctCorners   = true;
@@ -137,13 +131,13 @@ void RollingBallBackground::execute(cv::Mat &ip) const
 
   ///////////////7
   RollingBall *ball = nullptr;
-  if(!useParaboloid) {
+  if(!mUseSlidingParaboloid) {
     ball = new RollingBall(radius);
   }
 
   cv::Mat fp;
   ip.convertTo(fp, CV_32FC1);
-  if(useParaboloid) {
+  if(mUseSlidingParaboloid) {
     slidingParaboloidFloatBackground(fp, (float) radius, invert, doPresmooth, correctCorners);
   } else {
     rollingBallFloatBackground(fp, radius, invert, doPresmooth, ball);

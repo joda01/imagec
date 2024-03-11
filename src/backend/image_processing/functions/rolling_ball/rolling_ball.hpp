@@ -34,8 +34,15 @@ class RollingBall;
 class RollingBallBackground : public Function
 {
 public:
+  enum class Configuration
+  {
+    BALL,
+    PARABOLOID
+  };
+
   /////////////////////////////////////////////////////
-  explicit RollingBallBackground(float ballSize = 50.0F) : radius(ballSize)
+  explicit RollingBallBackground(Configuration slidingParaboloid, float ballSize = 50.0F) :
+      mUseSlidingParaboloid(slidingParaboloid == Configuration::PARABOLOID), radius(ballSize)
   {
   }
 
@@ -70,6 +77,7 @@ private:
   // void setNPasses(int nPasses);
 
   /////////////////////////////////////////////////////
+  bool mUseSlidingParaboloid = false;
   const float radius;
   const bool lightBackground = false;
   const int nPasses          = 1;

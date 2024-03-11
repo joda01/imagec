@@ -1,14 +1,43 @@
 
+///
+/// \file      rolling_ball_sliding_paraboloid.cpp
+/// \author    Joachim Danmayr
+/// \date      2023-02-20
+///
+/// \brief     C++ implementation of rolling ball algorithm based on
+///            ImageJ rolling ball suggested by Michael Castle and Janice Keller
+///            https://imagej.net/plugins/rolling-ball-background-subtraction
+///
+///            ImageJ's Subtract Background command in version versions up to 1.39e,
+///            but with "preview" added and support for multiprocessor machines when
+///            processing stacks. This plugin does not support Float (32-bit) images.
+///            ImageJ uses a different algorithm since 1.39f (slighly modified in 1.39k).
+///
+///            This algorithm produces better results than the new ImageJ code for
+///            some 16-bit images, but it has the disadvantage of producing artifacts
+///            for many images if the ball radius is >=10.
+///
+///            Based on the NIH Image Pascal version by Michael Castle and Janice
+///            Keller of the University of Michigan Mental Health Research
+///            Institute. Rolling ball algorithm inspired by Stanley
+///            Sternberg's article, "Biomedical Image Processing",
+///            IEEE Computer, January 1983.
+///
+/// \ref       https://imagej.nih.gov/ij/source/ij/plugin/filter/BackgroundSubtracter.java
+/// \ref       https://github.com/imagej/ImageJ/blob/master/ij/plugin/filter/BackgroundSubtracter.java
+///
+
 #include <cfloat>
 #include <climits>
 #include "rolling_ball.hpp"
 
 namespace joda::func::img {
 
-//  S L I D E   P A R A B O L O I D   S E C T I O N
-
-/** Create background for a float image by sliding a paraboloid over
- * the image. */
+///
+/// \brief     Create background for a float image by sliding a paraboloid over the image
+/// \author
+/// \return
+///
 void RollingBallBackground::slidingParaboloidFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth,
                                                              bool correctCorners) const
 {
@@ -63,8 +92,12 @@ void RollingBallBackground::slidingParaboloidFloatBackground(cv::Mat &fp, float 
   delete[] nextPoint;
 }
 
-/** Filter by subtracting a sliding parabola for all lines in one direction, x, y or one of
- *  the two diagonal directions (diagonals are processed only for half the image per call). */
+///
+/// \brief     Filter by subtracting a sliding parabola for all lines in one direction, x, y or one of
+///            the two diagonal directions (diagonals are processed only for half the image per call).
+/// \author
+/// \return
+///
 void RollingBallBackground::filter1D(cv::Mat &fp, int direction, float coeff2, float *cache, int *nextPoint) const
 {
   int width     = fp.cols;
@@ -133,25 +166,25 @@ void RollingBallBackground::filter1D(cv::Mat &fp, int direction, float coeff2, f
   }
 }    // void filter1D
 
-/** Process one straight line in the image by sliding a parabola along the line
- *  (from the bottom) and setting the values to make all points reachable by
- *  the parabola
- * @param pixels    Image data, will be modified by parabolic interpolation
- *                  where the parabola does not touch.
- * @param start     Index of first pixel of the line in pixels array
- * @param inc       Increment of index in pixels array
- * @param length    Number of points the line consists of
- * @param coeff2    2nd order coefficient of the polynomial describing the parabola,
- *                  must be positive (although a parabola with negative curvature is
- *                  actually used)
- * @param cache     Work array, length at least <code>length</code>. Will usually remain
- *                  in the CPU cache and may therefore speed up the code.
- * @param nextPoint Work array. Will hold the index of the next point with sufficient local
- *                  curvature to get touched by the parabola.
- * @param correctedEdges Should be a 2-element array used for output or null.
- * @return          The correctedEdges array (if non-null on input) with the two estimated
- *                  edge pixel values corrected for edge particles.
- */
+/// \brief Process one straight line in the image by sliding a parabola along the line
+///        (from the bottom) and setting the values to make all points reachable by
+///        the parabola
+///  @param pixels    Image data, will be modified by parabolic interpolation
+///                   where the parabola does not touch.
+///  @param start     Index of first pixel of the line in pixels array
+///  @param inc       Increment of index in pixels array
+///  @param length    Number of points the line consists of
+///  @param coeff2    2nd order coefficient of the polynomial describing the parabola,
+///                   must be positive (although a parabola with negative curvature is
+///                   actually used)
+///  @param cache     Work array, length at least <code>length</code>. Will usually remain
+///                   in the CPU cache and may therefore speed up the code.
+///  @param nextPoint Work array. Will hold the index of the next point with sufficient local
+///                   curvature to get touched by the parabola.
+///  @param correctedEdges Should be a 2-element array used for output or null.
+///  @return          The correctedEdges array (if non-null on input) with the two estimated
+///                   edge pixel values corrected for edge particles.
+///
 float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int inc, int length, float coeff2,
                                                 float *cache, int *nextPoint, float *correctedEdges) const
 {
@@ -204,22 +237,27 @@ float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int 
           searchTo = maxSearch;
       }
     }
-    if(i1 == 0)
+    if(i1 == 0) {
       firstCorner = i2;
-    if(i2 == length - 1)
+    }
+    if(i2 == length - 1) {
       lastCorner = i1;
+    }
     /* interpolate between the two points where the parabola touches: */
-    for(int j = i1 + 1, p = start + j * inc; j < i2; j++, p += inc)
+    for(int j = i1 + 1, p = start + j * inc; j < i2; j++, p += inc) {
       pixels.at<float>(p) = v1 + (j - i1) * (minSlope - (j - i1) * coeff2);
+    }
     i1 = i2;    // continue from this new point
   }             // while (i1<length-1)
   /* Now calculate estimated edge values without an edge particle, allowing for vignetting
    * described as a 6th-order polynomial: */
   if(correctedEdges != NULL) {
-    if(4 * firstCorner >= length)
+    if(4 * firstCorner >= length) {
       firstCorner = 0;    // edge particles must be < 1/4 image size
-    if(4 * (length - 1 - lastCorner) >= length)
+    }
+    if(4 * (length - 1 - lastCorner) >= length) {
       lastCorner = length - 1;
+    }
     float v1 = cache[firstCorner];
     float v2 = cache[lastCorner];
     float slope =
@@ -244,10 +282,11 @@ float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int 
   return correctedEdges;
 }    // void lineSlideParabola
 
-/** Detect corner particles and adjust corner pixels if a particle is there.
- *  Analyzing the directions parallel to the edges and the diagonals, we
- *  average over the 3 correction values (found for the 3 directions)
- */
+///
+/// \brief Detect corner particles and adjust corner pixels if a particle is there.
+///        Analyzing the directions parallel to the edges and the diagonals, we
+///        average over the 3 correction values (found for the 3 directions)
+///
 void RollingBallBackground::correctCorners(cv::Mat &pixels, float coeff2, float *cache, int *nextPoint) const
 {
   int width             = pixels.cols;
@@ -279,18 +318,21 @@ void RollingBallBackground::correctCorners(cv::Mat &pixels, float coeff2, float 
   correctedEdges = lineSlideParabola(pixels, width * height - 1, -1 - width, diagLength, coeff2diag, cache, nextPoint,
                                      correctedEdges);
   corners[3] += correctedEdges[0];
-  if(pixels.at<float>(0) > corners[0] / 3)
+  if(pixels.at<float>(0) > corners[0] / 3) {
     pixels.at<float>(0) = corners[0] / 3;
-  if(pixels.at<float>(width - 1) > corners[1] / 3)
+  }
+  if(pixels.at<float>(width - 1) > corners[1] / 3) {
     pixels.at<float>(width - 1) = corners[1] / 3;
-  if(pixels.at<float>((height - 1) * width) > corners[2] / 3)
+  }
+  if(pixels.at<float>((height - 1) * width) > corners[2] / 3) {
     pixels.at<float>((height - 1) * width) = corners[2] / 3;
-  if(pixels.at<float>(width * height - 1) > corners[3] / 3)
+  }
+  if(pixels.at<float>(width * height - 1) > corners[3] / 3) {
     pixels.at<float>(width * height - 1) = corners[3] / 3;
-  // new ImagePlus("corner corrected",fp.duplicate()).show();
+  }
 
   delete[] corners;
   delete[] correctedEdges;
-}    // void correctCorners
+}
 
 }    // namespace joda::func::img

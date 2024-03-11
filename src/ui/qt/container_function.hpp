@@ -33,13 +33,19 @@ template <typename T>
 concept IntFloatConcept =
     std::same_as<T, int> || std::same_as<T, float> || std::same_as<T, bool> || std::same_as<T, QString>;
 
-template <IntFloatConcept VALUE_T>
+template <IntFloatConcept VALUE_T, IntFloatConcept VALUE2_T>
 class ContainerFunction : public ContainerFunctionBase
 {
 public:
   struct ComboEntry
   {
     VALUE_T key;
+    QString label;
+  };
+
+  struct ComboEntry2
+  {
+    VALUE2_T key;
     QString label;
   };
 
@@ -51,6 +57,18 @@ public:
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, defaultVal, minVal, maxVal);
+    comboxEditingFinished();
+  }
+
+  ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
+                    std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal,
+                    const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault,
+                    QWidget *parent = nullptr)
+    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>
+      : mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault)
+  {
+    createDisplayAbleWidget(icon, placeHolderText, helpText);
+    createEditableWidget(icon, placeHolderText, helpText, defaultVal, minVal, maxVal, unit, optionsSecond);
     comboxEditingFinished();
   }
 
@@ -77,7 +95,8 @@ public:
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
                     std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
-                    const std::vector<ComboEntry> &optionsSecond, VALUE_T comboSecondDefault, QWidget *parent = nullptr)
+                    const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault,
+                    QWidget *parent = nullptr)
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int>
       : mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault)
   {
@@ -186,8 +205,8 @@ public:
   /// \author     Joachim Danmayr
   /// \return
   ///
-  void setValueSecond(VALUE_T newValue)
-    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> || std::same_as<VALUE_T, QString>
+  void setValueSecond(VALUE2_T newValue)
+    requires std::same_as<VALUE2_T, int> || std::same_as<VALUE2_T, float> || std::same_as<VALUE2_T, QString>
   {
     if(mComboBoxSecond != nullptr) {
       auto idx = mComboBoxSecond->findData(newValue);
@@ -300,7 +319,7 @@ public:
   /// \return
   ///
   float getValueSecond()
-    requires std::same_as<VALUE_T, float>
+    requires std::same_as<VALUE2_T, float>
   {
     try {
       if(mComboBoxSecond != nullptr) {
@@ -318,7 +337,7 @@ public:
   /// \return
   ///
   int getValueSecond()
-    requires std::same_as<VALUE_T, int>
+    requires std::same_as<VALUE2_T, int>
   {
     try {
       if(mComboBoxSecond != nullptr) {
@@ -336,7 +355,7 @@ public:
   /// \return
   ///
   QString getValueSecond()
-    requires std::same_as<VALUE_T, QString>
+    requires std::same_as<VALUE2_T, QString>
   {
     try {
       if(mComboBoxSecond != nullptr) {
@@ -430,8 +449,108 @@ private:
   }
 
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
+                            std::optional<VALUE_T> defaultVal, VALUE_T min, VALUE_T max, const QString &unit,
+                            const std::vector<ComboEntry2> &optionsSecond)
+    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, bool>
+  {
+    mEditable = new QWidget();
+    mEditable->setObjectName("panelFunction");
+    mEditable->setStyleSheet(
+        "QLineEdit { border-radius: 4px; border: 1px solid rgba(32, 27, 23, 0.6); padding-top: 10px; padding-bottom: "
+        "10px;}"
+        "QComboBox {"
+        "   border: 1px solid rgba(32, 27, 23, 0.6);"
+        "   border-radius: 4px;"
+        "   padding-top: 10px;"
+        "   padding-bottom: 10px;"
+        "   padding-left: 10px;"
+        "   color: #333;"
+        "   background-color: #fff;"
+        "   selection-background-color: rgba(48,140,198,0.7);"
+        "}"
+        "QComboBox:editable {"
+        "   background: #fff;"
+        "   padding-left: 20px;"
+        "}"
+
+        "QComboBox::drop-down {"
+        "   subcontrol-origin: padding;"
+        "   subcontrol-position: right top;"
+        "   width: 20px;"
+        "   border-left: none;"
+        "   border-radius: 4px 4px 4px 4px;"
+        "   background: #fff;"
+        "}"
+
+        "QComboBox::down-arrow {"
+        "   image: url(:/icons/outlined/icons8-sort-down-50.png);"
+        "   width: 16px;"
+        "   background: #fff;"
+        "}"
+
+        "QComboBox::down-arrow:on {"
+        "   top: 1px;"
+        "}"
+
+        "QComboBox QAbstractItemView {"
+        "   border: none;"
+        "   background-color: #fff;"
+        "}"
+        "QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
+    QVBoxLayout *layoutVertical = new QVBoxLayout(mParent);
+    layoutVertical->setContentsMargins(8, 8, 8, 0);
+
+    QWidget *horizontaContainer   = new QWidget();
+    QHBoxLayout *layoutHorizontal = new QHBoxLayout(mParent);
+    layoutHorizontal->setContentsMargins(0, 0, 0, 0);
+    layoutHorizontal->setSpacing(4);
+
+    const QIcon myIcon(":/icons/outlined/" + icon);
+    mLineEdit = new QLineEdit();
+    QFont fontLineEdit;
+    fontLineEdit.setPixelSize(16);
+    mLineEdit->setFont(fontLineEdit);
+    mLineEdit->setClearButtonEnabled(true);
+    mLineEdit->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
+    mLineEdit->setPlaceholderText(placeHolderText);
+    layoutHorizontal->addWidget(mLineEdit);
+    // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);
+    connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingChanged);
+    connect(mLineEdit, &QLineEdit::returnPressed, this, &ContainerFunction::lineEditingChanged);
+
+    if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>) {
+      QValidator *validator;
+      if constexpr(std::same_as<VALUE_T, int>) {
+        validator = new QIntValidator(min, max, mLineEdit);
+      }
+      if constexpr(std::same_as<VALUE_T, float>) {
+        validator = new QDoubleValidator(min, max, 2, mLineEdit);
+        ((QDoubleValidator *) validator)->setLocale(QLocale::C);
+      }
+      mLineEdit->setValidator(validator);
+      if(defaultVal.has_value()) {
+        mLineEdit->setText(QString::number(defaultVal.value()));
+      }
+    } else {
+      if(defaultVal.has_value()) {
+        mLineEdit->setText(defaultVal.value());
+      }
+    }
+    lineEditingChanged();
+
+    if(!optionsSecond.empty()) {
+      layoutHorizontal->addWidget(createSecondCombo(optionsSecond));
+    }
+    horizontaContainer->setLayout(layoutHorizontal);
+    layoutVertical->addWidget(horizontaContainer);
+
+    createHelperText(layoutVertical, helpText);
+    mEditable->setLayout(layoutVertical);
+  }
+
+  void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
                             const QString &unit, const std::vector<ComboEntry> &options,
-                            const std::vector<ComboEntry> &optionsSecond, const std::optional<VALUE_T> &defaultVal)
+                            const std::vector<ComboEntry2> &optionsSecond, const std::optional<VALUE_T> &defaultVal)
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, bool>
   {
     mEditable = new QWidget();
@@ -531,7 +650,7 @@ private:
     layout->addWidget(helperText);
   }
 
-  QComboBox *createSecondCombo(const std::vector<ComboEntry> &optionsSecond)
+  QComboBox *createSecondCombo(const std::vector<ComboEntry2> &optionsSecond)
   {
     mComboBoxSecond = new QComboBox();
     mComboBoxSecond->setObjectName("SecondCombo");
@@ -559,7 +678,7 @@ private:
   /////////////////////////////////////////////////////
   QString mDisplayText = "";
   std::optional<VALUE_T> mDefaultValue;
-  VALUE_T mComboSecondDefaultValue;
+  VALUE2_T mComboSecondDefaultValue;
 
   /////////////////////////////////////////////////////
   QLineEdit *mLineEdit       = nullptr;
@@ -582,7 +701,7 @@ private slots:
         mDisplayText = "- " + mUnit;
       }
       updateDisplayText();
-      ContainerFunction<VALUE_T>::triggerValueChanged();
+      ContainerFunction<VALUE_T, VALUE2_T>::triggerValueChanged();
     }
   }
 
@@ -603,7 +722,7 @@ private slots:
         mDisplayText = mComboBox->currentText();
       }
       updateDisplayText();
-      ContainerFunction<VALUE_T>::triggerValueChanged();
+      ContainerFunction<VALUE_T, VALUE2_T>::triggerValueChanged();
     }
   }
 };
