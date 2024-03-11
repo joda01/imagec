@@ -33,7 +33,8 @@
         },
         {
             "rolling_ball": {
-                "value": 4
+                "value": 4,
+                "mode": "PARABOLOID"
             }
         },
         {
