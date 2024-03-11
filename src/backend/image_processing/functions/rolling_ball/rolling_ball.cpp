@@ -28,6 +28,7 @@
 ///            IEEE Computer, January 1983.
 ///
 /// \ref       https://imagej.nih.gov/ij/source/ij/plugin/filter/BackgroundSubtracter.java
+/// \ref       https://github.com/imagej/ImageJ/blob/master/ij/plugin/filter/BackgroundSubtracter.java
 ///
 
 #include "rolling_ball.hpp"
@@ -128,10 +129,10 @@ public:
 void RollingBallBackground::execute(cv::Mat &ip) const
 {
   // Settings
-  bool useParaboloid    = false;
+  bool useParaboloid    = true;
   bool createBackground = false;
   bool doPresmooth      = true;
-  bool correctCorners   = false;
+  bool correctCorners   = true;
   bool invert           = false;
 
   ///////////////7
@@ -143,7 +144,7 @@ void RollingBallBackground::execute(cv::Mat &ip) const
   cv::Mat fp;
   ip.convertTo(fp, CV_32FC1);
   if(useParaboloid) {
-    // slidingParaboloidFloatBackground(ip, (float) radius, invert, doPresmooth, correctCorners);
+    slidingParaboloidFloatBackground(ip, (float) radius, invert, doPresmooth, correctCorners);
   } else {
     rollingBallFloatBackground(fp, radius, invert, doPresmooth, ball);
   }
