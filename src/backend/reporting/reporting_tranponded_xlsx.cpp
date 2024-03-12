@@ -19,6 +19,8 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
                                                              lxw_format *numberFormat,
                                                              lxw_format *imageHeaderHyperlinkFormat) const
 {
+  const int STATISTIC_START_WITH_INDEX = 2;
+
   //
   // Sort rows
   //
@@ -56,26 +58,31 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
   //
   // Write statistics data
   //
-  for(int colIdx = 0; colIdx < Statistics::NR_OF_VALUE; colIdx++) {
-    if(rowOffset == startRow || WRITE_HEADER_FOR_EACH_CHANNEL) {
-      worksheet_write_string(worksheet, rowOffset, colIdx + colOffset, Statistics::getStatisticsTitle()[colIdx].data(),
-                             header);
-      worksheet_set_column(worksheet, colIdx + colOffset, colIdx + colOffset, 15, NULL);
-    }
+  {
+    int colIdx = 0;
 
-    for(int64_t rowIdx = 0; rowIdx < columns; rowIdx++) {
-      if(mStatistics.contains(rowIdx)) {
-        auto statistics = mStatistics.at(rowIdx);
-
-        worksheet_write_number(worksheet, rowOffset + rowIdx + 1, colIdx + colOffset,
-                               statistics.getStatistics()[colIdx], numberFormat);
-
-      } else {
+    for(int statColIdx = STATISTIC_START_WITH_INDEX; statColIdx < Statistics::NR_OF_VALUE; statColIdx++) {
+      if(rowOffset == startRow || WRITE_HEADER_FOR_EACH_CHANNEL) {
+        worksheet_write_string(worksheet, rowOffset, colIdx + colOffset,
+                               Statistics::getStatisticsTitle()[statColIdx].data(), header);
+        worksheet_set_column(worksheet, colIdx + colOffset, colIdx + colOffset, 15, NULL);
       }
+
+      for(int64_t rowIdx = 0; rowIdx < columns; rowIdx++) {
+        if(mStatistics.contains(rowIdx)) {
+          auto statistics = mStatistics.at(rowIdx);
+
+          worksheet_write_number(worksheet, rowOffset + rowIdx + 1, colIdx + colOffset,
+                                 statistics.getStatistics()[statColIdx], numberFormat);
+
+        } else {
+        }
+      }
+      colIdx++;
     }
   }
 
-  colOffset += (Statistics::NR_OF_VALUE + 1);
+  colOffset += (Statistics::NR_OF_VALUE - STATISTIC_START_WITH_INDEX + 1);
 
   //
   // Write image header

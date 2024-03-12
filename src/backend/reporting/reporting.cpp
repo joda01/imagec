@@ -113,6 +113,11 @@ auto Table::getStatistics(uint64_t colIdx) const -> const Statistics &
   }
 }
 
+bool Table::containsStatistics(uint64_t colIdx) const
+{
+  return mStatistics.contains(colIdx);
+}
+
 void Table::setRowName(uint64_t rowIdx, const std::string &name)
 {
   std::lock_guard<std::mutex> lock(mWriteMutex);

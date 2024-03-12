@@ -185,6 +185,7 @@ public:
       -> int64_t;
   auto getTable() const -> const Table_t &;
   auto getStatistics() const -> const std::map<uint64_t, Statistics> &;
+  bool containsStatistics(uint64_t colIdx) const;
   auto getStatistics(uint64_t colIdx) const -> const Statistics &;
   std::tuple<int, int> flushReportToFileXlsx(int colOffset, int /*rowOffset*/, lxw_worksheet *worksheet,
                                              lxw_format *header, lxw_format *merge_format,
