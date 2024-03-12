@@ -114,13 +114,13 @@ private:
   enum class ColumnIndexDetailedReport : int
   {
     CONFIDENCE    = 0,
-    INTENSITY     = 1,
-    INTENSITY_MIN = 2,
-    INTENSITY_MAX = 3,
-    AREA_SIZE     = 4,
-    PERIMETER     = 5,
-    CIRCULARITY   = 6,
-    VALIDITY      = 7
+    AREA_SIZE     = 1,
+    PERIMETER     = 2,
+    CIRCULARITY   = 3,
+    VALIDITY      = 4,
+    INTENSITY     = 5,
+    INTENSITY_MIN = 6,
+    INTENSITY_MAX = 7,
   };
   static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 8;
   static const int THREAD_POOL_BUFFER                         = 5;

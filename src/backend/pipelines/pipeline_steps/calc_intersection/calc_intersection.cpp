@@ -32,12 +32,15 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
   }
 
   std::vector<const joda::func::DetectionResponse *> channelsToIntersect;
+  std::map<int32_t, const cv::Mat *> channelsToIntersectImages;
+
   int idx1 = *mIndexesToIntersect.begin();
   int idx2 = *(std::next(mIndexesToIntersect.begin()));
 
   for(const auto idxToIntersect : mIndexesToIntersect) {
     if(detectionResultsIn.contains(idxToIntersect)) {
       channelsToIntersect.push_back(&detectionResultsIn.at(idxToIntersect));
+      channelsToIntersectImages.emplace(idxToIntersect, &detectionResultsIn.at(idxToIntersect).originalImage);
     }
   }
 
@@ -53,6 +56,7 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
   //
   // Calculate the intersection
   //
+  std::cout << "Calc intersection " << std::endl;
   std::vector<func::DetectionFunction::OverlaySettings> overlayPainting;
   joda::func::DetectionResponse response;
   response = *channelsToIntersect[0];
@@ -76,7 +80,7 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
     for(auto const &roi01 : response.result) {
       for(auto const &roi02 : ch1->result) {
         if(roi01.isValid() && roi02.isValid()) {
-          auto [colocROI, ok] = roi01.calcIntersection(roi02, ch1->originalImage, mMinIntersection);
+          auto [colocROI, ok] = roi01.calcIntersection(roi02, channelsToIntersectImages, mMinIntersection);
           // We only log the first occurency of intersestion. Intersection over more particles is not logged yet
           if(ok) {
             respTmp.result.push_back(colocROI);

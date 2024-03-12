@@ -45,15 +45,19 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
   } else {
     calculateSnapAreaAndContours(0, imageOriginal.cols, imageOriginal.rows);
   }
-  calculateMetrics(imageOriginal, filter);
+  calculateMetrics({{-1, &imageOriginal}}, filter);
 }
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-         const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal) :
+         const std::vector<cv::Point> &contour, const std::map<int32_t, const cv::Mat *> &imageOriginal) :
     index(index),
     confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask), mMaskContours(contour)
 {
-  calculateSnapAreaAndContours(0, imageOriginal.cols, imageOriginal.rows);
-  calculateMetrics(imageOriginal, nullptr);
+  if(imageOriginal.size() > 0) {
+    calculateSnapAreaAndContours(0, imageOriginal.begin()->second->cols, imageOriginal.begin()->second->rows);
+    calculateMetrics(imageOriginal, nullptr);
+  } else {
+    std::cout << "No original image given" << std::endl;
+  }
 }
 
 ///
@@ -128,13 +132,17 @@ void ROI::calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int
 ///
 /// \author     Joachim Danmayr
 ///
-void ROI::calculateMetrics(const cv::Mat &imageOriginal, const joda::settings::json::ChannelFiltering *filter)
+void ROI::calculateMetrics(const std::map<int32_t, const cv::Mat *> &imageOriginal,
+                           const joda::settings::json::ChannelFiltering *filter)
 {
   if(!imageOriginal.empty() && !mBoundingBox.empty() && !mMask.empty()) {
-    cv::Mat maskImg = imageOriginal(mBoundingBox);
-    areaSize        = cv::countNonZero(mMask);
-    intensity       = cv::mean(maskImg, mMask)[0];
-    cv::minMaxLoc(maskImg, &intensityMin, &intensityMax, nullptr, nullptr, mMask);
+    areaSize = cv::countNonZero(mMask);
+    for(const auto &[idx, img] : imageOriginal) {
+      cv::Mat maskImg          = (*img)(mBoundingBox);
+      intensity[idx].intensity = cv::mean(maskImg, mMask)[0];
+      cv::minMaxLoc(maskImg, &intensity[idx].intensityMin, &intensity[idx].intensityMax, nullptr, nullptr, mMask);
+    }
+
     perimeter = getTracedPerimeter(mMaskContours);
 
     float dividend       = 4.0F * M_PI * static_cast<float>(areaSize);
@@ -308,7 +316,8 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 
 [[nodiscard]] bool ROI::isIntersecting(const ROI &roi, float minIntersection) const
 {
-  auto [_, intersecting] = calcIntersection(roi, cv::Mat{}, minIntersection, false);
+  cv::Mat mat{};
+  auto [_, intersecting] = calcIntersection(roi, {{0, &mat}}, minIntersection, false);
   return intersecting;
 }
 
@@ -319,7 +328,8 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 /// \return     Intersection of the areas in percent
 ///
 
-[[nodiscard]] std::tuple<ROI, bool> ROI::calcIntersection(const ROI &roi, const cv::Mat &imageOriginal,
+[[nodiscard]] std::tuple<ROI, bool> ROI::calcIntersection(const ROI &roi,
+                                                          const std::map<int32_t, const cv::Mat *> &imageOriginal,
                                                           float minIntersection, bool createRoi) const
 {
   // Calculate the intersection of the bounding boxes
@@ -375,16 +385,19 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
         if(!contours.empty()) {
           contour = contours[0];
         }
+
         ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, contour, imageOriginal);
         if(intersectionArea < minIntersection) {
           intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
         }
         return {intersectionROI, true};
       }
-      return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{}, cv::Mat{}), true};
+      cv::Mat mat{};
+      return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{}, {{-1, &mat}}), true};
     }
   }
-  return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{}, cv::Mat{}), false};
+  cv::Mat mat{};
+  return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{}, {{-1, &mat}}), false};
 }
 
 }    // namespace joda::func

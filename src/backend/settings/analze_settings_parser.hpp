@@ -19,6 +19,8 @@
 #include <map>
 #include <optional>
 #include <set>
+#include <stdexcept>
+#include <string>
 #include <catch2/catch_config.hpp>
 #include <nlohmann/json.hpp>
 #include "channel_settings.hpp"
@@ -140,7 +142,16 @@ public:
 
   [[nodiscard]] auto getChannelByChannelIndex(uint32_t idx) const -> ChannelSettings
   {
+    if(!orderedChannelsByChannelIndex.contains(idx)) {
+      throw std::runtime_error("getChannelByChannelIndex: Channel with index >" + std::to_string(idx) +
+                               "< does not exist.");
+    }
     return orderedChannelsByChannelIndex.at(idx);
+  }
+
+  [[nodiscard]] auto getChannelNameOfIndex(uint32_t idx) const -> std::string
+  {
+    return getChannelByChannelIndex(idx).getChannelInfo().getName();
   }
 
   [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &

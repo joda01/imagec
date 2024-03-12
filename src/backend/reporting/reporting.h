@@ -173,6 +173,7 @@ public:
   /////////////////////////////////////////////////////
   void setTableName(const std::string &name);
   void setColumnNames(const std::map<uint64_t, std::string> &);
+  void setColumnName(uint64_t idx, const std::string &colName);
   const std::string &getTableName() const;
   auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
   void setRowName(uint64_t rowIdx, const std::string &);

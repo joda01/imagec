@@ -127,6 +127,12 @@ void Table::setColumnNames(const std::map<uint64_t, std::string> &colNames)
   }
 }
 
+void Table::setColumnName(uint64_t idx, const std::string &colName)
+{
+  std::lock_guard<std::mutex> lock(mWriteMutex);
+  mColumnName[idx] = colName;
+}
+
 auto Table::getColumnNameAt(uint64_t colIdx) const -> const std::string
 {
   return mColumnName.at(colIdx);

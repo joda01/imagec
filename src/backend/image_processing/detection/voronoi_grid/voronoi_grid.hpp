@@ -174,7 +174,7 @@ public:
         }
       }
 
-      ROI roi(i, 1, 0, box, boxMask, contours[idxMax], imgOriginal);
+      ROI roi(i, 1, 0, box, boxMask, contours[idxMax], {{-1, &imgOriginal}});
       response.result.push_back(roi);
     }
 
