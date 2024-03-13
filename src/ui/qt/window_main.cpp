@@ -62,6 +62,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 
   mMainThread = new std::thread(&WindowMain::waitForFileSearchFinished, this);
   connect(this, &WindowMain::lookingForFilesFinished, this, &WindowMain::onLookingForFilesFinished);
+  connect(this, &WindowMain::lookingForTemplateFinished, this, &WindowMain::onFindTemplatesFinished);
 }
 
 ///
@@ -273,6 +274,56 @@ QWidget *WindowMain::createAddChannelPanel()
   addChannelWidget->setLayout(layout);
   layout->setSpacing(0);
 
+  QWidget *widgetAddChannel     = new QWidget();
+  QHBoxLayout *layoutAddChannel = new QHBoxLayout();
+  layoutAddChannel->setContentsMargins(0, 0, 0, 0);
+  widgetAddChannel->setLayout(layoutAddChannel);
+
+  //
+  // Open template
+  //
+  mTemplateSelection = new QComboBox();
+  mTemplateSelection->setStyleSheet(
+      "QComboBox {"
+      "   border: 1px solid rgba(32, 27, 23, 0.6);"
+      "   border-radius: 4px;"
+      "   padding-top: 10px;"
+      "   padding-bottom: 10px;"
+      "   padding-left: 10px;"
+      "   color: #333;"
+      "   background-color: #fff;"
+      "   selection-background-color: rgba(48,140,198,0.7);"
+      "}"
+      "QComboBox:editable {"
+      "   background: #fff;"
+      "   padding-left: 20px;"
+      "}"
+
+      "QComboBox::drop-down {"
+      "   subcontrol-origin: padding;"
+      "   subcontrol-position: right top;"
+      "   width: 20px;"
+      "   border-left: none;"
+      "   border-radius: 4px 4px 4px 4px;"
+      "   background: #fff;"
+      "}"
+
+      "QComboBox::down-arrow {"
+      "   image: url(:/icons/outlined/icons8-sort-down-50.png);"
+      "   width: 16px;"
+      "   background: #fff;"
+      "}"
+
+      "QComboBox::down-arrow:on {"
+      "   top: 1px;"
+      "}"
+
+      "QComboBox QAbstractItemView {"
+      "   border: none;"
+      "   background-color: #fff;"
+      "}");
+  layoutAddChannel->addWidget(mTemplateSelection);
+
   //
   // Add channel
   //
@@ -283,7 +334,7 @@ QWidget *WindowMain::createAddChannelPanel()
       "   border: 1px solid rgb(111, 121, 123);"
       "   color: rgb(0, 104, 117);"
       "   padding: 10px 20px;"
-      "   border-radius: 12px;"
+      "   border-radius: 4px;"
       "   font-size: 14px;"
       "   font-weight: normal;"
       "   text-align: center;"
@@ -299,8 +350,9 @@ QWidget *WindowMain::createAddChannelPanel()
       "}");
   addChannelButton->setText("Add Channel");
   connect(addChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
-  layout->addWidget(addChannelButton);
+  layoutAddChannel->addWidget(addChannelButton);
 
+  layout->addWidget(widgetAddChannel);
   //
   // Open settings
   //
@@ -311,7 +363,7 @@ QWidget *WindowMain::createAddChannelPanel()
       "   border: 1px solid rgb(111, 121, 123);"
       "   color: rgb(0, 104, 117);"
       "   padding: 10px 20px;"
-      "   border-radius: 12px;"
+      "   border-radius: 4px;"
       "   font-size: 14px;"
       "   font-weight: normal;"
       "   text-align: center;"
@@ -329,35 +381,7 @@ QWidget *WindowMain::createAddChannelPanel()
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenSettingsClicked);
   layout->addWidget(openSettingsButton);
 
-  //
-  // Open template
-  //
-  QPushButton *openTemplate = new QPushButton();
-  openTemplate->setStyleSheet(
-      "QPushButton {"
-      "   background-color: rgba(0, 0, 0, 0);"
-      "   border: 1px solid rgb(111, 121, 123);"
-      "   color: rgb(0, 104, 117);"
-      "   padding: 10px 20px;"
-      "   border-radius: 12px;"
-      "   font-size: 14px;"
-      "   font-weight: normal;"
-      "   text-align: center;"
-      "   text-decoration: none;"
-      "}"
-
-      "QPushButton:hover {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-      "}"
-
-      "QPushButton:pressed {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-      "}");
-  openTemplate->setText("Open template");
-  connect(openTemplate, &QPushButton::pressed, this, &WindowMain::onOpenTemplateClicked);
-  layout->addWidget(openTemplate);
-
-  layout->setSpacing(4);    // Adjust this value as needed
+  layout->setSpacing(8);    // Adjust this value as needed
   layout->addStretch();
   addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
@@ -422,19 +446,8 @@ void WindowMain::onOpenSettingsClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onOpenTemplateClicked()
+ContainerChannel *WindowMain::addChannelFromTemplate(const QString &filePath)
 {
-  QString folderToOpen = QDir::homePath();
-  if(!mSelectedWorkingDirectory.isEmpty()) {
-    folderToOpen = mSelectedWorkingDirectory;
-  }
-  QString filePath =
-      QFileDialog::getOpenFileName(this, "Open template", "./templates", "JSON Files (*.json);;All Files (*)");
-
-  if(filePath.isEmpty()) {
-    return;
-  }
-
   try {
     settings::json::ChannelSettings settings;
     settings.loadConfigFromFile(filePath.toStdString());
@@ -449,6 +462,7 @@ void WindowMain::onOpenTemplateClicked()
     }
 
     newChannel->fromJson(settings, cellApprox, std::nullopt, std::nullopt);
+    return newChannel;
   } catch(const std::exception &ex) {
     if(mSelectedChannel != nullptr) {
       QMessageBox messageBox(this);
@@ -461,6 +475,7 @@ void WindowMain::onOpenTemplateClicked()
       auto reply = messageBox.exec();
     }
   }
+  return nullptr;
 }
 
 ///
@@ -487,6 +502,9 @@ void WindowMain::setWorkingDirectory(const std::string &workingDir)
 ///
 void WindowMain::waitForFileSearchFinished()
 {
+  auto result = settings::templates::TemplateParser::findTemplates();
+  emit lookingForTemplateFinished(result);
+
   while(true) {
     while(true) {
       {
@@ -690,6 +708,20 @@ void WindowMain::syncColocSettings()
 }
 
 ///
+/// \brief      Templates loaded from templates folder
+/// \author     Joachim Danmayr
+///
+void WindowMain::onFindTemplatesFinished(
+    std::map<std::string, joda::settings::templates::TemplateParser::Data> foundTemplates)
+{
+  mTemplateSelection->clear();
+  mTemplateSelection->addItem("Empty channel", "");
+  for(const auto &[_, data] : foundTemplates) {
+    mTemplateSelection->addItem(data.title.data(), data.path.data());
+  }
+}
+
+///
 /// \brief
 /// \author     Joachim Danmayr
 ///
@@ -798,7 +830,11 @@ ContainerChannel *WindowMain::addChannel()
 ///
 void WindowMain::onAddChannelClicked()
 {
-  addChannel();
+  if(mTemplateSelection->currentIndex() > 0) {
+    addChannelFromTemplate(mTemplateSelection->currentData().toString());
+  } else {
+    addChannel();
+  }
 }
 
 void WindowMain::removeChannel(ContainerChannel *toRemove)

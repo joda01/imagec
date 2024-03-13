@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include "backend/helper/template_parser/template_parser.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 #include "controller/controller.hpp"
 #include "ui/qt/helper/clickablelabel.hpp"
@@ -72,6 +73,7 @@ public:
   void fromJson(const settings::json::AnalyzeSettings &);
 signals:
   void lookingForFilesFinished();
+  void lookingForTemplateFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
 
 private:
   void createToolbar();
@@ -81,6 +83,8 @@ private:
   void waitForFileSearchFinished();
   void setWorkingDirectory(const std::string &workingDir);
   ContainerChannel *addChannel();
+  ContainerChannel *addChannelFromTemplate(const QString &pathToTemplate);
+
   void syncColocSettings();
 
   QStackedWidget *mStackedWidget;
@@ -91,6 +95,7 @@ private:
   joda::ctrl::Controller *mController;
   QComboBox *mFoundFilesCombo;
   QComboBox *mImageSeriesCombo;
+  QComboBox *mTemplateSelection;
   ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
   bool mNewFolderSelected = false;
@@ -125,7 +130,7 @@ private slots:
   QWidget *createAddChannelPanel();
   void onLookingForFilesFinished();
   void onOpenSettingsClicked();
-  void onOpenTemplateClicked();
+  void onFindTemplatesFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
 };
 
 }    // namespace joda::ui::qt
