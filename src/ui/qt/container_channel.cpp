@@ -37,22 +37,6 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
   mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(
       new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name"));
 
-  mChannelIndex = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-layers-50.png", "Index", "Channel index", "", 0,
-                                      {{0, "Channel 0"},
-                                       {1, "Channel 1"},
-                                       {2, "Channel 2"},
-                                       {3, "Channel 3"},
-                                       {4, "Channel 4"},
-                                       {5, "Channel 5"},
-                                       {6, "Channel 6"},
-                                       {7, "Channel 7"},
-                                       {8, "Channel 8"},
-                                       {9, "Channel 9"},
-                                       {10, "Channel 10"},
-                                       {11, "Channel 11"},
-                                       {12, "Channel 12"}}));
-
   mChannelType = std::shared_ptr<ContainerFunction<QString, QString>>(
       new ContainerFunction<QString, QString>("icons8-unknown-status-50.png", "Type", "Channel type", "", "SPOT",
                                               {{"SPOT", "Spot"},
@@ -61,9 +45,29 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                                {"CELL", "Cell"},
                                                {"BACKGROUND", "Background"}}));
 
-  mColor = std::shared_ptr<ContainerFunction<QString, QString>>(new ContainerFunction<QString, QString>(
-      "icons8-unknown-status-50.png", "Type", "Color", "", "Red",
-      {{"#FF0000", "Red"}, {"#00FF00", "Green"}, {"#0000FF", "Blue"}, {"#000000", "Violet"}, {"#000000", "Black"}}));
+  mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, int>>(
+      new ContainerFunction<QString, int>("icons8-unknown-status-50.png", "Type", "Channel index", "", "Red",
+                                          {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
+                                           {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
+                                           {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
+                                           {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
+                                           {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
+                                           {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
+                                           {"#000000", "", "icons8-bubble-50-black-#000000.png"}},
+                                          {{0, "Channel 0"},
+                                           {1, "Channel 1"},
+                                           {2, "Channel 2"},
+                                           {3, "Channel 3"},
+                                           {4, "Channel 4"},
+                                           {5, "Channel 5"},
+                                           {6, "Channel 6"},
+                                           {7, "Channel 7"},
+                                           {8, "Channel 8"},
+                                           {9, "Channel 9"},
+                                           {10, "Channel 10"},
+                                           {11, "Channel 11"},
+                                           {12, "Channel 12"}},
+                                          0));
 
   mUsedDetectionMode = std::shared_ptr<ContainerFunction<QString, QString>>(
       new ContainerFunction<QString, QString>("icons8-mesh-50.png", "Threshold", "Detection mode", "", "THRESHOLD",
@@ -231,9 +235,10 @@ void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chS
                                 std::optional<IntersectionRead> cellApproxIntersection)
 {
   // Meta
-  mChannelIndex->setValue(chSettings.getChannelInfo().getChannelIndex());
   mChannelType->setValue(QString(chSettings.getChannelInfo().getTypeString().data()));
   mChannelName->setValue(QString(chSettings.getChannelInfo().getName().data()));
+  mColorAndChannelIndex->setValue(QString(chSettings.getChannelInfo().getColor().data()));
+  mColorAndChannelIndex->setValueSecond(chSettings.getChannelInfo().getChannelIndex());
 
   mThresholdAlgorithm->clearValue();
   mThresholdValueMin->clearValue();
@@ -336,11 +341,12 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
 {
   nlohmann::json chSettings;
 
-  chSettings["info"]["index"]  = mChannelIndex->getValue();
+  chSettings["info"]["index"]  = mColorAndChannelIndex->getValueSecond();
   chSettings["info"]["series"] = mWindowMain->getSelectedSeries();
   chSettings["info"]["type"]   = mChannelType->getValue().toStdString();
   chSettings["info"]["label"]  = "";
   chSettings["info"]["name"]   = mChannelName->getValue().toStdString();
+  chSettings["info"]["color"]  = mColorAndChannelIndex->getValue().toStdString();
 
   // Preprocessing
   nlohmann::json jsonArray = nlohmann::json::array();    // Initialize an empty JSON array
@@ -406,7 +412,7 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
   // Pipeline steps
   nlohmann::json pipelineStep;
   if(mEnableCellApproximation->getValue()) {
-    pipelineStep["cell_approximation"]["nucleus_channel_index"] = mChannelIndex->getValue();
+    pipelineStep["cell_approximation"]["nucleus_channel_index"] = mColorAndChannelIndex->getValueSecond();
     pipelineStep["cell_approximation"]["cell_channel_index"]    = -1;
     pipelineStep["cell_approximation"]["max_cell_radius"]       = mMaxCellRadius->getValue();
   }
@@ -416,7 +422,7 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
   if(mColocGroup->hasValue()) {
     intersectSettings.emplace(
         mColocGroup->getValue(),
-        IntersectionChannel{.channel      = {mChannelIndex->getValue()},
+        IntersectionChannel{.channel      = {mColorAndChannelIndex->getValueSecond()},
                             .minIntersect = static_cast<float>(mColocGroup->getValueSecond()) / 100.0F});
   }
   if(mColocGroupCellApproximation->hasValue()) {
@@ -424,7 +430,7 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
         mColocGroupCellApproximation->getValue(),
         IntersectionChannel{
             .channel =
-                {mChannelIndex->getValue() +
+                {mColorAndChannelIndex->getValueSecond() +
                  settings::json::PipelineStepSettings::CELL_APPROX_INDEX_OFFSET},    // The cell approx channel index is
                                                                                      // the nucleus index + 100
             .minIntersect = 0});

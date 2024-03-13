@@ -40,7 +40,7 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
   // Add the functions
   layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
 
-  layout->addWidget(parent->mChannelIndex->getLabelWidget(), 1, 0);
+  layout->addWidget(parent->mColorAndChannelIndex->getLabelWidget(), 1, 0);
   layout->addWidget(parent->mChannelType->getLabelWidget(), 1, 1);
   layout->addWidget(parent->mThresholdAlgorithm->getLabelWidget(), 1, 2);
 

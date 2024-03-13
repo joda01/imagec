@@ -41,6 +41,7 @@ public:
   {
     VALUE_T key;
     QString label;
+    QString icon;
   };
 
   struct ComboEntry2
@@ -375,8 +376,8 @@ private:
     mDisplayable = new QWidget();
 
     // Create a QLabel
-    QLabel *label = new QLabel();
-    mDisplayLabel = new QLabel();
+    mDisplayLabelIcon = new QLabel();
+    mDisplayLabel     = new QLabel();
 
     // Set text for the label
     mDisplayLabel->setText(mDisplayText);
@@ -386,13 +387,13 @@ private:
     QIcon bmp(":/icons/outlined/" + icon);
 
     // Set the icon for the label
-    label->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
-    label->setToolTip(helpText);
+    mDisplayLabelIcon->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
+    mDisplayLabelIcon->setToolTip(helpText);
 
     // Create a QHBoxLayout to arrange the text and icon horizontally
     QHBoxLayout *layout = new QHBoxLayout;
     mDisplayable->setLayout(layout);
-    layout->addWidget(label);
+    layout->addWidget(mDisplayLabelIcon);
     layout->addWidget(mDisplayLabel);
     layout->addStretch();
   }
@@ -609,7 +610,12 @@ private:
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
     for(const auto &data : options) {
-      mComboBox->addItem(QIcon(myIcon.pixmap(28, 28)), data.label, QVariant(data.key));
+      if(data.icon.isEmpty()) {
+        mComboBox->addItem(QIcon(myIcon.pixmap(28, 28)), data.label, QVariant(data.key));
+      } else {
+        const QIcon myIcon(":/icons/outlined/" + data.icon);
+        mComboBox->addItem(QIcon(myIcon.pixmap(28, 28)), data.label, QVariant(data.key));
+      }
     }
     mComboBox->setFont(fontLineEdit);
     mComboBox->setPlaceholderText(placeHolderText);
@@ -685,6 +691,7 @@ private:
   QComboBox *mComboBox       = nullptr;
   QComboBox *mComboBoxSecond = nullptr;
   QLabel *mDisplayLabel      = nullptr;
+  QLabel *mDisplayLabelIcon  = nullptr;
   QString mUnit;
 
   QWidget *mParent      = nullptr;
@@ -717,7 +724,20 @@ private slots:
       }
 
       if(mComboBoxSecond != nullptr && hasValue()) {
-        mDisplayText = mComboBox->currentText() + " (" + mComboBoxSecond->currentText() + ")";
+        if(mComboBox->currentText().isEmpty()) {
+          mDisplayText = mComboBoxSecond->currentText();
+        } else {
+          mDisplayText = mComboBox->currentText() + " (" + mComboBoxSecond->currentText() + ")";
+        }
+        QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
+
+        if(itemData.isValid() && itemData.canConvert<QIcon>()) {
+          QIcon selectedIcon = qvariant_cast<QIcon>(itemData);
+
+          // Set the icon for the label
+          mDisplayLabelIcon->setPixmap(selectedIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
+        }
+
       } else {
         mDisplayText = mComboBox->currentText();
       }
