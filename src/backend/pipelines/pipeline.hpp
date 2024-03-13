@@ -183,7 +183,7 @@ private:
   joda::helper::ImageFileContainer *mImageFileContainer;
 
   ProgressIndicator mProgress;
-  State mState = State::STOPPED;
+  State mState;
   std::string mLastErrorMessage;
   std::shared_ptr<std::thread> mMainThread;
   ThreadingSettings mThreadingSettings;

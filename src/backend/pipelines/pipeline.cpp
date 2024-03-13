@@ -45,7 +45,8 @@ Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
                    joda::helper::ImageFileContainer *imageFileContainer, const std::string &inputFolder,
                    const ThreadingSettings &threadingSettings) :
     mInputFolder(inputFolder),
-    mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mThreadingSettings(threadingSettings)
+    mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mState(State::RUNNING),
+    mThreadingSettings(threadingSettings)
 {
   mMainThread = std::make_shared<std::thread>(&Pipeline::runJob, this);
 }

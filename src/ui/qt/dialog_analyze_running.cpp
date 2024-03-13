@@ -27,7 +27,8 @@ using namespace std::chrono_literals;
 /// \brief
 /// \author     Joachim Danmayr
 ///
-DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain) : QDialog(windowMain), mWindowMain(windowMain)
+DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain) :
+    QDialog(windowMain), mStopped(false), mWindowMain(windowMain)
 {
   setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
   // setAttribute(Qt::WA_TranslucentBackground);
@@ -80,8 +81,8 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain) : QDialog(win
   //
   // Start analyze
   //
-  mRefreshThread = std::make_shared<std::thread>(&DialogAnalyzeRunning::refreshThread, this);
   connect(this, &DialogAnalyzeRunning::refreshEvent, this, &DialogAnalyzeRunning::onRefreshData);
+  mRefreshThread = std::make_shared<std::thread>(&DialogAnalyzeRunning::refreshThread, this);
 }
 
 void DialogAnalyzeRunning::onStopClicked()
