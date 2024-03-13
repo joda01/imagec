@@ -261,5 +261,12 @@
         <file>outlined/icons8-info-50-blue.png</file>
         <file>outlined/icons8-picture-1000.png</file>
         <file>outlined/icons8-picture-1000-lightgray.png</file>
+        <file>outlined/icons8-bubble-50 -green-#06880C.png</file>
+        <file>outlined/icons8-bubble-50-black-#000000.png</file>
+        <file>outlined/icons8-bubble-50-gray-#818181.png</file>
+        <file>outlined/icons8-bubble-50-violet-#6F03A6.png</file>
+        <file>outlined/icons8-bubble-50-yellow-#FBEA25.png</file>
+        <file>outlined/icons8-bubble-50red-#B91717.png</file>
+        <file>outlined/icons8-bubble-blue-#1771B9-50.png</file>
     </qresource>
 </RCC>

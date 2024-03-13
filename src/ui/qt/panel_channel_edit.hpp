@@ -60,7 +60,7 @@ private:
   QLabel *mPreviewInfo           = nullptr;
   WaitingSpinnerWidget *mSpinner = nullptr;
   std::mutex mPreviewMutex;
-  int mPreviewCounter;
+  int mPreviewCounter                         = 0;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
 
 private slots:

@@ -215,12 +215,17 @@ public:
     return type;
   }
 
-  auto getLabel() const -> std::string
+  auto getLabel() const -> const std::string &
   {
     return label;
   }
 
-  auto getName() const -> std::string
+  auto getColor() const -> const std::string &
+  {
+    return color;
+  }
+
+  auto getName() const -> const std::string &
   {
     if(name.empty()) {
       return type;
@@ -266,7 +271,13 @@ private:
   //
   std::string label;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelInfo, index, series, name, type, label);
+  //
+  // Color of the channel
+  // [#FFFFFFFF]
+  //
+  std::string color = "#000000";
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelInfo, index, series, name, type, label, color);
 };
 
 class ChannelFiltering final

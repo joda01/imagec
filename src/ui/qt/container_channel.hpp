@@ -108,8 +108,8 @@ public:
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, QString>> mChannelName;
-  std::shared_ptr<ContainerFunction<int, int>> mChannelIndex;
   std::shared_ptr<ContainerFunction<QString, QString>> mChannelType;
+  std::shared_ptr<ContainerFunction<QString, int>> mColorAndChannelIndex;
 
   std::shared_ptr<ContainerFunction<QString, QString>> mThresholdAlgorithm;
   std::shared_ptr<ContainerFunction<int, int>> mThresholdValueMin;
