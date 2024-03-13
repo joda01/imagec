@@ -61,6 +61,10 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                                {"CELL", "Cell"},
                                                {"BACKGROUND", "Background"}}));
 
+  mColor = std::shared_ptr<ContainerFunction<QString, QString>>(new ContainerFunction<QString, QString>(
+      "icons8-unknown-status-50.png", "Type", "Color", "", "Red",
+      {{"#FF0000", "Red"}, {"#00FF00", "Green"}, {"#0000FF", "Blue"}, {"#000000", "Violet"}, {"#000000", "Black"}}));
+
   mUsedDetectionMode = std::shared_ptr<ContainerFunction<QString, QString>>(
       new ContainerFunction<QString, QString>("icons8-mesh-50.png", "Threshold", "Detection mode", "", "THRESHOLD",
                                               {{"THRESHOLD", "Threshold"}, {"AI", "Artificial intelligence"}}));
