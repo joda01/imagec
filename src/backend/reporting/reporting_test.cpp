@@ -1,3 +1,4 @@
+#include <string>
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -31,6 +32,8 @@ SCENARIO("Adding three values to a table", "[table]")
   CHECK(0 == table.getStatistics().at(0).getMin());
   CHECK(889 == table.getStatistics().at(0).getMax());
   CHECK(485.9 == Catch::Approx(table.getStatistics().at(0).getAvg()).epsilon(0.5));
+
+  std::cout << std::to_string(table.getStatistics().at(0).getAvg()) << std::endl;
 
   CHECK(table.getNrOfRows() == 10);
   CHECK(table.getNrOfColumns() == 2);

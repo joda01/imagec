@@ -19,6 +19,7 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
                                                              lxw_format *numberFormat,
                                                              lxw_format *imageHeaderHyperlinkFormat) const
 {
+  setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   const int STATISTIC_START_WITH_INDEX = 2;
 
   //
@@ -137,7 +138,7 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
   for(int64_t rowIndex = 0; rowIndex < getNrOfRows(); rowIndex++) {
     for(int64_t colIndex = 0; colIndex < columns; colIndex++) {
       if(mTable.contains(colIndex) && mTable.at(colIndex).contains(getIndexOfSortedMap(rowIndex))) {
-        if(!mTable.at(colIndex).at(rowIndex).validity.has_value()) {
+        if(!mTable.at(colIndex).at(getIndexOfSortedMap(rowIndex)).validity.has_value()) {
           worksheet_write_number(worksheet, rowOffset + colIndex, rowIndex + colOffset,
                                  mTable.at(colIndex).at(getIndexOfSortedMap(rowIndex)).value, numberFormat);
         } else {

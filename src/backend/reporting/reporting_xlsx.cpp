@@ -16,6 +16,7 @@ std::tuple<int, int> Table::flushReportToFileXlsx(int colOffset, int /*rowOffset
                                                   lxw_format *header, lxw_format *merge_format,
                                                   lxw_format *numberFormat) const
 {
+  setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   int ROW_OFFSET = 2;
   int COL_OFFSET = colOffset + 1;
 

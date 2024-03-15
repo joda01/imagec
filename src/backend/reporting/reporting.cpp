@@ -23,7 +23,7 @@ const std::string &Table::getTableName() const
   return mTableName;
 }
 
-int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float value,
+int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double value,
                                         joda::func::ParticleValidity validity)
 {
   std::lock_guard<std::mutex> lock(mWriteMutex);
@@ -72,12 +72,12 @@ auto Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func
   return rowIdx;
 }
 
-int64_t Table::appendValueToColumn(uint64_t colIdx, float value, joda::func::ParticleValidity validity)
+int64_t Table::appendValueToColumn(uint64_t colIdx, double value, joda::func::ParticleValidity validity)
 {
   return appendValueToColumnAtRow(colIdx, -1, value, validity);
 }
 
-int64_t Table::appendValueToColumn(const std::string &rowName, uint64_t colIdx, float value,
+int64_t Table::appendValueToColumn(const std::string &rowName, uint64_t colIdx, double value,
                                    joda::func::ParticleValidity validity)
 {
   auto newIndex = appendValueToColumn(colIdx, value, validity);
@@ -147,9 +147,9 @@ auto Statistics::getStatisticsTitle() -> const std::array<std::string, NR_OF_VAL
 {
   return {"Valid", "Invalid", "Sum", "Min", "Max", "Avg"};
 }
-auto Statistics::getStatistics() const -> const std::array<float, NR_OF_VALUE>
+auto Statistics::getStatistics() const -> const std::array<double, NR_OF_VALUE>
 {
-  return {(float) mNr, (float) mInvalid, mSum, mMin, mMax, mMean};
+  return {static_cast<double>(mNr), static_cast<double>(mInvalid), mSum, mMin, mMax, mMean};
 }
 
 std::string Table::validityToString(joda::func::ParticleValidity val)

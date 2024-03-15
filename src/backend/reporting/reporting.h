@@ -63,7 +63,7 @@ public:
   }
 
   /////////////////////////////////////////////////////
-  void addValue(float val)
+  void addValue(double val)
   {
     std::lock_guard<std::mutex> lock(mAddMutex);
     if(mNr == 0) {
@@ -76,7 +76,7 @@ public:
     mNr++;
 
     mSum += val;
-    mMean = mSum / static_cast<float>(mNr);
+    mMean = mSum / static_cast<double>(mNr);
   }
 
   void incrementInvalid()
@@ -94,47 +94,47 @@ public:
     mMean = 0;
   }
 
-  uint64_t getNr() const
+  [[nodiscard]] uint64_t getNr() const
   {
     return mNr;
   }
 
-  uint64_t getInvalid() const
+  [[nodiscard]] uint64_t getInvalid() const
   {
     return mInvalid;
   }
 
-  float getSum() const
+  [[nodiscard]] double getSum() const
   {
     return mSum;
   }
 
-  float getMin() const
+  [[nodiscard]] double getMin() const
   {
     return mMin;
   }
 
-  float getMax() const
+  [[nodiscard]] double getMax() const
   {
     return mMax;
   }
 
-  float getAvg() const
+  [[nodiscard]] double getAvg() const
   {
     return mMean;
   }
 
   static auto getStatisticsTitle() -> const std::array<std::string, NR_OF_VALUE>;
-  [[nodiscard]] auto getStatistics() const -> const std::array<float, NR_OF_VALUE>;
+  [[nodiscard]] auto getStatistics() const -> const std::array<double, NR_OF_VALUE>;
 
 private:
   /////////////////////////////////////////////////////
   uint64_t mNr      = 0;
   uint64_t mInvalid = 0;
-  float mSum        = 0;
-  float mMin        = 0;
-  float mMax        = 0;
-  float mMean       = 0;
+  double mSum       = 0;
+  double mMin       = 0;
+  double mMax       = 0;
+  double mMean      = 0;
   std::mutex mAddMutex;
 };
 
@@ -162,7 +162,7 @@ public:
 
   struct Row
   {
-    float value;
+    double value;
     std::optional<joda::func::ParticleValidity> validity;
   };
 
@@ -177,11 +177,11 @@ public:
   const std::string &getTableName() const;
   auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
   void setRowName(uint64_t rowIdx, const std::string &);
-  auto appendValueToColumn(uint64_t colIdx, float value, joda::func::ParticleValidity) -> int64_t;
-  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, float value, joda::func::ParticleValidity) -> int64_t;
+  auto appendValueToColumn(uint64_t colIdx, double value, joda::func::ParticleValidity) -> int64_t;
+  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double value, joda::func::ParticleValidity) -> int64_t;
   auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func::ParticleValidity) -> int64_t;
 
-  auto appendValueToColumn(const std::string &rowName, uint64_t colIdx, float value, joda::func::ParticleValidity)
+  auto appendValueToColumn(const std::string &rowName, uint64_t colIdx, double value, joda::func::ParticleValidity)
       -> int64_t;
   auto getTable() const -> const Table_t &;
   auto getStatistics() const -> const std::map<uint64_t, Statistics> &;

@@ -42,7 +42,7 @@ public:
   static void flushReportToFile(const std::map<std::string, ReportingContainer> &containers,
                                 const std::string &fileName, OutputFormat format);
 
-  std::map<int32_t, Table> mColumns;    // Each column is the representation of a channel
+  mutable std::map<int32_t, Table> mColumns;    // Each column is the representation of a channel
 
 private:
   mutable std::mutex mAccessMutex;
