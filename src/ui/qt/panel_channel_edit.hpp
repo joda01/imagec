@@ -56,7 +56,7 @@ private:
   ContainerChannel *mParentContainer;
   QLabel *createTitle(const QString &);
   QWidget *mScrollAreaCellApprox = nullptr;
-  PreviewLabel *mPreviewImage    = nullptr;
+  PanelPreview *mPreviewImage    = nullptr;
   QLabel *mPreviewInfo           = nullptr;
   WaitingSpinnerWidget *mSpinner = nullptr;
   std::mutex mPreviewMutex;

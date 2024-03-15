@@ -3,6 +3,7 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include "reporting.h"
@@ -21,7 +22,7 @@ public:
   ReportingContainer();
   Table &getTableAt(int32_t key, const std::string &channelName)
   {
-    /// \todo Not thread safe
+    std::lock_guard<std::mutex> lock(mAccessMutex);
     if(!mColumns.contains(key)) {
       mColumns[key].setTableName(channelName);
     }
@@ -31,6 +32,7 @@ public:
 
   const Table &getTableAt(int32_t key) const
   {
+    std::lock_guard<std::mutex> lock(mAccessMutex);
     if(mColumns.contains(key)) {
       return mColumns.at(key);
     }
@@ -41,6 +43,9 @@ public:
                                 const std::string &fileName, OutputFormat format);
 
   std::map<int32_t, Table> mColumns;    // Each column is the representation of a channel
+
+private:
+  mutable std::mutex mAccessMutex;
 };
 
 }    // namespace joda::reporting

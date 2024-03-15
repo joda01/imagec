@@ -14,40 +14,63 @@
 #pragma once
 
 #include <qlabel.h>
+#include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>
 #include <string>
 
 namespace joda::ui::qt {
 
-class PreviewLabel : public QLabel
+class PanelPreview : public QWidget
 {
 public:
-  PreviewLabel(QWidget *parent = nullptr);
-  void setPixmap(const QPixmap &pix, int width, int height);
+  PanelPreview(QWidget *parent = nullptr);
+  void setPixmap(const QPixmap &pix, int width, int height)
+  {
+    mPreviewLabel.setPixmap(pix, width, height);
+  }
 
-protected:
-  void mouseMoveEvent(QMouseEvent *event) override;
+  ///
+  /// \class      PreviewLabel
+  /// \author     Joachim Danmayr
+  ///
+  class PreviewLabel : public QLabel
+  {
+  public:
+    /////////////////////////////////////////////////////
+    PreviewLabel(QWidget *parent = nullptr);
+    void setPixmap(const QPixmap &pix, int width, int height);
 
-  void enterEvent(QEnterEvent *) override;
+  protected:
+    /////////////////////////////////////////////////////
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void enterEvent(QEnterEvent *) override;
+    void leaveEvent(QEvent *) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
-  void leaveEvent(QEvent *) override;
+  private:
+    /////////////////////////////////////////////////////
+    void zoom(bool direction);
+    void fitToWindow();
+    void updateZoomedImage();
 
-  void wheelEvent(QWheelEvent *event) override;
+    QPixmap originalPixmap;
 
-  void paintEvent(QPaintEvent *event) override;
+    QPixmap scaledPixmap;
+    qreal zoomFactor;
+    QPoint zoomCenter;
+  };
+
+private slots:
+  void onZoomInClicked();
 
 private:
-  void magnify(const QPoint &mousePos);
-  void resetMagnifier();
+  /////////////////////////////////////////////////////
+  QWidget *createToolBar();
 
-  QRect magnifierRectFromMousePos(const QPoint &mousePos);
-
-  QPixmap originalPixmap;
-  QSize magnifierSize{200, 200};
-  qreal magnificationFactor;
-  QPoint magnifierPosition;
-  bool magnifierActive{false};
+  /////////////////////////////////////////////////////
+  PreviewLabel mPreviewLabel;
 };
-
 }    // namespace joda::ui::qt

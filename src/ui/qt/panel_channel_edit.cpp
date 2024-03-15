@@ -157,7 +157,7 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   // Preview
   //
   auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE);
-  mPreviewImage      = new PreviewLabel();
+  mPreviewImage      = new PanelPreview();
   QIcon bmp(PLACEHOLDER);
   mPreviewImage->setPixmap(bmp.pixmap(PLACEHOLDER_BASE_SIZE, PLACEHOLDER_BASE_SIZE), PREVIEW_BASE_SIZE,
                            PREVIEW_BASE_SIZE);
@@ -421,8 +421,7 @@ void PanelChannelEdit::updatePreview()
                 QImage image;
                 if(image.loadFromData(byteArray, "PNG")) {
                   QPixmap pixmap = QPixmap::fromImage(image);
-                  mPreviewImage->setPixmap(pixmap.scaled(preview.width, preview.height), PREVIEW_BASE_SIZE,
-                                           PREVIEW_BASE_SIZE);
+                  mPreviewImage->setPixmap(pixmap, PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE);
                   int valid   = 0;
                   int invalid = 0;
                   for(const auto &roi : preview.detectionResult) {

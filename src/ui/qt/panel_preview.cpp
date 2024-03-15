@@ -12,103 +12,138 @@
 ///
 
 #include "panel_preview.hpp"
+#include <qboxlayout.h>
+#include <qicon.h>
 #include <qlabel.h>
+#include <qnamespace.h>
+#include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>
 #include <string>
 
 namespace joda::ui::qt {
 
-PreviewLabel::PreviewLabel(QWidget *parent) : QLabel(parent), magnificationFactor(1.0)
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+PanelPreview::PanelPreview(QWidget *parent) : mPreviewLabel(parent)
+{
+  QVBoxLayout *hLayout = new QVBoxLayout();
+  this->setLayout(hLayout);
+  hLayout->addWidget(&mPreviewLabel);
+  hLayout->addWidget(createToolBar());
+}
+
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+QWidget *PanelPreview::createToolBar()
+{
+  QWidget *container  = new QWidget();
+  QHBoxLayout *layout = new QHBoxLayout();
+  container->setLayout(layout);
+
+  QPushButton *zoon = new QPushButton(QIcon(":/icons/outlined/icons8-search-50.png"), "");
+  zoon->setCheckable(true);
+  layout->addWidget(zoon);
+  layout->addStretch();
+
+  return container;
+}
+
+////////////////////////////////////////////////////////////////
+// Image view section
+//
+PanelPreview::PreviewLabel::PreviewLabel(QWidget *parent) : QLabel(parent)
 {
   setMouseTracking(true);
 }
 
-void PreviewLabel::setPixmap(const QPixmap &pix, int width, int height)
+void PanelPreview::PreviewLabel::setPixmap(const QPixmap &pix, int width, int height)
 {
-  QLabel::setPixmap(pix.scaled(width, height));
+  setMinimumWidth(width);
+  setMinimumHeight(height);
+  setFixedWidth(width);
+  setFixedHeight(height);
+
+  std::cout << std::to_string(width) << " | " << std::to_string(pix.width()) << std::endl;
+
+  zoomFactor = (qreal) width / (qreal) pix.width();
+  std::cout << std::to_string(zoomFactor) << std::endl;
   originalPixmap = pix;
+  updateZoomedImage();
 }
 
-void PreviewLabel::mouseMoveEvent(QMouseEvent *event)
+void PanelPreview::PreviewLabel::mouseMoveEvent(QMouseEvent *event)
 {
-  magnify(event->pos());
 }
 
-void PreviewLabel::enterEvent(QEnterEvent *)
+void PanelPreview::PreviewLabel::enterEvent(QEnterEvent *)
 {
-  magnificationFactor = 1.0;
-  setCursor(Qt::CrossCursor);
 }
 
-void PreviewLabel::leaveEvent(QEvent *)
+void PanelPreview::PreviewLabel::leaveEvent(QEvent *)
 {
-  resetMagnifier();
 }
 
-void PreviewLabel::wheelEvent(QWheelEvent *event)
+void PanelPreview::PreviewLabel::wheelEvent(QWheelEvent *event)
 {
-  int delta = event->angleDelta().y();
-  if(delta > 0) {
-    magnificationFactor++;
-  } else {
-    if(magnificationFactor > 1) {
-      magnificationFactor--;
-    }
+}
+
+void PanelPreview::PreviewLabel::mousePressEvent(QMouseEvent *event)
+{
+  if(event->button() == Qt::LeftButton) {
+    zoomCenter = event->pos();
+    zoom(true);
   }
+  if(event->button() == Qt::RightButton) {
+    zoomCenter = event->pos();
+    zoom(false);
+  }
+}
+
+void PanelPreview::PreviewLabel::fitToWindow()
+{
+  zoomFactor = (qreal) QLabel::width() / (qreal) originalPixmap.width();
+  updateZoomedImage();
+}
+
+void PanelPreview::PreviewLabel::zoom(bool direction)
+{
+  if(direction) {
+    zoomFactor += 0.03F;
+  } else {
+    zoomFactor -= 0.03F;
+  }
+
+  std::cout << std::to_string(zoomFactor) << std::endl;
+
+  updateZoomedImage();
+}
+
+void PanelPreview::PreviewLabel::updateZoomedImage()
+{
+  /*scaledPixmap = originalPixmap.scaled(originalPixmap.width() * zoomFactor, originalPixmap.height() * zoomFactor,
+                                       Qt::KeepAspectRatio, Qt::SmoothTransformation);*/
+
+  QTransform transform;
+  transform.translate(zoomCenter.x(), zoomCenter.y());
+  transform.scale(zoomFactor, zoomFactor);
+  transform.translate(-zoomCenter.x(), -zoomCenter.y());
+
+  scaledPixmap = originalPixmap.transformed(transform);
+
   update();
 }
 
-void PreviewLabel::paintEvent(QPaintEvent *event)
+void PanelPreview::PreviewLabel::paintEvent(QPaintEvent *event)
 {
   QLabel::paintEvent(event);
+
   QPainter painter(this);
-  painter.setRenderHint(QPainter::SmoothPixmapTransform);
-
-  if(magnifierActive) {
-    QRect magnifierRect     = magnifierRectFromMousePos(magnifierPosition);
-    QPixmap magnifiedPixmap = originalPixmap.copy(magnifierRect);
-    QPixmap zoomedPixmap    = magnifiedPixmap.scaled((int) ((float) magnifiedPixmap.width() * magnificationFactor),
-                                                     (int) ((float) magnifiedPixmap.height() * magnificationFactor),
-                                                     Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-    QRect cropRect((zoomedPixmap.width() - magnifiedPixmap.width()) / 2.0f,
-                   (zoomedPixmap.height() - magnifiedPixmap.height()) / 2.0f, magnifierRect.width(),
-                   magnifierRect.height());
-
-    zoomedPixmap = zoomedPixmap.copy(cropRect);
-    painter.fillRect(magnifierRect, Qt::white);
-    painter.drawPixmap(magnifierRect, zoomedPixmap);
-  }
-}
-
-void PreviewLabel::magnify(const QPoint &mousePos)
-{
-  magnifierPosition = mousePos;
-  magnifierActive   = true;
-  update();
-}
-
-void PreviewLabel::resetMagnifier()
-{
-  magnifierActive = false;
-  update();
-}
-
-QRect PreviewLabel::magnifierRectFromMousePos(const QPoint &mousePos)
-{
-  int halfWidth  = magnifierSize.width() / 2;
-  int halfHeight = magnifierSize.height() / 2;
-  int x          = mousePos.x() - halfWidth;
-  int y          = mousePos.y() - halfHeight;
-  if(x < 0) {
-    x = 0;
-  }
-  if(y < 0) {
-    y = 0;
-  }
-
-  return QRect(x, y, magnifierSize.width(), magnifierSize.height());
+  painter.drawPixmap(QPoint(0, 0), scaledPixmap);
 }
 
 }    // namespace joda::ui::qt
