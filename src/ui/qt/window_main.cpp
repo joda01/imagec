@@ -36,6 +36,7 @@
 #include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
 #include "ui/qt/dialog_analyze_running.hpp"
+#include "ui/qt/dialog_settings.hpp"
 #include "build_info.h"
 #include "container_channel.hpp"
 #include "version.h"
@@ -149,7 +150,7 @@ void WindowMain::createToolbar()
   {
     mSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", toolbar);
     mSettings->setToolTip("Settings");
-    connect(mSettings, &QAction::triggered, this, &WindowMain::onOpenProjectClicked);
+    connect(mSettings, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
     toolbar->addAction(mSettings);
 
     toolbar->addSeparator();
@@ -378,7 +379,7 @@ QWidget *WindowMain::createAddChannelPanel()
       "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
       "}");
   openSettingsButton->setText("Open settings");
-  connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenSettingsClicked);
+  connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
   layout->addWidget(openSettingsButton);
 
   layout->setSpacing(8);    // Adjust this value as needed
@@ -411,7 +412,7 @@ void WindowMain::onOpenProjectClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onOpenSettingsClicked()
+void WindowMain::onOpenAnalyzeSettingsClicked()
 {
   QString folderToOpen = QDir::homePath();
   if(!mSelectedWorkingDirectory.isEmpty()) {
@@ -796,6 +797,16 @@ void WindowMain::onRemoveChannelClicked()
       removeChannel(mSelectedChannel);
     }
   }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onOpenSettingsDialog()
+{
+  DialogSettings settings(this);
+  settings.exec();
 }
 
 ///

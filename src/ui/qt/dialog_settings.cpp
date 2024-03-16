@@ -1,0 +1,99 @@
+///
+/// \file      dialog_settings.hpp
+/// \author    Joachim Danmayr
+/// \date      2024-02-29
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            All rights reserved! This file is subject
+///            to the terms and conditions defined in file
+///            LICENSE.txt, which is part of this package.
+///
+/// \brief     A short description what happens here.
+///
+
+#include "dialog_settings.hpp"
+#include <qlabel.h>
+#include <qlineedit.h>
+
+namespace joda::ui::qt {
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+DialogSettings::DialogSettings(WindowMain *windowMain) : QDialog(windowMain)
+{
+  setWindowTitle("Settings");
+  setBaseSize(500, 200);
+
+  auto *mainLayout     = new QVBoxLayout(this);
+  auto *groupBox       = new QGroupBox("Reporting settings", this);
+  auto *groupBoxLayout = new QVBoxLayout(groupBox);
+
+  mGroupByComboBox = new QComboBox(groupBox);
+  mGroupByComboBox->addItem("Ungrouped");
+  mGroupByComboBox->addItem("Group by folder");
+  mGroupByComboBox->addItem("Group by Well");
+  groupBoxLayout->addWidget(mGroupByComboBox);
+
+  mPlateComboBox = new QComboBox(groupBox);
+  mPlateComboBox->addItem("No plate (1x1)");
+  mPlateComboBox->addItem("6 Well plate (3x2)");
+  mPlateComboBox->addItem("12 Well plate (4x3)");
+  mPlateComboBox->addItem("24 Well plate (6x4)");
+  mPlateComboBox->addItem("96 Well plate (12x8)");
+  mPlateComboBox->addItem("384 Well plate (24x16)");
+  groupBoxLayout->addWidget(mPlateComboBox);
+
+  auto *groupByLabel = new QLabel("Regex to extract coordinates of Well in plate from image filename", groupBox);
+  groupBoxLayout->addWidget(groupByLabel);
+  mRegexToFindTheWellPosition = new QLineEdit(groupBox);
+  mRegexToFindTheWellPosition->setText("_((.)([0-9]+))_");
+  groupBoxLayout->addWidget(mRegexToFindTheWellPosition);
+  connect(mRegexToFindTheWellPosition, &QLineEdit::editingFinished, this, &DialogSettings::applyRegex);
+
+  mTestFileName = new QLineEdit("your_test_image_file_Name_A99_01.tif", groupBox);
+  groupBoxLayout->addWidget(mTestFileName);
+  connect(mTestFileName, &QLineEdit::editingFinished, this, &DialogSettings::applyRegex);
+
+  mTestFileResult = new QLabel(groupBox);
+  groupBoxLayout->addWidget(mTestFileResult);
+
+  groupBoxLayout->addStretch();
+
+  mainLayout->addWidget(groupBox);
+  applyRegex();
+}
+
+void DialogSettings::applyRegex()
+{
+  std::string str = mTestFileName->text().toStdString();
+  std::regex pattern(mRegexToFindTheWellPosition->text().toStdString());
+
+  std::smatch match;
+  if(std::regex_search(str, match, pattern)) {
+    if(match.size() >= 4) {
+      std::string matching = "Match: " + match[0].str();
+      std::string row      = "| Row: " + match[2].str();
+      std::string column   = "| Col: " + match[3].str();
+      std::string toText   = matching + row + column;
+      mTestFileResult->setText(QString(toText.data()));
+    } else {
+      std::cout << "Pattern not found." << std::endl;
+    }
+  } else {
+    std::cout << "Pattern not found." << std::endl;
+  }
+}
+
+void DialogSettings::onOkayClicked()
+{
+}
+void DialogSettings::onCancelClicked()
+{
+}
+
+}    // namespace joda::ui::qt

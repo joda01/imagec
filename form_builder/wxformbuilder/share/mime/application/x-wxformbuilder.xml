@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<mime-type xmlns="http://www.freedesktop.org/standards/shared-mime-info" type="application/x-wxformbuilder">
-  <!--Created automatically by update-mime-database. DO NOT EDIT!-->
-  <comment>wxFormBuilder Project</comment>
-  <glob pattern="*.fbp"/>
-  <icon name="org.wxformbuilder.wxFormBuilder.application-x-wxformbuilder"/>
-</mime-type>

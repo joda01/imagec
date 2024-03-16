@@ -129,7 +129,8 @@ private slots:
   void onShowInfoDialog();
   QWidget *createAddChannelPanel();
   void onLookingForFilesFinished();
-  void onOpenSettingsClicked();
+  void onOpenAnalyzeSettingsClicked();
+  void onOpenSettingsDialog();
   void onFindTemplatesFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
 };
 
