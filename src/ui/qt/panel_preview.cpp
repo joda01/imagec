@@ -34,6 +34,7 @@ PanelPreview::PanelPreview(QWidget *parent) : mPreviewLabel(parent)
   this->setLayout(hLayout);
   hLayout->addWidget(&mPreviewLabel);
   hLayout->addWidget(createToolBar());
+  hLayout->addStretch();
 }
 
 ///
@@ -49,7 +50,7 @@ QWidget *PanelPreview::createToolBar()
   // QPushButton *zoon = new QPushButton(QIcon(":/icons/outlined/icons8-search-50.png"), "");
   // zoon->setCheckable(true);
   // layout->addWidget(zoon);
-  layout->addStretch(2);
+  layout->addStretch();
 
   return container;
 }
@@ -57,7 +58,7 @@ QWidget *PanelPreview::createToolBar()
 ////////////////////////////////////////////////////////////////
 // Image view section
 //
-PanelPreview::PreviewLabel::PreviewLabel(QWidget *parent) : QGraphicsView(parent)
+PreviewLabel::PreviewLabel(QWidget *parent) : QGraphicsView(parent)
 {
   scene = new QGraphicsScene(this);
   setScene(scene);
@@ -68,9 +69,11 @@ PanelPreview::PreviewLabel::PreviewLabel(QWidget *parent) : QGraphicsView(parent
   setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+  connect(this, &PreviewLabel::updateImage, this, &PreviewLabel::onUpdateImage);
 }
 
-void PanelPreview::PreviewLabel::setPixmap(const QPixmap &pix, int width, int height)
+void PreviewLabel::setPixmap(const QPixmap &pixIn, int width, int height)
 {
   setMinimumWidth(width);
   setMinimumHeight(height);
@@ -78,21 +81,29 @@ void PanelPreview::PreviewLabel::setPixmap(const QPixmap &pix, int width, int he
   setMaximumHeight(height);
   setFixedWidth(width);
   setFixedHeight(height);
-  scene->setSceneRect(pix.rect());
+
+  mActPixmapOriginal = pixIn;
+
+  emit updateImage();
+}
+
+void PreviewLabel::onUpdateImage()
+{
+  scene->setSceneRect(mActPixmapOriginal.rect());
 
   if(nullptr == mActPixmap) {
-    mActPixmap = scene->addPixmap(pix);
-    resetTransform();
-    fitImageToScreenSize();
+    mActPixmap = scene->addPixmap(mActPixmapOriginal);
   } else {
     scene->removeItem(mActPixmap);
-    mActPixmap = scene->addPixmap(pix);
+    mActPixmap = scene->addPixmap(mActPixmapOriginal);
   }
+  fitImageToScreenSize();
 
+  scene->update();
   update();
 }
 
-void PanelPreview::PreviewLabel::mouseMoveEvent(QMouseEvent *event)
+void PreviewLabel::mouseMoveEvent(QMouseEvent *event)
 {
   if(isDragging) {
     // Calculate the difference in mouse position
@@ -107,7 +118,7 @@ void PanelPreview::PreviewLabel::mouseMoveEvent(QMouseEvent *event)
   }
 }
 
-void PanelPreview::PreviewLabel::paintEvent(QPaintEvent *event)
+void PreviewLabel::paintEvent(QPaintEvent *event)
 {
   QGraphicsView::paintEvent(event);
 
@@ -140,7 +151,7 @@ void PanelPreview::PreviewLabel::paintEvent(QPaintEvent *event)
   painter.drawRect(viewPort);
 }
 
-void PanelPreview::PreviewLabel::mouseReleaseEvent(QMouseEvent *event)
+void PreviewLabel::mouseReleaseEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
     // End dragging
@@ -148,15 +159,15 @@ void PanelPreview::PreviewLabel::mouseReleaseEvent(QMouseEvent *event)
   }
 }
 
-void PanelPreview::PreviewLabel::enterEvent(QEnterEvent *)
+void PreviewLabel::enterEvent(QEnterEvent *)
 {
 }
 
-void PanelPreview::PreviewLabel::leaveEvent(QEvent *)
+void PreviewLabel::leaveEvent(QEvent *)
 {
 }
 
-void PanelPreview::PreviewLabel::mousePressEvent(QMouseEvent *event)
+void PreviewLabel::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
     // Start dragging
@@ -165,7 +176,7 @@ void PanelPreview::PreviewLabel::mousePressEvent(QMouseEvent *event)
   }
 }
 
-void PanelPreview::PreviewLabel::wheelEvent(QWheelEvent *event)
+void PreviewLabel::wheelEvent(QWheelEvent *event)
 {
   qreal zoomFactor = 1.05;
   if(event->pixelDelta().ry() > 0) {
@@ -175,7 +186,7 @@ void PanelPreview::PreviewLabel::wheelEvent(QWheelEvent *event)
   }
 }
 
-void PanelPreview::PreviewLabel::fitImageToScreenSize()
+void PreviewLabel::fitImageToScreenSize()
 {
   float zoomFactor = static_cast<float>(width()) / static_cast<float>(scene->width());
   scale(zoomFactor, zoomFactor);

@@ -14,6 +14,7 @@
 #pragma once
 
 #include <qlabel.h>
+#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>
@@ -21,8 +22,48 @@
 
 namespace joda::ui::qt {
 
+///
+/// \class      PreviewLabel
+/// \author     Joachim Danmayr
+///
+class PreviewLabel : public QGraphicsView
+{
+  Q_OBJECT
+public:
+  /////////////////////////////////////////////////////
+  PreviewLabel(QWidget *parent = nullptr);
+  void setPixmap(const QPixmap &pix, int width, int height);
+
+signals:
+  void updateImage();
+
+protected:
+  /////////////////////////////////////////////////////
+  void mousePressEvent(QMouseEvent *event) override;
+  void mouseMoveEvent(QMouseEvent *event) override;
+  void mouseReleaseEvent(QMouseEvent *event) override;
+  void enterEvent(QEnterEvent *) override;
+  void leaveEvent(QEvent *) override;
+  void wheelEvent(QWheelEvent *event) override;
+  void paintEvent(QPaintEvent *event) override;
+  void fitImageToScreenSize();
+
+private:
+  /////////////////////////////////////////////////////
+  QPixmap mActPixmapOriginal;
+  QGraphicsPixmapItem *mActPixmap = nullptr;
+  QGraphicsScene *scene;
+  bool isDragging;
+  QPoint lastPos;
+
+private slots:
+  void onUpdateImage();
+};
+
 class PanelPreview : public QWidget
 {
+  Q_OBJECT
+
 public:
   PanelPreview(QWidget *parent = nullptr);
   void setPixmap(const QPixmap &pix, int width, int height)
@@ -30,38 +71,8 @@ public:
     mPreviewLabel.setPixmap(pix, width, height);
   }
 
-  ///
-  /// \class      PreviewLabel
-  /// \author     Joachim Danmayr
-  ///
-  class PreviewLabel : public QGraphicsView
-  {
-  public:
-    /////////////////////////////////////////////////////
-    PreviewLabel(QWidget *parent = nullptr);
-    void setPixmap(const QPixmap &pix, int width, int height);
-
-  protected:
-    /////////////////////////////////////////////////////
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void enterEvent(QEnterEvent *) override;
-    void leaveEvent(QEvent *) override;
-    void wheelEvent(QWheelEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
-    void fitImageToScreenSize();
-
-  private:
-    /////////////////////////////////////////////////////
-    QGraphicsPixmapItem *mActPixmap = nullptr;
-    QGraphicsScene *scene;
-    bool isDragging;
-    QPoint lastPos;
-  };
-
 private slots:
-  void onZoomInClicked();
+  // void onZoomInClicked();
 
 private:
   /////////////////////////////////////////////////////
