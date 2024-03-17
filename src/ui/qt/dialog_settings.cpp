@@ -45,14 +45,14 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
   mGroupByComboBox->addItem("Group by Well", "FILENAME");
   groupBoxLayout->addWidget(mGroupByComboBox);
 
-  mPlateComboBox = new QComboBox(groupBox);
-  mPlateComboBox->addItem("No plate (1x1)");
-  mPlateComboBox->addItem("6 Well plate (3x2)");
-  mPlateComboBox->addItem("12 Well plate (4x3)");
-  mPlateComboBox->addItem("24 Well plate (6x4)");
-  mPlateComboBox->addItem("96 Well plate (12x8)");
-  mPlateComboBox->addItem("384 Well plate (24x16)");
-  // groupBoxLayout->addWidget(mPlateComboBox);
+  // mPlateComboBox = new QComboBox(groupBox);
+  // mPlateComboBox->addItem("No plate (1x1)");
+  // mPlateComboBox->addItem("6 Well plate (3x2)");
+  // mPlateComboBox->addItem("12 Well plate (4x3)");
+  // mPlateComboBox->addItem("24 Well plate (6x4)");
+  // mPlateComboBox->addItem("96 Well plate (12x8)");
+  // mPlateComboBox->addItem("384 Well plate (24x16)");
+  //  groupBoxLayout->addWidget(mPlateComboBox);
 
   auto *groupByLabel = new QLabel("Regex to extract coordinates of Well in plate from image filename", groupBox);
   groupBoxLayout->addWidget(groupByLabel);

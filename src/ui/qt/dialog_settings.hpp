@@ -37,7 +37,7 @@ public:
 
 private:
   QComboBox *mGroupByComboBox;
-  QComboBox *mPlateComboBox;
+  // QComboBox *mPlateComboBox;
   QLineEdit *mRegexToFindTheWellPosition;
   QLineEdit *mTestFileName;
   QLabel *mTestFileResult;

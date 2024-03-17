@@ -105,8 +105,10 @@ void Pipeline::runJob()
 
     reporting::ReportingContainer::flushReportToFile(alloverReport, resultsFile,
                                                      reporting::ReportingContainer::OutputFormat::HORIZONTAL);
-    resultsFile = mOutputFolder + separator + "heatmap.xlsx";
-    mReporting->createAllOverHeatMap(alloverReport, resultsFile);
+    if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForGroup()) {
+      resultsFile = mOutputFolder + separator + "heatmap.xlsx";
+      mReporting->createAllOverHeatMap(alloverReport, resultsFile);
+    }
 
     mState = State::FINISHED;
   } catch(const std::exception &ex) {
