@@ -114,6 +114,15 @@ void DialogAnalyzeRunning::refreshThread()
     std::this_thread::sleep_for(500ms);
   }
 
+  // Wait unit finished
+  while(true) {
+    auto [progress, state, errorMsg] = mWindowMain->getController()->getState();
+    if(state == joda::pipeline::Pipeline::State::FINISHED || state == joda::pipeline::Pipeline::State::ERROR_) {
+      break;
+    }
+    std::this_thread::sleep_for(500ms);
+  }
+
   emit refreshEvent();
 }
 
@@ -153,16 +162,26 @@ void DialogAnalyzeRunning::onRefreshData()
     mStopped = true;
     // showErrorDialog(mLastErrorMsg);
   }
-  mProgressText->setText("<html>" + newTextAllOver + "<br/>" + newTextImage);
+  QString progressText;
   if(actState != joda::pipeline::Pipeline::State::RUNNING || actState == joda::pipeline::Pipeline::State::STOPPED) {
-    closeButton->setEnabled(true);
     stopButton->setEnabled(false);
     mStopped = true;
     progressBar->setRange(0, 100);
     progressBar->setMaximum(100);
     progressBar->setMinimum(0);
     progressBar->setValue(100);
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Stopping ...";
+
+  } else {
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage;
   }
+
+  if(actState == joda::pipeline::Pipeline::State::FINISHED || actState == joda::pipeline::Pipeline::State::ERROR_) {
+    closeButton->setEnabled(true);
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
+  }
+  mProgressText->setText(progressText);
+
   // mLabelReporting->SetLabel(timeDiffStr);
 }
 
