@@ -377,6 +377,7 @@ auto Reporting::getGroupToStoreImageIn(const std::string &imagePath, const std::
         return "invalid_name";
       }
   }
+  return "invalid_name";
 }
 
 ///
