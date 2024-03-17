@@ -134,7 +134,7 @@ private:
   // Used to extract coordinates of a well form the image name
   // Regex with 3 groupings: _((.)([0-9]+))_
   //
-  std::string image_filename_regex;
+  std::string image_filename_regex = "_((.)([0-9]+))_";
 
   //
   // Generate a heatmap for grouped images

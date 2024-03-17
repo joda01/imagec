@@ -42,8 +42,13 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
   mGroupByComboBox = new QComboBox(groupBox);
   mGroupByComboBox->addItem("Ungrouped", "OFF");
   mGroupByComboBox->addItem("Group by folder", "FOLDER");
-  mGroupByComboBox->addItem("Group by Well", "FILENAME");
+  mGroupByComboBox->addItem("Group by well", "FILENAME");
   groupBoxLayout->addWidget(mGroupByComboBox);
+
+  mGroupedHeatmapOnOff = new QComboBox(groupBox);
+  mGroupedHeatmapOnOff->addItem("No heatmap generation", false);
+  mGroupedHeatmapOnOff->addItem("Generate heatmap for group", true);
+  groupBoxLayout->addWidget(mGroupedHeatmapOnOff);
 
   // mPlateComboBox = new QComboBox(groupBox);
   // mPlateComboBox->addItem("No plate (1x1)");
@@ -56,10 +61,14 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
 
   auto *groupByLabel = new QLabel("Regex to extract coordinates of Well in plate from image filename", groupBox);
   groupBoxLayout->addWidget(groupByLabel);
-  mRegexToFindTheWellPosition = new QLineEdit(groupBox);
-  mRegexToFindTheWellPosition->setText("_((.)([0-9]+))_");
+  mRegexToFindTheWellPosition = new QComboBox(groupBox);
+  mRegexToFindTheWellPosition->addItem("_((.)([0-9]+))_", "_((.)([0-9]+))_");
+  mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_", "((.)([0-9]+))_");
+  mRegexToFindTheWellPosition->setEditable(true);
   groupBoxLayout->addWidget(mRegexToFindTheWellPosition);
-  connect(mRegexToFindTheWellPosition, &QLineEdit::editingFinished, this, &DialogSettings::applyRegex);
+  connect(mRegexToFindTheWellPosition, &QComboBox::editTextChanged, this, &DialogSettings::applyRegex);
+  connect(mRegexToFindTheWellPosition, &QComboBox::currentIndexChanged, this, &DialogSettings::applyRegex);
+  connect(mRegexToFindTheWellPosition, &QComboBox::currentTextChanged, this, &DialogSettings::applyRegex);
 
   mTestFileName = new QLineEdit("your_test_image_file_Name_A99_01.tif", groupBox);
   groupBoxLayout->addWidget(mTestFileName);
@@ -76,14 +85,25 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
 
 void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &settings)
 {
-  auto idx = mGroupByComboBox->findData(QString(settings.getGroupByString().data()));
-  if(idx >= 0) {
-    mGroupByComboBox->setCurrentIndex(idx);
-  } else {
-    mGroupByComboBox->setCurrentIndex(0);
+  {
+    auto idx = mGroupByComboBox->findData(QString(settings.getGroupByString().data()));
+    if(idx >= 0) {
+      mGroupByComboBox->setCurrentIndex(idx);
+    } else {
+      mGroupByComboBox->setCurrentIndex(0);
+    }
   }
 
-  mRegexToFindTheWellPosition->setText(settings.getFileRegex().data());
+  {
+    auto idx = mGroupedHeatmapOnOff->findData(settings.getCreateHeatmapForGroup());
+    if(idx >= 0) {
+      mGroupedHeatmapOnOff->setCurrentIndex(idx);
+    } else {
+      mGroupedHeatmapOnOff->setCurrentIndex(0);
+    }
+  }
+
+  mRegexToFindTheWellPosition->setCurrentText(settings.getFileRegex().data());
   applyRegex();
 }
 
@@ -91,8 +111,8 @@ nlohmann::json DialogSettings::toJson()
 {
   nlohmann::json data;
   data["group_by"]                   = mGroupByComboBox->currentData().toString().toStdString();
-  data["image_filename_regex"]       = mRegexToFindTheWellPosition->text().toStdString();
-  data["generate_heatmap_for_group"] = true;
+  data["image_filename_regex"]       = mRegexToFindTheWellPosition->currentText().toStdString();
+  data["generate_heatmap_for_group"] = mGroupedHeatmapOnOff->currentData().toBool();
   data["generate_heatmap_for_image"] = false;
   data["image_heatmap_area_width"]   = 0;
   return data;
@@ -101,7 +121,7 @@ nlohmann::json DialogSettings::toJson()
 void DialogSettings::applyRegex()
 {
   try {
-    auto regexResult = joda::pipeline::Reporting::applyRegex(mRegexToFindTheWellPosition->text().toStdString(),
+    auto regexResult = joda::pipeline::Reporting::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
                                                              mTestFileName->text().toStdString());
 
     std::string matching = "Match: " + regexResult.group;

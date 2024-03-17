@@ -36,9 +36,10 @@ public:
   nlohmann::json toJson();
 
 private:
+  QComboBox *mGroupedHeatmapOnOff;
   QComboBox *mGroupByComboBox;
   // QComboBox *mPlateComboBox;
-  QLineEdit *mRegexToFindTheWellPosition;
+  QComboBox *mRegexToFindTheWellPosition;
   QLineEdit *mTestFileName;
   QLabel *mTestFileResult;
 
