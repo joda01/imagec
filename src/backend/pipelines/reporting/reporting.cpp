@@ -366,7 +366,7 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
 auto Reporting::getGroupToStoreImageIn(const std::string &imagePath, const std::string &imageName) -> std::string
 {
   switch(mAnalyzeSettings.getReportingSettings().getGroupBy()) {
-    case settings::json::AnalyzeSettingsReporting::GroupBy::NONE:
+    case settings::json::AnalyzeSettingsReporting::GroupBy::OFF:
       return {};
     case settings::json::AnalyzeSettingsReporting::GroupBy::FOLDER:
       return imagePath;

@@ -77,7 +77,7 @@ class AnalyzeSettingsReporting final
 public:
   enum class GroupBy
   {
-    NONE,
+    OFF,
     FOLDER,
     FILENAME
   };
@@ -85,6 +85,11 @@ public:
   [[nodiscard]] auto getGroupBy() const -> GroupBy
   {
     return group_by_enum;
+  }
+
+  [[nodiscard]] auto getGroupByString() const -> const std::string &
+  {
+    return group_by;
   }
 
   [[nodiscard]] auto getFileRegex() const -> const std::string &
@@ -114,7 +119,7 @@ public:
     } else if(group_by == "FILENAME") {
       group_by_enum = GroupBy::FILENAME;
     } else {
-      group_by_enum = GroupBy::NONE;
+      group_by_enum = GroupBy::OFF;
     }
   }
 
@@ -123,7 +128,7 @@ private:
   // Image grouping option [NONE, FOLDER, FILENAME]
   //
   std::string group_by;
-  GroupBy group_by_enum = GroupBy::NONE;
+  GroupBy group_by_enum = GroupBy::OFF;
 
   //
   // Used to extract coordinates of a well form the image name

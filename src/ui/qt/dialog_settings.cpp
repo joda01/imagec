@@ -12,11 +12,14 @@
 ///
 
 #include "dialog_settings.hpp"
+#include <qboxlayout.h>
+#include <qgroupbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <exception>
 #include <string>
 #include "backend/pipelines/reporting/reporting.hpp"
+#include "backend/settings/analze_settings_parser.hpp"
 
 namespace joda::ui::qt {
 
@@ -27,7 +30,7 @@ namespace joda::ui::qt {
 /// \param[out]
 /// \return
 ///
-DialogSettings::DialogSettings(WindowMain *windowMain) : QDialog(windowMain)
+DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
 {
   setWindowTitle("Settings");
   setBaseSize(500, 200);
@@ -37,9 +40,9 @@ DialogSettings::DialogSettings(WindowMain *windowMain) : QDialog(windowMain)
   auto *groupBoxLayout = new QVBoxLayout(groupBox);
 
   mGroupByComboBox = new QComboBox(groupBox);
-  mGroupByComboBox->addItem("Ungrouped");
-  mGroupByComboBox->addItem("Group by folder");
-  mGroupByComboBox->addItem("Group by Well");
+  mGroupByComboBox->addItem("Ungrouped", "OFF");
+  mGroupByComboBox->addItem("Group by folder", "FOLDER");
+  mGroupByComboBox->addItem("Group by Well", "FILENAME");
   groupBoxLayout->addWidget(mGroupByComboBox);
 
   mPlateComboBox = new QComboBox(groupBox);
@@ -49,7 +52,7 @@ DialogSettings::DialogSettings(WindowMain *windowMain) : QDialog(windowMain)
   mPlateComboBox->addItem("24 Well plate (6x4)");
   mPlateComboBox->addItem("96 Well plate (12x8)");
   mPlateComboBox->addItem("384 Well plate (24x16)");
-  groupBoxLayout->addWidget(mPlateComboBox);
+  // groupBoxLayout->addWidget(mPlateComboBox);
 
   auto *groupByLabel = new QLabel("Regex to extract coordinates of Well in plate from image filename", groupBox);
   groupBoxLayout->addWidget(groupByLabel);
@@ -69,6 +72,30 @@ DialogSettings::DialogSettings(WindowMain *windowMain) : QDialog(windowMain)
 
   mainLayout->addWidget(groupBox);
   applyRegex();
+}
+
+void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &settings)
+{
+  auto idx = mGroupByComboBox->findData(QString(settings.getGroupByString().data()));
+  if(idx >= 0) {
+    mGroupByComboBox->setCurrentIndex(idx);
+  } else {
+    mGroupByComboBox->setCurrentIndex(0);
+  }
+
+  mRegexToFindTheWellPosition->setText(settings.getFileRegex().data());
+  applyRegex();
+}
+
+nlohmann::json DialogSettings::toJson()
+{
+  nlohmann::json data;
+  data["group_by"]                   = mGroupByComboBox->currentData().toString().toStdString();
+  data["image_filename_regex"]       = mRegexToFindTheWellPosition->text().toStdString();
+  data["generate_heatmap_for_group"] = true;
+  data["generate_heatmap_for_image"] = false;
+  data["image_heatmap_area_width"]   = 0;
+  return data;
 }
 
 void DialogSettings::applyRegex()

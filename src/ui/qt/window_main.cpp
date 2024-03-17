@@ -45,7 +45,7 @@ namespace joda::ui::qt {
 
 using namespace std::chrono_literals;
 
-WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller)
+WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller), mReportingSettings(this)
 {
   setWindowTitle("imageC");
   createToolbar();
@@ -580,6 +580,8 @@ nlohmann::json WindowMain::toJson()
   jsonSettings["options"]["with_control_images"]  = true;
   jsonSettings["options"]["with_detailed_report"] = true;
 
+  jsonSettings["reporting"] = mReportingSettings.toJson();
+
   return jsonSettings;
 }
 
@@ -647,6 +649,7 @@ void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
   }
 
   mImageSeriesCombo->setCurrentIndex(series);
+  mReportingSettings.fromJson(settings.getReportingSettings());
 }
 
 ///
@@ -805,8 +808,7 @@ void WindowMain::onRemoveChannelClicked()
 ///
 void WindowMain::onOpenSettingsDialog()
 {
-  DialogSettings settings(this);
-  settings.exec();
+  mReportingSettings.exec();
 }
 
 ///

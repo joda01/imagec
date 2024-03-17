@@ -13,11 +13,15 @@
 
 #pragma once
 
+#include <qcombobox.h>
 #include <qdialog.h>
+#include <qlabel.h>
 #include <qtmetamacros.h>
+#include <qwindow.h>
 #include <memory>
 #include <thread>
-#include "ui/qt/window_main.hpp"
+#include "backend/settings/analze_settings_parser.hpp"
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
 
@@ -27,7 +31,9 @@ class DialogSettings : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogSettings(WindowMain *windowMain);
+  DialogSettings(QWidget *windowMain);
+  void fromJson(const settings::json::AnalyzeSettingsReporting &settings);
+  nlohmann::json toJson();
 
 private:
   QComboBox *mGroupByComboBox;

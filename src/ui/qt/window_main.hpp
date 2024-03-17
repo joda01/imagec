@@ -21,7 +21,9 @@
 #include "backend/helper/template_parser/template_parser.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 #include "controller/controller.hpp"
+#include "ui/qt/dialog_settings.hpp"
 #include "ui/qt/helper/clickablelabel.hpp"
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
 
@@ -99,6 +101,7 @@ private:
   ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
   bool mNewFolderSelected = false;
+  DialogSettings mReportingSettings;
 
   ////Made project settings/////////////////////////////////////////////////
   ContainerChannel *mSelectedChannel = nullptr;
