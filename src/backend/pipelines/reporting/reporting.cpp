@@ -278,6 +278,7 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
   condFormat->min_rule_type          = LXW_CONDITIONAL_RULE_TYPE_MINIMUM;
   condFormat->mid_color              = 0xFFEB84;
   condFormat->mid_rule_type          = LXW_CONDITIONAL_RULE_TYPE_PERCENTILE;
+  condFormat->mid_value              = 50;
   condFormat->max_color              = 0xF8696B;
   condFormat->max_rule_type          = LXW_CONDITIONAL_RULE_TYPE_MAXIMUM;
 
