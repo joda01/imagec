@@ -341,17 +341,17 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
         rowOffset = ROW_OFFSET_START;
         worksheet_write_number(
             sheet, rowOffset + row, col,
-            values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE)).getSum(), numberFormat);
+            values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE)).getAvg(), numberFormat);
 
         rowOffset = PLATE_ROWS + ROW_OFFSET_START + 4;
         worksheet_write_number(
             sheet, rowOffset + row, col,
-            values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::INTENSITY)).getSum(), numberFormat);
+            values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::INTENSITY)).getAvg(), numberFormat);
 
         rowOffset = 2 * PLATE_ROWS + ROW_OFFSET_START + ROW_OFFSET_START + 6;
         worksheet_write_number(
             sheet, rowOffset + row, col,
-            values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).getSum(), numberFormat);
+            values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).getAvg(), numberFormat);
       } catch(const std::exception &) {
       }
     }
