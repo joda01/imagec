@@ -247,7 +247,7 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
   const int32_t PLATE_COLS = 24;
 
   const int32_t HEADER_CELL_SIZE = 15;
-  const int32_t CELL_SIZE        = 35;
+  const int32_t CELL_SIZE        = 60;
 
   const int32_t ROW_OFFSET_START = 2;
 
@@ -263,7 +263,7 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
 
   // Number format
   lxw_format *numberFormat = workbook_add_format(workbook);
-  format_set_num_format(numberFormat, "0.00");
+  format_set_num_format(numberFormat, "0.00E+00");
   format_set_font_size(numberFormat, 10);
   format_set_align(numberFormat, LXW_ALIGN_CENTER);
   format_set_align(numberFormat, LXW_ALIGN_VERTICAL_CENTER);
