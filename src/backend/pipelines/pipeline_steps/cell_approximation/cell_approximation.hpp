@@ -46,7 +46,6 @@ private:
     VALIDITY               = 6,
     CELL_INTERSECTING_WITH = 7
   };
-  static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 8;
 
   /////////////////////////////////////////////////////
 

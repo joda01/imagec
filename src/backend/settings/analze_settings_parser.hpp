@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <string>
 #include <catch2/catch_config.hpp>
+#include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 #include "channel_settings.hpp"
 #include "pipeline_settings.hpp"
@@ -69,6 +70,85 @@ private:
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettingsOptions, pixel_in_micrometer, with_control_images,
                                  with_detailed_report);
+};
+
+class AnalyzeSettingsReporting final
+{
+public:
+  enum class GroupBy
+  {
+    NONE,
+    FOLDER,
+    FILENAME
+  };
+
+  [[nodiscard]] auto getGroupBy() const -> GroupBy
+  {
+    return group_by_enum;
+  }
+
+  [[nodiscard]] auto getFileRegex() const -> const std::string &
+  {
+    return image_filename_regex;
+  }
+
+  [[nodiscard]] auto getCreateHeatmapForGroup() const -> bool
+  {
+    return generate_heatmap_for_group;
+  }
+
+  [[nodiscard]] auto getCreateHeatmapForImage() const -> bool
+  {
+    return generate_heatmap_for_image;
+  }
+
+  [[nodiscard]] auto getImageHeatmapAreaWidth() const -> int32_t
+  {
+    return image_heatmap_area_width;
+  }
+
+  void interpretConfig()
+  {
+    if(group_by == "FOLDER") {
+      group_by_enum = GroupBy::FOLDER;
+    } else if(group_by == "FILENAME") {
+      group_by_enum = GroupBy::FILENAME;
+    } else {
+      group_by_enum = GroupBy::NONE;
+    }
+  }
+
+private:
+  //
+  // Image grouping option [NONE, FOLDER, FILENAME]
+  //
+  std::string group_by;
+  GroupBy group_by_enum = GroupBy::NONE;
+
+  //
+  // Used to extract coordinates of a well form the image name
+  // Regex with 3 groupings: _((.)([0-9]+))_
+  //
+  std::string image_filename_regex;
+
+  //
+  // Generate a heatmap for grouped images
+  //
+  bool generate_heatmap_for_group = false;
+
+  //
+  // Generate a heatmap for each image
+  //
+  bool generate_heatmap_for_image = false;
+
+  //
+  // With of the square used for heatmap creation in image
+  //
+  int32_t image_heatmap_area_width = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettingsReporting, group_by, image_filename_regex,
+                                              generate_heatmap_for_image, generate_heatmap_for_group,
+                                              image_heatmap_area_width);
 };
 
 class AnalyzeSettings final
@@ -159,6 +239,11 @@ public:
     return options;
   }
 
+  [[nodiscard]] auto getReportingSettings() const -> const AnalyzeSettingsReporting &
+  {
+    return reporting;
+  }
+
   [[nodiscard]] auto getPipelineSteps() const -> const std::vector<PipelineStepSettings> &
   {
     return pipeline_steps;
@@ -181,7 +266,7 @@ private:
       pipelineStepIdx++;
     }
 
-    // pipeline.interpretConfig();
+    reporting.interpretConfig();
   }
 
   //
@@ -202,10 +287,15 @@ private:
   std::vector<PipelineStepSettings> pipeline_steps;
 
   //
+  // Analyses settings reporting
+  //
+  AnalyzeSettingsReporting reporting;
+
+  //
   // Original unparsed json
   //
   std::string originalJson;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, channels, options, pipeline_steps);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, channels, options, pipeline_steps, reporting);
 };
 }    // namespace joda::settings::json

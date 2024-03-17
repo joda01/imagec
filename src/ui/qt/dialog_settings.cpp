@@ -14,6 +14,9 @@
 #include "dialog_settings.hpp"
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <exception>
+#include <string>
+#include "backend/pipelines/reporting/reporting.hpp"
 
 namespace joda::ui::qt {
 
@@ -70,22 +73,17 @@ DialogSettings::DialogSettings(WindowMain *windowMain) : QDialog(windowMain)
 
 void DialogSettings::applyRegex()
 {
-  std::string str = mTestFileName->text().toStdString();
-  std::regex pattern(mRegexToFindTheWellPosition->text().toStdString());
+  try {
+    auto regexResult = joda::pipeline::Reporting::applyRegex(mRegexToFindTheWellPosition->text().toStdString(),
+                                                             mTestFileName->text().toStdString());
 
-  std::smatch match;
-  if(std::regex_search(str, match, pattern)) {
-    if(match.size() >= 4) {
-      std::string matching = "Match: " + match[0].str();
-      std::string row      = "| Row: " + match[2].str();
-      std::string column   = "| Col: " + match[3].str();
-      std::string toText   = matching + row + column;
-      mTestFileResult->setText(QString(toText.data()));
-    } else {
-      std::cout << "Pattern not found." << std::endl;
-    }
-  } else {
-    std::cout << "Pattern not found." << std::endl;
+    std::string matching = "Match: " + regexResult.group;
+    std::string row      = "| Row: " + std::to_string(regexResult.row);
+    std::string column   = "| Col: " + std::to_string(regexResult.col);
+    std::string toText   = matching + row + column;
+    mTestFileResult->setText(QString(toText.data()));
+  } catch(const std::exception &ex) {
+    mTestFileResult->setText(ex.what());
   }
 }
 

@@ -14,6 +14,7 @@
 #pragma once
 
 // #include <memory>
+#include <memory>
 #include <mutex>
 #include <set>
 #include <string>
@@ -24,6 +25,7 @@
 #include "../reporting/reporting.h"
 #include "../settings/analze_settings_parser.hpp"
 #include "backend/image_reader/image_reader.hpp"
+#include "backend/pipelines/reporting/reporting.hpp"
 #include "backend/reporting/reporting_container.hpp"
 
 namespace joda::pipeline {
@@ -111,19 +113,7 @@ protected:
   }
 
 private:
-  enum class ColumnIndexDetailedReport : int
-  {
-    CONFIDENCE    = 0,
-    AREA_SIZE     = 1,
-    PERIMETER     = 2,
-    CIRCULARITY   = 3,
-    VALIDITY      = 4,
-    INTENSITY     = 5,
-    INTENSITY_MIN = 6,
-    INTENSITY_MAX = 7,
-  };
-  static const int NR_OF_COLUMNS_PER_CHANNEL_IN_DETAIL_REPORT = 8;
-  static const int THREAD_POOL_BUFFER                         = 5;
+  static const int THREAD_POOL_BUFFER = 5;
 
   /////////////////////////////////////////////////////
   void runJob();
@@ -156,15 +146,6 @@ private:
     return mStop;
   }
 
-  void setDetailReportHeader(joda::reporting::ReportingContainer &detailReportTable, const std::string &channelName,
-                             int tempChannelIdx);
-  void appendToDetailReport(joda::func::DetectionResponse &result,
-                            joda::reporting::ReportingContainer &detailReportTable,
-                            const std::string &detailReportOutputPath, int tempChannelIdx, uint32_t tileIdx);
-  void appendToAllOverReport(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
-                             const joda::reporting::ReportingContainer &detailedReport, const std::string &imagePath,
-                             const std::string &imageName, int nrOfChannels);
-
   void analyzeImage(std::map<std::string, joda::reporting::ReportingContainer> &alloverReport,
                     const FileInfo &imagePath);
 
@@ -186,6 +167,7 @@ private:
   State mState;
   std::string mLastErrorMessage;
   std::shared_ptr<std::thread> mMainThread;
+  std::shared_ptr<Reporting> mReporting;
   ThreadingSettings mThreadingSettings;
 };
 
