@@ -795,6 +795,41 @@ void WindowMain::onRemoveChannelClicked()
     messageBox.setText("Do you want to remove the channel?");
     messageBox.addButton(tr("No"), QMessageBox::NoRole);
     messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    // Rounded borders -->
+    const int radius = 12;
+    messageBox.setStyleSheet(QString("QDialog { "
+                                     "border-radius: %1px; "
+                                     "border: 2px solid palette(shadow); "
+                                     "background-color: palette(base); "
+                                     "}")
+                                 .arg(radius));
+
+    // The effect will not be actually visible outside the rounded window,
+    // but it does help get rid of the pixelated rounded corners.
+    QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
+    // The color should match the border color set in CSS.
+    effect->setColor(QApplication::palette().color(QPalette::Shadow));
+    effect->setBlurRadius(8);
+    messageBox.setGraphicsEffect(effect);
+
+    // Need to show the box before we can get its proper dimensions.
+    messageBox.show();
+
+    // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
+    // The mask is sized based on the current window geometry. If the window were resizable (somehow)
+    // then the mask would need to be set in resizeEvent().
+    const QRect rect(QPoint(0, 0), messageBox.geometry().size());
+    QBitmap b(rect.size());
+    b.fill(QColor(Qt::color0));
+    QPainter painter(&b);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(Qt::color1);
+    // this radius should match the CSS radius
+    painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
+    painter.end();
+    messageBox.setMask(b);
+    // <--
+
     auto reply = messageBox.exec();
     if(reply == 1) {
       removeChannel(mSelectedChannel);
@@ -893,7 +928,7 @@ void WindowMain::onShowInfoDialog()
   QMessageBox messageBox(this);
   auto *icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
 
-  messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+  messageBox.setWindowFlags(messageBox.windowFlags() | Qt::FramelessWindowHint | Qt::Dialog);
   messageBox.setIconPixmap(icon->pixmap(42, 42));
   // messageBox.setAttribute(Qt::WA_TranslucentBackground);
   // messageBox.setIconPixmap(icon->pixmap(42, 42));
@@ -915,6 +950,42 @@ void WindowMain::onShowInfoDialog()
   font.setPixelSize(10);
   messageBox.setFont(font);
   messageBox.addButton(tr("Close"), QMessageBox::AcceptRole);
+
+  // Rounded borders -->
+  const int radius = 12;
+  messageBox.setStyleSheet(QString("QDialog { "
+                                   "border-radius: %1px; "
+                                   "border: 2px solid palette(shadow); "
+                                   "background-color: palette(base); "
+                                   "}")
+                               .arg(radius));
+
+  // The effect will not be actually visible outside the rounded window,
+  // but it does help get rid of the pixelated rounded corners.
+  QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
+  // The color should match the border color set in CSS.
+  effect->setColor(QApplication::palette().color(QPalette::Shadow));
+  effect->setBlurRadius(8);
+  messageBox.setGraphicsEffect(effect);
+
+  // Need to show the box before we can get its proper dimensions.
+  messageBox.show();
+
+  // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
+  // The mask is sized based on the current window geometry. If the window were resizable (somehow)
+  // then the mask would need to be set in resizeEvent().
+  const QRect rect(QPoint(0, 0), messageBox.geometry().size());
+  QBitmap b(rect.size());
+  b.fill(QColor(Qt::color0));
+  QPainter painter(&b);
+  painter.setRenderHint(QPainter::Antialiasing);
+  painter.setBrush(Qt::color1);
+  // this radius should match the CSS radius
+  painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
+  painter.end();
+  messageBox.setMask(b);
+  // <--
+
   messageBox.exec();
 }
 

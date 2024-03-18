@@ -79,6 +79,7 @@ public:
   {
     std::string jobId = std::to_string(mJobCount++);
     mJob = std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder, threadingSettings);
+    mLastOutputFolder = mJob->getOutputFolder();
 
     return jobId;
   };
@@ -107,10 +108,7 @@ public:
 
   static auto getOutputFolder(const std::string jobId) -> std::string
   {
-    if(mJob) {
-      return mJob->getOutputFolder();
-    }
-    return "";
+    return mLastOutputFolder;
   }
 
 private:
@@ -140,6 +138,7 @@ private:
 
   static inline joda::pipeline::Pipeline::ProgressIndicator mLastJobProgressIndicator;
   static inline std::string mLastErrorMessage;
+  static inline std::string mLastOutputFolder;
   static inline std::unique_ptr<Pipeline> mJob = nullptr;
   static inline std::shared_ptr<std::thread> mMainThread;
   static inline bool mStopped = false;
