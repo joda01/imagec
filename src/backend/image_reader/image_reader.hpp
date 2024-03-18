@@ -21,4 +21,6 @@ struct ImageProperties
   int64_t tileSize       = 0;
   int64_t nrOfTiles      = 0;
   uint16_t nrOfDocuments = 0;
+  int64_t width          = 0;
+  int64_t height         = 0;
 };

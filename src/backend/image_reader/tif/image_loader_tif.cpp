@@ -126,7 +126,9 @@ auto TiffLoader::getImageProperties(const std::string &filename, uint16_t direct
     return ImageProperties{.imageSize     = imageSize,
                            .tileSize      = tileSize,
                            .nrOfTiles     = nrOfTiles,
-                           .nrOfDocuments = (uint16_t) nrOfDirectories};
+                           .nrOfDocuments = (uint16_t) nrOfDirectories,
+                           .width         = width,
+                           .height        = height};
   }
 
   return ImageProperties{};

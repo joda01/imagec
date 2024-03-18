@@ -167,8 +167,8 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  using Row_t   = std::map<uint32_t, Row>;
-  using Table_t = std::map<uint64_t, Row_t>;
+  using Row_t   = std::map<uint32_t, Row>;      // Row index
+  using Table_t = std::map<uint64_t, Row_t>;    // Column index
 
   /////////////////////////////////////////////////////
   void setTableName(const std::string &name);

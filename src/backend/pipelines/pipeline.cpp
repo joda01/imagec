@@ -191,6 +191,11 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
   reporting::ReportingContainer::flushReportToFile(detailReports, detailOutputFolder + separator + "detail.xlsx",
                                                    reporting::ReportingContainer::OutputFormat::VERTICAL);
 
+  if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForImage()) {
+    mReporting->createHeatMapForImage(detailReports[""], props.width, props.height,
+                                      detailOutputFolder + separator + "heatmap.xlsx");
+  }
+
   auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
   mReporting->appendToAllOverReport(alloverReport, detailReports[""], imageParentPath, imageName, nrOfChannels);
 

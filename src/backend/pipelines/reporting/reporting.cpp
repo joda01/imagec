@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/duration_count/duration_count.h"
+#include "backend/image_processing/roi/roi.hpp"
 
 namespace joda::pipeline {
 
@@ -245,6 +246,105 @@ void Reporting::appendToAllOverReport(std::map<std::string, joda::reporting::Rep
   }
 }
 
+void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer &containers, int64_t imageWidth,
+                                      int64_t imageHeight, const std::string &fileName)
+{
+  lxw_workbook *workbook = workbook_new(fileName.data());
+  // Well header
+  lxw_format *header = workbook_add_format(workbook);
+  format_set_bold(header);
+  format_set_pattern(header, LXW_PATTERN_SOLID);
+  format_set_bg_color(header, 0x002242);
+  format_set_font_color(header, 0xFFFFFF);
+  format_set_border(header, LXW_BORDER_THIN);
+  format_set_font_size(header, 10);
+
+  // Number format
+  lxw_format *numberFormat = workbook_add_format(workbook);
+  format_set_num_format(numberFormat, "0.00E+00");
+  format_set_font_size(numberFormat, 10);
+  format_set_align(numberFormat, LXW_ALIGN_CENTER);
+  format_set_align(numberFormat, LXW_ALIGN_VERTICAL_CENTER);
+
+  ////////////////////////////////////////////////////////////////////////////////////
+  ////
+  int32_t heatMapSquareWidth = mAnalyzeSettings.getReportingSettings().getImageHeatmapAreaWidth();
+
+  struct Square
+  {
+    uint64_t nrOfValid  = 0;
+    double avgIntensity = 0;
+    double avgAreaSize  = 0;
+    uint64_t cnt        = 0;
+  };
+
+  int64_t nrOfSquaresX = imageWidth / heatMapSquareWidth;
+  int64_t nrOfSquaresY = imageHeight / heatMapSquareWidth;
+
+  std::vector<std::vector<Square>> heatmapSquares(nrOfSquaresX);
+  for(int64_t x = 0; x < nrOfSquaresX; x++) {
+    heatmapSquares[x] = std::vector<Square>(nrOfSquaresY);
+  }
+  std::map<int, lxw_worksheet *> sheets;
+
+  //
+  // Build the map
+  //
+  for(const auto &[channelIdx, table] : containers.mColumns) {
+    sheets[channelIdx] = workbook_add_worksheet(workbook, table.getTableName().data());
+
+    for(int row = 0; row < table.getNrOfRows(); row++) {
+      if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X)).contains(row)) {
+        int64_t xCo = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X)).at(row).value;
+        int64_t yCo = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y)).at(row).value;
+        if(xCo > imageWidth) {
+          xCo = imageWidth;
+        }
+        if(yCo > imageHeight) {
+          yCo = imageHeight;
+        }
+
+        int64_t squareXidx = xCo / heatMapSquareWidth;
+        int64_t squareYidx = yCo / heatMapSquareWidth;
+
+        double intensity = 0;
+        double areaSize  = 0;
+        bool valid       = false;
+        if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::INTENSITY)).contains(row)) {
+          intensity = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::INTENSITY)).at(row).value;
+          valid     = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::INTENSITY)).at(row).validity ==
+                  func::ParticleValidity::VALID;
+        }
+        if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).contains(row)) {
+          areaSize = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).at(row).value;
+        }
+
+        if(valid) {
+          heatmapSquares[squareXidx][squareYidx].nrOfValid += 1;
+          heatmapSquares[squareXidx][squareYidx].avgIntensity += intensity;
+          heatmapSquares[squareXidx][squareYidx].avgAreaSize += areaSize;
+          heatmapSquares[squareXidx][squareYidx].cnt++;
+        }
+      }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Paint the heatmap
+    int rowOffset = 0;
+    paintPlateBorder(sheets.at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
+
+    for(int64_t x = 0; x < nrOfSquaresX; x++) {
+      for(int64_t y = 0; y < nrOfSquaresY; y++) {
+        heatmapSquares[x][y].avgAreaSize;
+        worksheet_write_number(sheets.at(channelIdx), rowOffset + y, y + 1,
+                               heatmapSquares[x][y].avgAreaSize / (double) heatmapSquares[x][y].cnt, numberFormat);
+      }
+    }
+  }
+  workbook_close(workbook);
+}
+
 ///
 /// \brief      Create heatmap for all over reporting
 /// \author     Joachim Danmayr
@@ -256,7 +356,6 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
   const int32_t PLATE_COLS = 24;
 
   const int32_t HEADER_CELL_SIZE = 15;
-  const int32_t CELL_SIZE        = 60;
 
   const int32_t ROW_OFFSET_START = 2;
 
@@ -279,46 +378,6 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
 
   int32_t rowOffset = 0;
 
-  ///////////////////////////7
-  lxw_conditional_format *condFormat = new lxw_conditional_format();
-  condFormat->type                   = LXW_CONDITIONAL_3_COLOR_SCALE;
-  condFormat->format                 = numberFormat;
-  condFormat->min_color              = 0x63BE7B;
-  condFormat->min_rule_type          = LXW_CONDITIONAL_RULE_TYPE_MINIMUM;
-  condFormat->mid_color              = 0xFFEB84;
-  condFormat->mid_rule_type          = LXW_CONDITIONAL_RULE_TYPE_PERCENTILE;
-  condFormat->mid_value              = 50;
-  condFormat->max_color              = 0xF8696B;
-  condFormat->max_rule_type          = LXW_CONDITIONAL_RULE_TYPE_MAXIMUM;
-
-  ///////////////////
-
-  auto paintPlateBorder = [&header, &condFormat](lxw_worksheet *sheet, int32_t rowOffset) {
-    // Column
-    worksheet_set_column_pixels(sheet, 0, 0, HEADER_CELL_SIZE, NULL);
-    worksheet_set_column_pixels(sheet, PLATE_COLS + 1, PLATE_COLS + 1, HEADER_CELL_SIZE, NULL);
-
-    for(int col = 1; col < PLATE_COLS + 1; col++) {
-      worksheet_set_column_pixels(sheet, col, col, CELL_SIZE, NULL);
-      worksheet_write_string(sheet, rowOffset, col, std::to_string(col).data(), header);
-      worksheet_write_string(sheet, PLATE_ROWS + rowOffset + 1, col, std::to_string(col).data(), header);
-    }
-
-    // Row
-    worksheet_set_row_pixels(sheet, rowOffset, HEADER_CELL_SIZE, NULL);
-    for(int row = 1; row < PLATE_ROWS + 1; row++) {
-      char toWrt[2];
-      toWrt[0] = (row - 1) + 'A';
-      toWrt[1] = 0;
-
-      worksheet_set_row_pixels(sheet, row + rowOffset, CELL_SIZE, NULL);
-      worksheet_write_string(sheet, row + rowOffset, 0, toWrt, header);
-      worksheet_write_string(sheet, row + rowOffset, PLATE_COLS + 1, toWrt, header);
-    }
-
-    worksheet_conditional_format_range(sheet, 1 + rowOffset, 1, 1 + rowOffset + PLATE_ROWS, 1 + PLATE_COLS, condFormat);
-  };
-
   // Intensity
   std::map<int, lxw_worksheet *> sheets;
 
@@ -330,15 +389,16 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
         rowOffset          = ROW_OFFSET_START;
         worksheet_merge_range(sheets.at(channelIdx), rowOffset - 1, 0, rowOffset - 1, PLATE_COLS + 1, "-", NULL);
         worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Valid", NULL);
-        paintPlateBorder(sheets.at(channelIdx), rowOffset);
+
+        paintPlateBorder(sheets.at(channelIdx), PLATE_ROWS, PLATE_COLS, rowOffset, header, numberFormat);
         rowOffset = PLATE_ROWS + ROW_OFFSET_START + 4;
         worksheet_merge_range(sheets.at(channelIdx), rowOffset - 1, 0, rowOffset - 1, PLATE_COLS + 1, "-", NULL);
         worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Intensity", NULL);
-        paintPlateBorder(sheets.at(channelIdx), rowOffset);
+        paintPlateBorder(sheets.at(channelIdx), PLATE_ROWS, PLATE_COLS, rowOffset, header, numberFormat);
         rowOffset = 2 * PLATE_ROWS + ROW_OFFSET_START + ROW_OFFSET_START + 6;
         worksheet_merge_range(sheets.at(channelIdx), rowOffset - 1, 0, rowOffset - 1, PLATE_COLS + 1, "-", NULL);
         worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Area size", NULL);
-        paintPlateBorder(sheets.at(channelIdx), rowOffset);
+        paintPlateBorder(sheets.at(channelIdx), PLATE_ROWS, PLATE_COLS, rowOffset, header, numberFormat);
       }
 
       auto *sheet = sheets.at(channelIdx);
@@ -367,6 +427,56 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
   }
 
   workbook_close(workbook);
+}
+
+///
+/// \brief      Paint the borders of the heatmap
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Reporting::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset,
+                                 lxw_format *header, lxw_format *numberFormat) const
+{
+  const int32_t HEADER_CELL_SIZE = 15;
+
+  ///////////////////////////7
+  lxw_conditional_format *condFormat = new lxw_conditional_format();
+  condFormat->type                   = LXW_CONDITIONAL_3_COLOR_SCALE;
+  condFormat->format                 = numberFormat;
+  condFormat->min_color              = 0x63BE7B;
+  condFormat->min_rule_type          = LXW_CONDITIONAL_RULE_TYPE_MINIMUM;
+  condFormat->mid_color              = 0xFFEB84;
+  condFormat->mid_rule_type          = LXW_CONDITIONAL_RULE_TYPE_PERCENTILE;
+  condFormat->mid_value              = 50;
+  condFormat->max_color              = 0xF8696B;
+  condFormat->max_rule_type          = LXW_CONDITIONAL_RULE_TYPE_MAXIMUM;
+  ///////////////////
+
+  // Column
+  worksheet_set_column_pixels(sheet, 0, 0, HEADER_CELL_SIZE, NULL);
+  worksheet_set_column_pixels(sheet, cols + 1, cols + 1, HEADER_CELL_SIZE, NULL);
+
+  for(int col = 1; col < cols + 1; col++) {
+    worksheet_set_column_pixels(sheet, col, col, CELL_SIZE, NULL);
+    worksheet_write_string(sheet, rowOffset, col, std::to_string(col).data(), header);
+    worksheet_write_string(sheet, rows + rowOffset + 1, col, std::to_string(col).data(), header);
+  }
+
+  // Row
+  worksheet_set_row_pixels(sheet, rowOffset, HEADER_CELL_SIZE, NULL);
+  for(int row = 1; row < rows + 1; row++) {
+    char toWrt[2];
+    toWrt[0] = (row - 1) + 'A';
+    toWrt[1] = 0;
+
+    worksheet_set_row_pixels(sheet, row + rowOffset, CELL_SIZE, NULL);
+    worksheet_write_string(sheet, row + rowOffset, 0, toWrt, header);
+    worksheet_write_string(sheet, row + rowOffset, cols + 1, toWrt, header);
+  }
+
+  worksheet_conditional_format_range(sheet, 1 + rowOffset, 1, 1 + rowOffset + rows, 1 + cols, condFormat);
 }
 
 ///

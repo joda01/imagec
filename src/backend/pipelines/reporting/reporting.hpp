@@ -47,12 +47,19 @@ public:
 
   auto getGroupToStoreImageIn(const std::string &imagePath, const std::string &imageName) -> std::string;
 
+  void createHeatMapForImage(const joda::reporting::ReportingContainer &containers, int64_t imageWidth,
+                             int64_t imageHeight, const std::string &fileName);
   void createAllOverHeatMap(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
                             const std::string &fileName);
 
   static RegexResult applyRegex(const std::string &regex, const std::string &fileName);
 
 private:
+  static constexpr int32_t CELL_SIZE = 60;
+
+  void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,
+                        lxw_format *numberFormat) const;
+
   /////////////////////////////////////////////////////
   enum class ColumnIndexDetailedReport : int
   {
