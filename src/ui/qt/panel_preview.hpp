@@ -60,7 +60,7 @@ private:
   QPixmap mActPixmapOriginal;
   QGraphicsPixmapItem *mActPixmap = nullptr;
   QGraphicsScene *scene;
-  bool isDragging;
+  bool isDragging = false;
   QPoint lastPos;
 
 private slots:

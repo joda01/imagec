@@ -203,8 +203,10 @@ void PreviewLabel::paintEvent(QPaintEvent *event)
   painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
 
   // Draw
-  painter.drawRect(rectangle);
-  painter.drawRect(viewPort);
+  if(viewPort.width() < RECT_SIZE) {
+    painter.drawRect(rectangle);
+    painter.drawRect(viewPort);
+  }
 }
 
 void PreviewLabel::mouseReleaseEvent(QMouseEvent *event)
