@@ -157,18 +157,13 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   // Preview
   //
   auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE);
-  mPreviewImage      = new PanelPreview();
-  QIcon bmp(PLACEHOLDER);
-  mPreviewImage->setPixmap(bmp.pixmap(PLACEHOLDER_BASE_SIZE, PLACEHOLDER_BASE_SIZE), PREVIEW_BASE_SIZE,
-                           PREVIEW_BASE_SIZE);
+  mPreviewImage      = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
+  mPreviewImage->resetImage("");
   preview->addWidget(mPreviewImage);
   QWidget *imageSubTitleWidget = new QWidget();
   imageSubTitleWidget->setMinimumHeight(50);
   QHBoxLayout *imageSubTitle = new QHBoxLayout();
   imageSubTitleWidget->setLayout(imageSubTitle);
-
-  mPreviewInfo = new QLabel("-");
-  imageSubTitle->addWidget(mPreviewInfo);
 
   mSpinner = new WaitingSpinnerWidget(imageSubTitleWidget);
   mSpinner->setRoundness(10.0);
@@ -216,7 +211,6 @@ PanelChannelEdit::~PanelChannelEdit()
   }
   delete mScrollAreaCellApprox;
   delete mPreviewImage;
-  delete mPreviewInfo;
   delete mSpinner;
 }
 
@@ -421,9 +415,8 @@ void PanelChannelEdit::updatePreview()
                 QImage image;
                 if(image.loadFromData(byteArray, "PNG")) {
                   QPixmap pixmap = QPixmap::fromImage(image);
-                  mPreviewImage->setPixmap(pixmap, PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE);
-                  int valid   = 0;
-                  int invalid = 0;
+                  int valid      = 0;
+                  int invalid    = 0;
                   for(const auto &roi : preview.detectionResult) {
                     if(roi.isValid()) {
                       valid++;
@@ -432,19 +425,15 @@ void PanelChannelEdit::updatePreview()
                     }
                   }
 
-                  mPreviewInfo->setText("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
+                  QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
+                  mPreviewImage->setPixmap(pixmap, PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, info);
+
                 } else {
-                  QIcon bmp(PLACEHOLDER);
-                  mPreviewImage->setPixmap(bmp.pixmap(PLACEHOLDER_BASE_SIZE, PLACEHOLDER_BASE_SIZE), PREVIEW_BASE_SIZE,
-                                           PREVIEW_BASE_SIZE);
-                  mPreviewInfo->setText("");
+                  mPreviewImage->resetImage("");
                 }
               }
             } catch(const std::exception &error) {
-              QIcon bmp(PLACEHOLDER);
-              mPreviewImage->setPixmap(bmp.pixmap(PLACEHOLDER_BASE_SIZE, PREVIEW_BASE_SIZE), PREVIEW_BASE_SIZE,
-                                       PREVIEW_BASE_SIZE);
-              mPreviewInfo->setText(error.what());
+              mPreviewImage->resetImage(error.what());
             }
           }
         }

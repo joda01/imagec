@@ -43,10 +43,7 @@ public:
   }
 
 private:
-  static constexpr int32_t PREVIEW_BASE_SIZE     = 450;
-  static constexpr int32_t PLACEHOLDER_BASE_SIZE = 450;
-
-  static inline const QString PLACEHOLDER{":/icons/outlined/icons8-picture-1000-lightgray.png"};
+  static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
   QHBoxLayout *createLayout();
   std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
@@ -57,7 +54,6 @@ private:
   QLabel *createTitle(const QString &);
   QWidget *mScrollAreaCellApprox = nullptr;
   PanelPreview *mPreviewImage    = nullptr;
-  QLabel *mPreviewInfo           = nullptr;
   WaitingSpinnerWidget *mSpinner = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter                         = 0;

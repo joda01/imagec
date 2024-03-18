@@ -17,6 +17,8 @@
 #include <qicon.h>
 #include <qlabel.h>
 #include <qnamespace.h>
+#include <qpixmap.h>
+#include <qpushbutton.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>
@@ -28,12 +30,17 @@ namespace joda::ui::qt {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelPreview::PanelPreview(QWidget *parent) : mPreviewLabel(parent)
+PanelPreview::PanelPreview(int width, int height, QWidget *parent) : mPreviewLabel(width, height, parent)
 {
   QVBoxLayout *hLayout = new QVBoxLayout();
+  hLayout->setContentsMargins(0, 0, 0, 0);
   this->setLayout(hLayout);
   hLayout->addWidget(&mPreviewLabel);
   hLayout->addWidget(createToolBar());
+
+  mPreviewInfo = new QLabel("-");
+  hLayout->addWidget(mPreviewInfo);
+
   hLayout->addStretch();
 }
 
@@ -45,20 +52,57 @@ QWidget *PanelPreview::createToolBar()
 {
   QWidget *container  = new QWidget();
   QHBoxLayout *layout = new QHBoxLayout();
+  layout->setContentsMargins(0, 0, 0, 0);
+
   container->setLayout(layout);
 
-  // QPushButton *zoon = new QPushButton(QIcon(":/icons/outlined/icons8-search-50.png"), "");
-  // zoon->setCheckable(true);
-  // layout->addWidget(zoon);
+  QButtonGroup *buttonGroup = new QButtonGroup();
+
+  QPushButton *move = new QPushButton(QIcon(":/icons/outlined/icons8-hand-50.png"), "");
+  move->setCheckable(true);
+  move->setToolTip("Move the image");
+  move->setChecked(true);
+  buttonGroup->addButton(move);
+  layout->addWidget(move);
+
+  QPushButton *fitToScreen = new QPushButton(QIcon(":/icons/outlined/icons8-full-image-50.png"), "");
+  fitToScreen->setToolTip("Fit image to screen");
+  connect(fitToScreen, &QPushButton::pressed, this, &PanelPreview::onFitImageToScreenSizeClicked);
+  layout->addWidget(fitToScreen);
+
+  QPushButton *zoomIn = new QPushButton(QIcon(":/icons/outlined/icons8-zoom-in-50.png"), "");
+  zoomIn->setToolTip("Zoom in");
+  connect(zoomIn, &QPushButton::pressed, this, &PanelPreview::onZoomInClicked);
+  layout->addWidget(zoomIn);
+
+  QPushButton *zoomOut = new QPushButton(QIcon(":/icons/outlined/icons8-zoom-out-50.png"), "");
+  zoomOut->setToolTip("Zoom out");
+  connect(zoomOut, &QPushButton::pressed, this, &PanelPreview::onZoomOutClicked);
+  layout->addWidget(zoomOut);
+
   layout->addStretch();
 
   return container;
 }
 
+void PanelPreview::onZoomInClicked()
+{
+  mPreviewLabel.zoomImage(true);
+}
+void PanelPreview::onZoomOutClicked()
+{
+  mPreviewLabel.zoomImage(false);
+}
+
+void PanelPreview::onFitImageToScreenSizeClicked()
+{
+  mPreviewLabel.fitImageToScreenSize();
+}
+
 ////////////////////////////////////////////////////////////////
 // Image view section
 //
-PreviewLabel::PreviewLabel(QWidget *parent) : QGraphicsView(parent)
+PreviewLabel::PreviewLabel(int width, int height, QWidget *parent) : QGraphicsView(parent)
 {
   scene = new QGraphicsScene(this);
   setScene(scene);
@@ -69,12 +113,6 @@ PreviewLabel::PreviewLabel(QWidget *parent) : QGraphicsView(parent)
   setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-  connect(this, &PreviewLabel::updateImage, this, &PreviewLabel::onUpdateImage);
-}
-
-void PreviewLabel::setPixmap(const QPixmap &pixIn, int width, int height)
-{
   setMinimumWidth(width);
   setMinimumHeight(height);
   setMaximumWidth(width);
@@ -82,8 +120,27 @@ void PreviewLabel::setPixmap(const QPixmap &pixIn, int width, int height)
   setFixedWidth(width);
   setFixedHeight(height);
 
+  setFrameShape(Shape::NoFrame);
+
+  connect(this, &PreviewLabel::updateImage, this, &PreviewLabel::onUpdateImage);
+}
+
+void PreviewLabel::setPixmap(const QPixmap &pixIn)
+{
   mActPixmapOriginal = pixIn;
 
+  if(mPlaceholderImageSet) {
+    fitImageToScreenSize();
+    mPlaceholderImageSet = false;
+  }
+  emit updateImage();
+}
+
+void PreviewLabel::resetImage()
+{
+  mActPixmapOriginal   = QPixmap(PLACEHOLDER);
+  mPlaceholderImageSet = true;
+  fitImageToScreenSize();
   emit updateImage();
 }
 
@@ -97,7 +154,6 @@ void PreviewLabel::onUpdateImage()
     scene->removeItem(mActPixmap);
     mActPixmap = scene->addPixmap(mActPixmapOriginal);
   }
-  fitImageToScreenSize();
 
   scene->update();
   update();
@@ -186,9 +242,26 @@ void PreviewLabel::wheelEvent(QWheelEvent *event)
   }
 }
 
+void PreviewLabel::zoomImage(bool inOut)
+{
+  qreal zoomFactor = 1.05;
+  if(inOut) {
+    scale(zoomFactor, zoomFactor);
+  } else {
+    scale(1.0 / zoomFactor, 1.0 / zoomFactor);
+  }
+
+  QPointF center = mapToScene(viewport()->rect().center());
+  // Set the new center point after scaling
+  centerOn(center);
+  // Ensure the view doesn't go beyond the scene boundaries
+  // ensureVisible(sceneRect());
+}
+
 void PreviewLabel::fitImageToScreenSize()
 {
-  float zoomFactor = static_cast<float>(width()) / static_cast<float>(scene->width());
+  resetTransform();
+  float zoomFactor = static_cast<float>(width()) / static_cast<float>(mActPixmapOriginal.size().width());
   scale(zoomFactor, zoomFactor);
 }
 

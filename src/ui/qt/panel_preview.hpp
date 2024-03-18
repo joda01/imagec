@@ -31,8 +31,11 @@ class PreviewLabel : public QGraphicsView
   Q_OBJECT
 public:
   /////////////////////////////////////////////////////
-  PreviewLabel(QWidget *parent = nullptr);
-  void setPixmap(const QPixmap &pix, int width, int height);
+  PreviewLabel(int width, int height, QWidget *parent = nullptr);
+  void setPixmap(const QPixmap &pix);
+  void resetImage();
+  void fitImageToScreenSize();
+  void zoomImage(bool inOut);
 
 signals:
   void updateImage();
@@ -46,10 +49,14 @@ protected:
   void leaveEvent(QEvent *) override;
   void wheelEvent(QWheelEvent *event) override;
   void paintEvent(QPaintEvent *event) override;
-  void fitImageToScreenSize();
 
 private:
   /////////////////////////////////////////////////////
+  static constexpr int32_t PLACEHOLDER_BASE_SIZE = 450;
+  static inline const QString PLACEHOLDER{":/icons/outlined/icons8-picture-1000-lightgray.png"};
+
+  /////////////////////////////////////////////////////
+  bool mPlaceholderImageSet = true;
   QPixmap mActPixmapOriginal;
   QGraphicsPixmapItem *mActPixmap = nullptr;
   QGraphicsScene *scene;
@@ -65,18 +72,27 @@ class PanelPreview : public QWidget
   Q_OBJECT
 
 public:
-  PanelPreview(QWidget *parent = nullptr);
-  void setPixmap(const QPixmap &pix, int width, int height)
+  PanelPreview(int width, int height, QWidget *parent);
+  void setPixmap(const QPixmap &pix, int width, int height, const QString &info)
   {
-    mPreviewLabel.setPixmap(pix, width, height);
+    mPreviewLabel.setPixmap(pix);
+    mPreviewInfo->setText(info);
+  }
+  void resetImage(const QString &info)
+  {
+    mPreviewLabel.resetImage();
+    mPreviewInfo->setText(info);
   }
 
 private slots:
-  // void onZoomInClicked();
+  void onFitImageToScreenSizeClicked();
+  void onZoomOutClicked();
+  void onZoomInClicked();
 
 private:
   /////////////////////////////////////////////////////
   QWidget *createToolBar();
+  QLabel *mPreviewInfo;
 
   /////////////////////////////////////////////////////
   PreviewLabel mPreviewLabel;
