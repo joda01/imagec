@@ -14,6 +14,7 @@
 #pragma once
 
 #include <qlabel.h>
+#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>
@@ -21,51 +22,77 @@
 
 namespace joda::ui::qt {
 
-class PanelPreview : public QWidget
+///
+/// \class      PreviewLabel
+/// \author     Joachim Danmayr
+///
+class PreviewLabel : public QGraphicsView
 {
+  Q_OBJECT
 public:
-  PanelPreview(QWidget *parent = nullptr);
-  void setPixmap(const QPixmap &pix, int width, int height)
-  {
-    mPreviewLabel.setPixmap(pix, width, height);
-  }
+  /////////////////////////////////////////////////////
+  PreviewLabel(int width, int height, QWidget *parent = nullptr);
+  void setPixmap(const QPixmap &pix);
+  void resetImage();
+  void fitImageToScreenSize();
+  void zoomImage(bool inOut);
 
-  ///
-  /// \class      PreviewLabel
-  /// \author     Joachim Danmayr
-  ///
-  class PreviewLabel : public QGraphicsView
-  {
-  public:
-    /////////////////////////////////////////////////////
-    PreviewLabel(QWidget *parent = nullptr);
-    void setPixmap(const QPixmap &pix, int width, int height);
+signals:
+  void updateImage();
 
-  protected:
-    /////////////////////////////////////////////////////
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void enterEvent(QEnterEvent *) override;
-    void leaveEvent(QEvent *) override;
-    void wheelEvent(QWheelEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
-    void fitImageToScreenSize();
+protected:
+  /////////////////////////////////////////////////////
+  void mousePressEvent(QMouseEvent *event) override;
+  void mouseMoveEvent(QMouseEvent *event) override;
+  void mouseReleaseEvent(QMouseEvent *event) override;
+  void enterEvent(QEnterEvent *) override;
+  void leaveEvent(QEvent *) override;
+  void wheelEvent(QWheelEvent *event) override;
+  void paintEvent(QPaintEvent *event) override;
 
-  private:
-    /////////////////////////////////////////////////////
-    QGraphicsPixmapItem *mActPixmap = nullptr;
-    QGraphicsScene *scene;
-    bool isDragging;
-    QPoint lastPos;
-  };
+private:
+  /////////////////////////////////////////////////////
+  static constexpr int32_t PLACEHOLDER_BASE_SIZE = 450;
+  static inline const QString PLACEHOLDER{":/icons/outlined/icons8-picture-1000-lightgray.png"};
+
+  /////////////////////////////////////////////////////
+  bool mPlaceholderImageSet = true;
+  QPixmap mActPixmapOriginal;
+  QGraphicsPixmapItem *mActPixmap = nullptr;
+  QGraphicsScene *scene;
+  bool isDragging;
+  QPoint lastPos;
 
 private slots:
+  void onUpdateImage();
+};
+
+class PanelPreview : public QWidget
+{
+  Q_OBJECT
+
+public:
+  PanelPreview(int width, int height, QWidget *parent);
+  void setPixmap(const QPixmap &pix, int width, int height, const QString &info)
+  {
+    mPreviewLabel.setPixmap(pix);
+    mPreviewInfo->setText(info);
+  }
+  void resetImage(const QString &info)
+  {
+    mPreviewLabel.resetImage();
+    mPreviewInfo->setText(info);
+  }
+
+private slots:
+  void onFitImageToScreenSizeClicked();
+  void onZoomOutClicked();
   void onZoomInClicked();
 
 private:
   /////////////////////////////////////////////////////
   QWidget *createToolBar();
+  QLabel *mPreviewInfo;
 
   /////////////////////////////////////////////////////
   PreviewLabel mPreviewLabel;
