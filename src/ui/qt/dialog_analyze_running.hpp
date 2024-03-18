@@ -56,6 +56,7 @@ private slots:
   void onStopClicked();
   void onCloseClicked();
   void onRefreshData();
+  void onOpenResultsFolderClicked();
 };
 
 }    // namespace joda::ui::qt

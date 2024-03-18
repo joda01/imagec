@@ -91,6 +91,11 @@ public:
     return mLastErrorMessage;
   }
 
+  [[nodiscard]] const std::string &getOutputFolder() const
+  {
+    return mOutputFolder;
+  }
+
 protected:
   /////////////////////////////////////////////////////
   [[noreturn]] void setStateError(const std::string &what) noexcept(false)

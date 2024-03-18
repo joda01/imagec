@@ -378,7 +378,7 @@ QWidget *WindowMain::createAddChannelPanel()
       "QPushButton:pressed {"
       "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
       "}");
-  openSettingsButton->setText("Open settings");
+  openSettingsButton->setText("Load settings");
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
   layout->addWidget(openSettingsButton);
 

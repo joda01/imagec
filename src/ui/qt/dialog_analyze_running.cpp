@@ -13,6 +13,7 @@
 
 #include "dialog_analyze_running.hpp"
 #include <qdialog.h>
+#include <qicon.h>
 #include <qlabel.h>
 #include <qnamespace.h>
 #include <qtmetamacros.h>
@@ -67,8 +68,14 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain) :
   stopButton = new QPushButton("Stop", this);
   stopButton->setEnabled(true);
 
+  QPushButton *openResultsFolder = new QPushButton(QIcon(":/icons/outlined/icons8-scatter-plot-50.png"), "", this);
+  openResultsFolder->setToolTip("Open results folder");
+
   connect(closeButton, &QPushButton::clicked, this, &DialogAnalyzeRunning::onCloseClicked);
   connect(stopButton, &QPushButton::clicked, this, &DialogAnalyzeRunning::onStopClicked);
+  connect(openResultsFolder, &QPushButton::clicked, this, &DialogAnalyzeRunning::onOpenResultsFolderClicked);
+
+  buttonLayout->addWidget(openResultsFolder);
 
   buttonLayout->addStretch();
   buttonLayout->addWidget(stopButton);
@@ -98,6 +105,12 @@ void DialogAnalyzeRunning::onCloseClicked()
     mRefreshThread->join();
   }
   close();
+}
+
+void DialogAnalyzeRunning::onOpenResultsFolderClicked()
+{
+  QString folderPath = mWindowMain->getController()->getOutputFolder().data();
+  QDesktopServices::openUrl(QUrl("file:///" + folderPath));
 }
 
 void DialogAnalyzeRunning::refreshThread()

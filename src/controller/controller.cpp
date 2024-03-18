@@ -81,6 +81,15 @@ void Controller::getSettings()
 }
 
 ///
+/// \brief      Get outputfolder of the actual job
+/// \author     Joachim Danmayr
+///
+std::string Controller::getOutputFolder() const
+{
+  return joda::pipeline::PipelineFactory::getOutputFolder(mActProcessId);
+}
+
+///
 /// \brief      Sets the working directory
 /// \author     Joachim Danmayr
 ///

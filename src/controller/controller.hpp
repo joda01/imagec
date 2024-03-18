@@ -60,6 +60,7 @@ public:
 
   auto calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex)
       -> pipeline::Pipeline::ThreadingSettings;
+  [[nodiscard]] std::string getOutputFolder() const;
 
 private:
   /////////////////////////////////////////////////////

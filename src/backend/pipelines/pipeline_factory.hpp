@@ -105,6 +105,14 @@ public:
     }
   }
 
+  static auto getOutputFolder(const std::string jobId) -> std::string
+  {
+    if(mJob) {
+      return mJob->getOutputFolder();
+    }
+    return "";
+  }
+
 private:
   ///
   /// \brief      Observes running threads and clean up finished ones
