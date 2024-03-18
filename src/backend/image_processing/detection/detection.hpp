@@ -45,8 +45,10 @@ public:
 
   /////////////////////////////////////////////////////
   virtual auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage) -> DetectionResponse = 0;
-  static void paintBoundingBox(cv::Mat &img, const DetectionResults &result, bool paintRectangel = true);
+  static void paintBoundingBox(cv::Mat &img, const DetectionResults &result, const std::string &fillColor,
+                               bool paintRectangel = true);
   static void paintOverlay(cv::Mat &img, const std::vector<OverlaySettings> &overlays);
+  static cv::Scalar hexToScalar(const std::string &hexColor);
 
 protected:
   /////////////////////////////////////////////////////

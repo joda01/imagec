@@ -22,7 +22,8 @@ namespace joda::func {
 /// \param[in]  img    Image where the mask should be painted on
 /// \param[in]  result Prediction result of the forward
 ///
-void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &result, bool paintRectangel)
+void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &result, const std::string &fillColor,
+                                         bool paintRectangel)
 {
   cv::Mat mask = img.clone();
 
@@ -33,19 +34,21 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
     int height    = result[i].getBoundingBox().height;
     int color_num = i;
 
-    if(paintRectangel && !result[i].getBoundingBox().empty()) {
-      // rectangle(img, result[i].getBoundingBox(), RED, 1 * THICKNESS, cv::LINE_4);
-    }
     if(!result[i].getMask().empty() && !result[i].getBoundingBox().empty()) {
       try {
-        cv::Scalar areaColor    = RED;
-        cv::Scalar contourColor = GREEN;
+        cv::Scalar areaColor    = hexToScalar(fillColor);
+        cv::Scalar contourColor = hexToScalar(fillColor);
 
         if(!result[i].isValid()) {
           areaColor = WHITE;
         }
 
-        // Paint particle
+        // Boundding box
+        if(paintRectangel && !result[i].getBoundingBox().empty()) {
+          // rectangle(img, result[i].getBoundingBox(), areaColor, 1 * THICKNESS, cv::LINE_4);
+        }
+
+        // Fill area
         mask(result[i].getBoundingBox()).setTo(areaColor, result[i].getMask());
 
         // Paint contour only for valid particles
@@ -71,6 +74,13 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
     // drawLabel(img, label, left, top);
   }
   addWeighted(mask, 0.5, img, 1, 0, img);
+}
+
+cv::Scalar DetectionFunction::hexToScalar(const std::string &hexColor)
+{
+  int r, g, b;
+  sscanf(hexColor.c_str(), "#%2x%2x%2x", &r, &g, &b);
+  return cv::Scalar(b, g, r);    // OpenCV uses BGR order
 }
 
 struct OverlaySettings

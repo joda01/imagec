@@ -170,7 +170,7 @@ private:
     detectionResult.originalImage = std::move(originalImg);
     DurationCount::stop(id);
 
-    generateControlImage(detectionResult);
+    generateControlImage(detectionResult, channelSetting.getChannelInfo().getColor());
 
     return detectionResult;
   }
@@ -299,9 +299,9 @@ private:
   /// \brief      Generate the control image
   /// \author     Joachim Danmayr
   ///
-  static void generateControlImage(func::DetectionResponse &detectionResult)
+  static void generateControlImage(func::DetectionResponse &detectionResult, const std::string &areaColor)
   {
-    joda::func::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result);
+    joda::func::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result, areaColor);
   }
 
   ///

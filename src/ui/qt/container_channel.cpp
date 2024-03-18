@@ -46,14 +46,14 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                                {"BACKGROUND", "Background"}}));
 
   mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-unknown-status-50.png", "Type", "Channel index", "", "Red",
+      new ContainerFunction<QString, int>("icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
                                           {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
                                            {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
                                            {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
                                            {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
                                            {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
                                            {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
-                                           {"#000000", "", "icons8-bubble-50-black-#000000.png"}},
+                                           /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
                                           {{0, "Channel 0"},
                                            {1, "Channel 1"},
                                            {2, "Channel 2"},

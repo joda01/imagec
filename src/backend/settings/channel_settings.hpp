@@ -273,9 +273,9 @@ private:
 
   //
   // Color of the channel
-  // [#FFFFFFFF]
+  // [#B91717]
   //
-  std::string color = "#000000";
+  std::string color = "#B91717";
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelInfo, index, series, name, type, label, color);
 };
