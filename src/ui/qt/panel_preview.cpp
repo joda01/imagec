@@ -13,6 +13,7 @@
 
 #include "panel_preview.hpp"
 #include <qboxlayout.h>
+#include <qgraphicsview.h>
 #include <qicon.h>
 #include <qlabel.h>
 #include <qnamespace.h>
@@ -45,10 +46,10 @@ QWidget *PanelPreview::createToolBar()
   QHBoxLayout *layout = new QHBoxLayout();
   container->setLayout(layout);
 
-  QPushButton *zoon = new QPushButton(QIcon(":/icons/outlined/icons8-search-50.png"), "");
-  zoon->setCheckable(true);
-  layout->addWidget(zoon);
-  layout->addStretch();
+  // QPushButton *zoon = new QPushButton(QIcon(":/icons/outlined/icons8-search-50.png"), "");
+  // zoon->setCheckable(true);
+  // layout->addWidget(zoon);
+  layout->addStretch(2);
 
   return container;
 }
@@ -56,28 +57,95 @@ QWidget *PanelPreview::createToolBar()
 ////////////////////////////////////////////////////////////////
 // Image view section
 //
-PanelPreview::PreviewLabel::PreviewLabel(QWidget *parent) : QLabel(parent)
+PanelPreview::PreviewLabel::PreviewLabel(QWidget *parent) : QGraphicsView(parent)
 {
-  setMouseTracking(true);
+  scene = new QGraphicsScene(this);
+  setScene(scene);
+
+  // Set up the view
+  setRenderHint(QPainter::SmoothPixmapTransform);
+  setDragMode(QGraphicsView::ScrollHandDrag);
+  setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
 void PanelPreview::PreviewLabel::setPixmap(const QPixmap &pix, int width, int height)
 {
   setMinimumWidth(width);
   setMinimumHeight(height);
+  setMaximumWidth(width);
+  setMaximumHeight(height);
   setFixedWidth(width);
   setFixedHeight(height);
+  scene->setSceneRect(pix.rect());
 
-  std::cout << std::to_string(width) << " | " << std::to_string(pix.width()) << std::endl;
+  if(nullptr == mActPixmap) {
+    mActPixmap = scene->addPixmap(pix);
+    resetTransform();
+    fitImageToScreenSize();
+  } else {
+    scene->removeItem(mActPixmap);
+    mActPixmap = scene->addPixmap(pix);
+  }
 
-  zoomFactor = (qreal) width / (qreal) pix.width();
-  std::cout << std::to_string(zoomFactor) << std::endl;
-  originalPixmap = pix;
-  updateZoomedImage();
+  update();
 }
 
 void PanelPreview::PreviewLabel::mouseMoveEvent(QMouseEvent *event)
 {
+  if(isDragging) {
+    // Calculate the difference in mouse position
+    QPoint delta = event->pos() - lastPos;
+
+    // Scroll the view
+    verticalScrollBar()->setValue(verticalScrollBar()->value() - delta.y());
+    horizontalScrollBar()->setValue(horizontalScrollBar()->value() - delta.x());
+
+    // Update the last position
+    lastPos = event->pos();
+  }
+}
+
+void PanelPreview::PreviewLabel::paintEvent(QPaintEvent *event)
+{
+  QGraphicsView::paintEvent(event);
+
+  const float RECT_SIZE  = 80;
+  const int RECT_START_X = 10;
+  const int RECT_START_Y = 10;
+
+  // Get the viewport rectangle
+  QRect viewportRect = viewport()->rect();
+  QRect rectangle(RECT_START_X, RECT_START_Y, RECT_SIZE, RECT_SIZE);    // Adjust the size as needed
+
+  float zoomFactor     = viewportTransform().m11();
+  float actImageWith   = RECT_SIZE * width() / (zoomFactor * scene->width());
+  float actImageHeight = RECT_SIZE * height() / (zoomFactor * scene->width());
+
+  float posX =
+      (RECT_SIZE - actImageWith) * (float) horizontalScrollBar()->value() / (float) horizontalScrollBar()->maximum();
+  float posY =
+      (RECT_SIZE - actImageHeight) * (float) verticalScrollBar()->value() / (float) verticalScrollBar()->maximum();
+
+  QRect viewPort(RECT_START_X + posX, RECT_START_Y + posY, actImageWith, actImageHeight);
+
+  // Draw the rectangle
+  QPainter painter(viewport());
+  painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
+  painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
+
+  // Draw
+  painter.drawRect(rectangle);
+  painter.drawRect(viewPort);
+}
+
+void PanelPreview::PreviewLabel::mouseReleaseEvent(QMouseEvent *event)
+{
+  if(event->button() == Qt::LeftButton) {
+    // End dragging
+    isDragging = false;
+  }
 }
 
 void PanelPreview::PreviewLabel::enterEvent(QEnterEvent *)
@@ -88,62 +156,29 @@ void PanelPreview::PreviewLabel::leaveEvent(QEvent *)
 {
 }
 
-void PanelPreview::PreviewLabel::wheelEvent(QWheelEvent *event)
-{
-}
-
 void PanelPreview::PreviewLabel::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-    zoomCenter = event->pos();
-    zoom(true);
-  }
-  if(event->button() == Qt::RightButton) {
-    zoomCenter = event->pos();
-    zoom(false);
+    // Start dragging
+    isDragging = true;
+    lastPos    = event->pos();
   }
 }
 
-void PanelPreview::PreviewLabel::fitToWindow()
+void PanelPreview::PreviewLabel::wheelEvent(QWheelEvent *event)
 {
-  zoomFactor = (qreal) QLabel::width() / (qreal) originalPixmap.width();
-  updateZoomedImage();
-}
-
-void PanelPreview::PreviewLabel::zoom(bool direction)
-{
-  if(direction) {
-    zoomFactor += 0.03F;
+  qreal zoomFactor = 1.05;
+  if(event->pixelDelta().ry() > 0) {
+    scale(zoomFactor, zoomFactor);
   } else {
-    zoomFactor -= 0.03F;
+    scale(1.0 / zoomFactor, 1.0 / zoomFactor);
   }
-
-  std::cout << std::to_string(zoomFactor) << std::endl;
-
-  updateZoomedImage();
 }
 
-void PanelPreview::PreviewLabel::updateZoomedImage()
+void PanelPreview::PreviewLabel::fitImageToScreenSize()
 {
-  /*scaledPixmap = originalPixmap.scaled(originalPixmap.width() * zoomFactor, originalPixmap.height() * zoomFactor,
-                                       Qt::KeepAspectRatio, Qt::SmoothTransformation);*/
-
-  QTransform transform;
-  transform.translate(zoomCenter.x(), zoomCenter.y());
-  transform.scale(zoomFactor, zoomFactor);
-  transform.translate(-zoomCenter.x(), -zoomCenter.y());
-
-  scaledPixmap = originalPixmap.transformed(transform);
-
-  update();
-}
-
-void PanelPreview::PreviewLabel::paintEvent(QPaintEvent *event)
-{
-  QLabel::paintEvent(event);
-
-  QPainter painter(this);
-  painter.drawPixmap(QPoint(0, 0), scaledPixmap);
+  float zoomFactor = static_cast<float>(width()) / static_cast<float>(scene->width());
+  scale(zoomFactor, zoomFactor);
 }
 
 }    // namespace joda::ui::qt

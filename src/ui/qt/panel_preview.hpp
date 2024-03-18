@@ -34,7 +34,7 @@ public:
   /// \class      PreviewLabel
   /// \author     Joachim Danmayr
   ///
-  class PreviewLabel : public QLabel
+  class PreviewLabel : public QGraphicsView
   {
   public:
     /////////////////////////////////////////////////////
@@ -45,22 +45,19 @@ public:
     /////////////////////////////////////////////////////
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
     void enterEvent(QEnterEvent *) override;
     void leaveEvent(QEvent *) override;
     void wheelEvent(QWheelEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
+    void fitImageToScreenSize();
 
   private:
     /////////////////////////////////////////////////////
-    void zoom(bool direction);
-    void fitToWindow();
-    void updateZoomedImage();
-
-    QPixmap originalPixmap;
-
-    QPixmap scaledPixmap;
-    qreal zoomFactor;
-    QPoint zoomCenter;
+    QGraphicsPixmapItem *mActPixmap = nullptr;
+    QGraphicsScene *scene;
+    bool isDragging;
+    QPoint lastPos;
   };
 
 private slots:
