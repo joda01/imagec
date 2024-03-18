@@ -56,14 +56,16 @@ private:
   /////////////////////////////////////////////////////
   enum class ColumnIndexDetailedReport : int
   {
-    CONFIDENCE    = 0,
-    AREA_SIZE     = 1,
-    PERIMETER     = 2,
-    CIRCULARITY   = 3,
-    VALIDITY      = 4,
-    INTENSITY     = 5,
-    INTENSITY_MIN = 6,
-    INTENSITY_MAX = 7,
+    CONFIDENCE       = 0,
+    AREA_SIZE        = 1,
+    PERIMETER        = 2,
+    CIRCULARITY      = 3,
+    VALIDITY         = 4,
+    CENTER_OF_MASS_X = 5,
+    CENTER_OF_MASS_Y = 6,
+    INTENSITY        = 7,
+    INTENSITY_MIN    = 8,
+    INTENSITY_MAX    = 9,
   };
 
   const joda::settings::json::AnalyzeSettings &mAnalyzeSettings;

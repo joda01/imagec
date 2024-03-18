@@ -17,6 +17,7 @@
 #include <vector>
 #include "../../settings/channel_settings.hpp"
 #include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
 #include <opencv2/dnn.hpp>
 #include <opencv2/dnn/all_layers.hpp>
 #include <opencv2/opencv.hpp>
@@ -80,6 +81,11 @@ public:
   [[nodiscard]] auto getBoundingBox() const -> const Boxes &
   {
     return mBoundingBox;
+  }
+
+  [[nodiscard]] auto getCenterOfMass() const -> cv::Point
+  {
+    return {(mBoundingBox.x + mBoundingBox.width) / 2, (mBoundingBox.y + mBoundingBox.height) / 2};
   }
 
   [[nodiscard]] auto getMask() const -> const cv::Mat &

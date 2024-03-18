@@ -36,14 +36,16 @@ void Reporting::setDetailReportHeader(joda::reporting::ReportingContainer &detai
 {
   try {
     detailReportTable.getTableAt(tempChannelIdx, channelName)
-        .setColumnNames({{static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE), "#confidence"},
-                         {static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE), "#areaSize"},
-                         {static_cast<int>(ColumnIndexDetailedReport::PERIMETER), "#perimeter"},
-                         {static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY), "#circularity"},
-                         {static_cast<int>(ColumnIndexDetailedReport::VALIDITY), "#validity"},
-                         {static_cast<int>(ColumnIndexDetailedReport::INTENSITY), "#intensity"},
-                         {static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN), "#Min"},
-                         {static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX), "#Max"}});
+        .setColumnNames({{static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE), "confidence"},
+                         {static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE), "areaSize"},
+                         {static_cast<int>(ColumnIndexDetailedReport::PERIMETER), "perimeter"},
+                         {static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY), "circularity"},
+                         {static_cast<int>(ColumnIndexDetailedReport::VALIDITY), "validity"},
+                         {static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X), "x"},
+                         {static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y), "y"},
+                         {static_cast<int>(ColumnIndexDetailedReport::INTENSITY), "intensity"},
+                         {static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN), "intensity min"},
+                         {static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX), "intensity max"}});
   } catch(const std::exception &ex) {
     std::cout << "Pipeline::setDetailReportHeader >" << ex.what() << "<" << std::endl;
   }
@@ -97,6 +99,13 @@ void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
       detailReportTable.getTableAt(tempChannelIdx, "")
           .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::VALIDITY), imgData.getIndex(),
                                     imgData.getValidity());
+
+      detailReportTable.getTableAt(tempChannelIdx, "")
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X), imgData.getIndex(),
+                                    imgData.getCenterOfMass().x, imgData.getValidity());
+      detailReportTable.getTableAt(tempChannelIdx, "")
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y), imgData.getIndex(),
+                                    imgData.getCenterOfMass().y, imgData.getValidity());
 
       int idxOffset = 0;
       for(const auto &[channelIndexIn, intensity] : imgData.getIntensity()) {
