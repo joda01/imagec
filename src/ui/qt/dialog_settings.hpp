@@ -37,6 +37,8 @@ public:
 
 private:
   QComboBox *mGroupedHeatmapOnOff;
+  QComboBox *mImageHeatmapOnOff;
+  QLineEdit *mHeatmapSlice;
   QComboBox *mGroupByComboBox;
   // QComboBox *mPlateComboBox;
   QComboBox *mRegexToFindTheWellPosition;

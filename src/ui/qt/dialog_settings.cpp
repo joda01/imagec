@@ -39,6 +39,16 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
   auto *groupBox       = new QGroupBox("Reporting settings", this);
   auto *groupBoxLayout = new QVBoxLayout(groupBox);
 
+  mImageHeatmapOnOff = new QComboBox(groupBox);
+  mImageHeatmapOnOff->addItem("No heatmap for images", false);
+  mImageHeatmapOnOff->addItem("Generate heatmap for images", true);
+  groupBoxLayout->addWidget(mImageHeatmapOnOff);
+
+  auto *sliceLabel = new QLabel("Area sizes to observe for image heatmap generation in [px]", groupBox);
+  groupBoxLayout->addWidget(sliceLabel);
+  mHeatmapSlice = new QLineEdit("50,100");
+  groupBoxLayout->addWidget(mHeatmapSlice);
+
   mGroupByComboBox = new QComboBox(groupBox);
   mGroupByComboBox->addItem("Ungrouped", "OFF");
   mGroupByComboBox->addItem("Group by folder", "FOLDER");
@@ -103,6 +113,23 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
     }
   }
 
+  {
+    auto idx = mImageHeatmapOnOff->findData(settings.getCreateHeatmapForImage());
+    if(idx >= 0) {
+      mImageHeatmapOnOff->setCurrentIndex(idx);
+    } else {
+      mImageHeatmapOnOff->setCurrentIndex(0);
+    }
+  }
+  {
+    QString slice;
+    for(const auto size : settings.getImageHeatmapAreaWidth()) {
+      slice += QString::number(size) + ",";
+    }
+    slice = slice.left(slice.lastIndexOf(',') + 1);
+    mHeatmapSlice->setText(slice);
+  }
+
   mRegexToFindTheWellPosition->setCurrentText(settings.getFileRegex().data());
   applyRegex();
 }
@@ -113,8 +140,18 @@ nlohmann::json DialogSettings::toJson()
   data["group_by"]                   = mGroupByComboBox->currentData().toString().toStdString();
   data["image_filename_regex"]       = mRegexToFindTheWellPosition->currentText().toStdString();
   data["generate_heatmap_for_group"] = mGroupedHeatmapOnOff->currentData().toBool();
-  data["generate_heatmap_for_image"] = false;
-  data["image_heatmap_area_width"]   = std::vector<int>{0};
+  data["generate_heatmap_for_image"] = mImageHeatmapOnOff->currentData().toBool();
+
+  QStringList pieces = mHeatmapSlice->text().split(",");
+  std::vector<int> sizes;
+  for(const auto &part : pieces) {
+    try {
+      sizes.push_back(part.toInt());
+    } catch(const std::exception &) {
+    }
+  }
+
+  data["image_heatmap_area_width"] = sizes;
   return data;
 }
 
