@@ -289,9 +289,9 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
     int64_t nrOfSquaresX = (imageWidth / heatMapSquareWidth) + 1;
     int64_t nrOfSquaresY = (imageHeight / heatMapSquareWidth) + 1;
 
-    std::vector<std::vector<Square>> heatmapSquares(nrOfSquaresX);
+    auto *heatmapSquares = new std::vector<std::vector<Square>>(nrOfSquaresX);
     for(int64_t x = 0; x < nrOfSquaresX; x++) {
-      heatmapSquares[x] = std::vector<Square>(nrOfSquaresY);
+      heatmapSquares->at(x) = std::vector<Square>(nrOfSquaresY);
     }
     std::map<int, lxw_worksheet *> sheets;
 
@@ -332,10 +332,10 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
           }
 
           if(valid) {
-            heatmapSquares[squareXidx][squareYidx].nrOfValid += 1;
-            heatmapSquares[squareXidx][squareYidx].avgIntensity += intensity;
-            heatmapSquares[squareXidx][squareYidx].avgAreaSize += areaSize;
-            heatmapSquares[squareXidx][squareYidx].cnt++;
+            heatmapSquares->at(squareXidx)[squareYidx].nrOfValid += 1;
+            heatmapSquares->at(squareXidx)[squareYidx].avgIntensity += intensity;
+            heatmapSquares->at(squareXidx)[squareYidx].avgAreaSize += areaSize;
+            heatmapSquares->at(squareXidx)[squareYidx].cnt++;
           }
         }
       }
@@ -359,19 +359,20 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
         for(int64_t y = 0; y < nrOfSquaresY; y++) {
           rowOffset = ROW_OFFSET_START + 1;
 
-          worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1, (double) heatmapSquares[x][y].nrOfValid,
-                                 numberFormat);
+          worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
+                                 (double) heatmapSquares->at(x)[y].nrOfValid, numberFormat);
           rowOffset = nrOfSquaresY + ROW_OFFSET_START + 5;
           worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
-                                 (double) heatmapSquares[x][y].avgIntensity / (double) heatmapSquares[x][y].cnt,
+                                 (double) heatmapSquares->at(x)[y].avgIntensity / (double) heatmapSquares->at(x)[y].cnt,
                                  numberFormat);
           rowOffset = 2 * nrOfSquaresY + ROW_OFFSET_START + ROW_OFFSET_START + 7;
           worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
-                                 (double) heatmapSquares[x][y].avgAreaSize / (double) heatmapSquares[x][y].cnt,
+                                 (double) heatmapSquares->at(x)[y].avgAreaSize / (double) heatmapSquares->at(x)[y].cnt,
                                  numberFormat);
         }
       }
     }
+    delete heatmapSquares;
   }
   workbook_close(workbook);
 }
