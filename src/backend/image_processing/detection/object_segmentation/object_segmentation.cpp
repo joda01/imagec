@@ -94,6 +94,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   cv::fillPoly(boxMask, contours, cv::Scalar(255));
 
   // Create a mask for each contour and draw bounding boxes
+  size_t idx = 0;
   for(size_t i = 0; i < contours.size(); ++i) {
     // Do not paint a contour for elements inside an element.
     // In other words if there is a particle with a hole, ignore the hole.
@@ -109,7 +110,8 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
         point.y = point.y - box.y;
       }
 
-      ROI detect(i, usedThersholdVal, 0, box, mask, contours[i], originalImage, getFilterSettings());
+      ROI detect(idx, usedThersholdVal, 0, box, mask, contours[i], originalImage, getFilterSettings());
+      idx++;
       response.push_back(detect);
     }
   }
