@@ -321,9 +321,7 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
           if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).contains(row)) {
             areaSize = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).at(row).value;
           }
-          std::cout << std::to_string(squareXidx) + "x" + std::to_string(squareYidx) + "|" + std::to_string(valid) +
-                           "|" + std::to_string(intensity)
-                    << std::endl;
+
           if(valid) {
             heatmapSquares[squareXidx][squareYidx].nrOfValid += 1;
             heatmapSquares[squareXidx][squareYidx].avgIntensity += intensity;
