@@ -107,7 +107,7 @@ public:
     return generate_heatmap_for_image;
   }
 
-  [[nodiscard]] auto getImageHeatmapAreaWidth() const -> int32_t
+  [[nodiscard]] auto getImageHeatmapAreaWidth() const -> std::vector<int32_t>
   {
     return image_heatmap_area_width;
   }
@@ -149,7 +149,7 @@ private:
   //
   // With of the square used for heatmap creation in image
   //
-  int32_t image_heatmap_area_width = 0;
+  std::vector<int32_t> image_heatmap_area_width;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettingsReporting, group_by, image_filename_regex,
                                               generate_heatmap_for_image, generate_heatmap_for_group,

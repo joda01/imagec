@@ -85,7 +85,7 @@ public:
 
   [[nodiscard]] auto getCenterOfMass() const -> cv::Point
   {
-    return {(mBoundingBox.x + mBoundingBox.width) / 2, (mBoundingBox.y + mBoundingBox.height) / 2};
+    return {(mBoundingBox.x + mBoundingBox.width / 2), (mBoundingBox.y + mBoundingBox.height / 2)};
   }
 
   [[nodiscard]] auto getMask() const -> const cv::Mat &

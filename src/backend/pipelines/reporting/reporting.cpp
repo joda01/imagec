@@ -268,77 +268,101 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
 
   ////////////////////////////////////////////////////////////////////////////////////
   ////
-  int32_t heatMapSquareWidth = mAnalyzeSettings.getReportingSettings().getImageHeatmapAreaWidth();
+  for(const auto heatMapSquareWidth : mAnalyzeSettings.getReportingSettings().getImageHeatmapAreaWidth()) {
+    struct Square
+    {
+      uint64_t nrOfValid  = 0;
+      double avgIntensity = 0;
+      double avgAreaSize  = 0;
+      uint64_t cnt        = 0;
+    };
 
-  struct Square
-  {
-    uint64_t nrOfValid  = 0;
-    double avgIntensity = 0;
-    double avgAreaSize  = 0;
-    uint64_t cnt        = 0;
-  };
+    int64_t nrOfSquaresX = (imageWidth / heatMapSquareWidth) + 1;
+    int64_t nrOfSquaresY = (imageHeight / heatMapSquareWidth) + 1;
 
-  int64_t nrOfSquaresX = imageWidth / heatMapSquareWidth;
-  int64_t nrOfSquaresY = imageHeight / heatMapSquareWidth;
+    std::vector<std::vector<Square>> heatmapSquares(nrOfSquaresX);
+    for(int64_t x = 0; x < nrOfSquaresX; x++) {
+      heatmapSquares[x] = std::vector<Square>(nrOfSquaresY);
+    }
+    std::map<int, lxw_worksheet *> sheets;
 
-  std::vector<std::vector<Square>> heatmapSquares(nrOfSquaresX);
-  for(int64_t x = 0; x < nrOfSquaresX; x++) {
-    heatmapSquares[x] = std::vector<Square>(nrOfSquaresY);
-  }
-  std::map<int, lxw_worksheet *> sheets;
+    //
+    // Build the map
+    //
+    for(const auto &[channelIdx, table] : containers.mColumns) {
+      std::string tabName =
+          table.getTableName() + "_" + std::to_string(heatMapSquareWidth) + "x" + std::to_string(heatMapSquareWidth);
+      sheets[channelIdx] = workbook_add_worksheet(workbook, tabName.data());
 
-  //
-  // Build the map
-  //
-  for(const auto &[channelIdx, table] : containers.mColumns) {
-    sheets[channelIdx] = workbook_add_worksheet(workbook, table.getTableName().data());
+      for(int row = 0; row < table.getNrOfRows(); row++) {
+        if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X)).contains(row)) {
+          int64_t xCo =
+              table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X)).at(row).value;
+          int64_t yCo =
+              table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y)).at(row).value;
+          if(xCo > imageWidth) {
+            xCo = imageWidth;
+          }
+          if(yCo > imageHeight) {
+            yCo = imageHeight;
+          }
 
-    for(int row = 0; row < table.getNrOfRows(); row++) {
-      if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X)).contains(row)) {
-        int64_t xCo = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X)).at(row).value;
-        int64_t yCo = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y)).at(row).value;
-        if(xCo > imageWidth) {
-          xCo = imageWidth;
-        }
-        if(yCo > imageHeight) {
-          yCo = imageHeight;
-        }
+          int64_t squareXidx = xCo / heatMapSquareWidth;
+          int64_t squareYidx = yCo / heatMapSquareWidth;
 
-        int64_t squareXidx = xCo / heatMapSquareWidth;
-        int64_t squareYidx = yCo / heatMapSquareWidth;
-
-        double intensity = 0;
-        double areaSize  = 0;
-        bool valid       = false;
-        if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::INTENSITY)).contains(row)) {
-          intensity = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::INTENSITY)).at(row).value;
-          valid     = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::INTENSITY)).at(row).validity ==
-                  func::ParticleValidity::VALID;
-        }
-        if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).contains(row)) {
-          areaSize = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).at(row).value;
-        }
-
-        if(valid) {
-          heatmapSquares[squareXidx][squareYidx].nrOfValid += 1;
-          heatmapSquares[squareXidx][squareYidx].avgIntensity += intensity;
-          heatmapSquares[squareXidx][squareYidx].avgAreaSize += areaSize;
-          heatmapSquares[squareXidx][squareYidx].cnt++;
+          double intensity = 0;
+          double areaSize  = 0;
+          bool valid       = false;
+          if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::INTENSITY)).contains(row)) {
+            intensity = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::INTENSITY)).at(row).value;
+            valid     = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::VALIDITY)).at(row).validity ==
+                    func::ParticleValidity::VALID;
+          }
+          if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).contains(row)) {
+            areaSize = table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).at(row).value;
+          }
+          std::cout << std::to_string(squareXidx) + "x" + std::to_string(squareYidx) + "|" + std::to_string(valid) +
+                           "|" + std::to_string(intensity)
+                    << std::endl;
+          if(valid) {
+            heatmapSquares[squareXidx][squareYidx].nrOfValid += 1;
+            heatmapSquares[squareXidx][squareYidx].avgIntensity += intensity;
+            heatmapSquares[squareXidx][squareYidx].avgAreaSize += areaSize;
+            heatmapSquares[squareXidx][squareYidx].cnt++;
+          }
         }
       }
-    }
 
-    ////////////////////////////////////////////////////////////////////////////////////
-    //
-    // Paint the heatmap
-    int rowOffset = 0;
-    paintPlateBorder(sheets.at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
+      ////////////////////////////////////////////////////////////////////////////////////
+      //
+      // Paint the heatmap
+      const int ROW_OFFSET_START = 2;
 
-    for(int64_t x = 0; x < nrOfSquaresX; x++) {
-      for(int64_t y = 0; y < nrOfSquaresY; y++) {
-        heatmapSquares[x][y].avgAreaSize;
-        worksheet_write_number(sheets.at(channelIdx), rowOffset + y, y + 1,
-                               heatmapSquares[x][y].avgAreaSize / (double) heatmapSquares[x][y].cnt, numberFormat);
+      int rowOffset = ROW_OFFSET_START;
+      worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Valid", NULL);
+      paintPlateBorder(sheets.at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
+      rowOffset = nrOfSquaresY + ROW_OFFSET_START + 4;
+      worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Intensity", NULL);
+      paintPlateBorder(sheets.at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
+      rowOffset = 2 * nrOfSquaresY + ROW_OFFSET_START + ROW_OFFSET_START + 6;
+      worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Area size", NULL);
+      paintPlateBorder(sheets.at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
+
+      for(int64_t x = 0; x < nrOfSquaresX; x++) {
+        for(int64_t y = 0; y < nrOfSquaresY; y++) {
+          rowOffset = ROW_OFFSET_START + 1;
+
+          worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1, (double) heatmapSquares[x][y].nrOfValid,
+                                 numberFormat);
+          rowOffset = nrOfSquaresY + ROW_OFFSET_START + 5;
+          worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
+                                 (double) heatmapSquares[x][y].avgIntensity / (double) heatmapSquares[x][y].cnt,
+                                 numberFormat);
+          rowOffset = 2 * nrOfSquaresY + ROW_OFFSET_START + ROW_OFFSET_START + 7;
+          worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
+                                 (double) heatmapSquares[x][y].avgAreaSize / (double) heatmapSquares[x][y].cnt,
+                                 numberFormat);
+        }
       }
     }
   }

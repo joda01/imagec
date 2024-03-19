@@ -114,7 +114,7 @@ nlohmann::json DialogSettings::toJson()
   data["image_filename_regex"]       = mRegexToFindTheWellPosition->currentText().toStdString();
   data["generate_heatmap_for_group"] = mGroupedHeatmapOnOff->currentData().toBool();
   data["generate_heatmap_for_image"] = false;
-  data["image_heatmap_area_width"]   = 0;
+  data["image_heatmap_area_width"]   = std::vector<int>{0};
   return data;
 }
 
