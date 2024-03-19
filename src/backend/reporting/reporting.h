@@ -196,6 +196,7 @@ public:
                                                         lxw_format *imageHeaderHyperlinkFormat) const;
   auto getNrOfColumns() const -> int64_t;
   auto getNrOfRows() const -> int64_t;
+  auto getNrOfRowsAtColumn(int64_t colIdx) const -> int64_t;
 
 private:
   /////////////////////////////////////////////////////
@@ -208,7 +209,7 @@ private:
   std::map<uint64_t, std::string> mColumnName;
   int64_t mRows = 0;
   Statistics mEmptyStatistics;
-  std::mutex mWriteMutex;
+  mutable std::mutex mWriteMutex;
   std::string mTableName;
 };
 

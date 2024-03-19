@@ -16,6 +16,7 @@
 #include <xlsxwriter/worksheet.h>
 #include <cstddef>
 #include <exception>
+#include <mutex>
 #include <regex>
 #include <stdexcept>
 #include <string>
@@ -59,7 +60,8 @@ void Reporting::setDetailReportHeader(joda::reporting::ReportingContainer &detai
 ///
 void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
                                      joda::reporting::ReportingContainer &detailReportTable,
-                                     const std::string &detailReportOutputPath, int tempChannelIdx, uint32_t tileIdx)
+                                     const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
+                                     uint32_t tileIdx)
 {
   try {
     static const std::string separator(1, std::filesystem::path::preferred_separator);
@@ -83,54 +85,61 @@ void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
     //               result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
     // }
     DurationCount::stop(id);
-
+    int64_t indexOffset = 0;
+    {
+      std::lock_guard<std::mutex> lock(mAppendMutex);
+      indexOffset = detailReportTable.getTableAt(tempChannelIdx, "")
+                        .getNrOfRowsAtColumn(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
+    }
     for(const auto &imgData : result.result) {
+      int64_t index = imgData.getIndex() + indexOffset;
+
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE), index,
                                     imgData.getConfidence(), imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE), index,
                                     imgData.getAreaSize(), imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::PERIMETER), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::PERIMETER), index,
                                     imgData.getPerimeter(), imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY), index,
                                     imgData.getCircularity(), imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::VALIDITY), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::VALIDITY), index,
                                     imgData.getValidity());
 
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X), index,
                                     imgData.getCenterOfMass().x, imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y), index,
                                     imgData.getCenterOfMass().y, imgData.getValidity());
 
       int idxOffset = 0;
       for(const auto &[channelIndexIn, intensity] : imgData.getIntensity()) {
         int channelIndex = channelIndexIn;
         if(channelIndex < 0) {
-          channelIndex = tempChannelIdx;
+          channelIndex = realChannelIdx;
         }
         detailReportTable.getTableAt(tempChannelIdx, "")
-            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY) + idxOffset,
-                                      imgData.getIndex(), intensity.intensity, imgData.getValidity());
+            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY) + idxOffset, index,
+                                      intensity.intensity, imgData.getValidity());
         detailReportTable.getTableAt(tempChannelIdx, "")
             .setColumnName(static_cast<int>(ColumnIndexDetailedReport::INTENSITY) + idxOffset,
                            "#intensity avg " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
 
         detailReportTable.getTableAt(tempChannelIdx, "")
-            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) + idxOffset,
-                                      imgData.getIndex(), intensity.intensityMax, imgData.getValidity());
+            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) + idxOffset, index,
+                                      intensity.intensityMax, imgData.getValidity());
         detailReportTable.getTableAt(tempChannelIdx, "")
             .setColumnName(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) + idxOffset,
                            "#intensity min " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
 
         detailReportTable.getTableAt(tempChannelIdx, "")
-            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) + idxOffset,
-                                      imgData.getIndex(), intensity.intensityMin, imgData.getValidity());
+            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) + idxOffset, index,
+                                      intensity.intensityMin, imgData.getValidity());
         detailReportTable.getTableAt(tempChannelIdx, "")
             .setColumnName(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) + idxOffset,
                            "#intensity max " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));

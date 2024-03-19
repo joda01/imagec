@@ -40,7 +40,8 @@ public:
                              int tempChannelIdx);
   void appendToDetailReport(joda::func::DetectionResponse &result,
                             joda::reporting::ReportingContainer &detailReportTable,
-                            const std::string &detailReportOutputPath, int tempChannelIdx, uint32_t tileIdx);
+                            const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
+                            uint32_t tileIdx);
   void appendToAllOverReport(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
                              const joda::reporting::ReportingContainer &detailedReport, const std::string &imagePath,
                              const std::string &imageName, int nrOfChannels);
@@ -76,6 +77,7 @@ private:
   };
 
   const joda::settings::json::AnalyzeSettings &mAnalyzeSettings;
+  std::mutex mAppendMutex;
 };
 
 }    // namespace joda::pipeline

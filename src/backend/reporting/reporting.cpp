@@ -23,6 +23,15 @@ const std::string &Table::getTableName() const
   return mTableName;
 }
 
+auto Table::getNrOfRowsAtColumn(int64_t colIdx) const -> int64_t
+{
+  std::lock_guard<std::mutex> lock(mWriteMutex);
+  if(mTable.contains(colIdx)) {
+    return mTable.at(colIdx).size();
+  }
+  return 0;
+}
+
 int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double value,
                                         joda::func::ParticleValidity validity)
 {

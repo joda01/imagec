@@ -164,20 +164,19 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
   //
   std::map<std::string, reporting::ReportingContainer> detailReports;
   std::mutex writeDetailReportMutex;
+  reporting::ReportingContainer &detailReport = detailReports[""];
 
   for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
     if(threadPoolTile > 1) {
-      tileThreadPool.push_task(
-          [this, &detailReports, &imagePath, &detailOutputFolder](int tileIdx) {
-            analyzeTile(detailReports[""], imagePath, detailOutputFolder, tileIdx);
-          },
-          tileIdx);
+      tileThreadPool.push_task([this, &detailReport, &imagePath, &detailOutputFolder](
+                                   int tileIdx) { analyzeTile(detailReport, imagePath, detailOutputFolder, tileIdx); },
+                               tileIdx);
 
       while(tileThreadPool.get_tasks_total() > (threadPoolTile + THREAD_POOL_BUFFER)) {
         std::this_thread::sleep_for(100us);
       }
     } else {
-      analyzeTile(detailReports[""], imagePath, detailOutputFolder, tileIdx);
+      analyzeTile(detailReport, imagePath, detailOutputFolder, tileIdx);
     }
     if(mStop) {
       break;
@@ -192,12 +191,12 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
                                                    reporting::ReportingContainer::OutputFormat::VERTICAL);
 
   if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForImage()) {
-    mReporting->createHeatMapForImage(detailReports[""], props.width, props.height,
+    mReporting->createHeatMapForImage(detailReport, props.width, props.height,
                                       detailOutputFolder + separator + "heatmap.xlsx");
   }
 
   auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
-  mReporting->appendToAllOverReport(alloverReport, detailReports[""], imageParentPath, imageName, nrOfChannels);
+  mReporting->appendToAllOverReport(alloverReport, detailReport, imageParentPath, imageName, nrOfChannels);
 
   mProgress.total.finished++;
 }
@@ -280,7 +279,8 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
     if(chSettings.index != settings::json::PipelineStepSettings::NONE_PIPELINE_STEP) {
       detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
       mReporting->setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
-      mReporting->appendToDetailReport(response, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
+      mReporting->appendToDetailReport(response, detailReports, detailOutputFolder, chSettings.index, tempChannelIdx,
+                                       tileIdx);
       tempChannelIdx++;
     }
   }
@@ -315,7 +315,8 @@ void Pipeline::analyszeChannel(joda::reporting::ReportingContainer &detailReport
     // Add to detail report
     //
     id = DurationCount::start("append");
-    mReporting->appendToDetailReport(processingResult, detailReports, detailOutputFolder, chIdx, tileIdx);
+    mReporting->appendToDetailReport(processingResult, detailReports, detailOutputFolder,
+                                     channelSettings.getChannelInfo().getChannelIndex(), chIdx, tileIdx);
     DurationCount::stop(id);
 
   } catch(const std::exception &ex) {

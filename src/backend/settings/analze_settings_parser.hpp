@@ -227,6 +227,12 @@ public:
 
   [[nodiscard]] auto getChannelByChannelIndex(uint32_t idx) const -> ChannelSettings
   {
+    // Special channels
+    if(idx >= 200) {
+      idx = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
+    } else if(idx >= 100) {
+      idx = idx - PipelineStepSettings::CELL_APPROX_INDEX_OFFSET;
+    }
     if(!orderedChannelsByChannelIndex.contains(idx)) {
       throw std::runtime_error("getChannelByChannelIndex: Channel with index >" + std::to_string(idx) +
                                "< does not exist.");

@@ -134,7 +134,7 @@ void WindowMain::createToolbar()
 
     mImageTilesCombo = new QComboBox(toolbar);
     mImageTilesCombo->addItem("0", 0);
-    mImageTilesComboBox->setToolTip("Select image tile");
+    mImageTilesCombo->setToolTip("Select image tile");
     mImageTilesComboBox = toolbar->addWidget(mImageTilesCombo);
     mImageTilesComboBox->setVisible(false);
 
