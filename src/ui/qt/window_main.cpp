@@ -132,6 +132,12 @@ void WindowMain::createToolbar()
     mImageSeriesComboBox = toolbar->addWidget(mImageSeriesCombo);
     mImageSeriesComboBox->setVisible(false);
 
+    mImageTilesCombo = new QComboBox(toolbar);
+    mImageTilesCombo->addItem("0", 0);
+    mImageTilesComboBox->setToolTip("Select image tile");
+    mImageTilesComboBox = toolbar->addWidget(mImageTilesCombo);
+    mImageTilesComboBox->setVisible(false);
+
     mFoundFilesHint = new ClickableLabel(toolbar);
     mFoundFilesHint->setText("Please open a working directory ...");
     mFileSearchHintLabel = toolbar->addWidget(mFoundFilesHint);
@@ -492,6 +498,7 @@ void WindowMain::setWorkingDirectory(const std::string &workingDir)
   mFoundFilesCombo->clear();
   mFileSelectorComboBox->setVisible(false);
   mImageSeriesComboBox->setVisible(false);
+  mImageTilesComboBox->setVisible(false);
   mFileSearchHintLabel->setVisible(true);
   mController->setWorkingDirectory(mSelectedWorkingDirectory.toStdString());
   mNewFolderSelected = true;
@@ -665,11 +672,25 @@ void WindowMain::onLookingForFilesFinished()
   }
   if(mController->getNrOfFoundImages() > 0) {
     mFoundFilesCombo->setCurrentIndex(0);
+    auto props = mController->getImageProperties(0, 0);
     mFoundFilesHint->setText("Finished");
     mFileSearchHintLabel->setVisible(false);
     mFileSelectorComboBox->setVisible(true);
     mImageSeriesComboBox->setVisible(true);
+    mImageTilesComboBox->setVisible(true);
     mStartAnalysis->setEnabled(true);
+
+    mImageTilesCombo->clear();
+    if(props.nrOfTiles == 0) {
+      mImageTilesCombo->addItem("0", 0);
+      mImageTilesCombo->setCurrentIndex(0);
+    } else {
+      for(int n = 0; n < props.nrOfTiles; n++) {
+        mImageTilesCombo->addItem(QString::number(n), n);
+      }
+      mImageTilesCombo->setCurrentIndex(0);
+    }
+
   } else {
     // mFoundFilesCombo->setVisible(false);
     mFoundFilesHint->setText("No images found!");

@@ -424,6 +424,7 @@ private:
     // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);
     connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingChanged);
     connect(mLineEdit, &QLineEdit::returnPressed, this, &ContainerFunction::lineEditingChanged);
+    connect(mLineEdit, &QLineEdit::textChanged, this, &ContainerFunction::textChanged);
 
     if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>) {
       QValidator *validator;
@@ -518,6 +519,7 @@ private:
     // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);
     connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingChanged);
     connect(mLineEdit, &QLineEdit::returnPressed, this, &ContainerFunction::lineEditingChanged);
+    connect(mLineEdit, &QLineEdit::textChanged, this, &ContainerFunction::textChanged);
 
     if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>) {
       QValidator *validator;
@@ -709,6 +711,13 @@ private slots:
       }
       updateDisplayText();
       ContainerFunction<VALUE_T, VALUE2_T>::triggerValueChanged();
+    }
+  }
+
+  void textChanged(const QString &newText)
+  {
+    if(newText.isEmpty()) {
+      lineEditingChanged();
     }
   }
 

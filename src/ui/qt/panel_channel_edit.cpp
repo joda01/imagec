@@ -196,6 +196,7 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   //
   connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
   connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
+  connect(mWindowMain->getImageTilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
 }
 
 PanelChannelEdit::~PanelChannelEdit()
@@ -408,7 +409,8 @@ void PanelChannelEdit::updatePreview()
             chs.loadConfigFromString(mParentContainer->toJson().channelSettings.dump());
             auto *controller = mWindowMain->getController();
             try {
-              auto preview = controller->preview(chs, imgIndex, 0);
+              int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();
+              auto preview    = controller->preview(chs, imgIndex, tileIdx);
               if(!preview.data.empty()) {
                 // Create a QByteArray from the char array
                 QByteArray byteArray(reinterpret_cast<const char *>(preview.data.data()), preview.data.size());

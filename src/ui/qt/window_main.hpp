@@ -70,6 +70,10 @@ public:
   {
     return mImageSeriesCombo;
   }
+  [[nodiscard]] const QComboBox *getImageTilesCombo() const
+  {
+    return mImageTilesCombo;
+  }
 
   nlohmann::json toJson();
   void fromJson(const settings::json::AnalyzeSettings &);
@@ -97,6 +101,7 @@ private:
   joda::ctrl::Controller *mController;
   QComboBox *mFoundFilesCombo;
   QComboBox *mImageSeriesCombo;
+  QComboBox *mImageTilesCombo;
   QComboBox *mTemplateSelection;
   ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
@@ -112,6 +117,7 @@ private:
   ////ToolbarIcons/////////////////////////////////////////////////
   QAction *mFileSelectorComboBox = nullptr;
   QAction *mImageSeriesComboBox  = nullptr;
+  QAction *mImageTilesComboBox   = nullptr;
   QAction *mFileSearchHintLabel  = nullptr;
   QAction *mSaveProject          = nullptr;
   QAction *mOPenProject          = nullptr;
