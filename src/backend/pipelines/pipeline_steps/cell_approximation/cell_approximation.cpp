@@ -13,6 +13,7 @@
 
 #include "cell_approximation.hpp"
 #include <stdexcept>
+#include <string>
 #include "backend/image_processing/detection/voronoi_grid/voronoi_grid.hpp"
 
 namespace joda::pipeline {
@@ -26,10 +27,15 @@ auto CellApproximation::execute(const settings::json::AnalyzeSettings &settings,
   //
   // Calculate a limited voronoi grid based on the center of nucleus
   //
-  joda::func::img::VoronoiGrid grid(detectionResults.at(nucleusChannelIndex).result, mMaxCellRadius);
-  auto voronoiResult = grid.forward(detectionResults.at(nucleusChannelIndex).controlImage,
-                                    detectionResults.at(nucleusChannelIndex).originalImage);
-  return voronoiResult;
+  if(detectionResults.contains(nucleusChannelIndex)) {
+    joda::func::img::VoronoiGrid grid(detectionResults.at(nucleusChannelIndex).result, mMaxCellRadius);
+    auto voronoiResult = grid.forward(detectionResults.at(nucleusChannelIndex).controlImage,
+                                      detectionResults.at(nucleusChannelIndex).originalImage);
+    return voronoiResult;
+  }
+  return joda::func::DetectionResponse{};
+  /*throw std::runtime_error("CellApproximation::execute: Channel with index >" + std::to_string(nucleusChannelIndex) +
+                           "< does not exist.");*/
 }
 
 }    // namespace joda::pipeline

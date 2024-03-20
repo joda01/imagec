@@ -5,6 +5,7 @@
 #include <climits>
 #include <iostream>
 #include <string>
+#include <utility>
 #include "../../helper/ome_parser/ome_info.hpp"
 #include "../image_reader.hpp"
 #include <opencv2/core.hpp>
@@ -30,6 +31,8 @@ public:
   static cv::Mat loadEntireImage(const std::string &filename, int directory);
   static auto getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo;
   static auto getImageProperties(const std::string &filename, uint16_t directory) -> ImageProperties;
+  static auto calculateTileXYoffset(int32_t nrOfTilesToRead, int32_t offset, int64_t width, int64_t height,
+                                    int64_t tilewidth, int64_t tileheight) -> std::tuple<int64_t, int64_t>;
 
 private:
   /////////////////////////////////////////////////////

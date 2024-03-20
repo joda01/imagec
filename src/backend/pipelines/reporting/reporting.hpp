@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "backend/image_reader/image_reader.hpp"
 #include "backend/reporting/reporting_container.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 
@@ -41,7 +42,7 @@ public:
   void appendToDetailReport(joda::func::DetectionResponse &result,
                             joda::reporting::ReportingContainer &detailReportTable,
                             const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
-                            uint32_t tileIdx);
+                            uint32_t tileIdx, const ImageProperties &imgProps);
   void appendToAllOverReport(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
                              const joda::reporting::ReportingContainer &detailedReport, const std::string &imagePath,
                              const std::string &imageName, int nrOfChannels);

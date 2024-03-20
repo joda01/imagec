@@ -59,10 +59,15 @@ ImageProperties OmeInfo::loadOmeInformationFromJsonString(const std::string &ome
 {
   auto parsedJson = nlohmann::json::parse(omeJson);
 
-  mNrOfChannels    = parsedJson["ch"];
-  mImageSize       = (int32_t) parsedJson["width"] * (int32_t) parsedJson["height"];
-  uint16_t docs    = parsedJson["planes"];
-  int64_t tileSize = (int32_t) parsedJson["tile_height"] * (int32_t) parsedJson["tile_width"];
+  mNrOfChannels = parsedJson["ch"];
+  mImageWidth   = parsedJson["width"];
+  mImageHeight  = parsedJson["height"];
+  mImageSize    = mImageWidth * mImageHeight;
+
+  uint16_t docs      = parsedJson["planes"];
+  int64_t tileHeight = (int32_t) parsedJson["tile_height"];
+  int64_t tileWidth  = (int32_t) parsedJson["tile_width"];
+  int64_t tileSize   = tileHeight * tileWidth;
 
   int chIdx = 0;
   for(const auto &channel : parsedJson["orders"]) {
@@ -76,7 +81,19 @@ ImageProperties OmeInfo::loadOmeInformationFromJsonString(const std::string &ome
     chIdx++;
   }
 
-  return {.imageSize = mImageSize, .tileSize = mImageSize / tileSize, .nrOfTiles = 1, .nrOfDocuments = docs};
+  int64_t nrOfTiles = 1;
+  if(tileSize > 0) {
+    nrOfTiles = mImageSize / tileSize;
+  }
+
+  return {.imageSize     = mImageSize,
+          .tileSize      = tileSize,
+          .nrOfTiles     = nrOfTiles,
+          .nrOfDocuments = docs,
+          .width         = mImageWidth,
+          .height        = mImageHeight,
+          .tileWidth     = tileWidth,
+          .tileHeight    = tileHeight};
 }
 
 ///
@@ -105,9 +122,11 @@ void OmeInfo::loadOmeInformationFromString(const std::string &omeXML)
   auto dimOrder =
       std::string(doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("DimensionOrder").as_string());
 
-  auto sizeX = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeX").as_ullong();
-  auto sizeY = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeY").as_ullong();
-  mImageSize = sizeX * sizeY;
+  auto sizeX   = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeX").as_ullong();
+  auto sizeY   = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeY").as_ullong();
+  mImageSize   = sizeX * sizeY;
+  mImageWidth  = sizeX;
+  mImageHeight = sizeY;
 
   //
   // TIFF Data
@@ -278,6 +297,8 @@ void OmeInfo::loadOmeInformationFromString(const std::string &omeXML)
 void OmeInfo::emulateOmeInformationFromTiff(const ImageProperties &prop)
 {
   mImageSize    = prop.imageSize;
+  mImageHeight  = prop.height;
+  mImageWidth   = prop.width;
   mNrOfChannels = prop.nrOfDocuments;
 
   for(uint32_t idx = 0; idx < mNrOfChannels; idx++) {
@@ -303,6 +324,15 @@ int OmeInfo::getNrOfChannels() const
 uint64_t OmeInfo::getImageSize() const
 {
   return mImageSize;
+}
+
+///
+/// \brief      Returns the width/height size of the image
+/// \author     Joachim Danmayr
+///
+[[nodiscard]] std::tuple<int64_t, int64_t> OmeInfo::getSize() const
+{
+  return {mImageWidth, mImageHeight};
 }
 
 ///

@@ -30,8 +30,14 @@ auto JpgLoader::getImageProperties(const std::string &filename) -> ImageProperti
   int height   = image.rows;
   int64_t size = width * height;
 
-  return ImageProperties{
-      .imageSize = size, .tileSize = size, .nrOfTiles = 1, .nrOfDocuments = 1, .width = width, .height = height};
+  return ImageProperties{.imageSize     = size,
+                         .tileSize      = size,
+                         .nrOfTiles     = 1,
+                         .nrOfDocuments = 1,
+                         .width         = width,
+                         .height        = height,
+                         .tileWidth     = width,
+                         .tileHeight    = height};
 }
 cv::Mat JpgLoader::loadEntireImage(const std::string &filename)
 {

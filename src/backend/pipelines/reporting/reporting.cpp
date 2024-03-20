@@ -22,6 +22,8 @@
 #include <string>
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/roi/roi.hpp"
+#include "backend/image_reader/image_reader.hpp"
+#include "backend/pipelines/processor/image_processor.hpp"
 
 namespace joda::pipeline {
 
@@ -61,7 +63,7 @@ void Reporting::setDetailReportHeader(joda::reporting::ReportingContainer &detai
 void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
                                      joda::reporting::ReportingContainer &detailReportTable,
                                      const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
-                                     uint32_t tileIdx)
+                                     uint32_t tileIdx, const ImageProperties &imgProps)
 {
   try {
     static const std::string separator(1, std::filesystem::path::preferred_separator);
@@ -84,6 +86,13 @@ void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
     //                   std::to_string(tileIdx) + ".png",
     //               result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
     // }
+
+    auto [offsetX, offsetY] =
+        TiffLoader::calculateTileXYoffset(joda::algo::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.width, imgProps.height,
+                                          imgProps.tileWidth, imgProps.tileHeight);
+
+    std::cout << "XOFF: " << std::to_string(offsetX) << " | "
+              << "YOFF: " << std::to_string(offsetY) << std::endl;
     DurationCount::stop(id);
     int64_t indexOffset = 0;
     {
@@ -164,6 +173,10 @@ void Reporting::appendToAllOverReport(std::map<std::string, joda::reporting::Rep
   const int NR_OF_COLUMNS_PER_CHANNEL = 7;
   try {
     for(int tempChannelIdx = 0; tempChannelIdx < nrOfChannels; tempChannelIdx++) {
+      if(!allOverReport.contains(getGroupToStoreImageIn(imagePath, imageName))) {
+        break;
+      }
+
       allOverReport[getGroupToStoreImageIn(imagePath, imageName)]
           .getTableAt(tempChannelIdx, detailedReport.getTableAt(tempChannelIdx).getTableName())
           .setColumnNames({

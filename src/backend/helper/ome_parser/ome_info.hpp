@@ -45,6 +45,7 @@ public:
 
   [[nodiscard]] int getNrOfChannels() const;
   [[nodiscard]] uint64_t getImageSize() const;
+  [[nodiscard]] std::tuple<int64_t, int64_t> getSize() const;
   [[nodiscard]] auto getDirectoryForChannel(uint32_t channel, uint32_t timeFrame) const -> std::set<uint32_t>;
 
 private:
@@ -59,8 +60,11 @@ private:
   };
 
   /////////////////////////////////////////////////////
-  int mNrOfChannels;
-  int64_t mImageSize;
+  int mNrOfChannels    = 0;
+  int64_t mImageSize   = 0;
+  int64_t mImageWidth  = 0;
+  int64_t mImageHeight = 0;
+
   std::map<uint32_t, ChannelInfo> mChannels;    ///< Contains the channel information <channelIdx | channelinfo>
 };
 }    // namespace joda::ome
