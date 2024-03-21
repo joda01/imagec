@@ -65,42 +65,55 @@ void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
                                      const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
                                      uint32_t tileIdx, const ImageProperties &imgProps)
 {
-  try {
-    static const std::string separator(1, std::filesystem::path::preferred_separator);
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
 
-    // Free memory
-    std::vector<int> compression_params;
-    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-    compression_params.push_back(0);
+  // Free memory
+  std::vector<int> compression_params;
+  compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+  compression_params.push_back(0);
 
-    auto id = DurationCount::start("write-control-image");
-    if(!result.controlImage.empty()) {
-      cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
-                      std::to_string(tileIdx) + ".png",
-                  result.controlImage, compression_params);
-    } else {
-      std::cout << "CTRL img null" << std::endl;
-    }
-    // if(!result.originalImage.empty()) {
-    //   cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
-    //                   std::to_string(tileIdx) + ".png",
-    //               result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
-    // }
+  auto id = DurationCount::start("write-control-image");
+  if(!result.controlImage.empty()) {
+    cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
+                    std::to_string(tileIdx) + ".png",
+                result.controlImage, compression_params);
+  } else {
+    std::cout << "CTRL img null" << std::endl;
+  }
+  // if(!result.originalImage.empty()) {
+  //   cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
+  //                   std::to_string(tileIdx) + ".png",
+  //               result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
+  // }
 
-    auto [offsetX, offsetY] =
-        TiffLoader::calculateTileXYoffset(joda::algo::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.width, imgProps.height,
-                                          imgProps.tileWidth, imgProps.tileHeight);
+  auto [offsetX, offsetY] =
+      TiffLoader::calculateTileXYoffset(joda::algo::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.width, imgProps.height,
+                                        imgProps.tileWidth, imgProps.tileHeight);
 
-    std::cout << "XOFF: " << std::to_string(offsetX) << " | "
-              << "YOFF: " << std::to_string(offsetY) << std::endl;
-    DurationCount::stop(id);
-    int64_t indexOffset = 0;
-    {
-      std::lock_guard<std::mutex> lock(mAppendMutex);
-      indexOffset = detailReportTable.getTableAt(tempChannelIdx, "")
-                        .getNrOfRowsAtColumn(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
-    }
-    for(const auto &imgData : result.result) {
+  int64_t xMul = offsetX * imgProps.tileWidth;
+  int64_t yMul = offsetY * imgProps.tileHeight;
+
+  std::cout << "XOFF: " << std::to_string(xMul) << " | "
+            << "YOFF: " << std::to_string(yMul) << std::endl;
+
+  std::cout << "w: " << std::to_string(imgProps.width) << " | "
+            << "h: " << std::to_string(imgProps.height) << std::endl;
+
+  std::cout << "tw: " << std::to_string(imgProps.tileWidth) << " | "
+            << "th: " << std::to_string(imgProps.tileHeight) << std::endl;
+
+  std::cout << "xo: " << std::to_string(offsetX) << " | "
+            << "yo: " << std::to_string(offsetY) << std::endl;
+
+  DurationCount::stop(id);
+  int64_t indexOffset = 0;
+  {
+    std::lock_guard<std::mutex> lock(mAppendMutex);
+    indexOffset = detailReportTable.getTableAt(tempChannelIdx, "")
+                      .getNrOfRowsAtColumn(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
+  }
+  for(const auto &imgData : result.result) {
+    try {
       int64_t index = imgData.getIndex() + indexOffset;
 
       detailReportTable.getTableAt(tempChannelIdx, "")
@@ -121,10 +134,10 @@ void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
 
       detailReportTable.getTableAt(tempChannelIdx, "")
           .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X), index,
-                                    imgData.getCenterOfMass().x, imgData.getValidity());
+                                    imgData.getCenterOfMass().x + xMul, imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
           .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y), index,
-                                    imgData.getCenterOfMass().y, imgData.getValidity());
+                                    imgData.getCenterOfMass().y + yMul, imgData.getValidity());
 
       int idxOffset = 0;
       for(const auto &[channelIndexIn, intensity] : imgData.getIntensity()) {
@@ -154,9 +167,9 @@ void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
                            "#intensity max " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
         idxOffset += 3;    // intnsity avg, min and max are 3 columns
       }
+    } catch(const std::exception &ex) {
+      std::cout << "Pipeline::appendToDetailReport >" << ex.what() << "<" << std::endl;
     }
-  } catch(const std::exception &ex) {
-    std::cout << "Pipeline::appendToDetailReport >" << ex.what() << "<" << std::endl;
   }
 }
 

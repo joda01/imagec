@@ -48,9 +48,8 @@ Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
     mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mState(State::RUNNING),
     mThreadingSettings(threadingSettings)
 {
-  mMainThread   = std::make_shared<std::thread>(&Pipeline::runJob, this);
-  mReporting    = std::make_shared<Reporting>(settings);
-  mOutputFolder = prepareOutputFolder(mInputFolder);
+  mMainThread = std::make_shared<std::thread>(&Pipeline::runJob, this);
+  mReporting  = std::make_shared<Reporting>(settings);
 }
 
 ///
@@ -64,6 +63,13 @@ Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
 ///
 void Pipeline::runJob()
 {
+  try {
+    mOutputFolder = prepareOutputFolder(mInputFolder);
+  } catch(const std::exception &) {
+    mState = State::FINISHED;
+    return;
+  }
+
   mState = State::RUNNING;
   // Prepare
 
