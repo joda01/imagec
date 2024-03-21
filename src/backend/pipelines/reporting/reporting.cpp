@@ -23,6 +23,7 @@
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/roi/roi.hpp"
 #include "backend/image_reader/image_reader.hpp"
+#include "backend/logger/console_logger.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 
 namespace joda::pipeline {
@@ -105,6 +106,8 @@ void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
   std::cout << "xo: " << std::to_string(offsetX) << " | "
             << "yo: " << std::to_string(offsetY) << std::endl;
 
+  std::cout << "tileidx: " << std::to_string(tileIdx) << std::endl;
+
   DurationCount::stop(id);
   int64_t indexOffset = 0;
   {
@@ -168,7 +171,8 @@ void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
         idxOffset += 3;    // intnsity avg, min and max are 3 columns
       }
     } catch(const std::exception &ex) {
-      std::cout << "Pipeline::appendToDetailReport >" << ex.what() << "<" << std::endl;
+      std::string msg = "Pipeline::appendToDetailReport >" + std::string(ex.what()) + "<";
+      joda::log::logWarning(msg);
     }
   }
 }
@@ -186,10 +190,6 @@ void Reporting::appendToAllOverReport(std::map<std::string, joda::reporting::Rep
   const int NR_OF_COLUMNS_PER_CHANNEL = 7;
   try {
     for(int tempChannelIdx = 0; tempChannelIdx < nrOfChannels; tempChannelIdx++) {
-      if(!allOverReport.contains(getGroupToStoreImageIn(imagePath, imageName))) {
-        break;
-      }
-
       allOverReport[getGroupToStoreImageIn(imagePath, imageName)]
           .getTableAt(tempChannelIdx, detailedReport.getTableAt(tempChannelIdx).getTableName())
           .setColumnNames({
