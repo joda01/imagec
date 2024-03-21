@@ -773,7 +773,7 @@ void WindowMain::onBackClicked()
   syncColocSettings();
   mStackedWidget->setCurrentIndex(0);
   if(mSelectedChannel != nullptr) {
-    mSelectedChannel->stopPreviewGeneration();
+    mSelectedChannel->setActive(false);
     mSelectedChannel = nullptr;
   }
 }
@@ -785,6 +785,7 @@ void WindowMain::onBackClicked()
 void WindowMain::showChannelEdit(ContainerChannel *selectedChannel)
 {
   mSelectedChannel = selectedChannel;
+  selectedChannel->setActive(true);
 
   mBackButton->setEnabled(true);
   mSaveProject->setVisible(false);
@@ -910,6 +911,7 @@ void WindowMain::removeChannel(ContainerChannel *toRemove)
 {
   /// \todo reorder
   if(toRemove != nullptr) {
+    toRemove->setActive(false);
     mChannels.erase(toRemove);
 
     mLayoutChannelOverview->removeWidget(toRemove->getOverviewPanel());

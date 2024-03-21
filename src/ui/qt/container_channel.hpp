@@ -55,6 +55,12 @@ public:
   {
     return mPanelEdit;
   }
+  void setActive(bool setActive)
+  {
+    if(mPanelEdit != nullptr) {
+      mPanelEdit->setActive(setActive);
+    }
+  }
 
   using IntersectionGroup = int;
   struct IntersectionChannel
@@ -95,13 +101,6 @@ public:
   {
     if(group == mColocGroup->getValue()) {
       mColocGroup->setValueSecond(newValue * 100.0F);
-    }
-  }
-
-  void stopPreviewGeneration()
-  {
-    if(mPanelEdit != nullptr) {
-      mPanelEdit->stopPreviewGeneration();
     }
   }
 

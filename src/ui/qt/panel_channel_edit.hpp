@@ -36,10 +36,18 @@ signals:
 public:
   PanelChannelEdit(WindowMain *wm, ContainerChannel *);
   ~PanelChannelEdit();
-  void stopPreviewGeneration()
+
+  void setActive(bool setActive)
   {
-    std::lock_guard<std::mutex> lock(mPreviewMutex);
-    mPreviewCounter = 0;
+    if(!mIsActiveShown && setActive) {
+      mIsActiveShown = true;
+      updatePreview();
+    }
+    if(!setActive) {
+      mIsActiveShown = false;
+      std::lock_guard<std::mutex> lock(mPreviewMutex);
+      mPreviewCounter = 0;
+    }
   }
 
 private:
@@ -58,6 +66,7 @@ private:
   std::mutex mPreviewMutex;
   int mPreviewCounter                         = 0;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
+  bool mIsActiveShown                         = false;
 
 private slots:
   void onChannelTypeChanged();
