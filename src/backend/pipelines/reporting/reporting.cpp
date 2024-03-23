@@ -16,6 +16,7 @@
 #include <xlsxwriter/worksheet.h>
 #include <cstddef>
 #include <exception>
+#include <memory>
 #include <mutex>
 #include <regex>
 #include <stdexcept>
@@ -61,7 +62,7 @@ void Reporting::setDetailReportHeader(joda::reporting::ReportingContainer &detai
 /// \author     Joachim Danmayr
 /// \param[in]  inputFolder Inputfolder of the images
 ///
-void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
+void Reporting::appendToDetailReport(const joda::func::DetectionResponse &result,
                                      joda::reporting::ReportingContainer &detailReportTable,
                                      const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
                                      uint32_t tileIdx, const ImageProperties &imgProps)
@@ -310,6 +311,8 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
       double avgIntensity = 0;
       double avgAreaSize  = 0;
       uint64_t cnt        = 0;
+      uint64_t x          = 0;
+      uint64_t y          = 0;
     };
 
     int64_t nrOfSquaresX = (imageWidth / heatMapSquareWidth) + 1;
@@ -319,7 +322,8 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
     for(int64_t x = 0; x < nrOfSquaresX; x++) {
       heatmapSquares->at(x) = std::vector<Square>(nrOfSquaresY);
     }
-    std::map<int, lxw_worksheet *> sheets;
+
+    auto sheets = std::make_shared<std::map<int, lxw_worksheet *>>();
 
     //
     // Build the map
@@ -327,7 +331,9 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
     for(const auto &[channelIdx, table] : containers.mColumns) {
       std::string tabName =
           table.getTableName() + "_" + std::to_string(heatMapSquareWidth) + "x" + std::to_string(heatMapSquareWidth);
-      sheets[channelIdx] = workbook_add_worksheet(workbook, tabName.data());
+      if(!sheets->contains(channelIdx)) {
+        sheets->emplace(channelIdx, workbook_add_worksheet(workbook, tabName.data()));
+      }
 
       for(int row = 0; row < table.getNrOfRows(); row++) {
         if(table.getTable().at(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X)).contains(row)) {
@@ -363,6 +369,11 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
             heatmapSquares->at(squareXidx)[squareYidx].avgAreaSize += areaSize;
             heatmapSquares->at(squareXidx)[squareYidx].cnt++;
           }
+
+          if(heatmapSquares->at(squareXidx)[squareYidx].x == 0) {
+            heatmapSquares->at(squareXidx)[squareYidx].x = xCo;
+            heatmapSquares->at(squareXidx)[squareYidx].y = yCo;
+          }
         }
       }
 
@@ -372,29 +383,32 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
       const int ROW_OFFSET_START = 2;
 
       int rowOffset = ROW_OFFSET_START;
-      worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Valid", NULL);
-      paintPlateBorder(sheets.at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
+      worksheet_write_string(sheets->at(channelIdx), rowOffset - 1, 0, "Valid", NULL);
+      paintPlateBorder(sheets->at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
       rowOffset = nrOfSquaresY + ROW_OFFSET_START + 4;
-      worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Intensity", NULL);
-      paintPlateBorder(sheets.at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
+      worksheet_write_string(sheets->at(channelIdx), rowOffset - 1, 0, "Intensity", NULL);
+      paintPlateBorder(sheets->at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
       rowOffset = 2 * nrOfSquaresY + ROW_OFFSET_START + ROW_OFFSET_START + 6;
-      worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Area size", NULL);
-      paintPlateBorder(sheets.at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
+      worksheet_write_string(sheets->at(channelIdx), rowOffset - 1, 0, "Area size", NULL);
+      paintPlateBorder(sheets->at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
 
       for(int64_t x = 0; x < nrOfSquaresX; x++) {
         for(int64_t y = 0; y < nrOfSquaresY; y++) {
           rowOffset = ROW_OFFSET_START + 1;
 
-          worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
+          worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
                                  (double) heatmapSquares->at(x)[y].nrOfValid, numberFormat);
           rowOffset = nrOfSquaresY + ROW_OFFSET_START + 5;
-          worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
+          worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
                                  (double) heatmapSquares->at(x)[y].avgIntensity / (double) heatmapSquares->at(x)[y].cnt,
                                  numberFormat);
           rowOffset = 2 * nrOfSquaresY + ROW_OFFSET_START + ROW_OFFSET_START + 7;
-          worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
+          worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
                                  (double) heatmapSquares->at(x)[y].avgAreaSize / (double) heatmapSquares->at(x)[y].cnt,
                                  numberFormat);
+          /*worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
+                                 (double) heatmapSquares->at(x)[y].x * 1000000 + heatmapSquares->at(x)[y].y,
+                                 numberFormat);*/
         }
       }
     }

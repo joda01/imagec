@@ -80,7 +80,6 @@ public:
     std::string jobId = std::to_string(mJobCount++);
     mJob = std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder, threadingSettings);
     mLastOutputFolder = mJob->getOutputFolder();
-
     return jobId;
   };
 

@@ -255,6 +255,7 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
 
         if((tileToReadX + tilewidth) >= width || (tileToReadY + tileheight) >= height) {
           //  We reached the padding area -> Nothing to see here, just write a black tile
+          /// \todo Check this there are sometimes artifacts
           for(uint y = 0; y < tileheight; y++) {
             for(uint x = 0; x < tilewidth; x++) {
               int xImg              = (x + tilePartX);
@@ -339,7 +340,7 @@ std::tuple<int64_t, int64_t> TiffLoader::calculateTileXYoffset(int32_t nrOfTiles
   // Calculates the x and y tile offset based on the padded composite image offset
   //
   uint64_t offsetX = (offset * tilesPerLine) % nrOfXTilesPadded;
-  uint64_t offsetY = (offset * tilesPerLine) % nrOfYTilesPadded;
+  uint64_t offsetY = ((uint64_t) (offset * tilesPerLine) / nrOfYTilesPadded) * tilesPerLine;
 
   return {offsetX, offsetY};
 }

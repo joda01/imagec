@@ -46,11 +46,17 @@ Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
                    joda::helper::ImageFileContainer *imageFileContainer, const std::string &inputFolder,
                    const ThreadingSettings &threadingSettings) :
     mInputFolder(inputFolder),
-    mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mState(State::RUNNING),
-    mThreadingSettings(threadingSettings)
+    mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mThreadingSettings(threadingSettings)
 {
-  mMainThread = std::make_shared<std::thread>(&Pipeline::runJob, this);
-  mReporting  = std::make_shared<Reporting>(settings);
+  try {
+    mOutputFolder = prepareOutputFolder(inputFolder);
+    mReporting    = std::make_shared<Reporting>(settings);
+    mMainThread   = std::make_shared<std::thread>(&Pipeline::runJob, this);
+    mState        = State::RUNNING;
+  } catch(const std::exception &) {
+    mState = State::FINISHED;
+    return;
+  }
 }
 
 ///
@@ -64,16 +70,6 @@ Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
 ///
 void Pipeline::runJob()
 {
-  try {
-    mOutputFolder = prepareOutputFolder(mInputFolder);
-  } catch(const std::exception &) {
-    mState = State::FINISHED;
-    return;
-  }
-
-  mState = State::RUNNING;
-  // Prepare
-
   // Store configuration
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");

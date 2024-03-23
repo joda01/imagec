@@ -39,7 +39,7 @@ public:
 
   void setDetailReportHeader(joda::reporting::ReportingContainer &detailReportTable, const std::string &channelName,
                              int tempChannelIdx);
-  void appendToDetailReport(joda::func::DetectionResponse &result,
+  void appendToDetailReport(const joda::func::DetectionResponse &result,
                             joda::reporting::ReportingContainer &detailReportTable,
                             const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
                             uint32_t tileIdx, const ImageProperties &imgProps);
