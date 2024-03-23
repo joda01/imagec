@@ -186,6 +186,7 @@ private:
   std::shared_ptr<std::thread> mMainThread;
   std::shared_ptr<Reporting> mReporting;
   ThreadingSettings mThreadingSettings;
+  std::mutex mAddToDetailReportMutex;
 };
 
 }    // namespace joda::pipeline

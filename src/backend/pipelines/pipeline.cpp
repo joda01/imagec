@@ -19,6 +19,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -320,19 +321,22 @@ void Pipeline::analyszeChannel(joda::reporting::ReportingContainer &detailReport
     //
     // Add processing result to the detection result map
     //
-    auto id = DurationCount::start("emplace");
-    detectionResults.emplace(channelIndex, processingResult);
-    DurationCount::stop(id);
+    {
+      std::lock_guard<std::mutex> lock(mAddToDetailReportMutex);
+      auto id = DurationCount::start("emplace");
+      detectionResults.emplace(channelIndex, processingResult);
+      DurationCount::stop(id);
+    }
 
     //
     // Add to detail report
     //
     if(mState != State::ERROR_) {
-      id = DurationCount::start("append");
-      mReporting->appendToDetailReport(processingResult, detailReports, detailOutputFolder,
-                                       channelSettings.getChannelInfo().getChannelIndex(), chIdx, tileIdx, imgProps);
+      auto id = DurationCount::start("append");
+      mReporting->appendToDetailReport(processingResult, detailReports, detailOutputFolder, channelIndex, chIdx,
+                                       tileIdx, imgProps);
+      DurationCount::stop(id);
     }
-    DurationCount::stop(id);
 
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
