@@ -22,6 +22,7 @@
 #include "../helper/directory_iterator.hpp"
 #include "../helper/helper.hpp"
 #include "../image_processing/detection/detection_response.hpp"
+#include "../logger/console_logger.hpp"
 #include "../reporting/reporting.h"
 #include "../settings/analze_settings_parser.hpp"
 #include "backend/image_reader/image_reader.hpp"
@@ -100,9 +101,18 @@ protected:
   /////////////////////////////////////////////////////
   [[noreturn]] void setStateError(const std::string &what) noexcept(false)
   {
+    joda::log::logError(what);
     mState            = State::ERROR_;
     mLastErrorMessage = what;
     throw std::runtime_error(what);
+  }
+
+  void stopWithError(const std::string &what)
+  {
+    joda::log::logError(what);
+    mState            = State::ERROR_;
+    mLastErrorMessage = what;
+    mStop             = true;
   }
 
   ///
@@ -127,8 +137,10 @@ private:
   /// \brief Stop a running job
   void stopJob()
   {
-    mState = State::STOPPING;
-    mStop  = true;
+    if(mState != State::FINISHED && mState != State::ERROR_) {
+      mState = State::STOPPING;
+    }
+    mStop = true;
   }
 
   ///
@@ -155,11 +167,11 @@ private:
                     const FileInfo &imagePath);
 
   void analyzeTile(joda::reporting::ReportingContainer &detailReports, FileInfo imagePath,
-                   std::string detailOutputFolder, int tileIdx);
+                   std::string detailOutputFolder, int tileIdx, const ImageProperties &imgProps);
   void analyszeChannel(joda::reporting::ReportingContainer &detailReports,
                        std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
                        const joda::settings::json::ChannelSettings &channelSettings, FileInfo imagePath,
-                       std::string detailOutputFolder, int chIdx, int tileIdx);
+                       std::string detailOutputFolder, int chIdx, int tileIdx, const ImageProperties &imgProps);
 
   /////////////////////////////////////////////////////
   std::string mInputFolder;
@@ -174,6 +186,7 @@ private:
   std::shared_ptr<std::thread> mMainThread;
   std::shared_ptr<Reporting> mReporting;
   ThreadingSettings mThreadingSettings;
+  std::mutex mAddToDetailReportMutex;
 };
 
 }    // namespace joda::pipeline

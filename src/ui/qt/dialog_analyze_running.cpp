@@ -164,7 +164,7 @@ void DialogAnalyzeRunning::refreshThread()
   // Wait unit finished
   while(true) {
     auto [progress, state, errorMsg] = mWindowMain->getController()->getState();
-    if(state == joda::pipeline::Pipeline::State::FINISHED || state == joda::pipeline::Pipeline::State::ERROR_) {
+    if(state == joda::pipeline::Pipeline::State::FINISHED) {
       break;
     }
     std::this_thread::sleep_for(500ms);

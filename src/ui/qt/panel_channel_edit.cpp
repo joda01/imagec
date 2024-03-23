@@ -387,73 +387,75 @@ void PanelChannelEdit::onDetectionModechanged()
 
 void PanelChannelEdit::updatePreview()
 {
-  if(mPreviewCounter == 0) {
-    {
-      std::lock_guard<std::mutex> lock(mPreviewMutex);
-      mPreviewCounter++;
-      emit updatePreviewStarted();
-    }
-    if(mPreviewThread != nullptr) {
-      if(mPreviewThread->joinable()) {
-        mPreviewThread->join();
+  if(mIsActiveShown) {
+    if(mPreviewCounter == 0) {
+      {
+        std::lock_guard<std::mutex> lock(mPreviewMutex);
+        mPreviewCounter++;
+        emit updatePreviewStarted();
       }
-    }
-    mPreviewThread = std::make_unique<std::thread>([this]() {
-      int previewCounter = 0;
-      std::this_thread::sleep_for(500ms);
-      do {
-        if(nullptr != mPreviewImage) {
-          int imgIndex = mWindowMain->getSelectedFileIndex();
-          if(imgIndex >= 0) {
-            settings::json::ChannelSettings chs;
-            chs.loadConfigFromString(mParentContainer->toJson().channelSettings.dump());
-            auto *controller = mWindowMain->getController();
-            try {
-              int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();
-              auto preview    = controller->preview(chs, imgIndex, tileIdx);
-              if(!preview.data.empty()) {
-                // Create a QByteArray from the char array
-                QByteArray byteArray(reinterpret_cast<const char *>(preview.data.data()), preview.data.size());
-                QImage image;
-                if(image.loadFromData(byteArray, "PNG")) {
-                  QPixmap pixmap = QPixmap::fromImage(image);
-                  int valid      = 0;
-                  int invalid    = 0;
-                  for(const auto &roi : preview.detectionResult) {
-                    if(roi.isValid()) {
-                      valid++;
-                    } else {
-                      invalid++;
+      if(mPreviewThread != nullptr) {
+        if(mPreviewThread->joinable()) {
+          mPreviewThread->join();
+        }
+      }
+      mPreviewThread = std::make_unique<std::thread>([this]() {
+        int previewCounter = 0;
+        std::this_thread::sleep_for(500ms);
+        do {
+          if(nullptr != mPreviewImage) {
+            int imgIndex = mWindowMain->getSelectedFileIndex();
+            if(imgIndex >= 0) {
+              settings::json::ChannelSettings chs;
+              chs.loadConfigFromString(mParentContainer->toJson().channelSettings.dump());
+              auto *controller = mWindowMain->getController();
+              try {
+                int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();
+                auto preview    = controller->preview(chs, imgIndex, tileIdx);
+                if(!preview.data.empty()) {
+                  // Create a QByteArray from the char array
+                  QByteArray byteArray(reinterpret_cast<const char *>(preview.data.data()), preview.data.size());
+                  QImage image;
+                  if(image.loadFromData(byteArray, "PNG")) {
+                    QPixmap pixmap = QPixmap::fromImage(image);
+                    int valid      = 0;
+                    int invalid    = 0;
+                    for(const auto &roi : preview.detectionResult) {
+                      if(roi.isValid()) {
+                        valid++;
+                      } else {
+                        invalid++;
+                      }
                     }
+
+                    QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
+                    mPreviewImage->setPixmap(pixmap, PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, info);
+
+                  } else {
+                    mPreviewImage->resetImage("");
                   }
-
-                  QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
-                  mPreviewImage->setPixmap(pixmap, PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, info);
-
-                } else {
-                  mPreviewImage->resetImage("");
                 }
+              } catch(const std::exception &error) {
+                mPreviewImage->resetImage(error.what());
               }
-            } catch(const std::exception &error) {
-              mPreviewImage->resetImage(error.what());
             }
           }
+          std::this_thread::sleep_for(250ms);
+          {
+            std::lock_guard<std::mutex> lock(mPreviewMutex);
+            previewCounter = mPreviewCounter;
+            previewCounter--;
+            mPreviewCounter = previewCounter;
+          }
+        } while(previewCounter > 0);
+        if(mSpinner != nullptr) {
+          emit updatePreviewFinished();
         }
-        std::this_thread::sleep_for(250ms);
-        {
-          std::lock_guard<std::mutex> lock(mPreviewMutex);
-          previewCounter = mPreviewCounter;
-          previewCounter--;
-          mPreviewCounter = previewCounter;
-        }
-      } while(previewCounter > 0);
-      if(mSpinner != nullptr) {
-        emit updatePreviewFinished();
-      }
-    });
-  } else {
-    std::lock_guard<std::mutex> lock(mPreviewMutex);
-    mPreviewCounter++;
+      });
+    } else {
+      std::lock_guard<std::mutex> lock(mPreviewMutex);
+      mPreviewCounter++;
+    }
   }
 }
 

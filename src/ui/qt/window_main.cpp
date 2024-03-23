@@ -134,7 +134,7 @@ void WindowMain::createToolbar()
 
     mImageTilesCombo = new QComboBox(toolbar);
     mImageTilesCombo->addItem("0", 0);
-    mImageTilesComboBox->setToolTip("Select image tile");
+    mImageTilesCombo->setToolTip("Select image tile");
     mImageTilesComboBox = toolbar->addWidget(mImageTilesCombo);
     mImageTilesComboBox->setVisible(false);
 
@@ -773,7 +773,7 @@ void WindowMain::onBackClicked()
   syncColocSettings();
   mStackedWidget->setCurrentIndex(0);
   if(mSelectedChannel != nullptr) {
-    mSelectedChannel->stopPreviewGeneration();
+    mSelectedChannel->setActive(false);
     mSelectedChannel = nullptr;
   }
 }
@@ -785,6 +785,7 @@ void WindowMain::onBackClicked()
 void WindowMain::showChannelEdit(ContainerChannel *selectedChannel)
 {
   mSelectedChannel = selectedChannel;
+  selectedChannel->setActive(true);
 
   mBackButton->setEnabled(true);
   mSaveProject->setVisible(false);
@@ -910,6 +911,7 @@ void WindowMain::removeChannel(ContainerChannel *toRemove)
 {
   /// \todo reorder
   if(toRemove != nullptr) {
+    toRemove->setActive(false);
     mChannels.erase(toRemove);
 
     mLayoutChannelOverview->removeWidget(toRemove->getOverviewPanel());

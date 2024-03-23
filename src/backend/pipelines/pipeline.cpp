@@ -19,6 +19,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -48,9 +49,8 @@ Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
     mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mState(State::RUNNING),
     mThreadingSettings(threadingSettings)
 {
-  mMainThread   = std::make_shared<std::thread>(&Pipeline::runJob, this);
-  mReporting    = std::make_shared<Reporting>(settings);
-  mOutputFolder = prepareOutputFolder(mInputFolder);
+  mMainThread = std::make_shared<std::thread>(&Pipeline::runJob, this);
+  mReporting  = std::make_shared<Reporting>(settings);
 }
 
 ///
@@ -65,58 +65,58 @@ Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
 void Pipeline::runJob()
 {
   try {
-    mState = State::RUNNING;
-    // Prepare
-
-    // Store configuration
-    static const std::string separator(1, std::filesystem::path::preferred_separator);
-    mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");
-
-    // Look for images in the input folder
-    mImageFileContainer->setWorkingDirectory(mInputFolder);
-    mImageFileContainer->waitForFinished();
-    mProgress.total.total = mImageFileContainer->getNrOfFiles();
-    mProgress.image.total = mThreadingSettings.totalRuns;
-
-    int threadPoolImage = mThreadingSettings.cores[ThreadingSettings::IMAGES];
-    BS::thread_pool imageThreadPool(threadPoolImage);
-    auto idStart = DurationCount::start("analyze");
-
-    std::map<std::string, joda::reporting::ReportingContainer> alloverReport;
-    for(const auto &imagePath : mImageFileContainer->getFilesList()) {
-      if(threadPoolImage > 1) {
-        imageThreadPool.push_task([this, &alloverReport, imagePath] { analyzeImage(alloverReport, imagePath); });
-
-        while(imageThreadPool.get_tasks_total() > (threadPoolImage + THREAD_POOL_BUFFER)) {
-          std::this_thread::sleep_for(100us);
-        }
-      } else {
-        analyzeImage(alloverReport, imagePath);
-      }
-      if(mStop) {
-        break;
-      }
-    }
-
-    imageThreadPool.wait_for_tasks();
-    DurationCount::stop(idStart);
-
-    std::string resultsFile = mOutputFolder + separator + "results.xlsx";
-
-    reporting::ReportingContainer::flushReportToFile(alloverReport, resultsFile,
-                                                     reporting::ReportingContainer::OutputFormat::HORIZONTAL);
-    if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForGroup()) {
-      resultsFile = mOutputFolder + separator + "heatmap.xlsx";
-      mReporting->createAllOverHeatMap(alloverReport, resultsFile);
-    }
-
+    mOutputFolder = prepareOutputFolder(mInputFolder);
+  } catch(const std::exception &) {
     mState = State::FINISHED;
-  } catch(const std::exception &ex) {
-    std::cout << "Error in runJob: " << ex.what() << std::endl;
-    // setStateError(ex.what());
-    mState            = State::ERROR_;
-    mLastErrorMessage = ex.what();
+    return;
   }
+
+  mState = State::RUNNING;
+  // Prepare
+
+  // Store configuration
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
+  mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");
+
+  // Look for images in the input folder
+  mImageFileContainer->setWorkingDirectory(mInputFolder);
+  mImageFileContainer->waitForFinished();
+  mProgress.total.total = mImageFileContainer->getNrOfFiles();
+  mProgress.image.total = mThreadingSettings.totalRuns;
+
+  int threadPoolImage = mThreadingSettings.cores[ThreadingSettings::IMAGES];
+  BS::thread_pool imageThreadPool(threadPoolImage);
+  auto idStart = DurationCount::start("analyze");
+
+  std::map<std::string, joda::reporting::ReportingContainer> alloverReport;
+  for(const auto &imagePath : mImageFileContainer->getFilesList()) {
+    if(threadPoolImage > 1) {
+      imageThreadPool.push_task([this, &alloverReport, imagePath] { analyzeImage(alloverReport, imagePath); });
+
+      while(imageThreadPool.get_tasks_total() > (threadPoolImage + THREAD_POOL_BUFFER)) {
+        std::this_thread::sleep_for(100us);
+      }
+    } else {
+      analyzeImage(alloverReport, imagePath);
+    }
+    if(mStop) {
+      break;
+    }
+  }
+
+  imageThreadPool.wait_for_tasks();
+  DurationCount::stop(idStart);
+
+  std::string resultsFile = mOutputFolder + separator + "results.xlsx";
+  reporting::ReportingContainer::flushReportToFile(alloverReport, resultsFile,
+                                                   reporting::ReportingContainer::OutputFormat::HORIZONTAL);
+  if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForGroup()) {
+    resultsFile = mOutputFolder + separator + "heatmap.xlsx";
+    mReporting->createAllOverHeatMap(alloverReport, resultsFile);
+  }
+
+  mState = State::FINISHED;
+
   while(!mStop) {
     sleep(1);
   }
@@ -143,20 +143,21 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
   //
   // Execute for each tile
   //
-  ImageProperties props;
+  ImageProperties propsOut;
   if(imagePath.getDecoder() == FileInfo::Decoder::JPG) {
-    props = JpgLoader::getImageProperties(imagePath.getPath());
+    propsOut = JpgLoader::getImageProperties(imagePath.getPath());
   } else if(imagePath.getDecoder() == FileInfo::Decoder::TIFF) {
-    props = TiffLoader::getImageProperties(imagePath.getPath(), 0);
+    propsOut = TiffLoader::getImageProperties(imagePath.getPath(), 0);
   } else {
     if(!mAnalyzeSettings.getChannelsVector().empty()) {
       auto series       = mAnalyzeSettings.getChannelsVector()[0].getChannelInfo().getChannelSeries();
       auto [ome, props] = BioformatsLoader::getOmeInformation(imagePath.getPath(), series);
+      propsOut          = props;
     }
   }
   int64_t runs = 1;
-  if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-    runs = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
+  if(propsOut.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    runs = propsOut.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
   }
 
   //
@@ -164,12 +165,13 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
   //
   std::map<std::string, reporting::ReportingContainer> detailReports;
   std::mutex writeDetailReportMutex;
+  reporting::ReportingContainer &detailReport = detailReports[""];
 
   for(uint32_t tileIdx = 0; tileIdx < runs; tileIdx++) {
     if(threadPoolTile > 1) {
       tileThreadPool.push_task(
-          [this, &detailReports, &imagePath, &detailOutputFolder](int tileIdx) {
-            analyzeTile(detailReports[""], imagePath, detailOutputFolder, tileIdx);
+          [this, &detailReport, &imagePath, &detailOutputFolder, &propsOut](int tileIdx) {
+            analyzeTile(detailReport, imagePath, detailOutputFolder, tileIdx, propsOut);
           },
           tileIdx);
 
@@ -177,7 +179,7 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
         std::this_thread::sleep_for(100us);
       }
     } else {
-      analyzeTile(detailReports[""], imagePath, detailOutputFolder, tileIdx);
+      analyzeTile(detailReport, imagePath, detailOutputFolder, tileIdx, propsOut);
     }
     if(mStop) {
       break;
@@ -188,17 +190,18 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
   //
   // Write report
   //
-  reporting::ReportingContainer::flushReportToFile(detailReports, detailOutputFolder + separator + "detail.xlsx",
-                                                   reporting::ReportingContainer::OutputFormat::VERTICAL);
+  if(mState != State::ERROR_) {
+    reporting::ReportingContainer::flushReportToFile(detailReports, detailOutputFolder + separator + "detail.xlsx",
+                                                     reporting::ReportingContainer::OutputFormat::VERTICAL);
 
-  if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForImage()) {
-    mReporting->createHeatMapForImage(detailReports[""], props.width, props.height,
-                                      detailOutputFolder + separator + "heatmap.xlsx");
+    if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForImage()) {
+      mReporting->createHeatMapForImage(detailReport, propsOut.width, propsOut.height,
+                                        detailOutputFolder + separator + "heatmap.xlsx");
+    }
+
+    auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
+    mReporting->appendToAllOverReport(alloverReport, detailReport, imageParentPath, imageName, nrOfChannels);
   }
-
-  auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
-  mReporting->appendToAllOverReport(alloverReport, detailReports[""], imageParentPath, imageName, nrOfChannels);
-
   mProgress.total.finished++;
 }
 
@@ -207,7 +210,7 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
 /// \author     Joachim Danmayr
 ///
 void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, FileInfo imagePath,
-                           std::string detailOutputFolder, int tileIdx)
+                           std::string detailOutputFolder, int tileIdx, const ImageProperties &imgProps)
 {
   auto idChannels = DurationCount::start("channels");
   std::map<int32_t, joda::func::DetectionResponse> detectionResults;
@@ -222,19 +225,20 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
     for(const auto &referenceSpot : referenceSpotChannels) {
       if(threadPoolChannel > 1) {
         channelThreadPool.push_task(
-            [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder](int chIdx, int tileIdx) {
+            [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder, &imgProps](int chIdx,
+                                                                                                  int tileIdx) {
               auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
               analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx,
-                              tileIdx);
+                              tileIdx, imgProps);
             },
             referenceSpot.getArrayIndex(), tileIdx);
         while(channelThreadPool.get_tasks_total() > (threadPoolChannel + THREAD_POOL_BUFFER)) {
-          std::this_thread::sleep_for(1ms);
+          std::this_thread::sleep_for(10ms);
         }
       } else {
         auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(referenceSpot.getArrayIndex());
         analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder,
-                        referenceSpot.getArrayIndex(), tileIdx);
+                        referenceSpot.getArrayIndex(), tileIdx, imgProps);
       }
     }
     channelThreadPool.wait_for_tasks();
@@ -248,19 +252,20 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
        settings::json::ChannelInfo::Type::SPOT_REFERENCE) {
       if(threadPoolChannel > 1) {
         channelThreadPool.push_task(
-            [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder](int chIdx, int tileIdx) {
+            [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder, &imgProps](int chIdx,
+                                                                                                  int tileIdx) {
               auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
               analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx,
-                              tileIdx);
+                              tileIdx, imgProps);
             },
             chIdx, tileIdx);
         while(channelThreadPool.get_tasks_total() > (threadPoolChannel + THREAD_POOL_BUFFER)) {
-          std::this_thread::sleep_for(1ms);
+          std::this_thread::sleep_for(10ms);
         }
       } else {
         auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
-        analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx,
-                        tileIdx);
+        analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx, tileIdx,
+                        imgProps);
       }
     }
     if(mStop) {
@@ -273,18 +278,25 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
   //
   // Execute pipeline steps
   //
-  auto idColoc       = DurationCount::start("pipelinesteps");
-  int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
-  for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
-    auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
-    if(chSettings.index != settings::json::PipelineStepSettings::NONE_PIPELINE_STEP) {
-      detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
-      mReporting->setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
-      mReporting->appendToDetailReport(response, detailReports, detailOutputFolder, tempChannelIdx, tileIdx);
-      tempChannelIdx++;
+  if(!mStop && mState != State::ERROR_) {
+    auto idColoc       = DurationCount::start("pipelinesteps");
+    int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
+    for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
+      auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+      if(chSettings.index != settings::json::PipelineStepSettings::NONE_PIPELINE_STEP) {
+        detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
+        mReporting->setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
+        mReporting->appendToDetailReport(response, detailReports, detailOutputFolder, chSettings.index, tempChannelIdx,
+                                         tileIdx, imgProps);
+        tempChannelIdx++;
+      }
+      if(mStop) {
+        break;
+      }
     }
+
+    DurationCount::stop(idColoc);
   }
-  DurationCount::stop(idColoc);
 }
 
 ///
@@ -294,11 +306,13 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
 void Pipeline::analyszeChannel(joda::reporting::ReportingContainer &detailReports,
                                std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
                                const joda::settings::json::ChannelSettings &channelSettings, FileInfo imagePath,
-                               std::string detailOutputFolder, int chIdx, int tileIdx)
+                               std::string detailOutputFolder, int chIdx, int tileIdx, const ImageProperties &imgProps)
 {
   int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
 
-  mReporting->setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), chIdx);
+  if(mState != State::ERROR_) {
+    mReporting->setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), chIdx);
+  }
 
   try {
     auto processingResult =
@@ -307,16 +321,22 @@ void Pipeline::analyszeChannel(joda::reporting::ReportingContainer &detailReport
     //
     // Add processing result to the detection result map
     //
-    auto id = DurationCount::start("emplace");
-    detectionResults.emplace(channelIndex, processingResult);
-    DurationCount::stop(id);
+    {
+      std::lock_guard<std::mutex> lock(mAddToDetailReportMutex);
+      auto id = DurationCount::start("emplace");
+      detectionResults.emplace(channelIndex, processingResult);
+      DurationCount::stop(id);
+    }
 
     //
     // Add to detail report
     //
-    id = DurationCount::start("append");
-    mReporting->appendToDetailReport(processingResult, detailReports, detailOutputFolder, chIdx, tileIdx);
-    DurationCount::stop(id);
+    if(mState != State::ERROR_) {
+      auto id = DurationCount::start("append");
+      mReporting->appendToDetailReport(processingResult, detailReports, detailOutputFolder, channelIndex, chIdx,
+                                       tileIdx, imgProps);
+      DurationCount::stop(id);
+    }
 
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());

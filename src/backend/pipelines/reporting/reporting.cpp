@@ -16,11 +16,15 @@
 #include <xlsxwriter/worksheet.h>
 #include <cstddef>
 #include <exception>
+#include <mutex>
 #include <regex>
 #include <stdexcept>
 #include <string>
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/roi/roi.hpp"
+#include "backend/image_reader/image_reader.hpp"
+#include "backend/logger/console_logger.hpp"
+#include "backend/pipelines/processor/image_processor.hpp"
 
 namespace joda::pipeline {
 
@@ -59,86 +63,117 @@ void Reporting::setDetailReportHeader(joda::reporting::ReportingContainer &detai
 ///
 void Reporting::appendToDetailReport(joda::func::DetectionResponse &result,
                                      joda::reporting::ReportingContainer &detailReportTable,
-                                     const std::string &detailReportOutputPath, int tempChannelIdx, uint32_t tileIdx)
+                                     const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
+                                     uint32_t tileIdx, const ImageProperties &imgProps)
 {
-  try {
-    static const std::string separator(1, std::filesystem::path::preferred_separator);
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
 
-    // Free memory
-    std::vector<int> compression_params;
-    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-    compression_params.push_back(0);
+  // Free memory
+  std::vector<int> compression_params;
+  compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+  compression_params.push_back(0);
 
-    auto id = DurationCount::start("write-control-image");
-    if(!result.controlImage.empty()) {
-      cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
-                      std::to_string(tileIdx) + ".png",
-                  result.controlImage, compression_params);
-    } else {
-      std::cout << "CTRL img null" << std::endl;
-    }
-    // if(!result.originalImage.empty()) {
-    //   cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
-    //                   std::to_string(tileIdx) + ".png",
-    //               result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
-    // }
-    DurationCount::stop(id);
+  auto id = DurationCount::start("write-control-image");
+  if(!result.controlImage.empty()) {
+    cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
+                    std::to_string(tileIdx) + ".png",
+                result.controlImage, compression_params);
+  } else {
+    std::cout << "CTRL img null" << std::endl;
+  }
+  // if(!result.originalImage.empty()) {
+  //   cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
+  //                   std::to_string(tileIdx) + ".png",
+  //               result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
+  // }
 
-    for(const auto &imgData : result.result) {
+  auto [offsetX, offsetY] =
+      TiffLoader::calculateTileXYoffset(joda::algo::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.width, imgProps.height,
+                                        imgProps.tileWidth, imgProps.tileHeight);
+
+  int64_t xMul = offsetX * imgProps.tileWidth;
+  int64_t yMul = offsetY * imgProps.tileHeight;
+
+  std::cout << "XOFF: " << std::to_string(xMul) << " | "
+            << "YOFF: " << std::to_string(yMul) << std::endl;
+
+  std::cout << "w: " << std::to_string(imgProps.width) << " | "
+            << "h: " << std::to_string(imgProps.height) << std::endl;
+
+  std::cout << "tw: " << std::to_string(imgProps.tileWidth) << " | "
+            << "th: " << std::to_string(imgProps.tileHeight) << std::endl;
+
+  std::cout << "xo: " << std::to_string(offsetX) << " | "
+            << "yo: " << std::to_string(offsetY) << std::endl;
+
+  std::cout << "tileidx: " << std::to_string(tileIdx) << std::endl;
+
+  DurationCount::stop(id);
+  int64_t indexOffset = 0;
+  {
+    std::lock_guard<std::mutex> lock(mAppendMutex);
+    indexOffset = detailReportTable.getTableAt(tempChannelIdx, "")
+                      .getNrOfRowsAtColumn(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
+  }
+  for(const auto &imgData : result.result) {
+    try {
+      int64_t index = imgData.getIndex() + indexOffset;
+
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE), index,
                                     imgData.getConfidence(), imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE), index,
                                     imgData.getAreaSize(), imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::PERIMETER), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::PERIMETER), index,
                                     imgData.getPerimeter(), imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY), index,
                                     imgData.getCircularity(), imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::VALIDITY), imgData.getIndex(),
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::VALIDITY), index,
                                     imgData.getValidity());
 
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X), imgData.getIndex(),
-                                    imgData.getCenterOfMass().x, imgData.getValidity());
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X), index,
+                                    imgData.getCenterOfMass().x + xMul, imgData.getValidity());
       detailReportTable.getTableAt(tempChannelIdx, "")
-          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y), imgData.getIndex(),
-                                    imgData.getCenterOfMass().y, imgData.getValidity());
+          .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y), index,
+                                    imgData.getCenterOfMass().y + yMul, imgData.getValidity());
 
       int idxOffset = 0;
       for(const auto &[channelIndexIn, intensity] : imgData.getIntensity()) {
         int channelIndex = channelIndexIn;
         if(channelIndex < 0) {
-          channelIndex = tempChannelIdx;
+          channelIndex = realChannelIdx;
         }
         detailReportTable.getTableAt(tempChannelIdx, "")
-            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY) + idxOffset,
-                                      imgData.getIndex(), intensity.intensity, imgData.getValidity());
+            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY) + idxOffset, index,
+                                      intensity.intensity, imgData.getValidity());
         detailReportTable.getTableAt(tempChannelIdx, "")
             .setColumnName(static_cast<int>(ColumnIndexDetailedReport::INTENSITY) + idxOffset,
                            "#intensity avg " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
 
         detailReportTable.getTableAt(tempChannelIdx, "")
-            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) + idxOffset,
-                                      imgData.getIndex(), intensity.intensityMax, imgData.getValidity());
+            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) + idxOffset, index,
+                                      intensity.intensityMax, imgData.getValidity());
         detailReportTable.getTableAt(tempChannelIdx, "")
             .setColumnName(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) + idxOffset,
                            "#intensity min " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
 
         detailReportTable.getTableAt(tempChannelIdx, "")
-            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) + idxOffset,
-                                      imgData.getIndex(), intensity.intensityMin, imgData.getValidity());
+            .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) + idxOffset, index,
+                                      intensity.intensityMin, imgData.getValidity());
         detailReportTable.getTableAt(tempChannelIdx, "")
             .setColumnName(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) + idxOffset,
                            "#intensity max " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
         idxOffset += 3;    // intnsity avg, min and max are 3 columns
       }
+    } catch(const std::exception &ex) {
+      std::string msg = "Pipeline::appendToDetailReport >" + std::string(ex.what()) + "<";
+      joda::log::logWarning(msg);
     }
-  } catch(const std::exception &ex) {
-    std::cout << "Pipeline::appendToDetailReport >" << ex.what() << "<" << std::endl;
   }
 }
 
@@ -280,9 +315,9 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
     int64_t nrOfSquaresX = (imageWidth / heatMapSquareWidth) + 1;
     int64_t nrOfSquaresY = (imageHeight / heatMapSquareWidth) + 1;
 
-    std::vector<std::vector<Square>> heatmapSquares(nrOfSquaresX);
+    auto *heatmapSquares = new std::vector<std::vector<Square>>(nrOfSquaresX);
     for(int64_t x = 0; x < nrOfSquaresX; x++) {
-      heatmapSquares[x] = std::vector<Square>(nrOfSquaresY);
+      heatmapSquares->at(x) = std::vector<Square>(nrOfSquaresY);
     }
     std::map<int, lxw_worksheet *> sheets;
 
@@ -323,10 +358,10 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
           }
 
           if(valid) {
-            heatmapSquares[squareXidx][squareYidx].nrOfValid += 1;
-            heatmapSquares[squareXidx][squareYidx].avgIntensity += intensity;
-            heatmapSquares[squareXidx][squareYidx].avgAreaSize += areaSize;
-            heatmapSquares[squareXidx][squareYidx].cnt++;
+            heatmapSquares->at(squareXidx)[squareYidx].nrOfValid += 1;
+            heatmapSquares->at(squareXidx)[squareYidx].avgIntensity += intensity;
+            heatmapSquares->at(squareXidx)[squareYidx].avgAreaSize += areaSize;
+            heatmapSquares->at(squareXidx)[squareYidx].cnt++;
           }
         }
       }
@@ -350,19 +385,20 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
         for(int64_t y = 0; y < nrOfSquaresY; y++) {
           rowOffset = ROW_OFFSET_START + 1;
 
-          worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1, (double) heatmapSquares[x][y].nrOfValid,
-                                 numberFormat);
+          worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
+                                 (double) heatmapSquares->at(x)[y].nrOfValid, numberFormat);
           rowOffset = nrOfSquaresY + ROW_OFFSET_START + 5;
           worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
-                                 (double) heatmapSquares[x][y].avgIntensity / (double) heatmapSquares[x][y].cnt,
+                                 (double) heatmapSquares->at(x)[y].avgIntensity / (double) heatmapSquares->at(x)[y].cnt,
                                  numberFormat);
           rowOffset = 2 * nrOfSquaresY + ROW_OFFSET_START + ROW_OFFSET_START + 7;
           worksheet_write_number(sheets.at(channelIdx), rowOffset + y, x + 1,
-                                 (double) heatmapSquares[x][y].avgAreaSize / (double) heatmapSquares[x][y].cnt,
+                                 (double) heatmapSquares->at(x)[y].avgAreaSize / (double) heatmapSquares->at(x)[y].cnt,
                                  numberFormat);
         }
       }
     }
+    delete heatmapSquares;
   }
   workbook_close(workbook);
 }

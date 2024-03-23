@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <filesystem>
 #include <iostream>
 #include <iterator>

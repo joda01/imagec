@@ -74,7 +74,7 @@ auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::Om
         omeInfo.loadOmeInformationFromString(std::string(omeXML));
       } catch(const std::exception &ex) {
         // No OME information found, emulate it by just using the TIFF meta data
-        joda::log::logWarning("No OME information found. Use TIFF meta data instead!");
+        joda::log::logInfo("No OME information found. Use TIFF meta data instead!");
         omeInfo.emulateOmeInformationFromTiff(getImageProperties(filename, 0));
       }
       // _TIFFfree(omeXML);    // Free allocated memory
@@ -128,7 +128,9 @@ auto TiffLoader::getImageProperties(const std::string &filename, uint16_t direct
                            .nrOfTiles     = nrOfTiles,
                            .nrOfDocuments = (uint16_t) nrOfDirectories,
                            .width         = width,
-                           .height        = height};
+                           .height        = height,
+                           .tileWidth     = tileWidth,
+                           .tileHeight    = tileHeight};
   }
 
   return ImageProperties{};
@@ -213,12 +215,8 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
     if(tileheight <= 0) {
       tileheight = tilewidth;
     }
-    uint64_t npixels = tilewidth * tileheight;    // get the total number of pixels per tile
 
-    // Calculate the total number of tiles in x, y direction and the total number of tiles of the whole image
-    uint64_t nrOfXTiles = width / tilewidth;
-    uint64_t nrOfYTiles = height / tileheight;
-    uint64_t nrOfTiles  = nrOfXTiles * nrOfYTiles;
+    auto [offsetX, offsetY] = calculateTileXYoffset(nrOfTilesToRead, offset, width, height, tilewidth, tileheight);
 
     //
     // We read squares, therefore calculate the square root of the number of
@@ -236,25 +234,6 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
     //
     uint64_t tileNrX = newImageWidth / tilewidth;
     uint64_t tileNrY = newImageHeight / tileheight;
-
-    //
-    // Padding the image (make the number of tiles in x and y direction a multiplier of tilesPerLine)
-    //
-    uint64_t nrOfXTilesPadded = nrOfXTiles;
-    if(nrOfXTiles % tilesPerLine > 0) {
-      nrOfXTilesPadded += (tilesPerLine - (nrOfXTiles % tilesPerLine));
-    }
-
-    uint64_t nrOfYTilesPadded = nrOfYTiles;
-    if(nrOfYTiles % tilesPerLine > 0) {
-      nrOfYTilesPadded += (tilesPerLine - (nrOfYTiles % tilesPerLine));
-    }
-
-    //
-    // Calculates the x and y tile offset based on the padded composite image offset
-    //
-    uint64_t offsetX = (offset * tilesPerLine) % nrOfXTilesPadded;
-    uint64_t offsetY = (offset * tilesPerLine) % nrOfYTilesPadded;
 
     //
     // Iterate through all tiles in X and Y directions, load the
@@ -307,6 +286,62 @@ cv::Mat TiffLoader::loadImageTile(const std::string &filename, uint16_t director
     return image;
   }
   throw std::runtime_error("Could not open image!");
+}
+
+///
+/// \brief      Calculates the tile x and y offset based on the image and tile size.
+///             This is used because we load more than one tile at once.
+///             For padding reasons at the edges of the image the calculation of these
+///             offsets is a little bit more complicated
+/// \author     Joachim Danmayr
+/// \param[in]  nrOfTilesToRead  Nr. of tiles to read at once
+/// \param[in]  offset   Tile part index to read
+/// \param[in]  width    Image width
+/// \param[in]  height   Image height
+/// \param[in]  tilewidth    Tile width
+/// \param[in]  tileheight   Tile height
+/// \return Tile x,y offset
+///
+std::tuple<int64_t, int64_t> TiffLoader::calculateTileXYoffset(int32_t nrOfTilesToRead, int32_t offset, int64_t width,
+                                                               int64_t height, int64_t tilewidth, int64_t tileheight)
+{
+  // Calculate the total number of tiles in x, y direction and the total number of tiles of the whole image
+  if(tilewidth <= 0) {
+    tilewidth = width;
+  }
+  if(tileheight <= 0) {
+    tileheight = height;
+  }
+  uint64_t nrOfXTiles = width / tilewidth;
+  uint64_t nrOfYTiles = height / tileheight;
+
+  //
+  // We read squares, therefore calculate the square root of the number of
+  // tiles to read and divide them evenly in x and y direction.
+  // The result is the size of the newly created composite image we get at the end.
+  //
+  uint64_t tilesPerLine = std::sqrt(nrOfTilesToRead);
+
+  //
+  // Padding the image (make the number of tiles in x and y direction a multiplier of tilesPerLine)
+  //
+  uint64_t nrOfXTilesPadded = nrOfXTiles;
+  if(nrOfXTiles % tilesPerLine > 0) {
+    nrOfXTilesPadded += (tilesPerLine - (nrOfXTiles % tilesPerLine));
+  }
+
+  uint64_t nrOfYTilesPadded = nrOfYTiles;
+  if(nrOfYTiles % tilesPerLine > 0) {
+    nrOfYTilesPadded += (tilesPerLine - (nrOfYTiles % tilesPerLine));
+  }
+
+  //
+  // Calculates the x and y tile offset based on the padded composite image offset
+  //
+  uint64_t offsetX = (offset * tilesPerLine) % nrOfXTilesPadded;
+  uint64_t offsetY = (offset * tilesPerLine) % nrOfYTilesPadded;
+
+  return {offsetX, offsetY};
 }
 
 ///
