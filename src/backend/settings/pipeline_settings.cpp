@@ -22,12 +22,8 @@ namespace joda::settings::json {
 /// \brief      Creates the method instance for the configured pipeline step
 /// \author     Joachim Danmayr
 ///
-void PipelineStepSettings::interpretConfig(int pipelineIndex)
+void PipelineStepSettings::interpretConfig()
 {
-  if(voronoi.getPointsChannelIndex() >= 0) {
-    mChannelSettings.index = voronoi.getPointsChannelIndex() + VORONOI_INDEX_OFFSET;
-    mChannelSettings.name  = "Voronoi";
-  }
 }
 
 }    // namespace joda::settings::json

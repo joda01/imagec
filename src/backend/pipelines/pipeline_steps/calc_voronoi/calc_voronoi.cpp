@@ -34,10 +34,9 @@ auto CalcVoronoi::execute(const settings::json::AnalyzeSettings &settings,
   // Calculate a limited CalcVoronoi grid based on the center of nucleus
   //
   if(detectionResults.contains(voronoiPoints)) {
-    int32_t channelIndex = (voronoiPoints + settings::json::PipelineStepSettings::VORONOI_INDEX_OFFSET);
     joda::func::img::VoronoiGrid grid(detectionResults.at(voronoiPoints).result, mMaxVoronoiAreaSize);
     auto CalcVoronoiResult = grid.forward(detectionResults.at(voronoiPoints).controlImage,
-                                          detectionResults.at(voronoiPoints).originalImage, channelIndex);
+                                          detectionResults.at(voronoiPoints).originalImage, mChannelIndexMe);
 
     if(!CalcVoronoiResult.controlImage.empty()) {
       static const std::string separator(1, std::filesystem::path::preferred_separator);

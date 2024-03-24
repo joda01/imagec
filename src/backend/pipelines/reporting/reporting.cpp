@@ -156,21 +156,21 @@ void Reporting::appendToDetailReport(const joda::func::DetectionResponse &result
                                       intensity.intensity, imgData.getValidity());
         detailReportTable.getTableAt(tempChannelIdx, "")
             .setColumnName(static_cast<int>(ColumnIndexDetailedReport::INTENSITY) + idxOffset,
-                           "#intensity avg " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
+                           "intensity avg " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
 
         detailReportTable.getTableAt(tempChannelIdx, "")
             .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) + idxOffset, index,
                                       intensity.intensityMax, imgData.getValidity());
         detailReportTable.getTableAt(tempChannelIdx, "")
             .setColumnName(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) + idxOffset,
-                           "#intensity min " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
+                           "intensity min " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
 
         detailReportTable.getTableAt(tempChannelIdx, "")
             .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) + idxOffset, index,
                                       intensity.intensityMin, imgData.getValidity());
         detailReportTable.getTableAt(tempChannelIdx, "")
             .setColumnName(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) + idxOffset,
-                           "#intensity max " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
+                           "intensity max " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
         idxOffset += 3;    // intnsity avg, min and max are 3 columns
       }
       roiIdx++;
@@ -195,6 +195,10 @@ void Reporting::appendToAllOverReport(std::map<std::string, joda::reporting::Rep
   const int NR_OF_COLUMNS_PER_CHANNEL = 7;
   try {
     for(int tempChannelIdx = 0; tempChannelIdx < nrOfChannels; tempChannelIdx++) {
+      if(!detailedReport.containsTable(tempChannelIdx)) {
+        continue;
+      }
+
       allOverReport[getGroupToStoreImageIn(imagePath, imageName)]
           .getTableAt(tempChannelIdx, detailedReport.getTableAt(tempChannelIdx).getTableName())
           .setColumnNames({

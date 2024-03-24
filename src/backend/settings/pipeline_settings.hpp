@@ -33,6 +33,11 @@ class AnalyzeSettings;
 class PipelineStepVoronoi final
 {
 public:
+  auto getChannelIndex() const -> int32_t
+  {
+    return index;
+  }
+
   auto getName() const -> const std::string &
   {
     return name;
@@ -74,6 +79,13 @@ public:
   }
 
 private:
+  /////////////////////////////////////////////////////
+  //
+  // Virtual channel index channel
+  // [100, 101, 102]
+  //
+  int32_t index = 100;
+
   // This is the index of the channel which contains the points using for calculating the voronoi grid
   std::string name;
 
@@ -102,7 +114,7 @@ private:
   float min_coloc_area = 0;
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepVoronoi, name, color, points_channel_index,
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepVoronoi, index, name, color, points_channel_index,
                                               overlay_mask_channel_index, max_voronoi_area_radius,
                                               cross_channel_intensity_channels, min_coloc_area, coloc_groups);
 };
@@ -117,22 +129,30 @@ class PipelineStepSettings final
 public:
   /////////////////////////////////////////////////////
   static constexpr int32_t NONE_PIPELINE_STEP        = -1;
-  static constexpr int32_t VORONOI_INDEX_OFFSET      = 100;
   static constexpr int32_t INTERSECTION_INDEX_OFFSET = 200;
-  struct ChannelSettings
-  {
-    int32_t index = NONE_PIPELINE_STEP;
-    std::string name;
-  };
 
   /////////////////////////////////////////////////////
-  void interpretConfig(int pipelineIndex);
+  void interpretConfig();
 
   ///
   /// \brief Returns the channel index of the pipeline step.
   ///        Each step has an unique index
   ///
-  int32_t getChannelIndex();
+  int32_t getChannelIndex() const
+  {
+    if(nullptr != getVoronoi()) {
+      return getVoronoi()->getChannelIndex();
+    }
+    return -1;
+  }
+
+  std::string getName() const
+  {
+    if(nullptr != getVoronoi()) {
+      return getVoronoi()->getName();
+    }
+    return "";
+  }
 
   [[nodiscard]] auto getVoronoi() const -> const PipelineStepVoronoi *
   {

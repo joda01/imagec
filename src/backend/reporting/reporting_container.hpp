@@ -39,6 +39,12 @@ public:
     throw std::invalid_argument("Table does not exist!");
   }
 
+  bool containsTable(int32_t key) const
+  {
+    std::lock_guard<std::mutex> lock(mAccessMutex);
+    return mColumns.contains(key);
+  }
+
   static void flushReportToFile(const std::map<std::string, ReportingContainer> &containers,
                                 const std::string &fileName, OutputFormat format);
 

@@ -198,7 +198,7 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
                                         detailOutputFolder + separator + "heatmap.xlsx");
     }
 
-    auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size();
+    auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size() + 1;
     mReporting->appendToAllOverReport(alloverReport, detailReport, imageParentPath, imageName, nrOfChannels);
   }
   mProgress.total.finished++;
@@ -334,16 +334,15 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
   //
   if(!mStop && mState != State::ERROR_) {
     auto idVoronoi = DurationCount::start("pipelinesteps");
-    int funcIdx    = 0;
 
     for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
       if(pipelineStep.getVoronoi() != nullptr) {
         auto *voronoi = pipelineStep.getVoronoi();
-        joda::pipeline::CalcVoronoi function(voronoi->getPointsChannelIndex(), voronoi->getOverlayMaskChannelIndex(),
-                                             voronoi->getMaxVoronoiAreaRadius());
+        joda::pipeline::CalcVoronoi function(voronoi->getChannelIndex(), voronoi->getPointsChannelIndex(),
+                                             voronoi->getOverlayMaskChannelIndex(), voronoi->getMaxVoronoiAreaRadius());
         auto response = function.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
 
-        int idx = settings::json::PipelineStepSettings::VORONOI_INDEX_OFFSET + colocIx;
+        int idx = voronoi->getChannelIndex();
 
         detectionResults.emplace(static_cast<int32_t>(idx), response);
         mReporting->setDetailReportHeader(detailReports, voronoi->getName(), tempChannelIdx);

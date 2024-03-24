@@ -42,10 +42,10 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
   auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   verticalLayoutMeta->addWidget(createTitle("Meta"));
   verticalLayoutMeta->addWidget(parentContainer->mChannelName->getEditableWidget());
-  verticalLayoutMeta->addWidget(parentContainer->mChannelColor->getEditableWidget());
+  verticalLayoutMeta->addWidget(parentContainer->mColorAndChannelIndex->getEditableWidget());
   _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-  connect(parentContainer->mChannelColor.get(), &ContainerFunctionBase::valueChanged, this,
+  connect(parentContainer->mColorAndChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelVoronoiEdit::updatePreview);
 
   //

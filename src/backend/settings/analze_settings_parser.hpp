@@ -227,12 +227,6 @@ public:
 
   [[nodiscard]] auto getChannelByChannelIndex(uint32_t idx) const -> ChannelSettings
   {
-    // Special channels
-    if(idx >= 200) {
-      idx = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
-    } else if(idx >= 100) {
-      idx = idx - PipelineStepSettings::VORONOI_INDEX_OFFSET;
-    }
     if(!orderedChannelsByChannelIndex.contains(idx)) {
       throw std::runtime_error("getChannelByChannelIndex: Channel with index >" + std::to_string(idx) +
                                "< does not exist.");
@@ -242,15 +236,17 @@ public:
 
   [[nodiscard]] auto getChannelNameOfIndex(uint32_t idx) const -> std::string
   {
-    std::string suffix;
+    // Special channels
     if(idx >= 200) {
-      idx    = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
-      suffix = "_intersect";
+      idx = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
     } else if(idx >= 100) {
-      idx    = idx - PipelineStepSettings::VORONOI_INDEX_OFFSET;
-      suffix = "_voronoi";
+      if(!orderedPipelinesByChannelIndex.contains(idx)) {
+        throw std::runtime_error("getChannelByChannelIndex: Channel with index >" + std::to_string(idx) +
+                                 "< does not exist.");
+      }
+      return orderedPipelinesByChannelIndex.at(idx).getName();
     }
-    return getChannelByChannelIndex(idx).getChannelInfo().getName() + suffix;
+    return getChannelByChannelIndex(idx).getChannelInfo().getName();
   }
 
   [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &
@@ -279,10 +275,12 @@ private:
       orderedChannelsByChannelIndex.emplace(ch.getChannelInfo().getChannelIndex(), ch);
     }
 
-    int pipelineStepIdx = 0;
     for(auto &step : pipeline_steps) {
-      step.interpretConfig(pipelineStepIdx);
-      pipelineStepIdx++;
+      step.interpretConfig();
+      int idx = step.getChannelIndex();
+      if(idx >= 0) {
+        orderedPipelinesByChannelIndex.emplace(idx, step);
+      }
     }
 
     reporting.interpretConfig();
@@ -304,6 +302,7 @@ private:
   // Analyses settings options
   //
   std::vector<PipelineStepSettings> pipeline_steps;
+  std::map<int, PipelineStepSettings> orderedPipelinesByChannelIndex;
 
   //
   // Analyses settings reporting

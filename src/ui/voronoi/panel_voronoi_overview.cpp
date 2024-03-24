@@ -40,7 +40,7 @@ PanelVoronoiOverview::PanelVoronoiOverview(WindowMain *wm, ContainerVoronoi *par
   // Add the functions
   layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
 
-  layout->addWidget(parent->mChannelColor->getLabelWidget(), 1, 0);
+  layout->addWidget(parent->mColorAndChannelIndex->getLabelWidget(), 1, 0);
   layout->addWidget(parent->mVoronoiPoints->getLabelWidget(), 1, 1);
   layout->addWidget(parent->mOverlayMaskChannelIndex->getLabelWidget(), 1, 2);
 

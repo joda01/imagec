@@ -85,7 +85,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, QString>> mChannelName;
-  std::shared_ptr<ContainerFunction<QString, int>> mChannelColor;
+  std::shared_ptr<ContainerFunction<QString, int>> mColorAndChannelIndex;
 
   // Cell approximation//////////////////////////////////
   std::shared_ptr<ContainerFunction<int, int>> mVoronoiPoints;

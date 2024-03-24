@@ -38,14 +38,16 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain) : mWindowMain(windowM
   mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(
       new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Voronoi"));
 
-  mChannelColor = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-unknown-status-50.png", "Type", "Color", "", "#FBEA25",
-                                          {{"#B91717", "Red", "icons8-bubble-50red-#B91717.png"},
-                                           {"#06880C", "Green", "icons8-bubble-50 -green-#06880C.png"},
-                                           {"#1771B9", "Blue", "icons8-bubble-blue-#1771B9-50.png"},
-                                           {"#FBEA25", "Yellow", "icons8-bubble-50-yellow-#FBEA25.png"},
-                                           {"#6F03A6", "Violet", "icons8-bubble-50-violet-#6F03A6.png"},
-                                           {"#818181", "Gray", "icons8-bubble-50-gray-#818181.png"}}));
+  mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, int>>(
+      new ContainerFunction<QString, int>("icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
+                                          {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
+                                           {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
+                                           {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
+                                           {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
+                                           {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
+                                           {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
+                                           /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
+                                          {{100, "Channel 100"}, {101, "Channel 101"}}, 100));
 
   auto foundAIModels = joda::onnx::Onnx::findOnnxFiles();
   std::vector<ContainerFunction<QString, QString>::ComboEntry> aiModelsConverted;
@@ -149,7 +151,8 @@ void ContainerVoronoi::fromJson(std::optional<joda::settings::json::ChannelSetti
 
     // Meta
     mChannelName->setValue(voronoi->getName().data());
-    mChannelColor->setValue(QString(voronoi->getColor().data()));
+    mColorAndChannelIndex->setValue(QString(voronoi->getColor().data()));
+    mColorAndChannelIndex->setValueSecond(voronoi->getChannelIndex());
     mVoronoiPoints->setValue(voronoi->getPointsChannelIndex());
 
     // Filtering
@@ -189,7 +192,8 @@ ContainerVoronoi::ConvertedChannels ContainerVoronoi::toJson() const
   nlohmann::json chSettings;
 
   chSettings["voronoi"]["name"]                       = mChannelName->getValue().toStdString();
-  chSettings["voronoi"]["color"]                      = mChannelColor->getValue().toStdString();
+  chSettings["voronoi"]["index"]                      = mColorAndChannelIndex->getValueSecond();
+  chSettings["voronoi"]["color"]                      = mColorAndChannelIndex->getValue().toStdString();
   chSettings["voronoi"]["points_channel_index"]       = mVoronoiPoints->getValue();
   chSettings["voronoi"]["overlay_mask_channel_index"] = mOverlayMaskChannelIndex->getValue();
   chSettings["voronoi"]["max_voronoi_area_radius"]    = mMaxVoronoiAreaSize->getValue();
