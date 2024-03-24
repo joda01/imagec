@@ -48,22 +48,23 @@ PanelVoronoiOverview::PanelVoronoiOverview(WindowMain *wm, ContainerVoronoi *par
   layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 2, 1);
   layout->addWidget(parent->mMaxVoronoiAreaSize->getLabelWidget(), 2, 2);
 
-  // layout->addWidget(parent->mSnapAreaSize->getLabelWidget(), 3, 0);
-  // layout->addWidget(parent->mZProjection->getLabelWidget(), 3, 1);
-  // layout->addWidget(parent->mMarginCrop->getLabelWidget(), 3, 2);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 0);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 1);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 2);
 
-  // layout->addWidget(parent->mSubtractChannel->getLabelWidget(), 4, 0);
-  // layout->addWidget(parent->mMedianBackgroundSubtraction->getLabelWidget(), 4, 1);
-  // layout->addWidget(parent->mRollingBall->getLabelWidget(), 4, 2);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 0);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 1);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 2);
 
-  // layout->addWidget(parent->mGaussianBlur->getLabelWidget(), 5, 0);
-  // layout->addWidget(parent->mSmoothing->getLabelWidget(), 5, 1);
-  // layout->addWidget(parent->mEdgeDetection->getLabelWidget(), 5, 2);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 0);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 1);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 2);
 
-  // layout->addWidget(parent->mTetraspeckRemoval->getLabelWidget(), 6, 0);
-  // layout->addWidget(parent->mColocGroup->getLabelWidget(), 6, 1);
-  // layout->addWidget(parent->mEnableCellApproximation->getLabelWidget(), 6, 2);
-  // layout->addWidget(parent->mColocGroupCellApproximation->getLabelWidget(), 6, 3);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 0);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 1);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 2);
+
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 3);
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }

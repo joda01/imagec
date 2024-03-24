@@ -75,6 +75,10 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
   connect(parentContainer->mOverlayMaskChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelVoronoiEdit::updatePreview);
 
+  //
+  // Preprocessing
+  //
+  /*
   auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
   verticalLayoutFuctions->addWidget(createTitle("Preprocessing"));
@@ -115,6 +119,7 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
   imageSubTitle->addStretch(1);
 
   preview->addWidget(imageSubTitleWidget);
+  */
 
   setLayout(horizontalLayout);
   horizontalLayout->addStretch();
