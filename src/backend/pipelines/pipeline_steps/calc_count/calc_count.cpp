@@ -10,6 +10,7 @@
 ///
 
 #include "calc_count.hpp"
+#include <string>
 #include "backend/logger/console_logger.hpp"
 
 namespace joda::pipeline {
@@ -27,23 +28,29 @@ auto CalcCount::execute(const settings::json::AnalyzeSettings &,
 {
   if(detectionResultsIn.contains(mReferenceChannelIndex)) {
     auto &myResults = const_cast<joda::func::DetectionResponse &>(detectionResultsIn.at(mReferenceChannelIndex));
-    for(func::ROI &roiMe : myResults.result) {
-      for(const auto idxToIntersectStr : mChannelsToCalcIntensityIn) {
-        int idxToIntersect = -1;
-        try {
-          idxToIntersect = stoi(idxToIntersectStr);
-        } catch(...) {
-          if(idxToIntersectStr.size() == 1) {
-            idxToIntersect =
-                settings::json::PipelineStepSettings::INTERSECTION_INDEX_OFFSET + (idxToIntersectStr.at(0) - 'A');
-          } else {
-            joda::log::logWarning("This is not a valid intersecting channel!");
-          }
+    for(const auto idxToIntersectStr : mChannelsToCalcIntensityIn) {
+      int idxToIntersect = -1;
+      try {
+        idxToIntersect = stoi(idxToIntersectStr);
+      } catch(...) {
+        if(idxToIntersectStr.size() == 1) {
+          idxToIntersect =
+              settings::json::PipelineStepSettings::INTERSECTION_INDEX_OFFSET + (idxToIntersectStr.at(0) - 'A');
+        } else {
+          joda::log::logWarning("This is not a valid intersecting channel!");
         }
-
-        if(detectionResultsIn.contains(idxToIntersect)) {
-          for(const auto &roiOther : detectionResultsIn.at(idxToIntersect).result) {
-            roiMe.calcIntersectionAndAdd(idxToIntersect, &roiOther);
+      }
+      if(detectionResultsIn.contains(idxToIntersect)) {
+        std::cout << "Ref Int " + std::to_string(mReferenceChannelIndex) << " | " << std::to_string(idxToIntersect)
+                  << " | " << std::to_string(myResults.result.size()) << std::endl;
+        for(func::ROI &roiMe : myResults.result) {
+          if(!detectionResultsIn.empty() && !detectionResultsIn.at(idxToIntersect).result.empty()) {
+            for(const auto &roiOther : detectionResultsIn.at(idxToIntersect).result) {
+              roiMe.calcIntersectionAndAdd(idxToIntersect, &roiOther);
+            }
+          } else {
+            // Empty
+            roiMe.calcIntersectionAndAdd(idxToIntersect, nullptr);
           }
         }
       }

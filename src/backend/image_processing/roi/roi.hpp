@@ -56,7 +56,8 @@ public:
 
   struct Intersecting
   {
-    std::vector<const ROI *> roi;
+    std::vector<const ROI *> roiValid;
+    std::vector<const ROI *> roiInvalid;
   };
 
   /////////////////////////////////////////////////////

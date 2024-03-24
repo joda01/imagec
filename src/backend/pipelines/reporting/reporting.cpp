@@ -191,7 +191,7 @@ void Reporting::appendToDetailReport(const joda::func::DetectionResponse &result
 
         detailReportTable.getTableAt(tempChannelIdx, "")
             .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::DYNAMIC) + intensityOffset, index,
-                                      intersecting.roi.size(), imgData.getValidity());
+                                      intersecting.roiValid.size(), joda::func::ParticleValidity::VALID);
 
         intensityOffset++;
       }

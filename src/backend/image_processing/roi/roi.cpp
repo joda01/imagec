@@ -431,13 +431,17 @@ void ROI::measureAndAddIntensity(int32_t channelIdx, const cv::Mat &imageOrigina
 ///
 void ROI::calcIntersectionAndAdd(int32_t channelIdx, const ROI *roi)
 {
+  if(!intersectingRois.contains(channelIdx)) {
+    intersectingRois.emplace(channelIdx, Intersecting{});
+  }
   if(nullptr != roi) {
     cv::Rect intersectedRect = getSnapAreaBoundingBox() & roi->getSnapAreaBoundingBox();
-    if(!intersectingRois.contains(channelIdx)) {
-      intersectingRois.emplace(channelIdx, Intersecting{});
-    }
     if(intersectedRect.area() > 0) {
-      intersectingRois.at(channelIdx).roi.push_back(roi);
+      if(roi->isValid()) {
+        intersectingRois.at(channelIdx).roiValid.push_back(roi);
+      } else {
+        intersectingRois.at(channelIdx).roiInvalid.push_back(roi);
+      }
     }
   }
 }

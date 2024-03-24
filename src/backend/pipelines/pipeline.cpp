@@ -272,27 +272,6 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
-  // Measure intensity from ROI area of channel X in channel Y
-  //
-  for(int chIdx = 0; chIdx < mAnalyzeSettings.getChannelsVector().size(); chIdx++) {
-    auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
-
-    if(!channelSettings.getCrossChannelSettings().getCrossChannelIntensityChannels().empty()) {
-      CalcIntensity intensity(channelSettings.getChannelInfo().getChannelIndex(),
-                              channelSettings.getCrossChannelSettings().getCrossChannelIntensityChannels());
-      intensity.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
-    }
-
-    if(mState != State::ERROR_) {
-      mReporting->setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), chIdx);
-    }
-    int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
-    mReporting->appendToDetailReport(detectionResults.at(channelIndex), detailReports, detailOutputFolder, channelIndex,
-                                     chIdx, tileIdx, imgProps);
-  }
-
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //
   // Execute coloc calculation
   //
   int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
@@ -371,20 +350,34 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //
-  // Do cross channel counting
-  //
   if(!mStop && mState != State::ERROR_) {
     for(int chIdx = 0; chIdx < mAnalyzeSettings.getChannelsVector().size(); chIdx++) {
       auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
+      int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
 
+      //
+      // Measure intensity from ROI area of channel X in channel Y
+      //
       if(!channelSettings.getCrossChannelSettings().getCrossChannelCountChannels().empty()) {
-        CalcCount counting(channelSettings.getChannelInfo().getChannelIndex(),
-                           channelSettings.getCrossChannelSettings().getCrossChannelCountChannels());
+        CalcCount counting(channelIndex, channelSettings.getCrossChannelSettings().getCrossChannelCountChannels());
         counting.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
       }
 
-      int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
+      //
+      // Count ROIs from channel X in channel Y
+      //
+      if(!channelSettings.getCrossChannelSettings().getCrossChannelIntensityChannels().empty()) {
+        CalcIntensity intensity(channelSettings.getChannelInfo().getChannelIndex(),
+                                channelSettings.getCrossChannelSettings().getCrossChannelIntensityChannels());
+        intensity.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+      }
+
+      //
+      // This is the last stage, write the detail settings
+      //
+      if(mState != State::ERROR_) {
+        mReporting->setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), chIdx);
+      }
       mReporting->appendToDetailReport(detectionResults.at(channelIndex), detailReports, detailOutputFolder,
                                        channelIndex, chIdx, tileIdx, imgProps);
     }
