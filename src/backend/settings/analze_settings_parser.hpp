@@ -107,7 +107,7 @@ public:
     return generate_heatmap_for_image;
   }
 
-  [[nodiscard]] auto getImageHeatmapAreaWidth() const -> std::vector<int32_t>
+  [[nodiscard]] auto getImageHeatmapAreaWidth() const -> std::set<int32_t>
   {
     return image_heatmap_area_width;
   }
@@ -149,7 +149,7 @@ private:
   //
   // With of the square used for heatmap creation in image
   //
-  std::vector<int32_t> image_heatmap_area_width;
+  std::set<int32_t> image_heatmap_area_width;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettingsReporting, group_by, image_filename_regex,
                                               generate_heatmap_for_image, generate_heatmap_for_group,
@@ -242,7 +242,15 @@ public:
 
   [[nodiscard]] auto getChannelNameOfIndex(uint32_t idx) const -> std::string
   {
-    return getChannelByChannelIndex(idx).getChannelInfo().getName();
+    std::string suffix;
+    if(idx >= 200) {
+      idx    = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
+      suffix = "_intersect";
+    } else if(idx >= 100) {
+      idx    = idx - PipelineStepSettings::VORONOI_INDEX_OFFSET;
+      suffix = "_voronoi";
+    }
+    return getChannelByChannelIndex(idx).getChannelInfo().getName() + suffix;
   }
 
   [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &

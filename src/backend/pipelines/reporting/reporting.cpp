@@ -304,7 +304,7 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
 
   ////////////////////////////////////////////////////////////////////////////////////
   ////
-  for(const auto heatMapSquareWidth : mAnalyzeSettings.getReportingSettings().getImageHeatmapAreaWidth()) {
+  for(const auto heatMapSquareWidthIn : mAnalyzeSettings.getReportingSettings().getImageHeatmapAreaWidth()) {
     struct Square
     {
       uint64_t nrOfValid  = 0;
@@ -314,9 +314,12 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
       uint64_t x          = 0;
       uint64_t y          = 0;
     };
-
-    int64_t nrOfSquaresX = (imageWidth / heatMapSquareWidth) + 1;
-    int64_t nrOfSquaresY = (imageHeight / heatMapSquareWidth) + 1;
+    int64_t heatMapWidth = heatMapSquareWidthIn;
+    if(heatMapWidth <= 0) {
+      heatMapWidth = imageWidth;
+    }
+    int64_t nrOfSquaresX = (imageWidth / heatMapWidth) + 1;
+    int64_t nrOfSquaresY = (imageHeight / heatMapWidth) + 1;
 
     auto *heatmapSquares = new std::vector<std::vector<Square>>(nrOfSquaresX);
     for(int64_t x = 0; x < nrOfSquaresX; x++) {
@@ -329,8 +332,8 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
     // Build the map
     //
     for(const auto &[channelIdx, table] : containers.mColumns) {
-      std::string tabName =
-          table.getTableName() + "_" + std::to_string(heatMapSquareWidth) + "x" + std::to_string(heatMapSquareWidth);
+      std::string tabName = table.getTableName() + "_" + std::to_string(heatMapWidth) + "x" +
+                            std::to_string(heatMapWidth) + "(" + std::to_string(channelIdx) + ")";
       if(!sheets->contains(channelIdx)) {
         sheets->emplace(channelIdx, workbook_add_worksheet(workbook, tabName.data()));
       }
@@ -348,8 +351,8 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
             yCo = imageHeight;
           }
 
-          int64_t squareXidx = xCo / heatMapSquareWidth;
-          int64_t squareYidx = yCo / heatMapSquareWidth;
+          int64_t squareXidx = xCo / heatMapWidth;
+          int64_t squareYidx = yCo / heatMapWidth;
 
           double intensity = 0;
           double areaSize  = 0;

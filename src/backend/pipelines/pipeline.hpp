@@ -83,7 +83,7 @@ public:
   ~Pipeline()
   {
     stopJob();
-    if(mMainThread->joinable()) {
+    if(mMainThread != nullptr && mMainThread->joinable()) {
       mMainThread->join();
     }
   }
@@ -181,7 +181,7 @@ private:
   ProgressIndicator mProgress;
   State mState;
   std::string mLastErrorMessage;
-  std::shared_ptr<std::thread> mMainThread;
+  std::shared_ptr<std::thread> mMainThread = nullptr;
   std::shared_ptr<Reporting> mReporting;
   ThreadingSettings mThreadingSettings;
   std::mutex mAddToDetailReportMutex;

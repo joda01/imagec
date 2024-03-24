@@ -143,11 +143,12 @@ nlohmann::json DialogSettings::toJson()
   data["generate_heatmap_for_image"] = mImageHeatmapOnOff->currentData().toBool();
 
   QStringList pieces = mHeatmapSlice->text().split(",");
-  std::vector<int> sizes;
+  std::set<int> sizes;
   for(const auto &part : pieces) {
-    try {
-      sizes.push_back(part.toInt());
-    } catch(const std::exception &) {
+    bool okay = false;
+    int idx   = part.toInt(&okay);
+    if(okay) {
+      sizes.emplace(idx);
     }
   }
 
