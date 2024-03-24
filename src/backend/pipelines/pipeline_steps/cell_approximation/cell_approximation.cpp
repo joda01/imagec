@@ -28,9 +28,10 @@ auto CellApproximation::execute(const settings::json::AnalyzeSettings &settings,
   // Calculate a limited voronoi grid based on the center of nucleus
   //
   if(detectionResults.contains(nucleusChannelIndex)) {
+    int32_t channelIndex = (nucleusChannelIndex + settings::json::PipelineStepSettings::CELL_APPROX_INDEX_OFFSET);
     joda::func::img::VoronoiGrid grid(detectionResults.at(nucleusChannelIndex).result, mMaxCellRadius);
     auto voronoiResult = grid.forward(detectionResults.at(nucleusChannelIndex).controlImage,
-                                      detectionResults.at(nucleusChannelIndex).originalImage);
+                                      detectionResults.at(nucleusChannelIndex).originalImage, channelIndex);
     return voronoiResult;
   }
   return joda::func::DetectionResponse{};

@@ -35,6 +35,6 @@ auto SpotDetection::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
   joda::func::threshold::ObjectSegmentation th(
       channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin(),
       channelSetting.getDetectionSettings().getThersholdSettings().getThreshold());
-  return th.forward(img, imgOriginal);
+  return th.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
 }
 }    // namespace joda::pipeline::detection

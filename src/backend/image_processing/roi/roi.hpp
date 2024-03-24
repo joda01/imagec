@@ -59,7 +59,7 @@ public:
       const std::vector<cv::Point> &contour);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal,
+      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex,
       const joda::settings::json::ChannelFiltering *filter);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,

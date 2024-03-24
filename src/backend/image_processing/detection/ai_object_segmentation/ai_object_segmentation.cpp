@@ -67,7 +67,8 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFilter
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage) -> DetectionResponse
+auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage, int32_t channelIndex)
+    -> DetectionResponse
 {
   // Normalize the pixel values to [0, 255] float for detection
   auto id = DurationCount::start("Convert");
@@ -179,7 +180,8 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
       }
     }
 
-    ROI roi(i, confidences[idx], classIds[idx], box, mask, contours[idxMax], originalImage, getFilterSettings());
+    ROI roi(i, confidences[idx], classIds[idx], box, mask, contours[idxMax], originalImage, channelIndex,
+            getFilterSettings());
     output.push_back(roi);
   }
 

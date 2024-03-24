@@ -44,7 +44,8 @@ public:
   }
 
   /////////////////////////////////////////////////////
-  virtual auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage) -> DetectionResponse = 0;
+  virtual auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, int32_t channelIndex)
+      -> DetectionResponse = 0;
   static void paintBoundingBox(cv::Mat &img, const DetectionResults &result, const std::string &fillColor,
                                bool paintRectangel = true);
   static void paintOverlay(cv::Mat &img, const std::vector<OverlaySettings> &overlays);

@@ -48,7 +48,7 @@ public:
     }
   }
 
-  auto forward(const cv::Mat &image, const cv::Mat &originalImage) -> DetectionResponse override
+  auto forward(const cv::Mat &image, const cv::Mat &originalImage, int32_t channelIndex) -> DetectionResponse override
   {
     // Rectangle to be used with Subdiv2D
     cv::Size size = image.size();
