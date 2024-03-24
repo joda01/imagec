@@ -41,8 +41,6 @@ auto CalcCount::execute(const settings::json::AnalyzeSettings &,
         }
       }
       if(detectionResultsIn.contains(idxToIntersect)) {
-        std::cout << "Ref Int " + std::to_string(mReferenceChannelIndex) << " | " << std::to_string(idxToIntersect)
-                  << " | " << std::to_string(myResults.result.size()) << std::endl;
         for(func::ROI &roiMe : myResults.result) {
           if(!detectionResultsIn.empty() && !detectionResultsIn.at(idxToIntersect).result.empty()) {
             for(const auto &roiOther : detectionResultsIn.at(idxToIntersect).result) {
