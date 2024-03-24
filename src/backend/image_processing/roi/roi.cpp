@@ -35,7 +35,7 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
   calculateSnapAreaAndContours(0, -1, -1);
 }
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-         const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal,
+         const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex,
          const joda::settings::json::ChannelFiltering *filter) :
     index(index),
     confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask), mMaskContours(contour)
@@ -45,7 +45,7 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
   } else {
     calculateSnapAreaAndContours(0, imageOriginal.cols, imageOriginal.rows);
   }
-  calculateMetrics({{-1, &imageOriginal}}, filter);
+  calculateMetrics({{channelIndex, &imageOriginal}}, filter);
 }
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour, const std::map<int32_t, const cv::Mat *> &imageOriginal) :
@@ -327,7 +327,6 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 /// \param[in]  roi   ROI to check against
 /// \return     Intersection of the areas in percent
 ///
-
 [[nodiscard]] std::tuple<ROI, bool> ROI::calcIntersection(const ROI &roi,
                                                           const std::map<int32_t, const cv::Mat *> &imageOriginal,
                                                           float minIntersection, bool createRoi) const
@@ -383,7 +382,14 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
         std::vector<cv::Point> contour = {};
         cv::findContours(intersectedMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
         if(!contours.empty()) {
-          contour = contours[0];
+          int32_t contourSize = contours[0].size();
+          contour             = contours[0];
+          for(const auto &cont : contours) {
+            if(cont.size() > contourSize) {
+              contourSize = cont.size();
+              contour     = cont;
+            }
+          }
         }
 
         ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, contour, imageOriginal);
@@ -398,6 +404,46 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
   }
   cv::Mat mat{};
   return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{}, {{-1, &mat}}), false};
+}
+
+///
+/// \brief      Measures the intensity in the given original image at the ROI
+///             and adds the result to the ROI intensity map for this image
+/// \author     Joachim Danmayr
+/// \param[in]  channelIdx   Channel index of the given image
+/// \param[in]  imageOriginal   Image to measure the intensity in
+///
+void ROI::measureAndAddIntensity(int32_t channelIdx, const cv::Mat &imageOriginal)
+{
+  if(!imageOriginal.empty() && !mBoundingBox.empty() && !mMask.empty()) {
+    cv::Mat maskImg                 = (imageOriginal) (mBoundingBox);
+    intensity[channelIdx].intensity = cv::mean(maskImg, mMask)[0];
+    cv::minMaxLoc(maskImg, &intensity[channelIdx].intensityMin, &intensity[channelIdx].intensityMax, nullptr, nullptr,
+                  mMask);
+  }
+}
+
+///
+/// \brief      Check if the given ROI is intersecting with this ROI and adds it to the intersecting map
+/// \author     Joachim Danmayr
+/// \param[in]  channelIdx   Channel index of the given image
+/// \param[in]  roi   ROI to calc the intersection with
+///
+void ROI::calcIntersectionAndAdd(int32_t channelIdx, const ROI *roi)
+{
+  if(!intersectingRois.contains(channelIdx)) {
+    intersectingRois.emplace(channelIdx, Intersecting{});
+  }
+  if(nullptr != roi) {
+    cv::Rect intersectedRect = getSnapAreaBoundingBox() & roi->getSnapAreaBoundingBox();
+    if(intersectedRect.area() > 0) {
+      if(roi->isValid()) {
+        intersectingRois.at(channelIdx).roiValid.push_back(roi);
+      } else {
+        intersectingRois.at(channelIdx).roiInvalid.push_back(roi);
+      }
+    }
+  }
 }
 
 }    // namespace joda::func

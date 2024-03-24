@@ -54,12 +54,18 @@ public:
     double intensityMax = 0;    ///< Max intensity of the masking area
   };
 
+  struct Intersecting
+  {
+    std::vector<const ROI *> roiValid;
+    std::vector<const ROI *> roiInvalid;
+  };
+
   /////////////////////////////////////////////////////
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
       const std::vector<cv::Point> &contour);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal,
+      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex,
       const joda::settings::json::ChannelFiltering *filter);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
@@ -132,6 +138,11 @@ public:
     return intensity;
   }
 
+  [[nodiscard]] const std::map<int32_t, Intersecting> &getIntersectingRois(int idx = 0) const
+  {
+    return intersectingRois;
+  }
+
   [[nodiscard]] uint64_t getAreaSize() const
   {
     return areaSize;
@@ -166,6 +177,9 @@ public:
                                                        const std::map<int32_t, const cv::Mat *> &imageOriginal,
                                                        float minIntersection, bool createRoi = true) const;
 
+  void measureAndAddIntensity(int32_t channelIdx, const cv::Mat &imageOriginal);
+  void calcIntersectionAndAdd(int32_t channelIdx, const ROI *roi);
+
   [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;
 
 private:
@@ -189,7 +203,10 @@ private:
   cv::Mat mSnapAreaMask;         ///< Segmentation mask with snap area
   std::vector<cv::Point> mSnapAreaMaskContours;
 
-  std::map<int32_t, Intensity> intensity;
+  std::map<int32_t, Intensity> intensity;    ///< Key is the channel index
+  std::map<int32_t, Intersecting>
+      intersectingRois;    ///< Key is the channel index, value an array of ROIs which intersects with this ROI
+
   uint64_t areaSize         = 0;    ///< size of the masking area [px^2 / px^3]
   float perimeter           = 0;    ///< Perimter (boundary size) [px]
   float circularity         = 0;    ///< Circularity of the masking area [0-1]

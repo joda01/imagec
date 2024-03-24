@@ -11,7 +11,7 @@
 /// \brief     A short description what happens here.
 ///
 
-#include "ui/qt/panel_channel_edit.hpp"
+#include "panel_channel_edit.hpp"
 #include <qboxlayout.h>
 #include <qcombobox.h>
 #include <qlabel.h>
@@ -22,9 +22,9 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include "ui/container_function.hpp"
+#include "ui/window_main.hpp"
 #include "container_channel.hpp"
-#include "container_function.hpp"
-#include "window_main.hpp"
 
 namespace joda::ui::qt {
 
@@ -51,32 +51,16 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
           &PanelChannelEdit::updatePreview);
 
   //
-  // Coloc
+  // Cross channel
   //
   auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
-  llayoutColoc->addWidget(createTitle("Coloc"));
+  llayoutColoc->addWidget(createTitle("Cross-Channel"));
   llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
+  llayoutColoc->addWidget(parentContainer->mCrossChannelIntensity->getEditableWidget());
+  llayoutColoc->addWidget(parentContainer->mCrossChannelCount->getEditableWidget());
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-  //
-  // Cell approx
-  //
-  auto [layoutCellApproximation, _3] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
-  mScrollAreaCellApprox              = _3;
-  layoutCellApproximation->addWidget(createTitle("Cell approximation"));
-  layoutCellApproximation->addWidget(parentContainer->mEnableCellApproximation->getEditableWidget());
-  layoutCellApproximation->addWidget(parentContainer->mMaxCellRadius->getEditableWidget());
-  layoutCellApproximation->addWidget(parentContainer->mColocGroupCellApproximation->getEditableWidget());
-  mParentContainer->mMaxCellRadius->getEditableWidget()->setVisible(false);
-  mParentContainer->mColocGroupCellApproximation->getEditableWidget()->setVisible(false);
-  _3->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-  connect(parentContainer->mEnableCellApproximation.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::onCellApproximationChanged);
-
   verticalLayoutContainer->addStretch(0);
-
-  mScrollAreaCellApprox->setVisible(false);
 
   auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto [detection, _5]          = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
@@ -210,7 +194,6 @@ PanelChannelEdit::~PanelChannelEdit()
       mPreviewThread->join();
     }
   }
-  delete mScrollAreaCellApprox;
   delete mPreviewImage;
   delete mSpinner;
 }
@@ -344,24 +327,8 @@ std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout 
   return {layout, contentWidget};
 }
 
-void PanelChannelEdit::onCellApproximationChanged()
-{
-  mParentContainer->mMaxCellRadius->getEditableWidget()->setVisible(
-      mParentContainer->mEnableCellApproximation->getValue());
-  mParentContainer->mColocGroupCellApproximation->getEditableWidget()->setVisible(
-      mParentContainer->mEnableCellApproximation->getValue());
-
-  updatePreview();
-}
-
 void PanelChannelEdit::onChannelTypeChanged()
 {
-  if(mParentContainer->mChannelType->getValue() == "NUCLEUS") {
-    mScrollAreaCellApprox->setVisible(true);
-  } else {
-    mScrollAreaCellApprox->setVisible(false);
-  }
-
   updatePreview();
 }
 
@@ -407,7 +374,7 @@ void PanelChannelEdit::updatePreview()
             int imgIndex = mWindowMain->getSelectedFileIndex();
             if(imgIndex >= 0) {
               settings::json::ChannelSettings chs;
-              chs.loadConfigFromString(mParentContainer->toJson().channelSettings.dump());
+              chs.loadConfigFromString(mParentContainer->toJson().channelSettings->dump());
               auto *controller = mWindowMain->getController();
               try {
                 int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();

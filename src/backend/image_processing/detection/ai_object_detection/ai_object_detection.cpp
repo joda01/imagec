@@ -40,7 +40,8 @@ ObjectDetector::ObjectDetector(const joda::settings::json::ChannelFiltering *fil
 /// \param[in]  inputImage      Image to analyze
 /// \return     Result of the analysis
 ///
-auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &originalImage) -> DetectionResponse
+auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &originalImage, int32_t channelIndex)
+    -> DetectionResponse
 {
   // Normalize the pixel values to [0, 255] float for detection
   cv::Mat grayImageFloat;
@@ -55,7 +56,7 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &o
   mNet.setInput(blob);
   std::vector<cv::Mat> outputs;
   mNet.forward(outputs, mNet.getUnconnectedOutLayersNames());
-  auto results = postProcessing(inputImageOriginal, originalImage, outputs);
+  auto results = postProcessing(inputImageOriginal, originalImage, outputs, channelIndex);
   return {.result = results, .controlImage = inputImage};
 }
 
@@ -77,7 +78,8 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &o
 /// \return Retruens the prepared prediction result
 ///
 auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const cv::Mat &originalImage,
-                                    const std::vector<cv::Mat> &predictionMatrix) -> DetectionResults
+                                    const std::vector<cv::Mat> &predictionMatrix, int32_t channelIndex)
+    -> DetectionResults
 
 {
   // Initialize vectors to hold respective outputs while unwrapping     detections.
@@ -176,7 +178,8 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const cv::Mat &or
       if(contours.empty()) {
         contours.emplace_back();
       }
-      ROI roi(index, confidences[n], classIds[n], boxes[n], boxMask, contours[0], originalImage, getFilterSettings());
+      ROI roi(index, confidences[n], classIds[n], boxes[n], boxMask, contours[0], originalImage, channelIndex,
+              getFilterSettings());
       result.push_back(roi);
       index++;
     }

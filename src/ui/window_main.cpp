@@ -35,10 +35,11 @@
 #include <thread>
 #include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
-#include "ui/qt/dialog_analyze_running.hpp"
-#include "ui/qt/dialog_settings.hpp"
+#include "channel/container_channel.hpp"
+#include "ui/dialog_analyze_running.hpp"
+#include "ui/dialog_settings.hpp"
+#include "voronoi/container_voronoi.hpp"
 #include "build_info.h"
-#include "container_channel.hpp"
 #include "version.h"
 
 namespace joda::ui::qt {
@@ -355,11 +356,40 @@ QWidget *WindowMain::createAddChannelPanel()
       "QPushButton:pressed {"
       "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
       "}");
-  addChannelButton->setText("Add Channel");
+  addChannelButton->setText("Add image Channel");
   connect(addChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
   layoutAddChannel->addWidget(addChannelButton);
 
   layout->addWidget(widgetAddChannel);
+
+  //
+  // Add cell voronoi
+  //
+  QPushButton *addVoronoiButton = new QPushButton();
+  addVoronoiButton->setStyleSheet(
+      "QPushButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgb(111, 121, 123);"
+      "   color: rgb(0, 104, 117);"
+      "   padding: 10px 20px;"
+      "   border-radius: 4px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}");
+  addVoronoiButton->setText("Add voronoi channel");
+  connect(addVoronoiButton, &QPushButton::pressed, this, &WindowMain::onAddCellApproxClicked);
+  layout->addWidget(addVoronoiButton);
+
   //
   // Open settings
   //
@@ -384,7 +414,7 @@ QWidget *WindowMain::createAddChannelPanel()
       "QPushButton:pressed {"
       "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
       "}");
-  openSettingsButton->setText("Load settings");
+  openSettingsButton->setText("Load channel settings");
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
   layout->addWidget(openSettingsButton);
 
@@ -453,22 +483,14 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-ContainerChannel *WindowMain::addChannelFromTemplate(const QString &filePath)
+ContainerBase *WindowMain::addChannelFromTemplate(const QString &filePath)
 {
   try {
     settings::json::ChannelSettings settings;
     settings.loadConfigFromFile(filePath.toStdString());
-    auto *newChannel = addChannel();
+    auto *newChannel = addChannel(AddChannel::CHANNEL);
 
-    std::optional<joda::settings::json::PipelineStepCellApproximation> cellApprox;
-    if(settings.getChannelInfo().getType() == settings::json::ChannelInfo::Type::NUCLEUS) {
-      cellApprox = joda::settings::json::PipelineStepCellApproximation{.nucleus_channel_index =
-                                                                           settings.getChannelInfo().getChannelIndex(),
-                                                                       .cell_channel_index = -1,
-                                                                       .max_cell_radius    = 500};
-    }
-
-    newChannel->fromJson(settings, cellApprox, std::nullopt, std::nullopt);
+    newChannel->fromJson(settings, std::nullopt);
     return newChannel;
   } catch(const std::exception &ex) {
     if(mSelectedChannel != nullptr) {
@@ -545,39 +567,14 @@ nlohmann::json WindowMain::toJson()
   nlohmann::json channelsArray     = nlohmann::json::array();    // Initialize an empty JSON array
   nlohmann::json pipelineStepArray = nlohmann::json::array();    // Initialize an empty JSON array
 
-  ContainerChannel::IntersectionSettings intersectionChannels;
-  std::map<int32_t, float> minIntersectionPerGroup;
-
   for(const auto &ch : mChannels) {
     auto converter = ch->toJson();
-    if(!converter.channelSettings.empty()) {
-      channelsArray.push_back(converter.channelSettings);
+    if(converter.channelSettings.has_value()) {
+      channelsArray.push_back(converter.channelSettings.value());
     }
-    if(!converter.pipelineStep.empty()) {
-      pipelineStepArray.push_back(converter.pipelineStep);
+    if(converter.pipelineStepVoronoi.has_value()) {
+      pipelineStepArray.push_back(converter.pipelineStepVoronoi.value());
     }
-
-    for(const auto &[group, ch] : converter.intersection) {
-      if(intersectionChannels.contains(group)) {
-        intersectionChannels.at(group).channel.insert(ch.channel.begin(), ch.channel.end());
-        // There may be differences in the min intersections even if there should not be.
-        // Use the biggest one if there is a difference.
-        if(minIntersectionPerGroup.at(group) < ch.minIntersect) {
-          minIntersectionPerGroup[group] = ch.minIntersect;
-        }
-      } else {
-        intersectionChannels.emplace(group, ch);
-        minIntersectionPerGroup.emplace(group, ch.minIntersect);
-      }
-    }
-  }
-
-  // Intersection settings
-  for(const auto &[group, intersectGroup] : intersectionChannels) {
-    nlohmann::json colocPipelineStep;
-    colocPipelineStep["intersection"]["min_intersection"] = minIntersectionPerGroup[group];
-    colocPipelineStep["intersection"]["channel_index"]    = intersectGroup.channel;
-    pipelineStepArray.push_back(colocPipelineStep);
   }
 
   jsonSettings["input_folder"]                    = static_cast<std::string>(mSelectedWorkingDirectory.toStdString());
@@ -599,59 +596,29 @@ nlohmann::json WindowMain::toJson()
 void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
 {
   // Remove all channels
-  std::set<ContainerChannel *> channelsToDelete = mChannels;
+  std::set<ContainerBase *> channelsToDelete = mChannels;
   for(auto *const channel : channelsToDelete) {
     removeChannel(channel);
   }
   channelsToDelete.clear();
 
-  // Load functions
-  std::map<int32_t, const joda::settings::json::PipelineStepCellApproximation *> cellApproxMap;
-  std::vector<const joda::settings::json::PipelineStepIntersection *> intersectionMap;
-  for(const auto &pipelineStep : settings.getPipelineSteps()) {
-    if(pipelineStep.getCellApproximation() != nullptr) {
-      cellApproxMap.emplace(pipelineStep.getCellApproximation()->nucleus_channel_index,
-                            pipelineStep.getCellApproximation());
-    }
-    if(pipelineStep.getIntersection() != nullptr) {
-      intersectionMap.push_back(pipelineStep.getIntersection());
-    }
-  }
-
-  std::map<int32_t, ContainerChannel::IntersectionRead> intersectReadVal;
-  int intersectionGroup = 0;
-  for(const auto &intersect : intersectionMap) {
-    for(const auto &chIdx : intersect->channel_index) {
-      intersectReadVal.emplace(chIdx,
-                               ContainerChannel::IntersectionRead{.intersectionGroup = intersectionGroup,
-                                                                  .minColocFactor    = intersect->min_intersection});
-    }
-    intersectionGroup++;
-  }
-
   int series = 0;
   // Load channels
   for(const auto &[_, channel] : settings.getChannelsOrderedByChannelIndex()) {
     series             = channel.getChannelInfo().getChannelSeries();
-    auto *channelAdded = addChannel();
+    auto *channelAdded = addChannel(AddChannel::CHANNEL);
     if(nullptr != channelAdded) {
-      std::optional<joda::settings::json::PipelineStepCellApproximation> cellApprox;
-      if(cellApproxMap.contains(channel.getChannelInfo().getChannelIndex())) {
-        cellApprox = *cellApproxMap.at(channel.getChannelInfo().getChannelIndex());
-      }
+      channelAdded->fromJson(channel, std::nullopt);
+    }
+  }
 
-      std::optional<ContainerChannel::IntersectionRead> channelIntersection;
-      std::optional<ContainerChannel::IntersectionRead> cellApproxIntersection;
-      if(intersectReadVal.contains(channel.getChannelInfo().getChannelIndex())) {
-        channelIntersection = intersectReadVal.at(channel.getChannelInfo().getChannelIndex());
+  // Load functions
+  for(const auto &pipelineStep : settings.getPipelineSteps()) {
+    if(pipelineStep.getVoronoi() != nullptr) {
+      auto *channelAdded = addChannel(AddChannel::VORONOI);
+      if(nullptr != channelAdded) {
+        channelAdded->fromJson(std::nullopt, *pipelineStep.getVoronoi());
       }
-      if(intersectReadVal.contains(channel.getChannelInfo().getChannelIndex() +
-                                   settings::json::PipelineStepSettings::CELL_APPROX_INDEX_OFFSET)) {
-        cellApproxIntersection = intersectReadVal.at(channel.getChannelInfo().getChannelIndex() +
-                                                     settings::json::PipelineStepSettings::CELL_APPROX_INDEX_OFFSET);
-      }
-
-      channelAdded->fromJson(channel, cellApprox, channelIntersection, cellApproxIntersection);
     }
   }
 
@@ -782,7 +749,7 @@ void WindowMain::onBackClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::showChannelEdit(ContainerChannel *selectedChannel)
+void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 {
   mSelectedChannel = selectedChannel;
   selectedChannel->setActive(true);
@@ -872,7 +839,7 @@ void WindowMain::onOpenSettingsDialog()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-ContainerChannel *WindowMain::addChannel()
+ContainerBase *WindowMain::addChannel(AddChannel channelType)
 {
   if(mAddChannelPanel != nullptr) {
     {
@@ -884,9 +851,19 @@ ContainerChannel *WindowMain::addChannel()
       mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
     }
 
-    int row     = mChannels.size() / 3;
-    int col     = mChannels.size() % 3;
-    auto panel1 = new ContainerChannel(this);
+    int row = mChannels.size() / 3;
+    int col = mChannels.size() % 3;
+    ContainerBase *panel1;
+    switch(channelType) {
+      case AddChannel::CHANNEL:
+        panel1 = new ContainerChannel(this);
+        break;
+
+      case AddChannel::VORONOI:
+        panel1 = new ContainerVoronoi(this);
+        break;
+    }
+
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
     mChannels.emplace(panel1);
     return panel1;
@@ -903,11 +880,20 @@ void WindowMain::onAddChannelClicked()
   if(mTemplateSelection->currentIndex() > 0) {
     addChannelFromTemplate(mTemplateSelection->currentData().toString());
   } else {
-    addChannel();
+    addChannel(AddChannel::CHANNEL);
   }
 }
 
-void WindowMain::removeChannel(ContainerChannel *toRemove)
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onAddCellApproxClicked()
+{
+  addChannel(AddChannel::VORONOI);
+}
+
+void WindowMain::removeChannel(ContainerBase *toRemove)
 {
   /// \todo reorder
   if(toRemove != nullptr) {

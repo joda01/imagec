@@ -37,16 +37,16 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
     if(!result[i].getMask().empty() && !result[i].getBoundingBox().empty()) {
       try {
         cv::Scalar areaColor    = hexToScalar(fillColor);
-        cv::Scalar contourColor = hexToScalar(fillColor);
+        cv::Scalar contourColor = GREEN;    // hexToScalar(fillColor);
 
         if(!result[i].isValid()) {
           areaColor = WHITE;
         }
 
         // Boundding box
-        if(paintRectangel && !result[i].getBoundingBox().empty()) {
-          // rectangle(img, result[i].getBoundingBox(), areaColor, 1 * THICKNESS, cv::LINE_4);
-        }
+        //  if(paintRectangel && !result[i].getBoundingBox().empty()) {
+        //    rectangle(img, result[i].getBoundingBox(), WHITE, 1 * THICKNESS, cv::LINE_4);
+        //  }
 
         // Fill area
         mask(result[i].getBoundingBox()).setTo(areaColor, result[i].getMask());

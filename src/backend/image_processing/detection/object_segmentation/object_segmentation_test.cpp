@@ -17,6 +17,6 @@ TEST_CASE("thresholdt", "[tjreshold]")
   joda::func::threshold::ObjectSegmentation seg(ch.getFilter(), 1000,
                                                 joda::settings::json::ThresholdSettings::Threshold::MANUAL);
   cv::Mat res;
-  auto result = seg.forward(img, img);
+  auto result = seg.forward(img, img, 0);
   // CHECK(result.result.size() == 15);
 }

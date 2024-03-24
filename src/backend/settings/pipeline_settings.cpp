@@ -13,7 +13,7 @@
 
 #include "pipeline_settings.hpp"
 #include "backend/pipelines/pipeline_steps/calc_intersection/calc_intersection.hpp"
-#include "backend/pipelines/pipeline_steps/cell_approximation/cell_approximation.hpp"
+#include "backend/pipelines/pipeline_steps/calc_voronoi/calc_voronoi.hpp"
 #include "backend/settings/channel_settings.hpp"
 
 namespace joda::settings::json {
@@ -22,41 +22,8 @@ namespace joda::settings::json {
 /// \brief      Creates the method instance for the configured pipeline step
 /// \author     Joachim Danmayr
 ///
-void PipelineStepSettings::interpretConfig(int pipelineIndex)
+void PipelineStepSettings::interpretConfig()
 {
-  if(cell_approximation.nucleus_channel_index >= 0 || cell_approximation.cell_channel_index >= 0) {
-    mChannelSettings.index = cell_approximation.nucleus_channel_index + CELL_APPROX_INDEX_OFFSET;
-    mChannelSettings.name  = "Approx. Cells";
-  }
-
-  if(!intersection.channel_index.empty()) {
-    mChannelSettings.index = INTERSECTION_INDEX_OFFSET + pipelineIndex;
-    mChannelSettings.name  = "Intersection";
-  }
-}
-
-///
-/// \brief      Executes the pipeline step
-/// \author     Joachim Danmayr
-///
-auto PipelineStepSettings::execute(const settings::json::AnalyzeSettings &settings,
-                                   const std::map<int, joda::func::DetectionResponse> &responseIn,
-                                   const std::string &detailoutputPath) const
-    -> std::tuple<ChannelSettings, joda::func::DetectionResponse>
-{
-  if(cell_approximation.nucleus_channel_index >= 0 || cell_approximation.cell_channel_index >= 0) {
-    joda::pipeline::CellApproximation function(cell_approximation.nucleus_channel_index,
-                                               cell_approximation.cell_channel_index,
-                                               cell_approximation.max_cell_radius);
-    return {mChannelSettings, function.execute(settings, responseIn, detailoutputPath)};
-  }
-
-  if(!intersection.channel_index.empty()) {
-    joda::pipeline::CalcIntersection function(intersection.channel_index, intersection.min_intersection);
-    return {mChannelSettings, function.execute(settings, responseIn, detailoutputPath)};
-  }
-
-  return {ChannelSettings{}, joda::func::DetectionResponse{}};
 }
 
 }    // namespace joda::settings::json

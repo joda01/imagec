@@ -344,6 +344,46 @@ private:
                                               snap_area_size, reference_spot_channel_index);
 };
 
+class CrossChannelSettings final
+{
+public:
+  auto getColocGroups() const -> const std::set<std::string> &
+  {
+    return coloc_groups;
+  }
+
+  auto getMinColocArea() const
+  {
+    return min_coloc_area;
+  }
+
+  auto getCrossChannelIntensityChannels() const -> const std::set<int32_t> &
+  {
+    return cross_channel_intensity_channels;
+  }
+
+  auto getCrossChannelCountChannels() const -> const std::set<std::string> &
+  {
+    return cross_channel_count_channels;
+  }
+
+private:
+  // In which coloc groups this channel is part of
+  std::set<std::string> coloc_groups;
+
+  // Minimum area in [%] the areas in the coloc must overlap to be marked as valid coloc
+  float min_coloc_area = 0;
+
+  // Cross channel intensity calculation
+  std::set<int32_t> cross_channel_intensity_channels;
+
+  // Cross channel count calculation
+  std::set<std::string> cross_channel_count_channels;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CrossChannelSettings, coloc_groups, min_coloc_area,
+                                              cross_channel_intensity_channels, cross_channel_count_channels);
+};
+
 class ChannelSettings final
 {
 public:
@@ -421,6 +461,11 @@ public:
     return filter;
   }
 
+  auto getCrossChannelSettings() const -> const CrossChannelSettings &
+  {
+    return cross_channel;
+  }
+
 private:
   //
   // Common channel information
@@ -444,7 +489,12 @@ private:
   //
   ChannelFiltering filter;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, info, detection, preprocessing, filter);
+  //
+  // Cross channel settings
+  //
+  CrossChannelSettings cross_channel;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, info, detection, preprocessing, filter, cross_channel);
 
   //
   // For internal needs. Not stored in the json: Actual index in the channel array

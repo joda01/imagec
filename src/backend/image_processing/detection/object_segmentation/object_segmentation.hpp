@@ -29,7 +29,7 @@ public:
   /////////////////////////////////////////////////////
   ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt, uint16_t thresholdValue,
                      joda::settings::json::ThresholdSettings::Threshold method);
-  auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage) -> DetectionResponse override;
+  auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, int32_t channelIndex) -> DetectionResponse override;
 
 private:
   std::shared_ptr<img::Threshold> mThresoldMethod;

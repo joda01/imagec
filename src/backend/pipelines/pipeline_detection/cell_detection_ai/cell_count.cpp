@@ -35,11 +35,11 @@ auto CellCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
     joda::func::threshold::ObjectSegmentation th(
         channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin(),
         channelSetting.getDetectionSettings().getThersholdSettings().getThreshold());
-    return th.forward(img, imgOriginal);
+    return th.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
   } else {
     joda::func::ai::ObjectSegmentation obj(&channelSetting.getFilter(),
                                            "models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
-    return obj.forward(img, imgOriginal);
+    return obj.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
   }
 }
 

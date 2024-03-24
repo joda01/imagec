@@ -107,7 +107,7 @@ public:
     return generate_heatmap_for_image;
   }
 
-  [[nodiscard]] auto getImageHeatmapAreaWidth() const -> std::vector<int32_t>
+  [[nodiscard]] auto getImageHeatmapAreaWidth() const -> std::set<int32_t>
   {
     return image_heatmap_area_width;
   }
@@ -149,7 +149,7 @@ private:
   //
   // With of the square used for heatmap creation in image
   //
-  std::vector<int32_t> image_heatmap_area_width;
+  std::set<int32_t> image_heatmap_area_width;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettingsReporting, group_by, image_filename_regex,
                                               generate_heatmap_for_image, generate_heatmap_for_group,
@@ -227,12 +227,6 @@ public:
 
   [[nodiscard]] auto getChannelByChannelIndex(uint32_t idx) const -> ChannelSettings
   {
-    // Special channels
-    if(idx >= 200) {
-      idx = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
-    } else if(idx >= 100) {
-      idx = idx - PipelineStepSettings::CELL_APPROX_INDEX_OFFSET;
-    }
     if(!orderedChannelsByChannelIndex.contains(idx)) {
       throw std::runtime_error("getChannelByChannelIndex: Channel with index >" + std::to_string(idx) +
                                "< does not exist.");
@@ -242,7 +236,19 @@ public:
 
   [[nodiscard]] auto getChannelNameOfIndex(uint32_t idx) const -> std::string
   {
-    return getChannelByChannelIndex(idx).getChannelInfo().getName();
+    std::string suffix;
+    // Special channels
+    if(idx >= 200) {
+      idx    = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
+      suffix = " intersection";
+    } else if(idx >= 100) {
+      if(!orderedPipelinesByChannelIndex.contains(idx)) {
+        throw std::runtime_error("getChannelByChannelIndex: Channel with index >" + std::to_string(idx) +
+                                 "< does not exist.");
+      }
+      return orderedPipelinesByChannelIndex.at(idx).getName();
+    }
+    return getChannelByChannelIndex(idx).getChannelInfo().getName() + suffix;
   }
 
   [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &
@@ -271,10 +277,12 @@ private:
       orderedChannelsByChannelIndex.emplace(ch.getChannelInfo().getChannelIndex(), ch);
     }
 
-    int pipelineStepIdx = 0;
     for(auto &step : pipeline_steps) {
-      step.interpretConfig(pipelineStepIdx);
-      pipelineStepIdx++;
+      step.interpretConfig();
+      int idx = step.getChannelIndex();
+      if(idx >= 0) {
+        orderedPipelinesByChannelIndex.emplace(idx, step);
+      }
     }
 
     reporting.interpretConfig();
@@ -296,6 +304,7 @@ private:
   // Analyses settings options
   //
   std::vector<PipelineStepSettings> pipeline_steps;
+  std::map<int, PipelineStepSettings> orderedPipelinesByChannelIndex;
 
   //
   // Analyses settings reporting

@@ -68,7 +68,8 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFilter
   }
 }
 
-auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalImage) -> DetectionResponse
+auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalImage, int32_t channelIndex)
+    -> DetectionResponse
 {
   cv::Mat binaryImage;
   uint16_t usedThersholdVal = mThresoldMethod->execute(srcImg, binaryImage);
@@ -110,7 +111,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
         point.y = point.y - box.y;
       }
 
-      ROI detect(idx, usedThersholdVal, 0, box, mask, contours[i], originalImage, getFilterSettings());
+      ROI detect(idx, usedThersholdVal, 0, box, mask, contours[i], originalImage, channelIndex, getFilterSettings());
       idx++;
       response.push_back(detect);
     }

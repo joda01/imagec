@@ -18,15 +18,18 @@
 namespace joda::pipeline {
 
 ///
-/// \class      CellApproximation
+/// \class      CalcVoronoi
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class CellApproximation : public PipelineStep
+class CalcVoronoi : public PipelineStep
 {
 public:
-  CellApproximation(int32_t nucleusChannelIndex, int32_t cellChannelIndex, int32_t maxCellRadius) :
-      mNucleusChannelIndex(nucleusChannelIndex), mCellChannelIndex(cellChannelIndex), mMaxCellRadius(maxCellRadius)
+  CalcVoronoi(int32_t channelIndexMe, int32_t nucleusChannelIndex, int32_t cellChannelIndex,
+              int32_t maxVoronoiAreaSize) :
+      mChannelIndexMe(channelIndexMe),
+      mVoronoiPointsChannelIndex(nucleusChannelIndex), mOverlayMaskChannelIndex(cellChannelIndex),
+      mMaxVoronoiAreaSize(maxVoronoiAreaSize)
   {
   }
   /////////////////////////////////////////////////////
@@ -49,9 +52,10 @@ private:
 
   /////////////////////////////////////////////////////
 
-  int32_t mNucleusChannelIndex;
-  int32_t mCellChannelIndex;
-  int32_t mMaxCellRadius;
+  int32_t mChannelIndexMe;
+  int32_t mVoronoiPointsChannelIndex;
+  int32_t mOverlayMaskChannelIndex;
+  int32_t mMaxVoronoiAreaSize;
 };
 
 }    // namespace joda::pipeline

@@ -22,10 +22,11 @@
 #include "backend/settings/analze_settings_parser.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
-#include "ui/qt/container_function.hpp"
-#include "ui/qt/panel_channel_edit.hpp"
-#include "ui/qt/panel_channel_overview.hpp"
+#include "ui/container_base.hpp"
+#include "ui/container_function.hpp"
 #include <nlohmann/json_fwd.hpp>
+#include "panel_channel_edit.hpp"
+#include "panel_channel_overview.hpp"
 
 namespace joda::ui::qt {
 
@@ -34,7 +35,7 @@ namespace joda::ui::qt {
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class ContainerChannel : std::enable_shared_from_this<ContainerChannel>
+class ContainerChannel : public ContainerBase
 {
   friend class PanelChannelOverview;
   friend class PanelChannelEdit;
@@ -47,59 +48,36 @@ public:
   /////////////////////////////////////////////////////
   ContainerChannel(WindowMain *windowMain);
   ~ContainerChannel();
-  PanelChannelOverview *getOverviewPanel()
+  PanelChannelOverview *getOverviewPanel() override
   {
     return mPanelOverview;
   }
-  PanelChannelEdit *getEditPanel()
+  PanelChannelEdit *getEditPanel() override
   {
     return mPanelEdit;
   }
-  void setActive(bool setActive)
+  void setActive(bool setActive) override
   {
     if(mPanelEdit != nullptr) {
       mPanelEdit->setActive(setActive);
     }
   }
 
-  using IntersectionGroup = int;
-  struct IntersectionChannel
-  {
-    std::set<int> channel = {};
-    float minIntersect    = 0;
-  };
-  using IntersectionSettings = std::map<IntersectionGroup, IntersectionChannel>;
+  void fromJson(std::optional<joda::settings::json::ChannelSettings>,
+                std::optional<joda::settings::json::PipelineStepVoronoi>) override;
+  [[nodiscard]] ConvertedChannels toJson() const override;
 
-  struct IntersectionRead
-  {
-    int32_t intersectionGroup = -1;
-    float minColocFactor      = 0;
-  };
-
-  struct ConvertedChannels
-  {
-    nlohmann::json channelSettings;
-    nlohmann::json pipelineStep;
-    IntersectionSettings intersection;
-  };
-
-  void fromJson(const joda::settings::json::ChannelSettings &,
-                std::optional<joda::settings::json::PipelineStepCellApproximation>,
-                std::optional<IntersectionRead> channelIntersection,
-                std::optional<IntersectionRead> cellApproxIntersection);
-  ConvertedChannels toJson() const;
-
-  std::tuple<int32_t, float> getMinColocFactor()
+  std::tuple<std::string, float> getMinColocFactor() override
   {
     if(mColocGroup->hasValue()) {
-      return {mColocGroup->getValue(), mColocGroup->getValueSecond() / 100.0F};
+      return {mColocGroup->getValue().toStdString(), mColocGroup->getValueSecond() / 100.0F};
     }
-    return {-1, 0};
+    return {"NONE", 0};
   }
 
-  void setMinColocFactor(int group, float newValue)
+  void setMinColocFactor(const std::string &group, float newValue) override
   {
-    if(group == mColocGroup->getValue()) {
+    if(group == mColocGroup->getValue().toStdString()) {
       mColocGroup->setValueSecond(newValue * 100.0F);
     }
   }
@@ -131,13 +109,10 @@ private:
   std::shared_ptr<ContainerFunction<float, float>> mMinProbability;
   std::shared_ptr<ContainerFunction<QString, QString>> mAIModels;
 
-  // Cell approximation//////////////////////////////////
-  std::shared_ptr<ContainerFunction<bool, bool>> mEnableCellApproximation;
-  std::shared_ptr<ContainerFunction<int, int>> mMaxCellRadius;
-  std::shared_ptr<ContainerFunction<int, int>> mColocGroupCellApproximation;
-
-  // Colocalization//////////////////////////////////
-  std::shared_ptr<ContainerFunction<int, int>> mColocGroup;
+  // Cross-Channel//////////////////////////////////
+  std::shared_ptr<ContainerFunction<QString, int>> mColocGroup;
+  std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntensity;
+  std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelCount;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

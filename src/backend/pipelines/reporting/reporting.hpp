@@ -72,9 +72,9 @@ private:
     VALIDITY         = 4,
     CENTER_OF_MASS_X = 5,
     CENTER_OF_MASS_Y = 6,
-    INTENSITY        = 7,
-    INTENSITY_MIN    = 8,
-    INTENSITY_MAX    = 9,
+    DYNAMIC          = 7,    // Start of the dynamic section
+    DYNAMIC_MIN      = 8,
+    DYNAMIC_MAX      = 9,
   };
 
   const joda::settings::json::AnalyzeSettings &mAnalyzeSettings;

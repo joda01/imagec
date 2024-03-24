@@ -17,8 +17,8 @@
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
-#include "helper/waitingspinnerwidget.hpp"
-#include "ui/qt/panel_preview.hpp"
+#include "ui/helper/waitingspinnerwidget.hpp"
+#include "ui/panel_preview.hpp"
 
 namespace joda::ui::qt {
 
@@ -60,7 +60,6 @@ private:
   WindowMain *mWindowMain;
   ContainerChannel *mParentContainer;
   QLabel *createTitle(const QString &);
-  QWidget *mScrollAreaCellApprox = nullptr;
   PanelPreview *mPreviewImage    = nullptr;
   WaitingSpinnerWidget *mSpinner = nullptr;
   std::mutex mPreviewMutex;
@@ -70,7 +69,6 @@ private:
 
 private slots:
   void onChannelTypeChanged();
-  void onCellApproximationChanged();
   void onDetectionModechanged();
   void updatePreview();
 };

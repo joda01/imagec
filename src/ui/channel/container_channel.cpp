@@ -22,9 +22,9 @@
 #include <vector>
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/settings/channel_settings.hpp"
-#include "ui/qt/container_function.hpp"
-#include "ui/qt/panel_channel_overview.hpp"
-#include "window_main.hpp"
+#include "ui/container_function.hpp"
+#include "ui/window_main.hpp"
+#include "panel_channel_overview.hpp"
 
 namespace joda::ui::qt {
 
@@ -176,37 +176,31 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                        {10, "Channel 10"},
                                        {11, "Channel 11"},
                                        {12, "Channel 12"}}));
-  mColocGroupCellApproximation = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-query-outer-join-left-50.png", "Group", "Coloc group and min. overlap",
-                                      "", -1, {{-1, "Off"}, {0, "A"}, {1, "B"}, {3, "C"}}));
 
   //
-  // Cell approximation
+  // Cross channel
   //
-  mEnableCellApproximation = std::shared_ptr<ContainerFunction<bool, bool>>(
-      new ContainerFunction<bool, bool>("dom-voronoi-50.png", "On/Off", "Enable cell approximation.", false));
-  mMaxCellRadius = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
-                                      "Max. cell radius", "px", 100, 0, INT32_MAX));
+  mColocGroup = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
+      "icons8-query-outer-join-left-50.png", "Group", "Coloc group and min. overlap", "", "NONE",
+      {{"NONE", "Off"}, {"A", "A"}, {"B", "B"}, {"C", "C"}},
+      {{0, "0%"},
+       {10, "10%"},
+       {20, "20%"},
+       {30, "30%"},
+       {40, "40%"},
+       {50, "50%"},
+       {60, "60%"},
+       {70, "70%"},
+       {80, "80%"},
+       {90, "90%"},
+       {100, "100%"}},
+      80));
 
-  //
-  // Coloc
-  //
-  mColocGroup = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-query-outer-join-left-50.png", "Group", "Coloc group and min. overlap",
-                                      "", -1, {{-1, "Off"}, {0, "A"}, {1, "B"}, {3, "C"}},
-                                      {{0, "0%"},
-                                       {10, "10%"},
-                                       {20, "20%"},
-                                       {30, "30%"},
-                                       {40, "40%"},
-                                       {50, "50%"},
-                                       {60, "60%"},
-                                       {70, "70%"},
-                                       {80, "80%"},
-                                       {90, "90%"},
-                                       {100, "100%"}},
-                                      80));
+  mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(
+      new ContainerFunction<QString, int>("icons8-light-50.png", "[0,1,2,3,..]", "Cross channel intensity", ""));
+
+  mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(
+      new ContainerFunction<QString, int>("icons8-3-50.png", "[A,B,0,1,2,3,..]", "Cross channel count", ""));
 
   //
   // Create panels -> Must be after creating the functions
@@ -229,107 +223,125 @@ ContainerChannel::~ContainerChannel()
 /// \brief      Load values
 /// \author     Joachim Danmayr
 ///
-void ContainerChannel::fromJson(const joda::settings::json::ChannelSettings &chSettings,
-                                std::optional<joda::settings::json::PipelineStepCellApproximation> cellApprox,
-                                std::optional<IntersectionRead> channelIntersection,
-                                std::optional<IntersectionRead> cellApproxIntersection)
+void ContainerChannel::fromJson(std::optional<joda::settings::json::ChannelSettings> chSettings,
+                                std::optional<joda::settings::json::PipelineStepVoronoi>)
 {
-  // Meta
-  mChannelType->setValue(QString(chSettings.getChannelInfo().getTypeString().data()));
-  mChannelName->setValue(QString(chSettings.getChannelInfo().getName().data()));
-  mColorAndChannelIndex->setValue(QString(chSettings.getChannelInfo().getColor().data()));
-  mColorAndChannelIndex->setValueSecond(chSettings.getChannelInfo().getChannelIndex());
+  if(chSettings.has_value()) {
+    // Meta
+    mChannelType->setValue(QString(chSettings->getChannelInfo().getTypeString().data()));
+    mChannelName->setValue(QString(chSettings->getChannelInfo().getName().data()));
+    mColorAndChannelIndex->setValue(QString(chSettings->getChannelInfo().getColor().data()));
+    mColorAndChannelIndex->setValueSecond(chSettings->getChannelInfo().getChannelIndex());
 
-  mThresholdAlgorithm->clearValue();
-  mThresholdValueMin->clearValue();
-  mMinCircularity->clearValue();
-  mMinParticleSize->clearValue();
-  mMaxParticleSize->clearValue();
-  mSnapAreaSize->clearValue();
-
-  mZProjection->clearValue();
-  mMarginCrop->clearValue();
-  mSubtractChannel->clearValue();
-  mMedianBackgroundSubtraction->clearValue();
-  mRollingBall->clearValue();
-  mGaussianBlur->clearValue();
-  mSmoothing->clearValue();
-  mEdgeDetection->clearValue();
-  mTetraspeckRemoval->clearValue();
-
-  mUsedDetectionMode->clearValue();
-  mMinProbability->clearValue();
-  mAIModels->clearValue();
-
-  mEnableCellApproximation->clearValue();
-  mMaxCellRadius->clearValue();
-  mColocGroupCellApproximation->clearValue();
-  mColocGroup->clearValue();
-
-  // Preprocessing
-  for(const auto &prepro : chSettings.getPreprocessingFunctions()) {
-    if(prepro.getZStack()) {
-      mZProjection->setValue(QString(prepro.getZStack()->value.data()));
-    }
-    if(prepro.getRollingBall()) {
-      mRollingBall->setValue(prepro.getRollingBall()->value);
-      mRollingBall->setValueSecond(prepro.getRollingBall()->mode.data());
-    }
-    if(prepro.getMarginCrop()) {
-      mMarginCrop->setValue(prepro.getMarginCrop()->value);
-    }
-    if(prepro.getGaussianBlur()) {
-      mGaussianBlur->setValue(prepro.getGaussianBlur()->kernel_size);
-      mGaussianBlur->setValueSecond(prepro.getGaussianBlur()->repeat);
-    }
-    if(prepro.getSmoothing()) {
-      mSmoothing->setValue(prepro.getSmoothing()->repeat);
-    }
-    if(prepro.getMedianBgSubtraction()) {
-      mMedianBackgroundSubtraction->setValue(true);
-    }
-    if(prepro.getSubtractChannel()) {
-      mSubtractChannel->setValue(prepro.getSubtractChannel()->channel_index);
-    }
-    if(prepro.getEdgeDetection()) {
-      mEdgeDetection->setValue(prepro.getEdgeDetection()->value.data());
-      mEdgeDetection->setValueSecond(prepro.getEdgeDetection()->direction.data());
-    }
-  }
-
-  // Detection
-  mUsedDetectionMode->setValue(chSettings.getDetectionSettings().getDetectionModeString().data());
-  mThresholdAlgorithm->setValue(chSettings.getDetectionSettings().getThersholdSettings().getThresholdString().data());
-  mThresholdValueMin->setValue(chSettings.getDetectionSettings().getThersholdSettings().getThresholdMin());
-  mAIModels->setValue(chSettings.getDetectionSettings().getAiSettings().getModelName().data());
-  mMinProbability->setValue(chSettings.getDetectionSettings().getAiSettings().getProbability());
-
-  // Filtering
-  mMinParticleSize->setValue(chSettings.getFilter().getMinParticleSize());
-  if(chSettings.getFilter().getMaxParticleSize() >= INT32_MAX) {
+    mThresholdAlgorithm->clearValue();
+    mThresholdValueMin->clearValue();
+    mMinCircularity->clearValue();
+    mMinParticleSize->clearValue();
     mMaxParticleSize->clearValue();
-  } else {
-    mMaxParticleSize->setValue(chSettings.getFilter().getMaxParticleSize());
-  }
-  mMinCircularity->setValue(chSettings.getFilter().getMinCircularity());
-  mSnapAreaSize->setValue(chSettings.getFilter().getSnapAreaSize());
-  mTetraspeckRemoval->setValue(chSettings.getFilter().getReferenceSpotChannelIndex());
+    mSnapAreaSize->clearValue();
 
-  // Cell approx
-  if(cellApprox.has_value() && cellApprox->nucleus_channel_index == chSettings.getChannelInfo().getChannelIndex()) {
-    mEnableCellApproximation->setValue(true);
-    mMaxCellRadius->setValue(cellApprox->max_cell_radius);
-  } else {
-    mEnableCellApproximation->setValue(false);
-  }
+    mZProjection->clearValue();
+    mMarginCrop->clearValue();
+    mSubtractChannel->clearValue();
+    mMedianBackgroundSubtraction->clearValue();
+    mRollingBall->clearValue();
+    mGaussianBlur->clearValue();
+    mSmoothing->clearValue();
+    mEdgeDetection->clearValue();
+    mTetraspeckRemoval->clearValue();
 
-  // Coloc
-  if(channelIntersection.has_value()) {
-    mColocGroup->setValue(channelIntersection->intersectionGroup);
-    mColocGroup->setValueSecond(static_cast<int>(channelIntersection->minColocFactor * 100.0F));
-  }
-  if(cellApproxIntersection.has_value()) {
-    mColocGroupCellApproximation->setValue(cellApproxIntersection->intersectionGroup);
+    mUsedDetectionMode->clearValue();
+    mMinProbability->clearValue();
+    mAIModels->clearValue();
+
+    mColocGroup->clearValue();
+    mCrossChannelIntensity->clearValue();
+
+    // Preprocessing
+    for(const auto &prepro : chSettings->getPreprocessingFunctions()) {
+      if(prepro.getZStack()) {
+        mZProjection->setValue(QString(prepro.getZStack()->value.data()));
+      }
+      if(prepro.getRollingBall()) {
+        mRollingBall->setValue(prepro.getRollingBall()->value);
+        mRollingBall->setValueSecond(prepro.getRollingBall()->mode.data());
+      }
+      if(prepro.getMarginCrop()) {
+        mMarginCrop->setValue(prepro.getMarginCrop()->value);
+      }
+      if(prepro.getGaussianBlur()) {
+        mGaussianBlur->setValue(prepro.getGaussianBlur()->kernel_size);
+        mGaussianBlur->setValueSecond(prepro.getGaussianBlur()->repeat);
+      }
+      if(prepro.getSmoothing()) {
+        mSmoothing->setValue(prepro.getSmoothing()->repeat);
+      }
+      if(prepro.getMedianBgSubtraction()) {
+        mMedianBackgroundSubtraction->setValue(true);
+      }
+      if(prepro.getSubtractChannel()) {
+        mSubtractChannel->setValue(prepro.getSubtractChannel()->channel_index);
+      }
+      if(prepro.getEdgeDetection()) {
+        mEdgeDetection->setValue(prepro.getEdgeDetection()->value.data());
+        mEdgeDetection->setValueSecond(prepro.getEdgeDetection()->direction.data());
+      }
+    }
+
+    // Detection
+    mUsedDetectionMode->setValue(chSettings->getDetectionSettings().getDetectionModeString().data());
+    mThresholdAlgorithm->setValue(
+        chSettings->getDetectionSettings().getThersholdSettings().getThresholdString().data());
+    mThresholdValueMin->setValue(chSettings->getDetectionSettings().getThersholdSettings().getThresholdMin());
+    mAIModels->setValue(chSettings->getDetectionSettings().getAiSettings().getModelName().data());
+    mMinProbability->setValue(chSettings->getDetectionSettings().getAiSettings().getProbability());
+
+    // Filtering
+    mMinParticleSize->setValue(chSettings->getFilter().getMinParticleSize());
+    if(chSettings->getFilter().getMaxParticleSize() >= INT32_MAX) {
+      mMaxParticleSize->clearValue();
+    } else {
+      mMaxParticleSize->setValue(chSettings->getFilter().getMaxParticleSize());
+    }
+    mMinCircularity->setValue(chSettings->getFilter().getMinCircularity());
+    mSnapAreaSize->setValue(chSettings->getFilter().getSnapAreaSize());
+    mTetraspeckRemoval->setValue(chSettings->getFilter().getReferenceSpotChannelIndex());
+
+    // Coloc
+    {
+      auto &coloc = chSettings->getCrossChannelSettings().getColocGroups();
+      if(coloc.size() > 0) {
+        std::string value = *coloc.begin();
+        mColocGroup->setValue(value.data());
+        mColocGroup->setValueSecond(static_cast<int>(chSettings->getCrossChannelSettings().getMinColocArea() * 100.0F));
+      }
+    }
+
+    // Cross channel intensity
+    {
+      auto &crossChannelIntensityChannels = chSettings->getCrossChannelSettings().getCrossChannelIntensityChannels();
+      QString crossChannelIndexes;
+      for(const auto chIdx : crossChannelIntensityChannels) {
+        crossChannelIndexes += QString::number(chIdx) + ",";
+      }
+      if(crossChannelIndexes.size() > 0) {
+        crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
+      }
+      mCrossChannelIntensity->setValue(crossChannelIndexes);
+    }
+
+    // Cross channel count
+    {
+      auto &crosschannelCount = chSettings->getCrossChannelSettings().getCrossChannelCountChannels();
+      QString crossChannelIndexes;
+      for(const auto chIdx : crosschannelCount) {
+        crossChannelIndexes += QString(chIdx.data()) + ",";
+      }
+      if(crossChannelIndexes.size() > 0) {
+        crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
+      }
+      mCrossChannelCount->setValue(crossChannelIndexes);
+    }
   }
 }
 
@@ -409,34 +421,38 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
   chSettings["filter"]["snap_area_size"]               = mSnapAreaSize->getValue();
   chSettings["filter"]["reference_spot_channel_index"] = mTetraspeckRemoval->getValue();
 
-  // Pipeline steps
-  nlohmann::json pipelineStep;
-  if(mEnableCellApproximation->getValue()) {
-    pipelineStep["cell_approximation"]["nucleus_channel_index"] = mColorAndChannelIndex->getValueSecond();
-    pipelineStep["cell_approximation"]["cell_channel_index"]    = -1;
-    pipelineStep["cell_approximation"]["max_cell_radius"]       = mMaxCellRadius->getValue();
+  // Cross channel settings
+  {
+    std::set<std::string> colocGroup;
+    if(mColocGroup->hasValue()) {
+      colocGroup.emplace(mColocGroup->getValue().toStdString());
+    }
+    chSettings["cross_channel"]["coloc_groups"]   = colocGroup;
+    chSettings["cross_channel"]["min_coloc_area"] = static_cast<float>(mColocGroup->getValueSecond()) / 100.0F;
+  }
+  {
+    std::set<int32_t> crossChannelIntensity;
+    auto values = mCrossChannelIntensity->getValue().split(",");
+    for(const auto &val : values) {
+      bool ok = false;
+      auto i  = val.toInt(&ok);
+      if(ok) {
+        crossChannelIntensity.emplace(i);
+      }
+    }
+    chSettings["cross_channel"]["cross_channel_intensity_channels"] = crossChannelIntensity;
   }
 
-  // Coloc
-  IntersectionSettings intersectSettings;
-  if(mColocGroup->hasValue()) {
-    intersectSettings.emplace(
-        mColocGroup->getValue(),
-        IntersectionChannel{.channel      = {mColorAndChannelIndex->getValueSecond()},
-                            .minIntersect = static_cast<float>(mColocGroup->getValueSecond()) / 100.0F});
-  }
-  if(mColocGroupCellApproximation->hasValue()) {
-    intersectSettings.emplace(
-        mColocGroupCellApproximation->getValue(),
-        IntersectionChannel{
-            .channel =
-                {mColorAndChannelIndex->getValueSecond() +
-                 settings::json::PipelineStepSettings::CELL_APPROX_INDEX_OFFSET},    // The cell approx channel index is
-                                                                                     // the nucleus index + 100
-            .minIntersect = 0});
+  {
+    std::set<std::string> crossChannelCount;
+    auto values = mCrossChannelCount->getValue().split(",");
+    for(const auto &val : values) {
+      crossChannelCount.emplace(val.toStdString());
+    }
+    chSettings["cross_channel"]["cross_channel_count_channels"] = crossChannelCount;
   }
 
-  return {.channelSettings = chSettings, .pipelineStep = pipelineStep, .intersection = intersectSettings};
+  return {.channelSettings = chSettings, .pipelineStepVoronoi = std::nullopt};
 }
 
 }    // namespace joda::ui::qt
