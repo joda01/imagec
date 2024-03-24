@@ -1,0 +1,55 @@
+///
+/// \file      calc_intensity.cpp
+/// \author    Joachim Danmayr
+/// \date      2024-03-24
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            All rights reserved! This file is subject
+///            to the terms and conditions defined in file
+///            LICENSE.txt, which is part of this package.
+///
+
+#include "calc_count.hpp"
+#include "backend/logger/console_logger.hpp"
+
+namespace joda::pipeline {
+
+///
+/// \brief      Calculate the intensity in other channels
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto CalcCount::execute(const settings::json::AnalyzeSettings &,
+                        const std::map<int, joda::func::DetectionResponse> &detectionResultsIn,
+                        const std::string &detailoutputPath) const -> joda::func::DetectionResponse
+{
+  if(detectionResultsIn.contains(mReferenceChannelIndex)) {
+    auto &myResults = const_cast<joda::func::DetectionResponse &>(detectionResultsIn.at(mReferenceChannelIndex));
+    for(func::ROI &roiMe : myResults.result) {
+      for(const auto idxToIntersectStr : mChannelsToCalcIntensityIn) {
+        int idxToIntersect = -1;
+        try {
+          idxToIntersect = stoi(idxToIntersectStr);
+        } catch(...) {
+          if(idxToIntersectStr.size() == 1) {
+            idxToIntersect =
+                settings::json::PipelineStepSettings::INTERSECTION_INDEX_OFFSET + (idxToIntersectStr.at(0) - 'A');
+          } else {
+            joda::log::logWarning("This is not a valid intersecting channel!");
+          }
+        }
+
+        if(detectionResultsIn.contains(idxToIntersect)) {
+          for(const auto &roiOther : detectionResultsIn.at(idxToIntersect).result) {
+            roiMe.calcIntersectionAndAdd(idxToIntersect, &roiOther);
+          }
+        }
+      }
+    }
+  }
+  return {};
+}
+
+}    // namespace joda::pipeline

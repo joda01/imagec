@@ -56,6 +56,7 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
   llayoutColoc->addWidget(parentContainer->mVoronoiPoints->getEditableWidget());
   llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
   llayoutColoc->addWidget(parentContainer->mCrossChannelIntensity->getEditableWidget());
+  llayoutColoc->addWidget(parentContainer->mCrossChannelCount->getEditableWidget());
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   verticalLayoutContainer->addStretch(0);

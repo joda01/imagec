@@ -31,6 +31,7 @@
 #include "backend/helper/thread_pool.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/image_reader.hpp"
+#include "backend/pipelines/pipeline_steps/calc_count/calc_count.hpp"
 #include "backend/pipelines/pipeline_steps/calc_intensity/calc_intensity.hpp"
 #include "backend/pipelines/pipeline_steps/calc_intersection/calc_intersection.hpp"
 #include "backend/reporting/reporting_container.hpp"
@@ -352,6 +353,11 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
           intensity.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
         }
 
+        if(!voronoi->getCrossChannelCountChannels().empty()) {
+          CalcCount counting(idx, voronoi->getCrossChannelCountChannels());
+          counting.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+        }
+
         mReporting->appendToDetailReport(detectionResults.at(idx), detailReports, detailOutputFolder, idx,
                                          tempChannelIdx, tileIdx, imgProps);
 
@@ -362,6 +368,26 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
       }
     }
     DurationCount::stop(idVoronoi);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //
+  // Do cross channel counting
+  //
+  if(!mStop && mState != State::ERROR_) {
+    for(int chIdx = 0; chIdx < mAnalyzeSettings.getChannelsVector().size(); chIdx++) {
+      auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
+
+      if(!channelSettings.getCrossChannelSettings().getCrossChannelCountChannels().empty()) {
+        CalcCount counting(channelSettings.getChannelInfo().getChannelIndex(),
+                           channelSettings.getCrossChannelSettings().getCrossChannelCountChannels());
+        counting.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+      }
+
+      int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
+      mReporting->appendToDetailReport(detectionResults.at(channelIndex), detailReports, detailOutputFolder,
+                                       channelIndex, chIdx, tileIdx, imgProps);
+    }
   }
 }
 

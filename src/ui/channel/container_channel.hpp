@@ -112,6 +112,7 @@ private:
   // Cross-Channel//////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, int>> mColocGroup;
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntensity;
+  std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelCount;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

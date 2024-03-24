@@ -362,6 +362,11 @@ public:
     return cross_channel_intensity_channels;
   }
 
+  auto getCrossChannelCountChannels() const -> const std::set<std::string> &
+  {
+    return cross_channel_count_channels;
+  }
+
 private:
   // In which coloc groups this channel is part of
   std::set<std::string> coloc_groups;
@@ -372,8 +377,11 @@ private:
   // Cross channel intensity calculation
   std::set<int32_t> cross_channel_intensity_channels;
 
+  // Cross channel count calculation
+  std::set<std::string> cross_channel_count_channels;
+
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CrossChannelSettings, coloc_groups, min_coloc_area,
-                                              cross_channel_intensity_channels);
+                                              cross_channel_intensity_channels, cross_channel_count_channels);
 };
 
 class ChannelSettings final

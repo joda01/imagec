@@ -51,12 +51,13 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
           &PanelChannelEdit::updatePreview);
 
   //
-  // Coloc
+  // Cross channel
   //
   auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   llayoutColoc->addWidget(createTitle("Cross-Channel"));
   llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
   llayoutColoc->addWidget(parentContainer->mCrossChannelIntensity->getEditableWidget());
+  llayoutColoc->addWidget(parentContainer->mCrossChannelCount->getEditableWidget());
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   verticalLayoutContainer->addStretch(0);

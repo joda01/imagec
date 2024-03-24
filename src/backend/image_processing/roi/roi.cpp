@@ -423,4 +423,23 @@ void ROI::measureAndAddIntensity(int32_t channelIdx, const cv::Mat &imageOrigina
   }
 }
 
+///
+/// \brief      Check if the given ROI is intersecting with this ROI and adds it to the intersecting map
+/// \author     Joachim Danmayr
+/// \param[in]  channelIdx   Channel index of the given image
+/// \param[in]  roi   ROI to calc the intersection with
+///
+void ROI::calcIntersectionAndAdd(int32_t channelIdx, const ROI *roi)
+{
+  if(nullptr != roi) {
+    cv::Rect intersectedRect = getSnapAreaBoundingBox() & roi->getSnapAreaBoundingBox();
+    if(!intersectingRois.contains(channelIdx)) {
+      intersectingRois.emplace(channelIdx, Intersecting{});
+    }
+    if(intersectedRect.area() > 0) {
+      intersectingRois.at(channelIdx).roi.push_back(roi);
+    }
+  }
+}
+
 }    // namespace joda::func

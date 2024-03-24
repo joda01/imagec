@@ -120,6 +120,9 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain) : mWindowMain(windowM
   mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(
       new ContainerFunction<QString, int>("icons8-light-50.png", "[0,1,2,3,..]", "Cross channel intensity", ""));
 
+  mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(
+      new ContainerFunction<QString, int>("icons8-3-50.png", "[A,B,0,1,2,3,..]", "Cross channel count", ""));
+
   //
   // Create panels -> Must be after creating the functions
   //
@@ -163,23 +166,40 @@ void ContainerVoronoi::fromJson(std::optional<joda::settings::json::ChannelSetti
     // Cross channel
     //
     // Coloc
-    auto &coloc = voronoi->getColocGroups();
-    if(coloc.size() > 0) {
-      std::string value = *coloc.begin();
-      mColocGroup->setValue(value.data());
-      mColocGroup->setValueSecond(static_cast<int>(voronoi->getMinColocArea() * 100.0F));
+    {
+      auto &coloc = voronoi->getColocGroups();
+      if(coloc.size() > 0) {
+        std::string value = *coloc.begin();
+        mColocGroup->setValue(value.data());
+        mColocGroup->setValueSecond(static_cast<int>(voronoi->getMinColocArea() * 100.0F));
+      }
     }
 
     // Cross channel intensity
-    auto &crossChannelIntensityChannels = voronoi->getCrossChannelIntensityChannels();
-    QString crossChannelIndexes;
-    for(const auto chIdx : crossChannelIntensityChannels) {
-      crossChannelIndexes += QString::number(chIdx) + ",";
+    {
+      auto &crossChannelIntensityChannels = voronoi->getCrossChannelIntensityChannels();
+      QString crossChannelIndexes;
+      for(const auto chIdx : crossChannelIntensityChannels) {
+        crossChannelIndexes += QString::number(chIdx) + ",";
+      }
+      if(crossChannelIndexes.size() > 0) {
+        crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
+      }
+      mCrossChannelIntensity->setValue(crossChannelIndexes);
     }
-    if(crossChannelIndexes.size() > 0) {
-      crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
+
+    // Cross channel count
+    {
+      auto &crosschannelCount = voronoi->getCrossChannelCountChannels();
+      QString crossChannelIndexes;
+      for(const auto chIdx : crosschannelCount) {
+        crossChannelIndexes += QString(chIdx.data()) + ",";
+      }
+      if(crossChannelIndexes.size() > 0) {
+        crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
+      }
+      mCrossChannelCount->setValue(crossChannelIndexes);
     }
-    mCrossChannelIntensity->setValue(crossChannelIndexes);
   }
 }
 
@@ -218,6 +238,15 @@ ContainerVoronoi::ConvertedChannels ContainerVoronoi::toJson() const
       }
     }
     chSettings["voronoi"]["cross_channel_intensity_channels"] = crossChannelIntensity;
+  }
+
+  {
+    std::set<std::string> crossChannelCount;
+    auto values = mCrossChannelCount->getValue().split(",");
+    for(const auto &val : values) {
+      crossChannelCount.emplace(val.toStdString());
+    }
+    chSettings["voronoi"]["cross_channel_count_channels"] = crossChannelCount;
   }
 
   return {.channelSettings = std::nullopt, .pipelineStepVoronoi = chSettings};

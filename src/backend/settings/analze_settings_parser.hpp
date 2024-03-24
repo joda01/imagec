@@ -236,9 +236,11 @@ public:
 
   [[nodiscard]] auto getChannelNameOfIndex(uint32_t idx) const -> std::string
   {
+    std::string suffix;
     // Special channels
     if(idx >= 200) {
-      idx = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
+      idx    = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
+      suffix = " intersection";
     } else if(idx >= 100) {
       if(!orderedPipelinesByChannelIndex.contains(idx)) {
         throw std::runtime_error("getChannelByChannelIndex: Channel with index >" + std::to_string(idx) +
@@ -246,7 +248,7 @@ public:
       }
       return orderedPipelinesByChannelIndex.at(idx).getName();
     }
-    return getChannelByChannelIndex(idx).getChannelInfo().getName();
+    return getChannelByChannelIndex(idx).getChannelInfo().getName() + suffix;
   }
 
   [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &

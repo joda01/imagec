@@ -78,6 +78,11 @@ public:
     return overlay_mask_channel_index;
   }
 
+  auto getCrossChannelCountChannels() const -> const std::set<std::string> &
+  {
+    return cross_channel_count_channels;
+  }
+
 private:
   /////////////////////////////////////////////////////
   //
@@ -107,6 +112,9 @@ private:
   // Cross channel intensity calculation
   std::set<int32_t> cross_channel_intensity_channels;
 
+  // Cross channel count calculation
+  std::set<std::string> cross_channel_count_channels;
+
   // In which coloc groups this channel is part of
   std::set<std::string> coloc_groups;
 
@@ -116,7 +124,8 @@ private:
 private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepVoronoi, index, name, color, points_channel_index,
                                               overlay_mask_channel_index, max_voronoi_area_radius,
-                                              cross_channel_intensity_channels, min_coloc_area, coloc_groups);
+                                              cross_channel_intensity_channels, min_coloc_area, coloc_groups,
+                                              cross_channel_count_channels);
 };
 
 ///
@@ -128,7 +137,6 @@ class PipelineStepSettings final
 {
 public:
   /////////////////////////////////////////////////////
-  static constexpr int32_t NONE_PIPELINE_STEP        = -1;
   static constexpr int32_t INTERSECTION_INDEX_OFFSET = 200;
 
   /////////////////////////////////////////////////////
