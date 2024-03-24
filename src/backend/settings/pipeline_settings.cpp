@@ -13,7 +13,7 @@
 
 #include "pipeline_settings.hpp"
 #include "backend/pipelines/pipeline_steps/calc_intersection/calc_intersection.hpp"
-#include "backend/pipelines/pipeline_steps/cell_approximation/cell_approximation.hpp"
+#include "backend/pipelines/pipeline_steps/calc_voronoi/calc_voronoi.hpp"
 #include "backend/settings/channel_settings.hpp"
 
 namespace joda::settings::json {
@@ -24,14 +24,9 @@ namespace joda::settings::json {
 ///
 void PipelineStepSettings::interpretConfig(int pipelineIndex)
 {
-  if(cell_approximation.nucleus_channel_index >= 0 || cell_approximation.cell_channel_index >= 0) {
-    mChannelSettings.index = cell_approximation.nucleus_channel_index + CELL_APPROX_INDEX_OFFSET;
-    mChannelSettings.name  = "Approx. Cells";
-  }
-
-  if(!intersection.channel_index.empty()) {
-    mChannelSettings.index = INTERSECTION_INDEX_OFFSET + pipelineIndex;
-    mChannelSettings.name  = "Intersection";
+  if(voronoi.getPointsChannelIndex() >= 0) {
+    mChannelSettings.index = voronoi.getPointsChannelIndex() + VORONOI_INDEX_OFFSET;
+    mChannelSettings.name  = "Voronoi";
   }
 }
 
@@ -44,15 +39,9 @@ auto PipelineStepSettings::execute(const settings::json::AnalyzeSettings &settin
                                    const std::string &detailoutputPath) const
     -> std::tuple<ChannelSettings, joda::func::DetectionResponse>
 {
-  if(cell_approximation.nucleus_channel_index >= 0 || cell_approximation.cell_channel_index >= 0) {
-    joda::pipeline::CellApproximation function(cell_approximation.nucleus_channel_index,
-                                               cell_approximation.cell_channel_index,
-                                               cell_approximation.max_cell_radius);
-    return {mChannelSettings, function.execute(settings, responseIn, detailoutputPath)};
-  }
-
-  if(!intersection.channel_index.empty()) {
-    joda::pipeline::CalcIntersection function(intersection.channel_index, intersection.min_intersection);
+  if(voronoi.getPointsChannelIndex() >= 0) {
+    joda::pipeline::CalcVoronoi function(voronoi.getPointsChannelIndex(), voronoi.getOverlayMaskChannelIndex(),
+                                         voronoi.getMaxVoronoiAreaRadius());
     return {mChannelSettings, function.execute(settings, responseIn, detailoutputPath)};
   }
 

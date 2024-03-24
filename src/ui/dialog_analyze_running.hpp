@@ -17,7 +17,7 @@
 #include <qtmetamacros.h>
 #include <memory>
 #include <thread>
-#include "ui/qt/window_main.hpp"
+#include "ui/window_main.hpp"
 
 namespace joda::ui::qt {
 

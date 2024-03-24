@@ -21,9 +21,10 @@
 #include "backend/helper/template_parser/template_parser.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 #include "controller/controller.hpp"
-#include "ui/qt/dialog_settings.hpp"
-#include "ui/qt/helper/clickablelabel.hpp"
+#include "ui/dialog_settings.hpp"
+#include "ui/helper/clickablelabel.hpp"
 #include <nlohmann/json_fwd.hpp>
+#include "container_base.hpp"
 
 namespace joda::ui::qt {
 
@@ -43,8 +44,8 @@ public:
   ~WindowMain()
   {
   }
-  void showChannelEdit(ContainerChannel *);
-  void removeChannel(ContainerChannel *toRemove);
+  void showChannelEdit(ContainerBase *);
+  void removeChannel(ContainerBase *toRemove);
   int getSelectedSeries() const
   {
     return mImageSeriesCombo->currentData().toInt();
@@ -82,14 +83,20 @@ signals:
   void lookingForTemplateFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
 
 private:
+  enum class AddChannel
+  {
+    CHANNEL,
+    VORONOI
+  };
+
   void createToolbar();
   QWidget *createStackedWidget();
   QWidget *createOverviewWidget();
   QWidget *createChannelWidget();
   void waitForFileSearchFinished();
   void setWorkingDirectory(const std::string &workingDir);
-  ContainerChannel *addChannel();
-  ContainerChannel *addChannelFromTemplate(const QString &pathToTemplate);
+  ContainerBase *addChannel(AddChannel);
+  ContainerBase *addChannelFromTemplate(const QString &pathToTemplate);
 
   void syncColocSettings();
 
@@ -109,8 +116,8 @@ private:
   DialogSettings mReportingSettings;
 
   ////Made project settings/////////////////////////////////////////////////
-  ContainerChannel *mSelectedChannel = nullptr;
-  std::set<ContainerChannel *> mChannels;
+  ContainerBase *mSelectedChannel = nullptr;
+  std::set<ContainerBase *> mChannels;
   QString mSelectedWorkingDirectory;
   std::mutex mLookingForFilesMutex;
 
@@ -133,6 +140,7 @@ private slots:
   void onSaveProjectClicked();
   void onStartClicked();
   void onAddChannelClicked();
+  void onAddCellApproxClicked();
   void onBackClicked();
   void onRemoveChannelClicked();
   void onShowInfoDialog();

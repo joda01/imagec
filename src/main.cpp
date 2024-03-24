@@ -5,7 +5,7 @@
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "backend/reporting/report_printer.h"
 #include "controller/controller.hpp"
-#include "ui/qt/window_main.hpp"
+#include "ui/window_main.hpp"
 #include "version.h"
 
 int main(int argc, char *argv[])

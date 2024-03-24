@@ -30,10 +30,12 @@
 #include "backend/helper/thread_pool.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/image_reader.hpp"
+#include "backend/pipelines/pipeline_steps/calc_intensity/calc_intensity.hpp"
+#include "backend/pipelines/pipeline_steps/calc_intersection/calc_intersection.hpp"
 #include "backend/reporting/reporting_container.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
-#include "pipeline_steps/cell_approximation/cell_approximation.hpp"
+#include "pipeline_steps/calc_voronoi/calc_voronoi.hpp"
 #include "processor/channel_processor.hpp"
 #include <opencv2/imgcodecs.hpp>
 
@@ -271,12 +273,62 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
   channelThreadPool.wait_for_tasks();
   DurationCount::stop(idChannels);
 
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
-  // Execute pipeline steps
+  // Measure intensity from ROI area of channel X in channel Y
+  //
+  for(const auto &[_, channel] : mAnalyzeSettings.getChannels()) {
+    if(!channel.getCrossChannelSettings().getCrossChannelIntensityChannels().empty()) {
+      CalcIntensity intensity(channel.getChannelInfo().getChannelIndex(),
+                              channel.getCrossChannelSettings().getCrossChannelIntensityChannels());
+      intensity.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //
+  // Execute coloc calculation
+  //
+  int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
+  auto idColoc       = DurationCount::start("pipelinesteps");
+
+  std::map<std::string, std::set<int32_t>> colocGroups;
+  std::map<std::string, float> minColocFactor;
+  for(const auto &[_, channel] : mAnalyzeSettings.getChannels()) {
+    for(const auto &colocGroup : channel.getCrossChannelSettings().getColocGroups()) {
+      colocGroups[colocGroup].emplace(channel.getChannelInfo().getChannelIndex());
+      if(!minColocFactor.contains(colocGroup)) {
+        minColocFactor[colocGroup] = channel.getCrossChannelSettings().getMinColocArea();
+      } else {
+        minColocFactor[colocGroup] =
+            std::max(minColocFactor[colocGroup], channel.getCrossChannelSettings().getMinColocArea());
+      }
+    }
+  }
+
+  int colocIx = 0;
+  for(const auto &[groupName, set] : colocGroups) {
+    joda::pipeline::CalcIntersection intersect(set, minColocFactor[groupName]);
+    auto response = intersect.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+    int idx       = settings::json::PipelineStepSettings::INTERSECTION_INDEX_OFFSET + colocIx;
+    detectionResults.emplace(static_cast<int32_t>(idx), response);
+    mReporting->setDetailReportHeader(detailReports, "Intersection", tempChannelIdx);
+    mReporting->appendToDetailReport(response, detailReports, detailOutputFolder, idx, tempChannelIdx, tileIdx,
+                                     imgProps);
+    tempChannelIdx++;
+    colocIx++;
+    if(mStop) {
+      break;
+    }
+  }
+  DurationCount::stop(idColoc);
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //
+  // Execute post processing pipeline steps
   //
   if(!mStop && mState != State::ERROR_) {
-    auto idColoc       = DurationCount::start("pipelinesteps");
-    int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
+    auto idVoronoi = DurationCount::start("pipelinesteps");
     for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
       auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
       if(chSettings.index != settings::json::PipelineStepSettings::NONE_PIPELINE_STEP) {
@@ -290,8 +342,7 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
         break;
       }
     }
-
-    DurationCount::stop(idColoc);
+    DurationCount::stop(idVoronoi);
   }
 }
 

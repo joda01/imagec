@@ -166,6 +166,8 @@ public:
                                                        const std::map<int32_t, const cv::Mat *> &imageOriginal,
                                                        float minIntersection, bool createRoi = true) const;
 
+  void measureAndAddIntensity(int32_t channelIdx, const cv::Mat &imageOriginal);
+
   [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;
 
 private:

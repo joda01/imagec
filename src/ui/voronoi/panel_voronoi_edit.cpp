@@ -11,7 +11,7 @@
 /// \brief     A short description what happens here.
 ///
 
-#include "ui/qt/panel_channel_edit.hpp"
+#include "panel_voronoi_edit.hpp"
 #include <qboxlayout.h>
 #include <qcombobox.h>
 #include <qlabel.h>
@@ -22,19 +22,19 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include "container_channel.hpp"
-#include "container_function.hpp"
-#include "window_main.hpp"
+#include "ui/container_function.hpp"
+#include "ui/window_main.hpp"
+#include "container_voronoi.hpp"
 
 namespace joda::ui::qt {
 
 using namespace std::chrono_literals;
 
-PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentContainer) :
+PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentContainer) :
     mWindowMain(wm), mParentContainer(parentContainer)
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
-  setObjectName("PanelChannelEdit");
+  setObjectName("PanelVoronoiEdit");
 
   auto *horizontalLayout = createLayout();
 
@@ -42,116 +42,44 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   verticalLayoutMeta->addWidget(createTitle("Meta"));
   verticalLayoutMeta->addWidget(parentContainer->mChannelName->getEditableWidget());
-  verticalLayoutMeta->addWidget(parentContainer->mColorAndChannelIndex->getEditableWidget());
-  verticalLayoutMeta->addWidget(parentContainer->mChannelType->getEditableWidget());
+  verticalLayoutMeta->addWidget(parentContainer->mChannelColor->getEditableWidget());
   _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  connect(parentContainer->mChannelType.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::onChannelTypeChanged);
-  connect(parentContainer->mColorAndChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
+
+  connect(parentContainer->mChannelColor.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelVoronoiEdit::updatePreview);
 
   //
-  // Coloc
+  // Cross channel
   //
   auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
-  llayoutColoc->addWidget(createTitle("Coloc"));
+  llayoutColoc->addWidget(createTitle("Cross-Channel"));
+  llayoutColoc->addWidget(parentContainer->mVoronoiPoints->getEditableWidget());
   llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
+  llayoutColoc->addWidget(parentContainer->mCrossChannelIntensity->getEditableWidget());
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-  //
-  // Cell approx
-  //
-  auto [layoutCellApproximation, _3] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
-  mScrollAreaCellApprox              = _3;
-  layoutCellApproximation->addWidget(createTitle("Cell approximation"));
-  layoutCellApproximation->addWidget(parentContainer->mEnableCellApproximation->getEditableWidget());
-  layoutCellApproximation->addWidget(parentContainer->mMaxCellRadius->getEditableWidget());
-  layoutCellApproximation->addWidget(parentContainer->mColocGroupCellApproximation->getEditableWidget());
-  mParentContainer->mMaxCellRadius->getEditableWidget()->setVisible(false);
-  mParentContainer->mColocGroupCellApproximation->getEditableWidget()->setVisible(false);
-  _3->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-  connect(parentContainer->mEnableCellApproximation.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::onCellApproximationChanged);
 
   verticalLayoutContainer->addStretch(0);
 
-  mScrollAreaCellApprox->setVisible(false);
-
   auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto [detection, _5]          = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)");
-
-  detection->addWidget(createTitle("Detection"));
-  detection->addWidget(parentContainer->mUsedDetectionMode->getEditableWidget());
-  connect(parentContainer->mUsedDetectionMode.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::onDetectionModechanged);
-  detection->addWidget(parentContainer->mThresholdAlgorithm->getEditableWidget());
-  detection->addWidget(parentContainer->mThresholdValueMin->getEditableWidget());
-  detection->addWidget(parentContainer->mAIModels->getEditableWidget());
-  detection->addWidget(parentContainer->mMinProbability->getEditableWidget());
-  _5->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  onDetectionModechanged();
-
-  connect(parentContainer->mThresholdAlgorithm.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mThresholdValueMin.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mAIModels.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mMinProbability.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
 
   auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
   verticalLayoutFilter->addWidget(createTitle("Filtering"));
-  verticalLayoutFilter->addWidget(parentContainer->mMinParticleSize->getEditableWidget());
-  verticalLayoutFilter->addWidget(parentContainer->mMaxParticleSize->getEditableWidget());
-  verticalLayoutFilter->addWidget(parentContainer->mMinCircularity->getEditableWidget());
-  verticalLayoutFilter->addWidget(parentContainer->mSnapAreaSize->getEditableWidget());
-  verticalLayoutFilter->addWidget(parentContainer->mTetraspeckRemoval->getEditableWidget());
+  verticalLayoutFilter->addWidget(parentContainer->mMaxVoronoiAreaSize->getEditableWidget());
+  verticalLayoutFilter->addWidget(parentContainer->mOverlayMaskChannelIndex->getEditableWidget());
+
   verticalLayoutFilter->addStretch();
   _6->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-  connect(parentContainer->mMinParticleSize.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mMaxParticleSize.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mMinCircularity.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mSnapAreaSize.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mTetraspeckRemoval.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
+  connect(parentContainer->mMaxVoronoiAreaSize.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelVoronoiEdit::updatePreview);
+  connect(parentContainer->mOverlayMaskChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelVoronoiEdit::updatePreview);
 
   auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
   verticalLayoutFuctions->addWidget(createTitle("Preprocessing"));
-  verticalLayoutFuctions->addWidget(parentContainer->mZProjection->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mMarginCrop->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mMedianBackgroundSubtraction->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mEdgeDetection->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mRollingBall->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mSubtractChannel->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mSmoothing->getEditableWidget());
-  verticalLayoutFuctions->addWidget(parentContainer->mGaussianBlur->getEditableWidget());
   _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   _7->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-  connect(parentContainer->mZProjection.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mMarginCrop.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mMedianBackgroundSubtraction.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mEdgeDetection.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mRollingBall.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mSubtractChannel.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mSmoothing.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(parentContainer->mGaussianBlur.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
 
   //
   // Preview
@@ -179,8 +107,8 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   //
   // Signals from extern
   //
-  connect(this, &PanelChannelEdit::updatePreviewStarted, mSpinner, &WaitingSpinnerWidget::start);
-  connect(this, &PanelChannelEdit::updatePreviewFinished, mSpinner, &WaitingSpinnerWidget::stop);
+  connect(this, &PanelVoronoiEdit::updatePreviewStarted, mSpinner, &WaitingSpinnerWidget::start);
+  connect(this, &PanelVoronoiEdit::updatePreviewFinished, mSpinner, &WaitingSpinnerWidget::stop);
 
   imageSubTitle->addWidget(mSpinner);
 
@@ -194,12 +122,12 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   //
   // Signals from extern
   //
-  connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
-  connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
-  connect(mWindowMain->getImageTilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
+  connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelVoronoiEdit::updatePreview);
+  connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelVoronoiEdit::updatePreview);
+  connect(mWindowMain->getImageTilesCombo(), &QComboBox::currentIndexChanged, this, &PanelVoronoiEdit::updatePreview);
 }
 
-PanelChannelEdit::~PanelChannelEdit()
+PanelVoronoiEdit::~PanelVoronoiEdit()
 {
   {
     std::lock_guard<std::mutex> lock(mPreviewMutex);
@@ -210,12 +138,11 @@ PanelChannelEdit::~PanelChannelEdit()
       mPreviewThread->join();
     }
   }
-  delete mScrollAreaCellApprox;
   delete mPreviewImage;
   delete mSpinner;
 }
 
-QLabel *PanelChannelEdit::createTitle(const QString &title)
+QLabel *PanelVoronoiEdit::createTitle(const QString &title)
 {
   auto *label = new QLabel();
   QFont font;
@@ -227,7 +154,7 @@ QLabel *PanelChannelEdit::createTitle(const QString &title)
   return label;
 }
 
-QHBoxLayout *PanelChannelEdit::createLayout()
+QHBoxLayout *PanelVoronoiEdit::createLayout()
 {
   QScrollArea *scrollArea = new QScrollArea(this);
   scrollArea->setObjectName("scrollArea");
@@ -277,7 +204,7 @@ QHBoxLayout *PanelChannelEdit::createLayout()
   return horizontalLayout;
 }
 
-std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout *horizontalLayout,
+std::tuple<QVBoxLayout *, QWidget *> PanelVoronoiEdit::addVerticalPanel(QLayout *horizontalLayout,
                                                                         const QString &bgColor, int margin,
                                                                         bool enableScrolling, int maxWidth) const
 {
@@ -344,48 +271,17 @@ std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout 
   return {layout, contentWidget};
 }
 
-void PanelChannelEdit::onCellApproximationChanged()
+void PanelVoronoiEdit::onCellApproximationChanged()
 {
-  mParentContainer->mMaxCellRadius->getEditableWidget()->setVisible(
-      mParentContainer->mEnableCellApproximation->getValue());
-  mParentContainer->mColocGroupCellApproximation->getEditableWidget()->setVisible(
-      mParentContainer->mEnableCellApproximation->getValue());
-
   updatePreview();
 }
 
-void PanelChannelEdit::onChannelTypeChanged()
+void PanelVoronoiEdit::onChannelTypeChanged()
 {
-  if(mParentContainer->mChannelType->getValue() == "NUCLEUS") {
-    mScrollAreaCellApprox->setVisible(true);
-  } else {
-    mScrollAreaCellApprox->setVisible(false);
-  }
-
   updatePreview();
 }
 
-void PanelChannelEdit::onDetectionModechanged()
-{
-  if(mParentContainer->mUsedDetectionMode->getValue() == "AI") {
-    mParentContainer->mMinProbability->getEditableWidget()->setVisible(true);
-    mParentContainer->mAIModels->getEditableWidget()->setVisible(true);
-
-    mParentContainer->mThresholdAlgorithm->getEditableWidget()->setVisible(false);
-    mParentContainer->mThresholdValueMin->getEditableWidget()->setVisible(false);
-
-  } else {
-    mParentContainer->mMinProbability->getEditableWidget()->setVisible(false);
-    mParentContainer->mAIModels->getEditableWidget()->setVisible(false);
-
-    mParentContainer->mThresholdAlgorithm->getEditableWidget()->setVisible(true);
-    mParentContainer->mThresholdValueMin->getEditableWidget()->setVisible(true);
-  }
-
-  updatePreview();
-}
-
-void PanelChannelEdit::updatePreview()
+void PanelVoronoiEdit::updatePreview()
 {
   if(mIsActiveShown) {
     if(mPreviewCounter == 0) {
@@ -407,7 +303,7 @@ void PanelChannelEdit::updatePreview()
             int imgIndex = mWindowMain->getSelectedFileIndex();
             if(imgIndex >= 0) {
               settings::json::ChannelSettings chs;
-              chs.loadConfigFromString(mParentContainer->toJson().channelSettings.dump());
+              chs.loadConfigFromString(mParentContainer->toJson().channelSettings->dump());
               auto *controller = mWindowMain->getController();
               try {
                 int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();

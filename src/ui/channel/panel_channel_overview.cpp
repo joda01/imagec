@@ -15,9 +15,9 @@
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include "ui/container_function.hpp"
+#include "ui/window_main.hpp"
 #include "container_channel.hpp"
-#include "container_function.hpp"
-#include "window_main.hpp"
 
 namespace joda::ui::qt {
 
@@ -62,7 +62,6 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
 
   layout->addWidget(parent->mTetraspeckRemoval->getLabelWidget(), 6, 0);
   layout->addWidget(parent->mColocGroup->getLabelWidget(), 6, 1);
-  layout->addWidget(parent->mEnableCellApproximation->getLabelWidget(), 6, 2);
   // layout->addWidget(parent->mColocGroupCellApproximation->getLabelWidget(), 6, 3);
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);

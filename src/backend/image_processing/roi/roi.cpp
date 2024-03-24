@@ -327,7 +327,6 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 /// \param[in]  roi   ROI to check against
 /// \return     Intersection of the areas in percent
 ///
-
 [[nodiscard]] std::tuple<ROI, bool> ROI::calcIntersection(const ROI &roi,
                                                           const std::map<int32_t, const cv::Mat *> &imageOriginal,
                                                           float minIntersection, bool createRoi) const
@@ -398,6 +397,23 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
   }
   cv::Mat mat{};
   return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{}, {{-1, &mat}}), false};
+}
+
+///
+/// \brief      Measures the intensity in the given original image at the ROI
+///             and adds the result to the ROI intensity map for this image
+/// \author     Joachim Danmayr
+/// \param[in]  channelIdx   Channel index of the given image
+/// \param[in]  imageOriginal   Image to measure the intensity in
+///
+void ROI::measureAndAddIntensity(int32_t channelIdx, const cv::Mat &imageOriginal)
+{
+  if(!imageOriginal.empty() && !mBoundingBox.empty() && !mMask.empty()) {
+    cv::Mat maskImg                 = (imageOriginal) (mBoundingBox);
+    intensity[channelIdx].intensity = cv::mean(maskImg, mMask)[0];
+    cv::minMaxLoc(maskImg, &intensity[channelIdx].intensityMin, &intensity[channelIdx].intensityMax, nullptr, nullptr,
+                  mMask);
+  }
 }
 
 }    // namespace joda::func
