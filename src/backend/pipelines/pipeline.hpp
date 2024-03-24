@@ -168,10 +168,8 @@ private:
 
   void analyzeTile(joda::reporting::ReportingContainer &detailReports, FileInfo imagePath,
                    std::string detailOutputFolder, int tileIdx, const ImageProperties &imgProps);
-  void analyszeChannel(joda::reporting::ReportingContainer &detailReports,
-                       std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
-                       const joda::settings::json::ChannelSettings &channelSettings, FileInfo imagePath,
-                       std::string detailOutputFolder, int chIdx, int tileIdx, const ImageProperties &imgProps);
+  void analyszeChannel(std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
+                       const joda::settings::json::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx);
 
   /////////////////////////////////////////////////////
   std::string mInputFolder;

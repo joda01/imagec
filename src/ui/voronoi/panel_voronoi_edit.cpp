@@ -283,6 +283,7 @@ void PanelVoronoiEdit::onChannelTypeChanged()
 
 void PanelVoronoiEdit::updatePreview()
 {
+  return;
   if(mIsActiveShown) {
     if(mPreviewCounter == 0) {
       {

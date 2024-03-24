@@ -128,11 +128,6 @@ public:
   /////////////////////////////////////////////////////
   void interpretConfig(int pipelineIndex);
 
-  [[nodiscard]] auto execute(const settings::json::AnalyzeSettings &,
-                             const std::map<int, joda::func::DetectionResponse> &,
-                             const std::string &detailoutputPath) const
-      -> std::tuple<ChannelSettings, joda::func::DetectionResponse>;
-
   ///
   /// \brief Returns the channel index of the pipeline step.
   ///        Each step has an unique index

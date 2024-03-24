@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include "../detection.hpp"
 #include "../detection_response.hpp"
@@ -150,7 +151,12 @@ public:
       fillConvexPoly(mask2, circleMask, cv::Scalar(255), 8, 0);
 
       cv::Mat result = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
-      cv::bitwise_and(mask1, mask2, result);
+      if(circleSize >= 0) {
+        cv::bitwise_and(mask1, mask2, result);
+      } else {
+        result = mask1;
+      }
+
       img += result;
 
       ifacets[0] = ifacet;

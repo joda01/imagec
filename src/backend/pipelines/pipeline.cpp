@@ -13,6 +13,7 @@
 
 #include "pipeline.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <filesystem>
@@ -226,8 +227,7 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
             [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder, &imgProps](int chIdx,
                                                                                                   int tileIdx) {
               auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
-              analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx,
-                              tileIdx, imgProps);
+              analyszeChannel(detectionResults, channelSettings, imagePath, tileIdx);
             },
             referenceSpot.getArrayIndex(), tileIdx);
         while(channelThreadPool.get_tasks_total() > (threadPoolChannel + THREAD_POOL_BUFFER)) {
@@ -235,8 +235,7 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
         }
       } else {
         auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(referenceSpot.getArrayIndex());
-        analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder,
-                        referenceSpot.getArrayIndex(), tileIdx, imgProps);
+        analyszeChannel(detectionResults, channelSettings, imagePath, tileIdx);
       }
     }
     channelThreadPool.wait_for_tasks();
@@ -250,11 +249,9 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
        settings::json::ChannelInfo::Type::SPOT_REFERENCE) {
       if(threadPoolChannel > 1) {
         channelThreadPool.push_task(
-            [this, &detailReports, &detectionResults, &imagePath, &detailOutputFolder, &imgProps](int chIdx,
-                                                                                                  int tileIdx) {
+            [this, &detectionResults, &imagePath, &detailOutputFolder, &imgProps](int chIdx, int tileIdx) {
               auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
-              analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx,
-                              tileIdx, imgProps);
+              analyszeChannel(detectionResults, channelSettings, imagePath, tileIdx);
             },
             chIdx, tileIdx);
         while(channelThreadPool.get_tasks_total() > (threadPoolChannel + THREAD_POOL_BUFFER)) {
@@ -262,8 +259,7 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
         }
       } else {
         auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
-        analyszeChannel(detailReports, detectionResults, channelSettings, imagePath, detailOutputFolder, chIdx, tileIdx,
-                        imgProps);
+        analyszeChannel(detectionResults, channelSettings, imagePath, tileIdx);
       }
     }
     if(mStop) {
@@ -277,12 +273,21 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
   //
   // Measure intensity from ROI area of channel X in channel Y
   //
-  for(const auto &[_, channel] : mAnalyzeSettings.getChannels()) {
-    if(!channel.getCrossChannelSettings().getCrossChannelIntensityChannels().empty()) {
-      CalcIntensity intensity(channel.getChannelInfo().getChannelIndex(),
-                              channel.getCrossChannelSettings().getCrossChannelIntensityChannels());
+  for(int chIdx = 0; chIdx < mAnalyzeSettings.getChannelsVector().size(); chIdx++) {
+    auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
+
+    if(!channelSettings.getCrossChannelSettings().getCrossChannelIntensityChannels().empty()) {
+      CalcIntensity intensity(channelSettings.getChannelInfo().getChannelIndex(),
+                              channelSettings.getCrossChannelSettings().getCrossChannelIntensityChannels());
       intensity.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
     }
+
+    if(mState != State::ERROR_) {
+      mReporting->setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), chIdx);
+    }
+    int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
+    mReporting->appendToDetailReport(detectionResults.at(channelIndex), detailReports, detailOutputFolder, channelIndex,
+                                     chIdx, tileIdx, imgProps);
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -329,13 +334,28 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
   //
   if(!mStop && mState != State::ERROR_) {
     auto idVoronoi = DurationCount::start("pipelinesteps");
+    int funcIdx    = 0;
+
     for(const auto &pipelineStep : mAnalyzeSettings.getPipelineSteps()) {
-      auto [chSettings, response] = pipelineStep.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
-      if(chSettings.index != settings::json::PipelineStepSettings::NONE_PIPELINE_STEP) {
-        detectionResults.emplace(static_cast<int32_t>(chSettings.index), response);
-        mReporting->setDetailReportHeader(detailReports, chSettings.name, tempChannelIdx);
-        mReporting->appendToDetailReport(response, detailReports, detailOutputFolder, chSettings.index, tempChannelIdx,
-                                         tileIdx, imgProps);
+      if(pipelineStep.getVoronoi() != nullptr) {
+        auto *voronoi = pipelineStep.getVoronoi();
+        joda::pipeline::CalcVoronoi function(voronoi->getPointsChannelIndex(), voronoi->getOverlayMaskChannelIndex(),
+                                             voronoi->getMaxVoronoiAreaRadius());
+        auto response = function.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+
+        int idx = settings::json::PipelineStepSettings::VORONOI_INDEX_OFFSET + colocIx;
+
+        detectionResults.emplace(static_cast<int32_t>(idx), response);
+        mReporting->setDetailReportHeader(detailReports, voronoi->getName(), tempChannelIdx);
+
+        if(!voronoi->getCrossChannelIntensityChannels().empty()) {
+          CalcIntensity intensity(idx, voronoi->getCrossChannelIntensityChannels());
+          intensity.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+        }
+
+        mReporting->appendToDetailReport(detectionResults.at(idx), detailReports, detailOutputFolder, idx,
+                                         tempChannelIdx, tileIdx, imgProps);
+
         tempChannelIdx++;
       }
       if(mStop) {
@@ -350,41 +370,18 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
 /// \brief      Analyze channel
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyszeChannel(joda::reporting::ReportingContainer &detailReports,
-                               std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
+void Pipeline::analyszeChannel(std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
                                const joda::settings::json::ChannelSettings &channelSettings, FileInfo imagePath,
-                               std::string detailOutputFolder, int chIdx, int tileIdx, const ImageProperties &imgProps)
+                               int tileIdx)
 {
   int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
-
-  if(mState != State::ERROR_) {
-    mReporting->setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), chIdx);
-  }
 
   try {
     auto processingResult =
         joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath, tileIdx, &detectionResults);
-
-    //
     // Add processing result to the detection result map
-    //
-    {
-      std::lock_guard<std::mutex> lock(mAddToDetailReportMutex);
-      auto id = DurationCount::start("emplace");
-      detectionResults.emplace(channelIndex, processingResult);
-      DurationCount::stop(id);
-    }
-
-    //
-    // Add to detail report
-    //
-    if(mState != State::ERROR_) {
-      auto id = DurationCount::start("append");
-      mReporting->appendToDetailReport(processingResult, detailReports, detailOutputFolder, channelIndex, chIdx,
-                                       tileIdx, imgProps);
-      DurationCount::stop(id);
-    }
-
+    std::lock_guard<std::mutex> lock(mAddToDetailReportMutex);
+    detectionResults.emplace(channelIndex, processingResult);
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
   }

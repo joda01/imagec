@@ -382,7 +382,14 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
         std::vector<cv::Point> contour = {};
         cv::findContours(intersectedMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
         if(!contours.empty()) {
-          contour = contours[0];
+          int32_t contourSize = contours[0].size();
+          contour             = contours[0];
+          for(const auto &cont : contours) {
+            if(cont.size() > contourSize) {
+              contourSize = cont.size();
+              contour     = cont;
+            }
+          }
         }
 
         ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, contour, imageOriginal);

@@ -25,8 +25,9 @@ namespace joda::pipeline {
 class CalcVoronoi : public PipelineStep
 {
 public:
-  CalcVoronoi(int32_t nucleusChannelIndex, int32_t cellChannelIndex, int32_t maxCellRadius) :
-      mNucleusChannelIndex(nucleusChannelIndex), mCellChannelIndex(cellChannelIndex), mMaxVoronoiAreaSize(maxCellRadius)
+  CalcVoronoi(int32_t nucleusChannelIndex, int32_t cellChannelIndex, int32_t maxVoronoiAreaSize) :
+      mVoronoiPointsChannelIndex(nucleusChannelIndex), mOverlayMaskChannelIndex(cellChannelIndex),
+      mMaxVoronoiAreaSize(maxVoronoiAreaSize)
   {
   }
   /////////////////////////////////////////////////////
@@ -49,8 +50,8 @@ private:
 
   /////////////////////////////////////////////////////
 
-  int32_t mNucleusChannelIndex;
-  int32_t mCellChannelIndex;
+  int32_t mVoronoiPointsChannelIndex;
+  int32_t mOverlayMaskChannelIndex;
   int32_t mMaxVoronoiAreaSize;
 };
 
