@@ -318,8 +318,8 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
     int idx       = settings::json::PipelineStepSettings::INTERSECTION_INDEX_OFFSET + colocIx;
     detectionResults.emplace(static_cast<int32_t>(idx), response);
     mReporting->setDetailReportHeader(detailReports, "Intersection", tempChannelIdx);
-    mReporting->appendToDetailReport(response, detailReports, detailOutputFolder, idx, tempChannelIdx, tileIdx,
-                                     imgProps);
+    mReporting->appendToDetailReport(detectionResults.at(idx), detailReports, detailOutputFolder, idx, tempChannelIdx,
+                                     tileIdx, imgProps);
     tempChannelIdx++;
     colocIx++;
     if(mStop) {

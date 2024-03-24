@@ -116,9 +116,11 @@ void Reporting::appendToDetailReport(const joda::func::DetectionResponse &result
     indexOffset = detailReportTable.getTableAt(tempChannelIdx, "")
                       .getNrOfRowsAtColumn(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
   }
+  int64_t roiIdx = 0;
   for(const auto &imgData : result.result) {
     try {
-      int64_t index = imgData.getIndex() + indexOffset;
+      // int64_t index = imgData.getIndex() + indexOffset;
+      int64_t index = roiIdx + indexOffset;
 
       detailReportTable.getTableAt(tempChannelIdx, "")
           .appendValueToColumnAtRow(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE), index,
@@ -171,6 +173,8 @@ void Reporting::appendToDetailReport(const joda::func::DetectionResponse &result
                            "#intensity max " + mAnalyzeSettings.getChannelNameOfIndex(channelIndex));
         idxOffset += 3;    // intnsity avg, min and max are 3 columns
       }
+      roiIdx++;
+
     } catch(const std::exception &ex) {
       std::string msg = "Pipeline::appendToDetailReport >" + std::string(ex.what()) + "<";
       joda::log::logWarning(msg);
