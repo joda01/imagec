@@ -39,7 +39,7 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain) : mWindowMain(windowM
       new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Voronoi"));
 
   mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
+      new ContainerFunction<QString, int>("icons8-unknown-status-50.png", "Type", "Channel index", "", "#FBEA25",
                                           {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
                                            {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
                                            {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
@@ -244,7 +244,9 @@ ContainerVoronoi::ConvertedChannels ContainerVoronoi::toJson() const
     std::set<std::string> crossChannelCount;
     auto values = mCrossChannelCount->getValue().split(",");
     for(const auto &val : values) {
-      crossChannelCount.emplace(val.toStdString());
+      if(!val.isEmpty()) {
+        crossChannelCount.emplace(val.toStdString());
+      }
     }
     chSettings["voronoi"]["cross_channel_count_channels"] = crossChannelCount;
   }

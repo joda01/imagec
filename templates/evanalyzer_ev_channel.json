@@ -42,5 +42,11 @@
                 "repeat": 2
             }
         }
-    ]
+    ],
+    "cross_channel": {
+        "coloc_groups": [
+            "A"
+        ],
+        "min_coloc_area": 0.1
+    }
 }

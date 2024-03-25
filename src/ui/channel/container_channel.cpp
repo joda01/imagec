@@ -135,15 +135,17 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                        {11, "Channel 11"},
                                        {12, "Channel 12"}}));
 
-  mMedianBackgroundSubtraction = std::shared_ptr<ContainerFunction<bool, bool>>(
-      new ContainerFunction<bool, bool>("icons8-baseline-50.png", "On/Off", "Median background subtraction", false));
+  mMedianBackgroundSubtraction = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,
+                                      {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}, {9, "9x9"}}));
+
   mRollingBall = std::shared_ptr<ContainerFunction<int, QString>>(new ContainerFunction<int, QString>(
       "icons8-bubble-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Rolling ball", "px", std::nullopt, 0,
       INT32_MAX, {{"BALL", "Ball"}, {"PARABOLOID", "Paraboloid"}}, "BALL"));
 
   mGaussianBlur = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
       "icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur", "px", -1,
-      {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}}, {{1, "1x"}, {2, "2x"}, {3, "3x"}}, 1));
+      {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}, {9, "9x9"}}, {{1, "1x"}, {2, "2x"}, {3, "3x"}}, 1));
 
   mSmoothing = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-cleanup-noise-50.png", "Kernel size", "Smoothing", "", -1,
@@ -277,7 +279,7 @@ void ContainerChannel::fromJson(std::optional<joda::settings::json::ChannelSetti
         mSmoothing->setValue(prepro.getSmoothing()->repeat);
       }
       if(prepro.getMedianBgSubtraction()) {
-        mMedianBackgroundSubtraction->setValue(true);
+        mMedianBackgroundSubtraction->setValue(prepro.getMedianBgSubtraction()->kernel_size);
       }
       if(prepro.getSubtractChannel()) {
         mSubtractChannel->setValue(prepro.getSubtractChannel()->channel_index);
@@ -385,8 +387,8 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
   if(mSmoothing->hasValue()) {
     jsonArray.push_back({{"smoothing", {{"repeat", mSmoothing->getValue()}}}});
   }
-  if(mMedianBackgroundSubtraction->hasValue() && mMedianBackgroundSubtraction->getValue()) {
-    jsonArray.push_back({{"median_bg_subtraction", {{"kernel_size", 3}}}});
+  if(mMedianBackgroundSubtraction->hasValue()) {
+    jsonArray.push_back({{"median_bg_subtraction", {{"kernel_size", mMedianBackgroundSubtraction->getValue()}}}});
   }
   if(mSubtractChannel->hasValue()) {
     jsonArray.push_back({{"subtract_channel", {{"channel_index", mSubtractChannel->getValue()}}}});
@@ -447,7 +449,9 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
     std::set<std::string> crossChannelCount;
     auto values = mCrossChannelCount->getValue().split(",");
     for(const auto &val : values) {
-      crossChannelCount.emplace(val.toStdString());
+      if(!val.isEmpty()) {
+        crossChannelCount.emplace(val.toStdString());
+      }
     }
     chSettings["cross_channel"]["cross_channel_count_channels"] = crossChannelCount;
   }

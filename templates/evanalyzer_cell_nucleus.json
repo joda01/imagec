@@ -42,5 +42,6 @@
                 "repeat": 2
             }
         }
-    ]
+    ],
+    "cross_channel": {}
 }

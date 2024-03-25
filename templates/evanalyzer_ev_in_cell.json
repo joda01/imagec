@@ -33,7 +33,7 @@
         },
         {
             "median_bg_subtraction": {
-                "kernel_size": 3
+                "kernel_size": 7
             }
         },
         {
@@ -41,5 +41,11 @@
                 "repeat": 1
             }
         }
-    ]
+    ],
+    "cross_channel": {
+        "coloc_groups": [
+            "A"
+        ],
+        "min_coloc_area": 0.1
+    }
 }
