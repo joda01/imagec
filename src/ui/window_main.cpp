@@ -954,7 +954,7 @@ void WindowMain::onShowInfoDialog()
       "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke and Patricia Hrasnova</p>"
       "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
       "Dominik Handl</em></p>"
-      "<p style=\"text-align: left;\">copyright 2022-2023 Joachim Danmayr</p>");
+      "<p style=\"text-align: left;\">copyright 2022-2024 Joachim Danmayr</p>");
   QFont font;
   font.setPixelSize(10);
   messageBox.setFont(font);

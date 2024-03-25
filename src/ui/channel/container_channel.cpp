@@ -69,12 +69,12 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
                                            {12, "Channel 12"}},
                                           0));
 
-  mUsedDetectionMode = std::shared_ptr<ContainerFunction<QString, QString>>(
-      new ContainerFunction<QString, QString>("icons8-mesh-50.png", "Threshold", "Detection mode", "", "THRESHOLD",
-                                              {{"THRESHOLD", "Threshold"}, {"AI", "Artificial intelligence"}}));
+  mUsedDetectionMode = std::shared_ptr<ContainerFunction<QString, QString>>(new ContainerFunction<QString, QString>(
+      "icons8-background-remover-50.png", "Threshold", "Detection mode", "", "THRESHOLD",
+      {{"THRESHOLD", "Threshold"}, {"AI", "Artificial intelligence"}}));
 
   mThresholdAlgorithm = std::shared_ptr<ContainerFunction<QString, QString>>(
-      new ContainerFunction<QString, QString>("icons8-ksi-50.png", "Threshold", "Threshold algorithm", "", "MANUAL",
+      new ContainerFunction<QString, QString>("icons8-lambda-50.png", "Threshold", "Threshold algorithm", "", "MANUAL",
                                               {{"MANUAL", "Manual"},
                                                {"LI", "Li"},
                                                {"MIN_ERROR", "Min. error"},
@@ -163,7 +163,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
       "icons8-triangle-50.png", "Threshold", "Edge detection", "", "NONE",
       {{"NONE", "Off"}, {"SOBEL", "Sobel"}, {"CANNY", "Canny"}}, {{"XY", "xy"}, {"X", "x"}, {"Y", "y"}}, "XY"));
   mTetraspeckRemoval = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-final-state-50.png", "Index", "Tetraspeck removal", "", -1,
+      new ContainerFunction<int, int>("icons8-minus-sign-50.png", "Index", "Tetraspeck removal", "", -1,
                                       {{-1, "Off"},
                                        {0, "Channel 0"},
                                        {1, "Channel 1"},

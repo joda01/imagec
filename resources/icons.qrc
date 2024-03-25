@@ -274,5 +274,6 @@
         <file>outlined/icons8-light-50.png</file>
         <file>outlined/icons8-query-outer-join-50.png</file>
         <file>outlined/icons8-3-50.png</file>
+        <file>outlined/icons8-minus-sign-50.png</file>
     </qresource>
 </RCC>
