@@ -27,7 +27,7 @@ class Version
 public:
   static auto getVersion() -> std::string
   {
-    return "v1.0.0-alpha3";
+    return "v1.0.0-alpha.34";
   }
 
   static auto getBuildTime() -> std::string

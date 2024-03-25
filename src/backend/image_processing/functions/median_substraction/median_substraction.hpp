@@ -23,6 +23,7 @@ namespace joda::func::img {
 /// \class      Function
 /// \author     Joachim Danmayr
 /// \brief      Base class for an image processing function
+/// \ref https://github.com/imagej/ImageJ/blob/master/ij/process/ShortBlitter.java#L14
 ///
 class MedianSubtraction : public Function
 {

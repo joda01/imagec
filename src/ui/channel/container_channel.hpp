@@ -98,7 +98,7 @@ private:
   std::shared_ptr<ContainerFunction<QString, QString>> mZProjection;
   std::shared_ptr<ContainerFunction<int, int>> mMarginCrop;
   std::shared_ptr<ContainerFunction<int, int>> mSubtractChannel;
-  std::shared_ptr<ContainerFunction<bool, bool>> mMedianBackgroundSubtraction;
+  std::shared_ptr<ContainerFunction<int, int>> mMedianBackgroundSubtraction;
   std::shared_ptr<ContainerFunction<int, QString>> mRollingBall;
   std::shared_ptr<ContainerFunction<int, int>> mGaussianBlur;
   std::shared_ptr<ContainerFunction<int, int>> mSmoothing;
