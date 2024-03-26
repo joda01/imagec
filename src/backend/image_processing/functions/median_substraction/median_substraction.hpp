@@ -32,10 +32,22 @@ public:
   explicit MedianSubtraction(int kernelSize) : mKernelSize(kernelSize)
   {
   }
+  virtual ~MedianSubtraction() = default;
+
   void execute(cv::Mat &image) const override
   {
-    cv::Mat medianBlurredImage = image.clone();
-    cv::medianBlur(image, medianBlurredImage, mKernelSize /*ksize*/);
+    // when ksize is 3 or 5, the image depth should be CV_8U, CV_16U, or CV_32F, for larger aperture sizes, it can only
+    // be CV_8U.
+    bool reduce = mKernelSize > 5;
+    cv::Mat medianBlurredImage(image.size(), reduce ? CV_8UC1 : CV_16UC1);
+    if(reduce) {
+      image.convertTo(medianBlurredImage, CV_8UC1, static_cast<float>(UCHAR_MAX) / static_cast<float>(UINT16_MAX));
+    }
+    cv::medianBlur(medianBlurredImage, medianBlurredImage, mKernelSize);
+    if(reduce) {
+      medianBlurredImage.convertTo(medianBlurredImage, CV_16UC1,
+                                   static_cast<float>(UINT16_MAX) / static_cast<float>(UCHAR_MAX));
+    }
     image = image - medianBlurredImage;
   }
 

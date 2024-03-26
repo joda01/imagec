@@ -86,8 +86,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   DurationCount::stop(id);
 
   if(contours.size() > 100000) {
-    // throw std::runtime_error("Too much spots.");
-    std::cout << "Too much: " << std::to_string(contours.size()) << std::endl;
+    joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
   }
   id = DurationCount::start("detection_mask");
 
