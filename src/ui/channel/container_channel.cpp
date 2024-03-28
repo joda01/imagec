@@ -137,7 +137,18 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
 
   mMedianBackgroundSubtraction = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,
-                                      {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}, {9, "9x9"}}));
+                                      {{-1, "Off"},
+                                       {3, "3x3"},
+                                       {5, "5x5"},
+                                       {7, "7x7"},
+                                       {9, "9x9"},
+                                       {11, "11x11"},
+                                       {13, "13x13"},
+                                       {15, "15x15"},
+                                       {17, "17x17"},
+                                       {19, "19x19"},
+                                       {21, "21x21"},
+                                       {23, "23x23"}}));
 
   mRollingBall = std::shared_ptr<ContainerFunction<int, QString>>(new ContainerFunction<int, QString>(
       "icons8-bubble-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Rolling ball", "px", std::nullopt, 0,
