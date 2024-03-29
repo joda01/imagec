@@ -50,7 +50,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 {
   setWindowTitle("imageC");
   createToolbar();
-  setMinimumSize(1300, 800);
+  setMinimumSize(1600, 800);
   setObjectName("windowMain");
   setStyleSheet(
       "QMainWindow#windowMain {"

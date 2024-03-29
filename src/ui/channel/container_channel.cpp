@@ -87,6 +87,9 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
   mMinProbability = std::shared_ptr<ContainerFunction<float, float>>(
       new ContainerFunction<float, float>("icons8-percentage-50.png", "[0 - 1]", "Min. probability", "%", 0.5, 0, 1));
 
+  mWateredSegmentation = std::shared_ptr<ContainerFunction<bool, bool>>(
+      new ContainerFunction<bool, bool>("icons8-split-50", "Watershed segmentation", "Watershed segmentation", false));
+
   auto foundAIModels = joda::onnx::Onnx::findOnnxFiles();
   std::vector<ContainerFunction<QString, QString>::ComboEntry> aiModelsConverted;
   aiModelsConverted.reserve(foundAIModels.size());
@@ -266,6 +269,7 @@ void ContainerChannel::fromJson(std::optional<joda::settings::json::ChannelSetti
     mUsedDetectionMode->clearValue();
     mMinProbability->clearValue();
     mAIModels->clearValue();
+    mWateredSegmentation->clearValue();
 
     mColocGroup->clearValue();
     mCrossChannelIntensity->clearValue();
@@ -308,6 +312,7 @@ void ContainerChannel::fromJson(std::optional<joda::settings::json::ChannelSetti
     mThresholdValueMin->setValue(chSettings->getDetectionSettings().getThersholdSettings().getThresholdMin());
     mAIModels->setValue(chSettings->getDetectionSettings().getAiSettings().getModelName().data());
     mMinProbability->setValue(chSettings->getDetectionSettings().getAiSettings().getProbability());
+    mWateredSegmentation->setValue(chSettings->getDetectionSettings().doWatershedSegmentation());
 
     // Filtering
     mMinParticleSize->setValue(chSettings->getFilter().getMinParticleSize());
@@ -332,10 +337,10 @@ void ContainerChannel::fromJson(std::optional<joda::settings::json::ChannelSetti
 
     // Cross channel intensity
     {
-      auto &crossChannelIntensityChannels = chSettings->getCrossChannelSettings().getCrossChannelIntensityChannels();
+      auto &crossChannelIntensity = chSettings->getCrossChannelSettings().getCrossChannelIntensityChannels();
       QString crossChannelIndexes;
-      for(const auto chIdx : crossChannelIntensityChannels) {
-        crossChannelIndexes += QString::number(chIdx) + ",";
+      for(const auto chIdx : crossChannelIntensity) {
+        crossChannelIndexes += QString(chIdx.data()) + ",";
       }
       if(crossChannelIndexes.size() > 0) {
         crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
@@ -416,6 +421,7 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
 
   chSettings["detection"]["ai_settings"]["model_name"]      = mAIModels->getValue().toStdString();
   chSettings["detection"]["ai_settings"]["probability_min"] = mMinProbability->getValue();
+  chSettings["detection"]["do_watershed_segmentation"]      = mWateredSegmentation->getValue();
 
   // Filtering
   if(mMinParticleSize->hasValue()) {
@@ -444,13 +450,11 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
     chSettings["cross_channel"]["min_coloc_area"] = static_cast<float>(mColocGroup->getValueSecond()) / 100.0F;
   }
   {
-    std::set<int32_t> crossChannelIntensity;
+    std::set<std::string> crossChannelIntensity;
     auto values = mCrossChannelIntensity->getValue().split(",");
     for(const auto &val : values) {
-      bool ok = false;
-      auto i  = val.toInt(&ok);
-      if(ok) {
-        crossChannelIntensity.emplace(i);
+      if(!val.isEmpty()) {
+        crossChannelIntensity.emplace(val.toStdString());
       }
     }
     chSettings["cross_channel"]["cross_channel_intensity_channels"] = crossChannelIntensity;

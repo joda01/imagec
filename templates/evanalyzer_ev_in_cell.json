@@ -6,10 +6,11 @@
         },
         "mode": "THRESHOLD",
         "threshold": {
-            "threshold_algorithm": "LI",
+            "threshold_algorithm": "MANUAL",
             "threshold_max": 65535,
-            "threshold_min": 0
-        }
+            "threshold_min": 20
+        },
+        "do_watershed_segmentation": true
     },
     "filter": {
         "max_particle_size": 2147483647,
@@ -32,13 +33,14 @@
             }
         },
         {
-            "median_bg_subtraction": {
-                "kernel_size": 7
+            "rolling_ball": {
+                "value": 4,
+                "mode": "PARABOLOID"
             }
         },
         {
             "smoothing": {
-                "repeat": 1
+                "repeat": 3
             }
         }
     ],

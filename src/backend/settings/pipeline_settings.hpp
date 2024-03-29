@@ -68,7 +68,7 @@ public:
     return min_coloc_area;
   }
 
-  auto getCrossChannelIntensityChannels() const -> const std::set<int32_t> &
+  auto getCrossChannelIntensityChannels() const -> const std::set<std::string> &
   {
     return cross_channel_intensity_channels;
   }
@@ -110,7 +110,7 @@ private:
   int32_t max_voronoi_area_radius = -1;
 
   // Cross channel intensity calculation
-  std::set<int32_t> cross_channel_intensity_channels;
+  std::set<std::string> cross_channel_intensity_channels;
 
   // Cross channel count calculation
   std::set<std::string> cross_channel_count_channels;

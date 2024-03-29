@@ -33,8 +33,9 @@
 namespace joda::func::threshold {
 
 ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt, uint16_t thresholdValue,
-                                       joda::settings::json::ThresholdSettings::Threshold method) :
-    DetectionFunction(&filt)
+                                       joda::settings::json::ThresholdSettings::Threshold method, bool doWatershed) :
+    DetectionFunction(&filt),
+    mDoWatershed(doWatershed)
 {
   switch(method) {
     case joda::settings::json::ThresholdSettings::Threshold::LI:
@@ -73,6 +74,10 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
 {
   cv::Mat binaryImage;
   uint16_t usedThersholdVal = mThresoldMethod->execute(srcImg, binaryImage);
+  if(mDoWatershed) {
+    joda::func::img::Watershed watershed;
+    watershed.execute(binaryImage);
+  }
 
   DetectionResults response;
 

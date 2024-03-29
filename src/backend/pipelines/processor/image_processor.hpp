@@ -26,6 +26,7 @@
 #include "backend/helper/helper.hpp"
 #include "backend/image_processing/detection/detection.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
+#include "backend/image_processing/functions/watershed/watershed.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/image_reader/jpg/image_loader_jpg.hpp"
@@ -34,6 +35,7 @@
 #include "backend/pipelines/pipeline_detection/pipeline_detection.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include <opencv2/core/mat.hpp>
+#include <opencv2/imgproc.hpp>
 
 namespace joda::algo {
 

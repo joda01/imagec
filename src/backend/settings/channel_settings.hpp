@@ -160,6 +160,11 @@ public:
     // ai_settings.interpretConfig();
   }
 
+  [[nodiscard]] bool doWatershedSegmentation() const
+  {
+    return do_watershed_segmentation;
+  }
+
 private:
   //
   // If either threshold or AI should be used for detection
@@ -178,7 +183,13 @@ private:
   //
   AiSettings ai_settings;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelDetection, mode, threshold, ai_settings);
+  //
+  // Post segmentation steps
+  //
+  bool do_watershed_segmentation = false;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelDetection, mode, threshold, ai_settings,
+                                              do_watershed_segmentation);
 };
 
 class ChannelInfo
@@ -357,7 +368,7 @@ public:
     return min_coloc_area;
   }
 
-  auto getCrossChannelIntensityChannels() const -> const std::set<int32_t> &
+  auto getCrossChannelIntensityChannels() const -> const std::set<std::string> &
   {
     return cross_channel_intensity_channels;
   }
@@ -375,7 +386,7 @@ private:
   float min_coloc_area = 0;
 
   // Cross channel intensity calculation
-  std::set<int32_t> cross_channel_intensity_channels;
+  std::set<std::string> cross_channel_intensity_channels;
 
   // Cross channel count calculation
   std::set<std::string> cross_channel_count_channels;
