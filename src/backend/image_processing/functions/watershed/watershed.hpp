@@ -13,9 +13,13 @@
 
 #pragma once
 
+#include <cstdint>
 #include "../../functions/function.hpp"
+#include "backend/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
+#include "edm.hpp"
+#include "maximum_finder.hpp"
 
 namespace joda::func::img {
 
@@ -29,10 +33,23 @@ class Watershed : public Function
 {
 public:
   /////////////////////////////////////////////////////
-  explicit Watershed()
-  {
-  }
+  explicit Watershed() = default;
   virtual ~Watershed() = default;
-  void execute(cv::Mat &image) const override;
+  void execute(cv::Mat &image) const override
+  {
+    auto idStart = DurationCount::start("watershed");
+    image.convertTo(image, CV_8UC1, 1.0F / 257.0F);
+    auto floatEdm = joda::func::img::Edm::makeFloatEDM(image, 0, false);
+    joda::func::img::MaximumFinder find;
+    auto maxIp = find.findMaxima(floatEdm, MAXFINDER_TOLERANCE, joda::func::img::MaximumFinder::NO_THRESHOLD,
+                                 joda::func::img::MaximumFinder::SEGMENTED, false, true);
+    cv::bitwise_and(maxIp, image, image);
+    image.convertTo(image, CV_16UC1, (float) UINT16_MAX / (float) UINT8_MAX);
+    DurationCount::stop(idStart);
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  double MAXFINDER_TOLERANCE = 0.5;    // reasonable v
 };
 }    // namespace joda::func::img

@@ -30,28 +30,10 @@ TEST_CASE("func::watershed", "[watershed]")
   blur.execute(img);
   cv::Mat binaryImage;
   th.execute(img, binaryImage);
-  binaryImage.convertTo(binaryImage, CV_8UC1, 1.0F / 257.0F);
 
-  MaximumFinder find;
+  cv::imwrite("zz_inout.jpg", binaryImage);
 
-  auto floatEdm = Edm::makeFloatEDM(binaryImage, 0, false);
-  cv::imwrite("edm.jpg", floatEdm * 50);
-  auto maxIp = find.findMaxima(floatEdm, MAXFINDER_TOLERANCE, MaximumFinder::NO_THRESHOLD, MaximumFinder::SEGMENTED,
-                               false, true);
-
-  cv::imwrite("maxIp.jpg", maxIp * 100);
-
-  cv::Mat result;
-  cv::bitwise_and(maxIp, binaryImage, result);
-  cv::imwrite("out01.jpg", result * 100);
-
-  cv::imwrite("binaryImage.jpg", binaryImage);
-  {
-    result.convertTo(result, CV_32F);
-    cv::Mat inputImage;
-    cv::cvtColor(result, inputImage, cv::COLOR_GRAY2BGR);
-    cv::imwrite("out.jpg", inputImage);
-  }
-
-  // img2 = img2 * ((float) 255.0F / (float) 65536.0F) * 250;
+  joda::func::img::Watershed watershed;
+  watershed.execute(binaryImage);
+  cv::imwrite("zz_result.jpg", binaryImage);
 }

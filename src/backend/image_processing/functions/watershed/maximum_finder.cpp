@@ -1,42 +1,51 @@
 
 
-/** This ImageJ plug-in filter finds the maxima (or minima) of an image.
- * It can create a mask where the local maxima of the current image are
- * marked (255; unmarked pixels 0).
- * The plug-in can also create watershed-segmented particles: Assume a
- * landscape of inverted heights, i.e., maxima of the image are now water sinks.
- * For each point in the image, the sink that the water goes to determines which
- * particle it belongs to.
- * When finding maxima (not minima), pixels with a level below the lower threshold
- * can be left unprocessed.
- *
- * Except for segmentation, this plugin works with area ROIs, including non-rectangular ROIs,
- * which define the area where maxima are reported.
- * Since this plug-in creates a separate output image it processes only single images or slices, no stacks.
- *
- * Notes:
- * - When using one instance of MaximumFinder for more than one image in parallel threads,
- *   all must images have the same width and height.
- *
- * version 09-Nov-2006 Michael Schmid
- * version 21-Nov-2006 Wayne Rasband. Adds "Display Point Selection" option and "Count" output type.
- * version 28-May-2007 Michael Schmid. Preview added, bugfix: minima of calibrated images, uses Arrays.sort
- * version 07-Aug-2007 Fixed a bug that could delete particles when doing watershed segmentation of an EDM.
- * version 21-Apr-2007 Adapted for float instead of 16-bit EDM; correct progress bar on multiple calls
- * version 05-May-2009 Works for images>32768 pixels in width or height
- * version 01-Nov-2009 Bugfix: extra lines in segmented output eliminated; watershed is also faster now
- *                     Maximum points encoded in long array for sorting instead of separete objects that need gc
- *                     New output type 'List'
- * version 22-May-2011 Bugfix: Maximum search in EDM and float images with large dynamic range could omit maxima
- * version 13-Sep-2013 added the findMaxima() and findMinima() functions for arrays (Norbert Vischer)
- * version 20-Mar-2014 Watershed segmentation of EDM with tolerance>=1.0 does not kill fine particles
- * version 11-Mar-2019 adds "strict" option, "noise tolerance" renamed to "prominence"
- */
+///
+/// \file      maximum_finder.hpp
+/// \author    Joachim Danmayr
+/// \date      2023-02-20
+/// \brief     This ImageJ plug-in filter finds the maxima (or minima) of an image.
+///            It can create a mask where the local maxima of the current image are
+///            marked (255; unmarked pixels 0).
+///            The plug-in can also create watershed-segmented particles: Assume a
+///            landscape of inverted heights, i.e., maxima of the image are now water sinks.
+///            For each point in the image, the sink that the water goes to determines which
+///            particle it belongs to.
+///            When finding maxima (not minima), pixels with a level below the lower threshold
+///            can be left unprocessed.
+///
+///            Except for segmentation, this plugin works with area ROIs, including non-rectangular ROIs,
+///            which define the area where maxima are reported.
+///            Since this plug-in creates a separate output image it processes only single images or slices, no stacks.
+///
+///            Notes:
+///            - When using one instance of MaximumFinder for more than one image in parallel threads,
+///              all must images have the same width and height.
+///
+///           version 09-Nov-2006 Michael Schmid
+///           version 21-Nov-2006 Wayne Rasband. Adds "Display Point Selection" option and "Count" output type.
+///           version 28-May-2007 Michael Schmid. Preview added, bugfix: minima of calibrated images, uses Arrays.sort
+///           version 07-Aug-2007 Fixed a bug that could delete particles when doing watershed segmentation of an EDM.
+///           version 21-Apr-2007 Adapted for float instead of 16-bit EDM; correct progress bar on multiple calls
+///           version 05-May-2009 Works for images>32768 pixels in width or height
+///           version 01-Nov-2009 Bugfix: extra lines in segmented output eliminated; watershed is also faster now
+///                               Maximum points encoded in long array for sorting instead of separete objects that need
+///                               gc New output type 'List'
+///           version 22-May-2011 Bugfix: Maximum search in EDM and float images with large dynamic range could omit
+///           maxima version 13-Sep-2013 added the findMaxima() and findMinima() functions for arrays (Norbert Vischer)
+///           version 20-Mar-2014 Watershed segmentation of EDM with tolerance>=1.0 does not kill fine particles
+///           version 11-Mar-2019 adds "strict" option, "noise tolerance" renamed to "prominence"
+///           version 29-Mar-2024 Ported to C++
+///
+/// \todo   Exclude edge particles not supported yet, because of missing Wand algorithm
+///
 
 #include "maximum_finder.hpp"
 #include <opencv2/core/hal/interface.h>
 #include <cstddef>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
 #include <string>
 #include <opencv2/core.hpp>
 #include <opencv2/core/types.hpp>
@@ -44,111 +53,116 @@
 #include <opencv2/imgproc.hpp>
 #include "tools.hpp"
 
-/** Read the parameters (during preview or after showing the dialog) */
+namespace joda::func::img {
 
-//  bool DialogItemChanged
-
-/** Finds the image maxima and returns them as a Polygon, where
- * poly.npoints is the number of maxima. There is an example at<br>
- * http://imagej.nih.gov/ij/macros/js/FindMaxima.js.
- * @param ip             The input image
- * @param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
- *                       from the ridge to a higher maximum
- * @param excludeOnEdges Whether to exclude edge maxima. Also determines whether strict mode is on, i.e.,
- *                       whether the global maximum is accepted even if all other pixel are less than 'tolerance'
- *                       below this level (In 1.52m and before, 'strict' and 'excludeOnEdges' were the same).
- * @return         A Polygon containing the coordinates of the maxima, where poly.npoints
- *                       is the number of maxima. Note that poly.xpoints.length may be greater
- *                       than the number of maxima.
- */
-
+///
+/// \brief                Finds the image maxima and returns them as a Polygon, where
+///                       poly.npoints is the number of maxima. There is an example at<br>
+///                       http://imagej.nih.gov/ij/macros/js/FindMaxima.js.
+/// \param ip             The input image
+/// \param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
+///                       from the ridge to a higher maximum
+/// \param excludeOnEdges Whether to exclude edge maxima. Also determines whether strict mode is on, i.e.,
+///                       whether the global maximum is accepted even if all other pixel are less than 'tolerance'
+///                       below this level (In 1.52m and before, 'strict' and 'excludeOnEdges' were the same).
+/// \return               A Polygon containing the coordinates of the maxima, where poly.npoints
+///                       is the number of maxima. Note that poly.xpoints.length may be greater
+///                       than the number of maxima.
+///
 Polygon MaximumFinder::getMaxima(cv::Mat &ip, double tolerance, bool excludeOnEdges)
 {
   return getMaxima(ip, tolerance, excludeOnEdges, excludeOnEdges);
 }
 
-/** Finds the image maxima and returns them as a Polygon, where poly.npoints is
- * the number of maxima.
- * @param ip             The input image
- * @param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
- *                       from the ridge to a higher maximum
- * @param strict         When off, the global maximum is accepted even if all other pixel are less than
- *                       'tolerance' below this level. With <code>excludeOnEdges=true</code>, 'strict' also
- *                       means that the surounding of a maximum within 'tolerance' must not include an edge pixel
- *                       (otherwise, it is enough that there is no edge pixel with the maximum value).
- * @param excludeOnEdges Whether to exclude edge maxima. Also determines whether strict mode is on, i.e.,
- *                       whether the global maximum is accepted even if all other pixel are less than 'tolerance'
- *                       below this level (In 1.52m and before, 'strict' and 'excludeOnEdges' were the same).
- * @return         A Polygon containing the coordinates of the maxima, where poly.npoints
- *                       is the number of maxima. Note that poly.xpoints.length may be greater
- *                       than the number of maxima.
- */
-
+///
+/// \brief                Finds the image maxima and returns them as a Polygon, where poly.npoints is
+///                       the number of maxima.
+/// \param ip             The input image
+/// \param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
+///                       from the ridge to a higher maximum
+/// \param strict         When off, the global maximum is accepted even if all other pixel are less than
+///                       'tolerance' below this level. With <code>excludeOnEdges=true</code>, 'strict' also
+///                       means that the surounding of a maximum within 'tolerance' must not include an edge pixel
+///                       (otherwise, it is enough that there is no edge pixel with the maximum value).
+/// \param excludeOnEdges Whether to exclude edge maxima. Also determines whether strict mode is on, i.e.,
+///                       whether the global maximum is accepted even if all other pixel are less than 'tolerance'
+///                       below this level (In 1.52m and before, 'strict' and 'excludeOnEdges' were the same).
+/// \return               A Polygon containing the coordinates of the maxima, where poly.npoints
+///                       is the number of maxima. Note that poly.xpoints.length may be greater
+///                       than the number of maxima.
+///
 Polygon MaximumFinder::getMaxima(cv::Mat &ip, double tolerance, bool strict, bool excludeOnEdges)
 {
   findMaxima(ip, tolerance, strict, MaximumFinder::NO_THRESHOLD, MaximumFinder::POINT_SELECTION, excludeOnEdges, false);
   return xyCoordinates;
 }
 
-/**
- * Calculates peak positions of 1D array N.Vischer, 06-mar-2017
- *
- * @param xx Array containing peaks.
- * @param tolerance Depth of a qualified valley must exceed tolerance.
- * Tolerance must be >= 0. Flat tops are marked at their centers.
- * @param  edgeMode 0=include, 1=exclude, 2=circular
- * edgeMode = 0 (include edges) peak may be separated by one qualified valley and by a border.
- * edgeMode = 1 (exclude edges) peak must be separated by two qualified valleys
- * edgeMode = 2 (circular) array is regarded to be circular
- * @return Positions of peaks, sorted with decreasing amplitude
- */
-
-int *MaximumFinder::findMaxima(double *xx, size_t xxSize, double tolerance, int edgeMode)
+///
+/// \brief           Calculates peak positions of 1D array N.Vischer, 06-mar-2017
+///
+/// \param xx        Array containing peaks.
+/// \param tolerance Depth of a qualified valley must exceed tolerance.
+///                  Tolerance must be >= 0. Flat tops are marked at their centers.
+/// \param  edgeMode 0=include, 1=exclude, 2=circular
+///                  edgeMode = 0 (include edges) peak may be separated by one qualified valley and by a border.
+///                  edgeMode = 1 (exclude edges) peak must be separated by two qualified valleys
+///                  edgeMode = 2 (circular) array is regarded to be circular
+/// \return          Positions of peaks, sorted with decreasing amplitude
+///
+std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_t xxSize, double tolerance,
+                                               int edgeMode)
 {
   int INCLUDE_EDGE = 0;
   int CIRCULAR     = 2;
   int len          = xxSize;
   int origLen      = len;
-  if(len < 2)
-    return new int[0];
-  if(tolerance < 0)
+  if(len < 2) {
+    return nullptr;
+  }
+  if(tolerance < 0) {
     tolerance = 0;
+  }
   if(edgeMode == CIRCULAR) {
-    double *cascade3 = new double[len * 3]{0};
+    std::shared_ptr<double> cascade3(new double[len * 3]{0}, [](double *p) { delete[] p; });
     for(int jj = 0; jj < len; jj++) {
-      cascade3[jj]           = xx[jj];
-      cascade3[jj + len]     = xx[jj];
-      cascade3[jj + 2 * len] = xx[jj];
+      cascade3.get()[jj]           = xx.get()[jj];
+      cascade3.get()[jj + len]     = xx.get()[jj];
+      cascade3.get()[jj + 2 * len] = xx.get()[jj];
     }
     len *= 3;
     xx = cascade3;
   }
-  int *maxPositions = new int[len]{0};
-  int jStart        = 0;
-  double min = std::numeric_limits<double>::quiet_NaN(), max = std::numeric_limits<double>::quiet_NaN();
+
+  std::shared_ptr<int> maxPositions(new int[len]{0}, [](int *p) { delete[] p; });
+  int jStart = 0;
+  double min = std::numeric_limits<double>::quiet_NaN();
+  double max = std::numeric_limits<double>::quiet_NaN();
   do {    // find first non-NaN value
-    max = xx[jStart];
-    min = xx[jStart];
+    max = xx.get()[jStart];
+    min = xx.get()[jStart];
     jStart++;
-    if(jStart >= xxSize)
-      return new int[0];    // only NaNs
+    if(jStart >= xxSize) {
+      return nullptr;    // only NaNs
+    }
   } while(std::isnan(min));
   int maxPos           = jStart - 1;
   int lastMaxPos       = -1;
   bool leftValleyFound = (edgeMode == INCLUDE_EDGE);
   int maxCount         = 0;
   for(int jj = jStart; jj < len; jj++) {
-    double val = xx[jj];
-    if(val > min + tolerance)
+    double val = xx.get()[jj];
+    if(val > min + tolerance) {
       leftValleyFound = true;
+    }
     if(val > max && leftValleyFound) {
       max    = val;
       maxPos = jj;
     }
-    if(leftValleyFound)
+    if(leftValleyFound) {
       lastMaxPos = maxPos;
+    }
     if(val < max - tolerance && leftValleyFound) {
-      maxPositions[maxCount] = maxPos;
+      maxPositions.get()[maxCount] = maxPos;
       maxCount++;
       leftValleyFound = false;
       min             = val;
@@ -156,55 +170,61 @@ int *MaximumFinder::findMaxima(double *xx, size_t xxSize, double tolerance, int 
     }
     if(val < min) {
       min = val;
-      if(!leftValleyFound)
+      if(!leftValleyFound) {
         max = val;
+      }
     }
   }
   if(edgeMode == INCLUDE_EDGE) {
-    if(maxCount > 0 && maxPositions[maxCount - 1] != lastMaxPos)
-      maxPositions[maxCount++] = lastMaxPos;
-    if(maxCount == 0 && max - min >= tolerance)
-      maxPositions[maxCount++] = lastMaxPos;
+    if(maxCount > 0 && maxPositions.get()[maxCount - 1] != lastMaxPos) {
+      maxPositions.get()[maxCount++] = lastMaxPos;
+    }
+    if(maxCount == 0 && max - min >= tolerance) {
+      maxPositions.get()[maxCount++] = lastMaxPos;
+    }
   }
-  int *cropped = new int[maxCount];
+  std::shared_ptr<int> cropped(new int[maxCount]{0}, [](int *p) { delete[] p; });
   // System.arraycopy(maxPositions, 0, cropped, 0, maxCount);
-  std::copy(maxPositions, maxPositions + maxCount, cropped);
+  std::copy(maxPositions.get(), maxPositions.get() + maxCount, cropped.get());
 
-  maxPositions      = cropped;
-  double *maxValues = new double[maxCount]{0};
+  maxPositions = cropped;
+  std::shared_ptr<double> maxValues(new double[maxCount]{0}, [](double *p) { delete[] p; });
   for(int jj = 0; jj < maxCount; jj++) {
-    int pos       = maxPositions[jj];
+    int pos       = maxPositions.get()[jj];
     double midPos = pos;
-    while(pos < len - 1 && xx[pos] == xx[pos + 1]) {
+    while(pos < len - 1 && xx.get()[pos] == xx.get()[pos + 1]) {
       midPos += 0.5;
       pos++;
     }
-    maxPositions[jj] = (int) midPos;
-    maxValues[jj]    = xx[maxPositions[jj]];
+    maxPositions.get()[jj] = (int) midPos;
+    maxValues.get()[jj]    = xx.get()[maxPositions.get()[jj]];
   }
-  int *rankPositions = rank(maxValues, maxCount);
-  int *returnArr     = new int[maxCount]{0};
+  auto rankPositions = rank(maxValues, maxCount);
+
+  std::shared_ptr<int> returnArr(new int[maxCount]{0}, [](int *p) { delete[] p; });
   for(int jj = 0; jj < maxCount; jj++) {
-    int pos                      = maxPositions[rankPositions[jj]];
-    returnArr[maxCount - jj - 1] = pos;    // use descending order
+    int pos                            = maxPositions.get()[rankPositions.get()[jj]];
+    returnArr.get()[maxCount - jj - 1] = pos;    // use descending order
   }
   if(edgeMode == CIRCULAR) {
     int count = 0;
     for(int jj = 0; jj < maxCount; jj++) {
-      int pos = returnArr[jj] - origLen;
+      int pos = returnArr.get()[jj] - origLen;
       if(pos >= 0 && pos < origLen)    // pick maxima from cascade center part
-        returnArr[count++] = pos;
+        returnArr.get()[count++] = pos;
     }
-    int *returrn2Arr = new int[count]{0};
-    // System.arraycopy(returnArr, 0, returrn2Arr, 0, count);
-    std::copy(returnArr, returnArr + count, returrn2Arr);
 
+    std::shared_ptr<int> returrn2Arr(new int[count]{0}, [](int *p) { delete[] p; });
+    // System.arraycopy(returnArr, 0, returrn2Arr, 0, count);
+    std::copy(returnArr.get(), returnArr.get() + count, returrn2Arr.get());
     returnArr = returrn2Arr;
   }
+
   return returnArr;
 }
 
-int *MaximumFinder::findMaxima(double *xx, size_t xxSize, double tolerance, bool excludeOnEdges)
+std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_t xxSize, double tolerance,
+                                               bool excludeOnEdges)
 {
   int edgeBehavior = (excludeOnEdges) ? 1 : 0;
   return findMaxima(xx, xxSize, tolerance, edgeBehavior);
@@ -213,33 +233,34 @@ int *MaximumFinder::findMaxima(double *xx, size_t xxSize, double tolerance, bool
 /**
  * Returns minimum positions of array xx, sorted with decreasing strength
  */
-
-int *MaximumFinder::findMinima(double *xx, size_t xxSize, double tolerance, bool excludeEdges)
+std::shared_ptr<int> MaximumFinder::findMinima(std::shared_ptr<double> xx, size_t xxSize, double tolerance,
+                                               bool excludeEdges)
 {
   int edgeMode = (excludeEdges) ? 1 : 0;
   return findMinima(xx, xxSize, tolerance, edgeMode);
 }
 
-int *MaximumFinder::findMinima(double *xx, size_t xxSize, double tolerance, int edgeMode)
+std::shared_ptr<int> MaximumFinder::findMinima(std::shared_ptr<double> xx, size_t xxSize, double tolerance,
+                                               int edgeMode)
 {
-  int len        = xxSize;
-  double *negArr = new double[len]{0};
+  int len = xxSize;
+  std::shared_ptr<double> negArr(new double[len]{0}, [](double *p) { delete[] p; });
   for(int jj = 0; jj < len; jj++)
-    negArr[jj] = -xx[jj];
-  int *minPositions = findMaxima(negArr, len, tolerance, edgeMode);
+    negArr.get()[jj] = -xx.get()[jj];
+  auto minPositions = findMaxima(negArr, len, tolerance, edgeMode);
   return minPositions;
 }
 
 /** Find the maxima of an image.
- * @param ip             The input image
- * @param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
+ * \param ip             The input image
+ * \param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
  *                       from the ridge to a higher maximum
- * @param outputType     What to mark in output image: SINGLE_POINTS, IN_TOLERANCE or SEGMENTED.
+ * \param outputType     What to mark in output image: SINGLE_POINTS, IN_TOLERANCE or SEGMENTED.
  *                       No output image is created for output types POINT_SELECTION, LIST and COUNT.
- * @param excludeOnEdges Whether to exclude edge maxima. Also determines whether strict mode is on, i.e.,
+ * \param excludeOnEdges Whether to exclude edge maxima. Also determines whether strict mode is on, i.e.,
  *                       whether the global maximum is accepted even if all other pixel are less than 'tolerance'
  *                       below this level (In 1.52m and before, 'strict' and 'excludeOnEdges' were the same).
- * @return               A new byteProcessor with a normal (uninverted) LUT where the marked points
+ * \return               A new byteProcessor with a normal (uninverted) LUT where the marked points
  *                       are set to 255 (Background 0). Pixels outside of the roi of the input ip are not set.
  *                       Returns null if outputType does not require an output or if cancelled by escape
  */
@@ -254,18 +275,18 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, int outputType,
  * LIMITATIONS:          With outputType=SEGMENTED (watershed segmentation), some segmentation lines
  *                       may be improperly placed if local maxima are suppressed by the tolerance.
  *
- * @param ip             The input image
- * @param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
+ * \param ip             The input image
+ * \param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
  *                       from the ridge to a higher maximum
- * @param threshold      minimum height of a maximum (uncalibrated); for no minimum height set it to
+ * \param threshold      minimum height of a maximum (uncalibrated); for no minimum height set it to
  *                       MaximumFinder::NO_THRESHOLD
- * @param outputType     What to mark in output image: SINGLE_POINTS, IN_TOLERANCE or SEGMENTED.
+ * \param outputType     What to mark in output image: SINGLE_POINTS, IN_TOLERANCE or SEGMENTED.
  *                       No output image is created for output types POINT_SELECTION, LIST and COUNT.
- * @param excludeOnEdges Whether to exclude edge maxima. Also determines whether strict mode is on, i.e.,
+ * \param excludeOnEdges Whether to exclude edge maxima. Also determines whether strict mode is on, i.e.,
  *                       whether the global maximum is accepted even if all other pixel are less than 'tolerance'
  *                       below this level (In 1.52m and before, 'strict' and 'excludeOnEdges' were the same).
- * @param isEDM          Whether the image is a float Euclidian Distance Map.
- * @return               A new byteProcessor with a normal (uninverted) LUT where the marked points
+ * \param isEDM          Whether the image is a float Euclidian Distance Map.
+ * \return               A new byteProcessor with a normal (uninverted) LUT where the marked points
  *                       are set to 255 (Background 0). Pixels outside of the roi of the input ip are not set.
  *                       Returns null if outputType does not require an output or if cancelled by escape
  */
@@ -281,20 +302,20 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, double threshol
  * LIMITATIONS:          With outputType=SEGMENTED (watershed segmentation), some segmentation lines
  *                       may be improperly placed if local maxima are suppressed by the tolerance.
  *
- * @param ip             The input image
- * @param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
+ * \param ip             The input image
+ * \param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
  *                       from the ridge to a higher maximum
- * @param strict         When off, the global maximum is accepted even if all other pixel are less than
+ * \param strict         When off, the global maximum is accepted even if all other pixel are less than
  *                       'tolerance' below this level. With <code>excludeOnEdges=true</code>, 'strict' also
  *                       means that the surounding of a maximum within 'tolerance' must not include an edge pixel
  *                       (otherwise, it is enough that there is no edge pixel with the maximum value).
- * @param threshold      Minimum height of a maximum (uncalibrated); for no minimum height set it to
+ * \param threshold      Minimum height of a maximum (uncalibrated); for no minimum height set it to
  *                       MaximumFinder::NO_THRESHOLD
- * @param outputType     What to mark in output image: SINGLE_POINTS, IN_TOLERANCE or SEGMENTED.
+ * \param outputType     What to mark in output image: SINGLE_POINTS, IN_TOLERANCE or SEGMENTED.
  *                       No output image is created for output types POINT_SELECTION, LIST and COUNT.
- * @param excludeOnEdges Whether to exclude edge maxima
- * @param isEDM          Whether the image is a float Euclidian Distance Map.
- * @return               A new byteProcessor with a normal (uninverted) LUT where the marked points
+ * \param excludeOnEdges Whether to exclude edge maxima
+ * \param isEDM          Whether the image is a float Euclidian Distance Map.
+ * \return               A new byteProcessor with a normal (uninverted) LUT where the marked points
  *                       are set to 255 (Background 0). Pixels outside of the roi of the input ip are not set.
  *                       Returns null if outputType does not require an output or if cancelled by escape
  */
@@ -335,55 +356,42 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, bool strict, do
   // for segmentation, exclusion of edge maxima cannot be done now but has to be done after segmentation:
   bool excludeEdgesNow = excludeOnEdges && outputType != SEGMENTED;
   size_t maxPointsSize = 0;
-  long *maxPoints      = maximumPossible ? getSortedMaxPoints(ip, typeP, excludeEdgesNow, isEDM, globalMin, globalMax,
+  auto maxPoints       = maximumPossible ? getSortedMaxPoints(ip, typeP, excludeEdgesNow, isEDM, globalMin, globalMax,
                                                               threshold, maxPointsSize)
-                                         : new long[0];
+                                         : nullptr;
 
   float maxSortingError = 0;
   if(ip.type() == CV_32FC1) {    // sorted sequence may be inaccurate by this value
-    std::cout << "Fliut" << std::endl;
     maxSortingError = 1.1f * (isEDM ? SQRT2 / 2.0f : (globalMax - globalMin) / 2e9f);
   }
   analyzeAndMarkMaxima(ip, typeP, maxPoints, maxPointsSize, excludeEdgesNow, isEDM, globalMin, tolerance, strict,
                        outputType, maxSortingError);
   // new ImagePlus("Pixel types",typeP.duplicate()).show();
 
-  cv::imwrite("tmp.jpg", typeP * 50);
-
-  if(outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT)
+  if(outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT) {
     return {};
+  }
 
   cv::Mat outIp;
-  char *pixels;
   if(outputType == SEGMENTED) {
     // Segmentation required, convert to 8bit (also for 8-bit images, since the calibration
     // may have a negative slope). outIp has background 0, maximum areas 255
-    cv::imwrite("outIp0ip.jpg", ip * 20);
-
     outIp = make8bit(ip, typeP, isEDM, globalMin, globalMax, threshold);
-    cv::imwrite("outIp0.jpg", outIp * 20);
-
     // if (IJ.debugMode) new ImagePlus("pixel types precleanup", typeP.duplicate()).show();
     cleanupMaxima(outIp, typeP, maxPoints,
-                  maxPointsSize);    // eliminate all the small maxima (i.e. those outside MAX_AREA)
-                                     // if (IJ.debugMode) new ImagePlus("pixel types postcleanup", typeP).show();
-                                     // if (IJ.debugMode) new ImagePlus("pre-watershed", outIp.duplicate()).show();
-
-    cv::imwrite("outIp.jpg", outIp * 50);
-
+                  maxPointsSize);     // eliminate all the small maxima (i.e. those outside MAX_AREA)
+                                      // if (IJ.debugMode) new ImagePlus("pixel types postcleanup", typeP).show();
+                                      // if (IJ.debugMode) new ImagePlus("pre-watershed", outIp.duplicate()).show();
     if(!watershedSegment(outIp)) {    // do watershed segmentation
       return {};                      // if user-cancelled, return
     }
-    cv::imwrite("outIp_wa.jpg", outIp * 50);
-
-    if(!isEDM)
-      cleanupExtraLines(outIp);     // eliminate lines due to local minima (none in EDM)
+    if(!isEDM) {
+      cleanupExtraLines(outIp);    // eliminate lines due to local minima (none in EDM)
+    }
     watershedPostProcess(outIp);    // levels to binary image
-
-    cv::imwrite("outIp_wa2.jpg", outIp * 50);
-
-    if(excludeOnEdges)
+    if(excludeOnEdges) {
       deleteEdgeParticles(outIp, typeP);
+    }
   } else {    // outputType other than SEGMENTED
     for(int i = 0; i < width * height; i++)
       typeP.at<uint8_t>(i) = (char) (((typeP.at<uint8_t>(i) & outputTypeMasks[outputType]) != 0) ? 255 : 0);
@@ -403,20 +411,21 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, bool strict, do
 }    //  ByteProcessor findMaxima
 
 /** Find all local maxima (irrespective whether they finally qualify as maxima or not)
- * @param ip    The image to be analyzed
- * @param typeP A byte image, same size as ip, where the maximum points are marked as MAXIMUM
+ * \param ip    The image to be analyzed
+ * \param typeP A byte image, same size as ip, where the maximum points are marked as MAXIMUM
  *              (do not use it as output: for rois, the points are shifted w.r.t. the input image)
- * @param excludeEdgesNow Whether to exclude edge pixels
- * @param isEDM     Whether ip is a float Euclidian distance map
- * @param globalMin The minimum value of the image or roi
- * @param threshold The threshold (calibrated) below which no pixels are processed. Ignored if
+ * \param excludeEdgesNow Whether to exclude edge pixels
+ * \param isEDM     Whether ip is a float Euclidian distance map
+ * \param globalMin The minimum value of the image or roi
+ * \param threshold The threshold (calibrated) below which no pixels are processed. Ignored if
  * MaximumFinder::NO_THRESHOLD
- * @return          Maxima sorted by value. In each array element (long, i.e., 64-bit integer), the value
+ * \return          Maxima sorted by value. In each array element (long, i.e., 64-bit integer), the value
  *                  is encoded in the upper 32 bits and the pixel offset in the lower 32 bit
  * Note: Do not use the positions of the points marked as MAXIMUM in typeP, they are invalid for images with a roi.
  */
-long *MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool excludeEdgesNow, bool isEDM, float globalMin,
-                                        float globalMax, double threshold, size_t &maxPointSize)
+std::shared_ptr<int64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool excludeEdgesNow,
+                                                           bool isEDM, float globalMin, float globalMax,
+                                                           double threshold, size_t &maxPointSize)
 {
   // byte[] types        = (byte[]) typeP.getPixels();
   int nMax            = 0;    // counts local maxima
@@ -427,12 +436,15 @@ long *MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool exclud
         x++, i++) {    // for better performance with rois, restrict search to roi
       float v     = ip.at<float>(y, x);
       float vTrue = isEDM ? trueEdmHeight(x, y, ip) : v;    // for EDMs, use interpolated ridge height
-      if(v == globalMin)
+      if(v == globalMin) {
         continue;
-      if(excludeEdgesNow && (x == 0 || x == width - 1 || y == 0 || y == height - 1))
+      }
+      if(excludeEdgesNow && (x == 0 || x == width - 1 || y == 0 || y == height - 1)) {
         continue;
-      if(checkThreshold && v < threshold)
+      }
+      if(checkThreshold && v < threshold) {
         continue;
+      }
       bool isMax = true;
       /* check wheter we have a local maximum.
        Note: For an EDM, we need all maxima: those of the EDM-corrected values
@@ -458,19 +470,21 @@ long *MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool exclud
 
   // long t1 = System.currentTimeMillis();IJ.log("markMax:"+(t1-t0));
 
-  float vFactor   = (float) (2e9 / (globalMax - globalMin));    // for converting float values into a 32-bit int
-  long *maxPoints = new long[nMax]{0};    // value (int) is in the upper 32 bit, pixel offset in the lower
-  int iMax        = 0;
+  float vFactor = (float) (2e9 / (globalMax - globalMin));    // for converting float values into a 32-bit int
+  std::shared_ptr<int64_t> maxPoints(new int64_t[nMax]{0}, [](int64_t *p) {
+    delete[] p;
+  });    // value (int) is in the upper 32 bit, pixel offset in the lower
+  int iMax = 0;
   for(int y = 0; y < ip.rows; y++)    // enter all maxima into an array
     for(int x = 0, p = x + y * width; x < ip.cols; x++, p++)
       if(typeP.at<uint8_t>(p) == MAXIMUM) {
-        float fValue      = isEDM ? trueEdmHeight(x, y, ip) : ip.at<float>(y, x);
-        int iValue        = (int) ((fValue - globalMin) * vFactor);    // 32-bit int, linear function of float value
-        maxPoints[iMax++] = (long) iValue << 32 | p;
+        float fValue = isEDM ? trueEdmHeight(x, y, ip) : ip.at<float>(y, x);
+        int iValue   = (int) ((fValue - globalMin) * vFactor);    // 32-bit int, linear function of float value
+        maxPoints.get()[iMax++] = (long) iValue << 32 | p;
       }
   // long t2 = System.currentTimeMillis();IJ.log("makeArray:"+(t2-t1));
   // Arrays.sort(maxPoints);    // sort the maxima by value
-  std::sort(maxPoints, maxPoints + nMax);
+  std::sort(maxPoints.get(), maxPoints.get() + nMax);
 
   // long t3 = System.currentTimeMillis();IJ.log("sort:"+(t3-t2));
   maxPointSize = nMax;
@@ -478,26 +492,27 @@ long *MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool exclud
 }    // getSortedMaxPoints
 
 /** Check all maxima in list maxPoints, mark type of the points in typeP
- * @param ip             the image to be analyzed
- * @param typeP          8-bit image, here the point types are marked by type: MAX_POINT, etc.
- * @param maxPoints      input: a list of all local maxima, sorted by height. Lower 32 bits are pixel offset
- * @param excludeEdgesNow whether to avoid MaximumFinder::edge maxima
- * @param isEDM          whether ip is a (float) Euclidian distance map
- * @param globalMin      minimum pixel value in ip
- * @param tolerance      minimum pixel value difference for two separate maxima
- * @param maxSortingError sorting may be inaccurate, sequence may be reversed for maxima having values
+ * \param ip             the image to be analyzed
+ * \param typeP          8-bit image, here the point types are marked by type: MAX_POINT, etc.
+ * \param maxPoints      input: a list of all local maxima, sorted by height. Lower 32 bits are pixel offset
+ * \param excludeEdgesNow whether to avoid MaximumFinder::edge maxima
+ * \param isEDM          whether ip is a (float) Euclidian distance map
+ * \param globalMin      minimum pixel value in ip
+ * \param tolerance      minimum pixel value difference for two separate maxima
+ * \param maxSortingError sorting may be inaccurate, sequence may be reversed for maxima having values
  *                       not deviating from each other by more than this (this could be a result of
  *                       precision loss when sorting ints instead of floats, or because sorting does not
  *                       take the height correction in 'trueEdmHeight' into account
- * @param outputType
+ * \param outputType
  */
-void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, long *maxPoints, size_t maxPointsSize,
-                                         bool excludeEdgesNow, bool isEDM, float globalMin, double tolerance,
-                                         bool strict, int outputType, float maxSortingError)
+void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, std::shared_ptr<int64_t> maxPoints,
+                                         size_t maxPointsSize, bool excludeEdgesNow, bool isEDM, float globalMin,
+                                         double tolerance, bool strict, int outputType, float maxSortingError)
 {
   // byte[] types        = (byte[]) typeP.getPixels();
-  int nMax            = maxPointsSize;
-  int *pList          = new int[width * height]{0};    // here we enter points starting from a maximum
+  int nMax = maxPointsSize;
+  std::shared_ptr<int> pList(new int[width * height]{0}, [](int *p) { delete[] p; });
+
   xyCoordinates       = {};
   bool displayOrCount = outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT;
   if(displayOrCount) {
@@ -506,7 +521,7 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, long
 
   for(int iMax = nMax - 1; iMax >= 0; iMax--) {    // process all maxima now, starting from the highest
 
-    int offset0 = (int) maxPoints[iMax];    // type cast gets 32 lower bits, where pixel index is encoded
+    int offset0 = (int) maxPoints.get()[iMax];    // type cast gets 32 lower bits, where pixel index is encoded
     // int offset0 = maxPoints[iMax].offset;
     if((typeP.at<uint8_t>(offset0) & PROCESSED) != 0)    // this maximum has been reached from another one, skip it
       continue;
@@ -516,7 +531,7 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, long
     float v0 = isEDM ? trueEdmHeight(x0, y0, ip) : ip.at<float>(y0, x0);
     bool sortingError;
     do {    // repeat if we have encountered a sortingError
-      pList[0] = offset0;
+      pList.get()[0] = offset0;
       typeP.at<uint8_t>(offset0) |= (EQUAL | LISTED);    // mark first point as equal height (to itself) and listed
       int listLen        = 1;                            // number of elements in the list
       int listI          = 0;                            // index of current element in the list
@@ -527,13 +542,13 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, long
       double yEqual      = y0;       //  coordinates of contiguous equal-height points
       int nEqual         = 1;        // counts xEqual/yEqual points that we use for averaging
       do {                           // while neigbor list is not fully processed (to listLen)
-        int offset = pList[listI];
+        int offset = pList.get()[listI];
         int x      = offset % width;
         int y      = offset / width;
         bool isInner =
             (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
         for(int d = 0; d < 8; d++) {    // analyze all neighbors (in 8 directions) at the same level
-          int offset2 = offset + dirOffset[d];
+          int offset2 = offset + dirOffset.get()[d];
           if((isInner || isWithin(x, y, d)) && (typeP.at<uint8_t>(offset2) & LISTED) == 0) {
             if(isEDM && ip.at<float>(offset2) <= 0)
               continue;    // ignore the background (non-particles)
@@ -555,7 +570,7 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, long
                 x0           = x2;
                 y0           = y2;
               }
-              pList[listLen] = offset2;
+              pList.get()[listLen] = offset2;
               listLen++;    // we have found a new point within the tolerance
               typeP.at<uint8_t>(offset2) |= LISTED;
               if((x2 == 0 || x2 == width - 1 || y2 == 0 || y2 == height - 1) && (strict || v2 >= v0)) {
@@ -579,7 +594,7 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, long
 
       if(sortingError) {    // if x0,y0 was not the true maximum but we have reached a higher one
         for(listI = 0; listI < listLen; listI++)
-          typeP.at<uint8_t>(pList[listI]) = 0;    // reset all points encountered, then retry
+          typeP.at<uint8_t>(pList.get()[listI]) = 0;    // reset all points encountered, then retry
       } else {
         int resetMask = ~(maxPossible ? LISTED : (LISTED | EQUAL));
         xEqual /= nEqual;
@@ -587,7 +602,7 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, long
         double minDist2 = 1e20;
         int nearestI    = 0;
         for(listI = 0; listI < listLen; listI++) {
-          int offset = pList[listI];
+          int offset = pList.get()[listI];
           int x      = offset % width;
           int y      = offset / width;
           typeP.at<uint8_t>(offset) &= resetMask;    // reset attributes no longer needed
@@ -604,7 +619,7 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, long
           }
         }    // for listI
         if(maxPossible) {
-          int offset = pList[nearestI];
+          int offset = pList.get()[nearestI];
           typeP.at<uint8_t>(offset) |= MAX_POINT;
           if(displayOrCount && !(this->excludeOnEdges && isEdgeMaximum)) {
             int x = offset % width;
@@ -624,29 +639,27 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, long
 
 /** Create an 8-bit image by scaling the pixel values of ip to 1-254 (<lower threshold 0) and mark maximum areas as
  * 255. For use as input for watershed segmentation
- * @param ip         The original image that should be segmented
- * @param typeP      Pixel types in ip
- * @param isEDM      Whether ip is an Euclidian distance map
- * @param globalMin  The minimum pixel value of ip
- * @param globalMax  The maximum pixel value of ip
- * @param threshold  Pixels of ip below this value (calibrated) are considered background. Ignored if
+ * \param ip         The original image that should be segmented
+ * \param typeP      Pixel types in ip
+ * \param isEDM      Whether ip is an Euclidian distance map
+ * \param globalMin  The minimum pixel value of ip
+ * \param globalMax  The maximum pixel value of ip
+ * \param threshold  Pixels of ip below this value (calibrated) are considered background. Ignored if
  * MaximumFinder::NO_THRESHOLD
- * @return           The 8-bit output image.
+ * \return           The 8-bit output image.
  */
 cv::Mat MaximumFinder::make8bit(cv::Mat &ip, cv::Mat &typeP, bool isEDM, float globalMin, float globalMax,
                                 double threshold)
 {
   double minValue = 0;
   if(isEDM) {
-    std::cout << "Is EDM " << std::endl;
     threshold = 0.5;
     minValue  = 1.;
   } else {
     minValue = (threshold == MaximumFinder::NO_THRESHOLD) ? globalMin : threshold;
   }
-  double offset =
-      minValue - (globalMax - minValue) *
-                     (1.0F / 253.0F / 2.0F - (double) 1e-6);    // everything above minValue should become >(byte)0
+  double offset = minValue - (globalMax - minValue) *
+                                 (1.0F / 253.0F / 2.0F - 1e-6);    // everything above minValue should become >(byte)0
   double factor = 253.0F / (globalMax - minValue);
 
   if(isEDM && factor > 1) {
@@ -655,25 +668,23 @@ cv::Mat MaximumFinder::make8bit(cv::Mat &ip, cv::Mat &typeP, bool isEDM, float g
   cv::Mat outIp = cv::Mat::zeros(this->height, this->width, CV_8UC1);
   // convert possibly calibrated image to byte without damaging threshold (setMinAndMax would kill threshold)
 
-  std::cout << "gm" << std::to_string(factor) << " | " << std::to_string(offset) << " | " << std::to_string(globalMin)
-            << " | " << std::to_string(globalMax) << std::endl;
-
-  long v = 0;
+  int64_t v = 0;
   for(int y = 0, i = 0; y < height; y++) {
     for(int x = 0; x < width; x++, i++) {
       float rawValue = ip.at<float>(y, x);
-      if(threshold != MaximumFinder::NO_THRESHOLD && rawValue < threshold)
+      if(threshold != MaximumFinder::NO_THRESHOLD && rawValue < threshold) {
         outIp.at<uint8_t>(i) = (uint8_t) 0;
-      else if((typeP.at<uint8_t>(i) & MAX_AREA) != 0)
+      } else if((typeP.at<uint8_t>(i) & MAX_AREA) != 0) {
         outIp.at<uint8_t>(i) = (uint8_t) 255;    // prepare watershed by setting "true" maxima+surroundings to 255
-      else {
+      } else {
         v = 1 + std::round((rawValue - offset) * factor);
-        if(v < 1)
+        if(v < 1) {
           outIp.at<uint8_t>(i) = (uint8_t) 1;
-        else if(v <= 254)
+        } else if(v <= 254) {
           outIp.at<uint8_t>(i) = (uint8_t) (v & 255);
-        else
+        } else {
           outIp.at<uint8_t>(i) = (uint8_t) 254;
+        }
       }
     }
   }
@@ -683,10 +694,10 @@ cv::Mat MaximumFinder::make8bit(cv::Mat &ip, cv::Mat &typeP, bool isEDM, float g
 /** Get estimated "true" height of a maximum or saddle point of a Euclidian Distance Map.
  * This is needed since the point sampled is not necessarily at the highest position.
  * For simplicity, we don't care about the Sqrt(5) distance here although this would be more accurate
- * @param x     x-position of the point
- * @param y     y-position of the point
- * @param ip    the EDM (FloatProcessor)
- * @return      estimated height
+ * \param x     x-position of the point
+ * \param y     y-position of the point
+ * \param ip    the EDM (FloatProcessor)
+ * \return      estimated height
  */
 float MaximumFinder::trueEdmHeight(int x, int y, const cv::Mat &ip)
 {
@@ -701,8 +712,8 @@ float MaximumFinder::trueEdmHeight(int x, int y, const cv::Mat &ip)
     bool ridgeOrMax = false;
     for(int d = 0; d < 4; d++) {    // for all directions halfway around:
       int d2   = (d + 4) % 8;       // get the opposite direction and neighbors
-      float v1 = ip.at<float>(offset + dirOffset[d]);
-      float v2 = ip.at<float>(offset + dirOffset[d2]);
+      float v1 = ip.at<float>(offset + dirOffset.get()[d]);
+      float v2 = ip.at<float>(offset + dirOffset.get()[d2]);
       float h;
       if(v >= v1 && v >= v2) {
         ridgeOrMax = true;
@@ -726,23 +737,26 @@ float MaximumFinder::trueEdmHeight(int x, int y, const cv::Mat &ip)
  * explore the surrounding down to successively lower levels until a marked maximum is
  * touched (or the plateau of a previously eliminated maximum leads to a marked maximum).
  * Then set all the points above this value to this value
- * @param outIp     the image containing the pixel values
- * @param typeP     the types of the pixels are marked here
- * @param maxPoints array containing the coordinates of all maxima that might be relevant
+ * \param outIp     the image containing the pixel values
+ * \param typeP     the types of the pixels are marked here
+ * \param maxPoints array containing the coordinates of all maxima that might be relevant
  */
-void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, long *maxPoints, size_t maxPointSize)
+void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, std::shared_ptr<int64_t> maxPoints,
+                                  size_t maxPointSize)
 {
   // byte[] pixels = (byte[]) outIp.getPixels();
   // byte[] types  = (byte[]) typeP.getPixels();
-  int nMax   = maxPointSize;
-  int *pList = new int[this->width * this->height]{0};
+  int nMax = maxPointSize;
+
+  std::shared_ptr<int> pList(new int[this->width * this->height]{0}, [](int *p) { delete[] p; });
+
   for(int iMax = nMax - 1; iMax >= 0; iMax--) {
-    int offset0 = (int) maxPoints[iMax];    // type cast gets lower 32 bits where pixel offset is encoded
+    int offset0 = (int) maxPoints.get()[iMax];    // type cast gets lower 32 bits where pixel offset is encoded
     if((typeP.at<uint8_t>(offset0) & (MAX_AREA | ELIMINATED)) != 0)
       continue;
-    int level   = outIp.at<uint8_t>(offset0) & 255;
-    int loLevel = level + 1;
-    pList[0]    = offset0;                   // we start the list at the current maximum
+    int level      = outIp.at<uint8_t>(offset0) & 255;
+    int loLevel    = level + 1;
+    pList.get()[0] = offset0;                // we start the list at the current maximum
     typeP.at<uint8_t>(offset0) |= LISTED;    // mark first point as listed
     int listLen      = 1;                    // number of elements in the list
     int lastLen      = 1;
@@ -753,20 +767,20 @@ void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, long *maxPoint
       lastLen = listLen;    // remember end of list for previous level
       listI   = 0;          // in each level, start analyzing the neighbors of all pixels
       do {                  // for all pixels listed so far
-        int offset = pList[listI];
+        int offset = pList.get()[listI];
         int x      = offset % width;
         int y      = offset / width;
         bool isInner =
             (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
         for(int d = 0; d < 8; d++) {    // analyze all neighbors (in 8 directions) at the same level
-          int offset2 = offset + dirOffset[d];
+          int offset2 = offset + dirOffset.get()[d];
           if((isInner || isWithin(x, y, d)) && (typeP.at<uint8_t>(offset2) & LISTED) == 0) {
             if((typeP.at<uint8_t>(offset2) & MAX_AREA) != 0 ||
                (((typeP.at<uint8_t>(offset2) & ELIMINATED) != 0) && (outIp.at<uint8_t>(offset2) & 255) >= loLevel)) {
               saddleFound = true;    // we have reached a point touching a "true" maximum...
               break;                 //...or a level not lower, but touching a "true" maximum
             } else if((outIp.at<uint8_t>(offset2) & 255) >= loLevel && (typeP.at<uint8_t>(offset2) & ELIMINATED) == 0) {
-              pList[listLen] = offset2;
+              pList.get()[listLen] = offset2;
               // xList[listLen] = x+DIR_X_OFFSET[d];
               // yList[listLen] = x+DIR_Y_OFFSET[d];
               listLen++;    // we have found a new point to be processed
@@ -781,10 +795,10 @@ void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, long *maxPoint
       } while(listI < listLen);
     }                                             // while !levelFound && loLevel>=0
     for(listI = 0; listI < listLen; listI++) {    // reset attribute since we may come to this place again
-      typeP.at<uint8_t>(pList[listI]) &= ~LISTED;
+      typeP.at<uint8_t>(pList.get()[listI]) &= ~LISTED;
     }
     for(listI = 0; listI < lastLen; listI++) {    // for all points higher than the level of the saddle point
-      int offset                = pList[listI];
+      int offset                = pList.get()[listI];
       outIp.at<uint8_t>(offset) = (uint8_t) loLevel;    // set pixel value to the level of the saddle point
       typeP.at<uint8_t>(offset) |= ELIMINATED;    // mark as processed: there can't be a local maximum in this area
     }
@@ -794,7 +808,7 @@ void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, long *maxPoint
 /** Delete extra structures form watershed of non-EDM images, e.g., foreground patches,
  *  single dots and lines ending somewhere within a segmented particle
  *  Needed for post-processing watershed-segmented images that can have local minima
- *  @param ip 8-bit image with background = 0, lines between 1 and 254 and segmented particles = 255
+ *  \param ip 8-bit image with background = 0, lines between 1 and 254 and segmented particles = 255
  */
 void MaximumFinder::cleanupExtraLines(cv::Mat &ip)
 {
@@ -824,7 +838,7 @@ void MaximumFinder::removeLineFrom(uint8_t *pixels, int x, int y)
         (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
     for(int d = 0; d < 8; d += 2) {                                   // analyze 4-connected neighbors
       if(isInner || isWithin(x, y, d)) {
-        int v = pixels[x + width * y + dirOffset[d]];
+        int v = pixels[x + width * y + dirOffset.get()[d]];
         if(v != (uint8_t) 255 && v != 0) {
           int nRadii = this->nRadii(pixels, x + DIR_X_OFFSET[d], y + DIR_Y_OFFSET[d]);
           if(nRadii <= 1) {    // found a point or line end
@@ -843,10 +857,10 @@ void MaximumFinder::removeLineFrom(uint8_t *pixels, int x, int y)
 
 /** Analyze the neighbors of a pixel (y, x) in a byte image; pixels <255 ("non-white") are
  * considered foreground. Edge pixels are considered foreground.
- * @param   ip
- * @param   x coordinate of the point
- * @param   y coordinate of the point
- * @return  Number of 4-connected lines emanating from this point. Zero if the point is
+ * \param   ip
+ * \param   x coordinate of the point
+ * \param   y coordinate of the point
+ * \return  Number of 4-connected lines emanating from this point. Zero if the point is
  *          embedded in either foreground or background
  */
 int MaximumFinder::nRadii(uint8_t *pixels, int x, int y)
@@ -860,22 +874,26 @@ int MaximumFinder::nRadii(uint8_t *pixels, int x, int y)
   for(int d = 0; d < 8; d++) {    // walk around the point and note every no-line->line transition
     bool pixelSet = prevPixelSet;
     if(isInner || isWithin(x, y, d)) {
-      bool isSet = (pixels[offset + dirOffset[d]] != (uint8_t) 255);
-      if((d & 1) == 0)
+      bool isSet = (pixels[offset + dirOffset.get()[d]] != (uint8_t) 255);
+      if((d & 1) == 0) {
         pixelSet = isSet;    // non-diagonal directions: always regarded
-      else if(!isSet)        // diagonal directions may separate two lines,
+      } else if(!isSet) {    // diagonal directions may separate two lines,
         pixelSet = false;    //    but are insufficient for a 4-connected line
+      }
     } else {
       pixelSet = true;
     }
-    if(pixelSet && !prevPixelSet)
+    if(pixelSet && !prevPixelSet) {
       countTransitions++;
+    }
     prevPixelSet = pixelSet;
-    if(d == 0)
+    if(d == 0) {
       firstPixelSet = pixelSet;
+    }
   }
-  if(firstPixelSet && !prevPixelSet)
+  if(firstPixelSet && !prevPixelSet) {
     countTransitions++;
+  }
   return countTransitions;
 }    // int nRadii
 
@@ -887,50 +905,59 @@ void MaximumFinder::watershedPostProcess(cv::Mat &ip)
   int size = ip.cols * ip.rows;
   for(int i = 0; i < size; i++) {
     if((ip.at<uint8_t>(i) & 255) < 255) {
-      ip.at<uint8_t>(i) = (uint8_t) 0;
-    } else {
-      std::cout << "NA" << std::endl;
+      ip.at<uint8_t>(i) = static_cast<uint8_t>(0);
     }
   }
   // new ImagePlus("after postprocess",ip.duplicate()).show();
 }
 
 /** delete particles corresponding to edge maxima
- * @param typeP Here the pixel types of the original image are noted,
+ * \param typeP Here the pixel types of the original image are noted,
  * pixels with bit MAX_AREA at the edge are considered indicators of an edge maximum.
- * @param ip the image resulting from watershed segmentaiton
+ * \param ip the image resulting from watershed segmentaiton
  * (foreground pixels, i.e. particles, are 255, background 0)
  */
 void MaximumFinder::deleteEdgeParticles(cv::Mat &ip, cv::Mat &typeP)
 {
   // byte[] pixels = (byte[]) ip.getPixels();
   // byte[] types  = (byte[]) typeP.getPixels();
-  width      = ip.cols;
-  height     = ip.rows;
-  Wand *wand = new Wand(ip);
+  width  = ip.cols;
+  height = ip.rows;
+  Wand wand(ip);
   for(int x = 0; x < width; x++) {
     int y = 0;
-    if((typeP.at<uint8_t>(x + y * width) & MAX_AREA) != 0 && ip.at<uint8_t>(x + y * width) != 0)
-      deleteParticle(x, y, ip, *wand);
+    if((typeP.at<uint8_t>(x + y * width) & MAX_AREA) != 0 && ip.at<uint8_t>(x + y * width) != 0) {
+      deleteParticle(x, y, ip, wand);
+    }
     y = height - 1;
-    if((typeP.at<uint8_t>(x + y * width) & MAX_AREA) != 0 && ip.at<uint8_t>(x + y * width) != 0)
-      deleteParticle(x, y, ip, *wand);
+    if((typeP.at<uint8_t>(x + y * width) & MAX_AREA) != 0 && ip.at<uint8_t>(x + y * width) != 0) {
+      deleteParticle(x, y, ip, wand);
+    }
   }
   for(int y = 1; y < height - 1; y++) {
     int x = 0;
-    if((typeP.at<uint8_t>(x + y * width) & MAX_AREA) != 0 && ip.at<uint8_t>(x + y * width) != 0)
-      deleteParticle(x, y, ip, *wand);
+    if((typeP.at<uint8_t>(x + y * width) & MAX_AREA) != 0 && ip.at<uint8_t>(x + y * width) != 0) {
+      deleteParticle(x, y, ip, wand);
+    }
     x = width - 1;
-    if((typeP.at<uint8_t>(x + y * width) & MAX_AREA) != 0 && ip.at<uint8_t>(x + y * width) != 0)
-      deleteParticle(x, y, ip, *wand);
+    if((typeP.at<uint8_t>(x + y * width) & MAX_AREA) != 0 && ip.at<uint8_t>(x + y * width) != 0) {
+      deleteParticle(x, y, ip, wand);
+    }
   }
 }    // void MaximumFinder::deleteEdgeParticles
 
 /** delete a particle (set from value 255 to current fill value).
  * Position x,y must be within the particle
  */
+
+///
+/// \brief      Delete particles using Wand algorithm
+/// \param[in]  x, x, ip, wand
+/// \todo Not supported yet
+///
 void MaximumFinder::deleteParticle(int x, int y, cv::Mat &ip, Wand &wand)
 {
+  throw std::runtime_error("Delete particles not supported yet!");
   /*
   wand.autoOutline(x, y, 255, 255);
   if(wand.npoints == 0) {
@@ -949,10 +976,9 @@ void MaximumFinder::deleteParticle(int x, int y, cv::Mat &ip, Wand &wand)
  * other than the marked ones. Local minima will lead to artifacts that can be removed
  * later. On output, all particles will be set to 255, segmentation lines remain at their
  * old value.
- * @param ip  The byteProcessor containing the image, with size given by the class variables width and height
- * @return    false if canceled by the user (note: can be cancelled only if called by "run" with a known ImagePlus)
+ * \param ip  The byteProcessor containing the image, with size given by the class variables width and height
+ * \return    false if canceled by the user (note: can be cancelled only if called by "run" with a known ImagePlus)
  */
-
 bool MaximumFinder::watershedSegment(cv::Mat &ip)
 {
   // Create an array with the coordinates of all points between value 1 and 254
@@ -963,20 +989,17 @@ bool MaximumFinder::watershedSegment(cv::Mat &ip)
   float range[]          = {0, 256};         // Pixel value range
   const float *histRange = {range};
   cv::Mat histogram;
-  cv::calcHist(&ip, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange);
-
-  std::cout << "Hist " << std::to_string(histogram.at<float>(0)) << " " << std::to_string(histogram.at<float>(255))
-            << std::endl;
-  //         int arraySize = width*height - histogram[0] -histogram[255];
+  cv::calcHist(&ip, 1, nullptr, cv::Mat(), histogram, 1, &histSize, &histRange);
 
   ///////////////////////////
-  int arraySize    = width * height - histogram.at<float>(0) - histogram.at<float>(255);
-  int *coordinates = coordinates = new int[arraySize]{0};    // from pixel coordinates, low bits x, high bits y
+  int arraySize = static_cast<int>(static_cast<float>(width) * static_cast<float>(height) - histogram.at<float>(0) -
+                                   histogram.at<float>(255));
+  std::shared_ptr<int> coordinates(new int[arraySize]{0}, [](int *p) { delete[] p; });
 
   int highestValue = 0;
   int maxBinSize   = 0;
   int offset       = 0;
-  int *levelStart  = new int[256]{0};
+  int levelStart[256]{0};
   for(int v = 1; v < 255; v++) {
     levelStart[v] = offset;
     offset += histogram.at<float>(v);
@@ -987,25 +1010,29 @@ bool MaximumFinder::watershedSegment(cv::Mat &ip)
       maxBinSize = histogram.at<float>(v);
     }
   }
-  int *levelOffset = new int[highestValue + 1]{0};
+
+  std::shared_ptr<int> levelOffset(new int[highestValue + 1]{0}, [](int *p) { delete[] p; });
+
   for(int y = 0, i = 0; y < height; y++) {
     for(int x = 0; x < width; x++, i++) {
       int v = ip.at<uint8_t>(i) & 255;
       if(v > 0 && v < 255) {
-        offset              = levelStart[v] + levelOffset[v];
-        coordinates[offset] = x | y << intEncodeShift;
-        levelOffset[v]++;
+        offset                    = levelStart[v] + levelOffset.get()[v];
+        coordinates.get()[offset] = x | y << intEncodeShift;
+        levelOffset.get()[v]++;
       }
     }    // for x
   }      // for y
-  // Create an array of the points (pixel offsets) that we set to 255 in one pass.
-  // If we remember this list we need not create a snapshot of the ImageProcessor.
-  int *setPointList = new int[std::min(maxBinSize, (width * height + 2) / 3)]{0};
+         // Create an array of the points (pixel offsets) that we set to 255 in one pass.
+         // If we remember this list we need not create a snapshot of the ImageProcessor.
+  std::shared_ptr<int> setPointList(new int[std::min(maxBinSize, (width * height + 2) / 3)]{0},
+                                    [](int *p) { delete[] p; });
+
   // now do the segmentation, starting at the highest level and working down.
   // At each level, dilate the particle (set pixels to 255), constrained to pixels
   // whose values are at that level and also constrained (by the fateTable)
   // to prevent features from merging.
-  int *table              = makeFateTable();
+  auto table              = makeFateTable();
   int directionSequence[] = {7, 3, 1, 5, 0, 4, 2, 6};    // diagonal directions first
   for(int level = highestValue; level >= 1; level--) {
     int remaining = histogram.at<float>(level);    // number of points in the level that have not been processed
@@ -1038,7 +1065,7 @@ bool MaximumFinder::watershedSegment(cv::Mat &ip)
       if(nextLevel > 0) {
         int newNextLevelEnd = levelStart[nextLevel] + histogram.at<float>(nextLevel);
         for(int i = 0, p = levelStart[level]; i < remaining; i++, p++) {
-          int xy      = coordinates[p];
+          int xy      = coordinates.get()[p];
           int x       = xy & intEncodeXMask;
           int y       = (xy & intEncodeYMask) >> intEncodeShift;
           int pOffset = x + y * width;
@@ -1050,13 +1077,13 @@ bool MaximumFinder::watershedSegment(cv::Mat &ip)
             addToNext = true;    // image border
           } else {
             for(int d = 0; d < 8; d++)
-              if(isWithin(x, y, d) && ip.at<uint8_t>(pOffset + dirOffset[d]) == 0) {
+              if(isWithin(x, y, d) && ip.at<uint8_t>(pOffset + dirOffset.get()[d]) == 0) {
                 addToNext = true;    // border of area below threshold
                 break;
               }
           }
           if(addToNext) {
-            coordinates[newNextLevelEnd++] = xy;
+            coordinates.get()[newNextLevelEnd++] = xy;
           }
         }
         // IJ.log("level="+level+": add "+(newNextLevelEnd-levelStart[nextLevel+1])+" points to "+nextLevel);
@@ -1070,19 +1097,19 @@ bool MaximumFinder::watershedSegment(cv::Mat &ip)
 }    // bool watershedSegment
 
 /** dilate the UEP on one level by one pixel in the direction specified by step, i.e., set pixels to 255
- * @param pass gives direction of dilation, see makeFateTable
- * @param ip the EDM with the segmeted blobs successively getting set to 255
- * @param table             The fateTable
- * @param levelStart        offsets of the level in pixelPointers[]
- * @param levelNPoints      number of points in the current level
- * @param pixelPointers[]   list of pixel coordinates (x+y*width) sorted by level (in sequence of y, x within each
+ * \param pass gives direction of dilation, see makeFateTable
+ * \param ip the EDM with the segmeted blobs successively getting set to 255
+ * \param table             The fateTable
+ * \param levelStart        offsets of the level in pixelPointers[]
+ * \param levelNPoints      number of points in the current level
+ * \param pixelPointers[]   list of pixel coordinates (x+y*width) sorted by level (in sequence of y, x within each
  * level)
- * @param xCoordinates      list of x Coorinates for the current level only (no offset levelStart)
- * @return                  number of pixels that have been changed
+ * \param xCoordinates      list of x Coorinates for the current level only (no offset levelStart)
+ * \return                  number of pixels that have been changed
  */
 
-int MaximumFinder::processLevel(int pass, cv::Mat &ip, int *fateTable, int levelStart, int levelNPoints,
-                                int *coordinates, int *setPointList)
+int MaximumFinder::processLevel(int pass, cv::Mat &ip, std::shared_ptr<int> fateTable, int levelStart, int levelNPoints,
+                                std::shared_ptr<int> coordinates, std::shared_ptr<int> setPointList)
 {
   int xmax = width - 1;
   int ymax = height - 1;
@@ -1090,7 +1117,7 @@ int MaximumFinder::processLevel(int pass, cv::Mat &ip, int *fateTable, int level
   int nChanged   = 0;
   int nUnchanged = 0;
   for(int i = 0, p = levelStart; i < levelNPoints; i++, p++) {
-    int xy     = coordinates[p];
+    int xy     = coordinates.get()[p];
     int x      = xy & intEncodeXMask;
     int y      = (xy & intEncodeYMask) >> intEncodeShift;
     int offset = x + y * width;
@@ -1121,17 +1148,17 @@ int MaximumFinder::processLevel(int pass, cv::Mat &ip, int *fateTable, int level
     }
     int mask = 1 << pass;
 
-    if((fateTable[index] & mask) == mask) {
-      setPointList[nChanged++] = offset;    // remember to set pixel to 255
+    if((fateTable.get()[index] & mask) == mask) {
+      setPointList.get()[nChanged++] = offset;    // remember to set pixel to 255
     } else {
-      coordinates[levelStart + (nUnchanged++)] = xy;    // keep this pixel for future passes
+      coordinates.get()[levelStart + (nUnchanged++)] = xy;    // keep this pixel for future passes
     }
 
   }    // for pixel i
        // IJ.log("pass="+pass+", changed="+nChanged+" unchanged="+nUnchanged);
 
   for(int i = 0; i < nChanged; i++) {
-    ip.at<uint8_t>(setPointList[i]) = (uint8_t) 255;
+    ip.at<uint8_t>(setPointList.get()[i]) = (uint8_t) 255;
   }
   return nChanged;
 }    // processLevel
@@ -1152,10 +1179,11 @@ int MaximumFinder::processLevel(int pass, cv::Mat &ip, int *fateTable, int level
  * E.g. 4 = add on 3rd pass, 3 = add on either 1st or 2nd pass.
  */
 
-int *MaximumFinder::makeFateTable()
+std::shared_ptr<int> MaximumFinder::makeFateTable()
 {
-  int *table  = new int[256]{0};
-  bool *isSet = new bool[8]{0};
+  std::shared_ptr<int> table(new int[256]{0}, [](int *p) { delete[] p; });
+
+  bool isSet[8]{0};
   for(int item = 0; item < 256; item++) {    // dissect into pixels
     for(int i = 0, mask = 1; i < 8; i++) {
       isSet[i] = (item & mask) == mask;
@@ -1164,7 +1192,7 @@ int *MaximumFinder::makeFateTable()
     for(int i = 0, mask = 1; i < 8;
         i++) {    // we dilate in the direction opposite to the direction of the existing neighbors
       if(isSet[(i + 4) % 8])
-        table[item] |= mask;
+        table.get()[item] |= mask;
       mask *= 2;
     }
     for(int i = 0; i < 8;
@@ -1181,7 +1209,7 @@ int *MaximumFinder::makeFateTable()
         transitions++;
     }
     if(transitions >= 4) {    // if neighbors contain more than one region, dilation ito this pixel is forbidden
-      table[item] = 0;
+      table.get()[item] = 0;
     } else {
     }
   }
@@ -1212,7 +1240,8 @@ void MaximumFinder::makeDirectionOffsets(cv::Mat &ip)
   intEncodeYMask = ~intEncodeXMask;
   intEncodeShift = shift;
   // IJ.log("masks (hex):"+Integer.toHexString(xMask)+","+Integer.toHexString(xMask)+"; shift="+shift);
-  dirOffset = new int[12]{-width, -width + 1, +1, +width + 1, +width, +width - 1, -1, -width - 1};
+  dirOffset = std::shared_ptr<int>(new int[12]{-width, -width + 1, +1, +width + 1, +width, +width - 1, -1, -width - 1},
+                                   [](int *p) { delete[] p; });
   // dirOffset is created last, so check for it being null before makeDirectionOffsets
   //(in case we have multiple threads using the same MaximumFinder)
 }
@@ -1220,10 +1249,10 @@ void MaximumFinder::makeDirectionOffsets(cv::Mat &ip)
 /** returns whether the neighbor in a given direction is within the image
  * NOTE: it is assumed that the pixel x,y itself is within the image!
  * Uses class variables width, height: dimensions of the image
- * @param x         x-coordinate of the pixel that has a neighbor in the given direction
- * @param y         y-coordinate of the pixel that has a neighbor in the given direction
- * @param direction the direction from the pixel towards the neighbor (see makeDirectionOffsets)
- * @return          true if the neighbor is within the image (provided that x, y is within)
+ * \param x         x-coordinate of the pixel that has a neighbor in the given direction
+ * \param y         y-coordinate of the pixel that has a neighbor in the given direction
+ * \param direction the direction from the pixel towards the neighbor (see makeDirectionOffsets)
+ * \return          true if the neighbor is within the image (provided that x, y is within)
  */
 bool MaximumFinder::isWithin(int x, int y, int direction)
 {
@@ -1251,3 +1280,4 @@ bool MaximumFinder::isWithin(int x, int y, int direction)
 }    // isWithin
 
 /** add work done in the meanwhile and show progress */
+}    // namespace joda::func::img

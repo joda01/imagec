@@ -1,10 +1,67 @@
 
 
+///
+/// \file    maximum_finder.hpp
+/// \date    2023-02-20
+/// \brief   C++ implementation of maximum finder ported from imageJ
+/// \ref     https://github.com/imagej/ImageJ/blob/master/ij/plugin/filter/MaximumFinder.java
+/// \brief   This plugin implements the Euclidean Distance Map (EDM), Watershed,
+///          Ultimate Eroded Points and Voronoi commands in the Process/Binary submenu.
+///
+///        - Euclidean Distance Map: The value of each pixel is the distance to the nearest
+///          background pixel (for background pixels, the EDM is 0)
+///        - Ultimate Eroded Points  (UEPs) are maxima of the EDM. In the output, the points
+///          are assigned the EDM value, which is equal to the radius of the largest circle
+///          that fits into the particle, with the UEP as the center.
+///        - Watershed segmentation of the EDM splits particles at "necks"; starting at
+///          maxima of the EDM.
+///        - 'Voronoi' splits the image by lines of points having equal distance to the
+///          borders of the two nearest particles. Thus, the Voronoi cell of each particle
+///          includes all points that are nearer to this particle than any other particle.
+///          For the case of the priticles being single points, this is a Voronoi tessellation
+///          (also known as Dirichlet tessellation).
+///          In the output, the value inside the Voronoi cells is zero; the pixel values
+///          of the dividing lines between the cells are equal to the distance to the two
+///          nearest particles. This is similar to a medial axis transform of the background,
+///          but there are no lines in inner holes of particles.
+///
+///          Watershed, Ultimate Eroded Points and Voronoi are handled by the MaximumFinder
+///          plugin applied to the EDM
+///          Note: These functions do not take ROIs into account.
+///          Setup is called with argument "" (empty string) for EDM,
+///          "watershed" for watershed segmentation, "points" for ultimate eroded points and
+///          "voronoi" for Voronoi segmentation of the background
+///
+///          The EDM algorithm is similar to the 8SSEDT in
+///          F. Leymarie, M. D. Levine, in: CVGIP Image Understanding, vol. 55 (1992), pp 84-94
+///          http://dx.doi.org/10.1016/1049-9660(92)90008-Q
+///
+///          The algorithm provides a fast approximation of the EDM, with the deviation from a
+///          full calculation being between -0.09 and 0. The algorithm is exact for distances<13.
+///          For d>=13, deviations from the true result can occur, but are very rare: typically
+///          the fraction of pixels deviating from the exact result is in the 10^-5 range, with
+///          most deviations between -0.03 and -0.04.
+///
+///          Limitations:
+///          Maximum image diagonal for EDM: 46340 pixels (sqrt(2^31)); if the particles are
+///          dense enough it also works for width, height <=65534.
+///
+///          Version 30-Apr-2008 Michael Schmid:  more accurate EDM algorithm,
+///                                             16-bit and float output possible,
+///                                             parallel processing for stacks
+///                                             Voronoi output added
+///          Version 29-Mar-2024 Joachim Danmayr Ported to C++
+/// \see  <a href="https://imagej.net/plugins/adjustable-watershed/adjustable-watershed">Adjustable Watershed
+///        plugin</a>
+///
+
 #include "edm.hpp"
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core.hpp>
 #include <opencv2/core/cvstd.hpp>
 #include <opencv2/core/mat.hpp>
+
+namespace joda::func::img {
 
 /**
  * Creates the Euclidian Distance Map of a (binary) uint8_t image.
@@ -15,14 +72,11 @@
  * @return                  The EDM, containing the distances to the nearest background pixel.
  *                          Returns null if the thread is interrupted.
  */
-
 cv::Mat Edm::makeFloatEDM(cv::Mat &ip, int backgroundValue, bool edgesAreBackground)
 {
   int width  = ip.cols;
   int height = ip.rows;
   cv::Mat fp = cv::Mat::zeros(height, width, CV_32FC1);
-  // uint8_t *bPixels     = (uint8_t[]) ip.getPixels();
-  // float[] fPixels      = (float[]) fp.getPixels();
 
   for(int i = 0; i < width * height; i++) {
     if(ip.at<uint8_t>(i) != backgroundValue) {
@@ -30,7 +84,6 @@ cv::Mat Edm::makeFloatEDM(cv::Mat &ip, int backgroundValue, bool edgesAreBackgro
     }
   }
   int **pointBufs = new int *[2];    // two buffers for two passes; low short contains x, high short y
-
   for(int i = 0; i < 2; ++i) {
     pointBufs[i] = new int[width];
   }
@@ -57,13 +110,20 @@ cv::Mat Edm::makeFloatEDM(cv::Mat &ip, int backgroundValue, bool edgesAreBackgro
     edmLine(ip, fp, pointBufs, width, y * width, y, backgroundValue, yDist);
   }
 
-  // fp.sqrt();
+  // Cleanup
+  for(int i = 0; i < 2; ++i) {
+    delete[] pointBufs[i];
+  }
+
+  delete[] pointBufs;
+
   cv::sqrt(fp, fp);
   return fp;
 }    //  FloatProcessor makeFloatEDM
 
-// Handle a line; two passes: left-to-right and right-to-left
-
+///
+/// \brief      Handle a line; two passes: left-to-right and right-to-left
+///
 void Edm::edmLine(cv::Mat &bPixels, cv::Mat &fPixels, int **pointBufs, int width, int offset, int y,
                   int backgroundValue, int yDist)
 {
@@ -107,14 +167,15 @@ void Edm::edmLine(cv::Mat &bPixels, cv::Mat &fPixels, int **pointBufs, int width
   }
 }    // private void edmLine
 
-// Calculates minimum distance^2 of x,y from the following three points:
-//  - points[x] (nearest point found for previous line, same x)
-//  - pPrev (nearest point found for same line, previous x), and
-//  - pDiag (nearest point found for diagonal, i.e., previous line, previous x)
-// Sets array element points[x] to the coordinates of the point having the minimum distance to x,y
-// If the distSqr parameter is lower than the distance^2, then distSqr is used
-// Returns to the minimum distance^2 obtained
-
+///
+/// \brief Calculates minimum distance^2 of x,y from the following three points:
+///         - points[x] (nearest point found for previous line, same x)
+///         - pPrev (nearest point found for same line, previous x), and
+///         - pDiag (nearest point found for diagonal, i.e., previous line, previous x)
+///        Sets array element points[x] to the coordinates of the point having the minimum distance to x,y
+///        If the distSqr parameter is lower than the distance^2, then distSqr is used
+///        Returns to the minimum distance^2 obtained
+///
 float Edm::minDist2(int *points, int pPrev, int pDiag, int x, int y, int distSqr)
 {
   int p0           = points[x];    // the nearest background point for the same x in the previous line
@@ -147,3 +208,4 @@ float Edm::minDist2(int *points, int pPrev, int pDiag, int x, int y, int distSqr
   points[x] = nearestPoint;
   return (float) distSqr;
 }    // private float minDist2
+}    // namespace joda::func::img
