@@ -118,10 +118,10 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain) : mWindowMain(windowM
       80));
 
   mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-light-50.png", "[0,1,2,3,..]", "Cross channel intensity", ""));
+      new ContainerFunction<QString, int>("icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", ""));
 
   mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-3-50.png", "[A,B,0,1,2,3,..]", "Cross channel count", ""));
+      new ContainerFunction<QString, int>("icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", ""));
 
   //
   // Create panels -> Must be after creating the functions
