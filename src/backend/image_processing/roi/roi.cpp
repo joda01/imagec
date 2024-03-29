@@ -420,6 +420,13 @@ void ROI::measureAndAddIntensity(int32_t channelIdx, const cv::Mat &imageOrigina
     intensity[channelIdx].intensity = cv::mean(maskImg, mMask)[0];
     cv::minMaxLoc(maskImg, &intensity[channelIdx].intensityMin, &intensity[channelIdx].intensityMax, nullptr, nullptr,
                   mMask);
+  } else {
+    if(!intensity.contains(channelIdx)) {
+      // Just ad an empty entry
+      intensity[channelIdx].intensity    = 0;
+      intensity[channelIdx].intensityMax = 0;
+      intensity[channelIdx].intensityMin = 0;
+    }
   }
 }
 

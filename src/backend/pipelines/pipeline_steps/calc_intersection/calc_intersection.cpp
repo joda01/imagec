@@ -15,6 +15,7 @@
 #include <string>
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/detection/detection.hpp"
+#include <opencv2/core.hpp>
 
 namespace joda::pipeline {
 
@@ -56,7 +57,6 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
   //
   // Calculate the intersection
   //
-  std::cout << "Calc intersection " << std::endl;
   std::vector<func::DetectionFunction::OverlaySettings> overlayPainting;
   joda::func::DetectionResponse response;
   response = *channelsToIntersect[0];
@@ -89,8 +89,20 @@ auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
         }
       }
     }
+
     response = respTmp;
   }
+
+  //
+  // Calculate the intersection of the original images
+  //
+  response.originalImage = cv::Mat::ones(channelsToIntersectImages.begin()->second->rows,
+                                         channelsToIntersectImages.begin()->second->cols, CV_16UC1) *
+                           65535;
+  for(const auto &img : channelsToIntersectImages) {
+    response.originalImage = cv::min(*img.second, response.originalImage);
+  }
+
   DurationCount::stop(id);
 
   overlayPainting.insert(overlayPainting.begin(),
