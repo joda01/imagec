@@ -12,6 +12,7 @@
 ///
 
 #include "watershed.hpp"
+#include <opencv2/core/hal/interface.h>
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -52,56 +53,50 @@ void Watershed::execute(cv::Mat &image) const
   cv::Mat thresholded;
   image.convertTo(thresholded, CV_8U, 1.0F / 257.0F);
 
-  // dist_transform = cv::Scalar::all(255) - dist_transform;
-  // cv::Mat erodes;
-  // cv::erode(dist_transform, erodes, cv::Mat{}, cv::Point(-1, -1), 3);
-  // cv::imwrite("zz_sdist_erodes.jpg", erodes);
+  /////////////////////////////////////////////////////////////////////////////////////
+  cv::Mat distTransform;
+  // thresholded = cv::Scalar::all(255) - thresholded;
+  cv::distanceTransform(thresholded, distTransform, cv::DIST_L2, 0);
+  cv::imwrite("zz_distTransform.jpg", distTransform);
 
-  cv::morphologyEx(thresholded, thresholded, cv::MORPH_OPEN, cv::Mat{});
+  cv::Mat localMax;
+  // find pixels that are equal to the local neighborhood not maximum (including 'plateaus')
+  cv::dilate(distTransform, localMax, cv::Mat());
+  cv::compare(distTransform, localMax, localMax, cv::CMP_GE);
 
-  cv::Mat dilates;
-  cv::dilate(thresholded, dilates, cv::Mat{});
-  cv::imwrite("zz_sdist_dilates.jpg", dilates);
+  // optionally filter out pixels that are equal to the local minimum ('plateaus')
+  if(true) {
+    cv::Mat non_plateau_mask;
+    cv::erode(image, non_plateau_mask, cv::Mat());
+    cv::compare(image, non_plateau_mask, non_plateau_mask, cv::CMP_GT);
+    cv::bitwise_and(localMax, non_plateau_mask, localMax);
+  }
 
-  cv::Mat dist_transform;
-  cv::distanceTransform(thresholded, dist_transform, cv::DIST_L2, 0);    // 5
-  cv::imwrite("zz_sdist_transform.jpg", dist_transform * 100);
-  cv::Mat foreground;
-  cv::threshold(dist_transform, foreground, 0.7 * getMax(dist_transform), 255, 0);
-  cv::imwrite("zz_sdist_transform_points.jpg", foreground);
-  foreground.convertTo(foreground, CV_8U);
-
-  cv::Mat unknown;
-  cv::subtract(dilates, foreground, unknown);
-  cv::imwrite("zz_sdist_unknown.jpg", unknown);
+  cv::imwrite("zz_localMAx.jpg", localMax);
 
   cv::Mat markers;
-  cv::connectedComponents(foreground, markers);
+  cv::connectedComponents(localMax, markers);
   markers = markers + 1;    // 1
-  cv::imwrite("zz_sdist_markers50.jpg", markers * 100);
 
-  // Find the location of pixels in 'unknown' with value 255
-  cv::Mat unknown_mask = (unknown == 255);
-  cv::imwrite("zz_sdist_unknown_mask.jpg", unknown_mask);
-  markers.setTo(0, unknown_mask);
+  cv::imwrite("zz_sdist_wateshed_markers.jpg", markers);
 
-  cv::imwrite("zz_sdist_markers.jpg", markers * 50);
+  localMax.convertTo(markers, CV_32SC1);
+  cv::watershed(inputImage, markers);
+  cv::imwrite("zz_sdist_wateshed.jpg", markers);
 
-  cv::Mat mask;
-  markers.convertTo(mask, CV_32SC1);
-  cv::watershed(inputImage, mask);
-
-  cv::imwrite("zz_sdist_watersehd.jpg", mask);
-
-  cv::Mat watersheedMask = (mask == -1);
-  cv::Mat outMask        = cv::Mat::ones(mask.rows, mask.cols, CV_16UC1) * 65535;
+  cv::Mat watersheedMask = (markers == -1);
+  cv::Mat outMask        = cv::Mat::ones(markers.rows, markers.cols, CV_16UC1) * 65535;
   outMask.setTo(0, watersheedMask);
+  cv::imwrite("zz_sdist_watersheedMask.jpg", outMask);
 
-  cv::imwrite("zz_sdist_watersehd_mask.jpg", outMask);
+  cv::bitwise_and(outMask, image, image);
 
-  cv::bitwise_and(image, outMask, image);
-  cv::imwrite("zz_sdist_watersehd_mask_out.jpg", image);
+  // distTransform = cv::Scalar::all(255) - dist_transform;
+  // cv::Mat erodes;
+  // cv::erode(dist_transform, erodes, cv::Mat{}, cv::Point(-1, -1), 3);
+  cv::imwrite("zz_and.jpg", image);
 }
 
 }    // namespace joda::func::img
      // https://docs.opencv.org/4.x/d3/db4/tutorial_py_watershed.html
+     // https://github.com/imagej/ImageJ/blob/79714089e88fbc83a1499126b20ef5bb04fd3a29/ij/plugin/filter/EDM.java#L188

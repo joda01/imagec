@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "backend/image_processing/functions/watershed/watershed.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -36,6 +37,8 @@ public:
   {
     auto thresholdVal = autoThreshold(srcImg);
     cv::threshold(srcImg, thresholdImg, thresholdVal, UINT16_MAX, cv::THRESH_BINARY);
+    // Watershed watershed;
+    // watershed.execute(thresholdImg);
     return thresholdVal;
   }
 
