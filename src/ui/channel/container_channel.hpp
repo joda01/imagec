@@ -90,6 +90,8 @@ private:
 
   std::shared_ptr<ContainerFunction<QString, QString>> mThresholdAlgorithm;
   std::shared_ptr<ContainerFunction<int, int>> mThresholdValueMin;
+  std::shared_ptr<ContainerFunction<bool, bool>> mWateredSegmentation;
+
   std::shared_ptr<ContainerFunction<float, float>> mMinCircularity;
   std::shared_ptr<ContainerFunction<int, int>> mMinParticleSize;
   std::shared_ptr<ContainerFunction<int, int>> mMaxParticleSize;

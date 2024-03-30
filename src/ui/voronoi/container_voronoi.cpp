@@ -118,10 +118,10 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain) : mWindowMain(windowM
       80));
 
   mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-light-50.png", "[0,1,2,3,..]", "Cross channel intensity", ""));
+      new ContainerFunction<QString, int>("icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", ""));
 
   mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-3-50.png", "[A,B,0,1,2,3,..]", "Cross channel count", ""));
+      new ContainerFunction<QString, int>("icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", ""));
 
   //
   // Create panels -> Must be after creating the functions
@@ -177,10 +177,10 @@ void ContainerVoronoi::fromJson(std::optional<joda::settings::json::ChannelSetti
 
     // Cross channel intensity
     {
-      auto &crossChannelIntensityChannels = voronoi->getCrossChannelIntensityChannels();
+      auto &crossChannelIntensity = voronoi->getCrossChannelIntensityChannels();
       QString crossChannelIndexes;
-      for(const auto chIdx : crossChannelIntensityChannels) {
-        crossChannelIndexes += QString::number(chIdx) + ",";
+      for(const auto chIdx : crossChannelIntensity) {
+        crossChannelIndexes += QString(chIdx.data()) + ",";
       }
       if(crossChannelIndexes.size() > 0) {
         crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
@@ -228,13 +228,11 @@ ContainerVoronoi::ConvertedChannels ContainerVoronoi::toJson() const
     chSettings["voronoi"]["min_coloc_area"] = static_cast<float>(mColocGroup->getValueSecond()) / 100.0F;
   }
   {
-    std::set<int32_t> crossChannelIntensity;
+    std::set<std::string> crossChannelIntensity;
     auto values = mCrossChannelIntensity->getValue().split(",");
     for(const auto &val : values) {
-      bool ok = false;
-      auto i  = val.toInt(&ok);
-      if(ok) {
-        crossChannelIntensity.emplace(i);
+      if(!val.isEmpty()) {
+        crossChannelIntensity.emplace(val.toStdString());
       }
     }
     chSettings["voronoi"]["cross_channel_intensity_channels"] = crossChannelIntensity;

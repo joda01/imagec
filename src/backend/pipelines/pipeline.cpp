@@ -272,7 +272,7 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
-  // Execute coloc calculation
+  // Execute intersection calculation
   //
   int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
   auto idColoc       = DurationCount::start("pipelinesteps");

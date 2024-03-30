@@ -40,15 +40,27 @@ public:
     // be CV_8U.
     bool reduce = mKernelSize > 5;
     cv::Mat medianBlurredImage(image.size(), reduce ? CV_8UC1 : CV_16UC1);
+    double minVal = 0, maxVal = 0;
+
     if(reduce) {
-      image.convertTo(medianBlurredImage, CV_8UC1, static_cast<float>(UCHAR_MAX) / static_cast<float>(UINT16_MAX));
+      // image.convertTo(medianBlurredImage, CV_8UC1, static_cast<float>(UCHAR_MAX) / static_cast<float>(UINT16_MAX));
+
+      cv::minMaxLoc(image, &minVal, &maxVal);    // Find minimum and maximum pixel values
+
+      image.convertTo(medianBlurredImage, CV_8UC1, 255.0 / (maxVal - minVal),
+                      -minVal * 255.0 / (maxVal - minVal));    // Scale and shift pixel values
+
+    } else {
+      medianBlurredImage = image.clone();
     }
     cv::medianBlur(medianBlurredImage, medianBlurredImage, mKernelSize);
     if(reduce) {
-      medianBlurredImage.convertTo(medianBlurredImage, CV_16UC1,
-                                   static_cast<float>(UINT16_MAX) / static_cast<float>(UCHAR_MAX));
+      cv::Mat medianBlurredImageOut(image.size(), CV_16UC1);
+      medianBlurredImage.convertTo(medianBlurredImageOut, CV_16UC1, (maxVal - minVal) / 255.0, minVal);
+      image = image - medianBlurredImageOut;
+    } else {
+      image = image - medianBlurredImage;
     }
-    image = image - medianBlurredImage;
   }
 
 private:

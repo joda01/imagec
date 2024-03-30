@@ -723,39 +723,35 @@ private slots:
 
   void comboxEditingFinished()
   {
-    if(mComboBox != nullptr) {
-      if(mComboBoxSecond != nullptr) {
-        if(!hasValue()) {
-          mComboBoxSecond->setEnabled(false);
-        } else {
-          mComboBoxSecond->setEnabled(true);
-        }
+    if(mComboBoxSecond != nullptr) {
+      if(!hasValue()) {
+        mComboBoxSecond->setEnabled(false);
+      } else {
+        mComboBoxSecond->setEnabled(true);
       }
+    }
 
+    if(mComboBox != nullptr) {
       if(mComboBoxSecond != nullptr && hasValue()) {
         if(mComboBox->currentText().isEmpty()) {
           mDisplayText = mComboBoxSecond->currentText();
         } else {
           mDisplayText = mComboBox->currentText() + " (" + mComboBoxSecond->currentText() + ")";
         }
-
       } else {
         mDisplayText = mComboBox->currentText();
       }
 
-      if(mComboBox != nullptr) {
-        QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
-        if(itemData.isValid() && itemData.canConvert<QIcon>()) {
-          QIcon selectedIcon = qvariant_cast<QIcon>(itemData);
-
-          // Set the icon for the label
-          mDisplayLabelIcon->setPixmap(selectedIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
-        }
+      QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
+      if(itemData.isValid() && itemData.canConvert<QIcon>()) {
+        QIcon selectedIcon = qvariant_cast<QIcon>(itemData);
+        // Set the icon for the label
+        mDisplayLabelIcon->setPixmap(selectedIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
       }
-
-      updateDisplayText();
-      ContainerFunction<VALUE_T, VALUE2_T>::triggerValueChanged();
     }
+
+    updateDisplayText();
+    ContainerFunction<VALUE_T, VALUE2_T>::triggerValueChanged();
   }
 };
 
