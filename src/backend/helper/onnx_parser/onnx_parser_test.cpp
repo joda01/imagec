@@ -13,8 +13,9 @@ TEST_CASE("onnx_parser:test", "[onnx_parser_test]")
   REQUIRE(result.contains("models/cell_segmentation_brightfield_in_vitro_v1.onnx"));
   REQUIRE(result.contains("models/nucleus_detection_ex_vivo_v1.onnx"));
 
-  CHECK(result["models/nucleus_detection_ex_vivo_v1.onnx"].classes[0] == "");
-  CHECK(result["models/nucleus_detection_ex_vivo_v1.onnx"].classes[1] == "");
-
-  CHECK(result["models/cell_segmentation_brightfield_in_vitro_v1.onnx"].classes[0] == "");
+  CHECK(result["models/nucleus_detection_ex_vivo_v1.onnx"].classes[0] == "nucleus");
+  CHECK(result["models/nucleus_detection_ex_vivo_v1.onnx"].classes[1] == "nucleus_unfocused");
+  CHECK(result["models/cell_segmentation_brightfield_in_vitro_v1.onnx"].classes[0] == "cell");
+  CHECK(result["models/cell_segmentation_brightfield_in_vitro_v1.onnx"].modelPath ==
+        "models/cell_segmentation_brightfield_in_vitro_v1.onnx");
 }
