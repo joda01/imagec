@@ -86,7 +86,6 @@ void ChannelDetection::stringToDetectionMode()
     enumDetectionMode = DetectionMode::THRESHOLD;
   } else if(mode == "AI") {
     enumDetectionMode = DetectionMode::AI;
-
   } else {
     throw std::runtime_error("Detection mode >" + mode + "< is not a valid detection mode!");
   }

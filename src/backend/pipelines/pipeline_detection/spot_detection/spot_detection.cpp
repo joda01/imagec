@@ -19,6 +19,7 @@
 #include <mutex>
 #include <string>
 #include <string_view>
+#include "backend/image_processing/detection/ai_object_segmentation/ai_object_segmentation.hpp"
 #include "backend/image_processing/detection/object_segmentation/object_segmentation.hpp"
 #include <opencv2/imgproc.hpp>
 
@@ -32,10 +33,18 @@ namespace joda::pipeline::detection {
 auto SpotDetection::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
                             const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse
 {
-  joda::func::threshold::ObjectSegmentation th(
-      channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin(),
-      channelSetting.getDetectionSettings().getThersholdSettings().getThreshold(),
-      channelSetting.getDetectionSettings().doWatershedSegmentation());
-  return th.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
+  if(channelSetting.getDetectionSettings().getDetectionMode() ==
+     settings::json::ChannelDetection::DetectionMode::THRESHOLD) {
+    joda::func::threshold::ObjectSegmentation th(
+        channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin(),
+        channelSetting.getDetectionSettings().getThersholdSettings().getThreshold(),
+        channelSetting.getDetectionSettings().doWatershedSegmentation());
+    return th.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
+  } else {
+    joda::func::ai::ObjectSegmentation obj(
+        &channelSetting.getFilter(), channelSetting.getDetectionSettings().getAiSettings().getModelName(),
+        {"cell", "cell_cut"}, channelSetting.getDetectionSettings().getAiSettings().getProbability());
+    return obj.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
+  }
 }
 }    // namespace joda::pipeline::detection

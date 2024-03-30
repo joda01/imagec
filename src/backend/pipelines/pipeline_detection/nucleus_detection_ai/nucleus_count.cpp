@@ -38,7 +38,8 @@ auto NucleusCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
         channelSetting.getDetectionSettings().doWatershedSegmentation());
     return th.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
   } else {
-    joda::func::ai::ObjectDetector obj(&channelSetting.getFilter(), "models/nucleus_detection_ex_vivo_v1.onnx",
+    joda::func::ai::ObjectDetector obj(&channelSetting.getFilter(),
+                                       channelSetting.getDetectionSettings().getAiSettings().getModelName(),
                                        {"nuclues", "nucleus_no_focus"});
     return obj.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
   }

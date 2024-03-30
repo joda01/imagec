@@ -32,9 +32,10 @@ using namespace cv::dnn;
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
 ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFiltering *filt,
-                                       const std::string &onnxNetPath, const std::vector<std::string> &classNames) :
+                                       const std::string &onnxNetPath, const std::vector<std::string> &classNames,
+                                       float classThreshold) :
     DetectionFunction(filt),
-    mClassNames(classNames)
+    mClassNames(classNames), mClassThreshold(classThreshold), mNmsScoreThreshold(classThreshold * BOX_THRESHOLD)
 {
   mNet        = cv::dnn::readNet(onnxNetPath);
   bool isCuda = false;
@@ -111,15 +112,15 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
       for(int i = 0; i < grid_y; ++i) {
         for(int j = 0; j < grid_x; ++j) {
           float box_score = pdata[4];
-          ;    // Get the probability that an object is contained in the box of
-               // each row
+          // Get the probability that an object is contained in the box of
+          // each row
           if(box_score >= BOX_THRESHOLD) {
             cv::Mat scores(1, mClassNames.size(), CV_32FC1, pdata + 5);
             Point classIdPoint;
             double maxClassScores;
             minMaxLoc(scores, nullptr, &maxClassScores, nullptr, &classIdPoint);
             maxClassScores = static_cast<float>(maxClassScores);
-            if(maxClassScores >= CLASS_THRESHOLD) {
+            if(maxClassScores >= mClassThreshold) {
               vector<float> temp_proto(pdata + 5 + mClassNames.size(), pdata + net_width);
               pickedProposals.push_back(temp_proto);
               // rect [x,y,w,h]
@@ -143,7 +144,7 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
   // Perform non-maximum suppression to remove redundant overlapping boxes with
   // lower confidence
   vector<int> nms_result;
-  NMSBoxes(boxes, confidences, NMS_SCORE_THRESHOLD, NMS_THRESHOLD, nms_result);
+  NMSBoxes(boxes, confidences, mNmsScoreThreshold, NMS_THRESHOLD, nms_result);
 
   Mat mask_proposals;
   for(int i = 0; i < nms_result.size(); ++i) {

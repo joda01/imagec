@@ -38,8 +38,9 @@ auto CellCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
         channelSetting.getDetectionSettings().doWatershedSegmentation());
     return th.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
   } else {
-    joda::func::ai::ObjectSegmentation obj(&channelSetting.getFilter(),
-                                           "models/cell_segmentation_brightfield_in_vitro_v1.onnx", {"cell"});
+    joda::func::ai::ObjectSegmentation obj(
+        &channelSetting.getFilter(), channelSetting.getDetectionSettings().getAiSettings().getModelName(),
+        {"cell", "cell_cut"}, channelSetting.getDetectionSettings().getAiSettings().getProbability());
     return obj.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
   }
 }
