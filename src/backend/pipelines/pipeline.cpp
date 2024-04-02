@@ -27,6 +27,7 @@
 #include "../helper/helper.hpp"
 #include "../logger/console_logger.hpp"
 #include "backend/helper/file_info.hpp"
+#include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/helper/thread_pool.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
@@ -77,6 +78,9 @@ void Pipeline::runJob()
   // Store configuration
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");
+
+  // Look for onnx models in the model folder
+  mOnnxModels = onnx::OnnxParser::findOnnxFiles();
 
   // Look for images in the input folder
   mImageFileContainer->setWorkingDirectory(mInputFolder);
@@ -395,8 +399,8 @@ void Pipeline::analyszeChannel(std::map<int32_t, joda::func::DetectionResponse> 
   int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
 
   try {
-    auto processingResult =
-        joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath, tileIdx, &detectionResults);
+    auto processingResult = joda::algo ::ChannelProcessor::processChannel(channelSettings, imagePath, tileIdx,
+                                                                          mOnnxModels, &detectionResults);
     // Add processing result to the detection result map
     std::lock_guard<std::mutex> lock(mAddToDetailReportMutex);
     detectionResults.emplace(channelIndex, processingResult);

@@ -16,9 +16,8 @@
 #include <stdexcept>
 #include "backend/helper/file_info.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
-#include "backend/pipelines/pipeline_detection/cell_detection_ai/cell_count.hpp"
-#include "backend/pipelines/pipeline_detection/nucleus_detection_ai/nucleus_count.hpp"
-#include "backend/pipelines/pipeline_detection/spot_detection/spot_detection.hpp"
+#include "backend/pipelines/pipeline_detection/object_detection/object_detection.hpp"
+#include "backend/pipelines/pipeline_detection/object_segmentation/object_segmentation.hpp"
 #include "backend/pipelines/pipeline_step.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "image_processor.hpp"
@@ -40,7 +39,7 @@ public:
   ///
   static auto
   processChannel(const joda::settings::json::ChannelSettings &channelSetting, const FileInfo &imagePath,
-                 uint64_t tileIndex,
+                 uint64_t tileIndex, const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
                  const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults = nullptr)
       -> func::DetectionResponse
   {
@@ -51,16 +50,16 @@ public:
       case settings::json::ChannelInfo::Type::NONE:
         break;
       case settings::json::ChannelInfo::Type::NUCLEUS:
-        return joda::algo::ImageProcessor<::joda::pipeline::detection::NucleusCounter>::executeAlgorithm(
-            imagePath, channelSetting, tileIndex, referenceChannelResults);
+        return joda::algo::ImageProcessor<::joda::pipeline::detection::ObjectDetection>::executeAlgorithm(
+            imagePath, channelSetting, tileIndex, onnxModels, referenceChannelResults);
       case settings::json::ChannelInfo::Type::SPOT_REFERENCE:
       case settings::json::ChannelInfo::Type::SPOT:
-        return joda::algo::ImageProcessor<::joda::pipeline::detection::SpotDetection>::executeAlgorithm(
-            imagePath, channelSetting, tileIndex, referenceChannelResults);
+        return joda::algo::ImageProcessor<::joda::pipeline::detection::ObjectDetection>::executeAlgorithm(
+            imagePath, channelSetting, tileIndex, onnxModels, referenceChannelResults);
         break;
       case settings::json::ChannelInfo::Type::CELL:
-        return joda::algo::ImageProcessor<::joda::pipeline::detection::CellCounter>::executeAlgorithm(
-            imagePath, channelSetting, tileIndex, referenceChannelResults);
+        return joda::algo::ImageProcessor<::joda::pipeline::detection::ObjectSegmentation>::executeAlgorithm(
+            imagePath, channelSetting, tileIndex, onnxModels, referenceChannelResults);
       case settings::json::ChannelInfo::Type::BACKGROUND:
         break;
     }

@@ -12,6 +12,7 @@
 ///
 
 #include "detection.hpp"
+#include <string>
 #include <opencv2/core/types.hpp>
 
 namespace joda::func {
@@ -22,10 +23,13 @@ namespace joda::func {
 /// \param[in]  img    Image where the mask should be painted on
 /// \param[in]  result Prediction result of the forward
 ///
-void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &result, const std::string &fillColor,
-                                         bool paintRectangel)
+void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &result,
+                                         const joda::onnx::OnnxParser::Data &modelInfo, const std::string &fillColor,
+                                         bool paintRectangel, bool paintLabels)
 {
-  cv::Mat mask = img.clone();
+  cv::Mat mask            = img.clone();
+  cv::Scalar areaColor    = hexToScalar(fillColor);
+  cv::Scalar contourColor = BLACK;    // hexToScalar(fillColor);
 
   for(int i = 0; i < result.size(); i++) {
     int left      = result[i].getBoundingBox().x;
@@ -36,17 +40,16 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
 
     if(!result[i].getMask().empty() && !result[i].getBoundingBox().empty()) {
       try {
-        cv::Scalar areaColor    = hexToScalar(fillColor);
-        cv::Scalar contourColor = GREEN;    // hexToScalar(fillColor);
-
         if(!result[i].isValid()) {
           areaColor = WHITE;
+        } else {
+          areaColor = hexToScalar(fillColor);
         }
 
         // Boundding box
-        //  if(paintRectangel && !result[i].getBoundingBox().empty()) {
-        //    rectangle(img, result[i].getBoundingBox(), WHITE, 1 * THICKNESS, cv::LINE_4);
-        //  }
+        if(paintRectangel && !result[i].getBoundingBox().empty()) {
+          rectangle(img, result[i].getBoundingBox(), areaColor, 1 * THICKNESS, cv::LINE_4);
+        }
 
         // Fill area
         mask(result[i].getBoundingBox()).setTo(areaColor, result[i].getMask());
@@ -70,8 +73,13 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
         std::cout << "P" << ex.what() << std::endl;
       }
     }
-    std::string label = std::to_string(result[i].getIndex());
-    // drawLabel(img, label, left, top);
+    std::string label = std::to_string(result[i].getIndex()) + " | " + std::to_string(result[i].getConfidence());
+    if(modelInfo.classes.size() > result[i].getClassId()) {
+      label += " | " + modelInfo.classes[result[i].getClassId()];
+    }
+    if(paintLabels) {
+      drawLabel(img, areaColor, label, left, top);
+    }
   }
   addWeighted(mask, 0.5, img, 1, 0, img);
 }

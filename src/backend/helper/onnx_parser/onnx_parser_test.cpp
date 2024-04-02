@@ -8,7 +8,7 @@
 ///
 TEST_CASE("onnx_parser:test", "[onnx_parser_test]")
 {
-  auto result = joda::onnx::Onnx::findOnnxFiles("models");
+  auto result = joda::onnx::OnnxParser::findOnnxFiles("models");
 
   REQUIRE(result.contains("models/cell_segmentation_brightfield_in_vitro_v1.onnx"));
   REQUIRE(result.contains("models/nucleus_detection_ex_vivo_v1.onnx"));

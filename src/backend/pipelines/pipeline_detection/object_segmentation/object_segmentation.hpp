@@ -24,7 +24,7 @@ namespace joda::pipeline::detection {
 /// \author     Joachim Danmayr
 /// \brief      Nucleus counter pipeline
 ///
-class CellCounter : public Detection
+class ObjectSegmentation : public Detection
 {
 public:
   /////////////////////////////////////////////////////

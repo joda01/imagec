@@ -115,7 +115,7 @@ public:
   ///
   static auto
   executeAlgorithm(const FileInfo &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
-                   uint64_t tileIndex,
+                   uint64_t tileIndex, const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
                    const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults = nullptr)
   {
     //
@@ -125,18 +125,18 @@ public:
                                                       channelSetting.getChannelInfo().getChannelSeries());
     if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE && imagePath.getDecoder() == FileInfo::Decoder::TIFF) {
       return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, chProps.tifDirs, tileIndex,
-                                                 referenceChannelResults);
+                                                 referenceChannelResults, onnxModels);
     }
     if(imagePath.getDecoder() == FileInfo::Decoder::JPG) {
       return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
-                                                  referenceChannelResults);
+                                                  referenceChannelResults, onnxModels);
     }
     if(imagePath.getDecoder() == FileInfo::Decoder::TIFF) {
       return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
-                                                   referenceChannelResults);
+                                                   referenceChannelResults, onnxModels);
     }
-    return processImage<BioformatsEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0,
-                                                 referenceChannelResults);
+    return processImage<BioformatsEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0, referenceChannelResults,
+                                                 onnxModels);
   }
 
 private:
@@ -153,7 +153,8 @@ private:
   static func::DetectionResponse
   processImage(const FileInfo &imagePath, const joda::settings::json::ChannelSettings &channelSetting,
                const std::set<uint32_t> &tiffDirectories, int64_t idx,
-               const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults)
+               const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults,
+               const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels)
   {
     auto id             = DurationCount::start("z-projection");
     cv::Mat image       = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx);
@@ -165,7 +166,7 @@ private:
     DurationCount::stop(id);
 
     id                   = DurationCount::start("detection");
-    auto detectionResult = doDetection(image, originalImg, channelSetting);
+    auto detectionResult = doDetection(image, originalImg, channelSetting, onnxModels);
     DurationCount::stop(id);
 
     id = DurationCount::start("filtering");
@@ -173,7 +174,14 @@ private:
     detectionResult.originalImage = std::move(originalImg);
     DurationCount::stop(id);
 
-    generateControlImage(detectionResult, channelSetting.getChannelInfo().getColor());
+    auto modelInfo = onnxModels.find(channelSetting.getDetectionSettings().getAiSettings().getModelName());
+    if(modelInfo != onnxModels.end()) {
+      generateControlImage(detectionResult, channelSetting.getChannelInfo().getColor(), modelInfo->second,
+                           channelSetting.getDetectionSettings().getDetectionMode());
+    } else {
+      generateControlImage(detectionResult, channelSetting.getChannelInfo().getColor(), {},
+                           channelSetting.getDetectionSettings().getDetectionMode());
+    }
 
     return detectionResult;
   }
@@ -256,9 +264,10 @@ private:
   /// \return     Detection results with control image
   ///
   static func::DetectionResponse doDetection(const cv::Mat &image, const cv::Mat &originalImg,
-                                             const joda::settings::json::ChannelSettings &channelSetting)
+                                             const joda::settings::json::ChannelSettings &channelSetting,
+                                             const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels)
   {
-    ALGORITHM algo;
+    ALGORITHM algo(onnxModels);
     auto ret = algo.execute(image, originalImg, channelSetting);
     return ret;
   }
@@ -302,9 +311,22 @@ private:
   /// \brief      Generate the control image
   /// \author     Joachim Danmayr
   ///
-  static void generateControlImage(func::DetectionResponse &detectionResult, const std::string &areaColor)
+  static void generateControlImage(func::DetectionResponse &detectionResult, const std::string &areaColor,
+                                   const joda::onnx::OnnxParser::Data &onnxModels,
+                                   joda::settings::json::ChannelDetection::DetectionMode mode)
   {
-    joda::func::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result, areaColor);
+    /*
+    cv::Mat &img, const DetectionResults &result,
+                                   const joda::onnx::OnnxParser::Data &modelInfo, const std::string &fillColor,
+                                   bool paintRectangel, bool paintLabels
+    */
+    if(mode == joda::settings::json::ChannelDetection::DetectionMode::THRESHOLD) {
+      joda::func::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result, {},
+                                                      areaColor, false, false);
+    } else {
+      joda::func::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result, onnxModels,
+                                                      areaColor, true, true);
+    }
   }
 
   ///

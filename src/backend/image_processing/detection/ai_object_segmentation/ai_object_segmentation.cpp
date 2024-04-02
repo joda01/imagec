@@ -32,12 +32,11 @@ using namespace cv::dnn;
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
 ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFiltering *filt,
-                                       const std::string &onnxNetPath, const std::vector<std::string> &classNames,
-                                       float classThreshold) :
+                                       const joda::onnx::OnnxParser::Data &model, float classThreshold) :
     DetectionFunction(filt),
-    mClassNames(classNames), mClassThreshold(classThreshold), mNmsScoreThreshold(classThreshold * BOX_THRESHOLD)
+    mClassNames(model.classes), mClassThreshold(classThreshold), mNmsScoreThreshold(classThreshold * BOX_THRESHOLD)
 {
-  mNet        = cv::dnn::readNet(onnxNetPath);
+  mNet        = cv::dnn::readNet(model.modelPath);
   bool isCuda = false;
   if(isCuda) {
     mNet.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);

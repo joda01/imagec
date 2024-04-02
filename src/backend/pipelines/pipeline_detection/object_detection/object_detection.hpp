@@ -22,7 +22,7 @@ namespace joda::pipeline::detection {
 /// \author     Joachim Danmayr
 /// \brief      Nucleus counter pipeline
 ///
-class NucleusCounter : public Detection
+class ObjectDetection : public Detection
 {
 public:
   /////////////////////////////////////////////////////

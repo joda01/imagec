@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include <opencv4/opencv2/highgui.hpp>
@@ -29,8 +30,20 @@ class Detection
 {
 public:
   /////////////////////////////////////////////////////
-  Detection() = default;
+  Detection(const std::map<std::string, joda::onnx::OnnxParser::Data> &models) : mAvailableModels(models)
+  {
+  }
+
   virtual auto execute(const cv::Mat &img, const cv::Mat &imgOriginal,
                        const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse = 0;
+
+  [[nodiscard]] auto getAvailableModels() const -> const std::map<std::string, joda::onnx::OnnxParser::Data> &
+  {
+    return mAvailableModels;
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  std::map<std::string, joda::onnx::OnnxParser::Data> mAvailableModels;
 };
 }    // namespace joda::pipeline::detection

@@ -145,8 +145,9 @@ auto Controller::preview(const settings::json::ChannelSettings &settings, int im
 
   // Now we can process the original channel
   auto imageFileName = mWorkingDirectory.getFileAt(imgIndex);
+  auto onnxModels    = onnx::OnnxParser::findOnnxFiles();
   if(!imageFileName.getFilename().empty()) {
-    auto result = joda::algo::ChannelProcessor::processChannel(settings, imageFileName, tileIndex);
+    auto result = joda::algo::ChannelProcessor::processChannel(settings, imageFileName, tileIndex, onnxModels);
     std::vector<uchar> buffer;
     std::vector<int> compression_params;
     compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);

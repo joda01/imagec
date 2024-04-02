@@ -27,10 +27,10 @@ namespace joda::func::ai {
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-ObjectDetector::ObjectDetector(const joda::settings::json::ChannelFiltering *filt, const std::string &onnxNetPath,
-                               const std::vector<std::string> &classNames) :
+ObjectDetector::ObjectDetector(const joda::settings::json::ChannelFiltering *filt,
+                               const joda::onnx::OnnxParser::Data &model) :
     DetectionFunction(filt),
-    mNet{cv::dnn::readNet(onnxNetPath)}, mClassNames(classNames)
+    mNet{cv::dnn::readNet(model.modelPath)}, mClassNames(model.classes)
 {
 }
 

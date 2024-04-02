@@ -30,7 +30,7 @@ namespace joda::onnx {
 namespace fs = std::filesystem;
 // using namespace ::onnx;
 
-class Onnx
+class OnnxParser
 {
 public:
   struct Data
@@ -38,7 +38,7 @@ public:
     std::string title;
     std::string description;
     std::string modelPath;
-    std::map<int32_t, std::string> classes;
+    std::vector<std::string> classes;
   };
 
   static auto findOnnxFiles(const std::string &directory = "models") -> std::map<std::string, Data>
@@ -48,16 +48,26 @@ public:
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
         if(entry.is_regular_file() && entry.path().extension().string() == ".onnx") {
           // auto data = readMetaJson(entry.path().string());
-          std::ifstream inputFile(entry.path().string(), std::ios::binary);
-          auto result = readClassLabels(entry.path().string());
+
           Data data;
+
+          if(!mCache.contains(entry.path())) {
+            auto result = readClassLabels(entry.path().string());
+            for(auto const &[idx, value] : result) {
+              data.classes.push_back(value);
+            }
+          } else {
+            // Read form cache
+            data.classes = mCache.at(entry.path()).classes;
+          }
+
           data.title     = entry.path().filename();
           data.modelPath = entry.path().string();
-          data.classes   = result;
           onnxFiles.emplace(entry.path().string(), data);
         }
       }
     }
+    mCache = onnxFiles;
     return onnxFiles;
   };
 
@@ -193,6 +203,8 @@ private:
 
     return classes;
   }
+
+  static inline std::map<std::string, Data> mCache;
 };
 
 }    // namespace joda::onnx
