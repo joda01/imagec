@@ -16,6 +16,7 @@
 #include <iostream>
 #include "../detection.hpp"
 #include "../detection_response.hpp"
+#include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include <opencv2/opencv.hpp>
 
 #define YOLO_P6 false
@@ -31,8 +32,8 @@ class ObjectSegmentation : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectSegmentation(const joda::settings::json::ChannelFiltering *filt, const std::string &onnxNetPath,
-                     const std::vector<std::string> &classNames, float classThreshold);
+  ObjectSegmentation(const joda::settings::json::ChannelFiltering *filt, const joda::onnx::OnnxParser::Data &model,
+                     float classThreshold);
   auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, int32_t channelIndex) -> DetectionResponse override;
 
 private:
@@ -85,10 +86,10 @@ private:
 #endif    // YOLO_P6
 
   static constexpr inline float NET_STRIDE[4]           = {8, 16, 32, 64};
-  static constexpr inline float BOX_THRESHOLD           = 0.4;    // (default = 0.25)
-  static constexpr inline float CLASS_THRESHOLD_DEFAULT = 0.5;    // (default = 0.5)
-  static constexpr inline float NMS_THRESHOLD           = 0.3;    // To prevent double bounding boxes (default = 0.45)
-  static constexpr inline float MASK_THRESHOLD          = 0.5;    // (default = 0.5)
+  static constexpr inline float BOX_THRESHOLD           = 0.25;    // (default = 0.25)
+  static constexpr inline float CLASS_THRESHOLD_DEFAULT = 0.5;     // (default = 0.5)
+  static constexpr inline float NMS_THRESHOLD           = 0.3;     // To prevent double bounding boxes (default = 0.45)
+  static constexpr inline float MASK_THRESHOLD          = 0.5;     // (default = 0.5)
   // static constexpr inline float NMS_SCORE_THRESHOLD     = BOX_THRESHOLD * CLASS_THRESHOLD_DEFAULT;
 
   float mClassThreshold;

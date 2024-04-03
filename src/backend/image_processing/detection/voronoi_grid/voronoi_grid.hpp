@@ -184,7 +184,7 @@ public:
       response.result.push_back(roi);
     }
 
-    paintBoundingBox(response.controlImage, response.result, "#FF0000", false);
+    paintBoundingBox(response.controlImage, response.result, {}, "#FF0000", false, false);
     // cv::imwrite("voronoi_combi_ctrl.jpg", response.controlImage);
 
     return response;

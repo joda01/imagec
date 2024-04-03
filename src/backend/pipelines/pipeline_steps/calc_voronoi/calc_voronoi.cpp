@@ -66,7 +66,8 @@ auto CalcVoronoi::execute(const settings::json::AnalyzeSettings &settings,
           }
         }
       }
-      joda::func::DetectionFunction::paintBoundingBox(response.controlImage, response.result, "#FF0000", false);
+      joda::func::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FF0000", false,
+                                                      false);
       return response;
     } else {
       return CalcVoronoiResult;

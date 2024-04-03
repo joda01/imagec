@@ -79,6 +79,11 @@ public:
     return index;
   }
 
+  [[nodiscard]] auto getClassId() const
+  {
+    return classId;
+  }
+
   [[nodiscard]] auto getConfidence() const
   {
     return confidence;
@@ -193,7 +198,7 @@ private:
   /////////////////////////////////////////////////////
   uint32_t index;           ///< Index in the prediction array
   Confidence confidence;    ///< Probability
-  ClassId classId;          ///< Class id
+  ClassId classId = -1;     ///< Class id
 
   Boxes mBoundingBox;    ///< Rectangle around the prediction
   cv::Mat mMask;         ///< Segmentation mask

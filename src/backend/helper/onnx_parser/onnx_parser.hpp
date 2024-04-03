@@ -30,15 +30,15 @@ namespace joda::onnx {
 namespace fs = std::filesystem;
 // using namespace ::onnx;
 
-class Onnx
+class OnnxParser
 {
 public:
   struct Data
   {
     std::string title;
     std::string description;
-    std::string fileName;
-    std::map<int32_t, std::string> classes;
+    std::string modelPath;
+    std::vector<std::string> classes;
   };
 
   static auto findOnnxFiles(const std::string &directory = "models") -> std::map<std::string, Data>
@@ -47,21 +47,27 @@ public:
     if(fs::exists(directory) && fs::is_directory(directory)) {
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
         if(entry.is_regular_file() && entry.path().extension().string() == ".onnx") {
-          auto data = readMetaJson(entry.path().string());
+          // auto data = readMetaJson(entry.path().string());
 
-          std::ifstream inputFile(entry.path().string(), std::ios::binary);
-          //::onnx::ModelProto model;
-          // model.ParseFromIstream(&inputFile);
-          //
-          //// Read and print class names from the ONNX model
-          // readClassNames(model);
+          Data data;
 
-          if(!data.classes.empty()) {
+          if(!mCache.contains(entry.path())) {
+            auto result = readClassLabels(entry.path().string());
+            for(auto const &[idx, value] : result) {
+              data.classes.push_back(value);
+            }
+          } else {
+            // Read form cache
+            data.classes = mCache.at(entry.path()).classes;
           }
+
+          data.title     = entry.path().filename();
+          data.modelPath = entry.path().string();
           onnxFiles.emplace(entry.path().string(), data);
         }
       }
     }
+    mCache = onnxFiles;
     return onnxFiles;
   };
 
@@ -93,10 +99,10 @@ private:
      }
    }*/
 
-  static auto readMetaJson(std::string onnxFile) -> Data
+  /*static auto readMetaJson(std::string onnxFile) -> Data
   {
-    std::string filename = onnxFile;
-    std::string title    = onnxFile;
+    std::string modelPath = onnxFile;
+    std::string title     = onnxFile;
     std::string description;
     int32_t version = -1;
 
@@ -117,39 +123,11 @@ private:
     } catch(const std::exception &) {
     }
 
-    return {.title = title, .description = description, .fileName = onnxFile, .classes = readClassLabels(onnxFile)};
-  }
+    return {.title = title, .description = description, .modelPath = onnxFile, .classes = readClassLabels(onnxFile)};
+  }*/
 
   static auto readClassLabels(const std::string &onnxFile) -> std::map<int32_t, std::string>
   {
-    auto parseNames = [](const std::string &content) -> std::map<int32_t, std::string> {
-      std::map<int, std::string> result;
-
-      // Define a regular expression to match the key-value pairs
-      std::regex pattern(R"(\{(\d+): '([^']+)', (\d+): '([^']+)'\})");
-
-      // Create an iterator to iterate over matches
-      auto begin = std::sregex_iterator(content.begin(), content.end(), pattern);
-      auto end   = std::sregex_iterator();
-
-      // Iterate over matches and store in the map
-      std::sregex_iterator i = begin;
-      while(i != end) {
-        std::smatch match = *i;
-        int idx           = 1;
-        while(idx < match.size()) {
-          int key = std::stoi(match[idx].str());
-          idx++;
-          std::string value = match[idx].str();
-          result[key]       = value;
-          idx++;
-        }
-        i++;
-      }
-
-      return result;
-    };
-
     // Read the content of the file
     std::ifstream file(onnxFile, std::ios::binary);
     if(!file.is_open()) {
@@ -157,57 +135,76 @@ private:
       return {};
     }
 
+    // Read the last 60 chars, we expect the model classes there
     // Move to the end of the file
+    int readL = 60;
     file.seekg(0, std::ios::end);
+    int fileSize = file.tellg();
+
+    // Calculate the position from where to start reading
+    std::streampos startPos = (fileSize - readL > 0) ? fileSize - readL : 0;
+    file.seekg(startPos);
 
     //
-    // Go to the last line
+    // We get the classes in following format: {0: 'cell', 1: 'cell_cut'}
+    // The next lines converts this in a valid JSON
     //
-    char ch      = ' ';    // Init ch not equal to '\n'
-    int maxCount = -1;
-    while(ch != '{' && maxCount > -1024) {
-      file.seekg(maxCount, std::ios::end);    // Two steps back, this means we
-                                              // will NOT check the last character
-      if((int) file.tellg() <= 0) {           // If passed the start of the file,
-        file.seekg(0);                        // this is the start of the line
-        break;
+    char ch[readL];
+    int size        = 0;
+    bool braketOpen = false;
+    for(int n = 0; n < readL; n++) {
+      char tmp;
+      file.read(&tmp, 1);
+      if(tmp == '{' || size > 0) {
+        if(tmp == '\'') {
+          tmp        = '\"';
+          braketOpen = false;
+        }
+        if(tmp == ':') {
+          ch[size]   = '\"';
+          braketOpen = false;
+          size++;
+        }
+        if(braketOpen && tmp == ' ') {
+          // We do not want spaces in the number key
+        } else {
+          ch[size] = tmp;
+        }
+        if(tmp == '{') {
+          size++;
+          ch[size]   = '\"';
+          braketOpen = true;
+        }
+        if(tmp == ',') {
+          size++;
+          ch[size]   = '\"';
+          braketOpen = true;
+        }
+        if(braketOpen && tmp == ' ') {
+        } else {
+          size++;
+        }
       }
-      // file.get(ch);    // Check the next character
-      file.read(&ch, 1);
-      maxCount--;
     }
-
-    //
-    // Read last line
-    //
-    std::string fileContent;
-    std::getline(file, fileContent);
+    ch[size] = 0;
+    std::string jsonString(ch, size);
     file.close();
 
-    // Look for the keyword "names" and parse key-value pairs
-    size_t pos = fileContent.find("names");
-    std::map<int, std::string> resultMap;
-    if(pos != std::string::npos) {
-      std::string namesContent = fileContent.substr(pos);
-      namesContent             = removeEverythingBeforeBracket(namesContent);
-      // Call the parseNames function
-      resultMap = parseNames(namesContent);
-    } else {
-      std::cout << "Keyword 'names' not found in the file." << std::endl;
+    std::map<int32_t, std::string> classes;
+    try {
+      nlohmann::json parsed = nlohmann::json::parse(jsonString);
+      for(auto &[key, value] : parsed.items()) {
+        std::cout << "Key: " << key << ", Value: " << value << std::endl;
+        classes.emplace(std::stoi(key), value);
+      }
+    } catch(const std::exception &ex) {
+      std::cout << "Could not parse: " << ex.what() << std::endl;
     }
 
-    return resultMap;
+    return classes;
   }
 
-  static std::string removeEverythingBeforeBracket(const std::string &input)
-  {
-    size_t pos = input.find('{');
-
-    if(pos != std::string::npos) {
-      return input.substr(pos);
-    }    // Handle the case when the delimiter is not found
-    return input;
-  }
+  static inline std::map<std::string, Data> mCache;
 };
 
 }    // namespace joda::onnx

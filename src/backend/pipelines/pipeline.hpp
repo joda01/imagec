@@ -25,6 +25,7 @@
 #include "../logger/console_logger.hpp"
 #include "../reporting/reporting.h"
 #include "../settings/analze_settings_parser.hpp"
+#include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/pipelines/reporting/reporting.hpp"
 #include "backend/reporting/reporting_container.hpp"
@@ -185,6 +186,7 @@ private:
   std::shared_ptr<Reporting> mReporting;
   ThreadingSettings mThreadingSettings;
   std::mutex mAddToDetailReportMutex;
+  std::map<std::string, joda::onnx::OnnxParser::Data> mOnnxModels;
 };
 
 }    // namespace joda::pipeline

@@ -11,11 +11,12 @@
 /// \brief     Pipeline which implements an AI based nucleus counter
 ///
 
-#include "cell_count.hpp"
+#include "object_segmentation.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <mutex>
+#include <stdexcept>
 #include <string_view>
 #include "backend/image_processing/detection/ai_object_segmentation/ai_object_segmentation.hpp"
 #include "backend/image_processing/detection/object_segmentation/object_segmentation.hpp"
@@ -27,8 +28,8 @@ namespace joda::pipeline::detection {
 /// \author     Joachim Danmayr
 /// \param[in]  img     Image to analyze
 ///
-auto CellCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
-                          const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse
+auto ObjectSegmentation::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
+                                 const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse
 {
   if(channelSetting.getDetectionSettings().getDetectionMode() ==
      settings::json::ChannelDetection::DetectionMode::THRESHOLD) {
@@ -38,10 +39,16 @@ auto CellCounter::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
         channelSetting.getDetectionSettings().doWatershedSegmentation());
     return th.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
   } else {
-    joda::func::ai::ObjectSegmentation obj(
-        &channelSetting.getFilter(), channelSetting.getDetectionSettings().getAiSettings().getModelName(),
-        {"cell", "cell_cut"}, channelSetting.getDetectionSettings().getAiSettings().getProbability());
-    return obj.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
+    auto modelData = getAvailableModels().find(channelSetting.getDetectionSettings().getAiSettings().getModelName());
+    if(modelData != getAvailableModels().end()) {
+      joda::func::ai::ObjectSegmentation obj(&channelSetting.getFilter(), modelData->second,
+                                             channelSetting.getDetectionSettings().getAiSettings().getProbability());
+      return obj.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
+    } else {
+      throw std::runtime_error("Selected model >" +
+                               channelSetting.getDetectionSettings().getAiSettings().getModelName() +
+                               "< not found in model path!");
+    }
   }
 }
 

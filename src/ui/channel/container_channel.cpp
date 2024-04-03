@@ -90,7 +90,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
   mWateredSegmentation = std::shared_ptr<ContainerFunction<bool, bool>>(
       new ContainerFunction<bool, bool>("icons8-split-50", "Watershed segmentation", "Watershed segmentation", false));
 
-  auto foundAIModels = joda::onnx::Onnx::findOnnxFiles();
+  auto foundAIModels = joda::onnx::OnnxParser::findOnnxFiles();
   std::vector<ContainerFunction<QString, QString>::ComboEntry> aiModelsConverted;
   aiModelsConverted.reserve(foundAIModels.size());
   for(const auto &[path, model] : foundAIModels) {

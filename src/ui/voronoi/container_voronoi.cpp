@@ -49,14 +49,6 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain) : mWindowMain(windowM
                                            /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
                                           {{100, "Channel 100"}, {101, "Channel 101"}}, 100));
 
-  auto foundAIModels = joda::onnx::Onnx::findOnnxFiles();
-  std::vector<ContainerFunction<QString, QString>::ComboEntry> aiModelsConverted;
-  aiModelsConverted.reserve(foundAIModels.size());
-  for(const auto &[path, model] : foundAIModels) {
-    aiModelsConverted.push_back(
-        ContainerFunction<QString, QString>::ComboEntry{.key = path.data(), .label = path.data()});
-  }
-
   //
   // Cell approximation
   //
