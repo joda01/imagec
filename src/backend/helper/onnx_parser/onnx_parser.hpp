@@ -51,14 +51,14 @@ public:
 
           Data data;
 
-          if(!mCache.contains(entry.path())) {
+          if(!mCache.contains(entry.path().string())) {
             auto result = readClassLabels(entry.path().string());
             for(auto const &[idx, value] : result) {
               data.classes.push_back(value);
             }
           } else {
             // Read form cache
-            data.classes = mCache.at(entry.path()).classes;
+            data.classes = mCache.at(entry.path().string()).classes;
           }
 
           data.title     = entry.path().filename();
