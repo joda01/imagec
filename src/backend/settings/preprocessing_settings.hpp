@@ -102,7 +102,7 @@ public:
       if(value == "NONE") {
         return PreprocessingZStack::ZStackMethod::NONE;
       }
-      if(value == "PROJECT_MAX_INTENSITY") {
+      if(value == "MAX_INTENSITY") {
         return PreprocessingZStack::ZStackMethod::MAX_INTENSITY;
       }
       if(value == "PROJECT_3D") {

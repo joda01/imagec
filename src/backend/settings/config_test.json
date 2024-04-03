@@ -11,7 +11,7 @@
             "preprocessing": [
                 {
                     "z_stack": {
-                        "value": "PROJECT_MAX_INTENSITY"
+                        "value": "MAX_INTENSITY"
                     }
                 },
                 {

@@ -115,8 +115,8 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
       "icons8-initial-state-50.png", "[0 - 65535]", "Snap area size", "px", std::nullopt, 0, 65535));
 
   mZProjection = std::shared_ptr<ContainerFunction<QString, QString>>(new ContainerFunction<QString, QString>(
-      "icons8-layers-50.png", "Z-Projection", "Z-Projection", "", "OFF",
-      {{"OFF", "Off"}, {"MAX_INTENSITY", "Max. intensity"}, {"PROJECTION_3D", "3D projection"}}));
+      "icons8-layers-50.png", "Z-Projection", "Z-Projection", "", "NONE",
+      {{"NONE", "Off"}, {"MAX_INTENSITY", "Max. intensity"}, {"PROJECTION_3D", "3D projection"}}));
 
   mMarginCrop = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-crop-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Crop margin",

@@ -136,7 +136,7 @@ public:
         return mComboBox->currentData().toInt() >= 0;
       }
       if constexpr(std::same_as<VALUE_T, QString>) {
-        return mComboBox->currentData().toString() != "NONE";
+        return mComboBox->currentData().toString() != "NONE" && mComboBox->currentData().toString() != "OFF";
       }
     }
     return true;
