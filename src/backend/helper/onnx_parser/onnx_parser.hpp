@@ -61,7 +61,7 @@ public:
             data.classes = mCache.at(entry.path().string()).classes;
           }
 
-          data.title     = entry.path().filename();
+          data.title     = entry.path().filename().string();
           data.modelPath = entry.path().string();
           onnxFiles.emplace(entry.path().string(), data);
         }
