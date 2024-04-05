@@ -142,6 +142,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain) : mWindowMain(windowM
       new ContainerFunction<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,
                                       {{-1, "Off"},
                                        {3, "3x3"},
+                                       {4, "4x4"},
                                        {5, "5x5"},
                                        {7, "7x7"},
                                        {9, "9x9"},

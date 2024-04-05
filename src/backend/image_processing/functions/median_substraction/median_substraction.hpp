@@ -14,6 +14,8 @@
 #pragma once
 
 #include "../../functions/function.hpp"
+#include "backend/duration_count/duration_count.h"
+#include "backend/image_processing/functions/rank_filter/rank_filter.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -36,31 +38,12 @@ public:
 
   void execute(cv::Mat &image) const override
   {
-    // when ksize is 3 or 5, the image depth should be CV_8U, CV_16U, or CV_32F, for larger aperture sizes, it can only
-    // be CV_8U.
-    bool reduce = mKernelSize > 5;
-    cv::Mat medianBlurredImage(image.size(), reduce ? CV_8UC1 : CV_16UC1);
-    double minVal = 0, maxVal = 0;
-
-    if(reduce) {
-      // image.convertTo(medianBlurredImage, CV_8UC1, static_cast<float>(UCHAR_MAX) / static_cast<float>(UINT16_MAX));
-
-      cv::minMaxLoc(image, &minVal, &maxVal);    // Find minimum and maximum pixel values
-
-      image.convertTo(medianBlurredImage, CV_8UC1, 255.0 / (maxVal - minVal),
-                      -minVal * 255.0 / (maxVal - minVal));    // Scale and shift pixel values
-
-    } else {
-      medianBlurredImage = image.clone();
-    }
-    cv::medianBlur(medianBlurredImage, medianBlurredImage, mKernelSize);
-    if(reduce) {
-      cv::Mat medianBlurredImageOut(image.size(), CV_16UC1);
-      medianBlurredImage.convertTo(medianBlurredImageOut, CV_16UC1, (maxVal - minVal) / 255.0, minVal);
-      image = image - medianBlurredImageOut;
-    } else {
-      image = image - medianBlurredImage;
-    }
+    auto idStart               = DurationCount::start("MedianSubtraction");
+    auto medianBlurredImageOut = image.clone();
+    joda::func::img::RankFilter rank;
+    rank.rank(medianBlurredImageOut, mKernelSize, joda::func::img::RankFilter::MEDIAN);
+    image = image - medianBlurredImageOut;
+    DurationCount::stop(idStart);
   }
 
 private:
