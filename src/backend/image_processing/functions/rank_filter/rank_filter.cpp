@@ -14,7 +14,6 @@
 ///
 
 #include "rank_filter.hpp"
-#include <dlfcn.h>
 #include <opencv2/core/hal/interface.h>
 #include <cmath>
 #include <cstddef>
