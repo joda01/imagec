@@ -33,14 +33,13 @@
             }
         },
         {
-            "rolling_ball": {
-                "value": 4,
-                "mode": "PARABOLOID"
+            "median_bg_subtraction": {
+                "kernel_size": 3
             }
         },
         {
             "smoothing": {
-                "repeat": 3
+                "repeat": 1
             }
         }
     ],

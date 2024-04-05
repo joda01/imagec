@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <vector>
 #include "../../functions/function.hpp"
 #include <opencv2/core.hpp>
@@ -29,6 +30,13 @@ class RankFilter
 {
 public:
   /////////////////////////////////////////////////////
+  static constexpr int MEAN = 0, MIN = 1, MAX = 2, VARIANCE = 3, MEDIAN = 4, OUTLIERS = 5, DESPECKLE = 6,
+                       REMOVE_NAN = 7, OPEN = 8, CLOSE = 9,
+                       TOP_HAT = 10;    // when adding a new filter, set HIGHEST_FILTER below.
+
+  static constexpr int BRIGHT_OUTLIERS = 0, DARK_OUTLIERS = 1;
+  static constexpr int HIGHEST_FILTER = TOP_HAT;
+
   RankFilter() = default;
   void rank(cv::Mat &ip, double radius, int filterType);
   void rank(cv::Mat &ip, double radius, int filterType, int whichOutliers, float threshold);
@@ -37,86 +45,44 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  void filterLine(float *values, int width, float *cache, int *cachePointers, int kNPoints, int cacheLineP,
-                  cv::Rect roi, int y, double *sums, float *medianBuf1, float *medianBuf2, float minMaxOutliersSign,
-                  float maxValue, bool isFloat, int filterType, bool smallKernel, bool sumFilter, bool minOrMax,
-                  bool minOrMaxOrOutliers, float threshold);
+  void filterLine(float *values, int width, float *cache, std::shared_ptr<int> cachePoints, size_t cachePointersLength,
+                  int kNPoints, int cacheLineP, cv::Mat &roi, int y, double *sums, float *medianBuf1, float *medianBuf2,
+                  float minMaxOutliersSign, float maxValue, bool isFloat, int filterType, bool smallKernel,
+                  bool sumFilter, bool minOrMax, bool minOrMaxOrOutliers, float threshold);
 
   void readLineToCacheOrPad(cv::Mat &pixels, int width, int height, int roiY, int xminInside, int widthInside,
-                            float *cache, int cacheWidth, int cacheHeight, int padLeft, int padRight, int colorChannel,
-                            int kHeight, int y);
+                            float *cache, int cacheWidth, int cacheHeight, int padLeft, int padRight, int kHeight,
+                            int y);
 
-  void doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, int filterType, float minMaxOutliersSign,
-                   float threshold, int colorChannel, int &nextY);
+  void doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t lineRadiiLength, int filterType,
+                   float minMaxOutliersSign, float threshold, int &nextY);
   bool isMultiStepFilter(int filterType);
-  std::shared_ptr<int> makeLineRadii(double radius);
-  int kRadius(int *lineRadii);
-  void doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, float *cache, size_t cacheLength, int cacheWidth,
-                   int cacheHeight, int filterType, float minMaxOutliersSign, float threshold, int colorChannel);
+  std::shared_ptr<int> makeLineRadii(double radius, size_t &length);
+  int kRadius(int *lineRadii, size_t length);
+  void doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t lineRadiiLength, float *cache,
+                   size_t cacheLength, int cacheWidth, int cacheHeight, int filterType, float minMaxOutliersSign,
+                   float threshold);
 
-  int kHeight(int *lineRadii);
-  int kNPoints(int *lineRadii);
-  std::shared_ptr<int> makeCachePointers(int *lineRadii, int cacheWidth, size_t &length);
+  int kHeight(int *lineRadii, size_t length);
+  int kNPoints(int *lineRadii, size_t length);
+  std::shared_ptr<int> makeCachePointers(int *lineRadii, size_t lineRadiiLength, int cacheWidth, size_t &length);
+  static float getAreaMax(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength, int ignoreRight,
+                          float max, float sign);
+  static float getSideMax(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength, bool isRight,
+                          float sign);
+  static void getAreaSums(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength, double *sums);
+  static void addSideSums(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength, double *sums);
+  static float getMedian(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength, float *aboveBuf,
+                         float *belowBuf, int kNPoints, float guess);
+  static float getNaNAwareMedian(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength,
+                                 float *aboveBuf, float *belowBuf, int kNPoints, float guess);
+  static void writeLineToPixels(float *values, cv::Mat &pixels, int pixelP, int length);
+  static void readLineToCache(cv::Mat &pixels, int pixelLineP, int xminInside, int widthInside, float *cache,
+                              int cacheLineP, int padLeft, int padRight);
+  static float findNthLowestNumber(float *buf, int bufLength, int n);
+
   /////////////////////////////////////////////////////
-  static int MEAN = 0, MIN = 1, MAX = 2, VARIANCE = 3, MEDIAN = 4, OUTLIERS = 5, DESPECKLE = 6, REMOVE_NAN = 7,
-             OPEN = 8, CLOSE = 9, TOP_HAT = 10;    // when adding a new filter, set HIGHEST_FILTER below.
-
-  static int BRIGHT_OUTLIERS = 0, DARK_OUTLIERS = 1;
-
-  static String[] outlierStrings = {"Bright", "Dark"};
-
-  static int HIGHEST_FILTER = TOP_HAT;
-  // Filter parameters
-
-  int filterType;
-
-  double radius;
-
-  double threshold;    // this and the next for 'remove outliers' only
-
-  int whichOutliers;
-
-  bool lightBackground = Prefs.get("bs.background", true);    // this and the next for top hat only
-
-  bool dontSubtract;
-  // Remember filter parameters for the next time
-
-  static double[] lastRadius = new double[HIGHEST_FILTER + 1];    // separate for each filter type
-
-  static double lastThreshold = 50.;
-
-  static int lastWhichOutliers = BRIGHT_OUTLIERS;
-
-  static bool lastLightBackground = false;
-
-  static bool lastDontSubtract = false;
-  //
-  // F u r t h e r   c l a s s   v a r i a b l e s
-  int flags = DOES_ALL | SUPPORTS_MASKING | KEEP_PREVIEW;
-
-  ImagePlus imp;
-
-  int nPasses = 1;    // The number of passes (color channels * stack slices)
-
-  PlugInFilterRunner pfr;
-
-  int pass;
-
-  bool previewing = false;
-  // M u l t i t h r e a d i n g - r e l a t e d
-
-  int numThreads = Prefs.getThreads();
-  // The current state of multithreaded processing is in class variables.
-  // Thus, stack parallelization must be done ONLY with one thread for the image
-  // (not using these class variables).
-  // Atomic objects are used to avoid caching (i.e., to ensure that always the current state of the variable is read).
-
-  AtomicInteger highestYinCache =
-      new AtomicInteger(Integer.MIN_VALUE);    // the highest line read into the cache so far
-
-  AtomicInteger nThreadsWaiting = new AtomicInteger(0);    // number of threads waiting until they may read data
-
-  Atomicbool copyingToCache = new Atomicbool(false);    // whether a thread is currently copying data to the cache
+  int highestYinCache = INT32_MIN;
 };
 
 }    // namespace joda::func::img
