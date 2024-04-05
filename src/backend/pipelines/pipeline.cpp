@@ -382,8 +382,10 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
       if(mState != State::ERROR_) {
         mReporting->setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), chIdx);
       }
-      mReporting->appendToDetailReport(detectionResults.at(channelIndex), detailReports, detailOutputFolder,
-                                       channelIndex, chIdx, tileIdx, imgProps);
+      if(detectionResults.contains(channelIndex)) {
+        mReporting->appendToDetailReport(detectionResults.at(channelIndex), detailReports, detailOutputFolder,
+                                         channelIndex, chIdx, tileIdx, imgProps);
+      }
     }
   }
 }

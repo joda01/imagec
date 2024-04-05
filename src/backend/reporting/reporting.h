@@ -176,6 +176,7 @@ public:
   void setColumnName(uint64_t idx, const std::string &colName);
   const std::string &getTableName() const;
   auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
+  auto getRowNameAt(uint64_t rowIdx) const -> const std::string;
   void setRowName(uint64_t rowIdx, const std::string &);
   auto appendValueToColumn(uint64_t colIdx, double value, joda::func::ParticleValidity) -> int64_t;
   auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double value, joda::func::ParticleValidity) -> int64_t;

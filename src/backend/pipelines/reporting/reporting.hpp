@@ -33,6 +33,7 @@ public:
     std::string group;
     int32_t row = -1;
     int32_t col = -1;
+    int32_t img = -1;
   };
 
   Reporting(const joda::settings::json::AnalyzeSettings &);
@@ -54,9 +55,16 @@ public:
   void createAllOverHeatMap(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
                             const std::string &fileName);
 
+  void createHeatmapOfWellsForGroup(lxw_workbook *workbook, const std::string &groupName,
+                                    const joda::reporting::ReportingContainer &groupReports, lxw_format *header,
+                                    lxw_format *numberFormat);
+
   static RegexResult applyRegex(const std::string &regex, const std::string &fileName);
 
 private:
+  static auto stringToNumber(const std::string &str) -> int;
+  static RegexResult applyGroupRegex(const std::string &fileName);
+
   static constexpr int32_t CELL_SIZE = 60;
 
   void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,

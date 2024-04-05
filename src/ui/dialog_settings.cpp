@@ -72,8 +72,8 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
   auto *groupByLabel = new QLabel("Regex to extract coordinates of Well in plate from image filename", groupBox);
   groupBoxLayout->addWidget(groupByLabel);
   mRegexToFindTheWellPosition = new QComboBox(groupBox);
-  mRegexToFindTheWellPosition->addItem("_((.)([0-9]+))_", "_((.)([0-9]+))_");
-  mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_", "((.)([0-9]+))_");
+  mRegexToFindTheWellPosition->addItem("_((.)([0-9]+))_([0-9]+)", "_((.)([0-9]+))_([0-9]+)");
+  mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_([0-9]+)", "((.)([0-9]+))_([0-9]+)");
   mRegexToFindTheWellPosition->setEditable(true);
   groupBoxLayout->addWidget(mRegexToFindTheWellPosition);
   connect(mRegexToFindTheWellPosition, &QComboBox::editTextChanged, this, &DialogSettings::applyRegex);
@@ -165,7 +165,8 @@ void DialogSettings::applyRegex()
     std::string matching = "Match: " + regexResult.group;
     std::string row      = "| Row: " + std::to_string(regexResult.row);
     std::string column   = "| Col: " + std::to_string(regexResult.col);
-    std::string toText   = matching + row + column;
+    std::string img      = "| Img: " + std::to_string(regexResult.img);
+    std::string toText   = matching + row + column + img;
     mTestFileResult->setText(QString(toText.data()));
   } catch(const std::exception &ex) {
     mTestFileResult->setText(ex.what());

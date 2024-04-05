@@ -456,6 +456,44 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
 /// \brief      Create heatmap for all over reporting
 /// \author     Joachim Danmayr
 ///
+void Reporting::createHeatmapOfWellsForGroup(lxw_workbook *workbook, const std::string &groupName,
+                                             const joda::reporting::ReportingContainer &groupReports,
+                                             lxw_format *headerFormat, lxw_format *numberFormat)
+{
+  const int ROW_OFFSET_START = 2;
+  const int COL_OFFSET       = 1;
+
+  // Each column represents one channel. Each channel is printed to a separate worksheet
+  for(const auto &[channelIdx, values] : groupReports.mColumns) {
+    if(values.getTableName() == "INVALID" || groupName.empty() || groupName == "INVALID") {
+      break;
+    }
+
+    std::string wellName = groupName + "-" + values.getTableName();
+    auto *worksheet      = workbook_add_worksheet(workbook, wellName.c_str());
+    int nrOfRows         = values.getNrOfRows();
+    int nrOfCols         = nrOfRows;
+    int rowOffset        = ROW_OFFSET_START;
+
+    paintPlateBorder(worksheet, nrOfRows, nrOfCols, rowOffset, headerFormat, numberFormat);
+
+    for(int rowIdx = 0; rowIdx < values.getNrOfRows(); rowIdx++) {
+      try {
+        auto imageName = values.getRowNameAt(rowIdx);
+        auto areaSize  = values.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).at(rowIdx).value;
+        auto y         = applyRegex(mAnalyzeSettings.getReportingSettings().getFileRegex(), imageName).img;
+        int x          = 0;
+        worksheet_write_number(worksheet, rowOffset + y, x + COL_OFFSET, (double) areaSize, numberFormat);
+      } catch(...) {
+      }
+    }
+  }
+}
+
+///
+/// \brief      Create heatmap for all over reporting
+/// \author     Joachim Danmayr
+///
 void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
                                      const std::string &fileName)
 {
@@ -489,14 +527,30 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
   std::map<int, lxw_worksheet *> sheets;
 
   // Draw heatmap
+  // Each group should be one area in the heatmap whereby the groupname is GRC_<ROW-INDEX>_<COL-INDEX> in the heatmap
   for(const auto &[group, value] : allOverReport) {
+    int row = -1;
+    int col = -1;
+    try {
+      auto regexResult = applyGroupRegex(group);
+      row              = regexResult.row;
+      col              = regexResult.col;
+    } catch(...) {
+    }
+
+    // If enabled we print for each group the heatmap of the wells of the group
+    createHeatmapOfWellsForGroup(workbook, group, value, header, numberFormat);
+
+    // Each column represents one channel. Each channel is printed to a separate worksheet
     for(const auto &[channelIdx, values] : value.mColumns) {
+      if(values.getTableName() == "INVALID") {
+        break;
+      }
       if(!sheets.contains(channelIdx)) {
         sheets[channelIdx] = workbook_add_worksheet(workbook, values.getTableName().data());
         rowOffset          = ROW_OFFSET_START;
         worksheet_merge_range(sheets.at(channelIdx), rowOffset - 1, 0, rowOffset - 1, PLATE_COLS + 1, "-", NULL);
         worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Valid", NULL);
-
         paintPlateBorder(sheets.at(channelIdx), PLATE_ROWS, PLATE_COLS, rowOffset, header, numberFormat);
         rowOffset = PLATE_ROWS + ROW_OFFSET_START + 4;
         worksheet_merge_range(sheets.at(channelIdx), rowOffset - 1, 0, rowOffset - 1, PLATE_COLS + 1, "-", NULL);
@@ -509,26 +563,26 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
       }
 
       auto *sheet = sheets.at(channelIdx);
-
       try {
-        auto row = applyRegex(mAnalyzeSettings.getReportingSettings().getFileRegex(), group).row;
-        auto col = applyRegex(mAnalyzeSettings.getReportingSettings().getFileRegex(), group).col;
+        if(row >= 0 && col >= 0) {
+          rowOffset = ROW_OFFSET_START;
+          worksheet_write_number(
+              sheet, rowOffset + row, col,
+              values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE)).getAvg(),
+              numberFormat);
 
-        rowOffset = ROW_OFFSET_START;
-        worksheet_write_number(
-            sheet, rowOffset + row, col,
-            values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE)).getAvg(), numberFormat);
+          rowOffset = PLATE_ROWS + ROW_OFFSET_START + 4;
+          worksheet_write_number(
+              sheet, rowOffset + row, col,
+              values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::DYNAMIC)).getAvg(), numberFormat);
 
-        rowOffset = PLATE_ROWS + ROW_OFFSET_START + 4;
-        worksheet_write_number(sheet, rowOffset + row, col,
-                               values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::DYNAMIC)).getAvg(),
-                               numberFormat);
-
-        rowOffset = 2 * PLATE_ROWS + ROW_OFFSET_START + ROW_OFFSET_START + 6;
-        worksheet_write_number(
-            sheet, rowOffset + row, col,
-            values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).getAvg(), numberFormat);
-      } catch(const std::exception &) {
+          rowOffset = 2 * PLATE_ROWS + ROW_OFFSET_START + ROW_OFFSET_START + 6;
+          worksheet_write_number(
+              sheet, rowOffset + row, col,
+              values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).getAvg(), numberFormat);
+        }
+      } catch(...) {
+        // No data
       }
     }
   }
@@ -601,11 +655,30 @@ auto Reporting::getGroupToStoreImageIn(const std::string &imagePath, const std::
       try {
         return applyRegex(mAnalyzeSettings.getReportingSettings().getFileRegex(), imageName).group;
       } catch(const std::exception &) {
-        return "invalid_name";
+        return "INVALID";
       }
   }
-  return "invalid_name";
+  return "INVALID";
 }
+
+///
+/// \brief      Converts a a string to a number
+/// \author     Joachim Danmayr
+///
+auto Reporting::stringToNumber(const std::string &str) -> int
+{
+  int result = 0;
+  for(char c : str) {
+    if(isdigit(c)) {
+      result = result * 10 + (c - '0');    // Convert digit character to integer
+    } else if(isalpha(c)) {
+      result = result * 10 + (toupper(c) - 'A' + 1);    // Convert alphabetic character to integer
+    } else {
+      std::cerr << "Invalid character encountered: " << c << std::endl;
+    }
+  }
+  return result;
+};
 
 ///
 /// \brief      Apply regex
@@ -613,29 +686,45 @@ auto Reporting::getGroupToStoreImageIn(const std::string &imagePath, const std::
 ///
 Reporting::RegexResult Reporting::applyRegex(const std::string &regex, const std::string &fileName)
 {
-  auto stringToNumber = [](const std::string &str) {
-    int result = 0;
-    for(char c : str) {
-      if(isdigit(c)) {
-        result = result * 10 + (c - '0');    // Convert digit character to integer
-      } else if(isalpha(c)) {
-        result = result * 10 + (toupper(c) - 'A' + 1);    // Convert alphabetic character to integer
-      } else {
-        std::cerr << "Invalid character encountered: " << c << std::endl;
-      }
-    }
-    return result;
-  };
-
   std::regex pattern(regex);
   std::smatch match;
   Reporting::RegexResult result;
 
   if(std::regex_search(fileName, match, pattern)) {
-    if(match.size() >= 4) {
-      result.group = match[0].str();
-      result.row   = stringToNumber(match[2].str());
-      result.col   = stringToNumber(match[3].str());
+    if(match.size() >= 5) {
+      result.row = stringToNumber(match[2].str());
+      result.col = stringToNumber(match[3].str());
+      result.img = stringToNumber(match[4].str());
+
+      char rowChar[2];
+      rowChar[0]   = result.row - 1 + 'A';
+      rowChar[1]   = 0;
+      result.group = "WELL_" + std::string(rowChar) + "_" + std::to_string(result.col);
+    } else {
+      throw std::invalid_argument("Pattern not found.");
+    }
+  } else {
+    throw std::invalid_argument("Pattern not found.");
+  }
+  return result;
+}
+
+///
+/// \brief      Apply regex to extract group row and col
+/// \author     Joachim Danmayr
+///
+Reporting::RegexResult Reporting::applyGroupRegex(const std::string &fileName)
+{
+  std::regex pattern("WELL_([A-Z]+)_([0-9]+)");
+  std::smatch match;
+  Reporting::RegexResult result;
+
+  if(std::regex_search(fileName, match, pattern)) {
+    if(match.size() >= 3) {
+      result.group = match[0];
+      result.row   = stringToNumber(match[1].str());
+      result.col   = stringToNumber(match[2].str());
+      result.img   = -1;
     } else {
       throw std::invalid_argument("Pattern not found.");
     }
