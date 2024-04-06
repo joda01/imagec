@@ -16,8 +16,10 @@
 #include <qgroupbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <QMessageBox>
 #include <exception>
 #include <string>
+#include <vector>
 #include "backend/pipelines/reporting/reporting.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
@@ -166,17 +168,6 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
 
 nlohmann::json DialogSettings::toJson()
 {
-  nlohmann::json wellImageOrderJson = nlohmann::json::parse(mWellOrderMatrix->text().toStdString());
-  std::set<std::set<int>> wellImageOrder;
-
-  nlohmann::json data;
-  data["heatmap"]["group_by"]                   = mGroupByComboBox->currentData().toString().toStdString();
-  data["heatmap"]["image_filename_regex"]       = mRegexToFindTheWellPosition->currentText().toStdString();
-  data["heatmap"]["generate_heatmap_for_plate"] = mGroupedHeatmapOnOff->currentData().toBool();
-  data["heatmap"]["generate_heatmap_for_well"]  = mWellHeatmapOnOff->currentData().toBool();
-  data["heatmap"]["generate_heatmap_for_image"] = mImageHeatmapOnOff->currentData().toBool();
-  data["heatmap"]["well_image_order"]           = wellImageOrderJson;
-
   QStringList pieces = mHeatmapSlice->text().split(",");
   std::set<int> sizes;
   for(const auto &part : pieces) {
@@ -187,7 +178,22 @@ nlohmann::json DialogSettings::toJson()
     }
   }
 
-  data["heatmap"]["image_heatmap_area_width"] = sizes;
+  nlohmann::json data;
+  data["heatmap"]["group_by"]                   = mGroupByComboBox->currentData().toString().toStdString();
+  data["heatmap"]["image_filename_regex"]       = mRegexToFindTheWellPosition->currentText().toStdString();
+  data["heatmap"]["generate_heatmap_for_plate"] = mGroupedHeatmapOnOff->currentData().toBool();
+  data["heatmap"]["generate_heatmap_for_well"]  = mWellHeatmapOnOff->currentData().toBool();
+  data["heatmap"]["generate_heatmap_for_image"] = mImageHeatmapOnOff->currentData().toBool();
+  data["heatmap"]["image_heatmap_area_width"]   = sizes;
+
+  try {
+    nlohmann::json wellImageOrderJson   = nlohmann::json::parse(mWellOrderMatrix->text().toStdString());
+    data["heatmap"]["well_image_order"] = wellImageOrderJson;
+  } catch(...) {
+    data["heatmap"]["well_image_order"] = nlohmann::json::parse("[[0]]");
+    QMessageBox::warning(this, "Warning",
+                         "The well matrix format is not well defined. Please correct it in the settings dialog!");
+  }
   return data;
 }
 
