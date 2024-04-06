@@ -116,9 +116,11 @@ void Pipeline::runJob()
   reporting::ReportingContainer::flushReportToFile(alloverReport, resultsFile, mJobName,
                                                    reporting::ReportingContainer::OutputFormat::HORIZONTAL);
   if(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForGroup()) {
-    resultsFile = mOutputFolder + separator + "heatmap_summary_" + mJobName + ".xlsx";
-    mReporting->createAllOverHeatMap(alloverReport, resultsFile,
-                                     mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getWellImageOrder());
+    auto wellOrder = mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForWells()
+                         ? mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getWellImageOrder()
+                         : std::vector<std::vector<int32_t>>();
+    resultsFile    = mOutputFolder + separator + "heatmap_summary_" + mJobName + ".xlsx";
+    mReporting->createAllOverHeatMap(alloverReport, mOutputFolder, resultsFile, mJobName, wellOrder);
   }
 
   mState = State::FINISHED;
@@ -142,7 +144,7 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
   std::string imageParentPath = helper::getFolderNameFromPath(imagePath.getPath());
 
   static const std::string separator(1, std::filesystem::path::preferred_separator);
-  auto detailOutputFolder = mOutputFolder + separator + imageName;
+  auto detailOutputFolder = mOutputFolder + separator + "images" + separator + imageName;
 
   std::filesystem::create_directories(detailOutputFolder);
 
@@ -436,6 +438,14 @@ void Pipeline::analyszeChannel(std::map<int32_t, joda::func::DetectionResponse> 
       if(!directoryExists) {
         setStateError("Can not create output folder!");
       }
+
+      if(!std::filesystem::exists(outputFolder + separator + "heatmaps")) {
+        auto directoryExists = std::filesystem::create_directories(outputFolder + separator + "heatmaps");
+        if(!directoryExists) {
+          joda::log::logError("Could not create heatmap directory!");
+        }
+      }
+
     } else {
       directoryExists = true;
     }

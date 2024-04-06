@@ -107,6 +107,11 @@ public:
     return generate_heatmap_for_image;
   }
 
+  [[nodiscard]] auto getCreateHeatmapForWells() const -> bool
+  {
+    return generate_heatmap_for_well;
+  }
+
   [[nodiscard]] auto getImageHeatmapAreaWidth() const -> std::set<int32_t>
   {
     return image_heatmap_area_width;

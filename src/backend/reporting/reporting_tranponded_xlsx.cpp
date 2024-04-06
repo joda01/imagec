@@ -94,7 +94,7 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
     for(int32_t rowIndex = 0; rowIndex < getNrOfRows(); rowIndex++) {
       if(mRowNames.contains(getIndexOfSortedMap(rowIndex))) {
         std::string filePath =
-            "external:.\\" + mRowNames.at(getIndexOfSortedMap(rowIndex)) + "/results_image_" + jobName + ".xlsx";
+            "external:.\\images/" + mRowNames.at(getIndexOfSortedMap(rowIndex)) + "/results_image_" + jobName + ".xlsx";
 
         worksheet_write_url(worksheet, headerColumnRowOffset, rowIndex + colOffset, filePath.data(),
                             imageHeaderHyperlinkFormat);

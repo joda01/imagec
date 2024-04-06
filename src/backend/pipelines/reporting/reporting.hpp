@@ -53,7 +53,8 @@ public:
   void createHeatMapForImage(const joda::reporting::ReportingContainer &containers, int64_t imageWidth,
                              int64_t imageHeight, const std::string &fileName);
   void createAllOverHeatMap(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
-                            const std::string &fileName, const std::vector<std::vector<int32_t>> &imageWellOrderMatrix);
+                            const std::string &outputFolder, const std::string &fileName, const std::string &jobName,
+                            const std::vector<std::vector<int32_t>> &imageWellOrderMatrix);
 
   static RegexResult applyRegex(const std::string &regex, const std::string &fileName);
 
@@ -74,10 +75,10 @@ private:
   void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,
                         lxw_format *numberFormat) const;
 
-  void createHeatmapOfWellsForGroup(lxw_workbook *workbook, const std::string &groupName,
-                                    const std::map<int32_t, HeatMapPoint> &wellOrder, int32_t sizeX, int32_t sizeY,
-                                    const joda::reporting::ReportingContainer &groupReports, lxw_format *header,
-                                    lxw_format *numberFormat);
+  void createHeatmapOfWellsForGroup(const std::string &outputFolder, const std::string &groupName,
+                                    const std::string &jobName, const std::map<int32_t, HeatMapPoint> &wellOrder,
+                                    int32_t sizeX, int32_t sizeY,
+                                    const joda::reporting::ReportingContainer &groupReports);
 
   static auto transformMatrix(const std::vector<std::vector<int32_t>> &imageWellOrderMatrix, int32_t &sizeX,
                               int32_t &sizeY) -> std::map<int32_t, HeatMapPoint>;
