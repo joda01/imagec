@@ -13,10 +13,10 @@ namespace joda::reporting {
 /// \author     Joachim Danmayr
 /// \param[in]  fileName  Name of the output report file
 ///
-std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &headerText, int colOffset,
-                                                             int rowOffset, int startRow, lxw_worksheet *worksheet,
-                                                             lxw_format *header, lxw_format *merge_format,
-                                                             lxw_format *numberFormat,
+std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &headerText, const std::string &jobName,
+                                                             int colOffset, int rowOffset, int startRow,
+                                                             lxw_worksheet *worksheet, lxw_format *header,
+                                                             lxw_format *merge_format, lxw_format *numberFormat,
                                                              lxw_format *imageHeaderHyperlinkFormat) const
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
@@ -93,7 +93,8 @@ std::tuple<int, int> Table::flushReportToFileXlsxTransponded(const std::string &
   if(headerColumnRowOffset == startRow || WRITE_HEADER_FOR_EACH_CHANNEL) {
     for(int32_t rowIndex = 0; rowIndex < getNrOfRows(); rowIndex++) {
       if(mRowNames.contains(getIndexOfSortedMap(rowIndex))) {
-        std::string filePath = "external:.\\" + mRowNames.at(getIndexOfSortedMap(rowIndex)) + "/detail.xlsx";
+        std::string filePath =
+            "external:.\\images/" + mRowNames.at(getIndexOfSortedMap(rowIndex)) + "/results_image_" + jobName + ".xlsx";
 
         worksheet_write_url(worksheet, headerColumnRowOffset, rowIndex + colOffset, filePath.data(),
                             imageHeaderHyperlinkFormat);

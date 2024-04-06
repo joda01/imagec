@@ -21,11 +21,13 @@
 #include <regex>
 #include <stdexcept>
 #include <string>
+#include <vector>
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/roi/roi.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/logger/console_logger.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
+#include "backend/settings/analze_settings_parser.hpp"
 
 namespace joda::pipeline {
 
@@ -64,8 +66,9 @@ void Reporting::setDetailReportHeader(joda::reporting::ReportingContainer &detai
 ///
 void Reporting::appendToDetailReport(const joda::func::DetectionResponse &result,
                                      joda::reporting::ReportingContainer &detailReportTable,
-                                     const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
-                                     uint32_t tileIdx, const ImageProperties &imgProps)
+                                     const std::string &detailReportOutputPath, const std::string &jobName,
+                                     int realChannelIdx, int tempChannelIdx, uint32_t tileIdx,
+                                     const ImageProperties &imgProps)
 {
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
@@ -77,7 +80,7 @@ void Reporting::appendToDetailReport(const joda::func::DetectionResponse &result
   auto id = DurationCount::start("write-control-image");
   if(!result.controlImage.empty()) {
     cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
-                    std::to_string(tileIdx) + ".png",
+                    std::to_string(tileIdx) + "_" + jobName + ".png",
                 result.controlImage, compression_params);
   } else {
     std::cout << "CTRL img null" << std::endl;
@@ -336,7 +339,8 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
 
   ////////////////////////////////////////////////////////////////////////////////////
   ////
-  for(const auto heatMapSquareWidthIn : mAnalyzeSettings.getReportingSettings().getImageHeatmapAreaWidth()) {
+  for(const auto heatMapSquareWidthIn :
+      mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getImageHeatmapAreaWidth()) {
     struct Square
     {
       uint64_t nrOfValid  = 0;
@@ -456,8 +460,83 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
 /// \brief      Create heatmap for all over reporting
 /// \author     Joachim Danmayr
 ///
+void Reporting::createHeatmapOfWellsForGroup(const std::string &outputFolder, const std::string &groupName,
+                                             const std::string &jobName,
+                                             const std::map<int32_t, HeatMapPoint> &wellOrder, int32_t sizeX,
+                                             int32_t sizeY, const joda::reporting::ReportingContainer &groupReports)
+{
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
+
+  std::string filename =
+      outputFolder + separator + "heatmaps" + separator + "heatmap_" + groupName + "_" + jobName + ".xlsx";
+  lxw_workbook *workbook   = nullptr;
+  lxw_format *headerFormat = nullptr;
+  lxw_format *numberFormat = nullptr;
+
+  const int ROW_OFFSET_START = 2;
+  const int COL_OFFSET       = 1;
+
+  // Each column represents one channel. Each channel is printed to a separate worksheet
+  for(const auto &[channelIdx, values] : groupReports.mColumns) {
+    if(values.getTableName() == "INVALID" || groupName.empty() || groupName == "INVALID") {
+      break;
+    }
+    if(nullptr == workbook) {
+      workbook = workbook_new(filename.data());
+
+      // Well header
+      headerFormat = workbook_add_format(workbook);
+      format_set_bold(headerFormat);
+      format_set_pattern(headerFormat, LXW_PATTERN_SOLID);
+      format_set_bg_color(headerFormat, 0x002242);
+      format_set_font_color(headerFormat, 0xFFFFFF);
+      format_set_border(headerFormat, LXW_BORDER_THIN);
+      format_set_font_size(headerFormat, 10);
+
+      // Number format
+      numberFormat = workbook_add_format(workbook);
+      format_set_num_format(numberFormat, "0.00E+00");
+      format_set_font_size(numberFormat, 10);
+      format_set_align(numberFormat, LXW_ALIGN_CENTER);
+      format_set_align(numberFormat, LXW_ALIGN_VERTICAL_CENTER);
+    }
+
+    std::string wellName = groupName + "-" + values.getTableName();
+    auto *worksheet      = workbook_add_worksheet(workbook, wellName.c_str());
+    int nrOfRows         = sizeY;
+    int nrOfCols         = sizeX;
+    int rowOffset        = ROW_OFFSET_START;
+
+    paintPlateBorder(worksheet, nrOfRows, nrOfCols, rowOffset, headerFormat, numberFormat);
+    rowOffset++;
+    for(int rowIdx = 0; rowIdx < values.getNrOfRows(); rowIdx++) {
+      try {
+        auto imageName = values.getRowNameAt(rowIdx);
+        auto areaSize  = values.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).at(rowIdx).value;
+        auto imgNr =
+            applyRegex(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getFileRegex(), imageName).img;
+        auto pos = wellOrder.find(imgNr);
+        if(pos != wellOrder.end()) {
+          worksheet_write_number(worksheet, rowOffset + pos->second.y, pos->second.x + COL_OFFSET, (double) areaSize,
+                                 numberFormat);
+        }
+      } catch(...) {
+      }
+    }
+  }
+  if(nullptr != workbook) {
+    workbook_close(workbook);
+  }
+}
+
+///
+/// \brief      Create heatmap for all over reporting
+/// \author     Joachim Danmayr
+///
 void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
-                                     const std::string &fileName)
+                                     const std::string &outputFolder, const std::string &fileName,
+                                     const std::string &jobName,
+                                     const std::vector<std::vector<int32_t>> &imageWellOrderMatrix)
 {
   const int32_t PLATE_ROWS = 16;
   const int32_t PLATE_COLS = 24;
@@ -488,15 +567,39 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
   // Intensity
   std::map<int, lxw_worksheet *> sheets;
 
+  // Well matrix
+  int32_t sizeX;
+  int32_t sizeY;
+  auto wellOrderMap            = transformMatrix(imageWellOrderMatrix, sizeX, sizeY);
+  bool generateHeatmapForWells = !imageWellOrderMatrix.empty();
+
   // Draw heatmap
+  // Each group should be one area in the heatmap whereby the groupname is GRC_<ROW-INDEX>_<COL-INDEX> in the heatmap
   for(const auto &[group, value] : allOverReport) {
+    int row = -1;
+    int col = -1;
+    try {
+      auto regexResult = applyGroupRegex(group);
+      row              = regexResult.row;
+      col              = regexResult.col;
+    } catch(...) {
+    }
+
+    // If enabled we print for each group the heatmap of the wells of the group
+    if(generateHeatmapForWells) {
+      createHeatmapOfWellsForGroup(outputFolder, group, jobName, wellOrderMap, sizeX, sizeY, value);
+    }
+
+    // Each column represents one channel. Each channel is printed to a separate worksheet
     for(const auto &[channelIdx, values] : value.mColumns) {
+      if(values.getTableName() == "INVALID") {
+        break;
+      }
       if(!sheets.contains(channelIdx)) {
         sheets[channelIdx] = workbook_add_worksheet(workbook, values.getTableName().data());
         rowOffset          = ROW_OFFSET_START;
         worksheet_merge_range(sheets.at(channelIdx), rowOffset - 1, 0, rowOffset - 1, PLATE_COLS + 1, "-", NULL);
         worksheet_write_string(sheets.at(channelIdx), rowOffset - 1, 0, "Valid", NULL);
-
         paintPlateBorder(sheets.at(channelIdx), PLATE_ROWS, PLATE_COLS, rowOffset, header, numberFormat);
         rowOffset = PLATE_ROWS + ROW_OFFSET_START + 4;
         worksheet_merge_range(sheets.at(channelIdx), rowOffset - 1, 0, rowOffset - 1, PLATE_COLS + 1, "-", NULL);
@@ -509,26 +612,42 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
       }
 
       auto *sheet = sheets.at(channelIdx);
-
       try {
-        auto row = applyRegex(mAnalyzeSettings.getReportingSettings().getFileRegex(), group).row;
-        auto col = applyRegex(mAnalyzeSettings.getReportingSettings().getFileRegex(), group).col;
+        if(row >= 0 && col >= 0) {
+          rowOffset = ROW_OFFSET_START;
 
-        rowOffset = ROW_OFFSET_START;
-        worksheet_write_number(
-            sheet, rowOffset + row, col,
-            values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE)).getAvg(), numberFormat);
+          if(generateHeatmapForWells) {
+            std::string filePath = "external:.\\heatmaps/heatmap_" + group + "_" + jobName + ".xlsx";
+            worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
+          }
 
-        rowOffset = PLATE_ROWS + ROW_OFFSET_START + 4;
-        worksheet_write_number(sheet, rowOffset + row, col,
-                               values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::DYNAMIC)).getAvg(),
-                               numberFormat);
+          worksheet_write_number(
+              sheet, rowOffset + row, col,
+              values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE)).getAvg(),
+              numberFormat);
 
-        rowOffset = 2 * PLATE_ROWS + ROW_OFFSET_START + ROW_OFFSET_START + 6;
-        worksheet_write_number(
-            sheet, rowOffset + row, col,
-            values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).getAvg(), numberFormat);
-      } catch(const std::exception &) {
+          rowOffset = PLATE_ROWS + ROW_OFFSET_START + 4;
+
+          if(generateHeatmapForWells) {
+            std::string filePath = "external:.\\heatmaps/heatmap_" + group + "_" + jobName + ".xlsx";
+            worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
+          }
+          worksheet_write_number(
+              sheet, rowOffset + row, col,
+              values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::DYNAMIC)).getAvg(), numberFormat);
+
+          rowOffset = 2 * PLATE_ROWS + ROW_OFFSET_START + ROW_OFFSET_START + 6;
+
+          if(generateHeatmapForWells) {
+            std::string filePath = "external:.\\heatmaps/heatmap_" + group + "_" + jobName + ".xlsx";
+            worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
+          }
+          worksheet_write_number(
+              sheet, rowOffset + row, col,
+              values.getStatistics().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).getAvg(), numberFormat);
+        }
+      } catch(...) {
+        // No data
       }
     }
   }
@@ -592,20 +711,39 @@ void Reporting::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t col
 ///
 auto Reporting::getGroupToStoreImageIn(const std::string &imagePath, const std::string &imageName) -> std::string
 {
-  switch(mAnalyzeSettings.getReportingSettings().getGroupBy()) {
-    case settings::json::AnalyzeSettingsReporting::GroupBy::OFF:
+  switch(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getGroupBy()) {
+    case settings::json::AnalyzeSettingsReportingHeatmap::GroupBy::OFF:
       return {};
-    case settings::json::AnalyzeSettingsReporting::GroupBy::FOLDER:
+    case settings::json::AnalyzeSettingsReportingHeatmap::GroupBy::FOLDER:
       return imagePath;
-    case settings::json::AnalyzeSettingsReporting::GroupBy::FILENAME:
+    case settings::json::AnalyzeSettingsReportingHeatmap::GroupBy::FILENAME:
       try {
-        return applyRegex(mAnalyzeSettings.getReportingSettings().getFileRegex(), imageName).group;
+        return applyRegex(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getFileRegex(), imageName).group;
       } catch(const std::exception &) {
-        return "invalid_name";
+        return "INVALID";
       }
   }
-  return "invalid_name";
+  return "INVALID";
 }
+
+///
+/// \brief      Converts a a string to a number
+/// \author     Joachim Danmayr
+///
+auto Reporting::stringToNumber(const std::string &str) -> int
+{
+  int result = 0;
+  for(char c : str) {
+    if(isdigit(c)) {
+      result = result * 10 + (c - '0');    // Convert digit character to integer
+    } else if(isalpha(c)) {
+      result = result * 10 + (toupper(c) - 'A' + 1);    // Convert alphabetic character to integer
+    } else {
+      std::cerr << "Invalid character encountered: " << c << std::endl;
+    }
+  }
+  return result;
+};
 
 ///
 /// \brief      Apply regex
@@ -613,29 +751,20 @@ auto Reporting::getGroupToStoreImageIn(const std::string &imagePath, const std::
 ///
 Reporting::RegexResult Reporting::applyRegex(const std::string &regex, const std::string &fileName)
 {
-  auto stringToNumber = [](const std::string &str) {
-    int result = 0;
-    for(char c : str) {
-      if(isdigit(c)) {
-        result = result * 10 + (c - '0');    // Convert digit character to integer
-      } else if(isalpha(c)) {
-        result = result * 10 + (toupper(c) - 'A' + 1);    // Convert alphabetic character to integer
-      } else {
-        std::cerr << "Invalid character encountered: " << c << std::endl;
-      }
-    }
-    return result;
-  };
-
   std::regex pattern(regex);
   std::smatch match;
   Reporting::RegexResult result;
 
   if(std::regex_search(fileName, match, pattern)) {
-    if(match.size() >= 4) {
-      result.group = match[0].str();
-      result.row   = stringToNumber(match[2].str());
-      result.col   = stringToNumber(match[3].str());
+    if(match.size() >= 5) {
+      result.row = stringToNumber(match[2].str());
+      result.col = stringToNumber(match[3].str());
+      result.img = stringToNumber(match[4].str());
+
+      char rowChar[2];
+      rowChar[0]   = result.row - 1 + 'A';
+      rowChar[1]   = 0;
+      result.group = "well_" + std::string(rowChar) + "_" + std::to_string(result.col);
     } else {
       throw std::invalid_argument("Pattern not found.");
     }
@@ -643,6 +772,68 @@ Reporting::RegexResult Reporting::applyRegex(const std::string &regex, const std
     throw std::invalid_argument("Pattern not found.");
   }
   return result;
+}
+
+///
+/// \brief      Apply regex to extract group row and col
+/// \author     Joachim Danmayr
+///
+Reporting::RegexResult Reporting::applyGroupRegex(const std::string &fileName)
+{
+  std::regex pattern("well_([A-Z]+)_([0-9]+)");
+  std::smatch match;
+  Reporting::RegexResult result;
+
+  if(std::regex_search(fileName, match, pattern)) {
+    if(match.size() >= 3) {
+      result.group = match[0];
+      result.row   = stringToNumber(match[1].str());
+      result.col   = stringToNumber(match[2].str());
+      result.img   = -1;
+    } else {
+      throw std::invalid_argument("Pattern not found.");
+    }
+  } else {
+    throw std::invalid_argument("Pattern not found.");
+  }
+  return result;
+}
+
+///
+/// \brief      Transforms a 2D Matrix where the elements in the matrix represents an image index
+///             and the coordinates of the matrix the position on the well to a map
+///             whereby the key is the image index and the values are the coordinates
+///              | 0  1  2
+///             -|---------
+///             0| 1  2  3
+///             1| 4  5  6
+///             2| 7  8  9
+///
+///            [1] => {0,0}
+///            [2] => {1,0}
+///            ...
+///            [9] => {2,2}
+///
+///
+/// \author     Joachim Danmayr
+///
+auto Reporting::transformMatrix(const std::vector<std::vector<int32_t>> &imageWellOrderMatrix, int32_t &sizeX,
+                                int32_t &sizeY) -> std::map<int32_t, HeatMapPoint>
+{
+  sizeY = imageWellOrderMatrix.size();
+  sizeX = 0;
+
+  std::map<int32_t, HeatMapPoint> ret;
+  for(int y = 0; y < imageWellOrderMatrix.size(); y++) {
+    for(int x = 0; x < imageWellOrderMatrix[y].size(); x++) {
+      ret[imageWellOrderMatrix[y][x]] = HeatMapPoint{.x = x, .y = y};
+      if(x > sizeX) {
+        sizeX = x;
+      }
+    }
+  }
+  sizeX++;    // Because we start with zro to count
+  return ret;
 }
 
 }    // namespace joda::pipeline

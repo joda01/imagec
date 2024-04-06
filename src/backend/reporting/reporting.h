@@ -176,6 +176,7 @@ public:
   void setColumnName(uint64_t idx, const std::string &colName);
   const std::string &getTableName() const;
   auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
+  auto getRowNameAt(uint64_t rowIdx) const -> const std::string;
   void setRowName(uint64_t rowIdx, const std::string &);
   auto appendValueToColumn(uint64_t colIdx, double value, joda::func::ParticleValidity) -> int64_t;
   auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double value, joda::func::ParticleValidity) -> int64_t;
@@ -190,8 +191,9 @@ public:
   std::tuple<int, int> flushReportToFileXlsx(int colOffset, int /*rowOffset*/, lxw_worksheet *worksheet,
                                              lxw_format *header, lxw_format *merge_format,
                                              lxw_format *numberFormat) const;
-  std::tuple<int, int> flushReportToFileXlsxTransponded(const std::string &headerText, int colOffset, int rowOffset,
-                                                        int startRow, lxw_worksheet *worksheet, lxw_format *header,
+  std::tuple<int, int> flushReportToFileXlsxTransponded(const std::string &headerText, const std::string &jobName,
+                                                        int colOffset, int rowOffset, int startRow,
+                                                        lxw_worksheet *worksheet, lxw_format *header,
                                                         lxw_format *merge_format, lxw_format *numberFormat,
                                                         lxw_format *imageHeaderHyperlinkFormat) const;
   auto getNrOfColumns() const -> int64_t;

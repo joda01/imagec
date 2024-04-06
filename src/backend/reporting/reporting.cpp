@@ -152,6 +152,14 @@ auto Table::getColumnNameAt(uint64_t colIdx) const -> const std::string
   return mColumnName.at(colIdx);
 }
 
+auto Table::getRowNameAt(uint64_t rowIdx) const -> const std::string
+{
+  if(mRowNames.contains(rowIdx)) {
+    return mRowNames.at(rowIdx);
+  }
+  return "";
+}
+
 auto Statistics::getStatisticsTitle() -> const std::array<std::string, NR_OF_VALUE>
 {
   return {"Valid", "Invalid", "Sum", "Min", "Max", "Avg"};

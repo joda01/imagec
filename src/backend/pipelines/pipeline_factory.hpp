@@ -73,12 +73,12 @@ public:
   ///
   static auto
   startNewJob(const settings::json::AnalyzeSettings &settings, const std::string &inputFolder,
-              joda::helper::ImageFileContainer *imageFileContainer,
+              const std::string &jobName, joda::helper::ImageFileContainer *imageFileContainer,
               const pipeline::Pipeline::ThreadingSettings &threadingSettings = pipeline::Pipeline::ThreadingSettings())
       -> std::string
   {
     std::string jobId = std::to_string(mJobCount++);
-    mJob = std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder, threadingSettings);
+    mJob = std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder, jobName, threadingSettings);
     if(mJob != nullptr) {
       mLastOutputFolder = mJob->getOutputFolder();
     }

@@ -37,7 +37,10 @@ public:
 
 private:
   QComboBox *mGroupedHeatmapOnOff;
+  QComboBox *mWellHeatmapOnOff;
   QComboBox *mImageHeatmapOnOff;
+  QLineEdit *mWellOrderMatrix;
+
   QLineEdit *mHeatmapSlice;
   QComboBox *mGroupByComboBox;
   // QComboBox *mPlateComboBox;

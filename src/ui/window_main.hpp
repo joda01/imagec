@@ -76,6 +76,14 @@ public:
     return mImageTilesCombo;
   }
 
+  [[nodiscard]] auto getJobName() const -> std::string
+  {
+    if(mJobName->text().isEmpty()) {
+      return mJobName->placeholderText().toStdString();
+    }
+    return mJobName->text().toStdString();
+  }
+
   nlohmann::json toJson();
   void fromJson(const settings::json::AnalyzeSettings &);
 signals:
@@ -114,6 +122,9 @@ private:
   std::thread *mMainThread;
   bool mNewFolderSelected = false;
   DialogSettings mReportingSettings;
+
+  ////Toolbar/////////////////////////////////////////////////
+  QLineEdit *mJobName;
 
   ////Made project settings/////////////////////////////////////////////////
   ContainerBase *mSelectedChannel = nullptr;

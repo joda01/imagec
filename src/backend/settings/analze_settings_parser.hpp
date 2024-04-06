@@ -72,7 +72,7 @@ private:
                                  with_detailed_report);
 };
 
-class AnalyzeSettingsReporting final
+class AnalyzeSettingsReportingHeatmap final
 {
 public:
   enum class GroupBy
@@ -99,7 +99,7 @@ public:
 
   [[nodiscard]] auto getCreateHeatmapForGroup() const -> bool
   {
-    return generate_heatmap_for_group;
+    return generate_heatmap_for_plate;
   }
 
   [[nodiscard]] auto getCreateHeatmapForImage() const -> bool
@@ -107,9 +107,19 @@ public:
     return generate_heatmap_for_image;
   }
 
+  [[nodiscard]] auto getCreateHeatmapForWells() const -> bool
+  {
+    return generate_heatmap_for_well;
+  }
+
   [[nodiscard]] auto getImageHeatmapAreaWidth() const -> std::set<int32_t>
   {
     return image_heatmap_area_width;
+  }
+
+  [[nodiscard]] auto getWellImageOrder() const -> const std::vector<std::vector<int32_t>> &
+  {
+    return well_image_order;
   }
 
   void interpretConfig()
@@ -139,7 +149,12 @@ private:
   //
   // Generate a heatmap for grouped images
   //
-  bool generate_heatmap_for_group = false;
+  bool generate_heatmap_for_plate = false;
+
+  //
+  // Generate a heatmap for a well
+  //
+  bool generate_heatmap_for_well = false;
 
   //
   // Generate a heatmap for each image
@@ -151,9 +166,36 @@ private:
   //
   std::set<int32_t> image_heatmap_area_width;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettingsReporting, group_by, image_filename_regex,
-                                              generate_heatmap_for_image, generate_heatmap_for_group,
-                                              image_heatmap_area_width);
+  //
+  // Matrix of image numbers how the images are ordered in a map.
+  // First dimension of the vector are the rows, second the columns
+  //
+  std::vector<std::vector<int32_t>> well_image_order;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettingsReportingHeatmap, group_by, image_filename_regex,
+                                              generate_heatmap_for_image, generate_heatmap_for_plate,
+                                              generate_heatmap_for_well, image_heatmap_area_width, well_image_order);
+};
+
+class AnalyzeSettingsReporting final
+{
+public:
+  /////////////////////////////////////////////////////
+  [[nodiscard]] auto getHeatmapSettings() const -> const AnalyzeSettingsReportingHeatmap &
+  {
+    return heatmap;
+  }
+
+  void interpretConfig()
+  {
+    heatmap.interpretConfig();
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  AnalyzeSettingsReportingHeatmap heatmap;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettingsReporting, heatmap);
 };
 
 class AnalyzeSettings final
@@ -177,7 +219,7 @@ public:
     *this            = json::parse(read);
     interpretConfig();
 
-    originalJson = json::parse(read).dump();
+    originalJson = json::parse(read).dump(2);
     input.close();
   }
 
@@ -185,7 +227,7 @@ public:
   {
     *this = json::parse(jsonString);
     interpretConfig();
-    originalJson = json::parse(jsonString).dump();
+    originalJson = json::parse(jsonString).dump(2);
   }
 
   void storeConfigToFile(const std::string &cfgPath)
