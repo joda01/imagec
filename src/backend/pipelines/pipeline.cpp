@@ -115,7 +115,7 @@ void Pipeline::runJob()
   std::string resultsFile = mOutputFolder + separator + "results_summary_" + mJobName + ".xlsx";
   reporting::ReportingContainer::flushReportToFile(alloverReport, resultsFile, mJobName,
                                                    reporting::ReportingContainer::OutputFormat::HORIZONTAL);
-  if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForGroup()) {
+  if(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForGroup()) {
     resultsFile = mOutputFolder + separator + "heatmap_summary_" + mJobName + ".xlsx";
     mReporting->createAllOverHeatMap(alloverReport, resultsFile);
   }
@@ -200,7 +200,7 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
         detailReports, detailOutputFolder + separator + "results_image_" + mJobName + ".xlsx", mJobName,
         reporting::ReportingContainer::OutputFormat::VERTICAL);
 
-    if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForImage()) {
+    if(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForImage()) {
       mReporting->createHeatMapForImage(detailReport, propsOut.width, propsOut.height,
                                         detailOutputFolder + separator + "heatmap_image_" + mJobName + ".xlsx");
     }

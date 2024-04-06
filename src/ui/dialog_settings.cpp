@@ -20,8 +20,16 @@
 #include <string>
 #include "backend/pipelines/reporting/reporting.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
+#include <nlohmann/detail/macro_scope.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
+
+struct Temp
+{
+  std::set<std::set<int32_t>> order;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Temp, order);
+};
 
 ///
 /// \brief
@@ -51,14 +59,25 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
 
   mGroupByComboBox = new QComboBox(groupBox);
   mGroupByComboBox->addItem("Ungrouped", "OFF");
-  mGroupByComboBox->addItem("Group by folder", "FOLDER");
-  mGroupByComboBox->addItem("Group by well", "FILENAME");
+  mGroupByComboBox->addItem("Group based on foldername", "FOLDER");
+  mGroupByComboBox->addItem("Group based on filename", "FILENAME");
   groupBoxLayout->addWidget(mGroupByComboBox);
 
   mGroupedHeatmapOnOff = new QComboBox(groupBox);
-  mGroupedHeatmapOnOff->addItem("No heatmap generation", false);
+  mGroupedHeatmapOnOff->addItem("No heatmap generation for group", false);
   mGroupedHeatmapOnOff->addItem("Generate heatmap for group", true);
   groupBoxLayout->addWidget(mGroupedHeatmapOnOff);
+
+  mWellHeatmapOnOff = new QComboBox(groupBox);
+  mWellHeatmapOnOff->addItem("No heatmap generation for well", false);
+  mWellHeatmapOnOff->addItem("Generate heatmap for well", true);
+  groupBoxLayout->addWidget(mWellHeatmapOnOff);
+
+  auto *matrixDesc =
+      new QLabel("Matrix of the order of the images in a well. Rows are separated by commas: [[],[],[],[]].", groupBox);
+  groupBoxLayout->addWidget(matrixDesc);
+  mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+  groupBoxLayout->addWidget(mWellOrderMatrix);
 
   // mPlateComboBox = new QComboBox(groupBox);
   // mPlateComboBox->addItem("No plate (1x1)");
@@ -96,7 +115,7 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
 void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &settings)
 {
   {
-    auto idx = mGroupByComboBox->findData(QString(settings.getGroupByString().data()));
+    auto idx = mGroupByComboBox->findData(QString(settings.getHeatmapSettings().getGroupByString().data()));
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
     } else {
@@ -105,7 +124,7 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
   }
 
   {
-    auto idx = mGroupedHeatmapOnOff->findData(settings.getCreateHeatmapForGroup());
+    auto idx = mGroupedHeatmapOnOff->findData(settings.getHeatmapSettings().getCreateHeatmapForGroup());
     if(idx >= 0) {
       mGroupedHeatmapOnOff->setCurrentIndex(idx);
     } else {
@@ -114,7 +133,7 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
   }
 
   {
-    auto idx = mImageHeatmapOnOff->findData(settings.getCreateHeatmapForImage());
+    auto idx = mImageHeatmapOnOff->findData(settings.getHeatmapSettings().getCreateHeatmapForImage());
     if(idx >= 0) {
       mImageHeatmapOnOff->setCurrentIndex(idx);
     } else {
@@ -123,24 +142,40 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
   }
   {
     QString slice;
-    for(const auto size : settings.getImageHeatmapAreaWidth()) {
+    for(const auto size : settings.getHeatmapSettings().getImageHeatmapAreaWidth()) {
       slice += QString::number(size) + ",";
     }
     slice = slice.left(slice.lastIndexOf(',') + 1);
     mHeatmapSlice->setText(slice);
   }
 
-  mRegexToFindTheWellPosition->setCurrentText(settings.getFileRegex().data());
+  {
+    try {
+      Temp tm{.order = settings.getHeatmapSettings().getWellImageOrder()};
+      nlohmann::json j = tm;
+      j                = j["order"];
+      mWellOrderMatrix->setText(j.dump().data());
+    } catch(...) {
+      mWellOrderMatrix->setText("[[1,2,3,4],[5,6,7,8]]");
+    }
+  }
+
+  mRegexToFindTheWellPosition->setCurrentText(settings.getHeatmapSettings().getFileRegex().data());
   applyRegex();
 }
 
 nlohmann::json DialogSettings::toJson()
 {
+  nlohmann::json wellImageOrderJson = nlohmann::json::parse(mWellOrderMatrix->text().toStdString());
+  std::set<std::set<int>> wellImageOrder;
+
   nlohmann::json data;
-  data["group_by"]                   = mGroupByComboBox->currentData().toString().toStdString();
-  data["image_filename_regex"]       = mRegexToFindTheWellPosition->currentText().toStdString();
-  data["generate_heatmap_for_group"] = mGroupedHeatmapOnOff->currentData().toBool();
-  data["generate_heatmap_for_image"] = mImageHeatmapOnOff->currentData().toBool();
+  data["heatmap"]["group_by"]                   = mGroupByComboBox->currentData().toString().toStdString();
+  data["heatmap"]["image_filename_regex"]       = mRegexToFindTheWellPosition->currentText().toStdString();
+  data["heatmap"]["generate_heatmap_for_plate"] = mGroupedHeatmapOnOff->currentData().toBool();
+  data["heatmap"]["generate_heatmap_for_well"]  = mWellHeatmapOnOff->currentData().toBool();
+  data["heatmap"]["generate_heatmap_for_image"] = mImageHeatmapOnOff->currentData().toBool();
+  data["heatmap"]["well_image_order"]           = wellImageOrderJson;
 
   QStringList pieces = mHeatmapSlice->text().split(",");
   std::set<int> sizes;
@@ -152,7 +187,7 @@ nlohmann::json DialogSettings::toJson()
     }
   }
 
-  data["image_heatmap_area_width"] = sizes;
+  data["heatmap"]["image_heatmap_area_width"] = sizes;
   return data;
 }
 

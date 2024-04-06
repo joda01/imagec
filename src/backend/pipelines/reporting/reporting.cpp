@@ -26,6 +26,7 @@
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/logger/console_logger.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
+#include "backend/settings/analze_settings_parser.hpp"
 
 namespace joda::pipeline {
 
@@ -337,7 +338,8 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
 
   ////////////////////////////////////////////////////////////////////////////////////
   ////
-  for(const auto heatMapSquareWidthIn : mAnalyzeSettings.getReportingSettings().getImageHeatmapAreaWidth()) {
+  for(const auto heatMapSquareWidthIn :
+      mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getImageHeatmapAreaWidth()) {
     struct Square
     {
       uint64_t nrOfValid  = 0;
@@ -482,8 +484,8 @@ void Reporting::createHeatmapOfWellsForGroup(lxw_workbook *workbook, const std::
       try {
         auto imageName = values.getRowNameAt(rowIdx);
         auto areaSize  = values.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).at(rowIdx).value;
-        auto y         = applyRegex(mAnalyzeSettings.getReportingSettings().getFileRegex(), imageName).img;
-        int x          = 0;
+        auto y = applyRegex(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getFileRegex(), imageName).img;
+        int x  = 0;
         worksheet_write_number(worksheet, rowOffset + y, x + COL_OFFSET, (double) areaSize, numberFormat);
       } catch(...) {
       }
@@ -647,14 +649,14 @@ void Reporting::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t col
 ///
 auto Reporting::getGroupToStoreImageIn(const std::string &imagePath, const std::string &imageName) -> std::string
 {
-  switch(mAnalyzeSettings.getReportingSettings().getGroupBy()) {
-    case settings::json::AnalyzeSettingsReporting::GroupBy::OFF:
+  switch(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getGroupBy()) {
+    case settings::json::AnalyzeSettingsReportingHeatmap::GroupBy::OFF:
       return {};
-    case settings::json::AnalyzeSettingsReporting::GroupBy::FOLDER:
+    case settings::json::AnalyzeSettingsReportingHeatmap::GroupBy::FOLDER:
       return imagePath;
-    case settings::json::AnalyzeSettingsReporting::GroupBy::FILENAME:
+    case settings::json::AnalyzeSettingsReportingHeatmap::GroupBy::FILENAME:
       try {
-        return applyRegex(mAnalyzeSettings.getReportingSettings().getFileRegex(), imageName).group;
+        return applyRegex(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getFileRegex(), imageName).group;
       } catch(const std::exception &) {
         return "INVALID";
       }

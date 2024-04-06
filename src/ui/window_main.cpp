@@ -716,7 +716,7 @@ void WindowMain::onSaveProjectClicked()
 
   if(!filePath.isEmpty()) {
     joda::settings::json::AnalyzeSettings settings;
-    settings.loadConfigFromString(toJson());
+    settings.loadConfigFromString(toJson().dump());
     std::string path = filePath.toStdString();
     if(!path.ends_with(".json")) {
       path += ".json";
