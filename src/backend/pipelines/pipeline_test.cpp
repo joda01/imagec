@@ -1,5 +1,6 @@
 #include "../image_reader/jpg/image_loader_jpg.hpp"
 #include "../settings/analze_settings_parser.hpp"
+#include "backend/helper/random_name_generator.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "controller/controller.hpp"
 #include <catch2/catch_session.hpp>
@@ -17,7 +18,8 @@ TEST_CASE("pipeline:test", "[pipeline_test]")
     settings.loadConfigFromFile("test_areosold_Evs/config.json");
     joda::helper::ImageFileContainer imageFileContainer;
     imageFileContainer.setWorkingDirectory("test_areosold_Evs");
-    joda::pipeline::PipelineFactory::startNewJob(settings, "test_areosold_Evs", &imageFileContainer);
+    joda::pipeline::PipelineFactory::startNewJob(
+        settings, "test_areosold_Evs", joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer);
 
     joda::pipeline::Pipeline::State state = joda::pipeline::Pipeline::State::STOPPED;
     while(state != joda::pipeline::Pipeline::State::FINISHED) {
@@ -40,7 +42,8 @@ TEST_CASE("pipeline:test:voronoi", "[pipeline_test_voronoi]")
   settings.loadConfigFromFile("test/test_areosold_Evs/config.json");
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test/test_areosold_Evs");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_areosold_Evs", &imageFileContainer);
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_areosold_Evs",
+                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer);
 
   while(true) {
     sleep(2);
@@ -57,7 +60,8 @@ TEST_CASE("pipeline:test:spots", "[pipeline_test_spots]")
   settings.loadConfigFromFile("test/test_spot/config.json");
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test/test_spot");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_spot", &imageFileContainer);
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_spot",
+                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer);
 
   while(true) {
     sleep(2);
@@ -74,7 +78,8 @@ TEST_CASE("pipeline:test:cells", "[pipeline_test_cells]")
   settings.loadConfigFromFile("test/test_cell/config.json");
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test/test_cell");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_cell", &imageFileContainer);
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_cell",
+                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer);
 
   while(true) {
     sleep(2);
@@ -91,7 +96,8 @@ TEST_CASE("pipeline:test:cell_area", "[pipeline_test_cell_area]")
   settings.loadConfigFromFile("test/test_cell/config_cell.json");
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test/test_cell");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_cell", &imageFileContainer);
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_cell",
+                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer);
 
   while(true) {
     sleep(2);
@@ -108,7 +114,8 @@ TEST_CASE("pipeline:test:nucleus", "[pipeline_test_nucleus]")
   settings.loadConfigFromFile("test_nucleus/config.json");
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test_nucleus");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test_nucleus", &imageFileContainer);
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test_nucleus",
+                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer);
 
   while(true) {
     sleep(2);
@@ -128,7 +135,8 @@ TEST_CASE("pipeline:test:spots_real", "[pipeline_test_spots_real]")
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test/test_spot/evanalyzer_comp");
   sleep(1);
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_spot/evanalyzer_comp", &imageFileContainer,
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_spot/evanalyzer_comp",
+                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer,
                                                controller.calcOptimalThreadNumber(settings, 0));
 
   while(true) {
@@ -151,7 +159,8 @@ TEST_CASE("pipeline:test:histo", "[pipeline_test_histo]")
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test/test_histo");
   sleep(1);
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_histo", &imageFileContainer,
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_histo",
+                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer,
                                                controller.calcOptimalThreadNumber(settings, 0));
 
   while(true) {
@@ -169,7 +178,8 @@ TEST_CASE("pipeline:test:spots:tetraspeck", "[pipeline_test_spots_tetraspeck]")
   settings.loadConfigFromFile("test/test_spot/config_tetra.json");
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test/test_spot");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_spot", &imageFileContainer);
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_spot",
+                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer);
 
   while(true) {
     sleep(2);
@@ -188,7 +198,8 @@ TEST_CASE("pipeline:test:svi_tanja", "[pipeline_test_svi_tanja]")
   settings.loadConfigFromFile("test/test_svi_tanja/config.json");
   joda::helper::ImageFileContainer imageFileContainer;
   imageFileContainer.setWorkingDirectory("test/test_svi_tanja");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_svi_tanja", &imageFileContainer);
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_svi_tanja",
+                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer);
 
   while(true) {
     sleep(2);

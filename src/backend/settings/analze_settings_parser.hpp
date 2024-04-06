@@ -112,7 +112,7 @@ public:
     return image_heatmap_area_width;
   }
 
-  [[nodiscard]] auto getWellImageOrder() const -> const std::set<std::set<int32_t>> &
+  [[nodiscard]] auto getWellImageOrder() const -> const std::vector<std::vector<int32_t>> &
   {
     return well_image_order;
   }
@@ -163,9 +163,9 @@ private:
 
   //
   // Matrix of image numbers how the images are ordered in a map.
-  // First dimension of the set are the rows, second the columns
+  // First dimension of the vector are the rows, second the columns
   //
-  std::set<std::set<int32_t>> well_image_order;
+  std::vector<std::vector<int32_t>> well_image_order;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettingsReportingHeatmap, group_by, image_filename_regex,
                                               generate_heatmap_for_image, generate_heatmap_for_plate,

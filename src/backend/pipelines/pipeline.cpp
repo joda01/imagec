@@ -117,7 +117,8 @@ void Pipeline::runJob()
                                                    reporting::ReportingContainer::OutputFormat::HORIZONTAL);
   if(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForGroup()) {
     resultsFile = mOutputFolder + separator + "heatmap_summary_" + mJobName + ".xlsx";
-    mReporting->createAllOverHeatMap(alloverReport, resultsFile);
+    mReporting->createAllOverHeatMap(alloverReport, resultsFile,
+                                     mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getWellImageOrder());
   }
 
   mState = State::FINISHED;

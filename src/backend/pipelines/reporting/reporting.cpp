@@ -21,6 +21,7 @@
 #include <regex>
 #include <stdexcept>
 #include <string>
+#include <vector>
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/roi/roi.hpp"
 #include "backend/image_reader/image_reader.hpp"
@@ -460,7 +461,8 @@ void Reporting::createHeatMapForImage(const joda::reporting::ReportingContainer 
 /// \author     Joachim Danmayr
 ///
 void Reporting::createHeatmapOfWellsForGroup(lxw_workbook *workbook, const std::string &groupName,
-                                             const joda::reporting::ReportingContainer &groupReports,
+                                             const std::map<int32_t, HeatMapPoint> &wellOrder, int32_t sizeX,
+                                             int32_t sizeY, const joda::reporting::ReportingContainer &groupReports,
                                              lxw_format *headerFormat, lxw_format *numberFormat)
 {
   const int ROW_OFFSET_START = 2;
@@ -474,19 +476,23 @@ void Reporting::createHeatmapOfWellsForGroup(lxw_workbook *workbook, const std::
 
     std::string wellName = groupName + "-" + values.getTableName();
     auto *worksheet      = workbook_add_worksheet(workbook, wellName.c_str());
-    int nrOfRows         = values.getNrOfRows();
-    int nrOfCols         = nrOfRows;
+    int nrOfRows         = sizeY;
+    int nrOfCols         = sizeX;
     int rowOffset        = ROW_OFFSET_START;
 
     paintPlateBorder(worksheet, nrOfRows, nrOfCols, rowOffset, headerFormat, numberFormat);
-
+    rowOffset++;
     for(int rowIdx = 0; rowIdx < values.getNrOfRows(); rowIdx++) {
       try {
         auto imageName = values.getRowNameAt(rowIdx);
         auto areaSize  = values.getTable().at(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE)).at(rowIdx).value;
-        auto y = applyRegex(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getFileRegex(), imageName).img;
-        int x  = 0;
-        worksheet_write_number(worksheet, rowOffset + y, x + COL_OFFSET, (double) areaSize, numberFormat);
+        auto imgNr =
+            applyRegex(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getFileRegex(), imageName).img;
+        auto pos = wellOrder.find(imgNr);
+        if(pos != wellOrder.end()) {
+          worksheet_write_number(worksheet, rowOffset + pos->second.y, pos->second.x + COL_OFFSET, (double) areaSize,
+                                 numberFormat);
+        }
       } catch(...) {
       }
     }
@@ -498,7 +504,8 @@ void Reporting::createHeatmapOfWellsForGroup(lxw_workbook *workbook, const std::
 /// \author     Joachim Danmayr
 ///
 void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
-                                     const std::string &fileName)
+                                     const std::string &fileName,
+                                     const std::vector<std::vector<int32_t>> &imageWellOrderMatrix)
 {
   const int32_t PLATE_ROWS = 16;
   const int32_t PLATE_COLS = 24;
@@ -529,6 +536,11 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
   // Intensity
   std::map<int, lxw_worksheet *> sheets;
 
+  // Well matrix
+  int32_t sizeX;
+  int32_t sizeY;
+  auto wellOrderMap = transformMatrix(imageWellOrderMatrix, sizeX, sizeY);
+
   // Draw heatmap
   // Each group should be one area in the heatmap whereby the groupname is GRC_<ROW-INDEX>_<COL-INDEX> in the heatmap
   for(const auto &[group, value] : allOverReport) {
@@ -542,7 +554,7 @@ void Reporting::createAllOverHeatMap(std::map<std::string, joda::reporting::Repo
     }
 
     // If enabled we print for each group the heatmap of the wells of the group
-    createHeatmapOfWellsForGroup(workbook, group, value, header, numberFormat);
+    createHeatmapOfWellsForGroup(workbook, group, wellOrderMap, sizeX, sizeY, value, header, numberFormat);
 
     // Each column represents one channel. Each channel is printed to a separate worksheet
     for(const auto &[channelIdx, values] : value.mColumns) {
@@ -735,6 +747,43 @@ Reporting::RegexResult Reporting::applyGroupRegex(const std::string &fileName)
     throw std::invalid_argument("Pattern not found.");
   }
   return result;
+}
+
+///
+/// \brief      Transforms a 2D Matrix where the elements in the matrix represents an image index
+///             and the coordinates of the matrix the position on the well to a map
+///             whereby the key is the image index and the values are the coordinates
+///              | 0  1  2
+///             -|---------
+///             0| 1  2  3
+///             1| 4  5  6
+///             2| 7  8  9
+///
+///            [1] => {0,0}
+///            [2] => {1,0}
+///            ...
+///            [9] => {2,2}
+///
+///
+/// \author     Joachim Danmayr
+///
+auto Reporting::transformMatrix(const std::vector<std::vector<int32_t>> &imageWellOrderMatrix, int32_t &sizeX,
+                                int32_t &sizeY) -> std::map<int32_t, HeatMapPoint>
+{
+  sizeY = imageWellOrderMatrix.size();
+  sizeX = 0;
+
+  std::map<int32_t, HeatMapPoint> ret;
+  for(int y = 0; y < imageWellOrderMatrix.size(); y++) {
+    for(int x = 0; x < imageWellOrderMatrix[y].size(); x++) {
+      ret[imageWellOrderMatrix[y][x]] = HeatMapPoint{.x = x, .y = y};
+      if(x > sizeX) {
+        sizeX = x;
+      }
+    }
+  }
+  sizeX++;    // Because we start with zro to count
+  return ret;
 }
 
 }    // namespace joda::pipeline
