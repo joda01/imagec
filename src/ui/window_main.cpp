@@ -16,6 +16,7 @@
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlayout.h>
+#include <qlineedit.h>
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
@@ -33,6 +34,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include "backend/helper/random_name_generator.hpp"
 #include "backend/settings/channel_settings.hpp"
 #include "backend/settings/pipeline_settings.hpp"
 #include "channel/container_channel.hpp"
@@ -418,6 +420,44 @@ QWidget *WindowMain::createAddChannelPanel()
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
   layout->addWidget(openSettingsButton);
 
+  QFrame *divider = new QFrame();
+  divider->setFrameShape(QFrame::HLine);
+  divider->setFrameShadow(QFrame::Sunken);
+  layout->addWidget(divider);
+
+  //
+  // Job name
+  //
+  {
+    const QIcon myIcon(":/icons/outlined/icons8-topic-50.png");
+    mJobName = new QLineEdit();
+    mJobName->setObjectName("JobName");
+    mJobName->setStyleSheet(
+        "QLineEdit { border-radius: 4px; border: 1px solid rgba(32, 27, 23, 0.6); padding-top: 10px; padding-bottom: "
+        "10px;}");
+    mJobName->setText("");
+    layout->addWidget(mJobName);
+    QFont fontLineEdit;
+    fontLineEdit.setPixelSize(16);
+    mJobName->setFont(fontLineEdit);
+    mJobName->setClearButtonEnabled(true);
+    mJobName->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
+    mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
+    layout->addWidget(mJobName);
+    auto *helperText = new QLabel();
+    helperText->setObjectName("functionHelperText");
+    helperText->setText("Job name");
+    helperText->setContentsMargins(12, 0, 0, 0);
+    QFont font;
+    font.setPixelSize(12);
+    font.setItalic(true);
+    font.setBold(false);
+    font.setWeight(QFont::Light);
+    helperText->setFont(font);
+    helperText->setStyleSheet("QLabel#functionHelperText { color : #808080; }");
+    layout->addWidget(helperText);
+  }
+
   layout->setSpacing(8);    // Adjust this value as needed
   layout->addStretch();
   addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -676,7 +716,7 @@ void WindowMain::onSaveProjectClicked()
 
   if(!filePath.isEmpty()) {
     joda::settings::json::AnalyzeSettings settings;
-    settings.loadConfigFromString(toJson().dump(2));
+    settings.loadConfigFromString(toJson());
     std::string path = filePath.toStdString();
     if(!path.ends_with(".json")) {
       path += ".json";
@@ -721,6 +761,10 @@ void WindowMain::onStartClicked()
 {
   DialogAnalyzeRunning dialg(this);
   dialg.exec();
+
+  // Analysis finished -> generate new name
+  mJobName->setText("");
+  mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
 }
 
 ///

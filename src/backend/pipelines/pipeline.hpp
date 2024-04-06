@@ -80,7 +80,8 @@ public:
   };
 
   Pipeline(const settings::json::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
-           const std::string &inputFolder, const ThreadingSettings &threadingSettings = ThreadingSettings());
+           const std::string &inputFolder, const std::string &jobName,
+           const ThreadingSettings &threadingSettings = ThreadingSettings());
   ~Pipeline()
   {
     stopJob();
@@ -156,7 +157,7 @@ private:
   static inline const std::string RESULTS_PATH_NAME{"results"};
 
   /////////////////////////////////////////////////////
-  auto prepareOutputFolder(const std::string &inputFolder) -> std::string;
+  auto prepareOutputFolder(const std::string &inputFolder, const std::string &jobName) -> std::string;
   ///
   /// \brief Returns if the thread should be stopped
   [[nodiscard]] auto shouldThreadBeStopped() const -> bool
@@ -187,6 +188,7 @@ private:
   ThreadingSettings mThreadingSettings;
   std::mutex mAddToDetailReportMutex;
   std::map<std::string, joda::onnx::OnnxParser::Data> mOnnxModels;
+  std::string mJobName;
 };
 
 }    // namespace joda::pipeline

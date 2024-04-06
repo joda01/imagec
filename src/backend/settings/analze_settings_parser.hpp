@@ -177,7 +177,7 @@ public:
     *this            = json::parse(read);
     interpretConfig();
 
-    originalJson = json::parse(read).dump();
+    originalJson = json::parse(read).dump(2);
     input.close();
   }
 
@@ -185,7 +185,7 @@ public:
   {
     *this = json::parse(jsonString);
     interpretConfig();
-    originalJson = json::parse(jsonString).dump();
+    originalJson = json::parse(jsonString).dump(2);
   }
 
   void storeConfigToFile(const std::string &cfgPath)

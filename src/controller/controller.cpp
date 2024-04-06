@@ -33,11 +33,11 @@ Controller::Controller()
 /// \author     Joachim Danmayr
 ///
 void Controller::start(const settings::json::AnalyzeSettings &settings,
-                       const pipeline::Pipeline::ThreadingSettings &threadSettings)
+                       const pipeline::Pipeline::ThreadingSettings &threadSettings, const std::string &jobName)
 {
   try {
     mActProcessId = joda::pipeline::PipelineFactory::startNewJob(settings, mWorkingDirectory.getWorkingDirectory(),
-                                                                 &mWorkingDirectory, threadSettings);
+                                                                 jobName, &mWorkingDirectory, threadSettings);
     joda::log::logInfo("Analyze started!");
   } catch(const std::exception &ex) {
     joda::log::logWarning("Analyze could not be started! Got " + std::string(ex.what()) + ".");

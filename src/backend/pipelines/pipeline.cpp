@@ -49,12 +49,13 @@ using namespace std::filesystem;
 
 Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
                    joda::helper::ImageFileContainer *imageFileContainer, const std::string &inputFolder,
-                   const ThreadingSettings &threadingSettings) :
+                   const std::string &jobName, const ThreadingSettings &threadingSettings) :
     mInputFolder(inputFolder),
-    mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mThreadingSettings(threadingSettings)
+    mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mThreadingSettings(threadingSettings),
+    mJobName(jobName)
 {
   try {
-    mOutputFolder = prepareOutputFolder(inputFolder);
+    mOutputFolder = prepareOutputFolder(inputFolder, jobName);
     mReporting    = std::make_shared<Reporting>(settings);
     mMainThread   = std::make_shared<std::thread>(&Pipeline::runJob, this);
     mState        = State::RUNNING;
@@ -77,7 +78,7 @@ void Pipeline::runJob()
 {
   // Store configuration
   static const std::string separator(1, std::filesystem::path::preferred_separator);
-  mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings.json");
+  mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings_" + mJobName + ".json");
 
   // Look for onnx models in the model folder
   mOnnxModels = onnx::OnnxParser::findOnnxFiles();
@@ -111,11 +112,11 @@ void Pipeline::runJob()
   imageThreadPool.wait_for_tasks();
   DurationCount::stop(idStart);
 
-  std::string resultsFile = mOutputFolder + separator + "results.xlsx";
-  reporting::ReportingContainer::flushReportToFile(alloverReport, resultsFile,
+  std::string resultsFile = mOutputFolder + separator + "results_summary_" + mJobName + ".xlsx";
+  reporting::ReportingContainer::flushReportToFile(alloverReport, resultsFile, mJobName,
                                                    reporting::ReportingContainer::OutputFormat::HORIZONTAL);
   if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForGroup()) {
-    resultsFile = mOutputFolder + separator + "heatmap.xlsx";
+    resultsFile = mOutputFolder + separator + "heatmap_summary_" + mJobName + ".xlsx";
     mReporting->createAllOverHeatMap(alloverReport, resultsFile);
   }
 
@@ -195,12 +196,13 @@ void Pipeline::analyzeImage(std::map<std::string, joda::reporting::ReportingCont
   // Write report
   //
   if(mState != State::ERROR_) {
-    reporting::ReportingContainer::flushReportToFile(detailReports, detailOutputFolder + separator + "detail.xlsx",
-                                                     reporting::ReportingContainer::OutputFormat::VERTICAL);
+    reporting::ReportingContainer::flushReportToFile(
+        detailReports, detailOutputFolder + separator + "results_image_" + mJobName + ".xlsx", mJobName,
+        reporting::ReportingContainer::OutputFormat::VERTICAL);
 
     if(mAnalyzeSettings.getReportingSettings().getCreateHeatmapForImage()) {
       mReporting->createHeatMapForImage(detailReport, propsOut.width, propsOut.height,
-                                        detailOutputFolder + separator + "heatmap.xlsx");
+                                        detailOutputFolder + separator + "heatmap_image_" + mJobName + ".xlsx");
     }
 
     auto nrOfChannels = mAnalyzeSettings.getChannelsVector().size() + mAnalyzeSettings.getPipelineSteps().size() + 1;
@@ -302,8 +304,8 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
     int idx       = settings::json::PipelineStepSettings::INTERSECTION_INDEX_OFFSET + colocIx;
     detectionResults.emplace(static_cast<int32_t>(idx), response);
     mReporting->setDetailReportHeader(detailReports, "Intersection", tempChannelIdx);
-    mReporting->appendToDetailReport(detectionResults.at(idx), detailReports, detailOutputFolder, idx, tempChannelIdx,
-                                     tileIdx, imgProps);
+    mReporting->appendToDetailReport(detectionResults.at(idx), detailReports, detailOutputFolder, mJobName, idx,
+                                     tempChannelIdx, tileIdx, imgProps);
     tempChannelIdx++;
     colocIx++;
     if(mStop) {
@@ -341,7 +343,7 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
           counting.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
         }
 
-        mReporting->appendToDetailReport(detectionResults.at(idx), detailReports, detailOutputFolder, idx,
+        mReporting->appendToDetailReport(detectionResults.at(idx), detailReports, detailOutputFolder, mJobName, idx,
                                          tempChannelIdx, tileIdx, imgProps);
 
         tempChannelIdx++;
@@ -383,7 +385,7 @@ void Pipeline::analyzeTile(joda::reporting::ReportingContainer &detailReports, F
         mReporting->setDetailReportHeader(detailReports, channelSettings.getChannelInfo().getName(), chIdx);
       }
       if(detectionResults.contains(channelIndex)) {
-        mReporting->appendToDetailReport(detectionResults.at(channelIndex), detailReports, detailOutputFolder,
+        mReporting->appendToDetailReport(detectionResults.at(channelIndex), detailReports, detailOutputFolder, mJobName,
                                          channelIndex, chIdx, tileIdx, imgProps);
       }
     }
@@ -419,12 +421,13 @@ void Pipeline::analyszeChannel(std::map<int32_t, joda::func::DetectionResponse> 
 /// \param[in]  inputFolder Inputfolder of the images
 /// \return     Outputfolder of the results
 ///
-[[nodiscard]] auto Pipeline::prepareOutputFolder(const std::string &inputFolder) -> std::string
+[[nodiscard]] auto Pipeline::prepareOutputFolder(const std::string &inputFolder, const std::string &jobName)
+    -> std::string
 {
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
   auto nowString    = ::joda::helper::timeNowToString();
-  auto outputFolder = inputFolder + separator + RESULTS_PATH_NAME + separator + nowString;
+  auto outputFolder = inputFolder + separator + RESULTS_PATH_NAME + separator + nowString + "_" + jobName;
   try {
     bool directoryExists = false;
     if(!std::filesystem::exists(outputFolder)) {

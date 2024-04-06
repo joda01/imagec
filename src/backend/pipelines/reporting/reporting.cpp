@@ -64,8 +64,9 @@ void Reporting::setDetailReportHeader(joda::reporting::ReportingContainer &detai
 ///
 void Reporting::appendToDetailReport(const joda::func::DetectionResponse &result,
                                      joda::reporting::ReportingContainer &detailReportTable,
-                                     const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
-                                     uint32_t tileIdx, const ImageProperties &imgProps)
+                                     const std::string &detailReportOutputPath, const std::string &jobName,
+                                     int realChannelIdx, int tempChannelIdx, uint32_t tileIdx,
+                                     const ImageProperties &imgProps)
 {
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
@@ -77,7 +78,7 @@ void Reporting::appendToDetailReport(const joda::func::DetectionResponse &result
   auto id = DurationCount::start("write-control-image");
   if(!result.controlImage.empty()) {
     cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
-                    std::to_string(tileIdx) + ".png",
+                    std::to_string(tileIdx) + "_" + jobName + ".png",
                 result.controlImage, compression_params);
   } else {
     std::cout << "CTRL img null" << std::endl;

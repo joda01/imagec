@@ -42,8 +42,8 @@ public:
                              int tempChannelIdx);
   void appendToDetailReport(const joda::func::DetectionResponse &result,
                             joda::reporting::ReportingContainer &detailReportTable,
-                            const std::string &detailReportOutputPath, int realChannelIdx, int tempChannelIdx,
-                            uint32_t tileIdx, const ImageProperties &imgProps);
+                            const std::string &detailReportOutputPath, const std::string &jobName, int realChannelIdx,
+                            int tempChannelIdx, uint32_t tileIdx, const ImageProperties &imgProps);
   void appendToAllOverReport(std::map<std::string, joda::reporting::ReportingContainer> &allOverReport,
                              const joda::reporting::ReportingContainer &detailedReport, const std::string &imagePath,
                              const std::string &imageName, int nrOfChannels);

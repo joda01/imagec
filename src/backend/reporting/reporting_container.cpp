@@ -22,7 +22,7 @@ ReportingContainer::ReportingContainer()
 }
 
 void ReportingContainer::flushReportToFile(const std::map<std::string, ReportingContainer> &containers,
-                                           const std::string &fileName, OutputFormat format)
+                                           const std::string &fileName, const std::string &jobName, OutputFormat format)
 {
   lxw_workbook *workbook   = workbook_new(fileName.data());
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, NULL);
@@ -68,9 +68,9 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
     for(const auto &[idx, table] : table.mColumns) {
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
-        auto [colOffset, rowOffset] =
-            table.flushReportToFileXlsxTransponded(folderName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet,
-                                                   header, merge_format, numberFormat, imageHeaderHyperlinkFormat);
+        auto [colOffset, rowOffset] = table.flushReportToFileXlsxTransponded(
+            folderName, jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format,
+            numberFormat, imageHeaderHyperlinkFormat);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }
