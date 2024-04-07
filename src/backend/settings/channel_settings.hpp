@@ -19,6 +19,7 @@
 #include <optional>
 #include <set>
 #include <vector>
+#include "backend/logger/console_logger.hpp"
 #include <catch2/catch_config.hpp>
 #include <nlohmann/json.hpp>
 #include "preprocessing_settings.hpp"
@@ -373,9 +374,45 @@ public:
     return cross_channel_intensity_channels;
   }
 
+  auto getCrossChannelIntensityIndexes() const -> const std::set<int32_t> &
+  {
+    return crossChannelIntensityRealIndexes;
+  }
+
   auto getCrossChannelCountChannels() const -> const std::set<std::string> &
   {
     return cross_channel_count_channels;
+  }
+
+  auto getCrossChannelCountIndexes() const -> const std::set<int32_t> &
+  {
+    return crossChannelCountRealIndexes;
+  }
+
+  void interpretConfig()
+  {
+    auto strToIdx = [](const std::string &idxToIntersectStr) {
+      int idxToIntersect = -1;
+      try {
+        idxToIntersect = stoi(idxToIntersectStr);
+      } catch(...) {
+        if(idxToIntersectStr.size() == 1) {
+          idxToIntersect =
+              /*settings::json::PipelineStepSettings::INTERSECTION_INDEX_OFFSET*/ 200 + (idxToIntersectStr.at(0) - 'A');
+        } else {
+          joda::log::logWarning("This is not a valid intersecting channel!");
+        }
+      }
+      return idxToIntersect;
+    };
+    crossChannelIntensityRealIndexes.clear();
+    for(const auto &str : cross_channel_intensity_channels) {
+      crossChannelIntensityRealIndexes.emplace(strToIdx(str));
+    }
+    crossChannelCountRealIndexes.clear();
+    for(const auto &str : cross_channel_count_channels) {
+      crossChannelCountRealIndexes.emplace(strToIdx(str));
+    }
   }
 
 private:
@@ -387,9 +424,11 @@ private:
 
   // Cross channel intensity calculation
   std::set<std::string> cross_channel_intensity_channels;
+  std::set<int32_t> crossChannelIntensityRealIndexes;
 
   // Cross channel count calculation
   std::set<std::string> cross_channel_count_channels;
+  std::set<int32_t> crossChannelCountRealIndexes;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CrossChannelSettings, coloc_groups, min_coloc_area,
                                               cross_channel_intensity_channels, cross_channel_count_channels);
@@ -435,6 +474,8 @@ public:
         mSubtractChannel = method2->channel_index;
       }
     }
+
+    cross_channel.interpretConfig();
   }
 
   auto getArrayIndex() const -> int32_t

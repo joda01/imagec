@@ -6,9 +6,20 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
-#include "reporting.h"
+#include "results.h"
 
-namespace joda::reporting {
+namespace joda::settings::json {
+class AnalyzeSettings;
+}
+
+struct JobMeta
+{
+  const std::string jobName;
+  const std::chrono::system_clock::time_point timeStarted;
+  const std::chrono::system_clock::time_point timeFinished;
+};
+
+namespace joda::results {
 
 class ReportingContainer
 {
@@ -45,8 +56,10 @@ public:
     return mColumns.contains(key);
   }
 
-  static void flushReportToFile(const std::map<std::string, ReportingContainer> &containers,
-                                const std::string &fileName, const std::string &jobName, OutputFormat format);
+  static void flushReportToFile(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+                                const std::map<std::string, ReportingContainer> &containers,
+                                const std::string &fileName, const JobMeta &meta, OutputFormat format,
+                                bool writeRunMeta);
 
   mutable std::map<int32_t, Table> mColumns;    // Each column is the representation of a channel
 
@@ -54,4 +67,4 @@ private:
   mutable std::mutex mAccessMutex;
 };
 
-}    // namespace joda::reporting
+}    // namespace joda::results

@@ -57,6 +57,7 @@ OmeInfo::OmeInfo()
 ///
 ImageProperties OmeInfo::loadOmeInformationFromJsonString(const std::string &omeJson)
 {
+  /// \todo Add error handling here
   auto parsedJson = nlohmann::json::parse(omeJson);
 
   mNrOfChannels = parsedJson["ch"];

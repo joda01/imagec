@@ -19,8 +19,8 @@
 #include <ctime>
 #include <iostream>
 #include <map>
-#include <string>
 #include <mutex>
+#include <string>
 
 class DurationCount
 {
@@ -42,10 +42,10 @@ public:
   }
   static void stop(uint32_t rand)
   {
-    auto t_end             = std::chrono::high_resolution_clock::now();
+    auto t_end = std::chrono::high_resolution_clock::now();
     std::lock_guard<std::mutex> lock(mLock);
     double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - mDelays[rand].t_start).count();
-    std::cout << mDelays[rand].mComment << ": " << elapsed_time_ms << " ms\n";
+    // std::cout << mDelays[rand].mComment << ": " << elapsed_time_ms << " ms\n";
     mDelays.erase(rand);
   }
 

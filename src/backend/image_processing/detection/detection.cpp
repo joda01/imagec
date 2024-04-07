@@ -27,9 +27,8 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
                                          const joda::onnx::OnnxParser::Data &modelInfo, const std::string &fillColor,
                                          bool paintRectangel, bool paintLabels)
 {
-  cv::Mat mask            = img.clone();
-  cv::Scalar areaColor    = hexToScalar(fillColor);
-  cv::Scalar contourColor = BLACK;    // hexToScalar(fillColor);
+  cv::Mat mask         = img.clone();
+  cv::Scalar areaColor = hexToScalar(fillColor);
 
   for(int i = 0; i < result.size(); i++) {
     int left      = result[i].getBoundingBox().x;
@@ -56,6 +55,8 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
 
         // Paint contour only for valid particles
         if(result[i].isValid()) {
+          cv::Scalar contourColor = GREEN;    // hexToScalar(fillColor);
+
           {
             std::vector<std::vector<cv::Point>> contours;
             contours.push_back(result[i].getContour());
@@ -73,11 +74,12 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
         std::cout << "P" << ex.what() << std::endl;
       }
     }
-    std::string label = std::to_string(result[i].getIndex()) + " | " + std::to_string(result[i].getConfidence());
-    if(modelInfo.classes.size() > result[i].getClassId()) {
-      label += " | " + modelInfo.classes[result[i].getClassId()];
-    }
     if(paintLabels) {
+      std::string label = std::to_string(result[i].getIndex()) + " | " + std::to_string(result[i].getConfidence());
+      if(modelInfo.classes.size() > result[i].getClassId()) {
+        label += " | " + modelInfo.classes[result[i].getClassId()];
+      }
+
       drawLabel(img, areaColor, label, left, top);
     }
   }

@@ -11,21 +11,25 @@
 /// \brief     A short description what happens here.
 ///
 
-#include "reporting_container.hpp"
+#include "results_container.hpp"
 #include <xlsxwriter/format.h>
+#include "backend/pipelines/reporting/reporting_details.xlsx.hpp"
+#include "backend/pipelines/reporting/reporting_job_information.hpp"
+#include "backend/pipelines/reporting/reporting_overview_xlsx.hpp"
 #include "xlsxwriter.h"
 
-namespace joda::reporting {
+namespace joda::results {
 
 ReportingContainer::ReportingContainer()
 {
 }
 
-void ReportingContainer::flushReportToFile(const std::map<std::string, ReportingContainer> &containers,
-                                           const std::string &fileName, const std::string &jobName, OutputFormat format)
+void ReportingContainer::flushReportToFile(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+                                           const std::map<std::string, ReportingContainer> &containers,
+                                           const std::string &fileName, const JobMeta &meta, OutputFormat format,
+                                           bool writeRunMeta)
 {
-  lxw_workbook *workbook   = workbook_new(fileName.data());
-  lxw_worksheet *worksheet = workbook_add_worksheet(workbook, NULL);
+  lxw_workbook *workbook = workbook_new(fileName.data());
 
   /* Add a format. */
   lxw_format *header = workbook_add_format(workbook);
@@ -56,27 +60,51 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
   format_set_border(merge_format, LXW_BORDER_THIN);
   format_set_font_size(merge_format, 10);
 
+  lxw_format *headerBold = workbook_add_format(workbook);
+  format_set_bold(headerBold);
+  format_set_pattern(headerBold, LXW_PATTERN_SOLID);
+  format_set_bg_color(headerBold, 0xFFFFFF);
+  format_set_font_color(headerBold, 0x000000);
+  format_set_border(headerBold, LXW_BORDER_THIN);
+  format_set_bold(headerBold);
+  format_set_font_size(headerBold, 10);
+
+  lxw_format *fontNormal = workbook_add_format(workbook);
+  format_set_font_size(fontNormal, 10);
+  format_set_border(fontNormal, LXW_BORDER_THIN);
+  format_set_pattern(fontNormal, LXW_PATTERN_SOLID);
+  format_set_bg_color(fontNormal, 0xFFFFFF);
+  format_set_font_color(fontNormal, 0x000000);
+
   // Number format
   lxw_format *numberFormat = workbook_add_format(workbook);
   format_set_num_format(numberFormat, "0.00");
   format_set_font_size(numberFormat, 10);
 
-  int colOffsetIn    = 0;
-  int rowOffsetIn    = 0;
-  int rowOffsetStart = 0;
+  if(writeRunMeta) {
+    // Write run meta information
+    lxw_worksheet *worksheetMeta = workbook_add_worksheet(workbook, "Job info");
+    joda::pipeline::reporting::JobInformation::writeReport(analyzeSettings, containers, meta, worksheetMeta, headerBold,
+                                                           fontNormal);
+  }
+
+  int colOffsetIn          = 0;
+  int rowOffsetIn          = 0;
+  int rowOffsetStart       = 0;
+  lxw_worksheet *worksheet = workbook_add_worksheet(workbook, "Results");
   for(const auto &[folderName, table] : containers) {
     for(const auto &[idx, table] : table.mColumns) {
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
-        auto [colOffset, rowOffset] = table.flushReportToFileXlsxTransponded(
-            folderName, jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format,
+        auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
+            table, folderName, meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format,
             numberFormat, imageHeaderHyperlinkFormat);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }
       if(OutputFormat::VERTICAL == format) {
-        auto [colOffset, rowOffset] =
-            table.flushReportToFileXlsx(colOffsetIn, rowOffsetIn, worksheet, header, merge_format, numberFormat);
+        auto [colOffset, rowOffset] = joda::pipeline::reporting::DetailReport::writeReport(
+            table, colOffsetIn, rowOffsetIn, worksheet, header, merge_format, numberFormat);
         colOffsetIn += colOffset + 1;
         rowOffsetIn += rowOffset;
       }
@@ -90,4 +118,4 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
   workbook_close(workbook);
 }
 
-}    // namespace joda::reporting
+}    // namespace joda::results

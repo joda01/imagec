@@ -25,9 +25,9 @@
 #include <vector>
 #include "../helper/helper.hpp"
 #include "../logger/console_logger.hpp"
-#include "../reporting/reporting.h"
 #include "../settings/analze_settings_parser.hpp"
 #include "pipeline.hpp"
+
 namespace joda::pipeline {
 
 using namespace std::chrono_literals;

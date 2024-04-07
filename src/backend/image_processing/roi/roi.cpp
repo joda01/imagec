@@ -415,18 +415,20 @@ void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filt
 ///
 void ROI::measureAndAddIntensity(int32_t channelIdx, const cv::Mat &imageOriginal)
 {
-  if(!imageOriginal.empty() && !mBoundingBox.empty() && !mMask.empty()) {
-    cv::Mat maskImg                 = (imageOriginal) (mBoundingBox);
-    intensity[channelIdx].intensity = cv::mean(maskImg, mMask)[0];
-    cv::minMaxLoc(maskImg, &intensity[channelIdx].intensityMin, &intensity[channelIdx].intensityMax, nullptr, nullptr,
-                  mMask);
-  } else {
+  {
     if(!intensity.contains(channelIdx)) {
       // Just ad an empty entry
       intensity[channelIdx].intensity    = 0;
       intensity[channelIdx].intensityMax = 0;
       intensity[channelIdx].intensityMin = 0;
     }
+  }
+
+  if(!imageOriginal.empty() && !mBoundingBox.empty() && !mMask.empty()) {
+    cv::Mat maskImg                 = (imageOriginal) (mBoundingBox);
+    intensity[channelIdx].intensity = cv::mean(maskImg, mMask)[0];
+    cv::minMaxLoc(maskImg, &intensity[channelIdx].intensityMin, &intensity[channelIdx].intensityMax, nullptr, nullptr,
+                  mMask);
   }
 }
 

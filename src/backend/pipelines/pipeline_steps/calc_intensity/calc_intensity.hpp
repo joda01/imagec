@@ -27,7 +27,7 @@ namespace joda::pipeline {
 class CalcIntensity : public PipelineStep
 {
 public:
-  CalcIntensity(int32_t referenceChannelIndex, std::set<std::string> channelsToCalcIntensityIn) :
+  CalcIntensity(int32_t referenceChannelIndex, std::set<int32_t> channelsToCalcIntensityIn) :
       mReferenceChannelIndex(referenceChannelIndex), mChannelsToCalcIntensityIn(std::move(channelsToCalcIntensityIn))
   {
   }
@@ -38,7 +38,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   int32_t mReferenceChannelIndex;
-  std::set<std::string> mChannelsToCalcIntensityIn;
+  std::set<int32_t> mChannelsToCalcIntensityIn;
 };
 
 }    // namespace joda::pipeline

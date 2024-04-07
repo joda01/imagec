@@ -20,7 +20,7 @@
 #include <exception>
 #include <string>
 #include <vector>
-#include "backend/pipelines/reporting/reporting.hpp"
+#include "backend/pipelines/reporting/reporting_helper.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json_fwd.hpp>
@@ -143,6 +143,14 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
     }
   }
   {
+    auto idx = mWellHeatmapOnOff->findData(settings.getHeatmapSettings().getCreateHeatmapForWells());
+    if(idx >= 0) {
+      mWellHeatmapOnOff->setCurrentIndex(idx);
+    } else {
+      mWellHeatmapOnOff->setCurrentIndex(0);
+    }
+  }
+  {
     QString slice;
     for(const auto size : settings.getHeatmapSettings().getImageHeatmapAreaWidth()) {
       slice += QString::number(size) + ",";
@@ -200,8 +208,8 @@ nlohmann::json DialogSettings::toJson()
 void DialogSettings::applyRegex()
 {
   try {
-    auto regexResult = joda::pipeline::Reporting::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
-                                                             mTestFileName->text().toStdString());
+    auto regexResult = joda::pipeline::reporting::Helper::applyRegex(
+        mRegexToFindTheWellPosition->currentText().toStdString(), mTestFileName->text().toStdString());
 
     std::string matching = "Match: " + regexResult.group;
     std::string row      = "| Row: " + std::to_string(regexResult.row);
