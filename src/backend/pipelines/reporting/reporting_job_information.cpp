@@ -13,14 +13,18 @@
 ///
 
 #include "reporting_job_information.hpp"
+#include <chrono>
 #include <string>
+#include "backend/helper/helper.hpp"
+#include "backend/results/results_container.hpp"
+#include "backend/settings/analze_settings_parser.hpp"
 #include "version.h"
 
 namespace joda::pipeline::reporting {
 
 void JobInformation::writeReport(const joda::settings::json::AnalyzeSettings &analyzeSettings,
                                  const std::map<std::string, joda::results::ReportingContainer> &results,
-                                 const std::string &jobName, lxw_worksheet *worksheet, lxw_format *header,
+                                 const JobMeta &meta, lxw_worksheet *worksheet, lxw_format *header,
                                  lxw_format *fontNormal)
 {
   int rowIdx = 0;
@@ -43,7 +47,9 @@ void JobInformation::writeReport(const joda::settings::json::AnalyzeSettings &an
   writeRow("Version", Version::getVersion());
   writeRow("Build", Version::getBuildTime());
   emptyLine(2);
-  writeRow("Job name", jobName);
+  writeRow("Job name", meta.jobName);
+  writeRow("Job started at", joda::helper::timepointToIsoString(meta.timeStarted));
+  writeRow("Job finished at", joda::helper::timepointToIsoString(meta.timeFinished));
   writeRow("Nr. of channels", std::to_string(analyzeSettings.getChannelsVector().size()));
   emptyLine(2);
 
@@ -57,7 +63,7 @@ void JobInformation::writeReport(const joda::settings::json::AnalyzeSettings &an
   writeRow("Image nr.", std::to_string(nrOfImages));
   emptyLine(2);
 
-  for(const auto &[_, channel] : analyzeSettings.getChannels()) {
+  for(const auto &[_, channel] : analyzeSettings.getChannelsOrderedByChannelIndex()) {
     writeRow("Name", channel.getChannelInfo().getName());
     writeRow("Index", std::to_string(channel.getChannelInfo().getChannelIndex()));
     writeRow("Type", channel.getChannelInfo().getTypeString());

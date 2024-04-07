@@ -13,6 +13,7 @@
 
 #include "pipeline.hpp"
 #include <algorithm>
+#include <chrono>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
@@ -78,6 +79,7 @@ Pipeline::Pipeline(const joda::settings::json::AnalyzeSettings &settings,
 ///
 void Pipeline::runJob()
 {
+  auto timeStarted = std::chrono::high_resolution_clock::now();
   // Store configuration
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   mAnalyzeSettings.storeConfigToFile(mOutputFolder + separator + "settings_" + mJobName + ".json");
@@ -113,11 +115,13 @@ void Pipeline::runJob()
 
   imageThreadPool.wait_for_tasks();
   DurationCount::stop(idStart);
+  auto timeStopped = std::chrono::high_resolution_clock::now();
 
   std::string resultsFile = mOutputFolder + separator + "results_summary_" + mJobName + ".xlsx";
-  joda::results::ReportingContainer::flushReportToFile(mAnalyzeSettings, alloverReport, resultsFile, mJobName,
-                                                       joda::results::ReportingContainer::OutputFormat::HORIZONTAL,
-                                                       true);
+  joda::results::ReportingContainer::flushReportToFile(
+      mAnalyzeSettings, alloverReport, resultsFile,
+      {.jobName = mJobName, .timeStarted = timeStarted, .timeFinished = timeStopped},
+      joda::results::ReportingContainer::OutputFormat::HORIZONTAL, true);
   if(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForGroup()) {
     auto wellOrder = mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForWells()
                          ? mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getWellImageOrder()
@@ -205,7 +209,7 @@ void Pipeline::analyzeImage(std::map<std::string, joda::results::ReportingContai
   if(mState != State::ERROR_) {
     joda::results::ReportingContainer::flushReportToFile(
         mAnalyzeSettings, detailReports, detailOutputFolder + separator + "results_image_" + mJobName + ".xlsx",
-        mJobName, joda::results::ReportingContainer::OutputFormat::VERTICAL, false);
+        {.jobName = mJobName}, joda::results::ReportingContainer::OutputFormat::VERTICAL, false);
 
     if(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForImage()) {
       joda::pipeline::reporting::Heatmap::createHeatMapForImage(

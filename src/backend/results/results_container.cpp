@@ -26,7 +26,7 @@ ReportingContainer::ReportingContainer()
 
 void ReportingContainer::flushReportToFile(const joda::settings::json::AnalyzeSettings &analyzeSettings,
                                            const std::map<std::string, ReportingContainer> &containers,
-                                           const std::string &fileName, const std::string &jobName, OutputFormat format,
+                                           const std::string &fileName, const JobMeta &meta, OutputFormat format,
                                            bool writeRunMeta)
 {
   lxw_workbook *workbook = workbook_new(fileName.data());
@@ -73,6 +73,8 @@ void ReportingContainer::flushReportToFile(const joda::settings::json::AnalyzeSe
   format_set_font_size(fontNormal, 10);
   format_set_border(fontNormal, LXW_BORDER_THIN);
   format_set_pattern(fontNormal, LXW_PATTERN_SOLID);
+  format_set_bg_color(fontNormal, 0xFFFFFF);
+  format_set_font_color(fontNormal, 0x000000);
 
   // Number format
   lxw_format *numberFormat = workbook_add_format(workbook);
@@ -82,8 +84,8 @@ void ReportingContainer::flushReportToFile(const joda::settings::json::AnalyzeSe
   if(writeRunMeta) {
     // Write run meta information
     lxw_worksheet *worksheetMeta = workbook_add_worksheet(workbook, "Job info");
-    joda::pipeline::reporting::JobInformation::writeReport(analyzeSettings, containers, jobName, worksheetMeta,
-                                                           headerBold, fontNormal);
+    joda::pipeline::reporting::JobInformation::writeReport(analyzeSettings, containers, meta, worksheetMeta, headerBold,
+                                                           fontNormal);
   }
 
   int colOffsetIn          = 0;
@@ -95,7 +97,7 @@ void ReportingContainer::flushReportToFile(const joda::settings::json::AnalyzeSe
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
-            table, folderName, jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format,
+            table, folderName, meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format,
             numberFormat, imageHeaderHyperlinkFormat);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;

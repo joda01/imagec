@@ -13,11 +13,20 @@
 
 #pragma once
 
+#include <chrono>
+#include <map>
+#include <string>
 #include <tuple>
-#include "backend/results/results.h"
 #include "backend/results/results_container.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
 #include "xlsxwriter.h"
+
+namespace joda::results {
+class ReportingContainer;
+}
+
+namespace joda::settings::json {
+class AnalyzeSettings;
+}
 
 namespace joda::pipeline::reporting {
 
@@ -30,9 +39,8 @@ class JobInformation
 {
 public:
   static void writeReport(const joda::settings::json::AnalyzeSettings &analyzeSettings,
-                          const std::map<std::string, joda::results ::ReportingContainer> &results,
-                          const std::string &jobName, lxw_worksheet *worksheet, lxw_format *header,
-                          lxw_format *fontNormal);
+                          const std::map<std::string, joda::results::ReportingContainer> &results, const JobMeta &meta,
+                          lxw_worksheet *worksheet, lxw_format *header, lxw_format *fontNormal);
 };
 
 }    // namespace joda::pipeline::reporting
