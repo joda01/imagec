@@ -8,6 +8,10 @@
 #include <string>
 #include "results.h"
 
+namespace joda::settings::json {
+class AnalyzeSettings;
+}
+
 namespace joda::results {
 
 class ReportingContainer
@@ -45,8 +49,10 @@ public:
     return mColumns.contains(key);
   }
 
-  static void flushReportToFile(const std::map<std::string, ReportingContainer> &containers,
-                                const std::string &fileName, const std::string &jobName, OutputFormat format);
+  static void flushReportToFile(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+                                const std::map<std::string, ReportingContainer> &containers,
+                                const std::string &fileName, const std::string &jobName, OutputFormat format,
+                                bool writeRunMeta);
 
   mutable std::map<int32_t, Table> mColumns;    // Each column is the representation of a channel
 

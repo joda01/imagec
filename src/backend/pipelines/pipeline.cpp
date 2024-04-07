@@ -115,8 +115,9 @@ void Pipeline::runJob()
   DurationCount::stop(idStart);
 
   std::string resultsFile = mOutputFolder + separator + "results_summary_" + mJobName + ".xlsx";
-  joda::results::ReportingContainer::flushReportToFile(alloverReport, resultsFile, mJobName,
-                                                       joda::results::ReportingContainer::OutputFormat::HORIZONTAL);
+  joda::results::ReportingContainer::flushReportToFile(mAnalyzeSettings, alloverReport, resultsFile, mJobName,
+                                                       joda::results::ReportingContainer::OutputFormat::HORIZONTAL,
+                                                       true);
   if(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForGroup()) {
     auto wellOrder = mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForWells()
                          ? mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getWellImageOrder()
@@ -203,8 +204,8 @@ void Pipeline::analyzeImage(std::map<std::string, joda::results::ReportingContai
   //
   if(mState != State::ERROR_) {
     joda::results::ReportingContainer::flushReportToFile(
-        detailReports, detailOutputFolder + separator + "results_image_" + mJobName + ".xlsx", mJobName,
-        joda::results::ReportingContainer::OutputFormat::VERTICAL);
+        mAnalyzeSettings, detailReports, detailOutputFolder + separator + "results_image_" + mJobName + ".xlsx",
+        mJobName, joda::results::ReportingContainer::OutputFormat::VERTICAL, false);
 
     if(mAnalyzeSettings.getReportingSettings().getHeatmapSettings().getCreateHeatmapForImage()) {
       joda::pipeline::reporting::Heatmap::createHeatMapForImage(
