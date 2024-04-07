@@ -30,52 +30,52 @@ namespace joda::pipeline::reporting {
 ///
 void Helper::setDetailReportHeader(const joda::settings::json::AnalyzeSettings &analyzeSettings,
                                    joda::results::ReportingContainer &detailReportTable, const std::string &channelName,
-                                   int realChannelIdx, int tempChannelIdx, const std::set<int32_t> &colocGroup)
+                                   int realChannelIdx, int /*tempChannelIdx*/, const std::set<int32_t> &colocGroup)
 {
   try {
     int channelIndexOffset = 0;
 
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "confidence",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
     channelIndexOffset++;
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "areaSize",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE));
     channelIndexOffset++;
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "perimeter",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::PERIMETER));
     channelIndexOffset++;
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "circularity",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY));
     channelIndexOffset++;
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "validity",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::VALIDITY));
     channelIndexOffset++;
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "invalidity",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::INVALIDITY));
     channelIndexOffset++;
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "x",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X));
     channelIndexOffset++;
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "y",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y));
     channelIndexOffset++;
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "intensity avg",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::INTENSITY_AVG));
     channelIndexOffset++;
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "intensity min",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN));
     channelIndexOffset++;
-    detailReportTable.getTableAt(tempChannelIdx, channelName)
+    detailReportTable.getTableAt(realChannelIdx, channelName)
         .setColumnName(channelIndexOffset, "intensity max",
                        realChannelIdx | static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX));
     channelIndexOffset++;
@@ -93,19 +93,19 @@ void Helper::setDetailReportHeader(const joda::settings::json::AnalyzeSettings &
     // Intensity channels
     //
     for(int intensIdx : intensityGroups) {
-      detailReportTable.getTableAt(tempChannelIdx, channelName)
+      detailReportTable.getTableAt(realChannelIdx, channelName)
           .setColumnName(channelIndexOffset, "intensity avg " + analyzeSettings.getChannelNameOfIndex(intensIdx),
                          intensIdx | static_cast<int>(ColumnIndexDetailedReport::INTENSITY_AVG));
 
       channelIndexOffset++;
 
-      detailReportTable.getTableAt(tempChannelIdx, channelName)
+      detailReportTable.getTableAt(realChannelIdx, channelName)
           .setColumnName(channelIndexOffset, "intensity min " + analyzeSettings.getChannelNameOfIndex(intensIdx),
                          intensIdx | static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN));
 
       channelIndexOffset++;
 
-      detailReportTable.getTableAt(tempChannelIdx, channelName)
+      detailReportTable.getTableAt(realChannelIdx, channelName)
           .setColumnName(channelIndexOffset, "intensity max " + analyzeSettings.getChannelNameOfIndex(intensIdx),
                          intensIdx | static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX));
       channelIndexOffset++;
@@ -115,7 +115,7 @@ void Helper::setDetailReportHeader(const joda::settings::json::AnalyzeSettings &
     // Counting channels
     //
     for(int countIdx : analyzeSettings.getNumberOfCrossChannelCountMeasurementForChannel(realChannelIdx)) {
-      detailReportTable.getTableAt(tempChannelIdx, channelName)
+      detailReportTable.getTableAt(realChannelIdx, channelName)
           .setColumnName(channelIndexOffset, "count " + analyzeSettings.getChannelNameOfIndex(countIdx),
                          countIdx | static_cast<int>(ColumnIndexDetailedReport::INTERSECTION));
 
@@ -136,7 +136,7 @@ void Helper::appendToDetailReport(const joda::settings::json::AnalyzeSettings &a
                                   const joda::func::DetectionResponse &result,
                                   joda::results::ReportingContainer &detailReportTable,
                                   const std::string &detailReportOutputPath, const std::string &jobName,
-                                  int realChannelIdx, int tempChannelIdx, uint32_t tileIdx,
+                                  int realChannelIdx, int /*tempChannelIdx*/, uint32_t tileIdx,
                                   const ImageProperties &imgProps)
 {
   static std::mutex appendMutex;
@@ -150,7 +150,7 @@ void Helper::appendToDetailReport(const joda::settings::json::AnalyzeSettings &a
 
   auto id = DurationCount::start("write-control-image");
   if(!result.controlImage.empty()) {
-    cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(tempChannelIdx) + "_" +
+    cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(realChannelIdx) + "_" +
                     std::to_string(tileIdx) + "_" + jobName + ".png",
                 result.controlImage, compression_params);
   } else {
@@ -173,7 +173,7 @@ void Helper::appendToDetailReport(const joda::settings::json::AnalyzeSettings &a
   int64_t indexOffset = 0;
   {
     std::lock_guard<std::mutex> lock(appendMutex);
-    indexOffset = detailReportTable.getTableAt(tempChannelIdx, "")
+    indexOffset = detailReportTable.getTableAt(realChannelIdx, "")
                       .getNrOfRowsAtColumn(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE));
   }
   int64_t roiIdx = 0;
@@ -182,35 +182,35 @@ void Helper::appendToDetailReport(const joda::settings::json::AnalyzeSettings &a
       // int64_t index = roi.getIndex() + indexOffset;
       int64_t index = roiIdx + indexOffset;
 
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::CONFIDENCE) | realChannelIdx,
                                            index, roi.getConfidence(), roi.getValidity());
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE) | realChannelIdx,
                                            index, roi.getAreaSize(), roi.getValidity());
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::PERIMETER) | realChannelIdx,
                                            index, roi.getPerimeter(), roi.getValidity());
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::CIRCULARITY) | realChannelIdx,
                                            index, roi.getCircularity(), roi.getValidity());
 
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::VALIDITY) | realChannelIdx,
                                            index, roi.getValidity(), roi.getValidity());
 
       //
       bool isValid = roi.getValidity() == func::ParticleValidity::VALID;
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(
               static_cast<int>(ColumnIndexDetailedReport::INVALIDITY) | realChannelIdx, index,
               isValid ? func::ParticleValidity::INVALID : func::ParticleValidity::VALID, roi.getValidity());
 
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X) |
                                                realChannelIdx,
                                            index, roi.getCenterOfMass().x + xMul, roi.getValidity());
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y) |
                                                realChannelIdx,
                                            index, roi.getCenterOfMass().y + yMul, roi.getValidity());
@@ -226,13 +226,13 @@ void Helper::appendToDetailReport(const joda::settings::json::AnalyzeSettings &a
         intensityMin = intensityMe.intensityMin;
         intensityMax = intensityMe.intensityMax;
       }
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_AVG) | realChannelIdx,
                                            index, intensityAvg, roi.getValidity());
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) | realChannelIdx,
                                            index, intensityMin, roi.getValidity());
-      detailReportTable.getTableAt(tempChannelIdx, "")
+      detailReportTable.getTableAt(realChannelIdx, "")
           .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) | realChannelIdx,
                                            index, intensityMax, roi.getValidity());
 
@@ -241,27 +241,27 @@ void Helper::appendToDetailReport(const joda::settings::json::AnalyzeSettings &a
       //
       for(const auto &[idx, intensity] : roi.getIntensity()) {
         if(idx != realChannelIdx) {
-          if(!detailReportTable.getTableAt(tempChannelIdx, "")
+          if(!detailReportTable.getTableAt(realChannelIdx, "")
                   .columnKeyExists(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_AVG) | idx)) {
             continue;
           }
-          detailReportTable.getTableAt(tempChannelIdx, "")
+          detailReportTable.getTableAt(realChannelIdx, "")
               .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_AVG) | idx, index,
                                                intensity.intensity, roi.getValidity());
 
-          if(!detailReportTable.getTableAt(tempChannelIdx, "")
+          if(!detailReportTable.getTableAt(realChannelIdx, "")
                   .columnKeyExists(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) | idx)) {
             continue;
           }
-          detailReportTable.getTableAt(tempChannelIdx, "")
+          detailReportTable.getTableAt(realChannelIdx, "")
               .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MIN) | idx, index,
                                                intensity.intensityMin, roi.getValidity());
 
-          if(!detailReportTable.getTableAt(tempChannelIdx, "")
+          if(!detailReportTable.getTableAt(realChannelIdx, "")
                   .columnKeyExists(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) | idx)) {
             continue;
           }
-          detailReportTable.getTableAt(tempChannelIdx, "")
+          detailReportTable.getTableAt(realChannelIdx, "")
               .appendValueToColumnAtRowWithKey(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_MAX) | idx, index,
                                                intensity.intensityMax, roi.getValidity());
         }
@@ -272,10 +272,10 @@ void Helper::appendToDetailReport(const joda::settings::json::AnalyzeSettings &a
       //
       for(const auto &[idx, intersecting] : roi.getIntersectingRois()) {
         int64_t colKey = static_cast<int>(ColumnIndexDetailedReport::INTERSECTION) | idx;
-        if(!detailReportTable.getTableAt(tempChannelIdx, "").columnKeyExists(colKey)) {
+        if(!detailReportTable.getTableAt(realChannelIdx, "").columnKeyExists(colKey)) {
           continue;
         }
-        detailReportTable.getTableAt(tempChannelIdx, "")
+        detailReportTable.getTableAt(realChannelIdx, "")
             .appendValueToColumnAtRowWithKey(colKey, index, intersecting.roiValid.size(),
                                              joda::func::ParticleValidity::VALID);
       }
@@ -306,43 +306,43 @@ void Helper::appendToAllOverReport(const joda::settings::json::AnalyzeSettings &
     std::string groupToStoreImageIn                  = getGroupToStoreImageIn(analyzeSettings, imagePath, imageName);
     joda::results::ReportingContainer &tableToWorkOn = allOverReport[groupToStoreImageIn];
 
-    for(int tempChannelIdx = 0; tempChannelIdx < nrOfChannels; tempChannelIdx++) {
-      if(!detailedReport.containsTable(tempChannelIdx)) {
-        joda::log::logWarning("Does not container channel >" + std::to_string(tempChannelIdx) + "<!");
-        continue;
-      }
+    for(const auto &[channelIdx, _] : detailedReport.mColumns) {
+      // if(!detailedReport.containsTable(tempChannelIdx)) {
+      //   joda::log::logWarning("Does not container channel >" + std::to_string(tempChannelIdx) + "<!");
+      //   continue;
+      // }
 
-      std::string tableName = detailedReport.getTableAt(tempChannelIdx).getTableName();
-      uint32_t nrOfCols     = detailedReport.getTableAt(tempChannelIdx).getNrOfColumns();
+      std::string tableName = detailedReport.getTableAt(channelIdx).getTableName();
+      uint32_t nrOfCols     = detailedReport.getTableAt(channelIdx).getNrOfColumns();
 
       int rowIdx = 0;
       for(int colIdx = 0; colIdx < nrOfCols; colIdx++) {
-        tableToWorkOn.getTableAt(tempChannelIdx, tableName)
-            .setColumnName(colIdx, detailedReport.getTableAt(tempChannelIdx).getColumnNameAt(colIdx),
-                           detailedReport.getTableAt(tempChannelIdx).getColumnKeyAt(colIdx));
+        tableToWorkOn.getTableAt(channelIdx, tableName)
+            .setColumnName(colIdx, detailedReport.getTableAt(channelIdx).getColumnNameAt(colIdx),
+                           detailedReport.getTableAt(channelIdx).getColumnKeyAt(colIdx));
 
-        if(detailedReport.getTableAt(tempChannelIdx).containsStatistics(colIdx)) {
-          auto colStatistics = detailedReport.getTableAt(tempChannelIdx).getStatistics(colIdx);
+        if(detailedReport.getTableAt(channelIdx).containsStatistics(colIdx)) {
+          auto colStatistics = detailedReport.getTableAt(channelIdx).getStatistics(colIdx);
 
           auto val  = colStatistics.getAvg();
-          auto mask = (tableToWorkOn.getTableAt(tempChannelIdx, tableName).getColumnKeyAt(colIdx) & COLUMN_MASK);
+          auto mask = (tableToWorkOn.getTableAt(channelIdx, tableName).getColumnKeyAt(colIdx) & COLUMN_MASK);
           if(mask == (uint32_t) ColumnIndexDetailedReport::VALIDITY ||
              mask == (uint32_t) ColumnIndexDetailedReport::INVALIDITY) {
             val = colStatistics.getSum();
           }
 
-          rowIdx = tableToWorkOn.getTableAt(tempChannelIdx, tableName)
+          rowIdx = tableToWorkOn.getTableAt(channelIdx, tableName)
                        .appendValueToColumn(colIdx, val, joda::func::ParticleValidity::VALID);
         } else {
           // No statistics, just add NaN
-          rowIdx = tableToWorkOn.getTableAt(tempChannelIdx, tableName)
+          rowIdx = tableToWorkOn.getTableAt(channelIdx, tableName)
                        .appendValueToColumn(colIdx, std::numeric_limits<double>::quiet_NaN(),
                                             joda::func::ParticleValidity::UNKNOWN);
         }
       }
 
       // This tells the table how many rows are available
-      tableToWorkOn.getTableAt(tempChannelIdx, tableName).setRowName(rowIdx, imageName);
+      tableToWorkOn.getTableAt(channelIdx, tableName).setRowName(rowIdx, imageName);
     }
   } catch(const std::exception &ex) {
     joda::log::logWarning("Pipeline::appendToAllOverReport >" + std::string(ex.what()) + "<!");

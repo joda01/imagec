@@ -91,7 +91,8 @@ void Heatmap::createHeatMapForImage(const joda::settings::json::AnalyzeSettings 
       }
 
       for(int row = 0; row < table.getNrOfRows(); row++) {
-        if(table.getTable()
+        if(table.columnKeyExists(static_cast<int>(Helper::ColumnIndexDetailedReport::CENTER_OF_MASS_X) | channelIdx) &&
+           table.getTable()
                .at(table.getColIndexFromKey(static_cast<int>(Helper::ColumnIndexDetailedReport::CENTER_OF_MASS_X) |
                                             channelIdx))
                .contains(row)) {
@@ -255,8 +256,11 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::json::AnalyzeSe
     for(int rowIdx = 0; rowIdx < values.getNrOfRows(); rowIdx++) {
       try {
         auto imageName = values.getRowNameAt(rowIdx);
-        auto areaSize =
-            values.getTable().at(static_cast<int>(Helper::ColumnIndexDetailedReport::AREA_SIZE)).at(rowIdx).value;
+        auto areaSize  = values.getTable()
+                            .at(values.getColIndexFromKey(
+                                static_cast<int>(Helper::ColumnIndexDetailedReport::VALIDITY) | channelIdx))
+                            .at(rowIdx)
+                            .value;
         auto imgNr =
             Helper::applyRegex(analyzeSettings.getReportingSettings().getHeatmapSettings().getFileRegex(), imageName)
                 .img;
