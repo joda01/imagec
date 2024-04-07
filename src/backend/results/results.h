@@ -1,5 +1,5 @@
 ///
-/// \file      reporting.h
+/// \file      results.h
 /// \author    Joachim Danmayr
 /// \date      2023-03-24
 ///
@@ -27,7 +27,7 @@
 #include "../image_processing/detection/detection_response.hpp"
 #include "xlsxwriter.h"
 
-namespace joda::reporting {
+namespace joda::results {
 
 #define CSV_SEPARATOR ","
 
@@ -178,6 +178,7 @@ public:
   auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
   auto getRowNameAt(uint64_t rowIdx) const -> const std::string;
   void setRowName(uint64_t rowIdx, const std::string &);
+  auto getRowNames() const -> const std::map<uint64_t, std::string> &;
   auto appendValueToColumn(uint64_t colIdx, double value, joda::func::ParticleValidity) -> int64_t;
   auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double value, joda::func::ParticleValidity) -> int64_t;
   auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func::ParticleValidity) -> int64_t;
@@ -188,21 +189,14 @@ public:
   auto getStatistics() const -> const std::map<uint64_t, Statistics> &;
   bool containsStatistics(uint64_t colIdx) const;
   auto getStatistics(uint64_t colIdx) const -> const Statistics &;
-  std::tuple<int, int> flushReportToFileXlsx(int colOffset, int /*rowOffset*/, lxw_worksheet *worksheet,
-                                             lxw_format *header, lxw_format *merge_format,
-                                             lxw_format *numberFormat) const;
-  std::tuple<int, int> flushReportToFileXlsxTransponded(const std::string &headerText, const std::string &jobName,
-                                                        int colOffset, int rowOffset, int startRow,
-                                                        lxw_worksheet *worksheet, lxw_format *header,
-                                                        lxw_format *merge_format, lxw_format *numberFormat,
-                                                        lxw_format *imageHeaderHyperlinkFormat) const;
+
   auto getNrOfColumns() const -> int64_t;
   auto getNrOfRows() const -> int64_t;
   auto getNrOfRowsAtColumn(int64_t colIdx) const -> int64_t;
+  static std::string validityToString(joda::func::ParticleValidity val);
 
 private:
   /////////////////////////////////////////////////////
-  static std::string validityToString(joda::func::ParticleValidity val);
 
   /////////////////////////////////////////////////////
   Table_t mTable;
@@ -215,4 +209,4 @@ private:
   std::string mTableName;
 };
 
-}    // namespace joda::reporting
+}    // namespace joda::results

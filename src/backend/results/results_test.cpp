@@ -2,11 +2,11 @@
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include "reporting.h"
+#include "results.h"
 
 SCENARIO("Adding three values to a table", "[table]")
 {
-  joda::reporting::Table table;
+  joda::results::Table table;
   table.appendValueToColumn(0, 0, joda::func::ParticleValidity::VALID);
   table.appendValueToColumn(0, 382, joda::func::ParticleValidity::VALID);
   table.appendValueToColumn(0, 527, joda::func::ParticleValidity::VALID);

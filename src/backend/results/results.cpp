@@ -1,6 +1,6 @@
 
 
-#include "reporting.h"
+#include "results.h"
 #include <algorithm>
 #include <concepts>
 #include <cstdint>
@@ -11,7 +11,7 @@
 #include <string_view>
 #include <variant>
 
-namespace joda::reporting {
+namespace joda::results {
 
 void Table::setTableName(const std::string &name)
 {
@@ -99,6 +99,11 @@ auto Table::getNrOfColumns() const -> int64_t
   return std::max(static_cast<int64_t>(mTable.size()), static_cast<int64_t>(mColumnName.size()));
 }
 
+auto Table::getRowNames() const -> const std::map<uint64_t, std::string> &
+{
+  return mRowNames;
+}
+
 auto Table::getNrOfRows() const -> int64_t
 {
   return mRows;
@@ -149,7 +154,10 @@ void Table::setColumnName(uint64_t idx, const std::string &colName)
 
 auto Table::getColumnNameAt(uint64_t colIdx) const -> const std::string
 {
-  return mColumnName.at(colIdx);
+  if(mColumnName.contains(colIdx)) {
+    return mColumnName.at(colIdx);
+  }
+  return std::to_string(colIdx);
 }
 
 auto Table::getRowNameAt(uint64_t rowIdx) const -> const std::string
@@ -157,7 +165,7 @@ auto Table::getRowNameAt(uint64_t rowIdx) const -> const std::string
   if(mRowNames.contains(rowIdx)) {
     return mRowNames.at(rowIdx);
   }
-  return "";
+  return std::to_string(rowIdx);
 }
 
 auto Statistics::getStatisticsTitle() -> const std::array<std::string, NR_OF_VALUE>
@@ -217,4 +225,4 @@ std::string Table::validityToString(joda::func::ParticleValidity val)
   return ret;
 }
 
-}    // namespace joda::reporting
+}    // namespace joda::results

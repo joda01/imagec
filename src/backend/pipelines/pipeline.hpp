@@ -23,12 +23,14 @@
 #include "../helper/helper.hpp"
 #include "../image_processing/detection/detection_response.hpp"
 #include "../logger/console_logger.hpp"
-#include "../reporting/reporting.h"
+#include "../results/results.h"
 #include "../settings/analze_settings_parser.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/image_reader/image_reader.hpp"
-#include "backend/pipelines/reporting/reporting.hpp"
-#include "backend/reporting/reporting_container.hpp"
+#include "backend/results/results_container.hpp"
+#include "reporting/reporting_details.xlsx.hpp"
+#include "reporting/reporting_heatmap.hpp"
+#include "reporting/reporting_overview_xlsx.hpp"
 
 namespace joda::pipeline {
 
@@ -165,11 +167,10 @@ private:
     return mStop;
   }
 
-  void analyzeImage(std::map<std::string, joda::reporting::ReportingContainer> &alloverReport,
-                    const FileInfo &imagePath);
+  void analyzeImage(std::map<std::string, joda::results::ReportingContainer> &alloverReport, const FileInfo &imagePath);
 
-  void analyzeTile(joda::reporting::ReportingContainer &detailReports, FileInfo imagePath,
-                   std::string detailOutputFolder, int tileIdx, const ImageProperties &imgProps);
+  void analyzeTile(joda::results::ReportingContainer &detailReports, FileInfo imagePath, std::string detailOutputFolder,
+                   int tileIdx, const ImageProperties &imgProps);
   void analyszeChannel(std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
                        const joda::settings::json::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx);
 
@@ -184,7 +185,6 @@ private:
   State mState;
   std::string mLastErrorMessage;
   std::shared_ptr<std::thread> mMainThread = nullptr;
-  std::shared_ptr<Reporting> mReporting;
   ThreadingSettings mThreadingSettings;
   std::mutex mAddToDetailReportMutex;
   std::map<std::string, joda::onnx::OnnxParser::Data> mOnnxModels;

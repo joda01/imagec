@@ -6,9 +6,9 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
-#include "reporting.h"
+#include "results.h"
 
-namespace joda::reporting {
+namespace joda::results {
 
 class ReportingContainer
 {
@@ -54,4 +54,4 @@ private:
   mutable std::mutex mAccessMutex;
 };
 
-}    // namespace joda::reporting
+}    // namespace joda::results

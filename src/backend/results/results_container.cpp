@@ -11,11 +11,13 @@
 /// \brief     A short description what happens here.
 ///
 
-#include "reporting_container.hpp"
+#include "results_container.hpp"
 #include <xlsxwriter/format.h>
+#include "backend/pipelines/reporting/reporting_details.xlsx.hpp"
+#include "backend/pipelines/reporting/reporting_overview_xlsx.hpp"
 #include "xlsxwriter.h"
 
-namespace joda::reporting {
+namespace joda::results {
 
 ReportingContainer::ReportingContainer()
 {
@@ -68,15 +70,15 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
     for(const auto &[idx, table] : table.mColumns) {
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
-        auto [colOffset, rowOffset] = table.flushReportToFileXlsxTransponded(
-            folderName, jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format,
+        auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
+            table, folderName, jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format,
             numberFormat, imageHeaderHyperlinkFormat);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }
       if(OutputFormat::VERTICAL == format) {
-        auto [colOffset, rowOffset] =
-            table.flushReportToFileXlsx(colOffsetIn, rowOffsetIn, worksheet, header, merge_format, numberFormat);
+        auto [colOffset, rowOffset] = joda::pipeline::reporting::DetailReport::writeReport(
+            table, colOffsetIn, rowOffsetIn, worksheet, header, merge_format, numberFormat);
         colOffsetIn += colOffset + 1;
         rowOffsetIn += rowOffset;
       }
@@ -90,4 +92,4 @@ void ReportingContainer::flushReportToFile(const std::map<std::string, Reporting
   workbook_close(workbook);
 }
 
-}    // namespace joda::reporting
+}    // namespace joda::results
