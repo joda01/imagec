@@ -271,7 +271,8 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
     std::string jsonResult(stringChars);
     myEnv->ReleaseStringUTFChars(result, stringChars);
     joda::ome::OmeInfo omeInfo;
-    ImageProperties props = omeInfo.loadOmeInformationFromJsonString(jsonResult);
+    ImageProperties props =
+        omeInfo.loadOmeInformationFromJsonString(jsonResult);    ///\todo this method can throw an excaption
     myJVM->DetachCurrentThread();
 
     return {omeInfo, props};

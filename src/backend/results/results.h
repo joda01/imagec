@@ -167,33 +167,47 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  using Row_t   = std::map<uint32_t, Row>;      // Row index
-  using Table_t = std::map<uint64_t, Row_t>;    // Column index
+  using Row_t       = std::map<uint32_t, Row>;      // Row index
+  using Table_t     = std::map<uint64_t, Row_t>;    // Column index
+  using ColumnKey_t = int64_t;
 
   /////////////////////////////////////////////////////
   void setTableName(const std::string &name);
-  void setColumnNames(const std::map<uint64_t, std::string> &);
-  void setColumnName(uint64_t idx, const std::string &colName);
+  void setColumnName(uint64_t idx, const std::string &colName, ColumnKey_t key);
   const std::string &getTableName() const;
   auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
+  auto getColumnKeyAt(uint64_t colIdx) const -> ColumnKey_t;
   auto getRowNameAt(uint64_t rowIdx) const -> const std::string;
   void setRowName(uint64_t rowIdx, const std::string &);
   auto getRowNames() const -> const std::map<uint64_t, std::string> &;
   auto appendValueToColumn(uint64_t colIdx, double value, joda::func::ParticleValidity) -> int64_t;
-  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double value, joda::func::ParticleValidity) -> int64_t;
-  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func::ParticleValidity) -> int64_t;
-
   auto appendValueToColumn(const std::string &rowName, uint64_t colIdx, double value, joda::func::ParticleValidity)
       -> int64_t;
+  auto appendValueToColumnWithKey(ColumnKey_t key, double value, joda::func::ParticleValidity) -> int64_t;
+  auto appendValueToColumnWithKey(const std::string &rowName, ColumnKey_t key, double value,
+                                  joda::func::ParticleValidity) -> int64_t;
+
+  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double value, joda::func::ParticleValidity) -> int64_t;
+  auto appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, double value, joda::func::ParticleValidity)
+      -> int64_t;
+
+  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func::ParticleValidity,
+                                joda::func::ParticleValidity validityValue) -> int64_t;
+  auto appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, joda::func::ParticleValidity,
+                                       joda::func::ParticleValidity validityValue) -> int64_t;
+
   auto getTable() const -> const Table_t &;
   auto getStatistics() const -> const std::map<uint64_t, Statistics> &;
   bool containsStatistics(uint64_t colIdx) const;
   auto getStatistics(uint64_t colIdx) const -> const Statistics &;
 
   auto getNrOfColumns() const -> int64_t;
+  bool containsColumn(int64_t colIdx) const;
   auto getNrOfRows() const -> int64_t;
   auto getNrOfRowsAtColumn(int64_t colIdx) const -> int64_t;
   static std::string validityToString(joda::func::ParticleValidity val);
+  bool columnKeyExists(ColumnKey_t key) const;
+  uint64_t getColIndexFromKey(ColumnKey_t key) const;
 
 private:
   /////////////////////////////////////////////////////
@@ -203,6 +217,9 @@ private:
   std::map<uint64_t, Statistics> mStatistics;
   std::map<uint64_t, std::string> mRowNames;
   std::map<uint64_t, std::string> mColumnName;
+  std::map<ColumnKey_t, uint64_t>
+      mColumnKeys;    ///< Used to identify a column unique. The key is the keys, the value is the column index
+  std::map<uint64_t, ColumnKey_t> mColumnKeysForIndex;
   int64_t mRows = 0;
   Statistics mEmptyStatistics;
   mutable std::mutex mWriteMutex;

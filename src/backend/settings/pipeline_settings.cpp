@@ -24,6 +24,7 @@ namespace joda::settings::json {
 ///
 void PipelineStepSettings::interpretConfig()
 {
+  voronoi.interpretConfig();
 }
 
 }    // namespace joda::settings::json

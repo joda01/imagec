@@ -28,18 +28,7 @@ auto CalcCount::execute(const settings::json::AnalyzeSettings &,
 {
   if(detectionResultsIn.contains(mReferenceChannelIndex)) {
     auto &myResults = const_cast<joda::func::DetectionResponse &>(detectionResultsIn.at(mReferenceChannelIndex));
-    for(const auto idxToIntersectStr : mChannelsToCalcIntensityIn) {
-      int idxToIntersect = -1;
-      try {
-        idxToIntersect = stoi(idxToIntersectStr);
-      } catch(...) {
-        if(idxToIntersectStr.size() == 1) {
-          idxToIntersect =
-              settings::json::PipelineStepSettings::INTERSECTION_INDEX_OFFSET + (idxToIntersectStr.at(0) - 'A');
-        } else {
-          joda::log::logWarning("This is not a valid intersecting channel!");
-        }
-      }
+    for(const auto idxToIntersect : mChannelsToCalcIntensityIn) {
       if(detectionResultsIn.contains(idxToIntersect)) {
         for(func::ROI &roiMe : myResults.result) {
           if(!detectionResultsIn.empty() && !detectionResultsIn.at(idxToIntersect).result.empty()) {

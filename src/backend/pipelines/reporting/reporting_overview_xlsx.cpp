@@ -18,8 +18,8 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::results::Table &res
                                                  lxw_worksheet *worksheet, lxw_format *header, lxw_format *merge_format,
                                                  lxw_format *numberFormat, lxw_format *imageHeaderHyperlinkFormat)
 {
-  setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
-  const int STATISTIC_START_WITH_INDEX = 2;
+  setlocale(LC_NUMERIC, "C");                  // Needed for correct comma in libxlsx
+  const int STATISTIC_START_WITH_INDEX = 2;    // Validity and invalidity are just for internal use
 
   //
   // Sort rows
@@ -76,6 +76,8 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::results::Table &res
                                  statistics.getStatistics()[statColIdx], numberFormat);
 
         } else {
+          // No statistics for that
+          worksheet_write_number(worksheet, rowOffset + rowIdx + 1, colIdx + colOffset, 0, numberFormat);
         }
       }
       colIdx++;

@@ -25,17 +25,21 @@ public:
   /////////////////////////////////////////////////////
   enum class ColumnIndexDetailedReport : int
   {
-    CONFIDENCE       = 0,
-    AREA_SIZE        = 1,
-    PERIMETER        = 2,
-    CIRCULARITY      = 3,
-    VALIDITY         = 4,
-    CENTER_OF_MASS_X = 5,
-    CENTER_OF_MASS_Y = 6,
-    DYNAMIC          = 7,    // Start of the dynamic section
-    DYNAMIC_MIN      = 8,
-    DYNAMIC_MAX      = 9,
+    CONFIDENCE       = 0x0100,
+    AREA_SIZE        = 0x0200,
+    PERIMETER        = 0x0300,
+    CIRCULARITY      = 0x0400,
+    VALIDITY         = 0x0500,
+    INVALIDITY       = 0x0600,
+    CENTER_OF_MASS_X = 0x0700,
+    CENTER_OF_MASS_Y = 0x0800,
+    INTENSITY_AVG    = 0x0900,    // Start of the dynamic section
+    INTENSITY_MIN    = 0x0A00,
+    INTENSITY_MAX    = 0x0B00,
+    INTERSECTION     = 0x0C00
   };
+
+  static constexpr uint32_t COLUMN_MASK = 0xFFFFFF0;
 
   struct RegexResult
   {
@@ -50,7 +54,8 @@ public:
 
   static void setDetailReportHeader(const joda::settings::json::AnalyzeSettings &analyzeSettings,
                                     joda::results::ReportingContainer &detailReportTable,
-                                    const std::string &channelName, int tempChannelIdx);
+                                    const std::string &channelName, int realChannelIdx, int tempChannelIdx,
+                                    const std::set<int32_t> &colocGroup = {});
   static void appendToDetailReport(const joda::settings::json::AnalyzeSettings &analyzeSettings,
                                    const joda::func::DetectionResponse &result,
                                    joda::results::ReportingContainer &detailReportTable,
@@ -69,6 +74,7 @@ private:
                                      const std::string &imagePath, const std::string &imageName) -> std::string;
 
   /////////////////////////////////////////////////////
+  static inline std::mutex mAppendToAllOverReportMutex;
 };
 
 }    // namespace joda::pipeline::reporting

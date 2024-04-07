@@ -280,7 +280,7 @@ public:
   {
     std::string suffix;
     // Special channels
-    if(idx >= 200) {
+    if(idx >= PipelineStepSettings::INTERSECTION_INDEX_OFFSET) {
       idx    = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
       suffix = " intersection";
     } else if(idx >= 100) {
@@ -291,6 +291,46 @@ public:
       return orderedPipelinesByChannelIndex.at(idx).getName();
     }
     return getChannelByChannelIndex(idx).getChannelInfo().getName() + suffix;
+  }
+
+  [[nodiscard]] auto getNumberOfCrossChannelIntensityMeasurementForChannel(uint32_t idx) const -> std::set<int32_t>
+  {
+    // Special channels
+    if(idx >= PipelineStepSettings::INTERSECTION_INDEX_OFFSET) {
+      idx = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
+      return {};
+    } else if(idx >= 100) {
+      if(!orderedPipelinesByChannelIndex.contains(idx)) {
+        throw std::runtime_error("getNumberOfCrossChannelIntensityMeasurementForChannel: Channel with index >" +
+                                 std::to_string(idx) + "< does not exist.");
+      }
+      if(orderedPipelinesByChannelIndex.at(idx).getVoronoi() != nullptr) {
+        return orderedPipelinesByChannelIndex.at(idx).getVoronoi()->getCrossChannelIntensityIndexes();
+      } else {
+        return {};
+      }
+    }
+    return getChannelByChannelIndex(idx).getCrossChannelSettings().getCrossChannelIntensityIndexes();
+  }
+
+  [[nodiscard]] auto getNumberOfCrossChannelCountMeasurementForChannel(uint32_t idx) const -> std::set<int32_t>
+  {
+    // Special channels
+    if(idx >= PipelineStepSettings::INTERSECTION_INDEX_OFFSET) {
+      idx = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
+      return {};
+    } else if(idx >= 100) {
+      if(!orderedPipelinesByChannelIndex.contains(idx)) {
+        throw std::runtime_error("getNumberOfCrossChannelCountMeasurementForChannel: Channel with index >" +
+                                 std::to_string(idx) + "< does not exist.");
+      }
+      if(orderedPipelinesByChannelIndex.at(idx).getVoronoi() != nullptr) {
+        return orderedPipelinesByChannelIndex.at(idx).getVoronoi()->getCrossChannelCountIndexes();
+      } else {
+        return {};
+      }
+    }
+    return getChannelByChannelIndex(idx).getCrossChannelSettings().getCrossChannelCountIndexes();
   }
 
   [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &

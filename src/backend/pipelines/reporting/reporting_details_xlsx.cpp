@@ -16,8 +16,9 @@ std::tuple<int, int> DetailReport::writeReport(const joda::results::Table &resul
                                                lxw_format *numberFormat)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
-  int ROW_OFFSET = 2;
-  int COL_OFFSET = colOffset + 1;
+  int ROW_OFFSET                       = 2;
+  int COL_OFFSET                       = colOffset + 1;
+  const int STATISTIC_START_WITH_INDEX = 2;    // Validity and invalidity are just for internal use
 
   //
   // Write name
@@ -44,23 +45,26 @@ std::tuple<int, int> DetailReport::writeReport(const joda::results::Table &resul
   //
   // Write statistic data
   //
-  int rowIdxStat = 0;
-  for(rowIdxStat = 0; rowIdxStat < results::Statistics::NR_OF_VALUE; rowIdxStat++) {
-    worksheet_write_string(worksheet, ROW_OFFSET + rowIdxStat, 0,
+  int rowIdxStat = STATISTIC_START_WITH_INDEX;
+  for(rowIdxStat = STATISTIC_START_WITH_INDEX; rowIdxStat < results::Statistics::NR_OF_VALUE; rowIdxStat++) {
+    worksheet_write_string(worksheet, ROW_OFFSET + rowIdxStat - STATISTIC_START_WITH_INDEX, 0,
                            results::Statistics::getStatisticsTitle()[rowIdxStat].data(), header);
 
     for(int64_t colIdx = 0; colIdx < columns; colIdx++) {
       if(results.getStatistics().contains(colIdx)) {
         auto statistics = results.getStatistics().at(colIdx);
 
-        worksheet_write_number(worksheet, ROW_OFFSET + rowIdxStat, colIdx + COL_OFFSET,
+        worksheet_write_number(worksheet, ROW_OFFSET + rowIdxStat - STATISTIC_START_WITH_INDEX, colIdx + COL_OFFSET,
                                statistics.getStatistics()[rowIdxStat], numberFormat);
 
       } else {
+        // No statistics for that
+        worksheet_write_string(worksheet, ROW_OFFSET + rowIdxStat - STATISTIC_START_WITH_INDEX, colIdx + COL_OFFSET,
+                               "-", numberFormat);
       }
     }
   }
-  ROW_OFFSET = ROW_OFFSET += (rowIdxStat + 2);
+  ROW_OFFSET = ROW_OFFSET += (rowIdxStat + 2 - STATISTIC_START_WITH_INDEX);
 
   //
   // Write table data
@@ -89,6 +93,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::results::Table &resul
         }
       } else {
         // Empty table entry
+        worksheet_write_string(worksheet, ROW_OFFSET + rowIdx, colIdx + COL_OFFSET, "-", numberFormat);
       }
     }
   }

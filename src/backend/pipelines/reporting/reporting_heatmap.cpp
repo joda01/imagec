@@ -91,11 +91,20 @@ void Heatmap::createHeatMapForImage(const joda::settings::json::AnalyzeSettings 
       }
 
       for(int row = 0; row < table.getNrOfRows(); row++) {
-        if(table.getTable().at(static_cast<int>(Helper::ColumnIndexDetailedReport::CENTER_OF_MASS_X)).contains(row)) {
-          int64_t xCo =
-              table.getTable().at(static_cast<int>(Helper::ColumnIndexDetailedReport::CENTER_OF_MASS_X)).at(row).value;
-          int64_t yCo =
-              table.getTable().at(static_cast<int>(Helper::ColumnIndexDetailedReport::CENTER_OF_MASS_Y)).at(row).value;
+        if(table.getTable()
+               .at(table.getColIndexFromKey(static_cast<int>(Helper::ColumnIndexDetailedReport::CENTER_OF_MASS_X) |
+                                            channelIdx))
+               .contains(row)) {
+          int64_t xCo = table.getTable()
+                            .at(table.getColIndexFromKey(
+                                static_cast<int>(Helper::ColumnIndexDetailedReport::CENTER_OF_MASS_X) | channelIdx))
+                            .at(row)
+                            .value;
+          int64_t yCo = table.getTable()
+                            .at(table.getColIndexFromKey(
+                                static_cast<int>(Helper::ColumnIndexDetailedReport::CENTER_OF_MASS_Y) | channelIdx))
+                            .at(row)
+                            .value;
           if(xCo > imageWidth) {
             xCo = imageWidth;
           }
@@ -109,15 +118,30 @@ void Heatmap::createHeatMapForImage(const joda::settings::json::AnalyzeSettings 
           double intensity = 0;
           double areaSize  = 0;
           bool valid       = false;
-          if(table.getTable().at(static_cast<int>(Helper::ColumnIndexDetailedReport::DYNAMIC)).contains(row)) {
-            intensity = table.getTable().at(static_cast<int>(Helper::ColumnIndexDetailedReport::DYNAMIC)).at(row).value;
-            valid =
-                table.getTable().at(static_cast<int>(Helper::ColumnIndexDetailedReport::VALIDITY)).at(row).validity ==
-                func::ParticleValidity::VALID;
+          if(table.getTable()
+                 .at(table.getColIndexFromKey(static_cast<int>(Helper::ColumnIndexDetailedReport::INTENSITY_AVG) |
+                                              channelIdx))
+                 .contains(row)) {
+            intensity = table.getTable()
+                            .at(table.getColIndexFromKey(
+                                static_cast<int>(Helper::ColumnIndexDetailedReport::INTENSITY_AVG) | channelIdx))
+                            .at(row)
+                            .value;
+            valid = table.getTable()
+                        .at(table.getColIndexFromKey(static_cast<int>(Helper::ColumnIndexDetailedReport::VALIDITY) |
+                                                     channelIdx))
+                        .at(row)
+                        .validity == func::ParticleValidity::VALID;
           }
-          if(table.getTable().at(static_cast<int>(Helper::ColumnIndexDetailedReport::AREA_SIZE)).contains(row)) {
-            areaSize =
-                table.getTable().at(static_cast<int>(Helper::ColumnIndexDetailedReport::AREA_SIZE)).at(row).value;
+          if(table.getTable()
+                 .at(table.getColIndexFromKey(static_cast<int>(Helper::ColumnIndexDetailedReport::AREA_SIZE) |
+                                              channelIdx))
+                 .contains(row)) {
+            areaSize = table.getTable()
+                           .at(table.getColIndexFromKey(static_cast<int>(Helper::ColumnIndexDetailedReport::AREA_SIZE) |
+                                                        channelIdx))
+                           .at(row)
+                           .value;
           }
 
           if(valid) {
@@ -343,10 +367,12 @@ void Heatmap::createAllOverHeatMap(const joda::settings::json::AnalyzeSettings &
             worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
           }
 
-          worksheet_write_number(
-              sheet, rowOffset + row, col,
-              values.getStatistics().at(static_cast<int>(Helper::ColumnIndexDetailedReport::CONFIDENCE)).getAvg(),
-              numberFormat);
+          worksheet_write_number(sheet, rowOffset + row, col,
+                                 values.getStatistics()
+                                     .at(values.getColIndexFromKey(
+                                         static_cast<int>(Helper::ColumnIndexDetailedReport::VALIDITY) | channelIdx))
+                                     .getAvg(),
+                                 numberFormat);
 
           rowOffset = PLATE_ROWS + ROW_OFFSET_START + 4;
 
@@ -356,7 +382,10 @@ void Heatmap::createAllOverHeatMap(const joda::settings::json::AnalyzeSettings &
           }
           worksheet_write_number(
               sheet, rowOffset + row, col,
-              values.getStatistics().at(static_cast<int>(Helper::ColumnIndexDetailedReport::DYNAMIC)).getAvg(),
+              values.getStatistics()
+                  .at(values.getColIndexFromKey(static_cast<int>(Helper::ColumnIndexDetailedReport::INTENSITY_AVG) |
+                                                channelIdx))
+                  .getAvg(),
               numberFormat);
 
           rowOffset = 2 * PLATE_ROWS + ROW_OFFSET_START + ROW_OFFSET_START + 6;
@@ -365,10 +394,12 @@ void Heatmap::createAllOverHeatMap(const joda::settings::json::AnalyzeSettings &
             std::string filePath = "external:.\\heatmaps/heatmap_" + group + "_" + jobName + ".xlsx";
             worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
           }
-          worksheet_write_number(
-              sheet, rowOffset + row, col,
-              values.getStatistics().at(static_cast<int>(Helper::ColumnIndexDetailedReport::AREA_SIZE)).getAvg(),
-              numberFormat);
+          worksheet_write_number(sheet, rowOffset + row, col,
+                                 values.getStatistics()
+                                     .at(values.getColIndexFromKey(
+                                         static_cast<int>(Helper::ColumnIndexDetailedReport::AREA_SIZE) | channelIdx))
+                                     .getAvg(),
+                                 numberFormat);
         }
       } catch(...) {
         // No data

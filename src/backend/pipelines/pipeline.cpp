@@ -291,7 +291,7 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
   int tempChannelIdx = mAnalyzeSettings.getChannelsVector().size();
   auto idColoc       = DurationCount::start("pipelinesteps");
 
-  std::map<std::string, std::set<int32_t>> colocGroups;
+  std::map<std::string, std::set<int32_t>> colocGroups;    // Groupname, Channels in the group
   std::map<std::string, float> minColocFactor;
   for(const auto &[_, channel] : mAnalyzeSettings.getChannels()) {
     for(const auto &colocGroup : channel.getCrossChannelSettings().getColocGroups()) {
@@ -311,8 +311,8 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
     auto response = intersect.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
     int idx       = settings::json::PipelineStepSettings::INTERSECTION_INDEX_OFFSET + colocIx;
     detectionResults.emplace(static_cast<int32_t>(idx), response);
-    joda::pipeline::reporting::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, "Intersection",
-                                                             tempChannelIdx);
+    joda::pipeline::reporting::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, "Intersection", idx,
+                                                             tempChannelIdx, set);
     joda::pipeline::reporting::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(idx), detailReports,
                                                             detailOutputFolder, mJobName, idx, tempChannelIdx, tileIdx,
                                                             imgProps);
@@ -342,15 +342,15 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
 
         detectionResults.emplace(static_cast<int32_t>(idx), response);
         joda::pipeline::reporting::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, voronoi->getName(),
-                                                                 tempChannelIdx);
+                                                                 idx, tempChannelIdx);
 
         if(!voronoi->getCrossChannelIntensityChannels().empty()) {
-          CalcIntensity intensity(idx, voronoi->getCrossChannelIntensityChannels());
+          CalcIntensity intensity(idx, voronoi->getCrossChannelIntensityIndexes());
           intensity.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
         }
 
         if(!voronoi->getCrossChannelCountChannels().empty()) {
-          CalcCount counting(idx, voronoi->getCrossChannelCountChannels());
+          CalcCount counting(idx, voronoi->getCrossChannelCountIndexes());
           counting.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
         }
 
@@ -369,15 +369,16 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   if(!mStop && mState != State::ERROR_) {
-    for(int chIdx = 0; chIdx < mAnalyzeSettings.getChannelsVector().size(); chIdx++) {
-      auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(chIdx);
+    for(int channelVectorIndex = 0; channelVectorIndex < mAnalyzeSettings.getChannelsVector().size();
+        channelVectorIndex++) {
+      auto channelSettings = this->mAnalyzeSettings.getChannelsVector().at(channelVectorIndex);
       int32_t channelIndex = channelSettings.getChannelInfo().getChannelIndex();
 
       //
       // Measure intensity from ROI area of channel X in channel Y
       //
       if(!channelSettings.getCrossChannelSettings().getCrossChannelCountChannels().empty()) {
-        CalcCount counting(channelIndex, channelSettings.getCrossChannelSettings().getCrossChannelCountChannels());
+        CalcCount counting(channelIndex, channelSettings.getCrossChannelSettings().getCrossChannelCountIndexes());
         counting.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
       }
 
@@ -386,7 +387,7 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
       //
       if(!channelSettings.getCrossChannelSettings().getCrossChannelIntensityChannels().empty()) {
         CalcIntensity intensity(channelSettings.getChannelInfo().getChannelIndex(),
-                                channelSettings.getCrossChannelSettings().getCrossChannelIntensityChannels());
+                                channelSettings.getCrossChannelSettings().getCrossChannelIntensityIndexes());
         intensity.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
       }
 
@@ -395,12 +396,13 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
       //
       if(mState != State::ERROR_) {
         joda::pipeline::reporting::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports,
-                                                                 channelSettings.getChannelInfo().getName(), chIdx);
+                                                                 channelSettings.getChannelInfo().getName(),
+                                                                 channelIndex, channelVectorIndex);
       }
       if(detectionResults.contains(channelIndex)) {
         joda::pipeline::reporting::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(channelIndex),
                                                                 detailReports, detailOutputFolder, mJobName,
-                                                                channelIndex, chIdx, tileIdx, imgProps);
+                                                                channelIndex, channelVectorIndex, tileIdx, imgProps);
       }
     }
   }
