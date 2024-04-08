@@ -20,6 +20,7 @@
 #include <set>
 #include <vector>
 #include "backend/logger/console_logger.hpp"
+#include "backend/settings/reporting_settings.hpp"
 #include <catch2/catch_config.hpp>
 #include <nlohmann/json.hpp>
 #include "preprocessing_settings.hpp"
@@ -518,6 +519,11 @@ public:
     return cross_channel;
   }
 
+  auto getReportingSettings() const -> const ReportingSettings &
+  {
+    return reporting;
+  }
+
 private:
   //
   // Common channel information
@@ -546,7 +552,13 @@ private:
   //
   CrossChannelSettings cross_channel;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, info, detection, preprocessing, filter, cross_channel);
+  //
+  // Reporting settings for channel
+  //
+  ReportingSettings reporting;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, info, detection, preprocessing, filter, cross_channel,
+                                              reporting);
 
   //
   // For internal needs. Not stored in the json: Actual index in the channel array
