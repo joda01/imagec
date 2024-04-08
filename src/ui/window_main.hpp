@@ -140,6 +140,7 @@ private:
   QAction *mSaveProject          = nullptr;
   QAction *mOPenProject          = nullptr;
   QAction *mStartAnalysis        = nullptr;
+  QAction *mJobNameAction        = nullptr;
   QAction *mSettings             = nullptr;
   QAction *mDeleteChannel        = nullptr;
   QAction *mShowInfoDialog       = nullptr;
