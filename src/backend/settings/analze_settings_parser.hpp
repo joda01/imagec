@@ -21,6 +21,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include "backend/settings/reporting_settings.hpp"
 #include <catch2/catch_config.hpp>
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
@@ -331,6 +332,26 @@ public:
       }
     }
     return getChannelByChannelIndex(idx).getCrossChannelSettings().getCrossChannelCountIndexes();
+  }
+
+  [[nodiscard]] auto getReportingSettingsForChannel(uint32_t idx) const -> const ReportingSettings
+  {
+    // Special channels
+    if(idx >= PipelineStepSettings::INTERSECTION_INDEX_OFFSET) {
+      idx = idx - PipelineStepSettings::INTERSECTION_INDEX_OFFSET;
+      return {};
+    } else if(idx >= 100) {
+      if(!orderedPipelinesByChannelIndex.contains(idx)) {
+        throw std::runtime_error("getReportingSettingsForChannel: Channel with index >" + std::to_string(idx) +
+                                 "< does not exist.");
+      }
+      if(orderedPipelinesByChannelIndex.at(idx).getVoronoi() != nullptr) {
+        return orderedPipelinesByChannelIndex.at(idx).getVoronoi()->getReportingSettings();
+      } else {
+        return {};
+      }
+    }
+    return getChannelByChannelIndex(idx).getReportingSettings();
   }
 
   [[nodiscard]] auto getOptions() const -> const AnalyzeSettingsOptions &

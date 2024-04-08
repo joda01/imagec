@@ -482,7 +482,7 @@ void PanelChannelEdit::updatePreview()
 ///
 void PanelChannelEdit::onEditMeasurementClicked()
 {
-  DialogChannelMeasurement measure(this);
+  DialogChannelMeasurement measure(&mParentContainer->mReportingSettings, this);
   measure.exec();
 }
 

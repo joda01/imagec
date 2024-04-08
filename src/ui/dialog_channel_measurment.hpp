@@ -21,7 +21,7 @@
 #include <qwindow.h>
 #include <memory>
 #include <thread>
-#include "backend/pipelines/reporting/reporting_helper.hpp"
+#include "backend/pipelines/reporting/reporting_defines.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 #include <nlohmann/json_fwd.hpp>
 
@@ -33,14 +33,15 @@ class DialogChannelMeasurement : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogChannelMeasurement(QWidget *windowMain);
-  void fromJson(const settings::json::AnalyzeSettingsReporting &settings);
-  nlohmann::json toJson();
+  DialogChannelMeasurement(settings::json::ReportingSettings *reportingSettings, QWidget *windowMain);
+  int exec() override;
 
 private:
-  std::map<joda::pipeline::reporting::Helper::ColumnIndexDetailedReport, QCheckBox *> mMeasurementOverViewReport;
-  std::map<joda::pipeline::reporting::Helper::ColumnIndexDetailedReport, QCheckBox *> mMeasurementDetailsReport;
-  std::map<joda::pipeline::reporting::Helper::ColumnIndexDetailedReport, QCheckBox *> mMeasurementHeatmapReport;
+  std::map<joda::pipeline::reporting::ColumnIndexDetailedReport, QCheckBox *> mMeasurementOverViewReport;
+  std::map<joda::pipeline::reporting::ColumnIndexDetailedReport, QCheckBox *> mMeasurementDetailsReport;
+  std::map<joda::pipeline::reporting::ColumnIndexDetailedReport, QCheckBox *> mMeasurementHeatmapReport;
+
+  settings::json::ReportingSettings *mReportingSettings;
 
 private slots:
   void onOkayClicked();

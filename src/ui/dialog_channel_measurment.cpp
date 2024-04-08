@@ -41,7 +41,10 @@ struct Temp
 /// \param[out]
 /// \return
 ///
-DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain) : QDialog(windowMain)
+DialogChannelMeasurement::DialogChannelMeasurement(settings::json::ReportingSettings *reportingSettings,
+                                                   QWidget *windowMain) :
+    QDialog(windowMain),
+    mReportingSettings(reportingSettings)
 {
   setWindowTitle("Settings");
   setBaseSize(500, 200);
@@ -55,13 +58,12 @@ DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain) : QDialo
   gridLayout->addWidget(new QLabel("Heatmap"), 0, 3, Qt::AlignCenter);
 
   int row               = 1;
-  auto createCheckBoxes = [this, &gridLayout, &groupBox,
-                           &row](joda::pipeline::reporting::Helper::ColumnIndexDetailedReport type,
+  auto createCheckBoxes = [this, &reportingSettings, &gridLayout, &groupBox,
+                           &row](joda::pipeline::reporting::ColumnIndexDetailedReport type,
                                  const std::string &description) {
     gridLayout->addWidget(new QLabel(description.data()), row, 0);
 
     QCheckBox *onOffDetail = new QCheckBox(groupBox);
-    onOffDetail->setChecked(true);
     gridLayout->addWidget(onOffDetail, row, 1, Qt::AlignCenter);
     mMeasurementDetailsReport.emplace(type, onOffDetail);
 
@@ -73,51 +75,78 @@ DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain) : QDialo
     gridLayout->addWidget(onOffHeatmap, row, 3, Qt::AlignCenter);
     mMeasurementHeatmapReport.emplace(type, onOffHeatmap);
 
-    if(type == joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::CONFIDENCE ||
-       type == joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::AREA_SIZE ||
-       type == joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::VALIDITY ||
-       type == joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INVALIDITY ||
-       type == joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INTENSITY_AVG ||
-       type == joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INTENSITY_AVG_CROSS_CHANNEL ||
-       type == joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INTERSECTION_CROSS_CHANNEL) {
-      onOffOverview->setChecked(true);
+    if(reportingSettings->getDetailReportSettings().getMeasurementChannels().contains((int32_t) type)) {
+      onOffDetail->setChecked(true);
+    } else {
+      onOffDetail->setChecked(false);
     }
 
-    if(type == joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::VALIDITY) {
+    if(reportingSettings->getOverviewReportSettings().getMeasurementChannels().contains((int32_t) type)) {
+      onOffOverview->setChecked(true);
+    } else {
+      onOffOverview->setChecked(false);
+    }
+
+    if(reportingSettings->getHeatmapSettings().getMeasurementChannels().contains((int32_t) type)) {
       onOffHeatmap->setChecked(true);
+    } else {
+      onOffHeatmap->setChecked(false);
     }
 
     row++;
   };
 
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::CONFIDENCE, "Confidence");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::AREA_SIZE, "Area size");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::PERIMETER, "Perimeter");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::CIRCULARITY, "Circularity");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::VALIDITY, "Validity");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INVALIDITY, "Invalidity");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::CENTER_OF_MASS_X, "Center of mass X");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::CENTER_OF_MASS_Y, "Center of mass Y");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INTENSITY_AVG, "Intensity AVG");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INTENSITY_MIN, "Intensity MIN");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INTENSITY_MAX, "Intensity MAX");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INTENSITY_AVG_CROSS_CHANNEL,
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::CONFIDENCE, "Confidence");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::AREA_SIZE, "Area size");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::PERIMETER, "Perimeter");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::CIRCULARITY, "Circularity");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::VALIDITY, "Validity");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INVALIDITY, "Invalidity");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::CENTER_OF_MASS_X, "Center of mass X");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::CENTER_OF_MASS_Y, "Center of mass Y");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG, "Intensity AVG");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MIN, "Intensity MIN");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MAX, "Intensity MAX");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG_CROSS_CHANNEL,
                    "Cross ch. intensity avg");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INTENSITY_MIN_CROSS_CHANNEL,
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MIN_CROSS_CHANNEL,
                    "Cross ch. intensity min");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INTENSITY_MAX_CROSS_CHANNEL,
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MAX_CROSS_CHANNEL,
                    "Cross ch. intensity max");
-  createCheckBoxes(joda::pipeline::reporting::Helper::ColumnIndexDetailedReport::INTERSECTION_CROSS_CHANNEL,
-                   "Cross ch. count");
+  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTERSECTION_CROSS_CHANNEL, "Cross ch. count");
 
   mainLayout->addWidget(groupBox);
 }
 
-void DialogChannelMeasurement::fromJson(const settings::json::AnalyzeSettingsReporting &settings)
+int DialogChannelMeasurement::exec()
 {
-}
-nlohmann::json DialogChannelMeasurement::toJson()
-{
+  int ret = QDialog::exec();
+
+  std::set<uint32_t> details;
+  std::set<uint32_t> overview;
+  std::set<uint32_t> heatmap;
+
+  for(auto const &[key, val] : mMeasurementDetailsReport) {
+    if(val->isChecked()) {
+      details.emplace((uint32_t) key);
+    }
+  }
+
+  for(auto const &[key, val] : mMeasurementOverViewReport) {
+    if(val->isChecked()) {
+      overview.emplace((uint32_t) key);
+    }
+  }
+
+  for(auto const &[key, val] : mMeasurementHeatmapReport) {
+    if(val->isChecked()) {
+      heatmap.emplace((uint32_t) key);
+    }
+  }
+
+  mReportingSettings->setReportingSettings(details, overview, heatmap);
+
+  return ret;
 }
 
 void DialogChannelMeasurement::onOkayClicked()
