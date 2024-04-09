@@ -4,6 +4,7 @@
 #include <xlsxwriter/worksheet.h>
 #include <string>
 #include <unordered_map>
+#include "backend/pipelines/reporting/reporting_defines.hpp"
 #include "xlsxwriter.h"
 
 namespace joda::pipeline::reporting {
@@ -13,7 +14,8 @@ namespace joda::pipeline::reporting {
 /// \author     Joachim Danmayr
 /// \param[in]  fileName  Name of the output report file
 ///
-std::tuple<int, int> OverviewReport::writeReport(const joda::results::Table &results, const std::string &headerText,
+std::tuple<int, int> OverviewReport::writeReport(const joda::settings::json::ReportingSettings &reportingSettings,
+                                                 const joda::results::Table &results, const std::string &headerText,
                                                  const std::string &jobName, int colOffset, int rowOffset, int startRow,
                                                  lxw_worksheet *worksheet, lxw_format *header, lxw_format *merge_format,
                                                  lxw_format *numberFormat, lxw_format *imageHeaderHyperlinkFormat)
@@ -45,7 +47,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::results::Table &res
 
   colOffset = 2;
 
-  int64_t columns = results.getNrOfColumns();
+  int64_t nrOfColumns = results.getNrOfColumns();
 
   //
   // Write header text
@@ -59,28 +61,33 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::results::Table &res
   // Write statistics data
   //
   {
-    int colIdx = 0;
-
+    int sheetColumnIdx = 0;
+    int sheetRowIdx    = 0;
     for(int statColIdx = STATISTIC_START_WITH_INDEX; statColIdx < results::Statistics::NR_OF_VALUE; statColIdx++) {
+      sheetRowIdx = 0;
       if(rowOffset == startRow || WRITE_HEADER_FOR_EACH_CHANNEL) {
-        worksheet_write_string(worksheet, rowOffset, colIdx + colOffset,
+        worksheet_write_string(worksheet, rowOffset, sheetColumnIdx + colOffset,
                                results::Statistics::getStatisticsTitle()[statColIdx].data(), header);
-        worksheet_set_column(worksheet, colIdx + colOffset, colIdx + colOffset, 15, NULL);
+        worksheet_set_column(worksheet, sheetColumnIdx + colOffset, sheetColumnIdx + colOffset, 15, NULL);
       }
 
-      for(int64_t rowIdx = 0; rowIdx < columns; rowIdx++) {
-        if(results.getStatistics().contains(rowIdx)) {
-          auto statistics = results.getStatistics().at(rowIdx);
+      for(int64_t colIdx = 0; colIdx < nrOfColumns; colIdx++) {
+        auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
+        if(reportingSettings.getOverviewReportSettings().getMeasurementChannels().contains((uint32_t) colKey)) {
+          if(results.getStatistics().contains(colIdx)) {
+            auto statistics = results.getStatistics().at(colIdx);
 
-          worksheet_write_number(worksheet, rowOffset + rowIdx + 1, colIdx + colOffset,
-                                 statistics.getStatistics()[statColIdx], numberFormat);
+            worksheet_write_number(worksheet, rowOffset + sheetRowIdx + 1, sheetColumnIdx + colOffset,
+                                   statistics.getStatistics()[statColIdx], numberFormat);
 
-        } else {
-          // No statistics for that
-          worksheet_write_number(worksheet, rowOffset + rowIdx + 1, colIdx + colOffset, 0, numberFormat);
+          } else {
+            // No statistics for that
+            worksheet_write_number(worksheet, rowOffset + sheetRowIdx + 1, sheetColumnIdx + colOffset, 0, numberFormat);
+          }
+          sheetRowIdx++;
         }
       }
-      colIdx++;
+      sheetColumnIdx++;
     }
   }
 
@@ -110,16 +117,26 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::results::Table &res
   //
   // Write Result header
   //
-  for(int64_t rowIdx = 0; rowIdx < columns; rowIdx++) {
-    worksheet_write_string(worksheet, rowIdx + rowOffset, 1, results.getColumnNameAt(rowIdx).data(), header);
-    worksheet_set_column(worksheet, 1, 1, 20, NULL);
+  int nrOfRowsWritten = 0;    // reportingSettings.getOverviewReportSettings().getMeasurementChannels().size();
+
+  {
+    int sheetRowIdx = 0;
+    for(int64_t colIndex = 0; colIndex < nrOfColumns; colIndex++) {
+      auto colKey = getMeasureChannel(results.getColumnKeyAt(colIndex));
+      if(reportingSettings.getOverviewReportSettings().getMeasurementChannels().contains((uint32_t) colKey)) {
+        worksheet_write_string(worksheet, sheetRowIdx + rowOffset, 1, results.getColumnNameAt(colIndex).data(), header);
+        worksheet_set_column(worksheet, 1, 1, 20, NULL);
+        sheetRowIdx++;
+      }
+    }
+    nrOfRowsWritten = sheetRowIdx;
   }
 
   //
   // Write Table Name
   //
   //
-  worksheet_merge_range(worksheet, rowOffset, 0, rowOffset + results.getNrOfColumns() - 1, 0, "-", merge_format);
+  worksheet_merge_range(worksheet, rowOffset, 0, rowOffset + nrOfRowsWritten - 1, 0, "-", merge_format);
   if(!results.getTableName().empty()) {
     worksheet_write_string(worksheet, rowOffset, 0, results.getTableName().data(), merge_format);
   } else {
@@ -129,27 +146,37 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::results::Table &res
   //
   // Write table data
   //
-  for(int64_t rowIndex = 0; rowIndex < results.getNrOfRows(); rowIndex++) {
-    for(int64_t colIndex = 0; colIndex < columns; colIndex++) {
-      if(results.getTable().contains(colIndex) &&
-         results.getTable().at(colIndex).contains(getIndexOfSortedMap(rowIndex))) {
-        if(!results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex)).validity.has_value()) {
-          worksheet_write_number(worksheet, rowOffset + colIndex, rowIndex + colOffset,
-                                 results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex)).value, numberFormat);
-        } else {
-          worksheet_write_string(worksheet, rowOffset + colIndex, rowIndex + colOffset,
-                                 results::Table::validityToString(
-                                     results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex)).validity.value())
-                                     .data(),
-                                 NULL);
+  {
+    int sheetRowIdx = 0;
+    for(int64_t rowIndex = 0; rowIndex < results.getNrOfRows(); rowIndex++) {
+      sheetRowIdx = 0;
+      for(int64_t colIndex = 0; colIndex < nrOfColumns; colIndex++) {
+        auto colKey = getMeasureChannel(results.getColumnKeyAt(colIndex));
+        if(reportingSettings.getOverviewReportSettings().getMeasurementChannels().contains((uint32_t) colKey)) {
+          if(results.getTable().contains(colIndex) &&
+             results.getTable().at(colIndex).contains(getIndexOfSortedMap(rowIndex))) {
+            if(!results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex)).validity.has_value()) {
+              worksheet_write_number(worksheet, rowOffset + sheetRowIdx, rowIndex + colOffset,
+                                     results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex)).value,
+                                     numberFormat);
+            } else {
+              worksheet_write_string(
+                  worksheet, rowOffset + sheetRowIdx, rowIndex + colOffset,
+                  results::Table::validityToString(
+                      results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex)).validity.value())
+                      .data(),
+                  NULL);
+            }
+            sheetRowIdx++;
+          } else {
+            // Empty table entry
+          }
         }
-      } else {
-        // Empty table entry
       }
     }
   }
 
-  rowOffset = rowOffset + columns;
+  rowOffset = rowOffset + nrOfRowsWritten;
 
   return {colOffset, rowOffset};
 }

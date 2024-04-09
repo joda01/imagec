@@ -16,6 +16,7 @@
 #include "backend/pipelines/reporting/reporting_details.xlsx.hpp"
 #include "backend/pipelines/reporting/reporting_job_information.hpp"
 #include "backend/pipelines/reporting/reporting_overview_xlsx.hpp"
+#include "backend/settings/analze_settings_parser.hpp"
 #include "xlsxwriter.h"
 
 namespace joda::results {
@@ -93,12 +94,12 @@ void ReportingContainer::flushReportToFile(const joda::settings::json::AnalyzeSe
   int rowOffsetStart       = 0;
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, "Results");
   for(const auto &[folderName, table] : containers) {
-    for(const auto &[idx, table] : table.mColumns) {
+    for(const auto &[channelIndex, table] : table.mColumns) {
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
-            table, folderName, meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format,
-            numberFormat, imageHeaderHyperlinkFormat);
+            analyzeSettings.getReportingSettingsForChannel(channelIndex), table, folderName, meta.jobName, colOffsetIn,
+            rowOffsetIn, rowOffsetStart, worksheet, header, merge_format, numberFormat, imageHeaderHyperlinkFormat);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }
