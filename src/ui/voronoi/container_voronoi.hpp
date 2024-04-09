@@ -92,6 +92,9 @@ private:
   std::shared_ptr<ContainerFunction<int, int>> mMaxVoronoiAreaSize;
   std::shared_ptr<ContainerFunction<int, int>> mOverlayMaskChannelIndex;
 
+  // Reporting//////////////////////////////////
+  settings::json::ReportingSettings mReportingSettings;
+
   // Cross-Channel//////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, int>> mColocGroup;
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntensity;

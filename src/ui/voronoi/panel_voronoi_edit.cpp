@@ -23,6 +23,7 @@
 #include <mutex>
 #include <thread>
 #include "ui/container_function.hpp"
+#include "ui/dialog_channel_measurment.hpp"
 #include "ui/window_main.hpp"
 #include "container_voronoi.hpp"
 
@@ -79,48 +80,75 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
   //
   // Preprocessing
   //
-  /*
+
   auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
-  verticalLayoutFuctions->addWidget(createTitle("Preprocessing"));
+  verticalLayoutFuctions->addWidget(createTitle("Measurement"));
+  {
+    QPushButton *editMeasurment = new QPushButton("Measured data");
+    editMeasurment->setStyleSheet(
+        "QPushButton {"
+        "   background-color: rgba(0, 0, 0, 0);"
+        "   border: 1px solid rgb(111, 121, 123);"
+        "   color: rgb(0, 104, 117);"
+        "   padding: 10px 20px;"
+        "   border-radius: 4px;"
+        "   font-size: 14px;"
+        "   font-weight: normal;"
+        "   text-align: center;"
+        "   text-decoration: none;"
+        "}"
+
+        "QPushButton:hover {"
+        "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+        "}"
+
+        "QPushButton:pressed {"
+        "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+        "}");
+    connect(editMeasurment, &QPushButton::pressed, this, &PanelVoronoiEdit::onEditMeasurementClicked);
+    verticalLayoutFuctions->addWidget(editMeasurment);
+  }
+
   _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   _7->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-  //
-  // Preview
-  //
-  auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE);
-  mPreviewImage      = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
-  mPreviewImage->resetImage("");
-  preview->addWidget(mPreviewImage);
-  QWidget *imageSubTitleWidget = new QWidget();
-  imageSubTitleWidget->setMinimumHeight(50);
-  QHBoxLayout *imageSubTitle = new QHBoxLayout();
-  imageSubTitleWidget->setLayout(imageSubTitle);
+  /*
+    //
+    // Preview
+    //
+    auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE);
+    mPreviewImage      = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
+    mPreviewImage->resetImage("");
+    preview->addWidget(mPreviewImage);
+    QWidget *imageSubTitleWidget = new QWidget();
+    imageSubTitleWidget->setMinimumHeight(50);
+    QHBoxLayout *imageSubTitle = new QHBoxLayout();
+    imageSubTitleWidget->setLayout(imageSubTitle);
 
-  mSpinner = new WaitingSpinnerWidget(imageSubTitleWidget);
-  mSpinner->setRoundness(10.0);
-  mSpinner->setMinimumTrailOpacity(15.0);
-  mSpinner->setTrailFadePercentage(70.0);
-  mSpinner->setNumberOfLines(8);
-  mSpinner->setLineLength(5);
-  mSpinner->setLineWidth(2);
-  mSpinner->setInnerRadius(5);
-  mSpinner->setRevolutionsPerSecond(1);
-  mSpinner->start();    // gets the show on the road!
+    mSpinner = new WaitingSpinnerWidget(imageSubTitleWidget);
+    mSpinner->setRoundness(10.0);
+    mSpinner->setMinimumTrailOpacity(15.0);
+    mSpinner->setTrailFadePercentage(70.0);
+    mSpinner->setNumberOfLines(8);
+    mSpinner->setLineLength(5);
+    mSpinner->setLineWidth(2);
+    mSpinner->setInnerRadius(5);
+    mSpinner->setRevolutionsPerSecond(1);
+    mSpinner->start();    // gets the show on the road!
 
-  //
-  // Signals from extern
-  //
-  connect(this, &PanelVoronoiEdit::updatePreviewStarted, mSpinner, &WaitingSpinnerWidget::start);
-  connect(this, &PanelVoronoiEdit::updatePreviewFinished, mSpinner, &WaitingSpinnerWidget::stop);
+    //
+    // Signals from extern
+    //
+    connect(this, &PanelVoronoiEdit::updatePreviewStarted, mSpinner, &WaitingSpinnerWidget::start);
+    connect(this, &PanelVoronoiEdit::updatePreviewFinished, mSpinner, &WaitingSpinnerWidget::stop);
 
-  imageSubTitle->addWidget(mSpinner);
+    imageSubTitle->addWidget(mSpinner);
 
-  imageSubTitle->addStretch(1);
+    imageSubTitle->addStretch(1);
 
-  preview->addWidget(imageSubTitleWidget);
-  */
+    preview->addWidget(imageSubTitleWidget);
+    */
 
   setLayout(horizontalLayout);
   horizontalLayout->addStretch();
@@ -360,6 +388,19 @@ void PanelVoronoiEdit::updatePreview()
       mPreviewCounter++;
     }
   }
+}
+
+///
+/// \brief      Edit measurements for this channel
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelVoronoiEdit::onEditMeasurementClicked()
+{
+  DialogChannelMeasurement measure(&mParentContainer->mReportingSettings, this);
+  measure.exec();
 }
 
 }    // namespace joda::ui::qt
