@@ -88,7 +88,7 @@ inline std::string timepointToIsoString(const std::chrono::system_clock::time_po
   char buffer[80];
   std::strftime(buffer, 80, "%Y-%m-%dT%H:%M:%S", &tm);
   auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()) % 1000;
-  std::sprintf(buffer + std::strlen(buffer), ".%03lldZ", static_cast<long long>(milliseconds.count()));
+  std::sprintf(buffer + 80, ".%03lldZ", static_cast<long long>(milliseconds.count()));
   return std::string(buffer);
 }
 
