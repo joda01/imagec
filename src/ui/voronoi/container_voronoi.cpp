@@ -192,6 +192,8 @@ void ContainerVoronoi::fromJson(std::optional<joda::settings::json::ChannelSetti
       }
       mCrossChannelCount->setValue(crossChannelIndexes);
     }
+
+    mReportingSettings = voronoi->getReportingSettings();
   }
 }
 
@@ -240,6 +242,8 @@ ContainerVoronoi::ConvertedChannels ContainerVoronoi::toJson() const
     }
     chSettings["voronoi"]["cross_channel_count_channels"] = crossChannelCount;
   }
+
+  chSettings["reporting"] = nlohmann::json(mReportingSettings);
 
   return {.channelSettings = std::nullopt, .pipelineStepVoronoi = chSettings};
 }

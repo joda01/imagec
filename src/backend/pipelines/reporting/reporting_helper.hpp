@@ -14,6 +14,7 @@
 #pragma once
 
 #include "backend/image_reader/image_reader.hpp"
+#include "backend/pipelines/reporting/reporting_defines.hpp"
 #include "backend/results/results_container.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 
@@ -22,25 +23,6 @@ namespace joda::pipeline::reporting {
 class Helper
 {
 public:
-  /////////////////////////////////////////////////////
-  enum class ColumnIndexDetailedReport : int
-  {
-    CONFIDENCE       = 0x0100,
-    AREA_SIZE        = 0x0200,
-    PERIMETER        = 0x0300,
-    CIRCULARITY      = 0x0400,
-    VALIDITY         = 0x0500,
-    INVALIDITY       = 0x0600,
-    CENTER_OF_MASS_X = 0x0700,
-    CENTER_OF_MASS_Y = 0x0800,
-    INTENSITY_AVG    = 0x0900,    // Start of the dynamic section
-    INTENSITY_MIN    = 0x0A00,
-    INTENSITY_MAX    = 0x0B00,
-    INTERSECTION     = 0x0C00
-  };
-
-  static constexpr uint32_t COLUMN_MASK = 0xFFFFFF0;
-
   struct RegexResult
   {
     std::string group;

@@ -24,6 +24,7 @@
 #include "backend/settings/channel_settings.hpp"
 #include "ui/container_function.hpp"
 #include "ui/window_main.hpp"
+#include <nlohmann/json_fwd.hpp>
 #include "panel_channel_overview.hpp"
 
 namespace joda::ui::qt {
@@ -361,6 +362,8 @@ void ContainerChannel::fromJson(std::optional<joda::settings::json::ChannelSetti
       }
       mCrossChannelCount->setValue(crossChannelIndexes);
     }
+
+    mReportingSettings = chSettings->getReportingSettings();
   }
 }
 
@@ -471,6 +474,8 @@ ContainerChannel::ConvertedChannels ContainerChannel::toJson() const
     }
     chSettings["cross_channel"]["cross_channel_count_channels"] = crossChannelCount;
   }
+
+  chSettings["reporting"] = nlohmann::json(mReportingSettings);
 
   return {.channelSettings = chSettings, .pipelineStepVoronoi = std::nullopt};
 }

@@ -116,6 +116,9 @@ private:
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntensity;
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelCount;
 
+  // Reporting//////////////////////////////////
+  settings::json::ReportingSettings mReportingSettings;
+
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
   PanelChannelOverview *mPanelOverview;

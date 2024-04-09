@@ -23,6 +23,7 @@
 #include <mutex>
 #include <thread>
 #include "ui/container_function.hpp"
+#include "ui/dialog_channel_measurment.hpp"
 #include "ui/window_main.hpp"
 #include "container_channel.hpp"
 
@@ -92,8 +93,33 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   connect(parentContainer->mWateredSegmentation.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::updatePreview);
 
-  // auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
-  // verticalLayoutFilter->addWidget(createTitle("Filtering"));
+  auto [measurement, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
+  measurement->addWidget(createTitle("Measurement"));
+  {
+    QPushButton *editMeasurment = new QPushButton("Measured data");
+    editMeasurment->setStyleSheet(
+        "QPushButton {"
+        "   background-color: rgba(0, 0, 0, 0);"
+        "   border: 1px solid rgb(111, 121, 123);"
+        "   color: rgb(0, 104, 117);"
+        "   padding: 10px 20px;"
+        "   border-radius: 4px;"
+        "   font-size: 14px;"
+        "   font-weight: normal;"
+        "   text-align: center;"
+        "   text-decoration: none;"
+        "}"
+
+        "QPushButton:hover {"
+        "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+        "}"
+
+        "QPushButton:pressed {"
+        "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+        "}");
+    connect(editMeasurment, &QPushButton::pressed, this, &PanelChannelEdit::onEditMeasurementClicked);
+    measurement->addWidget(editMeasurment);
+  }
 
   //
   // Column 3
@@ -445,6 +471,19 @@ void PanelChannelEdit::updatePreview()
       mPreviewCounter++;
     }
   }
+}
+
+///
+/// \brief      Edit measurements for this channel
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelEdit::onEditMeasurementClicked()
+{
+  DialogChannelMeasurement measure(&mParentContainer->mReportingSettings, this);
+  measure.exec();
 }
 
 }    // namespace joda::ui::qt

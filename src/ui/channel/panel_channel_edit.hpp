@@ -51,12 +51,15 @@ public:
   }
 
 private:
+  /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
   QHBoxLayout *createLayout();
   std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
                                                         int margin = 16, bool enableScrolling = false,
                                                         int maxWidth = 250) const;
+
+  /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
   ContainerChannel *mParentContainer;
   QLabel *createTitle(const QString &);
@@ -68,9 +71,11 @@ private:
   bool mIsActiveShown                         = false;
 
 private slots:
+  /////////////////////////////////////////////////////
   void onChannelTypeChanged();
   void onDetectionModechanged();
   void updatePreview();
+  void onEditMeasurementClicked();
 };
 
 }    // namespace joda::ui::qt

@@ -15,6 +15,7 @@
 
 #include <tuple>
 #include "backend/results/results.h"
+#include "backend/settings/reporting_settings.hpp"
 #include "xlsxwriter.h"
 
 namespace joda::pipeline::reporting {
@@ -27,7 +28,8 @@ namespace joda::pipeline::reporting {
 class OverviewReport
 {
 public:
-  static std::tuple<int, int> writeReport(const joda::results::Table &results, const std::string &headerText,
+  static std::tuple<int, int> writeReport(const joda::settings::json::ReportingSettings &reportingSettings,
+                                          const joda::results::Table &results, const std::string &headerText,
                                           const std::string &jobName, int colOffset, int rowOffset, int startRow,
                                           lxw_worksheet *worksheet, lxw_format *header, lxw_format *merge_format,
                                           lxw_format *numberFormat, lxw_format *imageHeaderHyperlinkFormat);

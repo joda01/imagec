@@ -93,6 +93,11 @@ public:
     return crossChannelCountRealIndexes;
   }
 
+  auto getReportingSettings() const -> const ReportingSettings &
+  {
+    return reporting;
+  }
+
   void interpretConfig()
   {
     auto strToIdx = [](const std::string &idxToIntersectStr) {
@@ -161,11 +166,16 @@ private:
   // Minimum area in [%] the areas in the coloc must overlap to be marked as valid coloc
   float min_coloc_area = 0;
 
+  //
+  // Reporting settings for channel
+  //
+  ReportingSettings reporting;
+
 private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStepVoronoi, index, name, color, points_channel_index,
                                               overlay_mask_channel_index, max_voronoi_area_radius,
                                               cross_channel_intensity_channels, min_coloc_area, coloc_groups,
-                                              cross_channel_count_channels);
+                                              cross_channel_count_channels, reporting);
 };
 
 ///

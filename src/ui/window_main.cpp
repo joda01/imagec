@@ -96,13 +96,25 @@ void WindowMain::createToolbar()
     mOPenProject->setToolTip("Open folder!");
     connect(mOPenProject, &QAction::triggered, this, &WindowMain::onOpenProjectClicked);
     toolbar->addAction(mOPenProject);
+    mSecondSeparator = toolbar->addSeparator();
 
     mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
     mStartAnalysis->setEnabled(false);
     mStartAnalysis->setToolTip("Start analysis!");
     connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onStartClicked);
     toolbar->addAction(mStartAnalysis);
-    mSecondSeparator = toolbar->addSeparator();
+
+    {
+      const QIcon myIcon(":/icons/outlined/icons8-topic-50.png");
+      mJobName = new QLineEdit();
+      mJobName->setObjectName("JobName");
+      mJobName->setText("");
+      mJobName->setClearButtonEnabled(true);
+      mJobName->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
+      mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
+      mJobName->setMaximumWidth(200);
+      mJobNameAction = toolbar->addWidget(mJobName);
+    }
 
     mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
     mDeleteChannel->setToolTip("Delete channel!");
@@ -420,15 +432,16 @@ QWidget *WindowMain::createAddChannelPanel()
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
   layout->addWidget(openSettingsButton);
 
-  QFrame *divider = new QFrame();
-  divider->setFrameShape(QFrame::HLine);
-  divider->setFrameShadow(QFrame::Sunken);
-  layout->addWidget(divider);
-
   //
   // Job name
   //
   {
+    /*
+      QFrame *divider = new QFrame();
+      divider->setFrameShape(QFrame::HLine);
+      divider->setFrameShadow(QFrame::Sunken);
+      layout->addWidget(divider);
+
     const QIcon myIcon(":/icons/outlined/icons8-topic-50.png");
     mJobName = new QLineEdit();
     mJobName->setObjectName("JobName");
@@ -436,7 +449,6 @@ QWidget *WindowMain::createAddChannelPanel()
         "QLineEdit { border-radius: 4px; border: 1px solid rgba(32, 27, 23, 0.6); padding-top: 10px; padding-bottom: "
         "10px;}");
     mJobName->setText("");
-    layout->addWidget(mJobName);
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
     mJobName->setFont(fontLineEdit);
@@ -455,7 +467,7 @@ QWidget *WindowMain::createAddChannelPanel()
     font.setWeight(QFont::Light);
     helperText->setFont(font);
     helperText->setStyleSheet("QLabel#functionHelperText { color : #808080; }");
-    layout->addWidget(helperText);
+    layout->addWidget(helperText);*/
   }
 
   layout->setSpacing(8);    // Adjust this value as needed
@@ -495,7 +507,7 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
     folderToOpen = mSelectedWorkingDirectory;
   }
   QString filePath =
-      QFileDialog::getOpenFileName(this, "Open File", QDir::homePath(), "JSON Files (*.json);;All Files (*)");
+      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "JSON Files (*.json);;All Files (*)");
 
   if(filePath.isEmpty()) {
     return;
@@ -778,6 +790,7 @@ void WindowMain::onBackClicked()
   mSaveProject->setVisible(true);
   mOPenProject->setVisible(true);
   mStartAnalysis->setVisible(true);
+  mJobNameAction->setVisible(true);
   mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(true);
   mSecondSeparator->setVisible(true);
@@ -803,6 +816,7 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
   mSaveProject->setVisible(false);
   mOPenProject->setVisible(false);
   mStartAnalysis->setVisible(false);
+  mJobNameAction->setVisible(false);
   mDeleteChannel->setVisible(true);
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(false);
