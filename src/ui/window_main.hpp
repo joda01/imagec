@@ -14,6 +14,7 @@
 #pragma once
 
 #include <qcombobox.h>
+#include <qwidget.h>
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
@@ -99,6 +100,7 @@ private:
 
   void createToolbar();
   QWidget *createStackedWidget();
+  QWidget *createGirafWidget();
   QWidget *createOverviewWidget();
   QWidget *createChannelWidget();
   void waitForFileSearchFinished();
@@ -131,6 +133,7 @@ private:
   std::set<ContainerBase *> mChannels;
   QString mSelectedWorkingDirectory;
   std::mutex mLookingForFilesMutex;
+  QWidget *mGirafWidget;
 
   ////ToolbarIcons/////////////////////////////////////////////////
   QAction *mFileSelectorComboBox = nullptr;
@@ -147,6 +150,11 @@ private:
   QAction *mFirstSeparator       = nullptr;
   QAction *mSecondSeparator      = nullptr;
 
+  ////Giraf/////////////////////////////////////////////////
+  QPushButton *mUseImageC;
+  QPushButton *mUseTheGiraf;
+  QMovie *mGiraf;
+
 private slots:
   void onOpenProjectClicked();
   void onSaveProjectClicked();
@@ -161,6 +169,8 @@ private slots:
   void onOpenAnalyzeSettingsClicked();
   void onOpenSettingsDialog();
   void onFindTemplatesFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
+  void onTakeTheGirafClicked();
+  void onUseImageCClicked();
 };
 
 }    // namespace joda::ui::qt

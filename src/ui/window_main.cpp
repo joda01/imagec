@@ -237,6 +237,9 @@ QWidget *WindowMain::createOverviewWidget()
     mLayoutChannelOverview                                = channelsOverViewLayout;
 
     channelsOverViewLayout->addWidget(createAddChannelPanel());
+    mAddChannelPanel->setVisible(false);
+    channelsOverViewLayout->addWidget(createGirafWidget(), 0, 1, 1, 1);
+
     mLastElement = new QLabel();
     channelsOverViewLayout->addWidget(mLastElement, 1, 0, 1, 3);
 
@@ -275,6 +278,94 @@ QWidget *WindowMain::createOverviewWidget()
 QWidget *WindowMain::createChannelWidget()
 {
   return new QWidget(this);
+}
+
+QWidget *WindowMain::createGirafWidget()
+{
+  QWidget *addChannelWidget = new QWidget();
+  addChannelWidget->setMinimumHeight(250);
+  addChannelWidget->setMinimumWidth(350);
+  addChannelWidget->setMaximumWidth(350);
+  QVBoxLayout *layout = new QVBoxLayout();
+  addChannelWidget->setLayout(layout);
+
+  mGiraf    = new QMovie(":/icons/outlined/girafa.gif");
+  QLabel *q = new QLabel(addChannelWidget);
+  // q->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
+  q->setMovie(mGiraf);
+  layout->addWidget(q);
+  mGiraf->setScaledSize(QSize(200, 200));
+
+  mUseImageC = new QPushButton(
+      "Use imageC, a powerful image processing\n"
+      "software that helps you make innovative\n"
+      "discoveries in your research work and\n"
+      "thus change the world.");
+  mUseImageC->setStyleSheet(
+      "QPushButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgb(111, 121, 123);"
+      "   color: rgb(0, 104, 117);"
+      "   padding: 10px 20px;"
+      "   border-radius: 4px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}");
+  layout->addWidget(mUseImageC);
+  connect(mUseImageC, &QPushButton::pressed, this, &WindowMain::onUseImageCClicked);
+
+  mUseTheGiraf = new QPushButton("or take the giraf");
+  mUseTheGiraf->setStyleSheet(
+      "QPushButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgb(111, 121, 123);"
+      "   color: rgb(0, 104, 117);"
+      "   padding: 10px 20px;"
+      "   border-radius: 4px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}");
+  layout->addWidget(mUseTheGiraf);
+  connect(mUseTheGiraf, &QPushButton::pressed, this, &WindowMain::onTakeTheGirafClicked);
+
+  addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  mGirafWidget = addChannelWidget;
+  return addChannelWidget;
+}
+
+void WindowMain::onTakeTheGirafClicked()
+{
+  mUseImageC->setVisible(false);
+  mUseTheGiraf->setVisible(false);
+  mGiraf->start();
+}
+
+void WindowMain::onUseImageCClicked()
+{
+  mLayoutChannelOverview->removeWidget(mGirafWidget);
+  mGirafWidget->setVisible(false);
+  delete mGirafWidget;
+  mAddChannelPanel->setVisible(true);
 }
 
 QWidget *WindowMain::createAddChannelPanel()
