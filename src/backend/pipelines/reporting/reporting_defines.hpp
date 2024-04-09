@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 
 namespace joda::settings::json {
 class AnalyzeSettings;
