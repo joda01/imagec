@@ -23,8 +23,6 @@ namespace joda::pipeline::reporting {
 class Helper
 {
 public:
-  static constexpr uint32_t COLUMN_MASK = 0xFFFFFF0;
-
   struct RegexResult
   {
     std::string group;

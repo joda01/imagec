@@ -92,18 +92,19 @@ void Heatmap::createHeatMapForImage(const joda::settings::json::AnalyzeSettings 
       }
 
       for(int row = 0; row < table.getNrOfRows(); row++) {
-        if(table.columnKeyExists(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X) | channelIdx) &&
+        if(table.columnKeyExists(getMaskedMeasurementChannel(MeasurementChannels::CENTER_OF_MASS_X, channelIdx)) &&
            table.getTable()
-               .at(table.getColIndexFromKey(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X) | channelIdx))
+               .at(table.getColIndexFromKey(
+                   getMaskedMeasurementChannel(MeasurementChannels::CENTER_OF_MASS_X, channelIdx)))
                .contains(row)) {
           int64_t xCo = table.getTable()
-                            .at(table.getColIndexFromKey(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_X) |
-                                                         channelIdx))
+                            .at(table.getColIndexFromKey(
+                                getMaskedMeasurementChannel(MeasurementChannels::CENTER_OF_MASS_X, channelIdx)))
                             .at(row)
                             .value;
           int64_t yCo = table.getTable()
-                            .at(table.getColIndexFromKey(static_cast<int>(ColumnIndexDetailedReport::CENTER_OF_MASS_Y) |
-                                                         channelIdx))
+                            .at(table.getColIndexFromKey(
+                                getMaskedMeasurementChannel(MeasurementChannels::CENTER_OF_MASS_Y, channelIdx)))
                             .at(row)
                             .value;
           if(xCo > imageWidth) {
@@ -120,27 +121,28 @@ void Heatmap::createHeatMapForImage(const joda::settings::json::AnalyzeSettings 
           double areaSize  = 0;
           bool valid       = false;
           if(table.getTable()
-                 .at(table.getColIndexFromKey(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_AVG) | channelIdx))
+                 .at(table.getColIndexFromKey(
+                     getMaskedMeasurementChannel(MeasurementChannels::INTENSITY_AVG, channelIdx)))
                  .contains(row)) {
             intensity = table.getTable()
-                            .at(table.getColIndexFromKey(static_cast<int>(ColumnIndexDetailedReport::INTENSITY_AVG) |
-                                                         channelIdx))
+                            .at(table.getColIndexFromKey(
+                                getMaskedMeasurementChannel(MeasurementChannels::INTENSITY_AVG, channelIdx)))
                             .at(row)
                             .value;
-            valid =
-                table.getTable()
-                    .at(table.getColIndexFromKey(static_cast<int>(ColumnIndexDetailedReport::VALIDITY) | channelIdx))
-                    .at(row)
-                    .validity == func::ParticleValidity::VALID;
+            valid = table.getTable()
+                        .at(table.getColIndexFromKey(
+                            getMaskedMeasurementChannel(MeasurementChannels::VALIDITY, channelIdx)))
+                        .at(row)
+                        .validity == func::ParticleValidity::VALID;
           }
           if(table.getTable()
-                 .at(table.getColIndexFromKey(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE) | channelIdx))
+                 .at(table.getColIndexFromKey(getMaskedMeasurementChannel(MeasurementChannels::AREA_SIZE, channelIdx)))
                  .contains(row)) {
-            areaSize =
-                table.getTable()
-                    .at(table.getColIndexFromKey(static_cast<int>(ColumnIndexDetailedReport::AREA_SIZE) | channelIdx))
-                    .at(row)
-                    .value;
+            areaSize = table.getTable()
+                           .at(table.getColIndexFromKey(
+                               getMaskedMeasurementChannel(MeasurementChannels::AREA_SIZE, channelIdx)))
+                           .at(row)
+                           .value;
           }
 
           if(valid) {
@@ -249,25 +251,61 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::json::AnalyzeSe
     int nrOfCols         = sizeX;
     int rowOffset        = ROW_OFFSET_START;
 
-    paintPlateBorder(worksheet, nrOfRows, nrOfCols, rowOffset, headerFormat, numberFormat);
-    rowOffset++;
-    for(int rowIdx = 0; rowIdx < values.getNrOfRows(); rowIdx++) {
-      try {
-        auto imageName = values.getRowNameAt(rowIdx);
-        auto areaSize =
-            values.getTable()
-                .at(values.getColIndexFromKey(static_cast<int>(ColumnIndexDetailedReport::VALIDITY) | channelIdx))
-                .at(rowIdx)
-                .value;
-        auto imgNr =
-            Helper::applyRegex(analyzeSettings.getReportingSettings().getHeatmapSettings().getFileRegex(), imageName)
-                .img;
-        auto pos = wellOrder.find(imgNr);
-        if(pos != wellOrder.end()) {
-          worksheet_write_number(worksheet, rowOffset + pos->second.y, pos->second.x + COL_OFFSET, (double) areaSize,
-                                 numberFormat);
+    auto reportingSettings = analyzeSettings.getReportingSettingsForChannel(channelIdx);
+
+    for(const auto measureChannelKey : reportingSettings.getHeatmapSettings().getMeasurementChannels()) {
+      auto writePlateFrame = [&worksheet, &rowOffset, &nrOfRows, &nrOfCols, &numberFormat,
+                              &headerFormat](const std::string &value) {
+        worksheet_merge_range(worksheet, rowOffset - 1, 0, rowOffset - 1, nrOfCols + 1, "-", NULL);
+        worksheet_write_string(worksheet, rowOffset - 1, 0, value.data(), NULL);
+        paintPlateBorder(worksheet, nrOfRows, nrOfCols, rowOffset, headerFormat, numberFormat);
+      };
+
+      auto writeData = [&worksheet, &rowOffset, &values = values, &analyzeSettings, &wellOrder, &numberFormat,
+                        &channelIdx = channelIdx](MeasurementChannels measureChannel) {
+        for(int rowIdx = 0; rowIdx < values.getNrOfRows(); rowIdx++) {
+          try {
+            auto imageName = values.getRowNameAt(rowIdx);
+            auto areaSize  = values.getTable()
+                                .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannel, channelIdx)))
+                                .at(rowIdx)
+                                .value;
+            auto imgNr = Helper::applyRegex(analyzeSettings.getReportingSettings().getHeatmapSettings().getFileRegex(),
+                                            imageName)
+                             .img;
+            auto pos = wellOrder.find(imgNr);
+            if(pos != wellOrder.end()) {
+              worksheet_write_number(worksheet, rowOffset + pos->second.y, pos->second.x + COL_OFFSET,
+                                     (double) areaSize, numberFormat);
+            }
+          } catch(...) {
+          }
         }
-      } catch(...) {
+      };
+
+      auto measureChannel = getMeasureChannel(measureChannelKey);
+
+      if(measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG_CROSS_CHANNEL ||
+         measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN_CROSS_CHANNEL ||
+         measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX_CROSS_CHANNEL) {
+        for(int intensIdx : analyzeSettings.getNumberOfCrossChannelIntensityMeasurementForChannel(channelIdx)) {
+          writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
+          rowOffset++;
+          writeData(measureChannel);
+          rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
+        }
+      } else if(measureChannel == joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL) {
+        for(int countIdx : analyzeSettings.getNumberOfCrossChannelCountMeasurementForChannel(channelIdx)) {
+          writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
+          rowOffset++;
+          writeData(measureChannel);
+          rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
+        }
+      } else {
+        writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
+        rowOffset++;
+        writeData(measureChannel);
+        rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
       }
     }
   }
@@ -356,25 +394,22 @@ void Heatmap::createAllOverHeatMap(const joda::settings::json::AnalyzeSettings &
             worksheet_write_string(sheet, rowOffset - 1, 0, value.data(), NULL);
             paintPlateBorder(sheet, PLATE_ROWS, PLATE_COLS, rowOffset, header, numberFormat);
           };
+          auto measureChannel = getMeasureChannel(measureChannelKey);
 
-          if((joda::pipeline::reporting::ColumnIndexDetailedReport) measureChannelKey ==
-                 joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG_CROSS_CHANNEL ||
-             (joda::pipeline::reporting::ColumnIndexDetailedReport) measureChannelKey ==
-                 joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MIN_CROSS_CHANNEL ||
-             (joda::pipeline::reporting::ColumnIndexDetailedReport) measureChannelKey ==
-                 joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MAX_CROSS_CHANNEL) {
+          if(measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG_CROSS_CHANNEL ||
+             measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN_CROSS_CHANNEL ||
+             measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX_CROSS_CHANNEL) {
             for(int intensIdx : analyzeSettings.getNumberOfCrossChannelIntensityMeasurementForChannel(channelIdx)) {
-              writePlateFrame(std::to_string(measureChannelKey));
+              writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
-          } else if((joda::pipeline::reporting::ColumnIndexDetailedReport) measureChannelKey ==
-                    joda::pipeline::reporting::ColumnIndexDetailedReport::INTERSECTION_CROSS_CHANNEL) {
+          } else if(measureChannel == joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL) {
             for(int countIdx : analyzeSettings.getNumberOfCrossChannelCountMeasurementForChannel(channelIdx)) {
-              writePlateFrame(std::to_string(measureChannelKey));
+              writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
           } else {
-            writePlateFrame(std::to_string(measureChannelKey));
+            writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
             rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
           }
         }
@@ -386,28 +421,26 @@ void Heatmap::createAllOverHeatMap(const joda::settings::json::AnalyzeSettings &
           rowOffset = ROW_OFFSET_START;
 
           for(const auto measureChannelKey : reportingSettings.getHeatmapSettings().getMeasurementChannels()) {
-            if(generateHeatmapForWells) {
-              std::string filePath = "external:.\\heatmaps/heatmap_" + group + "_" + jobName + ".xlsx";
-              worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
-            }
+            auto writeNumber = [&sheet, &rowOffset, &row, &col, &numberFormat, &generateHeatmapForWells, &jobName,
+                                &group = group](double value) {
+              if(generateHeatmapForWells) {
+                std::string filePath = "external:.\\heatmaps/heatmap_" + group + "_" + jobName + ".xlsx";
+                worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
+              }
 
-            auto writeNumber = [&sheet, &rowOffset, &row, &col, &numberFormat](double value) {
               worksheet_write_number(sheet, rowOffset + row, col, value, numberFormat);
             };
 
-            if((joda::pipeline::reporting::ColumnIndexDetailedReport) measureChannelKey ==
-                   joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG_CROSS_CHANNEL ||
-               (joda::pipeline::reporting::ColumnIndexDetailedReport) measureChannelKey ==
-                   joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MIN_CROSS_CHANNEL ||
-               (joda::pipeline::reporting::ColumnIndexDetailedReport) measureChannelKey ==
-                   joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MAX_CROSS_CHANNEL) {
+            auto measureChannel = getMeasureChannel(measureChannelKey);
+            if(measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG_CROSS_CHANNEL ||
+               measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN_CROSS_CHANNEL ||
+               measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX_CROSS_CHANNEL) {
               for(int intensIdx : analyzeSettings.getNumberOfCrossChannelIntensityMeasurementForChannel(channelIdx)) {
                 writeNumber(
                     values.getStatistics().at(values.getColIndexFromKey(measureChannelKey | intensIdx)).getAvg());
                 rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
               }
-            } else if((joda::pipeline::reporting::ColumnIndexDetailedReport) measureChannelKey ==
-                      joda::pipeline::reporting::ColumnIndexDetailedReport::INTERSECTION_CROSS_CHANNEL) {
+            } else if(measureChannel == joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL) {
               for(int countIdx : analyzeSettings.getNumberOfCrossChannelCountMeasurementForChannel(channelIdx)) {
                 writeNumber(
                     values.getStatistics().at(values.getColIndexFromKey(measureChannelKey | countIdx)).getAvg());

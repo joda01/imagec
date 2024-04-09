@@ -37,9 +37,9 @@ public:
   int exec() override;
 
 private:
-  std::map<joda::pipeline::reporting::ColumnIndexDetailedReport, QCheckBox *> mMeasurementOverViewReport;
-  std::map<joda::pipeline::reporting::ColumnIndexDetailedReport, QCheckBox *> mMeasurementDetailsReport;
-  std::map<joda::pipeline::reporting::ColumnIndexDetailedReport, QCheckBox *> mMeasurementHeatmapReport;
+  std::map<joda::pipeline::reporting::MeasurementChannels, QCheckBox *> mMeasurementOverViewReport;
+  std::map<joda::pipeline::reporting::MeasurementChannels, QCheckBox *> mMeasurementDetailsReport;
+  std::map<joda::pipeline::reporting::MeasurementChannels, QCheckBox *> mMeasurementHeatmapReport;
 
   settings::json::ReportingSettings *mReportingSettings;
 

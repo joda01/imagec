@@ -35,21 +35,21 @@ public:
 
   private:
     std::set<uint32_t> measurement{
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::CONFIDENCE,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::AREA_SIZE,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::PERIMETER,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::CIRCULARITY,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::VALIDITY,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INVALIDITY,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::CENTER_OF_MASS_X,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::CENTER_OF_MASS_Y,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MIN,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MAX,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG_CROSS_CHANNEL,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MIN_CROSS_CHANNEL,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MAX_CROSS_CHANNEL,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTERSECTION_CROSS_CHANNEL,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::CONFIDENCE,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::AREA_SIZE,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::PERIMETER,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::CIRCULARITY,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::VALIDITY,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INVALIDITY,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::CENTER_OF_MASS_X,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::CENTER_OF_MASS_Y,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG_CROSS_CHANNEL,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN_CROSS_CHANNEL,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX_CROSS_CHANNEL,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL,
     };
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(DetailReport, measurement);
@@ -66,18 +66,18 @@ public:
 
   private:
     std::set<uint32_t> measurement{
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::CONFIDENCE,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::AREA_SIZE,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::CIRCULARITY,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::VALIDITY,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INVALIDITY,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MIN,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MAX,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG_CROSS_CHANNEL,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MIN_CROSS_CHANNEL,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MAX_CROSS_CHANNEL,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTERSECTION_CROSS_CHANNEL,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::CONFIDENCE,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::AREA_SIZE,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::CIRCULARITY,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::VALIDITY,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INVALIDITY,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG_CROSS_CHANNEL,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN_CROSS_CHANNEL,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX_CROSS_CHANNEL,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL,
     };
     ;
 
@@ -95,10 +95,10 @@ public:
 
   private:
     std::set<uint32_t> measurement{
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::VALIDITY,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG_CROSS_CHANNEL,
-        (uint32_t) joda::pipeline::reporting::ColumnIndexDetailedReport::INTERSECTION_CROSS_CHANNEL,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::VALIDITY,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG_CROSS_CHANNEL,
+        (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL,
     };
     ;
 

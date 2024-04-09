@@ -21,6 +21,7 @@
 #include <exception>
 #include <string>
 #include <vector>
+#include "backend/pipelines/reporting/reporting_defines.hpp"
 #include "backend/pipelines/reporting/reporting_helper.hpp"
 #include "backend/settings/analze_settings_parser.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
@@ -59,8 +60,7 @@ DialogChannelMeasurement::DialogChannelMeasurement(settings::json::ReportingSett
 
   int row               = 1;
   auto createCheckBoxes = [this, &reportingSettings, &gridLayout, &groupBox,
-                           &row](joda::pipeline::reporting::ColumnIndexDetailedReport type,
-                                 const std::string &description) {
+                           &row](joda::pipeline::reporting::MeasurementChannels type, const std::string &description) {
     gridLayout->addWidget(new QLabel(description.data()), row, 0);
 
     QCheckBox *onOffDetail = new QCheckBox(groupBox);
@@ -96,24 +96,24 @@ DialogChannelMeasurement::DialogChannelMeasurement(settings::json::ReportingSett
     row++;
   };
 
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::CONFIDENCE, "Confidence");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::AREA_SIZE, "Area size");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::PERIMETER, "Perimeter");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::CIRCULARITY, "Circularity");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::VALIDITY, "Validity");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INVALIDITY, "Invalidity");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::CENTER_OF_MASS_X, "Center of mass X");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::CENTER_OF_MASS_Y, "Center of mass Y");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG, "Intensity AVG");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MIN, "Intensity MIN");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MAX, "Intensity MAX");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_AVG_CROSS_CHANNEL,
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::CONFIDENCE, "Confidence");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::AREA_SIZE, "Area size");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::PERIMETER, "Perimeter");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::CIRCULARITY, "Circularity");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::VALIDITY, "Validity");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INVALIDITY, "Invalidity");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::CENTER_OF_MASS_X, "Center of mass X");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::CENTER_OF_MASS_Y, "Center of mass Y");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG, "Intensity AVG");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN, "Intensity MIN");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX, "Intensity MAX");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG_CROSS_CHANNEL,
                    "Cross ch. intensity avg");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MIN_CROSS_CHANNEL,
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN_CROSS_CHANNEL,
                    "Cross ch. intensity min");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTENSITY_MAX_CROSS_CHANNEL,
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX_CROSS_CHANNEL,
                    "Cross ch. intensity max");
-  createCheckBoxes(joda::pipeline::reporting::ColumnIndexDetailedReport::INTERSECTION_CROSS_CHANNEL, "Cross ch. count");
+  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL, "Cross ch. count");
 
   mainLayout->addWidget(groupBox);
 }
