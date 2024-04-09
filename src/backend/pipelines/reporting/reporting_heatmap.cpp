@@ -400,16 +400,19 @@ void Heatmap::createAllOverHeatMap(const joda::settings::json::AnalyzeSettings &
              measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN_CROSS_CHANNEL ||
              measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX_CROSS_CHANNEL) {
             for(int intensIdx : analyzeSettings.getNumberOfCrossChannelIntensityMeasurementForChannel(channelIdx)) {
-              writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
+              writePlateFrame(measurementChannelsToString(
+                  getMaskedMeasurementChannel((MeasurementChannels) measureChannelKey, intensIdx), analyzeSettings));
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
           } else if(measureChannel == joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL) {
             for(int countIdx : analyzeSettings.getNumberOfCrossChannelCountMeasurementForChannel(channelIdx)) {
-              writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
+              writePlateFrame(measurementChannelsToString(
+                  getMaskedMeasurementChannel((MeasurementChannels) measureChannelKey, countIdx), analyzeSettings));
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
           } else {
-            writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
+            writePlateFrame(measurementChannelsToString(
+                getMaskedMeasurementChannel((MeasurementChannels) measureChannelKey, channelIdx), analyzeSettings));
             rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
           }
         }
@@ -436,19 +439,25 @@ void Heatmap::createAllOverHeatMap(const joda::settings::json::AnalyzeSettings &
                measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN_CROSS_CHANNEL ||
                measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX_CROSS_CHANNEL) {
               for(int intensIdx : analyzeSettings.getNumberOfCrossChannelIntensityMeasurementForChannel(channelIdx)) {
-                writeNumber(
-                    values.getStatistics().at(values.getColIndexFromKey(measureChannelKey | intensIdx)).getAvg());
+                writeNumber(values.getStatistics()
+                                .at(values.getColIndexFromKey(
+                                    getMaskedMeasurementChannel((MeasurementChannels) measureChannelKey, intensIdx)))
+                                .getAvg());
                 rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
               }
             } else if(measureChannel == joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL) {
               for(int countIdx : analyzeSettings.getNumberOfCrossChannelCountMeasurementForChannel(channelIdx)) {
-                writeNumber(
-                    values.getStatistics().at(values.getColIndexFromKey(measureChannelKey | countIdx)).getAvg());
+                writeNumber(values.getStatistics()
+                                .at(values.getColIndexFromKey(
+                                    getMaskedMeasurementChannel((MeasurementChannels) measureChannelKey, countIdx)))
+                                .getAvg());
                 rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
               }
             } else {
-              writeNumber(
-                  values.getStatistics().at(values.getColIndexFromKey(measureChannelKey | channelIdx)).getAvg());
+              writeNumber(values.getStatistics()
+                              .at(values.getColIndexFromKey(
+                                  getMaskedMeasurementChannel((MeasurementChannels) measureChannelKey, channelIdx)))
+                              .getAvg());
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
           }
