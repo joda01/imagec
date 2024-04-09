@@ -27,7 +27,8 @@ namespace joda::pipeline::reporting {
 class DetailReport
 {
 public:
-  static std::tuple<int, int> writeReport(const joda::results::Table &results, int colOffset, int /*rowOffset*/,
+  static std::tuple<int, int> writeReport(const joda::settings::json::ReportingSettings &reportingSettings,
+                                          const joda::results::Table &results, int colOffset, int /*rowOffset*/,
                                           lxw_worksheet *worksheet, lxw_format *header, lxw_format *merge_format,
                                           lxw_format *numberFormat);
 };

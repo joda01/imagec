@@ -105,7 +105,8 @@ void ReportingContainer::flushReportToFile(const joda::settings::json::AnalyzeSe
       }
       if(OutputFormat::VERTICAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::DetailReport::writeReport(
-            table, colOffsetIn, rowOffsetIn, worksheet, header, merge_format, numberFormat);
+            analyzeSettings.getReportingSettingsForChannel(channelIndex), table, colOffsetIn, rowOffsetIn, worksheet,
+            header, merge_format, numberFormat);
         colOffsetIn += colOffset + 1;
         rowOffsetIn += rowOffset;
       }
