@@ -11,7 +11,7 @@ cd build/build
 
 ni "dlls" -ItemType Directory
 ni "dlls\platforms" -ItemType Directory
-ni "dlls\plugins\imageformats" -ItemType Directory
+ni "dlls\imageformats" -ItemType Directory
 ni "dlls\templates" -ItemType Directory
 
 #$jvmdll = "$env:JAVA_HOME"
@@ -26,7 +26,7 @@ cd build/build
 
 $destinationDirectory = ".\dlls"
 $destinationDirectoryPlatforms = ".\dlls\platforms"
-$destinationDirectoryPlugins = ".\dlls\plugins\imageformats"
+$destinationDirectoryPlugins = ".\dlls\imageformats"
 $destinationDirectoryTemplates = ".\dlls\templates"
 
 Copy-Item -Path "$mingwBasePathWin\bin\*.dll" -Destination "$destinationDirectory" -Force
