@@ -93,6 +93,26 @@ public:
       return measurement;
     }
 
+    [[nodiscard]] auto getCreateHeatmapForGroup() const -> bool
+    {
+      return generate_heatmap_for_plate;
+    }
+
+    [[nodiscard]] auto getCreateHeatmapForImage() const -> bool
+    {
+      return generate_heatmap_for_image;
+    }
+
+    [[nodiscard]] auto getCreateHeatmapForWells() const -> bool
+    {
+      return generate_heatmap_for_well;
+    }
+
+    [[nodiscard]] auto getImageHeatmapAreaWidth() const -> std::set<int32_t>
+    {
+      return image_heatmap_area_width;
+    }
+
   private:
     std::set<uint32_t> measurement{
         (uint32_t) joda::pipeline::reporting::MeasurementChannels::VALIDITY,
@@ -100,9 +120,30 @@ public:
         (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG_CROSS_CHANNEL,
         (uint32_t) joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL,
     };
-    ;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Heatmap, measurement);
+    //
+    // Generate a heatmap for grouped images
+    //
+    bool generate_heatmap_for_plate = false;
+
+    //
+    // Generate a heatmap for a well
+    //
+    bool generate_heatmap_for_well = false;
+
+    //
+    // Generate a heatmap for each image
+    //
+    bool generate_heatmap_for_image = false;
+
+    //
+    // With of the square used for heatmap creation in image
+    //
+    std::set<int32_t> image_heatmap_area_width;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Heatmap, measurement, generate_heatmap_for_image,
+                                                generate_heatmap_for_plate, generate_heatmap_for_well,
+                                                image_heatmap_area_width);
   };
 
   auto getDetailReportSettings() const -> const DetailReport &
