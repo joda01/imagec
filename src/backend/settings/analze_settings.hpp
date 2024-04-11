@@ -35,6 +35,10 @@ using json = nlohmann::json;
 class AnalyzeSettings final
 {
 public:
+  AnalyzeSettings()                                   = default;
+  AnalyzeSettings(const AnalyzeSettings &)            = delete;
+  AnalyzeSettings &operator=(const AnalyzeSettings &) = delete;
+
   ExperimentSettings options;
   std::vector<ChannelSettings> channels;
   VChannelSettings vChannels;

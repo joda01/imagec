@@ -178,7 +178,7 @@ private:
   std::string mInputFolder;
   std::string mOutputFolder;
   bool mStop = false;
-  joda::settings::json::AnalyzeSettings mAnalyzeSettings;
+  joda::settings::AnalyzeSettings mAnalyzeSettings;
   joda::helper::ImageFileContainer *mImageFileContainer;
 
   ProgressIndicator mProgress;

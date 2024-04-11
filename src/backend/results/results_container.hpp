@@ -8,10 +8,6 @@
 #include <string>
 #include "results.h"
 
-namespace joda::settings::json {
-class AnalyzeSettings;
-}
-
 struct JobMeta
 {
   const std::string jobName;
