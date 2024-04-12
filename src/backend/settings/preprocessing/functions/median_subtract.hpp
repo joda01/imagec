@@ -6,13 +6,12 @@
 
 namespace joda::settings {
 
-class Smoothing
+class MedianSubtraction
 {
 public:
-  int32_t repeat     = 0;
-  int32_t kernelSize = 3;
+  int32_t kernelSize = 0;
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Smoothing, repeat, kernelSize);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(MedianSubtraction, kernelSize);
 };
 }    // namespace joda::settings

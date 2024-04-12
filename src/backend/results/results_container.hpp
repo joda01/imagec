@@ -6,6 +6,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include "backend/settings/analze_settings.hpp"
 #include "results.h"
 
 struct JobMeta
@@ -52,7 +53,7 @@ public:
     return mColumns.contains(key);
   }
 
-  static void flushReportToFile(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+  static void flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
                                 const std::map<std::string, ReportingContainer> &containers,
                                 const std::string &fileName, const JobMeta &meta, OutputFormat format,
                                 bool writeRunMeta);

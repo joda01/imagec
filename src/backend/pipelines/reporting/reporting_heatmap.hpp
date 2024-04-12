@@ -15,7 +15,7 @@
 
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/results/results_container.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
+#include "backend/settings/analze_settings.hpp"
 
 namespace joda::pipeline::reporting {
 
@@ -28,10 +28,10 @@ class Heatmap
 {
 public:
   /////////////////////////////////////////////////////
-  static void createHeatMapForImage(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+  static void createHeatMapForImage(const joda::settings::AnalyzeSettings &analyzeSettings,
                                     const joda::results::ReportingContainer &containers, int64_t imageWidth,
                                     int64_t imageHeight, const std::string &fileName);
-  static void createAllOverHeatMap(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+  static void createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyzeSettings,
                                    std::map<std::string, joda::results::ReportingContainer> &allOverReport,
                                    const std::string &outputFolder, const std::string &fileName,
                                    const std::string &jobName,
@@ -52,7 +52,7 @@ private:
   static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,
                                lxw_format *numberFormat);
 
-  static void createHeatmapOfWellsForGroup(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+  static void createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings &analyzeSettings,
                                            const std::string &outputFolder, const std::string &groupName,
                                            const std::string &jobName, const std::map<int32_t, HeatMapPoint> &wellOrder,
                                            int32_t sizeX, int32_t sizeY,

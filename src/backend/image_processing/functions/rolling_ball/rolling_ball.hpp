@@ -18,6 +18,7 @@
 #include <cmath>
 #include <vector>
 #include "../../functions/function.hpp"
+#include "backend/settings/preprocessing/functions/rolling_ball.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
@@ -41,8 +42,9 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  explicit RollingBallBackground(Configuration slidingParaboloid, float ballSize = 50.0F) :
-      mUseSlidingParaboloid(slidingParaboloid == Configuration::PARABOLOID), radius(ballSize)
+  explicit RollingBallBackground(const joda::settings::RollingBall &settings) :
+      mUseSlidingParaboloid(settings.ballType == joda::settings::RollingBall::BallType::PARABOLOID),
+      radius(settings.ballSize)
   {
   }
 

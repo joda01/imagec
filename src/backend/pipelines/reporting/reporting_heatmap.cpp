@@ -33,7 +33,7 @@
 
 namespace joda::pipeline::reporting {
 
-void Heatmap::createHeatMapForImage(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analyzeSettings,
                                     const joda::results::ReportingContainer &containers, int64_t imageWidth,
                                     int64_t imageHeight, const std::string &fileName)
 {
@@ -203,7 +203,7 @@ void Heatmap::createHeatMapForImage(const joda::settings::json::AnalyzeSettings 
 /// \brief      Create heatmap for all over reporting
 /// \author     Joachim Danmayr
 ///
-void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings &analyzeSettings,
                                            const std::string &outputFolder, const std::string &groupName,
                                            const std::string &jobName, const std::map<int32_t, HeatMapPoint> &wellOrder,
                                            int32_t sizeX, int32_t sizeY,
@@ -318,7 +318,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::json::AnalyzeSe
 /// \brief      Create heatmap for all over reporting
 /// \author     Joachim Danmayr
 ///
-void Heatmap::createAllOverHeatMap(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyzeSettings,
                                    std::map<std::string, joda::results::ReportingContainer> &allOverReport,
                                    const std::string &outputFolder, const std::string &fileName,
                                    const std::string &jobName,

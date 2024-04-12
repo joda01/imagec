@@ -24,10 +24,10 @@
 #include "../image_processing/detection/detection_response.hpp"
 #include "../logger/console_logger.hpp"
 #include "../results/results.h"
-#include "../settings/analze_settings_parser.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/results/results_container.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "reporting/reporting_details.xlsx.hpp"
 #include "reporting/reporting_heatmap.hpp"
 #include "reporting/reporting_overview_xlsx.hpp"
@@ -81,7 +81,7 @@ public:
     ERROR_   = 5
   };
 
-  Pipeline(const settings::json::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
+  Pipeline(const jods::settings::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
            const std::string &inputFolder, const std::string &jobName,
            const ThreadingSettings &threadingSettings = ThreadingSettings());
   ~Pipeline()

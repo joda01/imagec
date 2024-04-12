@@ -15,7 +15,7 @@
 #include <mutex>
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/pipelines/pipeline_detection/pipeline_detection.hpp"
-#include "backend/settings/channel_settings.hpp"
+#include "backend/settings/channel/channel_settings.hpp"
 
 namespace joda::pipeline::detection {
 
@@ -29,8 +29,8 @@ class ObjectSegmentation : public Detection
 public:
   /////////////////////////////////////////////////////
   using Detection::Detection;
-  auto execute(const cv::Mat &img, const cv::Mat &imgOriginal,
-               const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse override;
+  auto execute(const cv::Mat &img, const cv::Mat &imgOriginal, const joda::settings::ChannelSettings &channelSetting)
+      -> func::DetectionResponse override;
 };
 
 }    // namespace joda::pipeline::detection

@@ -36,12 +36,12 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
 }
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex,
-         const joda::settings::json::ChannelFiltering *filter) :
+         const joda::settings::ChannelSettingsFilter *filter) :
     index(index),
     confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask), mMaskContours(contour)
 {
   if(filter != nullptr) {
-    calculateSnapAreaAndContours(filter->getSnapAreaSize(), imageOriginal.cols, imageOriginal.rows);
+    calculateSnapAreaAndContours(filter->snapAreaSize, imageOriginal.cols, imageOriginal.rows);
   } else {
     calculateSnapAreaAndContours(0, imageOriginal.cols, imageOriginal.rows);
   }
@@ -133,7 +133,7 @@ void ROI::calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int
 /// \author     Joachim Danmayr
 ///
 void ROI::calculateMetrics(const std::map<int32_t, const cv::Mat *> &imageOriginal,
-                           const joda::settings::json::ChannelFiltering *filter)
+                           const joda::settings::ChannelSettingsFilter *filter)
 {
   if(!imageOriginal.empty() && !mBoundingBox.empty() && !mMask.empty()) {
     areaSize = cv::countNonZero(mMask);
@@ -286,17 +286,17 @@ double ROI::calcPerimeter(const std::vector<cv::Point> &points) const
 ///            based on the detection results
 /// \author    Joachim Danmayr
 ///
-void ROI::applyParticleFilter(const joda::settings::json::ChannelFiltering *filter)
+void ROI::applyParticleFilter(const joda::settings::ChannelSettingsFilter *filter)
 {
   validity = ParticleValidity::UNKNOWN;
-  if(areaSize > filter->getMaxParticleSize()) {
+  if(areaSize > filter->maxParticleSize) {
     validity = static_cast<ParticleValidity>(static_cast<int>(validity) | static_cast<int>(ParticleValidity::TOO_BIG));
   }
-  if(areaSize < filter->getMinParticleSize()) {
+  if(areaSize < filter->minParticleSize) {
     validity =
         static_cast<ParticleValidity>(static_cast<int>(validity) | static_cast<int>(ParticleValidity::TOO_SMALL));
   }
-  if(circularity < filter->getMinCircularity()) {
+  if(circularity < filter->minCircularity) {
     validity = static_cast<ParticleValidity>(static_cast<int>(validity) |
                                              static_cast<int>(ParticleValidity::TOO_LESS_CIRCULARITY));
   }

@@ -15,7 +15,7 @@
 
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
-#include "backend/settings/channel_settings.hpp"
+#include "backend/settings/channel/channel_settings.hpp"
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
 
@@ -35,7 +35,7 @@ public:
   }
 
   virtual auto execute(const cv::Mat &img, const cv::Mat &imgOriginal,
-                       const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse = 0;
+                       const joda::settings::ChannelSettings &channelSetting) -> func::DetectionResponse = 0;
 
   [[nodiscard]] auto getAvailableModels() const -> const std::map<std::string, joda::onnx::OnnxParser::Data> &
   {

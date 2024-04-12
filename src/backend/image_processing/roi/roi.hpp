@@ -15,7 +15,7 @@
 
 #include <string>
 #include <vector>
-#include "../../settings/channel_settings.hpp"
+#include "backend/settings/channel/channel_settings_filter.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/dnn.hpp>
@@ -67,13 +67,13 @@ public:
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
       const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex,
-      const joda::settings::json::ChannelFiltering *filter);
+      const joda::settings::ChannelSettingsFilter *filter);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
       const std::vector<cv::Point> &contour, const std::map<int32_t, const cv::Mat *> &imageOriginal);
 
   void calculateMetrics(const std::map<int32_t, const cv::Mat *> &imageOriginal,
-                        const joda::settings::json::ChannelFiltering *filter);
+                        const joda::settings::ChannelSettingsFilter *filter);
 
   [[nodiscard]] auto getIndex() const
   {
@@ -191,7 +191,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   void calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int32_t maxHeight);
-  void applyParticleFilter(const joda::settings::json::ChannelFiltering *filter);
+  void applyParticleFilter(const joda::settings::ChannelSettingsFilter *filter);
   [[nodiscard]] double calcPerimeter(const std::vector<cv::Point> &) const;
   [[nodiscard]] double getSmoothedLineLength(const std::vector<cv::Point> &) const;
   [[nodiscard]] double getLength(const std::vector<cv::Point> &points, bool closeShape) const;

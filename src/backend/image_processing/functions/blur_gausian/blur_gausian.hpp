@@ -14,6 +14,7 @@
 #pragma once
 
 #include "../../functions/function.hpp"
+#include "backend/settings/preprocessing/functions/gaussian_blur.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -24,7 +25,7 @@ namespace joda::func::img {
 /// \author     Joachim Danmayr
 /// \brief      Gaussian Blur (2D convolution)
 ///
-class BlurGausian : public Function
+class GaussianBlur : public Function
 {
 public:
   enum Type
@@ -35,20 +36,19 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  explicit BlurGausian(int filterKernelSize, int repeat) : mFilterKernelSize(filterKernelSize), mRepeat(repeat)
+  explicit GaussianBlur(const joda::settings::GaussianBlur &settings) : mSettings(settings)
   {
   }
   void execute(cv::Mat &image) const override
   {
-    for(int n = 0; n < mRepeat; n++) {
-      cv::GaussianBlur(image, image, cv::Size(mFilterKernelSize, mFilterKernelSize), 0);
+    for(int n = 0; n < mSettings.repeat; n++) {
+      cv::GaussianBlur(image, image, cv::Size(mSettings.kernelSize, mSettings.kernelSize), 0);
     }
   }
 
 private:
   /////////////////////////////////////////////////////
-  int mFilterKernelSize;
-  int mRepeat;
+  const joda::settings::GaussianBlur &mSettings;
 };
 
 }    // namespace joda::func::img

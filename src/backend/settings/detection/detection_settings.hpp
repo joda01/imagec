@@ -9,6 +9,7 @@ namespace joda::settings {
 
 class DetectionSettings
 {
+public:
   enum class DetectionMode
   {
     NONE,
