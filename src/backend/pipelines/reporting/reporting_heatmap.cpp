@@ -400,19 +400,16 @@ void Heatmap::createAllOverHeatMap(const joda::settings::json::AnalyzeSettings &
              measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN_CROSS_CHANNEL ||
              measureChannel == joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX_CROSS_CHANNEL) {
             for(int intensIdx : analyzeSettings.getNumberOfCrossChannelIntensityMeasurementForChannel(channelIdx)) {
-              writePlateFrame(measurementChannelsToString(
-                  getMaskedMeasurementChannel((MeasurementChannels) measureChannelKey, intensIdx), analyzeSettings));
+              writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
           } else if(measureChannel == joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL) {
             for(int countIdx : analyzeSettings.getNumberOfCrossChannelCountMeasurementForChannel(channelIdx)) {
-              writePlateFrame(measurementChannelsToString(
-                  getMaskedMeasurementChannel((MeasurementChannels) measureChannelKey, countIdx), analyzeSettings));
+              writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
           } else {
-            writePlateFrame(measurementChannelsToString(
-                getMaskedMeasurementChannel((MeasurementChannels) measureChannelKey, channelIdx), analyzeSettings));
+            writePlateFrame(measurementChannelsToString(measureChannelKey, analyzeSettings));
             rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
           }
         }
