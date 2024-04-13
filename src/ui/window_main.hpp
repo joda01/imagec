@@ -21,6 +21,7 @@
 #include <set>
 #include "backend/helper/template_parser/template_parser.hpp"
 #include "backend/settings/analze_settings.hpp"
+#include "backend/settings/vchannel/vchannel_intersection.hpp"
 #include "container/container_base.hpp"
 #include "controller/controller.hpp"
 #include "ui/helper/clickablelabel.hpp"
@@ -99,6 +100,7 @@ private:
   void setWorkingDirectory(const std::string &workingDir);
   ContainerBase *addChannel(joda::settings::ChannelSettings);
   ContainerBase *addVChannelVoronoi(joda::settings::VChannelVoronoi);
+  ContainerBase *addVChannelIntersection(joda::settings::VChannelIntersection);
   ContainerBase *addChannelFromTemplate(const QString &pathToTemplate);
 
   QStackedWidget *mStackedWidget;
@@ -155,6 +157,7 @@ private slots:
   void onStartClicked();
   void onAddChannelClicked();
   void onAddCellApproxClicked();
+  void onAddIntersectionClicked();
   void onBackClicked();
   void onRemoveChannelClicked();
   void onShowInfoDialog();

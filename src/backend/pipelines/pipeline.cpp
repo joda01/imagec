@@ -290,40 +290,28 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
   //
   // Execute intersection calculation
   //
-  auto idColoc = DurationCount::start("pipelinesteps");
-
-  /* std::map<std::string, std::set<int32_t>> colocGroups;    // Groupname, Channels in the group
-  std::map<std::string, float> minColocFactor;
-  for(const auto &channel : mAnalyzeSettings.channels) {
-    for(const auto &colocGroup : channel.getCrossChannelSettings().getColocGroups()) {
-      colocGroups[colocGroup].emplace(channel.getChannelInfo().getChannelIndex());
-      if(!minColocFactor.contains(colocGroup)) {
-        minColocFactor[colocGroup] = channel.getCrossChannelSettings().getMinColocArea();
-      } else {
-        minColocFactor[colocGroup] =
-            std::max(minColocFactor[colocGroup], channel.getCrossChannelSettings().getMinColocArea());
-      }
-    }
-  }
+  auto idColoc = DurationCount::start("intersection");
 
   int colocIx = 0;
-  for(const auto &[groupName, set] : colocGroups) {
-    joda::pipeline::CalcIntersection intersect(set, minColocFactor[groupName]);
-    auto response = intersect.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
-    int idx       = settings::json::PipelineStepSettings::INTERSECTION_INDEX_OFFSET + colocIx;
-    detectionResults.emplace(static_cast<int32_t>(idx), response);
-    joda::pipeline::reporting::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, "Intersection", idx,
-                                                             tempChannelIdx, set);
-    joda::pipeline::reporting::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(idx), detailReports,
-                                                            detailOutputFolder, mJobName, idx, tempChannelIdx, tileIdx,
-                                                            imgProps);
-    tempChannelIdx++;
-    colocIx++;
+  for(const auto &pipelineStep : mAnalyzeSettings.vChannels) {
+    if(pipelineStep.$intersection.has_value()) {
+      const auto &intersect = pipelineStep.$intersection.value();
+
+      joda::pipeline::CalcIntersection intersectAlgo(intersect.intersection.intersectingChannels,
+                                                     intersect.intersection.minIntersection);
+      auto response = intersectAlgo.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
+      detectionResults.emplace(intersect.meta.channelIdx, response);
+      joda::pipeline::reporting::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, intersect.meta.name,
+                                                               intersect.meta.channelIdx);
+      joda::pipeline::reporting::Helper::appendToDetailReport(
+          mAnalyzeSettings, detectionResults.at(intersect.meta.channelIdx), detailReports, detailOutputFolder, mJobName,
+          intersect.meta.channelIdx, tileIdx, imgProps);
+    }
     if(mStop) {
       break;
     }
   }
-  */
+
   DurationCount::stop(idColoc);
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -332,7 +320,6 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
   //
   if(!mStop && mState != State::ERROR_) {
     auto idVoronoi = DurationCount::start("pipelinesteps");
-
     for(const auto &pipelineStep : mAnalyzeSettings.vChannels) {
       if(pipelineStep.$voronoi.has_value()) {
         const auto &voronoi = pipelineStep.$voronoi.value();

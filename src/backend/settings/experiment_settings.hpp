@@ -61,7 +61,7 @@ public:
   //
   // With of the square used for heatmap creation in image
   //
-  std::set<int32_t> imageHeatmapAreaSizes;
+  std::set<int32_t> imageHeatmapAreaSizes{100, 200};
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, groupBy, filenameRegex, wellImageOrder,
                                               generateHeatmapForPlate, generateHeatmapForWell, imageHeatmapAreaSizes,

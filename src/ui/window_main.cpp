@@ -41,6 +41,7 @@
 #include "backend/settings/vchannel/vchannel_settings.hpp"
 #include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
 #include "container/channel/container_channel.hpp"
+#include "container/intersection/container_intersection.hpp"
 #include "container/voronoi/container_voronoi.hpp"
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_experiment_settings.hpp"
@@ -499,6 +500,34 @@ QWidget *WindowMain::createAddChannelPanel()
   layout->addWidget(addVoronoiButton);
 
   //
+  // Add intersection voronoi
+  //
+  QPushButton *addIntersection = new QPushButton();
+  addIntersection->setStyleSheet(
+      "QPushButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgb(111, 121, 123);"
+      "   color: rgb(0, 104, 117);"
+      "   padding: 10px 20px;"
+      "   border-radius: 4px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}");
+  addIntersection->setText("Add intersection channel");
+  connect(addIntersection, &QPushButton::pressed, this, &WindowMain::onAddIntersectionClicked);
+  layout->addWidget(addIntersection);
+
+  //
   // Open settings
   //
   QPushButton *openSettingsButton = new QPushButton();
@@ -620,6 +649,10 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
       if(channel.$voronoi.has_value()) {
         addVChannelVoronoi(channel.$voronoi.value());
       }
+
+      if(channel.$intersection.has_value()) {
+        addVChannelIntersection(channel.$intersection.value());
+      }
     }
 
     mAnalyzeSettings.experimentSettings = analyzeSettings.experimentSettings;
@@ -726,45 +759,6 @@ void WindowMain::removeAllChannels()
 }
 
 ///
-/// \brief      Generate JSON document
-/// \author     Joachim Danmayr
-///
-/*
-void WindowMain::fromSettings(const settings::AnalyzeSettings &settings)
-{
-  // Remove all channels
-  std::set<ContainerBase *> channelsToDelete = mChannels;
-  for(auto *const channel : channelsToDelete) {
-    removeChannel(channel);
-  }
-  channelsToDelete.clear();
-
-  int series = 0;
-  // Load channels
-  for(const auto &[_, channel] : settings.getChannelsOrderedByChannelIndex()) {
-    series             = channel.getChannelInfo().getChannelSeries();
-    auto *channelAdded = addChannel(AddChannel::CHANNEL);
-    if(nullptr != channelAdded) {
-      channelAdded->fromJson(channel, std::nullopt);
-    }
-  }
-
-  // Load functions
-  for(const auto &pipelineStep : settings.getPipelineSteps()) {
-    if(pipelineStep.getVoronoi() != nullptr) {
-      auto *channelAdded = addChannel(AddChannel::VORONOI);
-      if(nullptr != channelAdded) {
-        channelAdded->fromJson(std::nullopt, *pipelineStep.getVoronoi());
-      }
-    }
-  }
-
-  mImageSeriesCombo->setCurrentIndex(series);
-  mReportingSettings.fromJson(settings.getReportingSettings());
-}
-*/
-
-///
 /// \brief
 /// \author     Joachim Danmayr
 ///
@@ -836,12 +830,61 @@ void WindowMain::onFindTemplatesFinished(
 ///
 void WindowMain::onStartClicked()
 {
-  DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
-  dialg.exec();
+  try {
+    joda::settings::Settings::checkSettings(mAnalyzeSettings);
 
-  // Analysis finished -> generate new name
-  mJobName->setText("");
-  mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
+    DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
+    dialg.exec();
+
+    // Analysis finished -> generate new name
+    mJobName->setText("");
+    mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
+  } catch(const std::exception &ex) {
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-error-50.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+    // messageBox.setAttribute(Qt::WA_TranslucentBackground);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Error in settings!");
+    messageBox.setText(ex.what());
+    messageBox.addButton(tr("Okay"), QMessageBox::YesRole);
+    // Rounded borders -->
+    const int radius = 12;
+    messageBox.setStyleSheet(QString("QDialog { "
+                                     "border-radius: %1px; "
+                                     "border: 2px solid palette(shadow); "
+                                     "background-color: palette(base); "
+                                     "}")
+                                 .arg(radius));
+
+    // The effect will not be actually visible outside the rounded window,
+    // but it does help get rid of the pixelated rounded corners.
+    QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
+    // The color should match the border color set in CSS.
+    effect->setColor(QApplication::palette().color(QPalette::Shadow));
+    effect->setBlurRadius(8);
+    messageBox.setGraphicsEffect(effect);
+
+    // Need to show the box before we can get its proper dimensions.
+    messageBox.show();
+
+    // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
+    // The mask is sized based on the current window geometry. If the window were resizable (somehow)
+    // then the mask would need to be set in resizeEvent().
+    const QRect rect(QPoint(0, 0), messageBox.geometry().size());
+    QBitmap b(rect.size());
+    b.fill(QColor(Qt::color0));
+    QPainter painter(&b);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(Qt::color1);
+    // this radius should match the CSS radius
+    painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
+    painter.end();
+    messageBox.setMask(b);
+    // <--
+
+    messageBox.exec();
+  }
 }
 
 ///
@@ -1028,6 +1071,39 @@ ContainerBase *WindowMain::addVChannelVoronoi(joda::settings::VChannelVoronoi se
 /// \brief
 /// \author     Joachim Danmayr
 ///
+ContainerBase *WindowMain::addVChannelIntersection(joda::settings::VChannelIntersection settings)
+{
+  if(mAddChannelPanel != nullptr) {
+    {
+      int row = (mChannels.size() + 1) / 3;
+      int col = (mChannels.size() + 1) % 3;
+      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
+      mLayoutChannelOverview->removeWidget(mLastElement);
+      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
+    }
+
+    int row = mChannels.size() / 3;
+    int col = mChannels.size() % 3;
+    ContainerBase *panel1;
+
+    mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$intersection = settings});
+    joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
+    panel1                                       = new ContainerIntersection(this, newlyAdded.$intersection.value());
+    panel1->fromSettings();
+    panel1->toSettings();
+    mChannels.emplace(panel1, &newlyAdded);
+
+    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+    return panel1;
+  }
+  return nullptr;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
 void WindowMain::onAddChannelClicked()
 {
   if(mTemplateSelection->currentIndex() > 0) {
@@ -1044,6 +1120,15 @@ void WindowMain::onAddChannelClicked()
 void WindowMain::onAddCellApproxClicked()
 {
   addVChannelVoronoi({});
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onAddIntersectionClicked()
+{
+  addVChannelIntersection({});
 }
 
 void WindowMain::removeChannel(ContainerBase *toRemove)
