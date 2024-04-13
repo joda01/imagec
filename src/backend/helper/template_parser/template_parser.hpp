@@ -20,7 +20,7 @@
 #include <map>
 #include <regex>
 #include <string>
-#include "backend/settings/channel_settings.hpp"
+#include "backend/settings/channel/channel_settings.hpp"
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/gapi/infer/onnx.hpp>
@@ -47,12 +47,10 @@ public:
     if(fs::exists(directory) && fs::is_directory(directory)) {
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
         if(entry.is_regular_file() && entry.path().extension().string() == ".json") {
-          settings::json::ChannelSettings settings;
-          settings.loadConfigFromFile(entry.path().string());
-
-          templates.emplace(
-              settings.getChannelInfo().getName(),
-              Data{.title = settings.getChannelInfo().getName(), .description = "", .path = entry.path().string()});
+          std::ifstream ifs(entry.path().string());
+          settings::ChannelSettings settings = nlohmann::json::parse(ifs);
+          templates.emplace(settings.meta.name,
+                            Data{.title = settings.meta.name, .description = "", .path = entry.path().string()});
         }
       }
     }

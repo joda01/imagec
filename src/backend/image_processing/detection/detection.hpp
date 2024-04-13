@@ -16,6 +16,7 @@
 #include <exception>
 #include <string>
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
+#include "backend/settings/channel/channel_settings_filter.hpp"
 #include <opencv2/imgproc.hpp>
 #include "detection_response.hpp"
 
@@ -40,12 +41,12 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  DetectionFunction(const joda::settings::json::ChannelFiltering *filt) : mFilterSettings(filt)
+  DetectionFunction(const joda::settings::ChannelSettingsFilter &filt) : mFilterSettings(filt)
   {
   }
 
   /////////////////////////////////////////////////////
-  virtual auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, int32_t channelIndex)
+  virtual auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
       -> DetectionResponse = 0;
   static void paintBoundingBox(cv::Mat &img, const DetectionResults &result,
                                const joda::onnx::OnnxParser::Data &modelInfo, const std::string &fillColor,
@@ -55,7 +56,7 @@ public:
 
 protected:
   /////////////////////////////////////////////////////
-  auto getFilterSettings() const -> const joda::settings::json::ChannelFiltering *
+  auto getFilterSettings() const -> const joda::settings::ChannelSettingsFilter &
   {
     return mFilterSettings;
   }
@@ -74,7 +75,7 @@ protected:
   static inline int FONT_FACE    = cv::FONT_HERSHEY_SIMPLEX;
 
 private:
-  const joda::settings::json::ChannelFiltering *mFilterSettings = nullptr;
+  const joda::settings::ChannelSettingsFilter &mFilterSettings;
 
   ///
   /// \brief      Draw labels

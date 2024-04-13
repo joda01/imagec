@@ -18,9 +18,8 @@
 #include "backend/helper/file_info.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
-#include "backend/pipelines/processor/channel_processor.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
-#include "backend/settings/channel_settings.hpp"
+#include "backend/pipelines/processor/image_processor.hpp"
+#include "backend/settings/analze_settings.hpp"
 
 namespace joda::ctrl {
 
@@ -32,7 +31,7 @@ Controller::Controller()
 /// \brief      Start a new process
 /// \author     Joachim Danmayr
 ///
-void Controller::start(const settings::json::AnalyzeSettings &settings,
+void Controller::start(const settings::AnalyzeSettings &settings,
                        const pipeline::Pipeline::ThreadingSettings &threadSettings, const std::string &jobName)
 {
   try {
@@ -138,7 +137,7 @@ auto Controller::getListOfFoundImages() -> const std::vector<FileInfo> &
 /// \brief      Returns preview
 /// \author     Joachim Danmayr
 ///
-auto Controller::preview(const settings::json::ChannelSettings &settings, int imgIndex, int tileIndex) -> Preview
+auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex) -> Preview
 {
   // To also preview tetraspeck removal we must first process the reference spot
   // channels This is a little bit more complicated therefor not supported yet
@@ -147,7 +146,9 @@ auto Controller::preview(const settings::json::ChannelSettings &settings, int im
   auto imageFileName = mWorkingDirectory.getFileAt(imgIndex);
   auto onnxModels    = onnx::OnnxParser::findOnnxFiles();
   if(!imageFileName.getFilename().empty()) {
-    auto result = joda::algo::ChannelProcessor::processChannel(settings, imageFileName, tileIndex, onnxModels);
+    std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> referenceChannelResults;
+    auto result = joda::algo::ImageProcessor::executeAlgorithm(imageFileName, settings, tileIndex, onnxModels,
+                                                               &referenceChannelResults);
     std::vector<uchar> buffer;
     std::vector<int> compression_params;
     compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
@@ -204,20 +205,20 @@ auto Controller::getSystemResources() -> Resources
 /// \brief      Calc optimal number of threads
 /// \author     Joachim Danmayr
 ///
-auto Controller::calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex)
+auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, int imgIndex)
     -> pipeline::Pipeline::ThreadingSettings
 {
   pipeline::Pipeline::ThreadingSettings threads;
   int series = 0;
 
-  if(!settings.getChannelsVector().empty()) {
-    series = settings.getChannelsVector()[0].getChannelInfo().getChannelSeries();
+  if(!settings.channels.empty()) {
+    series = settings.channels.begin()->meta.series;
   }
 
   auto props        = getImageProperties(imgIndex, series);
   int64_t imgNr     = mWorkingDirectory.getNrOfFiles();
   int64_t tileNr    = 1;
-  int64_t channelNr = settings.getChannels().size();
+  int64_t channelNr = settings.channels.size();
 
   auto systemRecources = getSystemResources();
   if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {

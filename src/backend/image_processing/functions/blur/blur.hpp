@@ -14,6 +14,7 @@
 #pragma once
 
 #include "../../functions/function.hpp"
+#include "backend/settings/preprocessing/functions/blur.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -35,15 +36,18 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  explicit Blur(int repeat) : mRepeat(repeat)
+  explicit Blur(const joda::settings::Blur &settings) : mRepeat(settings.repeat), mKernelSize(settings.kernelSize)
   {
   }
   void execute(cv::Mat &image) const override
   {
-    int kernel[3];    //= {-1, -1, -1, -1, 12, -1, -1, -1, -1};
+    int kernel[3]{0};    //= {-1, -1, -1, -1, 12, -1, -1, -1, -1};
     for(int n = 0; n < mRepeat; n++) {
-      // cv::blur(image, image, cv::Size(3, 3));
-      filter3x3(image, BLUR_MORE, kernel, 3);
+      if(mKernelSize == 3) {
+        filter3x3(image, BLUR_MORE, kernel, 3);
+      } else {
+        cv::blur(image, image, cv::Size(mKernelSize, mKernelSize));
+      }
     }
   }
 
@@ -52,6 +56,7 @@ private:
   void filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize) const;
   /////////////////////////////////////////////////////
   int mRepeat;
+  int mKernelSize;
 };
 
 }    // namespace joda::func::img

@@ -19,6 +19,7 @@
 #include <string_view>
 #include "backend/image_processing/detection/ai_object_detection/ai_object_detection.h"
 #include "backend/image_processing/detection/object_segmentation/object_segmentation.hpp"
+#include "backend/settings/detection/detection_settings.hpp"
 
 namespace joda::pipeline::detection {
 
@@ -28,23 +29,20 @@ namespace joda::pipeline::detection {
 /// \param[in]  img     Image to analyze
 ///
 auto ObjectDetection::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
-                              const joda::settings::json::ChannelSettings &channelSetting) -> func::DetectionResponse
+                              const joda::settings::ChannelSettings &channelSetting) -> func::DetectionResponse
 {
-  if(channelSetting.getDetectionSettings().getDetectionMode() ==
-     settings::json::ChannelDetection::DetectionMode::THRESHOLD) {
-    joda::func::threshold::ObjectSegmentation th(
-        channelSetting.getFilter(), channelSetting.getDetectionSettings().getThersholdSettings().getThresholdMin(),
-        channelSetting.getDetectionSettings().getThersholdSettings().getThreshold(),
-        channelSetting.getDetectionSettings().doWatershedSegmentation());
-    return th.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
+  if(channelSetting.detection.detectionMode == settings::DetectionSettings::DetectionMode::THRESHOLD) {
+    joda::func::threshold::ObjectSegmentation th(channelSetting.filter, channelSetting.detection.threshold.thresholdMin,
+                                                 channelSetting.detection.threshold.mode,
+                                                 channelSetting.detection.threshold.$watershedSegmentation);
+    return th.forward(img, imgOriginal, channelSetting.meta.channelIdx);
   } else {
-    auto modelData = getAvailableModels().find(channelSetting.getDetectionSettings().getAiSettings().getModelName());
+    auto modelData = getAvailableModels().find(channelSetting.detection.ai.modelPath);
     if(modelData != getAvailableModels().end()) {
-      joda::func::ai::ObjectDetector obj(&channelSetting.getFilter(), modelData->second);
-      return obj.forward(img, imgOriginal, channelSetting.getChannelInfo().getChannelIndex());
+      joda::func::ai::ObjectDetector obj(channelSetting.filter, modelData->second);
+      return obj.forward(img, imgOriginal, channelSetting.meta.channelIdx);
     } else {
-      throw std::runtime_error("Selected model >" +
-                               channelSetting.getDetectionSettings().getAiSettings().getModelName() +
+      throw std::runtime_error("Selected model >" + channelSetting.detection.ai.modelPath +
                                "< not found in model path!");
     }
   }

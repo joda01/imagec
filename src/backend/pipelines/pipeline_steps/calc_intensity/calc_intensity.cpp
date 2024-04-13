@@ -22,9 +22,10 @@ namespace joda::pipeline {
 /// \param[out]
 /// \return
 ///
-auto CalcIntensity::execute(const settings::json::AnalyzeSettings &,
-                            const std::map<int, joda::func::DetectionResponse> &detectionResultsIn,
-                            const std::string &detailoutputPath) const -> joda::func::DetectionResponse
+auto CalcIntensity::execute(
+    const settings::AnalyzeSettings &,
+    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResultsIn,
+    const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {
   if(detectionResultsIn.contains(mReferenceChannelIndex)) {
     auto &myResults = const_cast<joda::func::DetectionResponse &>(detectionResultsIn.at(mReferenceChannelIndex));

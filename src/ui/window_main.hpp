@@ -20,12 +20,12 @@
 #include <mutex>
 #include <set>
 #include "backend/helper/template_parser/template_parser.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
+#include "backend/settings/analze_settings.hpp"
+#include "backend/settings/vchannel/vchannel_intersection.hpp"
+#include "container/container_base.hpp"
 #include "controller/controller.hpp"
-#include "ui/dialog_settings.hpp"
 #include "ui/helper/clickablelabel.hpp"
 #include <nlohmann/json_fwd.hpp>
-#include "container_base.hpp"
 
 namespace joda::ui::qt {
 
@@ -47,6 +47,7 @@ public:
   }
   void showChannelEdit(ContainerBase *);
   void removeChannel(ContainerBase *toRemove);
+  void removeAllChannels();
   int getSelectedSeries() const
   {
     return mImageSeriesCombo->currentData().toInt();
@@ -85,19 +86,11 @@ public:
     return mJobName->text().toStdString();
   }
 
-  nlohmann::json toJson();
-  void fromJson(const settings::json::AnalyzeSettings &);
 signals:
   void lookingForFilesFinished();
   void lookingForTemplateFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
 
 private:
-  enum class AddChannel
-  {
-    CHANNEL,
-    VORONOI
-  };
-
   void createToolbar();
   QWidget *createStackedWidget();
   QWidget *createGirafWidget();
@@ -105,10 +98,10 @@ private:
   QWidget *createChannelWidget();
   void waitForFileSearchFinished();
   void setWorkingDirectory(const std::string &workingDir);
-  ContainerBase *addChannel(AddChannel);
+  ContainerBase *addChannel(joda::settings::ChannelSettings);
+  ContainerBase *addVChannelVoronoi(joda::settings::VChannelVoronoi);
+  ContainerBase *addVChannelIntersection(joda::settings::VChannelIntersection);
   ContainerBase *addChannelFromTemplate(const QString &pathToTemplate);
-
-  void syncColocSettings();
 
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;
@@ -123,14 +116,17 @@ private:
   ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
   bool mNewFolderSelected = false;
-  DialogSettings mReportingSettings;
+
+  ////Project settings/////////////////////////////////////////////////
+  joda::settings::AnalyzeSettings mAnalyzeSettings;
+  std::map<ContainerBase *, void *>
+      mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
 
   ////Toolbar/////////////////////////////////////////////////
   QLineEdit *mJobName;
 
   ////Made project settings/////////////////////////////////////////////////
   ContainerBase *mSelectedChannel = nullptr;
-  std::set<ContainerBase *> mChannels;
   QString mSelectedWorkingDirectory;
   std::mutex mLookingForFilesMutex;
   QWidget *mGirafWidget;
@@ -161,6 +157,7 @@ private slots:
   void onStartClicked();
   void onAddChannelClicked();
   void onAddCellApproxClicked();
+  void onAddIntersectionClicked();
   void onBackClicked();
   void onRemoveChannelClicked();
   void onShowInfoDialog();

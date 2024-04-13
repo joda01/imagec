@@ -14,6 +14,7 @@
 #pragma once
 
 #include "../../functions/function.hpp"
+#include "backend/settings/preprocessing/functions/edge_detection.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
@@ -28,31 +29,17 @@ namespace joda::func::img {
 class EdgeDetection : public Function
 {
 public:
-  enum Algorithm
-  {
-    NONE,
-    SOBEL,
-    CANNY
-  };
-
-  enum Direction
-  {
-    XY,
-    X,
-    Y
-  };
-
   /////////////////////////////////////////////////////
-  explicit EdgeDetection(Algorithm value, Direction dir) : mValue(value), mDirection(dir)
+  explicit EdgeDetection(const joda::settings::EdgeDetection &settings) : mSetting(settings)
   {
   }
   void execute(cv::Mat &image) const override
   {
-    switch(mValue) {
-      case Algorithm::CANNY:
+    switch(mSetting.mode) {
+      case joda::settings::EdgeDetection::Mode::CANNY:
         cv::Canny(image, image, 100, 200, 3, false);
         break;
-      case Algorithm::SOBEL:
+      case joda::settings::EdgeDetection::Mode::SOBEL:
         // cv::Sobel(image, image, CV_16UC1, 1, 1, K_SIZE);
         filter3x3(image);
         break;
@@ -68,8 +55,7 @@ private:
   void filter3x3(cv::Mat &image) const;
 
   /////////////////////////////////////////////////////
-  Algorithm mValue;
-  Direction mDirection;
+  const joda::settings::EdgeDetection &mSetting;
 };
 
 }    // namespace joda::func::img

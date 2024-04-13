@@ -31,7 +31,7 @@ using namespace cv::dnn;
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFiltering *filt,
+ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt,
                                        const joda::onnx::OnnxParser::Data &model, float classThreshold) :
     DetectionFunction(filt),
     mClassNames(model.classes), mClassThreshold(classThreshold), mNmsScoreThreshold(classThreshold * BOX_THRESHOLD)
@@ -67,8 +67,8 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFilter
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage, int32_t channelIndex)
-    -> DetectionResponse
+auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage,
+                                 joda::settings::ChannelIndex channelIndex) -> DetectionResponse
 {
   // Normalize the pixel values to [0, 255] float for detection
   auto id = DurationCount::start("Convert");

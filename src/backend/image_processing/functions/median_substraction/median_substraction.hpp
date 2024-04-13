@@ -16,6 +16,7 @@
 #include "../../functions/function.hpp"
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/functions/rank_filter/rank_filter.hpp"
+#include "backend/settings/preprocessing/functions/median_subtract.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -31,7 +32,7 @@ class MedianSubtraction : public Function
 {
 public:
   /////////////////////////////////////////////////////
-  explicit MedianSubtraction(int kernelSize) : mKernelSize(kernelSize)
+  explicit MedianSubtraction(const joda::settings::MedianSubtraction &settings) : mSettings(settings)
   {
   }
   virtual ~MedianSubtraction() = default;
@@ -41,14 +42,14 @@ public:
     auto idStart               = DurationCount::start("MedianSubtraction");
     auto medianBlurredImageOut = image.clone();
     joda::func::img::RankFilter rank;
-    rank.rank(medianBlurredImageOut, mKernelSize, joda::func::img::RankFilter::MEDIAN);
+    rank.rank(medianBlurredImageOut, mSettings.kernelSize, joda::func::img::RankFilter::MEDIAN);
     image = image - medianBlurredImageOut;
     DurationCount::stop(idStart);
   }
 
 private:
   /////////////////////////////////////////////////////
-  int mKernelSize;
+  const joda::settings::MedianSubtraction &mSettings;
 };
 
 }    // namespace joda::func::img

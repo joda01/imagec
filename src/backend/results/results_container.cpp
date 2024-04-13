@@ -16,7 +16,8 @@
 #include "backend/pipelines/reporting/reporting_details.xlsx.hpp"
 #include "backend/pipelines/reporting/reporting_job_information.hpp"
 #include "backend/pipelines/reporting/reporting_overview_xlsx.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
+#include "backend/settings/analze_settings.hpp"
+#include "backend/settings/settings.hpp"
 #include "xlsxwriter.h"
 
 namespace joda::results {
@@ -25,7 +26,7 @@ ReportingContainer::ReportingContainer()
 {
 }
 
-void ReportingContainer::flushReportToFile(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
                                            const std::map<std::string, ReportingContainer> &containers,
                                            const std::string &fileName, const JobMeta &meta, OutputFormat format,
                                            bool writeRunMeta)
@@ -98,15 +99,16 @@ void ReportingContainer::flushReportToFile(const joda::settings::json::AnalyzeSe
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
-            analyzeSettings.getReportingSettingsForChannel(channelIndex), table, folderName, meta.jobName, colOffsetIn,
-            rowOffsetIn, rowOffsetStart, worksheet, header, merge_format, numberFormat, imageHeaderHyperlinkFormat);
+            joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), table, folderName,
+            meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format, numberFormat,
+            imageHeaderHyperlinkFormat);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }
       if(OutputFormat::VERTICAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::DetailReport::writeReport(
-            analyzeSettings.getReportingSettingsForChannel(channelIndex), table, colOffsetIn, rowOffsetIn, worksheet,
-            header, merge_format, numberFormat);
+            joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), table, colOffsetIn,
+            rowOffsetIn, worksheet, header, merge_format, numberFormat);
         colOffsetIn += colOffset + 1;
         rowOffsetIn += rowOffset;
       }

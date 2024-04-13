@@ -35,12 +35,17 @@
 #include <string>
 #include <thread>
 #include "backend/helper/random_name_generator.hpp"
-#include "backend/settings/channel_settings.hpp"
-#include "backend/settings/pipeline_settings.hpp"
-#include "channel/container_channel.hpp"
+#include "backend/logger/console_logger.hpp"
+#include "backend/settings/analze_settings.hpp"
+#include "backend/settings/channel/channel_settings.hpp"
+#include "backend/settings/settings.hpp"
+#include "backend/settings/vchannel/vchannel_settings.hpp"
+#include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
+#include "container/channel/container_channel.hpp"
+#include "container/intersection/container_intersection.hpp"
+#include "container/voronoi/container_voronoi.hpp"
 #include "ui/dialog_analyze_running.hpp"
-#include "ui/dialog_settings.hpp"
-#include "voronoi/container_voronoi.hpp"
+#include "ui/dialog_experiment_settings.hpp"
 #include "build_info.h"
 #include "version.h"
 
@@ -48,7 +53,7 @@ namespace joda::ui::qt {
 
 using namespace std::chrono_literals;
 
-WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller), mReportingSettings(this)
+WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller)
 {
   setWindowTitle("imageC");
   createToolbar();
@@ -496,6 +501,34 @@ QWidget *WindowMain::createAddChannelPanel()
   layout->addWidget(addVoronoiButton);
 
   //
+  // Add intersection voronoi
+  //
+  QPushButton *addIntersection = new QPushButton();
+  addIntersection->setStyleSheet(
+      "QPushButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgb(111, 121, 123);"
+      "   color: rgb(0, 104, 117);"
+      "   padding: 10px 20px;"
+      "   border-radius: 4px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}");
+  addIntersection->setText("Add intersection channel");
+  connect(addIntersection, &QPushButton::pressed, this, &WindowMain::onAddIntersectionClicked);
+  layout->addWidget(addIntersection);
+
+  //
   // Open settings
   //
   QPushButton *openSettingsButton = new QPushButton();
@@ -605,20 +638,36 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
   }
 
   try {
-    settings::json::AnalyzeSettings settings;
-    settings.loadConfigFromFile(filePath.toStdString());
-    fromJson(settings);
-  } catch(const std::exception &ex) {
-    if(mSelectedChannel != nullptr) {
-      QMessageBox messageBox(this);
-      auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-      messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
-      messageBox.setIconPixmap(icon->pixmap(42, 42));
-      messageBox.setWindowTitle("Could not load settings!");
-      messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
-      messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-      auto reply = messageBox.exec();
+    std::ifstream ifs(filePath.toStdString());
+    joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(ifs);
+    removeAllChannels();
+
+    for(const auto &channel : analyzeSettings.channels) {
+      addChannel(channel);
     }
+
+    for(const auto &channel : analyzeSettings.vChannels) {
+      if(channel.$voronoi.has_value()) {
+        addVChannelVoronoi(channel.$voronoi.value());
+      }
+
+      if(channel.$intersection.has_value()) {
+        addVChannelIntersection(channel.$intersection.value());
+      }
+    }
+
+    mAnalyzeSettings.experimentSettings = analyzeSettings.experimentSettings;
+
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not load settings!");
+    messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
   }
 }
 
@@ -629,11 +678,9 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
 ContainerBase *WindowMain::addChannelFromTemplate(const QString &filePath)
 {
   try {
-    settings::json::ChannelSettings settings;
-    settings.loadConfigFromFile(filePath.toStdString());
-    auto *newChannel = addChannel(AddChannel::CHANNEL);
-
-    newChannel->fromJson(settings, std::nullopt);
+    std::ifstream ifs(filePath.toStdString());
+    settings::ChannelSettings settings = nlohmann::json::parse(ifs);
+    auto *newChannel                   = addChannel(settings);
     return newChannel;
   } catch(const std::exception &ex) {
     if(mSelectedChannel != nullptr) {
@@ -700,73 +747,15 @@ void WindowMain::waitForFileSearchFinished()
 }
 
 ///
-/// \brief      Generate JSON document
+/// \brief      Remove all channels
 /// \author     Joachim Danmayr
 ///
-nlohmann::json WindowMain::toJson()
+void WindowMain::removeAllChannels()
 {
-  nlohmann::json jsonSettings;
-
-  nlohmann::json channelsArray     = nlohmann::json::array();    // Initialize an empty JSON array
-  nlohmann::json pipelineStepArray = nlohmann::json::array();    // Initialize an empty JSON array
-
-  for(const auto &ch : mChannels) {
-    auto converter = ch->toJson();
-    if(converter.channelSettings.has_value()) {
-      channelsArray.push_back(converter.channelSettings.value());
-    }
-    if(converter.pipelineStepVoronoi.has_value()) {
-      pipelineStepArray.push_back(converter.pipelineStepVoronoi.value());
-    }
-  }
-
-  jsonSettings["input_folder"]                    = static_cast<std::string>(mSelectedWorkingDirectory.toStdString());
-  jsonSettings["channels"]                        = channelsArray;
-  jsonSettings["pipeline_steps"]                  = pipelineStepArray;
-  jsonSettings["options"]["pixel_in_micrometer"]  = 1;
-  jsonSettings["options"]["with_control_images"]  = true;
-  jsonSettings["options"]["with_detailed_report"] = true;
-
-  jsonSettings["reporting"] = mReportingSettings.toJson();
-
-  return jsonSettings;
-}
-
-///
-/// \brief      Generate JSON document
-/// \author     Joachim Danmayr
-///
-void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
-{
-  // Remove all channels
-  std::set<ContainerBase *> channelsToDelete = mChannels;
-  for(auto *const channel : channelsToDelete) {
+  std::map<ContainerBase *, void *> channelsToDelete = mChannels;
+  for(const auto &[channel, _] : channelsToDelete) {
     removeChannel(channel);
   }
-  channelsToDelete.clear();
-
-  int series = 0;
-  // Load channels
-  for(const auto &[_, channel] : settings.getChannelsOrderedByChannelIndex()) {
-    series             = channel.getChannelInfo().getChannelSeries();
-    auto *channelAdded = addChannel(AddChannel::CHANNEL);
-    if(nullptr != channelAdded) {
-      channelAdded->fromJson(channel, std::nullopt);
-    }
-  }
-
-  // Load functions
-  for(const auto &pipelineStep : settings.getPipelineSteps()) {
-    if(pipelineStep.getVoronoi() != nullptr) {
-      auto *channelAdded = addChannel(AddChannel::VORONOI);
-      if(nullptr != channelAdded) {
-        channelAdded->fromJson(std::nullopt, *pipelineStep.getVoronoi());
-      }
-    }
-  }
-
-  mImageSeriesCombo->setCurrentIndex(series);
-  mReportingSettings.fromJson(settings.getReportingSettings());
 }
 
 ///
@@ -816,29 +805,8 @@ void WindowMain::onSaveProjectClicked()
 {
   QString filePath =
       QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "JSON Files (*.json);;All Files (*)");
-
   if(!filePath.isEmpty()) {
-    joda::settings::json::AnalyzeSettings settings;
-    settings.loadConfigFromString(toJson().dump());
-    std::string path = filePath.toStdString();
-    if(!path.ends_with(".json")) {
-      path += ".json";
-    }
-    settings.storeConfigToFile(path);
-  }
-}
-
-///
-/// \brief      Two channels in the same coloc group are not allowed to have different min intersection
-/// \author     Joachim Danmayr
-///
-void WindowMain::syncColocSettings()
-{
-  if(mSelectedChannel != nullptr) {
-    auto [group, factor] = mSelectedChannel->getMinColocFactor();
-    for(const auto &ch : mChannels) {
-      ch->setMinColocFactor(group, factor);
-    }
+    joda::settings::Settings::storeSettings(filePath.toStdString(), mAnalyzeSettings);
   }
 }
 
@@ -862,12 +830,61 @@ void WindowMain::onFindTemplatesFinished(
 ///
 void WindowMain::onStartClicked()
 {
-  DialogAnalyzeRunning dialg(this);
-  dialg.exec();
+  try {
+    joda::settings::Settings::checkSettings(mAnalyzeSettings);
 
-  // Analysis finished -> generate new name
-  mJobName->setText("");
-  mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
+    DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
+    dialg.exec();
+
+    // Analysis finished -> generate new name
+    mJobName->setText("");
+    mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
+  } catch(const std::exception &ex) {
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-error-50.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+    // messageBox.setAttribute(Qt::WA_TranslucentBackground);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Error in settings!");
+    messageBox.setText(ex.what());
+    messageBox.addButton(tr("Okay"), QMessageBox::YesRole);
+    // Rounded borders -->
+    const int radius = 12;
+    messageBox.setStyleSheet(QString("QDialog { "
+                                     "border-radius: %1px; "
+                                     "border: 2px solid palette(shadow); "
+                                     "background-color: palette(base); "
+                                     "}")
+                                 .arg(radius));
+
+    // The effect will not be actually visible outside the rounded window,
+    // but it does help get rid of the pixelated rounded corners.
+    QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
+    // The color should match the border color set in CSS.
+    effect->setColor(QApplication::palette().color(QPalette::Shadow));
+    effect->setBlurRadius(8);
+    messageBox.setGraphicsEffect(effect);
+
+    // Need to show the box before we can get its proper dimensions.
+    messageBox.show();
+
+    // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
+    // The mask is sized based on the current window geometry. If the window were resizable (somehow)
+    // then the mask would need to be set in resizeEvent().
+    const QRect rect(QPoint(0, 0), messageBox.geometry().size());
+    QBitmap b(rect.size());
+    b.fill(QColor(Qt::color0));
+    QPainter painter(&b);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(Qt::color1);
+    // this radius should match the CSS radius
+    painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
+    painter.end();
+    messageBox.setMask(b);
+    // <--
+
+    messageBox.exec();
+  }
 }
 
 ///
@@ -885,9 +902,9 @@ void WindowMain::onBackClicked()
   mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(true);
   mSecondSeparator->setVisible(true);
-  syncColocSettings();
   mStackedWidget->setCurrentIndex(0);
   if(mSelectedChannel != nullptr) {
+    mSelectedChannel->toSettings();
     mSelectedChannel->setActive(false);
     mSelectedChannel = nullptr;
   }
@@ -981,14 +998,15 @@ void WindowMain::onRemoveChannelClicked()
 ///
 void WindowMain::onOpenSettingsDialog()
 {
-  mReportingSettings.exec();
+  DialogExperimentSettings di(this, mAnalyzeSettings.experimentSettings);
+  di.exec();
 }
 
 ///
 /// \brief
 /// \author     Joachim Danmayr
 ///
-ContainerBase *WindowMain::addChannel(AddChannel channelType)
+ContainerBase *WindowMain::addChannel(joda::settings::ChannelSettings settings)
 {
   if(mAddChannelPanel != nullptr) {
     {
@@ -1003,18 +1021,80 @@ ContainerBase *WindowMain::addChannel(AddChannel channelType)
     int row = mChannels.size() / 3;
     int col = mChannels.size() % 3;
     ContainerBase *panel1;
-    switch(channelType) {
-      case AddChannel::CHANNEL:
-        panel1 = new ContainerChannel(this);
-        break;
 
-      case AddChannel::VORONOI:
-        panel1 = new ContainerVoronoi(this);
-        break;
+    mAnalyzeSettings.channels.push_back(settings);
+    joda::settings::ChannelSettings &newlyAdded = mAnalyzeSettings.channels.back();
+    panel1                                      = new ContainerChannel(this, newlyAdded);
+    panel1->fromSettings();
+    panel1->toSettings();
+    mChannels.emplace(panel1, &newlyAdded);
+    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+    return panel1;
+  }
+  return nullptr;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+ContainerBase *WindowMain::addVChannelVoronoi(joda::settings::VChannelVoronoi settings)
+{
+  if(mAddChannelPanel != nullptr) {
+    {
+      int row = (mChannels.size() + 1) / 3;
+      int col = (mChannels.size() + 1) % 3;
+      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
+      mLayoutChannelOverview->removeWidget(mLastElement);
+      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
     }
 
+    int row = mChannels.size() / 3;
+    int col = mChannels.size() % 3;
+    ContainerBase *panel1;
+
+    mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$voronoi = settings});
+    joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
+    panel1                                       = new ContainerVoronoi(this, newlyAdded.$voronoi.value());
+    panel1->fromSettings();
+    panel1->toSettings();
+    mChannels.emplace(panel1, &newlyAdded);
+
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
-    mChannels.emplace(panel1);
+    return panel1;
+  }
+  return nullptr;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+ContainerBase *WindowMain::addVChannelIntersection(joda::settings::VChannelIntersection settings)
+{
+  if(mAddChannelPanel != nullptr) {
+    {
+      int row = (mChannels.size() + 1) / 3;
+      int col = (mChannels.size() + 1) % 3;
+      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
+      mLayoutChannelOverview->removeWidget(mLastElement);
+      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
+    }
+
+    int row = mChannels.size() / 3;
+    int col = mChannels.size() % 3;
+    ContainerBase *panel1;
+
+    mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$intersection = settings});
+    joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
+    panel1                                       = new ContainerIntersection(this, newlyAdded.$intersection.value());
+    panel1->fromSettings();
+    panel1->toSettings();
+    mChannels.emplace(panel1, &newlyAdded);
+
+    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
     return panel1;
   }
   return nullptr;
@@ -1029,7 +1109,7 @@ void WindowMain::onAddChannelClicked()
   if(mTemplateSelection->currentIndex() > 0) {
     addChannelFromTemplate(mTemplateSelection->currentData().toString());
   } else {
-    addChannel(AddChannel::CHANNEL);
+    addChannel({});
   }
 }
 
@@ -1039,7 +1119,16 @@ void WindowMain::onAddChannelClicked()
 ///
 void WindowMain::onAddCellApproxClicked()
 {
-  addChannel(AddChannel::VORONOI);
+  addVChannelVoronoi({});
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onAddIntersectionClicked()
+{
+  addVChannelIntersection({});
 }
 
 void WindowMain::removeChannel(ContainerBase *toRemove)
@@ -1047,7 +1136,14 @@ void WindowMain::removeChannel(ContainerBase *toRemove)
   /// \todo reorder
   if(toRemove != nullptr) {
     toRemove->setActive(false);
+    void *elementInSettings = mChannels.at(toRemove);
     mChannels.erase(toRemove);
+
+    mAnalyzeSettings.channels.remove_if(
+        [&elementInSettings](const joda::settings::ChannelSettings &item) { return &item == elementInSettings; });
+
+    mAnalyzeSettings.vChannels.remove_if(
+        [&elementInSettings](const joda::settings::VChannelSettings &item) { return &item == elementInSettings; });
 
     mLayoutChannelOverview->removeWidget(toRemove->getOverviewPanel());
     toRemove->getOverviewPanel()->setParent(nullptr);
@@ -1055,7 +1151,7 @@ void WindowMain::removeChannel(ContainerBase *toRemove)
 
     // Reorder all panels
     int cnt = 0;
-    for(const auto &panelToReorder : mChannels) {
+    for(const auto &[panelToReorder, _] : mChannels) {
       mLayoutChannelOverview->removeWidget(panelToReorder->getOverviewPanel());
       int row = (cnt) / 3;
       int col = (cnt) % 3;
@@ -1099,7 +1195,8 @@ void WindowMain::onShowInfoDialog()
       "environment.</em></p>"
       "<p style=\"text-align: left;\"><strong>Many thanks</strong> for help in setting this project to Melanie "
       "Schuerz</p>"
-      "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI models</strong><br "
+      "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI "
+      "models</strong><br "
       "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke and Patricia Hrasnova</p>"
       "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
       "Dominik Handl</em></p>"

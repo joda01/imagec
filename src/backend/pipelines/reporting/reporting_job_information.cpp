@@ -17,12 +17,12 @@
 #include <string>
 #include "backend/helper/helper.hpp"
 #include "backend/results/results_container.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "version.h"
 
 namespace joda::pipeline::reporting {
 
-void JobInformation::writeReport(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                  const std::map<std::string, joda::results::ReportingContainer> &results,
                                  const JobMeta &meta, lxw_worksheet *worksheet, lxw_format *header,
                                  lxw_format *fontNormal)
@@ -50,7 +50,7 @@ void JobInformation::writeReport(const joda::settings::json::AnalyzeSettings &an
   writeRow("Job name", meta.jobName);
   writeRow("Job started at", joda::helper::timepointToIsoString(meta.timeStarted));
   writeRow("Job finished at", joda::helper::timepointToIsoString(meta.timeFinished));
-  writeRow("Nr. of channels", std::to_string(analyzeSettings.getChannelsVector().size()));
+  writeRow("Nr. of channels", std::to_string(analyzeSettings.channels.size()));
   emptyLine(2);
 
   writeRow("Group nr.", std::to_string(results.size()));
@@ -63,13 +63,13 @@ void JobInformation::writeReport(const joda::settings::json::AnalyzeSettings &an
   writeRow("Image nr.", std::to_string(nrOfImages));
   emptyLine(2);
 
-  for(const auto &[_, channel] : analyzeSettings.getChannelsOrderedByChannelIndex()) {
-    writeRow("Name", channel.getChannelInfo().getName());
-    writeRow("Index", std::to_string(channel.getChannelInfo().getChannelIndex()));
-    writeRow("Type", channel.getChannelInfo().getTypeString());
-    writeRow("Detection mode", channel.getDetectionSettings().getDetectionModeString());
-    writeRow("Threshold", channel.getDetectionSettings().getThersholdSettings().getThresholdString());
-    writeRow("Threshold min", std::to_string(channel.getDetectionSettings().getThersholdSettings().getThresholdMin()));
+  for(const auto &channel : analyzeSettings.channels) {
+    writeRow("Name", channel.meta.name);
+    writeRow("Index", joda::settings::to_string(channel.meta.channelIdx));
+    writeRow("Type", std::to_string((int) channel.meta.type));
+    writeRow("Detection mode", std::to_string((int) channel.detection.detectionMode));
+    writeRow("Threshold", std::to_string((int) channel.detection.threshold.mode));
+    writeRow("Threshold min", std::to_string(channel.detection.threshold.thresholdMin));
 
     emptyLine(1);
   }

@@ -32,9 +32,10 @@ class ObjectSegmentation : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectSegmentation(const joda::settings::json::ChannelFiltering *filt, const joda::onnx::OnnxParser::Data &model,
+  ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, const joda::onnx::OnnxParser::Data &model,
                      float classThreshold);
-  auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, int32_t channelIndex) -> DetectionResponse override;
+  auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
+      -> DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////

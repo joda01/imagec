@@ -28,8 +28,8 @@ using namespace std::chrono_literals;
 /// \brief
 /// \author     Joachim Danmayr
 ///
-DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain) :
-    QDialog(windowMain), mStopped(false), mWindowMain(windowMain)
+DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::settings::AnalyzeSettings &settings) :
+    QDialog(windowMain), mStopped(false), mWindowMain(windowMain), mSettings(settings)
 {
   setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Dialog);
   // setAttribute(Qt::WA_TranslucentBackground);
@@ -149,11 +149,9 @@ void DialogAnalyzeRunning::onOpenResultsFolderClicked()
 
 void DialogAnalyzeRunning::refreshThread()
 {
-  settings::json::AnalyzeSettings settings;
-  settings.loadConfigFromString(mWindowMain->toJson().dump());
-  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(settings, 0);
+  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings, 0);
   mWindowMain->getController()->reset();
-  mWindowMain->getController()->start(settings, threadSettings, mWindowMain->getJobName());
+  mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName());
   mStartedTime = std::chrono::high_resolution_clock::now();
 
   while(!mStopped) {

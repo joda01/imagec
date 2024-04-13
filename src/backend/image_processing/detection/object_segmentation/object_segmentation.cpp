@@ -26,51 +26,52 @@
 #include "backend/image_processing/functions/threshold/threshold_moments.hpp"
 #include "backend/image_processing/functions/threshold/threshold_triangel.hpp"
 #include "backend/logger/console_logger.hpp"
+#include "backend/settings/detection/detection_settings_threshold.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 namespace joda::func::threshold {
 
-ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFiltering &filt, uint16_t thresholdValue,
-                                       joda::settings::json::ThresholdSettings::Threshold method, bool doWatershed) :
-    DetectionFunction(&filt),
+ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, uint16_t thresholdValue,
+                                       joda::settings::ThresholdSettings::Mode method, bool doWatershed) :
+    DetectionFunction(filt),
     mDoWatershed(doWatershed)
 {
   switch(method) {
-    case joda::settings::json::ThresholdSettings::Threshold::LI:
+    case joda::settings::ThresholdSettings::Mode::LI:
       mThresoldMethod = std::make_shared<img::ThresholdLi>(thresholdValue);
       break;
-    case joda::settings::json::ThresholdSettings::Threshold::TRIANGLE:
+    case joda::settings::ThresholdSettings::Mode::TRIANGLE:
       mThresoldMethod = std::make_shared<img::ThresholdTriangle>(thresholdValue);
       break;
-    case joda::settings::json::ThresholdSettings::Threshold::MIN_ERROR:
+    case joda::settings::ThresholdSettings::Mode::MIN_ERROR:
       mThresoldMethod = std::make_shared<img::ThresholdMinError>(thresholdValue);
       break;
-    case joda::settings::json::ThresholdSettings::Threshold::MOMENTS:
+    case joda::settings::ThresholdSettings::Mode::MOMENTS:
       mThresoldMethod = std::make_shared<img::ThresholdMoments>(thresholdValue);
       break;
     default:
-    case joda::settings::json::ThresholdSettings::Threshold::HUANG:
-    case joda::settings::json::ThresholdSettings::Threshold::INTERMODES:
-    case joda::settings::json::ThresholdSettings::Threshold::ISODATA:
-    case joda::settings::json::ThresholdSettings::Threshold::MAX_ENTROPY:
-    case joda::settings::json::ThresholdSettings::Threshold::MEAN:
-    case joda::settings::json::ThresholdSettings::Threshold::MINIMUM:
-    case joda::settings::json::ThresholdSettings::Threshold::OTSU:
-    case joda::settings::json::ThresholdSettings::Threshold::PERCENTILE:
-    case joda::settings::json::ThresholdSettings::Threshold::RENYI_ENTROPY:
-    case joda::settings::json::ThresholdSettings::Threshold::SHANBHAG:
-    case joda::settings::json::ThresholdSettings::Threshold::YEN:
+    case joda::settings::ThresholdSettings::Mode::HUANG:
+    case joda::settings::ThresholdSettings::Mode::INTERMODES:
+    case joda::settings::ThresholdSettings::Mode::ISODATA:
+    case joda::settings::ThresholdSettings::Mode::MAX_ENTROPY:
+    case joda::settings::ThresholdSettings::Mode::MEAN:
+    case joda::settings::ThresholdSettings::Mode::MINIMUM:
+    case joda::settings::ThresholdSettings::Mode::OTSU:
+    case joda::settings::ThresholdSettings::Mode::PERCENTILE:
+    case joda::settings::ThresholdSettings::Mode::RENYI_ENTROPY:
+    case joda::settings::ThresholdSettings::Mode::SHANBHAG:
+    case joda::settings::ThresholdSettings::Mode::YEN:
       joda::log::logWarning("Not supported threshold algorithm selected. Using MANUAL as fallback.");
-    case joda::settings::json::ThresholdSettings::Threshold::MANUAL:
+    case joda::settings::ThresholdSettings::Mode::MANUAL:
       mThresoldMethod = std::make_shared<img::ThresholdManual>(thresholdValue);
       break;
   }
 }
 
-auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalImage, int32_t channelIndex)
-    -> DetectionResponse
+auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalImage,
+                                 joda::settings::ChannelIndex channelIndex) -> DetectionResponse
 {
   cv::Mat binaryImage;
   uint16_t usedThersholdVal = mThresoldMethod->execute(srcImg, binaryImage);
@@ -92,6 +93,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
 
   if(contours.size() > 100000) {
     joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
+    return {.result = response, .controlImage = {}};
   }
   id = DurationCount::start("detection_mask");
 

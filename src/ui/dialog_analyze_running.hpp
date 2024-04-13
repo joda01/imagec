@@ -17,6 +17,7 @@
 #include <qtmetamacros.h>
 #include <memory>
 #include <thread>
+#include "backend/settings/analze_settings.hpp"
 #include "ui/window_main.hpp"
 
 namespace joda::ui::qt {
@@ -27,7 +28,7 @@ class DialogAnalyzeRunning : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogAnalyzeRunning(WindowMain *windowMain);
+  DialogAnalyzeRunning(WindowMain *windowMain, const joda::settings::AnalyzeSettings &settings);
 
 signals:
   void refreshEvent();
@@ -51,6 +52,8 @@ private:
   QPushButton *closeButton;
   QPushButton *stopButton;
   WindowMain *mWindowMain;
+
+  const joda::settings::AnalyzeSettings mSettings;
 
 private slots:
   void onStopClicked();
