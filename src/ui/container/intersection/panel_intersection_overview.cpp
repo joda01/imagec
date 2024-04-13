@@ -32,7 +32,7 @@ PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIn
   setStyleSheet(
       "QWidget#PanelIntersectionOverview { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
       "padding-bottom: 10px;"
-      "background-color: rgba(0, 104, 117, 0.05);}");
+      "background-color: rgba(125, 206, 130, 0.05);}");
 
   setLayout(layout);
   layout->setSpacing(0);
