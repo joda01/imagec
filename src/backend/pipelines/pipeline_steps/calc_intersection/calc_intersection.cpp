@@ -24,7 +24,7 @@ CalcIntersection::CalcIntersection(const std::set<int32_t> &indexesToIntersect, 
 {
 }
 
-auto CalcIntersection::execute(const settings::json::AnalyzeSettings &settings,
+auto CalcIntersection::execute(const settings::AnalyzeSettings &settings,
                                const std::map<int, joda::func::DetectionResponse> &detectionResultsIn,
                                const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {

@@ -25,7 +25,7 @@
 #include <vector>
 #include "../helper/helper.hpp"
 #include "../logger/console_logger.hpp"
-#include "../settings/analze_settings_parser.hpp"
+#include "../settings/analze_settings.hpp"
 #include "pipeline.hpp"
 
 namespace joda::pipeline {
@@ -72,8 +72,8 @@ public:
   /// \author     Joachim Danmayr
   ///
   static auto
-  startNewJob(const settings::json::AnalyzeSettings &settings, const std::string &inputFolder,
-              const std::string &jobName, joda::helper::ImageFileContainer *imageFileContainer,
+  startNewJob(const settings::AnalyzeSettings &settings, const std::string &inputFolder, const std::string &jobName,
+              joda::helper::ImageFileContainer *imageFileContainer,
               const pipeline::Pipeline::ThreadingSettings &threadingSettings = pipeline::Pipeline::ThreadingSettings())
       -> std::string
   {

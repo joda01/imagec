@@ -19,7 +19,7 @@
 
 namespace joda::pipeline {
 
-auto CalcVoronoi::execute(const settings::json::AnalyzeSettings &settings,
+auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
                           const std::map<int, joda::func::DetectionResponse> &detectionResults,
                           const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {

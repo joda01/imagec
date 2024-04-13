@@ -35,12 +35,13 @@
 #include <string>
 #include <thread>
 #include "backend/helper/random_name_generator.hpp"
-#include "backend/settings/channel_settings.hpp"
-#include "backend/settings/pipeline_settings.hpp"
-#include "channel/container_channel.hpp"
+#include "backend/settings/channel/channel_settings.hpp"
+#include "backend/settings/vchannel/vchannel_settings.hpp"
+#include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
+#include "container/channel/container_channel.hpp"
+#include "container/voronoi/container_voronoi.hpp"
 #include "ui/dialog_analyze_running.hpp"
-#include "ui/dialog_settings.hpp"
-#include "voronoi/container_voronoi.hpp"
+#include "ui/dialog_experiment_settings.hpp"
 #include "build_info.h"
 #include "version.h"
 
@@ -48,7 +49,7 @@ namespace joda::ui::qt {
 
 using namespace std::chrono_literals;
 
-WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller), mReportingSettings(this)
+WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller)
 {
   setWindowTitle("imageC");
   createToolbar();
@@ -605,9 +606,8 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
   }
 
   try {
-    settings::json::AnalyzeSettings settings;
-    settings.loadConfigFromFile(filePath.toStdString());
-    fromJson(settings);
+    std::ifstream ifs(filePath.toStdString());
+    mAnalyzeSettings = nlohmann::json::parse(ifs);
   } catch(const std::exception &ex) {
     if(mSelectedChannel != nullptr) {
       QMessageBox messageBox(this);
@@ -629,11 +629,9 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
 ContainerBase *WindowMain::addChannelFromTemplate(const QString &filePath)
 {
   try {
-    settings::json::ChannelSettings settings;
-    settings.loadConfigFromFile(filePath.toStdString());
-    auto *newChannel = addChannel(AddChannel::CHANNEL);
-
-    newChannel->fromJson(settings, std::nullopt);
+    std::ifstream ifs(filePath.toStdString());
+    settings::ChannelSettings settings = nlohmann::json::parse(ifs);
+    auto *newChannel                   = addChannel(AddChannel::CHANNEL /*, settings*/);
     return newChannel;
   } catch(const std::exception &ex) {
     if(mSelectedChannel != nullptr) {
@@ -703,40 +701,8 @@ void WindowMain::waitForFileSearchFinished()
 /// \brief      Generate JSON document
 /// \author     Joachim Danmayr
 ///
-nlohmann::json WindowMain::toJson()
-{
-  nlohmann::json jsonSettings;
-
-  nlohmann::json channelsArray     = nlohmann::json::array();    // Initialize an empty JSON array
-  nlohmann::json pipelineStepArray = nlohmann::json::array();    // Initialize an empty JSON array
-
-  for(const auto &ch : mChannels) {
-    auto converter = ch->toJson();
-    if(converter.channelSettings.has_value()) {
-      channelsArray.push_back(converter.channelSettings.value());
-    }
-    if(converter.pipelineStepVoronoi.has_value()) {
-      pipelineStepArray.push_back(converter.pipelineStepVoronoi.value());
-    }
-  }
-
-  jsonSettings["input_folder"]                    = static_cast<std::string>(mSelectedWorkingDirectory.toStdString());
-  jsonSettings["channels"]                        = channelsArray;
-  jsonSettings["pipeline_steps"]                  = pipelineStepArray;
-  jsonSettings["options"]["pixel_in_micrometer"]  = 1;
-  jsonSettings["options"]["with_control_images"]  = true;
-  jsonSettings["options"]["with_detailed_report"] = true;
-
-  jsonSettings["reporting"] = mReportingSettings.toJson();
-
-  return jsonSettings;
-}
-
-///
-/// \brief      Generate JSON document
-/// \author     Joachim Danmayr
-///
-void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
+/*
+void WindowMain::fromSettings(const settings::AnalyzeSettings &settings)
 {
   // Remove all channels
   std::set<ContainerBase *> channelsToDelete = mChannels;
@@ -768,6 +734,7 @@ void WindowMain::fromJson(const settings::json::AnalyzeSettings &settings)
   mImageSeriesCombo->setCurrentIndex(series);
   mReportingSettings.fromJson(settings.getReportingSettings());
 }
+*/
 
 ///
 /// \brief
@@ -816,29 +783,15 @@ void WindowMain::onSaveProjectClicked()
 {
   QString filePath =
       QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "JSON Files (*.json);;All Files (*)");
-
   if(!filePath.isEmpty()) {
-    joda::settings::json::AnalyzeSettings settings;
-    settings.loadConfigFromString(toJson().dump());
-    std::string path = filePath.toStdString();
+    std::string path    = filePath.toStdString();
+    nlohmann::json json = mAnalyzeSettings;
     if(!path.ends_with(".json")) {
       path += ".json";
     }
-    settings.storeConfigToFile(path);
-  }
-}
-
-///
-/// \brief      Two channels in the same coloc group are not allowed to have different min intersection
-/// \author     Joachim Danmayr
-///
-void WindowMain::syncColocSettings()
-{
-  if(mSelectedChannel != nullptr) {
-    auto [group, factor] = mSelectedChannel->getMinColocFactor();
-    for(const auto &ch : mChannels) {
-      ch->setMinColocFactor(group, factor);
-    }
+    std::ofstream out(path);
+    out << json.dump(2);
+    out.close();
   }
 }
 
@@ -862,7 +815,7 @@ void WindowMain::onFindTemplatesFinished(
 ///
 void WindowMain::onStartClicked()
 {
-  DialogAnalyzeRunning dialg(this);
+  DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
   dialg.exec();
 
   // Analysis finished -> generate new name
@@ -885,9 +838,9 @@ void WindowMain::onBackClicked()
   mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(true);
   mSecondSeparator->setVisible(true);
-  syncColocSettings();
   mStackedWidget->setCurrentIndex(0);
   if(mSelectedChannel != nullptr) {
+    mSelectedChannel->toSettings();
     mSelectedChannel->setActive(false);
     mSelectedChannel = nullptr;
   }
@@ -981,7 +934,8 @@ void WindowMain::onRemoveChannelClicked()
 ///
 void WindowMain::onOpenSettingsDialog()
 {
-  mReportingSettings.exec();
+  DialogExperimentSettings di(this, mAnalyzeSettings.experimentSettings);
+  di.exec();
 }
 
 ///
@@ -1004,17 +958,27 @@ ContainerBase *WindowMain::addChannel(AddChannel channelType)
     int col = mChannels.size() % 3;
     ContainerBase *panel1;
     switch(channelType) {
-      case AddChannel::CHANNEL:
-        panel1 = new ContainerChannel(this);
-        break;
+      case AddChannel::CHANNEL: {
+        mAnalyzeSettings.channels.push_back(joda::settings::ChannelSettings{});
+        joda::settings::ChannelSettings &newlyAdded = mAnalyzeSettings.channels.back();
+        panel1                                      = new ContainerChannel(this, newlyAdded);
+        panel1->fromSettings();
+        mChannels.emplace(panel1, &newlyAdded);
+      }
+
+      break;
 
       case AddChannel::VORONOI:
-        panel1 = new ContainerVoronoi(this);
+        mAnalyzeSettings.vChannels.push_back(
+            joda::settings::VChannelSettings{.$voronoi = joda::settings::VChannelVoronoi{}});
+        joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
+        panel1                                       = new ContainerVoronoi(this, newlyAdded.$voronoi.value());
+        panel1->fromSettings();
+        mChannels.emplace(panel1, &newlyAdded);
         break;
     }
 
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
-    mChannels.emplace(panel1);
     return panel1;
   }
   return nullptr;
@@ -1047,7 +1011,14 @@ void WindowMain::removeChannel(ContainerBase *toRemove)
   /// \todo reorder
   if(toRemove != nullptr) {
     toRemove->setActive(false);
+    void *elementInSettings = mChannels.at(toRemove);
     mChannels.erase(toRemove);
+
+    mAnalyzeSettings.channels.remove_if(
+        [&elementInSettings](const joda::settings::ChannelSettings &item) { return &item == elementInSettings; });
+
+    mAnalyzeSettings.vChannels.remove_if(
+        [&elementInSettings](const joda::settings::VChannelSettings &item) { return &item == elementInSettings; });
 
     mLayoutChannelOverview->removeWidget(toRemove->getOverviewPanel());
     toRemove->getOverviewPanel()->setParent(nullptr);
@@ -1055,7 +1026,7 @@ void WindowMain::removeChannel(ContainerBase *toRemove)
 
     // Reorder all panels
     int cnt = 0;
-    for(const auto &panelToReorder : mChannels) {
+    for(const auto &[panelToReorder, _] : mChannels) {
       mLayoutChannelOverview->removeWidget(panelToReorder->getOverviewPanel());
       int row = (cnt) / 3;
       int col = (cnt) % 3;
@@ -1099,7 +1070,8 @@ void WindowMain::onShowInfoDialog()
       "environment.</em></p>"
       "<p style=\"text-align: left;\"><strong>Many thanks</strong> for help in setting this project to Melanie "
       "Schuerz</p>"
-      "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI models</strong><br "
+      "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI "
+      "models</strong><br "
       "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke and Patricia Hrasnova</p>"
       "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
       "Dominik Handl</em></p>"

@@ -19,11 +19,10 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include "backend/settings/analze_settings_parser.hpp"
-#include "backend/settings/channel_settings.hpp"
-#include "backend/settings/pipeline_settings.hpp"
-#include "ui/container_base.hpp"
-#include "ui/container_function.hpp"
+#include "../container_base.hpp"
+#include "../container_function.hpp"
+#include "backend/settings/channel/channel_settings.hpp"
+#include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "panel_voronoi_edit.hpp"
 #include "panel_voronoi_overview.hpp"
@@ -46,7 +45,7 @@ public:
   ContainerVoronoi &operator=(const ContainerVoronoi &) = default;
   ContainerVoronoi &operator=(ContainerVoronoi &&)      = delete;
   /////////////////////////////////////////////////////
-  ContainerVoronoi(WindowMain *windowMain);
+  ContainerVoronoi(WindowMain *windowMain, joda::settings::VChannelVoronoi &settings);
   ~ContainerVoronoi();
   PanelVoronoiOverview *getOverviewPanel() override
   {
@@ -63,28 +62,16 @@ public:
     }
   }
 
-  void fromJson(std::optional<joda::settings::json::ChannelSettings>,
-                std::optional<joda::settings::json::PipelineStepVoronoi>) override;
-  [[nodiscard]] ConvertedChannels toJson() const override;
-
-  std::tuple<std::string, float> getMinColocFactor() override
-  {
-    if(mColocGroup->hasValue()) {
-      return {mColocGroup->getValue().toStdString(), mColocGroup->getValueSecond() / 100.0F};
-    }
-    return {"NONE", 0};
-  }
-
-  void setMinColocFactor(const std::string &group, float newValue) override
-  {
-    if(group == mColocGroup->getValue().toStdString()) {
-      mColocGroup->setValueSecond(newValue * 100.0F);
-    }
-  }
+  void fromSettings() override;
+  void toSettings() override;
 
 private:
   /////////////////////////////////////////////////////
+  joda::settings::VChannelVoronoi &mSettings;
+
+  /////////////////////////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, QString>> mChannelName;
+  std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>> mChannelType;
   std::shared_ptr<ContainerFunction<QString, int>> mColorAndChannelIndex;
 
   // Cell approximation//////////////////////////////////
@@ -92,11 +79,7 @@ private:
   std::shared_ptr<ContainerFunction<int, int>> mMaxVoronoiAreaSize;
   std::shared_ptr<ContainerFunction<int, int>> mOverlayMaskChannelIndex;
 
-  // Reporting//////////////////////////////////
-  settings::json::ReportingSettings mReportingSettings;
-
   // Cross-Channel//////////////////////////////////
-  std::shared_ptr<ContainerFunction<QString, int>> mColocGroup;
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntensity;
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelCount;
 

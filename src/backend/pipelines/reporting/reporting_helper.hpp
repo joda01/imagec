@@ -13,10 +13,22 @@
 
 #pragma once
 
+#include <map>
+#include <mutex>
+#include <set>
 #include "backend/image_reader/image_reader.hpp"
-#include "backend/pipelines/reporting/reporting_defines.hpp"
-#include "backend/results/results_container.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
+
+namespace joda::settings {
+class AnalyzeSettings;
+}
+
+namespace joda::results {
+class ReportingContainer;
+}
+
+namespace joda::func {
+class DetectionResponse;
+}
 
 namespace joda::pipeline::reporting {
 
@@ -34,17 +46,15 @@ public:
   static RegexResult applyRegex(const std::string &regex, const std::string &fileName);
   static RegexResult applyGroupRegex(const std::string &fileName);
 
-  static void setDetailReportHeader(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+  static void setDetailReportHeader(const joda::settings::AnalyzeSettings &analyzeSettings,
                                     joda::results::ReportingContainer &detailReportTable,
-                                    const std::string &channelName, int realChannelIdx, int tempChannelIdx,
-                                    const std::set<int32_t> &colocGroup = {});
-  static void appendToDetailReport(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+                                    const std::string &channelName, int realChannelIdx);
+  static void appendToDetailReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                    const joda::func::DetectionResponse &result,
                                    joda::results::ReportingContainer &detailReportTable,
                                    const std::string &detailReportOutputPath, const std::string &jobName,
-                                   int realChannelIdx, int tempChannelIdx, uint32_t tileIdx,
-                                   const ImageProperties &imgProps);
-  static void appendToAllOverReport(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+                                   int realChannelIdx, uint32_t tileIdx, const ImageProperties &imgProps);
+  static void appendToAllOverReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                     std::map<std::string, joda::results::ReportingContainer> &allOverReport,
                                     const joda::results::ReportingContainer &detailedReport,
                                     const std::string &imagePath, const std::string &imageName, int nrOfChannels);
@@ -52,7 +62,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   static auto stringToNumber(const std::string &str) -> int;
-  static auto getGroupToStoreImageIn(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+  static auto getGroupToStoreImageIn(const joda::settings::AnalyzeSettings &analyzeSettings,
                                      const std::string &imagePath, const std::string &imageName) -> std::string;
 
   /////////////////////////////////////////////////////

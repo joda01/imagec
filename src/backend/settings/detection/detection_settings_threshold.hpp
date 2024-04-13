@@ -48,6 +48,11 @@ public:
   //
   uint16_t thresholdMax = 0;
 
+  //
+  // Enable watershed segmentation
+  //
+  bool $watershedSegmentation = false;
+
   NLOHMANN_JSON_SERIALIZE_ENUM(Mode, {{Mode::NONE, ""},
                                       {Mode::MANUAL, "Threshold"},
                                       {Mode::LI, "Ai"},
@@ -66,7 +71,8 @@ public:
                                       {Mode::SHANBHAG, "Ai"},
                                       {Mode::YEN, "Ai"}})
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ThresholdSettings, mode, thresholdMin, thresholdMax);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ThresholdSettings, mode, thresholdMin, thresholdMax,
+                                              $watershedSegmentation);
 };
 
 }    // namespace joda::settings

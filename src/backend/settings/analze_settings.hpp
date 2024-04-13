@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <fstream>
 #include <iostream>
+#include <list>
 #include <map>
 #include <optional>
 #include <set>
@@ -30,19 +31,13 @@
 
 namespace joda::settings {
 
-using json = nlohmann::json;
-
 class AnalyzeSettings final
 {
 public:
-  AnalyzeSettings()                                   = default;
-  AnalyzeSettings(const AnalyzeSettings &)            = delete;
-  AnalyzeSettings &operator=(const AnalyzeSettings &) = delete;
+  ExperimentSettings experimentSettings;
+  std::list<ChannelSettings> channels;
+  std::list<VChannelSettings> vChannels;
 
-  ExperimentSettings options;
-  std::vector<ChannelSettings> channels;
-  VChannelSettings vChannels;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, options, channels, vChannels);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, experimentSettings, channels, vChannels);
 };
 }    // namespace joda::settings

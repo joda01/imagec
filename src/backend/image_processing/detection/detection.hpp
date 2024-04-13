@@ -41,7 +41,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  DetectionFunction(const joda::settings::ChannelSettingsFilter *filt) : mFilterSettings(filt)
+  DetectionFunction(const joda::settings::ChannelSettingsFilter &filt) : mFilterSettings(filt)
   {
   }
 
@@ -56,7 +56,7 @@ public:
 
 protected:
   /////////////////////////////////////////////////////
-  auto getFilterSettings() const -> const joda::settings::ChannelSettingsFilter *
+  auto getFilterSettings() const -> const joda::settings::ChannelSettingsFilter &
   {
     return mFilterSettings;
   }
@@ -75,7 +75,7 @@ protected:
   static inline int FONT_FACE    = cv::FONT_HERSHEY_SIMPLEX;
 
 private:
-  const joda::settings::ChannelSettingsFilter *mFilterSettings = nullptr;
+  const joda::settings::ChannelSettingsFilter &mFilterSettings;
 
   ///
   /// \brief      Draw labels

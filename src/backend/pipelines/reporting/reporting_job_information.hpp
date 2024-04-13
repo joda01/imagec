@@ -24,7 +24,7 @@ namespace joda::results {
 class ReportingContainer;
 }
 
-namespace joda::settings::json {
+namespace joda::settings {
 class AnalyzeSettings;
 }
 
@@ -38,7 +38,7 @@ namespace joda::pipeline::reporting {
 class JobInformation
 {
 public:
-  static void writeReport(const joda::settings::json::AnalyzeSettings &analyzeSettings,
+  static void writeReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                           const std::map<std::string, joda::results::ReportingContainer> &results, const JobMeta &meta,
                           lxw_worksheet *worksheet, lxw_format *header, lxw_format *fontNormal);
 };

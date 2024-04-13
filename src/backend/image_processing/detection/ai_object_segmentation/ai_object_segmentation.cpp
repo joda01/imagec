@@ -31,7 +31,7 @@ using namespace cv::dnn;
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-ObjectSegmentation::ObjectSegmentation(const joda::settings::json::ChannelFiltering *filt,
+ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt,
                                        const joda::onnx::OnnxParser::Data &model, float classThreshold) :
     DetectionFunction(filt),
     mClassNames(model.classes), mClassThreshold(classThreshold), mNmsScoreThreshold(classThreshold * BOX_THRESHOLD)

@@ -33,7 +33,7 @@ public:
   {
   }
   /////////////////////////////////////////////////////
-  auto execute(const settings::json::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
+  auto execute(const settings::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
                const std::string &detailoutputPath) const -> joda::func::DetectionResponse override;
 
 private:

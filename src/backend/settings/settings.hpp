@@ -12,6 +12,12 @@
 
 #pragma once
 
+#include <set>
+#include <string>
+#include "backend/settings/analze_settings.hpp"
+#include "backend/settings/channel/channel_reporting_settings.hpp"
+#include "backend/settings/channel/channel_settings_cross.hpp"
+
 namespace joda::settings {
 
 ///
@@ -22,5 +28,18 @@ namespace joda::settings {
 class Settings
 {
 public:
+  static void storeSettings(const std::string &path, const joda::settings::AnalyzeSettings &settings);
+  static int32_t getNrOfAllChannels(const joda::settings::AnalyzeSettings &settings);
+
+  static std::set<const joda::settings::ChannelSettings *>
+  getChannelsOfType(const joda::settings::AnalyzeSettings &settings, joda::settings::ChannelSettingsMeta::Type type);
+
+  static std::string getChannelNameOfChannelIndex(const joda::settings::AnalyzeSettings &settings, int32_t channelIdx);
+
+  static const joda::settings::ChannelReportingSettings &
+  getReportingSettingsForChannel(const joda::settings::AnalyzeSettings &settings, int32_t channelIdx);
+
+  static const joda::settings::CrossChannelSettings &
+  getCrossChannelSettingsForChannel(const joda::settings::AnalyzeSettings &settings, int32_t channelIdx);
 };
 }    // namespace joda::settings

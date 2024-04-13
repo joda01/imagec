@@ -2,6 +2,7 @@
 
 #include <xlsxwriter/worksheet.h>
 #include <string>
+#include "backend/pipelines/reporting/reporting_defines.hpp"
 #include "reporting_details.xlsx.hpp"
 
 namespace joda::pipeline::reporting {
@@ -11,7 +12,7 @@ namespace joda::pipeline::reporting {
 /// \author     Joachim Danmayr
 /// \param[in]  fileName  Name of the output report file
 ///
-std::tuple<int, int> DetailReport::writeReport(const joda::settings::json::ReportingSettings &reportingSettings,
+std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
                                                const joda::results::Table &results, int colOffset, int /*rowOffset*/,
                                                lxw_worksheet *worksheet, lxw_format *header, lxw_format *merge_format,
                                                lxw_format *numberFormat)
@@ -29,7 +30,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::json::Repor
     uint32_t sheetColIdx = 0;
     for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
       auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
-      if(reportingSettings.getDetailReportSettings().getMeasurementChannels().contains((uint32_t) colKey)) {
+      if(reportingSettings.detail.measureChannels.contains(colKey)) {
         worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, results.getColumnNameAt(colIdx).data(), header);
         worksheet_set_column(worksheet, sheetColIdx + COL_OFFSET, sheetColIdx + COL_OFFSET, 10, NULL);
         sheetColIdx++;
@@ -61,7 +62,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::json::Repor
     uint32_t sheetColIdx = 0;
     for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
       auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
-      if(reportingSettings.getDetailReportSettings().getMeasurementChannels().contains((uint32_t) colKey)) {
+      if(reportingSettings.detail.measureChannels.contains(colKey)) {
         if(results.getStatistics().contains(colIdx)) {
           auto statistics = results.getStatistics().at(colIdx);
 
@@ -88,7 +89,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::json::Repor
       uint32_t sheetColIdx = 0;
       for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
         auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
-        if(reportingSettings.getDetailReportSettings().getMeasurementChannels().contains((uint32_t) colKey)) {
+        if(reportingSettings.detail.measureChannels.contains(colKey)) {
           if(results.getStatistics().contains(colIdx)) {
             //
             // Write row data

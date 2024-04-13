@@ -14,7 +14,7 @@ namespace joda::pipeline::reporting {
 /// \author     Joachim Danmayr
 /// \param[in]  fileName  Name of the output report file
 ///
-std::tuple<int, int> OverviewReport::writeReport(const joda::settings::json::ReportingSettings &reportingSettings,
+std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
                                                  const joda::results::Table &results, const std::string &headerText,
                                                  const std::string &jobName, int colOffset, int rowOffset, int startRow,
                                                  lxw_worksheet *worksheet, lxw_format *header, lxw_format *merge_format,
@@ -73,7 +73,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::json::Rep
 
       for(int64_t colIdx = 0; colIdx < nrOfColumns; colIdx++) {
         auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
-        if(reportingSettings.getOverviewReportSettings().getMeasurementChannels().contains((uint32_t) colKey)) {
+        if(reportingSettings.overview.measureChannels.contains(colKey)) {
           if(results.getStatistics().contains(colIdx)) {
             auto statistics = results.getStatistics().at(colIdx);
 
@@ -123,7 +123,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::json::Rep
     int sheetRowIdx = 0;
     for(int64_t colIndex = 0; colIndex < nrOfColumns; colIndex++) {
       auto colKey = getMeasureChannel(results.getColumnKeyAt(colIndex));
-      if(reportingSettings.getOverviewReportSettings().getMeasurementChannels().contains((uint32_t) colKey)) {
+      if(reportingSettings.overview.measureChannels.contains(colKey)) {
         worksheet_write_string(worksheet, sheetRowIdx + rowOffset, 1, results.getColumnNameAt(colIndex).data(), header);
         worksheet_set_column(worksheet, 1, 1, 20, NULL);
         sheetRowIdx++;
@@ -152,7 +152,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::json::Rep
       sheetRowIdx = 0;
       for(int64_t colIndex = 0; colIndex < nrOfColumns; colIndex++) {
         auto colKey = getMeasureChannel(results.getColumnKeyAt(colIndex));
-        if(reportingSettings.getOverviewReportSettings().getMeasurementChannels().contains((uint32_t) colKey)) {
+        if(reportingSettings.overview.measureChannels.contains(colKey)) {
           if(results.getTable().contains(colIndex) &&
              results.getTable().at(colIndex).contains(getIndexOfSortedMap(rowIndex))) {
             if(!results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex)).validity.has_value()) {

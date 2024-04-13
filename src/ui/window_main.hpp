@@ -20,12 +20,11 @@
 #include <mutex>
 #include <set>
 #include "backend/helper/template_parser/template_parser.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
+#include "backend/settings/analze_settings.hpp"
+#include "container/container_base.hpp"
 #include "controller/controller.hpp"
-#include "ui/dialog_settings.hpp"
 #include "ui/helper/clickablelabel.hpp"
 #include <nlohmann/json_fwd.hpp>
-#include "container_base.hpp"
 
 namespace joda::ui::qt {
 
@@ -85,8 +84,6 @@ public:
     return mJobName->text().toStdString();
   }
 
-  nlohmann::json toJson();
-  void fromJson(const settings::json::AnalyzeSettings &);
 signals:
   void lookingForFilesFinished();
   void lookingForTemplateFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
@@ -108,8 +105,6 @@ private:
   ContainerBase *addChannel(AddChannel);
   ContainerBase *addChannelFromTemplate(const QString &pathToTemplate);
 
-  void syncColocSettings();
-
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;
   QWidget *mAddChannelPanel;
@@ -123,14 +118,17 @@ private:
   ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
   bool mNewFolderSelected = false;
-  DialogSettings mReportingSettings;
+
+  ////Project settings/////////////////////////////////////////////////
+  joda::settings::AnalyzeSettings mAnalyzeSettings;
+  std::map<ContainerBase *, void *>
+      mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
 
   ////Toolbar/////////////////////////////////////////////////
   QLineEdit *mJobName;
 
   ////Made project settings/////////////////////////////////////////////////
   ContainerBase *mSelectedChannel = nullptr;
-  std::set<ContainerBase *> mChannels;
   QString mSelectedWorkingDirectory;
   std::mutex mLookingForFilesMutex;
   QWidget *mGirafWidget;

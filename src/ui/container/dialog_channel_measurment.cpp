@@ -21,9 +21,6 @@
 #include <exception>
 #include <string>
 #include <vector>
-#include "backend/pipelines/reporting/reporting_defines.hpp"
-#include "backend/pipelines/reporting/reporting_helper.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json_fwd.hpp>
 
@@ -42,8 +39,8 @@ struct Temp
 /// \param[out]
 /// \return
 ///
-DialogChannelMeasurement::DialogChannelMeasurement(settings::json::ReportingSettings *reportingSettings,
-                                                   QWidget *windowMain) :
+DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain,
+                                                   joda::settings::ChannelReportingSettings &reportingSettings) :
     QDialog(windowMain),
     mReportingSettings(reportingSettings)
 {
@@ -60,7 +57,8 @@ DialogChannelMeasurement::DialogChannelMeasurement(settings::json::ReportingSett
 
   int row               = 1;
   auto createCheckBoxes = [this, &reportingSettings, &gridLayout, &groupBox,
-                           &row](joda::pipeline::reporting::MeasurementChannels type, const std::string &description) {
+                           &row](joda::settings::ChannelReportingSettings::MeasureChannels type,
+                                 const std::string &description) {
     gridLayout->addWidget(new QLabel(description.data()), row, 0);
 
     QCheckBox *onOffDetail = new QCheckBox(groupBox);
@@ -75,19 +73,19 @@ DialogChannelMeasurement::DialogChannelMeasurement(settings::json::ReportingSett
     gridLayout->addWidget(onOffHeatmap, row, 3, Qt::AlignCenter);
     mMeasurementHeatmapReport.emplace(type, onOffHeatmap);
 
-    if(reportingSettings->getDetailReportSettings().getMeasurementChannels().contains((int32_t) type)) {
+    if(reportingSettings.detail.measureChannels.contains(type)) {
       onOffDetail->setChecked(true);
     } else {
       onOffDetail->setChecked(false);
     }
 
-    if(reportingSettings->getOverviewReportSettings().getMeasurementChannels().contains((int32_t) type)) {
+    if(reportingSettings.overview.measureChannels.contains(type)) {
       onOffOverview->setChecked(true);
     } else {
       onOffOverview->setChecked(false);
     }
 
-    if(reportingSettings->getHeatmapSettings().getMeasurementChannels().contains((int32_t) type)) {
+    if(reportingSettings.heatmap.measureChannels.contains(type)) {
       onOffHeatmap->setChecked(true);
     } else {
       onOffHeatmap->setChecked(false);
@@ -96,24 +94,25 @@ DialogChannelMeasurement::DialogChannelMeasurement(settings::json::ReportingSett
     row++;
   };
 
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::CONFIDENCE, "Confidence");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::AREA_SIZE, "Area size");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::PERIMETER, "Perimeter");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::CIRCULARITY, "Circularity");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::VALIDITY, "Validity");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INVALIDITY, "Invalidity");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::CENTER_OF_MASS_X, "Center of mass X");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::CENTER_OF_MASS_Y, "Center of mass Y");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG, "Intensity AVG");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN, "Intensity MIN");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX, "Intensity MAX");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_AVG_CROSS_CHANNEL,
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::CONFIDENCE, "Confidence");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::AREA_SIZE, "Area size");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::PERIMETER, "Perimeter");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::CIRCULARITY, "Circularity");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY, "Validity");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY, "Invalidity");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X, "Center of mass X");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_Y, "Center of mass Y");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG, "Intensity AVG");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN, "Intensity MIN");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX, "Intensity MAX");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL,
                    "Cross ch. intensity avg");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_MIN_CROSS_CHANNEL,
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL,
                    "Cross ch. intensity min");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTENSITY_MAX_CROSS_CHANNEL,
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL,
                    "Cross ch. intensity max");
-  createCheckBoxes(joda::pipeline::reporting::MeasurementChannels::INTERSECTION_CROSS_CHANNEL, "Cross ch. count");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL,
+                   "Cross ch. count");
 
   mainLayout->addWidget(groupBox);
 }
@@ -122,29 +121,31 @@ int DialogChannelMeasurement::exec()
 {
   int ret = QDialog::exec();
 
-  std::set<uint32_t> details;
-  std::set<uint32_t> overview;
-  std::set<uint32_t> heatmap;
+  std::set<joda::settings::ChannelReportingSettings::MeasureChannels> details;
+  std::set<joda::settings::ChannelReportingSettings::MeasureChannels> overview;
+  std::set<joda::settings::ChannelReportingSettings::MeasureChannels> heatmap;
 
   for(auto const &[key, val] : mMeasurementDetailsReport) {
     if(val->isChecked()) {
-      details.emplace((uint32_t) key);
+      details.emplace(key);
     }
   }
 
   for(auto const &[key, val] : mMeasurementOverViewReport) {
     if(val->isChecked()) {
-      overview.emplace((uint32_t) key);
+      overview.emplace(key);
     }
   }
 
   for(auto const &[key, val] : mMeasurementHeatmapReport) {
     if(val->isChecked()) {
-      heatmap.emplace((uint32_t) key);
+      heatmap.emplace(key);
     }
   }
 
-  mReportingSettings->setReportingSettings(details, overview, heatmap);
+  mReportingSettings.detail.measureChannels   = details;
+  mReportingSettings.overview.measureChannels = overview;
+  mReportingSettings.heatmap.measureChannels  = heatmap;
 
   return ret;
 }

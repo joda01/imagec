@@ -114,28 +114,7 @@ public:
         MeasureChannels::INTERSECTION_CROSS_CHANNEL,
     };
 
-    //
-    // Generate a heatmap for grouped images
-    //
-    bool generateHeatmapForPlate = false;
-
-    //
-    // Generate a heatmap for a well
-    //
-    bool generateHeatmapForWell = false;
-
-    //
-    // Generate a heatmap for each image
-    //
-    bool generateHeatmapForImage = false;
-
-    //
-    // With of the square used for heatmap creation in image
-    //
-    std::set<int32_t> imageHeatmapAreaSizes;
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Heatmap, measureChannels, generateHeatmapForPlate,
-                                                generateHeatmapForWell, generateHeatmapForImage, imageHeatmapAreaSizes);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Heatmap, measureChannels);
   };
 
   DetailReport detail;

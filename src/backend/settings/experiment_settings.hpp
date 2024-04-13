@@ -11,12 +11,14 @@
 
 #pragma once
 
+#include <set>
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
 
 class ExperimentSettings
 {
+public:
   enum class GroupBy
   {
     OFF,
@@ -41,6 +43,26 @@ class ExperimentSettings
   //
   std::vector<std::vector<int32_t>> wellImageOrder;
 
+  //
+  // Generate a heatmap for grouped images
+  //
+  bool generateHeatmapForPlate = false;
+
+  //
+  // Generate a heatmap for a well
+  //
+  bool generateHeatmapForWell = false;
+
+  //
+  // Generate a heatmap for each image
+  //
+  bool generateHeatmapForImage = false;
+
+  //
+  // With of the square used for heatmap creation in image
+  //
+  std::set<int32_t> imageHeatmapAreaSizes;
+
   // map TaskState values to JSON as strings
   NLOHMANN_JSON_SERIALIZE_ENUM(GroupBy, {
                                             {GroupBy::OFF, "Off"},
@@ -48,7 +70,8 @@ class ExperimentSettings
                                             {GroupBy::FILENAME, "Filename"},
                                         })
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, groupBy, filenameRegex, wellImageOrder);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, groupBy, filenameRegex, wellImageOrder,
+                                              generateHeatmapForPlate, generateHeatmapForWell, imageHeatmapAreaSizes);
 };
 
 }    // namespace joda::settings

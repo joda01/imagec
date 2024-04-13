@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include <qcheckbox.h>
 #include <qcombobox.h>
 #include <qdialog.h>
 #include <qlabel.h>
@@ -21,31 +20,44 @@
 #include <qwindow.h>
 #include <memory>
 #include <thread>
-#include "backend/pipelines/reporting/reporting_defines.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
+#include "backend/settings/experiment_settings.hpp"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
 
-class DialogChannelMeasurement : public QDialog
+class DialogExperimentSettings : public QDialog
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogChannelMeasurement(settings::json::ReportingSettings *reportingSettings, QWidget *windowMain);
+  DialogExperimentSettings(QWidget *windowMain, joda::settings::ExperimentSettings &settings);
+
   int exec() override;
 
 private:
-  std::map<joda::pipeline::reporting::MeasurementChannels, QCheckBox *> mMeasurementOverViewReport;
-  std::map<joda::pipeline::reporting::MeasurementChannels, QCheckBox *> mMeasurementDetailsReport;
-  std::map<joda::pipeline::reporting::MeasurementChannels, QCheckBox *> mMeasurementHeatmapReport;
+  /////////////////////////////////////////////////////
+  void fromSettings();
+  void toSettings();
 
-  settings::json::ReportingSettings *mReportingSettings;
+  /////////////////////////////////////////////////////
+  joda::settings::ExperimentSettings &mSettings;
+
+  QComboBox *mGroupedHeatmapOnOff;
+  QComboBox *mWellHeatmapOnOff;
+  QComboBox *mImageHeatmapOnOff;
+  QLineEdit *mWellOrderMatrix;
+
+  QLineEdit *mHeatmapSlice;
+  QComboBox *mGroupByComboBox;
+  QComboBox *mRegexToFindTheWellPosition;
+  QLineEdit *mTestFileName;
+  QLabel *mTestFileResult;
 
 private slots:
   void onOkayClicked();
   void onCancelClicked();
+  void applyRegex();
 };
 
 }    // namespace joda::ui::qt

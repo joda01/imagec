@@ -36,17 +36,21 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
 }
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex,
-         const joda::settings::ChannelSettingsFilter *filter) :
+         const joda::settings::ChannelSettingsFilter &filter) :
     index(index),
     confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask), mMaskContours(contour)
 {
-  if(filter != nullptr) {
-    calculateSnapAreaAndContours(filter->snapAreaSize, imageOriginal.cols, imageOriginal.rows);
-  } else {
-    calculateSnapAreaAndContours(0, imageOriginal.cols, imageOriginal.rows);
-  }
-  calculateMetrics({{channelIndex, &imageOriginal}}, filter);
+  calculateSnapAreaAndContours(filter.snapAreaSize, imageOriginal.cols, imageOriginal.rows);
+  calculateMetrics({{channelIndex, &imageOriginal}}, &filter);
 }
+
+ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
+         const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex)
+{
+  calculateSnapAreaAndContours(0, imageOriginal.cols, imageOriginal.rows);
+  calculateMetrics({{channelIndex, &imageOriginal}}, nullptr);
+}
+
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour, const std::map<int32_t, const cv::Mat *> &imageOriginal) :
     index(index),

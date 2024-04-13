@@ -14,14 +14,15 @@
 #pragma once
 
 #include <map>
-#include "backend/settings/analze_settings_parser.hpp"
+#include "backend/image_processing/detection/detection_response.hpp"
+#include "backend/settings/analze_settings.hpp"
 
 namespace joda::pipeline {
 
 class PipelineStep
 {
 public:
-  virtual auto execute(const settings::json::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
+  virtual auto execute(const joda::settings::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
                        const std::string &detailoutputPath) const -> joda::func::DetectionResponse = 0;
 };
 

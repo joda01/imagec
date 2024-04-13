@@ -15,7 +15,6 @@
 
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
-#include "backend/settings/pipeline_settings.hpp"
 
 namespace joda::ctrl {
 
@@ -29,8 +28,8 @@ class Controller
 public:
   /////////////////////////////////////////////////////
   Controller();
-  void start(const settings::json::AnalyzeSettings &settings,
-             const pipeline::Pipeline::ThreadingSettings &threadSettings, const std::string &jobName);
+  void start(const settings::AnalyzeSettings &settings, const pipeline::Pipeline::ThreadingSettings &threadSettings,
+             const std::string &jobName);
   void stop();
   void reset();
   std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string> getState();
@@ -48,7 +47,7 @@ public:
     joda::func::DetectionResults detectionResult;
     std::string imageFileName;
   };
-  auto preview(const settings::json::ChannelSettings &settings, int imgIndex, int tileIndex) -> Preview;
+  auto preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex) -> Preview;
   auto getImageProperties(int imgIndex, int series) -> ImageProperties;
   struct Resources
   {
@@ -58,7 +57,7 @@ public:
   };
   static auto getSystemResources() -> Resources;
 
-  auto calcOptimalThreadNumber(const settings::json::AnalyzeSettings &settings, int imgIndex)
+  auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, int imgIndex)
       -> pipeline::Pipeline::ThreadingSettings;
   [[nodiscard]] std::string getOutputFolder() const;
 

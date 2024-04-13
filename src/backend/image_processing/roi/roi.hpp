@@ -66,14 +66,14 @@ public:
       const std::vector<cv::Point> &contour);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
+      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex);
+
+  ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
       const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex,
-      const joda::settings::ChannelSettingsFilter *filter);
+      const joda::settings::ChannelSettingsFilter &filter);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
       const std::vector<cv::Point> &contour, const std::map<int32_t, const cv::Mat *> &imageOriginal);
-
-  void calculateMetrics(const std::map<int32_t, const cv::Mat *> &imageOriginal,
-                        const joda::settings::ChannelSettingsFilter *filter);
 
   [[nodiscard]] auto getIndex() const
   {
@@ -190,6 +190,8 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  void calculateMetrics(const std::map<int32_t, const cv::Mat *> &imageOriginal,
+                        const joda::settings::ChannelSettingsFilter *filter);
   void calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int32_t maxHeight);
   void applyParticleFilter(const joda::settings::ChannelSettingsFilter *filter);
   [[nodiscard]] double calcPerimeter(const std::vector<cv::Point> &) const;

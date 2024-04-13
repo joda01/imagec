@@ -15,7 +15,7 @@ namespace joda::settings {
 class VChannelSettings
 {
 public:
-  std::optional<std::vector<VChannelVoronoi>> $voronoi;
+  std::optional<VChannelVoronoi> $voronoi;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(VChannelSettings, $voronoi)
 };

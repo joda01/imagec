@@ -34,8 +34,7 @@ class VoronoiGrid : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  explicit VoronoiGrid(const DetectionResults &result, int maxRadius) :
-      DetectionFunction(nullptr), mMaxRadius(maxRadius)
+  explicit VoronoiGrid(const DetectionResults &result, int maxRadius) : DetectionFunction({}), mMaxRadius(maxRadius)
   {
     // Extract points from the result bounding boxes
     for(const auto &res : result) {

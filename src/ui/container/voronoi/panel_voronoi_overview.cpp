@@ -15,8 +15,8 @@
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
-#include "ui/container_function.hpp"
-#include "ui/window_main.hpp"
+#include "../../window_main.hpp"
+#include "../container_function.hpp"
 #include "container_voronoi.hpp"
 
 namespace joda::ui::qt {
@@ -44,7 +44,6 @@ PanelVoronoiOverview::PanelVoronoiOverview(WindowMain *wm, ContainerVoronoi *par
   layout->addWidget(parent->mVoronoiPoints->getLabelWidget(), 1, 1);
   layout->addWidget(parent->mOverlayMaskChannelIndex->getLabelWidget(), 1, 2);
 
-  layout->addWidget(parent->mColocGroup->getLabelWidget(), 2, 0);
   layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 2, 1);
   layout->addWidget(parent->mMaxVoronoiAreaSize->getLabelWidget(), 2, 2);
 

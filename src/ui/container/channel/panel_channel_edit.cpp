@@ -22,9 +22,10 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include "ui/container_function.hpp"
-#include "ui/dialog_channel_measurment.hpp"
-#include "ui/window_main.hpp"
+#include "../../window_main.hpp"
+#include "../container_function.hpp"
+#include "../dialog_channel_measurment.hpp"
+#include "backend/settings/detection/detection_settings.hpp"
 #include "container_channel.hpp"
 
 namespace joda::ui::qt {
@@ -57,7 +58,7 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   // Cross channel
   auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   llayoutColoc->addWidget(createTitle("Cross-Channel"));
-  llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
+  // llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
   llayoutColoc->addWidget(parentContainer->mCrossChannelIntensity->getEditableWidget());
   llayoutColoc->addWidget(parentContainer->mCrossChannelCount->getEditableWidget());
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -381,7 +382,7 @@ void PanelChannelEdit::onChannelTypeChanged()
 
 void PanelChannelEdit::onDetectionModechanged()
 {
-  if(mParentContainer->mUsedDetectionMode->getValue() == "AI") {
+  if(mParentContainer->mUsedDetectionMode->getValue() == joda::settings::DetectionSettings::DetectionMode::AI) {
     mParentContainer->mMinProbability->getEditableWidget()->setVisible(true);
     mParentContainer->mAIModels->getEditableWidget()->setVisible(true);
 
@@ -420,12 +421,10 @@ void PanelChannelEdit::updatePreview()
           if(nullptr != mPreviewImage) {
             int imgIndex = mWindowMain->getSelectedFileIndex();
             if(imgIndex >= 0) {
-              settings::json::ChannelSettings chs;
-              chs.loadConfigFromString(mParentContainer->toJson().channelSettings->dump());
               auto *controller = mWindowMain->getController();
               try {
                 int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();
-                auto preview    = controller->preview(chs, imgIndex, tileIdx);
+                auto preview    = controller->preview(mParentContainer->mSettings, imgIndex, tileIdx);
                 if(!preview.data.empty()) {
                   // Create a QByteArray from the char array
                   QByteArray byteArray(reinterpret_cast<const char *>(preview.data.data()), preview.data.size());
@@ -482,7 +481,7 @@ void PanelChannelEdit::updatePreview()
 ///
 void PanelChannelEdit::onEditMeasurementClicked()
 {
-  DialogChannelMeasurement measure(&mParentContainer->mReportingSettings, this);
+  DialogChannelMeasurement measure(this, mParentContainer->mSettings.reporting);
   measure.exec();
 }
 

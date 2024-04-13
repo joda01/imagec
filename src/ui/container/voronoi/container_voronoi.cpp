@@ -20,11 +20,10 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include "../../window_main.hpp"
+#include "../container_function.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
-#include "backend/settings/channel_settings.hpp"
-#include "ui/container_function.hpp"
-#include "ui/voronoi/panel_voronoi_edit.hpp"
-#include "ui/window_main.hpp"
+#include "panel_voronoi_edit.hpp"
 #include "panel_voronoi_overview.hpp"
 
 namespace joda::ui::qt {
@@ -33,13 +32,23 @@ namespace joda::ui::qt {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain) : mWindowMain(windowMain)
+ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChannelVoronoi &settings) :
+    mWindowMain(windowMain), mSettings(settings)
 {
   mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(
-      new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Voronoi"));
+      new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name"));
+
+  mChannelType = std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>>(
+      new ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>(
+          "icons8-unknown-status-50.png", "Type", "Channel type", "", joda::settings::ChannelSettingsMeta::Type::SPOT,
+          {{joda::settings::ChannelSettingsMeta::Type::SPOT, "Spot"},
+           {joda::settings::ChannelSettingsMeta::Type::SPOT_REFERENCE, "Reference Spot"},
+           {joda::settings::ChannelSettingsMeta::Type::NUCLEUS, "Nucleus"},
+           {joda::settings::ChannelSettingsMeta::Type::CELL, "Cell"},
+           {joda::settings::ChannelSettingsMeta::Type::BACKGROUND, "Background"}}));
 
   mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-unknown-status-50.png", "Type", "Channel index", "", "#FBEA25",
+      new ContainerFunction<QString, int>("icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
                                           {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
                                            {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
                                            {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
@@ -47,7 +56,20 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain) : mWindowMain(windowM
                                            {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
                                            {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
                                            /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
-                                          {{100, "Channel 100"}, {101, "Channel 101"}}, 100));
+                                          {{0, "Channel 0"},
+                                           {1, "Channel 1"},
+                                           {2, "Channel 2"},
+                                           {3, "Channel 3"},
+                                           {4, "Channel 4"},
+                                           {5, "Channel 5"},
+                                           {6, "Channel 6"},
+                                           {7, "Channel 7"},
+                                           {8, "Channel 8"},
+                                           {9, "Channel 9"},
+                                           {10, "Channel 10"},
+                                           {11, "Channel 11"},
+                                           {12, "Channel 12"}},
+                                          0));
 
   //
   // Cell approximation
@@ -93,22 +115,6 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain) : mWindowMain(windowM
   //
   // Cross channel Intensity
   //
-  mColocGroup = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-query-outer-join-left-50.png", "Group", "Coloc group and min. overlap", "", "NONE",
-      {{"NONE", "Off"}, {"A", "A"}, {"B", "B"}, {"C", "C"}},
-      {{0, "0%"},
-       {10, "10%"},
-       {20, "20%"},
-       {30, "30%"},
-       {40, "40%"},
-       {50, "50%"},
-       {60, "60%"},
-       {70, "70%"},
-       {80, "80%"},
-       {90, "90%"},
-       {100, "100%"}},
-      80));
-
   mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(
       new ContainerFunction<QString, int>("icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", ""));
 
@@ -136,64 +142,52 @@ ContainerVoronoi::~ContainerVoronoi()
 /// \brief      Load values
 /// \author     Joachim Danmayr
 ///
-void ContainerVoronoi::fromJson(std::optional<joda::settings::json::ChannelSettings>,
-                                std::optional<joda::settings::json::PipelineStepVoronoi> voronoi)
+void ContainerVoronoi::fromSettings()
 {
-  if(voronoi.has_value()) {
-    mMaxVoronoiAreaSize->clearValue();
-    mColocGroup->clearValue();
-    mCrossChannelIntensity->clearValue();
+  mMaxVoronoiAreaSize->clearValue();
+  mCrossChannelIntensity->clearValue();
 
-    // Meta
-    mChannelName->setValue(voronoi->getName().data());
-    mColorAndChannelIndex->setValue(QString(voronoi->getColor().data()));
-    mColorAndChannelIndex->setValueSecond(voronoi->getChannelIndex());
-    mVoronoiPoints->setValue(voronoi->getPointsChannelIndex());
+  // Meta
+  mChannelType->setValue(mSettings.meta.type);
+  mChannelName->setValue(mSettings.meta.name.data());
+  mColorAndChannelIndex->setValue(mSettings.meta.color.data());
+  mColorAndChannelIndex->setValueSecond(mSettings.meta.channelIdx);
 
-    // Filtering
-    mMaxVoronoiAreaSize->setValue(voronoi->getMaxVoronoiAreaRadius());
-    mOverlayMaskChannelIndex->setValue(voronoi->getOverlayMaskChannelIndex());
+  mVoronoiPoints->setValue(mSettings.voronoi.gridPointsChannelIdx);
 
-    //
-    // Cross channel
-    //
-    // Coloc
-    {
-      auto &coloc = voronoi->getColocGroups();
-      if(coloc.size() > 0) {
-        std::string value = *coloc.begin();
-        mColocGroup->setValue(value.data());
-        mColocGroup->setValueSecond(static_cast<int>(voronoi->getMinColocArea() * 100.0F));
-      }
+  // Filtering
+  mMaxVoronoiAreaSize->setValue(mSettings.voronoi.maxVoronoiAreaRadius);
+  mOverlayMaskChannelIndex->setValue(mSettings.voronoi.overlayMaskChannelIdx);
+
+  //
+  // Cross channel
+  //
+  // Coloc
+
+  // Cross channel intensity
+  {
+    auto &crossChannelIntensity = mSettings.crossChannel.crossChannelIntensityChannels;
+    QString crossChannelIndexes;
+    for(const auto chIdx : crossChannelIntensity) {
+      crossChannelIndexes += QString::number(chIdx) + ",";
     }
-
-    // Cross channel intensity
-    {
-      auto &crossChannelIntensity = voronoi->getCrossChannelIntensityChannels();
-      QString crossChannelIndexes;
-      for(const auto chIdx : crossChannelIntensity) {
-        crossChannelIndexes += QString(chIdx.data()) + ",";
-      }
-      if(crossChannelIndexes.size() > 0) {
-        crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
-      }
-      mCrossChannelIntensity->setValue(crossChannelIndexes);
+    if(crossChannelIndexes.size() > 0) {
+      crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
     }
+    mCrossChannelIntensity->setValue(crossChannelIndexes);
+  }
 
-    // Cross channel count
-    {
-      auto &crosschannelCount = voronoi->getCrossChannelCountChannels();
-      QString crossChannelIndexes;
-      for(const auto chIdx : crosschannelCount) {
-        crossChannelIndexes += QString(chIdx.data()) + ",";
-      }
-      if(crossChannelIndexes.size() > 0) {
-        crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
-      }
-      mCrossChannelCount->setValue(crossChannelIndexes);
+  // Cross channel count
+  {
+    auto &crosschannelCount = mSettings.crossChannel.crossChannelCoutChannels;
+    QString crossChannelIndexes;
+    for(const auto chIdx : crosschannelCount) {
+      crossChannelIndexes += QString::number(chIdx) + ",";
     }
-
-    mReportingSettings = voronoi->getReportingSettings();
+    if(crossChannelIndexes.size() > 0) {
+      crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
+    }
+    mCrossChannelCount->setValue(crossChannelIndexes);
   }
 }
 
@@ -201,51 +195,40 @@ void ContainerVoronoi::fromJson(std::optional<joda::settings::json::ChannelSetti
 /// \brief      Get values
 /// \author     Joachim Danmayr
 ///
-ContainerVoronoi::ConvertedChannels ContainerVoronoi::toJson() const
+void ContainerVoronoi::toSettings()
 {
-  nlohmann::json chSettings;
+  mSettings.meta.channelIdx = mColorAndChannelIndex->getValueSecond();
+  mSettings.meta.color      = mColorAndChannelIndex->getValue().toStdString();
+  mSettings.meta.series     = mWindowMain->getSelectedSeries();
+  mSettings.meta.type       = mChannelType->getValue();
+  mSettings.meta.name       = mChannelName->getValue().toStdString();
 
-  chSettings["voronoi"]["name"]                       = mChannelName->getValue().toStdString();
-  chSettings["voronoi"]["index"]                      = mColorAndChannelIndex->getValueSecond();
-  chSettings["voronoi"]["color"]                      = mColorAndChannelIndex->getValue().toStdString();
-  chSettings["voronoi"]["points_channel_index"]       = mVoronoiPoints->getValue();
-  chSettings["voronoi"]["overlay_mask_channel_index"] = mOverlayMaskChannelIndex->getValue();
-  chSettings["voronoi"]["max_voronoi_area_radius"]    = mMaxVoronoiAreaSize->getValue();
+  mSettings.voronoi.gridPointsChannelIdx  = mVoronoiPoints->getValue();
+  mSettings.voronoi.overlayMaskChannelIdx = mOverlayMaskChannelIndex->getValue();
+  mSettings.voronoi.maxVoronoiAreaRadius  = mMaxVoronoiAreaSize->getValue();
 
   // Cross channel settings
   {
-    std::set<std::string> colocGroup;
-    if(mColocGroup->hasValue()) {
-      colocGroup.emplace(mColocGroup->getValue().toStdString());
-    }
-    chSettings["voronoi"]["coloc_groups"]   = colocGroup;
-    chSettings["voronoi"]["min_coloc_area"] = static_cast<float>(mColocGroup->getValueSecond()) / 100.0F;
-  }
-  {
-    std::set<std::string> crossChannelIntensity;
+    std::set<int32_t> crossChannelIntensity;
     auto values = mCrossChannelIntensity->getValue().split(",");
     for(const auto &val : values) {
       if(!val.isEmpty()) {
-        crossChannelIntensity.emplace(val.toStdString());
+        crossChannelIntensity.emplace(val.toInt());
       }
     }
-    chSettings["voronoi"]["cross_channel_intensity_channels"] = crossChannelIntensity;
+    mSettings.crossChannel.crossChannelIntensityChannels = crossChannelIntensity;
   }
 
   {
-    std::set<std::string> crossChannelCount;
+    std::set<int32_t> crossChannelCount;
     auto values = mCrossChannelCount->getValue().split(",");
     for(const auto &val : values) {
       if(!val.isEmpty()) {
-        crossChannelCount.emplace(val.toStdString());
+        crossChannelCount.emplace(val.toInt());
       }
     }
-    chSettings["voronoi"]["cross_channel_count_channels"] = crossChannelCount;
+    mSettings.crossChannel.crossChannelCoutChannels = crossChannelCount;
   }
-
-  chSettings["reporting"] = nlohmann::json(mReportingSettings);
-
-  return {.channelSettings = std::nullopt, .pipelineStepVoronoi = chSettings};
 }
 
 }    // namespace joda::ui::qt

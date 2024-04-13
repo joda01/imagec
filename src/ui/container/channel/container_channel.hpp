@@ -19,11 +19,14 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include "backend/settings/analze_settings_parser.hpp"
-#include "backend/settings/channel_settings.hpp"
-#include "backend/settings/pipeline_settings.hpp"
-#include "ui/container_base.hpp"
-#include "ui/container_function.hpp"
+#include "../container_base.hpp"
+#include "../container_function.hpp"
+#include "backend/settings/channel/channel_settings.hpp"
+#include "backend/settings/channel/channel_settings_meta.hpp"
+#include "backend/settings/detection/detection_settings.hpp"
+#include "backend/settings/preprocessing/functions/edge_detection.hpp"
+#include "backend/settings/preprocessing/functions/rolling_ball.hpp"
+#include "backend/settings/preprocessing/functions/zstack.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "panel_channel_edit.hpp"
 #include "panel_channel_overview.hpp"
@@ -41,13 +44,14 @@ class ContainerChannel : public ContainerBase
   friend class PanelChannelEdit;
 
 public:
-  ContainerChannel(const ContainerChannel &)            = default;
+  ContainerChannel(const ContainerChannel &)            = delete;
   ContainerChannel(ContainerChannel &&)                 = delete;
-  ContainerChannel &operator=(const ContainerChannel &) = default;
+  ContainerChannel &operator=(const ContainerChannel &) = delete;
   ContainerChannel &operator=(ContainerChannel &&)      = delete;
+
   /////////////////////////////////////////////////////
-  ContainerChannel(WindowMain *windowMain);
-  ~ContainerChannel();
+  ContainerChannel(WindowMain *windowMain, joda::settings::ChannelSettings &settings);
+  ~ContainerChannel() override;
   PanelChannelOverview *getOverviewPanel() override
   {
     return mPanelOverview;
@@ -63,32 +67,16 @@ public:
     }
   }
 
-  void fromJson(std::optional<joda::settings::json::ChannelSettings>,
-                std::optional<joda::settings::json::PipelineStepVoronoi>) override;
-  [[nodiscard]] ConvertedChannels toJson() const override;
-
-  std::tuple<std::string, float> getMinColocFactor() override
-  {
-    if(mColocGroup->hasValue()) {
-      return {mColocGroup->getValue().toStdString(), mColocGroup->getValueSecond() / 100.0F};
-    }
-    return {"NONE", 0};
-  }
-
-  void setMinColocFactor(const std::string &group, float newValue) override
-  {
-    if(group == mColocGroup->getValue().toStdString()) {
-      mColocGroup->setValueSecond(newValue * 100.0F);
-    }
-  }
+  void fromSettings() override;
+  void toSettings() override;
 
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, QString>> mChannelName;
-  std::shared_ptr<ContainerFunction<QString, QString>> mChannelType;
+  std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>> mChannelType;
   std::shared_ptr<ContainerFunction<QString, int>> mColorAndChannelIndex;
 
-  std::shared_ptr<ContainerFunction<QString, QString>> mThresholdAlgorithm;
+  std::shared_ptr<ContainerFunction<joda::settings::ThresholdSettings::Mode, QString>> mThresholdAlgorithm;
   std::shared_ptr<ContainerFunction<int, int>> mThresholdValueMin;
   std::shared_ptr<ContainerFunction<bool, bool>> mWateredSegmentation;
 
@@ -97,27 +85,27 @@ private:
   std::shared_ptr<ContainerFunction<int, int>> mMaxParticleSize;
   std::shared_ptr<ContainerFunction<int, int>> mSnapAreaSize;
 
-  std::shared_ptr<ContainerFunction<QString, QString>> mZProjection;
+  std::shared_ptr<ContainerFunction<joda::settings::ZStackProcessing::ZStackMethod, QString>> mZProjection;
   std::shared_ptr<ContainerFunction<int, int>> mMarginCrop;
   std::shared_ptr<ContainerFunction<int, int>> mSubtractChannel;
   std::shared_ptr<ContainerFunction<int, int>> mMedianBackgroundSubtraction;
-  std::shared_ptr<ContainerFunction<int, QString>> mRollingBall;
+  std::shared_ptr<ContainerFunction<int, joda::settings::RollingBall::BallType>> mRollingBall;
   std::shared_ptr<ContainerFunction<int, int>> mGaussianBlur;
   std::shared_ptr<ContainerFunction<int, int>> mSmoothing;
-  std::shared_ptr<ContainerFunction<QString, QString>> mEdgeDetection;
+  std::shared_ptr<ContainerFunction<joda::settings::EdgeDetection::Mode, joda::settings::EdgeDetection::Direction>>
+      mEdgeDetection;
   std::shared_ptr<ContainerFunction<int, int>> mTetraspeckRemoval;
 
-  std::shared_ptr<ContainerFunction<QString, QString>> mUsedDetectionMode;
+  std::shared_ptr<ContainerFunction<joda::settings::DetectionSettings::DetectionMode, QString>> mUsedDetectionMode;
   std::shared_ptr<ContainerFunction<float, float>> mMinProbability;
   std::shared_ptr<ContainerFunction<QString, QString>> mAIModels;
 
   // Cross-Channel//////////////////////////////////
-  std::shared_ptr<ContainerFunction<QString, int>> mColocGroup;
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntensity;
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelCount;
 
   // Reporting//////////////////////////////////
-  settings::json::ReportingSettings mReportingSettings;
+  settings::ChannelSettings &mSettings;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

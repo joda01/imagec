@@ -81,7 +81,7 @@ public:
     ERROR_   = 5
   };
 
-  Pipeline(const jods::settings::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
+  Pipeline(const joda::settings::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
            const std::string &inputFolder, const std::string &jobName,
            const ThreadingSettings &threadingSettings = ThreadingSettings());
   ~Pipeline()
@@ -121,7 +121,7 @@ protected:
 
   ///
   /// \brief Returns the analyze settings of this pipeline
-  [[nodiscard]] auto getAnalyzeSetings() const -> const joda::settings::json::AnalyzeSettings &
+  [[nodiscard]] auto getAnalyzeSetings() const -> const joda::settings::AnalyzeSettings &
   {
     return mAnalyzeSettings;
   }
@@ -172,7 +172,7 @@ private:
   void analyzeTile(joda::results::ReportingContainer &detailReports, FileInfo imagePath, std::string detailOutputFolder,
                    int tileIdx, const ImageProperties &imgProps);
   void analyszeChannel(std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
-                       const joda::settings::json::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx);
+                       const joda::settings::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx);
 
   /////////////////////////////////////////////////////
   std::string mInputFolder;

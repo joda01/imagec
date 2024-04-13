@@ -16,6 +16,7 @@
 #include "../../detection/detection.hpp"
 #include "../detection_response.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
+#include "backend/settings/channel/channel_settings_filter.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/dnn.hpp>
 #include <opencv2/dnn/all_layers.hpp>
@@ -32,7 +33,7 @@ class ObjectDetector : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectDetector(const joda::settings::json::ChannelFiltering *filt, const joda::onnx::OnnxParser::Data &model);
+  ObjectDetector(const joda::settings::ChannelSettingsFilter &filt, const joda::onnx::OnnxParser::Data &model);
   auto forward(const cv::Mat &inputImage, const cv::Mat &originalImage, int32_t channelIndex)
       -> DetectionResponse override;
 

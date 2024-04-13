@@ -24,10 +24,11 @@ namespace joda::algo {
 /// \brief      Executed the algorithm and generates reporting
 /// \author     Joachim Danmayr
 ///
-auto ImageProcessor::executeAlgorithm(
-    const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting, uint64_t tileIndex,
-    const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
-    const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults)
+func::DetectionResponse
+ImageProcessor::executeAlgorithm(const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting,
+                                 uint64_t tileIndex,
+                                 const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
+                                 const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults)
 {
   //
   // Execute the algorithms

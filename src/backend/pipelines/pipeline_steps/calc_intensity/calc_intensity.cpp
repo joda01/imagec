@@ -22,7 +22,7 @@ namespace joda::pipeline {
 /// \param[out]
 /// \return
 ///
-auto CalcIntensity::execute(const settings::json::AnalyzeSettings &,
+auto CalcIntensity::execute(const settings::AnalyzeSettings &,
                             const std::map<int, joda::func::DetectionResponse> &detectionResultsIn,
                             const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {

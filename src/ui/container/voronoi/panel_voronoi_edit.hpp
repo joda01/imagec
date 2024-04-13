@@ -19,7 +19,7 @@
 #include <mutex>
 #include "ui/helper/waitingspinnerwidget.hpp"
 #include "ui/panel_preview.hpp"
-#include "ui/voronoi/panel_voronoi_overview.hpp"
+#include "panel_voronoi_overview.hpp"
 
 namespace joda::ui::qt {
 

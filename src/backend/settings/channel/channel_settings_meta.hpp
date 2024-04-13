@@ -41,7 +41,7 @@ public:
   // What is seen in this channel
   // [NUCLEUS, EV, BACKGROUND, CELL_BRIGHTFIELD, CELL_DARKFIELD]
   //
-  Type type = Type::NONE;
+  ChannelSettingsMeta::Type type = ChannelSettingsMeta::Type::NONE;
 
   //
   // Label of the channel if available

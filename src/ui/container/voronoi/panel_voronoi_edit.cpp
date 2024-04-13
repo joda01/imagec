@@ -22,9 +22,9 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include "ui/container_function.hpp"
-#include "ui/dialog_channel_measurment.hpp"
-#include "ui/window_main.hpp"
+#include "../../window_main.hpp"
+#include "../container_function.hpp"
+#include "../dialog_channel_measurment.hpp"
 #include "container_voronoi.hpp"
 
 namespace joda::ui::qt {
@@ -55,7 +55,7 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
   auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   llayoutColoc->addWidget(createTitle("Cross-Channel"));
   llayoutColoc->addWidget(parentContainer->mVoronoiPoints->getEditableWidget());
-  llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
+  // llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
   llayoutColoc->addWidget(parentContainer->mCrossChannelIntensity->getEditableWidget());
   llayoutColoc->addWidget(parentContainer->mCrossChannelCount->getEditableWidget());
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -317,77 +317,6 @@ void PanelVoronoiEdit::onChannelTypeChanged()
 
 void PanelVoronoiEdit::updatePreview()
 {
-  return;
-  if(mIsActiveShown) {
-    if(mPreviewCounter == 0) {
-      {
-        std::lock_guard<std::mutex> lock(mPreviewMutex);
-        mPreviewCounter++;
-        emit updatePreviewStarted();
-      }
-      if(mPreviewThread != nullptr) {
-        if(mPreviewThread->joinable()) {
-          mPreviewThread->join();
-        }
-      }
-      mPreviewThread = std::make_unique<std::thread>([this]() {
-        int previewCounter = 0;
-        std::this_thread::sleep_for(500ms);
-        do {
-          if(nullptr != mPreviewImage) {
-            int imgIndex = mWindowMain->getSelectedFileIndex();
-            if(imgIndex >= 0) {
-              settings::json::ChannelSettings chs;
-              chs.loadConfigFromString(mParentContainer->toJson().channelSettings->dump());
-              auto *controller = mWindowMain->getController();
-              try {
-                int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();
-                auto preview    = controller->preview(chs, imgIndex, tileIdx);
-                if(!preview.data.empty()) {
-                  // Create a QByteArray from the char array
-                  QByteArray byteArray(reinterpret_cast<const char *>(preview.data.data()), preview.data.size());
-                  QImage image;
-                  if(image.loadFromData(byteArray, "PNG")) {
-                    QPixmap pixmap = QPixmap::fromImage(image);
-                    int valid      = 0;
-                    int invalid    = 0;
-                    for(const auto &roi : preview.detectionResult) {
-                      if(roi.isValid()) {
-                        valid++;
-                      } else {
-                        invalid++;
-                      }
-                    }
-
-                    QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
-                    mPreviewImage->setPixmap(pixmap, PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, info);
-
-                  } else {
-                    mPreviewImage->resetImage("");
-                  }
-                }
-              } catch(const std::exception &error) {
-                mPreviewImage->resetImage(error.what());
-              }
-            }
-          }
-          std::this_thread::sleep_for(250ms);
-          {
-            std::lock_guard<std::mutex> lock(mPreviewMutex);
-            previewCounter = mPreviewCounter;
-            previewCounter--;
-            mPreviewCounter = previewCounter;
-          }
-        } while(previewCounter > 0);
-        if(mSpinner != nullptr) {
-          emit updatePreviewFinished();
-        }
-      });
-    } else {
-      std::lock_guard<std::mutex> lock(mPreviewMutex);
-      mPreviewCounter++;
-    }
-  }
 }
 
 ///
@@ -399,7 +328,7 @@ void PanelVoronoiEdit::updatePreview()
 ///
 void PanelVoronoiEdit::onEditMeasurementClicked()
 {
-  DialogChannelMeasurement measure(&mParentContainer->mReportingSettings, this);
+  DialogChannelMeasurement measure(this, mParentContainer->mSettings.reporting);
   measure.exec();
 }
 

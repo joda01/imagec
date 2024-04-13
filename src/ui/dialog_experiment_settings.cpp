@@ -11,8 +11,9 @@
 /// \brief     A short description what happens here.
 ///
 
-#include "dialog_settings.hpp"
+#include "dialog_experiment_settings.hpp"
 #include <qboxlayout.h>
+#include <qdialog.h>
 #include <qgroupbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
@@ -21,7 +22,7 @@
 #include <string>
 #include <vector>
 #include "backend/pipelines/reporting/reporting_helper.hpp"
-#include "backend/settings/analze_settings_parser.hpp"
+#include "backend/settings/experiment_settings.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json_fwd.hpp>
 
@@ -40,7 +41,8 @@ struct Temp
 /// \param[out]
 /// \return
 ///
-DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
+DialogExperimentSettings::DialogExperimentSettings(QWidget *windowMain, joda::settings::ExperimentSettings &settings) :
+    QDialog(windowMain), mSettings(settings)
 {
   setWindowTitle("Settings");
   setBaseSize(500, 200);
@@ -60,9 +62,11 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
   groupBoxLayout->addWidget(mHeatmapSlice);
 
   mGroupByComboBox = new QComboBox(groupBox);
-  mGroupByComboBox->addItem("Ungrouped", "OFF");
-  mGroupByComboBox->addItem("Group based on foldername", "FOLDER");
-  mGroupByComboBox->addItem("Group based on filename", "FILENAME");
+  mGroupByComboBox->addItem("Ungrouped", static_cast<int>(joda::settings::ExperimentSettings::GroupBy::OFF));
+  mGroupByComboBox->addItem("Group based on foldername",
+                            static_cast<int>(joda::settings::ExperimentSettings::GroupBy::DIRECTORY));
+  mGroupByComboBox->addItem("Group based on filename",
+                            static_cast<int>(joda::settings::ExperimentSettings::GroupBy::FILENAME));
   groupBoxLayout->addWidget(mGroupByComboBox);
 
   mGroupedHeatmapOnOff = new QComboBox(groupBox);
@@ -81,15 +85,6 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
   mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
   groupBoxLayout->addWidget(mWellOrderMatrix);
 
-  // mPlateComboBox = new QComboBox(groupBox);
-  // mPlateComboBox->addItem("No plate (1x1)");
-  // mPlateComboBox->addItem("6 Well plate (3x2)");
-  // mPlateComboBox->addItem("12 Well plate (4x3)");
-  // mPlateComboBox->addItem("24 Well plate (6x4)");
-  // mPlateComboBox->addItem("96 Well plate (12x8)");
-  // mPlateComboBox->addItem("384 Well plate (24x16)");
-  //  groupBoxLayout->addWidget(mPlateComboBox);
-
   auto *groupByLabel = new QLabel("Regex to extract coordinates of Well in plate from image filename", groupBox);
   groupBoxLayout->addWidget(groupByLabel);
   mRegexToFindTheWellPosition = new QComboBox(groupBox);
@@ -97,13 +92,13 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
   mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_([0-9]+)", "((.)([0-9]+))_([0-9]+)");
   mRegexToFindTheWellPosition->setEditable(true);
   groupBoxLayout->addWidget(mRegexToFindTheWellPosition);
-  connect(mRegexToFindTheWellPosition, &QComboBox::editTextChanged, this, &DialogSettings::applyRegex);
-  connect(mRegexToFindTheWellPosition, &QComboBox::currentIndexChanged, this, &DialogSettings::applyRegex);
-  connect(mRegexToFindTheWellPosition, &QComboBox::currentTextChanged, this, &DialogSettings::applyRegex);
+  connect(mRegexToFindTheWellPosition, &QComboBox::editTextChanged, this, &DialogExperimentSettings::applyRegex);
+  connect(mRegexToFindTheWellPosition, &QComboBox::currentIndexChanged, this, &DialogExperimentSettings::applyRegex);
+  connect(mRegexToFindTheWellPosition, &QComboBox::currentTextChanged, this, &DialogExperimentSettings::applyRegex);
 
   mTestFileName = new QLineEdit("your_test_image_file_Name_A99_01.tif", groupBox);
   groupBoxLayout->addWidget(mTestFileName);
-  connect(mTestFileName, &QLineEdit::editingFinished, this, &DialogSettings::applyRegex);
+  connect(mTestFileName, &QLineEdit::editingFinished, this, &DialogExperimentSettings::applyRegex);
 
   mTestFileResult = new QLabel(groupBox);
   groupBoxLayout->addWidget(mTestFileResult);
@@ -111,13 +106,22 @@ DialogSettings::DialogSettings(QWidget *windowMain) : QDialog(windowMain)
   groupBoxLayout->addStretch();
 
   mainLayout->addWidget(groupBox);
+
+  fromSettings();
   applyRegex();
 }
 
-void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &settings)
+int DialogExperimentSettings::exec()
+{
+  int ret = QDialog::exec();
+  toSettings();
+  return ret;
+}
+
+void DialogExperimentSettings::fromSettings()
 {
   {
-    auto idx = mGroupByComboBox->findData(QString(settings.getHeatmapSettings().getGroupByString().data()));
+    auto idx = mGroupByComboBox->findData(static_cast<int>(mSettings.groupBy));
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
     } else {
@@ -126,7 +130,7 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
   }
 
   {
-    auto idx = mGroupedHeatmapOnOff->findData(settings.getHeatmapSettings().getCreateHeatmapForGroup());
+    auto idx = mGroupedHeatmapOnOff->findData(static_cast<int>(mSettings.generateHeatmapForPlate));
     if(idx >= 0) {
       mGroupedHeatmapOnOff->setCurrentIndex(idx);
     } else {
@@ -135,7 +139,7 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
   }
 
   {
-    auto idx = mImageHeatmapOnOff->findData(settings.getHeatmapSettings().getCreateHeatmapForImage());
+    auto idx = mImageHeatmapOnOff->findData(static_cast<int>(mSettings.generateHeatmapForImage));
     if(idx >= 0) {
       mImageHeatmapOnOff->setCurrentIndex(idx);
     } else {
@@ -143,7 +147,7 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
     }
   }
   {
-    auto idx = mWellHeatmapOnOff->findData(settings.getHeatmapSettings().getCreateHeatmapForWells());
+    auto idx = mWellHeatmapOnOff->findData(static_cast<int>(mSettings.generateHeatmapForWell));
     if(idx >= 0) {
       mWellHeatmapOnOff->setCurrentIndex(idx);
     } else {
@@ -152,7 +156,7 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
   }
   {
     QString slice;
-    for(const auto size : settings.getHeatmapSettings().getImageHeatmapAreaWidth()) {
+    for(const auto size : mSettings.imageHeatmapAreaSizes) {
       slice += QString::number(size) + ",";
     }
     slice = slice.left(slice.lastIndexOf(',') + 1);
@@ -160,8 +164,17 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
   }
 
   {
+    auto idx = mGroupByComboBox->findData(static_cast<int>(mSettings.groupBy));
+    if(idx >= 0) {
+      mGroupByComboBox->setCurrentIndex(idx);
+    } else {
+      mGroupByComboBox->setCurrentIndex(0);
+    }
+  }
+
+  {
     try {
-      Temp tm{.order = settings.getHeatmapSettings().getWellImageOrder()};
+      Temp tm{.order = mSettings.wellImageOrder};
       nlohmann::json j = tm;
       j                = j["order"];
       mWellOrderMatrix->setText(j.dump().data());
@@ -170,11 +183,11 @@ void DialogSettings::fromJson(const settings::json::AnalyzeSettingsReporting &se
     }
   }
 
-  mRegexToFindTheWellPosition->setCurrentText(settings.getHeatmapSettings().getFileRegex().data());
+  mRegexToFindTheWellPosition->setCurrentText(mSettings.filenameRegex.data());
   applyRegex();
 }
 
-nlohmann::json DialogSettings::toJson()
+void DialogExperimentSettings::toSettings()
 {
   QStringList pieces = mHeatmapSlice->text().split(",");
   std::set<int> sizes;
@@ -186,26 +199,23 @@ nlohmann::json DialogSettings::toJson()
     }
   }
 
-  nlohmann::json data;
-  data["heatmap"]["group_by"]                   = mGroupByComboBox->currentData().toString().toStdString();
-  data["heatmap"]["image_filename_regex"]       = mRegexToFindTheWellPosition->currentText().toStdString();
-  data["heatmap"]["generate_heatmap_for_plate"] = mGroupedHeatmapOnOff->currentData().toBool();
-  data["heatmap"]["generate_heatmap_for_well"]  = mWellHeatmapOnOff->currentData().toBool();
-  data["heatmap"]["generate_heatmap_for_image"] = mImageHeatmapOnOff->currentData().toBool();
-  data["heatmap"]["image_heatmap_area_width"]   = sizes;
+  mSettings.groupBy = static_cast<joda::settings::ExperimentSettings::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mSettings.filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
 
   try {
-    nlohmann::json wellImageOrderJson   = nlohmann::json::parse(mWellOrderMatrix->text().toStdString());
-    data["heatmap"]["well_image_order"] = wellImageOrderJson;
+    nlohmann::json wellImageOrderJson = nlohmann::json::parse(mWellOrderMatrix->text().toStdString());
+    nlohmann::json obj;
+    obj["order"]             = wellImageOrderJson;
+    Temp tm                  = nlohmann::json::parse(obj.dump());
+    mSettings.wellImageOrder = tm.order;
   } catch(...) {
-    data["heatmap"]["well_image_order"] = nlohmann::json::parse("[[0]]");
+    mSettings.wellImageOrder.clear();
     QMessageBox::warning(this, "Warning",
                          "The well matrix format is not well defined. Please correct it in the settings dialog!");
   }
-  return data;
 }
 
-void DialogSettings::applyRegex()
+void DialogExperimentSettings::applyRegex()
 {
   try {
     auto regexResult = joda::pipeline::reporting::Helper::applyRegex(
@@ -222,10 +232,10 @@ void DialogSettings::applyRegex()
   }
 }
 
-void DialogSettings::onOkayClicked()
+void DialogExperimentSettings::onOkayClicked()
 {
 }
-void DialogSettings::onCancelClicked()
+void DialogExperimentSettings::onCancelClicked()
 {
 }
 
