@@ -58,21 +58,21 @@ public:
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode::NONE, ""},
-                                                       {ThresholdSettings::Mode::MANUAL, "Threshold"},
-                                                       {ThresholdSettings::Mode::LI, "Ai"},
-                                                       {ThresholdSettings::Mode::MIN_ERROR, "Ai"},
-                                                       {ThresholdSettings::Mode::TRIANGLE, "Ai"},
-                                                       {ThresholdSettings::Mode::MOMENTS, "Ai"},
-                                                       {ThresholdSettings::Mode::HUANG, "Ai"},
-                                                       {ThresholdSettings::Mode::INTERMODES, "Ai"},
-                                                       {ThresholdSettings::Mode::ISODATA, "Ai"},
-                                                       {ThresholdSettings::Mode::MAX_ENTROPY, "Ai"},
-                                                       {ThresholdSettings::Mode::MEAN, "Ai"},
-                                                       {ThresholdSettings::Mode::MINIMUM, "Ai"},
-                                                       {ThresholdSettings::Mode::OTSU, "Ai"},
-                                                       {ThresholdSettings::Mode::PERCENTILE, "Ai"},
-                                                       {ThresholdSettings::Mode::RENYI_ENTROPY, "Ai"},
-                                                       {ThresholdSettings::Mode::SHANBHAG, "Ai"},
-                                                       {ThresholdSettings::Mode::YEN, "Ai"}})
+                                                       {ThresholdSettings::Mode::MANUAL, "Manual"},
+                                                       {ThresholdSettings::Mode::LI, "li"},
+                                                       {ThresholdSettings::Mode::MIN_ERROR, "minError"},
+                                                       {ThresholdSettings::Mode::TRIANGLE, "triangle"},
+                                                       {ThresholdSettings::Mode::MOMENTS, "moments"},
+                                                       {ThresholdSettings::Mode::HUANG, "huang"},
+                                                       {ThresholdSettings::Mode::INTERMODES, "intermodes"},
+                                                       {ThresholdSettings::Mode::ISODATA, "isodata"},
+                                                       {ThresholdSettings::Mode::MAX_ENTROPY, "maxEntropy"},
+                                                       {ThresholdSettings::Mode::MEAN, "mean"},
+                                                       {ThresholdSettings::Mode::MINIMUM, "minimum"},
+                                                       {ThresholdSettings::Mode::OTSU, "otsu"},
+                                                       {ThresholdSettings::Mode::PERCENTILE, "percentil"},
+                                                       {ThresholdSettings::Mode::RENYI_ENTROPY, "renyiEntropy"},
+                                                       {ThresholdSettings::Mode::SHANBHAG, "shanbhag"},
+                                                       {ThresholdSettings::Mode::YEN, "yen"}})
 
 }    // namespace joda::settings
