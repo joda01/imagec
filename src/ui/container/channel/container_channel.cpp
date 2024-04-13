@@ -451,7 +451,7 @@ void ContainerChannel::toSettings()
   if(mMaxParticleSize->hasValue()) {
     mSettings.filter.maxParticleSize = mMaxParticleSize->getValue();
   } else {
-    mSettings.filter.minParticleSize = INT32_MAX;
+    mSettings.filter.maxParticleSize = INT32_MAX;
   }
 
   mSettings.filter.minCircularity            = mMinCircularity->getValue();
