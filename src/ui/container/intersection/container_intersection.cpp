@@ -148,6 +148,9 @@ void ContainerIntersection::fromSettings()
         crossChannelIndexes += QString(std::to_string(ch).data()) + ",";
       }
     }
+    if(crossChannelIndexes.size() > 0) {
+      crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
+    }
     mCrossChannelIntensity->setValue(crossChannelIndexes);
   }
 
