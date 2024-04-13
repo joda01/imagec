@@ -12,9 +12,9 @@ public:
   /////////////////////////////////////////////////////
   enum class Mode
   {
-    NONE,
-    SOBEL,
-    CANNY
+    NONE  = -1,
+    SOBEL = 1,
+    CANNY = 2
   };
 
   enum class Direction

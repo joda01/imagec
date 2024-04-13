@@ -69,17 +69,17 @@ ContainerIntersection::ContainerIntersection(WindowMain *windowMain, joda::setti
       new ContainerFunction<float, int>("icons8-percentage-50.png", "[0 - 1]", "Min. intersection", "%", 0.1, 0, 1));
 
   mCrossChannelIntersection = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-query-inner-join-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intersection", ""));
+      "icons8-query-inner-join-50.png", "[0,1,2,3,..]", "Cross channel intersection", ""));
 
   //
   // Cross channel Intensity
   //
 
   mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", ""));
+      new ContainerFunction<QString, int>("icons8-light-50.png", "[0,1,2,3,..]", "Cross channel intensity", ""));
 
   mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", ""));
+      new ContainerFunction<QString, int>("icons8-3-50.png", "[0,1,2,3,..]", "Cross channel count", ""));
 
   //
   // Create panels -> Must be after creating the functions

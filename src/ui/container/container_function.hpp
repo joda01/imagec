@@ -795,6 +795,15 @@ private slots:
       } else {
         mDisplayText = "- " + mUnit;
       }
+
+      if(mComboBoxSecond != nullptr) {
+        if(!hasValue()) {
+          mComboBoxSecond->setEnabled(false);
+        } else {
+          mComboBoxSecond->setEnabled(true);
+        }
+      }
+
       updateDisplayText();
       ContainerFunction<VALUE_T, VALUE2_T>::triggerValueChanged();
     }

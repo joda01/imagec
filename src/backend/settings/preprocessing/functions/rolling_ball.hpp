@@ -11,9 +11,9 @@ class RollingBall
 public:
   enum class BallType
   {
-    NONE,
-    BALL,
-    PARABOLOID
+    NONE       = -1,
+    BALL       = 1,
+    PARABOLOID = 2
   };
 
   int32_t ballSize  = 0;

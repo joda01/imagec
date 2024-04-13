@@ -424,7 +424,8 @@ void PanelChannelEdit::updatePreview()
               auto *controller = mWindowMain->getController();
               try {
                 int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();
-                auto preview    = controller->preview(mParentContainer->mSettings, imgIndex, tileIdx);
+                mParentContainer->toSettings();
+                auto preview = controller->preview(mParentContainer->mSettings, imgIndex, tileIdx);
                 if(!preview.data.empty()) {
                   // Create a QByteArray from the char array
                   QByteArray byteArray(reinterpret_cast<const char *>(preview.data.data()), preview.data.size());
