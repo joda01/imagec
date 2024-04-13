@@ -35,6 +35,7 @@
 #include <string>
 #include <thread>
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/settings.hpp"
@@ -658,6 +659,7 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
     mAnalyzeSettings.experimentSettings = analyzeSettings.experimentSettings;
 
   } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
     if(mSelectedChannel != nullptr) {
       QMessageBox messageBox(this);
       auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
