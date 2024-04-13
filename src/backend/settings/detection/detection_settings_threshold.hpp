@@ -53,26 +53,26 @@ public:
   //
   bool $watershedSegmentation = false;
 
-  NLOHMANN_JSON_SERIALIZE_ENUM(Mode, {{Mode::NONE, ""},
-                                      {Mode::MANUAL, "Threshold"},
-                                      {Mode::LI, "Ai"},
-                                      {Mode::MIN_ERROR, "Ai"},
-                                      {Mode::TRIANGLE, "Ai"},
-                                      {Mode::MOMENTS, "Ai"},
-                                      {Mode::HUANG, "Ai"},
-                                      {Mode::INTERMODES, "Ai"},
-                                      {Mode::ISODATA, "Ai"},
-                                      {Mode::MAX_ENTROPY, "Ai"},
-                                      {Mode::MEAN, "Ai"},
-                                      {Mode::MINIMUM, "Ai"},
-                                      {Mode::OTSU, "Ai"},
-                                      {Mode::PERCENTILE, "Ai"},
-                                      {Mode::RENYI_ENTROPY, "Ai"},
-                                      {Mode::SHANBHAG, "Ai"},
-                                      {Mode::YEN, "Ai"}})
-
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ThresholdSettings, mode, thresholdMin, thresholdMax,
                                               $watershedSegmentation);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode::NONE, ""},
+                                                       {ThresholdSettings::Mode::MANUAL, "Threshold"},
+                                                       {ThresholdSettings::Mode::LI, "Ai"},
+                                                       {ThresholdSettings::Mode::MIN_ERROR, "Ai"},
+                                                       {ThresholdSettings::Mode::TRIANGLE, "Ai"},
+                                                       {ThresholdSettings::Mode::MOMENTS, "Ai"},
+                                                       {ThresholdSettings::Mode::HUANG, "Ai"},
+                                                       {ThresholdSettings::Mode::INTERMODES, "Ai"},
+                                                       {ThresholdSettings::Mode::ISODATA, "Ai"},
+                                                       {ThresholdSettings::Mode::MAX_ENTROPY, "Ai"},
+                                                       {ThresholdSettings::Mode::MEAN, "Ai"},
+                                                       {ThresholdSettings::Mode::MINIMUM, "Ai"},
+                                                       {ThresholdSettings::Mode::OTSU, "Ai"},
+                                                       {ThresholdSettings::Mode::PERCENTILE, "Ai"},
+                                                       {ThresholdSettings::Mode::RENYI_ENTROPY, "Ai"},
+                                                       {ThresholdSettings::Mode::SHANBHAG, "Ai"},
+                                                       {ThresholdSettings::Mode::YEN, "Ai"}})
 
 }    // namespace joda::settings

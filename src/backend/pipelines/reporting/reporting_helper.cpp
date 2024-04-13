@@ -35,7 +35,7 @@ namespace joda::pipeline::reporting {
 ///
 void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyzeSettings,
                                    joda::results::ReportingContainer &detailReportTable, const std::string &channelName,
-                                   int realChannelIdx)
+                                   joda::settings::ChannelIndex realChannelIdx)
 {
   try {
     int channelIndexOffset = 0;
@@ -101,8 +101,9 @@ void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyz
     //
     // Intensity channels
     //
-    for(int intensIdx : joda::settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, realChannelIdx)
-                            .crossChannelIntensityChannels) {
+    for(joda::settings::ChannelIndex intensIdx :
+        joda::settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, realChannelIdx)
+            .crossChannelIntensityChannels) {
       detailReportTable.getTableAt(realChannelIdx, channelName)
           .setColumnName(
               channelIndexOffset,
@@ -133,8 +134,9 @@ void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyz
     //
     // Counting channels
     //
-    for(int countIdx : joda::settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, realChannelIdx)
-                           .crossChannelCoutChannels) {
+    for(joda::settings::ChannelIndex countIdx :
+        joda::settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, realChannelIdx)
+            .crossChannelCoutChannels) {
       detailReportTable.getTableAt(realChannelIdx, channelName)
           .setColumnName(
               channelIndexOffset,
@@ -159,7 +161,8 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
                                   const joda::func::DetectionResponse &result,
                                   joda::results::ReportingContainer &detailReportTable,
                                   const std::string &detailReportOutputPath, const std::string &jobName,
-                                  int realChannelIdx, uint32_t tileIdx, const ImageProperties &imgProps)
+                                  joda::settings::ChannelIndex realChannelIdx, uint32_t tileIdx,
+                                  const ImageProperties &imgProps)
 {
   static std::mutex appendMutex;
 
@@ -172,7 +175,7 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
 
   auto id = DurationCount::start("write-control-image");
   if(!result.controlImage.empty()) {
-    cv::imwrite(detailReportOutputPath + separator + "control_" + std::to_string(realChannelIdx) + "_" +
+    cv::imwrite(detailReportOutputPath + separator + "control_" + joda::settings::to_string(realChannelIdx) + "_" +
                     std::to_string(tileIdx) + "_" + jobName + ".png",
                 result.controlImage, compression_params);
   } else {

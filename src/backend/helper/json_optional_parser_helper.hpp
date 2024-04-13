@@ -1,16 +1,15 @@
 #pragma once
 
 // Define conversion from std::optional<EdgeDetection> to nlohmann::json
+#include <optional>
 #include <nlohmann/json_fwd.hpp>
 
 template <typename T>
 void to_json(nlohmann::json &j, const std::optional<T> &opt)
 {
-  if(opt.has_value()) {
+  if(opt == std::nullopt) {
+  } else if(opt.has_value()) {
     j = opt.value();    // Just assign the value if present
-  } else {
-    // Do nothing
-    //  j = nullptr;    // Convert to null if optional is empty
   }
 }
 

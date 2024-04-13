@@ -67,8 +67,8 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage, int32_t channelIndex)
-    -> DetectionResponse
+auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage,
+                                 joda::settings::ChannelIndex channelIndex) -> DetectionResponse
 {
   // Normalize the pixel values to [0, 255] float for detection
   auto id = DurationCount::start("Convert");

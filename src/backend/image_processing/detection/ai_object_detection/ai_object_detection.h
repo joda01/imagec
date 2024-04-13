@@ -34,14 +34,15 @@ class ObjectDetector : public DetectionFunction
 public:
   /////////////////////////////////////////////////////
   ObjectDetector(const joda::settings::ChannelSettingsFilter &filt, const joda::onnx::OnnxParser::Data &model);
-  auto forward(const cv::Mat &inputImage, const cv::Mat &originalImage, int32_t channelIndex)
+  auto forward(const cv::Mat &inputImage, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
       -> DetectionResponse override;
 
 private:
   // void paintBoundingBox(cv::Mat &inputImage, const DetectionResults &detection);
   /////////////////////////////////////////////////////
   auto postProcessing(const cv::Mat &inputImage, const cv::Mat &originalImage,
-                      const std::vector<cv::Mat> &predictionMatrix, int32_t channelIndex) -> DetectionResults;
+                      const std::vector<cv::Mat> &predictionMatrix, joda::settings::ChannelIndex channelIndex)
+      -> DetectionResults;
   void drawLabel(cv::Mat &input_image, const std::string &label, int left, int top);
   /////////////////////////////////////////////////////
   const float INPUT_WIDTH          = 640.0;

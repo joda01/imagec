@@ -14,10 +14,10 @@ public:
   struct VoronoiGridSettings
   {
     // This is the index of the channel which contains the points using for calculating the voronoi grid
-    int32_t gridPointsChannelIdx = -1;
+    joda::settings::ChannelIndex gridPointsChannelIdx = joda::settings::ChannelIndex::NONE;
 
     // Optional channel which is used to overlay with the voronoi grid (AND combination e.g. a cell area)
-    int32_t overlayMaskChannelIdx = -1;
+    joda::settings::ChannelIndex overlayMaskChannelIdx = joda::settings::ChannelIndex::NONE;
 
     // Maximum radius of a calculated voronoi area
     int32_t maxVoronoiAreaRadius = -1;

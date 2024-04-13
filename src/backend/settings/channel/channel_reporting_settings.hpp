@@ -41,25 +41,6 @@ public:
     INTERSECTION_CROSS_CHANNEL  = 0x000F
   };
 
-  NLOHMANN_JSON_SERIALIZE_ENUM(MeasureChannels,
-                               {
-                                   {MeasureChannels::CONFIDENCE, "Confidence"},
-                                   {MeasureChannels::AREA_SIZE, "AreaSize"},
-                                   {MeasureChannels::CIRCULARITY, "Circularity"},
-                                   {MeasureChannels::VALIDITY, "Validity"},
-                                   {MeasureChannels::INVALIDITY, "Invalidity"},
-                                   {MeasureChannels::CENTER_OF_MASS_X, "CenterOfMassX"},
-                                   {MeasureChannels::CENTER_OF_MASS_Y, "CenterOfMassY"},
-                                   {MeasureChannels::INTENSITY_AVG, "IntensityAvg"},
-                                   {MeasureChannels::INTENSITY_MIN, "IntensityMin"},
-                                   {MeasureChannels::INTENSITY_MAX, "IntensityMax"},
-                                   {MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL, "CrossChannelIntensityAvg"},
-                                   {MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, "CrossChannelIntensityMin"},
-                                   {MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, "CrossChannelIntensityMax"},
-                                   {MeasureChannels::INTERSECTION_CROSS_CHANNEL, "CrossChannelIntersection"},
-
-                               })
-
   class DetailReport
   {
   public:
@@ -123,5 +104,25 @@ public:
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelReportingSettings, detail, overview, heatmap);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    ChannelReportingSettings::MeasureChannels,
+    {
+        {ChannelReportingSettings::MeasureChannels::CONFIDENCE, "Confidence"},
+        {ChannelReportingSettings::MeasureChannels::AREA_SIZE, "AreaSize"},
+        {ChannelReportingSettings::MeasureChannels::CIRCULARITY, "Circularity"},
+        {ChannelReportingSettings::MeasureChannels::VALIDITY, "Validity"},
+        {ChannelReportingSettings::MeasureChannels::INVALIDITY, "Invalidity"},
+        {ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X, "CenterOfMassX"},
+        {ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_Y, "CenterOfMassY"},
+        {ChannelReportingSettings::MeasureChannels::INTENSITY_AVG, "IntensityAvg"},
+        {ChannelReportingSettings::MeasureChannels::INTENSITY_MIN, "IntensityMin"},
+        {ChannelReportingSettings::MeasureChannels::INTENSITY_MAX, "IntensityMax"},
+        {ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL, "CrossChannelIntensityAvg"},
+        {ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, "CrossChannelIntensityMin"},
+        {ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, "CrossChannelIntensityMax"},
+        {ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL, "CrossChannelIntersection"},
+
+    })
 
 }    // namespace joda::settings

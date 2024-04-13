@@ -22,7 +22,8 @@ namespace joda::pipeline {
 class PipelineStep
 {
 public:
-  virtual auto execute(const joda::settings::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
+  virtual auto execute(const joda::settings::AnalyzeSettings &,
+                       const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &,
                        const std::string &detailoutputPath) const -> joda::func::DetectionResponse = 0;
 };
 

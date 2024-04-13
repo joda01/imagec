@@ -74,7 +74,7 @@ private:
   /////////////////////////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, QString>> mChannelName;
   std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>> mChannelType;
-  std::shared_ptr<ContainerFunction<QString, int>> mColorAndChannelIndex;
+  std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>> mColorAndChannelIndex;
 
   std::shared_ptr<ContainerFunction<joda::settings::ThresholdSettings::Mode, QString>> mThresholdAlgorithm;
   std::shared_ptr<ContainerFunction<int, int>> mThresholdValueMin;
@@ -87,14 +87,14 @@ private:
 
   std::shared_ptr<ContainerFunction<joda::settings::ZStackProcessing::ZStackMethod, QString>> mZProjection;
   std::shared_ptr<ContainerFunction<int, int>> mMarginCrop;
-  std::shared_ptr<ContainerFunction<int, int>> mSubtractChannel;
+  std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>> mSubtractChannel;
   std::shared_ptr<ContainerFunction<int, int>> mMedianBackgroundSubtraction;
   std::shared_ptr<ContainerFunction<int, joda::settings::RollingBall::BallType>> mRollingBall;
   std::shared_ptr<ContainerFunction<int, int>> mGaussianBlur;
   std::shared_ptr<ContainerFunction<int, int>> mSmoothing;
   std::shared_ptr<ContainerFunction<joda::settings::EdgeDetection::Mode, joda::settings::EdgeDetection::Direction>>
       mEdgeDetection;
-  std::shared_ptr<ContainerFunction<int, int>> mTetraspeckRemoval;
+  std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>> mTetraspeckRemoval;
 
   std::shared_ptr<ContainerFunction<joda::settings::DetectionSettings::DetectionMode, QString>> mUsedDetectionMode;
   std::shared_ptr<ContainerFunction<float, float>> mMinProbability;

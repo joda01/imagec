@@ -25,15 +25,16 @@ namespace joda::pipeline {
 class CalcVoronoi : public PipelineStep
 {
 public:
-  CalcVoronoi(int32_t channelIndexMe, int32_t nucleusChannelIndex, int32_t cellChannelIndex,
-              int32_t maxVoronoiAreaSize) :
+  CalcVoronoi(joda::settings::ChannelIndex channelIndexMe, joda::settings::ChannelIndex nucleusChannelIndex,
+              joda::settings::ChannelIndex cellChannelIndex, int32_t maxVoronoiAreaSize) :
       mChannelIndexMe(channelIndexMe),
       mVoronoiPointsChannelIndex(nucleusChannelIndex), mOverlayMaskChannelIndex(cellChannelIndex),
       mMaxVoronoiAreaSize(maxVoronoiAreaSize)
   {
   }
   /////////////////////////////////////////////////////
-  auto execute(const settings::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
+  auto execute(const settings::AnalyzeSettings &,
+               const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &,
                const std::string &detailoutputPath) const -> joda::func::DetectionResponse override;
 
 private:
@@ -52,9 +53,9 @@ private:
 
   /////////////////////////////////////////////////////
 
-  int32_t mChannelIndexMe;
-  int32_t mVoronoiPointsChannelIndex;
-  int32_t mOverlayMaskChannelIndex;
+  joda::settings::ChannelIndex mChannelIndexMe;
+  joda::settings::ChannelIndex mVoronoiPointsChannelIndex;
+  joda::settings::ChannelIndex mOverlayMaskChannelIndex;
   int32_t mMaxVoronoiAreaSize;
 };
 

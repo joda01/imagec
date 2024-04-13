@@ -70,8 +70,8 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
   }
 }
 
-auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalImage, int32_t channelIndex)
-    -> DetectionResponse
+auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalImage,
+                                 joda::settings::ChannelIndex channelIndex) -> DetectionResponse
 {
   cv::Mat binaryImage;
   uint16_t usedThersholdVal = mThresoldMethod->execute(srcImg, binaryImage);

@@ -48,7 +48,8 @@ public:
     }
   }
 
-  auto forward(const cv::Mat &image, const cv::Mat &originalImage, int32_t channelIndex) -> DetectionResponse override
+  auto forward(const cv::Mat &image, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
+      -> DetectionResponse override
   {
     // Rectangle to be used with Subdiv2D
     cv::Size size = image.size();
@@ -179,7 +180,7 @@ public:
         }
       }
 
-      ROI roi(i, 1, 0, box, boxMask, contours[idxMax], {{-1, &imgOriginal}});
+      ROI roi(i, 1, 0, box, boxMask, contours[idxMax], {{joda::settings::ChannelIndex::NONE, &imgOriginal}});
       response.result.push_back(roi);
     }
 

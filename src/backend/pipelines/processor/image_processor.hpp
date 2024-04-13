@@ -104,19 +104,20 @@ class ImageProcessor
 {
 public:
   /////////////////////////////////////////////////////
-  static func::DetectionResponse
-  executeAlgorithm(const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting, uint64_t tileIndex,
-                   const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
-                   const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults = nullptr);
+  static func::DetectionResponse executeAlgorithm(
+      const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting, uint64_t tileIndex,
+      const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
+      const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults =
+          nullptr);
 
 private:
   /////////////////////////////////////////////////////
   template <image_loader_t TIFFLOADER>
-  static func::DetectionResponse
-  processImage(const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting,
-               const std::set<uint32_t> &tiffDirectories, int64_t idx,
-               const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults,
-               const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels);
+  static func::DetectionResponse processImage(
+      const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting,
+      const std::set<uint32_t> &tiffDirectories, int64_t idx,
+      const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults,
+      const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels);
 
   template <class TIFFLOADER>
   static cv::Mat loadTileAndToIntensityProjectionIfEnabled(const FileInfo &imagePath, int64_t idx,
@@ -136,9 +137,9 @@ private:
                                              const joda::settings::ChannelSettings &channelSetting,
                                              const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels);
 
-  static void doFiltering(func::DetectionResponse &detectionResult,
-                          const joda::settings::ChannelSettings &channelSetting,
-                          const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults);
+  static void doFiltering(
+      func::DetectionResponse &detectionResult, const joda::settings::ChannelSettings &channelSetting,
+      const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults);
 
   ///
   /// \brief      Generate the control image
@@ -152,6 +153,7 @@ private:
   /// \brief      Load channel properties
   /// \author     Joachim Danmayr
   ///
-  static ChannelProperties loadChannelProperties(const FileInfo &imagePath, int channelIndex, uint16_t series);
+  static ChannelProperties loadChannelProperties(const FileInfo &imagePath, joda::settings::ChannelIndex channelIndex,
+                                                 uint16_t series);
 };
 }    // namespace joda::algo

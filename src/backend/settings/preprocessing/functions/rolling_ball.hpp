@@ -20,8 +20,10 @@ public:
   BallType ballType = BallType::NONE;
 
 private:
-  NLOHMANN_JSON_SERIALIZE_ENUM(BallType,
-                               {{BallType::NONE, ""}, {BallType::BALL, "Ball"}, {BallType::PARABOLOID, "Paraboloid"}});
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(RollingBall, ballSize, ballType);
+
+  NLOHMANN_JSON_SERIALIZE_ENUM(RollingBall::BallType, {{RollingBall::BallType::NONE, ""},
+                                                       {RollingBall::BallType::BALL, "Ball"},
+                                                       {RollingBall::BallType::PARABOLOID, "Paraboloid"}});
 };
 }    // namespace joda::settings

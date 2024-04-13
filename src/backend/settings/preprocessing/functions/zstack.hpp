@@ -18,10 +18,11 @@ public:
 
   ZStackMethod method = ZStackMethod::NONE;
 
-  NLOHMANN_JSON_SERIALIZE_ENUM(ZStackMethod, {{ZStackMethod::NONE, ""},
-                                              {ZStackMethod::MAX_INTENSITY, "MaxIntensity"},
-                                              {ZStackMethod::PROJECT_3D, "Project3D"}});
-
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ZStackProcessing, method);
 };
+NLOHMANN_JSON_SERIALIZE_ENUM(ZStackProcessing::ZStackMethod,
+                             {{ZStackProcessing::ZStackMethod::NONE, "Off"},
+                              {ZStackProcessing::ZStackMethod::MAX_INTENSITY, "MaxIntensity"},
+                              {ZStackProcessing::ZStackMethod::PROJECT_3D, "Project3D"}});
+
 }    // namespace joda::settings

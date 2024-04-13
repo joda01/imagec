@@ -17,6 +17,7 @@
 #include <mutex>
 #include <set>
 #include "backend/image_reader/image_reader.hpp"
+#include "backend/settings/channel/channel_index.hpp"
 
 namespace joda::settings {
 class AnalyzeSettings;
@@ -48,12 +49,13 @@ public:
 
   static void setDetailReportHeader(const joda::settings::AnalyzeSettings &analyzeSettings,
                                     joda::results::ReportingContainer &detailReportTable,
-                                    const std::string &channelName, int realChannelIdx);
+                                    const std::string &channelName, joda::settings::ChannelIndex realChannelIdx);
   static void appendToDetailReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                    const joda::func::DetectionResponse &result,
                                    joda::results::ReportingContainer &detailReportTable,
                                    const std::string &detailReportOutputPath, const std::string &jobName,
-                                   int realChannelIdx, uint32_t tileIdx, const ImageProperties &imgProps);
+                                   joda::settings::ChannelIndex realChannelIdx, uint32_t tileIdx,
+                                   const ImageProperties &imgProps);
   static void appendToAllOverReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                     std::map<std::string, joda::results::ReportingContainer> &allOverReport,
                                     const joda::results::ReportingContainer &detailedReport,

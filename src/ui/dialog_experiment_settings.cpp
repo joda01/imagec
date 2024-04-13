@@ -199,6 +199,11 @@ void DialogExperimentSettings::toSettings()
     }
   }
 
+  mSettings.imageHeatmapAreaSizes   = sizes;
+  mSettings.generateHeatmapForImage = mImageHeatmapOnOff->currentData().toBool();
+  mSettings.generateHeatmapForPlate = mGroupedHeatmapOnOff->currentData().toBool();
+  mSettings.generateHeatmapForWell  = mGroupedHeatmapOnOff->currentData().toBool();
+
   mSettings.groupBy = static_cast<joda::settings::ExperimentSettings::GroupBy>(mGroupByComboBox->currentData().toInt());
   mSettings.filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
 

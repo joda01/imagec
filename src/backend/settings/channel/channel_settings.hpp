@@ -17,8 +17,8 @@ class ChannelSettings
 public:
   struct Preprocessing
   {
-    std::optional<MarginCrop> $cropMargin   = std::nullopt;
-    std::optional<ZStackProcessing> $zStack = std::nullopt;
+    std::optional<MarginCrop> $cropMargin = std::nullopt;
+    ZStackProcessing $zStack;
     std::vector<PreprocessingPipelineSteps> pipeline;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Preprocessing, $cropMargin, $zStack, pipeline);

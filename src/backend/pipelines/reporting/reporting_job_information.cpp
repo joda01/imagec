@@ -65,7 +65,7 @@ void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeS
 
   for(const auto &channel : analyzeSettings.channels) {
     writeRow("Name", channel.meta.name);
-    writeRow("Index", std::to_string(channel.meta.channelIdx));
+    writeRow("Index", joda::settings::to_string(channel.meta.channelIdx));
     writeRow("Type", std::to_string((int) channel.meta.type));
     writeRow("Detection mode", std::to_string((int) channel.detection.detectionMode));
     writeRow("Threshold", std::to_string((int) channel.detection.threshold.mode));

@@ -28,18 +28,23 @@ namespace joda::settings {
 class Settings
 {
 public:
-  static void storeSettings(const std::string &path, const joda::settings::AnalyzeSettings &settings);
+  static void storeSettings(std::string path, const joda::settings::AnalyzeSettings &settings);
   static int32_t getNrOfAllChannels(const joda::settings::AnalyzeSettings &settings);
 
   static std::set<const joda::settings::ChannelSettings *>
   getChannelsOfType(const joda::settings::AnalyzeSettings &settings, joda::settings::ChannelSettingsMeta::Type type);
 
-  static std::string getChannelNameOfChannelIndex(const joda::settings::AnalyzeSettings &settings, int32_t channelIdx);
+  static std::string getChannelNameOfChannelIndex(const joda::settings::AnalyzeSettings &settings,
+                                                  joda::settings::ChannelIndex channelIdx);
 
   static const joda::settings::ChannelReportingSettings &
-  getReportingSettingsForChannel(const joda::settings::AnalyzeSettings &settings, int32_t channelIdx);
+  getReportingSettingsForChannel(const joda::settings::AnalyzeSettings &settings,
+                                 joda::settings::ChannelIndex channelIdx);
 
   static const joda::settings::CrossChannelSettings &
-  getCrossChannelSettingsForChannel(const joda::settings::AnalyzeSettings &settings, int32_t channelIdx);
+  getCrossChannelSettingsForChannel(const joda::settings::AnalyzeSettings &settings,
+                                    joda::settings::ChannelIndex channelIdx);
+
+  static void checkSettings(const joda::settings::AnalyzeSettings &settings);
 };
 }    // namespace joda::settings

@@ -234,7 +234,7 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
                            std::string detailOutputFolder, int tileIdx, const ImageProperties &imgProps)
 {
   auto idChannels = DurationCount::start("channels");
-  std::map<int32_t, joda::func::DetectionResponse> detectionResults;
+  std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> detectionResults;
   int threadPoolChannel = mThreadingSettings.cores[ThreadingSettings::CHANNELS];
   BS::thread_pool channelThreadPool(threadPoolChannel);
 
@@ -341,9 +341,9 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
                                              voronoi.voronoi.maxVoronoiAreaRadius);
         auto response = function.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
 
-        int idx = voronoi.meta.channelIdx;
+        auto idx = voronoi.meta.channelIdx;
 
-        detectionResults.emplace(static_cast<int32_t>(idx), response);
+        detectionResults.emplace(idx, response);
         joda::pipeline::reporting::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, voronoi.meta.name,
                                                                  idx);
 
@@ -408,10 +408,10 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
 /// \brief      Analyze channel
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyszeChannel(std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
+void Pipeline::analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
                                const joda::settings::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx)
 {
-  int32_t channelIndex = channelSettings.meta.channelIdx;
+  joda::settings::ChannelIndex channelIndex = channelSettings.meta.channelIdx;
 
   try {
     auto processingResult = joda::algo::ImageProcessor::executeAlgorithm(imagePath, channelSettings, tileIdx,

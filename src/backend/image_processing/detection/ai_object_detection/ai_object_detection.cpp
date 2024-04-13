@@ -40,8 +40,8 @@ ObjectDetector::ObjectDetector(const joda::settings::ChannelSettingsFilter &filt
 /// \param[in]  inputImage      Image to analyze
 /// \return     Result of the analysis
 ///
-auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &originalImage, int32_t channelIndex)
-    -> DetectionResponse
+auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &originalImage,
+                             joda::settings::ChannelIndex channelIndex) -> DetectionResponse
 {
   // Normalize the pixel values to [0, 255] float for detection
   cv::Mat grayImageFloat;
@@ -78,8 +78,8 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &o
 /// \return Retruens the prepared prediction result
 ///
 auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const cv::Mat &originalImage,
-                                    const std::vector<cv::Mat> &predictionMatrix, int32_t channelIndex)
-    -> DetectionResults
+                                    const std::vector<cv::Mat> &predictionMatrix,
+                                    joda::settings::ChannelIndex channelIndex) -> DetectionResults
 
 {
   // Initialize vectors to hold respective outputs while unwrapping     detections.

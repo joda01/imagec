@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <set>
+#include "backend/settings/channel/channel_index.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -9,7 +10,7 @@ namespace joda::settings {
 class ChannelSubtraction
 {
 public:
-  int32_t channelIdx{-1};
+  ChannelIndex channelIdx = ChannelIndex::NONE;
 
 private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSubtraction, channelIdx);

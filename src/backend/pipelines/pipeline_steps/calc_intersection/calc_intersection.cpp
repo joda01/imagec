@@ -19,24 +19,27 @@
 
 namespace joda::pipeline {
 
-CalcIntersection::CalcIntersection(const std::set<int32_t> &indexesToIntersect, float minIntersection) :
-    mIndexesToIntersect(indexesToIntersect.begin(), indexesToIntersect.end()), mMinIntersection(minIntersection)
+CalcIntersection::CalcIntersection(const std::set<joda::settings::ChannelIndex> &indexesToIntersect,
+                                   float minIntersection) :
+    mIndexesToIntersect(indexesToIntersect.begin(), indexesToIntersect.end()),
+    mMinIntersection(minIntersection)
 {
 }
 
-auto CalcIntersection::execute(const settings::AnalyzeSettings &settings,
-                               const std::map<int, joda::func::DetectionResponse> &detectionResultsIn,
-                               const std::string &detailoutputPath) const -> joda::func::DetectionResponse
+auto CalcIntersection::execute(
+    const settings::AnalyzeSettings &settings,
+    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResultsIn,
+    const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {
   if(mIndexesToIntersect.empty() || !detectionResultsIn.contains(*mIndexesToIntersect.begin())) {
     return joda::func::DetectionResponse{};
   }
 
   std::vector<const joda::func::DetectionResponse *> channelsToIntersect;
-  std::map<int32_t, const cv::Mat *> channelsToIntersectImages;
+  std::map<joda::settings::ChannelIndex, const cv::Mat *> channelsToIntersectImages;
 
-  int idx1 = *mIndexesToIntersect.begin();
-  int idx2 = *(std::next(mIndexesToIntersect.begin()));
+  joda::settings::ChannelIndex idx1 = *mIndexesToIntersect.begin();
+  joda::settings::ChannelIndex idx2 = *(std::next(mIndexesToIntersect.begin()));
 
   for(const auto idxToIntersect : mIndexesToIntersect) {
     if(detectionResultsIn.contains(idxToIntersect)) {

@@ -24,11 +24,10 @@ namespace joda::algo {
 /// \brief      Executed the algorithm and generates reporting
 /// \author     Joachim Danmayr
 ///
-func::DetectionResponse
-ImageProcessor::executeAlgorithm(const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting,
-                                 uint64_t tileIndex,
-                                 const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
-                                 const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults)
+func::DetectionResponse ImageProcessor::executeAlgorithm(
+    const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting, uint64_t tileIndex,
+    const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
+    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults)
 {
   //
   // Execute the algorithms
@@ -61,11 +60,11 @@ ImageProcessor::executeAlgorithm(const FileInfo &imagePath, const joda::settings
 /// \return     Processed image
 ///
 template <image_loader_t TIFFLOADER>
-func::DetectionResponse
-ImageProcessor::processImage(const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting,
-                             const std::set<uint32_t> &tiffDirectories, int64_t idx,
-                             const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults,
-                             const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels)
+func::DetectionResponse ImageProcessor::processImage(
+    const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting,
+    const std::set<uint32_t> &tiffDirectories, int64_t idx,
+    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults,
+    const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels)
 {
   auto id             = DurationCount::start("z-projection");
   cv::Mat image       = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx);
@@ -113,8 +112,7 @@ cv::Mat ImageProcessor::loadTileAndToIntensityProjectionIfEnabled(const FileInfo
 
   auto actDirectory = tiffDirectories.begin();
   cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath.getPath(), *actDirectory, series, idx, TILES_TO_LOAD_PER_RUN);
-  if(channelSetting.preprocessing.$zStack.has_value() &&
-     channelSetting.preprocessing.$zStack->method == joda::settings::ZStackProcessing::ZStackMethod::MAX_INTENSITY) {
+  if(channelSetting.preprocessing.$zStack.method == joda::settings::ZStackProcessing::ZStackMethod::MAX_INTENSITY) {
     //
     // Do maximum intensity projection
     //
@@ -170,7 +168,8 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfo &ima
     //
     // Channel subtraction
     //
-    if(pipelineStep.$subtractChannel.has_value() && pipelineStep.$subtractChannel->channelIdx >= 0) {
+    if(pipelineStep.$subtractChannel.has_value() &&
+       pipelineStep.$subtractChannel->channelIdx != joda::settings::ChannelIndex::NONE) {
       ChannelProperties chPropsToSubtract =
           loadChannelProperties(imagePath.getPath(), pipelineStep.$subtractChannel->channelIdx, series);
       cv::Mat tileToSubtract =
@@ -182,7 +181,8 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfo &ima
     //
     // Edge detection
     //
-    if(pipelineStep.$edgeDetection.has_value() && pipelineStep.$subtractChannel->channelIdx >= 0) {
+    if(pipelineStep.$edgeDetection.has_value() &&
+       pipelineStep.$subtractChannel->channelIdx != joda::settings::ChannelIndex::NONE) {
       joda::func::img::EdgeDetection algo(pipelineStep.$edgeDetection.value());
       algo.execute(image);
     }
@@ -190,7 +190,8 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfo &ima
     //
     // Gaussian blur
     //
-    if(pipelineStep.$gaussianBlur.has_value() && pipelineStep.$subtractChannel->channelIdx >= 0) {
+    if(pipelineStep.$gaussianBlur.has_value() &&
+       pipelineStep.$subtractChannel->channelIdx != joda::settings::ChannelIndex::NONE) {
       joda::func::img::GaussianBlur algo(pipelineStep.$gaussianBlur.value());
       algo.execute(image);
     }
@@ -242,13 +243,13 @@ ImageProcessor::doDetection(const cv::Mat &image, const cv::Mat &originalImg,
 /// \author     Joachim Danmayr
 /// \param[in,out]  detectionResult  Detection result and removes the filtered objects from the detection results
 ///
-void ImageProcessor::doFiltering(func::DetectionResponse &detectionResult,
-                                 const joda::settings::ChannelSettings &channelSetting,
-                                 const std::map<int32_t, joda::func::DetectionResponse> *const referenceChannelResults)
+void ImageProcessor::doFiltering(
+    func::DetectionResponse &detectionResult, const joda::settings::ChannelSettings &channelSetting,
+    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults)
 {
   if(nullptr != referenceChannelResults) {
-    int32_t referenceSpotChannelIndex = channelSetting.filter.referenceSpotChannelIndex;
-    if(referenceSpotChannelIndex >= 0) {
+    auto referenceSpotChannelIndex = channelSetting.filter.referenceSpotChannelIndex;
+    if(referenceSpotChannelIndex != joda::settings::ChannelIndex::NONE) {
       auto referenceSpotChannel = referenceChannelResults->find(referenceSpotChannelIndex);
       if(referenceSpotChannel != referenceChannelResults->end()) {
         //
@@ -298,7 +299,8 @@ void ImageProcessor::generateControlImage(func::DetectionResponse &detectionResu
 /// \brief      Load channel properties
 /// \author     Joachim Danmayr
 ///
-ChannelProperties ImageProcessor::loadChannelProperties(const FileInfo &imagePath, int channelIndex, uint16_t series)
+ChannelProperties ImageProcessor::loadChannelProperties(const FileInfo &imagePath,
+                                                        joda::settings::ChannelIndex channelIndex, uint16_t series)
 {
   //
   // Load image properties
@@ -312,7 +314,7 @@ ChannelProperties ImageProcessor::loadChannelProperties(const FileInfo &imagePat
     } break;
     case FileInfo::Decoder::TIFF: {
       auto omeInfo    = TiffLoader::getOmeInformation(imagePath.getPath());
-      tiffDirectories = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
+      tiffDirectories = omeInfo.getDirectoryForChannel(static_cast<int32_t>(channelIndex), TIME_FRAME);
       if(tiffDirectories.empty()) {
         throw std::runtime_error("Selected channel does not contain images!");
       }
@@ -320,7 +322,7 @@ ChannelProperties ImageProcessor::loadChannelProperties(const FileInfo &imagePat
     } break;
     case FileInfo::Decoder::BIOFORMATS: {
       auto [omeInfo, props] = BioformatsLoader::getOmeInformation(imagePath.getPath(), series);
-      tiffDirectories       = omeInfo.getDirectoryForChannel(channelIndex, TIME_FRAME);
+      tiffDirectories       = omeInfo.getDirectoryForChannel(static_cast<int32_t>(channelIndex), TIME_FRAME);
       if(tiffDirectories.empty()) {
         throw std::runtime_error("Selected channel does not contain images!");
       }

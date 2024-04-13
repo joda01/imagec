@@ -47,70 +47,60 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
            {joda::settings::ChannelSettingsMeta::Type::CELL, "Cell"},
            {joda::settings::ChannelSettingsMeta::Type::BACKGROUND, "Background"}}));
 
-  mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
-                                          {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
-                                           {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
-                                           {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
-                                           {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
-                                           {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
-                                           {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
-                                           /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
-                                          {{0, "Channel 0"},
-                                           {1, "Channel 1"},
-                                           {2, "Channel 2"},
-                                           {3, "Channel 3"},
-                                           {4, "Channel 4"},
-                                           {5, "Channel 5"},
-                                           {6, "Channel 6"},
-                                           {7, "Channel 7"},
-                                           {8, "Channel 8"},
-                                           {9, "Channel 9"},
-                                           {10, "Channel 10"},
-                                           {11, "Channel 11"},
-                                           {12, "Channel 12"}},
-                                          0));
+  mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>>(
+      new ContainerFunction<QString, joda::settings::ChannelIndex>(
+          "icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
+          {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
+           {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
+           {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
+           {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
+           {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
+           {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
+           /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
+          {{joda::settings::ChannelIndex::A, "Slot A"},
+           {joda::settings::ChannelIndex::B, "Slot B"},
+           {joda::settings::ChannelIndex::C, "Slot C"},
+           {joda::settings::ChannelIndex::D, "Slot D"},
+           {joda::settings::ChannelIndex::E, "Slot E"},
+           {joda::settings::ChannelIndex::F, "Slot F"}},
+          joda::settings::ChannelIndex::A));
 
   //
   // Cell approximation
   //
-  mVoronoiPoints = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("dom-voronoi-50.png", "Indexes", "Voronoi points channel", "", -1,
-                                      {{-1, "Off"},
-                                       {0, "Channel 0"},
-                                       {1, "Channel 1"},
-                                       {2, "Channel 2"},
-                                       {3, "Channel 3"},
-                                       {4, "Channel 4"},
-                                       {5, "Channel 5"},
-                                       {6, "Channel 6"},
-                                       {7, "Channel 7"},
-                                       {8, "Channel 8"},
-                                       {9, "Channel 9"},
-                                       {10, "Channel 10"},
-                                       {11, "Channel 11"},
-                                       {12, "Channel 12"}}));
+  mVoronoiPoints = std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>>(
+      new ContainerFunction<joda::settings::ChannelIndex, int>(
+          "dom-voronoi-50.png", "Indexes", "Voronoi points channel", "", joda::settings::ChannelIndex::NONE,
+          {{joda::settings::ChannelIndex::NONE, "Off"},
+           {joda::settings::ChannelIndex::CH0, "Channel 0"},
+           {joda::settings::ChannelIndex::CH1, "Channel 1"},
+           {joda::settings::ChannelIndex::CH2, "Channel 2"},
+           {joda::settings::ChannelIndex::CH3, "Channel 3"},
+           {joda::settings::ChannelIndex::CH4, "Channel 4"},
+           {joda::settings::ChannelIndex::CH5, "Channel 5"},
+           {joda::settings::ChannelIndex::CH6, "Channel 6"},
+           {joda::settings::ChannelIndex::CH7, "Channel 7"},
+           {joda::settings::ChannelIndex::CH8, "Channel 8"},
+           {joda::settings::ChannelIndex::CH9, "Channel 9"}}));
 
   mMaxVoronoiAreaSize = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
                                       "Max. voronoi area radius", "px", 100, 0, INT32_MAX));
 
-  mOverlayMaskChannelIndex = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-query-outer-join-50.png", "Indexes", "Overlay mask channel", "", -1,
-                                      {{-1, "Off"},
-                                       {0, "Channel 0"},
-                                       {1, "Channel 1"},
-                                       {2, "Channel 2"},
-                                       {3, "Channel 3"},
-                                       {4, "Channel 4"},
-                                       {5, "Channel 5"},
-                                       {6, "Channel 6"},
-                                       {7, "Channel 7"},
-                                       {8, "Channel 8"},
-                                       {9, "Channel 9"},
-                                       {10, "Channel 10"},
-                                       {11, "Channel 11"},
-                                       {12, "Channel 12"}}));
+  mOverlayMaskChannelIndex = std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>>(
+      new ContainerFunction<joda::settings::ChannelIndex, int>(
+          "icons8-query-outer-join-50.png", "Indexes", "Overlay mask channel", "", joda::settings::ChannelIndex::NONE,
+          {{joda::settings::ChannelIndex::NONE, "Off"},
+           {joda::settings::ChannelIndex::CH0, "Channel 0"},
+           {joda::settings::ChannelIndex::CH1, "Channel 1"},
+           {joda::settings::ChannelIndex::CH2, "Channel 2"},
+           {joda::settings::ChannelIndex::CH3, "Channel 3"},
+           {joda::settings::ChannelIndex::CH4, "Channel 4"},
+           {joda::settings::ChannelIndex::CH5, "Channel 5"},
+           {joda::settings::ChannelIndex::CH6, "Channel 6"},
+           {joda::settings::ChannelIndex::CH7, "Channel 7"},
+           {joda::settings::ChannelIndex::CH8, "Channel 8"},
+           {joda::settings::ChannelIndex::CH9, "Channel 9"}}));
 
   //
   // Cross channel Intensity
@@ -165,14 +155,17 @@ void ContainerVoronoi::fromSettings()
   // Coloc
 
   // Cross channel intensity
+  // Cross channel intensity
   {
     auto &crossChannelIntensity = mSettings.crossChannel.crossChannelIntensityChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crossChannelIntensity) {
-      crossChannelIndexes += QString::number(chIdx) + ",";
-    }
-    if(crossChannelIndexes.size() > 0) {
-      crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
+      if(static_cast<int32_t>(chIdx) < 65) {
+        crossChannelIndexes += QString::number(static_cast<int32_t>(chIdx)) + ",";
+      } else {
+        char ch = static_cast<char>(chIdx);
+        crossChannelIndexes += QString(std::to_string(ch).data()) + ",";
+      }
     }
     mCrossChannelIntensity->setValue(crossChannelIndexes);
   }
@@ -182,7 +175,12 @@ void ContainerVoronoi::fromSettings()
     auto &crosschannelCount = mSettings.crossChannel.crossChannelCoutChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crosschannelCount) {
-      crossChannelIndexes += QString::number(chIdx) + ",";
+      if(static_cast<int32_t>(chIdx) < 65) {
+        crossChannelIndexes += QString::number(static_cast<int32_t>(chIdx)) + ",";
+      } else {
+        char ch = static_cast<char>(chIdx);
+        crossChannelIndexes += QString(std::to_string(ch).data()) + ",";
+      }
     }
     if(crossChannelIndexes.size() > 0) {
       crossChannelIndexes.remove(crossChannelIndexes.lastIndexOf(","), 1);
@@ -208,23 +206,32 @@ void ContainerVoronoi::toSettings()
   mSettings.voronoi.maxVoronoiAreaRadius  = mMaxVoronoiAreaSize->getValue();
 
   // Cross channel settings
+  // Cross channel settings
   {
-    std::set<int32_t> crossChannelIntensity;
+    std::set<joda::settings::ChannelIndex> crossChannelIntensity;
     auto values = mCrossChannelIntensity->getValue().split(",");
     for(const auto &val : values) {
       if(!val.isEmpty()) {
-        crossChannelIntensity.emplace(val.toInt());
+        if(val[0] < 'A') {
+          crossChannelIntensity.emplace((joda::settings::ChannelIndex) val.toInt());
+        } else {
+          crossChannelIntensity.emplace((joda::settings::ChannelIndex) val[0].toLatin1());
+        }
       }
     }
     mSettings.crossChannel.crossChannelIntensityChannels = crossChannelIntensity;
   }
 
   {
-    std::set<int32_t> crossChannelCount;
+    std::set<joda::settings::ChannelIndex> crossChannelCount;
     auto values = mCrossChannelCount->getValue().split(",");
     for(const auto &val : values) {
       if(!val.isEmpty()) {
-        crossChannelCount.emplace(val.toInt());
+        if(val[0] < 'A') {
+          crossChannelCount.emplace((joda::settings::ChannelIndex) val.toInt());
+        } else {
+          crossChannelCount.emplace((joda::settings::ChannelIndex) val[0].toLatin1());
+        }
       }
     }
     mSettings.crossChannel.crossChannelCoutChannels = crossChannelCount;

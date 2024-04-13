@@ -46,6 +46,7 @@ public:
   }
   void showChannelEdit(ContainerBase *);
   void removeChannel(ContainerBase *toRemove);
+  void removeAllChannels();
   int getSelectedSeries() const
   {
     return mImageSeriesCombo->currentData().toInt();
@@ -89,12 +90,6 @@ signals:
   void lookingForTemplateFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
 
 private:
-  enum class AddChannel
-  {
-    CHANNEL,
-    VORONOI
-  };
-
   void createToolbar();
   QWidget *createStackedWidget();
   QWidget *createGirafWidget();
@@ -102,7 +97,8 @@ private:
   QWidget *createChannelWidget();
   void waitForFileSearchFinished();
   void setWorkingDirectory(const std::string &workingDir);
-  ContainerBase *addChannel(AddChannel);
+  ContainerBase *addChannel(joda::settings::ChannelSettings);
+  ContainerBase *addVChannelVoronoi(joda::settings::VChannelVoronoi);
   ContainerBase *addChannelFromTemplate(const QString &pathToTemplate);
 
   QStackedWidget *mStackedWidget;

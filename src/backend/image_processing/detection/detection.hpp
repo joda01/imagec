@@ -46,7 +46,7 @@ public:
   }
 
   /////////////////////////////////////////////////////
-  virtual auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, int32_t channelIndex)
+  virtual auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
       -> DetectionResponse = 0;
   static void paintBoundingBox(cv::Mat &img, const DetectionResults &result,
                                const joda::onnx::OnnxParser::Data &modelInfo, const std::string &fillColor,

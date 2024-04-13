@@ -72,12 +72,12 @@ private:
   /////////////////////////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, QString>> mChannelName;
   std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>> mChannelType;
-  std::shared_ptr<ContainerFunction<QString, int>> mColorAndChannelIndex;
+  std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>> mColorAndChannelIndex;
 
   // Cell approximation//////////////////////////////////
-  std::shared_ptr<ContainerFunction<int, int>> mVoronoiPoints;
+  std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>> mVoronoiPoints;
   std::shared_ptr<ContainerFunction<int, int>> mMaxVoronoiAreaSize;
-  std::shared_ptr<ContainerFunction<int, int>> mOverlayMaskChannelIndex;
+  std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>> mOverlayMaskChannelIndex;
 
   // Cross-Channel//////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntensity;

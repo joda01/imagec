@@ -12,10 +12,10 @@ class CrossChannelSettings
 {
 public:
   // Cross channel intensity calculation
-  std::set<int32_t> crossChannelIntensityChannels;
+  std::set<ChannelIndex> crossChannelIntensityChannels;
 
   // Cross channel count calculation
-  std::set<int32_t> crossChannelCoutChannels;
+  std::set<ChannelIndex> crossChannelCoutChannels;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CrossChannelSettings, crossChannelIntensityChannels,
                                               crossChannelCoutChannels);

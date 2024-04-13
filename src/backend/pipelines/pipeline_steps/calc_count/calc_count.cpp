@@ -23,7 +23,7 @@ namespace joda::pipeline {
 /// \return
 ///
 auto CalcCount::execute(const settings::AnalyzeSettings &,
-                        const std::map<int, joda::func::DetectionResponse> &detectionResultsIn,
+                        const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResultsIn,
                         const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {
   if(detectionResultsIn.contains(mReferenceChannelIndex)) {

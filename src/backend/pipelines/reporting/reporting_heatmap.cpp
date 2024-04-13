@@ -80,14 +80,14 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
       heatmapSquares->at(x) = std::vector<Square>(nrOfSquaresY);
     }
 
-    auto sheets = std::make_shared<std::map<int, lxw_worksheet *>>();
+    auto sheets = std::make_shared<std::map<joda::settings::ChannelIndex, lxw_worksheet *>>();
 
     //
     // Build the map
     //
     for(const auto &[channelIdx, table] : containers.mColumns) {
       std::string tabName = table.getTableName() + "_" + std::to_string(heatMapWidth) + "x" +
-                            std::to_string(heatMapWidth) + "(" + std::to_string(channelIdx) + ")";
+                            std::to_string(heatMapWidth) + "(" + joda::settings::to_string(channelIdx) + ")";
       if(!sheets->contains(channelIdx)) {
         sheets->emplace(channelIdx, workbook_add_worksheet(workbook, tabName.data()));
       }
@@ -287,8 +287,9 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
       if(measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL ||
          measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL ||
          measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL) {
-        for(int intensIdx : settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                                .crossChannelIntensityChannels) {
+        for(joda::settings::ChannelIndex intensIdx :
+            settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
+                .crossChannelIntensityChannels) {
           writePlateFrame(
               measurementChannelsToString(getMaskedMeasurementChannel(measureChannelKey, intensIdx), analyzeSettings));
           rowOffset++;
@@ -296,8 +297,9 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
           rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
         }
       } else if(measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
-        for(int countIdx : settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                               .crossChannelCoutChannels) {
+        for(joda::settings::ChannelIndex countIdx :
+            settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
+                .crossChannelCoutChannels) {
           writePlateFrame(
               measurementChannelsToString(getMaskedMeasurementChannel(measureChannelKey, countIdx), analyzeSettings));
           rowOffset++;
@@ -355,7 +357,7 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
   int32_t rowOffset = 0;
 
   // Intensity
-  std::map<int, lxw_worksheet *> sheets;
+  std::map<joda::settings::ChannelIndex, lxw_worksheet *> sheets;
 
   // Well matrix
   int32_t sizeX;
@@ -402,16 +404,18 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
           if(measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL ||
              measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL ||
              measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL) {
-            for(int intensIdx : settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                                    .crossChannelIntensityChannels) {
+            for(joda::settings::ChannelIndex intensIdx :
+                settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
+                    .crossChannelIntensityChannels) {
               writePlateFrame(measurementChannelsToString(getMaskedMeasurementChannel(measureChannelKey, intensIdx),
                                                           analyzeSettings));
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
           } else if(measureChannelKey ==
                     settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
-            for(int countIdx : settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                                   .crossChannelCoutChannels) {
+            for(joda::settings::ChannelIndex countIdx :
+                settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
+                    .crossChannelCoutChannels) {
               writePlateFrame(measurementChannelsToString(getMaskedMeasurementChannel(measureChannelKey, countIdx),
                                                           analyzeSettings));
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
@@ -443,8 +447,9 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
             if(measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL ||
                measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL ||
                measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL) {
-              for(int intensIdx : settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                                      .crossChannelIntensityChannels) {
+              for(joda::settings::ChannelIndex intensIdx :
+                  settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
+                      .crossChannelIntensityChannels) {
                 writeNumber(
                     values.getStatistics()
                         .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannelKey, intensIdx)))
@@ -453,8 +458,9 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
               }
             } else if(measureChannelKey ==
                       settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
-              for(int countIdx : settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                                     .crossChannelCoutChannels) {
+              for(joda::settings::ChannelIndex countIdx :
+                  settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
+                      .crossChannelCoutChannels) {
                 writeNumber(values.getStatistics()
                                 .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannelKey, countIdx)))
                                 .getAvg());

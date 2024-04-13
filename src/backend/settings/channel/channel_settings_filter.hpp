@@ -38,7 +38,7 @@ public:
   // Index of the reference spot channel.
   // If bigger than 0 this channel will be used to remove reference spots from the channel
   //
-  int32_t referenceSpotChannelIndex = -1;
+  ChannelIndex referenceSpotChannelIndex = ChannelIndex::NONE;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettingsFilter, minParticleSize, maxParticleSize, minCircularity,
                                               snapAreaSize, referenceSpotChannelIndex);

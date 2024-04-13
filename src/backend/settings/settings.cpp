@@ -17,8 +17,43 @@
 
 namespace joda::settings {
 
-void Settings::storeSettings(const std::string &path, const joda::settings::AnalyzeSettings &settings)
+void removeNullValues(nlohmann::json &j);
+
+void Settings::storeSettings(std::string path, const joda::settings::AnalyzeSettings &settings)
 {
+  if(!path.empty()) {
+    nlohmann::json json = settings;
+    removeNullValues(json);
+
+    if(!path.ends_with(".json")) {
+      path += ".json";
+    }
+    std::ofstream out(path);
+    out << json.dump(2);
+    out.close();
+  }
+}
+
+void removeNullValues(nlohmann::json &j)
+{
+  if(j.is_object()) {
+    for(auto it = j.begin(); it != j.end();) {
+      if(it.value().is_null()) {
+        it = j.erase(it);
+      } else {
+        removeNullValues(it.value());    // Recursively check nested objects
+        ++it;                            // Move to the next element
+      }
+    }
+  } else if(j.is_array()) {
+    for(auto &element : j) {
+      if(element.is_null()) {
+        element = nullptr;    // Replace null values in arrays with nullptr
+      } else {
+        removeNullValues(element);    // Recursively check nested objects
+      }
+    }
+  }
 }
 
 int32_t Settings::getNrOfAllChannels(const joda::settings::AnalyzeSettings &settings)
@@ -39,7 +74,8 @@ Settings::getChannelsOfType(const joda::settings::AnalyzeSettings &settings,
   return ret;
 }
 
-std::string Settings::getChannelNameOfChannelIndex(const joda::settings::AnalyzeSettings &settings, int32_t channelIdx)
+std::string Settings::getChannelNameOfChannelIndex(const joda::settings::AnalyzeSettings &settings,
+                                                   joda::settings::ChannelIndex channelIdx)
 {
   for(const auto &channelSettings : settings.channels) {
     if(channelSettings.meta.channelIdx == channelIdx) {
@@ -58,7 +94,8 @@ std::string Settings::getChannelNameOfChannelIndex(const joda::settings::Analyze
 }
 
 const joda::settings::ChannelReportingSettings &
-Settings::getReportingSettingsForChannel(const joda::settings::AnalyzeSettings &settings, int32_t channelIdx)
+Settings::getReportingSettingsForChannel(const joda::settings::AnalyzeSettings &settings,
+                                         joda::settings::ChannelIndex channelIdx)
 {
   for(const auto &channelSettings : settings.channels) {
     if(channelSettings.meta.channelIdx == channelIdx) {
@@ -77,7 +114,8 @@ Settings::getReportingSettingsForChannel(const joda::settings::AnalyzeSettings &
 }
 
 const joda::settings::CrossChannelSettings &
-Settings::getCrossChannelSettingsForChannel(const joda::settings::AnalyzeSettings &settings, int32_t channelIdx)
+Settings::getCrossChannelSettingsForChannel(const joda::settings::AnalyzeSettings &settings,
+                                            joda::settings::ChannelIndex channelIdx)
 {
   for(const auto &channelSettings : settings.channels) {
     if(channelSettings.meta.channelIdx == channelIdx) {
@@ -93,6 +131,10 @@ Settings::getCrossChannelSettingsForChannel(const joda::settings::AnalyzeSetting
     }
   }
   throw std::runtime_error("No reporting settings for channel found!");
+}
+
+void Settings::checkSettings(const joda::settings::AnalyzeSettings &settings)
+{
 }
 
 }    // namespace joda::settings

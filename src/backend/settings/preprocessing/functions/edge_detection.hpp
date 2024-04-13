@@ -28,8 +28,13 @@ public:
   Direction direction = Direction::X;
 
 private:
-  NLOHMANN_JSON_SERIALIZE_ENUM(Mode, {{Mode::NONE, ""}, {Mode::SOBEL, "Sobel"}, {Mode::CANNY, "Canny"}});
-  NLOHMANN_JSON_SERIALIZE_ENUM(Direction, {{Direction::XY, "XY"}, {Direction::X, "X"}, {Direction::Y, "Y"}});
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(EdgeDetection, mode, direction);
 };
+NLOHMANN_JSON_SERIALIZE_ENUM(EdgeDetection::Mode, {{EdgeDetection::Mode::NONE, ""},
+                                                   {EdgeDetection::Mode::SOBEL, "Sobel"},
+                                                   {EdgeDetection::Mode::CANNY, "Canny"}});
+NLOHMANN_JSON_SERIALIZE_ENUM(EdgeDetection::Direction, {{EdgeDetection::Direction::XY, "XY"},
+                                                        {EdgeDetection::Direction::X, "X"},
+                                                        {EdgeDetection::Direction::Y, "Y"}});
+
 }    // namespace joda::settings

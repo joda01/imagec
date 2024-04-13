@@ -28,7 +28,7 @@ public:
   };
 
   ReportingContainer();
-  Table &getTableAt(int32_t key, const std::string &channelName)
+  Table &getTableAt(joda::settings::ChannelIndex key, const std::string &channelName)
   {
     std::lock_guard<std::mutex> lock(mAccessMutex);
     if(!mColumns.contains(key)) {
@@ -38,7 +38,7 @@ public:
     return mColumns.at(key);
   }
 
-  const Table &getTableAt(int32_t key) const
+  const Table &getTableAt(joda::settings::ChannelIndex key) const
   {
     std::lock_guard<std::mutex> lock(mAccessMutex);
     if(mColumns.contains(key)) {
@@ -47,7 +47,7 @@ public:
     throw std::invalid_argument("Table does not exist!");
   }
 
-  bool containsTable(int32_t key) const
+  bool containsTable(joda::settings::ChannelIndex key) const
   {
     std::lock_guard<std::mutex> lock(mAccessMutex);
     return mColumns.contains(key);
@@ -58,7 +58,7 @@ public:
                                 const std::string &fileName, const JobMeta &meta, OutputFormat format,
                                 bool writeRunMeta);
 
-  mutable std::map<int32_t, Table> mColumns;    // Each column is the representation of a channel
+  mutable std::map<joda::settings::ChannelIndex, Table> mColumns;    // Each column is the representation of a channel
 
 private:
   mutable std::mutex mAccessMutex;

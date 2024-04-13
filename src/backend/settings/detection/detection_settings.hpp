@@ -29,13 +29,14 @@ public:
   //
   AiSettings ai;
 
-  NLOHMANN_JSON_SERIALIZE_ENUM(DetectionMode, {
-                                                  {DetectionMode::NONE, ""},
-                                                  {DetectionMode::THRESHOLD, "Threshold"},
-                                                  {DetectionMode::AI, "Ai"},
-                                              })
-
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(DetectionSettings, detectionMode, threshold, ai);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(DetectionSettings::DetectionMode,
+                             {
+                                 {DetectionSettings::DetectionMode::NONE, ""},
+                                 {DetectionSettings::DetectionMode::THRESHOLD, "Threshold"},
+                                 {DetectionSettings::DetectionMode::AI, "Ai"},
+                             })
 
 }    // namespace joda::settings

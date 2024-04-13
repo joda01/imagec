@@ -66,14 +66,15 @@ public:
       const std::vector<cv::Point> &contour);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex);
+      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, joda::settings::ChannelIndex channelIndex);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, int32_t channelIndex,
+      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, joda::settings::ChannelIndex channelIndex,
       const joda::settings::ChannelSettingsFilter &filter);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-      const std::vector<cv::Point> &contour, const std::map<int32_t, const cv::Mat *> &imageOriginal);
+      const std::vector<cv::Point> &contour,
+      const std::map<joda::settings::ChannelIndex, const cv::Mat *> &imageOriginal);
 
   [[nodiscard]] auto getIndex() const
   {
@@ -139,12 +140,12 @@ public:
     return mHasSnapArea;
   }
 
-  [[nodiscard]] const std::map<int32_t, Intensity> &getIntensity(int idx = 0) const
+  [[nodiscard]] const std::map<joda::settings::ChannelIndex, Intensity> &getIntensity(int idx = 0) const
   {
     return intensity;
   }
 
-  [[nodiscard]] const std::map<int32_t, Intersecting> &getIntersectingRois(int idx = 0) const
+  [[nodiscard]] const std::map<joda::settings::ChannelIndex, Intersecting> &getIntersectingRois(int idx = 0) const
   {
     return intersectingRois;
   }
@@ -179,18 +180,18 @@ public:
     validity = valid;
   }
 
-  [[nodiscard]] std::tuple<ROI, bool> calcIntersection(const ROI &roi,
-                                                       const std::map<int32_t, const cv::Mat *> &imageOriginal,
-                                                       float minIntersection, bool createRoi = true) const;
+  [[nodiscard]] std::tuple<ROI, bool>
+  calcIntersection(const ROI &roi, const std::map<joda::settings::ChannelIndex, const cv::Mat *> &imageOriginal,
+                   float minIntersection, bool createRoi = true) const;
 
-  void measureAndAddIntensity(int32_t channelIdx, const cv::Mat &imageOriginal);
-  void calcIntersectionAndAdd(int32_t channelIdx, const ROI *roi);
+  void measureAndAddIntensity(joda::settings::ChannelIndex channelIdx, const cv::Mat &imageOriginal);
+  void calcIntersectionAndAdd(joda::settings::ChannelIndex channelIdx, const ROI *roi);
 
   [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;
 
 private:
   /////////////////////////////////////////////////////
-  void calculateMetrics(const std::map<int32_t, const cv::Mat *> &imageOriginal,
+  void calculateMetrics(const std::map<joda::settings::ChannelIndex, const cv::Mat *> &imageOriginal,
                         const joda::settings::ChannelSettingsFilter *filter);
   void calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int32_t maxHeight);
   void applyParticleFilter(const joda::settings::ChannelSettingsFilter *filter);
@@ -211,8 +212,8 @@ private:
   cv::Mat mSnapAreaMask;         ///< Segmentation mask with snap area
   std::vector<cv::Point> mSnapAreaMaskContours;
 
-  std::map<int32_t, Intensity> intensity;    ///< Key is the channel index
-  std::map<int32_t, Intersecting>
+  std::map<joda::settings::ChannelIndex, Intensity> intensity;    ///< Key is the channel index
+  std::map<joda::settings::ChannelIndex, Intersecting>
       intersectingRois;    ///< Key is the channel index, value an array of ROIs which intersects with this ROI
 
   uint64_t areaSize         = 0;    ///< size of the masking area [px^2 / px^3]

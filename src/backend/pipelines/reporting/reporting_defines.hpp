@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <string>
+#include "backend/settings/channel/channel_index.hpp"
 #include "backend/settings/channel/channel_reporting_settings.hpp"
 
 namespace joda::settings {
@@ -22,16 +23,16 @@ getMeasureChannel(uint32_t measureChannelUnmasked)
                                                                                 MEASURE_CHANNEL_MASK);
 }
 
-static inline uint32_t getChannelIndexFromMeasureChannel(uint32_t measureChannelUnmasked)
+static inline joda::settings::ChannelIndex getChannelIndexFromMeasureChannel(uint32_t measureChannelUnmasked)
 {
-  return (measureChannelUnmasked & MEASURE_CHANNEL_INDEX_MASK) >> 8;
+  return static_cast<joda::settings::ChannelIndex>((measureChannelUnmasked & MEASURE_CHANNEL_INDEX_MASK) >> 8);
 }
 
 static inline uint32_t
 getMaskedMeasurementChannel(joda::settings::ChannelReportingSettings::MeasureChannels measureChannel,
-                            uint32_t channelIndex)
+                            joda::settings::ChannelIndex channelIndex)
 {
-  return (channelIndex << 8) | (static_cast<uint32_t>(measureChannel));
+  return ((uint32_t) channelIndex << 8) | (static_cast<uint32_t>(measureChannel));
 }
 
 static inline std::string measurementChannelsToString(joda::settings::ChannelReportingSettings::MeasureChannels ch)

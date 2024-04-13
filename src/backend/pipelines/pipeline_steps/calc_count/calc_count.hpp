@@ -27,18 +27,21 @@ namespace joda::pipeline {
 class CalcCount : public PipelineStep
 {
 public:
-  CalcCount(int32_t referenceChannelIndex, std::set<int32_t> channelsToCalcIntensityIn) :
-      mReferenceChannelIndex(referenceChannelIndex), mChannelsToCalcIntensityIn(std::move(channelsToCalcIntensityIn))
+  CalcCount(joda::settings::ChannelIndex referenceChannelIndex,
+            std::set<joda::settings::ChannelIndex> channelsToCalcIntensityIn) :
+      mReferenceChannelIndex(referenceChannelIndex),
+      mChannelsToCalcIntensityIn(std::move(channelsToCalcIntensityIn))
   {
   }
   /////////////////////////////////////////////////////
-  auto execute(const settings::AnalyzeSettings &, const std::map<int, joda::func::DetectionResponse> &,
+  auto execute(const settings::AnalyzeSettings &,
+               const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &,
                const std::string &detailoutputPath) const -> joda::func::DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////
-  int32_t mReferenceChannelIndex;
-  std::set<int32_t> mChannelsToCalcIntensityIn;
+  joda::settings::ChannelIndex mReferenceChannelIndex;
+  std::set<joda::settings::ChannelIndex> mChannelsToCalcIntensityIn;
 };
 
 }    // namespace joda::pipeline

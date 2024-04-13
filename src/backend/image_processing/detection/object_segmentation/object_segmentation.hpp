@@ -30,7 +30,8 @@ public:
   /////////////////////////////////////////////////////
   ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, uint16_t thresholdValue,
                      joda::settings::ThresholdSettings::Mode method, bool doWatershed);
-  auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, int32_t channelIndex) -> DetectionResponse override;
+  auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
+      -> DetectionResponse override;
 
 private:
   std::shared_ptr<img::Threshold> mThresoldMethod;

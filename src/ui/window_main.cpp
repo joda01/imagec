@@ -35,7 +35,9 @@
 #include <string>
 #include <thread>
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
+#include "backend/settings/settings.hpp"
 #include "backend/settings/vchannel/vchannel_settings.hpp"
 #include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
 #include "container/channel/container_channel.hpp"
@@ -607,7 +609,21 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
 
   try {
     std::ifstream ifs(filePath.toStdString());
-    mAnalyzeSettings = nlohmann::json::parse(ifs);
+    joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(ifs);
+    removeAllChannels();
+
+    for(const auto &channel : analyzeSettings.channels) {
+      addChannel(channel);
+    }
+
+    for(const auto &channel : analyzeSettings.vChannels) {
+      if(channel.$voronoi.has_value()) {
+        addVChannelVoronoi(channel.$voronoi.value());
+      }
+    }
+
+    mAnalyzeSettings.experimentSettings = analyzeSettings.experimentSettings;
+
   } catch(const std::exception &ex) {
     if(mSelectedChannel != nullptr) {
       QMessageBox messageBox(this);
@@ -631,7 +647,7 @@ ContainerBase *WindowMain::addChannelFromTemplate(const QString &filePath)
   try {
     std::ifstream ifs(filePath.toStdString());
     settings::ChannelSettings settings = nlohmann::json::parse(ifs);
-    auto *newChannel                   = addChannel(AddChannel::CHANNEL /*, settings*/);
+    auto *newChannel                   = addChannel(settings);
     return newChannel;
   } catch(const std::exception &ex) {
     if(mSelectedChannel != nullptr) {
@@ -694,6 +710,18 @@ void WindowMain::waitForFileSearchFinished()
       mNewFolderSelected = false;
     }
     emit lookingForFilesFinished();
+  }
+}
+
+///
+/// \brief      Remove all channels
+/// \author     Joachim Danmayr
+///
+void WindowMain::removeAllChannels()
+{
+  std::map<ContainerBase *, void *> channelsToDelete = mChannels;
+  for(const auto &[channel, _] : channelsToDelete) {
+    removeChannel(channel);
   }
 }
 
@@ -784,14 +812,7 @@ void WindowMain::onSaveProjectClicked()
   QString filePath =
       QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "JSON Files (*.json);;All Files (*)");
   if(!filePath.isEmpty()) {
-    std::string path    = filePath.toStdString();
-    nlohmann::json json = mAnalyzeSettings;
-    if(!path.ends_with(".json")) {
-      path += ".json";
-    }
-    std::ofstream out(path);
-    out << json.dump(2);
-    out.close();
+    joda::settings::Settings::storeSettings(filePath.toStdString(), mAnalyzeSettings);
   }
 }
 
@@ -942,7 +963,7 @@ void WindowMain::onOpenSettingsDialog()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-ContainerBase *WindowMain::addChannel(AddChannel channelType)
+ContainerBase *WindowMain::addChannel(joda::settings::ChannelSettings settings)
 {
   if(mAddChannelPanel != nullptr) {
     {
@@ -957,26 +978,45 @@ ContainerBase *WindowMain::addChannel(AddChannel channelType)
     int row = mChannels.size() / 3;
     int col = mChannels.size() % 3;
     ContainerBase *panel1;
-    switch(channelType) {
-      case AddChannel::CHANNEL: {
-        mAnalyzeSettings.channels.push_back(joda::settings::ChannelSettings{});
-        joda::settings::ChannelSettings &newlyAdded = mAnalyzeSettings.channels.back();
-        panel1                                      = new ContainerChannel(this, newlyAdded);
-        panel1->fromSettings();
-        mChannels.emplace(panel1, &newlyAdded);
-      }
 
-      break;
+    mAnalyzeSettings.channels.push_back(settings);
+    joda::settings::ChannelSettings &newlyAdded = mAnalyzeSettings.channels.back();
+    panel1                                      = new ContainerChannel(this, newlyAdded);
+    panel1->fromSettings();
+    panel1->toSettings();
+    mChannels.emplace(panel1, &newlyAdded);
+    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+    return panel1;
+  }
+  return nullptr;
+}
 
-      case AddChannel::VORONOI:
-        mAnalyzeSettings.vChannels.push_back(
-            joda::settings::VChannelSettings{.$voronoi = joda::settings::VChannelVoronoi{}});
-        joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
-        panel1                                       = new ContainerVoronoi(this, newlyAdded.$voronoi.value());
-        panel1->fromSettings();
-        mChannels.emplace(panel1, &newlyAdded);
-        break;
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+ContainerBase *WindowMain::addVChannelVoronoi(joda::settings::VChannelVoronoi settings)
+{
+  if(mAddChannelPanel != nullptr) {
+    {
+      int row = (mChannels.size() + 1) / 3;
+      int col = (mChannels.size() + 1) % 3;
+      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
+      mLayoutChannelOverview->removeWidget(mLastElement);
+      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
     }
+
+    int row = mChannels.size() / 3;
+    int col = mChannels.size() % 3;
+    ContainerBase *panel1;
+
+    mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$voronoi = settings});
+    joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
+    panel1                                       = new ContainerVoronoi(this, newlyAdded.$voronoi.value());
+    panel1->fromSettings();
+    panel1->toSettings();
+    mChannels.emplace(panel1, &newlyAdded);
 
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
     return panel1;
@@ -993,7 +1033,7 @@ void WindowMain::onAddChannelClicked()
   if(mTemplateSelection->currentIndex() > 0) {
     addChannelFromTemplate(mTemplateSelection->currentData().toString());
   } else {
-    addChannel(AddChannel::CHANNEL);
+    addChannel({});
   }
 }
 
@@ -1003,7 +1043,7 @@ void WindowMain::onAddChannelClicked()
 ///
 void WindowMain::onAddCellApproxClicked()
 {
-  addChannel(AddChannel::VORONOI);
+  addVChannelVoronoi({});
 }
 
 void WindowMain::removeChannel(ContainerBase *toRemove)

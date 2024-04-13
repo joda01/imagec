@@ -171,7 +171,7 @@ private:
 
   void analyzeTile(joda::results::ReportingContainer &detailReports, FileInfo imagePath, std::string detailOutputFolder,
                    int tileIdx, const ImageProperties &imgProps);
-  void analyszeChannel(std::map<int32_t, joda::func::DetectionResponse> &detectionResults,
+  void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
                        const joda::settings::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx);
 
   /////////////////////////////////////////////////////

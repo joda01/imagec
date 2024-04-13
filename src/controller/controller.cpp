@@ -146,7 +146,7 @@ auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex
   auto imageFileName = mWorkingDirectory.getFileAt(imgIndex);
   auto onnxModels    = onnx::OnnxParser::findOnnxFiles();
   if(!imageFileName.getFilename().empty()) {
-    std::map<int32_t, joda::func::DetectionResponse> referenceChannelResults;
+    std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> referenceChannelResults;
     auto result = joda::algo::ImageProcessor::executeAlgorithm(imageFileName, settings, tileIndex, onnxModels,
                                                                &referenceChannelResults);
     std::vector<uchar> buffer;
