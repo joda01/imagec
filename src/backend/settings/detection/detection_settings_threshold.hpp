@@ -58,7 +58,7 @@ public:
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode::NONE, ""},
-                                                       {ThresholdSettings::Mode::MANUAL, "Manual"},
+                                                       {ThresholdSettings::Mode::MANUAL, "manual"},
                                                        {ThresholdSettings::Mode::LI, "li"},
                                                        {ThresholdSettings::Mode::MIN_ERROR, "minError"},
                                                        {ThresholdSettings::Mode::TRIANGLE, "triangle"},

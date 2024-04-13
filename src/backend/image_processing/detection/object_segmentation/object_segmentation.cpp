@@ -93,6 +93,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
 
   if(contours.size() > 100000) {
     joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
+    return {.result = response, .controlImage = {}};
   }
   id = DurationCount::start("detection_mask");
 

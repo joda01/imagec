@@ -326,7 +326,7 @@ void ContainerChannel::fromSettings()
     mMaxParticleSize->setValue(mSettings.filter.maxParticleSize);
   }
   mMinCircularity->setValue(mSettings.filter.minCircularity);
-  mSnapAreaSize->setValue(mSettings.filter.minParticleSize);
+  mSnapAreaSize->setValue(mSettings.filter.snapAreaSize);
   mTetraspeckRemoval->setValue(mSettings.filter.referenceSpotChannelIndex);
 
   // Cross channel intensity

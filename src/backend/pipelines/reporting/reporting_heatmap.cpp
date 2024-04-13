@@ -264,8 +264,9 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
         paintPlateBorder(worksheet, nrOfRows, nrOfCols, rowOffset, headerFormat, numberFormat);
       };
 
-      auto writeData = [&worksheet, &rowOffset, &values = values, &analyzeSettings, &wellOrder, &numberFormat,
-                        &channelIdx = channelIdx](settings::ChannelReportingSettings::MeasureChannels measureChannel) {
+      auto writeData = [&worksheet, &rowOffset, &values = values, &analyzeSettings, &wellOrder,
+                        &numberFormat](settings::ChannelReportingSettings::MeasureChannels measureChannel,
+                                       joda::settings::ChannelIndex channelIdx) {
         for(int rowIdx = 0; rowIdx < values.getNrOfRows(); rowIdx++) {
           try {
             auto imageName = values.getRowNameAt(rowIdx);
@@ -293,7 +294,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
           writePlateFrame(
               measurementChannelsToString(getMaskedMeasurementChannel(measureChannelKey, intensIdx), analyzeSettings));
           rowOffset++;
-          writeData(measureChannelKey);
+          writeData(measureChannelKey, intensIdx);
           rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
         }
       } else if(measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
@@ -303,14 +304,14 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
           writePlateFrame(
               measurementChannelsToString(getMaskedMeasurementChannel(measureChannelKey, countIdx), analyzeSettings));
           rowOffset++;
-          writeData(measureChannelKey);
+          writeData(measureChannelKey, countIdx);
           rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
         }
       } else {
         writePlateFrame(
             measurementChannelsToString(getMaskedMeasurementChannel(measureChannelKey, channelIdx), analyzeSettings));
         rowOffset++;
-        writeData(measureChannelKey);
+        writeData(measureChannelKey, channelIdx);
         rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
       }
     }

@@ -660,16 +660,14 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
 
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
-    if(mSelectedChannel != nullptr) {
-      QMessageBox messageBox(this);
-      auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-      messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
-      messageBox.setIconPixmap(icon->pixmap(42, 42));
-      messageBox.setWindowTitle("Could not load settings!");
-      messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
-      messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-      auto reply = messageBox.exec();
-    }
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not load settings!");
+    messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
   }
 }
 
