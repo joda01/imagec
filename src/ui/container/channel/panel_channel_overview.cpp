@@ -61,6 +61,7 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
   layout->addWidget(parent->mEdgeDetection->getLabelWidget(), 5, 2);
 
   layout->addWidget(parent->mTetraspeckRemoval->getLabelWidget(), 6, 0);
+  layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 6, 1);
   layout->addWidget(parent->mCrossChannelCount->getLabelWidget(), 6, 2);
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);

@@ -31,7 +31,15 @@ public:
   CrossChannelSettings crossChannel;
   ChannelReportingSettings reporting;
 
+  [[nodiscard]] const std::string &schema() const
+  {
+    return configSchema;
+  }
+
+private:
+  std::string configSchema = "https://imagec.org/schemas/v1/channel-settings.json";
+
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, meta, detection, filter, preprocessing, crossChannel,
-                                              reporting);
+                                              reporting, configSchema);
 };
 }    // namespace joda::settings

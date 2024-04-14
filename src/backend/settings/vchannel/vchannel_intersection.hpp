@@ -32,7 +32,10 @@ public:
   IntersectionSettings intersection;
 
 private:
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(VChannelIntersection, meta, crossChannel, reporting, intersection);
+  std::string configSchema = "https://imagec.org/schemas/v1/intersectrion-settings.json";
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(VChannelIntersection, meta, crossChannel, reporting, intersection,
+                                              configSchema);
 };
 
 }    // namespace joda::settings

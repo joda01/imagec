@@ -48,31 +48,38 @@ public:
   //
   uint16_t thresholdMax = 0;
 
+  struct Watershed
+  {
+    bool enabled = false;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Watershed, enabled);
+  };
+
   //
   // Enable watershed segmentation
   //
-  bool $watershedSegmentation = false;
+  Watershed $watershedSegmentation;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ThresholdSettings, mode, thresholdMin, thresholdMax,
                                               $watershedSegmentation);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode::NONE, ""},
-                                                       {ThresholdSettings::Mode::MANUAL, "manual"},
-                                                       {ThresholdSettings::Mode::LI, "li"},
-                                                       {ThresholdSettings::Mode::MIN_ERROR, "minError"},
-                                                       {ThresholdSettings::Mode::TRIANGLE, "triangle"},
-                                                       {ThresholdSettings::Mode::MOMENTS, "moments"},
-                                                       {ThresholdSettings::Mode::HUANG, "huang"},
-                                                       {ThresholdSettings::Mode::INTERMODES, "intermodes"},
-                                                       {ThresholdSettings::Mode::ISODATA, "isodata"},
-                                                       {ThresholdSettings::Mode::MAX_ENTROPY, "maxEntropy"},
-                                                       {ThresholdSettings::Mode::MEAN, "mean"},
-                                                       {ThresholdSettings::Mode::MINIMUM, "minimum"},
-                                                       {ThresholdSettings::Mode::OTSU, "otsu"},
-                                                       {ThresholdSettings::Mode::PERCENTILE, "percentil"},
-                                                       {ThresholdSettings::Mode::RENYI_ENTROPY, "renyiEntropy"},
-                                                       {ThresholdSettings::Mode::SHANBHAG, "shanbhag"},
-                                                       {ThresholdSettings::Mode::YEN, "yen"}})
+                                                       {ThresholdSettings::Mode::MANUAL, "Manual"},
+                                                       {ThresholdSettings::Mode::LI, "Li"},
+                                                       {ThresholdSettings::Mode::MIN_ERROR, "MinError"},
+                                                       {ThresholdSettings::Mode::TRIANGLE, "Triangle"},
+                                                       {ThresholdSettings::Mode::MOMENTS, "Moments"},
+                                                       {ThresholdSettings::Mode::HUANG, "Huang"},
+                                                       {ThresholdSettings::Mode::INTERMODES, "Intermodes"},
+                                                       {ThresholdSettings::Mode::ISODATA, "IsoData"},
+                                                       {ThresholdSettings::Mode::MAX_ENTROPY, "MaxEntropy"},
+                                                       {ThresholdSettings::Mode::MEAN, "Mean"},
+                                                       {ThresholdSettings::Mode::MINIMUM, "Minimum"},
+                                                       {ThresholdSettings::Mode::OTSU, "Otsu"},
+                                                       {ThresholdSettings::Mode::PERCENTILE, "Percentil"},
+                                                       {ThresholdSettings::Mode::RENYI_ENTROPY, "TenyiEntropy"},
+                                                       {ThresholdSettings::Mode::SHANBHAG, "Shanbhag"},
+                                                       {ThresholdSettings::Mode::YEN, "Yen"}})
 
 }    // namespace joda::settings

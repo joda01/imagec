@@ -15,9 +15,9 @@ public:
   std::set<ChannelIndex> crossChannelIntensityChannels;
 
   // Cross channel count calculation
-  std::set<ChannelIndex> crossChannelCoutChannels;
+  std::set<ChannelIndex> crossChannelCountChannels;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CrossChannelSettings, crossChannelIntensityChannels,
-                                              crossChannelCoutChannels);
+                                              crossChannelCountChannels);
 };
 }    // namespace joda::settings

@@ -44,10 +44,11 @@ PanelVoronoiOverview::PanelVoronoiOverview(WindowMain *wm, ContainerVoronoi *par
   layout->addWidget(parent->mVoronoiPoints->getLabelWidget(), 1, 1);
   layout->addWidget(parent->mOverlayMaskChannelIndex->getLabelWidget(), 1, 2);
 
-  layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 2, 1);
+  layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 2, 0);
+  layout->addWidget(parent->mCrossChannelCount->getLabelWidget(), 2, 1);
   layout->addWidget(parent->mMaxVoronoiAreaSize->getLabelWidget(), 2, 2);
 
-  layout->addWidget(parent->mCrossChannelCount->getLabelWidget(), 3, 0);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 0);
   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 1);
   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 2);
 

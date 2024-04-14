@@ -300,7 +300,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
       } else if(measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
         for(joda::settings::ChannelIndex countIdx :
             settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                .crossChannelCoutChannels) {
+                .crossChannelCountChannels) {
           writePlateFrame(
               measurementChannelsToString(getMaskedMeasurementChannel(measureChannelKey, countIdx), analyzeSettings));
           rowOffset++;
@@ -416,7 +416,7 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
                     settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
             for(joda::settings::ChannelIndex countIdx :
                 settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                    .crossChannelCoutChannels) {
+                    .crossChannelCountChannels) {
               writePlateFrame(measurementChannelsToString(getMaskedMeasurementChannel(measureChannelKey, countIdx),
                                                           analyzeSettings));
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
@@ -461,7 +461,7 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
                       settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
               for(joda::settings::ChannelIndex countIdx :
                   settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                      .crossChannelCoutChannels) {
+                      .crossChannelCountChannels) {
                 writeNumber(values.getStatistics()
                                 .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannelKey, countIdx)))
                                 .getAvg());

@@ -159,7 +159,7 @@ void ContainerIntersection::fromSettings()
 
   // Cross channel count
   {
-    auto &crosschannelCount = mSettings.crossChannel.crossChannelCoutChannels;
+    auto &crosschannelCount = mSettings.crossChannel.crossChannelCountChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crosschannelCount) {
       if(static_cast<int32_t>(chIdx) < 65) {
@@ -234,7 +234,7 @@ void ContainerIntersection::toSettings()
         }
       }
     }
-    mSettings.crossChannel.crossChannelCoutChannels = crossChannelCount;
+    mSettings.crossChannel.crossChannelCountChannels = crossChannelCount;
   }
 }
 

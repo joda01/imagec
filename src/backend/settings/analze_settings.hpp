@@ -38,6 +38,14 @@ public:
   std::list<ChannelSettings> channels;
   std::list<VChannelSettings> vChannels;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeSettings, experimentSettings, channels, vChannels);
+  [[nodiscard]] const std::string &schema() const
+  {
+    return configSchema;
+  }
+
+private:
+  std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.json";
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettings, configSchema, experimentSettings, channels, vChannels);
 };
 }    // namespace joda::settings

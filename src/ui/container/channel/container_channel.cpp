@@ -316,7 +316,7 @@ void ContainerChannel::fromSettings()
   mThresholdValueMin->setValue(mSettings.detection.threshold.thresholdMin);
   mAIModels->setValue(mSettings.detection.ai.modelPath.data());
   mMinProbability->setValue(mSettings.detection.ai.minProbability);
-  mWateredSegmentation->setValue(mSettings.detection.threshold.$watershedSegmentation);
+  mWateredSegmentation->setValue(mSettings.detection.threshold.$watershedSegmentation.enabled);
 
   // Filtering
   mMinParticleSize->setValue(mSettings.filter.minParticleSize);
@@ -349,7 +349,7 @@ void ContainerChannel::fromSettings()
 
   // Cross channel count
   {
-    auto &crosschannelCount = mSettings.crossChannel.crossChannelCoutChannels;
+    auto &crosschannelCount = mSettings.crossChannel.crossChannelCountChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crosschannelCount) {
       if(static_cast<int32_t>(chIdx) < 65) {
@@ -436,10 +436,10 @@ void ContainerChannel::toSettings()
   // Detections
   mSettings.detection.detectionMode = mUsedDetectionMode->getValue();
 
-  mSettings.detection.threshold.mode                   = mThresholdAlgorithm->getValue();
-  mSettings.detection.threshold.thresholdMin           = mThresholdValueMin->getValue();
-  mSettings.detection.threshold.thresholdMax           = UINT16_MAX;
-  mSettings.detection.threshold.$watershedSegmentation = mWateredSegmentation->getValue();
+  mSettings.detection.threshold.mode                           = mThresholdAlgorithm->getValue();
+  mSettings.detection.threshold.thresholdMin                   = mThresholdValueMin->getValue();
+  mSettings.detection.threshold.thresholdMax                   = UINT16_MAX;
+  mSettings.detection.threshold.$watershedSegmentation.enabled = mWateredSegmentation->getValue();
 
   mSettings.detection.ai.modelPath      = mAIModels->getValue().toStdString();
   mSettings.detection.ai.minProbability = mMinProbability->getValue();
@@ -489,7 +489,7 @@ void ContainerChannel::toSettings()
         }
       }
     }
-    mSettings.crossChannel.crossChannelCoutChannels = crossChannelCount;
+    mSettings.crossChannel.crossChannelCountChannels = crossChannelCount;
   }
 }
 

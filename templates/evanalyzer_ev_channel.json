@@ -1,0 +1,104 @@
+{
+  "configSchema": "https://imagec.org/schemas/v1/channel-settings.json",
+  "crossChannel": {
+    "crossChannelCountChannels": [],
+    "crossChannelIntensityChannels": []
+  },
+  "detection": {
+    "ai": {
+      "minProbability": 0.0,
+      "modelPath": ""
+    },
+    "detectionMode": "Threshold",
+    "threshold": {
+      "$watershedSegmentation": {
+        "enabled": false
+      },
+      "mode": "Li",
+      "thresholdMax": 65535,
+      "thresholdMin": 0
+    }
+  },
+  "filter": {
+    "maxParticleSize": 2147483647,
+    "minCircularity": 0.0,
+    "minParticleSize": 5,
+    "referenceSpotChannelIndex": "None",
+    "snapAreaSize": 0
+  },
+  "meta": {
+    "channelIdx": "0",
+    "color": "#B91717",
+    "label": "",
+    "name": "EV channel",
+    "series": 0,
+    "type": "Spot"
+  },
+  "preprocessing": {
+    "$cropMargin": {
+      "marginSize": 0
+    },
+    "$zStack": {
+      "method": "MaxIntensity"
+    },
+    "pipeline": [
+      {
+        "$rollingBall": {
+          "ballSize": 4,
+          "ballType": "Paraboloid"
+        }
+      },
+      {
+        "$blur": {
+          "kernelSize": 3,
+          "repeat": 2
+        }
+      }
+    ]
+  },
+  "reporting": {
+    "detail": {
+      "measureChannels": [
+        "Confidence",
+        "AreaSize",
+        "Confidence",
+        "Circularity",
+        "Validity",
+        "Invalidity",
+        "CenterOfMassX",
+        "CenterOfMassY",
+        "IntensityAvg",
+        "IntensityMin",
+        "IntensityMax",
+        "CrossChannelIntensityAvg",
+        "CrossChannelIntensityMin",
+        "CrossChannelIntensityMax",
+        "CrossChannelIntersection"
+      ]
+    },
+    "heatmap": {
+      "measureChannels": [
+        "Validity",
+        "IntensityAvg",
+        "CrossChannelIntensityAvg",
+        "CrossChannelIntersection"
+      ]
+    },
+    "overview": {
+      "measureChannels": [
+        "Confidence",
+        "AreaSize",
+        "Circularity",
+        "Validity",
+        "Invalidity",
+        "IntensityAvg",
+        "IntensityMin",
+        "IntensityMax",
+        "CrossChannelIntensityAvg",
+        "CrossChannelIntensityMin",
+        "CrossChannelIntensityMax",
+        "CrossChannelIntersection"
+      ]
+    }
+  }
+}

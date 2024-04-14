@@ -41,12 +41,12 @@ PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIn
   layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
 
   layout->addWidget(parent->mColorAndChannelIndex->getLabelWidget(), 1, 0);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 1, 1);
+  layout->addWidget(parent->mCrossChannelIntersection->getLabelWidget(), 1, 1);
   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 1, 2);
 
-  layout->addWidget(parent->mCrossChannelIntersection->getLabelWidget(), 2, 0);
-  layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 2, 1);
-  layout->addWidget(parent->mCrossChannelCount->getLabelWidget(), 2, 2);
+  layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 2, 0);
+  layout->addWidget(parent->mCrossChannelCount->getLabelWidget(), 2, 1);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 1, 2);
 
   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 0);
   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 1);
