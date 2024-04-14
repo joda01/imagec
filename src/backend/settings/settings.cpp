@@ -178,7 +178,7 @@ void Settings::checkSettings(const joda::settings::AnalyzeSettings &settings)
   };
 
   auto checkCrossChannel = [&index, &channelName](const joda::settings::CrossChannelSettings &set) {
-    for(const auto idx : set.crossChannelCoutChannels) {
+    for(const auto idx : set.crossChannelCountChannels) {
       if(!index.contains(idx)) {
         throw std::runtime_error("A cross channel count without corrsponding channel was set!");
       }

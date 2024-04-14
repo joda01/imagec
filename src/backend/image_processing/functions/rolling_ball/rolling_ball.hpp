@@ -79,7 +79,7 @@ private:
   // void setNPasses(int nPasses);
 
   /////////////////////////////////////////////////////
-  bool mUseSlidingParaboloid = false;
+  bool mUseSlidingParaboloid;
   const float radius;
   const bool lightBackground = false;
   const int nPasses          = 1;

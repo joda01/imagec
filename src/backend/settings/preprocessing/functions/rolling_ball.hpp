@@ -17,13 +17,13 @@ public:
   };
 
   int32_t ballSize  = 0;
-  BallType ballType = BallType::NONE;
+  BallType ballType = BallType::BALL;
 
 private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(RollingBall, ballSize, ballType);
-
-  NLOHMANN_JSON_SERIALIZE_ENUM(RollingBall::BallType, {{RollingBall::BallType::NONE, ""},
-                                                       {RollingBall::BallType::BALL, "Ball"},
-                                                       {RollingBall::BallType::PARABOLOID, "Paraboloid"}});
 };
+NLOHMANN_JSON_SERIALIZE_ENUM(RollingBall::BallType, {{RollingBall::BallType::NONE, ""},
+                                                     {RollingBall::BallType::BALL, "Ball"},
+                                                     {RollingBall::BallType::PARABOLOID, "Paraboloid"}});
+
 }    // namespace joda::settings

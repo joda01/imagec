@@ -136,7 +136,7 @@ void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyz
     //
     for(joda::settings::ChannelIndex countIdx :
         joda::settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, realChannelIdx)
-            .crossChannelCoutChannels) {
+            .crossChannelCountChannels) {
       detailReportTable.getTableAt(realChannelIdx, channelName)
           .setColumnName(
               channelIndexOffset,

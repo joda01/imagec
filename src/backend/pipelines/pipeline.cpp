@@ -339,8 +339,8 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
           intensity.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
         }
 
-        if(!voronoi.crossChannel.crossChannelCoutChannels.empty()) {
-          CalcCount counting(idx, voronoi.crossChannel.crossChannelCoutChannels);
+        if(!voronoi.crossChannel.crossChannelCountChannels.empty()) {
+          CalcCount counting(idx, voronoi.crossChannel.crossChannelCountChannels);
           counting.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
         }
 
@@ -361,8 +361,8 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
       //
       // Measure intensity from ROI area of channel X in channel Y
       //
-      if(!channelSettings.crossChannel.crossChannelCoutChannels.empty()) {
-        CalcCount counting(channelSettings.meta.channelIdx, channelSettings.crossChannel.crossChannelCoutChannels);
+      if(!channelSettings.crossChannel.crossChannelCountChannels.empty()) {
+        CalcCount counting(channelSettings.meta.channelIdx, channelSettings.crossChannel.crossChannelCountChannels);
         counting.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
       }
 
