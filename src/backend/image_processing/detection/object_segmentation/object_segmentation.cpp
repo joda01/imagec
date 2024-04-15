@@ -24,6 +24,7 @@
 #include "backend/image_processing/functions/threshold/threshold_manual.hpp"
 #include "backend/image_processing/functions/threshold/threshold_min_error.hpp"
 #include "backend/image_processing/functions/threshold/threshold_moments.hpp"
+#include "backend/image_processing/functions/threshold/threshold_otsu.hpp"
 #include "backend/image_processing/functions/threshold/threshold_triangel.hpp"
 #include "backend/logger/console_logger.hpp"
 #include "backend/settings/detection/detection_settings_threshold.hpp"
@@ -51,6 +52,10 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
     case joda::settings::ThresholdSettings::Mode::MOMENTS:
       mThresoldMethod = std::make_shared<img::ThresholdMoments>(thresholdValue);
       break;
+    case joda::settings::ThresholdSettings::Mode::OTSU:
+      mThresoldMethod = std::make_shared<img::ThresholdOtsu>(thresholdValue);
+      break;
+
     default:
     case joda::settings::ThresholdSettings::Mode::HUANG:
     case joda::settings::ThresholdSettings::Mode::INTERMODES:
@@ -58,7 +63,6 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
     case joda::settings::ThresholdSettings::Mode::MAX_ENTROPY:
     case joda::settings::ThresholdSettings::Mode::MEAN:
     case joda::settings::ThresholdSettings::Mode::MINIMUM:
-    case joda::settings::ThresholdSettings::Mode::OTSU:
     case joda::settings::ThresholdSettings::Mode::PERCENTILE:
     case joda::settings::ThresholdSettings::Mode::RENYI_ENTROPY:
     case joda::settings::ThresholdSettings::Mode::SHANBHAG:

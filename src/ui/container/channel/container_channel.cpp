@@ -92,7 +92,8 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
            {joda::settings::ThresholdSettings::Mode::LI, "Li"},
            {joda::settings::ThresholdSettings::Mode::MIN_ERROR, "Min. error"},
            {joda::settings::ThresholdSettings::Mode::TRIANGLE, "Triangle"},
-           {joda::settings::ThresholdSettings::Mode::MOMENTS, "Moments"}}));
+           {joda::settings::ThresholdSettings::Mode::MOMENTS, "Moments"},
+           {joda::settings::ThresholdSettings::Mode::OTSU, "Otsu"}}));
 
   mThresholdValueMin = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
       "icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "px", 1000, 0, 65535));
