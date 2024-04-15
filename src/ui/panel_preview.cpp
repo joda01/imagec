@@ -237,9 +237,12 @@ void PreviewLabel::mousePressEvent(QMouseEvent *event)
 void PreviewLabel::wheelEvent(QWheelEvent *event)
 {
   qreal zoomFactor = 1.05;
-  if(event->pixelDelta().ry() > 0) {
+
+  if(event->angleDelta().y() > 0) {
+    // Zoom in
     scale(zoomFactor, zoomFactor);
-  } else {
+  } else if(event->angleDelta().y() < 0) {
+    // Zoom out
     scale(1.0 / zoomFactor, 1.0 / zoomFactor);
   }
 }
