@@ -383,7 +383,8 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
 
           auto val = colStatistics.getAvg();
           if(mask == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
-             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY) {
+             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY ||
+             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
             val = colStatistics.getSum();
           }
 
@@ -393,7 +394,8 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
           double noData = std::numeric_limits<double>::quiet_NaN();
           // Validity has an count and therefore should be zero and not NAN
           if(mask == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
-             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY) {
+             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY ||
+             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
             noData = 0;
           }
 
