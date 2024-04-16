@@ -95,8 +95,9 @@ cv::Mat Edm::makeFloatEDM(cv::Mat &ip, int backgroundValue, bool edgesAreBackgro
     pointBufs[1][x] = NO_POINT;
   }
   for(int y = 0; y < height; y++) {
-    if(edgesAreBackground)
+    if(edgesAreBackground) {
       yDist = y + 1;    // distance to nearest background point (along y)
+    }
     edmLine(ip, fp, pointBufs, width, y * width, y, backgroundValue, yDist);
   }
   // pass 3 & 4: decreasing y
@@ -105,8 +106,9 @@ cv::Mat Edm::makeFloatEDM(cv::Mat &ip, int backgroundValue, bool edgesAreBackgro
     pointBufs[1][x] = NO_POINT;
   }
   for(int y = height - 1; y >= 0; y--) {
-    if(edgesAreBackground)
+    if(edgesAreBackground) {
       yDist = height - y;
+    }
     edmLine(ip, fp, pointBufs, width, y * width, y, backgroundValue, yDist);
   }
 
@@ -138,8 +140,9 @@ void Edm::edmLine(cv::Mat &bPixels, cv::Mat &fPixels, int **pointBufs, int width
     if(bPixels.at<uint8_t>(offset) == backgroundValue) {
       points[x] = x | y << 16;    // remember coordinates as a candidate for nearest background point
     } else {                      // foreground pixel:
-      if(edgesAreBackground)
+      if(edgesAreBackground) {
         distSqr = (x + 1 < yDist) ? (x + 1) * (x + 1) : yDist * yDist;    // distance from edge
+      }
       float dist2 = minDist2(points, pPrev, pDiag, x, y, distSqr);
       if(fPixels.at<float>(offset) > dist2)
         fPixels.at<float>(offset) = dist2;
@@ -156,11 +159,13 @@ void Edm::edmLine(cv::Mat &bPixels, cv::Mat &fPixels, int **pointBufs, int width
     if(bPixels.at<uint8_t>(offset) == backgroundValue) {
       points[x] = x | y << 16;    // remember coordinates as a candidate for nearest background point
     } else {                      // foreground pixel:
-      if(edgesAreBackground)
+      if(edgesAreBackground) {
         distSqr = (width - x < yDist) ? (width - x) * (width - x) : yDist * yDist;
+      }
       float dist2 = minDist2(points, pPrev, pDiag, x, y, distSqr);
-      if(fPixels.at<float>(offset) > dist2)
+      if(fPixels.at<float>(offset) > dist2) {
         fPixels.at<float>(offset) = dist2;
+      }
     }
     pPrev = points[x];
     pDiag = pNextDiag;

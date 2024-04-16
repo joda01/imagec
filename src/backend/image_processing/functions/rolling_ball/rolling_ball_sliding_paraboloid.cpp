@@ -45,8 +45,8 @@ void RollingBallBackground::slidingParaboloidFloatBackground(cv::Mat &fp, float 
   int width        = fp.cols;
   int height       = fp.rows;
   uint64_t length  = width * height;
-  float *cache     = new float[std::max(width, height)];    // work array for lineSlideParabola
-  int *nextPoint   = new int[std::max(width, height)];      // work array for lineSlideParabola
+  float *cache     = new float[std::max(width, height)]{0};    // work array for lineSlideParabola
+  int *nextPoint   = new int[std::max(width, height)]{0};      // work array for lineSlideParabola
   float coeff2     = 0.5f / radius;    // 2nd-order coefficient of the polynomial approximating the ball
   float coeff2diag = 1.f / radius;     // same for diagonal directions where step is sqrt2
 
@@ -58,8 +58,8 @@ void RollingBallBackground::slidingParaboloidFloatBackground(cv::Mat &fp, float 
 
   float shiftBy = 0;
   if(doPresmooth) {
-    shiftBy = (float) filter3x3(fp, MAXIMUM);    // 3x3 maximum to remove dust etc.
-    filter3x3(fp, MEAN);                         // smoothing to remove noise
+    shiftBy = static_cast<float>(filter3x3(fp, MAXIMUM));    // 3x3 maximum to remove dust etc.
+    filter3x3(fp, MEAN);                                     // smoothing to remove noise
   }
   if(correctCorners) {
     this->correctCorners(fp, coeff2, cache, nextPoint);    // modify corner data, avoids subtracting corner particles
@@ -200,8 +200,9 @@ float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int 
   for(int i = 0, p = start; i < length; i++, p += inc) {
     float v  = pixels.at<float>(p);
     cache[i] = v;
-    if(v < minValue)
+    if(v < minValue) {
       minValue = v;
+    }
     if(i >= 2 && vPrevious1 + vPrevious1 - vPrevious2 - v < curvatureTest) {
       nextPoint[lastpoint] = i - 1;    // point i-1 may be touched
       lastpoint            = i - 1;
@@ -233,8 +234,9 @@ float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int 
         double b      = 0.5f * minSlope / coeff2;
         int maxSearch = i1 + (int) (b + std::sqrt(b * b + (v1 - minValue) / coeff2) +
                                     1);    //(numeric overflow may make this negative)
-        if(maxSearch < searchTo && maxSearch > 0)
+        if(maxSearch < searchTo && maxSearch > 0) {
           searchTo = maxSearch;
+        }
       }
     }
     if(i1 == 0) {
@@ -291,8 +293,8 @@ void RollingBallBackground::correctCorners(cv::Mat &pixels, float coeff2, float 
 {
   int width             = pixels.cols;
   int height            = pixels.rows;
-  float *corners        = new float[4];    //(0,0); (xmax,0); (ymax,0); (xmax,ymax)
-  float *correctedEdges = new float[2];
+  float *corners        = new float[4]{0};    //(0,0); (xmax,0); (ymax,0); (xmax,ymax)
+  float *correctedEdges = new float[2]{0};
   correctedEdges        = lineSlideParabola(pixels, 0, 1, width, coeff2, cache, nextPoint, correctedEdges);
   corners[0]            = correctedEdges[0];
   corners[1]            = correctedEdges[1];
