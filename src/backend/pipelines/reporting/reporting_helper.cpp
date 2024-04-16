@@ -376,11 +376,12 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
             .setColumnName(colIdx, detailedReport.getTableAt(channelIdx).getColumnNameAt(colIdx),
                            detailedReport.getTableAt(channelIdx).getColumnKeyAt(colIdx));
 
+        auto mask = getMeasureChannel(tableToWorkOn.getTableAt(channelIdx, tableName).getColumnKeyAt(colIdx));
+
         if(detailedReport.getTableAt(channelIdx).containsStatistics(colIdx)) {
           auto colStatistics = detailedReport.getTableAt(channelIdx).getStatistics(colIdx);
 
-          auto val  = colStatistics.getAvg();
-          auto mask = getMeasureChannel(tableToWorkOn.getTableAt(channelIdx, tableName).getColumnKeyAt(colIdx));
+          auto val = colStatistics.getAvg();
           if(mask == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
              mask == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY) {
             val = colStatistics.getSum();
@@ -389,10 +390,16 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
           rowIdx = tableToWorkOn.getTableAt(channelIdx, tableName)
                        .appendValueToColumn(colIdx, val, joda::func::ParticleValidity::VALID);
         } else {
+          double noData = std::numeric_limits<double>::quiet_NaN();
+          // Validity has an count and therefore should be zero and not NAN
+          if(mask == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
+             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY) {
+            noData = 0;
+          }
+
           // No statistics, just add NaN
           rowIdx = tableToWorkOn.getTableAt(channelIdx, tableName)
-                       .appendValueToColumn(colIdx, std::numeric_limits<double>::quiet_NaN(),
-                                            joda::func::ParticleValidity::UNKNOWN);
+                       .appendValueToColumn(colIdx, noData, joda::func::ParticleValidity::UNKNOWN);
         }
       }
 

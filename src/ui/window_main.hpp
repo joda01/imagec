@@ -91,6 +91,11 @@ signals:
   void lookingForTemplateFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
 
 private:
+  /////////////////////////////////////////////////////
+  static constexpr int32_t OVERVIEW_COLS = 3;
+  static constexpr int32_t V_CHANNEL_COL = OVERVIEW_COLS;
+
+  /////////////////////////////////////////////////////
   void createToolbar();
   QWidget *createStackedWidget();
   QWidget *createGirafWidget();

@@ -32,26 +32,42 @@ inline std::string to_string(joda::settings::ChannelIndex idx)
 {
   switch(idx) {
     case ChannelIndex::NONE:
+      return "none";
     case ChannelIndex::CH0:
+      return "ch_00";
     case ChannelIndex::CH1:
+      return "ch_01";
     case ChannelIndex::CH2:
+      return "ch_02";
     case ChannelIndex::CH3:
+      return "ch_03";
     case ChannelIndex::CH4:
+      return "ch_04";
     case ChannelIndex::CH5:
+      return "ch_05";
     case ChannelIndex::CH6:
+      return "ch_06";
     case ChannelIndex::CH7:
+      return "ch_07";
     case ChannelIndex::CH8:
+      return "ch_08";
     case ChannelIndex::CH9:
+      return "ch_09";
     case ChannelIndex::A:
+      return "slot_a";
     case ChannelIndex::B:
+      return "slot_b";
     case ChannelIndex::C:
+      return "slot_c";
     case ChannelIndex::D:
+      return "slot_d";
     case ChannelIndex::E:
+      return "slot_e";
     case ChannelIndex::F:
-      break;
+      return "slot_f";
   }
 
-  return "";
+  return "ups";
 }
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ChannelIndex, {

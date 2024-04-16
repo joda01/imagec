@@ -1010,16 +1010,16 @@ ContainerBase *WindowMain::addChannel(joda::settings::ChannelSettings settings)
 {
   if(mAddChannelPanel != nullptr) {
     {
-      int row = (mChannels.size() + 1) / 3;
-      int col = (mChannels.size() + 1) % 3;
+      int row = (mAnalyzeSettings.channels.size() + 1) / OVERVIEW_COLS;
+      int col = (mAnalyzeSettings.channels.size() + 1) % OVERVIEW_COLS;
       mLayoutChannelOverview->removeWidget(mAddChannelPanel);
       mLayoutChannelOverview->removeWidget(mLastElement);
       mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
-      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
     }
 
-    int row = mChannels.size() / 3;
-    int col = mChannels.size() % 3;
+    int row = mAnalyzeSettings.channels.size() / OVERVIEW_COLS;
+    int col = mAnalyzeSettings.channels.size() % OVERVIEW_COLS;
     ContainerBase *panel1;
 
     mAnalyzeSettings.channels.push_back(settings);
@@ -1042,16 +1042,16 @@ ContainerBase *WindowMain::addVChannelVoronoi(joda::settings::VChannelVoronoi se
 {
   if(mAddChannelPanel != nullptr) {
     {
-      int row = (mChannels.size() + 1) / 3;
-      int col = (mChannels.size() + 1) % 3;
+      int row = (mChannels.size() + 1) / OVERVIEW_COLS;
+      int col = (mChannels.size() + 1) % OVERVIEW_COLS;
       mLayoutChannelOverview->removeWidget(mAddChannelPanel);
       mLayoutChannelOverview->removeWidget(mLastElement);
       mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
-      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
     }
 
-    int row = mChannels.size() / 3;
-    int col = mChannels.size() % 3;
+    int row = mChannels.size() / OVERVIEW_COLS;
+    int col = mChannels.size() % OVERVIEW_COLS;
     ContainerBase *panel1;
 
     mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$voronoi = settings});
@@ -1075,16 +1075,16 @@ ContainerBase *WindowMain::addVChannelIntersection(joda::settings::VChannelInter
 {
   if(mAddChannelPanel != nullptr) {
     {
-      int row = (mChannels.size() + 1) / 3;
-      int col = (mChannels.size() + 1) % 3;
+      int row = (mChannels.size() + 1) / OVERVIEW_COLS;
+      int col = (mChannels.size() + 1) % OVERVIEW_COLS;
       mLayoutChannelOverview->removeWidget(mAddChannelPanel);
       mLayoutChannelOverview->removeWidget(mLastElement);
       mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
-      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
     }
 
-    int row = mChannels.size() / 3;
-    int col = mChannels.size() % 3;
+    int row = mChannels.size() / OVERVIEW_COLS;
+    int col = mChannels.size() % OVERVIEW_COLS;
     ContainerBase *panel1;
 
     mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$intersection = settings});
@@ -1153,19 +1153,19 @@ void WindowMain::removeChannel(ContainerBase *toRemove)
     int cnt = 0;
     for(const auto &[panelToReorder, _] : mChannels) {
       mLayoutChannelOverview->removeWidget(panelToReorder->getOverviewPanel());
-      int row = (cnt) / 3;
-      int col = (cnt) % 3;
+      int row = (cnt) / OVERVIEW_COLS;
+      int col = (cnt) % OVERVIEW_COLS;
       mLayoutChannelOverview->addWidget(panelToReorder->getOverviewPanel(), row, col);
       cnt++;
     }
 
     {
-      int row = (mChannels.size()) / 3;
-      int col = (mChannels.size()) % 3;
+      int row = (mChannels.size()) / OVERVIEW_COLS;
+      int col = (mChannels.size()) % OVERVIEW_COLS;
       mLayoutChannelOverview->removeWidget(mAddChannelPanel);
       mLayoutChannelOverview->removeWidget(mLastElement);
       mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
-      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, 3);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
     }
     mSelectedChannel = nullptr;
     onBackClicked();

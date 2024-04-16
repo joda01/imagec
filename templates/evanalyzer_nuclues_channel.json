@@ -43,11 +43,6 @@
     },
     "pipeline": [
       {
-        "$medianSubtract": {
-          "kernelSize": 3
-        }
-      },
-      {
         "$rollingBall": {
           "ballSize": 4,
           "ballType": "Paraboloid"
