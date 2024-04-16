@@ -15,6 +15,7 @@
 #include <set>
 #include <string>
 #include "../detection.hpp"
+#include "backend/duration_count/duration_count.h"
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -43,6 +44,8 @@ ObjectDetector::ObjectDetector(const joda::settings::ChannelSettingsFilter &filt
 auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &originalImage,
                              joda::settings::ChannelIndex channelIndex) -> DetectionResponse
 {
+  auto id = DurationCount::start("AiObjectDetection");
+
   // Normalize the pixel values to [0, 255] float for detection
   cv::Mat grayImageFloat;
   inputImageOriginal.convertTo(grayImageFloat, CV_32F, 255.0 / 65535.0);
@@ -57,6 +60,8 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &o
   std::vector<cv::Mat> outputs;
   mNet.forward(outputs, mNet.getUnconnectedOutLayersNames());
   auto results = postProcessing(inputImageOriginal, originalImage, outputs, channelIndex);
+
+  DurationCount::stop(id);
   return {.result = results, .controlImage = inputImage};
 }
 

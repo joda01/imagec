@@ -14,6 +14,7 @@
 #pragma once
 
 #include "../../functions/function.hpp"
+#include "backend/duration_count/duration_count.h"
 #include "backend/settings/preprocessing/functions/blur.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
@@ -41,6 +42,7 @@ public:
   }
   void execute(cv::Mat &image) const override
   {
+    auto id = DurationCount::start("Blur");
     int kernel[3]{0};    //= {-1, -1, -1, -1, 12, -1, -1, -1, -1};
     for(int n = 0; n < mRepeat; n++) {
       if(mKernelSize == 3) {
@@ -49,6 +51,7 @@ public:
         cv::blur(image, image, cv::Size(mKernelSize, mKernelSize));
       }
     }
+    DurationCount::stop(id);
   }
 
 private:

@@ -21,6 +21,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include "backend/logger/console_logger.hpp"
 
 class DurationCount
 {
@@ -45,7 +46,7 @@ public:
     auto t_end = std::chrono::high_resolution_clock::now();
     std::lock_guard<std::mutex> lock(mLock);
     double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - mDelays[rand].t_start).count();
-    // std::cout << mDelays[rand].mComment << ": " << elapsed_time_ms << " ms\n";
+    joda::log::logTrace(mDelays[rand].mComment + ": " + std::to_string(elapsed_time_ms) + " ms.");
     mDelays.erase(rand);
   }
 

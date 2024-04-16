@@ -14,6 +14,7 @@
 #pragma once
 
 #include "../../functions/function.hpp"
+#include "backend/duration_count/duration_count.h"
 #include "backend/settings/preprocessing/functions/gaussian_blur.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
@@ -41,9 +42,11 @@ public:
   }
   void execute(cv::Mat &image) const override
   {
+    auto id = DurationCount::start("GaussianBlur");
     for(int n = 0; n < mSettings.repeat; n++) {
       cv::GaussianBlur(image, image, cv::Size(mSettings.kernelSize, mSettings.kernelSize), 0);
     }
+    DurationCount::stop(id);
   }
 
 private:

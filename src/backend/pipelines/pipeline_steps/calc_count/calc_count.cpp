@@ -11,6 +11,7 @@
 
 #include "calc_count.hpp"
 #include <string>
+#include "backend/duration_count/duration_count.h"
 #include "backend/logger/console_logger.hpp"
 
 namespace joda::pipeline {
@@ -26,6 +27,8 @@ auto CalcCount::execute(const settings::AnalyzeSettings &,
                         const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResultsIn,
                         const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {
+  auto id = DurationCount::start("CrossChannelCount");
+
   if(detectionResultsIn.contains(mReferenceChannelIndex)) {
     auto &myResults = const_cast<joda::func::DetectionResponse &>(detectionResultsIn.at(mReferenceChannelIndex));
     for(const auto idxToIntersect : mChannelsToCalcIntensityIn) {
@@ -43,6 +46,8 @@ auto CalcCount::execute(const settings::AnalyzeSettings &,
       }
     }
   }
+
+  DurationCount::stop(id);
   return {};
 }
 

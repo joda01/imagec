@@ -37,7 +37,7 @@ public:
   virtual ~Watershed() = default;
   void execute(cv::Mat &image) const override
   {
-    auto idStart = DurationCount::start("watershed");
+    auto idStart = DurationCount::start("Watershed");
     image.convertTo(image, CV_8UC1, 1.0F / 257.0F);
     auto floatEdm = joda::func::img::Edm::makeFloatEDM(image, 0, false);
     joda::func::img::MaximumFinder find;

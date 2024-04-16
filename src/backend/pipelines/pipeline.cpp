@@ -97,7 +97,6 @@ void Pipeline::runJob()
 
   int threadPoolImage = mThreadingSettings.cores[ThreadingSettings::IMAGES];
   BS::thread_pool imageThreadPool(threadPoolImage);
-  auto idStart = DurationCount::start("analyze");
 
   std::map<std::string, joda::results::ReportingContainer> alloverReport;
   for(const auto &imagePath : mImageFileContainer->getFilesList()) {
@@ -116,7 +115,6 @@ void Pipeline::runJob()
   }
 
   imageThreadPool.wait_for_tasks();
-  DurationCount::stop(idStart);
   auto timeStopped = std::chrono::high_resolution_clock::now();
 
   std::string resultsFile = mOutputFolder + separator + "results_summary_" + mJobName + ".xlsx";
@@ -233,7 +231,6 @@ void Pipeline::analyzeImage(std::map<std::string, joda::results::ReportingContai
 void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, FileInfo imagePath,
                            std::string detailOutputFolder, int tileIdx, const ImageProperties &imgProps)
 {
-  auto idChannels = DurationCount::start("channels");
   std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> detectionResults;
   int threadPoolChannel = mThreadingSettings.cores[ThreadingSettings::CHANNELS];
   BS::thread_pool channelThreadPool(threadPoolChannel);
@@ -284,14 +281,11 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
     }
   }
   channelThreadPool.wait_for_tasks();
-  DurationCount::stop(idChannels);
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
   // Execute intersection calculation
   //
-  auto idColoc = DurationCount::start("intersection");
-
   int colocIx = 0;
   for(const auto &pipelineStep : mAnalyzeSettings.vChannels) {
     if(pipelineStep.$intersection.has_value()) {
@@ -312,14 +306,11 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
     }
   }
 
-  DurationCount::stop(idColoc);
-
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
   // Execute post processing pipeline steps
   //
   if(!mStop && mState != State::ERROR_) {
-    auto idVoronoi = DurationCount::start("pipelinesteps");
     for(const auto &pipelineStep : mAnalyzeSettings.vChannels) {
       if(pipelineStep.$voronoi.has_value()) {
         const auto &voronoi = pipelineStep.$voronoi.value();
@@ -352,7 +343,6 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
         break;
       }
     }
-    DurationCount::stop(idVoronoi);
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -15,6 +15,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/detection/voronoi_grid/voronoi_grid.hpp"
 
 namespace joda::pipeline {
@@ -23,6 +24,8 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
                           const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
                           const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {
+  auto id = DurationCount::start("PipelineVoronoi");
+
   auto voronoiPoints = mVoronoiPointsChannelIndex;
 
   const joda::func::DetectionResponse *mask = nullptr;
@@ -70,11 +73,14 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
       }
       joda::func::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FF0000", false,
                                                       false);
+      DurationCount::stop(id);
       return response;
     } else {
+      DurationCount::stop(id);
       return CalcVoronoiResult;
     }
   }
+  DurationCount::stop(id);
   return joda::func::DetectionResponse{};
   /*throw std::runtime_error("CalcVoronoi::execute: Channel with index >" + std::to_string(voronoiPoints) +
                            "< does not exist.");*/

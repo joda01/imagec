@@ -70,13 +70,13 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
 auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage,
                                  joda::settings::ChannelIndex channelIndex) -> DetectionResponse
 {
+  auto id = DurationCount::start("AiObjectSegmentation");
+
   // Normalize the pixel values to [0, 255] float for detection
-  auto id = DurationCount::start("Convert");
   cv::Mat grayImageFloat;
   inputImageOriginal.convertTo(grayImageFloat, CV_32F, 255.0 / 65535.0);
   cv::Mat inputImage;
   cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
-  DurationCount::stop(id);
 
   Mat blob;
   int col    = inputImage.cols;
@@ -184,6 +184,8 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
             getFilterSettings());
     output.push_back(roi);
   }
+
+  DurationCount::stop(id);
 
   return {.result = output, .controlImage = inputImage};
 }

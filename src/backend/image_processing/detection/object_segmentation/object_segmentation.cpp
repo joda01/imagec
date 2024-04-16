@@ -77,6 +77,8 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
 auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalImage,
                                  joda::settings::ChannelIndex channelIndex) -> DetectionResponse
 {
+  auto id = DurationCount::start("ObjectSegmentation");
+
   cv::Mat binaryImage;
   uint16_t usedThersholdVal = mThresoldMethod->execute(srcImg, binaryImage);
   if(mDoWatershed) {
@@ -87,19 +89,16 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   DetectionResults response;
 
   // Find contours in the binary image
-  auto id = DurationCount::start("detection_find");
 
   binaryImage.convertTo(binaryImage, CV_8UC1);
   std::vector<std::vector<cv::Point>> contours;
   std::vector<cv::Vec4i> hierarchy;
   cv::findContours(binaryImage, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
-  DurationCount::stop(id);
 
   if(contours.size() > 100000) {
     joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
     return {.result = response, .controlImage = {}};
   }
-  id = DurationCount::start("detection_mask");
 
   cv::Mat boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
   cv::fillPoly(boxMask, contours, cv::Scalar(255));
@@ -126,12 +125,13 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
       response.push_back(detect);
     }
   }
-  DurationCount::stop(id);
 
   cv::Mat grayImageFloat;
   srcImg.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UINT16_MAX);
   cv::Mat inputImage;
   cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
+
+  DurationCount::stop(id);
   return {.result = response, .controlImage = inputImage};
 }
 }    // namespace joda::func::threshold
