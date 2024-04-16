@@ -111,9 +111,16 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
     // In other words if there is a particle with a hole, ignore the hole.
     // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
     if(hierarchy[i][3] == -1) {
+      // Extract the region of intereset
+      // \\todo find more efficent way
+      cv::Mat tempMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
+      std::vector<std::vector<cv::Point>> contourOfInterest;
+      contourOfInterest.push_back(contours[i]);
+      cv::drawContours(tempMask, contourOfInterest, 0, cv::Scalar(255), cv::FILLED);
+
       // Find the bounding box for the contour
       auto box     = cv::boundingRect(contours[i]);
-      cv::Mat mask = boxMask(box) >= 1;
+      cv::Mat mask = tempMask(box) >= 1;
 
       // Bring the contours box in the area of the bounding box
       for(auto &point : contours[i]) {

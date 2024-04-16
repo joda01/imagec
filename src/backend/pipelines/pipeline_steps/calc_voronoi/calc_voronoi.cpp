@@ -58,12 +58,15 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
       for(const auto &toIntersect : mask->result) {
         if(toIntersect.isValid()) {
           for(const auto &voronoiArea : CalcVoronoiResult.result) {
-            auto [colocROI, ok] = voronoiArea.calcIntersection(toIntersect,
-                                                               std::map<joda::settings::ChannelIndex, const cv::Mat *>{
-                                                                   {mOverlayMaskChannelIndex, &mask->originalImage}},
-                                                               0.0);
-            if(ok) {
-              response.result.push_back(colocROI);
+            if(voronoiArea.isValid()) {
+              auto [colocROI, ok] =
+                  voronoiArea.calcIntersection(toIntersect,
+                                               std::map<joda::settings::ChannelIndex, const cv::Mat *>{
+                                                   {mOverlayMaskChannelIndex, &mask->originalImage}},
+                                               0.0);
+              if(ok) {
+                response.result.push_back(colocROI);
+              }
             }
           }
         }
