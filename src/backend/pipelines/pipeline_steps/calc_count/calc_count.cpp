@@ -31,13 +31,15 @@ auto CalcCount::execute(const settings::AnalyzeSettings &,
     for(const auto idxToIntersect : mChannelsToCalcIntensityIn) {
       if(detectionResultsIn.contains(idxToIntersect)) {
         for(func::ROI &roiMe : myResults.result) {
-          if(!detectionResultsIn.empty() && !detectionResultsIn.at(idxToIntersect).result.empty()) {
-            for(const auto &roiOther : detectionResultsIn.at(idxToIntersect).result) {
-              roiMe.calcIntersectionAndAdd(idxToIntersect, &roiOther);
+          if(roiMe.isValid()) {
+            if(!detectionResultsIn.empty() && !detectionResultsIn.at(idxToIntersect).result.empty()) {
+              for(const auto &roiOther : detectionResultsIn.at(idxToIntersect).result) {
+                roiMe.calcIntersectionAndAdd(idxToIntersect, &roiOther);
+              }
+            } else {
+              // Just add empty one
+              roiMe.calcIntersectionAndAdd(idxToIntersect, nullptr);
             }
-          } else {
-            // Just add empty one
-            roiMe.calcIntersectionAndAdd(idxToIntersect, nullptr);
           }
         }
       }
