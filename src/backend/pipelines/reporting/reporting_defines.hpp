@@ -13,8 +13,10 @@ class AnalyzeSettings;
 
 namespace joda::pipeline::reporting {
 
-static inline const uint32_t MEASURE_CHANNEL_MASK       = 0x000000FF;
-static inline const uint32_t MEASURE_CHANNEL_INDEX_MASK = 0x0000FF00;
+static inline const uint32_t MEASURE_CHANNEL_MASK           = 0x000000FF;
+static inline const uint32_t MEASURE_CHANNEL_STATS_MASK     = 0x0000FF00;
+static inline const uint32_t MEASURE_CHANNEL_STATS_AND_MASK = 0x0000FFFF;
+static inline const uint32_t MEASURE_CHANNEL_INDEX_MASK     = 0x00FF0000;
 
 static inline joda::settings::ChannelReportingSettings::MeasureChannels
 getMeasureChannel(uint32_t measureChannelUnmasked)
@@ -23,16 +25,61 @@ getMeasureChannel(uint32_t measureChannelUnmasked)
                                                                                 MEASURE_CHANNEL_MASK);
 }
 
+static inline joda::settings::ChannelReportingSettings::MeasureChannelStat
+getMeasureStats(uint32_t measureChannelUnmasked)
+{
+  return static_cast<joda::settings::ChannelReportingSettings::MeasureChannelStat>(measureChannelUnmasked &
+                                                                                   MEASURE_CHANNEL_STATS_MASK);
+}
+
+static inline joda::settings::ChannelReportingSettings::MeasureChannels
+getMeasureChannel(joda::settings::ChannelReportingSettings::MeasureChannelsCombi measureChannelUnmasked)
+{
+  return static_cast<joda::settings::ChannelReportingSettings::MeasureChannels>(
+      static_cast<uint32_t>(measureChannelUnmasked) & MEASURE_CHANNEL_MASK);
+}
+
+static inline joda::settings::ChannelReportingSettings::MeasureChannelsCombi
+getMeasureChannelWithStats(uint32_t measureChannelUnmasked)
+{
+  return static_cast<joda::settings::ChannelReportingSettings::MeasureChannelsCombi>(measureChannelUnmasked &
+                                                                                     MEASURE_CHANNEL_STATS_AND_MASK);
+}
+
+static inline uint32_t getMeasureChannelWithStats(uint32_t measureChannelUnmasked,
+                                                  joda::settings::ChannelReportingSettings::MeasureChannelStat stat)
+{
+  return measureChannelUnmasked | static_cast<uint32_t>(stat);
+}
+
 static inline joda::settings::ChannelIndex getChannelIndexFromMeasureChannel(uint32_t measureChannelUnmasked)
 {
-  return static_cast<joda::settings::ChannelIndex>((measureChannelUnmasked & MEASURE_CHANNEL_INDEX_MASK) >> 8);
+  return static_cast<joda::settings::ChannelIndex>((measureChannelUnmasked & MEASURE_CHANNEL_INDEX_MASK) >> 16);
+}
+
+static inline uint32_t
+getMaskedMeasurementChannel(joda::settings::ChannelReportingSettings::MeasureChannelsCombi measureChannel,
+                            joda::settings::ChannelIndex channelIndex)
+{
+  return ((uint32_t) channelIndex << 16) | (static_cast<uint32_t>(measureChannel));
 }
 
 static inline uint32_t
 getMaskedMeasurementChannel(joda::settings::ChannelReportingSettings::MeasureChannels measureChannel,
                             joda::settings::ChannelIndex channelIndex)
 {
-  return ((uint32_t) channelIndex << 8) | (static_cast<uint32_t>(measureChannel));
+  return ((uint32_t) channelIndex << 16) | (static_cast<uint32_t>(measureChannel));
+}
+
+static inline std::string measurementStatsToString(joda::settings::ChannelReportingSettings::MeasureChannelStat ch)
+{
+  switch(ch) {
+    case settings::ChannelReportingSettings::MeasureChannelStat::AVG:
+      return "(avg)";
+    case settings::ChannelReportingSettings::MeasureChannelStat::SUM:
+      return "(sum)";
+  }
+  return "";
 }
 
 static inline std::string measurementChannelsToString(joda::settings::ChannelReportingSettings::MeasureChannels ch)
@@ -66,7 +113,7 @@ static inline std::string measurementChannelsToString(joda::settings::ChannelRep
       return "Intensity Min. in";
     case joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL:
       return "Intensity Max. in";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL:
+    case joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL:
       return "Counted in";
   }
   return "UNKNOWN MEASURE CHANNEL";
