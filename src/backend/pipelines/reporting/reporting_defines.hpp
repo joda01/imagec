@@ -25,6 +25,13 @@ getMeasureChannel(uint32_t measureChannelUnmasked)
                                                                                 MEASURE_CHANNEL_MASK);
 }
 
+static inline joda::settings::ChannelReportingSettings::MeasureChannelStat
+getMeasureStats(uint32_t measureChannelUnmasked)
+{
+  return static_cast<joda::settings::ChannelReportingSettings::MeasureChannelStat>(measureChannelUnmasked &
+                                                                                   MEASURE_CHANNEL_STATS_MASK);
+}
+
 static inline joda::settings::ChannelReportingSettings::MeasureChannels
 getMeasureChannel(joda::settings::ChannelReportingSettings::MeasureChannelsCombi measureChannelUnmasked)
 {
@@ -62,6 +69,17 @@ getMaskedMeasurementChannel(joda::settings::ChannelReportingSettings::MeasureCha
                             joda::settings::ChannelIndex channelIndex)
 {
   return ((uint32_t) channelIndex << 16) | (static_cast<uint32_t>(measureChannel));
+}
+
+static inline std::string measurementStatsToString(joda::settings::ChannelReportingSettings::MeasureChannelStat ch)
+{
+  switch(ch) {
+    case settings::ChannelReportingSettings::MeasureChannelStat::AVG:
+      return "(avg)";
+    case settings::ChannelReportingSettings::MeasureChannelStat::SUM:
+      return "(sum)";
+  }
+  return "";
 }
 
 static inline std::string measurementChannelsToString(joda::settings::ChannelReportingSettings::MeasureChannels ch)
