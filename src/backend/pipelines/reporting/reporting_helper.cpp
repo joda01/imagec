@@ -368,38 +368,46 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
       std::string tableName = detailedReport.getTableAt(channelIdx).getTableName();
       uint32_t nrOfCols     = detailedReport.getTableAt(channelIdx).getNrOfColumns();
 
-      int rowIdx = 0;
-      for(int colIdx = 0; colIdx < nrOfCols; colIdx++) {
-        tableToWorkOn.getTableAt(channelIdx, tableName)
-            .setColumnName(colIdx, detailedReport.getTableAt(channelIdx).getColumnNameAt(colIdx),
-                           detailedReport.getTableAt(channelIdx).getColumnKeyAt(colIdx));
+      int rowIdx                 = 0;
+      int colIndexOverviewReport = 0;
+      for(int colIdxDetailReport = 0; colIdxDetailReport < nrOfCols; colIdxDetailReport++) {
+        auto colKey         = detailedReport.getTableAt(channelIdx).getColumnKeyAt(colIdxDetailReport);
+        auto measureChannel = getMeasureChannel(colKey);
 
-        auto mask = getMeasureChannel(tableToWorkOn.getTableAt(channelIdx, tableName).getColumnKeyAt(colIdx));
+        if(!tableToWorkOn.getTableAt(channelIdx, tableName).columnKeyExists(colKey)) {
+          // If this column not still exists, add it
+          colIndexOverviewReport = tableToWorkOn.getTableAt(channelIdx, tableName).getNrOfColumns();
+          tableToWorkOn.getTableAt(channelIdx, tableName)
+              .setColumnName(colIndexOverviewReport,
+                             detailedReport.getTableAt(channelIdx).getColumnNameAt(colIdxDetailReport), colKey);
+        } else {
+          colIndexOverviewReport = tableToWorkOn.getTableAt(channelIdx, tableName).getColIndexFromKey(colKey);
+        }
 
-        if(detailedReport.getTableAt(channelIdx).containsStatistics(colIdx)) {
-          auto colStatistics = detailedReport.getTableAt(channelIdx).getStatistics(colIdx);
+        if(detailedReport.getTableAt(channelIdx).containsStatistics(colIdxDetailReport)) {
+          auto colStatistics = detailedReport.getTableAt(channelIdx).getStatistics(colIdxDetailReport);
 
           auto val = colStatistics.getAvg();
-          if(mask == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
-             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY ||
-             mask == joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
+          if(measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
+             measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY ||
+             measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
             val = colStatistics.getSum();
           }
 
           rowIdx = tableToWorkOn.getTableAt(channelIdx, tableName)
-                       .appendValueToColumn(colIdx, val, joda::func::ParticleValidity::VALID);
+                       .appendValueToColumnWithKey(colKey, val, joda::func::ParticleValidity::VALID);
         } else {
           double noData = std::numeric_limits<double>::quiet_NaN();
           // Validity has an count and therefore should be zero and not NAN
-          if(mask == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
-             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY ||
-             mask == joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
+          if(measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
+             measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY ||
+             measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
             noData = 0;
           }
 
           // No statistics, just add NaN
           rowIdx = tableToWorkOn.getTableAt(channelIdx, tableName)
-                       .appendValueToColumn(colIdx, noData, joda::func::ParticleValidity::UNKNOWN);
+                       .appendValueToColumnWithKey(colKey, noData, joda::func::ParticleValidity::UNKNOWN);
         }
       }
 
