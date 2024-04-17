@@ -38,29 +38,27 @@ public:
     INTENSITY_AVG_CROSS_CHANNEL = 0x000C,
     INTENSITY_MIN_CROSS_CHANNEL = 0x000D,
     INTENSITY_MAX_CROSS_CHANNEL = 0x000E,
-    INTERSECTION_CROSS_CHANNEL  = 0x000F
+    COUNT_CROSS_CHANNEL         = 0x000F,
   };
 
   class DetailReport
   {
   public:
-    std::set<MeasureChannels> measureChannels{
-        MeasureChannels::CONFIDENCE,
-        MeasureChannels::AREA_SIZE,
-        MeasureChannels::PERIMETER,
-        MeasureChannels::CIRCULARITY,
-        MeasureChannels::VALIDITY,
-        MeasureChannels::INVALIDITY,
-        MeasureChannels::CENTER_OF_MASS_X,
-        MeasureChannels::CENTER_OF_MASS_Y,
-        MeasureChannels::INTENSITY_AVG,
-        MeasureChannels::INTENSITY_MIN,
-        MeasureChannels::INTENSITY_MAX,
-        MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL,
-        MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL,
-        MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL,
-        MeasureChannels::INTERSECTION_CROSS_CHANNEL,
-    };
+    std::set<MeasureChannels> measureChannels{MeasureChannels::CONFIDENCE,
+                                              MeasureChannels::AREA_SIZE,
+                                              MeasureChannels::PERIMETER,
+                                              MeasureChannels::CIRCULARITY,
+                                              MeasureChannels::VALIDITY,
+                                              MeasureChannels::INVALIDITY,
+                                              MeasureChannels::CENTER_OF_MASS_X,
+                                              MeasureChannels::CENTER_OF_MASS_Y,
+                                              MeasureChannels::INTENSITY_AVG,
+                                              MeasureChannels::INTENSITY_MIN,
+                                              MeasureChannels::INTENSITY_MAX,
+                                              MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL,
+                                              MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL,
+                                              MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL,
+                                              MeasureChannels::COUNT_CROSS_CHANNEL};
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(DetailReport, measureChannels);
   };
@@ -79,7 +77,7 @@ public:
         MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL,
         MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL,
         MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL,
-        MeasureChannels::INTERSECTION_CROSS_CHANNEL,
+        MeasureChannels::COUNT_CROSS_CHANNEL,
     };
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(OverviewReport, measureChannels);
@@ -92,7 +90,7 @@ public:
         MeasureChannels::VALIDITY,
         MeasureChannels::INTENSITY_AVG,
         MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL,
-        MeasureChannels::INTERSECTION_CROSS_CHANNEL,
+        MeasureChannels::COUNT_CROSS_CHANNEL,
     };
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Heatmap, measureChannels);
@@ -121,7 +119,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
         {ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL, "CrossChannelIntensityAvg"},
         {ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, "CrossChannelIntensityMin"},
         {ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, "CrossChannelIntensityMax"},
-        {ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL, "CrossChannelIntersection"},
+        {ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL, "CrossChannelCount"},
 
     })
 

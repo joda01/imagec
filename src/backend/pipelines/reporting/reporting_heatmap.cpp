@@ -297,7 +297,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
           writeData(measureChannelKey, intensIdx);
           rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
         }
-      } else if(measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
+      } else if(measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
         for(joda::settings::ChannelIndex countIdx :
             settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
                 .crossChannelCountChannels) {
@@ -412,8 +412,7 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
                                                           analyzeSettings));
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
-          } else if(measureChannelKey ==
-                    settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
+          } else if(measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
             for(joda::settings::ChannelIndex countIdx :
                 settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
                     .crossChannelCountChannels) {
@@ -457,8 +456,7 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
                         .getAvg());
                 rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
               }
-            } else if(measureChannelKey ==
-                      settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
+            } else if(measureChannelKey == settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
               for(joda::settings::ChannelIndex countIdx :
                   settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
                       .crossChannelCountChannels) {

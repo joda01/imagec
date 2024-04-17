@@ -66,7 +66,7 @@ static inline std::string measurementChannelsToString(joda::settings::ChannelRep
       return "Intensity Min. in";
     case joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL:
       return "Intensity Max. in";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL:
+    case joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL:
       return "Counted in";
   }
   return "UNKNOWN MEASURE CHANNEL";

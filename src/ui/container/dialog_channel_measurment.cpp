@@ -111,8 +111,7 @@ DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain,
                    "Cross ch. intensity min");
   createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL,
                    "Cross ch. intensity max");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL,
-                   "Cross ch. count");
+  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL, "Cross ch. count");
 
   mainLayout->addWidget(groupBox);
 }

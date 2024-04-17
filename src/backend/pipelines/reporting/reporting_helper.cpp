@@ -138,11 +138,10 @@ void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyz
         joda::settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, realChannelIdx)
             .crossChannelCountChannels) {
       detailReportTable.getTableAt(realChannelIdx, channelName)
-          .setColumnName(
-              channelIndexOffset,
-              "count " + joda::settings::Settings::getChannelNameOfChannelIndex(analyzeSettings, countIdx),
-              getMaskedMeasurementChannel(
-                  joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL, countIdx));
+          .setColumnName(channelIndexOffset,
+                         "count " + joda::settings::Settings::getChannelNameOfChannelIndex(analyzeSettings, countIdx),
+                         getMaskedMeasurementChannel(
+                             joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL, countIdx));
 
       channelIndexOffset++;
     }
@@ -289,35 +288,35 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
           if(!detailReportTable.getTableAt(realChannelIdx, "")
                   .columnKeyExists(getMaskedMeasurementChannel(
                       joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL, idx))) {
-            continue;
+          } else {
+            detailReportTable.getTableAt(realChannelIdx, "")
+                .appendValueToColumnAtRowWithKey(
+                    getMaskedMeasurementChannel(
+                        joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL, idx),
+                    index, intensity.intensity, roi.getValidity());
           }
-          detailReportTable.getTableAt(realChannelIdx, "")
-              .appendValueToColumnAtRowWithKey(
-                  getMaskedMeasurementChannel(
-                      joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL, idx),
-                  index, intensity.intensity, roi.getValidity());
 
           if(!detailReportTable.getTableAt(realChannelIdx, "")
                   .columnKeyExists(getMaskedMeasurementChannel(
                       joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, idx))) {
-            continue;
+          } else {
+            detailReportTable.getTableAt(realChannelIdx, "")
+                .appendValueToColumnAtRowWithKey(
+                    getMaskedMeasurementChannel(
+                        joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, idx),
+                    index, intensity.intensityMin, roi.getValidity());
           }
-          detailReportTable.getTableAt(realChannelIdx, "")
-              .appendValueToColumnAtRowWithKey(
-                  getMaskedMeasurementChannel(
-                      joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, idx),
-                  index, intensity.intensityMin, roi.getValidity());
 
           if(!detailReportTable.getTableAt(realChannelIdx, "")
                   .columnKeyExists(getMaskedMeasurementChannel(
                       joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, idx))) {
-            continue;
+          } else {
+            detailReportTable.getTableAt(realChannelIdx, "")
+                .appendValueToColumnAtRowWithKey(
+                    getMaskedMeasurementChannel(
+                        joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, idx),
+                    index, intensity.intensityMax, roi.getValidity());
           }
-          detailReportTable.getTableAt(realChannelIdx, "")
-              .appendValueToColumnAtRowWithKey(
-                  getMaskedMeasurementChannel(
-                      joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, idx),
-                  index, intensity.intensityMax, roi.getValidity());
         }
       }
 
@@ -326,13 +325,13 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
       //
       for(const auto &[idx, intersecting] : roi.getIntersectingRois()) {
         int64_t colKey = getMaskedMeasurementChannel(
-            joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL, idx);
+            joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL, idx);
         if(!detailReportTable.getTableAt(realChannelIdx, "").columnKeyExists(colKey)) {
-          continue;
+        } else {
+          detailReportTable.getTableAt(realChannelIdx, "")
+              .appendValueToColumnAtRowWithKey(colKey, index, intersecting.roiValid.size(),
+                                               joda::func::ParticleValidity::VALID);
         }
-        detailReportTable.getTableAt(realChannelIdx, "")
-            .appendValueToColumnAtRowWithKey(colKey, index, intersecting.roiValid.size(),
-                                             joda::func::ParticleValidity::VALID);
       }
 
       roiIdx++;
@@ -356,7 +355,6 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
 {
   std::lock_guard<std::mutex> lock(mAppendToAllOverReportMutex);
 
-  const int NR_OF_COLUMNS_PER_CHANNEL = 7;
   try {
     std::string groupToStoreImageIn                  = getGroupToStoreImageIn(analyzeSettings, imagePath, imageName);
     joda::results::ReportingContainer &tableToWorkOn = allOverReport[groupToStoreImageIn];
@@ -384,7 +382,7 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
           auto val = colStatistics.getAvg();
           if(mask == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
              mask == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY ||
-             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
+             mask == joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
             val = colStatistics.getSum();
           }
 
@@ -395,7 +393,7 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
           // Validity has an count and therefore should be zero and not NAN
           if(mask == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
              mask == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY ||
-             mask == joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL) {
+             mask == joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
             noData = 0;
           }
 
