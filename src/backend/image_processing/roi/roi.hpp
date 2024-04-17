@@ -66,6 +66,7 @@ public:
     uint32_t nrOfIntersectingPixels = 0;
     uint32_t nrOfPixelsMask1        = 0;
     uint32_t nrOfPixelsMask2        = 0;
+    float intersectionArea          = 0;    // Interecting area in [0-1]
     cv::Rect intersectedRect;
     cv::Mat intersectedMask = {};
   };

@@ -51,12 +51,14 @@ private:
     CELL_INTERSECTING_WITH = 7
   };
 
-  /////////////////////////////////////////////////////
+  static bool doesAreaContainsPoint(const func::ROI &voronoiArea, const joda::func::DetectionResults &voronoiPoints);
 
+  /////////////////////////////////////////////////////
   joda::settings::ChannelIndex mChannelIndexMe;
   joda::settings::ChannelIndex mVoronoiPointsChannelIndex;
   joda::settings::ChannelIndex mOverlayMaskChannelIndex;
   int32_t mMaxVoronoiAreaSize;
+  bool mExcludeAreasWithoutPoint = true;
 };
 
 }    // namespace joda::pipeline

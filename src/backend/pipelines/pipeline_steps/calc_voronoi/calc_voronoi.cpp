@@ -34,9 +34,11 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
   // Calculate a limited CalcVoronoi grid based on the center of nucleus
   //
   if(detectionResults.contains(voronoiPoints)) {
-    joda::func::img::VoronoiGrid grid(detectionResults.at(voronoiPoints).result, mMaxVoronoiAreaSize);
-    auto CalcVoronoiResult = grid.forward(detectionResults.at(voronoiPoints).controlImage,
-                                          detectionResults.at(voronoiPoints).originalImage, mChannelIndexMe);
+    auto voronoiPointsChannel = detectionResults.at(voronoiPoints);
+
+    joda::func::img::VoronoiGrid grid(voronoiPointsChannel.result, mMaxVoronoiAreaSize);
+    auto CalcVoronoiResult =
+        grid.forward(voronoiPointsChannel.controlImage, voronoiPointsChannel.originalImage, mChannelIndexMe);
 
     if(!CalcVoronoiResult.controlImage.empty()) {
       static const std::string separator(1, std::filesystem::path::preferred_separator);
@@ -65,6 +67,11 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
                                                    {mOverlayMaskChannelIndex, &mask->originalImage}},
                                                0.0);
               if(ok) {
+                if(mExcludeAreasWithoutPoint) {
+                  if(!doesAreaContainsPoint(colocROI, voronoiPointsChannel.result)) {
+                    colocROI.setValidity(func::ParticleValidity::INVALID);
+                  }
+                }
                 response.result.push_back(colocROI);
               }
             }
@@ -81,6 +88,16 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
   return joda::func::DetectionResponse{};
   /*throw std::runtime_error("CalcVoronoi::execute: Channel with index >" + std::to_string(voronoiPoints) +
                            "< does not exist.");*/
+}
+
+bool CalcVoronoi::doesAreaContainsPoint(const func::ROI &voronoiArea, const joda::func::DetectionResults &voronoiPoints)
+{
+  for(const auto &point : voronoiPoints) {
+    if(voronoiArea.isIntersecting(point, 0.1)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 }    // namespace joda::pipeline

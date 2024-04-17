@@ -69,6 +69,7 @@ static inline std::string measurementChannelsToString(joda::settings::ChannelRep
     case joda::settings::ChannelReportingSettings::MeasureChannels::INTERSECTION_CROSS_CHANNEL:
       return "Counted in";
   }
+  return "UNKNOWN MEASURE CHANNEL";
 }
 
 extern std::string measurementChannelsToString(uint32_t ch, const joda::settings::AnalyzeSettings &analyzeSettings);

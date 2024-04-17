@@ -336,9 +336,8 @@ void ROI::applyParticleFilter(const joda::settings::ChannelSettingsFilter *filte
 
 [[nodiscard]] bool ROI::isIntersecting(const ROI &roi, float minIntersection) const
 {
-  cv::Mat mat{};
-  auto [_, intersecting] = calcIntersection(roi, {{joda::settings::ChannelIndex::NONE, &mat}}, minIntersection, false);
-  return intersecting;
+  auto intersecting = calcIntersectingMask(roi);
+  return intersecting.intersectionArea >= minIntersection;
 }
 
 ///
@@ -354,11 +353,6 @@ ROI::calcIntersection(const ROI &roi, const std::map<joda::settings::ChannelInde
   auto intersectingMask = calcIntersectingMask(roi);
 
   if(intersectingMask.nrOfIntersectingPixels > 0) {
-    int smallestMask       = std::min(intersectingMask.nrOfPixelsMask1, intersectingMask.nrOfPixelsMask2);
-    float intersectionArea = 0;
-    if(smallestMask > 0) {
-      intersectionArea = static_cast<float>(intersectingMask.nrOfIntersectingPixels) / static_cast<float>(smallestMask);
-    }
     if(createRoi) {
       std::vector<std::vector<cv::Point>> contours;
       std::vector<cv::Point> contour = {};
@@ -374,9 +368,9 @@ ROI::calcIntersection(const ROI &roi, const std::map<joda::settings::ChannelInde
         }
       }
 
-      ROI intersectionROI(index, intersectionArea, 0, intersectingMask.intersectedRect,
+      ROI intersectionROI(index, intersectingMask.intersectionArea, 0, intersectingMask.intersectedRect,
                           intersectingMask.intersectedMask, contour, imageOriginal);
-      if(intersectionArea < minIntersection) {
+      if(intersectingMask.intersectionArea < minIntersection) {
         intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
       }
       return {intersectionROI, true};
@@ -435,6 +429,12 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
       }
     }
   }
+
+  int smallestMask = std::min(result.nrOfPixelsMask1, result.nrOfPixelsMask2);
+  if(smallestMask > 0) {
+    result.intersectionArea = static_cast<float>(result.nrOfIntersectingPixels) / static_cast<float>(smallestMask);
+  }
+
   return result;
 }
 
