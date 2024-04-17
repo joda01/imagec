@@ -368,46 +368,59 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
       std::string tableName = detailedReport.getTableAt(channelIdx).getTableName();
       uint32_t nrOfCols     = detailedReport.getTableAt(channelIdx).getNrOfColumns();
 
-      int rowIdx                 = 0;
-      int colIndexOverviewReport = 0;
+      int rowIdx = 0;
       for(int colIdxDetailReport = 0; colIdxDetailReport < nrOfCols; colIdxDetailReport++) {
-        auto colKey         = detailedReport.getTableAt(channelIdx).getColumnKeyAt(colIdxDetailReport);
-        auto measureChannel = getMeasureChannel(colKey);
+        auto colKey = detailedReport.getTableAt(channelIdx).getColumnKeyAt(colIdxDetailReport);
 
-        if(!tableToWorkOn.getTableAt(channelIdx, tableName).columnKeyExists(colKey)) {
+        if(!tableToWorkOn.getTableAt(channelIdx, tableName)
+                .columnKeyExists(getMeasureChannelWithStats(
+                    colKey, joda::settings::ChannelReportingSettings::MeasureChannelStat::AVG))) {
           // If this column not still exists, add it
-          colIndexOverviewReport = tableToWorkOn.getTableAt(channelIdx, tableName).getNrOfColumns();
+          auto colIndexOverviewReport = tableToWorkOn.getTableAt(channelIdx, tableName).getNrOfColumns();
+
           tableToWorkOn.getTableAt(channelIdx, tableName)
               .setColumnName(colIndexOverviewReport,
-                             detailedReport.getTableAt(channelIdx).getColumnNameAt(colIdxDetailReport), colKey);
-        } else {
-          colIndexOverviewReport = tableToWorkOn.getTableAt(channelIdx, tableName).getColIndexFromKey(colKey);
+                             detailedReport.getTableAt(channelIdx).getColumnNameAt(colIdxDetailReport) + "(avg)",
+                             getMeasureChannelWithStats(
+                                 colKey, joda::settings::ChannelReportingSettings::MeasureChannelStat::AVG));
+
+          colIndexOverviewReport++;
+          tableToWorkOn.getTableAt(channelIdx, tableName)
+              .setColumnName(colIndexOverviewReport,
+                             detailedReport.getTableAt(channelIdx).getColumnNameAt(colIdxDetailReport) + "(sum)",
+                             getMeasureChannelWithStats(
+                                 colKey, joda::settings::ChannelReportingSettings::MeasureChannelStat::SUM));
         }
 
         if(detailedReport.getTableAt(channelIdx).containsStatistics(colIdxDetailReport)) {
           auto colStatistics = detailedReport.getTableAt(channelIdx).getStatistics(colIdxDetailReport);
 
-          auto val = colStatistics.getAvg();
-          if(measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
-             measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY ||
-             measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
-            val = colStatistics.getSum();
-          }
+          rowIdx = tableToWorkOn.getTableAt(channelIdx, tableName)
+                       .appendValueToColumnWithKey(
+                           getMeasureChannelWithStats(
+                               colKey, joda::settings::ChannelReportingSettings::MeasureChannelStat::AVG),
+                           colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
 
           rowIdx = tableToWorkOn.getTableAt(channelIdx, tableName)
-                       .appendValueToColumnWithKey(colKey, val, joda::func::ParticleValidity::VALID);
+                       .appendValueToColumnWithKey(
+                           getMeasureChannelWithStats(
+                               colKey, joda::settings::ChannelReportingSettings::MeasureChannelStat::SUM),
+                           colStatistics.getSum(), joda::func::ParticleValidity::VALID);
         } else {
           double noData = std::numeric_limits<double>::quiet_NaN();
-          // Validity has an count and therefore should be zero and not NAN
-          if(measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY ||
-             measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY ||
-             measureChannel == joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
-            noData = 0;
-          }
 
           // No statistics, just add NaN
           rowIdx = tableToWorkOn.getTableAt(channelIdx, tableName)
-                       .appendValueToColumnWithKey(colKey, noData, joda::func::ParticleValidity::UNKNOWN);
+                       .appendValueToColumnWithKey(
+                           getMeasureChannelWithStats(
+                               colKey, joda::settings::ChannelReportingSettings::MeasureChannelStat::AVG),
+                           noData, joda::func::ParticleValidity::UNKNOWN);
+
+          rowIdx = tableToWorkOn.getTableAt(channelIdx, tableName)
+                       .appendValueToColumnWithKey(
+                           getMeasureChannelWithStats(
+                               colKey, joda::settings::ChannelReportingSettings::MeasureChannelStat::SUM),
+                           0, joda::func::ParticleValidity::UNKNOWN);
         }
       }
 

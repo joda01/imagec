@@ -19,6 +19,7 @@
 #include <qlineedit.h>
 #include <QMessageBox>
 #include <exception>
+#include <optional>
 #include <string>
 #include <vector>
 #include <nlohmann/detail/macro_scope.hpp>
@@ -31,6 +32,9 @@ struct Temp
   std::vector<std::vector<int32_t>> order;
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Temp, order);
 };
+
+using Base  = joda::settings::ChannelReportingSettings::MeasureChannels;
+using Combi = joda::settings::ChannelReportingSettings::MeasureChannelsCombi;
 
 ///
 /// \brief
@@ -57,13 +61,9 @@ DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain,
 
   int row               = 1;
   auto createCheckBoxes = [this, &reportingSettings, &gridLayout, &groupBox,
-                           &row](joda::settings::ChannelReportingSettings::MeasureChannels type,
-                                 const std::string &description) {
-    gridLayout->addWidget(new QLabel(description.data()), row, 0);
 
-    QCheckBox *onOffDetail = new QCheckBox(groupBox);
-    gridLayout->addWidget(onOffDetail, row, 1, Qt::AlignCenter);
-    mMeasurementDetailsReport.emplace(type, onOffDetail);
+                           &row](std::optional<Base> detail, Combi type, const std::string &description) {
+    gridLayout->addWidget(new QLabel(description.data()), row, 0);
 
     QCheckBox *onOffOverview = new QCheckBox(groupBox);
     gridLayout->addWidget(onOffOverview, row, 2, Qt::AlignCenter);
@@ -73,10 +73,15 @@ DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain,
     gridLayout->addWidget(onOffHeatmap, row, 3, Qt::AlignCenter);
     mMeasurementHeatmapReport.emplace(type, onOffHeatmap);
 
-    if(reportingSettings.detail.measureChannels.contains(type)) {
-      onOffDetail->setChecked(true);
-    } else {
-      onOffDetail->setChecked(false);
+    if(detail.has_value()) {
+      QCheckBox *onOffDetail = new QCheckBox(groupBox);
+      if(reportingSettings.detail.measureChannels.contains(detail.value())) {
+        onOffDetail->setChecked(true);
+      } else {
+        onOffDetail->setChecked(false);
+      }
+      mMeasurementDetailsReport.emplace(detail.value(), onOffDetail);
+      gridLayout->addWidget(onOffDetail, row, 1, Qt::AlignCenter);
     }
 
     if(reportingSettings.overview.measureChannels.contains(type)) {
@@ -94,24 +99,25 @@ DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain,
     row++;
   };
 
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::CONFIDENCE, "Confidence");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::AREA_SIZE, "Area size");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::PERIMETER, "Perimeter");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::CIRCULARITY, "Circularity");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY, "Validity");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY, "Invalidity");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X, "Center of mass X");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_Y, "Center of mass Y");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG, "Intensity AVG");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN, "Intensity MIN");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX, "Intensity MAX");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL,
+  createCheckBoxes(Base::CONFIDENCE, Combi::CONFIDENCE_AVG, "Confidence");
+  createCheckBoxes(Base::AREA_SIZE, Combi::AREA_SIZE_AVG, "Area size");
+  createCheckBoxes(Base::PERIMETER, Combi::PERIMETER_AVG, "Perimeter");
+  createCheckBoxes(Base::CIRCULARITY, Combi::CIRCULARITY_AVG, "Circularity");
+  createCheckBoxes(Base::VALIDITY, Combi::VALIDITY_AVG, "Validity");
+  createCheckBoxes(Base::INVALIDITY, Combi::INVALIDITY_AVG, "Invalidity");
+  createCheckBoxes(Base::CENTER_OF_MASS_X, Combi::CENTER_OF_MASS_X_AVG, "Center of mass X");
+  createCheckBoxes(Base::CENTER_OF_MASS_Y, Combi::CENTER_OF_MASS_Y_AVG, "Center of mass Y");
+  createCheckBoxes(Base::INTENSITY_AVG, Combi::INTENSITY_AVG_AVG, "Intensity AVG");
+  createCheckBoxes(Base::INTENSITY_MIN, Combi::INTENSITY_MIN_AVG, "Intensity MIN");
+  createCheckBoxes(Base::INTENSITY_MAX, Combi::INTENSITY_MAX_AVG, "Intensity MAX");
+  createCheckBoxes(Base::INTENSITY_AVG_CROSS_CHANNEL, Combi::INTENSITY_AVG_CROSS_CHANNEL_AVG,
                    "Cross ch. intensity avg");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL,
+  createCheckBoxes(Base::INTENSITY_MIN_CROSS_CHANNEL, Combi::INTENSITY_MIN_CROSS_CHANNEL_AVG,
                    "Cross ch. intensity min");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL,
+  createCheckBoxes(Base::INTENSITY_MAX_CROSS_CHANNEL, Combi::INTENSITY_MAX_CROSS_CHANNEL_AVG,
                    "Cross ch. intensity max");
-  createCheckBoxes(joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL, "Cross ch. count");
+  createCheckBoxes(Base::COUNT_CROSS_CHANNEL, Combi::COUNT_CROSS_CHANNEL_AVG, "Cross ch. count avg");
+  createCheckBoxes(std::nullopt, Combi::COUNT_CROSS_CHANNEL_SUM, "Cross ch. count sum");
 
   mainLayout->addWidget(groupBox);
 }
@@ -120,9 +126,9 @@ int DialogChannelMeasurement::exec()
 {
   int ret = QDialog::exec();
 
-  std::set<joda::settings::ChannelReportingSettings::MeasureChannels> details;
-  std::set<joda::settings::ChannelReportingSettings::MeasureChannels> overview;
-  std::set<joda::settings::ChannelReportingSettings::MeasureChannels> heatmap;
+  std::set<Base> details;
+  std::set<Combi> overview;
+  std::set<Combi> heatmap;
 
   for(auto const &[key, val] : mMeasurementDetailsReport) {
     if(val->isChecked()) {

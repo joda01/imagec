@@ -22,7 +22,13 @@ namespace joda::settings {
 class ChannelReportingSettings
 {
 public:
-  enum class MeasureChannels : int
+  enum class MeasureChannelStat
+  {
+    AVG = 0x0100,
+    SUM = 0x0200
+  };
+
+  enum class MeasureChannels : uint32_t
   {
     CONFIDENCE                  = 0x0001,
     AREA_SIZE                   = 0x0002,
@@ -39,6 +45,39 @@ public:
     INTENSITY_MIN_CROSS_CHANNEL = 0x000D,
     INTENSITY_MAX_CROSS_CHANNEL = 0x000E,
     COUNT_CROSS_CHANNEL         = 0x000F,
+  };
+
+  enum class MeasureChannelsCombi : uint32_t
+  {
+    CONFIDENCE_AVG =
+        static_cast<uint32_t>(MeasureChannels::CONFIDENCE) | static_cast<uint32_t>(MeasureChannelStat::AVG),
+    AREA_SIZE_AVG = static_cast<uint32_t>(MeasureChannels::AREA_SIZE) | static_cast<uint32_t>(MeasureChannelStat::AVG),
+    PERIMETER_AVG = static_cast<uint32_t>(MeasureChannels::PERIMETER) | static_cast<uint32_t>(MeasureChannelStat::AVG),
+    CIRCULARITY_AVG =
+        static_cast<uint32_t>(MeasureChannels::CIRCULARITY) | static_cast<uint32_t>(MeasureChannelStat::AVG),
+    VALIDITY_AVG = static_cast<uint32_t>(MeasureChannels::VALIDITY) | static_cast<uint32_t>(MeasureChannelStat::SUM),
+    INVALIDITY_AVG =
+        static_cast<uint32_t>(MeasureChannels::INVALIDITY) | static_cast<uint32_t>(MeasureChannelStat::SUM),
+    CENTER_OF_MASS_X_AVG =
+        static_cast<uint32_t>(MeasureChannels::CENTER_OF_MASS_X) | static_cast<uint32_t>(MeasureChannelStat::AVG),
+    CENTER_OF_MASS_Y_AVG =
+        static_cast<uint32_t>(MeasureChannels::CENTER_OF_MASS_Y) | static_cast<uint32_t>(MeasureChannelStat::AVG),
+    INTENSITY_AVG_AVG =
+        static_cast<uint32_t>(MeasureChannels::INTENSITY_AVG) | static_cast<uint32_t>(MeasureChannelStat::AVG),
+    INTENSITY_MIN_AVG =
+        static_cast<uint32_t>(MeasureChannels::INTENSITY_MIN) | static_cast<uint32_t>(MeasureChannelStat::AVG),
+    INTENSITY_MAX_AVG =
+        static_cast<uint32_t>(MeasureChannels::INTENSITY_MAX) | static_cast<uint32_t>(MeasureChannelStat::AVG),
+    INTENSITY_AVG_CROSS_CHANNEL_AVG = static_cast<uint32_t>(MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL) |
+                                      static_cast<uint32_t>(MeasureChannelStat::AVG),
+    INTENSITY_MIN_CROSS_CHANNEL_AVG = static_cast<uint32_t>(MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL) |
+                                      static_cast<uint32_t>(MeasureChannelStat::AVG),
+    INTENSITY_MAX_CROSS_CHANNEL_AVG = static_cast<uint32_t>(MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL) |
+                                      static_cast<uint32_t>(MeasureChannelStat::AVG),
+    COUNT_CROSS_CHANNEL_AVG =
+        static_cast<uint32_t>(MeasureChannels::COUNT_CROSS_CHANNEL) | static_cast<uint32_t>(MeasureChannelStat::AVG),
+    COUNT_CROSS_CHANNEL_SUM =
+        static_cast<uint32_t>(MeasureChannels::COUNT_CROSS_CHANNEL) | static_cast<uint32_t>(MeasureChannelStat::SUM),
   };
 
   class DetailReport
@@ -65,19 +104,20 @@ public:
   class OverviewReport
   {
   public:
-    std::set<MeasureChannels> measureChannels{
-        MeasureChannels::CONFIDENCE,
-        MeasureChannels::AREA_SIZE,
-        MeasureChannels::CIRCULARITY,
-        MeasureChannels::VALIDITY,
-        MeasureChannels::INVALIDITY,
-        MeasureChannels::INTENSITY_AVG,
-        MeasureChannels::INTENSITY_MIN,
-        MeasureChannels::INTENSITY_MAX,
-        MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL,
-        MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL,
-        MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL,
-        MeasureChannels::COUNT_CROSS_CHANNEL,
+    std::set<MeasureChannelsCombi> measureChannels{
+        MeasureChannelsCombi::CONFIDENCE_AVG,
+        MeasureChannelsCombi::AREA_SIZE_AVG,
+        MeasureChannelsCombi::CIRCULARITY_AVG,
+        MeasureChannelsCombi::VALIDITY_AVG,
+        MeasureChannelsCombi::INVALIDITY_AVG,
+        MeasureChannelsCombi::INTENSITY_AVG_AVG,
+        MeasureChannelsCombi::INTENSITY_MIN_AVG,
+        MeasureChannelsCombi::INTENSITY_MAX_AVG,
+        MeasureChannelsCombi::INTENSITY_AVG_CROSS_CHANNEL_AVG,
+        MeasureChannelsCombi::INTENSITY_MIN_CROSS_CHANNEL_AVG,
+        MeasureChannelsCombi::INTENSITY_MAX_CROSS_CHANNEL_AVG,
+        MeasureChannelsCombi::COUNT_CROSS_CHANNEL_AVG,
+        MeasureChannelsCombi::COUNT_CROSS_CHANNEL_SUM,
     };
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(OverviewReport, measureChannels);
@@ -86,11 +126,11 @@ public:
   class Heatmap
   {
   public:
-    std::set<MeasureChannels> measureChannels{
-        MeasureChannels::VALIDITY,
-        MeasureChannels::INTENSITY_AVG,
-        MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL,
-        MeasureChannels::COUNT_CROSS_CHANNEL,
+    std::set<MeasureChannelsCombi> measureChannels{
+        MeasureChannelsCombi::VALIDITY_AVG,
+        MeasureChannelsCombi::INTENSITY_AVG_AVG,
+        MeasureChannelsCombi::INTENSITY_AVG_CROSS_CHANNEL_AVG,
+        MeasureChannelsCombi::COUNT_CROSS_CHANNEL_AVG,
     };
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Heatmap, measureChannels);
@@ -102,6 +142,29 @@ public:
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelReportingSettings, detail, overview, heatmap);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    ChannelReportingSettings::MeasureChannelsCombi,
+    {
+        {ChannelReportingSettings::MeasureChannelsCombi::CONFIDENCE_AVG, "ConfidenceAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::AREA_SIZE_AVG, "AreaSizeAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::CIRCULARITY_AVG, "CircularityAvf"},
+        {ChannelReportingSettings::MeasureChannelsCombi::VALIDITY_AVG, "ValidityAvf"},
+        {ChannelReportingSettings::MeasureChannelsCombi::INVALIDITY_AVG, "InvalidityAvf"},
+        {ChannelReportingSettings::MeasureChannelsCombi::CENTER_OF_MASS_X_AVG, "CenterOfMassXAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::CENTER_OF_MASS_Y_AVG, "CenterOfMassYAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::INTENSITY_AVG_AVG, "IntensityAvgAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::INTENSITY_MIN_AVG, "IntensityMinAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::INTENSITY_MAX_AVG, "IntensityMaxAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::INTENSITY_AVG_CROSS_CHANNEL_AVG,
+         "CrossChannelIntensityAvgAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::INTENSITY_MIN_CROSS_CHANNEL_AVG,
+         "CrossChannelIntensityMinAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::INTENSITY_MAX_CROSS_CHANNEL_AVG,
+         "CrossChannelIntensityMaxAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::COUNT_CROSS_CHANNEL_AVG, "CrossChannelCountAvg"},
+        {ChannelReportingSettings::MeasureChannelsCombi::COUNT_CROSS_CHANNEL_SUM, "CrossChannelCountSum"},
+    })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ChannelReportingSettings::MeasureChannels,
@@ -120,7 +183,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
         {ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, "CrossChannelIntensityMin"},
         {ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, "CrossChannelIntensityMax"},
         {ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL, "CrossChannelCount"},
-
     })
 
 }    // namespace joda::settings
