@@ -36,7 +36,7 @@ auto CalcCount::execute(const settings::AnalyzeSettings &,
               roiMe.calcIntersectionAndAdd(idxToIntersect, &roiOther);
             }
           } else {
-            // Empty
+            // Just add empty one
             roiMe.calcIntersectionAndAdd(idxToIntersect, nullptr);
           }
         }
