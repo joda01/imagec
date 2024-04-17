@@ -20,7 +20,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   int ROW_OFFSET                       = 2;
   int COL_OFFSET                       = colOffset + 1;
-  const int STATISTIC_START_WITH_INDEX = 2;    // Validity and invalidity are just for internal use
+  const int STATISTIC_START_WITH_INDEX = 3;    // Validity, invalidity and Sum are just for internal use
 
   //
   // Write header
