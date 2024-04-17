@@ -21,7 +21,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
                                                  lxw_format *numberFormat, lxw_format *imageHeaderHyperlinkFormat)
 {
   setlocale(LC_NUMERIC, "C");                  // Needed for correct comma in libxlsx
-  const int STATISTIC_START_WITH_INDEX = 2;    // Validity and invalidity are just for internal use
+  const int STATISTIC_START_WITH_INDEX = 3;    // Validity, invalidity and Sum are just for internal use
 
   //
   // Sort rows
