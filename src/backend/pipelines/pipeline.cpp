@@ -28,6 +28,7 @@
 #include <vector>
 #include "../helper/helper.hpp"
 #include "../logger/console_logger.hpp"
+#include "backend/duration_count/duration_count.h"
 #include "backend/helper/file_info.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/system_resources.hpp"
@@ -80,6 +81,7 @@ Pipeline::Pipeline(const joda::settings::AnalyzeSettings &settings,
 ///
 void Pipeline::runJob()
 {
+  DurationCount::resetStats();
   auto timeStarted = std::chrono::high_resolution_clock::now();
   // Store configuration
   static const std::string separator(1, std::filesystem::path::preferred_separator);
@@ -99,7 +101,8 @@ void Pipeline::runJob()
   BS::thread_pool imageThreadPool(threadPoolImage);
 
   std::map<std::string, joda::results::ReportingContainer> alloverReport;
-  for(const auto &imagePath : mImageFileContainer->getFilesList()) {
+  auto images = mImageFileContainer->getFilesList();
+  for(const auto &imagePath : images) {
     if(threadPoolImage > 1) {
       imageThreadPool.push_task([this, &alloverReport, imagePath] { analyzeImage(alloverReport, imagePath); });
 
@@ -132,6 +135,7 @@ void Pipeline::runJob()
   }
 
   mState = State::FINISHED;
+  DurationCount::printStats(images.size());
 
   while(!mStop) {
     sleep(1);

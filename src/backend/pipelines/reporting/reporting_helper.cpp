@@ -168,6 +168,7 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
   // Free memory
+  auto id = DurationCount::start("Write control image");
   std::vector<int> compression_params;
   compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
   compression_params.push_back(0);
@@ -179,6 +180,7 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   } else {
     std::cout << "CTRL img null" << std::endl;
   }
+  DurationCount::stop(id);
   // if(!result.originalImage.empty()) {
   //   cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
   //                   std::to_string(tileIdx) + ".png",
