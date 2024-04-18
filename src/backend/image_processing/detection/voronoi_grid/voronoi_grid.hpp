@@ -70,7 +70,7 @@ public:
     // cv::imwrite("test.jpg", image);
 
     // Allocate space for Voronoi Diagram
-    cv::Mat img_voronoi = cv::Mat::zeros(image.rows, image.cols, CV_8UC1);
+    cv::Mat img_voronoi = cv::Mat::zeros(image.size(), CV_8UC1);
     // Draw Voronoi diagram
     auto result = drawVoronoi(img_voronoi, originalImage, subdiv, mMaxRadius);
 

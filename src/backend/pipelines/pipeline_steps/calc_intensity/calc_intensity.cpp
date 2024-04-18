@@ -35,7 +35,12 @@ auto CalcIntensity::execute(
     for(const auto idxToIntersect : mChannelsToCalcIntensityIn) {
       if(detectionResultsIn.contains(idxToIntersect)) {
         for(func::ROI &roi : myResults.result) {
-          roi.measureAndAddIntensity(idxToIntersect, detectionResultsIn.at(idxToIntersect).originalImage);
+          if(roi.isValid()) {
+            roi.measureAndAddIntensity(idxToIntersect, detectionResultsIn.at(idxToIntersect).originalImage);
+          } else {
+            // This is not a valid area. Do not measure intensity
+            // roi.measureAndAddIntensity(idxToIntersect, {});
+          }
         }
       }
     }

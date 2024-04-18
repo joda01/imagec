@@ -61,6 +61,16 @@ public:
     std::vector<const ROI *> roiInvalid;
   };
 
+  struct IntersectingMask
+  {
+    uint32_t nrOfIntersectingPixels = 0;
+    uint32_t nrOfPixelsMask1        = 0;
+    uint32_t nrOfPixelsMask2        = 0;
+    float intersectionArea          = 0;    // Interecting area in [0-1]
+    cv::Rect intersectedRect;
+    cv::Mat intersectedMask = {};
+  };
+
   /////////////////////////////////////////////////////
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
       const std::vector<cv::Point> &contour);
@@ -193,12 +203,16 @@ private:
   /////////////////////////////////////////////////////
   void calculateMetrics(const std::map<joda::settings::ChannelIndex, const cv::Mat *> &imageOriginal,
                         const joda::settings::ChannelSettingsFilter *filter);
+
+  auto calcIntensity(const cv::Mat &imageOriginal) -> Intensity;
+  auto calcIntersectingMask(const ROI &roi) const -> IntersectingMask;
   void calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int32_t maxHeight);
   void applyParticleFilter(const joda::settings::ChannelSettingsFilter *filter);
   [[nodiscard]] double calcPerimeter(const std::vector<cv::Point> &) const;
   [[nodiscard]] double getSmoothedLineLength(const std::vector<cv::Point> &) const;
   [[nodiscard]] double getLength(const std::vector<cv::Point> &points, bool closeShape) const;
   [[nodiscard]] double getTracedPerimeter(const std::vector<cv::Point> &points) const;
+
   /////////////////////////////////////////////////////
   uint32_t index;           ///< Index in the prediction array
   Confidence confidence;    ///< Probability

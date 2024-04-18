@@ -12,10 +12,35 @@
 ///
 
 #include "detection.hpp"
+#include <random>
 #include <string>
 #include <opencv2/core/types.hpp>
 
 namespace joda::func {
+
+std::string generateRandomColorHex()
+{
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(0, 255);
+
+  // Generate random values for R, G, and B components
+  int r = dis(gen);
+  int g = dis(gen);
+  int b = dis(gen);
+
+  // Convert the values to hexadecimal string format
+  std::stringstream ss;
+  ss << std::hex << (r << 16 | g << 8 | b);
+  std::string hexColor = ss.str();
+
+  // If the hexadecimal string is less than 6 characters, pad it with zeros
+  while(hexColor.length() < 6) {
+    hexColor = "0" + hexColor;
+  }
+
+  return hexColor;
+}
 
 ///
 /// \brief      Paints the masks and bounding boxes around the found elements
@@ -28,7 +53,7 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
                                          bool paintRectangel, bool paintLabels)
 {
   cv::Mat mask         = img.clone();
-  cv::Scalar areaColor = hexToScalar(fillColor);
+  cv::Scalar areaColor = hexToScalar("#" + generateRandomColorHex());
 
   for(int i = 0; i < result.size(); i++) {
     int left      = result[i].getBoundingBox().x;
@@ -42,7 +67,7 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
         if(!result[i].isValid()) {
           areaColor = WHITE;
         } else {
-          areaColor = hexToScalar(fillColor);
+          areaColor = hexToScalar("#" + generateRandomColorHex());
         }
 
         // Boundding box

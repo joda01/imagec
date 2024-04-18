@@ -143,9 +143,7 @@ void ROI::calculateMetrics(const std::map<joda::settings::ChannelIndex, const cv
   if(!imageOriginal.empty() && !mBoundingBox.empty() && !mMask.empty()) {
     areaSize = cv::countNonZero(mMask);
     for(const auto &[idx, img] : imageOriginal) {
-      cv::Mat maskImg          = (*img)(mBoundingBox);
-      intensity[idx].intensity = cv::mean(maskImg, mMask)[0];
-      cv::minMaxLoc(maskImg, &intensity[idx].intensityMin, &intensity[idx].intensityMax, nullptr, nullptr, mMask);
+      intensity[idx] = calcIntensity(*img);
     }
 
     perimeter = getTracedPerimeter(mMaskContours);
@@ -164,6 +162,23 @@ void ROI::calculateMetrics(const std::map<joda::settings::ChannelIndex, const cv
       validity = ParticleValidity::VALID;
     }
   }
+}
+
+auto ROI::calcIntensity(const cv::Mat &imageOriginal) -> Intensity
+{
+  // \todo make more efficient
+  Intensity intensityRet;
+  cv::Mat maskImg = (imageOriginal) (mBoundingBox);
+  for(int x = 0; x < maskImg.cols; x++) {
+    for(int y = 0; y < maskImg.rows; y++) {
+      if(mMask.at<uint8_t>(y, x) <= 0) {
+        maskImg.at<uint16_t>(y, x) = 0;
+      }
+    }
+  }
+  intensityRet.intensity = cv::mean(maskImg, mMask)[0];
+  cv::minMaxLoc(maskImg, &intensityRet.intensityMin, &intensityRet.intensityMax, nullptr, nullptr, mMask);
+  return intensityRet;
 }
 
 double ROI::getSmoothedLineLength(const std::vector<cv::Point> &points) const
@@ -321,9 +336,8 @@ void ROI::applyParticleFilter(const joda::settings::ChannelSettingsFilter *filte
 
 [[nodiscard]] bool ROI::isIntersecting(const ROI &roi, float minIntersection) const
 {
-  cv::Mat mat{};
-  auto [_, intersecting] = calcIntersection(roi, {{joda::settings::ChannelIndex::NONE, &mat}}, minIntersection, false);
-  return intersecting;
+  auto intersecting = calcIntersectingMask(roi);
+  return intersecting.intersectionArea >= minIntersection;
 }
 
 ///
@@ -336,83 +350,92 @@ void ROI::applyParticleFilter(const joda::settings::ChannelSettingsFilter *filte
 ROI::calcIntersection(const ROI &roi, const std::map<joda::settings::ChannelIndex, const cv::Mat *> &imageOriginal,
                       float minIntersection, bool createRoi) const
 {
-  // Calculate the intersection of the bounding boxes
-  cv::Rect intersectedRect = getSnapAreaBoundingBox() & roi.getSnapAreaBoundingBox();
+  auto intersectingMask = calcIntersectingMask(roi);
 
-  if(intersectedRect.area() > 0) {
-    uint32_t nrOfIntersectingPixels = 0;
-    uint32_t nrOfPixelsMask1        = 0;
-    uint32_t nrOfPixelsMask2        = 0;
-    cv::Mat intersectedMask         = cv::Mat::zeros(intersectedRect.height, intersectedRect.width, CV_8UC1);
-
-    // Iterate through the pixels in the intersection and set them in the new mask
-    for(int y = 0; y < intersectedRect.height; ++y) {
-      for(int x = 0; x < intersectedRect.width; ++x) {
-        int xM1      = x + (intersectedRect.x - getSnapAreaBoundingBox().x);
-        int yM1      = y + (intersectedRect.y - getSnapAreaBoundingBox().y);
-        bool mask1On = false;
-        if(xM1 >= 0 && yM1 >= 0) {
-          mask1On = getSnapAreaMask().at<uchar>(yM1, xM1) > 0;
-        }
-
-        int xM2      = x + (intersectedRect.x - roi.getSnapAreaBoundingBox().x);
-        int yM2      = y + (intersectedRect.y - roi.getSnapAreaBoundingBox().y);
-        bool mask2On = false;
-        if(xM2 >= 0 && yM2 >= 0) {
-          mask2On = roi.getSnapAreaMask().at<uchar>(yM2, xM2) > 0;
-        }
-
-        if(mask1On) {
-          nrOfPixelsMask1++;
-        }
-
-        if(mask2On) {
-          nrOfPixelsMask2++;
-        }
-
-        if(mask1On && mask2On) {
-          intersectedMask.at<uchar>(y, x) = 255;
-          nrOfIntersectingPixels++;
-        }
-      }
-    }
-    if(nrOfIntersectingPixels > 0) {
-      int smallestMask       = std::min(nrOfPixelsMask1, nrOfPixelsMask2);
-      float intersectionArea = 0;
-      if(smallestMask > 0) {
-        intersectionArea = static_cast<float>(nrOfIntersectingPixels) / static_cast<float>(smallestMask);
-      }
-      if(createRoi) {
-        std::vector<std::vector<cv::Point>> contours;
-        std::vector<cv::Point> contour = {};
-        cv::findContours(intersectedMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
-        if(!contours.empty()) {
-          int32_t contourSize = contours[0].size();
-          contour             = contours[0];
-          for(const auto &cont : contours) {
-            if(cont.size() > contourSize) {
-              contourSize = cont.size();
-              contour     = cont;
-            }
+  if(intersectingMask.nrOfIntersectingPixels > 0) {
+    if(createRoi) {
+      std::vector<std::vector<cv::Point>> contours;
+      std::vector<cv::Point> contour = {};
+      cv::findContours(intersectingMask.intersectedMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+      if(!contours.empty()) {
+        int32_t contourSize = contours[0].size();
+        contour             = contours[0];
+        for(const auto &cont : contours) {
+          if(cont.size() > contourSize) {
+            contourSize = cont.size();
+            contour     = cont;
           }
         }
-
-        ROI intersectionROI(index, intersectionArea, 0, intersectedRect, intersectedMask, contour, imageOriginal);
-        if(intersectionArea < minIntersection) {
-          intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
-        }
-        return {intersectionROI, true};
       }
-      cv::Mat mat{};
-      return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{},
-                  {{joda::settings::ChannelIndex::NONE, &mat}}),
-              true};
+
+      ROI intersectionROI(index, intersectingMask.intersectionArea, 0, intersectingMask.intersectedRect,
+                          intersectingMask.intersectedMask, contour, imageOriginal);
+      if(intersectingMask.intersectionArea < minIntersection) {
+        intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
+      }
+      return {intersectionROI, true};
     }
+    cv::Mat mat{};
+    return {
+        ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{}, {{joda::settings::ChannelIndex::NONE, &mat}}),
+        true};
   }
+
   cv::Mat mat{};
   return {
       ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{}, {{joda::settings::ChannelIndex::NONE, &mat}}),
       false};
+}
+
+ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
+{
+  IntersectingMask result;
+
+  result.intersectedRect = getSnapAreaBoundingBox() & roi.getSnapAreaBoundingBox();
+
+  if(result.intersectedRect.area() <= 0) {
+    return {};
+  }
+  result.intersectedMask = cv::Mat::zeros(result.intersectedRect.height, result.intersectedRect.width, CV_8UC1);
+
+  // Iterate through the pixels in the intersection and set them in the new mask
+  for(int y = 0; y < result.intersectedRect.height; ++y) {
+    for(int x = 0; x < result.intersectedRect.width; ++x) {
+      int xM1      = x + (result.intersectedRect.x - getSnapAreaBoundingBox().x);
+      int yM1      = y + (result.intersectedRect.y - getSnapAreaBoundingBox().y);
+      bool mask1On = false;
+      if(xM1 >= 0 && yM1 >= 0) {
+        mask1On = getSnapAreaMask().at<uchar>(yM1, xM1) > 0;
+      }
+
+      int xM2      = x + (result.intersectedRect.x - roi.getSnapAreaBoundingBox().x);
+      int yM2      = y + (result.intersectedRect.y - roi.getSnapAreaBoundingBox().y);
+      bool mask2On = false;
+      if(xM2 >= 0 && yM2 >= 0) {
+        mask2On = roi.getSnapAreaMask().at<uchar>(yM2, xM2) > 0;
+      }
+
+      if(mask1On) {
+        result.nrOfPixelsMask1++;
+      }
+
+      if(mask2On) {
+        result.nrOfPixelsMask2++;
+      }
+
+      if(mask1On && mask2On) {
+        result.intersectedMask.at<uchar>(y, x) = 255;
+        result.nrOfIntersectingPixels++;
+      }
+    }
+  }
+
+  int smallestMask = std::min(result.nrOfPixelsMask1, result.nrOfPixelsMask2);
+  if(smallestMask > 0) {
+    result.intersectionArea = static_cast<float>(result.nrOfIntersectingPixels) / static_cast<float>(smallestMask);
+  }
+
+  return result;
 }
 
 ///
@@ -434,10 +457,7 @@ void ROI::measureAndAddIntensity(joda::settings::ChannelIndex channelIdx, const 
   }
 
   if(!imageOriginal.empty() && !mBoundingBox.empty() && !mMask.empty()) {
-    cv::Mat maskImg                 = (imageOriginal) (mBoundingBox);
-    intensity[channelIdx].intensity = cv::mean(maskImg, mMask)[0];
-    cv::minMaxLoc(maskImg, &intensity[channelIdx].intensityMin, &intensity[channelIdx].intensityMax, nullptr, nullptr,
-                  mMask);
+    intensity[channelIdx] = calcIntensity(imageOriginal);
   }
 }
 
@@ -453,8 +473,8 @@ void ROI::calcIntersectionAndAdd(joda::settings::ChannelIndex channelIdx, const 
     intersectingRois.emplace(channelIdx, Intersecting{});
   }
   if(nullptr != roi) {
-    cv::Rect intersectedRect = getSnapAreaBoundingBox() & roi->getSnapAreaBoundingBox();
-    if(intersectedRect.area() > 0) {
+    auto intersectingMask = calcIntersectingMask(*roi);
+    if(intersectingMask.nrOfIntersectingPixels > 0) {
       if(roi->isValid()) {
         intersectingRois.at(channelIdx).roiValid.push_back(roi);
       } else {
