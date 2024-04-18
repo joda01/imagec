@@ -43,15 +43,15 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
     auto CalcVoronoiResult =
         grid.forward(voronoiPointsChannel.controlImage, voronoiPointsChannel.originalImage, mChannelIndexMe);
 
-    if(!CalcVoronoiResult.controlImage.empty()) {
-      static const std::string separator(1, std::filesystem::path::preferred_separator);
-      std::vector<int> compression_params;
-      compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-      compression_params.push_back(0);
-      cv::imwrite(detailoutputPath + separator + "control_voronoi_" +
-                      joda::settings::to_string(mVoronoiPointsChannelIndex) + "_" + std::to_string(0) + ".png",
-                  CalcVoronoiResult.controlImage, compression_params);
-    }
+    // if(!CalcVoronoiResult.controlImage.empty()) {
+    //   static const std::string separator(1, std::filesystem::path::preferred_separator);
+    //   std::vector<int> compression_params;
+    //   compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+    //   compression_params.push_back(0);
+    //   cv::imwrite(detailoutputPath + separator + "control_voronoi_" +
+    //                   joda::settings::to_string(mVoronoiPointsChannelIndex) + "_" + std::to_string(0) + ".png",
+    //               CalcVoronoiResult.controlImage, compression_params);
+    // }
 
     //
     // Now mask the voronoi grid with an other channel
