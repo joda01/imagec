@@ -21,7 +21,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
                                                  lxw_format *numberFormat, lxw_format *imageHeaderHyperlinkFormat)
 {
   setlocale(LC_NUMERIC, "C");                  // Needed for correct comma in libxlsx
-  const int STATISTIC_START_WITH_INDEX = 2;    // Validity and invalidity are just for internal use
+  const int STATISTIC_START_WITH_INDEX = 3;    // Validity, invalidity and Sum are just for internal use
 
   //
   // Sort rows
@@ -72,7 +72,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
       }
 
       for(int64_t colIdx = 0; colIdx < nrOfColumns; colIdx++) {
-        auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
+        auto colKey = getMeasureChannelWithStats(results.getColumnKeyAt(colIdx));
         if(reportingSettings.overview.measureChannels.contains(colKey)) {
           if(results.getStatistics().contains(colIdx)) {
             auto statistics = results.getStatistics().at(colIdx);
@@ -122,7 +122,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
   {
     int sheetRowIdx = 0;
     for(int64_t colIndex = 0; colIndex < nrOfColumns; colIndex++) {
-      auto colKey = getMeasureChannel(results.getColumnKeyAt(colIndex));
+      auto colKey = getMeasureChannelWithStats(results.getColumnKeyAt(colIndex));
       if(reportingSettings.overview.measureChannels.contains(colKey)) {
         worksheet_write_string(worksheet, sheetRowIdx + rowOffset, 1, results.getColumnNameAt(colIndex).data(), header);
         worksheet_set_column(worksheet, 1, 1, 20, NULL);
@@ -151,7 +151,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
     for(int64_t rowIndex = 0; rowIndex < results.getNrOfRows(); rowIndex++) {
       sheetRowIdx = 0;
       for(int64_t colIndex = 0; colIndex < nrOfColumns; colIndex++) {
-        auto colKey = getMeasureChannel(results.getColumnKeyAt(colIndex));
+        auto colKey = getMeasureChannelWithStats(results.getColumnKeyAt(colIndex));
         if(reportingSettings.overview.measureChannels.contains(colKey)) {
           if(results.getTable().contains(colIndex) &&
              results.getTable().at(colIndex).contains(getIndexOfSortedMap(rowIndex))) {

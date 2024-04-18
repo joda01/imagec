@@ -7,7 +7,7 @@ namespace joda::pipeline::reporting {
 
 std::string measurementChannelsToString(uint32_t ch, const joda::settings::AnalyzeSettings &settings)
 {
-  return measurementChannelsToString(getMeasureChannel(ch)) + " " +
+  return measurementChannelsToString(getMeasureChannel(ch)) + measurementStatsToString(getMeasureStats(ch)) + " " +
          joda::settings::Settings::getChannelNameOfChannelIndex(settings, getChannelIndexFromMeasureChannel(ch));
 }
 

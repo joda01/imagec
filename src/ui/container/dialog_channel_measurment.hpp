@@ -36,9 +36,9 @@ public:
   int exec() override;
 
 private:
-  std::map<joda::settings::ChannelReportingSettings::MeasureChannels, QCheckBox *> mMeasurementOverViewReport;
+  std::map<joda::settings::ChannelReportingSettings::MeasureChannelsCombi, QCheckBox *> mMeasurementOverViewReport;
   std::map<joda::settings::ChannelReportingSettings::MeasureChannels, QCheckBox *> mMeasurementDetailsReport;
-  std::map<joda::settings::ChannelReportingSettings::MeasureChannels, QCheckBox *> mMeasurementHeatmapReport;
+  std::map<joda::settings::ChannelReportingSettings::MeasureChannelsCombi, QCheckBox *> mMeasurementHeatmapReport;
 
   joda::settings::ChannelReportingSettings &mReportingSettings;
 
