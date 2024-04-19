@@ -147,7 +147,7 @@ auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex
   auto onnxModels    = onnx::OnnxParser::findOnnxFiles();
   if(!imageFileName.getFilename().empty()) {
     std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> referenceChannelResults;
-    auto result = joda::algo::ImageProcessor::executeAlgorithm(imageFileName, settings, tileIndex, onnxModels,
+    auto result = joda::algo::ImageProcessor::executeAlgorithm(imageFileName, settings, tileIndex, onnxModels, nullptr,
                                                                &referenceChannelResults);
     std::vector<uchar> buffer;
     std::vector<int> compression_params;

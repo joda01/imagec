@@ -18,7 +18,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include "backend/duration_count/duration_count.h"
 #include "backend/image_reader/image_reader.hpp"
+#include <nlohmann/json.hpp>
 #include <opencv2/core/mat.hpp>
 
 #ifdef _WIN32
@@ -185,6 +187,7 @@ std::string BioformatsLoader::getJavaVersion()
 ///
 cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int directory, uint16_t series)
 {
+  // Takes 150 ms
   if(mJVMInitialised) {
     std::lock_guard<std::mutex> lock(mReadMutex);
 
@@ -199,42 +202,78 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
       std::cout << "Error: Class not found!" << std::endl;
     } else {
       //
+      //
+      //
+      uint32_t width  = 0;
+      uint32_t height = 0;
+      uint8_t bits    = 0;
+      {
+        // Takes ~3ms for 2048x2018
+        jmethodID mid = myEnv->GetStaticMethodID(
+            cls, "getImageProperties", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
+        jstring filePath     = myEnv->NewStringUTF(filename.c_str());
+        jstring directoryStr = myEnv->NewStringUTF(std::to_string(0).c_str());
+        jstring seriesStr    = myEnv->NewStringUTF(std::to_string(series).c_str());
+        jstring result       = (jstring) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
+        myEnv->DeleteLocalRef(filePath);
+        // Convert the returned byte array to C++ bytes
+        const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
+        auto parsedJson         = nlohmann::json::parse(std::string(stringChars));
+        width                   = parsedJson["width"];
+        height                  = parsedJson["height"];
+        bits                    = parsedJson["bits"];
+        // <<
+      }
+
+      //
       // Read image
       //
-      jmethodID mid =
-          myEnv->GetStaticMethodID(cls, "readImage", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)[[I");
-      jstring filePath     = myEnv->NewStringUTF(filename.c_str());
-      jstring directoryStr = myEnv->NewStringUTF(std::to_string(directory).c_str());
-      jstring seriesStr    = myEnv->NewStringUTF(std::to_string(series).c_str());
+      cv::Mat retValue = cv::Mat::zeros(height, width, CV_16UC1);
+      {
+        jmethodID mid =
+            myEnv->GetStaticMethodID(cls, "readImage", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)[B");
+        jstring filePath     = myEnv->NewStringUTF(filename.c_str());
+        jstring directoryStr = myEnv->NewStringUTF(std::to_string(directory).c_str());
+        jstring seriesStr    = myEnv->NewStringUTF(std::to_string(series).c_str());
 
-      jobjectArray result = (jobjectArray) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
-      myEnv->DeleteLocalRef(filePath);
+        // Takes ~37ms for 2048x2018
+        jbyteArray result = (jbyteArray) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
+        myEnv->DeleteLocalRef(filePath);
+        jsize imageArraySize = myEnv->GetArrayLength(result);
+        // <<<
 
-      jsize rows = myEnv->GetArrayLength(result);
-
-      jintArray row = (jintArray) myEnv->GetObjectArrayElement(result, 0);
-      jsize cols    = myEnv->GetArrayLength(row);
-
-      jint *data;
-
-      cv::Mat retValue = cv::Mat::zeros(rows, cols, CV_16UC1);
-      for(int i = 0; i < rows; i++) {
-        row  = (jintArray) myEnv->GetObjectArrayElement(result, i);
-        cols = myEnv->GetArrayLength(row);
-        data = myEnv->GetIntArrayElements(row, nullptr);
-        for(int j = 0; j < cols; j++) {
-          retValue.at<uint16_t>(i, j) = (uint16_t) (data[j] & 0xFFFF);
+        // Takes ~4ms
+        jbyte *imageBytes = myEnv->GetByteArrayElements(result, nullptr);
+        if(bits == 8) {
+          memcpy(retValue.data, imageBytes, width * height);    // 1 byte per pixel
+        } else if(bits == 16) {
+          memcpy(retValue.data, imageBytes, width * height * 2);    // 2 bytes per pixel
         }
-        myEnv->ReleaseIntArrayElements(row, data, JNI_ABORT);
+        // <<<
+
+        /*
+        if(bits == 8) {
+          for(int y = 0; y < height; y++) {
+            for(int x = 0; x < width; x++) {
+              int index                   = (x * width + y);
+              retValue.at<uint16_t>(y, x) = imageBytes[index];
+            }
+          }
+        } else if(bits == 16) {
+          for(int y = 0; y < height; y++) {
+            for(int x = 0; x < width; x++) {
+              int index                   = (x * width + y) * 2;
+              retValue.at<uint16_t>(y, x) = (imageBytes[index] & 0xFF) | ((imageBytes[index + 1] & 0xFF) << 8);
+            }
+          }
+        }*/
       }
 
       myJVM->DetachCurrentThread();
-      // Clean up
-      // myEnv->ReleaseObjectArrayElements(result, bytes, 0);
-
       return retValue;
     }
   }
+
   return cv::Mat{};
 }
 
@@ -249,6 +288,8 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
     -> std::tuple<joda::ome::OmeInfo, ImageProperties>
 {
   if(mJVMInitialised) {
+    auto id = DurationCount::start("Get OEM");
+
     std::lock_guard<std::mutex> lock(mReadMutex);
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
     // Call the BioFormatsWrapper.readImageBytes() method
@@ -275,6 +316,7 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
         omeInfo.loadOmeInformationFromJsonString(jsonResult);    ///\todo this method can throw an excaption
     myJVM->DetachCurrentThread();
 
+    DurationCount::stop(id);
     return {omeInfo, props};
   }
   return {{}, {}};

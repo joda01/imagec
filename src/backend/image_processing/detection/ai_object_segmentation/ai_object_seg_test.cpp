@@ -18,6 +18,6 @@ TEST_CASE("cell:counter:ai", "[cell_counter_ai]")
   data.modelPath = "models/cell_segmentation_brightfield_in_vitro_v1.onnx";
   data.classes   = {"cell"};
   joda::func::ai::ObjectSegmentation seg(ch, data, 0.5);
-  auto result = seg.forward(img, img, 0);
+  auto result = seg.forward(img, img, joda::settings::ChannelIndex::CH0);
   CHECK(result.result.size() == 15);
 }

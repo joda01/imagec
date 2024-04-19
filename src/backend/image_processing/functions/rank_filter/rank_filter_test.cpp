@@ -1,7 +1,7 @@
 #include <opencv2/core/hal/interface.h>
 #include "../../../image_reader/jpg/image_loader_jpg.hpp"
 #include "../../../image_reader/tif/image_loader_tif.hpp"
-#include "../../../settings/channel_settings.hpp"
+#include "../../../settings/channel/channel_settings.hpp"
 #include "backend/image_processing/functions/blur/blur.hpp"
 #include "backend/image_processing/functions/threshold/threshold.hpp"
 #include "backend/image_processing/functions/threshold/threshold_manual.hpp"

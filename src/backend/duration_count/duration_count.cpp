@@ -17,9 +17,9 @@ void DurationCount::stop(uint32_t rand)
 {
   auto t_end = std::chrono::high_resolution_clock::now();
   std::lock_guard<std::mutex> lock(mLock);
-  auto durations         = t_end - mDelays[rand].t_start;
-  double elapsed_time_ms = std::chrono::duration<double, std::milli>(durations).count();
-  joda::log::logTrace(mDelays[rand].mComment + ": " + std::to_string(elapsed_time_ms) + " ms.");
+  auto durations = t_end - mDelays[rand].t_start;
+  // double elapsed_time_ms = std::chrono::duration<double, std::milli>(durations).count();
+  //  joda::log::logTrace(mDelays[rand].mComment + ": " + std::to_string(elapsed_time_ms) + " ms.");
   mStats[mDelays[rand].mComment].cnt++;
   mStats[mDelays[rand].mComment].timeCount += durations;
   mDelays.erase(rand);
