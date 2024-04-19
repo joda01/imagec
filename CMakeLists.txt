@@ -178,8 +178,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
 
 
-
-
 #
 # Protobuf generate
 #
@@ -195,6 +193,8 @@ target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
 #  PROTOS ${PROTO_FILES}
 #  PROTOC_OUT_DIR "/workspaces/imagec/src/onnx"
 #  )
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY)
 
 
 set_target_properties( ${PROJECT_NAME}
@@ -267,7 +267,7 @@ target_link_libraries(tests ${LIBS} ${TESTING_LIBS})
 #include(Catch)
 
 #catch_discover_tests(tests)
-target_compile_definitions(tests PUBLIC UNIT_TEST)
+target_compile_definitions(tests PUBLIC UNIT_TEST BS_THREAD_POOL_ENABLE_PRIORITY)
 
 
 

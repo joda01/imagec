@@ -65,14 +65,14 @@ int32_t Settings::getNrOfAllChannels(const joda::settings::AnalyzeSettings &sett
   return settings.channels.size() + settings.vChannels.size();
 }
 
-std::set<const joda::settings::ChannelSettings *>
+std::vector<const joda::settings::ChannelSettings *>
 Settings::getChannelsOfType(const joda::settings::AnalyzeSettings &settings,
                             joda::settings::ChannelSettingsMeta::Type type)
 {
-  std::set<const joda::settings::ChannelSettings *> ret;
+  std::vector<const joda::settings::ChannelSettings *> ret;
   for(const auto &ch : settings.channels) {
     if(ch.meta.type == type) {
-      ret.emplace(&ch);
+      ret.push_back(&ch);
     }
   }
   return ret;

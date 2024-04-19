@@ -12,7 +12,6 @@
 ///
 
 #pragma once
-
 // #include <memory>
 #include <memory>
 #include <mutex>
@@ -25,10 +24,12 @@
 #include "../logger/console_logger.hpp"
 #include "../results/results.h"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
+#include "backend/helper/thread_pool.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/results_container.hpp"
 #include "backend/settings/analze_settings.hpp"
+#include "backend/settings/channel/channel_settings.hpp"
 #include "reporting/reporting_details.xlsx.hpp"
 #include "reporting/reporting_heatmap.hpp"
 #include "reporting/reporting_overview_xlsx.hpp"
@@ -181,6 +182,9 @@ private:
   std::string mOutputFolder;
   bool mStop = false;
   joda::settings::AnalyzeSettings mAnalyzeSettings;
+  std::vector<const joda::settings::ChannelSettings *> mListOfChannelSettings;
+  std::vector<const joda::settings::VChannelSettings *> mListOfVChannelSettings;
+
   joda::helper::ImageFileContainer *mImageFileContainer;
 
   ProgressIndicator mProgress;
