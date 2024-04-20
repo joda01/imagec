@@ -250,34 +250,55 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
     // Don't use all CPU cores if there are more than 1
     maxNumberOfCoresToAssign--;
   }
+  threads.coresUsed = maxNumberOfCoresToAssign;
 
-  threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES]   = imgNr;
-  threads.cores[pipeline::Pipeline::ThreadingSettings::TILES]    = tileNr;
-  threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] = channelNr;
+  threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES]   = 1;
+  threads.cores[pipeline::Pipeline::ThreadingSettings::TILES]    = 1;
+  threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] = 1;
 
-  uint64_t nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
-  while(nr > maxNumberOfCoresToAssign) {
-    threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS]--;
-    nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
+  if(imgNr > tileNr) {
+    if(imgNr > channelNr) {
+      // Image Nr wins
+      threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES] = maxNumberOfCoresToAssign;
+    } else {
+      // Channel Nr wins
+      threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
+    }
+  } else {
+    if(tileNr > channelNr) {
+      // Tile nr wins
+      threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] = maxNumberOfCoresToAssign;
+    } else {
+      // Channel Nr wins
+      threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
+    }
   }
 
-  nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
-       threads.cores[pipeline::Pipeline::ThreadingSettings::TILES];
-  while(nr > maxNumberOfCoresToAssign) {
-    threads.cores[pipeline::Pipeline::ThreadingSettings::TILES]--;
+  /*
+    uint64_t nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
+    while(nr > maxNumberOfCoresToAssign) {
+      threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS]--;
+      nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
+    }
+
     nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
          threads.cores[pipeline::Pipeline::ThreadingSettings::TILES];
-  }
+    while(nr > maxNumberOfCoresToAssign) {
+      threads.cores[pipeline::Pipeline::ThreadingSettings::TILES]--;
+      nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
+           threads.cores[pipeline::Pipeline::ThreadingSettings::TILES];
+    }
 
-  nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
-       threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
-       threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES];
-  while(nr > maxNumberOfCoresToAssign) {
-    threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES]--;
     nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
          threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
          threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES];
-  }
+    while(nr > maxNumberOfCoresToAssign) {
+      threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES]--;
+      nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
+           threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
+           threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES];
+    }
+  */
 
   threads.totalRuns = imgNr * tileNr * channelNr;
 

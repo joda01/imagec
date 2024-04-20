@@ -95,7 +95,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   std::vector<cv::Vec4i> hierarchy;
   cv::findContours(binaryImage, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
 
-  if(contours.size() > 100000) {
+  if(contours.size() > 50000) {
     joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
     return {.result = response, .controlImage = {}};
   }

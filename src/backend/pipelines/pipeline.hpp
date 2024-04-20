@@ -69,6 +69,7 @@ public:
     uint64_t ramFree        = 0;
     uint64_t ramTotal       = 0;
     uint32_t coresAvailable = 0;
+    uint32_t coresUsed      = 0;
     uint64_t totalRuns      = 0;
     std::map<Type, int32_t> cores{{IMAGES, 1}, {TILES, 1}, {CHANNELS, 1}};
   };
@@ -141,13 +142,7 @@ private:
 
   ///
   /// \brief Stop a running job
-  void stopJob()
-  {
-    if(mState != State::FINISHED && mState != State::ERROR_) {
-      mState = State::STOPPING;
-    }
-    mStop = true;
-  }
+  void stopJob();
 
   ///
   /// \brief Total progress and state of the analysis
