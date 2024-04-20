@@ -314,8 +314,7 @@ ChannelProperties ImageProcessor::loadChannelProperties(const FileInfo &imagePat
       imgProperties = JpgLoader::getImageProperties(imagePath.getPath());
     } break;
     case FileInfo::Decoder::TIFF: {
-      auto ome      = TiffLoader::getOmeInformation(imagePath.getPath());
-      omeInfo       = ome;
+      omeInfo       = TiffLoader::getOmeInformation(imagePath.getPath());
       imgProperties = TiffLoader::getImageProperties(imagePath.getPath(), 0);
     } break;
     case FileInfo::Decoder::BIOFORMATS: {

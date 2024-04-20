@@ -201,9 +201,8 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
       }
       std::cout << "Error: Class not found!" << std::endl;
     } else {
-      jstring filePath     = myEnv->NewStringUTF(filename.c_str());
-      jstring directoryStr = myEnv->NewStringUTF(std::to_string(0).c_str());
-      jstring seriesStr    = myEnv->NewStringUTF(std::to_string(series).c_str());
+      jstring filePath  = myEnv->NewStringUTF(filename.c_str());
+      jstring seriesStr = myEnv->NewStringUTF(std::to_string(series).c_str());
       //
       //
       //
@@ -214,11 +213,13 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
         // Takes ~3ms for 2048x2018
         jmethodID mid = myEnv->GetStaticMethodID(
             cls, "getImageProperties", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
-        jstring result = (jstring) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
+        jstring directoryStr = myEnv->NewStringUTF(std::to_string(0).c_str());
+        jstring result       = (jstring) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
         // Convert the returned byte array to C++ bytes
         const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
         auto parsedJson         = nlohmann::json::parse(std::string(stringChars));
         myEnv->ReleaseStringUTFChars(result, stringChars);
+        myEnv->DeleteLocalRef(directoryStr);
         width  = parsedJson["width"];
         height = parsedJson["height"];
         bits   = parsedJson["bits"];
@@ -232,6 +233,7 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
         jmethodID mid =
             myEnv->GetStaticMethodID(cls, "readImage", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)[B");
         // Takes ~37ms for 2048x2018
+        jstring directoryStr = myEnv->NewStringUTF(std::to_string(directory).c_str());
         jbyteArray result    = (jbyteArray) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
         jsize imageArraySize = myEnv->GetArrayLength(result);
         // <<<
@@ -244,12 +246,12 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
           memcpy(retValue.data, imageBytes, width * height * 2);    // 2 bytes per pixel
         }
         myEnv->ReleaseByteArrayElements(result, imageBytes, JNI_ABORT);
+        myEnv->DeleteLocalRef(directoryStr);
 
         // <<<
       }
 
       myEnv->DeleteLocalRef(filePath);
-      myEnv->DeleteLocalRef(directoryStr);
       myEnv->DeleteLocalRef(seriesStr);
 
       myJVM->DetachCurrentThread();
