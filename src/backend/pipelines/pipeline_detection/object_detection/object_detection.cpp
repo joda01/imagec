@@ -18,6 +18,7 @@
 #include <mutex>
 #include <string_view>
 #include "backend/image_processing/detection/ai_object_detection/ai_object_detection.h"
+#include "backend/image_processing/detection/ai_object_segmentation/ai_object_segmentation.hpp"
 #include "backend/image_processing/detection/object_segmentation/object_segmentation.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 
@@ -39,7 +40,8 @@ auto ObjectDetection::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
   } else {
     auto modelData = getAvailableModels().find(channelSetting.detection.ai.modelPath);
     if(modelData != getAvailableModels().end()) {
-      joda::func::ai::ObjectDetector obj(channelSetting.filter, modelData->second);
+      joda::func::ai::ObjectSegmentation obj(channelSetting.filter, modelData->second,
+                                             channelSetting.detection.ai.minProbability);
       return obj.forward(img, imgOriginal, channelSetting.meta.channelIdx);
     } else {
       throw std::runtime_error("Selected model >" + channelSetting.detection.ai.modelPath +
