@@ -6,7 +6,11 @@ import loci.common.DebugTools;
 import loci.formats.IFormatReader;
 
 public class BioFormatsWrapper {
-    public static byte[] readImage(String imagePath, String directory, String series) {
+    public class ImageResult {
+    } 
+
+
+    public static byte[] readImage(String imagePath, int directory, int series) {
         DebugTools.setRootLevel("OFF");
 
         try {
@@ -15,10 +19,10 @@ public class BioFormatsWrapper {
 
             // Initialize the reader with the image file
             formatReader.setId(imagePath);
-            formatReader.setSeries(Integer.parseInt(series));
+            formatReader.setSeries(series);
 
             // Read the image data for the current channel, timepoint, and slice
-            byte[] imageBytes = formatReader.openBytes(Integer.parseInt(directory));
+            byte[] imageBytes = formatReader.openBytes(directory);
 
             //int bits = formatReader.getBitsPerPixel();
             //int height = formatReader.getSizeY();
@@ -66,7 +70,7 @@ public class BioFormatsWrapper {
     /// integer ot zero)
     /// \return Image properties JSON
     ///
-    public static String getImageProperties(String imagePath, String directory, String series) {
+    public static String getImageProperties(String imagePath, int directory, int series) {
         DebugTools.setRootLevel("OFF");
 
         String ret = "{}";
@@ -77,7 +81,7 @@ public class BioFormatsWrapper {
 
             // Initialize the reader with the image file
             formatReader.setId(imagePath);
-            formatReader.setSeries(Integer.parseInt(series));
+            formatReader.setSeries(series);
 
             // OMEXMLMetadata omeMetadata = (OMEXMLMetadata)
             // formatReader.getMetadataStore();

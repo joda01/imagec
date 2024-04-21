@@ -132,11 +132,23 @@ void BioformatsLoader::init()
      *  variable to the home directory of the JVM you want to use
      *  (prior to the CreateJavaVM() call).
      */
-    if(JNI_CreateJavaVM(&myJVM, (void **) &myEnv, &initArgs) != 0) {
+    if(JNI_CreateJavaVM(&myJVM, (void **) &myGlobEnv, &initArgs) != 0) {
       std::cout << "JAVA VM ERROR" << std::endl;
       mJVMInitialised = false;
     } else {
       mJVMInitialised = true;
+
+      mBioformatsClass = myGlobEnv->FindClass("BioFormatsWrapper");
+      if(mBioformatsClass == NULL) {
+        if(myGlobEnv->ExceptionOccurred()) {
+          myGlobEnv->ExceptionDescribe();
+        }
+        std::cout << "Error: Class not found!" << std::endl;
+      } else {
+        mGetImageProperties = myGlobEnv->GetStaticMethodID(mBioformatsClass, "getImageProperties",
+                                                           "(Ljava/lang/String;II)Ljava/lang/String;");
+        mReadImage          = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;II)[B");
+      }
     }
   } catch(const std::exception &ex) {
     std::cout << "JAVA VM ERROR: " << ex.what() << std::endl;
@@ -165,6 +177,7 @@ void BioformatsLoader::destroy()
 /// \param[out]
 /// \return
 ///
+/*
 std::string BioformatsLoader::getJavaVersion()
 {
   jclass systemClass = myEnv->FindClass("java/lang/System");
@@ -177,6 +190,7 @@ std::string BioformatsLoader::getJavaVersion()
   myEnv->ReleaseStringUTFChars(javaVersion, javaVersionStr);
   return javaVersionStr;
 }
+*/
 
 ///
 /// \brief
@@ -189,74 +203,32 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
 {
   // Takes 150 ms
   if(mJVMInitialised) {
-    std::lock_guard<std::mutex> lock(mReadMutex);
+    // std::lock_guard<std::mutex> lock(mReadMutex);
 
+    JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+    jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, 0,
+                                                               static_cast<int>(series));
+    const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
+    auto parsedJson         = nlohmann::json::parse(std::string(stringChars));
+    myEnv->ReleaseStringUTFChars(result, stringChars);
+    uint32_t width  = parsedJson["width"];
+    uint32_t height = parsedJson["height"];
+    uint32_t bits   = parsedJson["bits"];
 
-    // Call the BioFormatsWrapper.readImageBytes() method
-    jclass cls = myEnv->FindClass("BioFormatsWrapper");
-    if(cls == NULL) {
-      if(myEnv->ExceptionOccurred()) {
-        myEnv->ExceptionDescribe();
-      }
-      std::cout << "Error: Class not found!" << std::endl;
-    } else {
-      jstring filePath  = myEnv->NewStringUTF(filename.c_str());
-      jstring seriesStr = myEnv->NewStringUTF(std::to_string(series).c_str());
-      //
-      //
-      //
-      uint32_t width  = 0;
-      uint32_t height = 0;
-      uint8_t bits    = 0;
-      {
-        // Takes ~3ms for 2048x2018
-        jmethodID mid = myEnv->GetStaticMethodID(
-            cls, "getImageProperties", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
-        jstring directoryStr = myEnv->NewStringUTF(std::to_string(0).c_str());
-        jstring result       = (jstring) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
-        // Convert the returned byte array to C++ bytes
-        const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
-        auto parsedJson         = nlohmann::json::parse(std::string(stringChars));
-        myEnv->ReleaseStringUTFChars(result, stringChars);
-        myEnv->DeleteLocalRef(directoryStr);
-        width  = parsedJson["width"];
-        height = parsedJson["height"];
-        bits   = parsedJson["bits"];
-      }
-
-      //
-      // Read image
-      //
-      cv::Mat retValue = cv::Mat::zeros(height, width, CV_16UC1);
-      {
-        jmethodID mid =
-            myEnv->GetStaticMethodID(cls, "readImage", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)[B");
-        // Takes ~37ms for 2048x2018
-        jstring directoryStr = myEnv->NewStringUTF(std::to_string(directory).c_str());
-        jbyteArray result    = (jbyteArray) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
-        jsize imageArraySize = myEnv->GetArrayLength(result);
-        // <<<
-
-        // Takes ~4ms
-        jbyte *imageBytes = myEnv->GetByteArrayElements(result, nullptr);
-        if(bits == 8) {
-          memcpy(retValue.data, imageBytes, width * height);    // 1 byte per pixel
-        } else if(bits == 16) {
-          memcpy(retValue.data, imageBytes, width * height * 2);    // 2 bytes per pixel
-        }
-        myEnv->ReleaseByteArrayElements(result, imageBytes, JNI_ABORT);
-        myEnv->DeleteLocalRef(directoryStr);
-
-        // <<<
-      }
-
-      myEnv->DeleteLocalRef(filePath);
-      myEnv->DeleteLocalRef(seriesStr);
-
-      myJVM->DetachCurrentThread();
-      return retValue;
+    cv::Mat retValue   = cv::Mat::zeros(height, width, CV_16UC1);
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, directory,
+                                                                    static_cast<int>(series));
+    if(bits == 8) {
+      myEnv->GetByteArrayRegion(readImg, 0, width * height, (jbyte *) retValue.data);
+    } else if(bits == 16) {
+      myEnv->GetByteArrayRegion(readImg, 0, width * height * 2, (jbyte *) retValue.data);
     }
+
+    myEnv->DeleteLocalRef(filePath);
+    myJVM->DetachCurrentThread();
+    return retValue;
   }
 
   return cv::Mat{};
@@ -274,27 +246,13 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
 {
   if(mJVMInitialised) {
     auto id = DurationCount::start("Get OEM");
-
-    std::lock_guard<std::mutex> lock(mReadMutex);
+    JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
-    // Call the BioFormatsWrapper.readImageBytes() method
-    jclass cls = myEnv->FindClass("BioFormatsWrapper");
-    if(cls == NULL) {
-      // Print diagnostic information
-      printf("Error: Class not found!\n");
-      myEnv->ExceptionDescribe();    // Print more information about the exception
-    }
 
-    jmethodID mid = myEnv->GetStaticMethodID(
-        cls, "getImageProperties", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
-    jstring filePath     = myEnv->NewStringUTF(filename.c_str());
-    jstring directoryStr = myEnv->NewStringUTF(std::to_string(0).c_str());
-    jstring seriesStr    = myEnv->NewStringUTF(std::to_string(series).c_str());
-    jstring result       = (jstring) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+    jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, 0,
+                                                               static_cast<int>(series));
     myEnv->DeleteLocalRef(filePath);
-    myEnv->DeleteLocalRef(directoryStr);
-    myEnv->DeleteLocalRef(seriesStr);
-    // Convert the returned byte array to C++ bytes
     const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
     std::string jsonResult(stringChars);
     myEnv->ReleaseStringUTFChars(result, stringChars);
@@ -309,19 +267,4 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
   return {{}, {}};
 }
 
-/*
-if(bits == 8) {
-  for(int y = 0; y < height; y++) {
-    for(int x = 0; x < width; x++) {
-      int index                   = (x * width + y);
-      retValue.at<uint16_t>(y, x) = imageBytes[index];
-    }
-  }
-} else if(bits == 16) {
-  for(int y = 0; y < height; y++) {
-    for(int x = 0; x < width; x++) {
-      int index                   = (x * width + y) * 2;
-      retValue.at<uint16_t>(y, x) = (imageBytes[index] & 0xFF) | ((imageBytes[index + 1] & 0xFF) << 8);
-    }
-  }
-}*/
+//     jsize imageArraySize = myEnv->GetArrayLength(readImg);
