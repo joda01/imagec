@@ -106,11 +106,17 @@ TEST_CASE("pipeline:test:cell_area", "[pipeline_test_cell_area]")
 ///
 TEST_CASE("pipeline:test:nucleus", "[pipeline_test_nucleus]")
 {
-  joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test_nucleus/config.json"});
+  joda::ctrl::Controller controller;
+  controller.setWorkingDirectory("test/test_nucleus/");
+
+  joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test/test_nucleus/config.json"});
   joda::helper::ImageFileContainer imageFileContainer;
-  imageFileContainer.setWorkingDirectory("test_nucleus");
-  joda::pipeline::PipelineFactory::startNewJob(settings, "test_nucleus",
-                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer);
+  imageFileContainer.setWorkingDirectory("test/test_nucleus");
+  imageFileContainer.waitForFinished();
+
+  joda::pipeline::PipelineFactory::startNewJob(settings, "test/test_nucleus",
+                                               joda::helper::RandomNameGenerator::GetRandomName(), &imageFileContainer,
+                                               controller.calcOptimalThreadNumber(settings, 0));
 
   while(true) {
     sleep(2);
@@ -199,4 +205,24 @@ TEST_CASE("pipeline:test:svi_tanja", "[pipeline_test_svi_tanja]")
   while(true) {
     sleep(2);
   }
+}
+
+///
+/// \brief  Spot test
+/// \author Joachim Danmayr
+///
+TEST_CASE("pipeline:test:heatmap_small", "[pipeline_test_heatmap_small]")
+{
+  BioformatsLoader::init();
+  joda::ctrl::Controller controller;
+
+  joda::settings::AnalyzeSettings settings =
+      nlohmann::json::parse(std::ifstream{"test/test_heatmap_small/config.json"});
+  controller.setWorkingDirectory("test/test_heatmap_small");
+  sleep(2);
+  controller.start(settings, controller.calcOptimalThreadNumber(settings, 0),
+                   joda::helper::RandomNameGenerator::GetRandomName());
+  int a = 0;
+  std::cin >> a;
+  controller.stop();
 }

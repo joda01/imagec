@@ -69,26 +69,27 @@ Pipeline::Pipeline(const joda::settings::AnalyzeSettings &settings,
 {
   try {
     mOutputFolder = prepareOutputFolder(inputFolder, jobName);
-    mMainThread   = std::make_shared<std::thread>(&Pipeline::runJob, this);
+    //
+    // Prepare settings
+    //
+    int idx = 0;
+    for(const auto &ch : settings.channels) {
+      mListOfChannelSettings[idx] = &ch;
+      idx++;
+    }
+    idx = 0;
+    for(const auto &ch : settings.vChannels) {
+      mListOfVChannelSettings[idx] = &ch;
+      idx++;
+    }
     mGlobThreadPool.reset(threadingSettings.coresUsed);
-    mState = State::RUNNING;
-  } catch(const std::exception &) {
+
+    mMainThread = std::make_shared<std::thread>(&Pipeline::runJob, this);
+    mState      = State::RUNNING;
+  } catch(const std::exception &ex) {
+    joda::log::logError("Could not start: " + std::string(ex.what()));
     mState = State::FINISHED;
     return;
-  }
-
-  //
-  // Prepare settings
-  //
-  int idx = 0;
-  for(const auto &ch : settings.channels) {
-    mListOfChannelSettings[idx] = &ch;
-    idx++;
-  }
-  idx = 0;
-  for(const auto &ch : settings.vChannels) {
-    mListOfVChannelSettings[idx] = &ch;
-    idx++;
   }
 }
 
@@ -240,19 +241,24 @@ void Pipeline::analyzeImage(std::map<std::string, joda::results::ReportingContai
   // Write report
   //
   if(mState != State::ERROR_) {
+    auto id = DurationCount::start("Write detail report");
     joda::results::ReportingContainer::flushReportToFile(
         mAnalyzeSettings, detailReports, detailOutputFolder + separator + "results_image_" + mJobName + ".xlsx",
         {.jobName = mJobName}, joda::results::ReportingContainer::OutputFormat::VERTICAL, false);
-
+    DurationCount::stop(id);
+    id = DurationCount::start("Write heatmap");
     if(mAnalyzeSettings.experimentSettings.generateHeatmapForImage) {
       joda::pipeline::reporting::Heatmap::createHeatMapForImage(
           mAnalyzeSettings, detailReport, propsOut.props.width, propsOut.props.height,
           detailOutputFolder + separator + "heatmap_image_" + mJobName + ".xlsx");
     }
+    DurationCount::stop(id);
 
+    id                = DurationCount::start("Append to overall report");
     auto nrOfChannels = joda::settings::Settings::getNrOfAllChannels(mAnalyzeSettings) + 1;
     joda::pipeline::reporting::Helper::appendToAllOverReport(mAnalyzeSettings, alloverReport, detailReport,
                                                              imageParentPath, imageName, nrOfChannels);
+    DurationCount::stop(id);
   }
   mProgress.total.finished++;
 }

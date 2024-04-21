@@ -227,6 +227,9 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   } else {
     threads.ramPerImage = props.imageSize;
   }
+  if(threads.ramPerImage <= 0) {
+    threads.ramPerImage = 1;
+  }
   threads.ramFree        = systemRecources.ramAvailable;
   threads.ramTotal       = systemRecources.ramTotal;
   threads.coresAvailable = systemRecources.cpus;
