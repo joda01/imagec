@@ -24,16 +24,10 @@ set(CMAKE_AUTOMOC ON)
 
 
 IF (WIN32)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -O2 -lz -lws2_32 -lwsock32 -lm -std=c++20")
-  
-  #SET(CMAKE_RC_COMPILER "windres.exe")
-  SET(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} --include-dir C:/msys64/mingw64/include/wx-3.2 --define __WIN32__ --define __GNUWIN32__ --define WX_CPU_AMD64")
-
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -O2 -lz -lws2_32 -lwsock32 -lm -std=c++20")  
 ELSE()
-
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -O2 -lm -std=c++20")
   set(CMAKE_INSTALL_RPATH "$ORIGIN")
-
 ENDIF()
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
@@ -75,18 +69,6 @@ IF (WIN32)
 ELSE ()
   find_package( Tiff )
   pkg_check_modules(Xlsxwriter REQUIRED IMPORTED_TARGET xlsxwriter)
-
-ENDIF()
-
-# Define libdl name
-IF (NOT LIB_DL)
-	IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		# Windows
-		SET(LIB_DL "kernel32")
-	ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-		# Linux
-		SET(LIB_DL "dl")
-	ENDIF()
 ENDIF()
 
 
@@ -105,13 +87,10 @@ IF (WIN32)
     Qt6::Widgets
     Qt6::Core
     xlsxwriter
-    ${LIB_DL}
     #JNI::JVM
     #JNI::JNI
     #JNI::AWT
   )
-
-
 ELSE()
   # c
   set(LIBS
@@ -123,7 +102,6 @@ ELSE()
     Qt6::Widgets
     Qt6::Core
     PkgConfig::Xlsxwriter
-    ${LIB_DL}
     #JNI::JVM
     #JNI::JNI
     #JNI::AWT
@@ -143,7 +121,6 @@ include_directories("./src")
 ###########################################################################################
 # Source file
 ###########################################################################################
-IF (WIN32)
 file(GLOB_RECURSE SOURCES
   ./src/*.cpp
   ./src/*.c
@@ -151,19 +128,9 @@ file(GLOB_RECURSE SOURCES
   /usr/local/include/libtiff/*.h
  ${RESOURCE_SOURCES}
 )
-ELSE()
-file(GLOB_RECURSE SOURCES
-  ./src/*.cpp
-  ./src/*.c
-  ./src/*.cc
-  /usr/local/include/libtiff/*.h
-  ${RESOURCE_SOURCES}
-)
-ENDIF()
 
 # Exclude test files from source
 list(FILTER SOURCES EXCLUDE REGEX ".*_test.cpp$")
-
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
