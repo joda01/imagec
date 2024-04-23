@@ -1,10 +1,11 @@
 
 
 #include "duration_count.h"
-#include <ctime>
+#include <chrono>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
-#include <string>
+#include <sstream>
 
 uint32_t DurationCount::start(std::string comment)
 {
@@ -36,14 +37,13 @@ void DurationCount::resetStats()
   mStartTime = std::chrono::high_resolution_clock::now();
 }
 
-inline std::string getCurrentDateTime()
+std::string getCurrentDateTime()
 {
-  time_t now = time(0);
-  struct tm timeinfo;
-  char buffer[80];
-  localtime_r(&now, &timeinfo);
-  strftime(buffer, sizeof(buffer), "%Y-%m-%d_%H-%M-%S", &timeinfo);
-  return std::string(buffer);
+  auto now      = std::chrono::system_clock::now();
+  auto now_time = std::chrono::system_clock::to_time_t(now);
+  std::stringstream ss;
+  ss << std::put_time(std::localtime(&now_time), "%Y-%m-%d_%H-%M-%S");
+  return ss.str();
 }
 void DurationCount::printStats(double nrOfImages)
 {
