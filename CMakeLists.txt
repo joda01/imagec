@@ -40,9 +40,9 @@ set(CMAKE_AUTOMOC ON)
 
 
 IF (WIN32)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -lm -std=c++20")  
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -Ofast -pthread -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -lm -std=c++20")  
 ELSE()
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -lm -std=c++20")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -Ofast -pthread -Wno-unknown-pragmas -lm -std=c++20")
   set(CMAKE_INSTALL_RPATH "$ORIGIN")
 ENDIF()
 SET(CMAKE_GENERATOR "Unix Makefiles")
