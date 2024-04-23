@@ -3,7 +3,7 @@
 $mingwBasePath =  '/c/msys64/mingw64'
 $mingwBasePathWin =  'C:\msys64\mingw64'
 
-cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=C:\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=C:\msys64\mingw64\bin\g++.exe -S"./" -B"./build" -G "MinGW Makefiles"
+cmake --no-warn-unused-cli -DTAG_NAME="$env:TAG_NAME" -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=C:\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=C:\msys64\mingw64\bin\g++.exe -S"./" -B"./build" -G "MinGW Makefiles"
 # This is a dirty hack, because the resource compiler did not create windows path correctly
 cd build/build
 

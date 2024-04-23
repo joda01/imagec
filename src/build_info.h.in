@@ -1,7 +1,8 @@
-#ifndef BUILD_TIME_H
-#define BUILD_TIME_H
+#ifndef BUILD_INFO_AUTO_H
+#define BUILD_INFO_AUTO_H
 
 // Placeholder for build time
 #cmakedefine BUILD_TIME "@BUILD_TIME@"
+#cmakedefine VERSION "@VERSION@"
 
 #endif    // BUILD_TIME_H

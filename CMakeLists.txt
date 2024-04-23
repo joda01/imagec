@@ -7,8 +7,24 @@ project (imagec
          LANGUAGES CXX C)
 
 # Get the current date and time
-string(TIMESTAMP BUILD_DATE "%Y-%m-%d")
-string(TIMESTAMP BUILD_TIME "%H:%M:%S")
+string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
+
+if(NOT DEFINED TAG_NAME)
+    message(FATAL_ERROR "TAG_NAME variable not provided!")
+endif()
+
+if("${TAG_NAME}" STREQUAL "")
+  set(VERSION "devel-build")
+else()
+  set(VERSION "${TAG_NAME}")
+endif()
+
+
+
+message("Tag name is ${TAG_NAME}")
+
+
+
 
 # Get the current user and host
 execute_process(COMMAND whoami OUTPUT_VARIABLE BUILD_USER OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -175,7 +191,6 @@ target_link_libraries(${PROJECT_NAME} ${LIBS})
 target_link_options(${PROJECT_NAME}  PRIVATE -static-libgcc -static-libstdc++)
 
 
-string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/src/build_info.h.in"
