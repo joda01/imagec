@@ -1,5 +1,5 @@
 {
-    "textLong": "A local background value is determined for every pixel by averaging over a very large ball around the pixel. This value is hereafter subtracted from the original image, hopefully removing large spatial variations of the background intensities. The radius should be set to at least the size of the largest object that is not part of the background.",
+    "textLong": "This is the helpt text!",
     "cite": [
         {
             "href": "https://ieeexplore.ieee.org/document/1654163",
