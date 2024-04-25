@@ -64,6 +64,7 @@ ImageProperties OmeInfo::loadOmeInformationFromJsonString(const std::string &ome
   mImageWidth   = parsedJson["width"];
   mImageHeight  = parsedJson["height"];
   mImageSize    = mImageWidth * mImageHeight;
+  mBits         = parsedJson["bits"];
 
   uint16_t docs      = parsedJson["planes"];
   int64_t tileHeight = (int32_t) parsedJson["tile_height"];
@@ -325,6 +326,15 @@ int OmeInfo::getNrOfChannels() const
 uint64_t OmeInfo::getImageSize() const
 {
   return mImageSize;
+}
+
+///
+/// \brief      Returns the image bits
+/// \author     Joachim Danmayr
+///
+[[nodiscard]] int32_t OmeInfo::getBits() const
+{
+  return mBits;
 }
 
 ///

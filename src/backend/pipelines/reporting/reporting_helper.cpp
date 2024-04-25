@@ -168,11 +168,11 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
   // Free memory
+  auto id = DurationCount::start("Write control image");
   std::vector<int> compression_params;
   compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
   compression_params.push_back(0);
 
-  auto id = DurationCount::start("write-control-image");
   if(!result.controlImage.empty()) {
     cv::imwrite(detailReportOutputPath + separator + "control_" + joda::settings::to_string(realChannelIdx) + "_" +
                     std::to_string(tileIdx) + "_" + jobName + ".png",
@@ -180,6 +180,7 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   } else {
     std::cout << "CTRL img null" << std::endl;
   }
+  DurationCount::stop(id);
   // if(!result.originalImage.empty()) {
   //   cv::imwrite(detailReportOutputPath + separator + "original_" + std::to_string(tempChannelIdx) + "_" +
   //                   std::to_string(tileIdx) + ".png",
@@ -193,7 +194,6 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   int64_t xMul = offsetX * imgProps.tileWidth;
   int64_t yMul = offsetY * imgProps.tileHeight;
 
-  DurationCount::stop(id);
   int64_t indexOffset = 0;
   {
     std::lock_guard<std::mutex> lock(appendMutex);

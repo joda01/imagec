@@ -18,7 +18,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include "backend/duration_count/duration_count.h"
 #include "backend/image_reader/image_reader.hpp"
+#include <nlohmann/json.hpp>
 #include <opencv2/core/mat.hpp>
 
 #ifdef _WIN32
@@ -130,11 +132,23 @@ void BioformatsLoader::init()
      *  variable to the home directory of the JVM you want to use
      *  (prior to the CreateJavaVM() call).
      */
-    if(JNI_CreateJavaVM(&myJVM, (void **) &myEnv, &initArgs) != 0) {
+    if(JNI_CreateJavaVM(&myJVM, (void **) &myGlobEnv, &initArgs) != 0) {
       std::cout << "JAVA VM ERROR" << std::endl;
       mJVMInitialised = false;
     } else {
       mJVMInitialised = true;
+
+      mBioformatsClass = myGlobEnv->FindClass("BioFormatsWrapper");
+      if(mBioformatsClass == NULL) {
+        if(myGlobEnv->ExceptionOccurred()) {
+          myGlobEnv->ExceptionDescribe();
+        }
+        std::cout << "Error: Class not found!" << std::endl;
+      } else {
+        mGetImageProperties = myGlobEnv->GetStaticMethodID(mBioformatsClass, "getImageProperties",
+                                                           "(Ljava/lang/String;II)Ljava/lang/String;");
+        mReadImage          = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;II)[B");
+      }
     }
   } catch(const std::exception &ex) {
     std::cout << "JAVA VM ERROR: " << ex.what() << std::endl;
@@ -163,6 +177,7 @@ void BioformatsLoader::destroy()
 /// \param[out]
 /// \return
 ///
+/*
 std::string BioformatsLoader::getJavaVersion()
 {
   jclass systemClass = myEnv->FindClass("java/lang/System");
@@ -175,6 +190,7 @@ std::string BioformatsLoader::getJavaVersion()
   myEnv->ReleaseStringUTFChars(javaVersion, javaVersionStr);
   return javaVersionStr;
 }
+*/
 
 ///
 /// \brief
@@ -185,56 +201,36 @@ std::string BioformatsLoader::getJavaVersion()
 ///
 cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int directory, uint16_t series)
 {
+  // Takes 150 ms
   if(mJVMInitialised) {
-    std::lock_guard<std::mutex> lock(mReadMutex);
+    // std::lock_guard<std::mutex> lock(mReadMutex);
 
+    JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+    jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, 0,
+                                                               static_cast<int>(series));
+    const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
+    auto parsedJson         = nlohmann::json::parse(std::string(stringChars));
+    myEnv->ReleaseStringUTFChars(result, stringChars);
+    uint32_t width  = parsedJson["width"];
+    uint32_t height = parsedJson["height"];
+    uint32_t bits   = parsedJson["bits"];
 
-    // Call the BioFormatsWrapper.readImageBytes() method
-    jclass cls = myEnv->FindClass("BioFormatsWrapper");
-    if(cls == NULL) {
-      if(myEnv->ExceptionOccurred()) {
-        myEnv->ExceptionDescribe();
-      }
-      std::cout << "Error: Class not found!" << std::endl;
-    } else {
-      //
-      // Read image
-      //
-      jmethodID mid =
-          myEnv->GetStaticMethodID(cls, "readImage", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)[[I");
-      jstring filePath     = myEnv->NewStringUTF(filename.c_str());
-      jstring directoryStr = myEnv->NewStringUTF(std::to_string(directory).c_str());
-      jstring seriesStr    = myEnv->NewStringUTF(std::to_string(series).c_str());
-
-      jobjectArray result = (jobjectArray) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
-      myEnv->DeleteLocalRef(filePath);
-
-      jsize rows = myEnv->GetArrayLength(result);
-
-      jintArray row = (jintArray) myEnv->GetObjectArrayElement(result, 0);
-      jsize cols    = myEnv->GetArrayLength(row);
-
-      jint *data;
-
-      cv::Mat retValue = cv::Mat::zeros(rows, cols, CV_16UC1);
-      for(int i = 0; i < rows; i++) {
-        row  = (jintArray) myEnv->GetObjectArrayElement(result, i);
-        cols = myEnv->GetArrayLength(row);
-        data = myEnv->GetIntArrayElements(row, nullptr);
-        for(int j = 0; j < cols; j++) {
-          retValue.at<uint16_t>(i, j) = (uint16_t) (data[j] & 0xFFFF);
-        }
-        myEnv->ReleaseIntArrayElements(row, data, JNI_ABORT);
-      }
-
-      myJVM->DetachCurrentThread();
-      // Clean up
-      // myEnv->ReleaseObjectArrayElements(result, bytes, 0);
-
-      return retValue;
+    cv::Mat retValue   = cv::Mat::zeros(height, width, CV_16UC1);
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, directory,
+                                                                    static_cast<int>(series));
+    if(bits == 8) {
+      myEnv->GetByteArrayRegion(readImg, 0, width * height, (jbyte *) retValue.data);
+    } else if(bits == 16) {
+      myEnv->GetByteArrayRegion(readImg, 0, width * height * 2, (jbyte *) retValue.data);
     }
+
+    myEnv->DeleteLocalRef(filePath);
+    myJVM->DetachCurrentThread();
+    return retValue;
   }
+
   return cv::Mat{};
 }
 
@@ -249,24 +245,14 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
     -> std::tuple<joda::ome::OmeInfo, ImageProperties>
 {
   if(mJVMInitialised) {
-    std::lock_guard<std::mutex> lock(mReadMutex);
+    auto id = DurationCount::start("Get OEM");
+    JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
-    // Call the BioFormatsWrapper.readImageBytes() method
-    jclass cls = myEnv->FindClass("BioFormatsWrapper");
-    if(cls == NULL) {
-      // Print diagnostic information
-      printf("Error: Class not found!\n");
-      myEnv->ExceptionDescribe();    // Print more information about the exception
-    }
 
-    jmethodID mid = myEnv->GetStaticMethodID(
-        cls, "getImageProperties", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
-    jstring filePath     = myEnv->NewStringUTF(filename.c_str());
-    jstring directoryStr = myEnv->NewStringUTF(std::to_string(0).c_str());
-    jstring seriesStr    = myEnv->NewStringUTF(std::to_string(series).c_str());
-    jstring result       = (jstring) myEnv->CallStaticObjectMethod(cls, mid, filePath, directoryStr, seriesStr);
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+    jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, 0,
+                                                               static_cast<int>(series));
     myEnv->DeleteLocalRef(filePath);
-    // Convert the returned byte array to C++ bytes
     const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
     std::string jsonResult(stringChars);
     myEnv->ReleaseStringUTFChars(result, stringChars);
@@ -275,7 +261,10 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
         omeInfo.loadOmeInformationFromJsonString(jsonResult);    ///\todo this method can throw an excaption
     myJVM->DetachCurrentThread();
 
+    DurationCount::stop(id);
     return {omeInfo, props};
   }
   return {{}, {}};
 }
+
+//     jsize imageArraySize = myEnv->GetArrayLength(readImg);

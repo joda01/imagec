@@ -21,6 +21,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include "backend/logger/console_logger.hpp"
 
 class DurationCount
 {
@@ -31,26 +32,22 @@ public:
     std::string mComment;
   };
 
-  static uint32_t start(std::string comment)
+  struct TimeStats
   {
-    totalCnt++;
-    srand((unsigned) time(0) + totalCnt);
-    uint32_t randNr = (rand() % INT32_MAX) + 1;
-    std::lock_guard<std::mutex> lock(mLock);
-    mDelays[randNr] = {.t_start = std::chrono::high_resolution_clock::now(), .mComment = comment};
-    return randNr;
-  }
-  static void stop(uint32_t rand)
-  {
-    auto t_end = std::chrono::high_resolution_clock::now();
-    std::lock_guard<std::mutex> lock(mLock);
-    double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - mDelays[rand].t_start).count();
-    // std::cout << mDelays[rand].mComment << ": " << elapsed_time_ms << " ms\n";
-    mDelays.erase(rand);
-  }
+    std::chrono::system_clock::duration timeCount;
+    int64_t cnt = 0;
+  };
+
+  static uint32_t start(std::string comment);
+  static void stop(uint32_t rand);
+  static void printStats(double nrOfImages);
+  static void resetStats();
 
 private:
+  static inline std::map<std::string, TimeStats> mStats;
+
   static inline std::map<uint32_t, TimeDely> mDelays;
   static inline uint32_t totalCnt = 0;
   static inline std::mutex mLock;
+  static inline std::chrono::time_point<std::chrono::high_resolution_clock> mStartTime;
 };

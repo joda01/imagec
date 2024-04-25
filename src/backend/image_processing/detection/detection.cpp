@@ -14,6 +14,7 @@
 #include "detection.hpp"
 #include <random>
 #include <string>
+#include "backend/duration_count/duration_count.h"
 #include <opencv2/core/types.hpp>
 
 namespace joda::func {
@@ -52,6 +53,7 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
                                          const joda::onnx::OnnxParser::Data &modelInfo, const std::string &fillColor,
                                          bool paintRectangel, bool paintLabels)
 {
+  auto id              = DurationCount::start("Paint bounding box");
   cv::Mat mask         = img.clone();
   cv::Scalar areaColor = hexToScalar("#" + generateRandomColorHex());
 
@@ -109,6 +111,8 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
     }
   }
   addWeighted(mask, 0.5, img, 1, 0, img);
+
+  DurationCount::stop(id);
 }
 
 cv::Scalar DetectionFunction::hexToScalar(const std::string &hexColor)

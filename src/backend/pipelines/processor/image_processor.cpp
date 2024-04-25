@@ -12,6 +12,7 @@
 ///
 
 #include "image_processor.hpp"
+#include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/functions/blur/blur.hpp"
 #include "backend/image_processing/functions/blur_gausian/blur_gausian.hpp"
 #include "backend/image_processing/functions/edge_detection/edge_detection.hpp"
@@ -26,27 +27,33 @@ namespace joda::algo {
 ///
 func::DetectionResponse ImageProcessor::executeAlgorithm(
     const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting, uint64_t tileIndex,
-    const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
+    const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels, const ChannelProperties *channelProperties,
     const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults)
 {
   //
   // Execute the algorithms
   //
-  ChannelProperties chProps =
-      loadChannelProperties(imagePath, channelSetting.meta.channelIdx, channelSetting.meta.series);
+  ChannelProperties chProps;
+  if(nullptr == channelProperties) {
+    chProps = loadChannelProperties(imagePath, channelSetting.meta.series);
+  } else {
+    chProps = *channelProperties;
+  }
+
+  auto tifDirs = getTifDirs(chProps, channelSetting.meta.channelIdx);
   if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE && imagePath.getDecoder() == FileInfo::Decoder::TIFF) {
-    return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, chProps.tifDirs, tileIndex,
-                                               referenceChannelResults, onnxModels);
+    return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, tifDirs, tileIndex, referenceChannelResults,
+                                               onnxModels);
   }
   if(imagePath.getDecoder() == FileInfo::Decoder::JPG) {
-    return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0, referenceChannelResults,
+    return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, tifDirs, 0, referenceChannelResults,
                                                 onnxModels);
   }
   if(imagePath.getDecoder() == FileInfo::Decoder::TIFF) {
-    return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0, referenceChannelResults,
+    return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, tifDirs, 0, referenceChannelResults,
                                                  onnxModels);
   }
-  return processImage<BioformatsEntireWrapper>(imagePath, channelSetting, chProps.tifDirs, 0, referenceChannelResults,
+  return processImage<BioformatsEntireWrapper>(imagePath, channelSetting, tifDirs, 0, referenceChannelResults,
                                                onnxModels);
 }
 
@@ -66,23 +73,15 @@ func::DetectionResponse ImageProcessor::processImage(
     const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults,
     const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels)
 {
-  auto id             = DurationCount::start("z-projection");
   cv::Mat image       = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx);
   cv::Mat originalImg = image.clone();
-  DurationCount::stop(id);
 
-  id = DurationCount::start("preprocessing");
   doPreprocessingPipeline<TIFFLOADER>(image, imagePath, channelSetting, tiffDirectories, idx);
-  DurationCount::stop(id);
 
-  id                   = DurationCount::start("detection");
   auto detectionResult = doDetection(image, originalImg, channelSetting, onnxModels);
-  DurationCount::stop(id);
 
-  id = DurationCount::start("filtering");
   doFiltering(detectionResult, channelSetting, referenceChannelResults);
   detectionResult.originalImage = std::move(originalImg);
-  DurationCount::stop(id);
 
   auto modelInfo = onnxModels.find(channelSetting.detection.ai.modelPath);
   if(modelInfo != onnxModels.end()) {
@@ -142,7 +141,7 @@ template <class TIFFLOADER>
 cv::Mat ImageProcessor::doZProjection(const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting,
                                       const std::set<uint32_t> &tifDirs, int64_t idx)
 {
-  auto id          = DurationCount::start("load");
+  auto id          = DurationCount::start("Zprojection");
   uint16_t series  = channelSetting.meta.series;
   cv::Mat tilePart = loadTileAndToIntensityProjectionIfEnabled<TIFFLOADER>(imagePath, idx, channelSetting, tifDirs);
   DurationCount::stop(id);
@@ -170,8 +169,8 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfo &ima
     //
     if(pipelineStep.$subtractChannel.has_value() &&
        pipelineStep.$subtractChannel->channelIdx != joda::settings::ChannelIndex::NONE) {
-      ChannelProperties chPropsToSubtract =
-          loadChannelProperties(imagePath.getPath(), pipelineStep.$subtractChannel->channelIdx, series);
+      // ChannelProperties chPropsToSubtract =
+      //     loadChannelProperties(imagePath.getPath(), pipelineStep.$subtractChannel->channelIdx, series);
       cv::Mat tileToSubtract =
           loadTileAndToIntensityProjectionIfEnabled<TIFFLOADER>(imagePath, idx, channelSetting, tifDirs);
 
@@ -247,6 +246,8 @@ void ImageProcessor::doFiltering(
     func::DetectionResponse &detectionResult, const joda::settings::ChannelSettings &channelSetting,
     const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults)
 {
+  auto id = DurationCount::start("Filtering");
+
   if(nullptr != referenceChannelResults) {
     auto referenceSpotChannelIndex = channelSetting.filter.referenceSpotChannelIndex;
     if(referenceSpotChannelIndex != joda::settings::ChannelIndex::NONE) {
@@ -271,6 +272,8 @@ void ImageProcessor::doFiltering(
       }
     }
   }
+
+  DurationCount::stop(id);
 }
 
 ///
@@ -299,39 +302,42 @@ void ImageProcessor::generateControlImage(func::DetectionResponse &detectionResu
 /// \brief      Load channel properties
 /// \author     Joachim Danmayr
 ///
-ChannelProperties ImageProcessor::loadChannelProperties(const FileInfo &imagePath,
-                                                        joda::settings::ChannelIndex channelIndex, uint16_t series)
+ChannelProperties ImageProcessor::loadChannelProperties(const FileInfo &imagePath, uint16_t series)
 {
   //
   // Load image properties
   //
   ImageProperties imgProperties;
-  auto id = DurationCount::start("load img properties");
-  std::set<uint32_t> tiffDirectories;
+  joda::ome::OmeInfo omeInfo;
   switch(imagePath.getDecoder()) {
     case FileInfo::Decoder::JPG: {
       imgProperties = JpgLoader::getImageProperties(imagePath.getPath());
     } break;
     case FileInfo::Decoder::TIFF: {
-      auto omeInfo    = TiffLoader::getOmeInformation(imagePath.getPath());
-      tiffDirectories = omeInfo.getDirectoryForChannel(static_cast<int32_t>(channelIndex), TIME_FRAME);
-      if(tiffDirectories.empty()) {
-        throw std::runtime_error("Selected channel does not contain images!");
-      }
-      imgProperties = TiffLoader::getImageProperties(imagePath.getPath(), *tiffDirectories.begin());
+      omeInfo       = TiffLoader::getOmeInformation(imagePath.getPath());
+      imgProperties = TiffLoader::getImageProperties(imagePath.getPath(), 0);
     } break;
     case FileInfo::Decoder::BIOFORMATS: {
-      auto [omeInfo, props] = BioformatsLoader::getOmeInformation(imagePath.getPath(), series);
-      tiffDirectories       = omeInfo.getDirectoryForChannel(static_cast<int32_t>(channelIndex), TIME_FRAME);
-      if(tiffDirectories.empty()) {
-        throw std::runtime_error("Selected channel does not contain images!");
-      }
-      imgProperties = props;
+      auto [ome, props] = BioformatsLoader::getOmeInformation(imagePath.getPath(), series);
+      omeInfo           = ome;
+      imgProperties     = props;
     } break;
   }
 
-  DurationCount::stop(id);
-  return ChannelProperties{.props = imgProperties, .tifDirs = tiffDirectories};
+  return ChannelProperties{.props = imgProperties, .ome = omeInfo};
+}
+
+///
+/// \brief      Load channel properties
+/// \author     Joachim Danmayr
+///
+std::set<uint32_t> ImageProcessor::getTifDirs(const ChannelProperties &props, joda::settings::ChannelIndex channelIndex)
+{
+  auto tiffDirectories = props.ome.getDirectoryForChannel(static_cast<int32_t>(channelIndex), TIME_FRAME);
+  if(tiffDirectories.empty()) {
+    throw std::runtime_error("Selected channel does not contain images!");
+  }
+  return tiffDirectories;
 }
 
 }    // namespace joda::algo

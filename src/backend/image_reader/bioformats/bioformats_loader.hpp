@@ -28,7 +28,7 @@ public:
       -> std::tuple<joda::ome::OmeInfo, ImageProperties>;
   static void init();
   static void destroy();
-  static std::string getJavaVersion();
+  // static std::string getJavaVersion();
 
 private:
   /////////////////////////////////////////////////////
@@ -40,6 +40,10 @@ private:
   static inline JavaVMInitArgs initArgs;        /* Virtual Machine (VM) initialization structure, passed by*/
   static inline jobjectArray args;              /* The String[] itself */
   static inline JavaVM *myJVM        = nullptr; /* JavaVM pointer set by call to JNI_CreateJavaVM */
-  static inline JNIEnv *myEnv        = nullptr; /* JNIEnv pointer set by call to JNI_CreateJavaVM */
+  static inline JNIEnv *myGlobEnv    = nullptr; /* JNIEnv pointer set by call to JNI_CreateJavaVM */
   static inline bool mJVMInitialised = false;
+
+  static inline jclass mBioformatsClass;
+  static inline jmethodID mGetImageProperties;
+  static inline jmethodID mReadImage;
 };

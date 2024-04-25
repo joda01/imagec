@@ -15,6 +15,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/detection/voronoi_grid/voronoi_grid.hpp"
 
 namespace joda::pipeline {
@@ -23,6 +24,8 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
                           const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
                           const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {
+  auto id = DurationCount::start("PipelineVoronoi");
+
   auto voronoiPoints = mVoronoiPointsChannelIndex;
 
   const joda::func::DetectionResponse *mask = nullptr;
@@ -40,15 +43,15 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
     auto CalcVoronoiResult =
         grid.forward(voronoiPointsChannel.controlImage, voronoiPointsChannel.originalImage, mChannelIndexMe);
 
-    if(!CalcVoronoiResult.controlImage.empty()) {
-      static const std::string separator(1, std::filesystem::path::preferred_separator);
-      std::vector<int> compression_params;
-      compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-      compression_params.push_back(0);
-      cv::imwrite(detailoutputPath + separator + "control_voronoi_" +
-                      joda::settings::to_string(mVoronoiPointsChannelIndex) + "_" + std::to_string(0) + ".png",
-                  CalcVoronoiResult.controlImage, compression_params);
-    }
+    // if(!CalcVoronoiResult.controlImage.empty()) {
+    //   static const std::string separator(1, std::filesystem::path::preferred_separator);
+    //   std::vector<int> compression_params;
+    //   compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+    //   compression_params.push_back(0);
+    //   cv::imwrite(detailoutputPath + separator + "control_voronoi_" +
+    //                   joda::settings::to_string(mVoronoiPointsChannelIndex) + "_" + std::to_string(0) + ".png",
+    //               CalcVoronoiResult.controlImage, compression_params);
+    // }
 
     //
     // Now mask the voronoi grid with an other channel
@@ -80,11 +83,14 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
       }
       joda::func::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FF0000", false,
                                                       false);
+      DurationCount::stop(id);
       return response;
     } else {
+      DurationCount::stop(id);
       return CalcVoronoiResult;
     }
   }
+  DurationCount::stop(id);
   return joda::func::DetectionResponse{};
   /*throw std::runtime_error("CalcVoronoi::execute: Channel with index >" + std::to_string(voronoiPoints) +
                            "< does not exist.");*/

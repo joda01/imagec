@@ -46,6 +46,7 @@ jobs:
         env:
           PRIV_KEY: ${{ secrets.PRIV_KEY }}
           PUB_KEY: ${{ secrets.PUB_KEY }}
+          TAG_NAME: "${{ github.ref_name }}"
         run: |
           echo "Workspace: $env:GITHUB_WORKSPACE"
           ./build.ps1
@@ -68,8 +69,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build imageC for Linux
+        env:
+          TAG_NAME: "${{ github.ref_name }}"
         run: |
-          ./make.sh
+          ./clean.sh
           ./build.sh
           strip build/build/imagec
 
@@ -102,9 +105,11 @@ jobs:
 
       - name: Rename files through architecture
         run: |
+          mv build/build/win-dlls.zip build/win-dlls.zip
+
           mkdir imagec-x64-linux-bundle
           mkdir -p imagec-x64-linux-bundle/java
-          cp -r build/build/* imagec-x64-linux-bundle/*
+          cp -r build/build/* imagec-x64-linux-bundle/
           cp java/bioformats.jar imagec-x64-linux-bundle/java/bioformats.jar
           cp java/BioFormatsWrapper.class imagec-x64-linux-bundle/java/BioFormatsWrapper.class
           unzip java/jre_linux.zip -d jre_linux_unzip
@@ -120,7 +125,7 @@ jobs:
           cp java/BioFormatsWrapper.class imagec-x64-win-bundle/java/BioFormatsWrapper.class
           unzip java/jre_win.zip -d jre_win_unzip
           mv jre_win_unzip/jre_win imagec-x64-win-bundle/java/jre_win
-          unzip build/build/win-dlls.zip -d win_dll_unzip
+          unzip build/win-dlls.zip -d win_dll_unzip
           mv win_dll_unzip/dlls/* imagec-x64-win-bundle/
           zip -r imagec-x64-win-bundle.zip imagec-x64-win-bundle
 

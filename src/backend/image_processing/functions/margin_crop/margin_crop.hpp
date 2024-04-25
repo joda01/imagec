@@ -14,6 +14,7 @@
 #pragma once
 
 #include "../../functions/function.hpp"
+#include "backend/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
 
 namespace joda::func::img {
@@ -32,6 +33,8 @@ public:
   }
   void execute(cv::Mat &image) const override
   {
+    auto id = DurationCount::start("MarginCrop");
+
     // Calculate the new dimensions for the cropped image
     int newWidth  = image.cols - mMarginSize * 2;    // x pixels from each side
     int newHeight = image.rows - mMarginSize * 2;    // x pixels from each side
@@ -41,6 +44,7 @@ public:
 
     // Crop the image using the ROI
     image = image(roi);
+    DurationCount::stop(id);
   }
 
 private:

@@ -12,7 +12,6 @@
 ///
 
 #pragma once
-
 // #include <memory>
 #include <memory>
 #include <mutex>
@@ -25,9 +24,12 @@
 #include "../logger/console_logger.hpp"
 #include "../results/results.h"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
+#include "backend/helper/thread_pool.hpp"
 #include "backend/image_reader/image_reader.hpp"
+#include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/results_container.hpp"
 #include "backend/settings/analze_settings.hpp"
+#include "backend/settings/channel/channel_settings.hpp"
 #include "reporting/reporting_details.xlsx.hpp"
 #include "reporting/reporting_heatmap.hpp"
 #include "reporting/reporting_overview_xlsx.hpp"
@@ -67,6 +69,7 @@ public:
     uint64_t ramFree        = 0;
     uint64_t ramTotal       = 0;
     uint32_t coresAvailable = 0;
+    uint32_t coresUsed      = 0;
     uint64_t totalRuns      = 0;
     std::map<Type, int32_t> cores{{IMAGES, 1}, {TILES, 1}, {CHANNELS, 1}};
   };
@@ -132,20 +135,14 @@ protected:
   }
 
 private:
-  static const int THREAD_POOL_BUFFER = 5;
+  static const int THREAD_POOL_BUFFER = 25;
 
   /////////////////////////////////////////////////////
   void runJob();
 
   ///
   /// \brief Stop a running job
-  void stopJob()
-  {
-    if(mState != State::FINISHED && mState != State::ERROR_) {
-      mState = State::STOPPING;
-    }
-    mStop = true;
-  }
+  void stopJob();
 
   ///
   /// \brief Total progress and state of the analysis
@@ -170,15 +167,19 @@ private:
   void analyzeImage(std::map<std::string, joda::results::ReportingContainer> &alloverReport, const FileInfo &imagePath);
 
   void analyzeTile(joda::results::ReportingContainer &detailReports, FileInfo imagePath, std::string detailOutputFolder,
-                   int tileIdx, const ImageProperties &imgProps);
+                   int tileIdx, const joda::algo::ChannelProperties &channelProperties);
   void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
-                       const joda::settings::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx);
+                       const joda::settings::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx,
+                       const joda::algo::ChannelProperties &channelProperties);
 
   /////////////////////////////////////////////////////
   std::string mInputFolder;
   std::string mOutputFolder;
   bool mStop = false;
   joda::settings::AnalyzeSettings mAnalyzeSettings;
+  std::vector<const joda::settings::ChannelSettings *> mListOfChannelSettings;
+  std::vector<const joda::settings::VChannelSettings *> mListOfVChannelSettings;
+
   joda::helper::ImageFileContainer *mImageFileContainer;
 
   ProgressIndicator mProgress;

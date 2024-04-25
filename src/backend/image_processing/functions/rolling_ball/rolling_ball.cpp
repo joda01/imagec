@@ -123,6 +123,8 @@ public:
 ///
 void RollingBallBackground::execute(cv::Mat &ip) const
 {
+  auto id = DurationCount::start("RollingBall");
+
   // Settings
   bool createBackground = false;
   bool doPresmooth      = true;
@@ -160,6 +162,7 @@ void RollingBallBackground::execute(cv::Mat &ip) const
       ip.at<uint16_t>(p) = static_cast<uint16_t>(value);
     }
   }
+  DurationCount::stop(id);
 }
 
 /** Create background for a float image by rolling a ball over

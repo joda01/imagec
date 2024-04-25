@@ -27,6 +27,7 @@ namespace joda::log {
 const std::string RESET_COLOR  = "\033[0m";
 const std::string RED_COLOR    = "\033[31m";
 const std::string GREEN_COLOR  = "\033[32m";
+const std::string GRAY_COLOR   = "\033[37m";
 const std::string YELLOW_COLOR = "\033[33m";
 const std::string BLUE_COLOR   = "\033[34m";
 
@@ -57,6 +58,12 @@ inline void logInfo(const std::string &message)
 {
   std::string currentDateTimeISO = getCurrentDateTimeISO();
   std::cout << BLUE_COLOR << "[INFO]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
+}
+
+inline void logTrace(const std::string &message)
+{
+  std::string currentDateTimeISO = getCurrentDateTimeISO();
+  std::cout << GRAY_COLOR << "[TRACE]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
 }
 
 }    // namespace joda::log

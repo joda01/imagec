@@ -994,6 +994,10 @@ bool MaximumFinder::watershedSegment(cv::Mat &ip)
   ///////////////////////////
   int arraySize = static_cast<int>(static_cast<float>(width) * static_cast<float>(height) - histogram.at<float>(0) -
                                    histogram.at<float>(255));
+  if(arraySize <= 0) {
+    return true;
+  }
+
   std::shared_ptr<int> coordinates(new int[arraySize]{0}, [](int *p) { delete[] p; });
 
   int highestValue = 0;

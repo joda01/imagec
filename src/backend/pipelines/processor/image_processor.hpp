@@ -47,7 +47,7 @@ static constexpr int32_t TIME_FRAME                     = 0;
 struct ChannelProperties
 {
   ImageProperties props;
-  std::set<uint32_t> tifDirs;
+  joda::ome::OmeInfo ome;
 };
 
 class TiffLoaderEntireWrapper
@@ -107,8 +107,15 @@ public:
   static func::DetectionResponse executeAlgorithm(
       const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting, uint64_t tileIndex,
       const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
+      const ChannelProperties *channelProperties = nullptr,
       const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults =
           nullptr);
+
+  ///
+  /// \brief      Load channel properties
+  /// \author     Joachim Danmayr
+  ///
+  static ChannelProperties loadChannelProperties(const FileInfo &imagePath, uint16_t series);
 
 private:
   /////////////////////////////////////////////////////
@@ -149,11 +156,6 @@ private:
                                    const joda::onnx::OnnxParser::Data &onnxModels,
                                    joda::settings::DetectionSettings::DetectionMode mode);
 
-  ///
-  /// \brief      Load channel properties
-  /// \author     Joachim Danmayr
-  ///
-  static ChannelProperties loadChannelProperties(const FileInfo &imagePath, joda::settings::ChannelIndex channelIndex,
-                                                 uint16_t series);
+  static std::set<uint32_t> getTifDirs(const ChannelProperties &props, joda::settings::ChannelIndex channelIndex);
 };
 }    // namespace joda::algo

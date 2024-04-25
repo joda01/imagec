@@ -14,6 +14,7 @@
 #pragma once
 
 #include "../../functions/function.hpp"
+#include "backend/duration_count/duration_count.h"
 #include "backend/settings/preprocessing/functions/edge_detection.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -35,6 +36,7 @@ public:
   }
   void execute(cv::Mat &image) const override
   {
+    auto id = DurationCount::start("EdgeDetection");
     switch(mSetting.mode) {
       case joda::settings::EdgeDetection::Mode::CANNY:
         cv::Canny(image, image, 100, 200, 3, false);
@@ -47,6 +49,7 @@ public:
       default:
         break;
     }
+    DurationCount::stop(id);
   }
 
 private:

@@ -31,6 +31,8 @@ auto CalcIntersection::execute(
     const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResultsIn,
     const std::string &detailoutputPath) const -> joda::func::DetectionResponse
 {
+  auto id = DurationCount::start("Intersection");
+
   if(mIndexesToIntersect.empty() || !detectionResultsIn.contains(*mIndexesToIntersect.begin())) {
     return joda::func::DetectionResponse{};
   }
@@ -69,7 +71,6 @@ auto CalcIntersection::execute(
                              .paintRectangel  = false,
                              .opaque          = 0.3});
 
-  auto id = DurationCount::start("intersect");
   for(auto n = 1; n < channelsToIntersect.size(); n++) {
     const auto *ch1 = channelsToIntersect[n];
 
@@ -106,8 +107,6 @@ auto CalcIntersection::execute(
     response.originalImage = cv::min(*img.second, response.originalImage);
   }
 
-  DurationCount::stop(id);
-
   overlayPainting.insert(overlayPainting.begin(),
                          func::DetectionFunction::OverlaySettings{.result          = &response.result,
                                                                   .backgroundColor = cv::Scalar(0, 0, 255),
@@ -118,10 +117,9 @@ auto CalcIntersection::execute(
   response.controlImage =
       cv::Mat::zeros(channelsToIntersect[0]->originalImage.rows, channelsToIntersect[0]->originalImage.cols, CV_32FC3);
 
-  id = DurationCount::start("intersect paint");
   joda::func::DetectionFunction::paintOverlay(response.controlImage, overlayPainting);
-  DurationCount::stop(id);
 
+  DurationCount::stop(id);
   return response;
 }
 

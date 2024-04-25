@@ -6,7 +6,11 @@ import loci.common.DebugTools;
 import loci.formats.IFormatReader;
 
 public class BioFormatsWrapper {
-    public static int[][] readImage(String imagePath, String directory, String series) {
+    public class ImageResult {
+    } 
+
+
+    public static byte[] readImage(String imagePath, int directory, int series) {
         DebugTools.setRootLevel("OFF");
 
         try {
@@ -15,45 +19,24 @@ public class BioFormatsWrapper {
 
             // Initialize the reader with the image file
             formatReader.setId(imagePath);
-            formatReader.setSeries(Integer.parseInt(series));
+            formatReader.setSeries(series);
 
             // Read the image data for the current channel, timepoint, and slice
-            byte[] imageBytes = formatReader.openBytes(Integer.parseInt(directory));
+            byte[] imageBytes = formatReader.openBytes(directory);
 
-            int bits = formatReader.getBitsPerPixel();
-            int height = formatReader.getSizeY();
-            int width = formatReader.getSizeX();
-
-            int[][] mat = new int[height][width];
-
-            if (bits == 8) {
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        int index = (y * width + x);
-                        mat[y][x] = imageBytes[index];
-                    }
-                }
-            }
-            if (bits == 16) {
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        int index = (y * width + x) * 2;
-                        mat[y][x] = (imageBytes[index] & 0xFF) | ((imageBytes[index + 1] & 0xFF) << 8);
-                    }
-                }
-            }
+            //int bits = formatReader.getBitsPerPixel();
+            //int height = formatReader.getSizeY();
+            //int width = formatReader.getSizeX();
 
             // Process or display the image data as needed
             // For example, you can convert it to a BufferedImage or perform other image
-
             // Close the reader when done
             formatReader.close();
-            return mat;
+            return imageBytes;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        int[][] imageBytes = new int[1][1];
-        imageBytes[0][0] = 7;
+        byte[] imageBytes = new byte[1];
         return imageBytes;
     }
 
@@ -87,7 +70,7 @@ public class BioFormatsWrapper {
     /// integer ot zero)
     /// \return Image properties JSON
     ///
-    public static String getImageProperties(String imagePath, String directory, String series) {
+    public static String getImageProperties(String imagePath, int directory, int series) {
         DebugTools.setRootLevel("OFF");
 
         String ret = "{}";
@@ -98,7 +81,7 @@ public class BioFormatsWrapper {
 
             // Initialize the reader with the image file
             formatReader.setId(imagePath);
-            formatReader.setSeries(Integer.parseInt(series));
+            formatReader.setSeries(series);
 
             // OMEXMLMetadata omeMetadata = (OMEXMLMetadata)
             // formatReader.getMetadataStore();

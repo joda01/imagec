@@ -31,7 +31,7 @@ public:
   static void storeSettings(std::string path, const joda::settings::AnalyzeSettings &settings);
   static int32_t getNrOfAllChannels(const joda::settings::AnalyzeSettings &settings);
 
-  static std::set<const joda::settings::ChannelSettings *>
+  static std::vector<const joda::settings::ChannelSettings *>
   getChannelsOfType(const joda::settings::AnalyzeSettings &settings, joda::settings::ChannelSettingsMeta::Type type);
 
   static std::string getChannelNameOfChannelIndex(const joda::settings::AnalyzeSettings &settings,
