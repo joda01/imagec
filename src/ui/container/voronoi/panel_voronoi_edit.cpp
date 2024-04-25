@@ -36,17 +36,20 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelVoronoiEdit");
+}
 
+void PanelVoronoiEdit::init()
+{
   auto *horizontalLayout = createLayout();
 
   auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   verticalLayoutMeta->addWidget(createTitle("Meta"));
-  verticalLayoutMeta->addWidget(parentContainer->mChannelName->getEditableWidget());
-  verticalLayoutMeta->addWidget(parentContainer->mColorAndChannelIndex->getEditableWidget());
+  verticalLayoutMeta->addWidget(mParentContainer->mChannelName->getEditableWidget());
+  verticalLayoutMeta->addWidget(mParentContainer->mColorAndChannelIndex->getEditableWidget());
   _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-  connect(parentContainer->mColorAndChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
+  connect(mParentContainer->mColorAndChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelVoronoiEdit::updatePreview);
 
   //
@@ -54,10 +57,10 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
   //
   auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   llayoutColoc->addWidget(createTitle("Cross-Channel"));
-  llayoutColoc->addWidget(parentContainer->mVoronoiPoints->getEditableWidget());
+  llayoutColoc->addWidget(mParentContainer->mVoronoiPoints->getEditableWidget());
   // llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
-  llayoutColoc->addWidget(parentContainer->mCrossChannelIntensity->getEditableWidget());
-  llayoutColoc->addWidget(parentContainer->mCrossChannelCount->getEditableWidget());
+  llayoutColoc->addWidget(mParentContainer->mCrossChannelIntensity->getEditableWidget());
+  llayoutColoc->addWidget(mParentContainer->mCrossChannelCount->getEditableWidget());
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   verticalLayoutContainer->addStretch(0);
@@ -66,15 +69,15 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
 
   auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
   verticalLayoutFilter->addWidget(createTitle("Filtering"));
-  verticalLayoutFilter->addWidget(parentContainer->mMaxVoronoiAreaSize->getEditableWidget());
-  verticalLayoutFilter->addWidget(parentContainer->mOverlayMaskChannelIndex->getEditableWidget());
+  verticalLayoutFilter->addWidget(mParentContainer->mMaxVoronoiAreaSize->getEditableWidget());
+  verticalLayoutFilter->addWidget(mParentContainer->mOverlayMaskChannelIndex->getEditableWidget());
 
   verticalLayoutFilter->addStretch();
   _6->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-  connect(parentContainer->mMaxVoronoiAreaSize.get(), &ContainerFunctionBase::valueChanged, this,
+  connect(mParentContainer->mMaxVoronoiAreaSize.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelVoronoiEdit::updatePreview);
-  connect(parentContainer->mOverlayMaskChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
+  connect(mParentContainer->mOverlayMaskChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelVoronoiEdit::updatePreview);
 
   //

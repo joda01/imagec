@@ -1,0 +1,19 @@
+{
+    "textLong": " A local background value is determined for every pixel by averaging over a very large ball around the pixel. This value is hereafter subtracted from the original image, hopefully removing large spatial variations of the background intensities. The radius should be set to at least the size of the largest object that is not part of the background.",
+    "cite": [
+        {
+            "href": "https://ieeexplore.ieee.org/document/1654163",
+            "title": "Biomedical Image Processing, in Computer, vol. 16, no. 1, pp. 22-34, Jan. 1983, doi: 10.1109 MC.1983.1654163."
+        }
+    ],
+    "source": [
+        {
+            "href": "https://imagej.net/plugins/rolling-ball-background-subtraction",
+            "title": "ImageJ"
+        },
+        {
+            "href": "https://github.com/joda01/imagec/blob/main/src/backend/image_processing/functions/rolling_ball/rolling_ball.cpp",
+            "title": "ImageC"
+        }
+    ]
+}

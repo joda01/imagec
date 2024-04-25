@@ -126,7 +126,7 @@ ENDIF()
 
 
 set(RESOURCE_FILES
-    resources/icons.qrc
+    resources/resource.qrc
 )
 
 qt_add_resources(RESOURCE_SOURCES ${RESOURCE_FILES})

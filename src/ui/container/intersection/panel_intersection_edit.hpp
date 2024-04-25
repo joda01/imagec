@@ -37,6 +37,7 @@ signals:
 public:
   PanelIntersectionEdit(WindowMain *wm, ContainerIntersection *);
   ~PanelIntersectionEdit();
+  void init();
 
   void setActive(bool setActive)
   {

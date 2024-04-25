@@ -36,17 +36,20 @@ PanelIntersectionEdit::PanelIntersectionEdit(WindowMain *wm, ContainerIntersecti
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelIntersectionEdit");
+}
 
+void PanelIntersectionEdit::init()
+{
   auto *horizontalLayout = createLayout();
 
   auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
   auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   verticalLayoutMeta->addWidget(createTitle("Meta"));
-  verticalLayoutMeta->addWidget(parentContainer->mChannelName->getEditableWidget());
-  verticalLayoutMeta->addWidget(parentContainer->mColorAndChannelIndex->getEditableWidget());
+  verticalLayoutMeta->addWidget(mParentContainer->mChannelName->getEditableWidget());
+  verticalLayoutMeta->addWidget(mParentContainer->mColorAndChannelIndex->getEditableWidget());
   _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-  connect(parentContainer->mColorAndChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
+  connect(mParentContainer->mColorAndChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelIntersectionEdit::updatePreview);
 
   //
@@ -54,9 +57,9 @@ PanelIntersectionEdit::PanelIntersectionEdit(WindowMain *wm, ContainerIntersecti
   //
   auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
   llayoutColoc->addWidget(createTitle("Cross-Channel"));
-  llayoutColoc->addWidget(parentContainer->mCrossChannelIntersection->getEditableWidget());
-  llayoutColoc->addWidget(parentContainer->mCrossChannelIntensity->getEditableWidget());
-  llayoutColoc->addWidget(parentContainer->mCrossChannelCount->getEditableWidget());
+  llayoutColoc->addWidget(mParentContainer->mCrossChannelIntersection->getEditableWidget());
+  llayoutColoc->addWidget(mParentContainer->mCrossChannelIntensity->getEditableWidget());
+  llayoutColoc->addWidget(mParentContainer->mCrossChannelCount->getEditableWidget());
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   verticalLayoutContainer->addStretch(0);
@@ -65,7 +68,7 @@ PanelIntersectionEdit::PanelIntersectionEdit(WindowMain *wm, ContainerIntersecti
 
   auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
   verticalLayoutFilter->addWidget(createTitle("Filtering"));
-  verticalLayoutFilter->addWidget(parentContainer->mMinIntersection->getEditableWidget());
+  verticalLayoutFilter->addWidget(mParentContainer->mMinIntersection->getEditableWidget());
 
   verticalLayoutFilter->addStretch();
   _6->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);

@@ -37,6 +37,7 @@ signals:
 public:
   PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *);
   ~PanelVoronoiEdit();
+  void init();
 
   void setActive(bool setActive)
   {

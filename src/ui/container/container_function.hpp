@@ -18,6 +18,7 @@
 #include <qlabel.h>
 #include <qlocale.h>
 #include <qobject.h>
+#include <qpushbutton.h>
 #include <qtmetamacros.h>
 #include <qvalidator.h>
 #include <qvariant.h>
@@ -27,6 +28,7 @@
 #include <cstddef>
 #include <string>
 #include <type_traits>
+#include "ui/container/dialog_tooltip.hpp"
 #include "container_function_base.hpp"
 
 namespace joda::ui::qt {
@@ -59,10 +61,10 @@ public:
   };
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
-                    std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal, QWidget *parent = nullptr)
-
+                    std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal, QWidget *parent,
+                    const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> || std::is_enum<VALUE_T>::value
-      : mUnit(unit), mDefaultValue(defaultVal)
+      : mUnit(unit), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, defaultVal, minVal, maxVal);
@@ -71,10 +73,12 @@ public:
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
                     std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal,
-                    const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault,
-                    QWidget *parent = nullptr)
+                    const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault, QWidget *parent,
+                    const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> || std::is_enum<VALUE_T>::value
-      : mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault)
+      :
+      mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault), mParent(parent),
+      mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, defaultVal, minVal, maxVal, unit, optionsSecond);
@@ -82,9 +86,9 @@ public:
   }
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText,
-                    std::optional<VALUE_T> defaultVal, QWidget *parent = nullptr)
+                    std::optional<VALUE_T> defaultVal, QWidget *parent, const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, QString>
-      : mUnit(""), mDefaultValue(defaultVal)
+      : mUnit(""), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, defaultVal);
@@ -92,10 +96,10 @@ public:
   }
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
-                    std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
-                    QWidget *parent = nullptr)
+                    std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options, QWidget *parent,
+                    const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::is_enum<VALUE_T>::value
-      : mUnit(unit), mDefaultValue(defaultVal)
+      : mUnit(unit), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, unit, options, {}, defaultVal);
@@ -104,10 +108,12 @@ public:
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
                     std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
-                    const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault,
-                    QWidget *parent = nullptr)
+                    const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault, QWidget *parent,
+                    const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::is_enum<VALUE_T>::value
-      : mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault)
+      :
+      mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault), mParent(parent),
+      mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, unit, options, optionsSecond, defaultVal);
@@ -115,9 +121,9 @@ public:
   }
 
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, bool defaultVal,
-                    QWidget *parent = nullptr)
+                    QWidget *parent, const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, bool>
-      : mUnit(""), mDefaultValue(defaultVal)
+      : mUnit(""), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, "", {{0, "Off"}, {1, "On"}}, {}, defaultVal);
@@ -471,7 +477,7 @@ private:
         "QLineEdit { border-radius: 4px; border: 1px solid rgba(32, 27, 23, 0.6); padding-top: 10px; padding-bottom: "
         "10px;}"
         "QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
-    QVBoxLayout *layout = new QVBoxLayout(mParent);
+    QVBoxLayout *layout = new QVBoxLayout();
     layout->setContentsMargins(8, 8, 8, 0);
 
     const QIcon myIcon(":/icons/outlined/" + icon);
@@ -563,11 +569,11 @@ private:
         "   background-color: #fff;"
         "}"
         "QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
-    QVBoxLayout *layoutVertical = new QVBoxLayout(mParent);
+    QVBoxLayout *layoutVertical = new QVBoxLayout();
     layoutVertical->setContentsMargins(8, 8, 8, 0);
 
     QWidget *horizontaContainer   = new QWidget();
-    QHBoxLayout *layoutHorizontal = new QHBoxLayout(mParent);
+    QHBoxLayout *layoutHorizontal = new QHBoxLayout();
     layoutHorizontal->setContentsMargins(0, 0, 0, 0);
     layoutHorizontal->setSpacing(4);
 
@@ -663,11 +669,11 @@ private:
         "   background-color: #fff;"
         "}"
         "QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
-    QVBoxLayout *layoutVertical = new QVBoxLayout(mParent);
+    QVBoxLayout *layoutVertical = new QVBoxLayout();
     layoutVertical->setContentsMargins(8, 8, 8, 0);
 
     QWidget *horizontaContainer   = new QWidget();
-    QHBoxLayout *layoutHorizontal = new QHBoxLayout(mParent);
+    QHBoxLayout *layoutHorizontal = new QHBoxLayout();
     layoutHorizontal->setContentsMargins(0, 0, 0, 0);
     layoutHorizontal->setSpacing(4);
 
@@ -718,6 +724,8 @@ private:
 
   void createHelperText(QVBoxLayout *layout, const QString &helpText)
   {
+    QHBoxLayout *hLayout = new QHBoxLayout();
+    hLayout->setContentsMargins(0, 0, 0, 0);
     auto *helperText = new QLabel();
     helperText->setObjectName("functionHelperText");
     helperText->setText(helpText);
@@ -730,7 +738,33 @@ private:
     font.setWeight(QFont::Light);
     helperText->setFont(font);
     helperText->setStyleSheet("QLabel#functionHelperText { color : #808080; }");
-    layout->addWidget(helperText);
+    hLayout->addWidget(helperText);
+
+    // Info icon
+    if(!mPathToHelpFile.isEmpty()) {
+      QPushButton *help = new QPushButton();
+      connect(help, &QPushButton::clicked, this, &ContainerFunction::onHelpButtonClicked);
+      const QIcon helpIcon(":/icons/outlined/icons8-info-50-circle.png");
+      help->setStyleSheet(
+          "QPushButton {"
+          "   background-color: rgba(0, 0, 0, 0);"
+          "   border: 0px solid rgb(111, 121, 123);"
+          "   color: rgb(0, 104, 117);"
+          "   padding: 2px 2px;"
+          "   border-radius: 4px;"
+          "   font-size: 8px;"
+          "   font-weight: normal;"
+          "   text-align: center;"
+          "   text-decoration: none;"
+          "}");
+      help->setIconSize({12, 12});
+      help->setIcon(helpIcon);
+      hLayout->addWidget(help);
+    }
+
+    hLayout->addStretch(0);
+
+    layout->addLayout(hLayout);
   }
 
   QComboBox *createSecondCombo(const std::vector<ComboEntry2> &optionsSecond)
@@ -781,12 +815,21 @@ private:
   QLabel *mDisplayLabel      = nullptr;
   QLabel *mDisplayLabelIcon  = nullptr;
   QString mUnit;
+  QString mHelpText;
+  QString mPathToHelpFile;
 
   QWidget *mParent      = nullptr;
   QWidget *mDisplayable = nullptr;
   QWidget *mEditable    = nullptr;
 
 private slots:
+
+  void onHelpButtonClicked()
+  {
+    DialogToolTip tool(mParent, mHelpText, mPathToHelpFile);
+    tool.exec();
+  }
+
   void lineEditingChanged()
   {
     if(mLineEdit != nullptr) {
