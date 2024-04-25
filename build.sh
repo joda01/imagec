@@ -18,6 +18,16 @@ cp /usr/lib/x86_64-linux-gnu/libicuio.so.67 ./build/build
 cp /usr/lib/x86_64-linux-gnu/libicui18n.so.67 ./build/build
 cp /usr/lib/x86_64-linux-gnu/libicuuc.so.67 ./build/build
 cp /usr/lib/x86_64-linux-gnu/libicudata.so.67 ./build/build
+
+cp /usr/lib/x86_64-linux-gnu/libOpenGL.so.0.0.0 ./build/build
+cp /usr/lib/x86_64-linux-gnu/libOpenGL.so ./build/build
+cp /usr/lib/x86_64-linux-gnu/libOpenGL.so.0 ./build/build
+
+cp /usr/lib/x86_64-linux-gnu/libpcre2-16.so ./build/build
+cp /usr/lib/x86_64-linux-gnu/libpcre2-16.so.0.10.1 ./build/build
+cp /usr/lib/x86_64-linux-gnu/libpcre2-16.so.0 ./build/build
+
+
 cp /opt/Qt6/lib/libQt6Core.so ./build/build
 cp /opt/Qt6/lib/libQt6Core.so.6 ./build/build
 cp /opt/Qt6/lib/libQt6Core.so.6.3.3 ./build/build
