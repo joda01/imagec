@@ -745,6 +745,7 @@ private:
       QPushButton *help = new QPushButton();
       connect(help, &QPushButton::clicked, this, &ContainerFunction::onHelpButtonClicked);
       const QIcon helpIcon(":/icons/outlined/icons8-info-50-circle.png");
+      help->setCursor(Qt::PointingHandCursor);
       help->setStyleSheet(
           "QPushButton {"
           "   background-color: rgba(0, 0, 0, 0);"

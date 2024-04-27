@@ -130,9 +130,9 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
   mMinParticleSize = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
       "icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Min. particle size", "px", 1, 0, INT32_MAX,
       mPanelEdit, "min_particle_size.json"));
-  mMaxParticleSize = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
-                                      "Max. particle size", "px", std::nullopt, 0, INT32_MAX, mPanelEdit));
+  mMaxParticleSize = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
+      "icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Max. particle size", "px", std::nullopt, 0,
+      INT32_MAX, mPanelEdit, "max_particle_size.json"));
 
   mSnapAreaSize = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-initial-state-50.png", "[0 - 65535]", "Snap area size", "px",
@@ -191,14 +191,15 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
            {joda::settings::RollingBall::BallType::PARABOLOID, "Paraboloid"}},
           joda::settings::RollingBall::BallType::BALL, mPanelEdit, "rolling_ball.json"));
 
-  mGaussianBlur = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
-      "icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur", "px", -1,
-      {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}, {9, "9x9"}}, {{1, "1x"}, {2, "2x"}, {3, "3x"}}, 1, mPanelEdit));
+  mGaussianBlur = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur",
+                                      "px", -1, {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}, {9, "9x9"}},
+                                      {{1, "1x"}, {2, "2x"}, {3, "3x"}}, 1, mPanelEdit, "gaussian_blur.json"));
 
   mSmoothing = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
       "icons8-cleanup-noise-50.png", "Kernel size", "Smoothing", "", -1,
       {{-1, "Off"}, {1, "x1"}, {2, "x2"}, {3, "x3"}, {4, "x4"}, {5, "x5"}, {6, "x6"}, {7, "x7"}, {8, "x8"}, {9, "x9"}},
-      mPanelEdit));
+      mPanelEdit, "smoothing.json"));
   mEdgeDetection =
       std::shared_ptr<ContainerFunction<joda::settings::EdgeDetection::Mode, joda::settings::EdgeDetection::Direction>>(
           new ContainerFunction<joda::settings::EdgeDetection::Mode, joda::settings::EdgeDetection::Direction>(
@@ -209,7 +210,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
               {{joda::settings::EdgeDetection::Direction::XY, "xy"},
                {joda::settings::EdgeDetection::Direction::X, "x"},
                {joda::settings::EdgeDetection::Direction::Y, "y"}},
-              joda::settings::EdgeDetection::Direction::XY, mPanelEdit));
+              joda::settings::EdgeDetection::Direction::XY, mPanelEdit, "edge_detection.json"));
   mTetraspeckRemoval = std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>>(
       new ContainerFunction<joda::settings::ChannelIndex, int>(
           "icons8-minus-sign-50.png", "Index", "Tetraspeck removal", "", joda::settings::ChannelIndex::NONE,
@@ -224,13 +225,14 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
            {joda::settings::ChannelIndex::CH7, "Channel 7"},
            {joda::settings::ChannelIndex::CH8, "Channel 8"},
            {joda::settings::ChannelIndex::CH9, "Channel 9"}},
-          mPanelEdit));
+          mPanelEdit, "tetraspeck_removal.json"));
 
-  mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", "", mPanelEdit));
+  mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(
+      new ContainerFunction<QString, int>("icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", "",
+                                          mPanelEdit, "cross_channel_intensity.json"));
 
   mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", mPanelEdit));
+      "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", mPanelEdit, "cross_channel_count.json"));
 
   mPanelEdit->init();
   //
