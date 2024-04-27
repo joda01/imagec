@@ -32,7 +32,7 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
   setStyleSheet(
       "QWidget#PanelChannelOverview { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
       "padding-bottom: 10px;"
-      "background-color: rgba(0, 104, 117, 0.05);}");
+      "background-color: rgb(230, 164, 180);}");
 
   setLayout(layout);
   layout->setSpacing(0);

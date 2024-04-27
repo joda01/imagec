@@ -473,16 +473,14 @@ private:
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
-    mEditable->setStyleSheet(
-        "QLineEdit { border-radius: 4px; border: 1px solid rgba(32, 27, 23, 0.6); padding-top: 10px; padding-bottom: "
-        "10px;}"
-        "QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
+    mEditable->setStyleSheet("QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
     QVBoxLayout *layout = new QVBoxLayout();
     layout->setContentsMargins(8, 8, 8, 0);
 
     const QIcon myIcon(":/icons/outlined/" + icon);
 
     mLineEdit = new QLineEdit();
+    mLineEdit->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
     mLineEdit->setFont(fontLineEdit);
@@ -527,48 +525,7 @@ private:
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
-    mEditable->setStyleSheet(
-        "QLineEdit { border-radius: 4px; border: 1px solid rgba(32, 27, 23, 0.6); padding-top: 10px; padding-bottom: "
-        "10px;}"
-        "QComboBox {"
-        "   border: 1px solid rgba(32, 27, 23, 0.6);"
-        "   border-radius: 4px;"
-        "   padding-top: 10px;"
-        "   padding-bottom: 10px;"
-        "   padding-left: 10px;"
-        "   color: #333;"
-        "   background-color: #fff;"
-        "   selection-background-color: rgba(48,140,198,0.7);"
-        "}"
-        "QComboBox:editable {"
-        "   background: #fff;"
-        "   padding-left: 20px;"
-        "}"
-
-        "QComboBox::drop-down {"
-        "   subcontrol-origin: padding;"
-        "   subcontrol-position: right top;"
-        "   width: 20px;"
-        "   border-left: none;"
-        "   border-radius: 4px 4px 4px 4px;"
-        "   background: #fff;"
-        "}"
-
-        "QComboBox::down-arrow {"
-        "   image: url(:/icons/outlined/icons8-sort-down-50.png);"
-        "   width: 16px;"
-        "   background: #fff;"
-        "}"
-
-        "QComboBox::down-arrow:on {"
-        "   top: 1px;"
-        "}"
-
-        "QComboBox QAbstractItemView {"
-        "   border: none;"
-        "   background-color: #fff;"
-        "}"
-        "QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
+    mEditable->setStyleSheet("QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
     QVBoxLayout *layoutVertical = new QVBoxLayout();
     layoutVertical->setContentsMargins(8, 8, 8, 0);
 
@@ -629,46 +586,6 @@ private:
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
-    mEditable->setStyleSheet(
-        "QComboBox {"
-        "   border: 1px solid rgba(32, 27, 23, 0.6);"
-        "   border-radius: 4px;"
-        "   padding-top: 10px;"
-        "   padding-bottom: 10px;"
-        "   padding-left: 10px;"
-        "   color: #333;"
-        "   background-color: #fff;"
-        "   selection-background-color: rgba(48,140,198,0.7);"
-        "}"
-        "QComboBox:editable {"
-        "   background: #fff;"
-        "   padding-left: 20px;"
-        "}"
-
-        "QComboBox::drop-down {"
-        "   subcontrol-origin: padding;"
-        "   subcontrol-position: right top;"
-        "   width: 20px;"
-        "   border-left: none;"
-        "   border-radius: 4px 4px 4px 4px;"
-        "   background: #fff;"
-        "}"
-
-        "QComboBox::down-arrow {"
-        "   image: url(:/icons/outlined/icons8-sort-down-50.png);"
-        "   width: 16px;"
-        "   background: #fff;"
-        "}"
-
-        "QComboBox::down-arrow:on {"
-        "   top: 1px;"
-        "}"
-
-        "QComboBox QAbstractItemView {"
-        "   border: none;"
-        "   background-color: #fff;"
-        "}"
-        "QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
     QVBoxLayout *layoutVertical = new QVBoxLayout();
     layoutVertical->setContentsMargins(8, 8, 8, 0);
 
@@ -679,6 +596,8 @@ private:
 
     const QIcon myIcon(":/icons/outlined/" + icon);
     mComboBox = new QComboBox();
+    mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+
     mComboBox->addAction(myIcon, "");    // const QIcon &icon, const QString &text
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
@@ -772,6 +691,8 @@ private:
   {
     mComboBoxSecond = new QComboBox();
     mComboBoxSecond->setObjectName("SecondCombo");
+    mComboBoxSecond->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+
     QFont fontLineEdit;
     fontLineEdit.setPixelSize(16);
     for(const auto &data : optionsSecond) {

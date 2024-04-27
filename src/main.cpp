@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
       "}"
 
       "QMessageBox QPushButton {"
-      "   background-color: rgba(0, 0, 0, 0);"
-      "   border: 1px solid rgb(111, 121, 123);"
+      "   background-color: rgb(255, 255, 255);"
+      "   border: 1px solid rgb(0, 0, 0);"
       "   color: #000;"
       "   padding: 10px 20px;"
       "   border-radius: 12px;"
@@ -72,16 +72,88 @@ int main(int argc, char *argv[])
       "}"
 
       "QMessageBox QPushButton:hover {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "   background-color: rgb(0, 0, 0);"    // Darken on hover
       "}"
 
       "QMessageBox QPushButton:pressed {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "   background-color: rgb(0, 0, 0);"    // Darken on press
       "}"
 
       "QMessageBox QPushButton:default {"
       "   border: 2px solid #2196F3;"
-      "}");
+      "}"
+      /*Push button*/
+      "QPushButton {"
+      "   border: 1px solid rgb(0, 0, 0);"
+      "   background-color: rgb(255, 255, 255);"
+      "   color: rgb(0, 0, 0);"
+      "   border-radius: 4px;"
+      "   padding-top: 10px;"
+      "   padding-bottom: 10px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-decoration: none;"
+      "   text-align: center;"
+      "}"
+
+      "QPushButton:hover {"
+      "   background-color: rgb(255, 255, 255);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed {"
+      "   background-color: rgb(255, 255, 255);"    // Darken on press
+      "}"
+
+      /*Combo box*/
+      "QComboBox {"
+      "   border: 1px solid rgb(0, 0, 0);"
+      "   background-color: rgb(255, 255, 255);"
+      "   color: rgb(0, 0, 0);"
+      "   border-radius: 4px;"
+      "   padding-top: 10px;"
+      "   padding-bottom: 10px;"
+      "   padding-left: 10px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-decoration: none;"
+      "   selection-background-color: rgb(255, 247, 241);"
+      "}"
+      "QComboBox:editable {"
+      "   background: #fff;"
+      "   padding-left: 20px;"
+      "}"
+
+      "QComboBox::drop-down {"
+      "   subcontrol-origin: padding;"
+      "   subcontrol-position: right top;"
+      "   width: 20px;"
+      "   border-left: none;"
+      "   border-radius: 4px 4px 4px 4px;"
+      "   background: #fff;"
+      "   padding-top: 10px;"
+      "   padding-bottom: 10px;"
+      "}"
+
+      "QComboBox::down-arrow {"
+      "   image: url(:/icons/outlined/icons8-sort-down-50.png);"
+      "   width: 14px;"
+      "   background: #fff;"
+      "}"
+
+      "QComboBox::down-arrow:on {"
+      "   top: 1px;"
+      "}"
+
+      "QComboBox QAbstractItemView {"
+      "   border: none;"
+      "   background-color: #fff;"
+      "}"
+
+      /*Text field box*/
+      "QLineEdit { border-radius: 4px; border: 1px solid rgb(0, 0, 0); padding-top: 10px; padding-bottom: "
+      "10px;}"
+
+  );
 
   // Option 1, like in the mentioned stackoverflow answer
   // QWidget window;
