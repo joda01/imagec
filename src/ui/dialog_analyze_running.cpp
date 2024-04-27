@@ -30,7 +30,7 @@ using namespace std::chrono_literals;
 /// \author     Joachim Danmayr
 ///
 DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::settings::AnalyzeSettings &settings) :
-    DialogShadow(windowMain), mStopped(false), mWindowMain(windowMain), mSettings(settings)
+    DialogShadow(windowMain, false), mStopped(false), mWindowMain(windowMain), mSettings(settings)
 {
   //
   // Layout

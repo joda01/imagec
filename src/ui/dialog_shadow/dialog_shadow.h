@@ -32,7 +32,8 @@ class DialogShadow : public QDialog
   Q_OBJECT
 
 public:
-  DialogShadow(QWidget *parent);
+  DialogShadow(QWidget *parent, bool showClose = true);
+  int exec() override;
 
 private:
   void paintEvent(QPaintEvent *event) override;
@@ -54,6 +55,10 @@ private:
     }
   }
 
-  QWidget *dimmer = nullptr;
+  QWidget *dimmer       = nullptr;
+  bool mShowCloseButton = true;
+
+private slots:
+  void onCloseWindow();
 };
 }    // namespace joda::ui::qt

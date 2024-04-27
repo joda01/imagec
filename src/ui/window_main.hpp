@@ -96,7 +96,9 @@ private:
   static constexpr int32_t V_CHANNEL_COL = OVERVIEW_COLS;
 
   /////////////////////////////////////////////////////
-  void createToolbar();
+  void createTopToolbar();
+  void createBottomToolbar();
+
   QWidget *createStackedWidget();
   QWidget *createGirafWidget();
   QWidget *createOverviewWidget();

@@ -12,13 +12,17 @@
 ///
 
 #include "dialog_shadow.h"
+#include <qboxlayout.h>
 #include <qdialog.h>
+#include <qlayout.h>
 #include <qnamespace.h>
+#include <qpushbutton.h>
+#include <qwidget.h>
 #include <QtGui>
 
 namespace joda::ui::qt {
 
-DialogShadow::DialogShadow(QWidget *parent) : QDialog(parent)
+DialogShadow::DialogShadow(QWidget *parent, bool showClose) : QDialog(parent), mShowCloseButton(showClose)
 {
   setModal(true);
   setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Dialog);
@@ -38,6 +42,50 @@ DialogShadow::DialogShadow(QWidget *parent) : QDialog(parent)
   }
 
   setStyleSheet("QDialog {background-color: white; border-radius: 28px;}");
+}
+
+int DialogShadow::exec()
+{
+  if(mShowCloseButton) {
+    QWidget *buttons = new QWidget();
+    buttons->setContentsMargins(0, 0, 0, 0);
+    QHBoxLayout *hBox  = new QHBoxLayout(buttons);
+    QPushButton *close = new QPushButton("Close", buttons);
+    close->setCursor(Qt::PointingHandCursor);
+    close->setStyleSheet(
+        "QPushButton {"
+        "   background-color: rgba(0, 0, 0, 0);"
+        "   border: 1px solid rgba(0, 0, 0, 0);"
+        "   color: rgb(0, 104, 117);"
+        "   padding: 10px 10px;"
+        "   border-radius: 4px;"
+        "   font-size: 14px;"
+        "   font-weight: normal;"
+        "   text-align: center;"
+        "   text-decoration: none;"
+        "}"
+
+        "QPushButton:hover {"
+        "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+        "}"
+
+        "QPushButton:pressed {"
+        "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+        "}");
+
+    connect(close, &QPushButton::clicked, this, &DialogShadow::onCloseWindow);
+
+    hBox->addStretch();
+    hBox->addWidget(close);
+    QLayout *mainL = layout();
+    mainL->addWidget(buttons);
+  }
+  return QDialog::exec();
+}
+
+void DialogShadow::onCloseWindow()
+{
+  close();
 }
 
 void DialogShadow::paintEvent(QPaintEvent *ev)

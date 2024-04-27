@@ -42,6 +42,7 @@ DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QS
 
   /////////////////////////////////////////////////////////////////
   auto *mainLayout = new QVBoxLayout(this);
+  mainLayout->setContentsMargins(28, 28, 28, 28);
 
   QString helpText = "{}";
   QFile file(":/helptext/helptext/" + pathToHelpText);
@@ -91,7 +92,6 @@ DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QS
   fullHelpText += "</html>";
 
   QLabel *helpTextLabel = new QLabel(fullHelpText);
-  helpTextLabel->setContentsMargins(46, 46, 46, 46);
   helpTextLabel->setOpenExternalLinks(true);
   helpTextLabel->setWordWrap(true);
   QFont fontLineEdit;

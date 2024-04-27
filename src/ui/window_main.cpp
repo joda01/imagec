@@ -46,6 +46,7 @@
 #include "container/voronoi/container_voronoi.hpp"
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_experiment_settings.hpp"
+#include "ui/dialog_shadow/dialog_shadow.h"
 #include "build_info.h"
 #include "version.h"
 
@@ -56,7 +57,8 @@ using namespace std::chrono_literals;
 WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller)
 {
   setWindowTitle("imageC");
-  createToolbar();
+  createTopToolbar();
+  createBottomToolbar();
   setMinimumSize(1600, 800);
   setObjectName("windowMain");
   setStyleSheet(
@@ -74,11 +76,63 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   connect(this, &WindowMain::lookingForTemplateFinished, this, &WindowMain::onFindTemplatesFinished);
 }
 
+void WindowMain::createBottomToolbar()
+{
+  auto *toolbar = new QToolBar(this);
+  toolbar->setMovable(false);
+  toolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
+
+  // Middle
+
+  {
+    // Add a spacer to push the next action to the middle
+    QWidget *spacerWidget = new QWidget();
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    toolbar->setMaximumHeight(32);
+    toolbar->addWidget(spacerWidget);
+  }
+
+  // Add the QComboBox in the middle
+  mFoundFilesCombo = new QComboBox(toolbar);
+  mFoundFilesCombo->setMinimumWidth(250);
+  mFoundFilesCombo->setMaximumWidth(300);
+  mFileSelectorComboBox = toolbar->addWidget(mFoundFilesCombo);
+  mFileSelectorComboBox->setVisible(false);
+
+  mImageSeriesCombo = new QComboBox(toolbar);
+  mImageSeriesCombo->addItem("Series 0", 0);
+  mImageSeriesCombo->addItem("Series 1", 1);
+  mImageSeriesCombo->addItem("Series 2", 2);
+  mImageSeriesCombo->addItem("Series 3", 3);
+  mImageSeriesComboBox = toolbar->addWidget(mImageSeriesCombo);
+  mImageSeriesComboBox->setVisible(false);
+
+  mImageTilesCombo = new QComboBox(toolbar);
+  mImageTilesCombo->addItem("0", 0);
+  mImageTilesCombo->setToolTip("Select image tile");
+  mImageTilesComboBox = toolbar->addWidget(mImageTilesCombo);
+  mImageTilesComboBox->setVisible(false);
+
+  mFoundFilesHint = new ClickableLabel(toolbar);
+  mFoundFilesHint->setText("Please open a working directory ...");
+  mFileSearchHintLabel = toolbar->addWidget(mFoundFilesHint);
+  connect(mFoundFilesHint, &ClickableLabel::clicked, this, &WindowMain::onOpenProjectClicked);
+
+  addToolBar(Qt::ToolBarArea::BottomToolBarArea, toolbar);
+
+  // Right
+  {
+    QWidget *spacerWidget = new QWidget();
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    toolbar->addWidget(spacerWidget);
+  }
+}
+
 ///
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::createToolbar()
+void WindowMain::createTopToolbar()
 {
   auto *toolbar = addToolBar("toolbar");
   toolbar->setMovable(false);
@@ -113,19 +167,23 @@ void WindowMain::createToolbar()
       const QIcon myIcon(":/icons/outlined/icons8-topic-50.png");
       mJobName = new QLineEdit();
       mJobName->setObjectName("JobName");
+      mJobName->setStyleSheet("border: 0px solid rgb(111, 121, 123);");
       mJobName->setText("");
       mJobName->setClearButtonEnabled(true);
-      mJobName->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
+      // mJobName->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
       mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
       mJobName->setMaximumWidth(200);
       mJobNameAction = toolbar->addWidget(mJobName);
     }
+    // toolbar->addSeparator();
 
     mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
     mDeleteChannel->setToolTip("Delete channel!");
     connect(mDeleteChannel, &QAction::triggered, this, &WindowMain::onRemoveChannelClicked);
     toolbar->addAction(mDeleteChannel);
   }
+
+  // Middle
 
   {
     // Add a spacer to push the next action to the middle
@@ -135,34 +193,7 @@ void WindowMain::createToolbar()
     toolbar->addWidget(spacerWidget);
   }
 
-  // Middle
-  {
-    // Add the QComboBox in the middle
-    mFoundFilesCombo = new QComboBox(toolbar);
-    mFoundFilesCombo->setMinimumWidth(250);
-    mFoundFilesCombo->setMaximumWidth(300);
-    mFileSelectorComboBox = toolbar->addWidget(mFoundFilesCombo);
-    mFileSelectorComboBox->setVisible(false);
-
-    mImageSeriesCombo = new QComboBox(toolbar);
-    mImageSeriesCombo->addItem("Series 0", 0);
-    mImageSeriesCombo->addItem("Series 1", 1);
-    mImageSeriesCombo->addItem("Series 2", 2);
-    mImageSeriesCombo->addItem("Series 3", 3);
-    mImageSeriesComboBox = toolbar->addWidget(mImageSeriesCombo);
-    mImageSeriesComboBox->setVisible(false);
-
-    mImageTilesCombo = new QComboBox(toolbar);
-    mImageTilesCombo->addItem("0", 0);
-    mImageTilesCombo->setToolTip("Select image tile");
-    mImageTilesComboBox = toolbar->addWidget(mImageTilesCombo);
-    mImageTilesComboBox->setVisible(false);
-
-    mFoundFilesHint = new ClickableLabel(toolbar);
-    mFoundFilesHint->setText("Please open a working directory ...");
-    mFileSearchHintLabel = toolbar->addWidget(mFoundFilesHint);
-    connect(mFoundFilesHint, &ClickableLabel::clicked, this, &WindowMain::onOpenProjectClicked);
-  }
+  // Place middle here
 
   // Right
   {
@@ -630,8 +661,12 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
   if(!mSelectedWorkingDirectory.isEmpty()) {
     folderToOpen = mSelectedWorkingDirectory;
   }
+
+  QFileDialog::Options opt;
+  opt.setFlag(QFileDialog::DontUseNativeDialog, false);
+
   QString filePath =
-      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "JSON Files (*.json);;All Files (*)");
+      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "JSON Files (*.json);;All Files (*)", nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
@@ -1179,67 +1214,35 @@ void WindowMain::removeChannel(ContainerBase *toRemove)
 ///
 void WindowMain::onShowInfoDialog()
 {
-  QMessageBox messageBox(this);
-  auto *icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
-
-  messageBox.setWindowFlags(messageBox.windowFlags() | Qt::FramelessWindowHint | Qt::Dialog);
-  messageBox.setIconPixmap(icon->pixmap(42, 42));
-  // messageBox.setAttribute(Qt::WA_TranslucentBackground);
-  // messageBox.setIconPixmap(icon->pixmap(42, 42));
+  DialogShadow messageBox(this);
   messageBox.setWindowTitle("Info");
-  messageBox.setText(
+  auto *mainLayout = new QVBoxLayout(&messageBox);
+  mainLayout->setContentsMargins(28, 28, 28, 28);
+  QLabel *helpTextLabel = new QLabel(
       "<p style=\"text-align: left;\"><strong>imageC " + QString(Version::getVersion().data()) + " (" +
       QString(Version::getBuildTime().data()) +
       ")</strong></p>"
-      "<p style=\"text-align: left;\"><em>Licensed under GPL-v3<br />Preferable for use in the non-profit research "
-      "environment.</em></p>"
+      "<p style=\"text-align: left;\"><em>Licensed under AGPL-3.0<br />Free for non commercial use."
+      "</em></p>"
       "<p style=\"text-align: left;\"><strong>Many thanks</strong> for help in setting this project to Melanie "
       "Schuerz</p>"
       "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI "
       "models</strong><br "
       "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke and Patricia Hrasnova</p>"
       "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
-      "Dominik Handl</em></p>"
-      "<p style=\"text-align: left;\">copyright 2022-2024 Joachim Danmayr</p>");
-  QFont font;
-  font.setPixelSize(10);
-  messageBox.setFont(font);
-  messageBox.addButton(tr("Close"), QMessageBox::AcceptRole);
-
-  // Rounded borders -->
-  const int radius = 12;
-  messageBox.setStyleSheet(QString("QDialog { "
-                                   "border-radius: %1px; "
-                                   "border: 2px solid palette(shadow); "
-                                   "background-color: palette(base); "
-                                   "}")
-                               .arg(radius));
-
-  // The effect will not be actually visible outside the rounded window,
-  // but it does help get rid of the pixelated rounded corners.
-  QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
-  // The color should match the border color set in CSS.
-  effect->setColor(QApplication::palette().color(QPalette::Shadow));
-  effect->setBlurRadius(8);
-  messageBox.setGraphicsEffect(effect);
-
-  // Need to show the box before we can get its proper dimensions.
-  messageBox.show();
-
-  // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
-  // The mask is sized based on the current window geometry. If the window were resizable (somehow)
-  // then the mask would need to be set in resizeEvent().
-  const QRect rect(QPoint(0, 0), messageBox.geometry().size());
-  QBitmap b(rect.size());
-  b.fill(QColor(Qt::color0));
-  QPainter painter(&b);
-  painter.setRenderHint(QPainter::Antialiasing);
-  painter.setBrush(Qt::color1);
-  // this radius should match the CSS radius
-  painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
-  painter.end();
-  messageBox.setMask(b);
-  // <--
+      "Dominik Handl.<br /> Special thanks to Tanja Plank for the logo design.</em></p>"
+      "<p style=\"text-align: left;\">(c) 2022-2024 Joachim Danmayr</p>");
+  helpTextLabel->setOpenExternalLinks(true);
+  helpTextLabel->setWordWrap(true);
+  QFont fontLineEdit;
+  fontLineEdit.setPixelSize(16);
+  helpTextLabel->setFont(fontLineEdit);
+  mainLayout->addWidget(helpTextLabel);
+  mainLayout->addStretch();
+  mainLayout->invalidate();
+  mainLayout->activate();
+  helpTextLabel->adjustSize();
+  helpTextLabel->setMinimumHeight(helpTextLabel->height() + 56);
 
   messageBox.exec();
 }

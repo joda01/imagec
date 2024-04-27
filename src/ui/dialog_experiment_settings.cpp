@@ -17,12 +17,14 @@
 #include <qgroupbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qwidget.h>
 #include <QMessageBox>
 #include <exception>
 #include <string>
 #include <vector>
 #include "backend/pipelines/reporting/reporting_helper.hpp"
 #include "backend/settings/experiment_settings.hpp"
+#include "ui/dialog_shadow/dialog_shadow.h"
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json_fwd.hpp>
 
@@ -42,13 +44,14 @@ struct Temp
 /// \return
 ///
 DialogExperimentSettings::DialogExperimentSettings(QWidget *windowMain, joda::settings::ExperimentSettings &settings) :
-    QDialog(windowMain), mSettings(settings)
+    DialogShadow(windowMain), mSettings(settings)
 {
   setWindowTitle("Settings");
   setBaseSize(500, 200);
 
-  auto *mainLayout     = new QVBoxLayout(this);
-  auto *groupBox       = new QGroupBox("Reporting settings", this);
+  auto *mainLayout = new QVBoxLayout(this);
+  mainLayout->setContentsMargins(28, 28, 28, 28);
+  auto *groupBox       = new QWidget();
   auto *groupBoxLayout = new QVBoxLayout(groupBox);
 
   mImageHeatmapOnOff = new QComboBox(groupBox);
@@ -113,7 +116,7 @@ DialogExperimentSettings::DialogExperimentSettings(QWidget *windowMain, joda::se
 
 int DialogExperimentSettings::exec()
 {
-  int ret = QDialog::exec();
+  int ret = DialogShadow::exec();
   toSettings();
   return ret;
 }
