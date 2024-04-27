@@ -9,11 +9,12 @@
 #include <memory>
 #include <thread>
 #include "backend/settings/channel/channel_reporting_settings.hpp"
+#include "ui/dialog_shadow/dialog_shadow.h"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
 
-class DialogToolTip : public QDialog
+class DialogToolTip : public DialogShadow
 {
   Q_OBJECT
 
@@ -21,7 +22,6 @@ public:
   /////////////////////////////////////////////////////
   DialogToolTip(QWidget *windowMain, const QString &title, const QString &helpText);
 
-private:
 private slots:
   void onCloseClicked();
 };

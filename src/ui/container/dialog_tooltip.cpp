@@ -34,13 +34,13 @@
 namespace joda::ui::qt {
 
 DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QString &pathToHelpText) :
-    QDialog(windowMain)
+    DialogShadow(windowMain)
 {
   setWindowTitle(title);
   setMaximumWidth(500);
   setModal(true);
-  setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Dialog);
 
+  /////////////////////////////////////////////////////////////////
   auto *mainLayout = new QVBoxLayout(this);
 
   QString helpText = "{}";
@@ -91,52 +91,18 @@ DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QS
   fullHelpText += "</html>";
 
   QLabel *helpTextLabel = new QLabel(fullHelpText);
+  helpTextLabel->setContentsMargins(46, 46, 46, 46);
   helpTextLabel->setOpenExternalLinks(true);
   helpTextLabel->setWordWrap(true);
   QFont fontLineEdit;
   fontLineEdit.setPixelSize(16);
   helpTextLabel->setFont(fontLineEdit);
   mainLayout->addWidget(helpTextLabel);
-
   mainLayout->addStretch();
-
-  // QPushButton *close = new QPushButton("Close");
-  // connect(close, &QPushButton::clicked, this, &DialogToolTip::onCloseClicked);
-  // mainLayout->addWidget(close);
-
-  const int radius = 12;
-  setStyleSheet(QString("QDialog { "
-                        "border-radius: %1px; "
-                        "border: 2px solid palette(shadow); "
-                        "background-color: palette(base); "
-                        "}")
-                    .arg(radius));
-
-  // The effect will not be actually visible outside the rounded window,
-  // but it does help get rid of the pixelated rounded corners.
-  QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
-  // The color should match the border color set in CSS.
-  effect->setColor(QApplication::palette().color(QPalette::Shadow));
-  effect->setBlurRadius(8);
-  setGraphicsEffect(effect);
-
-  // Need to show the box before we can get its proper dimensions.
-  show();
-
-  // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
-  // The mask is sized based on the current window geometry. If the window were resizable (somehow)
-  // then the mask would need to be set in resizeEvent().
-  const QRect rect(QPoint(0, 0), geometry().size());
-  QBitmap b(rect.size());
-  b.fill(QColor(Qt::color0));
-  QPainter painter(&b);
-  painter.setRenderHint(QPainter::Antialiasing);
-  painter.setBrush(Qt::color1);
-  // this radius should match the CSS radius
-  painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
-  painter.end();
-  setMask(b);
-  // <--
+  mainLayout->invalidate();
+  mainLayout->activate();
+  helpTextLabel->adjustSize();
+  helpTextLabel->setMinimumHeight(helpTextLabel->height() + 56);
 }
 
 void DialogToolTip::onCloseClicked()

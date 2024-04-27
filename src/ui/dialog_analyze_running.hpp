@@ -18,11 +18,12 @@
 #include <memory>
 #include <thread>
 #include "backend/settings/analze_settings.hpp"
+#include "ui/dialog_shadow/dialog_shadow.h"
 #include "ui/window_main.hpp"
 
 namespace joda::ui::qt {
 
-class DialogAnalyzeRunning : public QDialog
+class DialogAnalyzeRunning : public DialogShadow
 {
   Q_OBJECT
 

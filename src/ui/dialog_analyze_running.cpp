@@ -19,6 +19,7 @@
 #include <qtmetamacros.h>
 #include <memory>
 #include <thread>
+#include "ui/dialog_shadow/dialog_shadow.h"
 
 namespace joda::ui::qt {
 
@@ -29,17 +30,14 @@ using namespace std::chrono_literals;
 /// \author     Joachim Danmayr
 ///
 DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::settings::AnalyzeSettings &settings) :
-    QDialog(windowMain), mStopped(false), mWindowMain(windowMain), mSettings(settings)
+    DialogShadow(windowMain), mStopped(false), mWindowMain(windowMain), mSettings(settings)
 {
-  setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Dialog);
-  // setAttribute(Qt::WA_TranslucentBackground);
-
-  setModal(true);
   //
   // Layout
   //
   // Set up the layout
   QVBoxLayout *mainLayout = new QVBoxLayout(this);
+  mainLayout->setContentsMargins(28, 28, 28, 28);
 
   QFont font;
   font.setBold(true);
@@ -84,40 +82,6 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
 
   setWindowTitle("Progress Dialog");
   setMinimumWidth(500);
-
-  const int radius = 12;
-  setStyleSheet(QString("QDialog { "
-                        "border-radius: %1px; "
-                        "border: 2px solid palette(shadow); "
-                        "background-color: palette(base); "
-                        "}")
-                    .arg(radius));
-
-  // The effect will not be actually visible outside the rounded window,
-  // but it does help get rid of the pixelated rounded corners.
-  QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
-  // The color should match the border color set in CSS.
-  effect->setColor(QApplication::palette().color(QPalette::Shadow));
-  effect->setBlurRadius(8);
-  setGraphicsEffect(effect);
-
-  // Need to show the box before we can get its proper dimensions.
-  show();
-
-  // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
-  // The mask is sized based on the current window geometry. If the window were resizable (somehow)
-  // then the mask would need to be set in resizeEvent().
-  const QRect rect(QPoint(0, 0), geometry().size());
-  QBitmap b(rect.size());
-  b.fill(QColor(Qt::color0));
-  QPainter painter(&b);
-  painter.setRenderHint(QPainter::Antialiasing);
-  painter.setBrush(Qt::color1);
-  // this radius should match the CSS radius
-  painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
-  painter.end();
-  setMask(b);
-  // <--
 
   //
   // Start analyze

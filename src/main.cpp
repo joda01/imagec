@@ -21,8 +21,21 @@ int main(int argc, char *argv[])
   // Start UI
   //
   QApplication app(argc, argv);
-  QApplication::setStyle("Fusion");
 
+  // Load the Roboto font file
+  QFile fontFile(":/fonts/fonts/roboto/Roboto-Regular.ttf");
+  if(fontFile.open(QIODevice::ReadOnly)) {
+    QByteArray fontData = fontFile.readAll();
+    QFontDatabase::addApplicationFontFromData(fontData);
+    fontFile.close();
+  } else {
+    qWarning() << "Failed to load font file";
+  }
+
+  QFont font("Roboto");
+  app.setFont(font);
+
+  QApplication::setStyle("Fusion");
   app.setStyleSheet(
       "QMainWindow#windowMain {"
       "   background-color: rgb(251, 252, 253); "

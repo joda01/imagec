@@ -1,4 +1,8 @@
 <RCC>
+    <qresource prefix="/fonts">
+        <file>fonts/roboto/Roboto-Regular.ttf</file>
+    </qresource>
+
     <qresource prefix="/helptext">
         <file>helptext/rolling_ball.json</file>
     </qresource>
