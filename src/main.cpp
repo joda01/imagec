@@ -72,11 +72,11 @@ int main(int argc, char *argv[])
       "}"
 
       "QMessageBox QPushButton:hover {"
-      "   background-color: rgb(0, 0, 0);"    // Darken on hover
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
       "}"
 
       "QMessageBox QPushButton:pressed {"
-      "   background-color: rgb(0, 0, 0);"    // Darken on press
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
       "}"
 
       "QMessageBox QPushButton:default {"

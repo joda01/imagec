@@ -42,8 +42,10 @@
 #include "backend/settings/vchannel/vchannel_settings.hpp"
 #include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
 #include "container/channel/container_channel.hpp"
+#include "container/giraf/container_giraf.hpp"
 #include "container/intersection/container_intersection.hpp"
 #include "container/voronoi/container_voronoi.hpp"
+#include "ui/container/giraf/container_giraf.hpp"
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_experiment_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
@@ -277,8 +279,6 @@ QWidget *WindowMain::createOverviewWidget()
     mLayoutChannelOverview                                = channelsOverViewLayout;
 
     channelsOverViewLayout->addWidget(createAddChannelPanel());
-    mAddChannelPanel->setVisible(false);
-    channelsOverViewLayout->addWidget(createGirafWidget(), 0, 1, 1, 1);
 
     mLastElement = new QLabel();
     channelsOverViewLayout->addWidget(mLastElement, 1, 0, 1, 3);
@@ -320,55 +320,6 @@ QWidget *WindowMain::createChannelWidget()
   return new QWidget(this);
 }
 
-QWidget *WindowMain::createGirafWidget()
-{
-  QWidget *addChannelWidget = new QWidget();
-  addChannelWidget->setMinimumHeight(250);
-  addChannelWidget->setMinimumWidth(350);
-  addChannelWidget->setMaximumWidth(350);
-  QVBoxLayout *layout = new QVBoxLayout();
-  addChannelWidget->setLayout(layout);
-  layout->setContentsMargins(28, 28, 28, 28);
-
-  mGiraf    = new QMovie(":/icons/outlined/girafa.gif");
-  QLabel *q = new QLabel(addChannelWidget);
-  // q->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
-  q->setMovie(mGiraf);
-  layout->addWidget(q);
-  mGiraf->setScaledSize(QSize(200, 200));
-
-  mUseImageC = new QPushButton(
-      "Use imageC, a powerful image processing\n"
-      "software that helps you make innovative\n"
-      "discoveries in your research work and\n"
-      "thus change the world.");
-  layout->addWidget(mUseImageC);
-  connect(mUseImageC, &QPushButton::pressed, this, &WindowMain::onUseImageCClicked);
-
-  mUseTheGiraf = new QPushButton("or take the giraf");
-  layout->addWidget(mUseTheGiraf);
-  connect(mUseTheGiraf, &QPushButton::pressed, this, &WindowMain::onTakeTheGirafClicked);
-
-  addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-  mGirafWidget = addChannelWidget;
-  return addChannelWidget;
-}
-
-void WindowMain::onTakeTheGirafClicked()
-{
-  mUseImageC->setVisible(false);
-  mUseTheGiraf->setVisible(false);
-  mGiraf->start();
-}
-
-void WindowMain::onUseImageCClicked()
-{
-  mLayoutChannelOverview->removeWidget(mGirafWidget);
-  mGirafWidget->setVisible(false);
-  delete mGirafWidget;
-  mAddChannelPanel->setVisible(true);
-}
-
 QWidget *WindowMain::createAddChannelPanel()
 {
   QWidget *addChannelWidget = new QWidget();
@@ -378,11 +329,11 @@ QWidget *WindowMain::createAddChannelPanel()
   addChannelWidget->setMinimumWidth(350);
   addChannelWidget->setMaximumWidth(350);
   QVBoxLayout *layout = new QVBoxLayout(); /*this*/
-  layout->setContentsMargins(28, 28, 28, 28);
+  layout->setContentsMargins(16, 16, 16, 16);
 
   layout->setObjectName("mainWindowChannelGridLayout");
   addChannelWidget->setStyleSheet(
-      "QWidget#PanelChannelOverview { border-radius: 12px; border: 4px solid rgb(255, 228, 201); padding-top: "
+      "QWidget#PanelChannelOverview { border-radius: 12px; border: 1px solid rgb(170, 170, 170); padding-top: "
       "10px; "
       "padding-bottom: 10px;"
       "background-color: rgba(0, 104, 117, 0);}");
@@ -439,12 +390,46 @@ QWidget *WindowMain::createAddChannelPanel()
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
   layout->addWidget(openSettingsButton);
 
+  //
+  // Add giraf
+  //
+  QPushButton *addGiraf = new QPushButton();
+  addGiraf->setText("or add the Giraf");
+  connect(addGiraf, &QPushButton::pressed, this, &WindowMain::onAddGirafClicked);
+  layout->addWidget(addGiraf);
+
   layout->setSpacing(8);    // Adjust this value as needed
   layout->addStretch();
   addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
   mAddChannelPanel = addChannelWidget;
   return addChannelWidget;
+}
+
+///
+/// \brief      On add giraf clicked
+/// \author     Joachim Danmayr
+///
+void WindowMain::onAddGirafClicked()
+{
+  if(mAddChannelPanel != nullptr) {
+    {
+      int row = (mChannels.size() + 1) / OVERVIEW_COLS;
+      int col = (mChannels.size() + 1) % OVERVIEW_COLS;
+      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
+      mLayoutChannelOverview->removeWidget(mLastElement);
+      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
+    }
+
+    int row                = mChannels.size() / OVERVIEW_COLS;
+    int col                = mChannels.size() % OVERVIEW_COLS;
+    ContainerGiraf *panel1 = new ContainerGiraf(this);
+    panel1->fromSettings();
+    panel1->toSettings();
+    mChannels.emplace(panel1, &panel1);
+    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+  }
 }
 
 ///

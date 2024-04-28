@@ -19,14 +19,13 @@
 #include <mutex>
 #include "ui/helper/waitingspinnerwidget.hpp"
 #include "ui/panel_preview.hpp"
-#include "panel_voronoi_overview.hpp"
 
 namespace joda::ui::qt {
 
 class WindowMain;
-class ContainerVoronoi;
+class ContainerGiraf;
 
-class PanelVoronoiEdit : public QWidget
+class PanelGirafEdit : public QWidget
 {
   Q_OBJECT
 
@@ -35,15 +34,14 @@ signals:
   void updatePreviewFinished();
 
 public:
-  PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *);
-  ~PanelVoronoiEdit();
+  PanelGirafEdit(WindowMain *wm, ContainerGiraf *);
+  ~PanelGirafEdit();
   void init();
 
   void setActive(bool setActive)
   {
     if(!mIsActiveShown && setActive) {
       mIsActiveShown = true;
-      updatePreview();
     }
     if(!setActive) {
       mIsActiveShown = false;
@@ -53,14 +51,12 @@ public:
   }
 
 private:
+  /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
-  QHBoxLayout *createLayout();
-  std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
-                                                        int margin = 16, bool enableScrolling = false,
-                                                        int maxWidth = 250, int spacing = 4) const;
+  /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
-  ContainerVoronoi *mParentContainer;
+  ContainerGiraf *mParentContainer;
   QLabel *createTitle(const QString &);
   PanelPreview *mPreviewImage    = nullptr;
   WaitingSpinnerWidget *mSpinner = nullptr;
@@ -68,12 +64,6 @@ private:
   int mPreviewCounter                         = 0;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
-
-private slots:
-  void onChannelTypeChanged();
-  void onCellApproximationChanged();
-  void updatePreview();
-  void onEditMeasurementClicked();
 };
 
 }    // namespace joda::ui::qt

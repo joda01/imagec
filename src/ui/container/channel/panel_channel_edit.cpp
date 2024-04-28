@@ -46,9 +46,9 @@ void PanelChannelEdit::init()
   //
   // Column 1
   //
-  // rgb(230, 164, 180)
-  auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgb(230, 164, 180)");
+  // rgb(246, 246, 246)
+  auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+  auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
   verticalLayoutMeta->addWidget(createTitle("Meta"));
   verticalLayoutMeta->addWidget(mParentContainer->mChannelName->getEditableWidget());
   verticalLayoutMeta->addWidget(mParentContainer->mColorAndChannelIndex->getEditableWidget());
@@ -60,7 +60,7 @@ void PanelChannelEdit::init()
           &PanelChannelEdit::updatePreview);
 
   // Cross channel
-  auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgb(230, 164, 180)");
+  auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
   llayoutColoc->addWidget(createTitle("Cross-Channel"));
   // llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
   llayoutColoc->addWidget(mParentContainer->mCrossChannelIntensity->getEditableWidget());
@@ -72,8 +72,8 @@ void PanelChannelEdit::init()
   //
   // Column 2
   //
-  auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto [detection, _5]          = addVerticalPanel(detectionContainer, "rgb(230, 164, 180)");
+  auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+  auto [detection, _5]          = addVerticalPanel(detectionContainer, "rgb(246, 246, 246)");
   detection->addWidget(createTitle("Detection"));
   detection->addWidget(mParentContainer->mUsedDetectionMode->getEditableWidget());
   connect(mParentContainer->mUsedDetectionMode.get(), &ContainerFunctionBase::valueChanged, this,
@@ -98,30 +98,10 @@ void PanelChannelEdit::init()
   connect(mParentContainer->mWateredSegmentation.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::updatePreview);
 
-  auto [measurement, _6] = addVerticalPanel(detectionContainer, "rgb(230, 164, 180)", 16, false);
+  auto [measurement, _6] = addVerticalPanel(detectionContainer, "rgb(246, 246, 246)", 16, false);
   measurement->addWidget(createTitle("Measurement"));
   {
     QPushButton *editMeasurment = new QPushButton("Measured data");
-    editMeasurment->setStyleSheet(
-        "QPushButton {"
-        "   background-color: rgba(0, 0, 0, 0);"
-        "   border: 1px solid rgb(111, 121, 123);"
-        "   color: rgb(0, 104, 117);"
-        "   padding: 10px 20px;"
-        "   border-radius: 4px;"
-        "   font-size: 14px;"
-        "   font-weight: normal;"
-        "   text-align: center;"
-        "   text-decoration: none;"
-        "}"
-
-        "QPushButton:hover {"
-        "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-        "}"
-
-        "QPushButton:pressed {"
-        "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-        "}");
     connect(editMeasurment, &QPushButton::pressed, this, &PanelChannelEdit::onEditMeasurementClicked);
     measurement->addWidget(editMeasurment);
   }
@@ -129,8 +109,9 @@ void PanelChannelEdit::init()
   //
   // Column 3
   //
-  auto [filterContainer, filterContainerLayout] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto [objectFilter, objectFilterLayout]       = addVerticalPanel(filterContainer, "rgb(230, 164, 180)");
+  auto [filterContainer, filterContainerLayout] =
+      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+  auto [objectFilter, objectFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)");
   objectFilter->addWidget(createTitle("Object filter"));
   objectFilter->addWidget(mParentContainer->mMinParticleSize->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mMaxParticleSize->getEditableWidget());
@@ -151,15 +132,15 @@ void PanelChannelEdit::init()
   connect(mParentContainer->mTetraspeckRemoval.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::updatePreview);
 
-  auto [imageFilter, imageFilterLayout] = addVerticalPanel(filterContainer, "rgb(230, 164, 180)", 16, false);
+  auto [imageFilter, imageFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)", 16, false);
   imageFilter->addWidget(createTitle("Image filter"));
   imageFilterLayout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   //
   // Column 4
   //
-  auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgb(230, 164, 180)", 16, false);
+  auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+  auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgb(246, 246, 246)", 16, false);
   verticalLayoutFuctions->addWidget(createTitle("Preprocessing"));
   verticalLayoutFuctions->addWidget(mParentContainer->mZProjection->getEditableWidget());
   verticalLayoutFuctions->addWidget(mParentContainer->mMarginCrop->getEditableWidget());
@@ -192,7 +173,7 @@ void PanelChannelEdit::init()
   //
   // Preview
   //
-  auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE);
+  auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE, 16);
   mPreviewImage      = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
   mPreviewImage->resetImage("");
   preview->addWidget(mPreviewImage);
@@ -314,10 +295,11 @@ QHBoxLayout *PanelChannelEdit::createLayout()
 
 std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout *horizontalLayout,
                                                                         const QString &bgColor, int margin,
-                                                                        bool enableScrolling, int maxWidth) const
+                                                                        bool enableScrolling, int maxWidth,
+                                                                        int spacing) const
 {
   QVBoxLayout *layout = new QVBoxLayout();
-  layout->setSpacing(16);
+  layout->setSpacing(spacing);
   QWidget *contentWidget = new QWidget();
 
   layout->setContentsMargins(margin, margin, margin, margin);
