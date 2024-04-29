@@ -382,7 +382,9 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
   auto calcVoronoi = [this, &detectionResults, &detailOutputFolder, &detailReports,
                       &channelProperties](int tileIdx, settings::VChannelVoronoi voronoi) {
     joda::pipeline::CalcVoronoi function(voronoi.meta.channelIdx, voronoi.voronoi.gridPointsChannelIdx,
-                                         voronoi.voronoi.overlayMaskChannelIdx, voronoi.voronoi.maxVoronoiAreaRadius);
+                                         voronoi.voronoi.overlayMaskChannelIdx, voronoi.voronoi.maxVoronoiAreaRadius,
+                                         voronoi.filter.excludeAreasWithoutCenterOfMass,
+                                         voronoi.filter.excludeAreasAtEdges);
     auto response = function.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
 
     auto idx = voronoi.meta.channelIdx;

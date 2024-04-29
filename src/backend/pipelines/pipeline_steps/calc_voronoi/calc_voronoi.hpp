@@ -26,10 +26,12 @@ class CalcVoronoi : public PipelineStep
 {
 public:
   CalcVoronoi(joda::settings::ChannelIndex channelIndexMe, joda::settings::ChannelIndex nucleusChannelIndex,
-              joda::settings::ChannelIndex cellChannelIndex, int32_t maxVoronoiAreaSize) :
+              joda::settings::ChannelIndex cellChannelIndex, int32_t maxVoronoiAreaSize, bool excludeAreasWithoutPoint,
+              bool excludeAreasAtEdges) :
       mChannelIndexMe(channelIndexMe),
       mVoronoiPointsChannelIndex(nucleusChannelIndex), mOverlayMaskChannelIndex(cellChannelIndex),
-      mMaxVoronoiAreaSize(maxVoronoiAreaSize)
+      mMaxVoronoiAreaSize(maxVoronoiAreaSize), mExcludeAreasWithoutPoint(excludeAreasWithoutPoint),
+      mExcludeAreasAtTheEdges(excludeAreasAtEdges)
   {
   }
   /////////////////////////////////////////////////////
@@ -59,6 +61,7 @@ private:
   joda::settings::ChannelIndex mOverlayMaskChannelIndex;
   int32_t mMaxVoronoiAreaSize;
   bool mExcludeAreasWithoutPoint = true;
+  bool mExcludeAreasAtTheEdges   = false;
 };
 
 }    // namespace joda::pipeline

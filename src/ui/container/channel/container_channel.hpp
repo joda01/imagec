@@ -80,6 +80,7 @@ private:
   std::shared_ptr<ContainerFunction<int, int>> mThresholdValueMin;
   std::shared_ptr<ContainerFunction<bool, bool>> mWateredSegmentation;
 
+  // Filtering
   std::shared_ptr<ContainerFunction<float, float>> mMinCircularity;
   std::shared_ptr<ContainerFunction<int, int>> mMinParticleSize;
   std::shared_ptr<ContainerFunction<int, int>> mMaxParticleSize;
