@@ -108,10 +108,6 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
   //
   // Filtering
   //
-  mMinCircularity = std::shared_ptr<ContainerFunction<float, float>>(
-      new ContainerFunction<float, float>("icons8-ellipse-50.png", "[0 - 1]", "Min. circularity", "%", std::nullopt, 0,
-                                          1, windowMain, "min_circularity.json"));
-
   mMinParticleSize = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
       "icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Min. particle size", "px", 1, 0, INT32_MAX,
       windowMain, "min_particle_size.json"));
@@ -174,7 +170,6 @@ void ContainerVoronoi::fromSettings()
   mMaxVoronoiAreaSize->setValue(mSettings.voronoi.maxVoronoiAreaRadius);
   mOverlayMaskChannelIndex->setValue(mSettings.voronoi.overlayMaskChannelIdx);
 
-  mMinCircularity->clearValue();
   mMinParticleSize->clearValue();
   mMaxParticleSize->clearValue();
 
@@ -185,7 +180,6 @@ void ContainerVoronoi::fromSettings()
   } else {
     mMaxParticleSize->setValue(mSettings.filter.maxParticleSize);
   }
-  mMinCircularity->setValue(mSettings.filter.minCircularity);
   mExcludeAreasWithoutCenterOfMass->setValue(mSettings.filter.excludeAreasWithoutCenterOfMass);
   mExcludeAreasAtTheEdges->setValue(mSettings.filter.excludeAreasAtEdges);
 
@@ -259,7 +253,6 @@ void ContainerVoronoi::toSettings()
     mSettings.filter.maxParticleSize = INT32_MAX;
   }
 
-  mSettings.filter.minCircularity                  = mMinCircularity->getValue();
   mSettings.filter.excludeAreasAtEdges             = mExcludeAreasAtTheEdges->getValue();
   mSettings.filter.excludeAreasWithoutCenterOfMass = mExcludeAreasWithoutCenterOfMass->getValue();
 

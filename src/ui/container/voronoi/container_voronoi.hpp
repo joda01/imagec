@@ -80,7 +80,6 @@ private:
   std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>> mOverlayMaskChannelIndex;
 
   // Filtering//////////////////////////////////
-  std::shared_ptr<ContainerFunction<float, float>> mMinCircularity;
   std::shared_ptr<ContainerFunction<int, int>> mMinParticleSize;
   std::shared_ptr<ContainerFunction<int, int>> mMaxParticleSize;
 

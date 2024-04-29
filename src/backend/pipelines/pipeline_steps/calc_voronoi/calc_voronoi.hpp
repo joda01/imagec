@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include "backend/pipelines/pipeline_step.hpp"
 
 namespace joda::pipeline {
@@ -27,11 +28,11 @@ class CalcVoronoi : public PipelineStep
 public:
   CalcVoronoi(joda::settings::ChannelIndex channelIndexMe, joda::settings::ChannelIndex nucleusChannelIndex,
               joda::settings::ChannelIndex cellChannelIndex, int32_t maxVoronoiAreaSize, bool excludeAreasWithoutPoint,
-              bool excludeAreasAtEdges) :
+              bool excludeAreasAtEdges, uint64_t minSize, uint64_t maxSize) :
       mChannelIndexMe(channelIndexMe),
       mVoronoiPointsChannelIndex(nucleusChannelIndex), mOverlayMaskChannelIndex(cellChannelIndex),
       mMaxVoronoiAreaSize(maxVoronoiAreaSize), mExcludeAreasWithoutPoint(excludeAreasWithoutPoint),
-      mExcludeAreasAtTheEdges(excludeAreasAtEdges)
+      mExcludeAreasAtTheEdges(excludeAreasAtEdges), mMinSize(minSize), mMaxSize(maxSize)
   {
   }
   /////////////////////////////////////////////////////
@@ -62,6 +63,8 @@ private:
   int32_t mMaxVoronoiAreaSize;
   bool mExcludeAreasWithoutPoint = true;
   bool mExcludeAreasAtTheEdges   = false;
+  uint64_t mMinSize;
+  uint64_t mMaxSize;
 };
 
 }    // namespace joda::pipeline

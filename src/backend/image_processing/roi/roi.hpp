@@ -37,7 +37,8 @@ enum class ParticleValidity : int
   TOO_LESS_CIRCULARITY = 0x08,
   TOO_LESS_OVERLAPPING = 0x10,
   REFERENCE_SPOT       = 0x20,
-  INVALID              = 0x30
+  INVALID              = 0x30,
+  AT_THE_EDGE          = 0x40
 };
 
 ///

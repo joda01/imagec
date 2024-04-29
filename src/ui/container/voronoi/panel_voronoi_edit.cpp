@@ -103,7 +103,6 @@ void PanelVoronoiEdit::init()
   objectFilter->addWidget(createTitle("Object filter"));
   objectFilter->addWidget(mParentContainer->mMinParticleSize->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mMaxParticleSize->getEditableWidget());
-  objectFilter->addWidget(mParentContainer->mMinCircularity->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mExcludeAreasAtTheEdges->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mExcludeAreasWithoutCenterOfMass->getEditableWidget());
   objectFilter->addStretch();
@@ -113,7 +112,9 @@ void PanelVoronoiEdit::init()
           &PanelVoronoiEdit::updatePreview);
   connect(mParentContainer->mMaxParticleSize.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelVoronoiEdit::updatePreview);
-  connect(mParentContainer->mMinCircularity.get(), &ContainerFunctionBase::valueChanged, this,
+  connect(mParentContainer->mExcludeAreasAtTheEdges.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelVoronoiEdit::updatePreview);
+  connect(mParentContainer->mExcludeAreasWithoutCenterOfMass.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelVoronoiEdit::updatePreview);
 
   //
