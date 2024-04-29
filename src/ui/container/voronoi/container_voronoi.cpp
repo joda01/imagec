@@ -116,12 +116,12 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
       INT32_MAX, windowMain, "max_particle_size.json"));
 
   mExcludeAreasWithoutCenterOfMass = std::shared_ptr<ContainerFunction<bool, bool>>(new ContainerFunction<bool, bool>(
-      "icons8-split-50", "Exclude areas without center of mass", "Exclude areas without center of mass", true,
+      "icons8-body-cells-50.png", "Exclude areas without center of mass", "Exclude areas without center of mass", true,
       windowMain, "voronoi_exclude_areas_without_center_of_mass.json"));
 
-  mExcludeAreasAtTheEdges = std::shared_ptr<ContainerFunction<bool, bool>>(
-      new ContainerFunction<bool, bool>("icons8-split-50", "Exclude areas at the edges", "Exclude areas at the edges",
-                                        false, windowMain, "voronoi_exclude_areas_at_edges.json"));
+  mExcludeAreasAtTheEdges = std::shared_ptr<ContainerFunction<bool, bool>>(new ContainerFunction<bool, bool>(
+      "icons8-coupon-50.png", "Exclude areas at the edges", "Exclude areas at the edges", false, windowMain,
+      "voronoi_exclude_areas_at_edges.json"));
 
   //
   // Cross channel Intensity
