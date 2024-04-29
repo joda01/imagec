@@ -58,7 +58,7 @@ using namespace std::chrono_literals;
 
 WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller)
 {
-  const QIcon myIcon(":/icons/outlined/icon_eva.png");
+  const QIcon myIcon(":/icons/outlined/icon.png");
   setWindowIcon(myIcon);
   setWindowTitle("imageC");
   createTopToolbar();
