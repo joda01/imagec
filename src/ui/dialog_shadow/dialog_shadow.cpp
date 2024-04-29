@@ -56,7 +56,7 @@ int DialogShadow::exec()
         "QPushButton {"
         "   background-color: rgba(0, 0, 0, 0);"
         "   border: 1px solid rgba(0, 0, 0, 0);"
-        "   color: rgb(0, 104, 117);"
+        "   color: rgb(255, 144, 144);"
         "   padding: 10px 10px;"
         "   border-radius: 4px;"
         "   font-size: 14px;"

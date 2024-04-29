@@ -35,10 +35,8 @@ namespace joda::ui::qt {
 ContainerIntersection::ContainerIntersection(WindowMain *windowMain, joda::settings::VChannelIntersection &settings) :
     mWindowMain(windowMain), mSettings(settings)
 {
-  mPanelEdit = new PanelIntersectionEdit(windowMain, this);
-
   mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(
-      new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name", mPanelEdit));
+      new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name", windowMain));
 
   mChannelType = std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>>(
       new ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>(
@@ -48,7 +46,7 @@ ContainerIntersection::ContainerIntersection(WindowMain *windowMain, joda::setti
            {joda::settings::ChannelSettingsMeta::Type::NUCLEUS, "Nucleus"},
            {joda::settings::ChannelSettingsMeta::Type::CELL, "Cell"},
            {joda::settings::ChannelSettingsMeta::Type::BACKGROUND, "Background"}},
-          mPanelEdit));
+          windowMain));
 
   mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>>(
       new ContainerFunction<QString, joda::settings::ChannelIndex>(
@@ -66,28 +64,28 @@ ContainerIntersection::ContainerIntersection(WindowMain *windowMain, joda::setti
            {joda::settings::ChannelIndex::D, "Slot D"},
            {joda::settings::ChannelIndex::E, "Slot E"},
            {joda::settings::ChannelIndex::F, "Slot F"}},
-          joda::settings::ChannelIndex::A, mPanelEdit));
+          joda::settings::ChannelIndex::A, windowMain));
 
   mMinIntersection = std::shared_ptr<ContainerFunction<float, int>>(new ContainerFunction<float, int>(
-      "icons8-percentage-50.png", "[0 - 1]", "Min. intersection", "%", 0.1, 0, 1, mPanelEdit));
+      "icons8-percentage-50.png", "[0 - 1]", "Min. intersection", "%", 0.1, 0, 1, windowMain));
 
   mCrossChannelIntersection = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-query-inner-join-50.png", "[0,1,2,3,..]", "Cross channel intersection", "", mPanelEdit));
+      "icons8-query-inner-join-50.png", "[0,1,2,3,..]", "Cross channel intersection", "", windowMain));
 
   //
   // Cross channel Intensity
   //
 
   mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-light-50.png", "[0,1,2,3,..]", "Cross channel intensity", "", mPanelEdit));
+      "icons8-light-50.png", "[0,1,2,3,..]", "Cross channel intensity", "", windowMain));
 
   mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-3-50.png", "[0,1,2,3,..]", "Cross channel count", "", mPanelEdit));
+      new ContainerFunction<QString, int>("icons8-3-50.png", "[0,1,2,3,..]", "Cross channel count", "", windowMain));
 
   //
   // Create panels -> Must be after creating the functions
   //
-  mPanelEdit->init();
+  mPanelEdit     = new PanelIntersectionEdit(windowMain, this);
   mPanelOverview = new PanelIntersectionOverview(windowMain, this);
 }
 

@@ -5,6 +5,7 @@
 
     <qresource prefix="/helptext">
         <file>helptext/rolling_ball.json</file>
+        <file>helptext/cross_channel_intensity.json</file>
     </qresource>
     <qresource prefix="/icons">
         <file>filled/icons8-25-50.png</file>
@@ -286,5 +287,6 @@
         <file>outlined/icons8-split-50.png</file>
         <file>outlined/girafa.gif</file>
         <file>outlined/icons8-info-50-circle.png</file>
+        <file>outlined/icon_eva.png</file>
     </qresource>
 </RCC>

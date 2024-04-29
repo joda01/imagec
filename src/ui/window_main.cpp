@@ -42,8 +42,10 @@
 #include "backend/settings/vchannel/vchannel_settings.hpp"
 #include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
 #include "container/channel/container_channel.hpp"
+#include "container/giraf/container_giraf.hpp"
 #include "container/intersection/container_intersection.hpp"
 #include "container/voronoi/container_voronoi.hpp"
+#include "ui/container/giraf/container_giraf.hpp"
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_experiment_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
@@ -56,6 +58,8 @@ using namespace std::chrono_literals;
 
 WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller)
 {
+  const QIcon myIcon(":/icons/outlined/icon_eva.png");
+  setWindowIcon(myIcon);
   setWindowTitle("imageC");
   createTopToolbar();
   createBottomToolbar();
@@ -79,9 +83,11 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 void WindowMain::createBottomToolbar()
 {
   auto *toolbar = new QToolBar(this);
+  toolbar->setStyleSheet("QToolBar{spacing:8px;}");
+
+  toolbar->setMinimumHeight(48);
   toolbar->setMovable(false);
   toolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
-
   // Middle
 
   {
@@ -135,6 +141,8 @@ void WindowMain::createBottomToolbar()
 void WindowMain::createTopToolbar()
 {
   auto *toolbar = addToolBar("toolbar");
+  toolbar->setMinimumHeight(48);
+
   toolbar->setMovable(false);
   toolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
 
@@ -167,7 +175,7 @@ void WindowMain::createTopToolbar()
       const QIcon myIcon(":/icons/outlined/icons8-topic-50.png");
       mJobName = new QLineEdit();
       mJobName->setObjectName("JobName");
-      mJobName->setStyleSheet("border: 0px solid rgb(111, 121, 123);");
+      mJobName->setStyleSheet("border: 0px solid rgb(190, 209, 207);");
       mJobName->setText("");
       mJobName->setClearButtonEnabled(true);
       // mJobName->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
@@ -273,8 +281,6 @@ QWidget *WindowMain::createOverviewWidget()
     mLayoutChannelOverview                                = channelsOverViewLayout;
 
     channelsOverViewLayout->addWidget(createAddChannelPanel());
-    mAddChannelPanel->setVisible(false);
-    channelsOverViewLayout->addWidget(createGirafWidget(), 0, 1, 1, 1);
 
     mLastElement = new QLabel();
     channelsOverViewLayout->addWidget(mLastElement, 1, 0, 1, 3);
@@ -316,94 +322,6 @@ QWidget *WindowMain::createChannelWidget()
   return new QWidget(this);
 }
 
-QWidget *WindowMain::createGirafWidget()
-{
-  QWidget *addChannelWidget = new QWidget();
-  addChannelWidget->setMinimumHeight(250);
-  addChannelWidget->setMinimumWidth(350);
-  addChannelWidget->setMaximumWidth(350);
-  QVBoxLayout *layout = new QVBoxLayout();
-  addChannelWidget->setLayout(layout);
-
-  mGiraf    = new QMovie(":/icons/outlined/girafa.gif");
-  QLabel *q = new QLabel(addChannelWidget);
-  // q->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
-  q->setMovie(mGiraf);
-  layout->addWidget(q);
-  mGiraf->setScaledSize(QSize(200, 200));
-
-  mUseImageC = new QPushButton(
-      "Use imageC, a powerful image processing\n"
-      "software that helps you make innovative\n"
-      "discoveries in your research work and\n"
-      "thus change the world.");
-  mUseImageC->setStyleSheet(
-      "QPushButton {"
-      "   background-color: rgba(0, 0, 0, 0);"
-      "   border: 1px solid rgb(111, 121, 123);"
-      "   color: rgb(0, 104, 117);"
-      "   padding: 10px 20px;"
-      "   border-radius: 4px;"
-      "   font-size: 14px;"
-      "   font-weight: normal;"
-      "   text-align: center;"
-      "   text-decoration: none;"
-      "}"
-
-      "QPushButton:hover {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-      "}"
-
-      "QPushButton:pressed {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-      "}");
-  layout->addWidget(mUseImageC);
-  connect(mUseImageC, &QPushButton::pressed, this, &WindowMain::onUseImageCClicked);
-
-  mUseTheGiraf = new QPushButton("or take the giraf");
-  mUseTheGiraf->setStyleSheet(
-      "QPushButton {"
-      "   background-color: rgba(0, 0, 0, 0);"
-      "   border: 1px solid rgb(111, 121, 123);"
-      "   color: rgb(0, 104, 117);"
-      "   padding: 10px 20px;"
-      "   border-radius: 4px;"
-      "   font-size: 14px;"
-      "   font-weight: normal;"
-      "   text-align: center;"
-      "   text-decoration: none;"
-      "}"
-
-      "QPushButton:hover {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-      "}"
-
-      "QPushButton:pressed {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-      "}");
-  layout->addWidget(mUseTheGiraf);
-  connect(mUseTheGiraf, &QPushButton::pressed, this, &WindowMain::onTakeTheGirafClicked);
-
-  addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-  mGirafWidget = addChannelWidget;
-  return addChannelWidget;
-}
-
-void WindowMain::onTakeTheGirafClicked()
-{
-  mUseImageC->setVisible(false);
-  mUseTheGiraf->setVisible(false);
-  mGiraf->start();
-}
-
-void WindowMain::onUseImageCClicked()
-{
-  mLayoutChannelOverview->removeWidget(mGirafWidget);
-  mGirafWidget->setVisible(false);
-  delete mGirafWidget;
-  mAddChannelPanel->setVisible(true);
-}
-
 QWidget *WindowMain::createAddChannelPanel()
 {
   QWidget *addChannelWidget = new QWidget();
@@ -413,9 +331,11 @@ QWidget *WindowMain::createAddChannelPanel()
   addChannelWidget->setMinimumWidth(350);
   addChannelWidget->setMaximumWidth(350);
   QVBoxLayout *layout = new QVBoxLayout(); /*this*/
+  layout->setContentsMargins(16, 16, 16, 16);
+
   layout->setObjectName("mainWindowChannelGridLayout");
   addChannelWidget->setStyleSheet(
-      "QWidget#PanelChannelOverview { border-radius: 12px; border: 2px solid rgba(0, 104, 117, 0.05); padding-top: "
+      "QWidget#PanelChannelOverview { border-radius: 12px; border: 1px solid rgb(170, 170, 170); padding-top: "
       "10px; "
       "padding-bottom: 10px;"
       "background-color: rgba(0, 104, 117, 0);}");
@@ -426,78 +346,23 @@ QWidget *WindowMain::createAddChannelPanel()
   QWidget *widgetAddChannel     = new QWidget();
   QHBoxLayout *layoutAddChannel = new QHBoxLayout();
   layoutAddChannel->setContentsMargins(0, 0, 0, 0);
+
   widgetAddChannel->setLayout(layoutAddChannel);
 
   //
   // Open template
   //
   mTemplateSelection = new QComboBox();
-  mTemplateSelection->setStyleSheet(
-      "QComboBox {"
-      "   border: 1px solid rgba(32, 27, 23, 0.6);"
-      "   border-radius: 4px;"
-      "   padding-top: 10px;"
-      "   padding-bottom: 10px;"
-      "   padding-left: 10px;"
-      "   color: #333;"
-      "   background-color: #fff;"
-      "   selection-background-color: rgba(48,140,198,0.7);"
-      "}"
-      "QComboBox:editable {"
-      "   background: #fff;"
-      "   padding-left: 20px;"
-      "}"
-
-      "QComboBox::drop-down {"
-      "   subcontrol-origin: padding;"
-      "   subcontrol-position: right top;"
-      "   width: 20px;"
-      "   border-left: none;"
-      "   border-radius: 4px 4px 4px 4px;"
-      "   background: #fff;"
-      "}"
-
-      "QComboBox::down-arrow {"
-      "   image: url(:/icons/outlined/icons8-sort-down-50.png);"
-      "   width: 16px;"
-      "   background: #fff;"
-      "}"
-
-      "QComboBox::down-arrow:on {"
-      "   top: 1px;"
-      "}"
-
-      "QComboBox QAbstractItemView {"
-      "   border: none;"
-      "   background-color: #fff;"
-      "}");
+  mTemplateSelection->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   layoutAddChannel->addWidget(mTemplateSelection);
 
   //
   // Add channel
   //
   QPushButton *addChannelButton = new QPushButton();
-  addChannelButton->setStyleSheet(
-      "QPushButton {"
-      "   background-color: rgba(0, 0, 0, 0);"
-      "   border: 1px solid rgb(111, 121, 123);"
-      "   color: rgb(0, 104, 117);"
-      "   padding: 10px 20px;"
-      "   border-radius: 4px;"
-      "   font-size: 14px;"
-      "   font-weight: normal;"
-      "   text-align: center;"
-      "   text-decoration: none;"
-      "}"
-
-      "QPushButton:hover {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-      "}"
-
-      "QPushButton:pressed {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-      "}");
   addChannelButton->setText("Add image Channel");
+  addChannelButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+
   connect(addChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
   layoutAddChannel->addWidget(addChannelButton);
 
@@ -507,26 +372,6 @@ QWidget *WindowMain::createAddChannelPanel()
   // Add cell voronoi
   //
   QPushButton *addVoronoiButton = new QPushButton();
-  addVoronoiButton->setStyleSheet(
-      "QPushButton {"
-      "   background-color: rgba(0, 0, 0, 0);"
-      "   border: 1px solid rgb(111, 121, 123);"
-      "   color: rgb(0, 104, 117);"
-      "   padding: 10px 20px;"
-      "   border-radius: 4px;"
-      "   font-size: 14px;"
-      "   font-weight: normal;"
-      "   text-align: center;"
-      "   text-decoration: none;"
-      "}"
-
-      "QPushButton:hover {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-      "}"
-
-      "QPushButton:pressed {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-      "}");
   addVoronoiButton->setText("Add voronoi channel");
   connect(addVoronoiButton, &QPushButton::pressed, this, &WindowMain::onAddCellApproxClicked);
   layout->addWidget(addVoronoiButton);
@@ -535,26 +380,6 @@ QWidget *WindowMain::createAddChannelPanel()
   // Add intersection voronoi
   //
   QPushButton *addIntersection = new QPushButton();
-  addIntersection->setStyleSheet(
-      "QPushButton {"
-      "   background-color: rgba(0, 0, 0, 0);"
-      "   border: 1px solid rgb(111, 121, 123);"
-      "   color: rgb(0, 104, 117);"
-      "   padding: 10px 20px;"
-      "   border-radius: 4px;"
-      "   font-size: 14px;"
-      "   font-weight: normal;"
-      "   text-align: center;"
-      "   text-decoration: none;"
-      "}"
-
-      "QPushButton:hover {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-      "}"
-
-      "QPushButton:pressed {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-      "}");
   addIntersection->setText("Add intersection channel");
   connect(addIntersection, &QPushButton::pressed, this, &WindowMain::onAddIntersectionClicked);
   layout->addWidget(addIntersection);
@@ -563,67 +388,17 @@ QWidget *WindowMain::createAddChannelPanel()
   // Open settings
   //
   QPushButton *openSettingsButton = new QPushButton();
-  openSettingsButton->setStyleSheet(
-      "QPushButton {"
-      "   background-color: rgba(0, 0, 0, 0);"
-      "   border: 1px solid rgb(111, 121, 123);"
-      "   color: rgb(0, 104, 117);"
-      "   padding: 10px 20px;"
-      "   border-radius: 4px;"
-      "   font-size: 14px;"
-      "   font-weight: normal;"
-      "   text-align: center;"
-      "   text-decoration: none;"
-      "}"
-
-      "QPushButton:hover {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-      "}"
-
-      "QPushButton:pressed {"
-      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-      "}");
   openSettingsButton->setText("Load channel settings");
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
   layout->addWidget(openSettingsButton);
 
   //
-  // Job name
+  // Add giraf
   //
-  {
-    /*
-      QFrame *divider = new QFrame();
-      divider->setFrameShape(QFrame::HLine);
-      divider->setFrameShadow(QFrame::Sunken);
-      layout->addWidget(divider);
-
-    const QIcon myIcon(":/icons/outlined/icons8-topic-50.png");
-    mJobName = new QLineEdit();
-    mJobName->setObjectName("JobName");
-    mJobName->setStyleSheet(
-        "QLineEdit { border-radius: 4px; border: 1px solid rgba(32, 27, 23, 0.6); padding-top: 10px; padding-bottom: "
-        "10px;}");
-    mJobName->setText("");
-    QFont fontLineEdit;
-    fontLineEdit.setPixelSize(16);
-    mJobName->setFont(fontLineEdit);
-    mJobName->setClearButtonEnabled(true);
-    mJobName->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
-    mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
-    layout->addWidget(mJobName);
-    auto *helperText = new QLabel();
-    helperText->setObjectName("functionHelperText");
-    helperText->setText("Job name");
-    helperText->setContentsMargins(12, 0, 0, 0);
-    QFont font;
-    font.setPixelSize(12);
-    font.setItalic(true);
-    font.setBold(false);
-    font.setWeight(QFont::Light);
-    helperText->setFont(font);
-    helperText->setStyleSheet("QLabel#functionHelperText { color : #808080; }");
-    layout->addWidget(helperText);*/
-  }
+  QPushButton *addGiraf = new QPushButton();
+  addGiraf->setText("or add the Giraf");
+  connect(addGiraf, &QPushButton::pressed, this, &WindowMain::onAddGirafClicked);
+  layout->addWidget(addGiraf);
 
   layout->setSpacing(8);    // Adjust this value as needed
   layout->addStretch();
@@ -631,6 +406,32 @@ QWidget *WindowMain::createAddChannelPanel()
 
   mAddChannelPanel = addChannelWidget;
   return addChannelWidget;
+}
+
+///
+/// \brief      On add giraf clicked
+/// \author     Joachim Danmayr
+///
+void WindowMain::onAddGirafClicked()
+{
+  if(mAddChannelPanel != nullptr) {
+    {
+      int row = (mChannels.size() + 1) / OVERVIEW_COLS;
+      int col = (mChannels.size() + 1) % OVERVIEW_COLS;
+      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
+      mLayoutChannelOverview->removeWidget(mLastElement);
+      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
+      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
+    }
+
+    int row                = mChannels.size() / OVERVIEW_COLS;
+    int col                = mChannels.size() % OVERVIEW_COLS;
+    ContainerGiraf *panel1 = new ContainerGiraf(this);
+    panel1->fromSettings();
+    panel1->toSettings();
+    mChannels.emplace(panel1, &panel1);
+    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+  }
 }
 
 ///

@@ -62,11 +62,14 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
   // Create and set up the buttons
   QHBoxLayout *buttonLayout = new QHBoxLayout;
   closeButton               = new QPushButton("Close", this);
+  closeButton->setObjectName("ToolButton");
   closeButton->setEnabled(false);
   stopButton = new QPushButton("Stop", this);
+  stopButton->setObjectName("ToolButton");
   stopButton->setEnabled(true);
 
   QPushButton *openResultsFolder = new QPushButton(QIcon(":/icons/outlined/icons8-scatter-plot-50.png"), "", this);
+  openResultsFolder->setObjectName("ToolButton");
   openResultsFolder->setToolTip("Open results folder");
 
   connect(closeButton, &QPushButton::clicked, this, &DialogAnalyzeRunning::onCloseClicked);

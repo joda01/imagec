@@ -43,10 +43,8 @@ namespace joda::ui::qt {
 ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::ChannelSettings &settings) :
     mWindowMain(windowMain), mSettings(settings)
 {
-  mPanelEdit = new PanelChannelEdit(windowMain, this);
-
   mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(new ContainerFunction<QString, QString>(
-      "icons8-text-50.png", "Name", "Channel Name", "Name", mPanelEdit, "channel_name.json"));
+      "icons8-text-50.png", "Name", "Channel Name", "Name", windowMain, "channel_name.json"));
 
   mChannelType = std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>>(
       new ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>(
@@ -56,7 +54,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
            {joda::settings::ChannelSettingsMeta::Type::NUCLEUS, "Nucleus"},
            {joda::settings::ChannelSettingsMeta::Type::CELL, "Cell"},
            {joda::settings::ChannelSettingsMeta::Type::BACKGROUND, "Background"}},
-          mPanelEdit, "channel_type.json"));
+          windowMain, "channel_type.json"));
 
   mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>>(
       new ContainerFunction<QString, joda::settings::ChannelIndex>(
@@ -78,7 +76,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
            {joda::settings::ChannelIndex::CH7, "Channel 7"},
            {joda::settings::ChannelIndex::CH8, "Channel 8"},
            {joda::settings::ChannelIndex::CH9, "Channel 9"}},
-          joda::settings::ChannelIndex::CH0, mPanelEdit, "channel_index.json"));
+          joda::settings::ChannelIndex::CH0, windowMain, "channel_index.json"));
 
   mUsedDetectionMode = std::shared_ptr<ContainerFunction<joda::settings::DetectionSettings::DetectionMode, QString>>(
       new ContainerFunction<joda::settings::DetectionSettings::DetectionMode, QString>(
@@ -86,7 +84,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
           joda::settings::DetectionSettings::DetectionMode::THRESHOLD,
           {{joda::settings::DetectionSettings::DetectionMode::THRESHOLD, "Threshold"},
            {joda::settings::DetectionSettings::DetectionMode::AI, "Artificial intelligence"}},
-          mPanelEdit, "detection_mode.json"));
+          windowMain, "detection_mode.json"));
 
   mThresholdAlgorithm = std::shared_ptr<ContainerFunction<joda::settings::ThresholdSettings::Mode, QString>>(
       new ContainerFunction<joda::settings::ThresholdSettings::Mode, QString>(
@@ -98,19 +96,19 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
            {joda::settings::ThresholdSettings::Mode::TRIANGLE, "Triangle"},
            {joda::settings::ThresholdSettings::Mode::MOMENTS, "Moments"},
            {joda::settings::ThresholdSettings::Mode::OTSU, "Otsu"}},
-          mPanelEdit, "threshold_algorithm.json"));
+          windowMain, "threshold_algorithm.json"));
 
   mThresholdValueMin = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "px", 1000, 0, 65535,
-                                      mPanelEdit, "threshold_min.json"));
+                                      windowMain, "threshold_min.json"));
 
   mMinProbability = std::shared_ptr<ContainerFunction<float, float>>(
       new ContainerFunction<float, float>("icons8-percentage-50.png", "[0 - 1]", "Min. probability", "%", 0.5, 0, 1,
-                                          mPanelEdit, "ai_min_probability.json"));
+                                          windowMain, "ai_min_probability.json"));
 
   mWateredSegmentation = std::shared_ptr<ContainerFunction<bool, bool>>(
       new ContainerFunction<bool, bool>("icons8-split-50", "Watershed segmentation", "Watershed segmentation", false,
-                                        mPanelEdit, "watershed_segmentation.json"));
+                                        windowMain, "watershed_segmentation.json"));
 
   auto foundAIModels = joda::onnx::OnnxParser::findOnnxFiles();
   std::vector<ContainerFunction<QString, QString>::ComboEntry> aiModelsConverted;
@@ -121,22 +119,22 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
   }
 
   mAIModels = std::shared_ptr<ContainerFunction<QString, QString>>(new ContainerFunction<QString, QString>(
-      "icons8-mind-map-50.png", "AI model", "AI model", "", "", aiModelsConverted, mPanelEdit, "ai_model.json"));
+      "icons8-mind-map-50.png", "AI model", "AI model", "", "", aiModelsConverted, windowMain, "ai_model.json"));
 
   mMinCircularity = std::shared_ptr<ContainerFunction<float, float>>(
       new ContainerFunction<float, float>("icons8-ellipse-50.png", "[0 - 1]", "Min. circularity", "%", std::nullopt, 0,
-                                          1, mPanelEdit, "min_circularity.json"));
+                                          1, windowMain, "min_circularity.json"));
 
   mMinParticleSize = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
       "icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Min. particle size", "px", 1, 0, INT32_MAX,
-      mPanelEdit, "min_particle_size.json"));
+      windowMain, "min_particle_size.json"));
   mMaxParticleSize = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
       "icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Max. particle size", "px", std::nullopt, 0,
-      INT32_MAX, mPanelEdit, "max_particle_size.json"));
+      INT32_MAX, windowMain, "max_particle_size.json"));
 
   mSnapAreaSize = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-initial-state-50.png", "[0 - 65535]", "Snap area size", "px",
-                                      std::nullopt, 0, 65535, mPanelEdit, "snap_area_size.json"));
+                                      std::nullopt, 0, 65535, windowMain, "snap_area_size.json"));
 
   mZProjection = std::shared_ptr<ContainerFunction<joda::settings::ZStackProcessing::ZStackMethod, QString>>(
       new ContainerFunction<joda::settings::ZStackProcessing::ZStackMethod, QString>(
@@ -145,11 +143,11 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
           {{joda::settings::ZStackProcessing::ZStackMethod::NONE, "Off"},
            {joda::settings::ZStackProcessing::ZStackMethod::MAX_INTENSITY, "Max. intensity"},
            {joda::settings::ZStackProcessing::ZStackMethod::PROJECT_3D, "3D projection"}},
-          mPanelEdit, "z_projection.json"));
+          windowMain, "z_projection.json"));
 
   mMarginCrop = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-crop-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Crop margin",
-                                      "px", std::nullopt, 0, INT32_MAX, mPanelEdit, "margin_crop.json"));
+                                      "px", std::nullopt, 0, INT32_MAX, windowMain, "margin_crop.json"));
   mSubtractChannel = std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>>(
       new ContainerFunction<joda::settings::ChannelIndex, int>(
           "icons8-layers-50.png", "Index", "Subtract other channel", "", joda::settings::ChannelIndex::NONE,
@@ -164,7 +162,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
            {joda::settings::ChannelIndex::CH7, "Channel 7"},
            {joda::settings::ChannelIndex::CH8, "Channel 8"},
            {joda::settings::ChannelIndex::CH9, "Channel 9"}},
-          mPanelEdit, "subtract_channel.json"));
+          windowMain, "subtract_channel.json"));
 
   mMedianBackgroundSubtraction = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,
@@ -181,7 +179,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
                                        {19, "19x19"},
                                        {21, "21x21"},
                                        {23, "23x23"}},
-                                      mPanelEdit, "median_background_subtraction.json"));
+                                      windowMain, "median_background_subtraction.json"));
 
   mRollingBall = std::shared_ptr<ContainerFunction<int, joda::settings::RollingBall::BallType>>(
       new ContainerFunction<int, joda::settings::RollingBall::BallType>(
@@ -189,17 +187,17 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
           INT32_MAX,
           {{joda::settings::RollingBall::BallType::BALL, "Ball"},
            {joda::settings::RollingBall::BallType::PARABOLOID, "Paraboloid"}},
-          joda::settings::RollingBall::BallType::BALL, mPanelEdit, "rolling_ball.json"));
+          joda::settings::RollingBall::BallType::BALL, windowMain, "rolling_ball.json"));
 
   mGaussianBlur = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur",
                                       "px", -1, {{-1, "Off"}, {3, "3x3"}, {5, "5x5"}, {7, "7x7"}, {9, "9x9"}},
-                                      {{1, "1x"}, {2, "2x"}, {3, "3x"}}, 1, mPanelEdit, "gaussian_blur.json"));
+                                      {{1, "1x"}, {2, "2x"}, {3, "3x"}}, 1, windowMain, "gaussian_blur.json"));
 
   mSmoothing = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
       "icons8-cleanup-noise-50.png", "Kernel size", "Smoothing", "", -1,
       {{-1, "Off"}, {1, "x1"}, {2, "x2"}, {3, "x3"}, {4, "x4"}, {5, "x5"}, {6, "x6"}, {7, "x7"}, {8, "x8"}, {9, "x9"}},
-      mPanelEdit, "smoothing.json"));
+      windowMain, "smoothing.json"));
   mEdgeDetection =
       std::shared_ptr<ContainerFunction<joda::settings::EdgeDetection::Mode, joda::settings::EdgeDetection::Direction>>(
           new ContainerFunction<joda::settings::EdgeDetection::Mode, joda::settings::EdgeDetection::Direction>(
@@ -210,7 +208,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
               {{joda::settings::EdgeDetection::Direction::XY, "xy"},
                {joda::settings::EdgeDetection::Direction::X, "x"},
                {joda::settings::EdgeDetection::Direction::Y, "y"}},
-              joda::settings::EdgeDetection::Direction::XY, mPanelEdit, "edge_detection.json"));
+              joda::settings::EdgeDetection::Direction::XY, windowMain, "edge_detection.json"));
   mTetraspeckRemoval = std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>>(
       new ContainerFunction<joda::settings::ChannelIndex, int>(
           "icons8-minus-sign-50.png", "Index", "Tetraspeck removal", "", joda::settings::ChannelIndex::NONE,
@@ -225,19 +223,19 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
            {joda::settings::ChannelIndex::CH7, "Channel 7"},
            {joda::settings::ChannelIndex::CH8, "Channel 8"},
            {joda::settings::ChannelIndex::CH9, "Channel 9"}},
-          mPanelEdit, "tetraspeck_removal.json"));
+          windowMain, "tetraspeck_removal.json"));
 
   mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(
       new ContainerFunction<QString, int>("icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", "",
-                                          mPanelEdit, "cross_channel_intensity.json"));
+                                          windowMain, "cross_channel_intensity.json"));
 
   mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", mPanelEdit, "cross_channel_count.json"));
+      "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", windowMain, "cross_channel_count.json"));
 
-  mPanelEdit->init();
   //
   // Create panels -> Must be after creating the functions
   //
+  mPanelEdit     = new PanelChannelEdit(windowMain, this);
   mPanelOverview = new PanelChannelOverview(windowMain, this);
 }
 

@@ -32,7 +32,7 @@ PanelVoronoiOverview::PanelVoronoiOverview(WindowMain *wm, ContainerVoronoi *par
   setStyleSheet(
       "QWidget#PanelVoronoiOverview { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
       "padding-bottom: 10px;"
-      "background-color: rgba(130, 49, 125, 0.05);}");
+      "background-color: rgb(246, 246, 246);}");
 
   setLayout(layout);
   layout->setSpacing(0);

@@ -100,7 +100,6 @@ private:
   void createBottomToolbar();
 
   QWidget *createStackedWidget();
-  QWidget *createGirafWidget();
   QWidget *createOverviewWidget();
   QWidget *createChannelWidget();
   void waitForFileSearchFinished();
@@ -171,10 +170,10 @@ private slots:
   QWidget *createAddChannelPanel();
   void onLookingForFilesFinished();
   void onOpenAnalyzeSettingsClicked();
+  void onAddGirafClicked();
+
   void onOpenSettingsDialog();
   void onFindTemplatesFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
-  void onTakeTheGirafClicked();
-  void onUseImageCClicked();
 };
 
 }    // namespace joda::ui::qt

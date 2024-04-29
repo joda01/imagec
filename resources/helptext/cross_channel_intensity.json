@@ -1,0 +1,10 @@
+{
+    "textLong": "Cross-channel intensity is the intensity measurement in a different channel at the ROIs of this channel. Enter the channels [0-9] and slots [A-Z] in which the intensity is to be measured.",
+    "cite": [],
+    "source": [
+        {
+            "href": "https://github.com/joda01/imagec/blob/main/src/backend/pipelines/pipeline_steps/calc_intensity/calc_intensity.cpp",
+            "title": "ImageC"
+        }
+    ]
+}

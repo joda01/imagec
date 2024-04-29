@@ -36,14 +36,15 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelVoronoiEdit");
+  init();
 }
 
 void PanelVoronoiEdit::init()
 {
   auto *horizontalLayout = createLayout();
 
-  auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
+  auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+  auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
   verticalLayoutMeta->addWidget(createTitle("Meta"));
   verticalLayoutMeta->addWidget(mParentContainer->mChannelName->getEditableWidget());
   verticalLayoutMeta->addWidget(mParentContainer->mColorAndChannelIndex->getEditableWidget());
@@ -55,20 +56,33 @@ void PanelVoronoiEdit::init()
   //
   // Cross channel
   //
-  auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgba(0, 104, 117, 0.05)");
+  auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
   llayoutColoc->addWidget(createTitle("Cross-Channel"));
-  llayoutColoc->addWidget(mParentContainer->mVoronoiPoints->getEditableWidget());
   // llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
   llayoutColoc->addWidget(mParentContainer->mCrossChannelIntensity->getEditableWidget());
   llayoutColoc->addWidget(mParentContainer->mCrossChannelCount->getEditableWidget());
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
+  //
+  // Measurement
+  //
+  auto [verticalLayoutFuctions, _8] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)", 16, false);
+  verticalLayoutFuctions->addWidget(createTitle("Measurement"));
+  {
+    QPushButton *editMeasurment = new QPushButton("Measured data");
+    connect(editMeasurment, &QPushButton::pressed, this, &PanelVoronoiEdit::onEditMeasurementClicked);
+    verticalLayoutFuctions->addWidget(editMeasurment);
+  }
+
+  _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
   verticalLayoutContainer->addStretch(0);
 
-  auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-
-  auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
-  verticalLayoutFilter->addWidget(createTitle("Filtering"));
+  // Column 2
+  auto [detectionContainer, _4]   = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+  auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgb(246, 246, 246)", 16, false);
+  verticalLayoutFilter->addWidget(createTitle("Voronoi"));
+  verticalLayoutFilter->addWidget(mParentContainer->mVoronoiPoints->getEditableWidget());
   verticalLayoutFilter->addWidget(mParentContainer->mMaxVoronoiAreaSize->getEditableWidget());
   verticalLayoutFilter->addWidget(mParentContainer->mOverlayMaskChannelIndex->getEditableWidget());
 
@@ -84,37 +98,9 @@ void PanelVoronoiEdit::init()
   // Preprocessing
   //
 
-  auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0);
-  auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgba(0, 104, 117, 0.05)", 16, false);
-  verticalLayoutFuctions->addWidget(createTitle("Measurement"));
-  {
-    QPushButton *editMeasurment = new QPushButton("Measured data");
-    editMeasurment->setStyleSheet(
-        "QPushButton {"
-        "   background-color: rgba(0, 0, 0, 0);"
-        "   border: 1px solid rgb(111, 121, 123);"
-        "   color: rgb(0, 104, 117);"
-        "   padding: 10px 20px;"
-        "   border-radius: 4px;"
-        "   font-size: 14px;"
-        "   font-weight: normal;"
-        "   text-align: center;"
-        "   text-decoration: none;"
-        "}"
+  // auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
 
-        "QPushButton:hover {"
-        "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-        "}"
-
-        "QPushButton:pressed {"
-        "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-        "}");
-    connect(editMeasurment, &QPushButton::pressed, this, &PanelVoronoiEdit::onEditMeasurementClicked);
-    verticalLayoutFuctions->addWidget(editMeasurment);
-  }
-
-  _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  _7->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+  // _7->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
   /*
     //
@@ -243,9 +229,11 @@ QHBoxLayout *PanelVoronoiEdit::createLayout()
 
 std::tuple<QVBoxLayout *, QWidget *> PanelVoronoiEdit::addVerticalPanel(QLayout *horizontalLayout,
                                                                         const QString &bgColor, int margin,
-                                                                        bool enableScrolling, int maxWidth) const
+                                                                        bool enableScrolling, int maxWidth,
+                                                                        int spacing) const
 {
-  QVBoxLayout *layout    = new QVBoxLayout();
+  QVBoxLayout *layout = new QVBoxLayout();
+  layout->setSpacing(spacing);
   QWidget *contentWidget = new QWidget();
 
   layout->setContentsMargins(margin, margin, margin, margin);
