@@ -35,10 +35,8 @@ namespace joda::ui::qt {
 ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChannelVoronoi &settings) :
     mWindowMain(windowMain), mSettings(settings)
 {
-  mPanelEdit = new PanelVoronoiEdit(windowMain, this);
-
   mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(
-      new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name", mPanelEdit));
+      new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name", windowMain));
 
   mChannelType = std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>>(
       new ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>(
@@ -48,7 +46,7 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
            {joda::settings::ChannelSettingsMeta::Type::NUCLEUS, "Nucleus"},
            {joda::settings::ChannelSettingsMeta::Type::CELL, "Cell"},
            {joda::settings::ChannelSettingsMeta::Type::BACKGROUND, "Background"}},
-          mPanelEdit));
+          windowMain));
 
   mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>>(
       new ContainerFunction<QString, joda::settings::ChannelIndex>(
@@ -66,7 +64,7 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
            {joda::settings::ChannelIndex::D, "Slot D"},
            {joda::settings::ChannelIndex::E, "Slot E"},
            {joda::settings::ChannelIndex::F, "Slot F"}},
-          joda::settings::ChannelIndex::A, mPanelEdit));
+          joda::settings::ChannelIndex::A, windowMain));
 
   //
   // Cell approximation
@@ -85,11 +83,11 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
            {joda::settings::ChannelIndex::CH7, "Channel 7"},
            {joda::settings::ChannelIndex::CH8, "Channel 8"},
            {joda::settings::ChannelIndex::CH9, "Channel 9"}},
-          mPanelEdit));
+          windowMain));
 
   mMaxVoronoiAreaSize = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
-                                      "Max. voronoi area radius", "px", 100, 0, INT32_MAX, mPanelEdit));
+                                      "Max. voronoi area radius", "px", 100, 0, INT32_MAX, windowMain));
 
   mOverlayMaskChannelIndex = std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>>(
       new ContainerFunction<joda::settings::ChannelIndex, int>(
@@ -105,21 +103,21 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
            {joda::settings::ChannelIndex::CH7, "Channel 7"},
            {joda::settings::ChannelIndex::CH8, "Channel 8"},
            {joda::settings::ChannelIndex::CH9, "Channel 9"}},
-          mPanelEdit));
+          windowMain));
 
   //
   // Cross channel Intensity
   //
   mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", "", mPanelEdit));
+      "icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", "", windowMain));
 
   mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", mPanelEdit));
+      "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", windowMain));
 
   //
   // Create panels -> Must be after creating the functions
   //
-  mPanelEdit->init();
+  mPanelEdit     = new PanelVoronoiEdit(windowMain, this);
   mPanelOverview = new PanelVoronoiOverview(windowMain, this);
 }
 

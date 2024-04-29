@@ -36,6 +36,7 @@ PanelIntersectionEdit::PanelIntersectionEdit(WindowMain *wm, ContainerIntersecti
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelIntersectionEdit");
+  init();
 }
 
 void PanelIntersectionEdit::init()
@@ -57,17 +58,30 @@ void PanelIntersectionEdit::init()
   //
   auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
   llayoutColoc->addWidget(createTitle("Cross-Channel"));
-  llayoutColoc->addWidget(mParentContainer->mCrossChannelIntersection->getEditableWidget());
   llayoutColoc->addWidget(mParentContainer->mCrossChannelIntensity->getEditableWidget());
   llayoutColoc->addWidget(mParentContainer->mCrossChannelCount->getEditableWidget());
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+  //
+  // Measurement
+  //
+  auto [verticalLayoutFuctions, _8] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)", 16, false);
+  verticalLayoutFuctions->addWidget(createTitle("Measurement"));
+  {
+    QPushButton *editMeasurment = new QPushButton("Measured data");
+    connect(editMeasurment, &QPushButton::pressed, this, &PanelIntersectionEdit::onEditMeasurementClicked);
+    verticalLayoutFuctions->addWidget(editMeasurment);
+  }
+
+  _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   verticalLayoutContainer->addStretch(0);
 
   auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
 
   auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgb(246, 246, 246)", 16, false);
-  verticalLayoutFilter->addWidget(createTitle("Filtering"));
+  verticalLayoutFilter->addWidget(createTitle("Intersection"));
+  verticalLayoutFilter->addWidget(mParentContainer->mCrossChannelIntersection->getEditableWidget());
   verticalLayoutFilter->addWidget(mParentContainer->mMinIntersection->getEditableWidget());
 
   verticalLayoutFilter->addStretch();
@@ -77,17 +91,9 @@ void PanelIntersectionEdit::init()
   // Preprocessing
   //
 
-  auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
-  auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgb(246, 246, 246)", 16, false);
-  verticalLayoutFuctions->addWidget(createTitle("Measurement"));
-  {
-    QPushButton *editMeasurment = new QPushButton("Measured data");
-    connect(editMeasurment, &QPushButton::pressed, this, &PanelIntersectionEdit::onEditMeasurementClicked);
-    verticalLayoutFuctions->addWidget(editMeasurment);
-  }
+  // auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
 
-  _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  _7->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+  //_7->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
   /*
     //

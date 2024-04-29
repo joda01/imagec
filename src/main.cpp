@@ -38,12 +38,11 @@ int main(int argc, char *argv[])
   QApplication::setStyle("Fusion");
   app.setStyleSheet(
       "QMainWindow#windowMain {"
-      "   background-color: rgb(251, 252, 253); "
+      "   background-color: rgb(255, 255, 255); "
       "   border: none;"
       "}"
-
       "QMessageBox {"
-      "   background-color: rgb(251, 252, 253);"
+      "   background-color: rgb(255, 255, 255);"
       "}"
 
       "QMessageBox QLabel {"
@@ -82,6 +81,7 @@ int main(int argc, char *argv[])
       "QMessageBox QPushButton:default {"
       "   border: 2px solid #2196F3;"
       "}"
+
       /*Push button*/
       "QPushButton {"
       "   border: 1px solid rgb(0, 0, 0);"
@@ -97,11 +97,40 @@ int main(int argc, char *argv[])
       "}"
 
       "QPushButton:hover {"
-      "   background-color: rgb(255, 255, 255);"    // Darken on hover
+      "   background-color: rgb(246, 246, 246);"    // Darken on hover
       "}"
 
       "QPushButton:pressed {"
-      "   background-color: rgb(255, 255, 255);"    // Darken on press
+      "   background-color: rgb(170, 170, 170);"    // Darken on press
+      "}"
+
+      /*Tool Push button*/
+      "QPushButton#ToolButton {"
+      "   border: 0px solid rgb(0, 0, 0);"
+      "   background-color: rgb(170, 170, 170);"
+      "   color: rgb(0, 0, 0);"
+      "   border-radius: 4px;"
+      "   padding-top: 5px;"
+      "   padding-bottom: 5px;"
+      "   padding-left: 5px;"
+      "   padding-right: 5px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-decoration: none;"
+      "   text-align: center;"
+      "}"
+
+      "QPushButton:hover#ToolButton {"
+      "   background-color: rgb(255, 144, 144);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed#ToolButton {"
+      "   background-color: rgb(170, 170, 170);"    // Darken on hover
+      "}"
+
+      "QPushButton:disabled#ToolButton {"
+      "   background-color: rgb(246, 246, 246);"
+      "   color: rgb(170, 170, 170);"
       "}"
 
       /*Combo box*/

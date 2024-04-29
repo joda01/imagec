@@ -59,6 +59,7 @@ QWidget *PanelPreview::createToolBar()
   QButtonGroup *buttonGroup = new QButtonGroup();
 
   QPushButton *move = new QPushButton(QIcon(":/icons/outlined/icons8-hand-50.png"), "");
+  move->setObjectName("ToolButton");
   move->setCheckable(true);
   move->setToolTip("Move the image");
   move->setChecked(true);
@@ -66,16 +67,19 @@ QWidget *PanelPreview::createToolBar()
   layout->addWidget(move);
 
   QPushButton *fitToScreen = new QPushButton(QIcon(":/icons/outlined/icons8-full-image-50.png"), "");
+  fitToScreen->setObjectName("ToolButton");
   fitToScreen->setToolTip("Fit image to screen");
   connect(fitToScreen, &QPushButton::pressed, this, &PanelPreview::onFitImageToScreenSizeClicked);
   layout->addWidget(fitToScreen);
 
   QPushButton *zoomIn = new QPushButton(QIcon(":/icons/outlined/icons8-zoom-in-50.png"), "");
+  zoomIn->setObjectName("ToolButton");
   zoomIn->setToolTip("Zoom in");
   connect(zoomIn, &QPushButton::pressed, this, &PanelPreview::onZoomInClicked);
   layout->addWidget(zoomIn);
 
   QPushButton *zoomOut = new QPushButton(QIcon(":/icons/outlined/icons8-zoom-out-50.png"), "");
+  zoomOut->setObjectName("ToolButton");
   zoomOut->setToolTip("Zoom out");
   connect(zoomOut, &QPushButton::pressed, this, &PanelPreview::onZoomOutClicked);
   layout->addWidget(zoomOut);
