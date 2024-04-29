@@ -372,7 +372,10 @@ QWidget *WindowMain::createAddChannelPanel()
   // Add cell voronoi
   //
   QPushButton *addVoronoiButton = new QPushButton();
+  const QIcon voronoiIcon(":/icons/outlined/dom-voronoi-50.png");
   addVoronoiButton->setText("Add voronoi channel");
+  addVoronoiButton->setIconSize({16, 16});
+  addVoronoiButton->setIcon(voronoiIcon);
   connect(addVoronoiButton, &QPushButton::pressed, this, &WindowMain::onAddCellApproxClicked);
   layout->addWidget(addVoronoiButton);
 
@@ -380,6 +383,9 @@ QWidget *WindowMain::createAddChannelPanel()
   // Add intersection voronoi
   //
   QPushButton *addIntersection = new QPushButton();
+  const QIcon intersectionIcon(":/icons/outlined/icons8-query-inner-join-50.png");
+  addIntersection->setIconSize({16, 16});
+  addIntersection->setIcon(intersectionIcon);
   addIntersection->setText("Add intersection channel");
   connect(addIntersection, &QPushButton::pressed, this, &WindowMain::onAddIntersectionClicked);
   layout->addWidget(addIntersection);
@@ -654,9 +660,11 @@ void WindowMain::onFindTemplatesFinished(
     std::map<std::string, joda::settings::templates::TemplateParser::Data> foundTemplates)
 {
   mTemplateSelection->clear();
-  mTemplateSelection->addItem("Empty channel", "");
+  const QIcon empty(":/icons/outlined/icons8-select-none-50.png");
+  mTemplateSelection->addItem(QIcon(empty.pixmap(28, 28)), "Empty channel", "");
+  const QIcon myIcon(":/icons/outlined/icon_eva.png");
   for(const auto &[_, data] : foundTemplates) {
-    mTemplateSelection->addItem(data.title.data(), data.path.data());
+    mTemplateSelection->addItem(QIcon(myIcon.pixmap(28, 28)), data.title.data(), data.path.data());
   }
 }
 

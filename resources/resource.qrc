@@ -9,6 +9,7 @@
     </qresource>
     <qresource prefix="/icons">
         <file>outlined/icons8-coupon-50.png</file>
+        <file>outlined/icons8-select-none-50.png</file>
         <file>outlined/icons8-erythrocytes-50.png</file>
         <file>outlined/icons8-body-cells-50.png</file>
         <file>outlined/icons8-25-50.png</file>
