@@ -5,6 +5,7 @@
 
     <qresource prefix="/helptext">
         <file>helptext/rolling_ball.json</file>
+        <file>helptext/cross_channel_intensity.json</file>
     </qresource>
     <qresource prefix="/icons">
         <file>filled/icons8-25-50.png</file>
