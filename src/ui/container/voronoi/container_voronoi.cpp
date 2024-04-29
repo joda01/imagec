@@ -106,6 +106,24 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
           windowMain));
 
   //
+  // Filtering
+  //
+  mMinParticleSize = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
+      "icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Min. particle size", "px", 1, 0, INT32_MAX,
+      windowMain, "min_particle_size.json"));
+  mMaxParticleSize = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
+      "icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Max. particle size", "px", std::nullopt, 0,
+      INT32_MAX, windowMain, "max_particle_size.json"));
+
+  mExcludeAreasWithoutCenterOfMass = std::shared_ptr<ContainerFunction<bool, bool>>(new ContainerFunction<bool, bool>(
+      "icons8-body-cells-50.png", "Exclude areas without center of mass", "Exclude areas without center of mass", true,
+      windowMain, "voronoi_exclude_areas_without_center_of_mass.json"));
+
+  mExcludeAreasAtTheEdges = std::shared_ptr<ContainerFunction<bool, bool>>(new ContainerFunction<bool, bool>(
+      "icons8-coupon-50.png", "Exclude areas at the edges", "Exclude areas at the edges", false, windowMain,
+      "voronoi_exclude_areas_at_edges.json"));
+
+  //
   // Cross channel Intensity
   //
   mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
@@ -152,12 +170,23 @@ void ContainerVoronoi::fromSettings()
   mMaxVoronoiAreaSize->setValue(mSettings.voronoi.maxVoronoiAreaRadius);
   mOverlayMaskChannelIndex->setValue(mSettings.voronoi.overlayMaskChannelIdx);
 
+  mMinParticleSize->clearValue();
+  mMaxParticleSize->clearValue();
+
+  // Filtering
+  mMinParticleSize->setValue(mSettings.filter.minParticleSize);
+  if(mSettings.filter.maxParticleSize >= INT32_MAX) {
+    mMaxParticleSize->clearValue();
+  } else {
+    mMaxParticleSize->setValue(mSettings.filter.maxParticleSize);
+  }
+  mExcludeAreasWithoutCenterOfMass->setValue(mSettings.filter.excludeAreasWithoutCenterOfMass);
+  mExcludeAreasAtTheEdges->setValue(mSettings.filter.excludeAreasAtEdges);
+
   //
   // Cross channel
   //
-  // Coloc
 
-  // Cross channel intensity
   // Cross channel intensity
   {
     auto &crossChannelIntensity = mSettings.crossChannel.crossChannelIntensityChannels;
@@ -211,7 +240,22 @@ void ContainerVoronoi::toSettings()
   mSettings.voronoi.overlayMaskChannelIdx = mOverlayMaskChannelIndex->getValue();
   mSettings.voronoi.maxVoronoiAreaRadius  = mMaxVoronoiAreaSize->getValue();
 
-  // Cross channel settings
+  // Filtering
+  if(mMinParticleSize->hasValue()) {
+    mSettings.filter.minParticleSize = mMinParticleSize->getValue();
+  } else {
+    mSettings.filter.minParticleSize = 0;
+  }
+
+  if(mMaxParticleSize->hasValue()) {
+    mSettings.filter.maxParticleSize = mMaxParticleSize->getValue();
+  } else {
+    mSettings.filter.maxParticleSize = INT32_MAX;
+  }
+
+  mSettings.filter.excludeAreasAtEdges             = mExcludeAreasAtTheEdges->getValue();
+  mSettings.filter.excludeAreasWithoutCenterOfMass = mExcludeAreasWithoutCenterOfMass->getValue();
+
   // Cross channel settings
   {
     std::set<joda::settings::ChannelIndex> crossChannelIntensity;

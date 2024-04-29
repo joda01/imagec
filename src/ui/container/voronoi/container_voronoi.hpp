@@ -79,6 +79,13 @@ private:
   std::shared_ptr<ContainerFunction<int, int>> mMaxVoronoiAreaSize;
   std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>> mOverlayMaskChannelIndex;
 
+  // Filtering//////////////////////////////////
+  std::shared_ptr<ContainerFunction<int, int>> mMinParticleSize;
+  std::shared_ptr<ContainerFunction<int, int>> mMaxParticleSize;
+
+  std::shared_ptr<ContainerFunction<bool, bool>> mExcludeAreasWithoutCenterOfMass;
+  std::shared_ptr<ContainerFunction<bool, bool>> mExcludeAreasAtTheEdges;
+
   // Cross-Channel//////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntensity;
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelCount;

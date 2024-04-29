@@ -13,10 +13,12 @@
 
 #include "calc_voronoi.hpp"
 #include <map>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/detection/voronoi_grid/voronoi_grid.hpp"
+#include "backend/image_processing/roi/roi.hpp"
 
 namespace joda::pipeline {
 
@@ -43,52 +45,84 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
     auto CalcVoronoiResult =
         grid.forward(voronoiPointsChannel.controlImage, voronoiPointsChannel.originalImage, mChannelIndexMe);
 
-    // if(!CalcVoronoiResult.controlImage.empty()) {
-    //   static const std::string separator(1, std::filesystem::path::preferred_separator);
-    //   std::vector<int> compression_params;
-    //   compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-    //   compression_params.push_back(0);
-    //   cv::imwrite(detailoutputPath + separator + "control_voronoi_" +
-    //                   joda::settings::to_string(mVoronoiPointsChannelIndex) + "_" + std::to_string(0) + ".png",
-    //               CalcVoronoiResult.controlImage, compression_params);
-    // }
-
     //
     // Now mask the voronoi grid with an other channel
     //
-    if(mask != nullptr) {
-      joda::func::DetectionResponse response;
-      response.controlImage = cv::Mat::zeros(mask->controlImage.rows, mask->controlImage.cols, CV_32FC3);
+    joda::func::DetectionResponse response;
+    response.controlImage = cv::Mat::zeros(mask->controlImage.rows, mask->controlImage.cols, CV_32FC3);
 
-      for(const auto &toIntersect : mask->result) {
-        if(toIntersect.isValid()) {
-          for(const auto &voronoiArea : CalcVoronoiResult.result) {
-            if(voronoiArea.isValid()) {
-              auto [colocROI, ok] =
-                  voronoiArea.calcIntersection(toIntersect,
-                                               std::map<joda::settings::ChannelIndex, const cv::Mat *>{
-                                                   {mOverlayMaskChannelIndex, &mask->originalImage}},
-                                               0.0);
-              if(ok) {
-                if(mExcludeAreasWithoutPoint) {
-                  if(!doesAreaContainsPoint(colocROI, voronoiPointsChannel.result)) {
-                    colocROI.setValidity(func::ParticleValidity::INVALID);
-                  }
-                }
-                response.result.push_back(colocROI);
+    auto filterVoronoiAreas = [this, &response, &voronoiPointsChannel, &CalcVoronoiResult,
+                               &mask](std::optional<const func::ROI> toIntersect) {
+      for(auto &voronoiArea : CalcVoronoiResult.result) {
+        if(voronoiArea.isValid()) {
+          //
+          // Apply filter
+          //
+          auto applyFilter = [this, &response, &voronoiPointsChannel, &CalcVoronoiResult,
+                              &mask](func::ROI &cutedVoronoiArea) {
+            //
+            // Areas without point are filtered out
+            //
+            if(mExcludeAreasWithoutPoint) {
+              if(!doesAreaContainsPoint(cutedVoronoiArea, voronoiPointsChannel.result)) {
+                cutedVoronoiArea.setValidity(func::ParticleValidity::INVALID);
               }
             }
+
+            //
+            // Check area size
+            //
+            if(cutedVoronoiArea.getAreaSize() < mMinSize) {
+              cutedVoronoiArea.setValidity(func::ParticleValidity::TOO_SMALL);
+            } else if(cutedVoronoiArea.getAreaSize() > mMaxSize) {
+              cutedVoronoiArea.setValidity(func::ParticleValidity::TOO_BIG);
+            }
+
+            //
+            // Remove area at the edges if filter enabled
+            //
+            if(mExcludeAreasAtTheEdges) {
+              auto box = cutedVoronoiArea.getBoundingBox();
+              if(box.x <= 0 || box.y <= 0 || box.x + box.width >= CalcVoronoiResult.originalImage.cols ||
+                 box.y + box.height >= CalcVoronoiResult.originalImage.rows) {
+                cutedVoronoiArea.setValidity(func::ParticleValidity::AT_THE_EDGE);
+              }
+            }
+            response.result.push_back(cutedVoronoiArea);
+          };
+
+          //
+          // Mask if enabled
+          //
+          if(mask != nullptr && toIntersect.has_value()) {
+            auto [cutedVoronoiArea, ok] =
+                voronoiArea.calcIntersection(toIntersect.value(),
+                                             std::map<joda::settings::ChannelIndex, const cv::Mat *>{
+                                                 {mOverlayMaskChannelIndex, &mask->originalImage}},
+                                             0.0);
+            if(ok) {
+              applyFilter(cutedVoronoiArea);
+            }
+          } else {
+            applyFilter(voronoiArea);
           }
         }
       }
-      joda::func::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FF0000", false,
-                                                      false);
-      DurationCount::stop(id);
-      return response;
+    };
+
+    if(mask != nullptr) {
+      for(const auto &toIntersect : mask->result) {
+        if(toIntersect.isValid()) {
+          filterVoronoiAreas(toIntersect);
+        }
+      }
     } else {
-      DurationCount::stop(id);
-      return CalcVoronoiResult;
+      filterVoronoiAreas(std::nullopt);
     }
+    joda::func::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FF0000", false,
+                                                    false);
+    DurationCount::stop(id);
+    return response;
   }
   DurationCount::stop(id);
   return joda::func::DetectionResponse{};

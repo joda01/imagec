@@ -95,6 +95,29 @@ void PanelVoronoiEdit::init()
           &PanelVoronoiEdit::updatePreview);
 
   //
+  // Column 4
+  //
+  auto [filterContainer, filterContainerLayout] =
+      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+  auto [objectFilter, objectFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)");
+  objectFilter->addWidget(createTitle("Object filter"));
+  objectFilter->addWidget(mParentContainer->mMinParticleSize->getEditableWidget());
+  objectFilter->addWidget(mParentContainer->mMaxParticleSize->getEditableWidget());
+  objectFilter->addWidget(mParentContainer->mExcludeAreasAtTheEdges->getEditableWidget());
+  objectFilter->addWidget(mParentContainer->mExcludeAreasWithoutCenterOfMass->getEditableWidget());
+  objectFilter->addStretch();
+  objectFilterLayout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+  connect(mParentContainer->mMinParticleSize.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelVoronoiEdit::updatePreview);
+  connect(mParentContainer->mMaxParticleSize.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelVoronoiEdit::updatePreview);
+  connect(mParentContainer->mExcludeAreasAtTheEdges.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelVoronoiEdit::updatePreview);
+  connect(mParentContainer->mExcludeAreasWithoutCenterOfMass.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelVoronoiEdit::updatePreview);
+
+  //
   // Preprocessing
   //
 
