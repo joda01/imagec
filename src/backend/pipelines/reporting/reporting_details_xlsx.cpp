@@ -14,8 +14,8 @@ namespace joda::pipeline::reporting {
 ///
 std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
                                                const joda::results::Table &results, int colOffset, int /*rowOffset*/,
-                                               lxw_worksheet *worksheet, lxw_format *header, lxw_format *merge_format,
-                                               lxw_format *numberFormat)
+                                               lxw_worksheet *worksheet, lxw_format *header, lxw_format *headerInvalid,
+                                               lxw_format *merge_format, lxw_format *numberFormat)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   int ROW_OFFSET                       = 2;
@@ -31,7 +31,13 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
     for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
       auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
       if(reportingSettings.detail.measureChannels.contains(colKey)) {
-        worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, results.getColumnNameAt(colIdx).data(), header);
+        if(results.getTableValidity() == joda::func::ResponseDataValidity::VALID) {
+          worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, results.getColumnNameAt(colIdx).data(),
+                                 header);
+        } else {
+          worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, results.getColumnNameAt(colIdx).data(),
+                                 headerInvalid);
+        }
         worksheet_set_column(worksheet, sheetColIdx + COL_OFFSET, sheetColIdx + COL_OFFSET, 10, NULL);
         sheetColIdx++;
       }

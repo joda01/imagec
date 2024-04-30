@@ -42,6 +42,16 @@ void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings
   format_set_border(header, LXW_BORDER_THIN);
   format_set_font_size(header, 10);
 
+  // Had for cols with invalid data
+  lxw_format *headerInvalid = workbook_add_format(workbook);
+  format_set_bold(headerInvalid);
+  format_set_pattern(headerInvalid, LXW_PATTERN_SOLID);
+  format_set_bg_color(headerInvalid, 0x820000);
+  format_set_font_color(headerInvalid, 0xFFFFFF);
+  format_set_border(headerInvalid, LXW_BORDER_THIN);
+  format_set_font_size(headerInvalid, 10);
+
+  //
   lxw_format *imageHeaderHyperlinkFormat = workbook_add_format(workbook);
   format_set_bold(imageHeaderHyperlinkFormat);
   format_set_pattern(imageHeaderHyperlinkFormat, LXW_PATTERN_SOLID);
@@ -108,7 +118,7 @@ void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings
       if(OutputFormat::VERTICAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::DetailReport::writeReport(
             joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), table, colOffsetIn,
-            rowOffsetIn, worksheet, header, merge_format, numberFormat);
+            rowOffsetIn, worksheet, header, headerInvalid, merge_format, numberFormat);
         colOffsetIn += colOffset + 1;
         rowOffsetIn += rowOffset;
       }
