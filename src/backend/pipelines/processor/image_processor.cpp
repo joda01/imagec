@@ -18,6 +18,7 @@
 #include "backend/image_processing/functions/edge_detection/edge_detection.hpp"
 #include "backend/image_processing/functions/median_substraction/median_substraction.hpp"
 #include "backend/image_processing/functions/rolling_ball/rolling_ball.hpp"
+#include "backend/image_processing/roi/roi.hpp"
 
 namespace joda::algo {
 
@@ -248,8 +249,11 @@ void ImageProcessor::doFiltering(
 {
   auto id = DurationCount::start("Filtering");
 
+  //
+  // Reference spot removal
+  //
   if(nullptr != referenceChannelResults) {
-    auto referenceSpotChannelIndex = channelSetting.filter.referenceSpotChannelIndex;
+    auto referenceSpotChannelIndex = channelSetting.objectFilter.referenceSpotChannelIndex;
     if(referenceSpotChannelIndex != joda::settings::ChannelIndex::NONE) {
       auto referenceSpotChannel = referenceChannelResults->find(referenceSpotChannelIndex);
       if(referenceSpotChannel != referenceChannelResults->end()) {
@@ -271,6 +275,13 @@ void ImageProcessor::doFiltering(
         joda::log::logWarning("A reference channel index was selected which is not part of the channel list.");
       }
     }
+  }
+
+  //
+  // Image result plausibility check
+  //
+  if(detectionResult.result.size() > channelSetting.imageFilter.maxParticleNumber) {
+    detectionResult.responseValidity = func::ResponseDataValidity::POSSIBLE_NOISE;
   }
 
   DurationCount::stop(id);

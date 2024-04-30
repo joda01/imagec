@@ -326,15 +326,15 @@ void ContainerChannel::fromSettings()
   mWateredSegmentation->setValue(mSettings.detection.threshold.$watershedSegmentation.enabled);
 
   // Filtering
-  mMinParticleSize->setValue(mSettings.filter.minParticleSize);
-  if(mSettings.filter.maxParticleSize >= INT32_MAX) {
+  mMinParticleSize->setValue(mSettings.objectFilter.minParticleSize);
+  if(mSettings.objectFilter.maxParticleSize >= INT32_MAX) {
     mMaxParticleSize->clearValue();
   } else {
-    mMaxParticleSize->setValue(mSettings.filter.maxParticleSize);
+    mMaxParticleSize->setValue(mSettings.objectFilter.maxParticleSize);
   }
-  mMinCircularity->setValue(mSettings.filter.minCircularity);
-  mSnapAreaSize->setValue(mSettings.filter.snapAreaSize);
-  mTetraspeckRemoval->setValue(mSettings.filter.referenceSpotChannelIndex);
+  mMinCircularity->setValue(mSettings.objectFilter.minCircularity);
+  mSnapAreaSize->setValue(mSettings.objectFilter.snapAreaSize);
+  mTetraspeckRemoval->setValue(mSettings.objectFilter.referenceSpotChannelIndex);
 
   // Cross channel intensity
   {
@@ -453,20 +453,20 @@ void ContainerChannel::toSettings()
 
   // Filtering
   if(mMinParticleSize->hasValue()) {
-    mSettings.filter.minParticleSize = mMinParticleSize->getValue();
+    mSettings.objectFilter.minParticleSize = mMinParticleSize->getValue();
   } else {
-    mSettings.filter.minParticleSize = 0;
+    mSettings.objectFilter.minParticleSize = 0;
   }
 
   if(mMaxParticleSize->hasValue()) {
-    mSettings.filter.maxParticleSize = mMaxParticleSize->getValue();
+    mSettings.objectFilter.maxParticleSize = mMaxParticleSize->getValue();
   } else {
-    mSettings.filter.maxParticleSize = INT32_MAX;
+    mSettings.objectFilter.maxParticleSize = INT32_MAX;
   }
 
-  mSettings.filter.minCircularity            = mMinCircularity->getValue();
-  mSettings.filter.snapAreaSize              = mSnapAreaSize->getValue();
-  mSettings.filter.referenceSpotChannelIndex = mTetraspeckRemoval->getValue();
+  mSettings.objectFilter.minCircularity            = mMinCircularity->getValue();
+  mSettings.objectFilter.snapAreaSize              = mSnapAreaSize->getValue();
+  mSettings.objectFilter.referenceSpotChannelIndex = mTetraspeckRemoval->getValue();
 
   // Cross channel settings
   {

@@ -209,7 +209,7 @@ void Settings::checkSettings(const joda::settings::AnalyzeSettings &settings)
 
   for(const auto &channel : settings.channels) {
     checkCrossChannel(channel.crossChannel);
-    if(!index.contains(channel.filter.referenceSpotChannelIndex)) {
+    if(!index.contains(channel.objectFilter.referenceSpotChannelIndex)) {
       throw std::runtime_error("A reference spot channel count without corrsponding channel was set!");
     }
     for(const auto &pipe : channel.preprocessing.pipeline)

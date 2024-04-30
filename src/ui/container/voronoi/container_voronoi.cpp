@@ -174,14 +174,14 @@ void ContainerVoronoi::fromSettings()
   mMaxParticleSize->clearValue();
 
   // Filtering
-  mMinParticleSize->setValue(mSettings.filter.minParticleSize);
-  if(mSettings.filter.maxParticleSize >= INT32_MAX) {
+  mMinParticleSize->setValue(mSettings.objectFilter.minParticleSize);
+  if(mSettings.objectFilter.maxParticleSize >= INT32_MAX) {
     mMaxParticleSize->clearValue();
   } else {
-    mMaxParticleSize->setValue(mSettings.filter.maxParticleSize);
+    mMaxParticleSize->setValue(mSettings.objectFilter.maxParticleSize);
   }
-  mExcludeAreasWithoutCenterOfMass->setValue(mSettings.filter.excludeAreasWithoutCenterOfMass);
-  mExcludeAreasAtTheEdges->setValue(mSettings.filter.excludeAreasAtEdges);
+  mExcludeAreasWithoutCenterOfMass->setValue(mSettings.objectFilter.excludeAreasWithoutCenterOfMass);
+  mExcludeAreasAtTheEdges->setValue(mSettings.objectFilter.excludeAreasAtEdges);
 
   //
   // Cross channel
@@ -242,19 +242,19 @@ void ContainerVoronoi::toSettings()
 
   // Filtering
   if(mMinParticleSize->hasValue()) {
-    mSettings.filter.minParticleSize = mMinParticleSize->getValue();
+    mSettings.objectFilter.minParticleSize = mMinParticleSize->getValue();
   } else {
-    mSettings.filter.minParticleSize = 0;
+    mSettings.objectFilter.minParticleSize = 0;
   }
 
   if(mMaxParticleSize->hasValue()) {
-    mSettings.filter.maxParticleSize = mMaxParticleSize->getValue();
+    mSettings.objectFilter.maxParticleSize = mMaxParticleSize->getValue();
   } else {
-    mSettings.filter.maxParticleSize = INT32_MAX;
+    mSettings.objectFilter.maxParticleSize = INT32_MAX;
   }
 
-  mSettings.filter.excludeAreasAtEdges             = mExcludeAreasAtTheEdges->getValue();
-  mSettings.filter.excludeAreasWithoutCenterOfMass = mExcludeAreasWithoutCenterOfMass->getValue();
+  mSettings.objectFilter.excludeAreasAtEdges             = mExcludeAreasAtTheEdges->getValue();
+  mSettings.objectFilter.excludeAreasWithoutCenterOfMass = mExcludeAreasWithoutCenterOfMass->getValue();
 
   // Cross channel settings
   {

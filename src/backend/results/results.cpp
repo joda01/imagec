@@ -15,12 +15,22 @@ namespace joda::results {
 
 void Table::setTableName(const std::string &name)
 {
-  mTableName = name;
+  mTableMeta.tableName = name;
 }
 
 const std::string &Table::getTableName() const
 {
-  return mTableName;
+  return mTableMeta.tableName;
+}
+
+void Table::setTableValidity(joda::func::ResponseDataValidity valid)
+{
+  mTableMeta.validity = valid;
+}
+
+auto Table::getTableValidity() const -> joda::func::ResponseDataValidity
+{
+  return mTableMeta.validity;
 }
 
 auto Table::getNrOfRowsAtColumn(int64_t colIdx) const -> int64_t
