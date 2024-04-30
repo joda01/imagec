@@ -61,6 +61,16 @@ void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings
   format_set_underline(imageHeaderHyperlinkFormat, LXW_UNDERLINE_SINGLE);
   format_set_font_size(imageHeaderHyperlinkFormat, 10);
 
+  //
+  lxw_format *imageHeaderHyperlinkFormatInvalid = workbook_add_format(workbook);
+  format_set_bold(imageHeaderHyperlinkFormatInvalid);
+  format_set_pattern(imageHeaderHyperlinkFormatInvalid, LXW_PATTERN_SOLID);
+  format_set_bg_color(imageHeaderHyperlinkFormatInvalid, 0x820000);
+  format_set_font_color(imageHeaderHyperlinkFormatInvalid, 0xFFFFFF);
+  format_set_border(imageHeaderHyperlinkFormatInvalid, LXW_BORDER_THIN);
+  format_set_underline(imageHeaderHyperlinkFormatInvalid, LXW_UNDERLINE_SINGLE);
+  format_set_font_size(imageHeaderHyperlinkFormatInvalid, 10);
+
   // Define the cell format for the merged cells.
   lxw_format *merge_format = workbook_add_format(workbook);
   format_set_align(merge_format, LXW_ALIGN_CENTER);
@@ -110,8 +120,8 @@ void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings
       if(OutputFormat::HORIZONTAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
             joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), table, folderName,
-            meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format, numberFormat,
-            imageHeaderHyperlinkFormat);
+            meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, headerInvalid, merge_format,
+            numberFormat, imageHeaderHyperlinkFormat, imageHeaderHyperlinkFormatInvalid);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }

@@ -17,8 +17,10 @@ namespace joda::pipeline::reporting {
 std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
                                                  const joda::results::Table &results, const std::string &headerText,
                                                  const std::string &jobName, int colOffset, int rowOffset, int startRow,
-                                                 lxw_worksheet *worksheet, lxw_format *header, lxw_format *merge_format,
-                                                 lxw_format *numberFormat, lxw_format *imageHeaderHyperlinkFormat)
+                                                 lxw_worksheet *worksheet, lxw_format *header,
+                                                 lxw_format *headerInvalid, lxw_format *merge_format,
+                                                 lxw_format *numberFormat, lxw_format *imageHeaderHyperlinkFormat,
+                                                 lxw_format *imageHeaderHyperlinkFormatInvalid)
 {
   setlocale(LC_NUMERIC, "C");                  // Needed for correct comma in libxlsx
   const int STATISTIC_START_WITH_INDEX = 3;    // Validity, invalidity and Sum are just for internal use
@@ -102,11 +104,9 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
     for(int32_t rowIndex = 0; rowIndex < results.getNrOfRows(); rowIndex++) {
       auto rowName         = results.getRowNameAt(getIndexOfSortedMap(rowIndex));
       std::string filePath = "external:.\\images/" + rowName + "/results_image_" + jobName + ".xlsx";
-
-      worksheet_write_url(worksheet, headerColumnRowOffset, rowIndex + colOffset, filePath.data(),
-                          imageHeaderHyperlinkFormat);
-      worksheet_write_string(worksheet, headerColumnRowOffset, rowIndex + colOffset, rowName.data(),
-                             imageHeaderHyperlinkFormat);
+      lxw_format *format   = imageHeaderHyperlinkFormat;
+      worksheet_write_url(worksheet, headerColumnRowOffset, rowIndex + colOffset, filePath.data(), format);
+      worksheet_write_string(worksheet, headerColumnRowOffset, rowIndex + colOffset, rowName.data(), format);
 
       worksheet_set_column(worksheet, rowIndex + colOffset, rowIndex + colOffset, 15, NULL);
     }

@@ -6,6 +6,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "results.h"
 
@@ -51,6 +52,16 @@ public:
   {
     std::lock_guard<std::mutex> lock(mAccessMutex);
     return mColumns.contains(key);
+  }
+
+  bool containsInvalidChannel() const
+  {
+    for(const auto &ch : mColumns) {
+      if(ch.second.getTableValidity() != func::ResponseDataValidity::VALID) {
+        return true;
+      }
+    }
+    return false;
   }
 
   static void flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
