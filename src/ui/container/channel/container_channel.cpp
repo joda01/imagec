@@ -149,20 +149,20 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
       new ContainerFunction<int, int>("icons8-crop-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Crop margin",
                                       "px", std::nullopt, 0, INT32_MAX, windowMain, "margin_crop.json"));
   mSubtractChannel = std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>>(
-      new ContainerFunction<joda::settings::ChannelIndex, int>(
-          "icons8-layers-50.png", "Index", "Subtract other channel", "", joda::settings::ChannelIndex::NONE,
-          {{joda::settings::ChannelIndex::NONE, "Off"},
-           {joda::settings::ChannelIndex::CH0, "Channel 0"},
-           {joda::settings::ChannelIndex::CH1, "Channel 1"},
-           {joda::settings::ChannelIndex::CH2, "Channel 2"},
-           {joda::settings::ChannelIndex::CH3, "Channel 3"},
-           {joda::settings::ChannelIndex::CH4, "Channel 4"},
-           {joda::settings::ChannelIndex::CH5, "Channel 5"},
-           {joda::settings::ChannelIndex::CH6, "Channel 6"},
-           {joda::settings::ChannelIndex::CH7, "Channel 7"},
-           {joda::settings::ChannelIndex::CH8, "Channel 8"},
-           {joda::settings::ChannelIndex::CH9, "Channel 9"}},
-          windowMain, "subtract_channel.json"));
+      new ContainerFunction<joda::settings::ChannelIndex, int>("icons8-layers-50.png", "Index", "Subtract channel", "",
+                                                               joda::settings::ChannelIndex::NONE,
+                                                               {{joda::settings::ChannelIndex::NONE, "Off"},
+                                                                {joda::settings::ChannelIndex::CH0, "Channel 0"},
+                                                                {joda::settings::ChannelIndex::CH1, "Channel 1"},
+                                                                {joda::settings::ChannelIndex::CH2, "Channel 2"},
+                                                                {joda::settings::ChannelIndex::CH3, "Channel 3"},
+                                                                {joda::settings::ChannelIndex::CH4, "Channel 4"},
+                                                                {joda::settings::ChannelIndex::CH5, "Channel 5"},
+                                                                {joda::settings::ChannelIndex::CH6, "Channel 6"},
+                                                                {joda::settings::ChannelIndex::CH7, "Channel 7"},
+                                                                {joda::settings::ChannelIndex::CH8, "Channel 8"},
+                                                                {joda::settings::ChannelIndex::CH9, "Channel 9"}},
+                                                               windowMain, "subtract_channel.json"));
 
   mMedianBackgroundSubtraction = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,
