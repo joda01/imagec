@@ -6,6 +6,7 @@
     <qresource prefix="/helptext">
         <file>helptext/rolling_ball.json</file>
         <file>helptext/cross_channel_intensity.json</file>
+        <file>helptext/image_filter_histogram_threshold_filter.json</file>
     </qresource>
     <qresource prefix="/icons">
         <file>outlined/icons8-histogram-50-01.png</file>

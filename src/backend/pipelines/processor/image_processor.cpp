@@ -21,6 +21,7 @@
 #include "backend/image_processing/functions/median_substraction/median_substraction.hpp"
 #include "backend/image_processing/functions/rolling_ball/rolling_ball.hpp"
 #include "backend/image_processing/roi/roi.hpp"
+#include "backend/pipelines/processor/histogram_filter.hpp"
 #include "backend/settings/channel/channel_settings_image_filter.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 
@@ -300,27 +301,7 @@ void ImageProcessor::doFiltering(
     //
     // Filter by threshold
     //
-    {
-      if(channelSetting.imageFilter.histMinThresholdFilterFactor > 0) {
-        int histSize           = UINT16_MAX + 1;         // Number of bins
-        float range[]          = {0, UINT16_MAX + 1};    // Pixel value range
-        const float *histRange = {range};
-        cv::Mat histogram;
-        cv::calcHist(&originalImg, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange);
-
-        double maxVal = 0;
-        int maxIdx    = -1;
-        cv::minMaxIdx(histogram, NULL, &maxVal, NULL, &maxIdx);
-
-        float filterThreshold = static_cast<float>(maxIdx) * channelSetting.imageFilter.histMinThresholdFilterFactor;
-        if(channelSetting.detection.detectionMode == joda::settings::DetectionSettings::DetectionMode::THRESHOLD) {
-          if(channelSetting.detection.threshold.thresholdMin < filterThreshold) {
-            detectionResult.responseValidity = func::ResponseDataValidity::POSSIBLE_WRONG_THRESHOLD;
-          }
-          std::cout << "Hist idx: " << std::to_string(maxIdx) << " | " << std::to_string(filterThreshold) << std::endl;
-        }
-      }
-    }
+    joda::algo::imgfilter::applyHistogramFilter(originalImg, detectionResult, channelSetting);
   }
   DurationCount::stop(id);
 }
