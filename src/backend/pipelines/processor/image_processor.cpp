@@ -19,6 +19,7 @@
 #include "backend/image_processing/functions/median_substraction/median_substraction.hpp"
 #include "backend/image_processing/functions/rolling_ball/rolling_ball.hpp"
 #include "backend/image_processing/roi/roi.hpp"
+#include "backend/settings/channel/channel_settings_image_filter.hpp"
 
 namespace joda::algo {
 
@@ -247,11 +248,10 @@ void ImageProcessor::doFiltering(
     func::DetectionResponse &detectionResult, const joda::settings::ChannelSettings &channelSetting,
     const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults)
 {
-  auto id = DurationCount::start("Filtering");
-
   //
   // Reference spot removal
   //
+  auto id = DurationCount::start("Tetraspeck removal");
   if(nullptr != referenceChannelResults) {
     auto referenceSpotChannelIndex = channelSetting.objectFilter.referenceSpotChannelIndex;
     if(referenceSpotChannelIndex != joda::settings::ChannelIndex::NONE) {
@@ -276,14 +276,23 @@ void ImageProcessor::doFiltering(
       }
     }
   }
+  DurationCount::stop(id);
 
   //
   // Image result plausibility check
   //
-  if(detectionResult.result.size() > channelSetting.imageFilter.maxParticleNumber) {
-    detectionResult.responseValidity = func::ResponseDataValidity::POSSIBLE_NOISE;
+  id = DurationCount::start("Image filtering");
+  if(channelSetting.imageFilter.filterMode != joda::settings::ChannelImageFilter::FilterMode::OFF) {
+    detectionResult.invalidateWholeImage =
+        joda::settings::ChannelImageFilter::FilterMode::INVALIDATE_WHOLE_IMAGE == channelSetting.imageFilter.filterMode;
+    //
+    // Filter by max particles
+    //
+    if(channelSetting.imageFilter.maxParticleNumber > 0 &&
+       detectionResult.result.size() > channelSetting.imageFilter.maxParticleNumber) {
+      detectionResult.responseValidity = func::ResponseDataValidity::POSSIBLE_NOISE;
+    }
   }
-
   DurationCount::stop(id);
 }
 

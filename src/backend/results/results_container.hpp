@@ -57,7 +57,19 @@ public:
   bool containsInvalidChannel() const
   {
     for(const auto &ch : mColumns) {
-      if(ch.second.getTableValidity() != func::ResponseDataValidity::VALID) {
+      auto [valid, _] = ch.second.getTableValidity();
+      if(valid != func::ResponseDataValidity::VALID) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool containsInvalidChannelWhereOneInvalidatesTheWholeImage() const
+  {
+    for(const auto &[_, ch] : mColumns) {
+      auto [valid, invalidAll] = ch.getTableValidity();
+      if(valid != func::ResponseDataValidity::VALID && invalidAll) {
         return true;
       }
     }

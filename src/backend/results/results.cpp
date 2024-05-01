@@ -23,14 +23,15 @@ const std::string &Table::getTableName() const
   return mTableMeta.tableName;
 }
 
-void Table::setTableValidity(joda::func::ResponseDataValidity valid)
+void Table::setTableValidity(joda::func::ResponseDataValidity valid, bool invalidWholeData)
 {
-  mTableMeta.validity = valid;
+  mTableMeta.validity                       = valid;
+  mTableMeta.invalidWholeDataOnChannelError = invalidWholeData;
 }
 
-auto Table::getTableValidity() const -> joda::func::ResponseDataValidity
+auto Table::getTableValidity() const -> std::tuple<joda::func::ResponseDataValidity, bool>
 {
-  return mTableMeta.validity;
+  return {mTableMeta.validity, mTableMeta.invalidWholeDataOnChannelError};
 }
 
 auto Table::getNrOfRowsAtColumn(int64_t colIdx) const -> int64_t

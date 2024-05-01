@@ -10,11 +10,27 @@ namespace joda::settings {
 class ChannelImageFilter
 {
 public:
+  enum FilterMode
+  {
+    OFF                    = 0,
+    INVALIDATE_CHANNEL     = 1,
+    INVALIDATE_WHOLE_IMAGE = 2
+  };
+
+  //
+  // Filter mode
+  //
+  FilterMode filterMode = FilterMode::INVALIDATE_WHOLE_IMAGE;
+
   //
   // If this number of particles is exceeded the image is marked as noisy
   //
-  uint64_t maxParticleNumber = 250;
+  int64_t maxParticleNumber = 50;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelImageFilter, maxParticleNumber);
+  //
+  // Image threshold error detection
+  //
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelImageFilter, filterMode, maxParticleNumber);
 };
 }    // namespace joda::settings

@@ -32,7 +32,8 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
     for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
       auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
       if(reportingSettings.detail.measureChannels.contains(colKey)) {
-        if(results.getTableValidity() == joda::func::ResponseDataValidity::VALID) {
+        auto [valid, _] = results.getTableValidity();
+        if(valid == joda::func::ResponseDataValidity::VALID) {
           worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, results.getColumnNameAt(colIdx).data(),
                                  header);
         } else {

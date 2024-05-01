@@ -33,6 +33,7 @@ struct DetectionResponse
   cv::Mat originalImage                 = {};
   cv::Mat controlImage                  = {};
   ResponseDataValidity responseValidity = ResponseDataValidity::VALID;
+  bool invalidateWholeImage             = false;
 };
 
 }    // namespace joda::func

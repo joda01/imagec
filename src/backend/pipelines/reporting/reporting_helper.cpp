@@ -198,7 +198,7 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   int64_t yMul = offsetY * imgProps.tileHeight;
 
   results::Table &tableToWorkOn = detailReportTable.getTableAt(realChannelIdx, "");
-  tableToWorkOn.setTableValidity(result.responseValidity);
+  tableToWorkOn.setTableValidity(result.responseValidity, result.invalidateWholeImage);
   int64_t indexOffset = 0;
   {
     std::lock_guard<std::mutex> lock(appendMutex);
@@ -344,6 +344,11 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
     std::string groupToStoreImageIn = getGroupToStoreImageIn(analyzeSettings, imagePath, imageName);
     joda::results::ReportingContainer &containerToWorkOn = allOverReport[groupToStoreImageIn];
 
+    bool invalidAll = false;
+    if(detailedReport.containsInvalidChannelWhereOneInvalidatesTheWholeImage()) {
+      invalidAll = true;
+    }
+
     for(const auto &[channelIdx, _] : detailedReport.mColumns) {
       const results::Table &detailTableToWorkOn = detailedReport.getTableAt(channelIdx);
       results::Table &allOverTableToWorkOn =
@@ -372,7 +377,8 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
         if(detailTableToWorkOn.containsStatistics(colIdxDetailReport)) {
           auto colStatistics = detailTableToWorkOn.getStatistics(colIdxDetailReport);
           auto validity      = joda::func::ParticleValidity::VALID;
-          if(detailTableToWorkOn.getTableValidity() != func::ResponseDataValidity::VALID) {
+          auto [valid, _]    = detailTableToWorkOn.getTableValidity();
+          if(valid != func::ResponseDataValidity::VALID || invalidAll) {
             validity = joda::func::ParticleValidity::INVALID;
           }
 
