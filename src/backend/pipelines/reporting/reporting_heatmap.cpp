@@ -220,9 +220,10 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
 
   std::string filename =
       outputFolder + separator + "heatmaps" + separator + "heatmap_" + groupName + "_" + jobName + ".xlsx";
-  lxw_workbook *workbook   = nullptr;
-  lxw_format *headerFormat = nullptr;
-  lxw_format *numberFormat = nullptr;
+  lxw_workbook *workbook          = nullptr;
+  lxw_format *headerFormat        = nullptr;
+  lxw_format *numberFormat        = nullptr;
+  lxw_format *numberFormatInvalid = nullptr;
 
   const int ROW_OFFSET_START = 2;
   const int COL_OFFSET       = 1;
@@ -250,6 +251,15 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
       format_set_font_size(numberFormat, 10);
       format_set_align(numberFormat, LXW_ALIGN_CENTER);
       format_set_align(numberFormat, LXW_ALIGN_VERTICAL_CENTER);
+
+      // Number format invalid
+      numberFormatInvalid = workbook_add_format(workbook);
+      format_set_num_format(numberFormatInvalid, "0.00E+00");
+      format_set_font_size(numberFormatInvalid, 10);
+      format_set_align(numberFormatInvalid, LXW_ALIGN_CENTER);
+      format_set_align(numberFormatInvalid, LXW_ALIGN_VERTICAL_CENTER);
+      // format_set_border(numberFormatInvalid, LXW_BORDER_THIN);                 // Set border style to thin
+      format_set_diag_type(numberFormatInvalid, LXW_DIAGONAL_BORDER_UP_DOWN);    // Set diagonal type
     }
 
     std::string wellName = groupName + "-" + values.getTableName();
@@ -261,29 +271,32 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
     auto reportingSettings = settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIdx);
 
     for(const auto measureChannelStats : reportingSettings.heatmap.measureChannels) {
-      auto writePlateFrame = [&worksheet, &rowOffset, &nrOfRows, &nrOfCols, &numberFormat,
+      auto writePlateFrame = [&worksheet, &rowOffset, &nrOfRows, &nrOfCols, &numberFormat, &numberFormatInvalid,
                               &headerFormat](const std::string &value) {
         worksheet_merge_range(worksheet, rowOffset - 1, 0, rowOffset - 1, nrOfCols + 1, "-", NULL);
         worksheet_write_string(worksheet, rowOffset - 1, 0, value.data(), NULL);
         paintPlateBorder(worksheet, nrOfRows, nrOfCols, rowOffset, headerFormat, numberFormat);
       };
 
-      auto writeData = [&worksheet, &rowOffset, &values = values, &analyzeSettings, &wellOrder,
-                        &numberFormat](settings::ChannelReportingSettings::MeasureChannelsCombi measureChannel,
-                                       joda::settings::ChannelIndex channelIdx) {
+      auto writeData = [&worksheet, &rowOffset, &values = values, &analyzeSettings, &wellOrder, &numberFormat,
+                        &numberFormatInvalid](settings::ChannelReportingSettings::MeasureChannelsCombi measureChannel,
+                                              joda::settings::ChannelIndex channelIdx) {
         for(int rowIdx = 0; rowIdx < values.getNrOfRows(); rowIdx++) {
           try {
             auto imageName = values.getRowNameAt(rowIdx);
-            auto areaSize  = std::get<double>(
-                values.getTable()
-                    .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannel, channelIdx)))
-                    .at(rowIdx)
-                    .value);
-            auto imgNr = Helper::applyRegex(analyzeSettings.experimentSettings.filenameRegex, imageName).img;
-            auto pos   = wellOrder.find(imgNr);
+            auto cell      = values.getTable()
+                            .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannel, channelIdx)))
+                            .at(rowIdx);
+
+            double value = std::get<double>(cell.value);
+            auto imgNr   = Helper::applyRegex(analyzeSettings.experimentSettings.filenameRegex, imageName).img;
+            auto pos     = wellOrder.find(imgNr);
+            auto *format = numberFormat;
+            if(cell.validity != func::ParticleValidity::VALID) {
+              format = numberFormatInvalid;
+            }
             if(pos != wellOrder.end()) {
-              worksheet_write_number(worksheet, rowOffset + pos->second.y, pos->second.x + COL_OFFSET,
-                                     (double) areaSize, numberFormat);
+              worksheet_write_number(worksheet, rowOffset + pos->second.y, pos->second.x + COL_OFFSET, value, format);
             }
           } catch(...) {
           }
@@ -359,6 +372,15 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
   format_set_font_size(numberFormat, 10);
   format_set_align(numberFormat, LXW_ALIGN_CENTER);
   format_set_align(numberFormat, LXW_ALIGN_VERTICAL_CENTER);
+
+  // Number format invalid
+  lxw_format *numberFormatInvalid = workbook_add_format(workbook);
+  format_set_num_format(numberFormatInvalid, "0.00E+00");
+  format_set_font_size(numberFormatInvalid, 10);
+  format_set_align(numberFormatInvalid, LXW_ALIGN_CENTER);
+  format_set_align(numberFormatInvalid, LXW_ALIGN_VERTICAL_CENTER);
+  // format_set_border(numberFormatInvalid, LXW_BORDER_THIN);                 // Set border style to thin
+  format_set_diag_type(numberFormatInvalid, LXW_DIAGONAL_BORDER_UP_DOWN);    // Set diagonal type
 
   int32_t rowOffset = 0;
 
@@ -440,14 +462,18 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
           rowOffset = ROW_OFFSET_START;
 
           for(const auto measureChannelKey : reportingSettings.heatmap.measureChannels) {
-            auto writeNumber = [&sheet, &rowOffset, &row, &col, &numberFormat, &generateHeatmapForWells, &jobName,
-                                &group = group](double value) {
+            auto writeNumber = [&sheet, &rowOffset, &row, &col, &numberFormat, &numberFormatInvalid,
+                                &generateHeatmapForWells, &jobName,
+                                &group = group](double value, bool areThereInvalidImagesInside) {
               if(generateHeatmapForWells) {
                 std::string filePath = "external:.\\heatmaps/heatmap_" + group + "_" + jobName + ".xlsx";
                 worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
               }
-
-              worksheet_write_number(sheet, rowOffset + row, col, value, numberFormat);
+              auto *format = numberFormat;
+              if(areThereInvalidImagesInside) {
+                format = numberFormatInvalid;
+              }
+              worksheet_write_number(sheet, rowOffset + row, col, value, format);
             };
 
             auto measureChannelBase = getMeasureChannel(measureChannelKey);
@@ -457,25 +483,25 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
               for(joda::settings::ChannelIndex intensIdx :
                   settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
                       .crossChannelIntensityChannels) {
-                writeNumber(
-                    values.getStatistics()
-                        .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannelKey, intensIdx)))
-                        .getAvg());
+                auto stats = values.getStatistics().at(
+                    values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannelKey, intensIdx)));
+
+                writeNumber(stats.getAvg(), stats.getInvalid() > 0);
                 rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
               }
             } else if(measureChannelBase == settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
               for(joda::settings::ChannelIndex countIdx :
                   settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
                       .crossChannelCountChannels) {
-                writeNumber(values.getStatistics()
-                                .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannelKey, countIdx)))
-                                .getAvg());
+                auto stats = values.getStatistics().at(
+                    values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannelKey, countIdx)));
+                writeNumber(stats.getAvg(), stats.getInvalid() > 0);
                 rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
               }
             } else {
-              writeNumber(values.getStatistics()
-                              .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannelKey, channelIdx)))
-                              .getAvg());
+              auto stats = values.getStatistics().at(
+                  values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannelKey, channelIdx)));
+              writeNumber(stats.getAvg(), stats.getInvalid() > 0);
               rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
           }
