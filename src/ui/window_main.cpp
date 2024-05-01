@@ -1037,7 +1037,8 @@ void WindowMain::onShowInfoDialog()
       "Schuerz</p>"
       "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI "
       "models</strong><br "
-      "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke and Patricia Hrasnova</p>"
+      "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke, Patricia Hrasnova and "
+      "Ritesh Khanna</p>"
       "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
       "Dominik Handl.<br /> Special thanks to Tanja Plank for the logo design.</em></p>"
       "<p style=\"text-align: left;\">(c) 2022-2024 Joachim Danmayr</p>");
