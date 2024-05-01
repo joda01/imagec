@@ -247,6 +247,10 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
       new ContainerFunction<int, int>("icons8-infinity-50.png", "[0 - 2147483647]", "Max. objects", "", std::nullopt, 0,
                                       2147483647, windowMain, "image_filter_max_objects.json"));
 
+  mHistogramThresholdFactor = std::shared_ptr<ContainerFunction<float, float>>(new ContainerFunction<float, float>(
+      "icons8-histogram-50-01.png", "[0 - 1]", "Hist. threshold factor", "", std::nullopt, 0, 1, windowMain,
+      "image_filter_histogram_threshold_filter.json"));
+
   //
   // Create panels -> Must be after creating the functions
   //
@@ -303,6 +307,7 @@ void ContainerChannel::fromSettings()
   // Image filter
   mImageFilterMode->clearValue();
   mMaxObjects->clearValue();
+  mHistogramThresholdFactor->clearValue();
 
   mZProjection->setValue(mSettings.preprocessing.$zStack.method);
 
@@ -359,6 +364,9 @@ void ContainerChannel::fromSettings()
   mImageFilterMode->setValue(mSettings.imageFilter.filterMode);
   if(mSettings.imageFilter.maxObjects > 0) {
     mMaxObjects->setValue(mSettings.imageFilter.maxObjects);
+  }
+  if(mSettings.imageFilter.histMinThresholdFilterFactor > 0) {
+    mHistogramThresholdFactor->setValue(mSettings.imageFilter.histMinThresholdFilterFactor);
   }
 
   // Cross channel intensity
@@ -499,6 +507,12 @@ void ContainerChannel::toSettings()
     mSettings.imageFilter.maxObjects = mMaxObjects->getValue();
   } else {
     mSettings.imageFilter.maxObjects = -1;
+  }
+
+  if(mHistogramThresholdFactor->hasValue()) {
+    mSettings.imageFilter.histMinThresholdFilterFactor = mHistogramThresholdFactor->getValue();
+  } else {
+    mSettings.imageFilter.histMinThresholdFilterFactor = -1;
   }
 
   // Cross channel settings

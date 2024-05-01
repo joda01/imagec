@@ -109,6 +109,7 @@ private:
   // Image Filter//////////////////////////////////
   std::shared_ptr<ContainerFunction<joda::settings::ChannelImageFilter::FilterMode, int>> mImageFilterMode;
   std::shared_ptr<ContainerFunction<int, int>> mMaxObjects;
+  std::shared_ptr<ContainerFunction<float, float>> mHistogramThresholdFactor;
 
   // Reporting//////////////////////////////////
   settings::ChannelSettings &mSettings;

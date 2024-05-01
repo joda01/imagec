@@ -12,6 +12,8 @@
 ///
 
 #include "image_processor.hpp"
+#include <cstdint>
+#include <string>
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/functions/blur/blur.hpp"
 #include "backend/image_processing/functions/blur_gausian/blur_gausian.hpp"
@@ -20,6 +22,7 @@
 #include "backend/image_processing/functions/rolling_ball/rolling_ball.hpp"
 #include "backend/image_processing/roi/roi.hpp"
 #include "backend/settings/channel/channel_settings_image_filter.hpp"
+#include "backend/settings/detection/detection_settings.hpp"
 
 namespace joda::algo {
 
@@ -82,7 +85,7 @@ func::DetectionResponse ImageProcessor::processImage(
 
   auto detectionResult = doDetection(image, originalImg, channelSetting, onnxModels);
 
-  doFiltering(detectionResult, channelSetting, referenceChannelResults);
+  doFiltering(originalImg, detectionResult, channelSetting, referenceChannelResults);
   detectionResult.originalImage = std::move(originalImg);
 
   auto modelInfo = onnxModels.find(channelSetting.detection.ai.modelPath);
@@ -245,7 +248,8 @@ ImageProcessor::doDetection(const cv::Mat &image, const cv::Mat &originalImg,
 /// \param[in,out]  detectionResult  Detection result and removes the filtered objects from the detection results
 ///
 void ImageProcessor::doFiltering(
-    func::DetectionResponse &detectionResult, const joda::settings::ChannelSettings &channelSetting,
+    const cv::Mat &originalImg, func::DetectionResponse &detectionResult,
+    const joda::settings::ChannelSettings &channelSetting,
     const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults)
 {
   //
@@ -291,6 +295,31 @@ void ImageProcessor::doFiltering(
     if(channelSetting.imageFilter.maxObjects > 0 &&
        detectionResult.result.size() > channelSetting.imageFilter.maxObjects) {
       detectionResult.responseValidity = func::ResponseDataValidity::POSSIBLE_NOISE;
+    }
+
+    //
+    // Filter by threshold
+    //
+    {
+      if(channelSetting.imageFilter.histMinThresholdFilterFactor > 0) {
+        int histSize           = UINT16_MAX + 1;         // Number of bins
+        float range[]          = {0, UINT16_MAX + 1};    // Pixel value range
+        const float *histRange = {range};
+        cv::Mat histogram;
+        cv::calcHist(&originalImg, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange);
+
+        double maxVal = 0;
+        int maxIdx    = -1;
+        cv::minMaxIdx(histogram, NULL, &maxVal, NULL, &maxIdx);
+
+        float filterThreshold = static_cast<float>(maxIdx) * channelSetting.imageFilter.histMinThresholdFilterFactor;
+        if(channelSetting.detection.detectionMode == joda::settings::DetectionSettings::DetectionMode::THRESHOLD) {
+          if(channelSetting.detection.threshold.thresholdMin < filterThreshold) {
+            detectionResult.responseValidity = func::ResponseDataValidity::POSSIBLE_WRONG_THRESHOLD;
+          }
+          std::cout << "Hist idx: " << std::to_string(maxIdx) << " | " << std::to_string(filterThreshold) << std::endl;
+        }
+      }
     }
   }
   DurationCount::stop(id);
