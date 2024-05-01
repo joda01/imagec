@@ -42,6 +42,16 @@ void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings
   format_set_border(header, LXW_BORDER_THIN);
   format_set_font_size(header, 10);
 
+  // Had for cols with invalid data
+  lxw_format *headerInvalid = workbook_add_format(workbook);
+  format_set_bold(headerInvalid);
+  format_set_pattern(headerInvalid, LXW_PATTERN_SOLID);
+  format_set_bg_color(headerInvalid, 0x820000);
+  format_set_font_color(headerInvalid, 0xFFFFFF);
+  format_set_border(headerInvalid, LXW_BORDER_THIN);
+  format_set_font_size(headerInvalid, 10);
+
+  //
   lxw_format *imageHeaderHyperlinkFormat = workbook_add_format(workbook);
   format_set_bold(imageHeaderHyperlinkFormat);
   format_set_pattern(imageHeaderHyperlinkFormat, LXW_PATTERN_SOLID);
@@ -50,6 +60,16 @@ void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings
   format_set_border(imageHeaderHyperlinkFormat, LXW_BORDER_THIN);
   format_set_underline(imageHeaderHyperlinkFormat, LXW_UNDERLINE_SINGLE);
   format_set_font_size(imageHeaderHyperlinkFormat, 10);
+
+  //
+  lxw_format *imageHeaderHyperlinkFormatInvalid = workbook_add_format(workbook);
+  format_set_bold(imageHeaderHyperlinkFormatInvalid);
+  format_set_pattern(imageHeaderHyperlinkFormatInvalid, LXW_PATTERN_SOLID);
+  format_set_bg_color(imageHeaderHyperlinkFormatInvalid, 0x820000);
+  format_set_font_color(imageHeaderHyperlinkFormatInvalid, 0xFFFFFF);
+  format_set_border(imageHeaderHyperlinkFormatInvalid, LXW_BORDER_THIN);
+  format_set_underline(imageHeaderHyperlinkFormatInvalid, LXW_UNDERLINE_SINGLE);
+  format_set_font_size(imageHeaderHyperlinkFormatInvalid, 10);
 
   // Define the cell format for the merged cells.
   lxw_format *merge_format = workbook_add_format(workbook);
@@ -83,6 +103,12 @@ void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings
   format_set_num_format(numberFormat, "0.00");
   format_set_font_size(numberFormat, 10);
 
+  // Number format invalid
+  lxw_format *numberFormatInvalid = workbook_add_format(workbook);
+  format_set_num_format(numberFormatInvalid, "0.00");
+  format_set_font_size(numberFormatInvalid, 10);
+  format_set_font_color(numberFormatInvalid, 0x820000);
+
   if(writeRunMeta) {
     // Write run meta information
     lxw_worksheet *worksheetMeta = workbook_add_worksheet(workbook, "Job info");
@@ -100,15 +126,15 @@ void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings
       if(OutputFormat::HORIZONTAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
             joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), table, folderName,
-            meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, merge_format, numberFormat,
-            imageHeaderHyperlinkFormat);
+            meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, headerInvalid, merge_format,
+            numberFormat, numberFormatInvalid, imageHeaderHyperlinkFormat, imageHeaderHyperlinkFormatInvalid);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }
       if(OutputFormat::VERTICAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::DetailReport::writeReport(
             joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), table, colOffsetIn,
-            rowOffsetIn, worksheet, header, merge_format, numberFormat);
+            rowOffsetIn, worksheet, header, headerInvalid, merge_format, numberFormat, numberFormatInvalid);
         colOffsetIn += colOffset + 1;
         rowOffsetIn += rowOffset;
       }

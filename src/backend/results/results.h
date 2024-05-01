@@ -162,8 +162,15 @@ public:
 
   struct Row
   {
-    double value;
-    std::optional<joda::func::ParticleValidity> validity;
+    std::variant<double, joda::func::ParticleValidity> value;
+    joda::func::ParticleValidity validity;
+  };
+
+  struct TableMeta
+  {
+    std::string tableName;
+    joda::func::ResponseDataValidity validity = joda::func::ResponseDataValidity::VALID;
+    bool invalidWholeDataOnChannelError       = false;
   };
 
   /////////////////////////////////////////////////////
@@ -173,6 +180,9 @@ public:
 
   /////////////////////////////////////////////////////
   void setTableName(const std::string &name);
+  void setTableValidity(joda::func::ResponseDataValidity valid, bool invalidWholeData);
+  auto getTableValidity() const -> std::tuple<joda::func::ResponseDataValidity, bool>;
+
   void setColumnName(uint64_t idx, const std::string &colName, ColumnKey_t key);
   const std::string &getTableName() const;
   auto getColumnNameAt(uint64_t colIdx) const -> const std::string;
@@ -211,8 +221,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-
-  /////////////////////////////////////////////////////
   Table_t mTable;
   std::map<uint64_t, Statistics> mStatistics;
   std::map<uint64_t, std::string> mRowNames;
@@ -223,7 +231,7 @@ private:
   int64_t mRows = 0;
   Statistics mEmptyStatistics;
   mutable std::mutex mWriteMutex;
-  std::string mTableName;
+  TableMeta mTableMeta;
 };
 
 }    // namespace joda::results

@@ -127,6 +127,7 @@ void PanelChannelEdit::init()
   detection->addWidget(mParentContainer->mAIModels->getEditableWidget());
   detection->addWidget(mParentContainer->mMinProbability->getEditableWidget());
   detection->addWidget(mParentContainer->mWateredSegmentation->getEditableWidget());
+  detection->addWidget(mParentContainer->mSnapAreaSize->getEditableWidget());
 
   _5->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   onDetectionModechanged();
@@ -141,6 +142,8 @@ void PanelChannelEdit::init()
           &PanelChannelEdit::updatePreview);
   connect(mParentContainer->mWateredSegmentation.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::updatePreview);
+  connect(mParentContainer->mSnapAreaSize.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
 
   //
   // Column 4
@@ -152,7 +155,6 @@ void PanelChannelEdit::init()
   objectFilter->addWidget(mParentContainer->mMinParticleSize->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mMaxParticleSize->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mMinCircularity->getEditableWidget());
-  objectFilter->addWidget(mParentContainer->mSnapAreaSize->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mTetraspeckRemoval->getEditableWidget());
   objectFilter->addStretch();
   objectFilterLayout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -163,13 +165,23 @@ void PanelChannelEdit::init()
           &PanelChannelEdit::updatePreview);
   connect(mParentContainer->mMinCircularity.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mSnapAreaSize.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
+
   connect(mParentContainer->mTetraspeckRemoval.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::updatePreview);
 
   auto [imageFilter, imageFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)", 16, false);
   imageFilter->addWidget(createTitle("Image filter"));
+  imageFilter->addWidget(mParentContainer->mImageFilterMode->getEditableWidget());
+  imageFilter->addWidget(mParentContainer->mMaxObjects->getEditableWidget());
+  imageFilter->addWidget(mParentContainer->mHistogramThresholdFactor->getEditableWidget());
+
+  connect(mParentContainer->mImageFilterMode.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(mParentContainer->mMaxObjects.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(mParentContainer->mHistogramThresholdFactor.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+
   imageFilterLayout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   //

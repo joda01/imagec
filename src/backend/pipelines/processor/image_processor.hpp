@@ -145,7 +145,8 @@ private:
                                              const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels);
 
   static void doFiltering(
-      func::DetectionResponse &detectionResult, const joda::settings::ChannelSettings &channelSetting,
+      const cv::Mat &originalImg, func::DetectionResponse &detectionResult,
+      const joda::settings::ChannelSettings &channelSetting,
       const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults);
 
   ///

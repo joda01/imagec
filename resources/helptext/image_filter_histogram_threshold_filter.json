@@ -1,0 +1,10 @@
+{
+    "textLong": "If the min. threshold is lower than the value at the maximum of the histogram multiplied with this factor the filter is applied.",
+    "cite": [],
+    "source": [
+        {
+            "href": "https://github.com/joda01/imagec/blob/main/src/backend/pipelines/pipeline_steps/processor/histogram_filter.hpp",
+            "title": "ImageC"
+        }
+    ]
+}

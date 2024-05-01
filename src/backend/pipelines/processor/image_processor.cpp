@@ -12,12 +12,18 @@
 ///
 
 #include "image_processor.hpp"
+#include <cstdint>
+#include <string>
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/functions/blur/blur.hpp"
 #include "backend/image_processing/functions/blur_gausian/blur_gausian.hpp"
 #include "backend/image_processing/functions/edge_detection/edge_detection.hpp"
 #include "backend/image_processing/functions/median_substraction/median_substraction.hpp"
 #include "backend/image_processing/functions/rolling_ball/rolling_ball.hpp"
+#include "backend/image_processing/roi/roi.hpp"
+#include "backend/pipelines/processor/histogram_filter.hpp"
+#include "backend/settings/channel/channel_settings_image_filter.hpp"
+#include "backend/settings/detection/detection_settings.hpp"
 
 namespace joda::algo {
 
@@ -80,7 +86,7 @@ func::DetectionResponse ImageProcessor::processImage(
 
   auto detectionResult = doDetection(image, originalImg, channelSetting, onnxModels);
 
-  doFiltering(detectionResult, channelSetting, referenceChannelResults);
+  doFiltering(originalImg, detectionResult, channelSetting, referenceChannelResults);
   detectionResult.originalImage = std::move(originalImg);
 
   auto modelInfo = onnxModels.find(channelSetting.detection.ai.modelPath);
@@ -243,13 +249,16 @@ ImageProcessor::doDetection(const cv::Mat &image, const cv::Mat &originalImg,
 /// \param[in,out]  detectionResult  Detection result and removes the filtered objects from the detection results
 ///
 void ImageProcessor::doFiltering(
-    func::DetectionResponse &detectionResult, const joda::settings::ChannelSettings &channelSetting,
+    const cv::Mat &originalImg, func::DetectionResponse &detectionResult,
+    const joda::settings::ChannelSettings &channelSetting,
     const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults)
 {
-  auto id = DurationCount::start("Filtering");
-
+  //
+  // Reference spot removal
+  //
+  auto id = DurationCount::start("Tetraspeck removal");
   if(nullptr != referenceChannelResults) {
-    auto referenceSpotChannelIndex = channelSetting.filter.referenceSpotChannelIndex;
+    auto referenceSpotChannelIndex = channelSetting.objectFilter.referenceSpotChannelIndex;
     if(referenceSpotChannelIndex != joda::settings::ChannelIndex::NONE) {
       auto referenceSpotChannel = referenceChannelResults->find(referenceSpotChannelIndex);
       if(referenceSpotChannel != referenceChannelResults->end()) {
@@ -272,7 +281,28 @@ void ImageProcessor::doFiltering(
       }
     }
   }
+  DurationCount::stop(id);
 
+  //
+  // Image result plausibility check
+  //
+  id = DurationCount::start("Image filtering");
+  if(channelSetting.imageFilter.filterMode != joda::settings::ChannelImageFilter::FilterMode::OFF) {
+    detectionResult.invalidateWholeImage =
+        joda::settings::ChannelImageFilter::FilterMode::INVALIDATE_WHOLE_IMAGE == channelSetting.imageFilter.filterMode;
+    //
+    // Filter by max particles
+    //
+    if(channelSetting.imageFilter.maxObjects > 0 &&
+       detectionResult.result.size() > channelSetting.imageFilter.maxObjects) {
+      detectionResult.responseValidity = func::ResponseDataValidity::POSSIBLE_NOISE;
+    }
+
+    //
+    // Filter by threshold
+    //
+    joda::algo::imgfilter::applyHistogramFilter(originalImg, detectionResult, channelSetting);
+  }
   DurationCount::stop(id);
 }
 

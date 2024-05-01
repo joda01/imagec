@@ -6,8 +6,11 @@
     <qresource prefix="/helptext">
         <file>helptext/rolling_ball.json</file>
         <file>helptext/cross_channel_intensity.json</file>
+        <file>helptext/image_filter_histogram_threshold_filter.json</file>
     </qresource>
     <qresource prefix="/icons">
+        <file>outlined/icons8-histogram-50-01.png</file>
+        <file>outlined/icons8-filter-50.png</file>
         <file>outlined/icons8-coupon-50.png</file>
         <file>outlined/icons8-select-none-50.png</file>
         <file>outlined/icons8-erythrocytes-50.png</file>

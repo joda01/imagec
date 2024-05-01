@@ -2,6 +2,7 @@
 #pragma once
 
 #include "backend/settings/channel/channel_settings_filter.hpp"
+#include "backend/settings/channel/channel_settings_image_filter.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 #include "backend/settings/preprocessing/functions/margin_crop.hpp"
 #include "backend/settings/preprocessing/preprocessing_settings.hpp"
@@ -26,7 +27,8 @@ public:
 
   ChannelSettingsMeta meta;
   DetectionSettings detection;
-  ChannelSettingsFilter filter;
+  ChannelSettingsFilter objectFilter;
+  ChannelImageFilter imageFilter;
   Preprocessing preprocessing;
   CrossChannelSettings crossChannel;
   ChannelReportingSettings reporting;
@@ -39,7 +41,7 @@ public:
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/channel-settings.json";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, meta, detection, filter, preprocessing, crossChannel,
-                                              reporting, configSchema);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, meta, detection, objectFilter, imageFilter,
+                                              preprocessing, crossChannel, reporting, configSchema);
 };
 }    // namespace joda::settings

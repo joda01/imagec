@@ -15,12 +15,23 @@ namespace joda::results {
 
 void Table::setTableName(const std::string &name)
 {
-  mTableName = name;
+  mTableMeta.tableName = name;
 }
 
 const std::string &Table::getTableName() const
 {
-  return mTableName;
+  return mTableMeta.tableName;
+}
+
+void Table::setTableValidity(joda::func::ResponseDataValidity valid, bool invalidWholeData)
+{
+  mTableMeta.validity                       = valid;
+  mTableMeta.invalidWholeDataOnChannelError = invalidWholeData;
+}
+
+auto Table::getTableValidity() const -> std::tuple<joda::func::ResponseDataValidity, bool>
+{
+  return {mTableMeta.validity, mTableMeta.invalidWholeDataOnChannelError};
 }
 
 auto Table::getNrOfRowsAtColumn(int64_t colIdx) const -> int64_t
@@ -61,7 +72,7 @@ int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double 
     rowIdx = mTable[colIdx].size();
   }
 
-  mTable[colIdx][rowIdx] = Row{.value = value};
+  mTable[colIdx][rowIdx] = Row{.value = value, .validity = validity};
 
   // Only count valid particles
   if(joda::func::ParticleValidity::VALID == validity) {
@@ -93,7 +104,7 @@ auto Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func
     rowIdx = mTable[colIdx].size();
   }
 
-  mTable[colIdx][rowIdx] = Row{.validity = validityValue};
+  mTable[colIdx][rowIdx] = Row{.value = validityValue, .validity = validity};
 
   // Only count valid particles
 

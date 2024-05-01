@@ -4,6 +4,7 @@
 #include <xlsxwriter/worksheet.h>
 #include <string>
 #include <unordered_map>
+#include "backend/image_processing/roi/roi.hpp"
 #include "backend/pipelines/reporting/reporting_defines.hpp"
 #include "xlsxwriter.h"
 
@@ -17,8 +18,11 @@ namespace joda::pipeline::reporting {
 std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
                                                  const joda::results::Table &results, const std::string &headerText,
                                                  const std::string &jobName, int colOffset, int rowOffset, int startRow,
-                                                 lxw_worksheet *worksheet, lxw_format *header, lxw_format *merge_format,
-                                                 lxw_format *numberFormat, lxw_format *imageHeaderHyperlinkFormat)
+                                                 lxw_worksheet *worksheet, lxw_format *header,
+                                                 lxw_format *headerInvalid, lxw_format *merge_format,
+                                                 lxw_format *numberFormat, lxw_format *numberFormatInvalid,
+                                                 lxw_format *imageHeaderHyperlinkFormat,
+                                                 lxw_format *imageHeaderHyperlinkFormatInvalid)
 {
   setlocale(LC_NUMERIC, "C");                  // Needed for correct comma in libxlsx
   const int STATISTIC_START_WITH_INDEX = 3;    // Validity, invalidity and Sum are just for internal use
@@ -102,11 +106,9 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
     for(int32_t rowIndex = 0; rowIndex < results.getNrOfRows(); rowIndex++) {
       auto rowName         = results.getRowNameAt(getIndexOfSortedMap(rowIndex));
       std::string filePath = "external:.\\images/" + rowName + "/results_image_" + jobName + ".xlsx";
-
-      worksheet_write_url(worksheet, headerColumnRowOffset, rowIndex + colOffset, filePath.data(),
-                          imageHeaderHyperlinkFormat);
-      worksheet_write_string(worksheet, headerColumnRowOffset, rowIndex + colOffset, rowName.data(),
-                             imageHeaderHyperlinkFormat);
+      lxw_format *format   = imageHeaderHyperlinkFormat;
+      worksheet_write_url(worksheet, headerColumnRowOffset, rowIndex + colOffset, filePath.data(), format);
+      worksheet_write_string(worksheet, headerColumnRowOffset, rowIndex + colOffset, rowName.data(), format);
 
       worksheet_set_column(worksheet, rowIndex + colOffset, rowIndex + colOffset, 15, NULL);
     }
@@ -155,16 +157,19 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
         if(reportingSettings.overview.measureChannels.contains(colKey)) {
           if(results.getTable().contains(colIndex) &&
              results.getTable().at(colIndex).contains(getIndexOfSortedMap(rowIndex))) {
-            if(!results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex)).validity.has_value()) {
+            auto dataToWrite = results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex));
+            auto *format     = numberFormat;
+            if(dataToWrite.validity != func::ParticleValidity::VALID) {
+              format = numberFormatInvalid;
+            }
+            if(std::holds_alternative<double>(dataToWrite.value)) {
               worksheet_write_number(worksheet, rowOffset + sheetRowIdx, rowIndex + colOffset,
-                                     results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex)).value,
-                                     numberFormat);
-            } else {
+                                     std::get<double>(dataToWrite.value), format);
+
+            } else if(std::holds_alternative<joda::func::ParticleValidity>(dataToWrite.value)) {
               worksheet_write_string(
                   worksheet, rowOffset + sheetRowIdx, rowIndex + colOffset,
-                  results::Table::validityToString(
-                      results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex)).validity.value())
-                      .data(),
+                  results::Table::validityToString(std::get<joda::func::ParticleValidity>(dataToWrite.value)).data(),
                   NULL);
             }
             sheetRowIdx++;

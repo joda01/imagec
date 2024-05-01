@@ -19,7 +19,7 @@
       "thresholdMin": 0
     }
   },
-  "filter": {
+  "objectFilter": {
     "maxParticleSize": 2147483647,
     "minCircularity": 0.0,
     "minParticleSize": 5,

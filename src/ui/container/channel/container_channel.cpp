@@ -149,20 +149,20 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
       new ContainerFunction<int, int>("icons8-crop-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Crop margin",
                                       "px", std::nullopt, 0, INT32_MAX, windowMain, "margin_crop.json"));
   mSubtractChannel = std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>>(
-      new ContainerFunction<joda::settings::ChannelIndex, int>(
-          "icons8-layers-50.png", "Index", "Subtract other channel", "", joda::settings::ChannelIndex::NONE,
-          {{joda::settings::ChannelIndex::NONE, "Off"},
-           {joda::settings::ChannelIndex::CH0, "Channel 0"},
-           {joda::settings::ChannelIndex::CH1, "Channel 1"},
-           {joda::settings::ChannelIndex::CH2, "Channel 2"},
-           {joda::settings::ChannelIndex::CH3, "Channel 3"},
-           {joda::settings::ChannelIndex::CH4, "Channel 4"},
-           {joda::settings::ChannelIndex::CH5, "Channel 5"},
-           {joda::settings::ChannelIndex::CH6, "Channel 6"},
-           {joda::settings::ChannelIndex::CH7, "Channel 7"},
-           {joda::settings::ChannelIndex::CH8, "Channel 8"},
-           {joda::settings::ChannelIndex::CH9, "Channel 9"}},
-          windowMain, "subtract_channel.json"));
+      new ContainerFunction<joda::settings::ChannelIndex, int>("icons8-layers-50.png", "Index", "Subtract channel", "",
+                                                               joda::settings::ChannelIndex::NONE,
+                                                               {{joda::settings::ChannelIndex::NONE, "Off"},
+                                                                {joda::settings::ChannelIndex::CH0, "Channel 0"},
+                                                                {joda::settings::ChannelIndex::CH1, "Channel 1"},
+                                                                {joda::settings::ChannelIndex::CH2, "Channel 2"},
+                                                                {joda::settings::ChannelIndex::CH3, "Channel 3"},
+                                                                {joda::settings::ChannelIndex::CH4, "Channel 4"},
+                                                                {joda::settings::ChannelIndex::CH5, "Channel 5"},
+                                                                {joda::settings::ChannelIndex::CH6, "Channel 6"},
+                                                                {joda::settings::ChannelIndex::CH7, "Channel 7"},
+                                                                {joda::settings::ChannelIndex::CH8, "Channel 8"},
+                                                                {joda::settings::ChannelIndex::CH9, "Channel 9"}},
+                                                               windowMain, "subtract_channel.json"));
 
   mMedianBackgroundSubtraction = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,
@@ -233,6 +233,25 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
       "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", windowMain, "cross_channel_count.json"));
 
   //
+  // Cross-Channel
+  //
+  mImageFilterMode = std::shared_ptr<ContainerFunction<joda::settings::ChannelImageFilter::FilterMode, int>>(
+      new ContainerFunction<joda::settings::ChannelImageFilter::FilterMode, int>(
+          "icons8-filter-50.png", "Index", "Image filter mode", "", joda::settings::ChannelImageFilter::FilterMode::OFF,
+          {{joda::settings::ChannelImageFilter::FilterMode::OFF, "Off"},
+           {joda::settings::ChannelImageFilter::FilterMode::INVALIDATE_CHANNEL, "Invalidate channel"},
+           {joda::settings::ChannelImageFilter::FilterMode::INVALIDATE_WHOLE_IMAGE, "Invalidate whole image"}},
+          windowMain, "image_filter_mode.json"));
+
+  mMaxObjects = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-infinity-50.png", "[0 - 2147483647]", "Max. objects", "", std::nullopt, 0,
+                                      2147483647, windowMain, "image_filter_max_objects.json"));
+
+  mHistogramThresholdFactor = std::shared_ptr<ContainerFunction<float, float>>(new ContainerFunction<float, float>(
+      "icons8-histogram-50-01.png", "[0 - 1]", "Hist. threshold factor", "", std::nullopt, 0, 1, windowMain,
+      "image_filter_histogram_threshold_filter.json"));
+
+  //
   // Create panels -> Must be after creating the functions
   //
   mPanelEdit     = new PanelChannelEdit(windowMain, this);
@@ -285,6 +304,11 @@ void ContainerChannel::fromSettings()
 
   mCrossChannelIntensity->clearValue();
 
+  // Image filter
+  mImageFilterMode->clearValue();
+  mMaxObjects->clearValue();
+  mHistogramThresholdFactor->clearValue();
+
   mZProjection->setValue(mSettings.preprocessing.$zStack.method);
 
   if(mSettings.preprocessing.$cropMargin.has_value()) {
@@ -326,15 +350,24 @@ void ContainerChannel::fromSettings()
   mWateredSegmentation->setValue(mSettings.detection.threshold.$watershedSegmentation.enabled);
 
   // Filtering
-  mMinParticleSize->setValue(mSettings.filter.minParticleSize);
-  if(mSettings.filter.maxParticleSize >= INT32_MAX) {
+  mMinParticleSize->setValue(mSettings.objectFilter.minParticleSize);
+  if(mSettings.objectFilter.maxParticleSize >= INT32_MAX) {
     mMaxParticleSize->clearValue();
   } else {
-    mMaxParticleSize->setValue(mSettings.filter.maxParticleSize);
+    mMaxParticleSize->setValue(mSettings.objectFilter.maxParticleSize);
   }
-  mMinCircularity->setValue(mSettings.filter.minCircularity);
-  mSnapAreaSize->setValue(mSettings.filter.snapAreaSize);
-  mTetraspeckRemoval->setValue(mSettings.filter.referenceSpotChannelIndex);
+  mMinCircularity->setValue(mSettings.objectFilter.minCircularity);
+  mSnapAreaSize->setValue(mSettings.objectFilter.snapAreaSize);
+  mTetraspeckRemoval->setValue(mSettings.objectFilter.referenceSpotChannelIndex);
+
+  // Image filter
+  mImageFilterMode->setValue(mSettings.imageFilter.filterMode);
+  if(mSettings.imageFilter.maxObjects > 0) {
+    mMaxObjects->setValue(mSettings.imageFilter.maxObjects);
+  }
+  if(mSettings.imageFilter.histMinThresholdFilterFactor > 0) {
+    mHistogramThresholdFactor->setValue(mSettings.imageFilter.histMinThresholdFilterFactor);
+  }
 
   // Cross channel intensity
   {
@@ -453,20 +486,34 @@ void ContainerChannel::toSettings()
 
   // Filtering
   if(mMinParticleSize->hasValue()) {
-    mSettings.filter.minParticleSize = mMinParticleSize->getValue();
+    mSettings.objectFilter.minParticleSize = mMinParticleSize->getValue();
   } else {
-    mSettings.filter.minParticleSize = 0;
+    mSettings.objectFilter.minParticleSize = 0;
   }
 
   if(mMaxParticleSize->hasValue()) {
-    mSettings.filter.maxParticleSize = mMaxParticleSize->getValue();
+    mSettings.objectFilter.maxParticleSize = mMaxParticleSize->getValue();
   } else {
-    mSettings.filter.maxParticleSize = INT32_MAX;
+    mSettings.objectFilter.maxParticleSize = INT32_MAX;
   }
 
-  mSettings.filter.minCircularity            = mMinCircularity->getValue();
-  mSettings.filter.snapAreaSize              = mSnapAreaSize->getValue();
-  mSettings.filter.referenceSpotChannelIndex = mTetraspeckRemoval->getValue();
+  mSettings.objectFilter.minCircularity            = mMinCircularity->getValue();
+  mSettings.objectFilter.snapAreaSize              = mSnapAreaSize->getValue();
+  mSettings.objectFilter.referenceSpotChannelIndex = mTetraspeckRemoval->getValue();
+
+  // Image filter
+  mSettings.imageFilter.filterMode = mImageFilterMode->getValue();
+  if(mMaxObjects->hasValue()) {
+    mSettings.imageFilter.maxObjects = mMaxObjects->getValue();
+  } else {
+    mSettings.imageFilter.maxObjects = -1;
+  }
+
+  if(mHistogramThresholdFactor->hasValue()) {
+    mSettings.imageFilter.histMinThresholdFilterFactor = mHistogramThresholdFactor->getValue();
+  } else {
+    mSettings.imageFilter.histMinThresholdFilterFactor = -1;
+  }
 
   // Cross channel settings
   {

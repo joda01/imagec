@@ -30,8 +30,9 @@ class DetailReport
 public:
   static std::tuple<int, int> writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
                                           const joda::results::Table &results, int colOffset, int /*rowOffset*/,
-                                          lxw_worksheet *worksheet, lxw_format *header, lxw_format *merge_format,
-                                          lxw_format *numberFormat);
+                                          lxw_worksheet *worksheet, lxw_format *header, lxw_format *headerInvalid,
+                                          lxw_format *merge_format, lxw_format *numberFormat,
+                                          lxw_format *numberFormatInvalid);
 };
 
 }    // namespace joda::pipeline::reporting

@@ -19,11 +19,21 @@ namespace joda::func {
 
 using DetectionResults = std::vector<ROI>;
 
+enum class ResponseDataValidity : int
+{
+  UNKNOWN                  = 0,
+  VALID                    = 0x01,
+  POSSIBLE_NOISE           = 0x02,
+  POSSIBLE_WRONG_THRESHOLD = 0x04
+};
+
 struct DetectionResponse
 {
   joda::func::DetectionResults result;
-  cv::Mat originalImage = {};
-  cv::Mat controlImage  = {};
+  cv::Mat originalImage                 = {};
+  cv::Mat controlImage                  = {};
+  ResponseDataValidity responseValidity = ResponseDataValidity::VALID;
+  bool invalidateWholeImage             = false;
 };
 
 }    // namespace joda::func

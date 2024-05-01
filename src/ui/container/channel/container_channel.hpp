@@ -22,6 +22,7 @@
 #include "../container_base.hpp"
 #include "../container_function.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
+#include "backend/settings/channel/channel_settings_image_filter.hpp"
 #include "backend/settings/channel/channel_settings_meta.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 #include "backend/settings/preprocessing/functions/edge_detection.hpp"
@@ -104,6 +105,11 @@ private:
   // Cross-Channel//////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntensity;
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelCount;
+
+  // Image Filter//////////////////////////////////
+  std::shared_ptr<ContainerFunction<joda::settings::ChannelImageFilter::FilterMode, int>> mImageFilterMode;
+  std::shared_ptr<ContainerFunction<int, int>> mMaxObjects;
+  std::shared_ptr<ContainerFunction<float, float>> mHistogramThresholdFactor;
 
   // Reporting//////////////////////////////////
   settings::ChannelSettings &mSettings;
