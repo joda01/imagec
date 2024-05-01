@@ -103,6 +103,12 @@ void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings
   format_set_num_format(numberFormat, "0.00");
   format_set_font_size(numberFormat, 10);
 
+  // Number format invalid
+  lxw_format *numberFormatInvalid = workbook_add_format(workbook);
+  format_set_num_format(numberFormatInvalid, "0.00");
+  format_set_font_size(numberFormatInvalid, 10);
+  format_set_font_color(numberFormatInvalid, 0x820000);
+
   if(writeRunMeta) {
     // Write run meta information
     lxw_worksheet *worksheetMeta = workbook_add_worksheet(workbook, "Job info");
@@ -121,14 +127,14 @@ void ReportingContainer::flushReportToFile(const joda::settings::AnalyzeSettings
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
             joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), table, folderName,
             meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, headerInvalid, merge_format,
-            numberFormat, imageHeaderHyperlinkFormat, imageHeaderHyperlinkFormatInvalid);
+            numberFormat, numberFormatInvalid, imageHeaderHyperlinkFormat, imageHeaderHyperlinkFormatInvalid);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }
       if(OutputFormat::VERTICAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::DetailReport::writeReport(
             joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), table, colOffsetIn,
-            rowOffsetIn, worksheet, header, headerInvalid, merge_format, numberFormat);
+            rowOffsetIn, worksheet, header, headerInvalid, merge_format, numberFormat, numberFormatInvalid);
         colOffsetIn += colOffset + 1;
         rowOffsetIn += rowOffset;
       }

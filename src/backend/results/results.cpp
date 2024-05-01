@@ -71,7 +71,7 @@ int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double 
     rowIdx = mTable[colIdx].size();
   }
 
-  mTable[colIdx][rowIdx] = Row{.value = value};
+  mTable[colIdx][rowIdx] = Row{.value = value, .validity = validity};
 
   // Only count valid particles
   if(joda::func::ParticleValidity::VALID == validity) {
@@ -103,7 +103,7 @@ auto Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func
     rowIdx = mTable[colIdx].size();
   }
 
-  mTable[colIdx][rowIdx] = Row{.validity = validityValue};
+  mTable[colIdx][rowIdx] = Row{.value = validityValue, .validity = validity};
 
   // Only count valid particles
 

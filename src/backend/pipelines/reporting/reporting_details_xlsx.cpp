@@ -15,7 +15,8 @@ namespace joda::pipeline::reporting {
 std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
                                                const joda::results::Table &results, int colOffset, int /*rowOffset*/,
                                                lxw_worksheet *worksheet, lxw_format *header, lxw_format *headerInvalid,
-                                               lxw_format *merge_format, lxw_format *numberFormat)
+                                               lxw_format *merge_format, lxw_format *numberFormat,
+                                               lxw_format *numberFormatInvalid)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   int ROW_OFFSET                       = 2;
@@ -109,13 +110,19 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
             }
 
             if(results.getTable().contains(colIdx) && results.getTable().at(colIdx).contains(rowIdx)) {
-              if(!results.getTable().at(colIdx).at(rowIdx).validity.has_value()) {
+              auto dataToWrite = results.getTable().at(colIdx).at(rowIdx);
+              auto *format     = numberFormat;
+              if(dataToWrite.validity != func::ParticleValidity::VALID) {
+                format = numberFormatInvalid;
+              }
+              if(std::holds_alternative<double>(dataToWrite.value)) {
                 worksheet_write_number(worksheet, ROW_OFFSET + rowIdx, sheetColIdx + COL_OFFSET,
-                                       results.getTable().at(colIdx).at(rowIdx).value, numberFormat);
-              } else {
+                                       std::get<double>(dataToWrite.value), format);
+
+              } else if(std::holds_alternative<joda::func::ParticleValidity>(dataToWrite.value)) {
                 worksheet_write_string(
-                    worksheet, ROW_OFFSET + rowIdx, colIdx + COL_OFFSET,
-                    results::Table::validityToString(results.getTable().at(colIdx).at(rowIdx).validity.value()).data(),
+                    worksheet, ROW_OFFSET + rowIdx, sheetColIdx + COL_OFFSET,
+                    results::Table::validityToString(std::get<joda::func::ParticleValidity>(dataToWrite.value)).data(),
                     NULL);
               }
             } else {

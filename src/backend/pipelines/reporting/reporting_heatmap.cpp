@@ -99,16 +99,18 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
                .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
                    settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X, channelIdx)))
                .contains(row)) {
-          int64_t xCo = table.getTable()
-                            .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
-                                settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X, channelIdx)))
-                            .at(row)
-                            .value;
-          int64_t yCo = table.getTable()
-                            .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
-                                settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_Y, channelIdx)))
-                            .at(row)
-                            .value;
+          int64_t xCo = std::get<double>(
+              table.getTable()
+                  .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
+                      settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X, channelIdx)))
+                  .at(row)
+                  .value);
+          int64_t yCo = std::get<double>(
+              table.getTable()
+                  .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
+                      settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_Y, channelIdx)))
+                  .at(row)
+                  .value);
           if(xCo > imageWidth) {
             xCo = imageWidth;
           }
@@ -126,11 +128,12 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
                  .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
                      settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG, channelIdx)))
                  .contains(row)) {
-            intensity = table.getTable()
-                            .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
-                                settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG, channelIdx)))
-                            .at(row)
-                            .value;
+            intensity = std::get<double>(
+                table.getTable()
+                    .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
+                        settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG, channelIdx)))
+                    .at(row)
+                    .value);
             valid = table.getTable()
                         .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
                             settings::ChannelReportingSettings::MeasureChannels::VALIDITY, channelIdx)))
@@ -141,11 +144,12 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
                  .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
                      settings::ChannelReportingSettings::MeasureChannels::AREA_SIZE, channelIdx)))
                  .contains(row)) {
-            areaSize = table.getTable()
-                           .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
-                               settings::ChannelReportingSettings::MeasureChannels::AREA_SIZE, channelIdx)))
-                           .at(row)
-                           .value;
+            areaSize =
+                std::get<double>(table.getTable()
+                                     .at(table.getColIndexFromKey(getMaskedMeasurementChannel(
+                                         settings::ChannelReportingSettings::MeasureChannels::AREA_SIZE, channelIdx)))
+                                     .at(row)
+                                     .value);
           }
 
           if(valid) {
@@ -270,10 +274,11 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
         for(int rowIdx = 0; rowIdx < values.getNrOfRows(); rowIdx++) {
           try {
             auto imageName = values.getRowNameAt(rowIdx);
-            auto areaSize  = values.getTable()
-                                .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannel, channelIdx)))
-                                .at(rowIdx)
-                                .value;
+            auto areaSize  = std::get<double>(
+                values.getTable()
+                    .at(values.getColIndexFromKey(getMaskedMeasurementChannel(measureChannel, channelIdx)))
+                    .at(rowIdx)
+                    .value);
             auto imgNr = Helper::applyRegex(analyzeSettings.experimentSettings.filenameRegex, imageName).img;
             auto pos   = wellOrder.find(imgNr);
             if(pos != wellOrder.end()) {

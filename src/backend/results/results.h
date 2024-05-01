@@ -162,8 +162,8 @@ public:
 
   struct Row
   {
-    double value;
-    std::optional<joda::func::ParticleValidity> validity;
+    std::variant<double, joda::func::ParticleValidity> value;
+    joda::func::ParticleValidity validity;
   };
 
   struct TableMeta

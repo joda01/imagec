@@ -16,6 +16,7 @@
 #include <mutex>
 #include <string>
 #include "backend/duration_count/duration_count.h"
+#include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/roi/roi.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/logger/console_logger.hpp"
@@ -370,14 +371,18 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
 
         if(detailTableToWorkOn.containsStatistics(colIdxDetailReport)) {
           auto colStatistics = detailTableToWorkOn.getStatistics(colIdxDetailReport);
+          auto validity      = joda::func::ParticleValidity::VALID;
+          if(detailTableToWorkOn.getTableValidity() != func::ResponseDataValidity::VALID) {
+            validity = joda::func::ParticleValidity::INVALID;
+          }
 
           rowIdx = allOverTableToWorkOn.appendValueToColumnWithKey(
               getMeasureChannelWithStats(colKey, joda::settings::ChannelReportingSettings::MeasureChannelStat::AVG),
-              colStatistics.getAvg(), joda::func::ParticleValidity::VALID);
+              colStatistics.getAvg(), validity);
 
           rowIdx = allOverTableToWorkOn.appendValueToColumnWithKey(
               getMeasureChannelWithStats(colKey, joda::settings::ChannelReportingSettings::MeasureChannelStat::SUM),
-              colStatistics.getSum(), joda::func::ParticleValidity::VALID);
+              colStatistics.getSum(), validity);
         } else {
           double noData = std::numeric_limits<double>::quiet_NaN();
 
