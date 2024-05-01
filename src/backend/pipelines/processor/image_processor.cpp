@@ -288,8 +288,8 @@ void ImageProcessor::doFiltering(
     //
     // Filter by max particles
     //
-    if(channelSetting.imageFilter.maxParticleNumber > 0 &&
-       detectionResult.result.size() > channelSetting.imageFilter.maxParticleNumber) {
+    if(channelSetting.imageFilter.maxObjects > 0 &&
+       detectionResult.result.size() > channelSetting.imageFilter.maxObjects) {
       detectionResult.responseValidity = func::ResponseDataValidity::POSSIBLE_NOISE;
     }
   }

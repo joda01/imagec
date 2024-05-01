@@ -170,6 +170,14 @@ void PanelChannelEdit::init()
 
   auto [imageFilter, imageFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)", 16, false);
   imageFilter->addWidget(createTitle("Image filter"));
+  imageFilter->addWidget(mParentContainer->mImageFilterMode->getEditableWidget());
+  imageFilter->addWidget(mParentContainer->mMaxObjects->getEditableWidget());
+
+  connect(mParentContainer->mImageFilterMode.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(mParentContainer->mMaxObjects.get(), &ContainerFunctionBase::valueChanged, this,
+          &PanelChannelEdit::updatePreview);
+
   imageFilterLayout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   //

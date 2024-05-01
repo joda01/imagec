@@ -233,6 +233,21 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
       "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", windowMain, "cross_channel_count.json"));
 
   //
+  // Cross-Channel
+  //
+  mImageFilterMode = std::shared_ptr<ContainerFunction<joda::settings::ChannelImageFilter::FilterMode, int>>(
+      new ContainerFunction<joda::settings::ChannelImageFilter::FilterMode, int>(
+          "icons8-filter-50.png", "Index", "Image filter mode", "", joda::settings::ChannelImageFilter::FilterMode::OFF,
+          {{joda::settings::ChannelImageFilter::FilterMode::OFF, "Off"},
+           {joda::settings::ChannelImageFilter::FilterMode::INVALIDATE_CHANNEL, "Invalidate channel"},
+           {joda::settings::ChannelImageFilter::FilterMode::INVALIDATE_WHOLE_IMAGE, "Invalidate whole image"}},
+          windowMain, "image_filter_mode.json"));
+
+  mMaxObjects = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-infinity-50.png", "[0 - 2147483647]", "Max. objects", "", std::nullopt, 0,
+                                      2147483647, windowMain, "image_filter_max_objects.json"));
+
+  //
   // Create panels -> Must be after creating the functions
   //
   mPanelEdit     = new PanelChannelEdit(windowMain, this);
@@ -285,6 +300,10 @@ void ContainerChannel::fromSettings()
 
   mCrossChannelIntensity->clearValue();
 
+  // Image filter
+  mImageFilterMode->clearValue();
+  mMaxObjects->clearValue();
+
   mZProjection->setValue(mSettings.preprocessing.$zStack.method);
 
   if(mSettings.preprocessing.$cropMargin.has_value()) {
@@ -335,6 +354,12 @@ void ContainerChannel::fromSettings()
   mMinCircularity->setValue(mSettings.objectFilter.minCircularity);
   mSnapAreaSize->setValue(mSettings.objectFilter.snapAreaSize);
   mTetraspeckRemoval->setValue(mSettings.objectFilter.referenceSpotChannelIndex);
+
+  // Image filter
+  mImageFilterMode->setValue(mSettings.imageFilter.filterMode);
+  if(mSettings.imageFilter.maxObjects > 0) {
+    mMaxObjects->setValue(mSettings.imageFilter.maxObjects);
+  }
 
   // Cross channel intensity
   {
@@ -467,6 +492,14 @@ void ContainerChannel::toSettings()
   mSettings.objectFilter.minCircularity            = mMinCircularity->getValue();
   mSettings.objectFilter.snapAreaSize              = mSnapAreaSize->getValue();
   mSettings.objectFilter.referenceSpotChannelIndex = mTetraspeckRemoval->getValue();
+
+  // Image filter
+  mSettings.imageFilter.filterMode = mImageFilterMode->getValue();
+  if(mMaxObjects->hasValue()) {
+    mSettings.imageFilter.maxObjects = mMaxObjects->getValue();
+  } else {
+    mSettings.imageFilter.maxObjects = -1;
+  }
 
   // Cross channel settings
   {

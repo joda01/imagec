@@ -8,6 +8,7 @@
         <file>helptext/cross_channel_intensity.json</file>
     </qresource>
     <qresource prefix="/icons">
+        <file>outlined/icons8-filter-50.png</file>
         <file>outlined/icons8-coupon-50.png</file>
         <file>outlined/icons8-select-none-50.png</file>
         <file>outlined/icons8-erythrocytes-50.png</file>
