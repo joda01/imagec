@@ -15,30 +15,30 @@ namespace joda::results {
 
 void Table::setTableName(const std::string &name)
 {
-  mTableMeta.tableName = name;
+  meta.tableName = name;
 }
 
 const std::string &Table::getTableName() const
 {
-  return mTableMeta.tableName;
+  return meta.tableName;
 }
 
 void Table::setTableValidity(joda::func::ResponseDataValidity valid, bool invalidWholeData)
 {
-  mTableMeta.validity                       = valid;
-  mTableMeta.invalidWholeDataOnChannelError = invalidWholeData;
+  meta.validity                               = valid;
+  meta.invalidateAllDataOnOneChannelIsInvalid = invalidWholeData;
 }
 
 auto Table::getTableValidity() const -> std::tuple<joda::func::ResponseDataValidity, bool>
 {
-  return {mTableMeta.validity, mTableMeta.invalidWholeDataOnChannelError};
+  return {meta.validity, meta.invalidateAllDataOnOneChannelIsInvalid};
 }
 
 auto Table::getNrOfRowsAtColumn(int64_t colIdx) const -> int64_t
 {
   std::lock_guard<std::mutex> lock(mWriteMutex);
-  if(mTable.contains(colIdx)) {
-    return mTable.at(colIdx).size();
+  if(data.contains(colIdx)) {
+    return data.at(colIdx).size();
   }
   return 0;
 }
@@ -64,55 +64,55 @@ int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double 
 {
   std::lock_guard<std::mutex> lock(mWriteMutex);
 
-  if(!mTable.contains(colIdx)) {
-    mTable.emplace(colIdx, Row_t{});
+  if(!data.contains(colIdx)) {
+    data.emplace(colIdx, Row_t{});
   }
 
   if(rowIdx < 0) {
-    rowIdx = mTable[colIdx].size();
+    rowIdx = data[colIdx].size();
   }
 
-  mTable[colIdx][rowIdx] = Row{.value = value, .validity = validity};
+  data[colIdx][rowIdx] = Row{.val = value, .isValid = joda::func::ParticleValidity::VALID == validity};
 
   // Only count valid particles
   if(joda::func::ParticleValidity::VALID == validity) {
-    mStatistics[colIdx].addValue(value);
+    stats[colIdx].addValue(value);
   } else {
-    mStatistics[colIdx].incrementInvalid();
+    stats[colIdx].incrementInvalid();
   }
 
   mRows = std::max(mRows, static_cast<int64_t>(rowIdx) + 1);
   return rowIdx;
 }
 
-auto Table::appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, joda::func::ParticleValidity validity,
+auto Table::appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, bool isValid,
                                             joda::func::ParticleValidity validityValue) -> int64_t
 {
-  return appendValueToColumnAtRow(getColIndexFromKey(key), rowIdx, validity, validityValue);
+  return appendValueToColumnAtRow(getColIndexFromKey(key), rowIdx, isValid, validityValue);
 }
 
-auto Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func::ParticleValidity validity,
+auto Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, bool isValid,
                                      joda::func::ParticleValidity validityValue) -> int64_t
 {
   std::lock_guard<std::mutex> lock(mWriteMutex);
 
-  if(!mTable.contains(colIdx)) {
-    mTable.emplace(colIdx, Row_t{});
+  if(!data.contains(colIdx)) {
+    data.emplace(colIdx, Row_t{});
   }
 
   if(rowIdx < 0) {
-    rowIdx = mTable[colIdx].size();
+    rowIdx = data[colIdx].size();
   }
 
-  mTable[colIdx][rowIdx] = Row{.value = validityValue, .validity = validity};
+  data[colIdx][rowIdx] = Row{.val = validityValue, .isValid = isValid};
 
   // Only count valid particles
 
-  if(joda::func::ParticleValidity::VALID != validity) {
-    mStatistics[colIdx].incrementInvalid();
-    mStatistics[colIdx].addValue(0);
+  if(!isValid) {
+    stats[colIdx].incrementInvalid();
+    stats[colIdx].addValue(0);
   } else {
-    mStatistics[colIdx].addValue(1);
+    stats[colIdx].addValue(1);
   }
 
   mRows = std::max(mRows, static_cast<int64_t>(rowIdx) + 1);
@@ -145,17 +145,17 @@ int64_t Table::appendValueToColumn(const std::string &rowName, uint64_t colIdx, 
 
 bool Table::containsColumn(int64_t colIdx) const
 {
-  return mTable.contains(colIdx);
+  return data.contains(colIdx);
 }
 
 auto Table::getNrOfColumns() const -> int64_t
 {
-  return std::max(static_cast<int64_t>(mTable.size()), static_cast<int64_t>(mColumnName.size()));
+  return std::max(static_cast<int64_t>(data.size()), static_cast<int64_t>(colNames.size()));
 }
 
 auto Table::getRowNames() const -> const std::map<uint64_t, std::string> &
 {
-  return mRowNames;
+  return rowNames;
 }
 
 auto Table::getNrOfRows() const -> int64_t
@@ -165,61 +165,60 @@ auto Table::getNrOfRows() const -> int64_t
 
 auto Table::getTable() const -> const Table_t &
 {
-  return mTable;
+  return data;
 }
 auto Table::getStatistics() const -> const std::map<uint64_t, Statistics> &
 {
-  return mStatistics;
+  return stats;
 }
 
 auto Table::getStatistics(uint64_t colIdx) const -> const Statistics &
 {
-  if(mStatistics.contains(colIdx)) {
-    return mStatistics.at(colIdx);
-  } else {
-    return mEmptyStatistics;
+  if(stats.contains(colIdx)) {
+    return stats.at(colIdx);
   }
+  return mEmptyStatistics;
 }
 
 bool Table::containsStatistics(uint64_t colIdx) const
 {
-  return mStatistics.contains(colIdx);
+  return stats.contains(colIdx);
 }
 
 void Table::setRowName(uint64_t rowIdx, const std::string &name)
 {
   std::lock_guard<std::mutex> lock(mWriteMutex);
-  mRowNames.emplace(rowIdx, name);
+  rowNames.emplace(rowIdx, name);
 }
 
 void Table::setColumnName(uint64_t idx, const std::string &colName, ColumnKey_t key)
 {
   std::lock_guard<std::mutex> lock(mWriteMutex);
-  mColumnName[idx]         = colName;
-  mColumnKeysForIndex[idx] = key;
-  mColumnKeys[key]         = idx;
+  colNames[idx]    = colName;
+  colKeys[idx]     = key;
+  mColumnKeys[key] = idx;
 }
 
 auto Table::getColumnNameAt(uint64_t colIdx) const -> const std::string
 {
-  if(mColumnName.contains(colIdx)) {
-    return mColumnName.at(colIdx);
+  if(colNames.contains(colIdx)) {
+    return colNames.at(colIdx);
   }
   return std::to_string(colIdx);
 }
 
 auto Table::getColumnKeyAt(uint64_t colIdx) const -> ColumnKey_t
 {
-  if(mColumnKeysForIndex.contains(colIdx)) {
-    return mColumnKeysForIndex.at(colIdx);
+  if(colKeys.contains(colIdx)) {
+    return colKeys.at(colIdx);
   }
   return -1;
 }
 
 auto Table::getRowNameAt(uint64_t rowIdx) const -> const std::string
 {
-  if(mRowNames.contains(rowIdx)) {
-    return mRowNames.at(rowIdx);
+  if(rowNames.contains(rowIdx)) {
+    return rowNames.at(rowIdx);
   }
   return std::to_string(rowIdx);
 }

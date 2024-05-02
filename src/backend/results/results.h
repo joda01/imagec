@@ -25,6 +25,8 @@
 #include <variant>
 #include <vector>
 #include "../image_processing/detection/detection_response.hpp"
+#include "backend/image_processing/roi/roi.hpp"
+#include <nlohmann/detail/macro_scope.hpp>
 #include "xlsxwriter.h"
 
 namespace joda::results {
@@ -46,18 +48,19 @@ public:
   ~Statistics()                    = default;
   /// \todo mark copy constructor as deleted
   Statistics(const Statistics &other) :
-      mNr(other.mNr), mInvalid(other.mInvalid), mSum(other.mSum), mMin(other.mMin), mMax(other.mMax), mMean(other.mMean)
+      nrTotal(other.nrTotal), nrInvalid(other.nrInvalid), sum(other.sum), min(other.min), max(other.max),
+      mean(other.mean)
   {
   }
 
   Statistics &operator=(const Statistics other)
   {
-    mNr      = other.mNr;
-    mInvalid = other.mInvalid;
-    mSum     = other.mSum;
-    mMin     = other.mMin;
-    mMax     = other.mMax;
-    mMean    = other.mMean;
+    nrTotal   = other.nrTotal;
+    nrInvalid = other.nrInvalid;
+    sum       = other.sum;
+    min       = other.min;
+    max       = other.max;
+    mean      = other.mean;
 
     return *this;
   }
@@ -66,62 +69,62 @@ public:
   void addValue(double val)
   {
     std::lock_guard<std::mutex> lock(mAddMutex);
-    if(mNr == 0) {
-      mMin = val;
-      mMax = val;
+    if(nrTotal == 0) {
+      min = val;
+      max = val;
     } else {
-      mMin = std::min(mMin, val);
-      mMax = std::max(mMax, val);
+      min = std::min(min, val);
+      max = std::max(max, val);
     }
-    mNr++;
+    nrTotal++;
 
-    mSum += val;
-    mMean = mSum / static_cast<double>(mNr);
+    sum += val;
+    mean = sum / static_cast<double>(nrTotal);
   }
 
   void incrementInvalid()
   {
     std::lock_guard<std::mutex> lock(mAddMutex);
-    mInvalid++;
+    nrInvalid++;
   }
 
   void reset()
   {
-    mNr   = 0;
-    mSum  = 0;
-    mMin  = 0;
-    mMax  = 0;
-    mMean = 0;
+    nrTotal = 0;
+    sum     = 0;
+    min     = 0;
+    max     = 0;
+    mean    = 0;
   }
 
   [[nodiscard]] uint64_t getNr() const
   {
-    return mNr;
+    return nrTotal;
   }
 
   [[nodiscard]] uint64_t getInvalid() const
   {
-    return mInvalid;
+    return nrInvalid;
   }
 
   [[nodiscard]] double getSum() const
   {
-    return mSum;
+    return sum;
   }
 
   [[nodiscard]] double getMin() const
   {
-    return mMin;
+    return min;
   }
 
   [[nodiscard]] double getMax() const
   {
-    return mMax;
+    return max;
   }
 
   [[nodiscard]] double getAvg() const
   {
-    return mMean;
+    return mean;
   }
 
   static auto getStatisticsTitle() -> const std::array<std::string, NR_OF_VALUE>;
@@ -129,12 +132,15 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  uint64_t mNr      = 0;
-  uint64_t mInvalid = 0;
-  double mSum       = 0;
-  double mMin       = 0;
-  double mMax       = 0;
-  double mMean      = 0;
+  uint64_t nrTotal   = 0;
+  uint64_t nrInvalid = 0;
+  double sum         = 0;
+  double min         = 0;
+  double max         = 0;
+  double mean        = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Statistics, nrTotal, nrInvalid, sum, min, max, mean);
+
   std::mutex mAddMutex;
 };
 
@@ -162,15 +168,38 @@ public:
 
   struct Row
   {
-    std::variant<double, joda::func::ParticleValidity> value;
-    joda::func::ParticleValidity validity;
+    std::variant<double, joda::func::ParticleValidity> val;
+    bool isValid;
+
+    friend void to_json(nlohmann ::json &nlohmann_json_j, const Row &nlohmann_json_t)
+    {
+      if(std::holds_alternative<double>(nlohmann_json_t.val)) {
+        nlohmann_json_j["val"] = std::get<double>(nlohmann_json_t.val);
+      } else if(std::holds_alternative<joda::func::ParticleValidity>(nlohmann_json_t.val)) {
+        nlohmann_json_j["val"] = std::get<joda::func::ParticleValidity>(nlohmann_json_t.val);
+      }
+      nlohmann_json_j["isValid"] = nlohmann_json_t.isValid;
+    }
+    friend void from_json(const nlohmann ::json &nlohmann_json_j, Row &nlohmann_json_t)
+    {
+      if(nlohmann_json_j.at("val").is_string()) {
+        joda::func::ParticleValidity parseVal = nlohmann_json_j.at("val");
+        nlohmann_json_t.val                   = parseVal;
+      } else {
+        double parseVal     = nlohmann_json_j.at("val");
+        nlohmann_json_t.val = parseVal;
+      }
+      nlohmann_json_j.at("isValid").get_to(nlohmann_json_t.isValid);
+    };
   };
 
   struct TableMeta
   {
     std::string tableName;
-    joda::func::ResponseDataValidity validity = joda::func::ResponseDataValidity::VALID;
-    bool invalidWholeDataOnChannelError       = false;
+    joda::func::ResponseDataValidity validity   = joda::func::ResponseDataValidity::VALID;
+    bool invalidateAllDataOnOneChannelIsInvalid = false;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(TableMeta, tableName, validity, invalidateAllDataOnOneChannelIsInvalid);
   };
 
   /////////////////////////////////////////////////////
@@ -201,9 +230,9 @@ public:
   auto appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, double value, joda::func::ParticleValidity)
       -> int64_t;
 
-  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, joda::func::ParticleValidity,
+  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, bool isValid,
                                 joda::func::ParticleValidity validityValue) -> int64_t;
-  auto appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, joda::func::ParticleValidity,
+  auto appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, bool isValid,
                                        joda::func::ParticleValidity validityValue) -> int64_t;
 
   auto getTable() const -> const Table_t &;
@@ -221,17 +250,22 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  Table_t mTable;
-  std::map<uint64_t, Statistics> mStatistics;
-  std::map<uint64_t, std::string> mRowNames;
-  std::map<uint64_t, std::string> mColumnName;
-  std::map<ColumnKey_t, uint64_t>
-      mColumnKeys;    ///< Used to identify a column unique. The key is the keys, the value is the column index
-  std::map<uint64_t, ColumnKey_t> mColumnKeysForIndex;
+  Table_t data;
+  TableMeta meta;
+  std::map<uint64_t, Statistics> stats;
+  std::map<uint64_t, std::string> rowNames;
+  std::map<uint64_t, std::string> colNames;
+  ///< Used to identify a column unique. The key is the col index, the value is unique col key
+  std::map<uint64_t, ColumnKey_t> colKeys;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Table, data, meta, stats, rowNames, colNames, colKeys);
+
+  /// Helpers//////////////////////////////////////////
   int64_t mRows = 0;
   Statistics mEmptyStatistics;
+  ///< Used to identify a column unique. The key is the key, the value is the column index
+  std::map<ColumnKey_t, uint64_t> mColumnKeys;
   mutable std::mutex mWriteMutex;
-  TableMeta mTableMeta;
 };
 
 }    // namespace joda::results

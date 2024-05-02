@@ -19,18 +19,18 @@ public:
   Table &getTableAt(joda::settings::ChannelIndex key, const std::string &channelName)
   {
     std::lock_guard<std::mutex> lock(mAccessMutex);
-    if(!mColumns.contains(key)) {
-      mColumns[key].setTableName(channelName);
+    if(!tables.contains(key)) {
+      tables[key].setTableName(channelName);
     }
 
-    return mColumns.at(key);
+    return tables.at(key);
   }
 
   const Table &getTableAt(joda::settings::ChannelIndex key) const
   {
     std::lock_guard<std::mutex> lock(mAccessMutex);
-    if(mColumns.contains(key)) {
-      return mColumns.at(key);
+    if(tables.contains(key)) {
+      return tables.at(key);
     }
     throw std::invalid_argument("Table does not exist!");
   }
@@ -38,12 +38,12 @@ public:
   bool containsTable(joda::settings::ChannelIndex key) const
   {
     std::lock_guard<std::mutex> lock(mAccessMutex);
-    return mColumns.contains(key);
+    return tables.contains(key);
   }
 
   bool containsInvalidChannel() const
   {
-    for(const auto &ch : mColumns) {
+    for(const auto &ch : tables) {
       auto [valid, _] = ch.second.getTableValidity();
       if(valid != func::ResponseDataValidity::VALID) {
         return true;
@@ -54,7 +54,7 @@ public:
 
   bool containsInvalidChannelWhereOneInvalidatesTheWholeImage() const
   {
-    for(const auto &[_, ch] : mColumns) {
+    for(const auto &[_, ch] : tables) {
       auto [valid, invalidAll] = ch.getTableValidity();
       if(valid != func::ResponseDataValidity::VALID && invalidAll) {
         return true;
@@ -63,10 +63,9 @@ public:
     return false;
   }
 
-  mutable std::map<joda::settings::ChannelIndex, Table> mColumns;    // Each column is the representation of a channel
-
 private:
   mutable std::mutex mAccessMutex;
+  mutable std::map<joda::settings::ChannelIndex, Table> tables;    // Each column is the representation of a channel
 };
 
 }    // namespace joda::results
