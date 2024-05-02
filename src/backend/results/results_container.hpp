@@ -12,60 +12,30 @@
 
 namespace joda::results {
 
-class ReportingContainer
+class TableWorkbook
 {
 public:
-  ReportingContainer();
-  Table &getTableAt(joda::settings::ChannelIndex key, const std::string &channelName)
-  {
-    std::lock_guard<std::mutex> lock(mAccessMutex);
-    if(!tables.contains(key)) {
-      tables[key].setTableName(channelName);
-    }
+  /////////////////////////////////////////////////////
+  TableWorkbook();
+  // void saveToFile(const std::string &fileName);
+  // void loadFromFile(const std::string &fileName);
 
-    return tables.at(key);
-  }
-
-  const Table &getTableAt(joda::settings::ChannelIndex key) const
-  {
-    std::lock_guard<std::mutex> lock(mAccessMutex);
-    if(tables.contains(key)) {
-      return tables.at(key);
-    }
-    throw std::invalid_argument("Table does not exist!");
-  }
-
-  bool containsTable(joda::settings::ChannelIndex key) const
-  {
-    std::lock_guard<std::mutex> lock(mAccessMutex);
-    return tables.contains(key);
-  }
-
-  bool containsInvalidChannel() const
-  {
-    for(const auto &ch : tables) {
-      auto [valid, _] = ch.second.getTableValidity();
-      if(valid != func::ResponseDataValidity::VALID) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool containsInvalidChannelWhereOneInvalidatesTheWholeImage() const
-  {
-    for(const auto &[_, ch] : tables) {
-      auto [valid, invalidAll] = ch.getTableValidity();
-      if(valid != func::ResponseDataValidity::VALID && invalidAll) {
-        return true;
-      }
-    }
-    return false;
-  }
+  Table &getTableAt(joda::settings::ChannelIndex key, const std::string &channelName) const;
+  const Table &getTableAt(joda::settings::ChannelIndex key) const;
+  std::map<joda::settings::ChannelIndex, Table> &getTables() const;
+  bool containsTable(joda::settings::ChannelIndex key) const;
+  bool containsInvalidChannel() const;
+  bool containsInvalidChannelWhereOneInvalidatesTheWholeImage() const;
 
 private:
+  /////////////////////////////////////////////////////
+  mutable std::map<joda::settings::ChannelIndex, Table>
+      tables;    // Each column is the representation of a channel, each channel is a table of data
+
+  std::string configSchema = "https://imagec.org/schemas/v1/results-workbook.json";
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TableWorkbook, configSchema, tables);
+
   mutable std::mutex mAccessMutex;
-  mutable std::map<joda::settings::ChannelIndex, Table> tables;    // Each column is the representation of a channel
 };
 
 }    // namespace joda::results

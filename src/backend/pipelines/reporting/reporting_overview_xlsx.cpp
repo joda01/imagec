@@ -159,17 +159,17 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
              results.getTable().at(colIndex).contains(getIndexOfSortedMap(rowIndex))) {
             auto dataToWrite = results.getTable().at(colIndex).at(getIndexOfSortedMap(rowIndex));
             auto *format     = numberFormat;
-            if(dataToWrite.validity != func::ParticleValidity::VALID) {
+            if(!dataToWrite.isValid) {
               format = numberFormatInvalid;
             }
-            if(std::holds_alternative<double>(dataToWrite.value)) {
+            if(std::holds_alternative<double>(dataToWrite.val)) {
               worksheet_write_number(worksheet, rowOffset + sheetRowIdx, rowIndex + colOffset,
-                                     std::get<double>(dataToWrite.value), format);
+                                     std::get<double>(dataToWrite.val), format);
 
-            } else if(std::holds_alternative<joda::func::ParticleValidity>(dataToWrite.value)) {
+            } else if(std::holds_alternative<joda::func::ParticleValidity>(dataToWrite.val)) {
               worksheet_write_string(
                   worksheet, rowOffset + sheetRowIdx, rowIndex + colOffset,
-                  results::Table::validityToString(std::get<joda::func::ParticleValidity>(dataToWrite.value)).data(),
+                  results::Table::validityToString(std::get<joda::func::ParticleValidity>(dataToWrite.val)).data(),
                   NULL);
             }
             sheetRowIdx++;

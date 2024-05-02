@@ -124,7 +124,7 @@ void Pipeline::runJob()
   mProgress.total.total = mImageFileContainer->getNrOfFiles();
   mProgress.image.total = mThreadingSettings.totalRuns;
 
-  std::map<std::string, joda::results::ReportingContainer> alloverReport;
+  std::map<std::string, joda::results::TableWorkbook> alloverReport;
   auto images = mImageFileContainer->getFilesList();
 
   tmr.stop();
@@ -192,7 +192,7 @@ void Pipeline::stopJob()
 /// \brief      Analyze image
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeImage(std::map<std::string, joda::results::ReportingContainer> &alloverReport,
+void Pipeline::analyzeImage(std::map<std::string, joda::results::TableWorkbook> &alloverReport,
                             const FileInfo &imagePath)
 {
   std::string imageName       = helper::getFileNameFromPath(imagePath.getPath());
@@ -218,9 +218,9 @@ void Pipeline::analyzeImage(std::map<std::string, joda::results::ReportingContai
   //
   // Iterate over each tile
   //
-  std::map<std::string, joda::results::ReportingContainer> detailReports;
+  std::map<std::string, joda::results::TableWorkbook> detailReports;
   std::mutex writeDetailReportMutex;
-  joda::results::ReportingContainer &detailReport = detailReports[""];
+  joda::results::TableWorkbook &detailReport = detailReports[""];
 
   int poolSize = mThreadingSettings.cores[ThreadingSettings::TILES];
   if(poolSize > 1) {
@@ -268,7 +268,7 @@ void Pipeline::analyzeImage(std::map<std::string, joda::results::ReportingContai
 /// \brief      Analyze tile
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, FileInfo imagePath,
+void Pipeline::analyzeTile(joda::results::TableWorkbook &detailReports, FileInfo imagePath,
                            std::string detailOutputFolder, int tileIdx,
                            const joda::algo::ChannelProperties &channelProperties)
 {

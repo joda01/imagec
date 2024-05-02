@@ -36,7 +36,7 @@
 namespace joda::pipeline::reporting {
 
 void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                    const joda::results::ReportingContainer &containers, int64_t imageWidth,
+                                    const joda::results::TableWorkbook &containers, int64_t imageWidth,
                                     int64_t imageHeight, const std::string &fileName)
 {
   lxw_workbook *workbook = workbook_new(fileName.data());
@@ -85,7 +85,7 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
     //
     // Build the map
     //
-    for(const auto &[channelIdx, table] : containers.mColumns) {
+    for(const auto &[channelIdx, table] : containers.getTables()) {
       std::string tabName = table.getTableName() + "_" + std::to_string(heatMapWidth) + "x" +
                             std::to_string(heatMapWidth) + "(" + joda::settings::to_string(channelIdx) + ")";
       if(!sheets->contains(channelIdx)) {
@@ -104,13 +104,13 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
                   .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
                       settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X, channelIdx)))
                   .at(row)
-                  .value);
+                  .val);
           int64_t yCo = std::get<double>(
               table.getTable()
                   .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
                       settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_Y, channelIdx)))
                   .at(row)
-                  .value);
+                  .val);
           if(xCo > imageWidth) {
             xCo = imageWidth;
           }
@@ -133,12 +133,12 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
                     .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
                         settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG, channelIdx)))
                     .at(row)
-                    .value);
+                    .val);
             valid = table.getTable()
                         .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
                             settings::ChannelReportingSettings::MeasureChannels::VALIDITY, channelIdx)))
                         .at(row)
-                        .validity == func::ParticleValidity::VALID;
+                        .isValid;
           }
           if(table.getTable()
                  .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
@@ -149,7 +149,7 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
                                      .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
                                          settings::ChannelReportingSettings::MeasureChannels::AREA_SIZE, channelIdx)))
                                      .at(row)
-                                     .value);
+                                     .val);
           }
 
           if(valid) {
@@ -214,7 +214,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
                                            const std::string &outputFolder, const std::string &groupName,
                                            const std::string &jobName, const std::map<int32_t, HeatMapPoint> &wellOrder,
                                            int32_t sizeX, int32_t sizeY,
-                                           const joda::results::ReportingContainer &groupReports)
+                                           const joda::results::TableWorkbook &groupReports)
 {
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
@@ -229,7 +229,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
   const int COL_OFFSET       = 1;
 
   // Each column represents one channel. Each channel is printed to a separate worksheet
-  for(const auto &[channelIdx, values] : groupReports.mColumns) {
+  for(const auto &[channelIdx, values] : groupReports.getTables()) {
     if(values.getTableName() == "INVALID" || groupName.empty() || groupName == "INVALID") {
       break;
     }
@@ -289,12 +289,12 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
                                 joda::results::getMaskedMeasurementChannel(measureChannel, channelIdx)))
                             .at(rowIdx);
 
-            double value = std::get<double>(cell.value);
+            double value = std::get<double>(cell.val);
             auto imgNr =
                 joda::results::Helper::applyRegex(analyzeSettings.experimentSettings.filenameRegex, imageName).img;
             auto pos     = wellOrder.find(imgNr);
             auto *format = numberFormat;
-            if(cell.validity != func::ParticleValidity::VALID) {
+            if(!cell.isValid) {
               format = numberFormatInvalid;
             }
             if(pos != wellOrder.end()) {
@@ -346,7 +346,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
 /// \author     Joachim Danmayr
 ///
 void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                   std::map<std::string, joda::results::ReportingContainer> &allOverReport,
+                                   std::map<std::string, joda::results::TableWorkbook> &allOverReport,
                                    const std::string &outputFolder, const std::string &fileName,
                                    const std::string &jobName,
                                    const std::vector<std::vector<int32_t>> &imageWellOrderMatrix)
@@ -413,7 +413,7 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
     }
 
     // Each column represents one channel. Each channel is printed to a separate worksheet
-    for(const auto &[channelIdx, values] : value.mColumns) {
+    for(const auto &[channelIdx, values] : value.getTables()) {
       if(values.getTableName() == "INVALID") {
         break;
       }

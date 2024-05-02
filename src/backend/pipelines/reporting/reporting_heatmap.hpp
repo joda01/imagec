@@ -29,10 +29,10 @@ class Heatmap
 public:
   /////////////////////////////////////////////////////
   static void createHeatMapForImage(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                    const joda::results::ReportingContainer &containers, int64_t imageWidth,
+                                    const joda::results::TableWorkbook &containers, int64_t imageWidth,
                                     int64_t imageHeight, const std::string &fileName);
   static void createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                   std::map<std::string, joda::results::ReportingContainer> &allOverReport,
+                                   std::map<std::string, joda::results::TableWorkbook> &allOverReport,
                                    const std::string &outputFolder, const std::string &fileName,
                                    const std::string &jobName,
                                    const std::vector<std::vector<int32_t>> &imageWellOrderMatrix);
@@ -56,7 +56,7 @@ private:
                                            const std::string &outputFolder, const std::string &groupName,
                                            const std::string &jobName, const std::map<int32_t, HeatMapPoint> &wellOrder,
                                            int32_t sizeX, int32_t sizeY,
-                                           const joda::results::ReportingContainer &groupReports);
+                                           const joda::results::TableWorkbook &groupReports);
 
   static auto transformMatrix(const std::vector<std::vector<int32_t>> &imageWellOrderMatrix, int32_t &sizeX,
                               int32_t &sizeY) -> std::map<int32_t, HeatMapPoint>;

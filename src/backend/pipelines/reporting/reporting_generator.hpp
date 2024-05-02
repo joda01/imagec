@@ -34,7 +34,7 @@ public:
   };
 
   static void flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                const std::map<std::string, results::ReportingContainer> &containers,
+                                const std::map<std::string, results::TableWorkbook> &containers,
                                 const std::string &fileName, const joda::results::JobMeta &meta, OutputFormat format,
                                 bool writeRunMeta);
 };

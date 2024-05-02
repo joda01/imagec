@@ -24,7 +24,7 @@
 namespace joda::pipeline::reporting {
 
 void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                        const std::map<std::string, results::ReportingContainer> &containers,
+                                        const std::map<std::string, results::TableWorkbook> &containers,
                                         const std::string &fileName, const joda::results::JobMeta &meta,
                                         OutputFormat format, bool writeRunMeta)
 {
@@ -118,7 +118,7 @@ void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &a
   int rowOffsetStart       = 0;
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, "Results");
   for(const auto &[folderName, table] : containers) {
-    for(const auto &[channelIndex, table] : table.mColumns) {
+    for(const auto &[channelIndex, table] : table.getTables()) {
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(

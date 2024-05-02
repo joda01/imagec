@@ -36,7 +36,7 @@ namespace joda::results {
 /// \author     Joachim Danmayr
 ///
 void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                   joda::results::ReportingContainer &detailReportTable, const std::string &channelName,
+                                   joda::results::TableWorkbook &detailReportTable, const std::string &channelName,
                                    joda::settings::ChannelIndex realChannelIdx)
 {
   try {
@@ -161,7 +161,7 @@ void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyz
 ///
 void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                   const joda::func::DetectionResponse &result,
-                                  joda::results::ReportingContainer &detailReportTable,
+                                  joda::results::TableWorkbook &detailReportTable,
                                   const std::string &detailReportOutputPath, const std::string &jobName,
                                   joda::settings::ChannelIndex realChannelIdx, uint32_t tileIdx,
                                   const ImageProperties &imgProps)
@@ -230,14 +230,17 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
       tableToWorkOn.appendValueToColumnAtRowWithKey(
           getMaskedMeasurementChannel(joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY,
                                       realChannelIdx),
-          index, roi.getValidity(), roi.getValidity());
+          index,
+          roi.getValidity() == func::ParticleValidity::VALID ? Table::ValidityState::VALID
+                                                             : Table::ValidityState::INVALID,
+          roi.getValidity());
 
       //
       bool isValid = roi.getValidity() == func::ParticleValidity::VALID;
       tableToWorkOn.appendValueToColumnAtRowWithKey(
           getMaskedMeasurementChannel(joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY,
                                       realChannelIdx),
-          index, isValid ? func::ParticleValidity::INVALID : func::ParticleValidity::VALID, roi.getValidity());
+          index, isValid ? Table::ValidityState::INVALID : Table::ValidityState::VALID, roi.getValidity());
 
       tableToWorkOn.appendValueToColumnAtRowWithKey(
           getMaskedMeasurementChannel(joda::settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X,
@@ -334,22 +337,22 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
 /// \param[in]  nrOfChannels Nr. of channels
 ///
 void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                   std::map<std::string, joda::results::ReportingContainer> &allOverReport,
-                                   const joda::results::ReportingContainer &detailedReport,
-                                   const std::string &imagePath, const std::string &imageName, int nrOfChannels)
+                                   std::map<std::string, joda::results::TableWorkbook> &allOverReport,
+                                   const joda::results::TableWorkbook &detailedReport, const std::string &imagePath,
+                                   const std::string &imageName, int nrOfChannels)
 {
   std::lock_guard<std::mutex> lock(mAppendToAllOverReportMutex);
 
   try {
-    std::string groupToStoreImageIn = getGroupToStoreImageIn(analyzeSettings, imagePath, imageName);
-    joda::results::ReportingContainer &containerToWorkOn = allOverReport[groupToStoreImageIn];
+    std::string groupToStoreImageIn                 = getGroupToStoreImageIn(analyzeSettings, imagePath, imageName);
+    joda::results::TableWorkbook &containerToWorkOn = allOverReport[groupToStoreImageIn];
 
     bool invalidAll = false;
     if(detailedReport.containsInvalidChannelWhereOneInvalidatesTheWholeImage()) {
       invalidAll = true;
     }
 
-    for(const auto &[channelIdx, _] : detailedReport.mColumns) {
+    for(const auto &[channelIdx, _] : detailedReport.getTables()) {
       const results::Table &detailTableToWorkOn = detailedReport.getTableAt(channelIdx);
       results::Table &allOverTableToWorkOn =
           containerToWorkOn.getTableAt(channelIdx, detailTableToWorkOn.getTableName());

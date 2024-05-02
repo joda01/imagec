@@ -164,9 +164,9 @@ private:
     return mStop;
   }
 
-  void analyzeImage(std::map<std::string, joda::results::ReportingContainer> &alloverReport, const FileInfo &imagePath);
+  void analyzeImage(std::map<std::string, joda::results::TableWorkbook> &alloverReport, const FileInfo &imagePath);
 
-  void analyzeTile(joda::results::ReportingContainer &detailReports, FileInfo imagePath, std::string detailOutputFolder,
+  void analyzeTile(joda::results::TableWorkbook &detailReports, FileInfo imagePath, std::string detailOutputFolder,
                    int tileIdx, const joda::algo::ChannelProperties &channelProperties);
   void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
                        const joda::settings::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx,

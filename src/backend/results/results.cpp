@@ -85,13 +85,13 @@ int64_t Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, double 
   return rowIdx;
 }
 
-auto Table::appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, bool isValid,
+auto Table::appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, ValidityState isValid,
                                             joda::func::ParticleValidity validityValue) -> int64_t
 {
   return appendValueToColumnAtRow(getColIndexFromKey(key), rowIdx, isValid, validityValue);
 }
 
-auto Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, bool isValid,
+auto Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, ValidityState isValid,
                                      joda::func::ParticleValidity validityValue) -> int64_t
 {
   std::lock_guard<std::mutex> lock(mWriteMutex);
@@ -104,11 +104,11 @@ auto Table::appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, bool isVal
     rowIdx = data[colIdx].size();
   }
 
-  data[colIdx][rowIdx] = Row{.val = validityValue, .isValid = isValid};
+  data[colIdx][rowIdx] = Row{.val = validityValue, .isValid = isValid == ValidityState::VALID};
 
   // Only count valid particles
 
-  if(!isValid) {
+  if(isValid == ValidityState::INVALID) {
     stats[colIdx].incrementInvalid();
     stats[colIdx].addValue(0);
   } else {
@@ -229,7 +229,7 @@ auto Statistics::getStatisticsTitle() -> const std::array<std::string, NR_OF_VAL
 }
 auto Statistics::getStatistics() const -> const std::array<double, NR_OF_VALUE>
 {
-  return {static_cast<double>(mNr), static_cast<double>(mInvalid), mSum, mMin, mMax, mMean};
+  return {static_cast<double>(nrTotal), static_cast<double>(nrInvalid), sum, min, max, mean};
 }
 
 std::string Table::validityToString(joda::func::ParticleValidity val)

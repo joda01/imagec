@@ -24,7 +24,7 @@ class AnalyzeSettings;
 }
 
 namespace joda::results {
-class ReportingContainer;
+class TableWorkbook;
 }
 
 namespace joda::func {
@@ -48,18 +48,18 @@ public:
   static RegexResult applyGroupRegex(const std::string &fileName);
 
   static void setDetailReportHeader(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                    joda::results::ReportingContainer &detailReportTable,
-                                    const std::string &channelName, joda::settings::ChannelIndex realChannelIdx);
+                                    joda::results::TableWorkbook &detailReportTable, const std::string &channelName,
+                                    joda::settings::ChannelIndex realChannelIdx);
   static void appendToDetailReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                    const joda::func::DetectionResponse &result,
-                                   joda::results::ReportingContainer &detailReportTable,
+                                   joda::results::TableWorkbook &detailReportTable,
                                    const std::string &detailReportOutputPath, const std::string &jobName,
                                    joda::settings::ChannelIndex realChannelIdx, uint32_t tileIdx,
                                    const ImageProperties &imgProps);
   static void appendToAllOverReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                    std::map<std::string, joda::results::ReportingContainer> &allOverReport,
-                                    const joda::results::ReportingContainer &detailedReport,
-                                    const std::string &imagePath, const std::string &imageName, int nrOfChannels);
+                                    std::map<std::string, joda::results::TableWorkbook> &allOverReport,
+                                    const joda::results::TableWorkbook &detailedReport, const std::string &imagePath,
+                                    const std::string &imageName, int nrOfChannels);
 
 private:
   /////////////////////////////////////////////////////

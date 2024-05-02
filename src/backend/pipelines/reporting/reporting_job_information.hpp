@@ -22,7 +22,7 @@
 #include "xlsxwriter.h"
 
 namespace joda::results {
-class ReportingContainer;
+class TableWorkbook;
 }
 
 namespace joda::settings {
@@ -40,7 +40,7 @@ class JobInformation
 {
 public:
   static void writeReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                          const std::map<std::string, joda::results::ReportingContainer> &results,
+                          const std::map<std::string, joda::results::TableWorkbook> &results,
                           const joda::results::JobMeta &meta, lxw_worksheet *worksheet, lxw_format *header,
                           lxw_format *fontNormal);
 };

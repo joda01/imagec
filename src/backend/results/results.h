@@ -165,6 +165,18 @@ class Table
 {
 public:
   /////////////////////////////////////////////////////
+  Table() = default;
+  Table(const joda::results::Table &dataIn) :
+      data(dataIn.data), meta(dataIn.meta), stats(dataIn.stats), rowNames(dataIn.rowNames), colNames(dataIn.colNames),
+      colKeys(dataIn.colKeys), mRows(dataIn.mRows), mColumnKeys(dataIn.mColumnKeys)
+  {
+  }
+
+  enum class ValidityState
+  {
+    INVALID = 0,
+    VALID   = 1
+  };
 
   struct Row
   {
@@ -230,9 +242,9 @@ public:
   auto appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, double value, joda::func::ParticleValidity)
       -> int64_t;
 
-  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, bool isValid,
+  auto appendValueToColumnAtRow(uint64_t colIdx, int64_t rowIdx, ValidityState isValid,
                                 joda::func::ParticleValidity validityValue) -> int64_t;
-  auto appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, bool isValid,
+  auto appendValueToColumnAtRowWithKey(ColumnKey_t key, int64_t rowIdx, ValidityState isValid,
                                        joda::func::ParticleValidity validityValue) -> int64_t;
 
   auto getTable() const -> const Table_t &;
@@ -258,7 +270,8 @@ private:
   ///< Used to identify a column unique. The key is the col index, the value is unique col key
   std::map<uint64_t, ColumnKey_t> colKeys;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Table, data, meta, stats, rowNames, colNames, colKeys);
+  std::string configSchema = "https://imagec.org/schemas/v1/results.json";
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Table, configSchema, data, meta, stats, rowNames, colNames, colKeys);
 
   /// Helpers//////////////////////////////////////////
   int64_t mRows = 0;
