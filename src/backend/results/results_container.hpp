@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <mutex>
 #include <stdexcept>
@@ -12,30 +13,79 @@
 
 namespace joda::results {
 
-class TableWorkbook
+class TableGroup
 {
 public:
   /////////////////////////////////////////////////////
-  TableWorkbook();
-  // void saveToFile(const std::string &fileName);
-  // void loadFromFile(const std::string &fileName);
+  struct GroupMeta
+  {
+    std::string name;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(GroupMeta, name);
+  };
 
-  Table &getTableAt(joda::settings::ChannelIndex key, const std::string &channelName) const;
-  const Table &getTableAt(joda::settings::ChannelIndex key) const;
-  std::map<joda::settings::ChannelIndex, Table> &getTables() const;
+  /////////////////////////////////////////////////////
+  TableGroup();
+  TableGroup(const TableGroup &rhs) : meta(rhs.meta), channels(rhs.channels)
+  {
+  }
+
+  TableGroup &operator=(const TableGroup &rhs);
+  Table &getChannelAt(joda::settings::ChannelIndex key, const std::string &channelName) const;
+  const Table &getChannelAt(joda::settings::ChannelIndex key) const;
+  std::map<joda::settings::ChannelIndex, Table> &getChannels() const;
   bool containsTable(joda::settings::ChannelIndex key) const;
   bool containsInvalidChannel() const;
   bool containsInvalidChannelWhereOneInvalidatesTheWholeImage() const;
 
 private:
   /////////////////////////////////////////////////////
-  mutable std::map<joda::settings::ChannelIndex, Table>
-      tables;    // Each column is the representation of a channel, each channel is a table of data
+  void swap(TableGroup &rhs);
 
-  std::string configSchema = "https://imagec.org/schemas/v1/results-workbook.json";
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TableWorkbook, configSchema, tables);
+  /////////////////////////////////////////////////////
+  // Each column is the representation of a channel, each channel is a table of data
+  GroupMeta meta;
+  mutable std::map<joda::settings::ChannelIndex, Table> channels;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TableGroup, meta, channels);
 
   mutable std::mutex mAccessMutex;
+};
+
+class TableWorkBook
+{
+public:
+  /////////////////////////////////////////////////////
+  TableWorkBook() = default;
+
+  void saveToFile(std::string) const;
+  void loadFrom(const std::string &);
+
+  [[nodiscard]] size_t size() const
+  {
+    return groups.size();
+  }
+
+  [[nodiscard]] auto begin() const
+  {
+    return groups.begin();
+  }
+
+  [[nodiscard]] auto end() const
+  {
+    return groups.end();
+  }
+
+  auto &operator[](const std::string &key)
+  {
+    return groups[key];
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  std::string schema = "https://imagec.org/schemas/v1/results.json";
+
+  std::map<std::string, TableGroup> groups;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TableWorkBook, schema, groups);
 };
 
 }    // namespace joda::results

@@ -270,8 +270,7 @@ private:
   ///< Used to identify a column unique. The key is the col index, the value is unique col key
   std::map<uint64_t, ColumnKey_t> colKeys;
 
-  std::string configSchema = "https://imagec.org/schemas/v1/results.json";
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Table, configSchema, data, meta, stats, rowNames, colNames, colKeys);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Table, data, meta, stats, rowNames, colNames, colKeys);
 
   /// Helpers//////////////////////////////////////////
   int64_t mRows = 0;

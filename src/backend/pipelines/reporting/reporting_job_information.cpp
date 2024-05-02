@@ -23,9 +23,8 @@
 namespace joda::pipeline::reporting {
 
 void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                 const std::map<std::string, joda::results::TableWorkbook> &results,
-                                 const joda::results::JobMeta &meta, lxw_worksheet *worksheet, lxw_format *header,
-                                 lxw_format *fontNormal)
+                                 const joda::results::TableWorkBook &results, const joda::results::JobMeta &meta,
+                                 lxw_worksheet *worksheet, lxw_format *header, lxw_format *fontNormal)
 {
   int rowIdx = 0;
 
@@ -56,7 +55,7 @@ void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeS
   writeRow("Group nr.", std::to_string(results.size()));
   int64_t nrOfImages = 0;
   for(const auto &[_, group] : results) {
-    for(const auto &[_, tb] : group.getTables()) {
+    for(const auto &[_, tb] : group.getChannels()) {
       nrOfImages = tb.getNrOfRows();
     }
   }

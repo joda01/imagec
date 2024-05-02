@@ -24,7 +24,7 @@
 namespace joda::pipeline::reporting {
 
 void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                        const std::map<std::string, results::TableWorkbook> &containers,
+                                        const joda::results::TableWorkBook &resultsWorkbook,
                                         const std::string &fileName, const joda::results::JobMeta &meta,
                                         OutputFormat format, bool writeRunMeta)
 {
@@ -109,16 +109,16 @@ void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &a
   if(writeRunMeta) {
     // Write run meta information
     lxw_worksheet *worksheetMeta = workbook_add_worksheet(workbook, "Job info");
-    joda::pipeline::reporting::JobInformation::writeReport(analyzeSettings, containers, meta, worksheetMeta, headerBold,
-                                                           fontNormal);
+    joda::pipeline::reporting::JobInformation::writeReport(analyzeSettings, resultsWorkbook, meta, worksheetMeta,
+                                                           headerBold, fontNormal);
   }
 
   int colOffsetIn          = 0;
   int rowOffsetIn          = 0;
   int rowOffsetStart       = 0;
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, "Results");
-  for(const auto &[folderName, table] : containers) {
-    for(const auto &[channelIndex, table] : table.getTables()) {
+  for(const auto &[folderName, table] : resultsWorkbook) {
+    for(const auto &[channelIndex, table] : table.getChannels()) {
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(

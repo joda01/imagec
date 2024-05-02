@@ -27,6 +27,7 @@
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/logger/console_logger.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
+#include "backend/results/results_container.hpp"
 #include "backend/results/results_defines.hpp"
 #include "backend/results/results_helper.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -36,7 +37,7 @@
 namespace joda::pipeline::reporting {
 
 void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                    const joda::results::TableWorkbook &containers, int64_t imageWidth,
+                                    const joda::results::TableGroup &containers, int64_t imageWidth,
                                     int64_t imageHeight, const std::string &fileName)
 {
   lxw_workbook *workbook = workbook_new(fileName.data());
@@ -85,7 +86,7 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
     //
     // Build the map
     //
-    for(const auto &[channelIdx, table] : containers.getTables()) {
+    for(const auto &[channelIdx, table] : containers.getChannels()) {
       std::string tabName = table.getTableName() + "_" + std::to_string(heatMapWidth) + "x" +
                             std::to_string(heatMapWidth) + "(" + joda::settings::to_string(channelIdx) + ")";
       if(!sheets->contains(channelIdx)) {
@@ -213,8 +214,7 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
 void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings &analyzeSettings,
                                            const std::string &outputFolder, const std::string &groupName,
                                            const std::string &jobName, const std::map<int32_t, HeatMapPoint> &wellOrder,
-                                           int32_t sizeX, int32_t sizeY,
-                                           const joda::results::TableWorkbook &groupReports)
+                                           int32_t sizeX, int32_t sizeY, const joda::results::TableGroup &groupReports)
 {
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
@@ -229,7 +229,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
   const int COL_OFFSET       = 1;
 
   // Each column represents one channel. Each channel is printed to a separate worksheet
-  for(const auto &[channelIdx, values] : groupReports.getTables()) {
+  for(const auto &[channelIdx, values] : groupReports.getChannels()) {
     if(values.getTableName() == "INVALID" || groupName.empty() || groupName == "INVALID") {
       break;
     }
@@ -346,9 +346,8 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
 /// \author     Joachim Danmayr
 ///
 void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                   std::map<std::string, joda::results::TableWorkbook> &allOverReport,
-                                   const std::string &outputFolder, const std::string &fileName,
-                                   const std::string &jobName,
+                                   joda::results::TableWorkBook &allOverReport, const std::string &outputFolder,
+                                   const std::string &fileName, const std::string &jobName,
                                    const std::vector<std::vector<int32_t>> &imageWellOrderMatrix)
 {
   const int32_t PLATE_ROWS = 16;
@@ -413,7 +412,7 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
     }
 
     // Each column represents one channel. Each channel is printed to a separate worksheet
-    for(const auto &[channelIdx, values] : value.getTables()) {
+    for(const auto &[channelIdx, values] : value.getChannels()) {
       if(values.getTableName() == "INVALID") {
         break;
       }

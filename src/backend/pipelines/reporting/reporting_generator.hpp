@@ -34,9 +34,8 @@ public:
   };
 
   static void flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                const std::map<std::string, results::TableWorkbook> &containers,
-                                const std::string &fileName, const joda::results::JobMeta &meta, OutputFormat format,
-                                bool writeRunMeta);
+                                const joda::results::TableWorkBook &resultsWorkbook, const std::string &fileName,
+                                const joda::results::JobMeta &meta, OutputFormat format, bool writeRunMeta);
 };
 
 }    // namespace joda::pipeline::reporting

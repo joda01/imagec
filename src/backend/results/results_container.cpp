@@ -15,38 +15,48 @@
 
 namespace joda::results {
 
-TableWorkbook::TableWorkbook()
+TableGroup::TableGroup()
 {
 }
 
-Table &TableWorkbook::getTableAt(joda::settings::ChannelIndex key, const std::string &channelName) const
+TableGroup &TableGroup::operator=(const TableGroup &rhs)
+{
+  if(this == &rhs) {
+    return *this;
+  }
+  channels = rhs.channels;
+  meta     = rhs.meta;
+  return *this;
+}
+
+Table &TableGroup::getChannelAt(joda::settings::ChannelIndex key, const std::string &channelName) const
 {
   std::lock_guard<std::mutex> lock(mAccessMutex);
-  if(!tables.contains(key)) {
-    tables[key].setTableName(channelName);
+  if(!channels.contains(key)) {
+    channels[key].setTableName(channelName);
   }
 
-  return tables.at(key);
+  return channels.at(key);
 }
 
-const Table &TableWorkbook::getTableAt(joda::settings::ChannelIndex key) const
+const Table &TableGroup::getChannelAt(joda::settings::ChannelIndex key) const
 {
   std::lock_guard<std::mutex> lock(mAccessMutex);
-  if(tables.contains(key)) {
-    return tables.at(key);
+  if(channels.contains(key)) {
+    return channels.at(key);
   }
   throw std::invalid_argument("Table does not exist!");
 }
 
-bool TableWorkbook::containsTable(joda::settings::ChannelIndex key) const
+bool TableGroup::containsTable(joda::settings::ChannelIndex key) const
 {
   std::lock_guard<std::mutex> lock(mAccessMutex);
-  return tables.contains(key);
+  return channels.contains(key);
 }
 
-bool TableWorkbook::containsInvalidChannel() const
+bool TableGroup::containsInvalidChannel() const
 {
-  for(const auto &ch : tables) {
+  for(const auto &ch : channels) {
     auto [valid, _] = ch.second.getTableValidity();
     if(valid != func::ResponseDataValidity::VALID) {
       return true;
@@ -55,9 +65,9 @@ bool TableWorkbook::containsInvalidChannel() const
   return false;
 }
 
-bool TableWorkbook::containsInvalidChannelWhereOneInvalidatesTheWholeImage() const
+bool TableGroup::containsInvalidChannelWhereOneInvalidatesTheWholeImage() const
 {
-  for(const auto &[_, ch] : tables) {
+  for(const auto &[_, ch] : channels) {
     auto [valid, invalidAll] = ch.getTableValidity();
     if(valid != func::ResponseDataValidity::VALID && invalidAll) {
       return true;
@@ -66,9 +76,46 @@ bool TableWorkbook::containsInvalidChannelWhereOneInvalidatesTheWholeImage() con
   return false;
 }
 
-std::map<joda::settings::ChannelIndex, Table> &TableWorkbook::getTables() const
+std::map<joda::settings::ChannelIndex, Table> &TableGroup::getChannels() const
 {
-  return tables;
+  return channels;
+}
+
+///
+/// \brief      Save results to file
+/// \author     Joachim Danmayr
+///
+void TableWorkBook::saveToFile(std::string filename) const
+{
+  if(!filename.empty()) {
+    nlohmann::json json = *this;
+
+    if(!filename.ends_with(".json")) {
+      filename += ".json";
+    }
+    std::ofstream out(filename);
+    out << json.dump(2);
+    out.close();
+
+    // Write BSON to file
+    auto bsonDoc = nlohmann::json::to_bson(json);
+    std::ofstream output_file(filename + ".bson", std::ios::binary);
+    if(!output_file.is_open()) {
+      std::cerr << "Error opening output file" << std::endl;
+    }
+    output_file.write(reinterpret_cast<const char *>(bsonDoc.data()), bsonDoc.size());
+    output_file.close();
+  }
+}
+
+///
+/// \brief      Load results from file
+/// \author     Joachim Danmayr
+///
+void TableWorkBook::loadFrom(const std::string &filename)
+{
+  std::ifstream ifs(filename);
+  *this = nlohmann::json::parse(ifs);
 }
 
 }    // namespace joda::results
