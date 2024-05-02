@@ -11,12 +11,19 @@ namespace joda::settings {
 class AnalyzeSettings;
 }    // namespace joda::settings
 
-namespace joda::pipeline::reporting {
+namespace joda::results {
 
 static inline const uint32_t MEASURE_CHANNEL_MASK           = 0x000000FF;
 static inline const uint32_t MEASURE_CHANNEL_STATS_MASK     = 0x0000FF00;
 static inline const uint32_t MEASURE_CHANNEL_STATS_AND_MASK = 0x0000FFFF;
 static inline const uint32_t MEASURE_CHANNEL_INDEX_MASK     = 0x00FF0000;
+
+struct JobMeta
+{
+  const std::string jobName;
+  const std::chrono::system_clock::time_point timeStarted;
+  const std::chrono::system_clock::time_point timeFinished;
+};
 
 static inline joda::settings::ChannelReportingSettings::MeasureChannels
 getMeasureChannel(uint32_t measureChannelUnmasked)
@@ -121,4 +128,4 @@ static inline std::string measurementChannelsToString(joda::settings::ChannelRep
 
 extern std::string measurementChannelsToString(uint32_t ch, const joda::settings::AnalyzeSettings &analyzeSettings);
 
-}    // namespace joda::pipeline::reporting
+}    // namespace joda::results

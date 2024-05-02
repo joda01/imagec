@@ -2,7 +2,7 @@
 
 #include <xlsxwriter/worksheet.h>
 #include <string>
-#include "backend/pipelines/reporting/reporting_defines.hpp"
+#include "backend/results/results_defines.hpp"
 #include "reporting_details.xlsx.hpp"
 
 namespace joda::pipeline::reporting {
@@ -30,7 +30,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
   {
     uint32_t sheetColIdx = 0;
     for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
-      auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
+      auto colKey = joda::results::getMeasureChannel(results.getColumnKeyAt(colIdx));
       if(reportingSettings.detail.measureChannels.contains(colKey)) {
         auto [valid, _] = results.getTableValidity();
         if(valid == joda::func::ResponseDataValidity::VALID) {
@@ -69,7 +69,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
 
     uint32_t sheetColIdx = 0;
     for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
-      auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
+      auto colKey = joda::results::getMeasureChannel(results.getColumnKeyAt(colIdx));
       if(reportingSettings.detail.measureChannels.contains(colKey)) {
         if(results.getStatistics().contains(colIdx)) {
           auto statistics = results.getStatistics().at(colIdx);
@@ -96,7 +96,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
     for(rowIdx = 0; rowIdx < results.getNrOfRows(); rowIdx++) {
       uint32_t sheetColIdx = 0;
       for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
-        auto colKey = getMeasureChannel(results.getColumnKeyAt(colIdx));
+        auto colKey = joda::results::getMeasureChannel(results.getColumnKeyAt(colIdx));
         if(reportingSettings.detail.measureChannels.contains(colKey)) {
           if(results.getStatistics().contains(colIdx)) {
             //

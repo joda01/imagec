@@ -1,9 +1,9 @@
 
-#include "reporting_defines.hpp"
+#include "results_defines.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/settings.hpp"
 
-namespace joda::pipeline::reporting {
+namespace joda::results {
 
 std::string measurementChannelsToString(uint32_t ch, const joda::settings::AnalyzeSettings &settings)
 {
@@ -11,4 +11,4 @@ std::string measurementChannelsToString(uint32_t ch, const joda::settings::Analy
          joda::settings::Settings::getChannelNameOfChannelIndex(settings, getChannelIndexFromMeasureChannel(ch));
 }
 
-}    // namespace joda::pipeline::reporting
+}    // namespace joda::results

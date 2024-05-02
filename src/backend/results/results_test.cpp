@@ -1,4 +1,5 @@
 #include <string>
+#include <variant>
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -22,9 +23,9 @@ SCENARIO("Adding three values to a table", "[table]")
 
   // table.flushReportToFile("output_test.xlsx");
 
-  CHECK(0 == table.getTable().at(0).at(0).value);
-  CHECK(382 == table.getTable().at(0).at(1).value);
-  CHECK(527 == table.getTable().at(0).at(2).value);
+  CHECK(0 == std::get<double>(table.getTable().at(0).at(0).value));
+  CHECK(382 == std::get<double>(table.getTable().at(0).at(1).value));
+  CHECK(527 == std::get<double>(table.getTable().at(0).at(2).value));
 
   CHECK(10 == table.getStatistics().at(0).getNr());
   CHECK(4859 == table.getStatistics().at(0).getSum());

@@ -24,7 +24,7 @@ namespace joda::pipeline::reporting {
 
 void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                  const std::map<std::string, joda::results::ReportingContainer> &results,
-                                 const JobMeta &meta, lxw_worksheet *worksheet, lxw_format *header,
+                                 const joda::results::JobMeta &meta, lxw_worksheet *worksheet, lxw_format *header,
                                  lxw_format *fontNormal)
 {
   int rowIdx = 0;

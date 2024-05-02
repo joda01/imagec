@@ -40,9 +40,10 @@
 #include "backend/pipelines/pipeline_steps/calc_count/calc_count.hpp"
 #include "backend/pipelines/pipeline_steps/calc_intensity/calc_intensity.hpp"
 #include "backend/pipelines/pipeline_steps/calc_intersection/calc_intersection.hpp"
+#include "backend/pipelines/reporting/reporting_generator.hpp"
 #include "backend/pipelines/reporting/reporting_heatmap.hpp"
-#include "backend/pipelines/reporting/reporting_helper.hpp"
 #include "backend/results/results_container.hpp"
+#include "backend/results/results_helper.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/channel/channel_settings_meta.hpp"
 #include "backend/settings/settings.hpp"
@@ -157,10 +158,10 @@ void Pipeline::runJob()
   auto timeStopped = std::chrono::high_resolution_clock::now();
 
   std::string resultsFile = mOutputFolder + separator + "results_summary_" + mJobName + ".xlsx";
-  joda::results::ReportingContainer::flushReportToFile(
+  joda::pipeline::reporting::ReportGenerator::flushReportToFile(
       mAnalyzeSettings, alloverReport, resultsFile,
       {.jobName = mJobName, .timeStarted = timeStarted, .timeFinished = timeStopped},
-      joda::results::ReportingContainer::OutputFormat::HORIZONTAL, true);
+      joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL, true);
   if(mAnalyzeSettings.experimentSettings.generateHeatmapForPlate) {
     auto wellOrder = mAnalyzeSettings.experimentSettings.generateHeatmapForWell
                          ? mAnalyzeSettings.experimentSettings.wellImageOrder
@@ -242,9 +243,9 @@ void Pipeline::analyzeImage(std::map<std::string, joda::results::ReportingContai
   //
   if(mState != State::ERROR_) {
     auto id = DurationCount::start("Write detail report");
-    joda::results::ReportingContainer::flushReportToFile(
+    joda::pipeline::reporting::ReportGenerator::flushReportToFile(
         mAnalyzeSettings, detailReports, detailOutputFolder + separator + "results_image_" + mJobName + ".xlsx",
-        {.jobName = mJobName}, joda::results::ReportingContainer::OutputFormat::VERTICAL, false);
+        {.jobName = mJobName}, joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
     DurationCount::stop(id);
     id = DurationCount::start("Write heatmap");
     if(mAnalyzeSettings.experimentSettings.generateHeatmapForImage) {
@@ -256,8 +257,8 @@ void Pipeline::analyzeImage(std::map<std::string, joda::results::ReportingContai
 
     id                = DurationCount::start("Append to overall report");
     auto nrOfChannels = joda::settings::Settings::getNrOfAllChannels(mAnalyzeSettings) + 1;
-    joda::pipeline::reporting::Helper::appendToAllOverReport(mAnalyzeSettings, alloverReport, detailReport,
-                                                             imageParentPath, imageName, nrOfChannels);
+    joda::results::Helper::appendToAllOverReport(mAnalyzeSettings, alloverReport, detailReport, imageParentPath,
+                                                 imageName, nrOfChannels);
     DurationCount::stop(id);
   }
   mProgress.total.finished++;
@@ -348,11 +349,11 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
                                                    intersect.intersection.minIntersection);
     auto response = intersectAlgo.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
     detectionResults.emplace(intersect.meta.channelIdx, response);
-    joda::pipeline::reporting::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, intersect.meta.name,
-                                                             intersect.meta.channelIdx);
-    joda::pipeline::reporting::Helper::appendToDetailReport(
-        mAnalyzeSettings, detectionResults.at(intersect.meta.channelIdx), detailReports, detailOutputFolder, mJobName,
-        intersect.meta.channelIdx, tileIdx, channelProperties.props);
+    joda::results::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, intersect.meta.name,
+                                                 intersect.meta.channelIdx);
+    joda::results::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(intersect.meta.channelIdx),
+                                                detailReports, detailOutputFolder, mJobName, intersect.meta.channelIdx,
+                                                tileIdx, channelProperties.props);
   };
 
   if(poolSize > 1) {
@@ -391,7 +392,7 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
     auto idx = voronoi.meta.channelIdx;
 
     detectionResults.emplace(idx, response);
-    joda::pipeline::reporting::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, voronoi.meta.name, idx);
+    joda::results::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, voronoi.meta.name, idx);
 
     if(!voronoi.crossChannel.crossChannelIntensityChannels.empty()) {
       CalcIntensity intensity(idx, voronoi.crossChannel.crossChannelIntensityChannels);
@@ -403,9 +404,8 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
       counting.execute(mAnalyzeSettings, detectionResults, detailOutputFolder);
     }
 
-    joda::pipeline::reporting::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(idx), detailReports,
-                                                            detailOutputFolder, mJobName, idx, tileIdx,
-                                                            channelProperties.props);
+    joda::results::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(idx), detailReports,
+                                                detailOutputFolder, mJobName, idx, tileIdx, channelProperties.props);
   };
 
   if(!mStop && mState != State::ERROR_) {
@@ -446,11 +446,11 @@ void Pipeline::analyzeTile(joda::results::ReportingContainer &detailReports, Fil
     // This is the last stage, write the detail settings
     //
     if(mState != State::ERROR_) {
-      joda::pipeline::reporting::Helper::setDetailReportHeader(
-          mAnalyzeSettings, detailReports, channelSettings.meta.name, channelSettings.meta.channelIdx);
+      joda::results::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, channelSettings.meta.name,
+                                                   channelSettings.meta.channelIdx);
     }
     if(detectionResults.contains(channelSettings.meta.channelIdx)) {
-      joda::pipeline::reporting::Helper::appendToDetailReport(
+      joda::results::Helper::appendToDetailReport(
           mAnalyzeSettings, detectionResults.at(channelSettings.meta.channelIdx), detailReports, detailOutputFolder,
           mJobName, channelSettings.meta.channelIdx, tileIdx, channelProperties.props);
     }

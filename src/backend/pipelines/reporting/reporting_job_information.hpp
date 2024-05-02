@@ -18,6 +18,7 @@
 #include <string>
 #include <tuple>
 #include "backend/results/results_container.hpp"
+#include "backend/results/results_defines.hpp"
 #include "xlsxwriter.h"
 
 namespace joda::results {
@@ -39,8 +40,9 @@ class JobInformation
 {
 public:
   static void writeReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                          const std::map<std::string, joda::results::ReportingContainer> &results, const JobMeta &meta,
-                          lxw_worksheet *worksheet, lxw_format *header, lxw_format *fontNormal);
+                          const std::map<std::string, joda::results::ReportingContainer> &results,
+                          const joda::results::JobMeta &meta, lxw_worksheet *worksheet, lxw_format *header,
+                          lxw_format *fontNormal);
 };
 
 }    // namespace joda::pipeline::reporting

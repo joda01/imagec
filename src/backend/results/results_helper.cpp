@@ -11,7 +11,7 @@
 /// \brief     Reporting helper
 ///
 
-#include "reporting_helper.hpp"
+#include "results_helper.hpp"
 #include <exception>
 #include <mutex>
 #include <string>
@@ -21,15 +21,15 @@
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/logger/console_logger.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
-#include "backend/pipelines/reporting/reporting_defines.hpp"
 #include "backend/results/results.h"
 #include "backend/results/results_container.hpp"
+#include "backend/results/results_defines.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "backend/settings/experiment_settings.hpp"
 #include "backend/settings/settings.hpp"
 
-namespace joda::pipeline::reporting {
+namespace joda::results {
 
 ///
 /// \brief      Set detail report header
@@ -506,4 +506,4 @@ auto Helper::stringToNumber(const std::string &str) -> int
   return result;
 };
 
-}    // namespace joda::pipeline::reporting
+}    // namespace joda::results

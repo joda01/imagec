@@ -22,7 +22,7 @@
 #include <exception>
 #include <string>
 #include <vector>
-#include "backend/pipelines/reporting/reporting_helper.hpp"
+#include "backend/results/results_helper.hpp"
 #include "backend/settings/experiment_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include <nlohmann/detail/macro_scope.hpp>
@@ -226,8 +226,8 @@ void DialogExperimentSettings::toSettings()
 void DialogExperimentSettings::applyRegex()
 {
   try {
-    auto regexResult = joda::pipeline::reporting::Helper::applyRegex(
-        mRegexToFindTheWellPosition->currentText().toStdString(), mTestFileName->text().toStdString());
+    auto regexResult = joda::results::Helper::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
+                                                         mTestFileName->text().toStdString());
 
     std::string matching = "Match: " + regexResult.group;
     std::string row      = "| Row: " + std::to_string(regexResult.row);

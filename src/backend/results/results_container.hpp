@@ -10,24 +10,11 @@
 #include "backend/settings/analze_settings.hpp"
 #include "results.h"
 
-struct JobMeta
-{
-  const std::string jobName;
-  const std::chrono::system_clock::time_point timeStarted;
-  const std::chrono::system_clock::time_point timeFinished;
-};
-
 namespace joda::results {
 
 class ReportingContainer
 {
 public:
-  enum class OutputFormat
-  {
-    VERTICAL,
-    HORIZONTAL
-  };
-
   ReportingContainer();
   Table &getTableAt(joda::settings::ChannelIndex key, const std::string &channelName)
   {
@@ -75,11 +62,6 @@ public:
     }
     return false;
   }
-
-  static void flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                const std::map<std::string, ReportingContainer> &containers,
-                                const std::string &fileName, const JobMeta &meta, OutputFormat format,
-                                bool writeRunMeta);
 
   mutable std::map<joda::settings::ChannelIndex, Table> mColumns;    // Each column is the representation of a channel
 

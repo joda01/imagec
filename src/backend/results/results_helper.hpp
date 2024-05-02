@@ -31,7 +31,7 @@ namespace joda::func {
 class DetectionResponse;
 }
 
-namespace joda::pipeline::reporting {
+namespace joda::results {
 
 class Helper
 {
@@ -71,4 +71,4 @@ private:
   static inline std::mutex mAppendToAllOverReportMutex;
 };
 
-}    // namespace joda::pipeline::reporting
+}    // namespace joda::results
