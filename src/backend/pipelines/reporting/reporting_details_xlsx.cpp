@@ -2,7 +2,9 @@
 
 #include <xlsxwriter/worksheet.h>
 #include <string>
+#include "backend/pipelines/reporting/reporting_defines.hpp"
 #include "backend/results/results_defines.hpp"
+#include "backend/results/results_math.hpp"
 #include "reporting_details.xlsx.hpp"
 
 namespace joda::pipeline::reporting {
@@ -13,33 +15,58 @@ namespace joda::pipeline::reporting {
 /// \param[in]  fileName  Name of the output report file
 ///
 std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
-                                               const joda::results::Table &results, int colOffset, int /*rowOffset*/,
+                                               const joda::results::Channel &results, int colOffset, int /*rowOffset*/,
                                                lxw_worksheet *worksheet, lxw_format *header, lxw_format *headerInvalid,
                                                lxw_format *merge_format, lxw_format *numberFormat,
                                                lxw_format *numberFormatInvalid)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
-  int ROW_OFFSET                       = 2;
-  int COL_OFFSET                       = colOffset + 1;
-  const int STATISTIC_START_WITH_INDEX = 2;    // Validity, invalidity and Sum are just for internal use
+  int ROW_OFFSET = 2;
+  int ROW_STATS  = 6;
+  int COL_OFFSET = colOffset + 1;
 
+  auto stats = calcStats(results);
+
+  std::map<results::MeasureChannelKey, uint64_t> colIndexes;
   //
-  // Write header
+  // Write header and stats
   //
+
   uint32_t nrOfWrittenCols = 0;
   {
     uint32_t sheetColIdx = 0;
-    for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
-      auto colKey = joda::results::getMeasureChannel(results.getColumnKeyAt(colIdx));
-      if(reportingSettings.detail.measureChannels.contains(colKey)) {
-        auto [valid, _] = results.getTableValidity();
-        if(valid == joda::func::ResponseDataValidity::VALID) {
-          worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, results.getColumnNameAt(colIdx).data(),
+    for(auto const &measureCh : results.getMeasuredChannels()) {
+      int rowIdxStat = 0;
+      if(reportingSettings.detail.measureChannels.contains(measureCh.getMeasureChannel())) {
+        if(results.meta.valid == joda::func::ResponseDataValidity::VALID) {
+          worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, measureCh.measurementChannelsToString().data(),
                                  header);
         } else {
-          worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, results.getColumnNameAt(colIdx).data(),
+          worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, measureCh.measurementChannelsToString().data(),
                                  headerInvalid);
         }
+
+        colIndexes.emplace(measureCh, sheetColIdx);
+
+        //
+        // Write statistics
+        //
+        auto writeStat = [&rowIdxStat, &measureCh, &worksheet, &ROW_OFFSET, &header, &stats, &sheetColIdx, &COL_OFFSET,
+                          &numberFormat](results::MeasureStat stat) {
+          auto statKey = results::MeasureChannelKey{measureCh, stat};
+          worksheet_write_string(worksheet, ROW_OFFSET + rowIdxStat, 0, statKey.measurementStatsToString().data(),
+                                 header);
+          auto avg = stats.measurements[statKey];
+          worksheet_write_number(worksheet, ROW_OFFSET + rowIdxStat, sheetColIdx + COL_OFFSET, avg, numberFormat);
+          rowIdxStat++;
+        };
+        writeStat(results::MeasureStat::AVG);
+        writeStat(results::MeasureStat::MIN);
+        writeStat(results::MeasureStat::MAX);
+        writeStat(results::MeasureStat::SUM);
+        writeStat(results::MeasureStat::CNT);
+        writeStat(results::MeasureStat::STD_DEV);
+
         worksheet_set_column(worksheet, sheetColIdx + COL_OFFSET, sheetColIdx + COL_OFFSET, 10, NULL);
         sheetColIdx++;
       }
@@ -53,87 +80,38 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
   // Write name
   //
   worksheet_merge_range(worksheet, 0, COL_OFFSET, 0, COL_OFFSET + nrOfWrittenCols - 1, "-", merge_format);
-  if(!results.getTableName().empty()) {
-    worksheet_write_string(worksheet, 0, COL_OFFSET, results.getTableName().data(), header);
+  if(!results.meta.name.empty()) {
+    worksheet_write_string(worksheet, 0, COL_OFFSET, results.meta.name.data(), header);
   } else {
     worksheet_write_string(worksheet, 0, COL_OFFSET, std::to_string(COL_OFFSET).data(), header);
   }
 
   //
-  // Write statistic data
-  //
-  int rowIdxStat = STATISTIC_START_WITH_INDEX;
-  for(rowIdxStat = STATISTIC_START_WITH_INDEX; rowIdxStat < results::Statistics::NR_OF_VALUE; rowIdxStat++) {
-    worksheet_write_string(worksheet, ROW_OFFSET + rowIdxStat - STATISTIC_START_WITH_INDEX, 0,
-                           results::Statistics::getStatisticsTitle()[rowIdxStat].data(), header);
-
-    uint32_t sheetColIdx = 0;
-    for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
-      auto colKey = joda::results::getMeasureChannel(results.getColumnKeyAt(colIdx));
-      if(reportingSettings.detail.measureChannels.contains(colKey)) {
-        if(results.getStatistics().contains(colIdx)) {
-          auto statistics = results.getStatistics().at(colIdx);
-
-          worksheet_write_number(worksheet, ROW_OFFSET + rowIdxStat - STATISTIC_START_WITH_INDEX,
-                                 sheetColIdx + COL_OFFSET, statistics.getStatistics()[rowIdxStat], numberFormat);
-
-        } else {
-          // No statistics for that
-          worksheet_write_string(worksheet, ROW_OFFSET + rowIdxStat - STATISTIC_START_WITH_INDEX,
-                                 sheetColIdx + COL_OFFSET, "-", numberFormat);
-        }
-        sheetColIdx++;
-      }
-    }
-  }
-  ROW_OFFSET = ROW_OFFSET += (rowIdxStat + 2 - STATISTIC_START_WITH_INDEX);
-
-  //
   // Write table data
   //
   {
-    int64_t rowIdx = 0;
-    for(rowIdx = 0; rowIdx < results.getNrOfRows(); rowIdx++) {
-      uint32_t sheetColIdx = 0;
-      for(int64_t colIdx = 0; colIdx < results.getNrOfColumns(); colIdx++) {
-        auto colKey = joda::results::getMeasureChannel(results.getColumnKeyAt(colIdx));
-        if(reportingSettings.detail.measureChannels.contains(colKey)) {
-          if(results.getStatistics().contains(colIdx)) {
-            //
-            // Write row data
-            //
-            if(0 == colIdx) {
-              //
-              // Write row header
-              //
-              worksheet_write_string(worksheet, ROW_OFFSET + rowIdx, colIdx, results.getRowNameAt(rowIdx).data(),
-                                     header);
-            }
+    int64_t rowIdx = ROW_STATS + 1;
+    for(const auto &[objKey, obj] : results.getObjects()) {
+      worksheet_write_string(worksheet, ROW_OFFSET + rowIdx, 0, obj.meta.name.data(), header);
 
-            if(results.getTable().contains(colIdx) && results.getTable().at(colIdx).contains(rowIdx)) {
-              auto dataToWrite = results.getTable().at(colIdx).at(rowIdx);
-              auto *format     = numberFormat;
-              if(!dataToWrite.isValid) {
-                format = numberFormatInvalid;
-              }
-              if(std::holds_alternative<double>(dataToWrite.val)) {
-                worksheet_write_number(worksheet, ROW_OFFSET + rowIdx, sheetColIdx + COL_OFFSET,
-                                       std::get<double>(dataToWrite.val), format);
+      for(const auto &[measKey, val] : obj.measurements) {
+        if(reportingSettings.detail.measureChannels.contains(measKey.getMeasureChannel())) {
+          auto sheetColIdx = colIndexes[measKey] + COL_OFFSET;
 
-              } else if(std::holds_alternative<joda::func::ParticleValidity>(dataToWrite.val)) {
-                worksheet_write_string(
-                    worksheet, ROW_OFFSET + rowIdx, sheetColIdx + COL_OFFSET,
-                    results::Table::validityToString(std::get<joda::func::ParticleValidity>(dataToWrite.val)).data(),
-                    NULL);
-              }
-            } else {
-              // Empty table entry
-              worksheet_write_string(worksheet, ROW_OFFSET + rowIdx, sheetColIdx + COL_OFFSET, "-", numberFormat);
-            }
+          auto *format = numberFormat;
+          if(!obj.meta.valid) {
+            format = numberFormatInvalid;
           }
-          sheetColIdx++;
+          if(std::holds_alternative<double>(val.val)) {
+            worksheet_write_number(worksheet, ROW_OFFSET + rowIdx, sheetColIdx, std::get<double>(val.val), format);
+
+          } else if(std::holds_alternative<joda::func::ParticleValidity>(val.val)) {
+            worksheet_write_string(worksheet, ROW_OFFSET + rowIdx, sheetColIdx,
+                                   validityToString(std::get<joda::func::ParticleValidity>(val.val)).data(), NULL);
+          }
         }
       }
+      rowIdx++;
     }
   }
 

@@ -24,8 +24,14 @@ class ChannelReportingSettings
 public:
   enum class MeasureChannelStat
   {
-    AVG = 0x0100,
-    SUM = 0x0200
+    VAL     = 0x0000,
+    AVG     = 0x0100,
+    SUM     = 0x0200,
+    MIN     = 0x0300,
+    MAX     = 0x0400,
+    CNT     = 0x0500,
+    STD_DEV = 0x0600
+
   };
 
   enum class MeasureChannels : uint32_t

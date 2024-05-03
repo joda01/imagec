@@ -17,7 +17,7 @@
 #include <map>
 #include <string>
 #include <tuple>
-#include "backend/results/results_container.hpp"
+#include "backend/results/results.hpp"
 #include "backend/results/results_defines.hpp"
 #include "xlsxwriter.h"
 
@@ -40,7 +40,7 @@ class JobInformation
 {
 public:
   static void writeReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                          const joda::results::TableWorkBook &results, const joda::results::JobMeta &meta,
+                          const joda::results::WorkSheet &results, const joda::results::WorkSheet::Meta &meta,
                           lxw_worksheet *worksheet, lxw_format *header, lxw_format *fontNormal);
 };
 

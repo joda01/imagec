@@ -22,12 +22,12 @@
 #include "../helper/helper.hpp"
 #include "../image_processing/detection/detection_response.hpp"
 #include "../logger/console_logger.hpp"
-#include "../results/results.h"
+#include "../results/results.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/thread_pool.hpp"
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
-#include "backend/results/results_container.hpp"
+#include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "reporting/reporting_details.xlsx.hpp"
@@ -164,9 +164,9 @@ private:
     return mStop;
   }
 
-  void analyzeImage(joda::results::TableWorkBook &alloverReport, const FileInfo &imagePath);
+  void analyzeImage(joda::results::WorkSheet &alloverReport, const FileInfo &imagePath);
 
-  void analyzeTile(joda::results::TableGroup &detailReports, FileInfo imagePath, std::string detailOutputFolder,
+  void analyzeTile(joda::results::WorkSheet &detailReports, FileInfo imagePath, std::string detailOutputFolder,
                    int tileIdx, const joda::algo::ChannelProperties &channelProperties);
   void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
                        const joda::settings::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx,

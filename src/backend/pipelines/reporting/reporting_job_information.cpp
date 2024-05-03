@@ -16,14 +16,14 @@
 #include <chrono>
 #include <string>
 #include "backend/helper/helper.hpp"
-#include "backend/results/results_container.hpp"
+#include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "version.h"
 
 namespace joda::pipeline::reporting {
 
 void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                 const joda::results::TableWorkBook &results, const joda::results::JobMeta &meta,
+                                 const joda::results::WorkSheet &results, const joda::results::WorkSheet::Meta &meta,
                                  lxw_worksheet *worksheet, lxw_format *header, lxw_format *fontNormal)
 {
   int rowIdx = 0;
@@ -52,11 +52,11 @@ void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeS
   writeRow("Nr. of channels", std::to_string(analyzeSettings.channels.size()));
   emptyLine(2);
 
-  writeRow("Group nr.", std::to_string(results.size()));
+  writeRow("Group nr.", std::to_string(results.groups.size()));
   int64_t nrOfImages = 0;
-  for(const auto &[_, group] : results) {
+  for(const auto &[_, group] : results.groups) {
     for(const auto &[_, tb] : group.getChannels()) {
-      nrOfImages = tb.getNrOfRows();
+      nrOfImages += tb.getNrOfObjects();
     }
   }
   writeRow("Image nr.", std::to_string(nrOfImages));

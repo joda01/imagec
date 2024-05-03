@@ -14,7 +14,7 @@
 #pragma once
 
 #include <tuple>
-#include "backend/results/results.h"
+#include "backend/results/results.hpp"
 #include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "xlsxwriter.h"
 
@@ -29,7 +29,7 @@ class DetailReport
 {
 public:
   static std::tuple<int, int> writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
-                                          const joda::results::Table &results, int colOffset, int /*rowOffset*/,
+                                          const joda::results::Channel &results, int colOffset, int /*rowOffset*/,
                                           lxw_worksheet *worksheet, lxw_format *header, lxw_format *headerInvalid,
                                           lxw_format *merge_format, lxw_format *numberFormat,
                                           lxw_format *numberFormatInvalid);

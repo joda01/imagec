@@ -16,7 +16,7 @@ namespace joda::pipeline::reporting {
 /// \param[in]  fileName  Name of the output report file
 ///
 std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
-                                                 const joda::results::Table &results, const std::string &headerText,
+                                                 const joda::results::Channel &results, const std::string &headerText,
                                                  const std::string &jobName, int colOffset, int rowOffset, int startRow,
                                                  lxw_worksheet *worksheet, lxw_format *header,
                                                  lxw_format *headerInvalid, lxw_format *merge_format,
@@ -24,6 +24,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
                                                  lxw_format *imageHeaderHyperlinkFormat,
                                                  lxw_format *imageHeaderHyperlinkFormatInvalid)
 {
+  /*
   setlocale(LC_NUMERIC, "C");                  // Needed for correct comma in libxlsx
   const int STATISTIC_START_WITH_INDEX = 3;    // Validity, invalidity and Sum are just for internal use
 
@@ -184,5 +185,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::settings::ChannelRe
   rowOffset = rowOffset + nrOfRowsWritten;
 
   return {colOffset, rowOffset};
+  */
+  return {};
 }
 }    // namespace joda::pipeline::reporting

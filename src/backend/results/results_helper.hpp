@@ -17,7 +17,7 @@
 #include <mutex>
 #include <set>
 #include "backend/image_reader/image_reader.hpp"
-#include "backend/results/results_container.hpp"
+#include "backend/results/results.hpp"
 #include "backend/settings/channel/channel_index.hpp"
 
 namespace joda::settings {
@@ -49,17 +49,19 @@ public:
   static RegexResult applyGroupRegex(const std::string &fileName);
 
   static void setDetailReportHeader(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                    joda::results::TableGroup &detailReportTable, const std::string &channelName,
-                                    joda::settings::ChannelIndex realChannelIdx);
+                                    joda::results::WorkSheet &detailReportTable, const std::string &channelName,
+                                    joda::settings::ChannelIndex chIdx);
+
   static void appendToDetailReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                    const joda::func::DetectionResponse &result,
-                                   joda::results::TableGroup &detailReportTable,
+                                   joda::results::WorkSheet &detailReportTable,
                                    const std::string &detailReportOutputPath, const std::string &jobName,
                                    joda::settings::ChannelIndex realChannelIdx, uint32_t tileIdx,
                                    const ImageProperties &imgProps);
+
   static void appendToAllOverReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                    joda::results::TableWorkBook &allOverReport,
-                                    const joda::results::TableGroup &detailedReport, const std::string &imagePath,
+                                    joda::results::WorkSheet &allOverReport,
+                                    const joda::results::WorkSheet &detailedReport, const std::string &imagePath,
                                     const std::string &imageName, int nrOfChannels);
 
 private:

@@ -16,6 +16,7 @@
 #include "backend/pipelines/reporting/reporting_details.xlsx.hpp"
 #include "backend/pipelines/reporting/reporting_job_information.hpp"
 #include "backend/pipelines/reporting/reporting_overview_xlsx.hpp"
+#include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/settings.hpp"
 #include "reporting_details.xlsx.hpp"
@@ -24,9 +25,9 @@
 namespace joda::pipeline::reporting {
 
 void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                        const joda::results::TableWorkBook &resultsWorkbook,
-                                        const std::string &fileName, const joda::results::JobMeta &meta,
-                                        OutputFormat format, bool writeRunMeta)
+                                        const joda::results::WorkSheet &resultsWorkbook, const std::string &fileName,
+                                        const joda::results::WorkSheet::Meta &meta, OutputFormat format,
+                                        bool writeRunMeta)
 {
   lxw_workbook *workbook = workbook_new(fileName.data());
 
@@ -117,12 +118,12 @@ void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &a
   int rowOffsetIn          = 0;
   int rowOffsetStart       = 0;
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, "Results");
-  for(const auto &[folderName, table] : resultsWorkbook) {
-    for(const auto &[channelIndex, table] : table.getChannels()) {
+  for(const auto &[groupName, groupTable] : resultsWorkbook.groups) {
+    for(const auto &[channelIndex, channel] : groupTable.getChannels()) {
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
-            joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), table, folderName,
+            joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), channel, groupName,
             meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, headerInvalid, merge_format,
             numberFormat, numberFormatInvalid, imageHeaderHyperlinkFormat, imageHeaderHyperlinkFormatInvalid);
         colOffsetIn = colOffset;
@@ -130,8 +131,9 @@ void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &a
       }
       if(OutputFormat::VERTICAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::DetailReport::writeReport(
-            joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), table, colOffsetIn,
-            rowOffsetIn, worksheet, header, headerInvalid, merge_format, numberFormat, numberFormatInvalid);
+            joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), channel,
+            colOffsetIn, rowOffsetIn, worksheet, header, headerInvalid, merge_format, numberFormat,
+            numberFormatInvalid);
         colOffsetIn += colOffset + 1;
         rowOffsetIn += rowOffset;
       }

@@ -42,7 +42,7 @@
 #include "backend/pipelines/pipeline_steps/calc_intersection/calc_intersection.hpp"
 #include "backend/pipelines/reporting/reporting_generator.hpp"
 #include "backend/pipelines/reporting/reporting_heatmap.hpp"
-#include "backend/results/results_container.hpp"
+#include "backend/results/results.hpp"
 #include "backend/results/results_helper.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/channel/channel_settings_meta.hpp"
@@ -124,7 +124,7 @@ void Pipeline::runJob()
   mProgress.total.total = mImageFileContainer->getNrOfFiles();
   mProgress.image.total = mThreadingSettings.totalRuns;
 
-  joda::results::TableWorkBook alloverReport;
+  joda::results::WorkSheet alloverReport;
   auto images = mImageFileContainer->getFilesList();
 
   tmr.stop();
@@ -158,7 +158,6 @@ void Pipeline::runJob()
   auto timeStopped = std::chrono::high_resolution_clock::now();
 
   std::string resultsFile = mOutputFolder + separator + "results_summary_" + mJobName;
-  alloverReport.saveToFile(resultsFile);
   joda::pipeline::reporting::ReportGenerator::flushReportToFile(
       mAnalyzeSettings, alloverReport, resultsFile + ".xlsx",
       {.jobName = mJobName, .timeStarted = timeStarted, .timeFinished = timeStopped},
@@ -193,7 +192,7 @@ void Pipeline::stopJob()
 /// \brief      Analyze image
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeImage(joda::results::TableWorkBook &alloverReport, const FileInfo &imagePath)
+void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileInfo &imagePath)
 {
   std::string imageName       = helper::getFileNameFromPath(imagePath.getPath());
   std::string imageParentPath = helper::getFolderNameFromPath(imagePath.getPath());
@@ -218,9 +217,8 @@ void Pipeline::analyzeImage(joda::results::TableWorkBook &alloverReport, const F
   //
   // Iterate over each tile
   //
-  joda::results::TableWorkBook detailReports;
+  joda::results::WorkSheet detailReport;
   std::mutex writeDetailReportMutex;
-  joda::results::TableGroup &detailReport = detailReports[""];
 
   int poolSize = mThreadingSettings.cores[ThreadingSettings::TILES];
   if(poolSize > 1) {
@@ -244,9 +242,8 @@ void Pipeline::analyzeImage(joda::results::TableWorkBook &alloverReport, const F
   if(mState != State::ERROR_) {
     auto id           = DurationCount::start("Write detail report");
     std::string fName = detailOutputFolder + separator + "results_image_" + mJobName;
-    detailReports.saveToFile(fName);
     joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-        mAnalyzeSettings, detailReports, fName + ".xlsx", {.jobName = mJobName},
+        mAnalyzeSettings, detailReport, fName + ".xlsx", {.jobName = mJobName},
         joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
     DurationCount::stop(id);
     id = DurationCount::start("Write heatmap");
@@ -270,7 +267,7 @@ void Pipeline::analyzeImage(joda::results::TableWorkBook &alloverReport, const F
 /// \brief      Analyze tile
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeTile(joda::results::TableGroup &detailReports, FileInfo imagePath, std::string detailOutputFolder,
+void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo imagePath, std::string detailOutputFolder,
                            int tileIdx, const joda::algo::ChannelProperties &channelProperties)
 {
   std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> detectionResults;

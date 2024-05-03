@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/image_processing/detection/detection_response.hpp"
-#include "backend/results/results_container.hpp"
+#include "backend/results/results.hpp"
 #include "backend/results/results_defines.hpp"
 #include "backend/settings/analze_settings.hpp"
 
@@ -34,8 +34,8 @@ public:
   };
 
   static void flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                const joda::results::TableWorkBook &resultsWorkbook, const std::string &fileName,
-                                const joda::results::JobMeta &meta, OutputFormat format, bool writeRunMeta);
+                                const joda::results::WorkSheet &resultsWorkbook, const std::string &fileName,
+                                const joda::results::WorkSheet::Meta &meta, OutputFormat format, bool writeRunMeta);
 };
 
 }    // namespace joda::pipeline::reporting

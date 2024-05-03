@@ -13,6 +13,7 @@
 ///
 
 #include "reporting_heatmap.hpp"
+#include <xlsxwriter/workbook.h>
 #include <xlsxwriter/worksheet.h>
 #include <cstddef>
 #include <exception>
@@ -27,7 +28,7 @@
 #include "backend/image_reader/image_reader.hpp"
 #include "backend/logger/console_logger.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
-#include "backend/results/results_container.hpp"
+#include "backend/results/results.hpp"
 #include "backend/results/results_defines.hpp"
 #include "backend/results/results_helper.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -37,9 +38,10 @@
 namespace joda::pipeline::reporting {
 
 void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                    const joda::results::TableGroup &containers, int64_t imageWidth,
-                                    int64_t imageHeight, const std::string &fileName)
+                                    const joda::results::WorkSheet &containers, int64_t imageWidth, int64_t imageHeight,
+                                    const std::string &fileName)
 {
+  /*
   lxw_workbook *workbook = workbook_new(fileName.data());
   // Well header
   lxw_format *header = workbook_add_format(workbook);
@@ -196,15 +198,15 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
           worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
                                  (double) heatmapSquares->at(x)[y].avgAreaSize / (double) heatmapSquares->at(x)[y].cnt,
                                  numberFormat);
-          /*worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
-                                 (double) heatmapSquares->at(x)[y].x * 1000000 + heatmapSquares->at(x)[y].y,
-                                 numberFormat);*/
+          // worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
+          //                        (double) heatmapSquares->at(x)[y].x * 1000000 + heatmapSquares->at(x)[y].y,
+          //                        numberFormat);
         }
       }
     }
     delete heatmapSquares;
   }
-  workbook_close(workbook);
+  workbook_close(workbook);*/
 }
 
 ///
@@ -214,8 +216,9 @@ void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analy
 void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings &analyzeSettings,
                                            const std::string &outputFolder, const std::string &groupName,
                                            const std::string &jobName, const std::map<int32_t, HeatMapPoint> &wellOrder,
-                                           int32_t sizeX, int32_t sizeY, const joda::results::TableGroup &groupReports)
+                                           int32_t sizeX, int32_t sizeY, const joda::results::WorkSheet &groupReports)
 {
+  /*
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
   std::string filename =
@@ -339,6 +342,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
   if(nullptr != workbook) {
     workbook_close(workbook);
   }
+  */
 }
 
 ///
@@ -346,10 +350,11 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
 /// \author     Joachim Danmayr
 ///
 void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                   joda::results::TableWorkBook &allOverReport, const std::string &outputFolder,
+                                   joda::results::WorkSheet &allOverReport, const std::string &outputFolder,
                                    const std::string &fileName, const std::string &jobName,
                                    const std::vector<std::vector<int32_t>> &imageWellOrderMatrix)
 {
+  /*
   const int32_t PLATE_ROWS = 16;
   const int32_t PLATE_COLS = 24;
 
@@ -514,6 +519,7 @@ void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyz
   }
 
   workbook_close(workbook);
+  */
 }
 
 ///
