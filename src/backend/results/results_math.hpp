@@ -66,8 +66,9 @@ inline Stats calcStats(const Channel &channel)
             min    = 0;
             max    = 1;
             stdDev = 0;
-            cnt++;
           }
+          cnt++;
+
         } else if(measKey.getMeasureChannel() == settings::ChannelReportingSettings::MeasureChannels::INVALIDITY) {
           if(!obj.meta.valid) {
             sum++;
@@ -75,8 +76,8 @@ inline Stats calcStats(const Channel &channel)
             min    = 0;
             max    = 1;
             stdDev = 0;
-            cnt++;
           }
+          cnt++;
         }
       } else if(std::holds_alternative<double>(val.val)) {
         if(obj.meta.valid) {
