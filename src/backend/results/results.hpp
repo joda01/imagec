@@ -342,7 +342,7 @@ public:
     std::string jobName;
     std::chrono::system_clock::time_point timeStarted;
     std::chrono::system_clock::time_point timeFinished;
-    std::string nrOfChannels;
+    uint32_t nrOfChannels;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Meta, swVersion, buildTime, jobName, timeStarted, timeFinished, nrOfChannels);
   };
@@ -370,7 +370,7 @@ public:
     return groups.at("");
   }
 
-  void saveToFile(std::string filename) const;
+  void saveToFile(std::string filename, const Meta &meta);
   void loadFromFile(const std::string &filename);
 
 private:

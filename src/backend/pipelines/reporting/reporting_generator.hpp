@@ -33,9 +33,9 @@ public:
     HORIZONTAL
   };
 
-  static void flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                const joda::results::WorkSheet &resultsWorkbook, const std::string &fileName,
-                                const joda::results::WorkSheet::Meta &meta, OutputFormat format, bool writeRunMeta);
+  static void flushReportToFile(const joda::results::WorkSheet &resultsWorkbook,
+                                const joda::settings::ChannelReportingSettings &reportingSettings,
+                                const std::string &fileName, OutputFormat format, bool writeRunMeta);
 };
 
 }    // namespace joda::pipeline::reporting

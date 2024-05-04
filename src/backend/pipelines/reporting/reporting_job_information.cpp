@@ -22,9 +22,8 @@
 
 namespace joda::pipeline::reporting {
 
-void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                 const joda::results::WorkSheet &results, const joda::results::WorkSheet::Meta &meta,
-                                 lxw_worksheet *worksheet, lxw_format *header, lxw_format *fontNormal)
+void JobInformation::writeReport(const joda::results::WorkSheet &results, lxw_worksheet *worksheet, lxw_format *header,
+                                 lxw_format *fontNormal)
 {
   int rowIdx = 0;
 
@@ -46,10 +45,11 @@ void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeS
   writeRow("Version", Version::getVersion());
   writeRow("Build", Version::getBuildTime());
   emptyLine(2);
+  auto meta = results.getMeta();
   writeRow("Job name", meta.jobName);
   writeRow("Job started at", joda::helper::timepointToIsoString(meta.timeStarted));
   writeRow("Job finished at", joda::helper::timepointToIsoString(meta.timeFinished));
-  writeRow("Nr. of channels", std::to_string(analyzeSettings.channels.size()));
+  // writeRow("Nr. of channels", std::to_string(analyzeSettings.channels.size()));
   emptyLine(2);
 
   writeRow("Group nr.", std::to_string(results.getGroups().size()));
@@ -62,16 +62,18 @@ void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeS
   writeRow("Image nr.", std::to_string(nrOfImages));
   emptyLine(2);
 
-  for(const auto &channel : analyzeSettings.channels) {
-    writeRow("Name", channel.meta.name);
-    writeRow("Index", joda::settings::to_string(channel.meta.channelIdx));
-    writeRow("Type", std::to_string((int) channel.meta.type));
-    writeRow("Detection mode", std::to_string((int) channel.detection.detectionMode));
-    writeRow("Threshold", std::to_string((int) channel.detection.threshold.mode));
-    writeRow("Threshold min", std::to_string(channel.detection.threshold.thresholdMin));
+  /*
+    for(const auto &channel : analyzeSettings.channels) {
+      writeRow("Name", channel.meta.name);
+      writeRow("Index", joda::settings::to_string(channel.meta.channelIdx));
+      writeRow("Type", std::to_string((int) channel.meta.type));
+      writeRow("Detection mode", std::to_string((int) channel.detection.detectionMode));
+      writeRow("Threshold", std::to_string((int) channel.detection.threshold.mode));
+      writeRow("Threshold min", std::to_string(channel.detection.threshold.thresholdMin));
 
-    emptyLine(1);
-  }
+      emptyLine(1);
+    }
+    */
 }
 
 }    // namespace joda::pipeline::reporting

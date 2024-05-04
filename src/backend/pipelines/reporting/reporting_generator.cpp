@@ -18,16 +18,16 @@
 #include "backend/pipelines/reporting/reporting_overview_xlsx.hpp"
 #include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
+#include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "backend/settings/settings.hpp"
 #include "reporting_details.xlsx.hpp"
 #include "xlsxwriter.h"
 
 namespace joda::pipeline::reporting {
 
-void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                        const joda::results::WorkSheet &resultsWorkbook, const std::string &fileName,
-                                        const joda::results::WorkSheet::Meta &meta, OutputFormat format,
-                                        bool writeRunMeta)
+void ReportGenerator::flushReportToFile(const joda::results::WorkSheet &resultsWorkbook,
+                                        const joda::settings::ChannelReportingSettings &reportingSettings,
+                                        const std::string &fileName, OutputFormat format, bool writeRunMeta)
 {
   lxw_workbook *workbook = workbook_new(fileName.data());
 
@@ -110,10 +110,10 @@ void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &a
   if(writeRunMeta) {
     // Write run meta information
     lxw_worksheet *worksheetMeta = workbook_add_worksheet(workbook, "Job info");
-    joda::pipeline::reporting::JobInformation::writeReport(analyzeSettings, resultsWorkbook, meta, worksheetMeta,
-                                                           headerBold, fontNormal);
+    joda::pipeline::reporting::JobInformation::writeReport(resultsWorkbook, worksheetMeta, headerBold, fontNormal);
   }
 
+  auto meta                = resultsWorkbook.getMeta();
   int colOffsetIn          = 0;
   int rowOffsetIn          = 0;
   int rowOffsetStart       = 0;
@@ -123,17 +123,16 @@ void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &a
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
-            joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), channel, groupName,
-            meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet, header, headerInvalid, merge_format,
-            numberFormat, numberFormatInvalid, imageHeaderHyperlinkFormat, imageHeaderHyperlinkFormatInvalid);
+            reportingSettings, channel, groupName, meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet,
+            header, headerInvalid, merge_format, numberFormat, numberFormatInvalid, imageHeaderHyperlinkFormat,
+            imageHeaderHyperlinkFormatInvalid);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }
       if(OutputFormat::VERTICAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::DetailReport::writeReport(
-            joda::settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIndex), channel,
-            colOffsetIn, rowOffsetIn, worksheet, header, headerInvalid, merge_format, numberFormat,
-            numberFormatInvalid);
+            reportingSettings, channel, colOffsetIn, rowOffsetIn, worksheet, header, headerInvalid, merge_format,
+            numberFormat, numberFormatInvalid);
         colOffsetIn += colOffset + 1;
         rowOffsetIn += rowOffset;
       }

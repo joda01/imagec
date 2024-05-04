@@ -19,16 +19,20 @@
 #include <qpushbutton.h>
 #include <qwidget.h>
 #include <exception>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <vector>
 #include "../window_main.hpp"
 #include "backend/pipelines/reporting/reporting_generator.hpp"
 #include "backend/pipelines/reporting/reporting_heatmap.hpp"
+#include "backend/results/results.hpp"
 
 namespace joda::ui::qt {
 
 using namespace std::chrono_literals;
+using namespace std::filesystem;
 
 PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 {
@@ -75,6 +79,7 @@ PanelReporting::~PanelReporting()
 
 void PanelReporting::setActualSelectedResultsFolder(const QString &folder)
 {
+  mWindowMain->setMiddelLabelText(folder);
   mActualSelectedResultsFolder = folder;
 }
 
@@ -98,13 +103,37 @@ if(mAnalyzeSettings.experimentSettings.generateHeatmapForPlate) {
   joda::pipeline::reporting::Heatmap::createAllOverHeatMap(mAnalyzeSettings, alloverReport, mOutputFolder,
                                                            resultsFile, mJobName, wellOrder);
 }*/
+  std::vector<std::filesystem::path> imageResults;
+  std::vector<std::filesystem::path> summaryResults;
+
+  for(recursive_directory_iterator i(mActualSelectedResultsFolder.toStdString()), end; i != end; ++i) {
+    try {
+      if(!is_directory(i->path())) {
+        auto ext = i->path().extension().string();
+        if(ext == ".json") {
+          std::filesystem::path path = i->path();
+          if(path.filename().string().starts_with("results_summary")) {
+            summaryResults.push_back(path);
+          } else {
+            imageResults.push_back(path);
+          }
+        }
+      }
+    } catch(const std::exception &ex) {
+      std::cout << ex.what() << std::endl;
+    }
+  }
 
   // Details summary
+  for(const auto &detailResultPath : imageResults) {
+    joda::results::WorkSheet details;
+    details.loadFromFile(detailResultPath.string());
 
-  joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-      mAnalyzeSettings, detailReport, fName + ".xlsx", {.jobName = mJobName},
-      joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
-
+    std::string outputFolder =
+        detailResultPath.parent_path().string() + "/../reports/" + detailResultPath.filename().string() + ".xlsx";
+    joda::pipeline::reporting::ReportGenerator::flushReportToFile(
+        details, {}, outputFolder, joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
+  }
   /* if(mAnalyzeSettings.experimentSettings.generateHeatmapForImage) {
      joda::pipeline::reporting::Heatmap::createHeatMapForImage(
          mAnalyzeSettings, detailReport, propsOut.props.width, propsOut.props.height,

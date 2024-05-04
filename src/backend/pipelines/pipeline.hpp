@@ -193,6 +193,7 @@ private:
   std::mutex mAddToDetailReportMutex;
   std::map<std::string, joda::onnx::OnnxParser::Data> mOnnxModels;
   std::string mJobName;
+  std::chrono::system_clock::time_point mTimePipelineStarted;
 };
 
 }    // namespace joda::pipeline

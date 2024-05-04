@@ -208,6 +208,8 @@ void WindowMain::createTopToolbar()
   }
 
   // Place middle here
+  mMiddle = new QLabel();
+  toolbar->addWidget(mMiddle);
 
   // Right
   {
@@ -335,7 +337,8 @@ QWidget *WindowMain::createChannelWidget()
 ///
 QWidget *WindowMain::createReportingWidget()
 {
-  return new PanelReporting(this);
+  mPanelReporting = new PanelReporting(this);
+  return mPanelReporting;
 }
 
 QWidget *WindowMain::createAddChannelPanel()
@@ -471,7 +474,12 @@ void WindowMain::onOpenProjectClicked()
   if(selectedDirectory.isEmpty()) {
     return;
   }
-  setWorkingDirectory(selectedDirectory.toStdString());
+
+  if(mStackedWidget->currentWidget() == mPanelReporting) {
+    mPanelReporting->setActualSelectedResultsFolder(selectedDirectory);
+  } else {
+    setWorkingDirectory(selectedDirectory.toStdString());
+  }
 }
 
 ///
@@ -804,7 +812,6 @@ void WindowMain::onOpenReportingAreaClicked()
   mBackButton->setEnabled(true);
   mSaveProject->setVisible(false);
   mSaveProject->setVisible(false);
-  mOPenProject->setVisible(false);
   mStartAnalysis->setVisible(false);
   mJobNameAction->setVisible(false);
   mDeleteChannel->setVisible(false);

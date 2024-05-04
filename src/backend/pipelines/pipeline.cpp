@@ -50,6 +50,7 @@
 #include "pipeline_steps/calc_voronoi/calc_voronoi.hpp"
 #include "processor/image_processor.hpp"
 #include <opencv2/imgcodecs.hpp>
+#include "version.h"
 
 namespace joda::pipeline {
 
@@ -107,7 +108,7 @@ void Pipeline::runJob()
   tmr.start();
 
   DurationCount::resetStats();
-  auto timeStarted = std::chrono::high_resolution_clock::now();
+  mTimePipelineStarted = std::chrono::high_resolution_clock::now();
   // Store configuration
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   joda::settings::Settings::storeSettings(mOutputFolder + separator + "settings_" + mJobName + ".json",
@@ -156,7 +157,14 @@ void Pipeline::runJob()
   auto timeStopped = std::chrono::high_resolution_clock::now();
 
   std::string resultsFile = mOutputFolder + separator + RESULTS_FOLDER_PATH + separator + "results_summary_" + mJobName;
-  alloverReport.saveToFile(resultsFile);
+  alloverReport.saveToFile(resultsFile, joda::results::WorkSheet::Meta{
+                                            .swVersion    = Version::getVersion(),
+                                            .buildTime    = Version::getBuildTime(),
+                                            .jobName      = mJobName,
+                                            .timeStarted  = mTimePipelineStarted,
+                                            .timeFinished = std::chrono::system_clock::now(),
+                                            .nrOfChannels = 1,
+                                        });
   mState = State::FINISHED;
   DurationCount::printStats(images.size());
 
@@ -229,7 +237,14 @@ void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileI
     auto id = DurationCount::start("Write detail report");
     std::string fName =
         mOutputFolder + separator + RESULTS_FOLDER_PATH + separator + "results_image_" + imageName + "_" + mJobName;
-    detailReport.saveToFile(fName);
+    detailReport.saveToFile(fName, joda::results::WorkSheet::Meta{
+                                       .swVersion    = Version::getVersion(),
+                                       .buildTime    = Version::getBuildTime(),
+                                       .jobName      = mJobName,
+                                       .timeStarted  = mTimePipelineStarted,
+                                       .timeFinished = std::chrono::system_clock::now(),
+                                       .nrOfChannels = 1,
+                                   });
 
     DurationCount::stop(id);
 

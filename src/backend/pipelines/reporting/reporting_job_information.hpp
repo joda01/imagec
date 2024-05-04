@@ -39,9 +39,8 @@ namespace joda::pipeline::reporting {
 class JobInformation
 {
 public:
-  static void writeReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                          const joda::results::WorkSheet &results, const joda::results::WorkSheet::Meta &meta,
-                          lxw_worksheet *worksheet, lxw_format *header, lxw_format *fontNormal);
+  static void writeReport(const joda::results::WorkSheet &results, lxw_worksheet *worksheet, lxw_format *header,
+                          lxw_format *fontNormal);
 };
 
 }    // namespace joda::pipeline::reporting

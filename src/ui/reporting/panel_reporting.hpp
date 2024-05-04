@@ -31,7 +31,6 @@ class PanelReporting : public QWidget
 signals:
   void updatePreviewStarted();
   void updatePreviewFinished();
-  void setActualSelectedResultsFolder(const QString &folder);
 
 public:
   PanelReporting(WindowMain *wm);
@@ -46,6 +45,7 @@ public:
       mIsActiveShown = false;
     }
   }
+  void setActualSelectedResultsFolder(const QString &folder);
 
 private:
   /////////////////////////////////////////////////////

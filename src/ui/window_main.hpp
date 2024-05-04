@@ -30,6 +30,7 @@
 namespace joda::ui::qt {
 
 class ContainerChannel;
+class PanelReporting;
 
 ///
 /// \class
@@ -86,6 +87,13 @@ public:
     return mJobName->text().toStdString();
   }
 
+  void setMiddelLabelText(const QString &txt)
+  {
+    if(mMiddle != nullptr) {
+      mMiddle->setText(txt);
+    }
+  }
+
 signals:
   void lookingForFilesFinished();
   void lookingForTemplateFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
@@ -124,6 +132,7 @@ private:
   ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
   bool mNewFolderSelected = false;
+  QLabel *mMiddle         = nullptr;
 
   ////Project settings/////////////////////////////////////////////////
   joda::settings::AnalyzeSettings mAnalyzeSettings;
@@ -137,7 +146,7 @@ private:
   ContainerBase *mSelectedChannel = nullptr;
   QString mSelectedWorkingDirectory;
   std::mutex mLookingForFilesMutex;
-  QWidget *mGirafWidget;
+  PanelReporting *mPanelReporting = nullptr;
 
   ////ToolbarIcons/////////////////////////////////////////////////
   QAction *mFileSelectorComboBox = nullptr;
