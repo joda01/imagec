@@ -341,7 +341,7 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo ima
   //
   // Execute intersection calculation
   //
-  auto calcIntersection = [this, &detectionResults, &detailOutputFolder, &detailReports,
+  auto calcIntersection = [this, &imagePath, &detectionResults, &detailOutputFolder, &detailReports,
                            &channelProperties](int tileIdx, settings::VChannelIntersection intersect) {
     joda::pipeline::CalcIntersection intersectAlgo(intersect.intersection.intersectingChannels,
                                                    intersect.intersection.minIntersection);
@@ -351,7 +351,7 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo ima
                                                  intersect.meta.channelIdx);
     joda::results::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(intersect.meta.channelIdx),
                                                 detailReports, detailOutputFolder, mJobName, intersect.meta.channelIdx,
-                                                tileIdx, channelProperties.props);
+                                                tileIdx, channelProperties.props, imagePath.getPath());
   };
 
   if(poolSize > 1) {
@@ -378,7 +378,7 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo ima
   //
   // Execute post processing pipeline steps
   //
-  auto calcVoronoi = [this, &detectionResults, &detailOutputFolder, &detailReports,
+  auto calcVoronoi = [this, &imagePath, &detectionResults, &detailOutputFolder, &detailReports,
                       &channelProperties](int tileIdx, settings::VChannelVoronoi voronoi) {
     joda::pipeline::CalcVoronoi function(voronoi.meta.channelIdx, voronoi.voronoi.gridPointsChannelIdx,
                                          voronoi.voronoi.overlayMaskChannelIdx, voronoi.voronoi.maxVoronoiAreaRadius,
@@ -403,7 +403,8 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo ima
     }
 
     joda::results::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(idx), detailReports,
-                                                detailOutputFolder, mJobName, idx, tileIdx, channelProperties.props);
+                                                detailOutputFolder, mJobName, idx, tileIdx, channelProperties.props,
+                                                imagePath.getPath());
   };
 
   if(!mStop && mState != State::ERROR_) {
@@ -421,7 +422,7 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo ima
   //
   // Channel stats
   //
-  auto writeStats = [this, &detectionResults, &detailOutputFolder, &detailReports,
+  auto writeStats = [this, &imagePath, &detectionResults, &detailOutputFolder, &detailReports,
                      &channelProperties](int tileIdx, settings::ChannelSettings channelSettings) {
     //
     // Measure intensity from ROI area of channel X in channel Y
@@ -450,7 +451,7 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo ima
     if(detectionResults.contains(channelSettings.meta.channelIdx)) {
       joda::results::Helper::appendToDetailReport(
           mAnalyzeSettings, detectionResults.at(channelSettings.meta.channelIdx), detailReports, detailOutputFolder,
-          mJobName, channelSettings.meta.channelIdx, tileIdx, channelProperties.props);
+          mJobName, channelSettings.meta.channelIdx, tileIdx, channelProperties.props, imagePath.getPath());
     }
   };
 

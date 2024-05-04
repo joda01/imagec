@@ -25,12 +25,12 @@ public:
   enum class MeasureChannelStat
   {
     VAL     = 0x0000,
-    AVG     = 0x0100,
-    SUM     = 0x0200,
-    MIN     = 0x0300,
-    MAX     = 0x0400,
-    CNT     = 0x0500,
-    STD_DEV = 0x0600
+    AVG     = 0x0001,
+    SUM     = 0x0002,
+    MIN     = 0x0003,
+    MAX     = 0x0004,
+    CNT     = 0x0005,
+    STD_DEV = 0x0006
 
   };
 
@@ -55,35 +55,38 @@ public:
 
   enum class MeasureChannelsCombi : uint32_t
   {
-    CONFIDENCE_AVG =
-        static_cast<uint32_t>(MeasureChannels::CONFIDENCE) | static_cast<uint32_t>(MeasureChannelStat::AVG),
-    AREA_SIZE_AVG = static_cast<uint32_t>(MeasureChannels::AREA_SIZE) | static_cast<uint32_t>(MeasureChannelStat::AVG),
-    PERIMETER_AVG = static_cast<uint32_t>(MeasureChannels::PERIMETER) | static_cast<uint32_t>(MeasureChannelStat::AVG),
-    CIRCULARITY_AVG =
-        static_cast<uint32_t>(MeasureChannels::CIRCULARITY) | static_cast<uint32_t>(MeasureChannelStat::AVG),
-    VALIDITY_AVG = static_cast<uint32_t>(MeasureChannels::VALIDITY) | static_cast<uint32_t>(MeasureChannelStat::SUM),
-    INVALIDITY_AVG =
-        static_cast<uint32_t>(MeasureChannels::INVALIDITY) | static_cast<uint32_t>(MeasureChannelStat::SUM),
-    CENTER_OF_MASS_X_AVG =
-        static_cast<uint32_t>(MeasureChannels::CENTER_OF_MASS_X) | static_cast<uint32_t>(MeasureChannelStat::AVG),
-    CENTER_OF_MASS_Y_AVG =
-        static_cast<uint32_t>(MeasureChannels::CENTER_OF_MASS_Y) | static_cast<uint32_t>(MeasureChannelStat::AVG),
-    INTENSITY_AVG_AVG =
-        static_cast<uint32_t>(MeasureChannels::INTENSITY_AVG) | static_cast<uint32_t>(MeasureChannelStat::AVG),
-    INTENSITY_MIN_AVG =
-        static_cast<uint32_t>(MeasureChannels::INTENSITY_MIN) | static_cast<uint32_t>(MeasureChannelStat::AVG),
-    INTENSITY_MAX_AVG =
-        static_cast<uint32_t>(MeasureChannels::INTENSITY_MAX) | static_cast<uint32_t>(MeasureChannelStat::AVG),
-    INTENSITY_AVG_CROSS_CHANNEL_AVG = static_cast<uint32_t>(MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL) |
-                                      static_cast<uint32_t>(MeasureChannelStat::AVG),
-    INTENSITY_MIN_CROSS_CHANNEL_AVG = static_cast<uint32_t>(MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL) |
-                                      static_cast<uint32_t>(MeasureChannelStat::AVG),
-    INTENSITY_MAX_CROSS_CHANNEL_AVG = static_cast<uint32_t>(MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL) |
-                                      static_cast<uint32_t>(MeasureChannelStat::AVG),
-    COUNT_CROSS_CHANNEL_AVG =
-        static_cast<uint32_t>(MeasureChannels::COUNT_CROSS_CHANNEL) | static_cast<uint32_t>(MeasureChannelStat::AVG),
-    COUNT_CROSS_CHANNEL_SUM =
-        static_cast<uint32_t>(MeasureChannels::COUNT_CROSS_CHANNEL) | static_cast<uint32_t>(MeasureChannelStat::SUM),
+    CONFIDENCE_AVG = (static_cast<uint32_t>(MeasureChannels::CONFIDENCE) << 16) |
+                     (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    AREA_SIZE_AVG = (static_cast<uint32_t>(MeasureChannels::AREA_SIZE) << 16) |
+                    (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    PERIMETER_AVG = (static_cast<uint32_t>(MeasureChannels::PERIMETER) << 16) |
+                    (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    CIRCULARITY_AVG = (static_cast<uint32_t>(MeasureChannels::CIRCULARITY) << 16) |
+                      (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    VALIDITY_AVG = (static_cast<uint32_t>(MeasureChannels::VALIDITY) << 16) |
+                   (static_cast<uint32_t>(MeasureChannelStat::SUM) << 8),
+    INVALIDITY_AVG = (static_cast<uint32_t>(MeasureChannels::INVALIDITY) << 16) |
+                     (static_cast<uint32_t>(MeasureChannelStat::SUM) << 8),
+    CENTER_OF_MASS_X_AVG = (static_cast<uint32_t>(MeasureChannels::CENTER_OF_MASS_X) << 16) |
+                           (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    CENTER_OF_MASS_Y_AVG = (static_cast<uint32_t>(MeasureChannels::CENTER_OF_MASS_Y) << 16) |
+                           (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    INTENSITY_AVG_AVG = (static_cast<uint32_t>(MeasureChannels::INTENSITY_AVG) << 16) |
+                        (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    INTENSITY_MIN_AVG = (static_cast<uint32_t>(MeasureChannels::INTENSITY_MIN) << 16) |
+                        (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    INTENSITY_MAX_AVG = (static_cast<uint32_t>(MeasureChannels::INTENSITY_MAX) << 16) |
+                        (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    INTENSITY_AVG_CROSS_CHANNEL_AVG = (static_cast<uint32_t>(MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL) << 16) |
+                                      (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    INTENSITY_MIN_CROSS_CHANNEL_AVG = (static_cast<uint32_t>(MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL) << 16) |
+                                      (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    INTENSITY_MAX_CROSS_CHANNEL_AVG = (static_cast<uint32_t>(MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL) << 16) |
+                                      (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    COUNT_CROSS_CHANNEL_AVG = (static_cast<uint32_t>(MeasureChannels::COUNT_CROSS_CHANNEL) << 16) |
+                              (static_cast<uint32_t>(MeasureChannelStat::AVG) << 8),
+    COUNT_CROSS_CHANNEL_SUM = (static_cast<uint32_t>(MeasureChannels::COUNT_CROSS_CHANNEL) << 16) |
+                              (static_cast<uint32_t>(MeasureChannelStat::SUM) << 8),
   };
 
   class DetailReport

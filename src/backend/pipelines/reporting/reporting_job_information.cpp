@@ -52,9 +52,9 @@ void JobInformation::writeReport(const joda::settings::AnalyzeSettings &analyzeS
   writeRow("Nr. of channels", std::to_string(analyzeSettings.channels.size()));
   emptyLine(2);
 
-  writeRow("Group nr.", std::to_string(results.groups.size()));
+  writeRow("Group nr.", std::to_string(results.getGroups().size()));
   int64_t nrOfImages = 0;
-  for(const auto &[_, group] : results.groups) {
+  for(const auto &[_, group] : results.getGroups()) {
     for(const auto &[_, tb] : group.getChannels()) {
       nrOfImages += tb.getNrOfObjects();
     }

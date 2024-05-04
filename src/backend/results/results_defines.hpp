@@ -30,10 +30,10 @@ namespace joda::results {
 class MeasureChannelKey
 {
 private:
-  static inline const uint32_t MEASURE_CHANNEL_MASK           = 0x000000FF;
+  static inline const uint32_t MEASURE_CHANNEL_MASK           = 0x00FF0000;
   static inline const uint32_t MEASURE_CHANNEL_STATS_MASK     = 0x0000FF00;
-  static inline const uint32_t MEASURE_CHANNEL_STATS_AND_MASK = 0x0000FFFF;
-  static inline const uint32_t MEASURE_CHANNEL_INDEX_MASK     = 0x00FF0000;
+  static inline const uint32_t MEASURE_CHANNEL_STATS_AND_MASK = 0x00FFFF00;
+  static inline const uint32_t MEASURE_CHANNEL_INDEX_MASK     = 0x000000FF;
 
 public:
   /////////////////////////////////////////////////////
@@ -49,23 +49,24 @@ public:
 
   MeasureChannelKey(joda::settings::ChannelReportingSettings::MeasureChannels measureChannel,
                     joda::settings::ChannelReportingSettings::MeasureChannelStat measureChannelStat) :
-      value((static_cast<uint32_t>(measureChannel) | static_cast<uint32_t>(measureChannelStat)) & 0x0000FFFF)
+      value((static_cast<uint32_t>(measureChannel) << 16 | static_cast<uint32_t>(measureChannelStat) << 8) &
+            MEASURE_CHANNEL_STATS_AND_MASK)
   {
   }
 
   MeasureChannelKey(joda::settings::ChannelReportingSettings::MeasureChannels measureChannel,
                     joda::settings::ChannelReportingSettings::MeasureChannelStat measureChannelStat,
                     joda::settings::ChannelIndex channelIndex) :
-      value((static_cast<uint32_t>(measureChannel) | static_cast<uint32_t>(measureChannelStat) |
-             (static_cast<uint32_t>(channelIndex) << 16)))
+      value((static_cast<uint32_t>(measureChannel) << 16 | static_cast<uint32_t>(measureChannelStat) << 8 |
+             (static_cast<uint32_t>(channelIndex) & MEASURE_CHANNEL_INDEX_MASK)))
   {
   }
 
   MeasureChannelKey(joda::settings::ChannelReportingSettings::MeasureChannels measureChannel,
                     joda::settings::ChannelIndex channelIndex) :
-      value((static_cast<uint32_t>(measureChannel) |
-             static_cast<uint32_t>(joda::settings::ChannelReportingSettings::MeasureChannelStat::VAL) |
-             (static_cast<uint32_t>(channelIndex) << 16)))
+      value((static_cast<uint32_t>(measureChannel) << 16 |
+             static_cast<uint32_t>(joda::settings::ChannelReportingSettings::MeasureChannelStat::VAL) << 8 |
+             (static_cast<uint32_t>(channelIndex) & MEASURE_CHANNEL_INDEX_MASK)))
   {
   }
 
@@ -76,7 +77,7 @@ public:
 
   MeasureChannelKey operator|(joda::settings::ChannelReportingSettings::MeasureChannelStat stat) const
   {
-    return MeasureChannelKey((value & ~MEASURE_CHANNEL_STATS_MASK) | static_cast<uint32_t>(stat));
+    return MeasureChannelKey((value & ~MEASURE_CHANNEL_STATS_MASK) | (static_cast<uint32_t>(stat) << 8));
   }
 
   [[nodiscard]] joda::settings::ChannelReportingSettings::MeasureChannels getMeasureChannel() const;

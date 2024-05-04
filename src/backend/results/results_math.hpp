@@ -47,7 +47,7 @@ inline Stats calcStats(const Channel &channel)
   // Calc stats
   //
   for(const auto &[objectKey, obj] : channel.getObjects()) {
-    for(const auto &[measKey, val] : obj.measurements) {
+    for(const auto &[measKey, val] : obj.getMeasurements()) {
       double &avg = retStats.emplaceWithDefault(MeasureChannelKey{measKey, MeasureStat::AVG}, 0);
       double &sum = retStats.emplaceWithDefault(MeasureChannelKey{measKey, MeasureStat::SUM}, 0);
       double &min =
@@ -57,10 +57,10 @@ inline Stats calcStats(const Channel &channel)
       double &cnt    = retStats.emplaceWithDefault(MeasureChannelKey{measKey, MeasureStat::CNT}, 0);
       double &stdDev = retStats.emplaceWithDefault(MeasureChannelKey{measKey, MeasureStat::STD_DEV}, 0);
 
-      if(std::holds_alternative<func::ParticleValidity>(val.val)) {
-        auto validity = std::get<func::ParticleValidity>(val.val);
+      if(std::holds_alternative<func::ParticleValidity>(val.getVal())) {
+        auto validity = std::get<func::ParticleValidity>(val.getVal());
         if(measKey.getMeasureChannel() == settings::ChannelReportingSettings::MeasureChannels::VALIDITY) {
-          if(obj.meta.valid) {
+          if(obj.getMeta().valid) {
             sum++;
             avg    = 0;
             min    = 0;
@@ -70,7 +70,7 @@ inline Stats calcStats(const Channel &channel)
           cnt++;
 
         } else if(measKey.getMeasureChannel() == settings::ChannelReportingSettings::MeasureChannels::INVALIDITY) {
-          if(!obj.meta.valid) {
+          if(!obj.getMeta().valid) {
             sum++;
             avg    = 0;
             min    = 0;
@@ -79,9 +79,9 @@ inline Stats calcStats(const Channel &channel)
           }
           cnt++;
         }
-      } else if(std::holds_alternative<double>(val.val)) {
-        if(obj.meta.valid) {
-          double values = std::get<double>(val.val);
+      } else if(std::holds_alternative<double>(val.getVal())) {
+        if(obj.getMeta().valid) {
+          double values = std::get<double>(val.getVal());
           sum += values;
           min = std::min(min, values);
           max = std::max(max, values);
@@ -112,15 +112,15 @@ inline Stats calcStats(const Channel &channel)
   // Calc variance
   //
   for(const auto &[objectKey, obj] : channel.getObjects()) {
-    for(const auto &[measureKey, act] : obj.measurements) {
-      if(std::holds_alternative<double>(act.val)) {
-        if(obj.meta.valid) {
+    for(const auto &[measureKey, act] : obj.getMeasurements()) {
+      if(std::holds_alternative<double>(act.getVal())) {
+        if(obj.getMeta().valid) {
           auto &stdDev = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), MeasureStat::STD_DEV,
                                                     measureKey.getChannelIndex()}];
 
           auto &avg   = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), MeasureStat::AVG,
                                                  measureKey.getChannelIndex()}];
-          double diff = std::get<double>(act.val) - avg;
+          double diff = std::get<double>(act.getVal()) - avg;
           stdDev += diff * diff;
         }
       }
@@ -137,7 +137,7 @@ inline Stats calcStats(const Channel &channel)
       auto &stdDev = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), MeasureStat::STD_DEV,
                                                 measureKey.getChannelIndex()}];
       if(cnt > 0) {
-        stdDev = std::sqrt(stdDev / cnt);
+        stdDev = std::sqrt(stdDev / (cnt - 1));
       }
     }
   }

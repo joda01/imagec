@@ -57,7 +57,7 @@ public:
                                    joda::results::WorkSheet &detailReportTable,
                                    const std::string &detailReportOutputPath, const std::string &jobName,
                                    joda::settings::ChannelIndex realChannelIdx, uint32_t tileIdx,
-                                   const ImageProperties &imgProps);
+                                   const ImageProperties &imgProps, const std::string &imagePath);
 
   static void appendToAllOverReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                     joda::results::WorkSheet &allOverReport,

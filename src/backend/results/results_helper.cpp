@@ -44,18 +44,23 @@ void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyz
                                    joda::settings::ChannelIndex chIdx)
 {
   try {
-    detailReportTable[chIdx].setName(channelName);
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::CONFIDENCE, chIdx});
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::AREA_SIZE, chIdx});
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::PERIMETER, chIdx});
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::CIRCULARITY, chIdx});
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::VALIDITY, chIdx});
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::INVALIDITY, chIdx});
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::CENTER_OF_MASS_X, chIdx});
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::CENTER_OF_MASS_Y, chIdx});
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::INTENSITY_AVG, chIdx});
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::INTENSITY_MIN, chIdx});
-    detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::INTENSITY_MAX, chIdx});
+    Channel &ch = detailReportTable.at(chIdx);
+    ch.setName(channelName);
+    auto addMeasureCh = [&ch, &analyzeSettings](MeasureChannels channel, joda::settings::ChannelIndex chIdx) {
+      auto tmp = MeasureChannelKey{channel, chIdx};
+      ch.emplaceMeasureChKey(tmp, tmp.measurementChannelsToString(analyzeSettings));
+    };
+    addMeasureCh(MeasureChannels::CONFIDENCE, chIdx);
+    addMeasureCh(MeasureChannels::AREA_SIZE, chIdx);
+    addMeasureCh(MeasureChannels::PERIMETER, chIdx);
+    addMeasureCh(MeasureChannels::CIRCULARITY, chIdx);
+    addMeasureCh(MeasureChannels::VALIDITY, chIdx);
+    addMeasureCh(MeasureChannels::INVALIDITY, chIdx);
+    addMeasureCh(MeasureChannels::CENTER_OF_MASS_X, chIdx);
+    addMeasureCh(MeasureChannels::CENTER_OF_MASS_Y, chIdx);
+    addMeasureCh(MeasureChannels::INTENSITY_AVG, chIdx);
+    addMeasureCh(MeasureChannels::INTENSITY_MIN, chIdx);
+    addMeasureCh(MeasureChannels::INTENSITY_MAX, chIdx);
 
     //
     // Intensity channels
@@ -63,14 +68,9 @@ void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyz
     for(joda::settings::ChannelIndex intensIdx :
         joda::settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, chIdx)
             .crossChannelIntensityChannels) {
-      detailReportTable[chIdx].emplaceMeasureChKey(
-          MeasureChannelKey{MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL, intensIdx});
-
-      detailReportTable[chIdx].emplaceMeasureChKey(
-          MeasureChannelKey{MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, intensIdx});
-
-      detailReportTable[chIdx].emplaceMeasureChKey(
-          MeasureChannelKey{MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, intensIdx});
+      addMeasureCh(MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL, intensIdx);
+      addMeasureCh(MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, intensIdx);
+      addMeasureCh(MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, intensIdx);
     }
 
     //
@@ -78,9 +78,8 @@ void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyz
     //
     for(joda::settings::ChannelIndex countIdx :
         joda::settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, chIdx).crossChannelCountChannels) {
-      detailReportTable[chIdx].emplaceMeasureChKey(MeasureChannelKey{MeasureChannels::COUNT_CROSS_CHANNEL, countIdx});
+      addMeasureCh(MeasureChannels::COUNT_CROSS_CHANNEL, countIdx);
     }
-
   } catch(const std::exception &ex) {
     std::cout << "Pipeline::setDetailReportHeader >" << ex.what() << "<" << std::endl;
   }
@@ -96,7 +95,8 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
                                   const joda::func::DetectionResponse &result,
                                   joda::results::WorkSheet &detailReportTable,
                                   const std::string &detailReportOutputPath, const std::string &jobName,
-                                  joda::settings::ChannelIndex chIdx, uint32_t tileIdx, const ImageProperties &imgProps)
+                                  joda::settings::ChannelIndex chIdx, uint32_t tileIdx, const ImageProperties &imgProps,
+                                  const std::string &imagePath)
 {
   static std::mutex appendMutex;
 
@@ -122,7 +122,8 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   //               result.originalImage * ((float) UINT8_MAX / (float) UINT16_MAX), compression_params);
   // }
 
-  results::Channel &tableToWorkOn = detailReportTable[chIdx];
+  results::Channel &tableToWorkOn = detailReportTable.emplaceChannel(
+      chIdx, joda::settings::Settings::getChannelNameOfChannelIndex(analyzeSettings, chIdx));
   tableToWorkOn.setValidity(result.responseValidity, result.invalidateWholeImage);
   int64_t indexOffset = 0;
   {
@@ -139,15 +140,16 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
     try {
       // int64_t index = roi.getIndex() + indexOffset;
       uint64_t index = roiIdx + indexOffset;
-      tableToWorkOn[index].setValidity(roi.getValidity());
-      tableToWorkOn[index][{MeasureChannels::CONFIDENCE, chIdx}]       = roi.getConfidence();
-      tableToWorkOn[index][{MeasureChannels::AREA_SIZE, chIdx}]        = roi.getAreaSize();
-      tableToWorkOn[index][{MeasureChannels::PERIMETER, chIdx}]        = roi.getPerimeter();
-      tableToWorkOn[index][{MeasureChannels::CIRCULARITY, chIdx}]      = roi.getCircularity();
-      tableToWorkOn[index][{MeasureChannels::VALIDITY, chIdx}]         = roi.getValidity();
-      tableToWorkOn[index][{MeasureChannels::INVALIDITY, chIdx}]       = roi.getValidity();
-      tableToWorkOn[index][{MeasureChannels::CENTER_OF_MASS_X, chIdx}] = roi.getCenterOfMass().x + xMul;
-      tableToWorkOn[index][{MeasureChannels::CENTER_OF_MASS_Y, chIdx}] = roi.getCenterOfMass().y + yMul;
+      Object &obj    = tableToWorkOn.emplaceObject(index, std::to_string(index), imagePath);
+      obj.setValidity(roi.getValidity());
+      obj.emplaceValue({MeasureChannels::CONFIDENCE, chIdx})       = roi.getConfidence();
+      obj.emplaceValue({MeasureChannels::AREA_SIZE, chIdx})        = roi.getAreaSize();
+      obj.emplaceValue({MeasureChannels::PERIMETER, chIdx})        = roi.getPerimeter();
+      obj.emplaceValue({MeasureChannels::CIRCULARITY, chIdx})      = roi.getCircularity();
+      obj.emplaceValue({MeasureChannels::VALIDITY, chIdx})         = roi.getValidity();
+      obj.emplaceValue({MeasureChannels::INVALIDITY, chIdx})       = roi.getValidity();
+      obj.emplaceValue({MeasureChannels::CENTER_OF_MASS_X, chIdx}) = roi.getCenterOfMass().x + xMul;
+      obj.emplaceValue({MeasureChannels::CENTER_OF_MASS_Y, chIdx}) = roi.getCenterOfMass().y + yMul;
 
       double intensityAvg = 0;
       double intensityMin = 0;
@@ -158,18 +160,18 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
         intensityMin     = intensityMe.intensityMin;
         intensityMax     = intensityMe.intensityMax;
       }
-      tableToWorkOn[index][{MeasureChannels::INTENSITY_AVG, chIdx}] = intensityAvg;
-      tableToWorkOn[index][{MeasureChannels::INTENSITY_MIN, chIdx}] = intensityMin;
-      tableToWorkOn[index][{MeasureChannels::INTENSITY_MAX, chIdx}] = intensityMax;
+      obj.emplaceValue({MeasureChannels::INTENSITY_AVG, chIdx}) = intensityAvg;
+      obj.emplaceValue({MeasureChannels::INTENSITY_MIN, chIdx}) = intensityMin;
+      obj.emplaceValue({MeasureChannels::INTENSITY_MAX, chIdx}) = intensityMax;
 
       //
       // Intensity channels
       //
       for(const auto &[idx, intensity] : roi.getIntensity()) {
         if(idx != chIdx) {
-          tableToWorkOn[index][{MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL, idx}] = intensity.intensity;
-          tableToWorkOn[index][{MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, idx}] = intensity.intensityMin;
-          tableToWorkOn[index][{MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, idx}] = intensity.intensityMax;
+          obj.emplaceValue({MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL, idx}) = intensity.intensity;
+          obj.emplaceValue({MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL, idx}) = intensity.intensityMin;
+          obj.emplaceValue({MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL, idx}) = intensity.intensityMax;
         }
       }
 
@@ -177,7 +179,7 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
       // Counting channels
       //
       for(const auto &[idx, intersecting] : roi.getIntersectingRois()) {
-        tableToWorkOn[index][{MeasureChannels::COUNT_CROSS_CHANNEL, idx}] = intersecting.roiValid.size();
+        obj.emplaceValue({MeasureChannels::COUNT_CROSS_CHANNEL, idx}) = intersecting.roiValid.size();
       }
 
       roiIdx++;
@@ -204,7 +206,7 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
   try {
     std::string groupToStoreImageIn            = getGroupToStoreImageIn(analyzeSettings, imagePath, imageName);
     const joda::results::Group &detailedReport = detailReportIn.root();
-    joda::results::Group &groupToWorkOn        = allOverReport[groupToStoreImageIn];
+    joda::results::Group &groupToWorkOn        = allOverReport.emplaceGroup(groupToStoreImageIn, groupToStoreImageIn);
 
     bool invalidAll = false;
     if(detailedReport.containsInvalidChannelWhereOneInvalidatesTheWholeImage()) {
@@ -212,24 +214,27 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
     }
 
     for(const auto &[channelIdx, detailChannel] : detailedReport.getChannels()) {
-      results::Channel &allOverChannelToWorkOn = groupToWorkOn[channelIdx];
+      results::Channel &allOverChannelToWorkOn = groupToWorkOn.at(channelIdx);
       allOverChannelToWorkOn.setName(detailChannel.getName());
 
       for(const auto &measureIdx : detailChannel.getMeasuredChannels()) {
-        allOverChannelToWorkOn.emplaceMeasureChKey({measureIdx, MeasureChannelStat::AVG});
-        allOverChannelToWorkOn.emplaceMeasureChKey({measureIdx, MeasureChannelStat::SUM});
-        allOverChannelToWorkOn.emplaceMeasureChKey({measureIdx, MeasureChannelStat::MIN});
-        allOverChannelToWorkOn.emplaceMeasureChKey({measureIdx, MeasureChannelStat::MAX});
-        allOverChannelToWorkOn.emplaceMeasureChKey({measureIdx, MeasureChannelStat::CNT});
-        allOverChannelToWorkOn.emplaceMeasureChKey({measureIdx, MeasureChannelStat::STD_DEV});
+        auto addMeasureCh = [&analyzeSettings, &allOverChannelToWorkOn, &measureIdx](MeasureChannelStat stat) {
+          auto tmp = MeasureChannelKey{measureIdx.first, MeasureChannelStat::AVG};
+          allOverChannelToWorkOn.emplaceMeasureChKey(tmp, tmp.measurementChannelsToString(analyzeSettings));
+        };
+
+        addMeasureCh(MeasureChannelStat::AVG);
+        addMeasureCh(MeasureChannelStat::SUM);
+        addMeasureCh(MeasureChannelStat::MIN);
+        addMeasureCh(MeasureChannelStat::MAX);
+        addMeasureCh(MeasureChannelStat::CNT);
+        addMeasureCh(MeasureChannelStat::STD_DEV);
       }
       auto stats = calcStats(detailChannel);
 
-      Object &imageToWorkOn = allOverChannelToWorkOn[fnv1a(imagePath)];
-      imageToWorkOn.setNameAndRef(imageName, imagePath);
-
+      Object &imageToWorkOn = allOverChannelToWorkOn.emplaceObject(fnv1a(imagePath), imageName, imagePath);
       for(const auto &[measureKey, val] : stats.measurements) {
-        imageToWorkOn.measurements[measureKey].set(val);
+        imageToWorkOn.at(measureKey).set(val);
       }
     }
   } catch(const std::exception &ex) {

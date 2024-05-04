@@ -17,17 +17,18 @@ namespace joda::results {
 
 [[nodiscard]] joda::settings::ChannelReportingSettings::MeasureChannels MeasureChannelKey::getMeasureChannel() const
 {
-  return static_cast<joda::settings::ChannelReportingSettings::MeasureChannels>(value & MEASURE_CHANNEL_MASK);
+  return static_cast<joda::settings::ChannelReportingSettings::MeasureChannels>((value & MEASURE_CHANNEL_MASK) >> 16);
 }
 
 [[nodiscard]] joda::settings::ChannelReportingSettings::MeasureChannelStat MeasureChannelKey::getMeasureStats() const
 {
-  return static_cast<joda::settings::ChannelReportingSettings::MeasureChannelStat>(value & MEASURE_CHANNEL_STATS_MASK);
+  return static_cast<joda::settings::ChannelReportingSettings::MeasureChannelStat>(
+      (value & MEASURE_CHANNEL_STATS_MASK) >> 8);
 }
 
 [[nodiscard]] joda::settings::ChannelIndex MeasureChannelKey::getChannelIndex() const
 {
-  return static_cast<joda::settings::ChannelIndex>((value & MEASURE_CHANNEL_INDEX_MASK) >> 16);
+  return static_cast<joda::settings::ChannelIndex>((value & MEASURE_CHANNEL_INDEX_MASK) & MEASURE_CHANNEL_INDEX_MASK);
 }
 
 [[nodiscard]] std::string MeasureChannelKey::measurementStatsToString() const

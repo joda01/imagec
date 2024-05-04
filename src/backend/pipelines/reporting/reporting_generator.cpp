@@ -118,7 +118,7 @@ void ReportGenerator::flushReportToFile(const joda::settings::AnalyzeSettings &a
   int rowOffsetIn          = 0;
   int rowOffsetStart       = 0;
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, "Results");
-  for(const auto &[groupName, groupTable] : resultsWorkbook.groups) {
+  for(const auto &[groupName, groupTable] : resultsWorkbook.getGroups()) {
     for(const auto &[channelIndex, channel] : groupTable.getChannels()) {
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {

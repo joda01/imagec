@@ -1,5 +1,3 @@
-
-
 ///
 /// \file      imagec_data.hpp
 /// \author    Joachim Danmayr
@@ -29,8 +27,10 @@
 
 namespace joda::results {
 
-using GroupKey  = std::string;
-using ObjectKey = uint64_t;
+using GroupKey   = std::string;
+using ObjectKey  = uint64_t;
+using ChannelKey = joda::settings::ChannelIndex;
+using MeasureKey = MeasureChannelKey;
 
 template <class T>
 concept Valid_t = std::is_same_v<T, bool> || std::is_same_v<T, func::ParticleValidity>;
@@ -48,8 +48,7 @@ concept Value_t = std::is_same_v<T, double> || std::is_same_v<T, float> || std::
 class Value
 {
 public:
-  std::variant<double, func::ParticleValidity> val;    ///< Value
-
+  /////////////////////////////////////////////////////
   template <Value_t V>
   Value &operator=(V val)
   {
@@ -66,6 +65,15 @@ public:
       this->val = val;
     }
   }
+
+  [[nodiscard]] auto getVal() const -> const std::variant<double, func::ParticleValidity> &
+  {
+    return val;
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  std::variant<double, func::ParticleValidity> val;    ///< Value
 };
 
 ///
@@ -76,13 +84,13 @@ public:
 class Object
 {
 public:
+  /////////////////////////////////////////////////////
   struct Meta
   {
     std::string name;    ///< Name for the object
     std::string ref;     ///< Link to the object
     bool valid;          ///< True if the object is valid, else false
   };
-  Meta meta;
 
   template <Valid_t V>
   void setValidity(V val)
@@ -93,18 +101,27 @@ public:
       meta.valid = val;
     }
   }
-
-  void setNameAndRef(const std::string &name, const std::string &ref)
+  void setNameAndRef(const std::string &name, const std::string &ref);
+  Value &emplaceValue(const MeasureKey &key);
+  [[nodiscard]] auto getMeasurements() const -> const std::map<MeasureKey, Value> &
   {
-    meta.name = name;
-    meta.ref  = ref;
+    return measurements;
   }
 
-  Value &operator[](const MeasureChannelKey &key)
+  [[nodiscard]] auto getMeta() const -> const Meta &
+  {
+    return meta;
+  }
+
+  Value &at(MeasureKey key)
   {
     return measurements[key];
   }
-  std::map<MeasureChannelKey, Value> measurements;    // The measurement channels of this object
+
+private:
+  /////////////////////////////////////////////////////
+  Meta meta;
+  std::map<MeasureKey, Value> measurements;    // The measurement channels of this object
 };
 
 ///
@@ -115,6 +132,7 @@ public:
 class Channel
 {
 public:
+  /////////////////////////////////////////////////////
   struct Meta
   {
     std::string name;    ///< Name of the channel
@@ -122,44 +140,35 @@ public:
         joda::func::ResponseDataValidity::VALID;    ///< True if the value is valid, else false
     bool invalidateAllObjects = false;
   };
-  Object &operator[](const ObjectKey &key)
+
+  struct MetaMeasureCh
+  {
+    std::string name;    ///< Name of the channel
+  };
+
+  Object &emplaceObject(ObjectKey, const std::string &name, const std::string &ref);
+  void emplaceMeasureChKey(MeasureKey key, const std::string &name);
+  void setValidity(joda::func::ResponseDataValidity valid, bool invalidateAllObjects);
+  void setName(const std::string &name);
+  [[nodiscard]] auto getName() const -> const std::string &;
+  [[nodiscard]] size_t getNrOfObjects() const;
+  [[nodiscard]] auto getMeasuredChannels() const -> const std::map<MeasureKey, MetaMeasureCh> &;
+  [[nodiscard]] auto getObjects() const -> const std::map<ObjectKey, Object> &;
+  [[nodiscard]] auto getMeta() const -> const Meta &
+  {
+    return meta;
+  }
+
+  Object &at(ObjectKey key)
   {
     return objects[key];
   }
-  void emplaceMeasureChKey(MeasureChannelKey key)
-  {
-    measuredValues.emplace(key);
-  }
-  void setValidity(joda::func::ResponseDataValidity valid, bool invalidateAllObjects)
-  {
-    meta.valid                = valid;
-    meta.invalidateAllObjects = invalidateAllObjects;
-  }
-  void setName(const std::string &name)
-  {
-    meta.name = name;
-  }
-  [[nodiscard]] auto getName() const -> const std::string &
-  {
-    return meta.name;
-  }
-  [[nodiscard]] size_t getNrOfObjects() const
-  {
-    return objects.size();
-  }
-  [[nodiscard]] auto getMeasuredChannels() const -> const std::set<MeasureChannelKey> &
-  {
-    return measuredValues;
-  }
 
-  [[nodiscard]] auto getObjects() const -> const std::map<ObjectKey, Object> &
-  {
-    return objects;
-  }
-
+private:
+  /////////////////////////////////////////////////////
   Meta meta;
-  std::set<MeasureChannelKey> measuredValues;    ///< List of measured values of this channel
-  std::map<ObjectKey, Object> objects;           ///< Objects of this channel (images, spots, nuclei, ...)
+  std::map<MeasureKey, MetaMeasureCh> measuredValues;    ///< List of measured values of this channel
+  std::map<ObjectKey, Object> objects;                   ///< Objects of this channel (images, spots, nuclei, ...)
 };
 
 ///
@@ -170,37 +179,29 @@ public:
 class Group
 {
 public:
+  /////////////////////////////////////////////////////
   struct Meta
   {
     std::string name;    ///< Name of the group
   };
-  Meta meta;
-  std::map<joda::settings::ChannelIndex, Channel> channels;    ///< Channels of this group
 
-  Channel &operator[](const joda::settings::ChannelIndex &key)
+  void setName(const std::string &name);
+  Channel &emplaceChannel(ChannelKey key, const std::string &name);
+  [[nodiscard]] bool containsInvalidChannelWhereOneInvalidatesTheWholeImage() const;
+  [[nodiscard]] auto getChannels() const -> const std::map<ChannelKey, Channel> &;
+  [[nodiscard]] auto getMeta() const -> const Meta &
+  {
+    return meta;
+  }
+  Channel &at(ChannelKey key)
   {
     return channels[key];
   }
 
-  [[nodiscard]] auto getChannels() const -> const std::map<joda::settings::ChannelIndex, Channel> &
-  {
-    return channels;
-  }
-
-  [[nodiscard]] auto at(joda::settings::ChannelIndex key) const -> const Channel &
-  {
-    return channels.at(key);
-  }
-
-  [[nodiscard]] bool containsInvalidChannelWhereOneInvalidatesTheWholeImage() const
-  {
-    for(const auto &[_, channel] : channels) {
-      if(channel.meta.invalidateAllObjects && func::ResponseDataValidity::VALID != channel.meta.valid) {
-        return true;
-      }
-    }
-    return false;
-  }
+private:
+  /////////////////////////////////////////////////////
+  Meta meta;
+  std::map<ChannelKey, Channel> channels;    ///< Channels of this group
 };
 
 ///
@@ -211,6 +212,7 @@ public:
 class WorkSheet
 {
 public:
+  /////////////////////////////////////////////////////
   struct Meta
   {
     std::string swVersion;
@@ -221,12 +223,22 @@ public:
     std::string nrOfChannels;
   };
 
-  Meta meta;
-  std::map<GroupKey, Group> groups;
+  Group &emplaceGroup(const GroupKey &key, const std::string &name);
+  Channel &emplaceChannel(const ChannelKey &key, const std::string &name);
 
-  Group &operator[](const GroupKey &key)
+  [[nodiscard]] auto getGroups() const -> const std::map<GroupKey, Group> &;
+  [[nodiscard]] auto getMeta() const -> const Meta &
   {
-    return groups[key];
+    return meta;
+  }
+  Group &at(const GroupKey &key)
+  {
+    return groups.at(key);
+  }
+
+  Channel &at(const ChannelKey &key)
+  {
+    return groups[""].at(key);
   }
 
   [[nodiscard]] const Group &root() const
@@ -234,10 +246,10 @@ public:
     return groups.at("");
   }
 
-  Channel &operator[](const joda::settings::ChannelIndex &key)
-  {
-    return groups[""][key];
-  }
+private:
+  /////////////////////////////////////////////////////
+  Meta meta;
+  std::map<GroupKey, Group> groups;
 };
 
 ///
