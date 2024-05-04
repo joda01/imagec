@@ -28,43 +28,99 @@ enum class ChannelIndex : int32_t
   F    = 70
 };
 
+inline ChannelIndex from_string(const std::string &idx)
+{
+  if(idx == "None") {
+    return ChannelIndex::NONE;
+  }
+  if(idx == "0") {
+    return ChannelIndex::CH0;
+  }
+  if(idx == "1") {
+    return ChannelIndex::CH1;
+  }
+  if(idx == "2") {
+    return ChannelIndex::CH2;
+  }
+  if(idx == "3") {
+    return ChannelIndex::CH3;
+  }
+  if(idx == "4") {
+    return ChannelIndex::CH4;
+  }
+  if(idx == "5") {
+    return ChannelIndex::CH5;
+  }
+  if(idx == "6") {
+    return ChannelIndex::CH6;
+  }
+  if(idx == "7") {
+    return ChannelIndex::CH7;
+  }
+  if(idx == "8") {
+    return ChannelIndex::CH8;
+  }
+  if(idx == "9") {
+    return ChannelIndex::CH9;
+  }
+  if(idx == "A") {
+    return ChannelIndex::A;
+  }
+  if(idx == "B") {
+    return ChannelIndex::B;
+  }
+  if(idx == "C") {
+    return ChannelIndex::C;
+  }
+  if(idx == "D") {
+    return ChannelIndex::D;
+  }
+  if(idx == "E") {
+    return ChannelIndex::E;
+  }
+  if(idx == "F") {
+    return ChannelIndex::F;
+  }
+  return ChannelIndex::NONE;
+}
+
 inline std::string to_string(joda::settings::ChannelIndex idx)
 {
   switch(idx) {
     case ChannelIndex::NONE:
-      return "none";
+      return "None";
     case ChannelIndex::CH0:
-      return "ch_00";
+      return "0";
     case ChannelIndex::CH1:
-      return "ch_01";
+      return "1";
     case ChannelIndex::CH2:
-      return "ch_02";
+      return "2";
     case ChannelIndex::CH3:
-      return "ch_03";
+      return "3";
     case ChannelIndex::CH4:
-      return "ch_04";
+      return "4";
     case ChannelIndex::CH5:
-      return "ch_05";
+      return "5";
     case ChannelIndex::CH6:
-      return "ch_06";
+      return "6";
     case ChannelIndex::CH7:
-      return "ch_07";
+      return "7";
     case ChannelIndex::CH8:
-      return "ch_08";
+      return "8";
     case ChannelIndex::CH9:
-      return "ch_09";
+      return "9";
     case ChannelIndex::A:
-      return "slot_a";
+      return "A";
     case ChannelIndex::B:
-      return "slot_b";
+      return "B";
     case ChannelIndex::C:
-      return "slot_c";
+      return "C";
     case ChannelIndex::D:
-      return "slot_d";
+      return "D";
     case ChannelIndex::E:
-      return "slot_e";
+      return "E";
     case ChannelIndex::F:
-      return "slot_f";
+      return "F";
   }
 
   return "ups";

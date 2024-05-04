@@ -158,6 +158,7 @@ void Pipeline::runJob()
   auto timeStopped = std::chrono::high_resolution_clock::now();
 
   std::string resultsFile = mOutputFolder + separator + "results_summary_" + mJobName;
+  alloverReport.saveToFile(resultsFile);
   joda::pipeline::reporting::ReportGenerator::flushReportToFile(
       mAnalyzeSettings, alloverReport, resultsFile + ".xlsx",
       {.jobName = mJobName, .timeStarted = timeStarted, .timeFinished = timeStopped},
@@ -242,6 +243,7 @@ void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileI
   if(mState != State::ERROR_) {
     auto id           = DurationCount::start("Write detail report");
     std::string fName = detailOutputFolder + separator + "results_image_" + mJobName;
+    detailReport.saveToFile(fName);
     joda::pipeline::reporting::ReportGenerator::flushReportToFile(
         mAnalyzeSettings, detailReport, fName + ".xlsx", {.jobName = mJobName},
         joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);

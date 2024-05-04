@@ -226,4 +226,38 @@ auto WorkSheet::getGroups() const -> const std::map<GroupKey, Group> &
   return groups;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void WorkSheet::saveToFile(std::string filename) const
+{
+  if(!filename.empty()) {
+    nlohmann::json json = *this;
+    if(!filename.ends_with(".json")) {
+      filename += ".json";
+    }
+    std::ofstream out(filename);
+    out << json.dump(2);
+    out.close();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void WorkSheet::loadFromFile(const std::string &filename)
+{
+  std::ifstream ifs(filename);
+  *this = nlohmann::json::parse(ifs);
+  ifs.close();
+}
+
 }    // namespace joda::results

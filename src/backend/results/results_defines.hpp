@@ -37,7 +37,11 @@ private:
 
 public:
   /////////////////////////////////////////////////////
-  explicit MeasureChannelKey(uint32_t value) : value(value)
+  MeasureChannelKey(const std::string &value) : value(std::stoul(value))
+  {
+  }
+
+  MeasureChannelKey(uint32_t value) : value(value)
   {
   }
 
@@ -86,6 +90,10 @@ public:
   [[nodiscard]] std::string measurementStatsToString() const;
   [[nodiscard]] std::string measurementChannelsToString() const;
   [[nodiscard]] std::string measurementChannelsToString(const joda::settings::AnalyzeSettings &settings) const;
+  [[nodiscard]] auto toString() const
+  {
+    return std::to_string(value);
+  }
 
 private:
   /////////////////////////////////////////////////////

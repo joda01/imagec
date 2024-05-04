@@ -89,7 +89,7 @@ namespace joda::results {
 
 std::string MeasureChannelKey::measurementChannelsToString(const joda::settings::AnalyzeSettings &settings) const
 {
-  return measurementChannelsToString() + measurementStatsToString() + " " +
+  return measurementChannelsToString() + " (" + measurementStatsToString() + ") " +
          joda::settings::Settings::getChannelNameOfChannelIndex(settings, getChannelIndex());
 }
 

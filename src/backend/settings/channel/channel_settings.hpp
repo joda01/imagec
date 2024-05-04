@@ -18,9 +18,9 @@ class ChannelSettings
 public:
   struct Preprocessing
   {
-    std::optional<MarginCrop> $cropMargin = std::nullopt;
+    ::std::optional<MarginCrop> $cropMargin = ::std::nullopt;
     ZStackProcessing $zStack;
-    std::vector<PreprocessingPipelineSteps> pipeline;
+    ::std::vector<PreprocessingPipelineSteps> pipeline;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Preprocessing, $cropMargin, $zStack, pipeline);
   };
@@ -33,13 +33,13 @@ public:
   CrossChannelSettings crossChannel;
   ChannelReportingSettings reporting;
 
-  [[nodiscard]] const std::string &schema() const
+  [[nodiscard]] const ::std::string &schema() const
   {
     return configSchema;
   }
 
 private:
-  std::string configSchema = "https://imagec.org/schemas/v1/channel-settings.json";
+  ::std::string configSchema = "https://imagec.org/schemas/v1/channel-settings.json";
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, meta, detection, objectFilter, imageFilter,
                                               preprocessing, crossChannel, reporting, configSchema);

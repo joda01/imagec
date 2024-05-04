@@ -12,7 +12,7 @@
 TEST_CASE("cell:counter", "[cell_counter]")
 {
   std::map<std::string, joda::onnx::OnnxParser::Data> models;
-  joda::results::Table tb;
+  joda::results::WorkSheet tb;
   joda::pipeline::detection::ObjectSegmentation cellCounter(models);
   auto img = JpgLoader::loadEntireImage("test/cells.jpg");
   joda::settings::ChannelSettings set;

@@ -219,7 +219,7 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
 
       for(const auto &measureIdx : detailChannel.getMeasuredChannels()) {
         auto addMeasureCh = [&analyzeSettings, &allOverChannelToWorkOn, &measureIdx](MeasureChannelStat stat) {
-          auto tmp = MeasureChannelKey{measureIdx.first, MeasureChannelStat::AVG};
+          auto tmp = MeasureChannelKey{measureIdx.first, stat};
           allOverChannelToWorkOn.emplaceMeasureChKey(tmp, tmp.measurementChannelsToString(analyzeSettings));
         };
 
