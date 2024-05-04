@@ -49,6 +49,7 @@
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_experiment_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
+#include "ui/reporting/panel_reporting.hpp"
 #include "build_info.h"
 #include "version.h"
 
@@ -165,6 +166,11 @@ void WindowMain::createTopToolbar()
     toolbar->addAction(mOPenProject);
     mSecondSeparator = toolbar->addSeparator();
 
+    mOpenReportingArea = new QAction(QIcon(":/icons/outlined/icons8-graph-50.png"), "Reporting area", toolbar);
+    mOpenReportingArea->setToolTip("Open reporting area");
+    connect(mOpenReportingArea, &QAction::triggered, this, &WindowMain::onOpenReportingAreaClicked);
+    toolbar->addAction(mOpenReportingArea);
+
     mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
     mStartAnalysis->setEnabled(false);
     mStartAnalysis->setToolTip("Start analysis!");
@@ -237,6 +243,7 @@ QWidget *WindowMain::createStackedWidget()
   mStackedWidget->setObjectName("stackedWidget");
   mStackedWidget->addWidget(createOverviewWidget());
   mStackedWidget->addWidget(createChannelWidget());
+  mStackedWidget->addWidget(createReportingWidget());
   return mStackedWidget;
 }
 
@@ -320,6 +327,15 @@ QWidget *WindowMain::createOverviewWidget()
 QWidget *WindowMain::createChannelWidget()
 {
   return new QWidget(this);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+QWidget *WindowMain::createReportingWidget()
+{
+  return new PanelReporting(this);
 }
 
 QWidget *WindowMain::createAddChannelPanel()
@@ -746,6 +762,7 @@ void WindowMain::onBackClicked()
   mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(true);
   mSecondSeparator->setVisible(true);
+  mOpenReportingArea->setVisible(true);
   mStackedWidget->setCurrentIndex(0);
   if(mSelectedChannel != nullptr) {
     mSelectedChannel->toSettings();
@@ -772,10 +789,29 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
   mDeleteChannel->setVisible(true);
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(false);
-
+  mOpenReportingArea->setVisible(false);
   mStackedWidget->removeWidget(mStackedWidget->widget(1));
-  mStackedWidget->addWidget(selectedChannel->getEditPanel());
+  mStackedWidget->insertWidget(1, selectedChannel->getEditPanel());
   mStackedWidget->setCurrentIndex(1);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onOpenReportingAreaClicked()
+{
+  mBackButton->setEnabled(true);
+  mSaveProject->setVisible(false);
+  mSaveProject->setVisible(false);
+  mOPenProject->setVisible(false);
+  mStartAnalysis->setVisible(false);
+  mJobNameAction->setVisible(false);
+  mDeleteChannel->setVisible(false);
+  mFirstSeparator->setVisible(false);
+  mSecondSeparator->setVisible(false);
+  mOpenReportingArea->setVisible(false);
+  mStackedWidget->setCurrentIndex(2);
 }
 
 ///

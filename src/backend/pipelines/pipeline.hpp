@@ -153,7 +153,10 @@ private:
 
 private:
   /////////////////////////////////////////////////////
-  static inline const std::string RESULTS_PATH_NAME{"results"};
+  static inline const std::string OUTPUT_FOLDER_PATH{"imagec"};
+  static inline const std::string RESULTS_FOLDER_PATH{"results"};
+  static inline const std::string REPORT_EXPORT_FOLDER_PATH{"reports"};
+  static inline const std::string IMAGES_FOLDER_PATH{"images"};
 
   /////////////////////////////////////////////////////
   auto prepareOutputFolder(const std::string &inputFolder, const std::string &jobName) -> std::string;

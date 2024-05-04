@@ -102,6 +102,8 @@ private:
   QWidget *createStackedWidget();
   QWidget *createOverviewWidget();
   QWidget *createChannelWidget();
+  QWidget *createReportingWidget();
+
   void waitForFileSearchFinished();
   void setWorkingDirectory(const std::string &workingDir);
   ContainerBase *addChannel(joda::settings::ChannelSettings);
@@ -145,6 +147,7 @@ private:
   QAction *mSaveProject          = nullptr;
   QAction *mOPenProject          = nullptr;
   QAction *mStartAnalysis        = nullptr;
+  QAction *mOpenReportingArea    = nullptr;
   QAction *mJobNameAction        = nullptr;
   QAction *mSettings             = nullptr;
   QAction *mDeleteChannel        = nullptr;
@@ -161,6 +164,7 @@ private slots:
   void onOpenProjectClicked();
   void onSaveProjectClicked();
   void onStartClicked();
+  void onOpenReportingAreaClicked();
   void onAddChannelClicked();
   void onAddCellApproxClicked();
   void onAddIntersectionClicked();

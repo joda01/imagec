@@ -40,8 +40,6 @@
 #include "backend/pipelines/pipeline_steps/calc_count/calc_count.hpp"
 #include "backend/pipelines/pipeline_steps/calc_intensity/calc_intensity.hpp"
 #include "backend/pipelines/pipeline_steps/calc_intersection/calc_intersection.hpp"
-#include "backend/pipelines/reporting/reporting_generator.hpp"
-#include "backend/pipelines/reporting/reporting_heatmap.hpp"
 #include "backend/results/results.hpp"
 #include "backend/results/results_helper.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
@@ -157,21 +155,8 @@ void Pipeline::runJob()
 
   auto timeStopped = std::chrono::high_resolution_clock::now();
 
-  std::string resultsFile = mOutputFolder + separator + "results_summary_" + mJobName;
+  std::string resultsFile = mOutputFolder + separator + RESULTS_FOLDER_PATH + separator + "results_summary_" + mJobName;
   alloverReport.saveToFile(resultsFile);
-  joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-      mAnalyzeSettings, alloverReport, resultsFile + ".xlsx",
-      {.jobName = mJobName, .timeStarted = timeStarted, .timeFinished = timeStopped},
-      joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL, true);
-  if(mAnalyzeSettings.experimentSettings.generateHeatmapForPlate) {
-    auto wellOrder = mAnalyzeSettings.experimentSettings.generateHeatmapForWell
-                         ? mAnalyzeSettings.experimentSettings.wellImageOrder
-                         : std::vector<std::vector<int32_t>>();
-    resultsFile    = mOutputFolder + separator + "heatmap_summary_" + mJobName + ".xlsx";
-    joda::pipeline::reporting::Heatmap::createAllOverHeatMap(mAnalyzeSettings, alloverReport, mOutputFolder,
-                                                             resultsFile, mJobName, wellOrder);
-  }
-
   mState = State::FINISHED;
   DurationCount::printStats(images.size());
 
@@ -241,19 +226,11 @@ void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileI
   // Write report
   //
   if(mState != State::ERROR_) {
-    auto id           = DurationCount::start("Write detail report");
-    std::string fName = detailOutputFolder + separator + "results_image_" + mJobName;
+    auto id = DurationCount::start("Write detail report");
+    std::string fName =
+        mOutputFolder + separator + RESULTS_FOLDER_PATH + separator + "results_image_" + imageName + "_" + mJobName;
     detailReport.saveToFile(fName);
-    joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-        mAnalyzeSettings, detailReport, fName + ".xlsx", {.jobName = mJobName},
-        joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
-    DurationCount::stop(id);
-    id = DurationCount::start("Write heatmap");
-    if(mAnalyzeSettings.experimentSettings.generateHeatmapForImage) {
-      joda::pipeline::reporting::Heatmap::createHeatMapForImage(
-          mAnalyzeSettings, detailReport, propsOut.props.width, propsOut.props.height,
-          detailOutputFolder + separator + "heatmap_image_" + mJobName + ".xlsx");
-    }
+
     DurationCount::stop(id);
 
     id                = DurationCount::start("Append to overall report");
@@ -511,7 +488,7 @@ void Pipeline::analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
   auto nowString    = ::joda::helper::timeNowToString();
-  auto outputFolder = inputFolder + separator + RESULTS_PATH_NAME + separator + nowString + "_" + jobName;
+  auto outputFolder = inputFolder + separator + OUTPUT_FOLDER_PATH + separator + nowString + "_" + jobName;
   try {
     bool directoryExists = false;
     if(!std::filesystem::exists(outputFolder)) {
@@ -520,10 +497,18 @@ void Pipeline::analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func
         setStateError("Can not create output folder!");
       }
 
-      if(!std::filesystem::exists(outputFolder + separator + "heatmaps")) {
-        auto directoryExists = std::filesystem::create_directories(outputFolder + separator + "heatmaps");
+      if(!std::filesystem::exists(outputFolder + separator + RESULTS_FOLDER_PATH)) {
+        auto directoryExists = std::filesystem::create_directories(outputFolder + separator + RESULTS_FOLDER_PATH);
         if(!directoryExists) {
-          joda::log::logError("Could not create heatmap directory!");
+          joda::log::logError("Could not create results directory!");
+        }
+      }
+
+      if(!std::filesystem::exists(outputFolder + separator + REPORT_EXPORT_FOLDER_PATH)) {
+        auto directoryExists =
+            std::filesystem::create_directories(outputFolder + separator + REPORT_EXPORT_FOLDER_PATH);
+        if(!directoryExists) {
+          joda::log::logError("Could not create report export directory!");
         }
       }
 
