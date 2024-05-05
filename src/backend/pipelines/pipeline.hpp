@@ -31,9 +31,6 @@
 #include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
-#include "reporting/reporting_details.xlsx.hpp"
-#include "reporting/reporting_heatmap.hpp"
-#include "reporting/reporting_overview_xlsx.hpp"
 
 namespace joda::pipeline {
 
@@ -192,6 +189,12 @@ private:
   std::map<std::string, joda::onnx::OnnxParser::Data> mOnnxModels;
   std::string mJobName;
   std::chrono::system_clock::time_point mTimePipelineStarted;
+  joda::results::ExperimentMeta mExperimentMeta;
+
+  /////////////////////////////////////////////////////
+  int32_t mWellSizeX = 0;
+  int32_t mWellSizeY = 0;
+  std::map<int32_t, results::ImgPositionInWell> mTransformedWellMatrix;
 };
 
 }    // namespace joda::pipeline

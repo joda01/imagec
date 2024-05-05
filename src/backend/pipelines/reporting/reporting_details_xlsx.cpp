@@ -38,7 +38,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
     for(auto const &[measureCh, measureChMeta] : results.getMeasuredChannels()) {
       int rowIdxStat = 0;
       if(reportingSettings.detail.measureChannels.contains(measureCh.getMeasureChannel())) {
-        if(results.getMeta().valid == joda::func::ResponseDataValidity::VALID) {
+        if(results.getChannelMeta().valid == joda::func::ResponseDataValidity::VALID) {
           worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, measureChMeta.name.data(), header);
         } else {
           worksheet_write_string(worksheet, 1, sheetColIdx + COL_OFFSET, measureChMeta.name.data(), headerInvalid);
@@ -78,8 +78,8 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
   // Write name
   //
   worksheet_merge_range(worksheet, 0, COL_OFFSET, 0, COL_OFFSET + nrOfWrittenCols - 1, "-", merge_format);
-  if(!results.getMeta().name.empty()) {
-    worksheet_write_string(worksheet, 0, COL_OFFSET, results.getMeta().name.data(), header);
+  if(!results.getChannelMeta().name.empty()) {
+    worksheet_write_string(worksheet, 0, COL_OFFSET, results.getChannelMeta().name.data(), header);
   } else {
     worksheet_write_string(worksheet, 0, COL_OFFSET, std::to_string(COL_OFFSET).data(), header);
   }
@@ -90,7 +90,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
   {
     int64_t rowIdx = ROW_STATS + 1;
     for(const auto &[objKey, obj] : results.getObjects()) {
-      worksheet_write_string(worksheet, ROW_OFFSET + rowIdx, 0, obj.getMeta().name.data(), header);
+      worksheet_write_string(worksheet, ROW_OFFSET + rowIdx, 0, obj.getObjectMeta().name.data(), header);
 
       for(const auto &[measKey, val] : obj.getMeasurements()) {
         if(reportingSettings.detail.measureChannels.contains(measKey.getMeasureChannel())) {
@@ -98,7 +98,7 @@ std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelRepo
             auto sheetColIdx = colIndexes[measKey] + COL_OFFSET;
 
             auto *format = numberFormat;
-            if(!obj.getMeta().valid) {
+            if(!obj.getObjectMeta().valid) {
               format = numberFormatInvalid;
             }
             if(std::holds_alternative<double>(val.getVal())) {

@@ -113,7 +113,7 @@ void ReportGenerator::flushReportToFile(const joda::results::WorkSheet &resultsW
     joda::pipeline::reporting::JobInformation::writeReport(resultsWorkbook, worksheetMeta, headerBold, fontNormal);
   }
 
-  auto meta                = resultsWorkbook.getMeta();
+  auto meta                = resultsWorkbook.getJobMeta();
   int colOffsetIn          = 0;
   int rowOffsetIn          = 0;
   int rowOffsetStart       = 0;

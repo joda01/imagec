@@ -28,10 +28,10 @@ Value &Object::emplaceValue(const MeasureKey &key)
 /// \param[out]
 /// \return
 ///
-void Object::setNameAndRef(const std::string &name, const std::string &ref)
+void Object::setMeta(const ObjectMeta &objectMeta, const std::optional<ImageMeta> &imageMeta)
 {
-  meta.name = name;
-  meta.ref  = ref;
+  this->objectMeta = objectMeta;
+  this->imageMeta  = imageMeta;
 }
 
 ///
@@ -41,10 +41,10 @@ void Object::setNameAndRef(const std::string &name, const std::string &ref)
 /// \param[out]
 /// \return
 ///
-Object &Channel::emplaceObject(ObjectKey key, const std::string &name, const std::string &ref)
+Object &Channel::emplaceObject(ObjectKey key, const ObjectMeta &objectMeta, const std::optional<ImageMeta> &imageMeta)
 {
   Object &obj = objects[key];
-  obj.setNameAndRef(name, ref);
+  obj.setMeta(objectMeta, imageMeta);
   return obj;
 }
 
@@ -57,8 +57,8 @@ Object &Channel::emplaceObject(ObjectKey key, const std::string &name, const std
 ///
 void Channel::setValidity(joda::func::ResponseDataValidity valid, bool invalidateAllObjects)
 {
-  meta.valid                = valid;
-  meta.invalidateAllObjects = invalidateAllObjects;
+  channelMeta.valid                = valid;
+  channelMeta.invalidateAllObjects = invalidateAllObjects;
 }
 
 ///
@@ -70,7 +70,7 @@ void Channel::setValidity(joda::func::ResponseDataValidity valid, bool invalidat
 ///
 void Channel::emplaceMeasureChKey(MeasureKey key, const std::string &name)
 {
-  measuredValues.emplace(key, MetaMeasureCh{.name = name});
+  measuredValues.emplace(key, MeasureChannelMeta{.name = name});
 }
 
 ///
@@ -80,21 +80,9 @@ void Channel::emplaceMeasureChKey(MeasureKey key, const std::string &name)
 /// \param[out]
 /// \return
 ///
-void Channel::setName(const std::string &name)
+void Channel::setMeta(const ChannelMeta &meta)
 {
-  meta.name = name;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-[[nodiscard]] auto Channel::getName() const -> const std::string &
-{
-  return meta.name;
+  channelMeta = meta;
 }
 
 ///
@@ -128,7 +116,7 @@ void Channel::setName(const std::string &name)
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] auto Channel::getMeasuredChannels() const -> const std::map<MeasureKey, MetaMeasureCh> &
+[[nodiscard]] auto Channel::getMeasuredChannels() const -> const std::map<MeasureKey, MeasureChannelMeta> &
 {
   return measuredValues;
 }
@@ -140,9 +128,9 @@ void Channel::setName(const std::string &name)
 /// \param[out]
 /// \return
 ///
-void Group::setName(const std::string &name)
+void Group::setMeta(const GroupMeta &meta)
 {
-  meta.name = name;
+  groupMeta = meta;
 }
 
 ///
@@ -152,10 +140,10 @@ void Group::setName(const std::string &name)
 /// \param[out]
 /// \return
 ///
-Channel &Group::emplaceChannel(ChannelKey key, const std::string &name)
+Channel &Group::emplaceChannel(ChannelKey key, const ChannelMeta &meta)
 {
   Channel &channel = channels[key];
-  channel.setName(name);
+  channel.setMeta(meta);
   return channel;
 }
 
@@ -181,7 +169,8 @@ Channel &Group::emplaceChannel(ChannelKey key, const std::string &name)
 bool Group::containsInvalidChannelWhereOneInvalidatesTheWholeImage() const
 {
   for(const auto &[_, channel] : channels) {
-    if(channel.getMeta().invalidateAllObjects && func::ResponseDataValidity::VALID != channel.getMeta().valid) {
+    if(channel.getChannelMeta().invalidateAllObjects &&
+       func::ResponseDataValidity::VALID != channel.getChannelMeta().valid) {
       return true;
     }
   }
@@ -195,10 +184,10 @@ bool Group::containsInvalidChannelWhereOneInvalidatesTheWholeImage() const
 /// \param[out]
 /// \return
 ///
-Group &WorkSheet::emplaceGroup(const GroupKey &key, const std::string &name)
+Group &WorkSheet::emplaceGroup(const GroupKey &key, const GroupMeta &meta)
 {
   Group &group = groups[key];
-  group.setName(name);
+  group.setMeta(meta);
   return group;
 }
 
@@ -209,7 +198,7 @@ Group &WorkSheet::emplaceGroup(const GroupKey &key, const std::string &name)
 /// \param[out]
 /// \return
 ///
-Channel &WorkSheet::emplaceChannel(const ChannelKey &key, const std::string &name)
+Channel &WorkSheet::emplaceChannel(const ChannelKey &key, const ChannelMeta &name)
 {
   return groups[""].emplaceChannel(key, name);
 }
@@ -233,12 +222,12 @@ auto WorkSheet::getGroups() const -> const std::map<GroupKey, Group> &
 /// \param[out]
 /// \return
 ///
-void WorkSheet::saveToFile(std::string filename, const Meta &meta, const ExperimentSettings &experimentSettings,
-                           std::optional<ImageMeta> imgMeta)
+void WorkSheet::saveToFile(std::string filename, const JobMeta &meta,
+                           const std::optional<ExperimentMeta> &experimentMeta, std::optional<ImageMeta> imgMeta)
 {
-  this->meta               = meta;
-  this->experimentSettings = experimentSettings;
-  this->imageMeta          = imgMeta;
+  this->jobMeta        = meta;
+  this->experimentMeta = experimentMeta;
+  this->imageMeta      = imgMeta;
   if(!filename.empty()) {
     nlohmann::json json = *this;
     settings::removeNullValues(json);

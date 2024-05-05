@@ -31,6 +31,7 @@
 #include "backend/results/results.hpp"
 #include "backend/results/results_defines.hpp"
 #include "backend/results/results_helper.hpp"
+#include "backend/results/results_image_meta.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "backend/settings/settings.hpp"
@@ -211,15 +212,14 @@ void Heatmap::createHeatMapForImage(const joda::results::WorkSheet &containers, 
 /// \brief      Create heatmap for all over reporting
 /// \author     Joachim Danmayr
 ///
-void Heatmap::createHeatmapOfWellsForGroup(const std::string &outputFolder, const std::string &groupName,
-                                           const std::map<int32_t, HeatMapPoint> &wellOrder, int32_t sizeX,
-                                           int32_t sizeY, const joda::results::Group &groupReports)
+void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::ChannelReportingSettings &reportingSettings,
+                                           const std::string &outputFileName, const std::string &groupName,
+                                           const std::map<int32_t, results::ImgPositionInWell> &wellOrder,
+                                           int32_t wellSizeX, int32_t wellSizeY,
+                                           const joda::results::Group &groupReports)
 {
-  /*
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
-  std::string filename =
-      outputFolder + separator + "heatmaps" + separator + "heatmap_" + groupName + "_" + jobName + ".xlsx";
   lxw_workbook *workbook          = nullptr;
   lxw_format *headerFormat        = nullptr;
   lxw_format *numberFormat        = nullptr;
@@ -229,12 +229,12 @@ void Heatmap::createHeatmapOfWellsForGroup(const std::string &outputFolder, cons
   const int COL_OFFSET       = 1;
 
   // Each column represents one channel. Each channel is printed to a separate worksheet
-  for(const auto &[channelIdx, values] : groupReports.getChannels()) {
-    if(values.getTableName() == "INVALID" || groupName.empty() || groupName == "INVALID") {
+  for(const auto &[channelIdx, results] : groupReports.getChannels()) {
+    if(results.getChannelMeta().name == "INVALID" || groupName.empty() || groupName == "INVALID") {
       break;
     }
     if(nullptr == workbook) {
-      workbook = workbook_new(filename.data());
+      workbook = workbook_new(outputFileName.data());
 
       // Well header
       headerFormat = workbook_add_format(workbook);
@@ -262,84 +262,52 @@ void Heatmap::createHeatmapOfWellsForGroup(const std::string &outputFolder, cons
       format_set_diag_type(numberFormatInvalid, LXW_DIAGONAL_BORDER_UP_DOWN);    // Set diagonal type
     }
 
-    std::string wellName = groupName + "-" + values.getTableName();
+    std::string wellName = groupName + "-" + results.getChannelMeta().name;
     auto *worksheet      = workbook_add_worksheet(workbook, wellName.c_str());
-    int nrOfRows         = sizeY;
-    int nrOfCols         = sizeX;
+    int nrOfRows         = wellSizeY;
+    int nrOfCols         = wellSizeX;
     int rowOffset        = ROW_OFFSET_START;
 
-    auto reportingSettings = settings::Settings::getReportingSettingsForChannel(analyzeSettings, channelIdx);
+    for(auto const &[measureCh, measureChMeta] : results.getMeasuredChannels()) {
+      if(reportingSettings.detail.measureChannels.contains(measureCh.getMeasureChannel())) {
+        auto writePlateFrame = [&worksheet, &rowOffset, &nrOfRows, &nrOfCols, &numberFormat, &numberFormatInvalid,
+                                &headerFormat](const std::string &value) {
+          worksheet_merge_range(worksheet, rowOffset - 1, 0, rowOffset - 1, nrOfCols + 1, "-", NULL);
+          worksheet_write_string(worksheet, rowOffset - 1, 0, value.data(), NULL);
+          paintPlateBorder(worksheet, nrOfRows, nrOfCols, rowOffset, headerFormat, numberFormat);
+        };
 
-    for(const auto measureChannelStats : reportingSettings.heatmap.measureChannels) {
-      auto writePlateFrame = [&worksheet, &rowOffset, &nrOfRows, &nrOfCols, &numberFormat, &numberFormatInvalid,
-                              &headerFormat](const std::string &value) {
-        worksheet_merge_range(worksheet, rowOffset - 1, 0, rowOffset - 1, nrOfCols + 1, "-", NULL);
-        worksheet_write_string(worksheet, rowOffset - 1, 0, value.data(), NULL);
-        paintPlateBorder(worksheet, nrOfRows, nrOfCols, rowOffset, headerFormat, numberFormat);
-      };
+        writePlateFrame(measureChMeta.name);
+        rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
+      }
+    }
 
-      auto writeData = [&worksheet, &rowOffset, &values = values, &analyzeSettings, &wellOrder, &numberFormat,
-                        &numberFormatInvalid](settings::ChannelReportingSettings::MeasureChannelsCombi measureChannel,
-                                              joda::settings::ChannelIndex channelIdx) {
-        for(int rowIdx = 0; rowIdx < values.getNrOfRows(); rowIdx++) {
-          try {
-            auto imageName = values.getRowNameAt(rowIdx);
-            auto cell      = values.getTable()
-                            .at(values.getColIndexFromKey(
-                                joda::results::getMaskedMeasurementChannel(measureChannel, channelIdx)))
-                            .at(rowIdx);
-
-            double value = std::get<double>(cell.val);
-            auto imgNr =
-                joda::results::Helper::applyRegex(analyzeSettings.experimentSettings.filenameRegex, imageName).img;
-            auto pos     = wellOrder.find(imgNr);
+    for(const auto &[objKey, image] : results.getObjects()) {
+      rowOffset = ROW_OFFSET_START + 1;
+      for(const auto &[measKey, val] : image.getMeasurements()) {
+        if(reportingSettings.detail.measureChannels.contains(measKey.getMeasureChannel())) {
+          if(std::holds_alternative<double>(val.getVal())) {
+            auto imgMeta = image.getImageMeta();
+            if(!imgMeta.has_value()) {
+              throw std::runtime_error("There is an image detail report without image meta!");
+            }
+            double value = std::get<double>(val.getVal());
             auto *format = numberFormat;
-            if(!cell.isValid) {
+            if(!image.getObjectMeta().valid) {
               format = numberFormatInvalid;
             }
-            if(pos != wellOrder.end()) {
-              worksheet_write_number(worksheet, rowOffset + pos->second.y, pos->second.x + COL_OFFSET, value, format);
-            }
-          } catch(...) {
+            worksheet_write_number(worksheet, rowOffset + imgMeta->imgPosInWell.y, imgMeta->imgPosInWell.x + COL_OFFSET,
+                                   value, format);
+
+            rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
           }
         }
-      };
-      auto measureChannelBase = joda::results::getMeasureChannel(measureChannelStats);
-      if(measureChannelBase == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL ||
-         measureChannelBase == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL ||
-         measureChannelBase == settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL) {
-        for(joda::settings::ChannelIndex intensIdx :
-            settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                .crossChannelIntensityChannels) {
-          writePlateFrame(joda::results::measurementChannelsToString(
-              joda::results::getMaskedMeasurementChannel(measureChannelStats, intensIdx), analyzeSettings));
-          rowOffset++;
-          writeData(measureChannelStats, intensIdx);
-          rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
-        }
-      } else if(measureChannelBase == settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL) {
-        for(joda::settings::ChannelIndex countIdx :
-            settings::Settings::getCrossChannelSettingsForChannel(analyzeSettings, channelIdx)
-                .crossChannelCountChannels) {
-          writePlateFrame(joda::results::measurementChannelsToString(
-              joda::results::getMaskedMeasurementChannel(measureChannelStats, countIdx), analyzeSettings));
-          rowOffset++;
-          writeData(measureChannelStats, countIdx);
-          rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
-        }
-      } else {
-        writePlateFrame(joda::results::measurementChannelsToString(
-            joda::results::getMaskedMeasurementChannel(measureChannelStats, channelIdx), analyzeSettings));
-        rowOffset++;
-        writeData(measureChannelStats, channelIdx);
-        rowOffset = rowOffset + nrOfRows + ROW_OFFSET_START + 4;
       }
     }
   }
   if(nullptr != workbook) {
     workbook_close(workbook);
   }
-  */
 }
 
 ///
@@ -387,12 +355,16 @@ void Heatmap::createAllOverHeatMap(const joda::settings::ChannelReportingSetting
   // Intensity
   std::map<joda::settings::ChannelIndex, lxw_worksheet *> sheets;
 
+  std::optional<results::ExperimentMeta> expMeta = allOverReport.getExperimentMeta();
+  if(!expMeta.has_value()) {
+    throw std::runtime_error("There is a report without experiment meta data!");
+  }
+
   // Well matrix
   int32_t sizeX;
   int32_t sizeY;
-  auto imageWellOrderMatrix    = allOverReport.getExperimentSettings().wellImageOrder;
-  auto wellOrderMap            = transformMatrix(imageWellOrderMatrix, sizeX, sizeY);
-  bool generateHeatmapForWells = !imageWellOrderMatrix.empty();
+  auto wellOrderMap            = expMeta->transformMatrix(sizeX, sizeY);
+  bool generateHeatmapForWells = !expMeta->wellImageOrder.empty();
 
   // Draw heatmap
   // Each group should be one area in the heatmap whereby the groupname is GRC_<ROW-INDEX>_<COL-INDEX> in the heatmap
@@ -408,17 +380,18 @@ void Heatmap::createAllOverHeatMap(const joda::settings::ChannelReportingSetting
 
     // If enabled we print for each group the heatmap of the wells of the group
     if(generateHeatmapForWells) {
-      createHeatmapOfWellsForGroup(outputFolder, group, wellOrderMap, sizeX, sizeY, value);
+      std::string wellHeatMap = outputFolder + "_" + group + "_well.xlsx";
+      createHeatmapOfWellsForGroup(reportingSettings, wellHeatMap, group, wellOrderMap, sizeX, sizeY, value);
     }
 
     // Each column represents one channel. Each channel is printed to a separate worksheet
     for(const auto &[channelIdx, results] : value.getChannels()) {
-      if(results.getName() == "INVALID") {
+      if(results.getChannelMeta().name == "INVALID") {
         break;
       }
       // Write plate
       if(!sheets.contains(channelIdx)) {
-        sheets[channelIdx] = workbook_add_worksheet(workbook, results.getName().data());
+        sheets[channelIdx] = workbook_add_worksheet(workbook, results.getChannelMeta().name.data());
         rowOffset          = ROW_OFFSET_START;
 
         for(auto const &[measureCh, measureChMeta] : results.getMeasuredChannels()) {
@@ -444,26 +417,28 @@ void Heatmap::createAllOverHeatMap(const joda::settings::ChannelReportingSetting
           rowOffset = ROW_OFFSET_START;
           for(const auto &[objKey, obj] : results.getObjects()) {
             for(const auto &[measKey, val] : obj.getMeasurements()) {
-              std::string jobName = allOverReport.getMeta().jobName;
+              if(reportingSettings.detail.measureChannels.contains(measKey.getMeasureChannel())) {
+                std::string jobName = allOverReport.getJobMeta().jobName;
 
-              auto writeNumber = [&sheet, &rowOffset, &row, &col, &numberFormat, &numberFormatInvalid,
-                                  &generateHeatmapForWells, &jobName,
-                                  &group = group](double value, bool areThereInvalidImagesInside) {
-                if(generateHeatmapForWells) {
-                  std::string filePath = "external:.\\heatmaps/heatmap_" + group + "_" + jobName + ".xlsx";
-                  worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
-                }
-                auto *format = numberFormat;
-                if(areThereInvalidImagesInside) {
-                  format = numberFormatInvalid;
-                }
-                worksheet_write_number(sheet, rowOffset + row, col, value, format);
-              };
+                auto writeNumber = [&sheet, &rowOffset, &row, &col, &numberFormat, &numberFormatInvalid,
+                                    &generateHeatmapForWells, &jobName,
+                                    &group = group](double value, bool areThereInvalidImagesInside) {
+                  if(generateHeatmapForWells) {
+                    std::string filePath = "external:.\\heatmaps/heatmap_" + group + "_" + jobName + ".xlsx";
+                    worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
+                  }
+                  auto *format = numberFormat;
+                  if(areThereInvalidImagesInside) {
+                    format = numberFormatInvalid;
+                  }
+                  worksheet_write_number(sheet, rowOffset + row, col, value, format);
+                };
 
-              if(std::holds_alternative<double>(val.getVal())) {
-                writeNumber(std::get<double>(val.getVal()), obj.getMeta().valid);
+                if(std::holds_alternative<double>(val.getVal())) {
+                  writeNumber(std::get<double>(val.getVal()), obj.getObjectMeta().valid);
+                }
+                rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
               }
-              rowOffset = rowOffset + PLATE_ROWS + ROW_OFFSET_START + 4;
             }
           }
         }
@@ -524,43 +499,6 @@ void Heatmap::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols,
   }
 
   worksheet_conditional_format_range(sheet, 1 + rowOffset, 1, 1 + rowOffset + rows, 1 + cols, condFormat);
-}
-
-///
-/// \brief      Transforms a 2D Matrix where the elements in the matrix represents an image index
-///             and the coordinates of the matrix the position on the well to a map
-///             whereby the key is the image index and the values are the coordinates
-///              | 0  1  2
-///             -|---------
-///             0| 1  2  3
-///             1| 4  5  6
-///             2| 7  8  9
-///
-///            [1] => {0,0}
-///            [2] => {1,0}
-///            ...
-///            [9] => {2,2}
-///
-///
-/// \author     Joachim Danmayr
-///
-auto Heatmap::transformMatrix(const std::vector<std::vector<int32_t>> &imageWellOrderMatrix, int32_t &sizeX,
-                              int32_t &sizeY) -> std::map<int32_t, HeatMapPoint>
-{
-  sizeY = imageWellOrderMatrix.size();
-  sizeX = 0;
-
-  std::map<int32_t, HeatMapPoint> ret;
-  for(int y = 0; y < imageWellOrderMatrix.size(); y++) {
-    for(int x = 0; x < imageWellOrderMatrix[y].size(); x++) {
-      ret[imageWellOrderMatrix[y][x]] = HeatMapPoint{.x = x, .y = y};
-      if(x > sizeX) {
-        sizeX = x;
-      }
-    }
-  }
-  sizeX++;    // Because we start with zro to count
-  return ret;
 }
 
 }    // namespace joda::pipeline::reporting

@@ -60,7 +60,7 @@ inline Stats calcStats(const Channel &channel)
       if(std::holds_alternative<func::ParticleValidity>(val.getVal())) {
         auto validity = std::get<func::ParticleValidity>(val.getVal());
         if(measKey.getMeasureChannel() == settings::ChannelReportingSettings::MeasureChannels::VALIDITY) {
-          if(obj.getMeta().valid) {
+          if(obj.getObjectMeta().valid) {
             sum++;
             avg    = 0;
             min    = 0;
@@ -70,7 +70,7 @@ inline Stats calcStats(const Channel &channel)
           cnt++;
 
         } else if(measKey.getMeasureChannel() == settings::ChannelReportingSettings::MeasureChannels::INVALIDITY) {
-          if(!obj.getMeta().valid) {
+          if(!obj.getObjectMeta().valid) {
             sum++;
             avg    = 0;
             min    = 0;
@@ -80,7 +80,7 @@ inline Stats calcStats(const Channel &channel)
           cnt++;
         }
       } else if(std::holds_alternative<double>(val.getVal())) {
-        if(obj.getMeta().valid) {
+        if(obj.getObjectMeta().valid) {
           double values = std::get<double>(val.getVal());
           sum += values;
           min = std::min(min, values);
@@ -114,7 +114,7 @@ inline Stats calcStats(const Channel &channel)
   for(const auto &[objectKey, obj] : channel.getObjects()) {
     for(const auto &[measureKey, act] : obj.getMeasurements()) {
       if(std::holds_alternative<double>(act.getVal())) {
-        if(obj.getMeta().valid) {
+        if(obj.getObjectMeta().valid) {
           auto &stdDev = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), MeasureStat::STD_DEV,
                                                     measureKey.getChannelIndex()}];
 

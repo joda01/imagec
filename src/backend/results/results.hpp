@@ -30,6 +30,7 @@
 #include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "backend/settings/settings.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
+#include "results_image_meta.hpp"
 
 using GroupKey   = std::string;
 using ObjectKey  = uint64_t;
@@ -38,34 +39,6 @@ using MeasureKey = joda::results::MeasureChannelKey;
 
 // partial specialization (full specialization works too)
 namespace nlohmann {
-template <>
-struct adl_serializer<std::chrono::system_clock::time_point>
-{
-  static void to_json(nlohmann::json &j, const std::chrono::system_clock::time_point &tp)
-  {
-    // Convert time_point to time_t
-    std::time_t time = std::chrono::system_clock::to_time_t(tp);
-
-    // Convert time_t to tm structure
-    std::tm timeInfo = *std::localtime(&time);
-
-    // Format tm structure into a string
-    std::stringstream ss;
-    ss << std::put_time(&timeInfo, "%Y-%m-%d %H:%M:%S");
-
-    // Assign the string to JSON
-    j = ss.str();
-  }
-
-  // Convert JSON to std::chrono::system_clock::time_point
-  static void from_json(const nlohmann::json &j, std::chrono::system_clock::time_point &tp)
-  {
-    std::tm tm = {};
-    std::istringstream ss(j.get<std::string>());
-    ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
-    tp = std::chrono::system_clock::from_time_t(std::mktime(&tm));
-  }
-};
 
 template <typename T>
 struct adl_serializer<std::map<MeasureKey, T>>
@@ -225,33 +198,30 @@ class Object
 {
 public:
   /////////////////////////////////////////////////////
-  struct Meta
-  {
-    std::string name;    ///< Name for the object
-    std::string ref;     ///< Link to the object
-    bool valid;          ///< True if the object is valid, else false
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Meta, name, ref, valid);
-  };
-
   template <Valid_t V>
   void setValidity(V val)
   {
     if constexpr(std::is_same_v<V, func::ParticleValidity>) {
-      meta.valid = val == func::ParticleValidity::VALID;
+      objectMeta.valid = val == func::ParticleValidity::VALID;
     } else {
-      meta.valid = val;
+      objectMeta.valid = val;
     }
   }
-  void setNameAndRef(const std::string &name, const std::string &ref);
+  void setMeta(const ObjectMeta &objectMeta, const std::optional<ImageMeta> &imageMeta);
   Value &emplaceValue(const MeasureKey &key);
   [[nodiscard]] auto getMeasurements() const -> const std::map<MeasureKey, Value> &
   {
     return measurements;
   }
 
-  [[nodiscard]] auto getMeta() const -> const Meta &
+  [[nodiscard]] auto getObjectMeta() const -> const ObjectMeta &
   {
-    return meta;
+    return objectMeta;
+  }
+
+  [[nodiscard]] auto getImageMeta() const -> const std::optional<ImageMeta> &
+  {
+    return imageMeta;
   }
 
   Value &at(MeasureKey key)
@@ -261,10 +231,11 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  Meta meta;
+  ObjectMeta objectMeta;
+  std::optional<ImageMeta> imageMeta;
   std::map<MeasureKey, Value> measurements;    // The measurement channels of this object
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Object, meta, measurements);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Object, objectMeta, imageMeta, measurements);
 };
 
 ///
@@ -276,32 +247,16 @@ class Channel
 {
 public:
   /////////////////////////////////////////////////////
-  struct Meta
-  {
-    std::string name;    ///< Name of the channel
-    joda::func::ResponseDataValidity valid =
-        joda::func::ResponseDataValidity::VALID;    ///< True if the value is valid, else false
-    bool invalidateAllObjects = false;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Meta, name, valid, invalidateAllObjects);
-  };
-
-  struct MetaMeasureCh
-  {
-    std::string name;    ///< Name of the channel
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(MetaMeasureCh, name);
-  };
-
-  Object &emplaceObject(ObjectKey, const std::string &name, const std::string &ref);
+  Object &emplaceObject(ObjectKey, const ObjectMeta &objectMeta, const std::optional<ImageMeta> &imageMeta);
   void emplaceMeasureChKey(MeasureKey key, const std::string &name);
   void setValidity(joda::func::ResponseDataValidity valid, bool invalidateAllObjects);
-  void setName(const std::string &name);
-  [[nodiscard]] auto getName() const -> const std::string &;
+  void setMeta(const ChannelMeta &);
   [[nodiscard]] size_t getNrOfObjects() const;
-  [[nodiscard]] auto getMeasuredChannels() const -> const std::map<MeasureKey, MetaMeasureCh> &;
+  [[nodiscard]] auto getMeasuredChannels() const -> const std::map<MeasureKey, MeasureChannelMeta> &;
   [[nodiscard]] auto getObjects() const -> const std::map<ObjectKey, Object> &;
-  [[nodiscard]] auto getMeta() const -> const Meta &
+  [[nodiscard]] auto getChannelMeta() const -> const ChannelMeta &
   {
-    return meta;
+    return channelMeta;
   }
 
   Object &at(ObjectKey key)
@@ -311,11 +266,11 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  Meta meta;
-  std::map<MeasureKey, MetaMeasureCh> measuredValues;    ///< List of measured values of this channel
-  std::map<ObjectKey, Object> objects;                   ///< Objects of this channel (images, spots, nuclei, ...)
+  ChannelMeta channelMeta;
+  std::map<MeasureKey, MeasureChannelMeta> measuredValues;    ///< List of measured values of this channel
+  std::map<ObjectKey, Object> objects;                        ///< Objects of this channel (images, spots, nuclei, ...)
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Channel, meta, measuredValues, objects);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Channel, channelMeta, measuredValues, objects);
 };
 
 ///
@@ -327,19 +282,14 @@ class Group
 {
 public:
   /////////////////////////////////////////////////////
-  struct Meta
-  {
-    std::string name;    ///< Name of the group
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Meta, name);
-  };
 
-  void setName(const std::string &name);
-  Channel &emplaceChannel(ChannelKey key, const std::string &name);
+  void setMeta(const GroupMeta &meta);
+  Channel &emplaceChannel(ChannelKey key, const ChannelMeta &);
   [[nodiscard]] bool containsInvalidChannelWhereOneInvalidatesTheWholeImage() const;
   [[nodiscard]] auto getChannels() const -> const std::map<ChannelKey, Channel> &;
-  [[nodiscard]] auto getMeta() const -> const Meta &
+  [[nodiscard]] auto getGroupMeta() const -> const GroupMeta &
   {
-    return meta;
+    return groupMeta;
   }
   Channel &at(ChannelKey key)
   {
@@ -348,10 +298,10 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  Meta meta;
+  GroupMeta groupMeta;
   std::map<ChannelKey, Channel> channels;    ///< Channels of this group
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Group, meta, channels);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Group, groupMeta, channels);
 };
 
 ///
@@ -363,54 +313,24 @@ class WorkSheet
 {
 public:
   /////////////////////////////////////////////////////
-  struct Meta
-  {
-    std::string swVersion;
-    std::string buildTime;
-    std::string jobName;
-    std::chrono::system_clock::time_point timeStarted;
-    std::chrono::system_clock::time_point timeFinished;
-    uint32_t nrOfChannels;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Meta, swVersion, buildTime, jobName, timeStarted, timeFinished, nrOfChannels);
-  };
-
-  struct ExperimentSettings
-  {
-    //
-    // Used to extract coordinates of a well form the image name
-    // Regex with 3 groupings: _((.)([0-9]+))_
-    //
-    std::string filenameRegex = "_((.)([0-9]+))_([0-9]+)";
-
-    //
-    // Matrix of image numbers how the images are ordered in a map.
-    // First dimension of the vector are the rows, second the columns
-    //
-    std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, wellImageOrder, filenameRegex);
-  };
-
-  struct ImageMeta
-  {
-    int64_t height = 0;
-    int64_t width  = 0;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageMeta, height, width);
-  };
-
-  Group &emplaceGroup(const GroupKey &key, const std::string &name);
-  Channel &emplaceChannel(const ChannelKey &key, const std::string &name);
+  Group &emplaceGroup(const GroupKey &key, const GroupMeta &meta);
+  Channel &emplaceChannel(const ChannelKey &key, const ChannelMeta &);
 
   [[nodiscard]] auto getGroups() const -> const std::map<GroupKey, Group> &;
-  [[nodiscard]] auto getMeta() const -> const Meta &
+  [[nodiscard]] auto getJobMeta() const -> const JobMeta &
   {
-    return meta;
+    return jobMeta;
   }
 
-  [[nodiscard]] auto getExperimentSettings() const -> const ExperimentSettings &
+  [[nodiscard]] auto getExperimentMeta() const -> const std::optional<ExperimentMeta> &
   {
-    return experimentSettings;
+    return experimentMeta;
+  }
+
+  [[nodiscard]] auto getImageMeta() const -> const std::optional<ImageMeta> &
+  {
+    return imageMeta;
   }
   Group &at(const GroupKey &key)
   {
@@ -427,17 +347,17 @@ public:
     return groups.at("");
   }
 
-  void saveToFile(std::string filename, const Meta &meta, const ExperimentSettings &experimentSettings,
+  void saveToFile(std::string filename, const JobMeta &meta, const std::optional<ExperimentMeta> &experimentMeta,
                   std::optional<ImageMeta> imgMeta);
   void loadFromFile(const std::string &filename);
 
 private:
   /////////////////////////////////////////////////////
-  Meta meta;
+  JobMeta jobMeta;
   std::optional<ImageMeta> imageMeta;
-  ExperimentSettings experimentSettings;
+  std::optional<ExperimentMeta> experimentMeta;
   std::map<GroupKey, Group> groups;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WorkSheet, meta, imageMeta, experimentSettings, groups);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WorkSheet, jobMeta, imageMeta, experimentMeta, groups);
 };
 
 ///
@@ -450,7 +370,7 @@ class WorkBook
 public:
   std::set<std::string> worksheets;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WorkBook, worksheets);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WorkBook, worksheets);
 };
 
 }    // namespace joda::results

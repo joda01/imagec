@@ -14,6 +14,8 @@
 #include "results_helper.hpp"
 #include <exception>
 #include <mutex>
+#include <optional>
+#include <stdexcept>
 #include <string>
 #include "backend/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
@@ -24,6 +26,7 @@
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/results.hpp"
 #include "backend/results/results_defines.hpp"
+#include "backend/results/results_image_meta.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "backend/settings/experiment_settings.hpp"
@@ -45,7 +48,7 @@ void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyz
 {
   try {
     Channel &ch = detailReportTable.at(chIdx);
-    ch.setName(channelName);
+    ch.setMeta(ChannelMeta{.name = channelName});
     auto addMeasureCh = [&ch, &analyzeSettings](MeasureChannels channel, joda::settings::ChannelIndex chIdx) {
       auto tmp = MeasureChannelKey{channel, chIdx};
       ch.emplaceMeasureChKey(tmp, tmp.measurementChannelsToString(analyzeSettings));
@@ -123,8 +126,9 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   // }
 
   results::Channel &tableToWorkOn = detailReportTable.emplaceChannel(
-      chIdx, joda::settings::Settings::getChannelNameOfChannelIndex(analyzeSettings, chIdx));
-  tableToWorkOn.setValidity(result.responseValidity, result.invalidateWholeImage);
+      chIdx, ChannelMeta{.name  = joda::settings::Settings::getChannelNameOfChannelIndex(analyzeSettings, chIdx),
+                         .valid = result.responseValidity,
+                         .invalidateAllObjects = result.invalidateWholeImage});
   int64_t indexOffset = 0;
   {
     std::lock_guard<std::mutex> lock(appendMutex);
@@ -140,8 +144,9 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
     try {
       // int64_t index = roi.getIndex() + indexOffset;
       uint64_t index = roiIdx + indexOffset;
-      Object &obj    = tableToWorkOn.emplaceObject(index, std::to_string(index), imagePath);
-      obj.setValidity(roi.getValidity());
+      Object &obj    = tableToWorkOn.emplaceObject(
+          index, ObjectMeta{.name = std::to_string(index), .valid = roi.getValidity() == func::ParticleValidity::VALID},
+          std::nullopt);
       obj.emplaceValue({MeasureChannels::CONFIDENCE, chIdx})       = roi.getConfidence();
       obj.emplaceValue({MeasureChannels::AREA_SIZE, chIdx})        = roi.getAreaSize();
       obj.emplaceValue({MeasureChannels::PERIMETER, chIdx})        = roi.getPerimeter();
@@ -202,11 +207,18 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
                                    const std::string &imageName, int nrOfChannels)
 {
   std::lock_guard<std::mutex> lock(mAppendToAllOverReportMutex);
+  auto imageMetaIn = detailReportIn.getImageMeta();
+  if(!imageMetaIn.has_value()) {
+    throw std::runtime_error("There is an image result without image meta information!");
+  }
 
   try {
+    auto platePos = joda::results::Helper::applyRegex(analyzeSettings.experimentSettings.filenameRegex, imageName);
     std::string groupToStoreImageIn            = getGroupToStoreImageIn(analyzeSettings, imagePath, imageName);
     const joda::results::Group &detailedReport = detailReportIn.root();
-    joda::results::Group &groupToWorkOn        = allOverReport.emplaceGroup(groupToStoreImageIn, groupToStoreImageIn);
+    joda::results::Group &groupToWorkOn        = allOverReport.emplaceGroup(
+        groupToStoreImageIn,
+        GroupMeta{.name = groupToStoreImageIn, .wellPosOnPlate{.x = platePos.col, .y = platePos.row}});
 
     bool invalidAll = false;
     if(detailedReport.containsInvalidChannelWhereOneInvalidatesTheWholeImage()) {
@@ -215,7 +227,10 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
 
     for(const auto &[channelIdx, detailChannel] : detailedReport.getChannels()) {
       results::Channel &allOverChannelToWorkOn = groupToWorkOn.at(channelIdx);
-      allOverChannelToWorkOn.setName(detailChannel.getName());
+      allOverChannelToWorkOn.setMeta(
+          ChannelMeta{.name                 = detailChannel.getChannelMeta().name,
+                      .valid                = detailChannel.getChannelMeta().valid,
+                      .invalidateAllObjects = detailChannel.getChannelMeta().invalidateAllObjects});
 
       for(const auto &measureIdx : detailChannel.getMeasuredChannels()) {
         auto addMeasureCh = [&analyzeSettings, &allOverChannelToWorkOn, &measureIdx](MeasureChannelStat stat) {
@@ -230,9 +245,13 @@ void Helper::appendToAllOverReport(const joda::settings::AnalyzeSettings &analyz
         addMeasureCh(MeasureChannelStat::CNT);
         addMeasureCh(MeasureChannelStat::STD_DEV);
       }
-      auto stats = calcStats(detailChannel);
-
-      Object &imageToWorkOn = allOverChannelToWorkOn.emplaceObject(fnv1a(imagePath), imageName, imagePath);
+      auto stats            = calcStats(detailChannel);
+      Object &imageToWorkOn = allOverChannelToWorkOn.emplaceObject(
+          fnv1a(imagePath + imageName), ObjectMeta{.name = imageName, .valid = true},
+          ImageMeta{.imageFileName = imageName,
+                    .height        = imageMetaIn->height,
+                    .width         = imageMetaIn->width,
+                    .imgPosInWell  = imageMetaIn->imgPosInWell});
       for(const auto &[measureKey, val] : stats.measurements) {
         imageToWorkOn.at(measureKey).set(val);
       }

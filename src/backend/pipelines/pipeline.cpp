@@ -44,6 +44,7 @@
 #include "backend/pipelines/pipeline_steps/calc_intersection/calc_intersection.hpp"
 #include "backend/results/results.hpp"
 #include "backend/results/results_helper.hpp"
+#include "backend/results/results_image_meta.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/channel/channel_settings_meta.hpp"
 #include "backend/settings/settings.hpp"
@@ -109,6 +110,10 @@ void Pipeline::runJob()
   BS::timer tmr;
   tmr.start();
 
+  mExperimentMeta.wellImageOrder = mAnalyzeSettings.experimentSettings.wellImageOrder;
+  mExperimentMeta.filenameRegex  = mAnalyzeSettings.experimentSettings.filenameRegex;
+  mTransformedWellMatrix         = mExperimentMeta.transformMatrix(mWellSizeX, mWellSizeY);
+
   DurationCount::resetStats();
   mTimePipelineStarted = std::chrono::high_resolution_clock::now();
   // Store configuration
@@ -161,18 +166,12 @@ void Pipeline::runJob()
   std::string resultsFile = mOutputFolder + separator + joda::results::RESULTS_FOLDER_PATH + separator +
                             joda::results::RESULTS_SUMMARY_FILE_NAME + "_" + mJobName;
   alloverReport.saveToFile(resultsFile,
-                           joda::results::WorkSheet::Meta{
-                               .swVersion    = Version::getVersion(),
-                               .buildTime    = Version::getBuildTime(),
-                               .jobName      = mJobName,
-                               .timeStarted  = mTimePipelineStarted,
-                               .timeFinished = std::chrono::system_clock::now(),
-                               .nrOfChannels = 1,
-                           },
-                           joda::results::WorkSheet::ExperimentSettings{
-                               .filenameRegex  = mAnalyzeSettings.experimentSettings.filenameRegex,
-                               .wellImageOrder = mAnalyzeSettings.experimentSettings.wellImageOrder},
-                           std::nullopt);
+                           joda::results::JobMeta{.swVersion    = Version::getVersion(),
+                                                  .buildTime    = Version::getBuildTime(),
+                                                  .jobName      = mJobName,
+                                                  .timeStarted  = mTimePipelineStarted,
+                                                  .timeFinished = std::chrono::system_clock::now()},
+                           mExperimentMeta, std::nullopt);
   mState = State::FINISHED;
   DurationCount::printStats(images.size());
 
@@ -245,20 +244,23 @@ void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileI
     auto id           = DurationCount::start("Write detail report");
     std::string fName = mOutputFolder + separator + joda::results::RESULTS_FOLDER_PATH + separator +
                         joda::results::RESULTS_IMAGE_FILE_NAME + "_" + imageName + "_" + mJobName;
+
+    auto regexedImageNames =
+        joda::results::Helper::applyRegex(mAnalyzeSettings.experimentSettings.filenameRegex, imageName);
+    auto imagePosOnWell = mTransformedWellMatrix[regexedImageNames.img];
     detailReport.saveToFile(
         fName,
-        joda::results::WorkSheet::Meta{
-            .swVersion    = Version::getVersion(),
-            .buildTime    = Version::getBuildTime(),
-            .jobName      = mJobName,
-            .timeStarted  = mTimePipelineStarted,
-            .timeFinished = std::chrono::system_clock::now(),
-            .nrOfChannels = 1,
-        },
-        joda::results::WorkSheet::ExperimentSettings{.filenameRegex = mAnalyzeSettings.experimentSettings.filenameRegex,
-                                                     .wellImageOrder =
-                                                         mAnalyzeSettings.experimentSettings.wellImageOrder},
-        joda::results::WorkSheet::ImageMeta{.height = propsOut.props.height, .width = propsOut.props.width});
+        joda::results::JobMeta{.swVersion    = Version::getVersion(),
+                               .buildTime    = Version::getBuildTime(),
+                               .jobName      = mJobName,
+                               .timeStarted  = mTimePipelineStarted,
+                               .timeFinished = std::chrono::system_clock::now()},
+        mExperimentMeta,
+        joda::results::ImageMeta{
+            .imageFileName = imageName,
+            .height        = propsOut.props.height,
+            .width         = propsOut.props.width,
+            .imgPosInWell{.img = imagePosOnWell.img, .x = imagePosOnWell.x, .y = imagePosOnWell.y}});
 
     DurationCount::stop(id);
 

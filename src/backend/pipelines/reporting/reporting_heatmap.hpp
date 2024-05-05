@@ -35,11 +35,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  struct HeatMapPoint
-  {
-    int32_t x = -1;
-    int32_t y = -1;
-  };
 
   /////////////////////////////////////////////////////
 
@@ -48,12 +43,10 @@ private:
   static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,
                                lxw_format *numberFormat);
 
-  static void createHeatmapOfWellsForGroup(const std::string &outputFolder, const std::string &groupName,
-                                           const std::map<int32_t, HeatMapPoint> &wellOrder, int32_t sizeX,
-                                           int32_t sizeY, const joda::results::Group &groupReports);
-
-  static auto transformMatrix(const std::vector<std::vector<int32_t>> &imageWellOrderMatrix, int32_t &sizeX,
-                              int32_t &sizeY) -> std::map<int32_t, HeatMapPoint>;
+  static void createHeatmapOfWellsForGroup(const joda::settings::ChannelReportingSettings &reportingSettings,
+                                           const std::string &outputFolder, const std::string &groupName,
+                                           const std::map<int32_t, results::ImgPositionInWell> &wellOrder,
+                                           int32_t sizeX, int32_t sizeY, const joda::results::Group &groupReports);
 };
 
 }    // namespace joda::pipeline::reporting
