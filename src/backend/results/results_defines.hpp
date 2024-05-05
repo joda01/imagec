@@ -45,6 +45,11 @@ public:
   {
   }
 
+  MeasureChannelKey(settings::ChannelReportingSettings::MeasureChannelsCombi value) :
+      value(static_cast<uint32_t>(value))
+  {
+  }
+
   MeasureChannelKey(const MeasureChannelKey &measureChannel,
                     joda::settings::ChannelReportingSettings::MeasureChannelStat measureChannelStat) :
       value((measureChannel | measureChannelStat).value)

@@ -183,7 +183,7 @@ void PanelReporting::onExportToXlsxHeatmapClicked()
                            joda::results::REPORT_EXPORT_FOLDER_PATH + separator + overviewPath.filename().string() +
                            "_heatmap.xlsx";
 
-        joda::pipeline::reporting::Heatmap::createAllOverHeatMap(alloverReport, resultsFile, "overview");
+        joda::pipeline::reporting::Heatmap::createAllOverHeatMap({}, alloverReport, resultsFile);
       },
       [](const std::filesystem::path &detailResultPath) {
         joda::results::WorkSheet detailReport;

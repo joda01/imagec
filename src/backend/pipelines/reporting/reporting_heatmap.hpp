@@ -30,8 +30,8 @@ class Heatmap
 public:
   /////////////////////////////////////////////////////
   static void createHeatMapForImage(const joda::results::WorkSheet &containers, const std::string &fileName);
-  static void createAllOverHeatMap(joda::results::WorkSheet &allOverReport, const std::string &outputFolder,
-                                   const std::string &fileName);
+  static void createAllOverHeatMap(const joda::settings::ChannelReportingSettings &reportingSettings,
+                                   joda::results::WorkSheet &allOverReport, const std::string &outputFolder);
 
 private:
   /////////////////////////////////////////////////////
@@ -48,10 +48,9 @@ private:
   static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,
                                lxw_format *numberFormat);
 
-  static void createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                           const std::string &outputFolder, const std::string &groupName,
-                                           const std::string &jobName, const std::map<int32_t, HeatMapPoint> &wellOrder,
-                                           int32_t sizeX, int32_t sizeY, const joda::results::WorkSheet &groupReports);
+  static void createHeatmapOfWellsForGroup(const std::string &outputFolder, const std::string &groupName,
+                                           const std::map<int32_t, HeatMapPoint> &wellOrder, int32_t sizeX,
+                                           int32_t sizeY, const joda::results::Group &groupReports);
 
   static auto transformMatrix(const std::vector<std::vector<int32_t>> &imageWellOrderMatrix, int32_t &sizeX,
                               int32_t &sizeY) -> std::map<int32_t, HeatMapPoint>;
