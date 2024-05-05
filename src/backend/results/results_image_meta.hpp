@@ -165,8 +165,8 @@ struct MeasureChannelMeta
 ///
 struct ObjectMeta
 {
-  std::string name;    ///< Name for the object
-  bool valid;          ///< True if the object is valid, else false
+  std::string name;     ///< Name for the object
+  bool valid = true;    ///< True if the object is valid, else false
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(ObjectMeta, name, valid);
 };
 
