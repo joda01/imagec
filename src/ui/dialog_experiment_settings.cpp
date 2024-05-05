@@ -54,16 +54,6 @@ DialogExperimentSettings::DialogExperimentSettings(QWidget *windowMain, joda::se
   auto *groupBox       = new QWidget();
   auto *groupBoxLayout = new QVBoxLayout(groupBox);
 
-  mImageHeatmapOnOff = new QComboBox(groupBox);
-  mImageHeatmapOnOff->addItem("No heatmap for images", false);
-  mImageHeatmapOnOff->addItem("Generate heatmap for images", true);
-  groupBoxLayout->addWidget(mImageHeatmapOnOff);
-
-  auto *sliceLabel = new QLabel("Area sizes to observe for image heatmap generation in [px]", groupBox);
-  groupBoxLayout->addWidget(sliceLabel);
-  mHeatmapSlice = new QLineEdit("50,100");
-  groupBoxLayout->addWidget(mHeatmapSlice);
-
   mGroupByComboBox = new QComboBox(groupBox);
   mGroupByComboBox->addItem("Ungrouped", static_cast<int>(joda::settings::ExperimentSettings::GroupBy::OFF));
   mGroupByComboBox->addItem("Group based on foldername",
@@ -71,16 +61,6 @@ DialogExperimentSettings::DialogExperimentSettings(QWidget *windowMain, joda::se
   mGroupByComboBox->addItem("Group based on filename",
                             static_cast<int>(joda::settings::ExperimentSettings::GroupBy::FILENAME));
   groupBoxLayout->addWidget(mGroupByComboBox);
-
-  mGroupedHeatmapOnOff = new QComboBox(groupBox);
-  mGroupedHeatmapOnOff->addItem("No heatmap generation for group", false);
-  mGroupedHeatmapOnOff->addItem("Generate heatmap for group", true);
-  groupBoxLayout->addWidget(mGroupedHeatmapOnOff);
-
-  mWellHeatmapOnOff = new QComboBox(groupBox);
-  mWellHeatmapOnOff->addItem("No heatmap generation for well", false);
-  mWellHeatmapOnOff->addItem("Generate heatmap for well", true);
-  groupBoxLayout->addWidget(mWellHeatmapOnOff);
 
   auto *matrixDesc =
       new QLabel("Matrix of the order of the images in a well. Rows are separated by commas: [[],[],[],[]].", groupBox);
@@ -133,40 +113,6 @@ void DialogExperimentSettings::fromSettings()
   }
 
   {
-    auto idx = mGroupedHeatmapOnOff->findData(static_cast<int>(mSettings.generateHeatmapForPlate));
-    if(idx >= 0) {
-      mGroupedHeatmapOnOff->setCurrentIndex(idx);
-    } else {
-      mGroupedHeatmapOnOff->setCurrentIndex(0);
-    }
-  }
-
-  {
-    auto idx = mImageHeatmapOnOff->findData(static_cast<int>(mSettings.generateHeatmapForImage));
-    if(idx >= 0) {
-      mImageHeatmapOnOff->setCurrentIndex(idx);
-    } else {
-      mImageHeatmapOnOff->setCurrentIndex(0);
-    }
-  }
-  {
-    auto idx = mWellHeatmapOnOff->findData(static_cast<int>(mSettings.generateHeatmapForWell));
-    if(idx >= 0) {
-      mWellHeatmapOnOff->setCurrentIndex(idx);
-    } else {
-      mWellHeatmapOnOff->setCurrentIndex(0);
-    }
-  }
-  {
-    QString slice;
-    for(const auto size : mSettings.imageHeatmapAreaSizes) {
-      slice += QString::number(size) + ",";
-    }
-    slice = slice.left(slice.lastIndexOf(',') + 1);
-    mHeatmapSlice->setText(slice);
-  }
-
-  {
     auto idx = mGroupByComboBox->findData(static_cast<int>(mSettings.groupBy));
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
@@ -192,21 +138,6 @@ void DialogExperimentSettings::fromSettings()
 
 void DialogExperimentSettings::toSettings()
 {
-  QStringList pieces = mHeatmapSlice->text().split(",");
-  std::set<int> sizes;
-  for(const auto &part : pieces) {
-    bool okay = false;
-    int idx   = part.toInt(&okay);
-    if(okay) {
-      sizes.emplace(idx);
-    }
-  }
-
-  mSettings.imageHeatmapAreaSizes   = sizes;
-  mSettings.generateHeatmapForImage = mImageHeatmapOnOff->currentData().toBool();
-  mSettings.generateHeatmapForPlate = mGroupedHeatmapOnOff->currentData().toBool();
-  mSettings.generateHeatmapForWell  = mGroupedHeatmapOnOff->currentData().toBool();
-
   mSettings.groupBy = static_cast<joda::settings::ExperimentSettings::GroupBy>(mGroupByComboBox->currentData().toInt());
   mSettings.filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
 

@@ -23,6 +23,7 @@
 #include <utility>
 #include "backend/duration_count/duration_count.h"
 #include "backend/helper/file_info.hpp"
+#include "backend/helper/file_info_images.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/image_processing/detection/detection.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
@@ -105,7 +106,7 @@ class ImageProcessor
 public:
   /////////////////////////////////////////////////////
   static func::DetectionResponse executeAlgorithm(
-      const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting, uint64_t tileIndex,
+      const FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting, uint64_t tileIndex,
       const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
       const ChannelProperties *channelProperties = nullptr,
       const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults =
@@ -115,28 +116,28 @@ public:
   /// \brief      Load channel properties
   /// \author     Joachim Danmayr
   ///
-  static ChannelProperties loadChannelProperties(const FileInfo &imagePath, uint16_t series);
+  static ChannelProperties loadChannelProperties(const FileInfoImages &imagePath, uint16_t series);
 
 private:
   /////////////////////////////////////////////////////
   template <image_loader_t TIFFLOADER>
   static func::DetectionResponse processImage(
-      const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting,
+      const FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
       const std::set<uint32_t> &tiffDirectories, int64_t idx,
       const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults,
       const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels);
 
   template <class TIFFLOADER>
-  static cv::Mat loadTileAndToIntensityProjectionIfEnabled(const FileInfo &imagePath, int64_t idx,
+  static cv::Mat loadTileAndToIntensityProjectionIfEnabled(const FileInfoImages &imagePath, int64_t idx,
                                                            const joda::settings::ChannelSettings &channelSetting,
                                                            const std::set<uint32_t> &tiffDirectories);
 
   template <class TIFFLOADER>
-  static cv::Mat doZProjection(const FileInfo &imagePath, const joda::settings::ChannelSettings &channelSetting,
+  static cv::Mat doZProjection(const FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
                                const std::set<uint32_t> &tifDirs, int64_t idx);
 
   template <class TIFFLOADER>
-  static void doPreprocessingPipeline(cv::Mat &image, const FileInfo &imagePath,
+  static void doPreprocessingPipeline(cv::Mat &image, const FileInfoImages &imagePath,
                                       const joda::settings::ChannelSettings &channelSetting,
                                       const std::set<uint32_t> &tifDirs, int64_t idx);
 

@@ -17,8 +17,12 @@
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
+#include "backend/helper/directory_iterator.hpp"
+#include "ui/container/container_button.hpp"
+#include "ui/container/container_function.hpp"
 #include "ui/helper/waitingspinnerwidget.hpp"
 #include "ui/panel_preview.hpp"
+#include "ui/reporting/exporter_thread.hpp"
 
 namespace joda::ui::qt {
 
@@ -49,6 +53,19 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  QProgressBar *mProgressExportExcel;
+  ContainerButton *mButtonExportExcel;
+  std::shared_ptr<ReportingExporterThread> mExcelExporter;
+
+  // Heatmap
+  std::shared_ptr<ContainerFunction<QString, int>> mHeatmapSlice;
+  std::shared_ptr<ContainerFunction<bool, bool>> mGenerateHeatmapForWells;
+
+  QProgressBar *mProgressHeatmap;
+  ContainerButton *mButtonExportHeatmap;
+  std::shared_ptr<ReportingExporterThread> mHeatmapExporter;
+
+  /////////////////////////////////////////////////////
   QHBoxLayout *createLayout();
   std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
                                                         int margin = 16, bool enableScrolling = false,
@@ -58,10 +75,11 @@ private:
   WindowMain *mWindowMain;
   QLabel *createTitle(const QString &);
   bool mIsActiveShown = false;
-  QString mActualSelectedResultsFolder;
+  joda::helper::DirectoryWatcher<FileInfo> mDirWatcher;
 
 private slots:
   void onExportToXlsxClicked();
+  void onExportToXlsxHeatmapClicked();
 };
 
 }    // namespace joda::ui::qt

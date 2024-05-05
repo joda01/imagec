@@ -14,6 +14,7 @@
 #pragma once
 
 #include "backend/helper/directory_iterator.hpp"
+#include "backend/helper/file_info_images.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 
 namespace joda::ctrl {
@@ -34,7 +35,7 @@ public:
   void reset();
   std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string> getState();
   auto getNrOfFoundImages() -> uint32_t;
-  auto getListOfFoundImages() -> const std::vector<FileInfo> &;
+  auto getListOfFoundImages() -> const std::vector<FileInfoImages> &;
   bool isLookingForFiles();
   void stopLookingForFiles();
   void getSettings();
@@ -63,7 +64,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  joda::helper::ImageFileContainer mWorkingDirectory;
+  joda::helper::DirectoryWatcher<FileInfoImages> mWorkingDirectory;
   std::string mActProcessId;
 };
 

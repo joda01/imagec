@@ -21,8 +21,6 @@
 
 namespace joda::settings {
 
-void removeNullValues(nlohmann::json &j);
-
 void Settings::storeSettings(std::string path, const joda::settings::AnalyzeSettings &settings)
 {
   if(!path.empty()) {
@@ -35,28 +33,6 @@ void Settings::storeSettings(std::string path, const joda::settings::AnalyzeSett
     std::ofstream out(path);
     out << json.dump(2);
     out.close();
-  }
-}
-
-void removeNullValues(nlohmann::json &j)
-{
-  if(j.is_object()) {
-    for(auto it = j.begin(); it != j.end();) {
-      if(it.value().is_null()) {
-        it = j.erase(it);
-      } else {
-        removeNullValues(it.value());    // Recursively check nested objects
-        ++it;                            // Move to the next element
-      }
-    }
-  } else if(j.is_array()) {
-    for(auto &element : j) {
-      if(element.is_null()) {
-        element = nullptr;    // Replace null values in arrays with nullptr
-      } else {
-        removeNullValues(element);    // Recursively check nested objects
-      }
-    }
   }
 }
 

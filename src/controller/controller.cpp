@@ -16,6 +16,7 @@
 #include <map>
 #include <ranges>
 #include "backend/helper/file_info.hpp"
+#include "backend/helper/file_info_images.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/image_reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
@@ -23,7 +24,7 @@
 
 namespace joda::ctrl {
 
-Controller::Controller()
+Controller::Controller() : mWorkingDirectory({})
 {
 }
 
@@ -128,7 +129,7 @@ void Controller::stopLookingForFiles()
 /// \brief      Sets the working directory
 /// \author     Joachim Danmayr
 ///
-auto Controller::getListOfFoundImages() -> const std::vector<FileInfo> &
+auto Controller::getListOfFoundImages() -> const std::vector<FileInfoImages> &
 {
   return mWorkingDirectory.getFilesList();
 }
@@ -143,11 +144,11 @@ auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex
   // channels This is a little bit more complicated therefor not supported yet
 
   // Now we can process the original channel
-  auto imageFileName = mWorkingDirectory.getFileAt(imgIndex);
-  auto onnxModels    = onnx::OnnxParser::findOnnxFiles();
-  if(!imageFileName.getFilename().empty()) {
+  auto imagePath  = mWorkingDirectory.getFileAt(imgIndex);
+  auto onnxModels = onnx::OnnxParser::findOnnxFiles();
+  if(!imagePath.getFilename().empty()) {
     std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> referenceChannelResults;
-    auto result = joda::algo::ImageProcessor::executeAlgorithm(imageFileName, settings, tileIndex, onnxModels, nullptr,
+    auto result = joda::algo::ImageProcessor::executeAlgorithm(imagePath, settings, tileIndex, onnxModels, nullptr,
                                                                &referenceChannelResults);
     std::vector<uchar> buffer;
     std::vector<int> compression_params;
@@ -160,7 +161,7 @@ auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex
             .height          = result.controlImage.rows,
             .width           = result.controlImage.cols,
             .detectionResult = result.result,
-            .imageFileName   = imageFileName};
+            .imageFileName   = imagePath.getFilePath().string()};
   }
   return {.data = {}, .height = 0, .width = 0, .detectionResult = {}, .imageFileName = {}};
 }
@@ -175,14 +176,14 @@ auto Controller::getImageProperties(int imgIndex, int series) -> ImageProperties
 
   ImageProperties props;
   switch(imagePath.getDecoder()) {
-    case FileInfo::Decoder::JPG:
-      props = JpgLoader::getImageProperties(imagePath);
+    case FileInfoImages::Decoder::JPG:
+      props = JpgLoader::getImageProperties(imagePath.getFilePath().string());
       break;
-    case FileInfo::Decoder::TIFF:
-      props = TiffLoader::getImageProperties(imagePath, 0);
+    case FileInfoImages::Decoder::TIFF:
+      props = TiffLoader::getImageProperties(imagePath.getFilePath().string(), 0);
       break;
-    case FileInfo::Decoder::BIOFORMATS:
-      auto [_, propIn] = BioformatsLoader::getOmeInformation(imagePath, series);
+    case FileInfoImages::Decoder::BIOFORMATS:
+      auto [_, propIn] = BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
       props            = propIn;
       break;
   }

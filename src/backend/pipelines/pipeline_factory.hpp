@@ -26,6 +26,7 @@
 #include "../helper/helper.hpp"
 #include "../logger/console_logger.hpp"
 #include "../settings/analze_settings.hpp"
+#include "backend/helper/file_info_images.hpp"
 #include "pipeline.hpp"
 
 namespace joda::pipeline {
@@ -73,7 +74,7 @@ public:
   ///
   static auto
   startNewJob(const settings::AnalyzeSettings &settings, const std::string &inputFolder, const std::string &jobName,
-              joda::helper::ImageFileContainer *imageFileContainer,
+              joda::helper::DirectoryWatcher<FileInfoImages> *imageFileContainer,
               const pipeline::Pipeline::ThreadingSettings &threadingSettings = pipeline::Pipeline::ThreadingSettings())
       -> std::string
   {

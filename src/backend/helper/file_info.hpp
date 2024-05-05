@@ -14,6 +14,7 @@
 #pragma once
 
 #include <filesystem>
+#include <iostream>
 #include <set>
 #include <string>
 
@@ -25,76 +26,34 @@
 class FileInfo
 {
 public:
-  enum class Decoder
+  virtual bool parseFile(const std::filesystem::directory_entry &path,
+                         const std::set<std::string> &supportedFileFormats)
   {
-    UNSUPPORTED,
-    TIFF,
-    JPG,
-    BIOFORMATS
-  };
-  FileInfo()
-  {
-  }
-  FileInfo(const std::filesystem::directory_entry &path)
-  {
-    parseFile(path);
+    auto ext = path.path().extension().string();
+    if(supportedFileFormats.contains(ext)) {
+      mPath = path.path();
+      return true;
+    }
+    return false;
   }
 
-  FileInfo(const std::string &path)
-  {
-    std::filesystem::directory_entry pathObj(path);
-    parseFile(pathObj);
-  }
-
-  [[nodiscard]] Decoder getDecoder() const
-  {
-    return mDecoder;
-  }
-
-  [[nodiscard]] bool isSupported() const
-  {
-    return mDecoder != Decoder::UNSUPPORTED;
-  }
-
-  [[nodiscard]] const std::string &getPath() const
+  [[nodiscard]] const std::filesystem::path &getFilePath() const
   {
     return mPath;
   }
 
   [[nodiscard]] std::string getFilename() const
   {
-    std::filesystem::path filePath(getPath());
-    std::string filename = filePath.filename().string();
+    std::string filename = mPath.filename().string();
     return filename;
   }
 
-  operator const std::string &() const
-  {
-    return mPath;
-  }
+  // operator const std::filesystem::path &() const
+  //{
+  //   return mPath;
+  // }
 
-private:
+protected:
   /////////////////////////////////////////////////////
-  static inline const std::set<std::string> JPG_EXTENSIONS        = {".jpg", ".jpeg"};
-  static inline const std::set<std::string> TIF_EXTENSIONS        = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
-  static inline const std::set<std::string> BIOFORMATS_EXTENSIONS = {".vsi", ".ics", ".czi"};
-
-  std::string mPath;
-  Decoder mDecoder = Decoder::UNSUPPORTED;
-
-  void parseFile(const std::filesystem::directory_entry &path)
-  {
-    auto ext = path.path().extension().string();
-    if(TIF_EXTENSIONS.contains(ext)) {
-      mDecoder = Decoder::TIFF;
-      mPath    = path.path().string();
-    } else if(BIOFORMATS_EXTENSIONS.contains(ext)) {
-      mDecoder = Decoder::BIOFORMATS;
-      mPath    = path.path().string();
-
-    } else {
-      mPath    = "";
-      mDecoder = Decoder::UNSUPPORTED;
-    }
-  }
+  std::filesystem::path mPath;
 };

@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <variant>
@@ -127,6 +128,12 @@ struct adl_serializer<std::map<ChannelKey, T>>
 
 namespace joda::results {
 
+static inline const std::string RESULTS_FOLDER_PATH{"results"};
+static inline const std::string REPORT_EXPORT_FOLDER_PATH{"reports"};
+static inline const std::string IMAGES_FOLDER_PATH{"images"};
+static inline const std::string RESULTS_SUMMARY_FILE_NAME{"results_summary"};
+static inline const std::string RESULTS_IMAGE_FILE_NAME{"results_image"};
+
 template <class T>
 concept Valid_t = std::is_same_v<T, bool> || std::is_same_v<T, func::ParticleValidity>;
 
@@ -134,6 +141,27 @@ template <class T>
 concept Value_t = std::is_same_v<T, double> || std::is_same_v<T, float> || std::is_same_v<T, int64_t> ||
                   std::is_same_v<T, uint32_t> || std::is_same_v<T, int32_t> || std::is_same_v<T, uint64_t> ||
                   std::is_same_v<T, func::ParticleValidity>;
+
+template <typename T>
+inline void to_json(nlohmann::json &j, const std::optional<T> &opt)
+{
+  if(opt == std::nullopt) {
+  } else if(opt.has_value()) {
+    j = opt.value();    // Just assign the value if present
+  }
+}
+
+template <typename T>
+inline void from_json(const nlohmann::json &j, std::optional<T> &opt)
+{
+  if(!j.is_null()) {
+    T value;
+    j.get_to(value);
+    opt = value;
+  } else {
+    opt = std::nullopt;    // Convert null to empty optional
+  }
+}
 
 ///
 /// \class      Value
@@ -347,6 +375,30 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Meta, swVersion, buildTime, jobName, timeStarted, timeFinished, nrOfChannels);
   };
 
+  struct ExperimentSettings
+  {
+    //
+    // Used to extract coordinates of a well form the image name
+    // Regex with 3 groupings: _((.)([0-9]+))_
+    //
+    std::string filenameRegex = "_((.)([0-9]+))_([0-9]+)";
+
+    //
+    // Matrix of image numbers how the images are ordered in a map.
+    // First dimension of the vector are the rows, second the columns
+    //
+    std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, wellImageOrder, filenameRegex);
+  };
+
+  struct ImageMeta
+  {
+    int64_t height = 0;
+    int64_t width  = 0;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageMeta, height, width);
+  };
+
   Group &emplaceGroup(const GroupKey &key, const std::string &name);
   Channel &emplaceChannel(const ChannelKey &key, const std::string &name);
 
@@ -354,6 +406,11 @@ public:
   [[nodiscard]] auto getMeta() const -> const Meta &
   {
     return meta;
+  }
+
+  [[nodiscard]] auto getExperimentSettings() const -> const ExperimentSettings &
+  {
+    return experimentSettings;
   }
   Group &at(const GroupKey &key)
   {
@@ -370,14 +427,17 @@ public:
     return groups.at("");
   }
 
-  void saveToFile(std::string filename, const Meta &meta);
+  void saveToFile(std::string filename, const Meta &meta, const ExperimentSettings &experimentSettings,
+                  std::optional<ImageMeta> imgMeta);
   void loadFromFile(const std::string &filename);
 
 private:
   /////////////////////////////////////////////////////
   Meta meta;
+  std::optional<ImageMeta> imageMeta;
+  ExperimentSettings experimentSettings;
   std::map<GroupKey, Group> groups;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WorkSheet, meta, groups);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WorkSheet, meta, imageMeta, experimentSettings, groups);
 };
 
 ///

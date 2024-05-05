@@ -37,9 +37,7 @@
 
 namespace joda::pipeline::reporting {
 
-void Heatmap::createHeatMapForImage(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                    const joda::results::WorkSheet &containers, int64_t imageWidth, int64_t imageHeight,
-                                    const std::string &fileName)
+void Heatmap::createHeatMapForImage(const joda::results::WorkSheet &containers, const std::string &fileName)
 {
   /*
   lxw_workbook *workbook = workbook_new(fileName.data());
@@ -349,10 +347,8 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::AnalyzeSettings
 /// \brief      Create heatmap for all over reporting
 /// \author     Joachim Danmayr
 ///
-void Heatmap::createAllOverHeatMap(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                   joda::results::WorkSheet &allOverReport, const std::string &outputFolder,
-                                   const std::string &fileName, const std::string &jobName,
-                                   const std::vector<std::vector<int32_t>> &imageWellOrderMatrix)
+void Heatmap::createAllOverHeatMap(joda::results::WorkSheet &allOverReport, const std::string &outputFolder,
+                                   const std::string &fileName)
 {
   /*
   const int32_t PLATE_ROWS = 16;

@@ -23,6 +23,7 @@
 #include "../image_processing/detection/detection_response.hpp"
 #include "../logger/console_logger.hpp"
 #include "../results/results.hpp"
+#include "backend/helper/file_info_images.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/thread_pool.hpp"
 #include "backend/image_reader/image_reader.hpp"
@@ -84,7 +85,7 @@ public:
     ERROR_   = 5
   };
 
-  Pipeline(const joda::settings::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
+  Pipeline(const joda::settings::AnalyzeSettings &, joda::helper::DirectoryWatcher<FileInfoImages> *imageFileContainer,
            const std::string &inputFolder, const std::string &jobName,
            const ThreadingSettings &threadingSettings = ThreadingSettings());
   ~Pipeline()
@@ -154,9 +155,6 @@ private:
 private:
   /////////////////////////////////////////////////////
   static inline const std::string OUTPUT_FOLDER_PATH{"imagec"};
-  static inline const std::string RESULTS_FOLDER_PATH{"results"};
-  static inline const std::string REPORT_EXPORT_FOLDER_PATH{"reports"};
-  static inline const std::string IMAGES_FOLDER_PATH{"images"};
 
   /////////////////////////////////////////////////////
   auto prepareOutputFolder(const std::string &inputFolder, const std::string &jobName) -> std::string;
@@ -167,12 +165,12 @@ private:
     return mStop;
   }
 
-  void analyzeImage(joda::results::WorkSheet &alloverReport, const FileInfo &imagePath);
+  void analyzeImage(joda::results::WorkSheet &alloverReport, const FileInfoImages &imagePath);
 
-  void analyzeTile(joda::results::WorkSheet &detailReports, FileInfo imagePath, std::string detailOutputFolder,
+  void analyzeTile(joda::results::WorkSheet &detailReports, FileInfoImages imagePath, std::string detailOutputFolder,
                    int tileIdx, const joda::algo::ChannelProperties &channelProperties);
   void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
-                       const joda::settings::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx,
+                       const joda::settings::ChannelSettings &channelSettings, FileInfoImages imagePath, int tileIdx,
                        const joda::algo::ChannelProperties &channelProperties);
 
   /////////////////////////////////////////////////////
@@ -183,7 +181,7 @@ private:
   std::vector<const joda::settings::ChannelSettings *> mListOfChannelSettings;
   std::vector<const joda::settings::VChannelSettings *> mListOfVChannelSettings;
 
-  joda::helper::ImageFileContainer *mImageFileContainer;
+  joda::helper::DirectoryWatcher<FileInfoImages> *mImageFileContainer;
 
   ProgressIndicator mProgress;
   State mState;

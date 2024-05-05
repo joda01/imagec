@@ -24,6 +24,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -31,6 +32,7 @@
 #include "../logger/console_logger.hpp"
 #include "backend/duration_count/duration_count.h"
 #include "backend/helper/file_info.hpp"
+#include "backend/helper/file_info_images.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/helper/thread_pool.hpp"
@@ -60,7 +62,7 @@ using namespace std::filesystem;
 BS::thread_pool mGlobThreadPool{10};
 
 Pipeline::Pipeline(const joda::settings::AnalyzeSettings &settings,
-                   joda::helper::ImageFileContainer *imageFileContainer, const std::string &inputFolder,
+                   joda::helper::DirectoryWatcher<FileInfoImages> *imageFileContainer, const std::string &inputFolder,
                    const std::string &jobName, const ThreadingSettings &threadingSettings) :
     mInputFolder(inputFolder),
     mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mThreadingSettings(threadingSettings),
@@ -156,15 +158,21 @@ void Pipeline::runJob()
 
   auto timeStopped = std::chrono::high_resolution_clock::now();
 
-  std::string resultsFile = mOutputFolder + separator + RESULTS_FOLDER_PATH + separator + "results_summary_" + mJobName;
-  alloverReport.saveToFile(resultsFile, joda::results::WorkSheet::Meta{
-                                            .swVersion    = Version::getVersion(),
-                                            .buildTime    = Version::getBuildTime(),
-                                            .jobName      = mJobName,
-                                            .timeStarted  = mTimePipelineStarted,
-                                            .timeFinished = std::chrono::system_clock::now(),
-                                            .nrOfChannels = 1,
-                                        });
+  std::string resultsFile = mOutputFolder + separator + joda::results::RESULTS_FOLDER_PATH + separator +
+                            joda::results::RESULTS_SUMMARY_FILE_NAME + "_" + mJobName;
+  alloverReport.saveToFile(resultsFile,
+                           joda::results::WorkSheet::Meta{
+                               .swVersion    = Version::getVersion(),
+                               .buildTime    = Version::getBuildTime(),
+                               .jobName      = mJobName,
+                               .timeStarted  = mTimePipelineStarted,
+                               .timeFinished = std::chrono::system_clock::now(),
+                               .nrOfChannels = 1,
+                           },
+                           joda::results::WorkSheet::ExperimentSettings{
+                               .filenameRegex  = mAnalyzeSettings.experimentSettings.filenameRegex,
+                               .wellImageOrder = mAnalyzeSettings.experimentSettings.wellImageOrder},
+                           std::nullopt);
   mState = State::FINISHED;
   DurationCount::printStats(images.size());
 
@@ -186,10 +194,10 @@ void Pipeline::stopJob()
 /// \brief      Analyze image
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileInfo &imagePath)
+void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileInfoImages &imagePath)
 {
-  std::string imageName       = helper::getFileNameFromPath(imagePath.getPath());
-  std::string imageParentPath = helper::getFolderNameFromPath(imagePath.getPath());
+  std::string imageName       = helper::getFileNameFromPath(imagePath.getFilePath());
+  std::string imageParentPath = helper::getFolderNameFromPath(imagePath.getFilePath());
 
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   auto detailOutputFolder = mOutputFolder + separator + "images" + separator + imageName;
@@ -201,7 +209,7 @@ void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileI
   //
 
   auto series   = mAnalyzeSettings.channels.begin()->meta.series;
-  auto propsOut = joda::algo::ImageProcessor::loadChannelProperties(imagePath.getPath(), series);
+  auto propsOut = joda::algo::ImageProcessor::loadChannelProperties(imagePath, series);
 
   int64_t runs = 1;
   if(propsOut.props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
@@ -234,17 +242,23 @@ void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileI
   // Write report
   //
   if(mState != State::ERROR_) {
-    auto id = DurationCount::start("Write detail report");
-    std::string fName =
-        mOutputFolder + separator + RESULTS_FOLDER_PATH + separator + "results_image_" + imageName + "_" + mJobName;
-    detailReport.saveToFile(fName, joda::results::WorkSheet::Meta{
-                                       .swVersion    = Version::getVersion(),
-                                       .buildTime    = Version::getBuildTime(),
-                                       .jobName      = mJobName,
-                                       .timeStarted  = mTimePipelineStarted,
-                                       .timeFinished = std::chrono::system_clock::now(),
-                                       .nrOfChannels = 1,
-                                   });
+    auto id           = DurationCount::start("Write detail report");
+    std::string fName = mOutputFolder + separator + joda::results::RESULTS_FOLDER_PATH + separator +
+                        joda::results::RESULTS_IMAGE_FILE_NAME + "_" + imageName + "_" + mJobName;
+    detailReport.saveToFile(
+        fName,
+        joda::results::WorkSheet::Meta{
+            .swVersion    = Version::getVersion(),
+            .buildTime    = Version::getBuildTime(),
+            .jobName      = mJobName,
+            .timeStarted  = mTimePipelineStarted,
+            .timeFinished = std::chrono::system_clock::now(),
+            .nrOfChannels = 1,
+        },
+        joda::results::WorkSheet::ExperimentSettings{.filenameRegex = mAnalyzeSettings.experimentSettings.filenameRegex,
+                                                     .wellImageOrder =
+                                                         mAnalyzeSettings.experimentSettings.wellImageOrder},
+        joda::results::WorkSheet::ImageMeta{.height = propsOut.props.height, .width = propsOut.props.width});
 
     DurationCount::stop(id);
 
@@ -261,8 +275,9 @@ void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileI
 /// \brief      Analyze tile
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo imagePath, std::string detailOutputFolder,
-                           int tileIdx, const joda::algo::ChannelProperties &channelProperties)
+void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfoImages imagePath,
+                           std::string detailOutputFolder, int tileIdx,
+                           const joda::algo::ChannelProperties &channelProperties)
 {
   std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> detectionResults;
 
@@ -345,7 +360,7 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo ima
                                                  intersect.meta.channelIdx);
     joda::results::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(intersect.meta.channelIdx),
                                                 detailReports, detailOutputFolder, mJobName, intersect.meta.channelIdx,
-                                                tileIdx, channelProperties.props, imagePath.getPath());
+                                                tileIdx, channelProperties.props, imagePath.getFilePath().string());
   };
 
   if(poolSize > 1) {
@@ -398,7 +413,7 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo ima
 
     joda::results::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(idx), detailReports,
                                                 detailOutputFolder, mJobName, idx, tileIdx, channelProperties.props,
-                                                imagePath.getPath());
+                                                imagePath.getFilePath().string());
   };
 
   if(!mStop && mState != State::ERROR_) {
@@ -443,9 +458,10 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo ima
                                                    channelSettings.meta.channelIdx);
     }
     if(detectionResults.contains(channelSettings.meta.channelIdx)) {
-      joda::results::Helper::appendToDetailReport(
-          mAnalyzeSettings, detectionResults.at(channelSettings.meta.channelIdx), detailReports, detailOutputFolder,
-          mJobName, channelSettings.meta.channelIdx, tileIdx, channelProperties.props, imagePath.getPath());
+      joda::results::Helper::appendToDetailReport(mAnalyzeSettings,
+                                                  detectionResults.at(channelSettings.meta.channelIdx), detailReports,
+                                                  detailOutputFolder, mJobName, channelSettings.meta.channelIdx,
+                                                  tileIdx, channelProperties.props, imagePath.getFilePath().string());
     }
   };
 
@@ -473,8 +489,8 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfo ima
 /// \author     Joachim Danmayr
 ///
 void Pipeline::analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
-                               const joda::settings::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx,
-                               const joda::algo::ChannelProperties &channelProperties)
+                               const joda::settings::ChannelSettings &channelSettings, FileInfoImages imagePath,
+                               int tileIdx, const joda::algo::ChannelProperties &channelProperties)
 {
   joda::settings::ChannelIndex channelIndex = channelSettings.meta.channelIdx;
 
@@ -512,16 +528,17 @@ void Pipeline::analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func
         setStateError("Can not create output folder!");
       }
 
-      if(!std::filesystem::exists(outputFolder + separator + RESULTS_FOLDER_PATH)) {
-        auto directoryExists = std::filesystem::create_directories(outputFolder + separator + RESULTS_FOLDER_PATH);
+      if(!std::filesystem::exists(outputFolder + separator + joda::results::RESULTS_FOLDER_PATH)) {
+        auto directoryExists =
+            std::filesystem::create_directories(outputFolder + separator + joda::results::RESULTS_FOLDER_PATH);
         if(!directoryExists) {
           joda::log::logError("Could not create results directory!");
         }
       }
 
-      if(!std::filesystem::exists(outputFolder + separator + REPORT_EXPORT_FOLDER_PATH)) {
+      if(!std::filesystem::exists(outputFolder + separator + joda::results::REPORT_EXPORT_FOLDER_PATH)) {
         auto directoryExists =
-            std::filesystem::create_directories(outputFolder + separator + REPORT_EXPORT_FOLDER_PATH);
+            std::filesystem::create_directories(outputFolder + separator + joda::results::REPORT_EXPORT_FOLDER_PATH);
         if(!directoryExists) {
           joda::log::logError("Could not create report export directory!");
         }

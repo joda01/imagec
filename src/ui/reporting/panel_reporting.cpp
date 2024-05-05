@@ -16,6 +16,7 @@
 #include <qcombobox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qprogressbar.h>
 #include <qpushbutton.h>
 #include <qwidget.h>
 #include <exception>
@@ -28,41 +29,63 @@
 #include "backend/pipelines/reporting/reporting_generator.hpp"
 #include "backend/pipelines/reporting/reporting_heatmap.hpp"
 #include "backend/results/results.hpp"
+#include "ui/reporting/exporter_thread.hpp"
 
 namespace joda::ui::qt {
 
 using namespace std::chrono_literals;
 using namespace std::filesystem;
 
-PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
+PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm), mDirWatcher({".json"})
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelReporting");
 
   auto *horizontalLayout             = createLayout();
   auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
-  auto [verticalLayoutXlsx, _2]      = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
 
   //
   // Excel export
   //
-  verticalLayoutXlsx->addWidget(createTitle("Excel report"));
   {
-    QPushButton *exportXlsx = new QPushButton("Create XLSX report");
-    const QIcon icon(":/icons/outlined/icons8-export-excel-50.png");
-    exportXlsx->setIconSize({16, 16});
-    exportXlsx->setIcon(icon);
-    connect(exportXlsx, &QPushButton::pressed, this, &PanelReporting::onExportToXlsxClicked);
-    verticalLayoutXlsx->addWidget(exportXlsx);
+    auto [verticalLayoutXlsx, _2] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+    verticalLayoutXlsx->addWidget(createTitle("Start export"));
+    mButtonExportExcel = new ContainerButton("Export as xlsx", "icons8-export-excel-50.png", mWindowMain);
+    connect(mButtonExportExcel, &ContainerButton::valueChanged, this, &PanelReporting::onExportToXlsxClicked);
+    verticalLayoutXlsx->addWidget(mButtonExportExcel->getEditableWidget());
+    mProgressExportExcel = new QProgressBar(_2);
+    mProgressExportExcel->setVisible(false);
+    verticalLayoutXlsx->addWidget(mProgressExportExcel);
+    _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
-  _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   //
   // Heatmap
   //
-  auto [verticalLayoutHeatmap, _11] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-  verticalLayoutHeatmap->addWidget(createTitle("Heatmap"));
-  _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  {
+    auto [verticalLayoutHeatmap, layout] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+    verticalLayoutHeatmap->addWidget(createTitle("Heatmap"));
+    // Settings
+
+    mHeatmapSlice = std::shared_ptr<ContainerFunction<QString, int>>(
+        new ContainerFunction<QString, int>("icons8-light-50.png", "[200,300]", "Image heatmap area size [px]",
+                                            "200, 300", mWindowMain, "heatmap_image_area_size.json"));
+    verticalLayoutHeatmap->addWidget(mHeatmapSlice->getEditableWidget());
+
+    mGenerateHeatmapForWells = std::shared_ptr<ContainerFunction<bool, bool>>(new ContainerFunction<bool, bool>(
+        "icons8-table-top-view-50.png", "Generate heatmap for wells", "Generate heatmap for wells", false, mWindowMain,
+        "heatmap_generate_for_well.json"));
+    verticalLayoutHeatmap->addWidget(mGenerateHeatmapForWells->getEditableWidget());
+
+    // Export button
+    mButtonExportHeatmap = new ContainerButton("Start export", "icons8-heat-map-50.png", mWindowMain);
+    connect(mButtonExportHeatmap, &ContainerButton::valueChanged, this, &PanelReporting::onExportToXlsxHeatmapClicked);
+    verticalLayoutHeatmap->addWidget(mButtonExportHeatmap->getEditableWidget());
+    mProgressHeatmap = new QProgressBar(layout);
+    mProgressHeatmap->setVisible(false);
+    verticalLayoutHeatmap->addWidget(mProgressHeatmap);
+    layout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  }
 
   verticalLayoutContainer->addStretch(0);
 
@@ -80,7 +103,7 @@ PanelReporting::~PanelReporting()
 void PanelReporting::setActualSelectedResultsFolder(const QString &folder)
 {
   mWindowMain->setMiddelLabelText(folder);
-  mActualSelectedResultsFolder = folder;
+  mDirWatcher.setWorkingDirectory(folder.toStdString());
 }
 
 ///
@@ -89,56 +112,81 @@ void PanelReporting::setActualSelectedResultsFolder(const QString &folder)
 ///
 void PanelReporting::onExportToXlsxClicked()
 {
-  // Write summary
-  /*
-joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-    mAnalyzeSettings, alloverReport, resultsFile + ".xlsx",
-    {.jobName = mJobName, .timeStarted = timeStarted, .timeFinished = timeStopped},
-    joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL, true);
-if(mAnalyzeSettings.experimentSettings.generateHeatmapForPlate) {
-  auto wellOrder = mAnalyzeSettings.experimentSettings.generateHeatmapForWell
-                       ? mAnalyzeSettings.experimentSettings.wellImageOrder
-                       : std::vector<std::vector<int32_t>>();
-  resultsFile    = mOutputFolder + separator + "heatmap_summary_" + mJobName + ".xlsx";
-  joda::pipeline::reporting::Heatmap::createAllOverHeatMap(mAnalyzeSettings, alloverReport, mOutputFolder,
-                                                           resultsFile, mJobName, wellOrder);
-}*/
-  std::vector<std::filesystem::path> imageResults;
-  std::vector<std::filesystem::path> summaryResults;
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
 
-  for(recursive_directory_iterator i(mActualSelectedResultsFolder.toStdString()), end; i != end; ++i) {
-    try {
-      if(!is_directory(i->path())) {
-        auto ext = i->path().extension().string();
-        if(ext == ".json") {
-          std::filesystem::path path = i->path();
-          if(path.filename().string().starts_with("results_summary")) {
-            summaryResults.push_back(path);
-          } else {
-            imageResults.push_back(path);
-          }
-        }
-      }
-    } catch(const std::exception &ex) {
-      std::cout << ex.what() << std::endl;
+  // Write summary
+  mExcelExporter = std::make_shared<ReportingExporterThread>(
+      mProgressExportExcel, mButtonExportExcel, mDirWatcher,
+      [](const std::filesystem::path &overviewPath) {
+        joda::results::WorkSheet details;
+        details.loadFromFile(overviewPath.string());
+        std::string outputFolder = overviewPath.parent_path().string() + separator + ".." + separator +
+                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
+                                   overviewPath.filename().string() + ".xlsx";
+        joda::pipeline::reporting::ReportGenerator::flushReportToFile(
+            details, {}, outputFolder, joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
+      },
+      [](const std::filesystem::path &detailResultPath) {
+        joda::results::WorkSheet details;
+        details.loadFromFile(detailResultPath.string());
+        std::string outputFolder = detailResultPath.parent_path().string() + separator + ".." + separator +
+                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
+                                   detailResultPath.filename().string() + ".xlsx";
+        joda::pipeline::reporting::ReportGenerator::flushReportToFile(
+            details, {}, outputFolder, joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
+
+        // Summary
+        //   joda::results::WorkSheet overview;
+        //   overview.loadFromFile(detailResultPath.getFilePath().string());
+        //   std::string outputFolder = detailResultPath.getFilePath().parent_path().string() + "/../reports/" +
+        //                              detailResultPath.getFilePath().filename().string() + ".xlsx";
+        //   joda::pipeline::reporting::ReportGenerator::flushReportToFile(
+        //       overview, {}, outputFolder, joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL,
+        //       true);
+      });
+}
+
+///
+/// \brief      Export to xlsx
+/// \author     Joachim Danmayr
+///
+void PanelReporting::onExportToXlsxHeatmapClicked()
+{
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
+
+  QStringList pieces = mHeatmapSlice->getValue().split(",");
+  std::set<int> sizes;
+  for(const auto &part : pieces) {
+    bool okay = false;
+    int idx   = part.toInt(&okay);
+    if(okay) {
+      sizes.emplace(idx);
     }
   }
 
-  // Details summary
-  for(const auto &detailResultPath : imageResults) {
-    joda::results::WorkSheet details;
-    details.loadFromFile(detailResultPath.string());
+  // Write summary
+  mExcelExporter = std::make_shared<ReportingExporterThread>(
+      mProgressHeatmap, mButtonExportHeatmap, mDirWatcher,
+      [](const std::filesystem::path &overviewPath) {
+        joda::results::WorkSheet alloverReport;
+        alloverReport.loadFromFile(overviewPath.string());
 
-    std::string outputFolder =
-        detailResultPath.parent_path().string() + "/../reports/" + detailResultPath.filename().string() + ".xlsx";
-    joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-        details, {}, outputFolder, joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
-  }
-  /* if(mAnalyzeSettings.experimentSettings.generateHeatmapForImage) {
-     joda::pipeline::reporting::Heatmap::createHeatMapForImage(
-         mAnalyzeSettings, detailReport, propsOut.props.width, propsOut.props.height,
-         detailOutputFolder + separator + "heatmap_image_" + mJobName + ".xlsx");
-   }*/
+        auto resultsFile = overviewPath.parent_path().string() + separator + ".." + separator +
+                           joda::results::REPORT_EXPORT_FOLDER_PATH + separator + overviewPath.filename().string() +
+                           "_heatmap.xlsx";
+
+        joda::pipeline::reporting::Heatmap::createAllOverHeatMap(alloverReport, resultsFile, "overview");
+      },
+      [](const std::filesystem::path &detailResultPath) {
+        joda::results::WorkSheet detailReport;
+        detailReport.loadFromFile(detailResultPath.string());
+
+        auto resultsFile = detailResultPath.parent_path().string() + separator + ".." + separator +
+                           joda::results::REPORT_EXPORT_FOLDER_PATH + separator + detailResultPath.filename().string() +
+                           "_heatmap.xlsx";
+
+        joda::pipeline::reporting::Heatmap::createHeatMapForImage(detailReport, resultsFile);
+      });
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -9,6 +9,9 @@
         <file>helptext/image_filter_histogram_threshold_filter.json</file>
     </qresource>
     <qresource prefix="/icons">
+        <file>outlined/icons8-table-top-view-50.png</file>
+        <file>outlined/icons8-heat-map-50.png</file>
+        <file>outlined/icons8-gantt-chart-50.png</file>
         <file>outlined/icons8-export-excel-50.png</file>
         <file>outlined/icons8-graph-50.png</file>
         <file>outlined/icons8-histogram-50-01.png</file>

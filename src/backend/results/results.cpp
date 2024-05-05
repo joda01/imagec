@@ -233,11 +233,15 @@ auto WorkSheet::getGroups() const -> const std::map<GroupKey, Group> &
 /// \param[out]
 /// \return
 ///
-void WorkSheet::saveToFile(std::string filename, const Meta &meta)
+void WorkSheet::saveToFile(std::string filename, const Meta &meta, const ExperimentSettings &experimentSettings,
+                           std::optional<ImageMeta> imgMeta)
 {
-  this->meta = meta;
+  this->meta               = meta;
+  this->experimentSettings = experimentSettings;
+  this->imageMeta          = imgMeta;
   if(!filename.empty()) {
     nlohmann::json json = *this;
+    settings::removeNullValues(json);
     if(!filename.ends_with(".json")) {
       filename += ".json";
     }

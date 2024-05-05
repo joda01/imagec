@@ -18,7 +18,9 @@
 #include <filesystem>
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <thread>
+#include <type_traits>
 #include "file_info.hpp"
 #include "helper.hpp"
 
@@ -26,14 +28,18 @@ namespace joda::helper {
 
 using namespace std::filesystem;
 
-class ImageFileContainer
+template <class T>
+concept FileInfo_t = std::is_base_of<FileInfo, T>::value;
+
+template <FileInfo_t FILEINFO>
+class DirectoryWatcher
 {
 public:
-  ImageFileContainer()
+  DirectoryWatcher(const std::set<std::string> &supportedFileFormats) : mSupportedFormats(supportedFileFormats)
   {
   }
 
-  ~ImageFileContainer()
+  ~DirectoryWatcher()
   {
     stop();
   }
@@ -50,7 +56,7 @@ public:
         mListOfImagePaths.clear();
       } else {
         stop();
-        mWorkerThread = std::make_shared<std::thread>(&ImageFileContainer::lookForImagesInFolderAndSubfolder, this);
+        mWorkerThread = std::make_shared<std::thread>(&DirectoryWatcher::lookForImagesInFolderAndSubfolder, this);
       }
     }
   }
@@ -78,7 +84,7 @@ public:
   /// \brief      Blocks until the file search loop has been finished
   /// \author     Joachim Danmayr
   ///
-  void waitForFinished()
+  void waitForFinished() const
   {
     if(mWorkerThread && mWorkerThread->joinable()) {
       mWorkerThread->join();
@@ -98,7 +104,7 @@ public:
   /// \brief      Returns list of found files
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFilesList() const -> const std::vector<FileInfo> &
+  [[nodiscard]] auto getFilesList() const -> const std::vector<FILEINFO> &
   {
     return mListOfImagePaths;
   }
@@ -107,12 +113,12 @@ public:
   /// \brief      Returns a file on a specific index
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFileAt(uint32_t idx) const -> FileInfo
+  [[nodiscard]] auto getFileAt(uint32_t idx) const -> FILEINFO
   {
     if(idx < mListOfImagePaths.size()) {
       return mListOfImagePaths.at(idx);
     }
-    return FileInfo{};
+    throw std::runtime_error("File with index idx does not exist!");
   }
 
   ///
@@ -138,8 +144,9 @@ private:
     for(recursive_directory_iterator i(mWorkingDirectory), end; i != end; ++i) {
       try {
         if(!is_directory(i->path())) {
-          FileInfo fi(*i);
-          if(fi.isSupported()) {
+          FILEINFO fi;
+          auto supported = fi.parseFile(*i, mSupportedFormats);
+          if(supported) {
             mListOfImagePaths.push_back(fi);
           }
         }
@@ -154,9 +161,9 @@ private:
   }
 
   /////////////////////////////////////////////////////
-
+  std::set<std::string> mSupportedFormats;
   std::string mWorkingDirectory;
-  std::vector<FileInfo> mListOfImagePaths;
+  std::vector<FILEINFO> mListOfImagePaths;
   bool mIsStopped = false;
   bool mIsRunning = false;
   std::shared_ptr<std::thread> mWorkerThread;

@@ -43,29 +43,7 @@ public:
   //
   std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
 
-  //
-  // Generate a heatmap for grouped images
-  //
-  bool generateHeatmapForPlate = false;
-
-  //
-  // Generate a heatmap for a well
-  //
-  bool generateHeatmapForWell = false;
-
-  //
-  // Generate a heatmap for each image
-  //
-  bool generateHeatmapForImage = false;
-
-  //
-  // With of the square used for heatmap creation in image
-  //
-  std::set<int32_t> imageHeatmapAreaSizes{100, 200};
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, groupBy, filenameRegex, wellImageOrder,
-                                              generateHeatmapForPlate, generateHeatmapForWell, imageHeatmapAreaSizes,
-                                              generateHeatmapForImage);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, groupBy, filenameRegex, wellImageOrder);
 };
 
 // map TaskState values to JSON as strings
