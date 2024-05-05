@@ -49,12 +49,11 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm), mDirWatcher({"
   //
   {
     auto [verticalLayoutXlsx, _2] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-    verticalLayoutXlsx->addWidget(createTitle("Start export"));
-    mButtonExportExcel = new ContainerButton("Export as xlsx", "icons8-export-excel-50.png", mWindowMain);
+    verticalLayoutXlsx->addWidget(createTitle("Export as xlsx"));
+    mButtonExportExcel = new ContainerButton("Start export", "icons8-export-excel-50.png", mWindowMain);
     connect(mButtonExportExcel, &ContainerButton::valueChanged, this, &PanelReporting::onExportToXlsxClicked);
     verticalLayoutXlsx->addWidget(mButtonExportExcel->getEditableWidget());
-    mProgressExportExcel = new QProgressBar(_2);
-    mProgressExportExcel->setVisible(false);
+    mProgressExportExcel = createProgressBar(_2);
     verticalLayoutXlsx->addWidget(mProgressExportExcel);
     _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
@@ -81,8 +80,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm), mDirWatcher({"
     mButtonExportHeatmap = new ContainerButton("Start export", "icons8-heat-map-50.png", mWindowMain);
     connect(mButtonExportHeatmap, &ContainerButton::valueChanged, this, &PanelReporting::onExportToXlsxHeatmapClicked);
     verticalLayoutHeatmap->addWidget(mButtonExportHeatmap->getEditableWidget());
-    mProgressHeatmap = new QProgressBar(layout);
-    mProgressHeatmap->setVisible(false);
+    mProgressHeatmap = createProgressBar(layout);
     verticalLayoutHeatmap->addWidget(mProgressHeatmap);
     layout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
@@ -98,6 +96,16 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm), mDirWatcher({"
 
 PanelReporting::~PanelReporting()
 {
+}
+
+QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
+{
+  QProgressBar *progress = new QProgressBar(parent);
+  progress->setVisible(false);
+  progress->setMaximumHeight(8);
+  progress->setTextVisible(false);
+  progress->setContentsMargins(8, 8, 8, 0);
+  return progress;
 }
 
 void PanelReporting::setActualSelectedResultsFolder(const QString &folder)
