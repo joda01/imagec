@@ -116,7 +116,6 @@ int DialogChannelMeasurement::exec()
 
   std::set<Base> details;
   std::set<Combi> overview;
-  std::set<Combi> heatmap;
 
   for(auto const &[key, val] : mMeasurementDetailsReport) {
     if(val->isChecked()) {
