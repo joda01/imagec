@@ -29,7 +29,7 @@ class Heatmap
 {
 public:
   /////////////////////////////////////////////////////
-  static void createHeatMapForImage(const std::vector<int32_t> &imageHeatmapAreaSizes,
+  static void createHeatMapForImage(const std::set<int32_t> &imageHeatmapAreaSizes,
                                     const joda::results::ReportingSettings &reportingSettings,
                                     const joda::results::WorkSheet &containers, const std::string &fileName);
   static void createAllOverHeatMap(const joda::results::ReportingSettings &reportingSettings,

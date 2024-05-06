@@ -22,6 +22,7 @@
 #include <regex>
 #include <stdexcept>
 #include <string>
+#include <variant>
 #include <vector>
 #include "backend/duration_count/duration_count.h"
 #include "backend/image_processing/roi/roi.hpp"
@@ -37,7 +38,7 @@
 
 namespace joda::pipeline::reporting {
 
-void Heatmap::createHeatMapForImage(const std::vector<int32_t> &imageHeatmapAreaSizes,
+void Heatmap::createHeatMapForImage(const std::set<int32_t> &imageHeatmapAreaSizes,
                                     const joda::results::ReportingSettings &reportingSettings,
                                     const joda::results::WorkSheet &containers, const std::string &fileName)
 {
@@ -68,12 +69,11 @@ void Heatmap::createHeatMapForImage(const std::vector<int32_t> &imageHeatmapArea
   for(const auto heatMapSquareWidthIn : imageHeatmapAreaSizes) {
     struct Square
     {
-      uint64_t nrOfValid  = 0;
-      double avgIntensity = 0;
-      double avgAreaSize  = 0;
-      uint64_t cnt        = 0;
-      uint64_t x          = 0;
-      uint64_t y          = 0;
+      std::map<MeasureKey, double> vals;
+      uint64_t nrOfValid = 0;
+      uint64_t cnt       = 0;
+      uint64_t x         = 0;
+      uint64_t y         = 0;
     };
     int64_t heatMapWidth = heatMapSquareWidthIn;
     if(heatMapWidth <= 0) {
@@ -87,129 +87,87 @@ void Heatmap::createHeatMapForImage(const std::vector<int32_t> &imageHeatmapArea
       heatmapSquares->at(x) = std::vector<Square>(nrOfSquaresY);
     }
 
-    auto sheets = std::make_shared<std::map<joda::settings::ChannelIndex, lxw_worksheet *>>();
-
     //
     // Build the map
     //
-    for(const auto &[channelIdx, table] : containers.getChannels()) {
-      std::string tabName = table.getTableName() + "_" + std::to_string(heatMapWidth) + "x" +
-                            std::to_string(heatMapWidth) + "(" + joda::settings::to_string(channelIdx) + ")";
-      if(!sheets->contains(channelIdx)) {
-        sheets->emplace(channelIdx, workbook_add_worksheet(workbook, tabName.data()));
-      }
+    for(const auto &[groupName, group] : containers.getGroups()) {
+      for(const auto &[channelIdx, results] : group.getChannels()) {
+        std::string tabName = results.getChannelMeta().name + "_" + std::to_string(heatMapWidth) + "x" +
+                              std::to_string(heatMapWidth) + "(" + joda::settings::to_string(channelIdx) + ")";
+        auto *worksheet = workbook_add_worksheet(workbook, tabName.data());
 
-      for(int row = 0; row < table.getNrOfRows(); row++) {
-        if(table.columnKeyExists(joda::results::getMaskedMeasurementChannel(
-               settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X, channelIdx)) &&
-           table.getTable()
-               .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
-                   settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X, channelIdx)))
-               .contains(row)) {
-          int64_t xCo = std::get<double>(
-              table.getTable()
-                  .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
-                      settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X, channelIdx)))
-                  .at(row)
-                  .val);
-          int64_t yCo = std::get<double>(
-              table.getTable()
-                  .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
-                      settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_Y, channelIdx)))
-                  .at(row)
-                  .val);
-          if(xCo > imageWidth) {
-            xCo = imageWidth;
-          }
-          if(yCo > imageHeight) {
-            yCo = imageHeight;
-          }
+        const int ROW_OFFSET_START = 2;
+        int rowOffset              = ROW_OFFSET_START;
+        for(auto const &[measureCh, measureChMeta] : results.getMeasuredChannels()) {
+          if(reportingSettings.detail.measureChannels.contains(measureCh.getMeasureChannel())) {
+            // Create Frames
 
-          int64_t squareXidx = xCo / heatMapWidth;
-          int64_t squareYidx = yCo / heatMapWidth;
-
-          double intensity = 0;
-          double areaSize  = 0;
-          bool valid       = false;
-          if(table.getTable()
-                 .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
-                     settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG, channelIdx)))
-                 .contains(row)) {
-            intensity = std::get<double>(
-                table.getTable()
-                    .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
-                        settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG, channelIdx)))
-                    .at(row)
-                    .val);
-            valid = table.getTable()
-                        .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
-                            settings::ChannelReportingSettings::MeasureChannels::VALIDITY, channelIdx)))
-                        .at(row)
-                        .isValid;
-          }
-          if(table.getTable()
-                 .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
-                     settings::ChannelReportingSettings::MeasureChannels::AREA_SIZE, channelIdx)))
-                 .contains(row)) {
-            areaSize =
-                std::get<double>(table.getTable()
-                                     .at(table.getColIndexFromKey(joda::results::getMaskedMeasurementChannel(
-                                         settings::ChannelReportingSettings::MeasureChannels::AREA_SIZE, channelIdx)))
-                                     .at(row)
-                                     .val);
-          }
-
-          if(valid) {
-            heatmapSquares->at(squareXidx)[squareYidx].nrOfValid += 1;
-            heatmapSquares->at(squareXidx)[squareYidx].avgIntensity += intensity;
-            heatmapSquares->at(squareXidx)[squareYidx].avgAreaSize += areaSize;
-            heatmapSquares->at(squareXidx)[squareYidx].cnt++;
-          }
-
-          if(heatmapSquares->at(squareXidx)[squareYidx].x == 0) {
-            heatmapSquares->at(squareXidx)[squareYidx].x = xCo;
-            heatmapSquares->at(squareXidx)[squareYidx].y = yCo;
+            // Paint the heatmap header
+            worksheet_write_string(worksheet, rowOffset - 1, 0, measureChMeta.name.data(), NULL);
+            paintPlateBorder(worksheet, nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
+            rowOffset = nrOfSquaresY + ROW_OFFSET_START + 4;
           }
         }
-      }
 
-      ////////////////////////////////////////////////////////////////////////////////////
-      //
-      // Paint the heatmap
-      const int ROW_OFFSET_START = 2;
+        for(const auto &[objKey, image] : results.getObjects()) {
+          auto imageMeta = image.getImageMeta();
+          if(imageMeta.has_value()) {
+            auto measureKeyX =
+                joda::results::MeasureChannelKey{results::ReportingSettings::MeasureChannels::CENTER_OF_MASS_X,
+                                                 results::ReportingSettings::MeasureChannelStat::VAL};
+            auto measureKeyY =
+                joda::results::MeasureChannelKey{results::ReportingSettings::MeasureChannels::CENTER_OF_MASS_Y,
+                                                 results::ReportingSettings::MeasureChannelStat::VAL};
+            auto xCo = std::get<double>(image.getMeasurements().at(measureKeyX).getVal());
+            auto yCo = std::get<double>(image.getMeasurements().at(measureKeyY).getVal());
 
-      int rowOffset = ROW_OFFSET_START;
-      worksheet_write_string(sheets->at(channelIdx), rowOffset - 1, 0, "Valid", NULL);
-      paintPlateBorder(sheets->at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
-      rowOffset = nrOfSquaresY + ROW_OFFSET_START + 4;
-      worksheet_write_string(sheets->at(channelIdx), rowOffset - 1, 0, "Intensity", NULL);
-      paintPlateBorder(sheets->at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
-      rowOffset = 2 * nrOfSquaresY + ROW_OFFSET_START + ROW_OFFSET_START + 6;
-      worksheet_write_string(sheets->at(channelIdx), rowOffset - 1, 0, "Area size", NULL);
-      paintPlateBorder(sheets->at(channelIdx), nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
+            if(xCo > imageMeta->width) {
+              xCo = imageMeta->width;
+            }
+            if(yCo > imageMeta->height) {
+              yCo = imageMeta->height;
+            }
 
-      for(int64_t x = 0; x < nrOfSquaresX; x++) {
-        for(int64_t y = 0; y < nrOfSquaresY; y++) {
-          rowOffset = ROW_OFFSET_START + 1;
+            int64_t squareXidx = xCo / heatMapWidth;
+            int64_t squareYidx = yCo / heatMapWidth;
 
-          worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
-                                 (double) heatmapSquares->at(x)[y].nrOfValid, numberFormat);
-          rowOffset = nrOfSquaresY + ROW_OFFSET_START + 5;
-          worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
-                                 (double) heatmapSquares->at(x)[y].avgIntensity / (double) heatmapSquares->at(x)[y].cnt,
-                                 numberFormat);
-          rowOffset = 2 * nrOfSquaresY + ROW_OFFSET_START + ROW_OFFSET_START + 7;
-          worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
-                                 (double) heatmapSquares->at(x)[y].avgAreaSize / (double) heatmapSquares->at(x)[y].cnt,
-                                 numberFormat);
-          // worksheet_write_number(sheets->at(channelIdx), rowOffset + y, x + 1,
-          //                        (double) heatmapSquares->at(x)[y].x * 1000000 + heatmapSquares->at(x)[y].y,
-          //                        numberFormat);
+            for(const auto &[measKey, val] : image.getMeasurements()) {
+              if(reportingSettings.detail.measureChannels.contains(measKey.getMeasureChannel())) {
+                if(image.getObjectMeta().valid) {
+                  heatmapSquares->at(squareXidx)[squareYidx].nrOfValid += 1;
+                  heatmapSquares->at(squareXidx)[squareYidx].vals[measKey] += std::get<double>(val.getVal());
+                  heatmapSquares->at(squareXidx)[squareYidx].cnt++;
+                }
+
+                if(heatmapSquares->at(squareXidx)[squareYidx].x == 0) {
+                  heatmapSquares->at(squareXidx)[squareYidx].x = xCo;
+                  heatmapSquares->at(squareXidx)[squareYidx].y = yCo;
+                }
+              }
+            }
+          }
+        }
+        rowOffset = ROW_OFFSET_START;
+
+        ////////////////////////////////////////////////////////////////////////////////////
+        //
+        // Paint the heatmap
+
+        for(int64_t x = 0; x < nrOfSquaresX; x++) {
+          for(int64_t y = 0; y < nrOfSquaresY; y++) {
+            rowOffset = ROW_OFFSET_START + 1;
+            for(const auto &[_, val] : heatmapSquares->at(x)[y].vals) {
+              double cnt = heatmapSquares->at(x)[y].cnt;
+              worksheet_write_number(worksheet, rowOffset + y, x + 1, val / cnt, numberFormat);
+              rowOffset += nrOfSquaresY + ROW_OFFSET_START + 5;
+            }
+          }
         }
       }
     }
     delete heatmapSquares;
   }
+
   workbook_close(workbook);
 }
 
