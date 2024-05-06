@@ -79,32 +79,6 @@ std::string Settings::getChannelNameOfChannelIndex(const joda::settings::Analyze
   return "Not Found";
 }
 
-const joda::settings::ChannelReportingSettings &
-Settings::getReportingSettingsForChannel(const joda::settings::AnalyzeSettings &settings,
-                                         joda::settings::ChannelIndex channelIdx)
-{
-  for(const auto &channelSettings : settings.channels) {
-    if(channelSettings.meta.channelIdx == channelIdx) {
-      return channelSettings.reporting;
-    }
-  }
-
-  for(const auto &channelSettings : settings.vChannels) {
-    if(channelSettings.$voronoi.has_value()) {
-      if(channelSettings.$voronoi->meta.channelIdx == channelIdx) {
-        return channelSettings.$voronoi->reporting;
-      }
-    }
-
-    if(channelSettings.$intersection.has_value()) {
-      if(channelSettings.$intersection->meta.channelIdx == channelIdx) {
-        return channelSettings.$intersection->reporting;
-      }
-    }
-  }
-  throw std::runtime_error("No reporting settings for channel found!");
-}
-
 const joda::settings::CrossChannelSettings &
 Settings::getCrossChannelSettingsForChannel(const joda::settings::AnalyzeSettings &settings,
                                             joda::settings::ChannelIndex channelIdx)

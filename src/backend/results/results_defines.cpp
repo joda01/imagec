@@ -15,15 +15,21 @@
 
 namespace joda::results {
 
-[[nodiscard]] joda::settings::ChannelReportingSettings::MeasureChannels MeasureChannelKey::getMeasureChannel() const
+[[nodiscard]] joda::results::ReportingSettings::MeasureChannels MeasureChannelKey::getMeasureChannel() const
 {
-  return static_cast<joda::settings::ChannelReportingSettings::MeasureChannels>((value & MEASURE_CHANNEL_MASK) >> 16);
+  return static_cast<joda::results::ReportingSettings::MeasureChannels>((value & MEASURE_CHANNEL_MASK) >> 16);
 }
 
-[[nodiscard]] joda::settings::ChannelReportingSettings::MeasureChannelStat MeasureChannelKey::getMeasureStats() const
+[[nodiscard]] joda::results::ReportingSettings::MeasureChannelStat MeasureChannelKey::getMeasureStats01() const
 {
-  return static_cast<joda::settings::ChannelReportingSettings::MeasureChannelStat>(
-      (value & MEASURE_CHANNEL_STATS_MASK) >> 8);
+  return static_cast<joda::results::ReportingSettings::MeasureChannelStat>((value & MEASURE_CHANNEL_STATS_01_MASK) >>
+                                                                           8);
+}
+
+[[nodiscard]] joda::results::ReportingSettings::MeasureChannelStat MeasureChannelKey::getMeasureStats02() const
+{
+  return static_cast<joda::results::ReportingSettings::MeasureChannelStat>((value & MEASURE_CHANNEL_STATS_02_MASK) >>
+                                                                           12);
 }
 
 [[nodiscard]] joda::settings::ChannelIndex MeasureChannelKey::getChannelIndex() const
@@ -31,20 +37,25 @@ namespace joda::results {
   return static_cast<joda::settings::ChannelIndex>((value & MEASURE_CHANNEL_INDEX_MASK) & MEASURE_CHANNEL_INDEX_MASK);
 }
 
+[[nodiscard]] ReportingSettings::MeasureChannelsCombi MeasureChannelKey::getMeasreChannelAndStatsCombo() const
+{
+  return static_cast<ReportingSettings::MeasureChannelsCombi>((value & MEASURE_CHANNEL_STATS_AND_MASK));
+}
+
 [[nodiscard]] std::string MeasureChannelKey::measurementStatsToString() const
 {
-  switch(getMeasureStats()) {
-    case settings::ChannelReportingSettings::MeasureChannelStat::AVG:
+  switch(getMeasureStats01()) {
+    case ReportingSettings::MeasureChannelStat::AVG:
       return "avg";
-    case settings::ChannelReportingSettings::MeasureChannelStat::SUM:
+    case ReportingSettings::MeasureChannelStat::SUM:
       return "sum";
-    case settings::ChannelReportingSettings::MeasureChannelStat::MIN:
+    case ReportingSettings::MeasureChannelStat::MIN:
       return "min";
-    case settings::ChannelReportingSettings::MeasureChannelStat::MAX:
+    case ReportingSettings::MeasureChannelStat::MAX:
       return "max";
-    case settings::ChannelReportingSettings::MeasureChannelStat::CNT:
+    case ReportingSettings::MeasureChannelStat::CNT:
       return "cnt";
-    case settings::ChannelReportingSettings::MeasureChannelStat::STD_DEV:
+    case ReportingSettings::MeasureChannelStat::STD_DEV:
       return "std devi.";
   }
   return "";
@@ -53,35 +64,35 @@ namespace joda::results {
 [[nodiscard]] std::string MeasureChannelKey::measurementChannelsToString() const
 {
   switch(getMeasureChannel()) {
-    case joda::settings::ChannelReportingSettings::MeasureChannels::CONFIDENCE:
+    case joda::results::ReportingSettings::MeasureChannels::CONFIDENCE:
       return "Confidence";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::AREA_SIZE:
+    case joda::results::ReportingSettings::MeasureChannels::AREA_SIZE:
       return "Area size";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::PERIMETER:
+    case joda::results::ReportingSettings::MeasureChannels::PERIMETER:
       return "Perimeter";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::CIRCULARITY:
+    case joda::results::ReportingSettings::MeasureChannels::CIRCULARITY:
       return "Circularity";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::VALIDITY:
+    case joda::results::ReportingSettings::MeasureChannels::VALIDITY:
       return "Validity";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::INVALIDITY:
+    case joda::results::ReportingSettings::MeasureChannels::INVALIDITY:
       return "Invalidity";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_X:
+    case joda::results::ReportingSettings::MeasureChannels::CENTER_OF_MASS_X:
       return "X";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::CENTER_OF_MASS_Y:
+    case joda::results::ReportingSettings::MeasureChannels::CENTER_OF_MASS_Y:
       return "Y";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG:
+    case joda::results::ReportingSettings::MeasureChannels::INTENSITY_AVG:
       return "Intensity Avg.";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN:
+    case joda::results::ReportingSettings::MeasureChannels::INTENSITY_MIN:
       return "Intensity Min.";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX:
+    case joda::results::ReportingSettings::MeasureChannels::INTENSITY_MAX:
       return "Intensity Max.";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL:
+    case joda::results::ReportingSettings::MeasureChannels::INTENSITY_AVG_CROSS_CHANNEL:
       return "Intensity Avg. in";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL:
+    case joda::results::ReportingSettings::MeasureChannels::INTENSITY_MIN_CROSS_CHANNEL:
       return "Intensity Min. in";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL:
+    case joda::results::ReportingSettings::MeasureChannels::INTENSITY_MAX_CROSS_CHANNEL:
       return "Intensity Max. in";
-    case joda::settings::ChannelReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL:
+    case joda::results::ReportingSettings::MeasureChannels::COUNT_CROSS_CHANNEL:
       return "Counted in";
   }
   return "UNKNOWN MEASURE CHANNEL";

@@ -24,7 +24,6 @@
 #include <thread>
 #include "../../window_main.hpp"
 #include "../container_function.hpp"
-#include "../dialog_channel_measurment.hpp"
 #include "container_voronoi.hpp"
 
 namespace joda::ui::qt {
@@ -66,17 +65,7 @@ void PanelVoronoiEdit::init()
   //
   // Measurement
   //
-  auto [verticalLayoutFuctions, _8] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)", 16, false);
-  verticalLayoutFuctions->addWidget(createTitle("Measurement"));
-  {
-    QPushButton *editMeasurment = new QPushButton("Measured data");
-    connect(editMeasurment, &QPushButton::pressed, this, &PanelVoronoiEdit::onEditMeasurementClicked);
-    verticalLayoutFuctions->addWidget(editMeasurment);
-  }
-
-  _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-  verticalLayoutContainer->addStretch(0);
+  // auto [verticalLayoutFuctions, _8] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)", 16, false);
 
   // Column 2
   auto [detectionContainer, _4]   = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
@@ -331,19 +320,6 @@ void PanelVoronoiEdit::onChannelTypeChanged()
 
 void PanelVoronoiEdit::updatePreview()
 {
-}
-
-///
-/// \brief      Edit measurements for this channel
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelVoronoiEdit::onEditMeasurementClicked()
-{
-  DialogChannelMeasurement measure(this, mParentContainer->mSettings.reporting);
-  measure.exec();
 }
 
 }    // namespace joda::ui::qt

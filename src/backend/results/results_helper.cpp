@@ -12,6 +12,7 @@
 ///
 
 #include "results_helper.hpp"
+#include <regex.h>
 #include <exception>
 #include <mutex>
 #include <optional>
@@ -28,15 +29,15 @@
 #include "backend/results/results_defines.hpp"
 #include "backend/results/results_image_meta.hpp"
 #include "backend/settings/analze_settings.hpp"
-#include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "backend/settings/experiment_settings.hpp"
 #include "backend/settings/settings.hpp"
 #include "results_math.hpp"
+#include "results_reporting_settings.hpp"
 
 namespace joda::results {
 
-using MeasureChannels    = joda::settings::ChannelReportingSettings::MeasureChannels;
-using MeasureChannelStat = joda::settings::ChannelReportingSettings::MeasureChannelStat;
+using MeasureChannels    = ReportingSettings::MeasureChannels;
+using MeasureChannelStat = ReportingSettings::MeasureChannelStat;
 
 ///
 /// \brief      Set detail report header

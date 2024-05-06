@@ -7,7 +7,6 @@
 #include "backend/settings/preprocessing/functions/margin_crop.hpp"
 #include "backend/settings/preprocessing/preprocessing_settings.hpp"
 #include <nlohmann/json.hpp>
-#include "channel_reporting_settings.hpp"
 #include "channel_settings_cross.hpp"
 #include "channel_settings_meta.hpp"
 
@@ -31,7 +30,6 @@ public:
   ChannelImageFilter imageFilter;
   Preprocessing preprocessing;
   CrossChannelSettings crossChannel;
-  ChannelReportingSettings reporting;
 
   [[nodiscard]] const ::std::string &schema() const
   {
@@ -42,6 +40,6 @@ private:
   ::std::string configSchema = "https://imagec.org/schemas/v1/channel-settings.json";
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, meta, detection, objectFilter, imageFilter,
-                                              preprocessing, crossChannel, reporting, configSchema);
+                                              preprocessing, crossChannel, configSchema);
 };
 }    // namespace joda::settings

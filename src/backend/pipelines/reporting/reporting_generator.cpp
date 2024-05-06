@@ -18,7 +18,6 @@
 #include "backend/pipelines/reporting/reporting_overview_xlsx.hpp"
 #include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
-#include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "backend/settings/settings.hpp"
 #include "reporting_details.xlsx.hpp"
 #include "xlsxwriter.h"
@@ -26,7 +25,7 @@
 namespace joda::pipeline::reporting {
 
 void ReportGenerator::flushReportToFile(const joda::results::WorkSheet &resultsWorkbook,
-                                        const joda::settings::ChannelReportingSettings &reportingSettings,
+                                        const joda::results::ReportingSettings &reportingSettings,
                                         const std::string &fileName, OutputFormat format, bool writeRunMeta)
 {
   lxw_workbook *workbook = workbook_new(fileName.data());

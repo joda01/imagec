@@ -3,7 +3,6 @@
 #pragma once
 
 #include <optional>
-#include "../channel/channel_reporting_settings.hpp"
 #include "../channel/channel_settings_cross.hpp"
 #include "../channel/channel_settings_meta.hpp"
 #include "backend/settings/vchannel/vchannel_intersection.hpp"

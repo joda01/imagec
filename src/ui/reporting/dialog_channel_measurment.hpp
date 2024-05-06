@@ -21,7 +21,7 @@
 #include <qwindow.h>
 #include <memory>
 #include <thread>
-#include "backend/settings/channel/channel_reporting_settings.hpp"
+#include "backend/results/results_reporting_settings.hpp"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
@@ -32,15 +32,14 @@ class DialogChannelMeasurement : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogChannelMeasurement(QWidget *windowMain, joda::settings::ChannelReportingSettings &reportingSettings);
+  DialogChannelMeasurement(QWidget *windowMain, joda::results::ReportingSettings &reportingSettings);
   int exec() override;
 
 private:
-  std::map<joda::settings::ChannelReportingSettings::MeasureChannelsCombi, QCheckBox *> mMeasurementOverViewReport;
-  std::map<joda::settings::ChannelReportingSettings::MeasureChannels, QCheckBox *> mMeasurementDetailsReport;
-  std::map<joda::settings::ChannelReportingSettings::MeasureChannelsCombi, QCheckBox *> mMeasurementHeatmapReport;
+  std::map<joda::results::ReportingSettings::MeasureChannelsCombi, QCheckBox *> mMeasurementOverViewReport;
+  std::map<joda::results::ReportingSettings::MeasureChannels, QCheckBox *> mMeasurementDetailsReport;
 
-  joda::settings::ChannelReportingSettings &mReportingSettings;
+  joda::results::ReportingSettings &mReportingSettings;
 
 private slots:
   void onOkayClicked();

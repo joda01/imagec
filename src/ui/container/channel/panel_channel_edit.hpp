@@ -76,7 +76,6 @@ private slots:
   void onChannelTypeChanged();
   void onDetectionModechanged();
   void updatePreview();
-  void onEditMeasurementClicked();
 };
 
 }    // namespace joda::ui::qt

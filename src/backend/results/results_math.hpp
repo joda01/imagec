@@ -15,11 +15,11 @@
 #include <variant>
 #include "backend/results/results.hpp"
 #include "backend/results/results_defines.hpp"
-#include "backend/settings/channel/channel_reporting_settings.hpp"
+#include "results_reporting_settings.hpp"
 
 namespace joda::results {
 
-using MeasureStat = joda::settings::ChannelReportingSettings::MeasureChannelStat;
+using MeasureStat = ReportingSettings::MeasureChannelStat;
 
 struct Stats
 {
@@ -48,18 +48,24 @@ inline Stats calcStats(const Channel &channel)
   //
   for(const auto &[objectKey, obj] : channel.getObjects()) {
     for(const auto &[measKey, val] : obj.getMeasurements()) {
-      double &avg = retStats.emplaceWithDefault(MeasureChannelKey{measKey, MeasureStat::AVG}, 0);
-      double &sum = retStats.emplaceWithDefault(MeasureChannelKey{measKey, MeasureStat::SUM}, 0);
+      double &avg =
+          retStats.emplaceWithDefault(MeasureChannelKey{measKey, measKey.getMeasureStats01(), MeasureStat::AVG}, 0);
+      double &sum =
+          retStats.emplaceWithDefault(MeasureChannelKey{measKey, measKey.getMeasureStats01(), MeasureStat::SUM}, 0);
       double &min =
-          retStats.emplaceWithDefault(MeasureChannelKey{measKey, MeasureStat::MIN}, std::numeric_limits<double>::max());
+          retStats.emplaceWithDefault(MeasureChannelKey{measKey, measKey.getMeasureStats01(), MeasureStat::MIN},
+                                      std::numeric_limits<double>::max());
       double &max =
-          retStats.emplaceWithDefault(MeasureChannelKey{measKey, MeasureStat::MAX}, std::numeric_limits<double>::min());
-      double &cnt    = retStats.emplaceWithDefault(MeasureChannelKey{measKey, MeasureStat::CNT}, 0);
-      double &stdDev = retStats.emplaceWithDefault(MeasureChannelKey{measKey, MeasureStat::STD_DEV}, 0);
+          retStats.emplaceWithDefault(MeasureChannelKey{measKey, measKey.getMeasureStats01(), MeasureStat::MAX},
+                                      std::numeric_limits<double>::min());
+      double &cnt =
+          retStats.emplaceWithDefault(MeasureChannelKey{measKey, measKey.getMeasureStats01(), MeasureStat::CNT}, 0);
+      double &stdDev =
+          retStats.emplaceWithDefault(MeasureChannelKey{measKey, measKey.getMeasureStats01(), MeasureStat::STD_DEV}, 0);
 
       if(std::holds_alternative<func::ParticleValidity>(val.getVal())) {
         auto validity = std::get<func::ParticleValidity>(val.getVal());
-        if(measKey.getMeasureChannel() == settings::ChannelReportingSettings::MeasureChannels::VALIDITY) {
+        if(measKey.getMeasureChannel() == ReportingSettings::MeasureChannels::VALIDITY) {
           if(obj.getObjectMeta().valid) {
             sum++;
             avg    = 0;
@@ -69,7 +75,7 @@ inline Stats calcStats(const Channel &channel)
           }
           cnt++;
 
-        } else if(measKey.getMeasureChannel() == settings::ChannelReportingSettings::MeasureChannels::INVALIDITY) {
+        } else if(measKey.getMeasureChannel() == ReportingSettings::MeasureChannels::INVALIDITY) {
           if(!obj.getObjectMeta().valid) {
             sum++;
             avg    = 0;
@@ -97,11 +103,11 @@ inline Stats calcStats(const Channel &channel)
   // Calc mean
   //
   for(auto &[measureKey, measure] : retStats.measurements) {
-    if(measureKey.getMeasureStats() == MeasureStat::AVG) {
-      auto cnt =
-          retStats[MeasureChannelKey{measureKey.getMeasureChannel(), MeasureStat::CNT, measureKey.getChannelIndex()}];
-      auto sum =
-          retStats[MeasureChannelKey{measureKey.getMeasureChannel(), MeasureStat::SUM, measureKey.getChannelIndex()}];
+    if(measureKey.getMeasureStats01() == MeasureStat::AVG) {
+      auto cnt = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), measureKey.getMeasureStats02(),
+                                            MeasureStat::CNT, measureKey.getChannelIndex()}];
+      auto sum = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), measureKey.getMeasureStats02(),
+                                            MeasureStat::SUM, measureKey.getChannelIndex()}];
       if(cnt > 0) {
         measure = sum / cnt;
       }
@@ -115,11 +121,11 @@ inline Stats calcStats(const Channel &channel)
     for(const auto &[measureKey, act] : obj.getMeasurements()) {
       if(std::holds_alternative<double>(act.getVal())) {
         if(obj.getObjectMeta().valid) {
-          auto &stdDev = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), MeasureStat::STD_DEV,
-                                                    measureKey.getChannelIndex()}];
+          auto &stdDev = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), measureKey.getMeasureStats02(),
+                                                    MeasureStat::STD_DEV, measureKey.getChannelIndex()}];
 
-          auto &avg   = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), MeasureStat::AVG,
-                                                 measureKey.getChannelIndex()}];
+          auto &avg   = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), measureKey.getMeasureStats02(),
+                                                 MeasureStat::AVG, measureKey.getChannelIndex()}];
           double diff = std::get<double>(act.getVal()) - avg;
           stdDev += diff * diff;
         }
@@ -131,11 +137,11 @@ inline Stats calcStats(const Channel &channel)
   // Calc standard deviation
   //
   for(auto &[measureKey, measure] : retStats.measurements) {
-    if(measureKey.getMeasureStats() == MeasureStat::STD_DEV) {
-      auto cnt =
-          retStats[MeasureChannelKey{measureKey.getMeasureChannel(), MeasureStat::CNT, measureKey.getChannelIndex()}];
-      auto &stdDev = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), MeasureStat::STD_DEV,
-                                                measureKey.getChannelIndex()}];
+    if(measureKey.getMeasureStats01() == MeasureStat::STD_DEV) {
+      auto cnt     = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), measureKey.getMeasureStats02(),
+                                            MeasureStat::CNT, measureKey.getChannelIndex()}];
+      auto &stdDev = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), measureKey.getMeasureStats02(),
+                                                MeasureStat::STD_DEV, measureKey.getChannelIndex()}];
       if(cnt > 0) {
         stdDev = std::sqrt(stdDev / (cnt - 1));
       }

@@ -24,7 +24,6 @@
 #include <thread>
 #include "../../window_main.hpp"
 #include "../container_function.hpp"
-#include "../dialog_channel_measurment.hpp"
 #include "container_intersection.hpp"
 
 namespace joda::ui::qt {
@@ -65,15 +64,7 @@ void PanelIntersectionEdit::init()
   //
   // Measurement
   //
-  auto [verticalLayoutFuctions, _8] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)", 16, false);
-  verticalLayoutFuctions->addWidget(createTitle("Measurement"));
-  {
-    QPushButton *editMeasurment = new QPushButton("Measured data");
-    connect(editMeasurment, &QPushButton::pressed, this, &PanelIntersectionEdit::onEditMeasurementClicked);
-    verticalLayoutFuctions->addWidget(editMeasurment);
-  }
-
-  _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  // auto [verticalLayoutFuctions, _8] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)", 16, false);
 
   verticalLayoutContainer->addStretch(0);
 
@@ -304,19 +295,6 @@ void PanelIntersectionEdit::onChannelTypeChanged()
 
 void PanelIntersectionEdit::updatePreview()
 {
-}
-
-///
-/// \brief      Edit measurements for this channel
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelIntersectionEdit::onEditMeasurementClicked()
-{
-  DialogChannelMeasurement measure(this, mParentContainer->mSettings.reporting);
-  measure.exec();
 }
 
 }    // namespace joda::ui::qt

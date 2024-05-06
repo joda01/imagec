@@ -33,8 +33,8 @@ struct Temp
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Temp, order);
 };
 
-using Base  = joda::settings::ChannelReportingSettings::MeasureChannels;
-using Combi = joda::settings::ChannelReportingSettings::MeasureChannelsCombi;
+using Base  = joda::results::ReportingSettings::MeasureChannels;
+using Combi = joda::results::ReportingSettings::MeasureChannelsCombi;
 
 ///
 /// \brief
@@ -44,7 +44,7 @@ using Combi = joda::settings::ChannelReportingSettings::MeasureChannelsCombi;
 /// \return
 ///
 DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain,
-                                                   joda::settings::ChannelReportingSettings &reportingSettings) :
+                                                   joda::results::ReportingSettings &reportingSettings) :
     QDialog(windowMain),
     mReportingSettings(reportingSettings)
 {
@@ -57,7 +57,6 @@ DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain,
 
   gridLayout->addWidget(new QLabel("Detail"), 0, 1, Qt::AlignCenter);
   gridLayout->addWidget(new QLabel("Overview"), 0, 2, Qt::AlignCenter);
-  gridLayout->addWidget(new QLabel("Heatmap"), 0, 3, Qt::AlignCenter);
 
   int row               = 1;
   auto createCheckBoxes = [this, &reportingSettings, &gridLayout, &groupBox,
@@ -68,10 +67,6 @@ DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain,
     QCheckBox *onOffOverview = new QCheckBox(groupBox);
     gridLayout->addWidget(onOffOverview, row, 2, Qt::AlignCenter);
     mMeasurementOverViewReport.emplace(type, onOffOverview);
-
-    QCheckBox *onOffHeatmap = new QCheckBox(groupBox);
-    gridLayout->addWidget(onOffHeatmap, row, 3, Qt::AlignCenter);
-    mMeasurementHeatmapReport.emplace(type, onOffHeatmap);
 
     if(detail.has_value()) {
       QCheckBox *onOffDetail = new QCheckBox(groupBox);
@@ -89,13 +84,6 @@ DialogChannelMeasurement::DialogChannelMeasurement(QWidget *windowMain,
     } else {
       onOffOverview->setChecked(false);
     }
-
-    if(reportingSettings.heatmap.measureChannels.contains(type)) {
-      onOffHeatmap->setChecked(true);
-    } else {
-      onOffHeatmap->setChecked(false);
-    }
-
     row++;
   };
 
@@ -142,15 +130,8 @@ int DialogChannelMeasurement::exec()
     }
   }
 
-  for(auto const &[key, val] : mMeasurementHeatmapReport) {
-    if(val->isChecked()) {
-      heatmap.emplace(key);
-    }
-  }
-
   mReportingSettings.detail.measureChannels   = details;
   mReportingSettings.overview.measureChannels = overview;
-  mReportingSettings.heatmap.measureChannels  = heatmap;
 
   return ret;
 }

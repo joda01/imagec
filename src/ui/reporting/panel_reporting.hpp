@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include "backend/helper/directory_iterator.hpp"
+#include "backend/results/results_reporting_settings.hpp"
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_function.hpp"
 #include "ui/helper/waitingspinnerwidget.hpp"
@@ -54,14 +55,18 @@ public:
 private:
   /////////////////////////////////////////////////////
   QProgressBar *mProgressExportExcel;
+  ContainerButton *mButtonReportingSettings;
   ContainerButton *mButtonExportExcel;
   std::shared_ptr<ReportingExporterThread> mExcelExporter;
+  results::ReportingSettings mExcelReportSettings;
 
   // Heatmap
   std::shared_ptr<ContainerFunction<QString, int>> mHeatmapSlice;
   std::shared_ptr<ContainerFunction<bool, bool>> mGenerateHeatmapForWells;
+  results::ReportingSettings mHeatmapReportSettings;
 
   QProgressBar *mProgressHeatmap;
+  ContainerButton *mButtonReportingSettingsHeatmap;
   ContainerButton *mButtonExportHeatmap;
   std::shared_ptr<ReportingExporterThread> mHeatmapExporter;
 
@@ -79,7 +84,11 @@ private:
   joda::helper::DirectoryWatcher<FileInfo> mDirWatcher;
 
 private slots:
+  void onExcelExportChannelsClicked();
+  void onHeatmapExportChannelsClicked();
+
   void onExportToXlsxClicked();
+
   void onExportToXlsxHeatmapClicked();
 };
 

@@ -8,7 +8,6 @@
 #include <qwindow.h>
 #include <memory>
 #include <thread>
-#include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include <nlohmann/json_fwd.hpp>
 

@@ -30,6 +30,7 @@
 #include "backend/pipelines/reporting/reporting_heatmap.hpp"
 #include "backend/results/results.hpp"
 #include "ui/reporting/exporter_thread.hpp"
+#include "dialog_channel_measurment.hpp"
 
 namespace joda::ui::qt {
 
@@ -50,6 +51,12 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm), mDirWatcher({"
   {
     auto [verticalLayoutXlsx, _2] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
     verticalLayoutXlsx->addWidget(createTitle("Export as xlsx"));
+
+    mButtonReportingSettings = new ContainerButton("Measure channel", "", mWindowMain);
+    connect(mButtonReportingSettings, &ContainerButton::valueChanged, this,
+            &PanelReporting::onExcelExportChannelsClicked);
+    verticalLayoutXlsx->addWidget(mButtonReportingSettings->getEditableWidget());
+
     mButtonExportExcel = new ContainerButton("Start export", "icons8-export-excel-50.png", mWindowMain);
     connect(mButtonExportExcel, &ContainerButton::valueChanged, this, &PanelReporting::onExportToXlsxClicked);
     verticalLayoutXlsx->addWidget(mButtonExportExcel->getEditableWidget());
@@ -75,6 +82,11 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm), mDirWatcher({"
         "icons8-table-top-view-50.png", "Generate heatmap for wells", "Generate heatmap for wells", false, mWindowMain,
         "heatmap_generate_for_well.json"));
     verticalLayoutHeatmap->addWidget(mGenerateHeatmapForWells->getEditableWidget());
+
+    mButtonReportingSettingsHeatmap = new ContainerButton("Measure channel", "", mWindowMain);
+    connect(mButtonReportingSettingsHeatmap, &ContainerButton::valueChanged, this,
+            &PanelReporting::onHeatmapExportChannelsClicked);
+    verticalLayoutHeatmap->addWidget(mButtonReportingSettingsHeatmap->getEditableWidget());
 
     // Export button
     mButtonExportHeatmap = new ContainerButton("Start export", "icons8-heat-map-50.png", mWindowMain);
@@ -125,32 +137,25 @@ void PanelReporting::onExportToXlsxClicked()
   // Write summary
   mExcelExporter = std::make_shared<ReportingExporterThread>(
       mProgressExportExcel, mButtonExportExcel, mDirWatcher,
-      [](const std::filesystem::path &overviewPath) {
+      [this](const std::filesystem::path &overviewPath) {
         joda::results::WorkSheet details;
         details.loadFromFile(overviewPath.string());
         std::string outputFolder = overviewPath.parent_path().string() + separator + ".." + separator +
                                    joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
                                    overviewPath.filename().string() + ".xlsx";
         joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-            details, {}, outputFolder, joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
+            details, mExcelReportSettings, outputFolder,
+            joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL, true);
       },
-      [](const std::filesystem::path &detailResultPath) {
+      [this](const std::filesystem::path &detailResultPath) {
         joda::results::WorkSheet details;
         details.loadFromFile(detailResultPath.string());
         std::string outputFolder = detailResultPath.parent_path().string() + separator + ".." + separator +
                                    joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
                                    detailResultPath.filename().string() + ".xlsx";
         joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-            details, {}, outputFolder, joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
-
-        // Summary
-        //   joda::results::WorkSheet overview;
-        //   overview.loadFromFile(detailResultPath.getFilePath().string());
-        //   std::string outputFolder = detailResultPath.getFilePath().parent_path().string() + "/../reports/" +
-        //                              detailResultPath.getFilePath().filename().string() + ".xlsx";
-        //   joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-        //       overview, {}, outputFolder, joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL,
-        //       true);
+            details, mExcelReportSettings, outputFolder,
+            joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
       });
 }
 
@@ -175,26 +180,44 @@ void PanelReporting::onExportToXlsxHeatmapClicked()
   // Write summary
   mExcelExporter = std::make_shared<ReportingExporterThread>(
       mProgressHeatmap, mButtonExportHeatmap, mDirWatcher,
-      [](const std::filesystem::path &overviewPath) {
+      [this](const std::filesystem::path &overviewPath) {
         joda::results::WorkSheet alloverReport;
         alloverReport.loadFromFile(overviewPath.string());
-
         auto resultsFile = overviewPath.parent_path().string() + separator + ".." + separator +
                            joda::results::REPORT_EXPORT_FOLDER_PATH + separator + overviewPath.filename().string() +
                            "_heatmap.xlsx";
 
-        joda::pipeline::reporting::Heatmap::createAllOverHeatMap({}, alloverReport, resultsFile);
+        joda::pipeline::reporting::Heatmap::createAllOverHeatMap(mHeatmapReportSettings, alloverReport, resultsFile);
       },
-      [](const std::filesystem::path &detailResultPath) {
+      [this](const std::filesystem::path &detailResultPath) {
         joda::results::WorkSheet detailReport;
         detailReport.loadFromFile(detailResultPath.string());
-
         auto resultsFile = detailResultPath.parent_path().string() + separator + ".." + separator +
                            joda::results::REPORT_EXPORT_FOLDER_PATH + separator + detailResultPath.filename().string() +
                            "_heatmap.xlsx";
 
-        joda::pipeline::reporting::Heatmap::createHeatMapForImage(detailReport, resultsFile);
+        joda::pipeline::reporting::Heatmap::createHeatMapForImage(mHeatmapReportSettings, detailReport, resultsFile);
       });
+}
+
+///
+/// \brief      Edit measurements for this channel
+/// \author     Joachim Danmayr
+///
+void PanelReporting::onExcelExportChannelsClicked()
+{
+  DialogChannelMeasurement measure(mWindowMain, mExcelReportSettings);
+  measure.exec();
+}
+
+///
+/// \brief      Edit measurements for this channel
+/// \author     Joachim Danmayr
+///
+void PanelReporting::onHeatmapExportChannelsClicked()
+{
+  DialogChannelMeasurement measure(mWindowMain, mHeatmapReportSettings);
+  measure.exec();
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -818,7 +818,7 @@ void WindowMain::onOpenReportingAreaClicked()
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(false);
   mOpenReportingArea->setVisible(false);
-  mStackedWidget->setCurrentIndex(2);
+  mStackedWidget->setCurrentIndex(mStackedWidget->count() - 1);
 }
 
 ///

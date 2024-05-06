@@ -14,7 +14,7 @@ namespace joda::pipeline::reporting {
 /// \author     Joachim Danmayr
 /// \param[in]  fileName  Name of the output report file
 ///
-std::tuple<int, int> DetailReport::writeReport(const joda::settings::ChannelReportingSettings &reportingSettings,
+std::tuple<int, int> DetailReport::writeReport(const joda::results::ReportingSettings &reportingSettings,
                                                const joda::results::Channel &results, int colOffset, int /*rowOffset*/,
                                                lxw_worksheet *worksheet, lxw_format *header, lxw_format *headerInvalid,
                                                lxw_format *merge_format, lxw_format *numberFormat,

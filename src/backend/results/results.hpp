@@ -27,7 +27,6 @@
 #include "backend/results/results_defines.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_index.hpp"
-#include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "backend/settings/settings.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
 #include "results_image_meta.hpp"

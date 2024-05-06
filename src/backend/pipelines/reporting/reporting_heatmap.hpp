@@ -29,8 +29,9 @@ class Heatmap
 {
 public:
   /////////////////////////////////////////////////////
-  static void createHeatMapForImage(const joda::results::WorkSheet &containers, const std::string &fileName);
-  static void createAllOverHeatMap(const joda::settings::ChannelReportingSettings &reportingSettings,
+  static void createHeatMapForImage(const joda::results::ReportingSettings &reportingSettings,
+                                    const joda::results::WorkSheet &containers, const std::string &fileName);
+  static void createAllOverHeatMap(const joda::results::ReportingSettings &reportingSettings,
                                    joda::results::WorkSheet &allOverReport, const std::string &outputFolder);
 
 private:
@@ -43,7 +44,7 @@ private:
   static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,
                                lxw_format *numberFormat);
 
-  static void createHeatmapOfWellsForGroup(const joda::settings::ChannelReportingSettings &reportingSettings,
+  static void createHeatmapOfWellsForGroup(const joda::results::ReportingSettings &reportingSettings,
                                            const std::string &outputFolder, const std::string &groupName,
                                            const std::map<int32_t, results::ImgPositionInWell> &wellOrder,
                                            int32_t sizeX, int32_t sizeY, const joda::results::Group &groupReports);

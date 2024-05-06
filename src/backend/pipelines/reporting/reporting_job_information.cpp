@@ -45,7 +45,7 @@ void JobInformation::writeReport(const joda::results::WorkSheet &results, lxw_wo
   writeRow("Version", Version::getVersion());
   writeRow("Build", Version::getBuildTime());
   emptyLine(2);
-  auto meta = results.getJobMeta();
+  const results::JobMeta &meta = results.getJobMeta();
   writeRow("Job name", meta.jobName);
   writeRow("Job started at", joda::helper::timepointToIsoString(meta.timeStarted));
   writeRow("Job finished at", joda::helper::timepointToIsoString(meta.timeFinished));

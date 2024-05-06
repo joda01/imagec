@@ -24,7 +24,6 @@
 #include <thread>
 #include "../../window_main.hpp"
 #include "../container_function.hpp"
-#include "../dialog_channel_measurment.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 #include "container_giraf.hpp"
 

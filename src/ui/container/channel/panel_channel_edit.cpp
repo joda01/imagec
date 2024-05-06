@@ -24,7 +24,6 @@
 #include <thread>
 #include "../../window_main.hpp"
 #include "../container_function.hpp"
-#include "../dialog_channel_measurment.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 #include "container_channel.hpp"
 
@@ -69,13 +68,8 @@ void PanelChannelEdit::init()
   _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   // Measurement
-  auto [measurement, _6] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)", 16, false);
-  measurement->addWidget(createTitle("Measurement"));
-  {
-    QPushButton *editMeasurment = new QPushButton("Measured data");
-    connect(editMeasurment, &QPushButton::pressed, this, &PanelChannelEdit::onEditMeasurementClicked);
-    measurement->addWidget(editMeasurment);
-  }
+  // auto [measurement, _6] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)", 16, false);
+  // measurement->addWidget(createTitle("Measurement"));
 
   verticalLayoutContainer->addStretch(0);
 
@@ -472,19 +466,6 @@ void PanelChannelEdit::updatePreview()
       mPreviewCounter++;
     }
   }
-}
-
-///
-/// \brief      Edit measurements for this channel
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelChannelEdit::onEditMeasurementClicked()
-{
-  DialogChannelMeasurement measure(this, mParentContainer->mSettings.reporting);
-  measure.exec();
 }
 
 }    // namespace joda::ui::qt

@@ -33,12 +33,12 @@
 #include "backend/results/results_helper.hpp"
 #include "backend/results/results_image_meta.hpp"
 #include "backend/settings/analze_settings.hpp"
-#include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "backend/settings/settings.hpp"
 
 namespace joda::pipeline::reporting {
 
-void Heatmap::createHeatMapForImage(const joda::results::WorkSheet &containers, const std::string &fileName)
+void Heatmap::createHeatMapForImage(const joda::results::ReportingSettings &reportingSettings,
+                                    const joda::results::WorkSheet &containers, const std::string &fileName)
 {
   /*
   lxw_workbook *workbook = workbook_new(fileName.data());
@@ -212,7 +212,7 @@ void Heatmap::createHeatMapForImage(const joda::results::WorkSheet &containers, 
 /// \brief      Create heatmap for all over reporting
 /// \author     Joachim Danmayr
 ///
-void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::ChannelReportingSettings &reportingSettings,
+void Heatmap::createHeatmapOfWellsForGroup(const joda::results::ReportingSettings &reportingSettings,
                                            const std::string &outputFileName, const std::string &groupName,
                                            const std::map<int32_t, results::ImgPositionInWell> &wellOrder,
                                            int32_t wellSizeX, int32_t wellSizeY,
@@ -314,7 +314,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::settings::ChannelReportin
 /// \brief      Create heatmap for all over reporting
 /// \author     Joachim Danmayr
 ///
-void Heatmap::createAllOverHeatMap(const joda::settings::ChannelReportingSettings &reportingSettings,
+void Heatmap::createAllOverHeatMap(const joda::results::ReportingSettings &reportingSettings,
                                    joda::results::WorkSheet &allOverReport, const std::string &outputFolder)
 {
   const int32_t PLATE_ROWS = 16;

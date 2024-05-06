@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "../channel/channel_reporting_settings.hpp"
 #include "../channel/channel_settings_cross.hpp"
 #include "../channel/channel_settings_meta.hpp"
 #include "backend/settings/channel/channel_settings_filter.hpp"
@@ -57,15 +56,13 @@ public:
 
   ChannelSettingsMeta meta;
   CrossChannelSettings crossChannel;
-  ChannelReportingSettings reporting;
   VoronoiGridSettings voronoi;
   VoronoiFiltering objectFilter;
 
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/voronoi-settings.json";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(VChannelVoronoi, meta, crossChannel, reporting, voronoi, objectFilter,
-                                              configSchema);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(VChannelVoronoi, meta, crossChannel, voronoi, objectFilter, configSchema);
 };
 
 }    // namespace joda::settings

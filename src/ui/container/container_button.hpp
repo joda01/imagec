@@ -31,9 +31,13 @@ public:
     layout->setContentsMargins(8, 8, 8, 0);
 
     mButton = new QPushButton(text, mEditable);
-    const QIcon icon(":/icons/outlined/" + iconName);
-    mButton->setIconSize({16, 16});
-    mButton->setIcon(icon);
+
+    if(!iconName.isEmpty()) {
+      const QIcon icon(":/icons/outlined/" + iconName);
+      mButton->setIconSize({16, 16});
+      mButton->setIcon(icon);
+    }
+
     layout->addWidget(mButton);
 
     connect(mButton, &QPushButton::pressed, this, &ContainerButton::onButtonPressed);

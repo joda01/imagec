@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "../channel/channel_reporting_settings.hpp"
 #include "../channel/channel_settings_cross.hpp"
 #include "../channel/channel_settings_meta.hpp"
 #include <nlohmann/json.hpp>
@@ -28,14 +27,12 @@ public:
 
   ChannelSettingsMeta meta;
   CrossChannelSettings crossChannel;
-  ChannelReportingSettings reporting;
   IntersectionSettings intersection;
 
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/intersectrion-settings.json";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(VChannelIntersection, meta, crossChannel, reporting, intersection,
-                                              configSchema);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(VChannelIntersection, meta, crossChannel, intersection, configSchema);
 };
 
 }    // namespace joda::settings
