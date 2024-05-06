@@ -121,10 +121,10 @@ inline Stats calcStats(const Channel &channel)
     for(const auto &[measureKey, act] : obj.getMeasurements()) {
       if(std::holds_alternative<double>(act.getVal())) {
         if(obj.getObjectMeta().valid) {
-          auto &stdDev = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), measureKey.getMeasureStats02(),
+          auto &stdDev = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), measureKey.getMeasureStats01(),
                                                     MeasureStat::STD_DEV, measureKey.getChannelIndex()}];
 
-          auto &avg   = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), measureKey.getMeasureStats02(),
+          auto &avg   = retStats[MeasureChannelKey{measureKey.getMeasureChannel(), measureKey.getMeasureStats01(),
                                                  MeasureStat::AVG, measureKey.getChannelIndex()}];
           double diff = std::get<double>(act.getVal()) - avg;
           stdDev += diff * diff;
