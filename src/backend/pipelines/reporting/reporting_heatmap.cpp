@@ -37,10 +37,10 @@
 
 namespace joda::pipeline::reporting {
 
-void Heatmap::createHeatMapForImage(const joda::results::ReportingSettings &reportingSettings,
+void Heatmap::createHeatMapForImage(const std::vector<int32_t> &imageHeatmapAreaSizes,
+                                    const joda::results::ReportingSettings &reportingSettings,
                                     const joda::results::WorkSheet &containers, const std::string &fileName)
 {
-  /*
   lxw_workbook *workbook = workbook_new(fileName.data());
   // Well header
   lxw_format *header = workbook_add_format(workbook);
@@ -60,7 +60,12 @@ void Heatmap::createHeatMapForImage(const joda::results::ReportingSettings &repo
 
   ////////////////////////////////////////////////////////////////////////////////////
   ////
-  for(const auto heatMapSquareWidthIn : analyzeSettings.experimentSettings.imageHeatmapAreaSizes) {
+  auto imageMeta = containers.getImageMeta();
+  if(!imageMeta.has_value()) {
+    throw std::runtime_error("No image meta!");
+  }
+
+  for(const auto heatMapSquareWidthIn : imageHeatmapAreaSizes) {
     struct Square
     {
       uint64_t nrOfValid  = 0;
@@ -72,10 +77,10 @@ void Heatmap::createHeatMapForImage(const joda::results::ReportingSettings &repo
     };
     int64_t heatMapWidth = heatMapSquareWidthIn;
     if(heatMapWidth <= 0) {
-      heatMapWidth = imageWidth;
+      heatMapWidth = imageMeta->width;
     }
-    int64_t nrOfSquaresX = (imageWidth / heatMapWidth) + 1;
-    int64_t nrOfSquaresY = (imageHeight / heatMapWidth) + 1;
+    int64_t nrOfSquaresX = (imageMeta->width / heatMapWidth) + 1;
+    int64_t nrOfSquaresY = (imageMeta->height / heatMapWidth) + 1;
 
     auto *heatmapSquares = new std::vector<std::vector<Square>>(nrOfSquaresX);
     for(int64_t x = 0; x < nrOfSquaresX; x++) {
@@ -205,7 +210,7 @@ void Heatmap::createHeatMapForImage(const joda::results::ReportingSettings &repo
     }
     delete heatmapSquares;
   }
-  workbook_close(workbook);*/
+  workbook_close(workbook);
 }
 
 ///
