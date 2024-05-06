@@ -46,7 +46,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::results::ReportingS
   //
   std::map<results::MeasureChannelKey, uint64_t> rowIndexes;
   const int SHEET_COL_OFFSET      = 2;
-  const int SHEET_COL_OFFSET_STAT = 6;
+  const int SHEET_COL_OFFSET_STAT = 4;
 
   int sheetRowIdx = 1;
 
@@ -80,8 +80,8 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::results::ReportingS
       writeStat(measureCh, results::MeasureStat::AVG);
       writeStat(measureCh, results::MeasureStat::MIN);
       writeStat(measureCh, results::MeasureStat::MAX);
-      writeStat(measureCh, results::MeasureStat::SUM);
-      writeStat(measureCh, results::MeasureStat::CNT);
+      // writeStat(measureCh, results::MeasureStat::SUM);
+      // writeStat(measureCh, results::MeasureStat::CNT);
       writeStat(measureCh, results::MeasureStat::STD_DEV);
 
       sheetRowIdx++;
