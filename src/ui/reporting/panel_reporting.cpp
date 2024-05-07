@@ -37,7 +37,7 @@ namespace joda::ui::qt {
 using namespace std::chrono_literals;
 using namespace std::filesystem;
 
-PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm), mDirWatcher({".msgpack"})
+PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelReporting");
@@ -120,10 +120,10 @@ QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
   return progress;
 }
 
-void PanelReporting::setActualSelectedResultsFolder(const QString &folder)
+void PanelReporting::setActualSelectedWorkingFile(const QString &imageCFile)
 {
-  mWindowMain->setMiddelLabelText(folder);
-  mDirWatcher.setWorkingDirectory(folder.toStdString());
+  mWindowMain->setMiddelLabelText(imageCFile);
+  mSelectedImageCFile = std::filesystem::path(imageCFile.toStdString());
 }
 
 ///
@@ -136,22 +136,19 @@ void PanelReporting::onExportToXlsxClicked()
 
   // Write summary
   mExcelExporter = std::make_shared<ReportingExporterThread>(
-      mProgressExportExcel, mButtonExportExcel, mDirWatcher,
-      [this](const std::filesystem::path &overviewPath) {
-        joda::results::WorkSheet details;
-        details.loadFromFile(overviewPath.string());
-        std::string outputFolder = overviewPath.parent_path().string() + separator + ".." + separator +
-                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator + overviewPath.stem().string();
+      mProgressExportExcel, mButtonExportExcel, mSelectedImageCFile,
+      [this](const results::WorkSheet &overviewPath) {
+        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator + ".." + separator +
+                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
+                                   results::RESULTS_SUMMARY_FILE_NAME + "_" + overviewPath.getJobMeta().jobName;
         joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-            details, mExcelReportSettings, outputFolder,
+            overviewPath, mExcelReportSettings, outputFolder,
             joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL, true);
       },
-      [this](const std::filesystem::path &detailResultPath) {
-        joda::results::WorkSheet details;
-        details.loadFromFile(detailResultPath.string());
-        std::string outputFolder = detailResultPath.parent_path().string() + separator + ".." + separator +
+      [this](const results::WorkSheet &details) {
+        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator + ".." + separator +
                                    joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
-                                   detailResultPath.stem().string();
+                                   results::RESULTS_IMAGE_FILE_NAME + "_" + details.getImageMeta()->imageFileName;
         joda::pipeline::reporting::ReportGenerator::flushReportToFile(
             details, mExcelReportSettings, outputFolder,
             joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
@@ -178,25 +175,21 @@ void PanelReporting::onExportToXlsxHeatmapClicked()
 
   // Write summary
   mExcelExporter = std::make_shared<ReportingExporterThread>(
-      mProgressHeatmap, mButtonExportHeatmap, mDirWatcher,
-      [this](const std::filesystem::path &overviewPath) {
-        joda::results::WorkSheet alloverReport;
-        alloverReport.loadFromFile(overviewPath.string());
-        std::string resultsFile = overviewPath.parent_path().string() + separator + ".." + separator +
-                                  joda::results::REPORT_EXPORT_FOLDER_PATH + separator + overviewPath.stem().string() +
-                                  "_heatmap";
+      mProgressHeatmap, mButtonExportHeatmap, mSelectedImageCFile,
+      [this](const results::WorkSheet &overviewPath) {
+        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator + ".." + separator +
+                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
+                                   results::RESULTS_SUMMARY_FILE_NAME + "_heatmap_" + overviewPath.getJobMeta().jobName;
 
-        joda::pipeline::reporting::Heatmap::createAllOverHeatMap(mHeatmapReportSettings, alloverReport, resultsFile);
+        joda::pipeline::reporting::Heatmap::createAllOverHeatMap(mHeatmapReportSettings, overviewPath, outputFolder);
       },
-      [this, sizes](const std::filesystem::path &detailResultPath) {
-        joda::results::WorkSheet detailReport;
-        detailReport.loadFromFile(detailResultPath.string());
-        std::string resultsFile = detailResultPath.parent_path().string() + separator + ".." + separator +
-                                  joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
-                                  detailResultPath.stem().string() + "_heatmap";
+      [this, sizes](const results::WorkSheet &details) {
+        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator + ".." + separator +
+                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
+                                   results::RESULTS_IMAGE_FILE_NAME + "_heatmap_" +
+                                   details.getImageMeta()->imageFileName;
 
-        joda::pipeline::reporting::Heatmap::createHeatMapForImage(sizes, mHeatmapReportSettings, detailReport,
-                                                                  resultsFile);
+        joda::pipeline::reporting::Heatmap::createHeatMapForImage(sizes, mHeatmapReportSettings, details, outputFolder);
       });
 }
 

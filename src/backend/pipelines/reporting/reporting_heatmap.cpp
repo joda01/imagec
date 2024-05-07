@@ -299,7 +299,7 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::results::ReportingSetting
 /// \author     Joachim Danmayr
 ///
 void Heatmap::createAllOverHeatMap(const joda::results::ReportingSettings &reportingSettings,
-                                   joda::results::WorkSheet &allOverReport, const std::string &outputFileName)
+                                   const joda::results::WorkSheet &allOverReport, const std::string &outputFileName)
 {
   const int32_t PLATE_ROWS       = 16;
   const int32_t PLATE_COLS       = 24;

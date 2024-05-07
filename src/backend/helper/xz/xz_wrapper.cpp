@@ -20,7 +20,7 @@
 namespace joda::helper::xz {
 
 // Function to create an XZ archive and add files to it
-int create_and_add_files(const std::string &archiveFilename, const std::string &filename1)
+int createAndAddFile(const std::string &archiveFilename, const std::string &filename1, const std::string &dataToWrite)
 {
   struct archive *a;
   struct archive_entry *entry;
@@ -43,15 +43,8 @@ int create_and_add_files(const std::string &archiveFilename, const std::string &
     return 1;
   }
 
-  FILE *file1 = fopen(filename1.data(), "rb");
-  char buff[8192];
-  ssize_t len;
+  archive_write_data(a, dataToWrite.data(), dataToWrite.size());
 
-  while((len = fread(buff, 1, sizeof(buff), file1)) > 0) {
-    archive_write_data(a, buff, len);
-  }
-
-  fclose(file1);
   archive_entry_free(entry);
 
   // Finish writing the archive
@@ -62,7 +55,7 @@ int create_and_add_files(const std::string &archiveFilename, const std::string &
 }
 
 // Function to list all files within the archive
-std::vector<std::string> list_files(const std::string &archiveFilename)
+std::vector<std::string> listFiles(const std::string &archiveFilename)
 {
   std::vector<std::string> fileList;
   struct archive *a;
@@ -93,7 +86,7 @@ std::vector<std::string> list_files(const std::string &archiveFilename)
 }
 
 // Function to read the content of a specific file within the archive
-std::string read_file(const char *archiveFilename, const char *filename)
+std::string readFile(const std::string &archiveFilename, const std::string &filename)
 {
   std::string content;
   struct archive *a;
@@ -104,7 +97,7 @@ std::string read_file(const char *archiveFilename, const char *filename)
   a = archive_read_new();
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
-  r = archive_read_open_filename(a, archiveFilename, 10240);
+  r = archive_read_open_filename(a, archiveFilename.data(), 10240);
   if(r != ARCHIVE_OK) {
     return content;
   }
@@ -112,7 +105,7 @@ std::string read_file(const char *archiveFilename, const char *filename)
   // Find the entry for the specified file
   while(archive_read_next_header(a, &entry) == ARCHIVE_OK) {
     const char *entryFilename = archive_entry_pathname(entry);
-    if(std::strcmp(entryFilename, filename) == 0) {
+    if(std::strcmp(entryFilename, filename.data()) == 0) {
       // Read the content of the file
       char buff[8192];
       ssize_t len;

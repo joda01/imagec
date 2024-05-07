@@ -106,6 +106,10 @@ static inline const std::string IMAGES_FOLDER_PATH{"images"};
 static inline const std::string RESULTS_SUMMARY_FILE_NAME{"results_summary"};
 static inline const std::string RESULTS_IMAGE_FILE_NAME{"results_image"};
 
+static inline const std::string RESULTS_XZ_FILE_NAME{"results"};
+static inline const std::string RESULTS_XZ_FILE_EXTENSION{".icm.xz"};
+static inline const std::string MESSAGE_PACK_FILE_EXTENSION{".mpack"};
+
 template <class T>
 concept Valid_t = std::is_same_v<T, bool> || std::is_same_v<T, func::ParticleValidity>;
 
@@ -321,6 +325,13 @@ public:
   {
     return jobMeta;
   }
+  void setMeta(const JobMeta &meta, const std::optional<ExperimentMeta> &experimentMeta,
+               std::optional<ImageMeta> imgMeta)
+  {
+    this->jobMeta        = meta;
+    this->experimentMeta = experimentMeta;
+    this->imageMeta      = imgMeta;
+  }
 
   [[nodiscard]] auto getExperimentMeta() const -> const std::optional<ExperimentMeta> &
   {
@@ -346,11 +357,15 @@ public:
     return groups.at("");
   }
 
+  auto serialize() const -> std::string;
+  auto deserialize(const std::string &);
+
+private:
+  /////////////////////////////////////////////////////
   void saveToFile(std::string filename, const JobMeta &meta, const std::optional<ExperimentMeta> &experimentMeta,
                   std::optional<ImageMeta> imgMeta);
   void loadFromFile(const std::string &filename);
 
-private:
   /////////////////////////////////////////////////////
   JobMeta jobMeta;
   std::optional<ImageMeta> imageMeta;
@@ -367,9 +382,11 @@ private:
 class WorkBook
 {
 public:
-  std::set<std::string> worksheets;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WorkBook, worksheets);
+  static auto openArchive(const std::string &xzFileName) -> std::vector<std::string>;
+  static void addWorksheetToArchive(const std::string &xzFileName, const WorkSheet &worksheet,
+                                    const std::string &filenameOfFileInArchive);
+  static auto readWorksheetFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
+      -> WorkSheet;
 };
 
 }    // namespace joda::results

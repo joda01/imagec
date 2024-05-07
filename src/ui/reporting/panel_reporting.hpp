@@ -15,6 +15,7 @@
 
 #include <qtmetamacros.h>
 #include <QtWidgets>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include "backend/helper/directory_iterator.hpp"
@@ -50,7 +51,7 @@ public:
       mIsActiveShown = false;
     }
   }
-  void setActualSelectedResultsFolder(const QString &folder);
+  void setActualSelectedWorkingFile(const QString &imageCFile);
 
 private:
   /////////////////////////////////////////////////////
@@ -81,7 +82,7 @@ private:
   WindowMain *mWindowMain;
   QLabel *createTitle(const QString &);
   bool mIsActiveShown = false;
-  joda::helper::DirectoryWatcher<FileInfo> mDirWatcher;
+  std::filesystem::path mSelectedImageCFile;
 
 private slots:
   void onExcelExportChannelsClicked();

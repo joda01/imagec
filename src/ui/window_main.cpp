@@ -36,6 +36,7 @@
 #include <thread>
 #include "backend/helper/random_name_generator.hpp"
 #include "backend/logger/console_logger.hpp"
+#include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/settings.hpp"
@@ -805,17 +806,22 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 ///
 void WindowMain::onOpenReportingAreaClicked()
 {
-  // Select imagec reporting file
   QString folderToOpen = QDir::homePath();
   if(!mSelectedWorkingDirectory.isEmpty()) {
     folderToOpen = mSelectedWorkingDirectory;
   }
-  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen);
 
-  if(selectedDirectory.isEmpty()) {
+  QFileDialog::Options opt;
+  opt.setFlag(QFileDialog::DontUseNativeDialog, false);
+
+  QString filePath = QFileDialog::getOpenFileName(
+      this, "Open File", folderToOpen,
+      "imageC Files (*." + QString(results::RESULTS_XZ_FILE_EXTENSION.data()) + ");;All Files (*)", nullptr, opt);
+
+  if(filePath.isEmpty()) {
     return;
   }
-  mPanelReporting->setActualSelectedResultsFolder(selectedDirectory);
+  mPanelReporting->setActualSelectedWorkingFile(filePath);
 
   // Open reporting area
   mBackButton->setEnabled(true);

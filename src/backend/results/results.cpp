@@ -13,6 +13,7 @@
 
 #include "results.hpp"
 #include <vector>
+#include "backend/helper/xz/xz_wrapper.hpp"
 #include "backend/results/results_defines.hpp"
 
 namespace joda::results {
@@ -216,7 +217,7 @@ auto WorkSheet::getGroups() const -> const std::map<GroupKey, Group> &
   return groups;
 }
 
-std::string removeJsonExtension(const std::string &filename)
+std::string removeFileExtension(const std::string &filename)
 {
   if(filename.size() >= 5 && filename.substr(filename.size() - 5) == ".json") {
     return filename.substr(0, filename.size() - 5);
@@ -237,7 +238,7 @@ void WorkSheet::saveToFile(std::string filename, const JobMeta &meta,
   this->jobMeta        = meta;
   this->experimentMeta = experimentMeta;
   this->imageMeta      = imgMeta;
-  filename             = removeJsonExtension(filename);
+  filename             = removeFileExtension(filename);
   if(!filename.empty()) {
     nlohmann::json json = *this;
     settings::removeNullValues(json);
@@ -271,6 +272,74 @@ void WorkSheet::loadFromFile(const std::string &filename)
   std::ifstream ifs(filename, std::ios::binary);
   *this = nlohmann::json::from_msgpack(ifs);
   ifs.close();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto WorkSheet::serialize() const -> std::string
+{
+  nlohmann::json json = *this;
+  settings::removeNullValues(json);
+  std::vector<uint8_t> data = nlohmann::json::to_msgpack(json);
+  return std::string(data.begin(), data.end());
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto WorkSheet::deserialize(const std::string &data)
+{
+  *this = nlohmann::json::from_msgpack(data);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto WorkBook::openArchive(const std::string &xzFileName) -> std::vector<std::string>
+{
+  return helper::xz::listFiles(xzFileName);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void WorkBook::addWorksheetToArchive(const std::string &xzFileName, const WorkSheet &worksheet,
+                                     const std::string &filenameOfFileInArchive)
+{
+  helper::xz::createAndAddFile(xzFileName + RESULTS_XZ_FILE_EXTENSION,
+                               filenameOfFileInArchive + MESSAGE_PACK_FILE_EXTENSION, worksheet.serialize());
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto WorkBook::readWorksheetFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
+    -> WorkSheet
+{
+  WorkSheet sheet;
+  sheet.deserialize(helper::xz::readFile(xzFileName, filenameOfFileInArchive));
+  return sheet;
 }
 
 }    // namespace joda::results

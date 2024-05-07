@@ -19,6 +19,7 @@
 #include <memory>
 #include <thread>
 #include "backend/helper/directory_iterator.hpp"
+#include "backend/results/results.hpp"
 
 namespace joda::ui::qt {
 
@@ -34,9 +35,9 @@ class ReportingExporterThread : public QObject
 public:
   /////////////////////////////////////////////////////
   ReportingExporterThread(QProgressBar *progressBar, QWidget *widgetToDeactivateDuringRuntime,
-                          const joda::helper::DirectoryWatcher<FileInfo> &,
-                          std::function<void(const std::filesystem::path &)> functionForOverview,
-                          std::function<void(const std::filesystem::path &)> functionForImages);
+                          const std::filesystem::path &,
+                          std::function<void(const results::WorkSheet &)> functionForOverview,
+                          std::function<void(const results::WorkSheet &)> functionForImages);
 
   ~ReportingExporterThread();
 
@@ -47,12 +48,12 @@ signals:
 private:
   void workerThread();
   /////////////////////////////////////////////////////
-  const joda::helper::DirectoryWatcher<FileInfo> &mDirWatcher;
+  const std::filesystem::path &mImageCPackFile;
   std::shared_ptr<std::thread> mWorkerThread;
   QProgressBar *mProgressBar;
   QWidget *mWidgetToDeactivateDuringRuntime;
-  std::function<void(const std::filesystem::path &)> mFunctionForOverview;
-  std::function<void(const std::filesystem::path &)> mFunctionForImages;
+  std::function<void(const results::WorkSheet &)> mFunctionForOverview;
+  std::function<void(const results::WorkSheet &)> mFunctionForImages;
 
 private slots:
   /////////////////////////////////////////////////////
