@@ -37,7 +37,7 @@ namespace joda::ui::qt {
 using namespace std::chrono_literals;
 using namespace std::filesystem;
 
-PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm), mDirWatcher({".json"})
+PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm), mDirWatcher({".msgpack"})
 {
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelReporting");

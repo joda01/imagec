@@ -12,6 +12,7 @@
 ///
 
 #include "results.hpp"
+#include <vector>
 #include "backend/results/results_defines.hpp"
 
 namespace joda::results {
@@ -242,16 +243,17 @@ void WorkSheet::saveToFile(std::string filename, const JobMeta &meta,
     settings::removeNullValues(json);
 
     // Write as json
-    {
-      std::ofstream out(filename + ".json");
-      out << json.dump(2);
-      out.close();
-    }
+    //{
+    //  std::ofstream out(filename + ".json");
+    //  out << json.dump(2);
+    //  out.close();
+    //}
 
     // Write as message pack
     {
-      std::ofstream out(filename + ".msgpack");
-      out << nlohmann::json::to_msgpack(json).data();
+      std::ofstream out(filename + ".msgpack", std::ios::out | std::ios::binary);
+      std::vector<uint8_t> data = nlohmann::json::to_msgpack(json);
+      out.write(reinterpret_cast<const char *>(data.data()), data.size());
       out.close();
     }
   }
@@ -266,8 +268,8 @@ void WorkSheet::saveToFile(std::string filename, const JobMeta &meta,
 ///
 void WorkSheet::loadFromFile(const std::string &filename)
 {
-  std::ifstream ifs(filename);
-  *this = nlohmann::json::parse(ifs);
+  std::ifstream ifs(filename, std::ios::binary);
+  *this = nlohmann::json::from_msgpack(ifs);
   ifs.close();
 }
 
