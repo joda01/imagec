@@ -1,1 +1,1 @@
-FROM joda001/imagec:v1.6.0 AS live
+FROM joda001/imagec:v1.7.0 AS live
