@@ -215,6 +215,14 @@ auto WorkSheet::getGroups() const -> const std::map<GroupKey, Group> &
   return groups;
 }
 
+std::string removeJsonExtension(const std::string &filename)
+{
+  if(filename.size() >= 5 && filename.substr(filename.size() - 5) == ".json") {
+    return filename.substr(0, filename.size() - 5);
+  }
+  return filename;
+}
+
 ///
 /// \brief
 /// \author
@@ -228,15 +236,24 @@ void WorkSheet::saveToFile(std::string filename, const JobMeta &meta,
   this->jobMeta        = meta;
   this->experimentMeta = experimentMeta;
   this->imageMeta      = imgMeta;
+  filename             = removeJsonExtension(filename);
   if(!filename.empty()) {
     nlohmann::json json = *this;
     settings::removeNullValues(json);
-    if(!filename.ends_with(".json")) {
-      filename += ".json";
+
+    // Write as json
+    {
+      std::ofstream out(filename + ".json");
+      out << json.dump(2);
+      out.close();
     }
-    std::ofstream out(filename);
-    out << json.dump(2);
-    out.close();
+
+    // Write as message pack
+    {
+      std::ofstream out(filename + ".msgpack");
+      out << nlohmann::json::to_msgpack(json).data();
+      out.close();
+    }
   }
 }
 
