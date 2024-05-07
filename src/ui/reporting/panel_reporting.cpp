@@ -141,8 +141,7 @@ void PanelReporting::onExportToXlsxClicked()
         joda::results::WorkSheet details;
         details.loadFromFile(overviewPath.string());
         std::string outputFolder = overviewPath.parent_path().string() + separator + ".." + separator +
-                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
-                                   overviewPath.filename().string() + ".xlsx";
+                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator + overviewPath.stem().string();
         joda::pipeline::reporting::ReportGenerator::flushReportToFile(
             details, mExcelReportSettings, outputFolder,
             joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL, true);
@@ -152,7 +151,7 @@ void PanelReporting::onExportToXlsxClicked()
         details.loadFromFile(detailResultPath.string());
         std::string outputFolder = detailResultPath.parent_path().string() + separator + ".." + separator +
                                    joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
-                                   detailResultPath.filename().string() + ".xlsx";
+                                   detailResultPath.stem().string();
         joda::pipeline::reporting::ReportGenerator::flushReportToFile(
             details, mExcelReportSettings, outputFolder,
             joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
@@ -183,18 +182,18 @@ void PanelReporting::onExportToXlsxHeatmapClicked()
       [this](const std::filesystem::path &overviewPath) {
         joda::results::WorkSheet alloverReport;
         alloverReport.loadFromFile(overviewPath.string());
-        auto resultsFile = overviewPath.parent_path().string() + separator + ".." + separator +
-                           joda::results::REPORT_EXPORT_FOLDER_PATH + separator + overviewPath.filename().string() +
-                           "_heatmap.xlsx";
+        std::string resultsFile = overviewPath.parent_path().string() + separator + ".." + separator +
+                                  joda::results::REPORT_EXPORT_FOLDER_PATH + separator + overviewPath.stem().string() +
+                                  "_heatmap";
 
         joda::pipeline::reporting::Heatmap::createAllOverHeatMap(mHeatmapReportSettings, alloverReport, resultsFile);
       },
       [this, sizes](const std::filesystem::path &detailResultPath) {
         joda::results::WorkSheet detailReport;
         detailReport.loadFromFile(detailResultPath.string());
-        auto resultsFile = detailResultPath.parent_path().string() + separator + ".." + separator +
-                           joda::results::REPORT_EXPORT_FOLDER_PATH + separator + detailResultPath.filename().string() +
-                           "_heatmap.xlsx";
+        std::string resultsFile = detailResultPath.parent_path().string() + separator + ".." + separator +
+                                  joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
+                                  detailResultPath.stem().string() + "_heatmap";
 
         joda::pipeline::reporting::Heatmap::createHeatMapForImage(sizes, mHeatmapReportSettings, detailReport,
                                                                   resultsFile);

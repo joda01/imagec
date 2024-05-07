@@ -26,9 +26,9 @@ namespace joda::pipeline::reporting {
 
 void ReportGenerator::flushReportToFile(const joda::results::WorkSheet &resultsWorkbook,
                                         const joda::results::ReportingSettings &reportingSettings,
-                                        const std::string &fileName, OutputFormat format, bool writeRunMeta)
+                                        const std::string &outputFileName, OutputFormat format, bool writeRunMeta)
 {
-  lxw_workbook *workbook = workbook_new(fileName.data());
+  lxw_workbook *workbook = workbook_new((outputFileName + ".xlsx").data());
 
   /* Add a format. */
   lxw_format *header = workbook_add_format(workbook);

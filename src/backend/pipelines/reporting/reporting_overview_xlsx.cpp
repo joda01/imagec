@@ -100,11 +100,12 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::results::ReportingS
       // Write header (image name)
       //
       if(rowOffset == startRow) {
-        auto rowName         = imgMeta->imageFileName;
-        std::string filePath = "external:.\\images/" + rowName + "/results_image_" + jobName + ".xlsx";
-        lxw_format *format   = imageHeaderHyperlinkFormat;
+        auto imageFileName = imgMeta->imageFileName;
+        std::string filePath =
+            "external:.\\" + results::RESULTS_IMAGE_FILE_NAME + "_" + imageFileName + "_" + jobName + ".xlsx";
+        lxw_format *format = imageHeaderHyperlinkFormat;
         worksheet_write_url(worksheet, rowOffset, headerColumnRowOffset, filePath.data(), format);
-        worksheet_write_string(worksheet, rowOffset, headerColumnRowOffset, rowName.data(), format);
+        worksheet_write_string(worksheet, rowOffset, headerColumnRowOffset, imageFileName.data(), format);
         worksheet_set_column(worksheet, rowOffset, headerColumnRowOffset, 15, NULL);
       }
 

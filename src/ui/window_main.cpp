@@ -475,11 +475,7 @@ void WindowMain::onOpenProjectClicked()
     return;
   }
 
-  if(mStackedWidget->currentWidget() == mPanelReporting) {
-    mPanelReporting->setActualSelectedResultsFolder(selectedDirectory);
-  } else {
-    setWorkingDirectory(selectedDirectory.toStdString());
-  }
+  setWorkingDirectory(selectedDirectory.toStdString());
 }
 
 ///
@@ -809,7 +805,21 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 ///
 void WindowMain::onOpenReportingAreaClicked()
 {
+  // Select imagec reporting file
+  QString folderToOpen = QDir::homePath();
+  if(!mSelectedWorkingDirectory.isEmpty()) {
+    folderToOpen = mSelectedWorkingDirectory;
+  }
+  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen);
+
+  if(selectedDirectory.isEmpty()) {
+    return;
+  }
+  mPanelReporting->setActualSelectedResultsFolder(selectedDirectory);
+
+  // Open reporting area
   mBackButton->setEnabled(true);
+  mOPenProject->setVisible(false);
   mSaveProject->setVisible(false);
   mSaveProject->setVisible(false);
   mStartAnalysis->setVisible(false);

@@ -40,9 +40,9 @@ namespace joda::pipeline::reporting {
 
 void Heatmap::createHeatMapForImage(const std::set<int32_t> &imageHeatmapAreaSizes,
                                     const joda::results::ReportingSettings &reportingSettings,
-                                    const joda::results::WorkSheet &containers, const std::string &fileName)
+                                    const joda::results::WorkSheet &containers, const std::string &outputFileName)
 {
-  lxw_workbook *workbook = workbook_new(fileName.data());
+  lxw_workbook *workbook = workbook_new((outputFileName + ".xlsx").data());
   // Well header
   lxw_format *header = workbook_add_format(workbook);
   format_set_bold(header);
@@ -299,16 +299,14 @@ void Heatmap::createHeatmapOfWellsForGroup(const joda::results::ReportingSetting
 /// \author     Joachim Danmayr
 ///
 void Heatmap::createAllOverHeatMap(const joda::results::ReportingSettings &reportingSettings,
-                                   joda::results::WorkSheet &allOverReport, const std::string &outputFolder)
+                                   joda::results::WorkSheet &allOverReport, const std::string &outputFileName)
 {
-  const int32_t PLATE_ROWS = 16;
-  const int32_t PLATE_COLS = 24;
-
+  const int32_t PLATE_ROWS       = 16;
+  const int32_t PLATE_COLS       = 24;
   const int32_t HEADER_CELL_SIZE = 15;
-
   const int32_t ROW_OFFSET_START = 2;
 
-  lxw_workbook *workbook = workbook_new(outputFolder.data());
+  lxw_workbook *workbook = workbook_new((outputFileName + ".xlsx").data());
   // Well header
   lxw_format *header = workbook_add_format(workbook);
   format_set_bold(header);
@@ -364,7 +362,7 @@ void Heatmap::createAllOverHeatMap(const joda::results::ReportingSettings &repor
 
     // If enabled we print for each group the heatmap of the wells of the group
     if(generateHeatmapForWells) {
-      std::string wellHeatMap = outputFolder + "_" + group + "_well.xlsx";
+      std::string wellHeatMap = outputFileName + "_" + group + ".xlsx";
       createHeatmapOfWellsForGroup(reportingSettings, wellHeatMap, group, wellOrderMap, sizeX, sizeY, value);
     }
 
@@ -404,11 +402,11 @@ void Heatmap::createAllOverHeatMap(const joda::results::ReportingSettings &repor
               if(reportingSettings.detail.measureChannels.contains(measKey.getMeasureChannel())) {
                 std::string jobName = allOverReport.getJobMeta().jobName;
 
-                auto writeNumber = [&sheet, &rowOffset, &row, &col, &numberFormat, &numberFormatInvalid,
-                                    &generateHeatmapForWells, &jobName,
+                auto writeNumber = [&outputFileName, &sheet, &rowOffset, &row, &col, &numberFormat,
+                                    &numberFormatInvalid, &generateHeatmapForWells, &jobName,
                                     &group = group](double value, bool areThereInvalidImagesInside) {
                   if(generateHeatmapForWells) {
-                    std::string filePath = "external:.\\heatmaps/heatmap_" + group + "_" + jobName + ".xlsx";
+                    std::string filePath = "external:.\\" + outputFileName + "_" + group + ".xlsx";
                     worksheet_write_url(sheet, rowOffset + row, col, filePath.data(), NULL);
                   }
                   auto *format = numberFormat;
