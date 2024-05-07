@@ -59,6 +59,16 @@ void Heatmap::createHeatMapForImage(const std::set<int32_t> &imageHeatmapAreaSiz
   format_set_align(numberFormat, LXW_ALIGN_CENTER);
   format_set_align(numberFormat, LXW_ALIGN_VERTICAL_CENTER);
 
+  // Number format invalid
+  lxw_format *numberFormatInvalid = workbook_add_format(workbook);
+  numberFormatInvalid             = workbook_add_format(workbook);
+  format_set_num_format(numberFormatInvalid, "0.00E+00");
+  format_set_font_size(numberFormatInvalid, 10);
+  format_set_align(numberFormatInvalid, LXW_ALIGN_CENTER);
+  format_set_align(numberFormatInvalid, LXW_ALIGN_VERTICAL_CENTER);
+  // format_set_border(numberFormatInvalid, LXW_BORDER_THIN);                 // Set border style to thin
+  format_set_diag_type(numberFormatInvalid, LXW_DIAGONAL_BORDER_UP_DOWN);
+
   ////////////////////////////////////////////////////////////////////////////////////
   ////
   auto imageMeta = containers.getImageMeta();
@@ -75,7 +85,6 @@ void Heatmap::createHeatMapForImage(const std::set<int32_t> &imageHeatmapAreaSiz
         struct Square
         {
           std::map<MeasureKey, double> vals;
-          bool isValid       = true;
           uint64_t nrOfValid = 0;
           uint64_t cnt       = 0;
           uint64_t x         = 0;
@@ -107,6 +116,15 @@ void Heatmap::createHeatMapForImage(const std::set<int32_t> &imageHeatmapAreaSiz
             worksheet_write_string(worksheet, rowOffset - 1, 0, measureChMeta.name.data(), NULL);
             paintPlateBorder(worksheet, nrOfSquaresY, nrOfSquaresX, rowOffset, header, numberFormat);
             rowOffset += nrOfSquaresY + ROW_OFFSET_START + 4;
+
+            // Init channel values with 0
+            for(int64_t x = 0; x < nrOfSquaresX; x++) {
+              for(int64_t y = 0; y < nrOfSquaresY; y++) {
+                if(!heatmapSquares->at(x)[y].vals.contains(measureCh)) {
+                  heatmapSquares->at(x)[y].vals[measureCh] = 0;
+                }
+              }
+            }
           }
         }
 
@@ -132,13 +150,11 @@ void Heatmap::createHeatMapForImage(const std::set<int32_t> &imageHeatmapAreaSiz
 
           for(const auto &[measKey, val] : image.getMeasurements()) {
             if(reportingSettings.detail.measureChannels.contains(measKey.getMeasureChannel())) {
+              // Fill out with value
               if(image.getObjectMeta().valid) {
                 heatmapSquares->at(squareXidx)[squareYidx].nrOfValid += 1;
                 heatmapSquares->at(squareXidx)[squareYidx].vals[measKey] += std::get<double>(val.getVal());
                 heatmapSquares->at(squareXidx)[squareYidx].cnt++;
-              } else {
-                // Invalid particle
-                heatmapSquares->at(squareXidx)[squareYidx].isValid = false;
               }
 
               if(heatmapSquares->at(squareXidx)[squareYidx].x == 0) {
@@ -159,7 +175,11 @@ void Heatmap::createHeatMapForImage(const std::set<int32_t> &imageHeatmapAreaSiz
             rowOffset = ROW_OFFSET_START + 1;
             for(const auto &[_, val] : heatmapSquares->at(x)[y].vals) {
               double cnt = heatmapSquares->at(x)[y].cnt;
-              worksheet_write_number(worksheet, rowOffset + y, x + 1, val / cnt, numberFormat);
+              if(cnt > 0) {
+                worksheet_write_number(worksheet, rowOffset + y, x + 1, val / cnt, numberFormat);
+              } else {
+                worksheet_write_number(worksheet, rowOffset + y, x + 1, 0, numberFormatInvalid);
+              }
               rowOffset += nrOfSquaresY + ROW_OFFSET_START + 4;
             }
           }
