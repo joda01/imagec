@@ -210,7 +210,7 @@ RUN cd /libexpat/expat &&\
 #
 RUN git clone --depth 1 -b v3.7.4 https://github.com/joda01/libarchive.git /libarchive
 RUN  cd libarchive &&\
-    cmake . &&\
+    cmake . -DCMAKE_BUILD_TYPE="Release" -DENABLE_EXPAT="OFF" -DENABLE_OPENSSL="OFF" -DENABLE_CNG="OFF" &&\
     make &&\
     make install
 

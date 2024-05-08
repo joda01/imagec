@@ -104,8 +104,8 @@ IF (WIN32)
     Qt6::Widgets
     Qt6::Core
     xlsxwriter
-    EXPAT::EXPAT
     LibArchive::LibArchive
+    EXPAT::EXPAT
     #JNI::JVM
     #JNI::JNI
     #JNI::AWT
@@ -121,8 +121,8 @@ ELSE()
     Qt6::Widgets
     Qt6::Core
     PkgConfig::Xlsxwriter
-    EXPAT::EXPAT
     LibArchive::LibArchive
+    EXPAT::EXPAT
     #JNI::JVM
     #JNI::JNI
     #JNI::AWT

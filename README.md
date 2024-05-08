@@ -47,8 +47,8 @@ Single particle analysis is done and data are stored as detailed and summery in 
 ### Deploy build docker image
 
 docker build --target live -t joda001/imagec:live .
-docker build --target build -t joda001/imagec:v1.7.1 .
-docker push  joda001/imagec:v1.7.1
+docker build --target build -t joda001/imagec:v1.7.2 .
+docker push  joda001/imagec:v1.7.2
 
 ### Build for Windows
 
