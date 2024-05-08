@@ -195,11 +195,18 @@ RUN git clone -b RELEASE_1.1.5 --depth 1 https://github.com/jmcnamara/libxlsxwri
     cmake --build . &&\
     make install
 
+#
+# Expat
+#
+RUN git clone -b R_2_6_2 https://github.com/joda01/libexpat.git /libexpat
+RUN cd /libexpat &&\
+    ./buildconf.sh &&\
+    make &&\
+    make install
 
 #
 #libarchive
 #
-
 RUN git clone -b v3.7.4 https://github.com/joda01/libarchive.git /libarchive
 RUN  cd libarchive &&\
     cmake . &&\

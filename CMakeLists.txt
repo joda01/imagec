@@ -70,8 +70,9 @@ find_package( OpenSSL  )
 find_package( JNI REQUIRED )
 find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
+find_package( EXPAT MODULE REQUIRED )
+find_package( LibArchive REQUIRED )
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
-
 
 
 include_directories(${JNI_INCLUDE_DIRS})
@@ -103,6 +104,8 @@ IF (WIN32)
     Qt6::Widgets
     Qt6::Core
     xlsxwriter
+    EXPAT::EXPAT
+    LibArchive::LibArchive
     #JNI::JVM
     #JNI::JNI
     #JNI::AWT
@@ -118,6 +121,8 @@ ELSE()
     Qt6::Widgets
     Qt6::Core
     PkgConfig::Xlsxwriter
+    EXPAT::EXPAT
+    LibArchive::LibArchive
     #JNI::JVM
     #JNI::JNI
     #JNI::AWT

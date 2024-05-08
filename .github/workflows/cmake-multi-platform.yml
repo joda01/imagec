@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - reporting-pipelines
     tags:
       - '*'
   pull_request:
