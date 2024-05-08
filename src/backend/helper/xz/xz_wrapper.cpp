@@ -12,43 +12,69 @@
 
 #include <archive.h>
 #include <archive_entry.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
+#include <iostream>
+#include <mutex>
 #include <string>
 #include <vector>
 
 namespace joda::helper::xz {
 
+std::mutex mArchivemutex;
+namespace fs = std::filesystem;
+
 // Function to create an XZ archive and add files to it
-int createAndAddFile(const std::string &archiveFilename, const std::string &filename1, const std::string &dataToWrite)
+int createAndAddFiles(const std::string &archiveFilename, const std::string &pathToResultsFolder,
+                      const std::string &fileExtension)
 {
+  std::lock_guard<std::mutex> lock(mArchivemutex);
   struct archive *a;
   struct archive_entry *entry;
   int r;
+  char buff[8192];
+  FILE *fd;
+  int len;
+  struct stat st;
+  int compression_level = 6;    // Set compression level, range from 0 to 9
 
   // Open the archive for writing
-  a = archive_write_new();
-  archive_write_add_filter_xz(a);
+  a        = archive_write_new();
+  int okay = archive_write_add_filter_xz(a);
+  std::cout << "OK " << std::to_string(okay) << std::endl;
+  okay = archive_write_set_options(a, "compression-level=6\0");
+  std::cout << "OK " << std::to_string(okay) << std::endl;
   archive_write_set_format_pax_restricted(a);
   archive_write_open_filename(a, archiveFilename.data());
-
-  // Add the first file (a.txt) to the archive
-  entry = archive_entry_new();
-  archive_entry_set_pathname(entry, filename1.data());
-  archive_entry_set_filetype(entry, AE_IFREG);
-  archive_entry_set_perm(entry, 0644);
-
-  r = archive_write_header(a, entry);
-  if(r != ARCHIVE_OK) {
-    return 1;
+  auto timeNow = time(0);
+  for(const auto &fileEntry : fs::directory_iterator(pathToResultsFolder)) {
+    if(fileEntry.is_regular_file() && fileEntry.path().extension() == fileExtension) {
+      stat(fileEntry.path().string().data(), &st);
+      entry = archive_entry_new();    // Note 2
+      archive_entry_set_pathname(entry, fileEntry.path().filename().string().data());
+      archive_entry_set_size(entry, st.st_size);    // Note 3
+      archive_entry_set_filetype(entry, AE_IFREG);
+      archive_entry_set_birthtime(entry, timeNow, 0);
+      archive_entry_set_ctime(entry, timeNow, 0);
+      archive_entry_set_perm(entry, 0644);
+      archive_write_header(a, entry);
+      fd  = fopen(fileEntry.path().string().data(), "r");
+      len = fread(buff, 1, sizeof(buff), fd);
+      while(len > 0) {
+        archive_write_data(a, buff, len);
+        len = fread(buff, 1, sizeof(buff), fd);
+      }
+      fclose(fd);
+      archive_entry_free(entry);
+    }
   }
-
-  archive_write_data(a, dataToWrite.data(), dataToWrite.size());
-
-  archive_entry_free(entry);
 
   // Finish writing the archive
   archive_write_close(a);
+
   archive_write_free(a);
 
   return 0;
@@ -79,7 +105,7 @@ std::vector<std::string> listFiles(const std::string &archiveFilename)
   }
 
   // Clean up
-  archive_read_close(a);
+  // archive_read_close(a);
   archive_read_free(a);
 
   return fileList;

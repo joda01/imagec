@@ -206,6 +206,15 @@ RUN cd /libexpat/expat &&\
     make install
 
 #
+# xz-utils
+#
+RUN git clone --depth 1 -b v5.6.1 https://github.com/joda01/xz.git /xz
+RUN cd /xz &&\
+    cmake . -DCMAKE_BUILD_TYPE="Release" -DBUILD_SHARED_LIBS=true &&\
+    make &&\
+    make install
+
+#
 #libarchive
 #
 RUN git clone --depth 1 -b v3.7.4 https://github.com/joda01/libarchive.git /libarchive
@@ -213,6 +222,7 @@ RUN  cd libarchive &&\
     cmake . -DCMAKE_BUILD_TYPE="Release" -DENABLE_EXPAT="OFF" -DENABLE_OPENSSL="OFF" -DENABLE_CNG="OFF" &&\
     make &&\
     make install
+
 
 
 #

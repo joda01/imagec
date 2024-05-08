@@ -164,14 +164,18 @@ void Pipeline::runJob()
   auto timeStopped = std::chrono::high_resolution_clock::now();
 
   std::string resultsFile = mOutputFolder + separator + joda::results::RESULTS_FOLDER_PATH + separator +
-                            joda::results::RESULTS_XZ_FILE_NAME + "_" + mJobName;
-  alloverReport.setMeta(joda::results::JobMeta{.swVersion    = Version::getVersion(),
-                                               .buildTime    = Version::getBuildTime(),
-                                               .jobName      = mJobName,
-                                               .timeStarted  = mTimePipelineStarted,
-                                               .timeFinished = std::chrono::system_clock::now()},
-                        mExperimentMeta, std::nullopt);
-  results::WorkBook::addWorksheetToArchive(resultsFile, alloverReport, joda::results::RESULTS_SUMMARY_FILE_NAME);
+                            joda::results::RESULTS_SUMMARY_FILE_NAME;
+  alloverReport.saveToFile(resultsFile,
+                           joda::results::JobMeta{.swVersion    = Version::getVersion(),
+                                                  .buildTime    = Version::getBuildTime(),
+                                                  .jobName      = mJobName,
+                                                  .timeStarted  = mTimePipelineStarted,
+                                                  .timeFinished = std::chrono::system_clock::now()},
+                           mExperimentMeta, std::nullopt);
+
+  std::string archiveFileName = mOutputFolder + separator + joda::results::RESULTS_XZ_FILE_NAME + "_" + mJobName;
+  results::WorkBook::createArchiveFromResults(archiveFileName,
+                                              mOutputFolder + separator + joda::results::RESULTS_FOLDER_PATH);
   mState = State::FINISHED;
   DurationCount::printStats(images.size());
 
@@ -243,24 +247,23 @@ void Pipeline::analyzeImage(joda::results::WorkSheet &alloverReport, const FileI
   if(mState != State::ERROR_) {
     auto id                 = DurationCount::start("Write detail report");
     std::string resultsFile = mOutputFolder + separator + joda::results::RESULTS_FOLDER_PATH + separator +
-                              joda::results::RESULTS_XZ_FILE_NAME + "_" + mJobName;
+                              joda::results::RESULTS_IMAGE_FILE_NAME + "_" + imageName;
     auto regexedImageNames =
         joda::results::Helper::applyRegex(mAnalyzeSettings.experimentSettings.filenameRegex, imageName);
     auto imagePosOnWell = mTransformedWellMatrix[regexedImageNames.img];
-    detailReport.setMeta(joda::results::JobMeta{.swVersion    = Version::getVersion(),
-                                                .buildTime    = Version::getBuildTime(),
-                                                .jobName      = mJobName,
-                                                .timeStarted  = mTimePipelineStarted,
-                                                .timeFinished = std::chrono::system_clock::now()},
-                         mExperimentMeta,
-                         joda::results::ImageMeta{
-                             .imageFileName = imageName,
-                             .height        = propsOut.props.height,
-                             .width         = propsOut.props.width,
-                             .imgPosInWell{.img = imagePosOnWell.img, .x = imagePosOnWell.x, .y = imagePosOnWell.y}});
-
-    results::WorkBook::addWorksheetToArchive(resultsFile, alloverReport,
-                                             joda::results::RESULTS_IMAGE_FILE_NAME + "_" + imageName);
+    detailReport.saveToFile(
+        resultsFile,
+        joda::results::JobMeta{.swVersion    = Version::getVersion(),
+                               .buildTime    = Version::getBuildTime(),
+                               .jobName      = mJobName,
+                               .timeStarted  = mTimePipelineStarted,
+                               .timeFinished = std::chrono::system_clock::now()},
+        mExperimentMeta,
+        joda::results::ImageMeta{
+            .imageFileName = imageName,
+            .height        = propsOut.props.height,
+            .width         = propsOut.props.width,
+            .imgPosInWell{.img = imagePosOnWell.img, .x = imagePosOnWell.x, .y = imagePosOnWell.y}});
 
     DurationCount::stop(id);
 

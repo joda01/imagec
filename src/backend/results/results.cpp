@@ -252,7 +252,7 @@ void WorkSheet::saveToFile(std::string filename, const JobMeta &meta,
 
     // Write as message pack
     {
-      std::ofstream out(filename + ".msgpack", std::ios::out | std::ios::binary);
+      std::ofstream out(filename + MESSAGE_PACK_FILE_EXTENSION, std::ios::out | std::ios::binary);
       std::vector<uint8_t> data = nlohmann::json::to_msgpack(json);
       out.write(reinterpret_cast<const char *>(data.data()), data.size());
       out.close();
@@ -281,22 +281,7 @@ void WorkSheet::loadFromFile(const std::string &filename)
 /// \param[out]
 /// \return
 ///
-auto WorkSheet::serialize() const -> std::string
-{
-  nlohmann::json json = *this;
-  settings::removeNullValues(json);
-  std::vector<uint8_t> data = nlohmann::json::to_msgpack(json);
-  return std::string(data.begin(), data.end());
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto WorkSheet::deserialize(const std::string &data)
+void WorkSheet::deserialize(const std::string &data)
 {
   *this = nlohmann::json::from_msgpack(data);
 }
@@ -320,11 +305,10 @@ auto WorkBook::openArchive(const std::string &xzFileName) -> std::vector<std::st
 /// \param[out]
 /// \return
 ///
-void WorkBook::addWorksheetToArchive(const std::string &xzFileName, const WorkSheet &worksheet,
-                                     const std::string &filenameOfFileInArchive)
+void WorkBook::createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder)
 {
-  helper::xz::createAndAddFile(xzFileName + RESULTS_XZ_FILE_EXTENSION,
-                               filenameOfFileInArchive + MESSAGE_PACK_FILE_EXTENSION, worksheet.serialize());
+  helper::xz::createAndAddFiles(xzFileName + RESULTS_XZ_FILE_EXTENSION, pathToResultsFolder,
+                                MESSAGE_PACK_FILE_EXTENSION);
 }
 
 ///

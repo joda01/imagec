@@ -107,8 +107,8 @@ static inline const std::string RESULTS_SUMMARY_FILE_NAME{"results_summary"};
 static inline const std::string RESULTS_IMAGE_FILE_NAME{"results_image"};
 
 static inline const std::string RESULTS_XZ_FILE_NAME{"results"};
-static inline const std::string RESULTS_XZ_FILE_EXTENSION{".icm.xz"};
-static inline const std::string MESSAGE_PACK_FILE_EXTENSION{".mpack"};
+static inline const std::string RESULTS_XZ_FILE_EXTENSION{".tar.xz"};
+static inline const std::string MESSAGE_PACK_FILE_EXTENSION{".msgpack"};
 
 template <class T>
 concept Valid_t = std::is_same_v<T, bool> || std::is_same_v<T, func::ParticleValidity>;
@@ -357,14 +357,13 @@ public:
     return groups.at("");
   }
 
-  auto serialize() const -> std::string;
-  auto deserialize(const std::string &);
-
-private:
-  /////////////////////////////////////////////////////
   void saveToFile(std::string filename, const JobMeta &meta, const std::optional<ExperimentMeta> &experimentMeta,
                   std::optional<ImageMeta> imgMeta);
   void loadFromFile(const std::string &filename);
+  void deserialize(const std::string &data);
+
+private:
+  /////////////////////////////////////////////////////
 
   /////////////////////////////////////////////////////
   JobMeta jobMeta;
@@ -383,8 +382,7 @@ class WorkBook
 {
 public:
   static auto openArchive(const std::string &xzFileName) -> std::vector<std::string>;
-  static void addWorksheetToArchive(const std::string &xzFileName, const WorkSheet &worksheet,
-                                    const std::string &filenameOfFileInArchive);
+  static void createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder);
   static auto readWorksheetFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
       -> WorkSheet;
 };

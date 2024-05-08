@@ -72,6 +72,8 @@ find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
 find_package( EXPAT MODULE REQUIRED )
 find_package( LibArchive REQUIRED )
+find_package( LibLZMA CONFIG REQUIRED)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
 
 
@@ -106,6 +108,7 @@ IF (WIN32)
     xlsxwriter
     LibArchive::LibArchive
     EXPAT::EXPAT
+    LibLZMA::LibLZMA
     #JNI::JVM
     #JNI::JNI
     #JNI::AWT
@@ -123,6 +126,7 @@ ELSE()
     PkgConfig::Xlsxwriter
     LibArchive::LibArchive
     EXPAT::EXPAT
+    LibLZMA::LibLZMA
     #JNI::JVM
     #JNI::JNI
     #JNI::AWT
