@@ -108,7 +108,7 @@ IF (WIN32)
     xlsxwriter
     LibArchive::LibArchive
     EXPAT::EXPAT
-    liblzma::liblzma
+    LibLZMA::LibLZMA
     #JNI::JVM
     #JNI::JNI
     #JNI::AWT
@@ -126,7 +126,7 @@ ELSE()
     PkgConfig::Xlsxwriter
     LibArchive::LibArchive
     EXPAT::EXPAT
-    liblzma::liblzma
+    LibLZMA::LibLZMA
     #JNI::JVM
     #JNI::JNI
     #JNI::AWT
