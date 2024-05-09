@@ -13,6 +13,7 @@
 
 #include "results.hpp"
 #include <vector>
+#include "backend/helper/filesystem.hpp"
 #include "backend/helper/xz/xz_wrapper.hpp"
 #include "backend/results/results_defines.hpp"
 
@@ -293,7 +294,7 @@ void WorkSheet::deserialize(const std::string &data)
 /// \param[out]
 /// \return
 ///
-auto WorkBook::openArchive(const std::string &xzFileName) -> std::vector<std::string>
+auto WorkBook::listResultsFiles(const std::string &xzFileName) -> std::vector<std::string>
 {
   return helper::xz::listFiles(xzFileName);
 }
@@ -305,10 +306,22 @@ auto WorkBook::openArchive(const std::string &xzFileName) -> std::vector<std::st
 /// \param[out]
 /// \return
 ///
-void WorkBook::createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder)
+void WorkBook::createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder,
+                                        std::optional<std::string> pathToImagesFolder)
 {
-  helper::xz::createAndAddFiles(xzFileName + RESULTS_XZ_FILE_EXTENSION, pathToResultsFolder,
-                                MESSAGE_PACK_FILE_EXTENSION);
+  std::vector<helper::xz::FolderToAdd> foldersToAdd;
+
+  foldersToAdd.push_back({.pathToFolderToAdd         = pathToResultsFolder,
+                          .fileExtensionToAdd        = MESSAGE_PACK_FILE_EXTENSION,
+                          .subFolderInArchiveToAddTo = RESULTS_FOLDER_PATH});
+  if(pathToImagesFolder.has_value()) {
+    foldersToAdd.push_back({.pathToFolderToAdd         = pathToImagesFolder.value(),
+                            .fileExtensionToAdd        = CONTROL_IMAGES_FILE_EXTENSION,
+                            .subFolderInArchiveToAddTo = IMAGES_FOLDER_PATH});
+  }
+
+  helper::xz::createAndAddFiles(xzFileName + RESULTS_XZ_FILE_EXTENSION, foldersToAdd);
+  joda::helper::fs::removeDirectory(pathToResultsFolder);
 }
 
 ///

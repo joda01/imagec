@@ -46,3 +46,4 @@ java/jre_win
 java/jre_linux
 src/build_info.h
 output_test.xlsx
+*.txt

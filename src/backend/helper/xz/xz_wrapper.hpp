@@ -10,13 +10,20 @@
 ///
 ///
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
 namespace joda::helper::xz {
 
-extern int createAndAddFiles(const std::string &archiveFilename, const std::string &pathToResultsFolder,
-                             const std::string &fileExtension);
+struct FolderToAdd
+{
+  std::filesystem::path pathToFolderToAdd;
+  std::string fileExtensionToAdd;
+  std::string subFolderInArchiveToAddTo;
+};
+
+extern int createAndAddFiles(const std::string &archiveFilename, const std::vector<FolderToAdd> &resultsfolder);
 extern std::vector<std::string> listFiles(const std::string &archiveFilename);
 extern std::string readFile(const std::string &archiveFilename, const std::string &filename);
 

@@ -110,11 +110,11 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   auto id = DurationCount::start("Write control image");
   std::vector<int> compression_params;
   compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-  compression_params.push_back(0);
+  compression_params.push_back(1);
 
   if(!result.controlImage.empty()) {
     cv::imwrite(detailReportOutputPath + separator + "control_" + joda::settings::to_string(chIdx) + "_" +
-                    std::to_string(tileIdx) + "_" + jobName + ".png",
+                    std::to_string(tileIdx) + "_" + jobName + CONTROL_IMAGES_FILE_EXTENSION,
                 result.controlImage, compression_params);
   } else {
     std::cout << "CTRL img null" << std::endl;

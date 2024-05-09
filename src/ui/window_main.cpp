@@ -816,7 +816,7 @@ void WindowMain::onOpenReportingAreaClicked()
 
   QString filePath = QFileDialog::getOpenFileName(
       this, "Open File", folderToOpen,
-      "imageC Files (*." + QString(results::RESULTS_XZ_FILE_EXTENSION.data()) + ");;All Files (*)", nullptr, opt);
+      "imageC Files (*" + QString(results::RESULTS_XZ_FILE_EXTENSION.data()) + ");;All Files (*)", nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;

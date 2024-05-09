@@ -175,7 +175,8 @@ void Pipeline::runJob()
 
   std::string archiveFileName = mOutputFolder + separator + joda::results::RESULTS_XZ_FILE_NAME + "_" + mJobName;
   results::WorkBook::createArchiveFromResults(archiveFileName,
-                                              mOutputFolder + separator + joda::results::RESULTS_FOLDER_PATH);
+                                              mOutputFolder + separator + joda::results::RESULTS_FOLDER_PATH,
+                                              mOutputFolder + separator + joda::results::IMAGES_FOLDER_PATH);
   mState = State::FINISHED;
   DurationCount::printStats(images.size());
 

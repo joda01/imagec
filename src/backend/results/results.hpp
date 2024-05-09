@@ -109,6 +109,7 @@ static inline const std::string RESULTS_IMAGE_FILE_NAME{"results_image"};
 static inline const std::string RESULTS_XZ_FILE_NAME{"results"};
 static inline const std::string RESULTS_XZ_FILE_EXTENSION{".tar.xz"};
 static inline const std::string MESSAGE_PACK_FILE_EXTENSION{".msgpack"};
+static inline const std::string CONTROL_IMAGES_FILE_EXTENSION{".png"};
 
 template <class T>
 concept Valid_t = std::is_same_v<T, bool> || std::is_same_v<T, func::ParticleValidity>;
@@ -381,8 +382,9 @@ private:
 class WorkBook
 {
 public:
-  static auto openArchive(const std::string &xzFileName) -> std::vector<std::string>;
-  static void createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder);
+  static auto listResultsFiles(const std::string &xzFileName) -> std::vector<std::string>;
+  static void createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder,
+                                       std::optional<std::string> pathToImagesFolder);
   static auto readWorksheetFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
       -> WorkSheet;
 };

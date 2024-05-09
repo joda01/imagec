@@ -138,7 +138,7 @@ void PanelReporting::onExportToXlsxClicked()
   mExcelExporter = std::make_shared<ReportingExporterThread>(
       mProgressExportExcel, mButtonExportExcel, mSelectedImageCFile,
       [this](const results::WorkSheet &overviewPath) {
-        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator + ".." + separator +
+        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
                                    joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
                                    results::RESULTS_SUMMARY_FILE_NAME + "_" + overviewPath.getJobMeta().jobName;
         joda::pipeline::reporting::ReportGenerator::flushReportToFile(
@@ -146,7 +146,7 @@ void PanelReporting::onExportToXlsxClicked()
             joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL, true);
       },
       [this](const results::WorkSheet &details) {
-        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator + ".." + separator +
+        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
                                    joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
                                    results::RESULTS_IMAGE_FILE_NAME + "_" + details.getImageMeta()->imageFileName;
         joda::pipeline::reporting::ReportGenerator::flushReportToFile(
@@ -177,17 +177,16 @@ void PanelReporting::onExportToXlsxHeatmapClicked()
   mExcelExporter = std::make_shared<ReportingExporterThread>(
       mProgressHeatmap, mButtonExportHeatmap, mSelectedImageCFile,
       [this](const results::WorkSheet &overviewPath) {
-        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator + ".." + separator +
+        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
                                    joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
                                    results::RESULTS_SUMMARY_FILE_NAME + "_heatmap_" + overviewPath.getJobMeta().jobName;
 
         joda::pipeline::reporting::Heatmap::createAllOverHeatMap(mHeatmapReportSettings, overviewPath, outputFolder);
       },
       [this, sizes](const results::WorkSheet &details) {
-        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator + ".." + separator +
-                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
-                                   results::RESULTS_IMAGE_FILE_NAME + "_heatmap_" +
-                                   details.getImageMeta()->imageFileName;
+        std::string outputFolder =
+            mSelectedImageCFile.parent_path().string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH +
+            separator + results::RESULTS_IMAGE_FILE_NAME + "_heatmap_" + details.getImageMeta()->imageFileName;
 
         joda::pipeline::reporting::Heatmap::createHeatMapForImage(sizes, mHeatmapReportSettings, details, outputFolder);
       });
