@@ -95,7 +95,6 @@ ENDIF()
 # Link to libraries
 #
 IF (WIN32)
-  # WINDOWS (msys)
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
@@ -109,12 +108,8 @@ IF (WIN32)
     LibArchive::LibArchive
     EXPAT::EXPAT
     LibLZMA::LibLZMA
-    #JNI::JVM
-    #JNI::JNI
-    #JNI::AWT
   )
 ELSE()
-  # c
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
@@ -127,9 +122,6 @@ ELSE()
     LibArchive::LibArchive
     EXPAT::EXPAT
     LibLZMA::LibLZMA
-    #JNI::JVM
-    #JNI::JNI
-    #JNI::AWT
   )
 ENDIF()
 
