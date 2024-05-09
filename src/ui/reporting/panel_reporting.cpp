@@ -16,6 +16,7 @@
 #include <qcombobox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qnamespace.h>
 #include <qprogressbar.h>
 #include <qpushbutton.h>
 #include <qtablewidget.h>
@@ -124,7 +125,10 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   {
     auto [tableContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 16777215, 16);
 
-    mTable = new QTableWidget(10, 10, _1);
+    mTable = new QTableWidget(0, 0, _1);
+    mTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    mTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
     tableContainer->addWidget(mTable);
   }
 
@@ -177,7 +181,7 @@ void PanelReporting::onLoadingFileFinished()
       "icons8-folder-50.png", "Results files", "Results files", "", "", entry, mWindowMain, ""));
   mSelectorLayout->insertWidget(1, mFileSelector->getEditableWidget());
   connect(mFileSelector.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onResultsFileSelected);
-
+  onResultsFileSelected();
   mProgressSelector->setVisible(false);
 }
 
@@ -466,22 +470,31 @@ std::tuple<QVBoxLayout *, QWidget *> PanelReporting::addVerticalPanel(QLayout *h
 ///
 void PanelReporting::loadDetailReportToTable(const results::WorkSheet &sheet)
 {
-  auto &imageMeta = sheet.getImageMeta();
+  mActualSelectedWorksheet = sheet;
+  auto &imageMeta          = sheet.getImageMeta();
   if(imageMeta.has_value()) {
     auto firstChannel = sheet.root().getChannels().begin();
     auto &channel     = firstChannel->second;
 
+    mTable->clear();
+
     mTable->setRowCount(channel.getNrOfObjects());
-    mTable->setColumnCount(channel.getMeasuredChannels().size());
+    mTable->setColumnCount(channel.getMeasuredChannels().size() + 1);
+
+    std::map<MeasureKey, int> colIdxMap;
+
+    int colIdx                   = 1;
+    QTableWidgetItem *headerItem = new QTableWidgetItem(QString("Ctrl"));
+    mTable->setHorizontalHeaderItem(0, headerItem);
+    for(const auto &[measureKey, measur] : channel.getMeasuredChannels()) {
+      colIdxMap[measureKey]        = colIdx;
+      QTableWidgetItem *headerItem = new QTableWidgetItem(QString(measur.name.data()));
+      mTable->setHorizontalHeaderItem(colIdx, headerItem);
+      colIdx++;
+    }
 
     int rowIdx = 0;
     for(const auto &[objextKey, object] : channel.getObjects()) {
-      int colIdx = 0;
-      {
-        QTableWidgetItem *newItem = new QTableWidgetItem(QString("%1").arg(object.getObjectMeta().name.data()));
-        mTable->setItem(rowIdx, colIdx, newItem);
-        colIdx++;
-      }
       {
         auto &tileInfo  = object.getObjectMeta().tileInfo;
         int64_t tileIdx = 0;
@@ -491,8 +504,14 @@ void PanelReporting::loadDetailReportToTable(const results::WorkSheet &sheet)
         std::string controlImagePath = channel.getChannelMeta().controlImagePath;
         helper::stringReplace(controlImagePath, "${tileIdx}", std::to_string(tileIdx));
         QTableWidgetItem *newItem = new QTableWidgetItem(QString(controlImagePath.data()));
-        mTable->setItem(rowIdx, colIdx, newItem);
-        colIdx++;
+        mTable->setItem(rowIdx, 0, newItem);
+      }
+
+      for(const auto &[key, val] : object.getMeasurements()) {
+        if(std::holds_alternative<double>(val.getVal())) {
+          QTableWidgetItem *newItem = new QTableWidgetItem(QString(QString::number(std::get<double>(val.getVal()))));
+          mTable->setItem(rowIdx, colIdxMap[key], newItem);
+        }
       }
       rowIdx++;
     }

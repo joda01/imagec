@@ -85,6 +85,7 @@ private:
 
   // Table
   QTableWidget *mTable;
+  results::WorkSheet mActualSelectedWorksheet;
 
   /////////////////////////////////////////////////////
   QHBoxLayout *createLayout();

@@ -54,10 +54,12 @@ void ReportingExporterThread::workerThread()
   uint32_t nrOfFiles = mFiles.size();
   for(const auto &resultsFilePath : mFiles) {
     if(resultsFilePath.filename().string().starts_with(joda::results::RESULTS_SUMMARY_FILE_NAME)) {
-      mFunctionForOverview(results::WorkBook::readWorksheetFromArchive(mImageCPackFile.string(), resultsFilePath));
+      mFunctionForOverview(
+          results::WorkBook::readWorksheetFromArchive(mImageCPackFile.string(), resultsFilePath.string()));
     } else {
       // Detail view
-      mFunctionForImages(results::WorkBook::readWorksheetFromArchive(mImageCPackFile.string(), resultsFilePath));
+      mFunctionForImages(
+          results::WorkBook::readWorksheetFromArchive(mImageCPackFile.string(), resultsFilePath.string()));
     }
     finished++;
     emit signalFileFinished((100 * finished) / nrOfFiles);
