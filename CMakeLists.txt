@@ -72,7 +72,7 @@ find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
 find_package( EXPAT MODULE REQUIRED )
 find_package( LibArchive REQUIRED )
-find_package( LibLZMA CONFIG REQUIRED)
+find_package( liblzma REQUIRED)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
 
