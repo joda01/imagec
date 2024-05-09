@@ -352,4 +352,20 @@ auto WorkBook::readWorksheetFromArchive(const std::string &xzFileName, const std
   return sheet;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto WorkBook::readImageFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
+    -> cv::Mat
+{
+  auto pngData = helper::xz::readFile(xzFileName, filenameOfFileInArchive);
+  std::vector<uchar> pngData1(pngData.begin(), pngData.end());
+  cv::Mat image = cv::imdecode(cv::Mat(pngData1), cv::IMREAD_UNCHANGED);
+  return image;
+}
+
 }    // namespace joda::results

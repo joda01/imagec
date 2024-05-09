@@ -367,6 +367,9 @@ public:
                                        std::optional<std::string> pathToImagesFolder);
   static auto readWorksheetFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
       -> WorkSheet;
+
+  static auto readImageFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
+      -> cv::Mat;
 };
 
 }    // namespace joda::results

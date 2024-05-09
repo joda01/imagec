@@ -110,6 +110,7 @@ private slots:
   void onExportToXlsxHeatmapClicked();
   void onLoadingFileFinished();
   void onResultsFileSelected();
+  void onTableDoubleClicked(const QModelIndex &index);
 };
 
 }    // namespace joda::ui::qt

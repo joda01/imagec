@@ -19,6 +19,7 @@
 #include <qnamespace.h>
 #include <qprogressbar.h>
 #include <qpushbutton.h>
+#include <qtableview.h>
 #include <qtablewidget.h>
 #include <qwidget.h>
 #include <cstdint>
@@ -32,6 +33,7 @@
 #include "../window_main.hpp"
 #include "backend/pipelines/reporting/reporting_generator.hpp"
 #include "backend/pipelines/reporting/reporting_heatmap.hpp"
+#include "backend/postprocessing/postprocessing.hpp"
 #include "backend/results/results.hpp"
 #include "ui/container/container_function_base.hpp"
 #include "ui/reporting/exporter_thread.hpp"
@@ -128,6 +130,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     mTable = new QTableWidget(0, 0, _1);
     mTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     mTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    QObject::connect(mTable, &QTableView::doubleClicked, this, &PanelReporting::onTableDoubleClicked);
 
     tableContainer->addWidget(mTable);
   }
@@ -516,6 +519,44 @@ void PanelReporting::loadDetailReportToTable(const results::WorkSheet &sheet)
       rowIdx++;
     }
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelReporting::onTableDoubleClicked(const QModelIndex &index)
+{
+  static const std::string separator(1, std::filesystem::path::preferred_separator);
+
+  const auto &channel = mActualSelectedWorksheet.root().getChannels().begin()->second;
+  const auto &objects = channel.getObjects();
+  auto measure        = objects.at(index.row());
+  int x               = std::get<double>(
+      measure
+          .at(joda::results::MeasureChannelKey{results::ReportingSettings::MeasureChannels::CENTER_OF_MASS_X,
+                                               results::ReportingSettings::MeasureChannelStat::VAL})
+          .getVal());
+
+  int y = std::get<double>(
+      measure
+          .at(joda::results::MeasureChannelKey{results::ReportingSettings::MeasureChannels::CENTER_OF_MASS_Y,
+                                               results::ReportingSettings::MeasureChannelStat::VAL})
+          .getVal());
+
+  std::string controlImagePath = channel.getChannelMeta().controlImagePath;
+  helper::stringReplace(controlImagePath, "${tileIdx}", std::to_string(measure.getObjectMeta().tileInfo->tileIndex));
+  auto markedImage = joda::image::postprocessing::PostProcessor::markPositionInImage(
+      results::WorkBook::readImageFromArchive(mSelectedImageCFile.string(), controlImagePath), x, y);
+
+  std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
+                             joda::results::REPORT_EXPORT_FOLDER_PATH + separator + results::RESULTS_SUMMARY_FILE_NAME +
+                             "_marked_" + mActualSelectedWorksheet.getJobMeta().jobName + ".png";
+
+  cv::imwrite(outputFolder, markedImage);
 }
 
 }    // namespace joda::ui::qt
