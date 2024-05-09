@@ -49,11 +49,12 @@ void ReportingExporterThread::workerThread()
 {
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   mProgressBar->setRange(0, 100);
-  int finished       = 0;
-  auto files         = results::WorkBook::listResultsFiles(mImageCPackFile.string());
+  int finished = 0;
+  auto files =
+      results::WorkBook::listResultsFiles(mImageCPackFile.string(), joda::results::MESSAGE_PACK_FILE_EXTENSION);
   uint32_t nrOfFiles = files.size();
   for(const auto &resultsFilePath : files) {
-    if(resultsFilePath.starts_with(joda::results::RESULTS_SUMMARY_FILE_NAME)) {
+    if(resultsFilePath.filename().string().starts_with(joda::results::RESULTS_SUMMARY_FILE_NAME)) {
       mFunctionForOverview(results::WorkBook::readWorksheetFromArchive(mImageCPackFile.string(), resultsFilePath));
     } else {
       // Detail view

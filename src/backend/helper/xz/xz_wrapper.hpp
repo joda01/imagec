@@ -24,7 +24,7 @@ struct FolderToAdd
 };
 
 extern int createAndAddFiles(const std::string &archiveFilename, const std::vector<FolderToAdd> &resultsfolder);
-extern std::vector<std::string> listFiles(const std::string &archiveFilename);
+extern std::vector<std::filesystem::path> listFiles(const std::string &archiveFilename, const std::string &fileExt);
 extern std::string readFile(const std::string &archiveFilename, const std::string &filename);
 
 }    // namespace joda::helper::xz

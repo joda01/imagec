@@ -107,7 +107,7 @@ static inline const std::string RESULTS_SUMMARY_FILE_NAME{"results_summary"};
 static inline const std::string RESULTS_IMAGE_FILE_NAME{"results_image"};
 
 static inline const std::string RESULTS_XZ_FILE_NAME{"results"};
-static inline const std::string RESULTS_XZ_FILE_EXTENSION{".tar.xz"};
+static inline const std::string RESULTS_XZ_FILE_EXTENSION{".tar.gz"};
 static inline const std::string MESSAGE_PACK_FILE_EXTENSION{".msgpack"};
 static inline const std::string CONTROL_IMAGES_FILE_EXTENSION{".png"};
 
@@ -382,7 +382,8 @@ private:
 class WorkBook
 {
 public:
-  static auto listResultsFiles(const std::string &xzFileName) -> std::vector<std::string>;
+  static auto listResultsFiles(const std::string &xzFileName, const std::string &fileExt)
+      -> std::vector<std::filesystem::path>;
   static void createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder,
                                        std::optional<std::string> pathToImagesFolder);
   static auto readWorksheetFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)

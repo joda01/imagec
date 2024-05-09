@@ -44,9 +44,12 @@ int createAndAddFiles(const std::string &archiveFilename, const std::vector<Fold
 
   // Open the archive for writing
   archive *archive = archive_write_new();
-  checkForError(archive_write_add_filter_xz(archive));
-  checkForError(archive_write_set_options(archive, "compression-level=6\0"));
-  checkForError(archive_write_set_format_pax_restricted(archive));
+  // checkForError(archive_write_add_filter_xz(archive));
+  checkForError(archive_write_set_format_gnutar(archive));
+  checkForError(archive_write_add_filter_gzip(archive));
+  // archive_write_add_filter_xz(struct archive *)
+  checkForError(archive_write_set_options(archive, "compression-level=1\0"));
+  // checkForError(archive_write_set_format_pax_restricted(archive));
   checkForError(archive_write_open_filename(archive, archiveFilename.data()));
   time_t timeNow = time(nullptr);
   for(const auto &toAdd : resultsfolder) {
@@ -85,21 +88,23 @@ int createAndAddFiles(const std::string &archiveFilename, const std::vector<Fold
 }
 
 // Function to list all files within the archive
-std::vector<std::string> listFiles(const std::string &archiveFilename)
+std::vector<std::filesystem::path> listFiles(const std::string &archiveFilename, const std::string &fileExt)
 {
-  std::vector<std::string> fileList;
+  std::vector<std::filesystem::path> fileList;
 
   // Open the archive for reading
   archive *a = archive_read_new();
-  checkForError(archive_read_support_filter_xz(a));
-  checkForError(archive_read_support_format_all(a));
+  checkForError(archive_read_support_filter_gzip(a));
+  checkForError(archive_read_support_format_gnutar(a));
   checkForError(archive_read_open_filename(a, archiveFilename.data(), 10240));
 
   // Read entries from the archive
   archive_entry *entry = nullptr;
   while(archive_read_next_header(a, &entry) == ARCHIVE_OK) {
-    const char *filename = archive_entry_pathname(entry);
-    fileList.emplace_back(filename);
+    const auto filename = std::string(archive_entry_pathname(entry));
+    if(filename.ends_with(fileExt)) {
+      fileList.emplace_back(filename);
+    }
     archive_read_data_skip(a);
   }
 
@@ -115,24 +120,23 @@ std::string readFile(const std::string &archiveFilename, const std::string &file
 {
   // Open the archive for reading
   archive *a = archive_read_new();
-  checkForError(archive_read_support_filter_all(a));
-  checkForError(archive_read_support_format_all(a));
+  checkForError(archive_read_support_filter_gzip(a));
+  checkForError(archive_read_support_format_gnutar(a));
   checkForError(archive_read_open_filename(a, archiveFilename.data(), 10240));
 
   // Find the entry for the specified file
   archive_entry *entry;
-  std::string content;
   while(archive_read_next_header(a, &entry) == ARCHIVE_OK) {
     const char *entryFilename = archive_entry_pathname(entry);
     if(std::strcmp(entryFilename, filename.data()) == 0) {
       // Read the content of the file
-      char buff[8192];
-      ssize_t len;
-
-      while((len = archive_read_data(a, buff, sizeof(buff))) > 0) {
-        content.append(buff, len);
-      }
-      break;
+      size_t fileSize = archive_entry_size(entry);
+      std::string content;
+      content.resize(fileSize);
+      archive_read_data(a, content.data(), content.size());
+      checkForError(archive_read_close(a));
+      checkForError(archive_read_free(a));
+      return content;
     }
     archive_read_data_skip(a);
   }
@@ -141,7 +145,7 @@ std::string readFile(const std::string &archiveFilename, const std::string &file
   checkForError(archive_read_close(a));
   checkForError(archive_read_free(a));
 
-  return content;
+  return {};
 }
 
 }    // namespace joda::helper::xz

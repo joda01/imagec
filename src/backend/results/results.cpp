@@ -12,7 +12,9 @@
 ///
 
 #include "results.hpp"
+#include <filesystem>
 #include <vector>
+#include "backend/duration_count/duration_count.h"
 #include "backend/helper/filesystem.hpp"
 #include "backend/helper/xz/xz_wrapper.hpp"
 #include "backend/results/results_defines.hpp"
@@ -245,11 +247,10 @@ void WorkSheet::saveToFile(std::string filename, const JobMeta &meta,
     settings::removeNullValues(json);
 
     // Write as json
-    //{
-    //  std::ofstream out(filename + ".json");
-    //  out << json.dump(2);
-    //  out.close();
-    //}
+
+    // std::ofstream out(filename + ".json");
+    // out << json.dump(2);
+    // out.close();
 
     // Write as message pack
     {
@@ -294,9 +295,10 @@ void WorkSheet::deserialize(const std::string &data)
 /// \param[out]
 /// \return
 ///
-auto WorkBook::listResultsFiles(const std::string &xzFileName) -> std::vector<std::string>
+auto WorkBook::listResultsFiles(const std::string &xzFileName, const std::string &fileExt)
+    -> std::vector<std::filesystem::path>
 {
-  return helper::xz::listFiles(xzFileName);
+  return helper::xz::listFiles(xzFileName, fileExt);
 }
 
 ///
@@ -309,6 +311,7 @@ auto WorkBook::listResultsFiles(const std::string &xzFileName) -> std::vector<st
 void WorkBook::createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder,
                                         std::optional<std::string> pathToImagesFolder)
 {
+  auto id = DurationCount::start("Start compression");
   std::vector<helper::xz::FolderToAdd> foldersToAdd;
 
   foldersToAdd.push_back({.pathToFolderToAdd         = pathToResultsFolder,
@@ -321,7 +324,8 @@ void WorkBook::createArchiveFromResults(const std::string &xzFileName, const std
   }
 
   helper::xz::createAndAddFiles(xzFileName + RESULTS_XZ_FILE_EXTENSION, foldersToAdd);
-  joda::helper::fs::removeDirectory(pathToResultsFolder);
+  std::filesystem::remove_all(pathToResultsFolder);
+  DurationCount::stop(id);
 }
 
 ///
