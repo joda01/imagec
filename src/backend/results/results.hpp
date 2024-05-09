@@ -105,7 +105,7 @@ static inline const std::string REPORT_EXPORT_FOLDER_PATH{"reports"};
 static inline const std::string IMAGES_FOLDER_PATH{"images"};
 static inline const std::string RESULTS_SUMMARY_FILE_NAME{"results_summary"};
 static inline const std::string RESULTS_IMAGE_FILE_NAME{"results_image"};
-
+static inline const std::string CONTROL_IMAGE_FILE_NAME{"control_image"};
 static inline const std::string RESULTS_XZ_FILE_NAME{"results"};
 static inline const std::string RESULTS_XZ_FILE_EXTENSION{".tar.gz"};
 static inline const std::string MESSAGE_PACK_FILE_EXTENSION{".msgpack"};

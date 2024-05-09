@@ -48,7 +48,7 @@ int createAndAddFiles(const std::string &archiveFilename, const std::vector<Fold
   checkForError(archive_write_set_format_gnutar(archive));
   checkForError(archive_write_add_filter_gzip(archive));
   // archive_write_add_filter_xz(struct archive *)
-  checkForError(archive_write_set_options(archive, "compression-level=1\0"));
+  checkForError(archive_write_set_options(archive, "compression-level=0\0"));
   // checkForError(archive_write_set_format_pax_restricted(archive));
   checkForError(archive_write_open_filename(archive, archiveFilename.data()));
   time_t timeNow = time(nullptr);

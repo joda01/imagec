@@ -366,7 +366,8 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfoImag
                                                  intersect.meta.channelIdx);
     joda::results::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(intersect.meta.channelIdx),
                                                 detailReports, detailOutputFolder, mJobName, intersect.meta.channelIdx,
-                                                tileIdx, channelProperties.props, imagePath.getFilePath().string());
+                                                tileIdx, channelProperties.props, imagePath.getFilePath().string(),
+                                                imagePath.getFilename());
   };
 
   if(poolSize > 1) {
@@ -419,7 +420,7 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfoImag
 
     joda::results::Helper::appendToDetailReport(mAnalyzeSettings, detectionResults.at(idx), detailReports,
                                                 detailOutputFolder, mJobName, idx, tileIdx, channelProperties.props,
-                                                imagePath.getFilePath().string());
+                                                imagePath.getFilePath().string(), imagePath.getFilename());
   };
 
   if(!mStop && mState != State::ERROR_) {
@@ -464,10 +465,10 @@ void Pipeline::analyzeTile(joda::results::WorkSheet &detailReports, FileInfoImag
                                                    channelSettings.meta.channelIdx);
     }
     if(detectionResults.contains(channelSettings.meta.channelIdx)) {
-      joda::results::Helper::appendToDetailReport(mAnalyzeSettings,
-                                                  detectionResults.at(channelSettings.meta.channelIdx), detailReports,
-                                                  detailOutputFolder, mJobName, channelSettings.meta.channelIdx,
-                                                  tileIdx, channelProperties.props, imagePath.getFilePath().string());
+      joda::results::Helper::appendToDetailReport(
+          mAnalyzeSettings, detectionResults.at(channelSettings.meta.channelIdx), detailReports, detailOutputFolder,
+          mJobName, channelSettings.meta.channelIdx, tileIdx, channelProperties.props, imagePath.getFilePath().string(),
+          imagePath.getFilename());
     }
   };
 

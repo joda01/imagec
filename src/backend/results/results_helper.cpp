@@ -100,7 +100,7 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
                                   joda::results::WorkSheet &detailReportTable,
                                   const std::string &detailReportOutputPath, const std::string &jobName,
                                   joda::settings::ChannelIndex chIdx, uint32_t tileIdx, const ImageProperties &imgProps,
-                                  const std::string &imagePath)
+                                  const std::string &imagePath, const std::string &imageName)
 {
   static std::mutex appendMutex;
 
@@ -113,8 +113,8 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   compression_params.push_back(1);
 
   if(!result.controlImage.empty()) {
-    cv::imwrite(detailReportOutputPath + separator + "control_" + joda::settings::to_string(chIdx) + "_" +
-                    std::to_string(tileIdx) + "_" + jobName + CONTROL_IMAGES_FILE_EXTENSION,
+    cv::imwrite(detailReportOutputPath + separator + CONTROL_IMAGE_FILE_NAME + "_" + imageName + "_" +
+                    joda::settings::to_string(chIdx) + "_" + std::to_string(tileIdx) + CONTROL_IMAGES_FILE_EXTENSION,
                 result.controlImage, compression_params);
   } else {
     std::cout << "CTRL img null" << std::endl;
