@@ -3,7 +3,10 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
+#include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
+#include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 
 namespace nlohmann {
@@ -35,6 +38,7 @@ struct adl_serializer<std::chrono::system_clock::time_point>
     tp = std::chrono::system_clock::from_time_t(std::mktime(&tm));
   }
 };
+
 }    // namespace nlohmann
 
 namespace joda::results {
@@ -112,11 +116,11 @@ struct ExperimentMeta
 /// \author     Joachim Danmayr
 /// \brief      Position in well
 ///
-struct WellPosOnPlate
+struct Position
 {
   int32_t x = -1;
   int32_t y = -1;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WellPosOnPlate, x, y);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Position, x, y);
 };
 
 ///
@@ -126,8 +130,8 @@ struct WellPosOnPlate
 ///
 struct GroupMeta
 {
-  std::string name;                 ///< Name of the group
-  WellPosOnPlate wellPosOnPlate;    /// Position of the group on the plate
+  std::string name;           ///< Name of the group
+  Position wellPosOnPlate;    /// Position of the group on the plate
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(GroupMeta, name, wellPosOnPlate);
 };
@@ -159,6 +163,19 @@ struct MeasureChannelMeta
 };
 
 ///
+/// \class      PositionInWell
+/// \author     Joachim Danmayr
+/// \brief      Position in well
+///
+struct TilePosition
+{
+  int64_t tileIndex = -1;
+  int64_t xOffset   = -1;
+  int64_t yOffset   = -1;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(TilePosition, xOffset, yOffset);
+};
+
+///
 /// \class      ObjectMeta
 /// \author     Joachim Danmayr
 /// \brief      Information about the measurement channel
@@ -167,7 +184,8 @@ struct ObjectMeta
 {
   std::string name;     ///< Name for the object
   bool valid = true;    ///< True if the object is valid, else false
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(ObjectMeta, name, valid);
+  std::optional<TilePosition> tileInfo;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectMeta, name, valid, tileInfo);
 };
 
 }    // namespace joda::results

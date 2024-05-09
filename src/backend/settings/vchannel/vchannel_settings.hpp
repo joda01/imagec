@@ -5,14 +5,13 @@
 #include <optional>
 #include "../channel/channel_settings_cross.hpp"
 #include "../channel/channel_settings_meta.hpp"
+#include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/vchannel/vchannel_intersection.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 #include "vchannel_voronoi_settings.hpp"
 
 namespace joda::settings {
-
-#include "backend/helper/json_optional_parser_helper.hpp"
 
 class VChannelSettings
 {

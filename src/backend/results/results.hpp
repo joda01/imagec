@@ -119,27 +119,6 @@ concept Value_t = std::is_same_v<T, double> || std::is_same_v<T, float> || std::
                   std::is_same_v<T, uint32_t> || std::is_same_v<T, int32_t> || std::is_same_v<T, uint64_t> ||
                   std::is_same_v<T, func::ParticleValidity>;
 
-template <typename T>
-inline void to_json(nlohmann::json &j, const std::optional<T> &opt)
-{
-  if(opt == std::nullopt) {
-  } else if(opt.has_value()) {
-    j = opt.value();    // Just assign the value if present
-  }
-}
-
-template <typename T>
-inline void from_json(const nlohmann::json &j, std::optional<T> &opt)
-{
-  if(!j.is_null()) {
-    T value;
-    j.get_to(value);
-    opt = value;
-  } else {
-    opt = std::nullopt;    // Convert null to empty optional
-  }
-}
-
 ///
 /// \class      Value
 /// \author     Joachim Danmayr

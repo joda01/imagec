@@ -147,7 +147,10 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
       uint64_t index = roiIdx + indexOffset;
       // Object validity
       Object &obj = tableToWorkOn.emplaceObject(
-          index, ObjectMeta{.name = std::to_string(index), .valid = roi.getValidity() == func::ParticleValidity::VALID},
+          index,
+          ObjectMeta{.name     = std::to_string(index),
+                     .valid    = roi.getValidity() == func::ParticleValidity::VALID,
+                     .tileInfo = TilePosition{.tileIndex = tileIdx, .xOffset = xMul, .yOffset = yMul}},
           std::nullopt);
 
       obj.emplaceValue({MeasureChannels::CONFIDENCE, chIdx})       = roi.getConfidence();

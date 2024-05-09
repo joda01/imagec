@@ -147,8 +147,16 @@ void Group::setMeta(const GroupMeta &meta)
 ///
 Channel &Group::emplaceChannel(ChannelKey key, const ChannelMeta &meta)
 {
+  auto channelIterator = channels.find(key);
+  if(channelIterator == channels.end()) {
+    Channel &channel = channels[key];
+    channel.setMeta(meta);
+    return channel;
+  }
   Channel &channel = channels[key];
-  channel.setMeta(meta);
+  if(meta.valid != func::ResponseDataValidity::VALID) {
+    channel.setValidity(meta.valid, meta.invalidateAllObjects);
+  }
   return channel;
 }
 
@@ -244,7 +252,7 @@ void WorkSheet::saveToFile(std::string filename, const JobMeta &meta,
   filename             = removeFileExtension(filename);
   if(!filename.empty()) {
     nlohmann::json json = *this;
-    settings::removeNullValues(json);
+    removeNullValues(json);
 
     // Write as json
 
