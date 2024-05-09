@@ -51,7 +51,7 @@ public:
       mIsActiveShown = false;
     }
   }
-  void setActualSelectedWorkingFile(const QString &imageCFile);
+  void setActualSelectedWorkingFile(const std::filesystem::path &imageCFile);
 
 private:
   /////////////////////////////////////////////////////

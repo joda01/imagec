@@ -120,10 +120,10 @@ QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
   return progress;
 }
 
-void PanelReporting::setActualSelectedWorkingFile(const QString &imageCFile)
+void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &imageCFile)
 {
-  mWindowMain->setMiddelLabelText(imageCFile);
-  mSelectedImageCFile = std::filesystem::path(imageCFile.toStdString());
+  mWindowMain->setMiddelLabelText(imageCFile.filename().string().data());
+  mSelectedImageCFile = imageCFile;
 }
 
 ///

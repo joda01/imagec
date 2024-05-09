@@ -758,6 +758,7 @@ void WindowMain::onStartClicked()
 ///
 void WindowMain::onBackClicked()
 {
+  setMiddelLabelText("");
   mBackButton->setEnabled(false);
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
@@ -821,7 +822,7 @@ void WindowMain::onOpenReportingAreaClicked()
   if(filePath.isEmpty()) {
     return;
   }
-  mPanelReporting->setActualSelectedWorkingFile(filePath);
+  mPanelReporting->setActualSelectedWorkingFile(filePath.toStdString());
 
   // Open reporting area
   mBackButton->setEnabled(true);
