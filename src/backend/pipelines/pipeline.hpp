@@ -164,8 +164,8 @@ private:
 
   void analyzeImage(joda::results::WorkSheet &alloverReport, const FileInfoImages &imagePath);
 
-  void analyzeTile(joda::results::WorkSheet &detailReports, FileInfoImages imagePath, std::string detailOutputFolder,
-                   int tileIdx, const joda::algo::ChannelProperties &channelProperties);
+  void analyzeTile(joda::results::WorkSheet &detailReports, FileInfoImages imagePath, int tileIdx,
+                   const joda::algo::ChannelProperties &channelProperties);
   void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
                        const joda::settings::ChannelSettings &channelSettings, FileInfoImages imagePath, int tileIdx,
                        const joda::algo::ChannelProperties &channelProperties);

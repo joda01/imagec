@@ -361,7 +361,7 @@ private:
 class WorkBook
 {
 public:
-  static auto listResultsFiles(const std::string &xzFileName, const std::string &fileExt)
+  static auto listResultsFiles(const std::string &xzFileName, const std::string &fileExt, bool *stopToken)
       -> std::vector<std::filesystem::path>;
   static void createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder,
                                        std::optional<std::string> pathToImagesFolder);

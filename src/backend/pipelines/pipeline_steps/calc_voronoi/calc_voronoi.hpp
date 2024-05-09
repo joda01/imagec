@@ -37,8 +37,8 @@ public:
   }
   /////////////////////////////////////////////////////
   auto execute(const settings::AnalyzeSettings &,
-               const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &,
-               const std::string &detailoutputPath) const -> joda::func::DetectionResponse override;
+               const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &) const
+      -> joda::func::DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////

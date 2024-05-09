@@ -13,12 +13,16 @@
 
 #pragma once
 
+#include <qboxlayout.h>
+#include <qcombobox.h>
 #include <qtmetamacros.h>
 #include <QtWidgets>
 #include <filesystem>
 #include <memory>
 #include <mutex>
+#include <thread>
 #include "backend/helper/directory_iterator.hpp"
+#include "backend/results/results.hpp"
 #include "backend/results/results_reporting_settings.hpp"
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_function.hpp"
@@ -35,8 +39,7 @@ class PanelReporting : public QWidget
   Q_OBJECT
 
 signals:
-  void updatePreviewStarted();
-  void updatePreviewFinished();
+  void loadingFilesfinished();
 
 public:
   PanelReporting(WindowMain *wm);
@@ -60,6 +63,15 @@ private:
   ContainerButton *mButtonExportExcel;
   std::shared_ptr<ReportingExporterThread> mExcelExporter;
   results::ReportingSettings mExcelReportSettings;
+  bool mSearchFileStopToken = false;
+
+  // Selector
+  QVBoxLayout *mSelectorLayout;
+  std::shared_ptr<ContainerFunction<QString, int>> mFileSelector;
+  QProgressBar *mProgressSelector;
+  std::shared_ptr<std::thread> mLoadingFilesThread;
+  std::vector<std::filesystem::path> mFoundFiles;
+  std::vector<ContainerFunction<QString, int>::ComboEntry> entry;
 
   // Heatmap
   std::shared_ptr<ContainerFunction<QString, int>> mHeatmapSlice;
@@ -70,6 +82,9 @@ private:
   ContainerButton *mButtonReportingSettingsHeatmap;
   ContainerButton *mButtonExportHeatmap;
   std::shared_ptr<ReportingExporterThread> mHeatmapExporter;
+
+  // Table
+  QTableWidget *mTable;
 
   /////////////////////////////////////////////////////
   QHBoxLayout *createLayout();
@@ -84,13 +99,16 @@ private:
   bool mIsActiveShown = false;
   std::filesystem::path mSelectedImageCFile;
 
+  void lookingForFilesThread();
+  void loadDetailReportToTable(const results::WorkSheet &sheet);
+
 private slots:
   void onExcelExportChannelsClicked();
   void onHeatmapExportChannelsClicked();
-
   void onExportToXlsxClicked();
-
   void onExportToXlsxHeatmapClicked();
+  void onLoadingFileFinished();
+  void onResultsFileSelected();
 };
 
 }    // namespace joda::ui::qt

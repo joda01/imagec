@@ -20,11 +20,12 @@
 namespace joda::ui::qt {
 
 ReportingExporterThread::ReportingExporterThread(QProgressBar *progressBar, QWidget *widgetToDeactivateDuringRuntime,
-                                                 const std::filesystem::path &packFile,
+                                                 const std::filesystem::path &archiveFile,
+                                                 const std::vector<std::filesystem::path> &files,
                                                  std::function<void(const results::WorkSheet &)> functionForOverview,
                                                  std::function<void(const results::WorkSheet &)> functionForImages) :
-    mImageCPackFile(packFile),
-    mProgressBar(progressBar), mWidgetToDeactivateDuringRuntime(widgetToDeactivateDuringRuntime),
+    mImageCPackFile(archiveFile),
+    mFiles(files), mProgressBar(progressBar), mWidgetToDeactivateDuringRuntime(widgetToDeactivateDuringRuntime),
     mFunctionForOverview(functionForOverview), mFunctionForImages(functionForImages)
 {
   mWorkerThread = std::make_shared<std::thread>(&ReportingExporterThread::workerThread, this);
@@ -49,11 +50,9 @@ void ReportingExporterThread::workerThread()
 {
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   mProgressBar->setRange(0, 100);
-  int finished = 0;
-  auto files =
-      results::WorkBook::listResultsFiles(mImageCPackFile.string(), joda::results::MESSAGE_PACK_FILE_EXTENSION);
-  uint32_t nrOfFiles = files.size();
-  for(const auto &resultsFilePath : files) {
+  int finished       = 0;
+  uint32_t nrOfFiles = mFiles.size();
+  for(const auto &resultsFilePath : mFiles) {
     if(resultsFilePath.filename().string().starts_with(joda::results::RESULTS_SUMMARY_FILE_NAME)) {
       mFunctionForOverview(results::WorkBook::readWorksheetFromArchive(mImageCPackFile.string(), resultsFilePath));
     } else {

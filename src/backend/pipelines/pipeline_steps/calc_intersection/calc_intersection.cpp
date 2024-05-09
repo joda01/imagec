@@ -28,8 +28,8 @@ CalcIntersection::CalcIntersection(const std::set<joda::settings::ChannelIndex> 
 
 auto CalcIntersection::execute(
     const settings::AnalyzeSettings &settings,
-    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResultsIn,
-    const std::string &detailoutputPath) const -> joda::func::DetectionResponse
+    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResultsIn) const
+    -> joda::func::DetectionResponse
 {
   auto id = DurationCount::start("Intersection");
 

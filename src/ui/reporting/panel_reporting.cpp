@@ -18,17 +18,21 @@
 #include <qlineedit.h>
 #include <qprogressbar.h>
 #include <qpushbutton.h>
+#include <qtablewidget.h>
 #include <qwidget.h>
+#include <cstdint>
 #include <exception>
 #include <filesystem>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 #include <vector>
 #include "../window_main.hpp"
 #include "backend/pipelines/reporting/reporting_generator.hpp"
 #include "backend/pipelines/reporting/reporting_heatmap.hpp"
 #include "backend/results/results.hpp"
+#include "ui/container/container_function_base.hpp"
 #include "ui/reporting/exporter_thread.hpp"
 #include "dialog_channel_measurment.hpp"
 
@@ -44,6 +48,25 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 
   auto *horizontalLayout             = createLayout();
   auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+
+  //
+  // Selector
+  //
+  {
+    connect(this, &PanelReporting::loadingFilesfinished, this, &PanelReporting::onLoadingFileFinished);
+
+    auto [selector, _2] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+    selector->addWidget(createTitle("Results"));
+    mSelectorLayout = selector;
+
+    mProgressSelector = createProgressBar(_2);
+    mProgressSelector->setVisible(true);
+    mProgressSelector->setRange(0, 0);
+    mProgressSelector->setMaximum(0);
+    mProgressSelector->setMinimum(0);
+    selector->addWidget(mProgressSelector);
+    _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  }
 
   //
   // Excel export
@@ -96,20 +119,88 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     verticalLayoutHeatmap->addWidget(mProgressHeatmap);
     layout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
-
   verticalLayoutContainer->addStretch(0);
+
+  {
+    auto [tableContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 16777215, 16);
+
+    mTable = new QTableWidget(10, 10, _1);
+    tableContainer->addWidget(mTable);
+  }
 
   //
   // Add layout
   //
   setLayout(horizontalLayout);
-  horizontalLayout->addStretch();
+  // horizontalLayout->addStretch();
 }
 
 PanelReporting::~PanelReporting()
 {
+  mSearchFileStopToken = true;
+  if(mLoadingFilesThread != nullptr && mLoadingFilesThread->joinable()) {
+    mLoadingFilesThread->join();
+  }
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelReporting::lookingForFilesThread()
+{
+  entry.clear();
+  mFoundFiles.clear();
+  mFoundFiles = results::WorkBook::listResultsFiles(mSelectedImageCFile.string(),
+                                                    joda::results::MESSAGE_PACK_FILE_EXTENSION, &mSearchFileStopToken);
+  entry.reserve(mFoundFiles.size());
+  for(const auto &en : mFoundFiles) {
+    entry.push_back({en.string().data(), en.string().data()});
+  }
+
+  emit loadingFilesfinished();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelReporting::onLoadingFileFinished()
+{
+  mFileSelector = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
+      "icons8-folder-50.png", "Results files", "Results files", "", "", entry, mWindowMain, ""));
+  mSelectorLayout->insertWidget(1, mFileSelector->getEditableWidget());
+  connect(mFileSelector.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onResultsFileSelected);
+
+  mProgressSelector->setVisible(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelReporting::onResultsFileSelected()
+{
+  loadDetailReportToTable(results::WorkBook::readWorksheetFromArchive(mSelectedImageCFile.string(),
+                                                                      mFileSelector->getValue().toStdString()));
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
 {
   QProgressBar *progress = new QProgressBar(parent);
@@ -120,10 +211,30 @@ QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
   return progress;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &imageCFile)
 {
   mWindowMain->setMiddelLabelText(imageCFile.filename().string().data());
   mSelectedImageCFile = imageCFile;
+
+  if(mFileSelector != nullptr) {
+    mSelectorLayout->removeWidget(mFileSelector->getEditableWidget());
+  }
+  mProgressSelector->setVisible(true);
+  mProgressSelector->setRange(0, 0);
+  mProgressSelector->setMaximum(0);
+  mProgressSelector->setMinimum(0);
+
+  if(mLoadingFilesThread != nullptr && mLoadingFilesThread->joinable()) {
+    mLoadingFilesThread->join();
+  }
+  mLoadingFilesThread = std::make_shared<std::thread>(&PanelReporting::lookingForFilesThread, this);
 }
 
 ///
@@ -136,7 +247,7 @@ void PanelReporting::onExportToXlsxClicked()
 
   // Write summary
   mExcelExporter = std::make_shared<ReportingExporterThread>(
-      mProgressExportExcel, mButtonExportExcel, mSelectedImageCFile,
+      mProgressExportExcel, mButtonExportExcel, mSelectedImageCFile, mFoundFiles,
       [this](const results::WorkSheet &overviewPath) {
         std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
                                    joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
@@ -176,7 +287,7 @@ void PanelReporting::onExportToXlsxHeatmapClicked()
 
   // Write summary
   mExcelExporter = std::make_shared<ReportingExporterThread>(
-      mProgressHeatmap, mButtonExportHeatmap, mSelectedImageCFile,
+      mProgressHeatmap, mButtonExportHeatmap, mSelectedImageCFile, mFoundFiles,
       [this](const results::WorkSheet &overviewPath) {
         std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
                                    joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
@@ -344,6 +455,48 @@ std::tuple<QVBoxLayout *, QWidget *> PanelReporting::addVerticalPanel(QLayout *h
   horizontalLayout->addWidget(contentWidget);
 
   return {layout, contentWidget};
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelReporting::loadDetailReportToTable(const results::WorkSheet &sheet)
+{
+  auto &imageMeta = sheet.getImageMeta();
+  if(imageMeta.has_value()) {
+    auto firstChannel = sheet.root().getChannels().begin();
+    auto &channel     = firstChannel->second;
+
+    mTable->setRowCount(channel.getNrOfObjects());
+    mTable->setColumnCount(channel.getMeasuredChannels().size());
+
+    int rowIdx = 0;
+    for(const auto &[objextKey, object] : channel.getObjects()) {
+      int colIdx = 0;
+      {
+        QTableWidgetItem *newItem = new QTableWidgetItem(QString("%1").arg(object.getObjectMeta().name.data()));
+        mTable->setItem(rowIdx, colIdx, newItem);
+        colIdx++;
+      }
+      {
+        auto &tileInfo  = object.getObjectMeta().tileInfo;
+        int64_t tileIdx = 0;
+        if(tileInfo.has_value()) {
+          tileIdx = tileInfo->tileIndex;
+        }
+        std::string controlImagePath = channel.getChannelMeta().controlImagePath;
+        helper::stringReplace(controlImagePath, "${tileIdx}", std::to_string(tileIdx));
+        QTableWidgetItem *newItem = new QTableWidgetItem(QString(controlImagePath.data()));
+        mTable->setItem(rowIdx, colIdx, newItem);
+        colIdx++;
+      }
+      rowIdx++;
+    }
+  }
 }
 
 }    // namespace joda::ui::qt

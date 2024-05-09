@@ -88,7 +88,8 @@ int createAndAddFiles(const std::string &archiveFilename, const std::vector<Fold
 }
 
 // Function to list all files within the archive
-std::vector<std::filesystem::path> listFiles(const std::string &archiveFilename, const std::string &fileExt)
+std::vector<std::filesystem::path> listFiles(const std::string &archiveFilename, const std::string &fileExt,
+                                             bool *stopToken)
 {
   std::vector<std::filesystem::path> fileList;
 
@@ -106,6 +107,9 @@ std::vector<std::filesystem::path> listFiles(const std::string &archiveFilename,
       fileList.emplace_back(filename);
     }
     archive_read_data_skip(a);
+    if(stopToken != nullptr && *stopToken) {
+      break;
+    }
   }
 
   // Clean up

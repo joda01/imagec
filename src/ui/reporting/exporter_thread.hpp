@@ -35,7 +35,7 @@ class ReportingExporterThread : public QObject
 public:
   /////////////////////////////////////////////////////
   ReportingExporterThread(QProgressBar *progressBar, QWidget *widgetToDeactivateDuringRuntime,
-                          const std::filesystem::path &,
+                          const std::filesystem::path &archiveFile, const std::vector<std::filesystem::path> &,
                           std::function<void(const results::WorkSheet &)> functionForOverview,
                           std::function<void(const results::WorkSheet &)> functionForImages);
 
@@ -48,7 +48,8 @@ signals:
 private:
   void workerThread();
   /////////////////////////////////////////////////////
-  const std::filesystem::path &mImageCPackFile;
+  std::filesystem::path mImageCPackFile;
+  const std::vector<std::filesystem::path> &mFiles;
   std::shared_ptr<std::thread> mWorkerThread;
   QProgressBar *mProgressBar;
   QWidget *mWidgetToDeactivateDuringRuntime;

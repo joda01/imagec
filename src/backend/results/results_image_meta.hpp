@@ -144,11 +144,12 @@ struct GroupMeta
 struct ChannelMeta
 {
   std::string name;    ///< Name of the channel
+  std::string controlImagePath;
   joda::func::ResponseDataValidity valid =
       joda::func::ResponseDataValidity::VALID;    ///< True if the value is valid, else false
   bool invalidateAllObjects = false;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(ChannelMeta, name, valid, invalidateAllObjects);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelMeta, controlImagePath, name, valid, invalidateAllObjects);
 };
 
 ///
@@ -169,9 +170,9 @@ struct MeasureChannelMeta
 ///
 struct TilePosition
 {
-  int64_t tileIndex = -1;
-  int64_t xOffset   = -1;
-  int64_t yOffset   = -1;
+  int64_t tileIndex = 0;
+  int64_t xOffset   = 0;
+  int64_t yOffset   = 0;
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(TilePosition, xOffset, yOffset);
 };
 

@@ -112,10 +112,15 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
   compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
   compression_params.push_back(1);
 
+  std::string controlImagePathWithTilePlaceholder =
+      IMAGES_FOLDER_PATH + separator + imageName + separator + CONTROL_IMAGE_FILE_NAME + "_" + imageName + "_" +
+      joda::settings::to_string(chIdx) + "_${tileIdx}" + CONTROL_IMAGES_FILE_EXTENSION;
+
   if(!result.controlImage.empty()) {
-    cv::imwrite(detailReportOutputPath + separator + CONTROL_IMAGE_FILE_NAME + "_" + imageName + "_" +
-                    joda::settings::to_string(chIdx) + "_" + std::to_string(tileIdx) + CONTROL_IMAGES_FILE_EXTENSION,
-                result.controlImage, compression_params);
+    std::string crlImgWithTile = controlImagePathWithTilePlaceholder;
+    helper::stringReplace(crlImgWithTile, "${tileIdx}", std::to_string(tileIdx));
+    std::to_string(tileIdx);
+    cv::imwrite(detailReportOutputPath + separator + crlImgWithTile, result.controlImage, compression_params);
   } else {
     std::cout << "CTRL img null" << std::endl;
   }
@@ -128,7 +133,7 @@ void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyze
 
   results::Channel &tableToWorkOn = detailReportTable.emplaceChannel(
       chIdx, ChannelMeta{.name = joda::settings::Settings::getChannelNameOfChannelIndex(analyzeSettings, chIdx),
-                         // Channel validity
+                         .controlImagePath     = controlImagePathWithTilePlaceholder,
                          .valid                = result.responseValidity,
                          .invalidateAllObjects = result.invalidateWholeImage});
   int64_t indexOffset = 0;

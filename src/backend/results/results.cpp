@@ -154,6 +154,7 @@ Channel &Group::emplaceChannel(ChannelKey key, const ChannelMeta &meta)
     return channel;
   }
   Channel &channel = channels[key];
+  channel.setMeta(meta);
   if(meta.valid != func::ResponseDataValidity::VALID) {
     channel.setValidity(meta.valid, meta.invalidateAllObjects);
   }
@@ -303,10 +304,10 @@ void WorkSheet::deserialize(const std::string &data)
 /// \param[out]
 /// \return
 ///
-auto WorkBook::listResultsFiles(const std::string &xzFileName, const std::string &fileExt)
+auto WorkBook::listResultsFiles(const std::string &xzFileName, const std::string &fileExt, bool *stopToken)
     -> std::vector<std::filesystem::path>
 {
-  return helper::xz::listFiles(xzFileName, fileExt);
+  return helper::xz::listFiles(xzFileName, fileExt, stopToken);
 }
 
 ///
