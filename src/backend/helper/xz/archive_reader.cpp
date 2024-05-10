@@ -145,6 +145,23 @@ int Archive::createAndAddFiles(const std::string &archiveFilename, const std::ve
           zip_close(archive);
           checkForError(err);
         }
+
+        /* Set compression level for the newly added file */
+        zip_uint64_t index = zip_name_locate(archive, pathInArchive.data(), ZIP_FL_NOCASE);
+        if(index < 0) {
+          auto err = "Failed to locate file '" + pathInArchive;
+          zip_source_free(source);
+          zip_close(archive);
+          checkForError(err);
+        }
+
+        int compression_level = 0;
+        if(zip_set_file_compression(archive, index, ZIP_CM_STORE, compression_level) < 0) {
+          auto err = "Failed to set compression '" + pathInArchive;
+          zip_source_free(source);
+          zip_close(archive);
+          checkForError(err);
+        }
       }
     }
   }
