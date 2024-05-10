@@ -35,8 +35,9 @@ jobs:
             mingw-w64-x86_64-python-mingw-ldd
             mingw-w64-x86_64-qt6-base
             mingw-w64-x86_64-libxlsxwriter
-            mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-xz
+            mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-libzip
       - name: Put MSYS2_MinGW64 on PATH
         run: |
           echo "D:/a/_temp/msys64/mingw64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
@@ -65,7 +66,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-22.04
     container: 
-      image: joda001/imagec:v1.7.3
+      image: joda001/imagec:v1.7.6
 
     steps:
       - name: Checkout code

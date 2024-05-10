@@ -23,6 +23,7 @@
 #include <set>
 #include <string>
 #include <variant>
+#include "backend/helper/xz/archive_reader.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/results/results_defines.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -107,7 +108,7 @@ static inline const std::string RESULTS_SUMMARY_FILE_NAME{"results_summary"};
 static inline const std::string RESULTS_IMAGE_FILE_NAME{"results_image"};
 static inline const std::string CONTROL_IMAGE_FILE_NAME{"control_image"};
 static inline const std::string RESULTS_XZ_FILE_NAME{"results"};
-static inline const std::string RESULTS_XZ_FILE_EXTENSION{".tar.gz"};
+static inline const std::string RESULTS_XZ_FILE_EXTENSION{".zip"};
 static inline const std::string MESSAGE_PACK_FILE_EXTENSION{".msgpack"};
 static inline const std::string CONTROL_IMAGES_FILE_EXTENSION{".png"};
 
@@ -361,15 +362,13 @@ private:
 class WorkBook
 {
 public:
-  static auto listResultsFiles(const std::string &xzFileName, const std::string &fileExt, bool *stopToken)
-      -> std::vector<std::filesystem::path>;
   static void createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder,
                                        std::optional<std::string> pathToImagesFolder);
-  static auto readWorksheetFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
-      -> WorkSheet;
+  static auto readWorksheetFromArchive(const std::shared_ptr<joda::helper::xz::Archive> archive,
+                                       const std::string &filenameOfFileInArchive) -> WorkSheet;
 
-  static auto readImageFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
-      -> cv::Mat;
+  static auto readImageFromArchive(const std::shared_ptr<joda::helper::xz::Archive> archive,
+                                   const std::string &filenameOfFileInArchive) -> cv::Mat;
 };
 
 }    // namespace joda::results

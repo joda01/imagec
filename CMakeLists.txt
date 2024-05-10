@@ -70,9 +70,11 @@ find_package( OpenSSL  )
 find_package( JNI REQUIRED )
 find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
-find_package( EXPAT MODULE REQUIRED )
-find_package( LibArchive REQUIRED )
+find_package( ZLIB REQUIRED)
+find_package( libzip REQUIRED)
 find_package( liblzma REQUIRED)
+
+
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
 
@@ -105,8 +107,8 @@ IF (WIN32)
     Qt6::Widgets
     Qt6::Core
     xlsxwriter
-    LibArchive::LibArchive
-    EXPAT::EXPAT
+    ZLIB::ZLIB
+    libzip::zip
     LibLZMA::LibLZMA
   )
 ELSE()
@@ -119,8 +121,8 @@ ELSE()
     Qt6::Widgets
     Qt6::Core
     PkgConfig::Xlsxwriter
-    LibArchive::LibArchive
-    EXPAT::EXPAT
+    ZLIB::ZLIB
+    libzip::zip
     LibLZMA::LibLZMA
   )
 ENDIF()

@@ -22,6 +22,7 @@
 #include <mutex>
 #include <thread>
 #include "backend/helper/directory_iterator.hpp"
+#include "backend/helper/xz/archive_reader.hpp"
 #include "backend/results/results.hpp"
 #include "backend/results/results_reporting_settings.hpp"
 #include "ui/container/container_button.hpp"
@@ -64,13 +65,14 @@ private:
   std::shared_ptr<ReportingExporterThread> mExcelExporter;
   results::ReportingSettings mExcelReportSettings;
   bool mSearchFileStopToken = false;
+  std::filesystem::path mExportPath;
 
   // Selector
   QVBoxLayout *mSelectorLayout;
   std::shared_ptr<ContainerFunction<QString, int>> mFileSelector;
   QProgressBar *mProgressSelector;
   std::shared_ptr<std::thread> mLoadingFilesThread;
-  std::vector<std::filesystem::path> mFoundFiles;
+  std::shared_ptr<joda::helper::xz::Archive> mArchive;
   std::vector<ContainerFunction<QString, int>::ComboEntry> entry;
 
   // Heatmap
@@ -98,7 +100,6 @@ private:
   WindowMain *mWindowMain;
   QLabel *createTitle(const QString &);
   bool mIsActiveShown = false;
-  std::filesystem::path mSelectedImageCFile;
 
   void lookingForFilesThread();
   void loadDetailReportToTable(const results::WorkSheet &sheet);

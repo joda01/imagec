@@ -19,6 +19,7 @@
 #include <memory>
 #include <thread>
 #include "backend/helper/directory_iterator.hpp"
+#include "backend/helper/xz/archive_reader.hpp"
 #include "backend/results/results.hpp"
 
 namespace joda::ui::qt {
@@ -35,7 +36,7 @@ class ReportingExporterThread : public QObject
 public:
   /////////////////////////////////////////////////////
   ReportingExporterThread(QProgressBar *progressBar, QWidget *widgetToDeactivateDuringRuntime,
-                          const std::filesystem::path &archiveFile, const std::vector<std::filesystem::path> &,
+                          std::shared_ptr<helper::xz::Archive> archive,
                           std::function<void(const results::WorkSheet &)> functionForOverview,
                           std::function<void(const results::WorkSheet &)> functionForImages);
 
@@ -49,7 +50,7 @@ private:
   void workerThread();
   /////////////////////////////////////////////////////
   std::filesystem::path mImageCPackFile;
-  const std::vector<std::filesystem::path> &mFiles;
+  std::shared_ptr<helper::xz::Archive> mArchive;
   std::shared_ptr<std::thread> mWorkerThread;
   QProgressBar *mProgressBar;
   QWidget *mWidgetToDeactivateDuringRuntime;

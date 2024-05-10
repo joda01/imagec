@@ -195,15 +195,6 @@ RUN git clone -b RELEASE_1.1.5 --depth 1 https://github.com/jmcnamara/libxlsxwri
     cmake --build . &&\
     make install
 
-#
-# Expat
-#
-RUN git clone --depth 1 -b R_2_6_2 https://github.com/joda01/libexpat.git /libexpat
-RUN cd /libexpat/expat &&\
-    ./buildconf.sh &&\
-    ./configure &&\
-    make &&\
-    make install
 
 #
 # xz-utils
@@ -213,15 +204,26 @@ RUN cd /xz &&\
     cmake . -DCMAKE_BUILD_TYPE="Release" -DBUILD_SHARED_LIBS=true &&\
     make &&\
     make install
-
 #
-#libarchive
+# zlib
 #
-RUN git clone --depth 1 -b v3.7.4 https://github.com/joda01/libarchive.git /libarchive
-RUN  cd libarchive &&\
-    cmake . -DCMAKE_BUILD_TYPE="Release" -DENABLE_EXPAT="OFF" -DENABLE_OPENSSL="OFF" -DENABLE_CNG="OFF" &&\
+RUN git clone --depth 1 -b v1.3.1 https://github.com/joda01/zlib.git /zlib
+RUN cd /zlib &&\
+    cmake . &&\
     make &&\
     make install
+
+
+#
+# Libzip
+#
+RUN git clone --depth 1 -b v1.10.1 https://github.com/joda01/libzip.git /libzip
+RUN cd /libzip &&\
+    cmake -DBUILD_SHARED_LIBS=OFF . &&\
+    make &&\
+    make install
+
+
 
 
 

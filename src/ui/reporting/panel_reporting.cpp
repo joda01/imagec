@@ -160,11 +160,10 @@ PanelReporting::~PanelReporting()
 void PanelReporting::lookingForFilesThread()
 {
   entry.clear();
-  mFoundFiles.clear();
-  mFoundFiles = results::WorkBook::listResultsFiles(mSelectedImageCFile.string(),
-                                                    joda::results::MESSAGE_PACK_FILE_EXTENSION, &mSearchFileStopToken);
-  entry.reserve(mFoundFiles.size());
-  for(const auto &en : mFoundFiles) {
+  mArchive->waitForFinishd();
+  auto found = mArchive->getFoundResults();
+  entry.reserve(found.size());
+  for(const auto &en : found) {
     entry.push_back({en.string().data(), en.string().data()});
   }
 
@@ -197,8 +196,8 @@ void PanelReporting::onLoadingFileFinished()
 ///
 void PanelReporting::onResultsFileSelected()
 {
-  loadDetailReportToTable(results::WorkBook::readWorksheetFromArchive(mSelectedImageCFile.string(),
-                                                                      mFileSelector->getValue().toStdString()));
+  loadDetailReportToTable(
+      results::WorkBook::readWorksheetFromArchive(mArchive, mFileSelector->getValue().toStdString()));
 }
 
 ///
@@ -227,8 +226,8 @@ QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
 ///
 void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &imageCFile)
 {
+  mExportPath = imageCFile.parent_path();
   mWindowMain->setMiddelLabelText(imageCFile.filename().string().data());
-  mSelectedImageCFile = imageCFile;
 
   if(mFileSelector != nullptr) {
     mSelectorLayout->removeWidget(mFileSelector->getEditableWidget());
@@ -241,6 +240,7 @@ void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &i
   if(mLoadingFilesThread != nullptr && mLoadingFilesThread->joinable()) {
     mLoadingFilesThread->join();
   }
+  mArchive            = std::make_shared<joda::helper::xz::Archive>(imageCFile);
   mLoadingFilesThread = std::make_shared<std::thread>(&PanelReporting::lookingForFilesThread, this);
 }
 
@@ -254,20 +254,19 @@ void PanelReporting::onExportToXlsxClicked()
 
   // Write summary
   mExcelExporter = std::make_shared<ReportingExporterThread>(
-      mProgressExportExcel, mButtonExportExcel, mSelectedImageCFile, mFoundFiles,
+      mProgressExportExcel, mButtonExportExcel, mArchive,
       [this](const results::WorkSheet &overviewPath) {
-        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
-                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
-                                   results::RESULTS_SUMMARY_FILE_NAME + "_" + overviewPath.getJobMeta().jobName;
+        std::string outputFolder = mExportPath.string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH +
+                                   separator + results::RESULTS_SUMMARY_FILE_NAME + "_" +
+                                   overviewPath.getJobMeta().jobName;
         joda::pipeline::reporting::ReportGenerator::flushReportToFile(
             overviewPath, mExcelReportSettings, outputFolder,
             joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL, true);
       },
       [this](const results::WorkSheet &details) {
-        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
-                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
-                                   results::RESULTS_IMAGE_FILE_NAME + "_" + details.getImageMeta()->imageFileName +
-                                   "_" + details.getJobMeta().jobName;
+        std::string outputFolder = mExportPath.string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH +
+                                   separator + results::RESULTS_IMAGE_FILE_NAME + "_" +
+                                   details.getImageMeta()->imageFileName + "_" + details.getJobMeta().jobName;
         joda::pipeline::reporting::ReportGenerator::flushReportToFile(
             details, mExcelReportSettings, outputFolder,
             joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
@@ -294,18 +293,17 @@ void PanelReporting::onExportToXlsxHeatmapClicked()
 
   // Write summary
   mExcelExporter = std::make_shared<ReportingExporterThread>(
-      mProgressHeatmap, mButtonExportHeatmap, mSelectedImageCFile, mFoundFiles,
+      mProgressHeatmap, mButtonExportHeatmap, mArchive,
       [this](const results::WorkSheet &overviewPath) {
-        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
-                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
-                                   results::RESULTS_SUMMARY_FILE_NAME + "_heatmap_" + overviewPath.getJobMeta().jobName;
+        std::string outputFolder = mExportPath.string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH +
+                                   separator + results::RESULTS_SUMMARY_FILE_NAME + "_heatmap_" +
+                                   overviewPath.getJobMeta().jobName;
 
         joda::pipeline::reporting::Heatmap::createAllOverHeatMap(mHeatmapReportSettings, overviewPath, outputFolder);
       },
       [this, sizes](const results::WorkSheet &details) {
-        std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
-                                   joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
-                                   results::RESULTS_IMAGE_FILE_NAME + "_heatmap_" +
+        std::string outputFolder = mExportPath.string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH +
+                                   separator + results::RESULTS_IMAGE_FILE_NAME + "_heatmap_" +
                                    details.getImageMeta()->imageFileName + "_" + details.getJobMeta().jobName;
 
         joda::pipeline::reporting::Heatmap::createHeatMapForImage(sizes, mHeatmapReportSettings, details, outputFolder);
@@ -550,11 +548,11 @@ void PanelReporting::onTableDoubleClicked(const QModelIndex &index)
   std::string controlImagePath = channel.getChannelMeta().controlImagePath;
   helper::stringReplace(controlImagePath, "${tileIdx}", std::to_string(measure.getObjectMeta().tileInfo->tileIndex));
   auto markedImage = joda::image::postprocessing::PostProcessor::markPositionInImage(
-      results::WorkBook::readImageFromArchive(mSelectedImageCFile.string(), controlImagePath), x, y);
+      results::WorkBook::readImageFromArchive(mArchive, controlImagePath), x, y);
 
-  std::string outputFolder = mSelectedImageCFile.parent_path().string() + separator +
-                             joda::results::REPORT_EXPORT_FOLDER_PATH + separator + results::RESULTS_SUMMARY_FILE_NAME +
-                             "_marked_" + mActualSelectedWorksheet.getJobMeta().jobName + ".png";
+  std::string outputFolder = mExportPath.string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
+                             results::RESULTS_SUMMARY_FILE_NAME + "_marked_" +
+                             mActualSelectedWorksheet.getJobMeta().jobName + ".png";
 
   cv::imwrite(outputFolder, markedImage);
 }

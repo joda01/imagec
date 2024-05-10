@@ -16,7 +16,7 @@
 #include <vector>
 #include "backend/duration_count/duration_count.h"
 #include "backend/helper/filesystem.hpp"
-#include "backend/helper/xz/xz_wrapper.hpp"
+#include "backend/helper/xz/archive_reader.hpp"
 #include "backend/results/results_defines.hpp"
 
 namespace joda::results {
@@ -304,19 +304,6 @@ void WorkSheet::deserialize(const std::string &data)
 /// \param[out]
 /// \return
 ///
-auto WorkBook::listResultsFiles(const std::string &xzFileName, const std::string &fileExt, bool *stopToken)
-    -> std::vector<std::filesystem::path>
-{
-  return helper::xz::listFiles(xzFileName, fileExt, stopToken);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void WorkBook::createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder,
                                         std::optional<std::string> pathToImagesFolder)
 {
@@ -332,7 +319,7 @@ void WorkBook::createArchiveFromResults(const std::string &xzFileName, const std
                             .subFolderInArchiveToAddTo = IMAGES_FOLDER_PATH});
   }
 
-  helper::xz::createAndAddFiles(xzFileName + RESULTS_XZ_FILE_EXTENSION, foldersToAdd);
+  helper::xz::Archive::createAndAddFiles(xzFileName + RESULTS_XZ_FILE_EXTENSION, foldersToAdd);
   std::filesystem::remove_all(pathToResultsFolder);
   DurationCount::stop(id);
 }
@@ -344,11 +331,11 @@ void WorkBook::createArchiveFromResults(const std::string &xzFileName, const std
 /// \param[out]
 /// \return
 ///
-auto WorkBook::readWorksheetFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
-    -> WorkSheet
+auto WorkBook::readWorksheetFromArchive(const std::shared_ptr<joda::helper::xz::Archive> archive,
+                                        const std::string &filenameOfFileInArchive) -> WorkSheet
 {
   WorkSheet sheet;
-  sheet.deserialize(helper::xz::readFile(xzFileName, filenameOfFileInArchive));
+  sheet.deserialize(archive->readFile(filenameOfFileInArchive));
   return sheet;
 }
 
@@ -359,10 +346,10 @@ auto WorkBook::readWorksheetFromArchive(const std::string &xzFileName, const std
 /// \param[out]
 /// \return
 ///
-auto WorkBook::readImageFromArchive(const std::string &xzFileName, const std::string &filenameOfFileInArchive)
-    -> cv::Mat
+auto WorkBook::readImageFromArchive(const std::shared_ptr<joda::helper::xz::Archive> archive,
+                                    const std::string &filenameOfFileInArchive) -> cv::Mat
 {
-  auto pngData = helper::xz::readFile(xzFileName, filenameOfFileInArchive);
+  auto pngData = archive->readFile(filenameOfFileInArchive);
   std::vector<uchar> pngData1(pngData.begin(), pngData.end());
   cv::Mat image = cv::imdecode(cv::Mat(pngData1), cv::IMREAD_UNCHANGED);
   return image;

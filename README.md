@@ -47,8 +47,8 @@ imageC generates a `.tar.gz` file for each finished job.
 ### Deploy build docker image
 
 docker build --target live -t joda001/imagec:live .
-docker build --target build -t joda001/imagec:v1.7.3 .
-docker push  joda001/imagec:v1.7.3
+docker build --target build -t joda001/imagec:v1.7.6 .
+docker push  joda001/imagec:v1.7.6
 
 ### Build for Windows
 

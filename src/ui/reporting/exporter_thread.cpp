@@ -20,12 +20,11 @@
 namespace joda::ui::qt {
 
 ReportingExporterThread::ReportingExporterThread(QProgressBar *progressBar, QWidget *widgetToDeactivateDuringRuntime,
-                                                 const std::filesystem::path &archiveFile,
-                                                 const std::vector<std::filesystem::path> &files,
+                                                 std::shared_ptr<helper::xz::Archive> archive,
                                                  std::function<void(const results::WorkSheet &)> functionForOverview,
                                                  std::function<void(const results::WorkSheet &)> functionForImages) :
-    mImageCPackFile(archiveFile),
-    mFiles(files), mProgressBar(progressBar), mWidgetToDeactivateDuringRuntime(widgetToDeactivateDuringRuntime),
+    mArchive(archive),
+    mProgressBar(progressBar), mWidgetToDeactivateDuringRuntime(widgetToDeactivateDuringRuntime),
     mFunctionForOverview(functionForOverview), mFunctionForImages(functionForImages)
 {
   mWorkerThread = std::make_shared<std::thread>(&ReportingExporterThread::workerThread, this);
@@ -51,15 +50,14 @@ void ReportingExporterThread::workerThread()
   static const std::string separator(1, std::filesystem::path::preferred_separator);
   mProgressBar->setRange(0, 100);
   int finished       = 0;
-  uint32_t nrOfFiles = mFiles.size();
-  for(const auto &resultsFilePath : mFiles) {
+  auto found         = mArchive->getFoundResults();
+  uint32_t nrOfFiles = found.size();
+  for(const auto &resultsFilePath : found) {
     if(resultsFilePath.filename().string().starts_with(joda::results::RESULTS_SUMMARY_FILE_NAME)) {
-      mFunctionForOverview(
-          results::WorkBook::readWorksheetFromArchive(mImageCPackFile.string(), resultsFilePath.string()));
+      mFunctionForOverview(results::WorkBook::readWorksheetFromArchive(mArchive, resultsFilePath.string()));
     } else {
       // Detail view
-      mFunctionForImages(
-          results::WorkBook::readWorksheetFromArchive(mImageCPackFile.string(), resultsFilePath.string()));
+      mFunctionForImages(results::WorkBook::readWorksheetFromArchive(mArchive, resultsFilePath.string()));
     }
     finished++;
     emit signalFileFinished((100 * finished) / nrOfFiles);
