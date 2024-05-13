@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <zip.h>
 #include <filesystem>
 #include <memory>
 #include <set>
@@ -35,6 +36,8 @@ public:
   Archive(const std::filesystem::path &pathToArchive);
   ~Archive();
   void waitForFinishd();
+  void open();
+  void close();
   [[nodiscard]] std::string readFile(const std::filesystem::path &filename) const;
   static int createAndAddFiles(const std::string &archiveFilename, const std::vector<FolderToAdd> &resultsfolder);
   auto getFoundResults() const -> const std::set<std::filesystem::path> &
@@ -56,6 +59,7 @@ private:
   std::set<std::filesystem::path> mResultsEntries;
   std::set<std::filesystem::path> mImageEntries;
   std::shared_ptr<std::thread> mListThread;
+  zip_t *mArchive = nullptr;
 };
 
 }    // namespace joda::helper::xz

@@ -770,6 +770,9 @@ void WindowMain::onBackClicked()
   mSecondSeparator->setVisible(true);
   mOpenReportingArea->setVisible(true);
   mStackedWidget->setCurrentIndex(0);
+  if(mPanelReporting != nullptr) {
+    mPanelReporting->close();
+  }
   if(mSelectedChannel != nullptr) {
     mSelectedChannel->toSettings();
     mSelectedChannel->setActive(false);

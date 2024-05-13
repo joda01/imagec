@@ -159,6 +159,7 @@ PanelReporting::~PanelReporting()
 ///
 void PanelReporting::lookingForFilesThread()
 {
+  mArchive->open();
   entry.clear();
   mArchive->waitForFinishd();
   auto found = mArchive->getFoundResults();
@@ -215,6 +216,20 @@ QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
   progress->setTextVisible(false);
   progress->setContentsMargins(8, 8, 8, 0);
   return progress;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelReporting::close()
+{
+  if(mArchive != nullptr) {
+    mArchive->close();
+  }
 }
 
 ///

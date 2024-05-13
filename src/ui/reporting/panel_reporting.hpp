@@ -56,6 +56,7 @@ public:
     }
   }
   void setActualSelectedWorkingFile(const std::filesystem::path &imageCFile);
+  void close();
 
 private:
   /////////////////////////////////////////////////////

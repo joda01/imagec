@@ -45,6 +45,7 @@ public:
 signals:
   /////////////////////////////////////////////////////
   void signalFileFinished(int);
+  void stop();
 
 private:
   void workerThread();
@@ -56,6 +57,9 @@ private:
   QWidget *mWidgetToDeactivateDuringRuntime;
   std::function<void(const results::WorkSheet &)> mFunctionForOverview;
   std::function<void(const results::WorkSheet &)> mFunctionForImages;
+  /////////////////////////////////////////////////////
+
+  bool mStopped = false;
 
 private slots:
   /////////////////////////////////////////////////////
