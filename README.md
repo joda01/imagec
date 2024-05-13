@@ -47,8 +47,8 @@ imageC generates a `.tar.gz` file for each finished job.
 ### Deploy build docker image
 
 docker build --target live -t joda001/imagec:live .
-docker build --target build -t joda001/imagec:v1.7.6 .
-docker push  joda001/imagec:v1.7.6
+docker build --target build -t joda001/imagec:v1.7.7 .
+docker push  joda001/imagec:v1.7.7
 
 ### Build for Windows
 
@@ -115,3 +115,8 @@ apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev l
 ## TODO
 
 - [ ] For tiled images, calculate real X/Y values of pixels in region of interest
+
+
+## Database schema
+
+Image Name | Channel | Measure

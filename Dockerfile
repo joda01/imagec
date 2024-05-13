@@ -224,6 +224,12 @@ RUN cd /libzip &&\
     make install
 
 
+RUN git clone --depth 1 -b version-3.45.3 https://github.com/sqlite/sqlite.git /sqlite
+RUN apt-get update && apt-get install -y tclsh
+RUN cd /sqlite &&\
+    ./configure &&\
+    make &&\
+    make install
 
 
 
