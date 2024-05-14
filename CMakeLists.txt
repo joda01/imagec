@@ -73,6 +73,8 @@ find_package( protobuf CONFIG REQUIRED )
 find_package( ZLIB REQUIRED)
 find_package( libzip REQUIRED)
 find_package( liblzma REQUIRED)
+find_package( SQLite3 REQUIRED)
+
 
 
 
@@ -110,6 +112,7 @@ IF (WIN32)
     ZLIB::ZLIB
     libzip::zip
     LibLZMA::LibLZMA
+    SQLite::SQLite3
   )
 ELSE()
   set(LIBS
@@ -124,6 +127,7 @@ ELSE()
     ZLIB::ZLIB
     libzip::zip
     LibLZMA::LibLZMA
+    SQLite::SQLite3
   )
 ENDIF()
 

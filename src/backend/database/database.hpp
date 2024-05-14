@@ -13,10 +13,27 @@
 
 #pragma once
 
+#include <sqlite3.h>
+#include <string>
+
 namespace joda::db {
 
 class Database
 {
+public:
+  /////////////////////////////////////////////////////
+  Database(const std::string &dbFile);
+  void open();
+  void close();
+  void addExperiment(int id, const std::string &name);
+  void addImage(int experimentId, int id, const std::string &name);
+  void addChannel(int imageId, int id, const std::string &name);
+  void addObject(int imageId, int channelId, int id, int measCh, double val);
+
+private:
+  /////////////////////////////////////////////////////
+  std::string mDbFile;
+  sqlite3 *mDb;
 };
 
 }    // namespace joda::db
