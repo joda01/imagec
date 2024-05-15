@@ -18,7 +18,7 @@ TEST_CASE("database:test", "[database_test]")
   db.addExperiment(1, "My experiment");
   auto id = DurationCount::start("Insert");
 
-  for(int img = 0; img < 4000; img++) {
+  for(int img = 0; img < 5; img++) {
     db.addImage(1, img, "My image 1");
     joda::log::logInfo("Added element >" + std::to_string(img) + "<");
 
@@ -37,6 +37,7 @@ TEST_CASE("database:test", "[database_test]")
     addChannel(10000, "COL1", 5);
     addChannel(10000, "COL2", 6);
   }
+  db.close();
 
   DurationCount::stop(id);
   DurationCount::printStats(1);

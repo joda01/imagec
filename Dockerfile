@@ -231,6 +231,12 @@ RUN cd /sqlite &&\
     make &&\
     make install
 
+RUN git clone --depth 1 -b v0.10.2 https://github.com/joda01/duckdb.git /duckdb
+RUN cd /duckdb &&\
+    cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release  &&\
+    cmake --build . --config Release --parallel 6
+RUN cd /duckdb &&\
+    cmake --build . --target install --config Release --parallel 6
 
 
 #

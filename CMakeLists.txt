@@ -74,9 +74,10 @@ find_package( ZLIB REQUIRED)
 find_package( libzip REQUIRED)
 find_package( liblzma REQUIRED)
 find_package( SQLite3 REQUIRED)
+find_package( DuckDB REQUIRED)
 
 
-
+SET(DuckDB_USE_STATIC_LIBS TRUE)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
 
@@ -128,10 +129,9 @@ ELSE()
     libzip::zip
     LibLZMA::LibLZMA
     SQLite::SQLite3
-    /workspaces/imagec/lib/libduckdb-linux-amd64/libduckdb.so
+    duckdb
   )
 ENDIF()
-
 
 set(RESOURCE_FILES
     resources/resource.qrc

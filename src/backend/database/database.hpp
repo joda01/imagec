@@ -15,6 +15,7 @@
 
 #include <sqlite3.h>
 #include <string>
+#include "duckdb.hpp"
 
 namespace joda::db {
 
@@ -33,7 +34,8 @@ public:
 private:
   /////////////////////////////////////////////////////
   std::string mDbFile;
-  sqlite3 *mDb;
+  duckdb_database db;
+  duckdb_connection con;
 };
 
 }    // namespace joda::db
