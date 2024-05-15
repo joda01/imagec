@@ -13,6 +13,7 @@
 
 #include "database.hpp"
 #include <iostream>
+#include <random>
 
 namespace joda::db {
 Database::Database(const std::string &dbFile) : mDbFile(dbFile)
@@ -24,7 +25,7 @@ void Database::open()
   int rc = sqlite3_open(mDbFile.data(), &mDb);
 
   // Setting pragma for synchronous mode
-  rc = sqlite3_exec(mDb, "PRAGMA synchronous = 0;", 0, 0, 0);
+  rc = sqlite3_exec(mDb, "PRAGMA synchronous = OFF;", 0, 0, 0);
   if(rc != SQLITE_OK) {
     std::cerr << "Error setting pragma: " << sqlite3_errmsg(mDb) << std::endl;
   }
@@ -67,30 +68,136 @@ void Database::open()
   // SQLite command to create a table
   const char *create_table_sql =
       "CREATE TABLE IF NOT EXISTS `experiment` ("
-      "	`id` integer primary key NOT NULL UNIQUE,"
-      "	`name` TEXT NOT NULL"
+      "	`id` integer,"
+      "	`name` TEXT"
       ");"
       "CREATE TABLE IF NOT EXISTS `image` ("
-      "	`id` INTEGER NOT NULL UNIQUE,"
-      "	`experiment_id` INTEGER NOT NULL,"
-      "	`name` TEXT NOT NULL,"
-      "  FOREIGN KEY(`experiment_id`) REFERENCES `experiment`(`id`)"
+      "	`id` INTEGER,"
+      "	`experiment_id` INTEGER,"
+      "	`name` TEXT"
+      //"  FOREIGN KEY(`experiment_id`) REFERENCES `experiment`(`id`)"
       ");"
       "CREATE TABLE IF NOT EXISTS `channel` ("
-      "	`id` INTEGER NOT NULL,"
-      "	`image_id` INTEGER NOT NULL,"
-      "	`name` TEXT NOT NULL,"
-      "  FOREIGN KEY(`image_id`) REFERENCES `image`(`id`)"
+      "  image_id INTEGER,"
+      "	`channel_id` INTEGER,"
+      "	`id` INTEGER,"
+      "	`name` TEXT,"
+      //"  FOREIGN KEY(`image_id`) REFERENCES `image`(`id`)"
+      "  PRIMARY KEY (image_id, channel_id)"
       ");"
       "CREATE TABLE object ("
-      "  object_id INTEGER NOT NULL PRIMARY KEY,"
-      "  measure_ch_id INTEGER NOT NULL,"
-      "  channel_id INTEGER NOT NULL,"
-      "  image_id INTEGER NOT NULL,"
-      "  value FLOAT NOT NULL,"
-      "  FOREIGN KEY (channel_id) REFERENCES channel(id),"
-      "  FOREIGN KEY (image_id) REFERENCES channel(image_id)"
-      ");";
+      "  object_id INTEGER,"
+      "  experiment_id INTEGER,"
+      "  image_id INTEGER,"
+      "  channel_id INTEGER,"
+      "  val_confidence FLOAT,"
+      "  val_areasize FLOAT,"
+      "  val_perimeter FLOAT,"
+      "  val_circularity FLOAT,"
+      "  val_validity FLOAT,"
+      "  val_x FLOAT,"
+      "  val_y FLOAT,"
+      "  val_box_width FLOAT,"
+      "  val_box_height FLOAT,"
+      "  val_intensity_min FLOAT,"
+      "  val_intensity_max FLOAT,"
+      "  val_intensity_avg FLOAT,"
+      "  val_intensity_cross_min_01 FLOAT,"
+      "  val_intensity_cross_max_01 FLOAT,"
+      "  val_intensity_cross_avg_01 FLOAT,"
+      "  val_intensity_cross_min_02 FLOAT,"
+      "  val_intensity_cross_max_02 FLOAT,"
+      "  val_intensity_cross_avg_02 FLOAT,"
+      "  val_intensity_cross_min_03 FLOAT,"
+      "  val_intensity_cross_max_03 FLOAT,"
+      "  val_intensity_cross_avg_03 FLOAT,"
+      "  val_intensity_cross_min_04 FLOAT,"
+      "  val_intensity_cross_max_04 FLOAT,"
+      "  val_intensity_cross_avg_04 FLOAT,"
+      "  val_intensity_cross_min_05 FLOAT,"
+      "  val_intensity_cross_max_05 FLOAT,"
+      "  val_intensity_cross_avg_05 FLOAT,"
+      "  val_intensity_cross_min_06 FLOAT,"
+      "  val_intensity_cross_max_06 FLOAT,"
+      "  val_intensity_cross_avg_06 FLOAT,"
+      "  val_intensity_cross_min_07 FLOAT,"
+      "  val_intensity_cross_max_07 FLOAT,"
+      "  val_intensity_cross_avg_07 FLOAT,"
+      "  val_intensity_cross_min_08 FLOAT,"
+      "  val_intensity_cross_max_08 FLOAT,"
+      "  val_intensity_cross_avg_08 FLOAT,"
+      "  val_intensity_cross_min_09 FLOAT,"
+      "  val_intensity_cross_max_09 FLOAT,"
+      "  val_intensity_cross_avg_09 FLOAT,"
+      "  val_intensity_cross_min_0A FLOAT,"
+      "  val_intensity_cross_max_0A FLOAT,"
+      "  val_intensity_cross_avg_0A FLOAT,"
+      "  val_intensity_cross_min_0B FLOAT,"
+      "  val_intensity_cross_max_0B FLOAT,"
+      "  val_intensity_cross_avg_0B FLOAT,"
+      "  val_intensity_cross_min_0C FLOAT,"
+      "  val_intensity_cross_max_0C FLOAT,"
+      "  val_intensity_cross_avg_0C FLOAT,"
+      "  val_intensity_cross_min_0D FLOAT,"
+      "  val_intensity_cross_max_0D FLOAT,"
+      "  val_intensity_cross_avg_0D FLOAT,"
+      "  val_intensity_cross_min_0E FLOAT,"
+      "  val_intensity_cross_max_0E FLOAT,"
+      "  val_intensity_cross_avg_0E FLOAT,"
+      "  val_intensity_cross_min_0F FLOAT,"
+      "  val_intensity_cross_max_0F FLOAT,"
+      "  val_intensity_cross_avg_0F FLOAT,"
+      "  val_count_cross_min_01 FLOAT,"
+      "  val_count_cross_max_01 FLOAT,"
+      "  val_count_cross_avg_01 FLOAT,"
+      "  val_count_cross_min_02 FLOAT,"
+      "  val_count_cross_max_02 FLOAT,"
+      "  val_count_cross_avg_02 FLOAT,"
+      "  val_count_cross_min_03 FLOAT,"
+      "  val_count_cross_max_03 FLOAT,"
+      "  val_count_cross_avg_03 FLOAT,"
+      "  val_count_cross_min_04 FLOAT,"
+      "  val_count_cross_max_04 FLOAT,"
+      "  val_count_cross_avg_04 FLOAT,"
+      "  val_count_cross_min_05 FLOAT,"
+      "  val_count_cross_max_05 FLOAT,"
+      "  val_count_cross_avg_05 FLOAT,"
+      "  val_count_cross_min_06 FLOAT,"
+      "  val_count_cross_max_06 FLOAT,"
+      "  val_count_cross_avg_06 FLOAT,"
+      "  val_count_cross_min_07 FLOAT,"
+      "  val_count_cross_max_07 FLOAT,"
+      "  val_count_cross_avg_07 FLOAT,"
+      "  val_count_cross_min_08 FLOAT,"
+      "  val_count_cross_max_08 FLOAT,"
+      "  val_count_cross_avg_08 FLOAT,"
+      "  val_count_cross_min_09 FLOAT,"
+      "  val_count_cross_max_09 FLOAT,"
+      "  val_count_cross_avg_09 FLOAT,"
+      "  val_count_cross_min_0A FLOAT,"
+      "  val_count_cross_max_0A FLOAT,"
+      "  val_count_cross_avg_0A FLOAT,"
+      "  val_count_cross_min_0B FLOAT,"
+      "  val_count_cross_max_0B FLOAT,"
+      "  val_count_cross_avg_0B FLOAT,"
+      "  val_count_cross_min_0C FLOAT,"
+      "  val_count_cross_max_0C FLOAT,"
+      "  val_count_cross_avg_0C FLOAT,"
+      "  val_count_cross_min_0D FLOAT,"
+      "  val_count_cross_max_0D FLOAT,"
+      "  val_count_cross_avg_0D FLOAT,"
+      "  val_count_cross_min_0E FLOAT,"
+      "  val_count_cross_max_0E FLOAT,"
+      "  val_count_cross_avg_0E FLOAT,"
+      "  val_count_cross_min_0F FLOAT,"
+      "  val_count_cross_max_0F FLOAT,"
+      "  val_count_cross_avg_0F FLOAT,"
+      //"  FOREIGN KEY (channel_id) REFERENCES channel(id),"
+      //"  FOREIGN KEY (image_id) REFERENCES channel(image_id)"
+      "  PRIMARY KEY (experiment_id, image_id, channel_id, object_id)"
+      ") WITHOUT ROWID;";
+  //"CREATE INDEX my_image_idx on image (id);"
+  //"CREATE INDEX my_channel_idx on channel (id);"
 
   // Execute the SQL command to create a table
   char *error_message;
@@ -120,7 +227,7 @@ void Database::addExperiment(int id, const std::string &name)
   int rc = sqlite3_prepare_v2(mDb, sql.data(), -1, &stmt, nullptr);
 
   if(rc != SQLITE_OK) {
-    std::cerr << "Error preparing SQL statement: " << sqlite3_errmsg(mDb) << std::endl;
+    std::cerr << "Error preparing SQL statement exp: " << sqlite3_errmsg(mDb) << std::endl;
     sqlite3_close(mDb);
     return;
   }
@@ -158,7 +265,7 @@ void Database::addImage(int experimentId, int id, const std::string &name)
   int rc = sqlite3_prepare_v2(mDb, sql.data(), -1, &stmt, nullptr);
 
   if(rc != SQLITE_OK) {
-    std::cerr << "Error preparing SQL statement: " << sqlite3_errmsg(mDb) << std::endl;
+    std::cerr << "Error preparing SQL statement img: " << sqlite3_errmsg(mDb) << std::endl;
     sqlite3_close(mDb);
     return;
   }
@@ -190,14 +297,14 @@ void Database::addImage(int experimentId, int id, const std::string &name)
 void Database::addChannel(int imageId, int id, const std::string &name)
 {
   // Create SQL statement
-  std::string sql = "INSERT INTO channel (id, image_id, name) VALUES (?, ?, ?)";
+  std::string sql = "INSERT INTO channel (channel_id, image_id, name) VALUES (?, ?, ?)";
 
   // Prepare the statement
   sqlite3_stmt *stmt;
   int rc = sqlite3_prepare_v2(mDb, sql.data(), -1, &stmt, nullptr);
 
   if(rc != SQLITE_OK) {
-    std::cerr << "Error preparing SQL statement: " << sqlite3_errmsg(mDb) << std::endl;
+    std::cerr << "Error preparing SQL statement ch: " << sqlite3_errmsg(mDb) << std::endl;
     sqlite3_close(mDb);
     return;
   }
@@ -227,37 +334,83 @@ void Database::addChannel(int imageId, int id, const std::string &name)
   sqlite3_finalize(stmt);
 }
 
-void Database::addObject(int imageId, int channelId, int id, int measCh, double val)
+void Database::addObject(int expId, int imageId, int channelId, int num)
 {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<float> dis(1.0f, 1000.0f);
+
+  sqlite3_exec(mDb, "BEGIN TRANSACTION", nullptr, nullptr, nullptr);
+
   // Create SQL statement
-  std::string sql = "INSERT INTO object (object_id, measure_ch_id, channel_id,image_id, value) VALUES (?, ?, ?, ?, ?)";
+  std::string sql =
+      "INSERT INTO object (object_id,experiment_id, image_id, channel_id,val_confidence, val_areasize, val_perimeter "
+      ", val_circularity , val_validity , val_x ,"
+      "val_y , val_box_width , val_box_height , val_intensity_min , val_intensity_max ,"
+      "val_intensity_avg, val_intensity_cross_min_01, val_intensity_cross_max_01,"
+      "val_intensity_cross_avg_01, val_intensity_cross_min_02, val_intensity_cross_max_02,"
+      "val_intensity_cross_avg_02, val_intensity_cross_min_03, val_intensity_cross_max_03,"
+      "val_intensity_cross_avg_03, val_intensity_cross_min_04, val_intensity_cross_max_04,"
+      "val_intensity_cross_avg_04, val_intensity_cross_min_05, val_intensity_cross_max_05,"
+      "val_intensity_cross_avg_05, val_intensity_cross_min_06, val_intensity_cross_max_06,"
+      "val_intensity_cross_avg_06, val_intensity_cross_min_07, val_intensity_cross_max_07,"
+      "val_intensity_cross_avg_07, val_intensity_cross_min_08, val_intensity_cross_max_08,"
+      "val_intensity_cross_avg_08, val_intensity_cross_min_09, val_intensity_cross_max_09,"
+      "val_intensity_cross_avg_09, val_intensity_cross_min_0A, val_intensity_cross_max_0A,"
+      "val_intensity_cross_avg_0A, val_intensity_cross_min_0B, val_intensity_cross_max_0B,"
+      "val_intensity_cross_avg_0B, val_intensity_cross_min_0C, val_intensity_cross_max_0C,"
+      "val_intensity_cross_avg_0C, val_intensity_cross_min_0D, val_intensity_cross_max_0D,"
+      "val_intensity_cross_avg_0D, val_intensity_cross_min_0E, val_intensity_cross_max_0E,"
+      "val_intensity_cross_avg_0E, val_intensity_cross_min_0F, val_intensity_cross_max_0F,"
+      "val_intensity_cross_avg_0F, val_count_cross_min_01, val_count_cross_max_01,"
+      "val_count_cross_avg_01, val_count_cross_min_02, val_count_cross_max_02,"
+      "val_count_cross_avg_02, val_count_cross_min_03, val_count_cross_max_03,"
+      "val_count_cross_avg_03, val_count_cross_min_04, val_count_cross_max_04,"
+      "val_count_cross_avg_04, val_count_cross_min_05, val_count_cross_max_05,"
+      "val_count_cross_avg_05, val_count_cross_min_06, val_count_cross_max_06,"
+      "val_count_cross_avg_06, val_count_cross_min_07, val_count_cross_max_07,"
+      "val_count_cross_avg_07, val_count_cross_min_08, val_count_cross_max_08,"
+      "val_count_cross_avg_08, val_count_cross_min_09, val_count_cross_max_09,"
+      "val_count_cross_avg_09, val_count_cross_min_0A, val_count_cross_max_0A,"
+      "val_count_cross_avg_0A, val_count_cross_min_0B, val_count_cross_max_0B,"
+      "val_count_cross_avg_0B, val_count_cross_min_0C, val_count_cross_max_0C,"
+      "val_count_cross_avg_0C, val_count_cross_min_0D, val_count_cross_max_0D,"
+      "val_count_cross_avg_0D, val_count_cross_min_0E, val_count_cross_max_0E,"
+      "val_count_cross_avg_0E, val_count_cross_min_0F, val_count_cross_max_0F,"
+      "val_count_cross_avg_0F ) "
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+      "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+      "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
   // Prepare the statement
   sqlite3_stmt *stmt;
   int rc = sqlite3_prepare_v2(mDb, sql.data(), -1, &stmt, nullptr);
 
   if(rc != SQLITE_OK) {
-    std::cerr << "Error preparing SQL statement: " << sqlite3_errmsg(mDb) << std::endl;
+    std::cerr << "Error preparing SQL statement OBJ: " << sqlite3_errmsg(mDb) << std::endl;
     sqlite3_close(mDb);
     return;
   }
 
   // Loop to insert 100 elements
-  for(int i = 0; i < 40000000; ++i) {
+
+  for(int i = 0; i < num; ++i) {
     // Bind your data to the statement here
     // You would bind your data using sqlite3_bind_* functions
-
     sqlite3_bind_int(stmt, 1, i);
-    sqlite3_bind_int(stmt, 2, measCh);
+    sqlite3_bind_int(stmt, 2, expId);
     sqlite3_bind_int(stmt, 3, channelId);
     sqlite3_bind_int(stmt, 4, imageId);
-    sqlite3_bind_int(stmt, 5, val + i);
+
+    for(int n = 0; n < 100; n++) {
+      float random_number = dis(gen);
+      sqlite3_bind_double(stmt, 53 + n, random_number);
+    }
 
     // sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
 
     // Execute the statement
     rc = sqlite3_step(stmt);
-
     if(rc != SQLITE_DONE) {
       std::cerr << "Error inserting data: " << sqlite3_errmsg(mDb) << std::endl;
       sqlite3_finalize(stmt);
@@ -271,6 +424,8 @@ void Database::addObject(int imageId, int channelId, int id, int measCh, double 
 
   // Finalize the statement
   sqlite3_finalize(stmt);
+
+  sqlite3_exec(mDb, "COMMIT", nullptr, nullptr, nullptr);
 }
 
 }    // namespace joda::db

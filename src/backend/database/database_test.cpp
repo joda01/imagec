@@ -1,4 +1,7 @@
+#include <string>
+#include <thread>
 #include "backend/duration_count/duration_count.h"
+#include "backend/logger/console_logger.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -13,16 +16,28 @@ TEST_CASE("database:test", "[database_test]")
   joda::db::Database db("test.db");
   db.open();
   db.addExperiment(1, "My experiment");
-  db.addImage(1, 1, "My image 1");
-  db.addImage(1, 2, "My image 2");
-  db.addChannel(1, 1, "Channel 1");
-  db.addChannel(1, 2, "Channel 2");
-
-  db.addChannel(2, 1, "Channel 1");
-  db.addChannel(2, 2, "Channel 2");
-
   auto id = DurationCount::start("Insert");
-  db.addObject(1, 1, 1, 777, 999);
+
+  for(int img = 0; img < 4000; img++) {
+    db.addImage(1, img, "My image 1");
+    joda::log::logInfo("Added element >" + std::to_string(img) + "<");
+
+    auto addChannel = [&db, &img](int numOfObjects, const std::string &name, int ch) {
+      db.addChannel(img, ch, name);
+      db.addObject(1, img, ch, numOfObjects);
+    };
+
+    auto id2 = DurationCount::start("Insert ch");
+    addChannel(10000, "EV1", 1);
+    DurationCount::stop(id2);
+
+    addChannel(10000, "EV2", 2);
+    addChannel(1000, "CE1", 3);
+    addChannel(1000, "NUC", 4);
+    addChannel(10000, "COL1", 5);
+    addChannel(10000, "COL2", 6);
+  }
+
   DurationCount::stop(id);
   DurationCount::printStats(1);
 }

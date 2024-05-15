@@ -7,9 +7,9 @@ mkdir -p ./build/build/templates
 mkdir -p ./build/build/models
 
 cmake -S . -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -B build -DCMAKE_PREFIX_PATH="/opt/Qt6/lib/cmake"
-cmake --build build --target imagec --parallel 4
+#cmake --build build --target imagec --parallel 4
 
-#cmake --build build --target tests --parallel 4
+cmake --build build --target tests --parallel 4
 
 
 #exit 0

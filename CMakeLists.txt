@@ -128,6 +128,7 @@ ELSE()
     libzip::zip
     LibLZMA::LibLZMA
     SQLite::SQLite3
+    /workspaces/imagec/lib/libduckdb-linux-amd64/libduckdb.so
   )
 ENDIF()
 

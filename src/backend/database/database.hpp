@@ -28,7 +28,7 @@ public:
   void addExperiment(int id, const std::string &name);
   void addImage(int experimentId, int id, const std::string &name);
   void addChannel(int imageId, int id, const std::string &name);
-  void addObject(int imageId, int channelId, int id, int measCh, double val);
+  void addObject(int expId, int imageId, int channelId, int num);
 
 private:
   /////////////////////////////////////////////////////
