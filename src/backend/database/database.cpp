@@ -58,8 +58,8 @@ void Database::open()
       "CREATE TABLE object ("
       "  object_id INTEGER,"
       "  experiment_id INTEGER,"
-      "  image_id INTEGER,"
-      "  channel_id INTEGER,"
+      "  image_id SMALLINT,"
+      "  channel_id SMALLINT,"
       "  val_confidence FLOAT,"
       "  val_areasize FLOAT,"
       "  val_perimeter FLOAT,"
@@ -164,8 +164,9 @@ void Database::open()
       "  val_count_cross_avg_0F FLOAT,"
       //"  FOREIGN KEY (channel_id) REFERENCES channel(id),"
       //"  FOREIGN KEY (image_id) REFERENCES channel(image_id)"
-      "  PRIMARY KEY (experiment_id, image_id, channel_id, object_id)"
+      //"  PRIMARY KEY (experiment_id, image_id, channel_id, object_id)"
       ");";
+  //"CREATE INDEX my_image_idx on object (experiment_id, image_id, channel_id);";
   //"CREATE INDEX my_image_idx on image (id);"
   //"CREATE INDEX my_channel_idx on channel (id);"
 
@@ -250,8 +251,8 @@ void Database::addObject(int experimentId, int imageinId, int channelinId, int n
 
     duckdb_append_int32(appender, i);
     duckdb_append_int32(appender, experimentId);
-    duckdb_append_int32(appender, imageinId);
-    duckdb_append_int32(appender, channelinId);
+    duckdb_append_int16(appender, imageinId);
+    duckdb_append_int16(appender, channelinId);
     duckdb_append_float(appender, randNr);
     duckdb_append_float(appender, randNr);
     duckdb_append_float(appender, randNr);

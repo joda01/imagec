@@ -13,12 +13,12 @@
 ///
 TEST_CASE("database:test", "[database_test]")
 {
-  joda::db::Database db("test.db");
+  joda::db::Database db("test3.db");
   db.open();
   db.addExperiment(1, "My experiment");
   auto id = DurationCount::start("Insert");
 
-  for(int img = 0; img < 5; img++) {
+  for(int img = 0; img < 1000; img++) {
     db.addImage(1, img, "My image 1");
     joda::log::logInfo("Added element >" + std::to_string(img) + "<");
 
