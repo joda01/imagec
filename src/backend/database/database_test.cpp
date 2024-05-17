@@ -36,14 +36,14 @@ TEST_CASE("database:test", "[database_test]")
 
   try {
     db.createPlate(::joda::db::PlateMeta{
-        .experimentId = "4d076235-726b-44e1-be9e-a79fd4ed2dc2", .plateId = 1, .notes = "May plate"});
+        .experimentId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32", .plateId = 1, .notes = "May plate"});
   } catch(const std::exception &ex) {
     std::cout << ex.what() << std::endl;
   }
 
   try {
     db.createWell(::joda::db::WellMeta{
-        .experimentId = "4d076235-726b-44e1-be9e-a79fd4ed2dc2", .plateId = 1, .wellId = 1, .notes = "May plate"});
+        .experimentId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32", .plateId = 1, .wellId = 1, .notes = "May plate"});
   } catch(const std::exception &ex) {
     std::cout << ex.what() << std::endl;
   }
@@ -55,7 +55,7 @@ TEST_CASE("database:test", "[database_test]")
     std::string imgName = "A110_" + std::to_string(n) + ".vsi";
 
     try {
-      db.createImage(::joda::db::ImageMeta{.experimentId = "4d076235-726b-44e1-be9e-a79fd4ed2dc2",
+      db.createImage(::joda::db::ImageMeta{.experimentId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
                                            .plateId      = 1,
                                            .wellId       = 1,
                                            .imageName    = imgName,
@@ -67,7 +67,7 @@ TEST_CASE("database:test", "[database_test]")
 
     for(uint16_t ch = 0; ch < NRCHANNELS; ch++) {
       try {
-        db.createChannel(::joda::db::ChannelMeta{.experimentId = "4d076235-726b-44e1-be9e-a79fd4ed2dc2",
+        db.createChannel(::joda::db::ChannelMeta{.experimentId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
                                                  .plateId      = 1,
                                                  .wellId       = 1,
                                                  .imageName    = imgName,
@@ -78,7 +78,7 @@ TEST_CASE("database:test", "[database_test]")
 
       auto id = DurationCount::start("Insert");
       try {
-        db.createObjects(::joda::db::ObjectMeta{.experimentId = "4d076235-726b-44e1-be9e-a79fd4ed2dc2",
+        db.createObjects(::joda::db::ObjectMeta{.experimentId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
                                                 .plateId      = 1,
                                                 .wellId       = 1,
                                                 .imageName    = imgName,

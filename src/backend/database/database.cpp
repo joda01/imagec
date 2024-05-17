@@ -19,10 +19,13 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <vector>
 #include "backend/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
 #include "backend/logger/console_logger.hpp"
 #include <duckdb/common/bind_helpers.hpp>
+#include <duckdb/common/types.hpp>
+#include <duckdb/main/appender.hpp>
 #include <duckdb/main/connection.hpp>
 #include <duckdb/main/database.hpp>
 #include <duckdb.hpp>
@@ -192,9 +195,6 @@ void Database::open()
 ///
 void Database::close()
 {
-  // Close the database connection
-  duckdb_disconnect(&con);
-  duckdb_close(&db);
 }
 
 ///
@@ -203,50 +203,16 @@ void Database::close()
 ///
 void Database::createExperiment(const ExperimentMeta &meta)
 {
-  // Create SQL statement
-  duckdb_prepared_statement stmt;
-  duckdb_result result;
-  if(duckdb_prepare(con,
-                    "INSERT INTO experiment (experiment_id, name, scientists, datetime, location, notes) VALUES "
-                    "(gen_random_uuid(), ?, "
-                    "?, ?, ?, ?)",
-                    &stmt) == DuckDBError) {
-    throw ::std::runtime_error("Can't prepare statement!");
-  }
-
+  auto prepare = mConnection->Prepare(
+      "INSERT INTO experiment (experiment_id, name, scientists, datetime, location, notes) VALUES (gen_random_uuid(), "
+      "?, ?, ?, ?, ?)");
   // Convert it to time since epoch
-  auto timeNowMs = std::chrono::duration_cast<std::chrono::microseconds>(
+  auto timeNowMs = (duckdb::timestamp_t) std::chrono::duration_cast<std::chrono::microseconds>(
                        std::chrono::high_resolution_clock::now().time_since_epoch())
                        .count();
 
-  duckdb_bind_varchar(stmt, 1, meta.name.data());    // Name
-
-  // Create a DuckDB list value for the array
-
-  duckdb_logical_type listLogicType = duckdb_create_logical_type(DUCKDB_TYPE_VARCHAR);
-  duckdb_value *listValuesEntry     = new duckdb_value[meta.scientists.size()];
-  for(int n = 0; n < meta.scientists.size(); n++) {
-    listValuesEntry[n] = duckdb_create_varchar(meta.scientists[n].data());
-  }
-  duckdb_value listValues = duckdb_create_list_value(listLogicType, listValuesEntry, meta.scientists.size());
-  duckdb_bind_value(stmt, 2, listValues);    // Scientists
-  duckdb_timestamp timestamp{.micros = timeNowMs};
-  duckdb_bind_timestamp(stmt, 3, timestamp);             // Datetime
-  duckdb_bind_varchar(stmt, 4, meta.location.data());    // Location
-  duckdb_bind_varchar(stmt, 5, meta.notes.data());       // Notes
-
-  if(duckdb_execute_prepared(stmt, NULL) == DuckDBError) {
-    throw ::std::runtime_error("Cannot execute!");
-  }
-
-  duckdb_destroy_prepare(&stmt);
-
-  duckdb_destroy_logical_type(&listLogicType);
-  for(int n = 0; n < meta.scientists.size(); n++) {
-    duckdb_destroy_value(&listValuesEntry[n]);
-  }
-  duckdb_destroy_value(&listValues);
-  delete[] listValuesEntry;
+  prepare->Execute(duckdb::Value(meta.name), duckdb::Value::LIST({meta.scientists.begin(), meta.scientists.end()}),
+                   duckdb::Value::TIMESTAMP(timeNowMs), duckdb::Value(meta.location), duckdb::Value(meta.notes));
 }
 
 ///
@@ -255,28 +221,13 @@ void Database::createExperiment(const ExperimentMeta &meta)
 ///
 void Database::createPlate(const PlateMeta &meta)
 {
-  // Create SQL statement
-  duckdb_prepared_statement stmt;
-  duckdb_result result;
-  if(duckdb_prepare(con, "INSERT INTO plate (experiment_id, plate_id, datetime, notes) VALUES (?, ?, ?, ?)", &stmt) ==
-     DuckDBError) {
-    throw ::std::runtime_error("Cannot prepare!");
-  }
+  auto prepare =
+      mConnection->Prepare("INSERT INTO plate (experiment_id, plate_id, datetime, notes) VALUES (?, ?, ?, ?)");
 
-  duckdb_timestamp timestamp{.micros = std::chrono::duration_cast<std::chrono::microseconds>(
+  auto timestamp = duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(
                                            std::chrono::high_resolution_clock::now().time_since_epoch())
-                                           .count()};
-
-  duckdb_bind_varchar(stmt, 1, meta.experimentId.data());    // Exp ID
-  duckdb_bind_uint8(stmt, 2, meta.plateId);                  // Plate ID
-  duckdb_bind_timestamp(stmt, 3, timestamp);                 // Datetime
-  duckdb_bind_varchar(stmt, 4, meta.notes.data());           // Notes
-
-  duckdb_result out_result;
-  if(duckdb_execute_prepared(stmt, &out_result) == DuckDBError) {
-    throw ::std::runtime_error(duckdb_result_error(&out_result));
-  }
-  duckdb_destroy_prepare(&stmt);
+                                           .count());
+  prepare->Execute(meta.experimentId, meta.plateId, duckdb::Value::TIMESTAMP(timestamp), meta.notes);
 }
 
 ///
@@ -285,23 +236,8 @@ void Database::createPlate(const PlateMeta &meta)
 ///
 void Database::createWell(const WellMeta &meta)
 {
-  duckdb_prepared_statement stmt;
-  duckdb_result result;
-  // Create SQL statement
-  if(duckdb_prepare(con, "INSERT INTO well (experiment_id, plate_id, well_id, notes) VALUES (?, ?, ?, ?)", &stmt) ==
-     DuckDBError) {
-  }
-
-  duckdb_bind_varchar(stmt, 1, meta.experimentId.data());    // Exp ID
-  duckdb_bind_uint8(stmt, 2, meta.plateId);                  // Plate ID
-  duckdb_bind_uint16(stmt, 3, meta.wellId);                  // Datetime
-  duckdb_bind_varchar(stmt, 4, meta.notes.data());           // Notes
-
-  duckdb_result out_result;
-  if(duckdb_execute_prepared(stmt, &out_result) == DuckDBError) {
-    throw ::std::runtime_error(duckdb_result_error(&out_result));
-  }
-  duckdb_destroy_prepare(&stmt);
+  auto prepare = mConnection->Prepare("INSERT INTO well (experiment_id, plate_id, well_id, notes) VALUES (?, ?, ?, ?)");
+  prepare->Execute(meta.experimentId, meta.plateId, meta.wellId, meta.notes);
 }
 
 ///
@@ -310,29 +246,11 @@ void Database::createWell(const WellMeta &meta)
 ///
 void Database::createImage(const ImageMeta &meta)
 {
-  duckdb_prepared_statement stmt;
-  duckdb_result result;
-  // Create SQL statement
-  if(duckdb_prepare(con,
-                    "INSERT INTO image (experiment_id, plate_id, well_id, image_id, file_name, width, height) VALUES "
-                    "(?, ?, ?, ?, ?, ?, ?)",
-                    &stmt) == DuckDBError) {
-    throw ::std::runtime_error(duckdb_prepare_error(stmt));
-  }
-
-  duckdb_bind_varchar(stmt, 1, meta.experimentId.data());    // Exp ID
-  duckdb_bind_uint8(stmt, 2, meta.plateId);                  // Plate ID
-  duckdb_bind_uint16(stmt, 3, meta.wellId);                  // Datetime
-  duckdb_bind_uint64(stmt, 4, fnv1a(meta.imageName));        // Datetime
-  duckdb_bind_varchar(stmt, 5, meta.imageName.data());       // Notes
-  duckdb_bind_uint64(stmt, 6, meta.width);                   // Datetime
-  duckdb_bind_uint64(stmt, 7, meta.height);                  // Datetime
-
-  duckdb_result out_result;
-  if(duckdb_execute_prepared(stmt, &out_result) == DuckDBError) {
-    throw ::std::runtime_error(duckdb_result_error(&out_result));
-  }
-  duckdb_destroy_prepare(&stmt);
+  auto prepare = mConnection->Prepare(
+      "INSERT INTO image (experiment_id, plate_id, well_id, image_id, file_name, width, height) VALUES "
+      "(?, ?, ?, ?, ?, ?, ?)");
+  prepare->Execute(meta.experimentId, meta.plateId, meta.wellId, fnv1a(meta.imageName), meta.imageName, meta.width,
+                   meta.height);
 }
 
 ///
@@ -341,27 +259,11 @@ void Database::createImage(const ImageMeta &meta)
 ///
 void Database::createChannel(const ChannelMeta &meta)
 {
-  duckdb_prepared_statement stmt;
-  duckdb_result result;
-  // Create SQL statement
-  if(duckdb_prepare(con,
-                    "INSERT INTO channel (experiment_id, plate_id, well_id, image_id, channel_id) VALUES "
-                    "(?, ?, ?, ?, ?)",
-                    &stmt) == DuckDBError) {
-    throw ::std::runtime_error(duckdb_prepare_error(stmt));
-  }
+  auto prepare = mConnection->Prepare(
+      "INSERT INTO channel (experiment_id, plate_id, well_id, image_id, channel_id) VALUES "
+      "(?, ?, ?, ?, ?)");
 
-  duckdb_bind_varchar(stmt, 1, meta.experimentId.data());    // Exp ID
-  duckdb_bind_uint8(stmt, 2, meta.plateId);                  // Plate ID
-  duckdb_bind_uint16(stmt, 3, meta.wellId);                  // Datetime
-  duckdb_bind_uint64(stmt, 4, fnv1a(meta.imageName));        // Datetime
-  duckdb_bind_uint16(stmt, 5, meta.channelId);               // Notes
-
-  duckdb_result out_result;
-  if(duckdb_execute_prepared(stmt, &out_result) == DuckDBError) {
-    throw ::std::runtime_error(duckdb_result_error(&out_result));
-  }
-  duckdb_destroy_prepare(&stmt);
+  prepare->Execute(meta.experimentId, meta.plateId, meta.wellId, fnv1a(meta.imageName), meta.imageName, meta.channelId);
 }
 
 ///
@@ -370,10 +272,7 @@ void Database::createChannel(const ChannelMeta &meta)
 ///
 void Database::createObjects(const ObjectMeta &data)
 {
-  duckdb_appender appender;
-  if(duckdb_appender_create(con, NULL, "object", &appender) == DuckDBError) {
-    throw ::std::runtime_error(duckdb_appender_error(appender));
-  }
+  duckdb::Appender appender(*mConnection, "object");
 
   // Loop to insert 100 elements
   uint64_t imageId = fnv1a(data.imageName);
@@ -381,33 +280,30 @@ void Database::createObjects(const ObjectMeta &data)
   // auto id = DurationCount::start("loop");    // 30ms
 
   for(const auto &[objectKey, measureValues] : data.objects) {
-    duckdb_append_varchar(appender, data.experimentId.data());
-    duckdb_append_uint8(appender, data.plateId);
-    duckdb_append_uint16(appender, data.wellId);
-    duckdb_append_uint64(appender, imageId);
-    duckdb_append_uint16(appender, data.channelId);
-    duckdb_append_uint32(appender, objectKey);
+    appender.BeginRow();
+    appender.Append<duckdb::string_t>(data.experimentId.data());
+    appender.Append<uint8_t>(data.plateId);
+    appender.Append<uint16_t>(data.wellId);
+    appender.Append<uint64_t>(imageId);
+    appender.Append<uint16_t>(data.channelId);
+    appender.Append<uint32_t>(objectKey);
 
     auto channelSize = static_cast<uint32_t>(MeasureChannels::ARRAY_MAX);
     for(int n = 0; n < channelSize; n++) {
       if(measureValues.contains(static_cast<MeasureChannels>(n))) {
-        duckdb_append_double(appender, measureValues.at(static_cast<MeasureChannels>(n)));
+        appender.Append<double>(measureValues.at(static_cast<MeasureChannels>(n)));
       } else {
-        duckdb_append_null(appender);
+        appender.Append<std::nullptr_t>(nullptr);
       }
     }
 
-    if(duckdb_appender_end_row(appender) == DuckDBError) {
-      std::cout << duckdb_appender_error(appender) << std::endl;
-    }
+    appender.EndRow();
   }
   // DurationCount::stop(id);
 
   // id = DurationCount::start("Destroy");    // 80ms
 
-  if(duckdb_appender_destroy(&appender) == DuckDBError) {
-    std::cout << "Destroy error" << std::endl;
-  }
+  appender.Close();
   // DurationCount::stop(id);
 }
 

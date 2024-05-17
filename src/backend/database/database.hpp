@@ -180,8 +180,6 @@ private:
   duckdb::Connection *mConnection;
 
   std::string mDbFile;
-  duckdb_database db;
-  duckdb_connection con;
 };
 
 }    // namespace joda::db
