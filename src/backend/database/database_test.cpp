@@ -6,6 +6,7 @@
 #include "backend/logger/console_logger.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <duckdb/common/types.hpp>
 
 #include "database.hpp"
 
@@ -25,7 +26,8 @@ TEST_CASE("database:test", "[database_test]")
 
     for(int m = 0; m < 20; m++) {
       float randNr = dis(gen);
-      ob.emplace(static_cast<joda::db::MeasureChannels>(m), randNr);
+      ob.keys.emplace_back(duckdb::Value::UINTEGER(m));
+      ob.vals.emplace_back(duckdb::Value::DOUBLE(randNr));
     }
   }
 

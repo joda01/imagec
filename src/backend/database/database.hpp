@@ -147,7 +147,13 @@ enum class MeasureChannels : uint32_t
   ARRAY_MAX
 };
 
-using objects_t = std::map<uint32_t, std::map<MeasureChannels, float>>;
+struct Data
+{
+  duckdb::vector<duckdb::Value> keys;
+  duckdb::vector<duckdb::Value> vals;
+};
+
+using objects_t = std::map<uint32_t, Data>;
 
 struct ObjectMeta
 {

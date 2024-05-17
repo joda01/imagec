@@ -25,6 +25,7 @@
 #include "backend/logger/console_logger.hpp"
 #include <duckdb/common/bind_helpers.hpp>
 #include <duckdb/common/types.hpp>
+#include <duckdb/common/types/vector.hpp>
 #include <duckdb/main/appender.hpp>
 #include <duckdb/main/connection.hpp>
 #include <duckdb/main/database.hpp>
@@ -104,81 +105,7 @@ void Database::open()
       "	image_id UBIGINT,"
       "	channel_id UTINYINT,"
       "	object_id UINTEGER,"
-      " CONFIDENCE       DOUBLE, "
-      " AREA_SIZE        DOUBLE, "
-      " PERIMETER        DOUBLE, "
-      " CIRCULARITY      DOUBLE, "
-      " VALIDITY         DOUBLE, "
-      " INVALIDITY       DOUBLE, "
-      " CENTER_OF_MASS_X DOUBLE, "
-      " CENTER_OF_MASS_Y DOUBLE, "
-      " INTENSITY_AVG    DOUBLE, "
-      " INTENSITY_MIN    DOUBLE, "
-      " INTENSITY_MAX    DOUBLE, "
-      " CROSS_CHANNEL_INTENSITY_AVG_00 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_00 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_00 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_01 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_01 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_01 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_02 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_02 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_02 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_03 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_03 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_03 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_04 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_04 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_04 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_05 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_05 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_05 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_06 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_06 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_06 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_07 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_07 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_07 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_08 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_08 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_08 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_09 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_09 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_09 DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_0A DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_0A DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_0A DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_0B DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_0B DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_0B DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_0C DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_0C DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_0C DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_0D DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_0D DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_0D DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_0E DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_0E DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_0E DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_AVG_0F DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MIN_0F DOUBLE,"
-      " CROSS_CHANNEL_INTENSITY_MAX_0F DOUBLE,"
-      " CROSS_CHANNEL_COUNT_00 DOUBLE,"
-      " CROSS_CHANNEL_COUNT_01 DOUBLE,"
-      " CROSS_CHANNEL_COUNT_02 DOUBLE,"
-      " CROSS_CHANNEL_COUNT_03 DOUBLE,"
-      " CROSS_CHANNEL_COUNT_04 DOUBLE,"
-      " CROSS_CHANNEL_COUNT_05 DOUBLE,"
-      " CROSS_CHANNEL_COUNT_06 DOUBLE,"
-      " CROSS_CHANNEL_COUNT_07 DOUBLE,"
-      " CROSS_CHANNEL_COUNT_08 DOUBLE,"
-      " CROSS_CHANNEL_COUNT_09 DOUBLE,"
-      " CROSS_CHANNEL_COUNT_0A DOUBLE,"
-      " CROSS_CHANNEL_COUNT_0B DOUBLE,"
-      " CROSS_CHANNEL_COUNT_0C DOUBLE,"
-      " CROSS_CHANNEL_COUNT_0D DOUBLE,"
-      " CROSS_CHANNEL_COUNT_0E DOUBLE,"
-      " CROSS_CHANNEL_COUNT_0F DOUBLE,"
+      " values MAP(UINTEGER, DOUBLE),"
       " PRIMARY KEY (experiment_id, plate_id, well_id, image_id, channel_id, object_id)"
       //" FOREIGN KEY(experiment_id, plate_id, well_id, image_id, channel_id) REFERENCES channel(experiment_id, "
       //"plate_id, "
@@ -277,7 +204,7 @@ void Database::createObjects(const ObjectMeta &data)
   // Loop to insert 100 elements
   uint64_t imageId = fnv1a(data.imageName);
 
-  // auto id = DurationCount::start("loop");    // 30ms
+  auto id = DurationCount::start("loop");    // 30ms
 
   for(const auto &[objectKey, measureValues] : data.objects) {
     appender.BeginRow();
@@ -288,23 +215,24 @@ void Database::createObjects(const ObjectMeta &data)
     appender.Append<uint16_t>(data.channelId);
     appender.Append<uint32_t>(objectKey);
 
-    auto channelSize = static_cast<uint32_t>(MeasureChannels::ARRAY_MAX);
-    for(int n = 0; n < channelSize; n++) {
-      if(measureValues.contains(static_cast<MeasureChannels>(n))) {
-        appender.Append<double>(measureValues.at(static_cast<MeasureChannels>(n)));
-      } else {
-        appender.Append<std::nullptr_t>(nullptr);
-      }
-    }
+    // 0.02 ms
+    auto mapToInsert =
+        duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
+                           duckdb::LogicalType(duckdb::LogicalTypeId::DOUBLE), measureValues.keys, measureValues.vals);
+
+    appender.Append<duckdb::Value>(mapToInsert);    // 0.004ms
 
     appender.EndRow();
   }
-  // DurationCount::stop(id);
+  DurationCount::stop(id);
 
-  // id = DurationCount::start("Destroy");    // 80ms
+  // id = DurationCount::start("Close");    // 80ms
 
   appender.Close();
   // DurationCount::stop(id);
 }
 
 }    // namespace joda::db
+
+// SELECT SUM(element_at(values, 0)[1]) as val_sum FROM test_with_idx.main."object" WHERE plate_id=1 AND well_id=1 AND
+// image_id=10585059649949508029 AND channel_id=1
