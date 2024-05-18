@@ -315,7 +315,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
     auto response = intersectAlgo.execute(mAnalyzeSettings, detectionResults);
     detectionResults.emplace(intersect.meta.channelIdx, response);
 
-    mResults.appendToDetailReport(detectionResults.at(intersect.meta.channelIdx).result, intersect.meta, tileIdx,
+    mResults.appendToDetailReport(detectionResults.at(intersect.meta.channelIdx), intersect.meta, tileIdx,
                                   channelProperties.props, imagePath.getFilePath());
   };
 
@@ -366,7 +366,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
       counting.execute(mAnalyzeSettings, detectionResults);
     }
 
-    mResults.appendToDetailReport(detectionResults.at(voronoi.meta.channelIdx).result, voronoi.meta, tileIdx,
+    mResults.appendToDetailReport(detectionResults.at(voronoi.meta.channelIdx), voronoi.meta, tileIdx,
                                   channelProperties.props, imagePath.getFilePath());
   };
 
@@ -415,8 +415,8 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
                                                    channelSettings.meta.channelIdx);
     }*/
     if(detectionResults.contains(channelSettings.meta.channelIdx)) {
-      mResults.appendToDetailReport(detectionResults.at(channelSettings.meta.channelIdx).result, channelSettings.meta,
-                                    tileIdx, channelProperties.props, imagePath.getFilePath());
+      mResults.appendToDetailReport(detectionResults.at(channelSettings.meta.channelIdx), channelSettings.meta, tileIdx,
+                                    channelProperties.props, imagePath.getFilePath());
     }
   };
 

@@ -67,7 +67,7 @@ void Results::prepareOutputFolders(const std::filesystem::path &resultsFolder)
 {
   auto nowString      = ::joda::helper::timeNowToString();
   mOutputFolder       = resultsFolder / (nowString + "_" + mExperimentSettings.jobName);
-  mOutputFolderImages = mOutputFolder / CONTROL_IMAGE_PATH;
+  mOutputFolderImages = mOutputFolder / mJobId / CONTROL_IMAGE_PATH;
   mDatabaseFileName   = mOutputFolder / DB_FILENAME;
 
   if(!std::filesystem::exists(mOutputFolder)) {
@@ -86,7 +86,7 @@ void Results::prepareOutputFolders(const std::filesystem::path &resultsFolder)
 /// \param[out]
 /// \return
 ///
-void Results::appendToDetailReport(const joda::image::detect::DetectionResults &results,
+void Results::appendToDetailReport(const joda::image::detect::DetectionResponse &results,
                                    const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                                    const image::ImageProperties &imgProps, const std::filesystem::path &imagePath)
 {
@@ -107,13 +107,15 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResults &
                                        .width     = imgProps.width,
                                        .height    = imgProps.height});
 
-  uint8_t channelId = static_cast<uint8_t>(channelSettings.channelIdx);
-  mDatabase->createChannel(db::ChannelMeta{.jobId     = mJobId,
-                                           .plateId   = mExperimentSettings.plateIdx,
-                                           .wellId    = wellPosition.well.wellId,
-                                           .imageId   = wellPosition.imageId,
-                                           .channelId = channelId,
-                                           .name      = channelSettings.name});
+  auto controlImagePath = createControlImage(results, channelSettings, tileIdx, imgProps, imagePath);
+  auto channelId        = static_cast<uint8_t>(channelSettings.channelIdx);
+  mDatabase->createChannel(db::ChannelMeta{.jobId            = mJobId,
+                                           .plateId          = mExperimentSettings.plateIdx,
+                                           .wellId           = wellPosition.well.wellId,
+                                           .imageId          = wellPosition.imageId,
+                                           .channelId        = channelId,
+                                           .name             = channelSettings.name,
+                                           .controlImagePath = controlImagePath.string()});
 
   auto [offsetX, offsetY] =
       ::joda::image::TiffLoader::calculateTileXYoffset(::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.width,
@@ -124,7 +126,7 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResults &
   duckdb::vector<duckdb::Value> measureChannelKeys{};
   db::objects_t objects;
   uint64_t roiIdx = 0;
-  for(const auto &roi : results) {
+  for(const auto &roi : results.result) {
     uint64_t index = roiIdx;
     roiIdx++;
     db::Data &chan = objects[index];
@@ -224,6 +226,43 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResults &
                                           .objects   = objects});
 
   DurationCount::stop(id);
+}
+
+///
+/// \brief      Create control image
+/// \author     Joachim Danmayr
+///
+std::filesystem::path Results::createControlImage(const joda::image::detect::DetectionResponse &result,
+                                                  const joda::settings::ChannelSettingsMeta &channelSettings,
+                                                  uint16_t tileIdx, const image::ImageProperties &imgProps,
+                                                  const std::filesystem::path &imagePath)
+{
+  // Free memory
+  auto id = DurationCount::start("Create control image");
+  std::vector<int> compression_params;
+  compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+  compression_params.push_back(1);
+
+  std::filesystem::path controlImageFileNameWithPlaceholder =
+      (imagePath.filename().string() + "_" + joda::settings::to_string(channelSettings.channelIdx) + "_${tile_id}" +
+       CONTROL_IMAGES_FILE_EXTENSION);
+
+  std::filesystem::path relativeFolderToWrite = mJobId / CONTROL_IMAGE_PATH / imagePath.filename();
+  std::filesystem::path absoluteFolderToWrite = mOutputFolder / relativeFolderToWrite;
+  if(!std::filesystem::exists(absoluteFolderToWrite)) {
+    std::filesystem::create_directories(absoluteFolderToWrite);
+  }
+
+  if(!result.controlImage.empty()) {
+    std::string crlImgFileNameWithTile = controlImageFileNameWithPlaceholder;
+    helper::stringReplace(crlImgFileNameWithTile, "${tile_id}", std::to_string(tileIdx));
+    std::to_string(tileIdx);
+    cv::imwrite((absoluteFolderToWrite / crlImgFileNameWithTile).string(), result.controlImage, compression_params);
+  } else {
+    std::cout << "CTRL img null" << std::endl;
+  }
+  DurationCount::stop(id);
+  return relativeFolderToWrite / controlImageFileNameWithPlaceholder;
 }
 
 ///

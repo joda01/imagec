@@ -60,7 +60,7 @@ public:
 
   Results(const std::filesystem::path &resultsFolder, const ExperimentSetting &);
 
-  void appendToDetailReport(const joda::image::detect::DetectionResults &result,
+  void appendToDetailReport(const joda::image::detect::DetectionResponse &result,
                             const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                             const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
   static RegexResult applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
@@ -73,11 +73,16 @@ public:
 private:
   /////////////////////////////////////////////////////
   static inline const std::string DB_FILENAME{"results.duckdb"};
-  static inline const std::string CONTROL_IMAGE_PATH{"images"};
+  static inline const std::filesystem::path CONTROL_IMAGE_PATH{"images"};
+  static inline const std::string CONTROL_IMAGES_FILE_EXTENSION{".png"};
 
   /////////////////////////////////////////////////////
 
   /////////////////////////////////////////////////////
+  std::filesystem::path createControlImage(const joda::image::detect::DetectionResponse &result,
+                                           const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
+                                           const image::ImageProperties &imgProps,
+                                           const std::filesystem::path &imagePath);
   void prepareOutputFolders(const std::filesystem::path &resultsFolder);
 
   /////////////////////////////////////////////////////

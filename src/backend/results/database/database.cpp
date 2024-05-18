@@ -99,6 +99,7 @@ void Database::open()
       "	image_id UINTEGER,"
       "	channel_id UTINYINT,"
       " name TEXT,"
+      " control_image_path TEXT,"
       " PRIMARY KEY (job_id, plate_id, well_id, image_id, channel_id),"
       " FOREIGN KEY(job_id, plate_id, well_id, image_id) REFERENCES image(job_id, plate_id, well_id, "
       "image_id)"
@@ -197,10 +198,11 @@ void Database::createImage(const ImageMeta &meta)
 void Database::createChannel(const ChannelMeta &meta)
 {
   auto prepare = mConnection.Prepare(
-      "INSERT INTO channel (job_id, plate_id, well_id, image_id, channel_id, name) VALUES "
-      "(?, ?, ?, ?, ?, ?)");
+      "INSERT INTO channel (job_id, plate_id, well_id, image_id, channel_id, name, control_image_path) VALUES "
+      "(?, ?, ?, ?, ?, ?, ?)");
 
-  prepare->Execute(duckdb::Value::UUID(meta.jobId), meta.plateId, meta.wellId, meta.imageId, meta.channelId, meta.name);
+  prepare->Execute(duckdb::Value::UUID(meta.jobId), meta.plateId, meta.wellId, meta.imageId, meta.channelId, meta.name,
+                   meta.controlImagePath);
 }
 
 ///

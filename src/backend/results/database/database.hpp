@@ -71,6 +71,7 @@ struct ChannelMeta
   uint32_t imageId;
   uint8_t channelId;
   std::string name;
+  std::string controlImagePath;
 };
 
 struct Data
