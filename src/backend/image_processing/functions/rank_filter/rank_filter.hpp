@@ -24,7 +24,7 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 class RankFilter
 {
@@ -85,4 +85,4 @@ private:
   int highestYinCache = INT32_MIN;
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

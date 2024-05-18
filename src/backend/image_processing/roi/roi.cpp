@@ -25,7 +25,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-namespace joda::func {
+namespace joda::image {
 
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour) :
@@ -484,4 +484,4 @@ void ROI::calcIntersectionAndAdd(joda::settings::ChannelIndex channelIdx, const 
   }
 }
 
-}    // namespace joda::func
+}    // namespace joda::image

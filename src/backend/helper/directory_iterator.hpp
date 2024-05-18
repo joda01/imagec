@@ -24,7 +24,7 @@
 #include "file_info.hpp"
 #include "helper.hpp"
 
-namespace joda::helper {
+namespace joda::helper::fs {
 
 using namespace std::filesystem;
 
@@ -169,4 +169,4 @@ private:
   std::shared_ptr<std::thread> mWorkerThread;
 };
 
-}    // namespace joda::helper
+}    // namespace joda::helper::fs

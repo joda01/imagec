@@ -20,13 +20,13 @@
 #include <vector>
 #include "../helper/directory_iterator.hpp"
 #include "../helper/helper.hpp"
-#include "../image_processing/detection/detection_response.hpp"
-#include "../logger/console_logger.hpp"
 #include "../results/results.hpp"
 #include "backend/helper/file_info_images.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/thread_pool.hpp"
-#include "backend/image_reader/image_reader.hpp"
+#include "backend/image_processing/detection/detection_response.hpp"
+#include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -82,7 +82,8 @@ public:
     ERROR_   = 5
   };
 
-  Pipeline(const joda::settings::AnalyzeSettings &, joda::helper::DirectoryWatcher<FileInfoImages> *imageFileContainer,
+  Pipeline(const joda::settings::AnalyzeSettings &,
+           joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *imageFileContainer,
            const std::string &inputFolder, const std::string &jobName,
            const ThreadingSettings &threadingSettings = ThreadingSettings());
   ~Pipeline()
@@ -154,7 +155,6 @@ private:
   static inline const std::string OUTPUT_FOLDER_PATH{"imagec"};
 
   /////////////////////////////////////////////////////
-  auto prepareOutputFolder(const std::string &inputFolder, const std::string &jobName) -> std::string;
   ///
   /// \brief Returns if the thread should be stopped
   [[nodiscard]] auto shouldThreadBeStopped() const -> bool
@@ -162,13 +162,12 @@ private:
     return mStop;
   }
 
-  void analyzeImage(joda::results::WorkSheet &alloverReport, const FileInfoImages &imagePath);
+  void analyzeImage(const helper::fs::FileInfoImages &imagePath);
 
-  void analyzeTile(joda::results::WorkSheet &detailReports, FileInfoImages imagePath, int tileIdx,
-                   const joda::algo::ChannelProperties &channelProperties);
-  void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
-                       const joda::settings::ChannelSettings &channelSettings, FileInfoImages imagePath, int tileIdx,
-                       const joda::algo::ChannelProperties &channelProperties);
+  void analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, const ChannelProperties &channelProperties);
+  void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &detectionResults,
+                       const joda::settings::ChannelSettings &channelSettings, helper::fs::FileInfoImages imagePath,
+                       int tileIdx, const ChannelProperties &channelProperties);
 
   /////////////////////////////////////////////////////
   std::string mInputFolder;
@@ -178,7 +177,7 @@ private:
   std::vector<const joda::settings::ChannelSettings *> mListOfChannelSettings;
   std::vector<const joda::settings::VChannelSettings *> mListOfVChannelSettings;
 
-  joda::helper::DirectoryWatcher<FileInfoImages> *mImageFileContainer;
+  joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *mImageFileContainer;
 
   ProgressIndicator mProgress;
   State mState;
@@ -189,12 +188,12 @@ private:
   std::map<std::string, joda::onnx::OnnxParser::Data> mOnnxModels;
   std::string mJobName;
   std::chrono::system_clock::time_point mTimePipelineStarted;
-  joda::results::ExperimentMeta mExperimentMeta;
+  joda::results::ExperimentSetting mExperimentMeta;
 
   /////////////////////////////////////////////////////
   int32_t mWellSizeX = 0;
   int32_t mWellSizeY = 0;
-  std::map<int32_t, results::ImgPositionInWell> mTransformedWellMatrix;
+  // std::map<int32_t, results::ImgPositionInWell> mTransformedWellMatrix;
 };
 
 }    // namespace joda::pipeline

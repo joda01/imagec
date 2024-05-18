@@ -17,7 +17,7 @@
 #include "backend/pipelines/pipeline_detection/pipeline_detection.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 
-namespace joda::pipeline::detection {
+namespace joda::pipeline {
 
 ///
 /// \class      CellCounter
@@ -30,7 +30,7 @@ public:
   /////////////////////////////////////////////////////
   using Detection::Detection;
   auto execute(const cv::Mat &img, const cv::Mat &imgOriginal, const joda::settings::ChannelSettings &channelSetting)
-      -> func::DetectionResponse override;
+      -> image::detect::DetectionResponse override;
 };
 
-}    // namespace joda::pipeline::detection
+}    // namespace joda::pipeline

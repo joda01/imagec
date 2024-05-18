@@ -22,7 +22,7 @@
 #include <exception>
 #include <string>
 #include <vector>
-#include "backend/results/results_helper.hpp"
+#include "backend/results/results.hpp"
 #include "backend/settings/experiment_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include <nlohmann/detail/macro_scope.hpp>
@@ -157,14 +157,16 @@ void DialogExperimentSettings::toSettings()
 void DialogExperimentSettings::applyRegex()
 {
   try {
-    auto regexResult = joda::results::Helper::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
-                                                         mTestFileName->text().toStdString());
+    auto regexResult = joda::results::Results::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
+                                                          mTestFileName->text().toStdString());
 
-    std::string matching = "Match: " + regexResult.group;
-    std::string row      = "| Row: " + std::to_string(regexResult.row);
-    std::string column   = "| Col: " + std::to_string(regexResult.col);
-    std::string img      = "| Img: " + std::to_string(regexResult.img);
-    std::string toText   = matching + row + column + img;
+    std::string matching = "Match: " + std::to_string(regexResult.well.wellId);
+    std::string row =
+        "| Row: " + std::to_string(regexResult.well.wellPos[::joda::results::Results::RegexResult::POS_X]);
+    std::string column =
+        "| Col: " + std::to_string(regexResult.well.wellPos[::joda::results::Results::RegexResult::POS_Y]);
+    std::string img    = "| Img: " + std::to_string(regexResult.imageId);
+    std::string toText = matching + row + column + img;
     mTestFileResult->setText(QString(toText.data()));
   } catch(const std::exception &ex) {
     mTestFileResult->setText(ex.what());

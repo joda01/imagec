@@ -14,10 +14,10 @@
 #include "detection.hpp"
 #include <random>
 #include <string>
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/types.hpp>
 
-namespace joda::func {
+namespace joda::image::detect {
 
 std::string generateRandomColorHex()
 {
@@ -178,4 +178,4 @@ void DetectionFunction::paintOverlay(cv::Mat &img, const std::vector<OverlaySett
   }
 }
 
-}    // namespace joda::func
+}    // namespace joda::image::detect

@@ -7,7 +7,7 @@
 
 namespace joda::settings {
 
-enum class ChannelIndex : int32_t
+enum class ChannelIndex : int8_t
 {
   NONE = -1,
   CH0  = 0,

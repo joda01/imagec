@@ -22,20 +22,20 @@
 #include "backend/settings/detection/detection_settings_threshold.hpp"
 #include <opencv2/opencv.hpp>
 
-namespace joda::func::threshold {
+namespace joda::image::segment {
 
-class ObjectSegmentation : public DetectionFunction
+class ObjectSegmentation : public joda::image::detect::DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
   ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, uint16_t thresholdValue,
                      joda::settings::ThresholdSettings::Mode method, bool doWatershed);
   auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
-      -> DetectionResponse override;
+      -> joda::image::detect::DetectionResponse override;
 
 private:
-  std::shared_ptr<img::Threshold> mThresoldMethod;
+  std::shared_ptr<image::func::Threshold> mThresoldMethod;
   bool mDoWatershed;
 };
 
-}    // namespace joda::func::threshold
+}    // namespace joda::image::segment

@@ -16,6 +16,8 @@
 #include <cstdint>
 #include <string>
 
+namespace joda::helper {
+
 inline constexpr uint64_t FNV_PRIME        = 1099511628211ULL;
 inline constexpr uint64_t FNV_OFFSET_BASIS = 14695981039346656037ULL;
 
@@ -28,3 +30,4 @@ inline uint64_t fnv1a(const std::string &str)
   }
   return hash;
 }
+}    // namespace joda::helper

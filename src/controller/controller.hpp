@@ -35,7 +35,7 @@ public:
   void reset();
   std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string> getState();
   auto getNrOfFoundImages() -> uint32_t;
-  auto getListOfFoundImages() -> const std::vector<FileInfoImages> &;
+  auto getListOfFoundImages() -> const std::vector<helper::fs::FileInfoImages> &;
   bool isLookingForFiles();
   void stopLookingForFiles();
   void getSettings();
@@ -45,11 +45,11 @@ public:
     std::vector<uchar> data;
     int height;
     int width;
-    joda::func::DetectionResults detectionResult;
+    joda::image::detect::DetectionResults detectionResult;
     std::string imageFileName;
   };
   auto preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex) -> Preview;
-  auto getImageProperties(int imgIndex, int series) -> ImageProperties;
+  auto getImageProperties(int imgIndex, int series) -> joda::image::ImageProperties;
   struct Resources
   {
     uint64_t ramTotal;    // RAM in bytes
@@ -64,7 +64,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  joda::helper::DirectoryWatcher<FileInfoImages> mWorkingDirectory;
+  joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> mWorkingDirectory;
   std::string mActProcessId;
 };
 

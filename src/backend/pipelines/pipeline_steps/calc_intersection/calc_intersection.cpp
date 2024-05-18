@@ -13,7 +13,7 @@
 
 #include "calc_intersection.hpp"
 #include <string>
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/image_processing/detection/detection.hpp"
 #include <opencv2/core.hpp>
 
@@ -28,16 +28,16 @@ CalcIntersection::CalcIntersection(const std::set<joda::settings::ChannelIndex> 
 
 auto CalcIntersection::execute(
     const settings::AnalyzeSettings &settings,
-    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResultsIn) const
-    -> joda::func::DetectionResponse
+    const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &detectionResultsIn) const
+    -> joda::image::detect::DetectionResponse
 {
   auto id = DurationCount::start("Intersection");
 
   if(mIndexesToIntersect.empty() || !detectionResultsIn.contains(*mIndexesToIntersect.begin())) {
-    return joda::func::DetectionResponse{};
+    return joda::image::detect::DetectionResponse{};
   }
 
-  std::vector<const joda::func::DetectionResponse *> channelsToIntersect;
+  std::vector<const joda::image::detect::DetectionResponse *> channelsToIntersect;
   std::map<joda::settings::ChannelIndex, const cv::Mat *> channelsToIntersectImages;
 
   joda::settings::ChannelIndex idx1 = *mIndexesToIntersect.begin();
@@ -51,7 +51,8 @@ auto CalcIntersection::execute(
   }
 
   // Sort in descending order (largest first)
-  auto compareByX = [](const joda::func::DetectionResponse *a, const joda::func::DetectionResponse *b) -> bool {
+  auto compareByX = [](const joda::image::detect::DetectionResponse *a,
+                       const joda::image::detect::DetectionResponse *b) -> bool {
     {
       return a->result.size() > b->result.size();
     }
@@ -62,8 +63,8 @@ auto CalcIntersection::execute(
   //
   // Calculate the intersection
   //
-  std::vector<func::DetectionFunction::OverlaySettings> overlayPainting;
-  joda::func::DetectionResponse response;
+  std::vector<image::detect::DetectionFunction::OverlaySettings> overlayPainting;
+  joda::image::detect::DetectionResponse response;
   response = *channelsToIntersect[0];
   overlayPainting.push_back({.result          = &channelsToIntersect[0]->result,
                              .backgroundColor = cv::Scalar(255, 0, 0),
@@ -80,7 +81,7 @@ auto CalcIntersection::execute(
                                .paintRectangel  = false,
                                .opaque          = 0.3});
 
-    joda::func::DetectionResponse respTmp;
+    joda::image::detect::DetectionResponse respTmp;
     for(auto const &roi01 : response.result) {
       for(auto const &roi02 : ch1->result) {
         if(roi01.isValid() && roi02.isValid()) {
@@ -108,16 +109,16 @@ auto CalcIntersection::execute(
   }
 
   overlayPainting.insert(overlayPainting.begin(),
-                         func::DetectionFunction::OverlaySettings{.result          = &response.result,
-                                                                  .backgroundColor = cv::Scalar(0, 0, 255),
-                                                                  .borderColor     = cv::Scalar(0, 0, 0),
-                                                                  .paintRectangel  = false,
-                                                                  .opaque          = 1});
+                         image::detect::DetectionFunction::OverlaySettings{.result          = &response.result,
+                                                                           .backgroundColor = cv::Scalar(0, 0, 255),
+                                                                           .borderColor     = cv::Scalar(0, 0, 0),
+                                                                           .paintRectangel  = false,
+                                                                           .opaque          = 1});
 
   response.controlImage =
       cv::Mat::zeros(channelsToIntersect[0]->originalImage.rows, channelsToIntersect[0]->originalImage.cols, CV_32FC3);
 
-  joda::func::DetectionFunction::paintOverlay(response.controlImage, overlayPainting);
+  joda::image::detect::DetectionFunction::paintOverlay(response.controlImage, overlayPainting);
 
   DurationCount::stop(id);
   return response;

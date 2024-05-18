@@ -20,6 +20,8 @@
 #include <string>
 #include "file_info.hpp"
 
+namespace joda::helper::fs {
+
 ///
 /// \class      FileInfo
 /// \author     Joachim Danmayr
@@ -69,3 +71,4 @@ private:
 
   Decoder mDecoder = Decoder::UNSUPPORTED;
 };
+}    // namespace joda::helper::fs

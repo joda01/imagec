@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include "../roi/roi.hpp"
+#include "backend/image_processing/roi/roi.hpp"
 
-namespace joda::func {
+namespace joda::image::detect {
 
 using DetectionResults = std::vector<ROI>;
 
@@ -29,11 +29,11 @@ enum class ResponseDataValidity : int
 
 struct DetectionResponse
 {
-  joda::func::DetectionResults result;
+  DetectionResults result;
   cv::Mat originalImage                 = {};
   cv::Mat controlImage                  = {};
   ResponseDataValidity responseValidity = ResponseDataValidity::VALID;
   bool invalidateWholeImage             = false;
 };
 
-}    // namespace joda::func
+}    // namespace joda::image::detect

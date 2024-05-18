@@ -15,11 +15,11 @@
 
 #include <cstdint>
 #include <string>
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 
-namespace joda::algo::imgfilter {
+namespace joda::pipeline {
 
 ///
 /// \brief If the min threshold is lower than the value at the maximum
@@ -34,7 +34,7 @@ namespace joda::algo::imgfilter {
 ///                 histMinThresholdFilterFactor = 1.3  --> HistogramFilterThreshold = 13 --> Filter will not be applied
 /// \author Joachim Danmayr
 ///
-inline void applyHistogramFilter(const cv::Mat &originalImg, func::DetectionResponse &detectionResult,
+inline void applyHistogramFilter(const cv::Mat &originalImg, image::detect::DetectionResponse &detectionResult,
                                  const joda::settings::ChannelSettings &channelSetting)
 {
   if(channelSetting.imageFilter.histMinThresholdFilterFactor > 0) {
@@ -51,11 +51,11 @@ inline void applyHistogramFilter(const cv::Mat &originalImg, func::DetectionResp
     float filterThreshold = static_cast<float>(maxIdx) * channelSetting.imageFilter.histMinThresholdFilterFactor;
     if(channelSetting.detection.detectionMode == joda::settings::DetectionSettings::DetectionMode::THRESHOLD) {
       if(channelSetting.detection.threshold.thresholdMin < filterThreshold) {
-        detectionResult.responseValidity = func::ResponseDataValidity::POSSIBLE_WRONG_THRESHOLD;
+        detectionResult.responseValidity = image::detect::ResponseDataValidity::POSSIBLE_WRONG_THRESHOLD;
       }
       std::cout << "Hist idx: " << std::to_string(maxIdx) << " | " << std::to_string(filterThreshold) << std::endl;
     }
   }
 }
 
-}    // namespace joda::algo::imgfilter
+}    // namespace joda::pipeline

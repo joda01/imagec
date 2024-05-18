@@ -12,7 +12,7 @@
 
 #include <opencv2/core/mat.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 class Edm
 {
@@ -28,4 +28,4 @@ private:
   static inline int NO_POINT = -1;    // no nearest point in array of nearest points
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

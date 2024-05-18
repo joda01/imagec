@@ -11,7 +11,7 @@
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
             <text x="246.5" y="48.5">
-                +(PK)experimentId: UUID
+                +(PK)jobId: UUID
             </text>
             <text x="246.5" y="62.5">
                 +(PK)jobId: UUID
@@ -411,7 +411,7 @@
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
             <text x="6.5" y="48.5">
-                +(PK)experimentId: UUID
+                +(PK)jobId: UUID
             </text>
             <text x="6.5" y="62.5">
                 +name: VARCHAR

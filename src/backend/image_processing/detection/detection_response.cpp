@@ -11,5 +11,5 @@
 /// \brief     Functions on detection response
 ///
 
-namespace joda::func {
+namespace joda::image::detect {
 }

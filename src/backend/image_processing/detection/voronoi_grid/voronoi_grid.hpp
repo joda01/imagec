@@ -23,7 +23,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-namespace joda::func::img {
+namespace joda::image::detect {
 
 ///
 /// \class      Function
@@ -196,4 +196,4 @@ private:
   std::vector<cv::Point2f> mPoints;
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::detect

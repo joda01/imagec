@@ -1,7 +1,7 @@
 ///
-/// \file      imagec_data.hpp
+/// \file      results.cpp
 /// \author    Joachim Danmayr
-/// \date      2024-05-03
+/// \date      2024-05-18
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
 ///            All rights reserved! This file is subject
@@ -12,33 +12,19 @@
 ///
 
 #include "results.hpp"
-#include <filesystem>
-#include <vector>
-#include "backend/duration_count/duration_count.h"
-#include "backend/helper/filesystem.hpp"
-#include "backend/helper/xz/archive_reader.hpp"
-#include "backend/results/results_defines.hpp"
+#include <regex.h>
+#include <memory>
+#include <regex>
+#include <stdexcept>
+#include "backend/helper/helper.hpp"
+#include "backend/helper/uuid.hpp"
+#include "backend/image_processing/reader/tif/image_loader_tif.hpp"
+#include "backend/pipelines/processor/image_processor.hpp"
+#include "backend/results/database/database.hpp"
+#include "measure_channels.hpp"
 
 namespace joda::results {
 
-Value &Object::emplaceValue(const MeasureKey &key)
-{
-  Value &val = measurements[key];
-  return val;
-}
-
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void Object::setMeta(const ObjectMeta &objectMeta, const std::optional<ImageMeta> &imageMeta)
-{
-  this->objectMeta = objectMeta;
-  this->imageMeta  = imageMeta;
-}
-
 ///
 /// \brief
 /// \author
@@ -46,119 +32,42 @@ void Object::setMeta(const ObjectMeta &objectMeta, const std::optional<ImageMeta
 /// \param[out]
 /// \return
 ///
-Object &Channel::emplaceObject(ObjectKey key, const ObjectMeta &objectMeta, const std::optional<ImageMeta> &imageMeta)
+Results::Results(const std::filesystem::path &resultsFolder, const ExperimentSetting &settings) :
+    mExperimentSettings(settings), mJobId(joda::helper::generate_uuid())
 {
-  Object &obj = objects[key];
-  obj.setMeta(objectMeta, imageMeta);
-  return obj;
+  prepareOutputFolders(resultsFolder);
+  mDatabase = std::make_shared<db::Database>(mDatabaseFileName);
+  mDatabase->createJob(db::JobMeta{.experimentId = settings.experimentId,
+                                   .jobId        = mJobId,
+                                   .name         = settings.jobName,
+                                   .scientists   = {settings.scientistName},
+                                   .location     = "",
+                                   .notes        = ""});
+
+  mDatabase->createPlate(db::PlateMeta{.jobId = mJobId, .plateId = settings.plateIdx, .notes = ""});
 }
 
 ///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
 ///
-void Channel::setValidity(joda::func::ResponseDataValidity valid, bool invalidateAllObjects)
+/// \brief      Creates the output folder for the results and returns the path.
+///             Outputfolder = <outputFolder>/<DATE-TIME>_<JOB-NAME>
+/// \author     Joachim Danmayr
+/// \param[in]  resultsFolder Folder where the results should be stored in
+///
+void Results::prepareOutputFolders(const std::filesystem::path &resultsFolder)
 {
-  channelMeta.valid                = valid;
-  channelMeta.invalidateAllObjects = invalidateAllObjects;
-}
+  auto nowString      = ::joda::helper::timeNowToString();
+  mOutputFolder       = resultsFolder / (nowString + "_" + mExperimentSettings.jobName);
+  mOutputFolderImages = mOutputFolder / CONTROL_IMAGE_PATH;
+  mDatabaseFileName   = mOutputFolder / DB_FILENAME;
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void Channel::emplaceMeasureChKey(MeasureKey key, const std::string &name)
-{
-  measuredValues.emplace(key, MeasureChannelMeta{.name = name});
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void Channel::setMeta(const ChannelMeta &meta)
-{
-  channelMeta = meta;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-[[nodiscard]] auto Channel::getObjects() const -> const std::map<ObjectKey, Object> &
-{
-  return objects;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-[[nodiscard]] size_t Channel::getNrOfObjects() const
-{
-  return objects.size();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-[[nodiscard]] auto Channel::getMeasuredChannels() const -> const std::map<MeasureKey, MeasureChannelMeta> &
-{
-  return measuredValues;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void Group::setMeta(const GroupMeta &meta)
-{
-  groupMeta = meta;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-Channel &Group::emplaceChannel(ChannelKey key, const ChannelMeta &meta)
-{
-  auto channelIterator = channels.find(key);
-  if(channelIterator == channels.end()) {
-    Channel &channel = channels[key];
-    channel.setMeta(meta);
-    return channel;
+  if(!std::filesystem::exists(mOutputFolder)) {
+    std::filesystem::create_directories(mOutputFolder);
   }
-  Channel &channel = channels[key];
-  channel.setMeta(meta);
-  if(meta.valid != func::ResponseDataValidity::VALID) {
-    channel.setValidity(meta.valid, meta.invalidateAllObjects);
+
+  if(!std::filesystem::exists(mOutputFolderImages)) {
+    std::filesystem::create_directories(mOutputFolderImages);
   }
-  return channel;
 }
 
 ///
@@ -168,191 +77,166 @@ Channel &Group::emplaceChannel(ChannelKey key, const ChannelMeta &meta)
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] auto Group::getChannels() const -> const std::map<ChannelKey, Channel> &
+void Results::appendToDetailReport(const joda::image::detect::DetectionResults &results,
+                                   const joda::settings::ChannelSettings &channelSettings, uint16_t tileIdx,
+                                   const image::ImageProperties &imgProps, const std::filesystem::path &imagePath)
 {
-  return channels;
-}
+  auto wellPosition = applyRegex(mExperimentSettings.imageFileNameRegex, imagePath);
+  mDatabase->createWell(db::WellMeta{.jobId    = mJobId,
+                                     .plateId  = mExperimentSettings.plateIdx,
+                                     .wellId   = wellPosition.well.wellId,
+                                     .wellPosX = wellPosition.well.wellPos[RegexResult::POS_X],
+                                     .wellPosY = wellPosition.well.wellPos[RegexResult::POS_Y],
+                                     .notes    = ""});
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool Group::containsInvalidChannelWhereOneInvalidatesTheWholeImage() const
-{
-  for(const auto &[_, channel] : channels) {
-    if(channel.getChannelMeta().invalidateAllObjects &&
-       func::ResponseDataValidity::VALID != channel.getChannelMeta().valid) {
-      return true;
+  mDatabase->createImage(db::ImageMeta{.jobId     = mJobId,
+                                       .plateId   = mExperimentSettings.plateIdx,
+                                       .wellId    = wellPosition.well.wellId,
+                                       .imageId   = wellPosition.imageId,
+                                       .imageName = imagePath.filename().string(),
+                                       .width     = imgProps.width,
+                                       .height    = imgProps.height});
+
+  uint8_t channelId = static_cast<uint8_t>(channelSettings.meta.channelIdx);
+  mDatabase->createChannel(db::ChannelMeta{.jobId     = mJobId,
+                                           .plateId   = mExperimentSettings.plateIdx,
+                                           .wellId    = wellPosition.well.wellId,
+                                           .imageId   = wellPosition.imageId,
+                                           .channelId = channelId});
+
+  auto [offsetX, offsetY] =
+      ::joda::image::TiffLoader::calculateTileXYoffset(::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.width,
+                                                       imgProps.height, imgProps.tileWidth, imgProps.tileHeight);
+  int64_t xMul = offsetX * imgProps.tileWidth;
+  int64_t yMul = offsetY * imgProps.tileHeight;
+
+  duckdb::vector<duckdb::Value> measureChannelKeys{};
+  db::objects_t objects;
+  uint64_t roiIdx = 0;
+  for(const auto &roi : results) {
+    uint64_t index = roiIdx;
+    roiIdx++;
+    db::Data &chan = objects[index];
+
+    chan.validity = toValidity(roi.getValidity());
+
+    // Measure channels
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::CONFIDENCE, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getConfidence()));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::AREA_SIZE, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getAreaSize()));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::PERIMETER, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getPerimeter()));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::CIRCULARITY, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getCircularity()));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::CENTER_OF_MASS_X, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getCenterOfMass().x) + xMul));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::CENTER_OF_MASS_Y, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getCenterOfMass().y) + yMul));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::BOUNDING_BOX_WIDTH, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getBoundingBox().width)));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::BOUNDING_BOX_HEIGHT, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getBoundingBox().height)));
+
+    double intensityAvg = 0;
+    double intensityMin = 0;
+    double intensityMax = 0;
+    if(roi.getIntensity().contains(channelSettings.meta.channelIdx)) {
+      auto intensityMe = roi.getIntensity().at(channelSettings.meta.channelIdx);
+      intensityAvg     = intensityMe.intensity;
+      intensityMin     = intensityMe.intensityMin;
+      intensityMax     = intensityMe.intensityMax;
+    }
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::INTENSITY_AVG, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(intensityAvg));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::INTENSITY_MIN, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(intensityMin));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::INTENSITY_MAX, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::DOUBLE(intensityMax));
+
+    //
+    // Intensity channels
+    //
+    for(const auto &[idx, intensity] : roi.getIntensity()) {
+      if(idx != channelSettings.meta.channelIdx) {
+        chan.keys.emplace_back(duckdb::Value::UINTEGER(
+            (uint32_t) MeasureChannelKey(MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG, toMeasureChannelIndex(idx))));
+        chan.vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensity));
+
+        chan.keys.emplace_back(duckdb::Value::UINTEGER(
+            (uint32_t) MeasureChannelKey(MeasureChannel::CROSS_CHANNEL_INTENSITY_MIN, toMeasureChannelIndex(idx))));
+        chan.vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensityMin));
+
+        chan.keys.emplace_back(duckdb::Value::UINTEGER(
+            (uint32_t) MeasureChannelKey(MeasureChannel::CROSS_CHANNEL_INTENSITY_MAX, toMeasureChannelIndex(idx))));
+        chan.vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensityMax));
+      }
+    }
+
+    //
+    // Counting channels
+    //
+    for(const auto &[idx, intersecting] : roi.getIntersectingRois()) {
+      chan.keys.emplace_back(duckdb::Value::UINTEGER(
+          (uint32_t) MeasureChannelKey(MeasureChannel::CROSS_CHANNEL_COUNT, toMeasureChannelIndex(idx))));
+      chan.vals.emplace_back(duckdb::Value::DOUBLE(intersecting.roiValid.size()));
     }
   }
-  return false;
+
+  mDatabase->createObjects(db::ObjectMeta{.jobId     = mJobId,
+                                          .plateId   = mExperimentSettings.plateIdx,
+                                          .wellId    = wellPosition.well.wellId,
+                                          .imageId   = wellPosition.imageId,
+                                          .channelId = static_cast<uint8_t>(channelSettings.meta.channelIdx),
+                                          .tileId    = tileIdx,
+                                          .objects   = objects});
 }
 
 ///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
+/// \brief      Apply regex
+/// \author     Joachim Danmayr
 ///
-Group &WorkSheet::emplaceGroup(const GroupKey &key, const GroupMeta &meta)
+Results::RegexResult Results::applyRegex(const std::string &regex, const std::filesystem::path &imagePath)
 {
-  Group &group = groups[key];
-  group.setMeta(meta);
-  return group;
-}
+  std::regex pattern(regex);
+  std::smatch match;
+  RegexResult result;
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-Channel &WorkSheet::emplaceChannel(const ChannelKey &key, const ChannelMeta &name)
-{
-  return groups[""].emplaceChannel(key, name);
-}
+  std::string fileName = imagePath.filename().string();
+  if(std::regex_search(fileName, match, pattern)) {
+    if(match.size() >= 5) {
+      result.well.wellPos[RegexResult::POS_Y] = helper::stringToNumber(match[2].str());
+      result.well.wellPos[RegexResult::POS_X] = helper::stringToNumber(match[3].str());
+      result.imageId                          = helper::stringToNumber(match[4].str());
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto WorkSheet::getGroups() const -> const std::map<GroupKey, Group> &
-{
-  return groups;
-}
-
-std::string removeFileExtension(const std::string &filename)
-{
-  if(filename.size() >= 5 && filename.substr(filename.size() - 5) == ".json") {
-    return filename.substr(0, filename.size() - 5);
-  }
-  return filename;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void WorkSheet::saveToFile(std::string filename, const JobMeta &meta,
-                           const std::optional<ExperimentMeta> &experimentMeta, std::optional<ImageMeta> imgMeta)
-{
-  this->jobMeta        = meta;
-  this->experimentMeta = experimentMeta;
-  this->imageMeta      = imgMeta;
-  filename             = removeFileExtension(filename);
-  if(!filename.empty()) {
-    nlohmann::json json = *this;
-    removeNullValues(json);
-
-    // Write as json
-
-    // std::ofstream out(filename + ".json");
-    // out << json.dump(2);
-    // out.close();
-
-    // Write as message pack
-    {
-      std::ofstream out(filename + MESSAGE_PACK_FILE_EXTENSION, std::ios::out | std::ios::binary);
-      std::vector<uint8_t> data = nlohmann::json::to_msgpack(json);
-      out.write(reinterpret_cast<const char *>(data.data()), data.size());
-      out.close();
+    } else {
+      throw std::invalid_argument("Pattern not found.");
     }
+  } else {
+    throw std::invalid_argument("Pattern not found.");
   }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void WorkSheet::loadFromFile(const std::string &filename)
-{
-  std::ifstream ifs(filename, std::ios::binary);
-  *this = nlohmann::json::from_msgpack(ifs);
-  ifs.close();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void WorkSheet::deserialize(const std::string &data)
-{
-  *this = nlohmann::json::from_msgpack(data);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void WorkBook::createArchiveFromResults(const std::string &xzFileName, const std::string &pathToResultsFolder,
-                                        std::optional<std::string> pathToImagesFolder)
-{
-  auto id = DurationCount::start("Start compression");
-  std::vector<helper::xz::FolderToAdd> foldersToAdd;
-
-  foldersToAdd.push_back({.pathToFolderToAdd         = pathToResultsFolder,
-                          .fileExtensionToAdd        = MESSAGE_PACK_FILE_EXTENSION,
-                          .subFolderInArchiveToAddTo = RESULTS_FOLDER_PATH});
-  if(pathToImagesFolder.has_value()) {
-    foldersToAdd.push_back({.pathToFolderToAdd         = pathToImagesFolder.value(),
-                            .fileExtensionToAdd        = CONTROL_IMAGES_FILE_EXTENSION,
-                            .subFolderInArchiveToAddTo = IMAGES_FOLDER_PATH});
-  }
-
-  helper::xz::Archive::createAndAddFiles(xzFileName + RESULTS_XZ_FILE_EXTENSION, foldersToAdd);
-  std::filesystem::remove_all(pathToResultsFolder);
-  DurationCount::stop(id);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto WorkBook::readWorksheetFromArchive(const std::shared_ptr<joda::helper::xz::Archive> archive,
-                                        const std::string &filenameOfFileInArchive) -> WorkSheet
-{
-  WorkSheet sheet;
-  sheet.deserialize(archive->readFile(filenameOfFileInArchive));
-  return sheet;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto WorkBook::readImageFromArchive(const std::shared_ptr<joda::helper::xz::Archive> archive,
-                                    const std::string &filenameOfFileInArchive) -> cv::Mat
-{
-  auto pngData = archive->readFile(filenameOfFileInArchive);
-  std::vector<uchar> pngData1(pngData.begin(), pngData.end());
-  cv::Mat image = cv::imdecode(cv::Mat(pngData1), cv::IMREAD_UNCHANGED);
-  return image;
+  return result;
 }
 
 }    // namespace joda::results

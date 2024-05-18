@@ -61,7 +61,7 @@
 #include <opencv2/core/cvstd.hpp>
 #include <opencv2/core/mat.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 /**
  * Creates the Euclidian Distance Map of a (binary) uint8_t image.
@@ -213,4 +213,4 @@ float Edm::minDist2(int *points, int pPrev, int pDiag, int x, int y, int distSqr
   points[x] = nearestPoint;
   return (float) distSqr;
 }    // private float minDist2
-}    // namespace joda::func::img
+}    // namespace joda::image::func

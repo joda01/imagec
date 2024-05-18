@@ -18,6 +18,8 @@
 #include <set>
 #include <string>
 
+namespace joda::helper::fs {
+
 ///
 /// \class      FileInfo
 /// \author     Joachim Danmayr
@@ -57,3 +59,4 @@ protected:
   /////////////////////////////////////////////////////
   std::filesystem::path mPath;
 };
+}    // namespace joda::helper::fs

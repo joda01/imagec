@@ -50,6 +50,9 @@ public:
   }
 
 private:
+  static const inline std::string MESSAGE_PACK_FILE_EXTENSION   = ".msgpack";
+  static const inline std::string CONTROL_IMAGES_FILE_EXTENSION = ".png";
+
   /////////////////////////////////////////////////////
   void listFiles();
 

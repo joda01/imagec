@@ -11,8 +11,9 @@
 
 #include "calc_count.hpp"
 #include <string>
-#include "backend/duration_count/duration_count.h"
-#include "backend/logger/console_logger.hpp"
+#include "backend/helper/duration_count/duration_count.h"
+#include "backend/helper/logger/console_logger.hpp"
+#include "backend/image_processing/detection/detection_response.hpp"
 
 namespace joda::pipeline {
 
@@ -23,17 +24,19 @@ namespace joda::pipeline {
 /// \param[out]
 /// \return
 ///
-auto CalcCount::execute(const settings::AnalyzeSettings &,
-                        const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResultsIn)
-    const -> joda::func::DetectionResponse
+auto CalcCount::execute(
+    const settings::AnalyzeSettings &,
+    const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &detectionResultsIn) const
+    -> joda::image::detect::DetectionResponse
 {
   auto id = DurationCount::start("CrossChannelCount");
 
   if(detectionResultsIn.contains(mReferenceChannelIndex)) {
-    auto &myResults = const_cast<joda::func::DetectionResponse &>(detectionResultsIn.at(mReferenceChannelIndex));
+    auto &myResults =
+        const_cast<joda::image::detect::DetectionResponse &>(detectionResultsIn.at(mReferenceChannelIndex));
     for(const auto idxToIntersect : mChannelsToCalcIntensityIn) {
       if(detectionResultsIn.contains(idxToIntersect)) {
-        for(func::ROI &roiMe : myResults.result) {
+        for(image::ROI &roiMe : myResults.result) {
           if(roiMe.isValid()) {
             if(!detectionResultsIn.empty() && !detectionResultsIn.at(idxToIntersect).result.empty()) {
               for(const auto &roiOther : detectionResultsIn.at(idxToIntersect).result) {

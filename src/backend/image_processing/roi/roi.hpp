@@ -22,7 +22,7 @@
 #include <opencv2/dnn/all_layers.hpp>
 #include <opencv2/opencv.hpp>
 
-namespace joda::func {
+namespace joda::image {
 
 using Boxes      = cv::Rect;
 using Confidence = float;
@@ -237,4 +237,4 @@ private:
   ParticleValidity validity = ParticleValidity::UNKNOWN;
   bool mHasSnapArea         = false;
 };
-}    // namespace joda::func
+}    // namespace joda::image

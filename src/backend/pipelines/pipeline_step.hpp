@@ -23,8 +23,8 @@ class PipelineStep
 {
 public:
   virtual auto execute(const joda::settings::AnalyzeSettings &,
-                       const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &) const
-      -> joda::func::DetectionResponse = 0;
+                       const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &) const
+      -> joda::image::detect::DetectionResponse = 0;
 };
 
 }    // namespace joda::pipeline

@@ -14,9 +14,10 @@
 #include "image_processor.hpp"
 #include <cstdint>
 #include <string>
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_info.hpp"
 #include "backend/helper/file_info_images.hpp"
+#include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/functions/blur/blur.hpp"
 #include "backend/image_processing/functions/blur_gausian/blur_gausian.hpp"
 #include "backend/image_processing/functions/edge_detection/edge_detection.hpp"
@@ -27,38 +28,39 @@
 #include "backend/settings/channel/channel_settings_image_filter.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 
-namespace joda::algo {
+namespace joda::pipeline {
 
 ///
 /// \brief      Executed the algorithm and generates reporting
 /// \author     Joachim Danmayr
 ///
-func::DetectionResponse ImageProcessor::executeAlgorithm(
-    const FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting, uint64_t tileIndex,
-    const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels, const ChannelProperties *channelProperties,
-    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults)
+image::detect::DetectionResponse ImageProcessor::executeAlgorithm(
+    const helper::fs::FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
+    uint64_t tileIndex, const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
+    const ChannelProperties *channelProperties,
+    const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> *const referenceChannelResults)
 {
   //
   // Execute the algorithms
   //
   ChannelProperties chProps;
   if(nullptr == channelProperties) {
-    chProps = loadChannelProperties(imagePath, channelSetting.meta.series);
+    chProps = ImageProcessor::loadChannelProperties(imagePath, channelSetting.meta.series);
   } else {
     chProps = *channelProperties;
   }
 
-  auto tifDirs = getTifDirs(chProps, channelSetting.meta.channelIdx);
+  auto tifDirs = ImageProcessor::getTifDirs(chProps, channelSetting.meta.channelIdx);
   if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE &&
-     imagePath.getDecoder() == FileInfoImages::Decoder::TIFF) {
+     imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::TIFF) {
     return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, tifDirs, tileIndex, referenceChannelResults,
                                                onnxModels);
   }
-  if(imagePath.getDecoder() == FileInfoImages::Decoder::JPG) {
+  if(imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::JPG) {
     return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, tifDirs, 0, referenceChannelResults,
                                                 onnxModels);
   }
-  if(imagePath.getDecoder() == FileInfoImages::Decoder::TIFF) {
+  if(imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::TIFF) {
     return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, tifDirs, 0, referenceChannelResults,
                                                  onnxModels);
   }
@@ -76,10 +78,10 @@ func::DetectionResponse ImageProcessor::executeAlgorithm(
 /// \return     Processed image
 ///
 template <image_loader_t TIFFLOADER>
-func::DetectionResponse ImageProcessor::processImage(
-    const FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
+image::detect::DetectionResponse ImageProcessor::processImage(
+    const helper::fs::FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
     const std::set<uint32_t> &tiffDirectories, int64_t idx,
-    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults,
+    const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> *const referenceChannelResults,
     const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels)
 {
   cv::Mat image       = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx);
@@ -112,7 +114,8 @@ func::DetectionResponse ImageProcessor::processImage(
 /// \return     Processed image
 ///
 template <class TIFFLOADER>
-cv::Mat ImageProcessor::loadTileAndToIntensityProjectionIfEnabled(const FileInfoImages &imagePath, int64_t idx,
+cv::Mat ImageProcessor::loadTileAndToIntensityProjectionIfEnabled(const helper::fs::FileInfoImages &imagePath,
+                                                                  int64_t idx,
                                                                   const joda::settings::ChannelSettings &channelSetting,
                                                                   const std::set<uint32_t> &tiffDirectories)
 {
@@ -150,7 +153,7 @@ cv::Mat ImageProcessor::loadTileAndToIntensityProjectionIfEnabled(const FileInfo
 /// \return     Processed image
 ///
 template <class TIFFLOADER>
-cv::Mat ImageProcessor::doZProjection(const FileInfoImages &imagePath,
+cv::Mat ImageProcessor::doZProjection(const helper::fs::FileInfoImages &imagePath,
                                       const joda::settings::ChannelSettings &channelSetting,
                                       const std::set<uint32_t> &tifDirs, int64_t idx)
 {
@@ -170,7 +173,7 @@ cv::Mat ImageProcessor::doZProjection(const FileInfoImages &imagePath,
 /// \param[in,out]  image  Image to preprocess and returns the preprocessed image
 ///
 template <class TIFFLOADER>
-void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfoImages &imagePath,
+void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const helper::fs::FileInfoImages &imagePath,
                                              const joda::settings::ChannelSettings &channelSetting,
                                              const std::set<uint32_t> &tifDirs, int64_t idx)
 {
@@ -195,7 +198,7 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfoImage
     //
     if(pipelineStep.$edgeDetection.has_value() &&
        pipelineStep.$subtractChannel->channelIdx != joda::settings::ChannelIndex::NONE) {
-      joda::func::img::EdgeDetection algo(pipelineStep.$edgeDetection.value());
+      joda::image::func::EdgeDetection algo(pipelineStep.$edgeDetection.value());
       algo.execute(image);
     }
 
@@ -204,7 +207,7 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfoImage
     //
     if(pipelineStep.$gaussianBlur.has_value() &&
        pipelineStep.$subtractChannel->channelIdx != joda::settings::ChannelIndex::NONE) {
-      joda::func::img::GaussianBlur algo(pipelineStep.$gaussianBlur.value());
+      joda::image::func::GaussianBlur algo(pipelineStep.$gaussianBlur.value());
       algo.execute(image);
     }
 
@@ -212,7 +215,7 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfoImage
     // Median subtract
     //
     if(pipelineStep.$medianSubtract.has_value()) {
-      joda::func::img::MedianSubtraction algo(pipelineStep.$medianSubtract.value());
+      joda::image::func::MedianSubtraction algo(pipelineStep.$medianSubtract.value());
       algo.execute(image);
     }
 
@@ -220,7 +223,7 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfoImage
     // Rolling ball
     //
     if(pipelineStep.$rollingBall.has_value()) {
-      joda::func::img::RollingBallBackground algo(pipelineStep.$rollingBall.value());
+      joda::image::func::RollingBallBackground algo(pipelineStep.$rollingBall.value());
       algo.execute(image);
     }
 
@@ -228,7 +231,7 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfoImage
     // Smoothing
     //
     if(pipelineStep.$blur.has_value()) {
-      joda::func::img::Blur algo(pipelineStep.$blur.value());
+      joda::image::func::Blur algo(pipelineStep.$blur.value());
       algo.execute(image);
     }
   }
@@ -240,12 +243,12 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const FileInfoImage
 /// \param[in]  originalImage  Image the detection should be executed on
 /// \return     Detection results with control image
 ///
-func::DetectionResponse
+image::detect::DetectionResponse
 ImageProcessor::doDetection(const cv::Mat &image, const cv::Mat &originalImg,
                             const joda::settings::ChannelSettings &channelSetting,
                             const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels)
 {
-  ::joda::pipeline::detection::ObjectSegmentation algo(onnxModels);
+  ObjectSegmentation algo(onnxModels);
   auto ret = algo.execute(image, originalImg, channelSetting);
   return ret;
 }
@@ -256,9 +259,9 @@ ImageProcessor::doDetection(const cv::Mat &image, const cv::Mat &originalImg,
 /// \param[in,out]  detectionResult  Detection result and removes the filtered objects from the detection results
 ///
 void ImageProcessor::doFiltering(
-    const cv::Mat &originalImg, func::DetectionResponse &detectionResult,
+    const cv::Mat &originalImg, image::detect::DetectionResponse &detectionResult,
     const joda::settings::ChannelSettings &channelSetting,
-    const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults)
+    const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> *const referenceChannelResults)
 {
   //
   // Reference spot removal
@@ -277,7 +280,7 @@ void ImageProcessor::doFiltering(
             if(referenceRoi.isValid() && spot.isValid()) {
               auto isIntersecting = referenceRoi.isIntersecting(spot, 0.7);
               if(isIntersecting) {
-                spot.setValidity(func::ParticleValidity::REFERENCE_SPOT);
+                spot.setValidity(image::ParticleValidity::REFERENCE_SPOT);
                 break;
               }
             }
@@ -302,13 +305,13 @@ void ImageProcessor::doFiltering(
     //
     if(channelSetting.imageFilter.maxObjects > 0 &&
        detectionResult.result.size() > channelSetting.imageFilter.maxObjects) {
-      detectionResult.responseValidity = func::ResponseDataValidity::POSSIBLE_NOISE;
+      detectionResult.responseValidity = image::detect::ResponseDataValidity::POSSIBLE_NOISE;
     }
 
     //
     // Filter by threshold
     //
-    joda::algo::imgfilter::applyHistogramFilter(originalImg, detectionResult, channelSetting);
+    joda::pipeline::applyHistogramFilter(originalImg, detectionResult, channelSetting);
   }
   DurationCount::stop(id);
 }
@@ -317,8 +320,8 @@ void ImageProcessor::doFiltering(
 /// \brief      Generate the control image
 /// \author     Joachim Danmayr
 ///
-void ImageProcessor::generateControlImage(func::DetectionResponse &detectionResult, const std::string &areaColor,
-                                          const joda::onnx::OnnxParser::Data &onnxModels,
+void ImageProcessor::generateControlImage(image::detect::DetectionResponse &detectionResult,
+                                          const std::string &areaColor, const joda::onnx::OnnxParser::Data &onnxModels,
                                           joda::settings::DetectionSettings::DetectionMode mode)
 {
   /*
@@ -327,11 +330,11 @@ void ImageProcessor::generateControlImage(func::DetectionResponse &detectionResu
                                  bool paintRectangel, bool paintLabels
   */
   if(mode == joda::settings::DetectionSettings::DetectionMode::THRESHOLD) {
-    joda::func::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result, {}, areaColor,
-                                                    false, false);
+    image::detect::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result, {},
+                                                       areaColor, false, false);
   } else {
-    joda::func::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result, onnxModels,
-                                                    areaColor, true, true);
+    image::detect::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result, onnxModels,
+                                                       areaColor, true, true);
   }
 }
 
@@ -339,23 +342,23 @@ void ImageProcessor::generateControlImage(func::DetectionResponse &detectionResu
 /// \brief      Load channel properties
 /// \author     Joachim Danmayr
 ///
-ChannelProperties ImageProcessor::loadChannelProperties(const FileInfoImages &imagePath, uint16_t series)
+ChannelProperties ImageProcessor::loadChannelProperties(const helper::fs::FileInfoImages &imagePath, uint16_t series)
 {
   //
   // Load image properties
   //
-  ImageProperties imgProperties;
+  image::ImageProperties imgProperties;
   joda::ome::OmeInfo omeInfo;
   switch(imagePath.getDecoder()) {
-    case FileInfoImages::Decoder::JPG: {
-      imgProperties = JpgLoader::getImageProperties(imagePath.getFilePath().string());
+    case helper::fs::FileInfoImages::Decoder::JPG: {
+      imgProperties = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
     } break;
-    case FileInfoImages::Decoder::TIFF: {
-      omeInfo       = TiffLoader::getOmeInformation(imagePath.getFilePath().string());
-      imgProperties = TiffLoader::getImageProperties(imagePath.getFilePath().string(), 0);
+    case helper::fs::FileInfoImages::Decoder::TIFF: {
+      omeInfo       = image::TiffLoader::getOmeInformation(imagePath.getFilePath().string());
+      imgProperties = image::TiffLoader::getImageProperties(imagePath.getFilePath().string(), 0);
     } break;
-    case FileInfoImages::Decoder::BIOFORMATS: {
-      auto [ome, props] = BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
+    case helper::fs::FileInfoImages::Decoder::BIOFORMATS: {
+      auto [ome, props] = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
       omeInfo           = ome;
       imgProperties     = props;
     } break;
@@ -377,4 +380,4 @@ std::set<uint32_t> ImageProcessor::getTifDirs(const ChannelProperties &props, jo
   return tiffDirectories;
 }
 
-}    // namespace joda::algo
+}    // namespace joda::pipeline

@@ -24,9 +24,9 @@
 #include <thread>
 #include <vector>
 #include "../helper/helper.hpp"
-#include "../logger/console_logger.hpp"
 #include "../settings/analze_settings.hpp"
 #include "backend/helper/file_info_images.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "pipeline.hpp"
 
 namespace joda::pipeline {
@@ -74,7 +74,7 @@ public:
   ///
   static auto
   startNewJob(const settings::AnalyzeSettings &settings, const std::string &inputFolder, const std::string &jobName,
-              joda::helper::DirectoryWatcher<FileInfoImages> *imageFileContainer,
+              joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *imageFileContainer,
               const pipeline::Pipeline::ThreadingSettings &threadingSettings = pipeline::Pipeline::ThreadingSettings())
       -> std::string
   {

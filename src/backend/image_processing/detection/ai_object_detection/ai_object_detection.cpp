@@ -15,12 +15,12 @@
 #include <set>
 #include <string>
 #include "../detection.hpp"
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 
-namespace joda::func::ai {
+namespace joda::image::detect::ai {
 
 ///
 /// \brief      Constructor
@@ -193,4 +193,4 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const cv::Mat &or
   return result;
 }
 
-}    // namespace joda::func::ai
+}    // namespace joda::image::detect::ai

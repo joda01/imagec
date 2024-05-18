@@ -17,7 +17,7 @@
 #include <cstdint>
 #include "threshold.hpp"
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \class      ThresholdMoments
@@ -88,4 +88,4 @@ private:
   }
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

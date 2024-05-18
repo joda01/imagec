@@ -19,8 +19,8 @@
 #include <string>
 #include <system_error>
 #include <vector>
-#include "../../logger/console_logger.hpp"
-#include "../helper.hpp"
+#include "backend/helper/helper.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 
@@ -55,7 +55,7 @@ OmeInfo::OmeInfo()
 /// \param[in]  omeJson  Read OME JSON data as string
 /// \return     Parsed OME information
 ///
-ImageProperties OmeInfo::loadOmeInformationFromJsonString(const std::string &omeJson)
+joda::image::ImageProperties OmeInfo::loadOmeInformationFromJsonString(const std::string &omeJson)
 {
   /// \todo Add error handling here
   auto parsedJson = nlohmann::json::parse(omeJson);
@@ -66,10 +66,10 @@ ImageProperties OmeInfo::loadOmeInformationFromJsonString(const std::string &ome
   mImageSize    = mImageWidth * mImageHeight;
   mBits         = parsedJson["bits"];
 
-  uint16_t docs      = parsedJson["planes"];
-  int64_t tileHeight = (int32_t) parsedJson["tile_height"];
-  int64_t tileWidth  = (int32_t) parsedJson["tile_width"];
-  int64_t tileSize   = tileHeight * tileWidth;
+  uint16_t docs       = parsedJson["planes"];
+  uint64_t tileHeight = (int32_t) parsedJson["tile_height"];
+  uint64_t tileWidth  = (int32_t) parsedJson["tile_width"];
+  int64_t tileSize    = tileHeight * tileWidth;
 
   int chIdx = 0;
   for(const auto &channel : parsedJson["orders"]) {
@@ -296,7 +296,7 @@ void OmeInfo::loadOmeInformationFromString(const std::string &omeXML)
 /// \brief      If no OME information was found, emulate the information from image properties
 /// \author     Joachim Danmayr
 ///
-void OmeInfo::emulateOmeInformationFromTiff(const ImageProperties &prop)
+void OmeInfo::emulateOmeInformationFromTiff(const joda::image::ImageProperties &prop)
 {
   mImageSize    = prop.imageSize;
   mImageHeight  = prop.height;

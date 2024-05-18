@@ -19,20 +19,20 @@
 #include <string>
 #include "../detection.hpp"
 #include "../detection_response.hpp"
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/image_processing/functions/threshold/threshold_li.hpp"
 #include "backend/image_processing/functions/threshold/threshold_manual.hpp"
 #include "backend/image_processing/functions/threshold/threshold_min_error.hpp"
 #include "backend/image_processing/functions/threshold/threshold_moments.hpp"
 #include "backend/image_processing/functions/threshold/threshold_otsu.hpp"
 #include "backend/image_processing/functions/threshold/threshold_triangel.hpp"
-#include "backend/logger/console_logger.hpp"
 #include "backend/settings/detection/detection_settings_threshold.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::func::threshold {
+namespace joda::image::segment {
 
 ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, uint16_t thresholdValue,
                                        joda::settings::ThresholdSettings::Mode method, bool doWatershed) :
@@ -41,19 +41,19 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
 {
   switch(method) {
     case joda::settings::ThresholdSettings::Mode::LI:
-      mThresoldMethod = std::make_shared<img::ThresholdLi>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdLi>(thresholdValue);
       break;
     case joda::settings::ThresholdSettings::Mode::TRIANGLE:
-      mThresoldMethod = std::make_shared<img::ThresholdTriangle>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdTriangle>(thresholdValue);
       break;
     case joda::settings::ThresholdSettings::Mode::MIN_ERROR:
-      mThresoldMethod = std::make_shared<img::ThresholdMinError>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdMinError>(thresholdValue);
       break;
     case joda::settings::ThresholdSettings::Mode::MOMENTS:
-      mThresoldMethod = std::make_shared<img::ThresholdMoments>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdMoments>(thresholdValue);
       break;
     case joda::settings::ThresholdSettings::Mode::OTSU:
-      mThresoldMethod = std::make_shared<img::ThresholdOtsu>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdOtsu>(thresholdValue);
       break;
 
     default:
@@ -69,24 +69,24 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
     case joda::settings::ThresholdSettings::Mode::YEN:
       joda::log::logWarning("Not supported threshold algorithm selected. Using MANUAL as fallback.");
     case joda::settings::ThresholdSettings::Mode::MANUAL:
-      mThresoldMethod = std::make_shared<img::ThresholdManual>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdManual>(thresholdValue);
       break;
   }
 }
 
 auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalImage,
-                                 joda::settings::ChannelIndex channelIndex) -> DetectionResponse
+                                 joda::settings::ChannelIndex channelIndex) -> image::detect::DetectionResponse
 {
   auto id = DurationCount::start("ObjectSegmentation");
 
   cv::Mat binaryImage;
   uint16_t usedThersholdVal = mThresoldMethod->execute(srcImg, binaryImage);
   if(mDoWatershed) {
-    joda::func::img::Watershed watershed;
+    joda::image::func::Watershed watershed;
     watershed.execute(binaryImage);
   }
 
-  DetectionResults response;
+  image::detect::DetectionResults response;
 
   // Find contours in the binary image
 
@@ -141,4 +141,4 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   DurationCount::stop(id);
   return {.result = response, .controlImage = inputImage};
 }
-}    // namespace joda::func::threshold
+}    // namespace joda::image::segment

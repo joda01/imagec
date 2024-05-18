@@ -21,25 +21,25 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_info.hpp"
 #include "backend/helper/file_info_images.hpp"
 #include "backend/helper/helper.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/image_processing/detection/detection.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/functions/watershed/watershed.hpp"
-#include "backend/image_reader/bioformats/bioformats_loader.hpp"
-#include "backend/image_reader/image_reader.hpp"
-#include "backend/image_reader/jpg/image_loader_jpg.hpp"
-#include "backend/image_reader/tif/image_loader_tif.hpp"
-#include "backend/logger/console_logger.hpp"
+#include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
+#include "backend/image_processing/reader/image_reader.hpp"
+#include "backend/image_processing/reader/jpg/image_loader_jpg.hpp"
+#include "backend/image_processing/reader/tif/image_loader_tif.hpp"
 #include "backend/pipelines/pipeline_detection/object_segmentation/object_segmentation.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::algo {
+namespace joda::pipeline {
 
 static constexpr int64_t MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE = 71680768;
 static constexpr int64_t TILES_TO_LOAD_PER_RUN          = 36;
@@ -47,7 +47,7 @@ static constexpr int32_t TIME_FRAME                     = 0;
 
 struct ChannelProperties
 {
-  ImageProperties props;
+  image::ImageProperties props;
   joda::ome::OmeInfo ome;
 };
 
@@ -57,7 +57,7 @@ public:
   static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
                            int nrOfTilesToRead)
   {
-    return TiffLoader::loadEntireImage(filename, directory);
+    return image::TiffLoader::loadEntireImage(filename, directory);
   }
 };
 
@@ -67,7 +67,7 @@ public:
   static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
                            int nrOfTilesToRead)
   {
-    return TiffLoader::loadImageTile(filename, directory, offset, nrOfTilesToRead);
+    return image::TiffLoader::loadImageTile(filename, directory, offset, nrOfTilesToRead);
   }
 };
 
@@ -77,7 +77,7 @@ public:
   static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
                            int nrOfTilesToRead)
   {
-    return JpgLoader::loadEntireImage(filename);
+    return image::JpgLoader::loadEntireImage(filename);
   }
 };
 
@@ -87,7 +87,7 @@ public:
   static cv::Mat loadImage(const std::string &filename, uint16_t directory, uint16_t series, int offset,
                            int nrOfTilesToRead)
   {
-    return BioformatsLoader::loadEntireImage(filename, directory, series);
+    return image::BioformatsLoader::loadEntireImage(filename, directory, series);
   }
 };
 
@@ -105,59 +105,60 @@ class ImageProcessor
 {
 public:
   /////////////////////////////////////////////////////
-  static func::DetectionResponse executeAlgorithm(
-      const FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting, uint64_t tileIndex,
-      const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
+  static image::detect::DetectionResponse executeAlgorithm(
+      const helper::fs::FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
+      uint64_t tileIndex, const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
       const ChannelProperties *channelProperties = nullptr,
-      const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults =
+      const std::map<joda::settings::ChannelIndex, image::detect::DetectionResponse> *const referenceChannelResults =
           nullptr);
 
   ///
   /// \brief      Load channel properties
   /// \author     Joachim Danmayr
   ///
-  static ChannelProperties loadChannelProperties(const FileInfoImages &imagePath, uint16_t series);
+  static ChannelProperties loadChannelProperties(const helper::fs::FileInfoImages &imagePath, uint16_t series);
 
 private:
   /////////////////////////////////////////////////////
   template <image_loader_t TIFFLOADER>
-  static func::DetectionResponse processImage(
-      const FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
+  static image::detect::DetectionResponse processImage(
+      const helper::fs::FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
       const std::set<uint32_t> &tiffDirectories, int64_t idx,
-      const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults,
+      const std::map<joda::settings::ChannelIndex, image::detect::DetectionResponse> *const referenceChannelResults,
       const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels);
 
   template <class TIFFLOADER>
-  static cv::Mat loadTileAndToIntensityProjectionIfEnabled(const FileInfoImages &imagePath, int64_t idx,
+  static cv::Mat loadTileAndToIntensityProjectionIfEnabled(const helper::fs::FileInfoImages &imagePath, int64_t idx,
                                                            const joda::settings::ChannelSettings &channelSetting,
                                                            const std::set<uint32_t> &tiffDirectories);
 
   template <class TIFFLOADER>
-  static cv::Mat doZProjection(const FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
-                               const std::set<uint32_t> &tifDirs, int64_t idx);
+  static cv::Mat doZProjection(const helper::fs::FileInfoImages &imagePath,
+                               const joda::settings::ChannelSettings &channelSetting, const std::set<uint32_t> &tifDirs,
+                               int64_t idx);
 
   template <class TIFFLOADER>
-  static void doPreprocessingPipeline(cv::Mat &image, const FileInfoImages &imagePath,
+  static void doPreprocessingPipeline(cv::Mat &image, const helper::fs::FileInfoImages &imagePath,
                                       const joda::settings::ChannelSettings &channelSetting,
                                       const std::set<uint32_t> &tifDirs, int64_t idx);
 
-  static func::DetectionResponse doDetection(const cv::Mat &image, const cv::Mat &originalImg,
-                                             const joda::settings::ChannelSettings &channelSetting,
-                                             const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels);
+  static image::detect::DetectionResponse
+  doDetection(const cv::Mat &image, const cv::Mat &originalImg, const joda::settings::ChannelSettings &channelSetting,
+              const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels);
 
-  static void doFiltering(
-      const cv::Mat &originalImg, func::DetectionResponse &detectionResult,
-      const joda::settings::ChannelSettings &channelSetting,
-      const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> *const referenceChannelResults);
+  static void doFiltering(const cv::Mat &originalImg, image::detect::DetectionResponse &detectionResult,
+                          const joda::settings::ChannelSettings &channelSetting,
+                          const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse>
+                              *const referenceChannelResults);
 
   ///
   /// \brief      Generate the control image
   /// \author     Joachim Danmayr
   ///
-  static void generateControlImage(func::DetectionResponse &detectionResult, const std::string &areaColor,
+  static void generateControlImage(image::detect::DetectionResponse &detectionResult, const std::string &areaColor,
                                    const joda::onnx::OnnxParser::Data &onnxModels,
                                    joda::settings::DetectionSettings::DetectionMode mode);
 
   static std::set<uint32_t> getTifDirs(const ChannelProperties &props, joda::settings::ChannelIndex channelIndex);
 };
-}    // namespace joda::algo
+}    // namespace joda::pipeline

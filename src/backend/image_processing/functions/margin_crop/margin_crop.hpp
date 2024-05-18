@@ -14,10 +14,10 @@
 #pragma once
 
 #include "../../functions/function.hpp"
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \class      Function
@@ -52,4 +52,4 @@ private:
   int mMarginSize;
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

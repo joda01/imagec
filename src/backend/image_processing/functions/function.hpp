@@ -15,7 +15,7 @@
 
 #include <opencv2/core/mat.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \class      Function
@@ -28,4 +28,4 @@ public:
   virtual void execute(cv::Mat &image) const = 0;
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

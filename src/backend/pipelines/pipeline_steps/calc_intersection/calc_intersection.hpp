@@ -28,8 +28,8 @@ public:
   CalcIntersection(const std::set<joda::settings::ChannelIndex> &indexesToIntersect, float minIntersection);
 
   auto execute(const settings::AnalyzeSettings &,
-               const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &) const
-      -> joda::func::DetectionResponse override;
+               const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &) const
+      -> joda::image::detect::DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////

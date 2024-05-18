@@ -24,12 +24,10 @@
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/xz/archive_reader.hpp"
 #include "backend/results/results.hpp"
-#include "backend/results/results_reporting_settings.hpp"
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_function.hpp"
 #include "ui/helper/waitingspinnerwidget.hpp"
 #include "ui/panel_preview.hpp"
-#include "ui/reporting/exporter_thread.hpp"
 
 namespace joda::ui::qt {
 
@@ -63,8 +61,6 @@ private:
   QProgressBar *mProgressExportExcel;
   ContainerButton *mButtonReportingSettings;
   ContainerButton *mButtonExportExcel;
-  std::shared_ptr<ReportingExporterThread> mExcelExporter;
-  results::ReportingSettings mExcelReportSettings;
   bool mSearchFileStopToken = false;
   std::filesystem::path mExportPath;
 
@@ -73,22 +69,18 @@ private:
   std::shared_ptr<ContainerFunction<QString, int>> mFileSelector;
   QProgressBar *mProgressSelector;
   std::shared_ptr<std::thread> mLoadingFilesThread;
-  std::shared_ptr<joda::helper::xz::Archive> mArchive;
   std::vector<ContainerFunction<QString, int>::ComboEntry> entry;
 
   // Heatmap
   std::shared_ptr<ContainerFunction<QString, int>> mHeatmapSlice;
   std::shared_ptr<ContainerFunction<bool, bool>> mGenerateHeatmapForWells;
-  results::ReportingSettings mHeatmapReportSettings;
 
   QProgressBar *mProgressHeatmap;
   ContainerButton *mButtonReportingSettingsHeatmap;
   ContainerButton *mButtonExportHeatmap;
-  std::shared_ptr<ReportingExporterThread> mHeatmapExporter;
 
   // Table
   QTableWidget *mTable;
-  results::WorkSheet mActualSelectedWorksheet;
 
   /////////////////////////////////////////////////////
   QHBoxLayout *createLayout();
@@ -103,7 +95,7 @@ private:
   bool mIsActiveShown = false;
 
   void lookingForFilesThread();
-  void loadDetailReportToTable(const results::WorkSheet &sheet);
+  void loadDetailReportToTable();
 
 private slots:
   void onExcelExportChannelsClicked();

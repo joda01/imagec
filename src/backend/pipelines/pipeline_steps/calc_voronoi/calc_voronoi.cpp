@@ -16,21 +16,22 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/image_processing/detection/voronoi_grid/voronoi_grid.hpp"
 #include "backend/image_processing/roi/roi.hpp"
 
 namespace joda::pipeline {
 
-auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
-                          const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults)
-    const -> joda::func::DetectionResponse
+auto CalcVoronoi::execute(
+    const settings::AnalyzeSettings &settings,
+    const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &detectionResults) const
+    -> joda::image::detect::DetectionResponse
 {
   auto id = DurationCount::start("PipelineVoronoi");
 
   auto voronoiPoints = mVoronoiPointsChannelIndex;
 
-  const joda::func::DetectionResponse *mask = nullptr;
+  const joda::image::detect::DetectionResponse *mask = nullptr;
   if(detectionResults.contains(mOverlayMaskChannelIndex)) {
     mask = &detectionResults.at(mOverlayMaskChannelIndex);
   }
@@ -41,31 +42,31 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
   if(detectionResults.contains(voronoiPoints)) {
     auto voronoiPointsChannel = detectionResults.at(voronoiPoints);
 
-    joda::func::img::VoronoiGrid grid(voronoiPointsChannel.result, mMaxVoronoiAreaSize);
+    image::detect::VoronoiGrid grid(voronoiPointsChannel.result, mMaxVoronoiAreaSize);
     auto CalcVoronoiResult =
         grid.forward(voronoiPointsChannel.controlImage, voronoiPointsChannel.originalImage, mChannelIndexMe);
 
     //
     // Now mask the voronoi grid with an other channel
     //
-    joda::func::DetectionResponse response;
+    joda::image::detect::DetectionResponse response;
     response.controlImage = cv::Mat::zeros(mask->controlImage.rows, mask->controlImage.cols, CV_32FC3);
 
     auto filterVoronoiAreas = [this, &response, &voronoiPointsChannel, &CalcVoronoiResult,
-                               &mask](std::optional<const func::ROI> toIntersect) {
+                               &mask](std::optional<const image::ROI> toIntersect) {
       for(auto &voronoiArea : CalcVoronoiResult.result) {
         if(voronoiArea.isValid()) {
           //
           // Apply filter
           //
           auto applyFilter = [this, &response, &voronoiPointsChannel, &CalcVoronoiResult,
-                              &mask](func::ROI &cutedVoronoiArea) {
+                              &mask](image::ROI &cutedVoronoiArea) {
             //
             // Areas without point are filtered out
             //
             if(mExcludeAreasWithoutPoint) {
               if(!doesAreaContainsPoint(cutedVoronoiArea, voronoiPointsChannel.result)) {
-                cutedVoronoiArea.setValidity(func::ParticleValidity::INVALID);
+                cutedVoronoiArea.setValidity(image::ParticleValidity::INVALID);
               }
             }
 
@@ -73,9 +74,9 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
             // Check area size
             //
             if(cutedVoronoiArea.getAreaSize() < mMinSize) {
-              cutedVoronoiArea.setValidity(func::ParticleValidity::TOO_SMALL);
+              cutedVoronoiArea.setValidity(image::ParticleValidity::TOO_SMALL);
             } else if(cutedVoronoiArea.getAreaSize() > mMaxSize) {
-              cutedVoronoiArea.setValidity(func::ParticleValidity::TOO_BIG);
+              cutedVoronoiArea.setValidity(image::ParticleValidity::TOO_BIG);
             }
 
             //
@@ -85,7 +86,7 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
               auto box = cutedVoronoiArea.getBoundingBox();
               if(box.x <= 0 || box.y <= 0 || box.x + box.width >= CalcVoronoiResult.originalImage.cols ||
                  box.y + box.height >= CalcVoronoiResult.originalImage.rows) {
-                cutedVoronoiArea.setValidity(func::ParticleValidity::AT_THE_EDGE);
+                cutedVoronoiArea.setValidity(image::ParticleValidity::AT_THE_EDGE);
               }
             }
             response.result.push_back(cutedVoronoiArea);
@@ -119,18 +120,19 @@ auto CalcVoronoi::execute(const settings::AnalyzeSettings &settings,
     } else {
       filterVoronoiAreas(std::nullopt);
     }
-    joda::func::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FF0000", false,
-                                                    false);
+    joda::image::detect::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FF0000",
+                                                             false, false);
     DurationCount::stop(id);
     return response;
   }
   DurationCount::stop(id);
-  return joda::func::DetectionResponse{};
+  return joda::image::detect::DetectionResponse{};
   /*throw std::runtime_error("CalcVoronoi::execute: Channel with index >" + std::to_string(voronoiPoints) +
                            "< does not exist.");*/
 }
 
-bool CalcVoronoi::doesAreaContainsPoint(const func::ROI &voronoiArea, const joda::func::DetectionResults &voronoiPoints)
+bool CalcVoronoi::doesAreaContainsPoint(const image::ROI &voronoiArea,
+                                        const joda::image::detect::DetectionResults &voronoiPoints)
 {
   for(const auto &point : voronoiPoints) {
     if(voronoiArea.isIntersecting(point, 0.1)) {

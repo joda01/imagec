@@ -15,6 +15,7 @@
 
 #include <utility>
 
+#include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/pipelines/pipeline_step.hpp"
 
 namespace joda::pipeline {
@@ -35,8 +36,8 @@ public:
   }
   /////////////////////////////////////////////////////
   auto execute(const settings::AnalyzeSettings &,
-               const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &) const
-      -> joda::func::DetectionResponse override;
+               const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &) const
+      -> joda::image::detect::DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////

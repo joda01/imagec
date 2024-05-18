@@ -1,7 +1,7 @@
 #include <QtWidgets>
-#include "backend/duration_count/duration_count.h"
-#include "backend/image_reader/bioformats/bioformats_loader.hpp"
-#include "backend/image_reader/tif/image_loader_tif.hpp"
+#include "backend/helper/duration_count/duration_count.h"
+#include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
+#include "backend/image_processing/reader/tif/image_loader_tif.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "controller/controller.hpp"
 #include "ui/window_main.hpp"
@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
   // Init
   //
   Version::initVersion(std::string(argv[0]));
-  TiffLoader::initLibTif();
-  BioformatsLoader::init();
+  joda::image::TiffLoader::initLibTif();
+  joda::image::BioformatsLoader::init();
   joda::pipeline::PipelineFactory::init();
 
   //
@@ -194,6 +194,6 @@ int main(int argc, char *argv[])
 
   auto ret = app.exec();
   joda::pipeline::PipelineFactory::shutdown();
-  BioformatsLoader::destroy();
+  joda::image::BioformatsLoader::destroy();
   return ret;
 }

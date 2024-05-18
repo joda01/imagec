@@ -17,7 +17,7 @@
 #include <cstdint>
 #include "threshold.hpp"
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \class      ThresholdTriangle
@@ -141,4 +141,4 @@ private:
   }
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

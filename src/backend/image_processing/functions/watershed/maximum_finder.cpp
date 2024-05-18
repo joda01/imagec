@@ -53,7 +53,7 @@
 #include <opencv2/imgproc.hpp>
 #include "tools.hpp"
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \brief                Finds the image maxima and returns them as a Polygon, where
@@ -1284,4 +1284,4 @@ bool MaximumFinder::isWithin(int x, int y, int direction)
 }    // isWithin
 
 /** add work done in the meanwhile and show progress */
-}    // namespace joda::func::img
+}    // namespace joda::image::func

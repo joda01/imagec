@@ -96,7 +96,7 @@ public:
 
 signals:
   void lookingForFilesFinished();
-  void lookingForTemplateFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
+  void lookingForTemplateFinished(std::map<std::string, helper::templates::TemplateParser::Data>);
 
 private:
   /////////////////////////////////////////////////////
@@ -186,7 +186,7 @@ private slots:
   void onAddGirafClicked();
 
   void onOpenSettingsDialog();
-  void onFindTemplatesFinished(std::map<std::string, joda::settings::templates::TemplateParser::Data>);
+  void onFindTemplatesFinished(std::map<std::string, helper::templates::TemplateParser::Data>);
 };
 
 }    // namespace joda::ui::qt

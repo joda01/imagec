@@ -21,21 +21,21 @@
 
 #define YOLO_P6 false
 
-namespace joda::func::ai {
+namespace joda::image::segment::ai {
 
 ///
 /// \class      ObjectSegmentation
 /// \author     Joachim Danmayr
 /// \brief      Object segmentation using ONNX model
 ///
-class ObjectSegmentation : public DetectionFunction
+class ObjectSegmentation : public joda::image::detect::DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
   ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, const joda::onnx::OnnxParser::Data &model,
                      float classThreshold);
   auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
-      -> DetectionResponse override;
+      -> joda::image::detect::DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////
@@ -100,4 +100,4 @@ private:
   std::vector<std::string> mClassNames;
   cv::dnn::Net mNet;
 };
-}    // namespace joda::func::ai
+}    // namespace joda::image::segment::ai

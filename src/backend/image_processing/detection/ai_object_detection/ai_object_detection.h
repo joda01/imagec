@@ -22,7 +22,7 @@
 #include <opencv2/dnn/all_layers.hpp>
 #include <opencv2/opencv.hpp>
 
-namespace joda::func::ai {
+namespace joda::image::detect::ai {
 
 ///
 /// \class      ObjectDetector
@@ -61,4 +61,4 @@ private:
   cv::dnn::Net mNet;
 };
 
-}    // namespace joda::func::ai
+}    // namespace joda::image::detect::ai

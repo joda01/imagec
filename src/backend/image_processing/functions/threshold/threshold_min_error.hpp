@@ -18,11 +18,11 @@
 #include <cmath>
 #include <cstdint>
 #include <string>
-#include "backend/logger/console_logger.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core/mat.hpp>
 #include "threshold.hpp"
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \class      ThresholdMinError
@@ -135,4 +135,4 @@ private:
     return threshold;
   }
 };
-}    // namespace joda::func::img
+}    // namespace joda::image::func

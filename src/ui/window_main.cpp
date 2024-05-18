@@ -34,8 +34,8 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/random_name_generator.hpp"
-#include "backend/logger/console_logger.hpp"
 #include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
@@ -585,7 +585,7 @@ void WindowMain::setWorkingDirectory(const std::string &workingDir)
 ///
 void WindowMain::waitForFileSearchFinished()
 {
-  auto result = settings::templates::TemplateParser::findTemplates();
+  auto result = helper::templates::TemplateParser::findTemplates();
   emit lookingForTemplateFinished(result);
 
   while(true) {
@@ -677,8 +677,7 @@ void WindowMain::onSaveProjectClicked()
 /// \brief      Templates loaded from templates folder
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onFindTemplatesFinished(
-    std::map<std::string, joda::settings::templates::TemplateParser::Data> foundTemplates)
+void WindowMain::onFindTemplatesFinished(std::map<std::string, helper::templates::TemplateParser::Data> foundTemplates)
 {
   mTemplateSelection->clear();
   const QIcon empty(":/icons/outlined/icons8-select-none-50.png");
@@ -818,9 +817,8 @@ void WindowMain::onOpenReportingAreaClicked()
   QFileDialog::Options opt;
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
-  QString filePath = QFileDialog::getOpenFileName(
-      this, "Open File", folderToOpen,
-      "imageC Files (*" + QString(results::RESULTS_XZ_FILE_EXTENSION.data()) + ");;All Files (*)", nullptr, opt);
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "imageC Files (*xz);;All Files (*)", nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;

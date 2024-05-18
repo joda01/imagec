@@ -14,7 +14,7 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 using Polygon = std::vector<cv::Point>;
 
@@ -115,4 +115,4 @@ private:
                                                 MAX_AREA};    ///< type masks corresponding to the output types
   static const inline float SQRT2            = 1.4142135624F;
 };
-}    // namespace joda::func::img
+}    // namespace joda::image::func

@@ -77,6 +77,25 @@ inline void stringReplace(std::string &str, const std::string &searchStr, const 
   }
 }
 
+///
+/// \brief      Converts a a string to a number
+/// \author     Joachim Danmayr
+///
+inline auto stringToNumber(const std::string &str) -> int
+{
+  int result = 0;
+  for(char c : str) {
+    if(isdigit(c)) {
+      result = result * 10 + (c - '0');    // Convert digit character to integer
+    } else if(isalpha(c)) {
+      result = result * 10 + (toupper(c) - 'A' + 1);    // Convert alphabetic character to integer
+    } else {
+      std::cerr << "Invalid character encountered: " << c << std::endl;
+    }
+  }
+  return result;
+};
+
 inline std::string timepointToIsoString(const std::chrono::system_clock::time_point &tp)
 {
   std::time_t t = std::chrono::system_clock::to_time_t(tp);

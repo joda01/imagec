@@ -86,9 +86,9 @@ void Archive::listFiles()
       checkForError(err);
     }
     auto fileName = std::filesystem::path(st.name);
-    if(fileName.extension().string() == results::MESSAGE_PACK_FILE_EXTENSION) {
+    if(fileName.extension().string() == MESSAGE_PACK_FILE_EXTENSION) {
       mResultsEntries.emplace(fileName);
-    } else if(fileName.extension().string() == results::CONTROL_IMAGES_FILE_EXTENSION) {
+    } else if(fileName.extension().string() == CONTROL_IMAGES_FILE_EXTENSION) {
       mImageEntries.emplace(fileName);
     }
     if(mStop) {

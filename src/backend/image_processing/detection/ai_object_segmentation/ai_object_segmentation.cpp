@@ -13,13 +13,13 @@
 
 #include "ai_object_segmentation.hpp"
 #include <string>
-#include "../../../duration_count/duration_count.h"
 #include "../detection.hpp"
+#include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::func::ai {
+namespace joda::image::segment::ai {
 
 using namespace std;
 using namespace cv;
@@ -68,7 +68,7 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
 /// \return     Result of the analysis
 ///
 auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage,
-                                 joda::settings::ChannelIndex channelIndex) -> DetectionResponse
+                                 joda::settings::ChannelIndex channelIndex) -> image::detect::DetectionResponse
 {
   auto id = DurationCount::start("AiObjectSegmentation");
 
@@ -160,7 +160,7 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
   vector<Mat> maskChannels;
   split(masks, maskChannels);
 
-  DetectionResults output;
+  image::detect::DetectionResults output;
   Rect holeImgRect(0, 0, inputImage.cols, inputImage.rows);
   for(int i = 0; i < nms_result.size(); ++i) {
     int idx      = nms_result[i];
@@ -280,4 +280,4 @@ void ObjectSegmentation::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::
   cv::copyMakeBorder(outImage, outImage, top, bottom, left, right, cv::BORDER_CONSTANT, color);
 }
 
-}    // namespace joda::func::ai
+}    // namespace joda::image::segment::ai

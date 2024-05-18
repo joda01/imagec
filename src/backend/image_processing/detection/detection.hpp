@@ -20,7 +20,7 @@
 #include <opencv2/imgproc.hpp>
 #include "detection_response.hpp"
 
-namespace joda::func {
+namespace joda::image::detect {
 
 ///
 /// \class      Detection
@@ -103,4 +103,4 @@ private:
             FONT_THICKNESS);
   }
 };
-}    // namespace joda::func
+}    // namespace joda::image::detect

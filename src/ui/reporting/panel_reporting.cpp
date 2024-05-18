@@ -31,13 +31,8 @@
 #include <thread>
 #include <vector>
 #include "../window_main.hpp"
-#include "backend/pipelines/reporting/reporting_generator.hpp"
-#include "backend/pipelines/reporting/reporting_heatmap.hpp"
-#include "backend/postprocessing/postprocessing.hpp"
 #include "backend/results/results.hpp"
 #include "ui/container/container_function_base.hpp"
-#include "ui/reporting/exporter_thread.hpp"
-#include "dialog_channel_measurment.hpp"
 
 namespace joda::ui::qt {
 
@@ -159,14 +154,7 @@ PanelReporting::~PanelReporting()
 ///
 void PanelReporting::lookingForFilesThread()
 {
-  mArchive->open();
   entry.clear();
-  mArchive->waitForFinishd();
-  auto found = mArchive->getFoundResults();
-  entry.reserve(found.size());
-  for(const auto &en : found) {
-    entry.push_back({en.string().data(), en.string().data()});
-  }
 
   emit loadingFilesfinished();
 }
@@ -197,8 +185,6 @@ void PanelReporting::onLoadingFileFinished()
 ///
 void PanelReporting::onResultsFileSelected()
 {
-  loadDetailReportToTable(
-      results::WorkBook::readWorksheetFromArchive(mArchive, mFileSelector->getValue().toStdString()));
 }
 
 ///
@@ -227,9 +213,6 @@ QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
 ///
 void PanelReporting::close()
 {
-  if(mArchive != nullptr) {
-    mArchive->close();
-  }
 }
 
 ///
@@ -255,7 +238,6 @@ void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &i
   if(mLoadingFilesThread != nullptr && mLoadingFilesThread->joinable()) {
     mLoadingFilesThread->join();
   }
-  mArchive            = std::make_shared<joda::helper::xz::Archive>(imageCFile);
   mLoadingFilesThread = std::make_shared<std::thread>(&PanelReporting::lookingForFilesThread, this);
 }
 
@@ -266,26 +248,6 @@ void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &i
 void PanelReporting::onExportToXlsxClicked()
 {
   static const std::string separator(1, std::filesystem::path::preferred_separator);
-
-  // Write summary
-  mExcelExporter = std::make_shared<ReportingExporterThread>(
-      mProgressExportExcel, mButtonExportExcel, mArchive,
-      [this](const results::WorkSheet &overviewPath) {
-        std::string outputFolder = mExportPath.string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH +
-                                   separator + results::RESULTS_SUMMARY_FILE_NAME + "_" +
-                                   overviewPath.getJobMeta().jobName;
-        joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-            overviewPath, mExcelReportSettings, outputFolder,
-            joda::pipeline::reporting::ReportGenerator::OutputFormat::HORIZONTAL, true);
-      },
-      [this](const results::WorkSheet &details) {
-        std::string outputFolder = mExportPath.string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH +
-                                   separator + results::RESULTS_IMAGE_FILE_NAME + "_" +
-                                   details.getImageMeta()->imageFileName + "_" + details.getJobMeta().jobName;
-        joda::pipeline::reporting::ReportGenerator::flushReportToFile(
-            details, mExcelReportSettings, outputFolder,
-            joda::pipeline::reporting::ReportGenerator::OutputFormat::VERTICAL, false);
-      });
 }
 
 ///
@@ -305,24 +267,6 @@ void PanelReporting::onExportToXlsxHeatmapClicked()
       sizes.emplace(idx);
     }
   }
-
-  // Write summary
-  mExcelExporter = std::make_shared<ReportingExporterThread>(
-      mProgressHeatmap, mButtonExportHeatmap, mArchive,
-      [this](const results::WorkSheet &overviewPath) {
-        std::string outputFolder = mExportPath.string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH +
-                                   separator + results::RESULTS_SUMMARY_FILE_NAME + "_heatmap_" +
-                                   overviewPath.getJobMeta().jobName;
-
-        joda::pipeline::reporting::Heatmap::createAllOverHeatMap(mHeatmapReportSettings, overviewPath, outputFolder);
-      },
-      [this, sizes](const results::WorkSheet &details) {
-        std::string outputFolder = mExportPath.string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH +
-                                   separator + results::RESULTS_IMAGE_FILE_NAME + "_heatmap_" +
-                                   details.getImageMeta()->imageFileName + "_" + details.getJobMeta().jobName;
-
-        joda::pipeline::reporting::Heatmap::createHeatMapForImage(sizes, mHeatmapReportSettings, details, outputFolder);
-      });
 }
 
 ///
@@ -331,8 +275,6 @@ void PanelReporting::onExportToXlsxHeatmapClicked()
 ///
 void PanelReporting::onExcelExportChannelsClicked()
 {
-  DialogChannelMeasurement measure(mWindowMain, mExcelReportSettings);
-  measure.exec();
 }
 
 ///
@@ -341,8 +283,6 @@ void PanelReporting::onExcelExportChannelsClicked()
 ///
 void PanelReporting::onHeatmapExportChannelsClicked()
 {
-  DialogChannelMeasurement measure(mWindowMain, mHeatmapReportSettings);
-  measure.exec();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -484,9 +424,9 @@ std::tuple<QVBoxLayout *, QWidget *> PanelReporting::addVerticalPanel(QLayout *h
 /// \param[out]
 /// \return
 ///
-void PanelReporting::loadDetailReportToTable(const results::WorkSheet &sheet)
+void PanelReporting::loadDetailReportToTable()
 {
-  mActualSelectedWorksheet = sheet;
+  /*
   auto &imageMeta          = sheet.getImageMeta();
   if(imageMeta.has_value()) {
     auto firstChannel = sheet.root().getChannels().begin();
@@ -531,7 +471,7 @@ void PanelReporting::loadDetailReportToTable(const results::WorkSheet &sheet)
       }
       rowIdx++;
     }
-  }
+  }*/
 }
 
 ///
@@ -543,6 +483,7 @@ void PanelReporting::loadDetailReportToTable(const results::WorkSheet &sheet)
 ///
 void PanelReporting::onTableDoubleClicked(const QModelIndex &index)
 {
+  /*
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
   const auto &channel = mActualSelectedWorksheet.root().getChannels().begin()->second;
@@ -570,6 +511,7 @@ void PanelReporting::onTableDoubleClicked(const QModelIndex &index)
                              mActualSelectedWorksheet.getJobMeta().jobName + ".png";
 
   cv::imwrite(outputFolder, markedImage);
+  */
 }
 
 }    // namespace joda::ui::qt
