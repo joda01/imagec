@@ -75,12 +75,24 @@ enum class ObjectValidity : uint32_t
 
 };
 
-class MeasureChannelKey
+struct WellId
+{
+  static constexpr uint32_t POS_X = 0;
+  static constexpr uint32_t POS_Y = 1;
+  union
+  {
+    uint16_t wellId = 0;
+    uint8_t wellPos[2];
+  } well;
+  uint32_t imageId = 0;
+};
+
+class MeasureChannelId
 {
 public:
   static constexpr uint32_t MEASURE_CH_SHIFT = 16;
 
-  MeasureChannelKey(MeasureChannel measureCh, ChannelIndex idx) :
+  MeasureChannelId(MeasureChannel measureCh, ChannelIndex idx) :
       mChannelIndex((static_cast<uint32_t>(measureCh) << MEASURE_CH_SHIFT) | static_cast<uint32_t>(idx))
   {
   }

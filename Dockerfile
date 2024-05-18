@@ -123,7 +123,6 @@ RUN cd ./opencv &&\
 #
 # QT
 #
-
 RUN apt-get update &&\
     apt-get install -y build-essential perl python git &&\
     apt-get install -y libfontconfig1-dev libdbus-1-dev libfreetype6-dev libicu-dev libinput-dev libxkbcommon-dev libsqlite3-dev libssl-dev
@@ -171,8 +170,6 @@ RUN mkdir qt6-build &&\
     cmake --install .
 
 
-
-
 #
 # libtiff
 #
@@ -181,8 +178,6 @@ RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtif
     cmake -DBUILD_SHARED_LIBS=OFF . &&\
     cmake --build . --config Release --target install &&\
     cp -r libtiff/*.h  /usr/local/include
-
-
 
 #
 # xlsx writer
@@ -213,7 +208,6 @@ RUN cd /zlib &&\
     make &&\
     make install
 
-
 #
 # Libzip
 #
@@ -223,14 +217,9 @@ RUN cd /libzip &&\
     make &&\
     make install
 
-
-RUN git clone --depth 1 -b version-3.45.3 https://github.com/sqlite/sqlite.git /sqlite
-RUN apt-get update && apt-get install -y tclsh
-RUN cd /sqlite &&\
-    ./configure &&\
-    make &&\
-    make install
-
+#
+# DuckDb
+#
 RUN git clone --depth 1 -b v0.10.2 https://github.com/joda01/duckdb.git /duckdb
 RUN cd /duckdb &&\
     cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release  &&\

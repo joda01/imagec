@@ -116,7 +116,29 @@ apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev l
 
 - [ ] For tiled images, calculate real X/Y values of pixels in region of interest
 
+----
 
-## Database schema
+## Used open source libs
 
-Image Name | Channel | Measure
+Many thank's to the authors of following open source libraries I used:
+
+
+Title                   | Link                                          | License
+------                  |-------                                        |--------
+nlohmann/json           |https://github.com/nlohmann/json.git           | MIT
+zeux/pugixml            |https://github.com/zeux/pugixml                | MIT
+protocolbuffers/protobuf|https://github.com/protocolbuffers/protobuf    | Google Inc.
+opencv/opencv           |https://github.com/opencv/opencv.git           | Apache-2.0
+qt6                     |https://code.qt.io/cgit/                       | LGPL-3.0
+libtiff/libtiff         |https://gitlab.com/libtiff/libtiff.git         | Silicon Graphics, Inc.
+jmcnamara/libxlsxwriter |https://github.com/jmcnamara/libxlsxwriter.git | FreeBSD
+tukaani-project/xz      |https://github.com/tukaani-project/xz          | GPL-3.0
+madler/zlib             |https://github.com/madler/zlib                 | Own
+nih-at/libzip           |https://github.com/nih-at/libzip               | Own
+duckdb/duckdb           |https://github.com/duckdb/duckdb               | MIT
+ome/bioformats          |https://github.com/ome/bioformats              | GPL-2.0
+
+
+Thank's to the authors of [imagej](https://github.com/imagej/imagej2) I ported some image processing algorithms from to C++.  
+
+imageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).

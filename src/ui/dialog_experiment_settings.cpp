@@ -161,12 +161,10 @@ void DialogExperimentSettings::applyRegex()
                                                           mTestFileName->text().toStdString());
 
     std::string matching = "Match: " + std::to_string(regexResult.well.wellId);
-    std::string row =
-        "| Row: " + std::to_string(regexResult.well.wellPos[::joda::results::Results::RegexResult::POS_X]);
-    std::string column =
-        "| Col: " + std::to_string(regexResult.well.wellPos[::joda::results::Results::RegexResult::POS_Y]);
-    std::string img    = "| Img: " + std::to_string(regexResult.imageId);
-    std::string toText = matching + row + column + img;
+    std::string row      = "| Row: " + std::to_string(regexResult.well.wellPos[::joda::results::WellId::POS_X]);
+    std::string column   = "| Col: " + std::to_string(regexResult.well.wellPos[::joda::results::WellId::POS_Y]);
+    std::string img      = "| Img: " + std::to_string(regexResult.imageId);
+    std::string toText   = matching + row + column + img;
     mTestFileResult->setText(QString(toText.data()));
   } catch(const std::exception &ex) {
     mTestFileResult->setText(ex.what());

@@ -20,6 +20,7 @@
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/results/database/database.hpp"
+#include "backend/results/db_column_ids.hpp"
 #include "backend/settings/channel/channel_index.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/channel/channel_settings_meta.hpp"
@@ -46,24 +47,12 @@ struct ExperimentSetting
 class Results
 {
 public:
-  struct RegexResult
-  {
-    static constexpr uint32_t POS_X = 0;
-    static constexpr uint32_t POS_Y = 1;
-    union
-    {
-      uint16_t wellId = 0;
-      uint8_t wellPos[2];
-    } well;
-    uint32_t imageId = 0;
-  };
-
   Results(const std::filesystem::path &resultsFolder, const ExperimentSetting &);
 
   void appendToDetailReport(const joda::image::detect::DetectionResponse &result,
                             const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                             const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
-  static RegexResult applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
+  static WellId applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
 
   const std::filesystem::path &getOutputFolder() const
   {

@@ -24,7 +24,6 @@
 #include "backend/image_processing/reader/tif/image_loader_tif.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/database/database.hpp"
-#include "measure_channels.hpp"
 
 namespace joda::results {
 
@@ -95,8 +94,8 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
   mDatabase->createWell(db::WellMeta{.jobId    = mJobId,
                                      .plateId  = mExperimentSettings.plateIdx,
                                      .wellId   = wellPosition.well.wellId,
-                                     .wellPosX = wellPosition.well.wellPos[RegexResult::POS_X],
-                                     .wellPosY = wellPosition.well.wellPos[RegexResult::POS_Y],
+                                     .wellPosX = wellPosition.well.wellPos[WellId::POS_X],
+                                     .wellPosY = wellPosition.well.wellPos[WellId::POS_Y],
                                      .notes    = ""});
 
   mDatabase->createImage(db::ImageMeta{.jobId     = mJobId,
@@ -135,35 +134,35 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
 
     // Measure channels
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::CONFIDENCE, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CONFIDENCE, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getConfidence()));
 
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::AREA_SIZE, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::AREA_SIZE, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getAreaSize()));
 
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::PERIMETER, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::PERIMETER, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getPerimeter()));
 
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::CIRCULARITY, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CIRCULARITY, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getCircularity()));
 
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::CENTER_OF_MASS_X, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CENTER_OF_MASS_X, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getCenterOfMass().x) + xMul));
 
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::CENTER_OF_MASS_Y, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CENTER_OF_MASS_Y, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getCenterOfMass().y) + yMul));
 
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::BOUNDING_BOX_WIDTH, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::BOUNDING_BOX_WIDTH, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getBoundingBox().width)));
 
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::BOUNDING_BOX_HEIGHT, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::BOUNDING_BOX_HEIGHT, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getBoundingBox().height)));
 
     double intensityAvg = 0;
@@ -177,15 +176,15 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
     }
 
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::INTENSITY_AVG, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INTENSITY_AVG, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(intensityAvg));
 
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::INTENSITY_MIN, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INTENSITY_MIN, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(intensityMin));
 
     chan.keys.emplace_back(
-        duckdb::Value::UINTEGER((uint32_t) MeasureChannelKey(MeasureChannel::INTENSITY_MAX, ChannelIndex::ME)));
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INTENSITY_MAX, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(intensityMax));
 
     //
@@ -194,15 +193,15 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
     for(const auto &[idx, intensity] : roi.getIntensity()) {
       if(idx != channelSettings.channelIdx) {
         chan.keys.emplace_back(duckdb::Value::UINTEGER(
-            (uint32_t) MeasureChannelKey(MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG, toMeasureChannelIndex(idx))));
+            (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG, toMeasureChannelIndex(idx))));
         chan.vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensity));
 
         chan.keys.emplace_back(duckdb::Value::UINTEGER(
-            (uint32_t) MeasureChannelKey(MeasureChannel::CROSS_CHANNEL_INTENSITY_MIN, toMeasureChannelIndex(idx))));
+            (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_MIN, toMeasureChannelIndex(idx))));
         chan.vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensityMin));
 
         chan.keys.emplace_back(duckdb::Value::UINTEGER(
-            (uint32_t) MeasureChannelKey(MeasureChannel::CROSS_CHANNEL_INTENSITY_MAX, toMeasureChannelIndex(idx))));
+            (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_MAX, toMeasureChannelIndex(idx))));
         chan.vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensityMax));
       }
     }
@@ -212,7 +211,7 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
     //
     for(const auto &[idx, intersecting] : roi.getIntersectingRois()) {
       chan.keys.emplace_back(duckdb::Value::UINTEGER(
-          (uint32_t) MeasureChannelKey(MeasureChannel::CROSS_CHANNEL_COUNT, toMeasureChannelIndex(idx))));
+          (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_COUNT, toMeasureChannelIndex(idx))));
       chan.vals.emplace_back(duckdb::Value::DOUBLE(intersecting.roiValid.size()));
     }
   }
@@ -269,18 +268,18 @@ std::filesystem::path Results::createControlImage(const joda::image::detect::Det
 /// \brief      Apply regex
 /// \author     Joachim Danmayr
 ///
-Results::RegexResult Results::applyRegex(const std::string &regex, const std::filesystem::path &imagePath)
+WellId Results::applyRegex(const std::string &regex, const std::filesystem::path &imagePath)
 {
   std::regex pattern(regex);
   std::smatch match;
-  RegexResult result;
+  WellId result;
 
   std::string fileName = imagePath.filename().string();
   if(std::regex_search(fileName, match, pattern)) {
     if(match.size() >= 5) {
-      result.well.wellPos[RegexResult::POS_Y] = helper::stringToNumber(match[2].str());
-      result.well.wellPos[RegexResult::POS_X] = helper::stringToNumber(match[3].str());
-      result.imageId                          = helper::stringToNumber(match[4].str());
+      result.well.wellPos[WellId::POS_Y] = helper::stringToNumber(match[2].str());
+      result.well.wellPos[WellId::POS_X] = helper::stringToNumber(match[3].str());
+      result.imageId                     = helper::stringToNumber(match[4].str());
 
     } else {
       throw std::invalid_argument("Pattern not found.");
