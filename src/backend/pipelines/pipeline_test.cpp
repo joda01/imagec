@@ -223,7 +223,13 @@ TEST_CASE("pipeline:test:heatmap_small", "[pipeline_test_heatmap_small]")
   sleep(2);
   controller.start(settings, controller.calcOptimalThreadNumber(settings, 0),
                    joda::helper::RandomNameGenerator::GetRandomName());
-  int a = 0;
-  std::cin >> a;
+
+  while(true) {
+    sleep(2);
+    auto [_, state, str] = controller.getState();
+    if(state == joda::pipeline::Pipeline::State::FINISHED) {
+      break;
+    }
+  }
   controller.stop();
 }

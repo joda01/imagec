@@ -25,6 +25,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include <duckdb/common/bind_helpers.hpp>
 #include <duckdb/common/types.hpp>
+#include <duckdb/common/types/value.hpp>
 #include <duckdb/common/types/vector.hpp>
 #include <duckdb/main/appender.hpp>
 #include <duckdb/main/connection.hpp>
@@ -34,6 +35,9 @@
 namespace joda::results::db {
 
 Database::Database(const std::filesystem::path &dbFile) : mDb(dbFile.string()), mConnection(mDb)
+{
+}
+Database::~Database()
 {
 }
 
@@ -94,6 +98,7 @@ void Database::open()
       "	well_id USMALLINT,"
       "	image_id UINTEGER,"
       "	channel_id UTINYINT,"
+      " name TEXT,"
       " PRIMARY KEY (job_id, plate_id, well_id, image_id, channel_id),"
       " FOREIGN KEY(job_id, plate_id, well_id, image_id) REFERENCES image(job_id, plate_id, well_id, "
       "image_id)"
@@ -141,8 +146,7 @@ void Database::createJob(const JobMeta &meta)
   auto timeNowMs = (duckdb::timestamp_t) std::chrono::duration_cast<std::chrono::microseconds>(
                        std::chrono::high_resolution_clock::now().time_since_epoch())
                        .count();
-
-  prepare->Execute(duckdb::Value(meta.experimentId), duckdb::Value(meta.jobId), duckdb::Value(meta.name),
+  prepare->Execute(duckdb::Value::UUID(meta.experimentId), duckdb::Value::UUID(meta.jobId), duckdb::Value(meta.name),
                    duckdb::Value::LIST({meta.scientists.begin(), meta.scientists.end()}),
                    duckdb::Value::TIMESTAMP(timeNowMs), duckdb::Value(meta.location), duckdb::Value(meta.notes));
 }
@@ -158,7 +162,7 @@ void Database::createPlate(const PlateMeta &meta)
   auto timestamp = duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(
                                            std::chrono::high_resolution_clock::now().time_since_epoch())
                                            .count());
-  prepare->Execute(meta.jobId, meta.plateId, duckdb::Value::TIMESTAMP(timestamp), meta.notes);
+  prepare->Execute(duckdb::Value::UUID(meta.jobId), meta.plateId, duckdb::Value::TIMESTAMP(timestamp), meta.notes);
 }
 
 ///
@@ -168,8 +172,9 @@ void Database::createPlate(const PlateMeta &meta)
 void Database::createWell(const WellMeta &meta)
 {
   auto prepare = mConnection.Prepare(
-      "INSERT INTO well (job_id, plate_id, well_id,well_pos_x,well_pos_y, notes) VALUES (?, ?, ?, ?)");
-  prepare->Execute(meta.jobId, meta.plateId, meta.wellId, meta.wellPosX, meta.wellPosY, meta.notes);
+      "INSERT INTO well (job_id, plate_id, well_id,well_pos_x,well_pos_y, notes) VALUES (?, ?, ?, ?, ?, ?)");
+  prepare->Execute(duckdb::Value::UUID(meta.jobId), meta.plateId, meta.wellId, meta.wellPosX, meta.wellPosY,
+                   meta.notes);
 }
 
 ///
@@ -181,7 +186,8 @@ void Database::createImage(const ImageMeta &meta)
   auto prepare = mConnection.Prepare(
       "INSERT INTO image (job_id, plate_id, well_id, image_id, file_name, width, height) VALUES "
       "(?, ?, ?, ?, ?, ?, ?)");
-  prepare->Execute(meta.jobId, meta.plateId, meta.wellId, meta.imageId, meta.imageName, meta.width, meta.height);
+  prepare->Execute(duckdb::Value::UUID(meta.jobId), meta.plateId, meta.wellId, meta.imageId, meta.imageName, meta.width,
+                   meta.height);
 }
 
 ///
@@ -191,10 +197,10 @@ void Database::createImage(const ImageMeta &meta)
 void Database::createChannel(const ChannelMeta &meta)
 {
   auto prepare = mConnection.Prepare(
-      "INSERT INTO channel (job_id, plate_id, well_id, image_id, channel_id) VALUES "
-      "(?, ?, ?, ?, ?)");
+      "INSERT INTO channel (job_id, plate_id, well_id, image_id, channel_id, name) VALUES "
+      "(?, ?, ?, ?, ?, ?)");
 
-  prepare->Execute(meta.jobId, meta.plateId, meta.wellId, meta.imageId, meta.channelId);
+  prepare->Execute(duckdb::Value::UUID(meta.jobId), meta.plateId, meta.wellId, meta.imageId, meta.channelId, meta.name);
 }
 
 ///
@@ -207,11 +213,12 @@ void Database::createObjects(const ObjectMeta &data)
 
   // Loop to insert 100 elements
 
-  auto id = DurationCount::start("loop");    // 30ms
+  auto id   = DurationCount::start("loop");    // 30ms
+  auto uuid = duckdb::Value::UUID(data.jobId);
 
   for(const auto &[objectKey, measureValues] : data.objects) {
     appender.BeginRow();
-    appender.Append<duckdb::string_t>(data.jobId.data());
+    appender.Append(uuid);
     appender.Append<uint8_t>(data.plateId);
     appender.Append<uint16_t>(data.wellId);
     appender.Append<uint32_t>(data.imageId);

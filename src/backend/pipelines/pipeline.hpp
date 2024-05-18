@@ -13,6 +13,7 @@
 
 #pragma once
 // #include <memory>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -84,7 +85,7 @@ public:
 
   Pipeline(const joda::settings::AnalyzeSettings &,
            joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *imageFileContainer,
-           const std::string &inputFolder, const std::string &jobName,
+           const std::filesystem::path &inputFolder, const std::string &jobName,
            const ThreadingSettings &threadingSettings = ThreadingSettings());
   ~Pipeline()
   {
@@ -98,9 +99,9 @@ public:
     return mLastErrorMessage;
   }
 
-  [[nodiscard]] const std::string &getOutputFolder() const
+  [[nodiscard]] const std::filesystem::path &getOutputFolder() const
   {
-    return mOutputFolder;
+    return mResults.getOutputFolder();
   }
 
 protected:
@@ -170,8 +171,8 @@ private:
                        int tileIdx, const ChannelProperties &channelProperties);
 
   /////////////////////////////////////////////////////
-  std::string mInputFolder;
-  std::string mOutputFolder;
+  std::filesystem::path mInputFolder;
+  joda::results::Results mResults;
   bool mStop = false;
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   std::vector<const joda::settings::ChannelSettings *> mListOfChannelSettings;

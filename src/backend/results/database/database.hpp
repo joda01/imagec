@@ -70,6 +70,7 @@ struct ChannelMeta
   uint16_t wellId;
   uint32_t imageId;
   uint8_t channelId;
+  std::string name;
 };
 
 struct Data
@@ -97,6 +98,7 @@ class Database
 public:
   /////////////////////////////////////////////////////
   Database(const std::filesystem::path &dbFile);
+  ~Database();
   void open();
   void close();
   void createJob(const JobMeta &);

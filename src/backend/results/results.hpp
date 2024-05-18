@@ -22,6 +22,7 @@
 #include "backend/results/database/database.hpp"
 #include "backend/settings/channel/channel_index.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
+#include "backend/settings/channel/channel_settings_meta.hpp"
 
 namespace joda::results {
 
@@ -60,9 +61,14 @@ public:
   Results(const std::filesystem::path &resultsFolder, const ExperimentSetting &);
 
   void appendToDetailReport(const joda::image::detect::DetectionResults &result,
-                            const joda::settings::ChannelSettings &channelSettings, uint16_t tileIdx,
+                            const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                             const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
   static RegexResult applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
+
+  const std::filesystem::path &getOutputFolder() const
+  {
+    return mOutputFolder;
+  }
 
 private:
   /////////////////////////////////////////////////////

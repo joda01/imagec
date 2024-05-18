@@ -13,10 +13,13 @@
 
 #include "results.hpp"
 #include <regex.h>
+#include <exception>
 #include <memory>
 #include <regex>
 #include <stdexcept>
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/helper.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/uuid.hpp"
 #include "backend/image_processing/reader/tif/image_loader_tif.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
@@ -37,12 +40,18 @@ Results::Results(const std::filesystem::path &resultsFolder, const ExperimentSet
 {
   prepareOutputFolders(resultsFolder);
   mDatabase = std::make_shared<db::Database>(mDatabaseFileName);
-  mDatabase->createJob(db::JobMeta{.experimentId = settings.experimentId,
-                                   .jobId        = mJobId,
-                                   .name         = settings.jobName,
-                                   .scientists   = {settings.scientistName},
-                                   .location     = "",
-                                   .notes        = ""});
+  mDatabase->open();
+  try {
+    mDatabase->createJob(db::JobMeta{.experimentId = settings.experimentId,
+                                     .jobId        = mJobId,
+                                     .name         = settings.jobName,
+                                     .scientists   = {settings.scientistName},
+                                     .location     = "",
+                                     .notes        = ""});
+  } catch(const std::exception &ex) {
+    std::cout << mJobId << " | " << settings.experimentId << std::endl;
+    joda::log::logError(ex.what());
+  }
 
   mDatabase->createPlate(db::PlateMeta{.jobId = mJobId, .plateId = settings.plateIdx, .notes = ""});
 }
@@ -78,9 +87,10 @@ void Results::prepareOutputFolders(const std::filesystem::path &resultsFolder)
 /// \return
 ///
 void Results::appendToDetailReport(const joda::image::detect::DetectionResults &results,
-                                   const joda::settings::ChannelSettings &channelSettings, uint16_t tileIdx,
+                                   const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                                    const image::ImageProperties &imgProps, const std::filesystem::path &imagePath)
 {
+  auto id           = DurationCount::start("Append to detail report");
   auto wellPosition = applyRegex(mExperimentSettings.imageFileNameRegex, imagePath);
   mDatabase->createWell(db::WellMeta{.jobId    = mJobId,
                                      .plateId  = mExperimentSettings.plateIdx,
@@ -97,12 +107,13 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResults &
                                        .width     = imgProps.width,
                                        .height    = imgProps.height});
 
-  uint8_t channelId = static_cast<uint8_t>(channelSettings.meta.channelIdx);
+  uint8_t channelId = static_cast<uint8_t>(channelSettings.channelIdx);
   mDatabase->createChannel(db::ChannelMeta{.jobId     = mJobId,
                                            .plateId   = mExperimentSettings.plateIdx,
                                            .wellId    = wellPosition.well.wellId,
                                            .imageId   = wellPosition.imageId,
-                                           .channelId = channelId});
+                                           .channelId = channelId,
+                                           .name      = channelSettings.name});
 
   auto [offsetX, offsetY] =
       ::joda::image::TiffLoader::calculateTileXYoffset(::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.width,
@@ -156,8 +167,8 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResults &
     double intensityAvg = 0;
     double intensityMin = 0;
     double intensityMax = 0;
-    if(roi.getIntensity().contains(channelSettings.meta.channelIdx)) {
-      auto intensityMe = roi.getIntensity().at(channelSettings.meta.channelIdx);
+    if(roi.getIntensity().contains(channelSettings.channelIdx)) {
+      auto intensityMe = roi.getIntensity().at(channelSettings.channelIdx);
       intensityAvg     = intensityMe.intensity;
       intensityMin     = intensityMe.intensityMin;
       intensityMax     = intensityMe.intensityMax;
@@ -179,7 +190,7 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResults &
     // Intensity channels
     //
     for(const auto &[idx, intensity] : roi.getIntensity()) {
-      if(idx != channelSettings.meta.channelIdx) {
+      if(idx != channelSettings.channelIdx) {
         chan.keys.emplace_back(duckdb::Value::UINTEGER(
             (uint32_t) MeasureChannelKey(MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG, toMeasureChannelIndex(idx))));
         chan.vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensity));
@@ -208,9 +219,11 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResults &
                                           .plateId   = mExperimentSettings.plateIdx,
                                           .wellId    = wellPosition.well.wellId,
                                           .imageId   = wellPosition.imageId,
-                                          .channelId = static_cast<uint8_t>(channelSettings.meta.channelIdx),
+                                          .channelId = static_cast<uint8_t>(channelSettings.channelIdx),
                                           .tileId    = tileIdx,
                                           .objects   = objects});
+
+  DurationCount::stop(id);
 }
 
 ///
