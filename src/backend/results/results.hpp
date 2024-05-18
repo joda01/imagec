@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <vector>
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/results/database/database.hpp"
@@ -47,11 +48,13 @@ struct ExperimentSetting
 class Results
 {
 public:
-  Results(const std::filesystem::path &resultsFolder, const ExperimentSetting &);
+  Results(const std::filesystem::path &resultsFolder, const ExperimentSetting &settings);
 
   void appendToDetailReport(const joda::image::detect::DetectionResponse &result,
                             const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                             const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
+
+  /////////////////////////////////////////////////////
   static WellId applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
 
   const std::filesystem::path &getOutputFolder() const
@@ -75,7 +78,7 @@ private:
   void prepareOutputFolders(const std::filesystem::path &resultsFolder);
 
   /////////////////////////////////////////////////////
-  const ExperimentSetting mExperimentSettings;
+  ExperimentSetting mExperimentSettings;
   std::filesystem::path mOutputFolder;
   std::filesystem::path mDatabaseFileName;
   std::filesystem::path mOutputFolderImages;

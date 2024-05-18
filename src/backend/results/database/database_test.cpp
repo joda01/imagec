@@ -1,9 +1,12 @@
 #include <exception>
+#include <filesystem>
 #include <random>
 #include <string>
 #include <thread>
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/results/analyzer/analyzer.hpp"
+#include "backend/results/results.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <duckdb/common/types.hpp>
@@ -120,4 +123,14 @@ TEST_CASE("database:test", "[database_test]")
 
   // DurationCount::stop(id);
   DurationCount::printStats(1);
+}
+
+///
+/// \brief  Load a config file
+/// \author Joachim Danmayr
+///
+TEST_CASE("database:test", "[database_read]")
+{
+  joda::results::Analyzer res(std::filesystem::path("src/backend/results/database/test/results.duckdb"));
+  res.getImagesForJob("423d6e89-43e0-4111-b322-957816d02911");
 }

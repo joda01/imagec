@@ -44,6 +44,13 @@ public:
   void createChannel(const ChannelMeta &);
   void createObjects(const ObjectMeta &);
 
+  template <typename... ARGS>
+  std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)
+  {
+    auto prep = mConnection.Prepare(query);
+    return prep->Execute(std::forward<ARGS>(args)...);
+  }
+
 private:
   /////////////////////////////////////////////////////
   duckdb::DuckDB mDb;
