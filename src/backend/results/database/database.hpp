@@ -37,7 +37,7 @@ public:
   Database &operator=(Database &&)      = delete;
   void open();
   void close();
-  void createJob(const JobMeta &);
+  void createAnalyze(const AnalyzeMeta &);
   void createPlate(const PlateMeta &);
   void createWell(const WellMeta &);
   void createImage(const ImageMeta &);

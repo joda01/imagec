@@ -14,10 +14,12 @@
 #include "results.hpp"
 #include <regex.h>
 #include <exception>
+#include <filesystem>
 #include <memory>
 #include <regex>
 #include <stdexcept>
 #include "backend/helper/duration_count/duration_count.h"
+#include "backend/helper/fnv1a.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/uuid.hpp"
@@ -34,25 +36,25 @@ namespace joda::results {
 /// \param[out]
 /// \return
 ///
-Results::Results(const std::filesystem::path &resultsFolder, const ExperimentSetting &settings) :
-    mExperimentSettings(settings), mJobId(joda::helper::generate_uuid())
+Results::Results(const std::filesystem::path &pathToRawData, const ExperimentSetting &settings) :
+    mPathToRawData(pathToRawData), mExperimentSettings(settings), mAnalyzeId(joda::helper::generate_uuid())
 {
-  prepareOutputFolders(resultsFolder);
+  // std::filesystem::path = ".."/pathToRawData;
+  prepareOutputFolders(pathToRawData / "imagec");
   mDatabase = std::make_shared<db::Database>(mDatabaseFileName);
   mDatabase->open();
   try {
-    mDatabase->createJob(db::JobMeta{.experimentId = settings.experimentId,
-                                     .jobId        = mJobId,
-                                     .name         = settings.jobName,
-                                     .scientists   = {settings.scientistName},
-                                     .location     = "",
-                                     .notes        = ""});
+    mDatabase->createAnalyze(db::AnalyzeMeta{.runId      = settings.runId,
+                                             .analyzeId  = mAnalyzeId,
+                                             .name       = settings.analyzeName,
+                                             .scientists = {settings.scientistName},
+                                             .location   = "",
+                                             .notes      = ""});
   } catch(const std::exception &ex) {
-    std::cout << mJobId << " | " << settings.experimentId << std::endl;
     joda::log::logError(ex.what());
   }
 
-  mDatabase->createPlate(db::PlateMeta{.jobId = mJobId, .plateId = settings.plateIdx, .notes = ""});
+  mDatabase->createPlate(db::PlateMeta{.analyzeId = mAnalyzeId, .plateId = settings.plateIdx, .notes = ""});
 }
 
 ///
@@ -65,8 +67,8 @@ Results::Results(const std::filesystem::path &resultsFolder, const ExperimentSet
 void Results::prepareOutputFolders(const std::filesystem::path &resultsFolder)
 {
   auto nowString      = ::joda::helper::timeNowToString();
-  mOutputFolder       = resultsFolder / (nowString + "_" + mExperimentSettings.jobName);
-  mOutputFolderImages = mOutputFolder / mJobId / CONTROL_IMAGE_PATH;
+  mOutputFolder       = resultsFolder / (nowString + "_" + mExperimentSettings.analyzeName);
+  mOutputFolderImages = mOutputFolder / mAnalyzeId / CONTROL_IMAGE_PATH;
   mDatabaseFileName   = mOutputFolder / DB_FILENAME;
 
   if(!std::filesystem::exists(mOutputFolder)) {
@@ -85,33 +87,49 @@ void Results::prepareOutputFolders(const std::filesystem::path &resultsFolder)
 /// \param[out]
 /// \return
 ///
+void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, const std::filesystem::path &imagePath)
+{
+  auto wellPosition = applyRegex(mExperimentSettings.imageFileNameRegex, imagePath);
+  uint64_t imageId  = calcImagePathHash(mExperimentSettings.runId, imagePath);
+
+  try {
+    mDatabase->createWell(db::WellMeta{.analyzeId = mAnalyzeId,
+                                       .plateId   = mExperimentSettings.plateIdx,
+                                       .wellId    = wellPosition.well.wellId,
+                                       .wellPosX  = wellPosition.well.wellPos[WellId::POS_X],
+                                       .wellPosY  = wellPosition.well.wellPos[WellId::POS_Y],
+                                       .notes     = ""});
+  } catch(...) {
+  }
+
+  mDatabase->createImage(db::ImageMeta{.analyzeId         = mAnalyzeId,
+                                       .plateId           = mExperimentSettings.plateIdx,
+                                       .wellId            = wellPosition.well.wellId,
+                                       .imageId           = imageId,
+                                       .imageIdx          = wellPosition.imageIdx,
+                                       .originalImagePath = std::filesystem::relative(imagePath, mOutputFolder),
+                                       .width             = imgProps.width,
+                                       .height            = imgProps.height});
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Results::appendToDetailReport(const joda::image::detect::DetectionResponse &results,
                                    const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                                    const image::ImageProperties &imgProps, const std::filesystem::path &imagePath)
 {
-  auto id           = DurationCount::start("Append to detail report");
-  auto wellPosition = applyRegex(mExperimentSettings.imageFileNameRegex, imagePath);
-  mDatabase->createWell(db::WellMeta{.jobId    = mJobId,
-                                     .plateId  = mExperimentSettings.plateIdx,
-                                     .wellId   = wellPosition.well.wellId,
-                                     .wellPosX = wellPosition.well.wellPos[WellId::POS_X],
-                                     .wellPosY = wellPosition.well.wellPos[WellId::POS_Y],
-                                     .notes    = ""});
-
-  mDatabase->createImage(db::ImageMeta{.jobId     = mJobId,
-                                       .plateId   = mExperimentSettings.plateIdx,
-                                       .wellId    = wellPosition.well.wellId,
-                                       .imageId   = wellPosition.imageId,
-                                       .imageName = imagePath.filename().string(),
-                                       .width     = imgProps.width,
-                                       .height    = imgProps.height});
+  auto id          = DurationCount::start("Append to detail report");
+  uint64_t imageId = calcImagePathHash(mExperimentSettings.runId, imagePath);
 
   auto controlImagePath = createControlImage(results, channelSettings, tileIdx, imgProps, imagePath);
   auto channelId        = static_cast<uint8_t>(channelSettings.channelIdx);
-  mDatabase->createChannel(db::ChannelMeta{.jobId            = mJobId,
-                                           .plateId          = mExperimentSettings.plateIdx,
-                                           .wellId           = wellPosition.well.wellId,
-                                           .imageId          = wellPosition.imageId,
+  mDatabase->createChannel(db::ChannelMeta{.analyzeId        = mAnalyzeId,
+                                           .imageId          = imageId,
                                            .channelId        = channelId,
                                            .name             = channelSettings.name,
                                            .controlImagePath = controlImagePath.string()});
@@ -216,10 +234,8 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
     }
   }
 
-  mDatabase->createObjects(db::ObjectMeta{.jobId     = mJobId,
-                                          .plateId   = mExperimentSettings.plateIdx,
-                                          .wellId    = wellPosition.well.wellId,
-                                          .imageId   = wellPosition.imageId,
+  mDatabase->createObjects(db::ObjectMeta{.analyzeId = mAnalyzeId,
+                                          .imageId   = imageId,
                                           .channelId = static_cast<uint8_t>(channelSettings.channelIdx),
                                           .tileId    = tileIdx,
                                           .objects   = objects});
@@ -246,7 +262,7 @@ std::filesystem::path Results::createControlImage(const joda::image::detect::Det
       (imagePath.filename().string() + "_" + joda::settings::to_string(channelSettings.channelIdx) + "_${tile_id}" +
        CONTROL_IMAGES_FILE_EXTENSION);
 
-  std::filesystem::path relativeFolderToWrite = mJobId / CONTROL_IMAGE_PATH / imagePath.filename();
+  std::filesystem::path relativeFolderToWrite = mAnalyzeId / CONTROL_IMAGE_PATH / imagePath.filename();
   std::filesystem::path absoluteFolderToWrite = mOutputFolder / relativeFolderToWrite;
   if(!std::filesystem::exists(absoluteFolderToWrite)) {
     std::filesystem::create_directories(absoluteFolderToWrite);
@@ -279,7 +295,7 @@ WellId Results::applyRegex(const std::string &regex, const std::filesystem::path
     if(match.size() >= 5) {
       result.well.wellPos[WellId::POS_Y] = helper::stringToNumber(match[2].str());
       result.well.wellPos[WellId::POS_X] = helper::stringToNumber(match[3].str());
-      result.imageId                     = helper::stringToNumber(match[4].str());
+      result.imageIdx                    = helper::stringToNumber(match[4].str());
 
     } else {
       throw std::invalid_argument("Pattern not found.");
@@ -288,6 +304,15 @@ WellId Results::applyRegex(const std::string &regex, const std::filesystem::path
     throw std::invalid_argument("Pattern not found.");
   }
   return result;
+}
+
+///
+/// \brief      Apply regex
+/// \author     Joachim Danmayr
+///
+uint64_t Results::calcImagePathHash(const std::string &runId, const std::filesystem::path &pathToOriginalImage)
+{
+  return helper::fnv1a(runId + pathToOriginalImage.string());
 }
 
 }    // namespace joda::results

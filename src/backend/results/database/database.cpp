@@ -49,81 +49,83 @@ void Database::open()
 {
   // Command to create a table
   const char *create_table_sql =
-      "CREATE TABLE IF NOT EXISTS job ("
-      "	experiment_id UUID,"
-      "	job_id UUID,"
+      "CREATE TABLE IF NOT EXISTS analyzes ("
+      "	run_id UUID,"
+      "	analyze_id UUID,"
       "	name TEXT,"
       " scientists TEXT[],"
       " datetime TIMESTAMP,"
       " location TEXT,"
       " notes TEXT,"
-      " PRIMARY KEY (job_id)"
+      " PRIMARY KEY (analyze_id)"
       ");"
 
       "CREATE TABLE IF NOT EXISTS plate ("
-      "	job_id UUID,"
+      "	analyze_id UUID,"
       "	plate_id UTINYINT,"
-      " datetime TIMESTAMP,"
       " notes TEXT,"
-      " PRIMARY KEY (job_id, plate_id),"
-      " FOREIGN KEY(job_id) REFERENCES job(job_id)"
+      " PRIMARY KEY (analyze_id, plate_id),"
+      " FOREIGN KEY(analyze_id) REFERENCES analyzes(analyze_id)"
       ");"
 
       "CREATE TABLE IF NOT EXISTS well ("
-      "	job_id UUID,"
+      "	analyze_id UUID,"
       "	plate_id UTINYINT,"
       "	well_id USMALLINT,"
       "	well_pos_x UTINYINT,"
       "	well_pos_y UTINYINT,"
       " notes TEXT,"
-      " PRIMARY KEY (job_id, plate_id, well_id),"
-      " FOREIGN KEY(job_id, plate_id) REFERENCES plate(job_id, plate_id)"
+      " PRIMARY KEY (analyze_id, plate_id, well_id),"
+      " FOREIGN KEY(analyze_id, plate_id) REFERENCES plate(analyze_id, plate_id)"
       ");"
 
       "CREATE TABLE IF NOT EXISTS image ("
-      "	job_id UUID,"
-      "	plate_id UTINYINT,"
-      "	well_id USMALLINT,"
-      "	image_id UINTEGER,"
+      "	analyze_id UUID,"
+      "	image_id UHUGEINT,"
+      " image_idx UINTEGER,"
       " file_name TEXT,"
+      " original_image_path TEXT,"
       " width UHUGEINT,"
       " height UHUGEINT,"
-      " PRIMARY KEY (job_id, plate_id, well_id, image_id),"
-      " FOREIGN KEY(job_id, plate_id, well_id) REFERENCES well(job_id, plate_id, well_id)"
+      " PRIMARY KEY (analyze_id, image_id),"
+      " FOREIGN KEY(analyze_id) REFERENCES analyzes(analyze_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS image_well ("
+      "	analyze_id UUID,"
+      "	image_id UHUGEINT,"
+      "	plate_id UTINYINT,"
+      "	well_id USMALLINT,"
+      " PRIMARY KEY (analyze_id, image_id),"
+      " FOREIGN KEY(analyze_id, image_id) REFERENCES image(analyze_id, image_id),"
+      " FOREIGN KEY(analyze_id, plate_id, well_id) REFERENCES well(analyze_id, plate_id, well_id),"
       ");"
 
       "CREATE TABLE IF NOT EXISTS channel ("
-      "	job_id UUID,"
-      "	plate_id UTINYINT,"
-      "	well_id USMALLINT,"
-      "	image_id UINTEGER,"
+      "	analyze_id UUID,"
+      "	image_id UHUGEINT,"
       "	channel_id UTINYINT,"
       " name TEXT,"
       " control_image_path TEXT,"
-      " PRIMARY KEY (job_id, plate_id, well_id, image_id, channel_id),"
-      " FOREIGN KEY(job_id, plate_id, well_id, image_id) REFERENCES image(job_id, plate_id, well_id, "
-      "image_id)"
+      " PRIMARY KEY (analyze_id, image_id, channel_id),"
+      " FOREIGN KEY(analyze_id, image_id) REFERENCES image(analyze_id, image_id)"
       ");"
 
       "CREATE TABLE IF NOT EXISTS object ("
-      "	job_id UUID,"
-      "	plate_id UTINYINT,"
-      "	well_id USMALLINT,"
-      "	image_id UINTEGER,"
+      "	analyze_id UUID,"
+      "	image_id UHUGEINT,"
       "	channel_id UTINYINT,"
       "	object_id UINTEGER,"
       "	tile_id UTINYINT,"
       " validity UINTEGER,"
-      " values MAP(UINTEGER, DOUBLE),"
-      //" PRIMARY KEY (job_id, plate_id, well_id, image_id, channel_id, object_id)"
-      //" FOREIGN KEY(job_id, plate_id, well_id, image_id, channel_id) REFERENCES channel(job_id, "
-      //"plate_id, "
-      //"well_id, "
-      //"image_id, channel_id)"
+      " values MAP(UINTEGER, DOUBLE)"
       ");"
-      "CREATE INDEX object_idx ON object (job_id, plate_id, well_id, image_id, channel_id);";
+      "CREATE INDEX object_idx ON object (analyze_id, image_id, channel_id);";
 
-  mConnection.Query(create_table_sql);
+  auto result = mConnection.Query(create_table_sql);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
 }
 
 ///
@@ -138,16 +140,17 @@ void Database::close()
 /// \brief      Close database connection
 /// \author     Joachim Danmayr
 ///
-void Database::createJob(const JobMeta &meta)
+void Database::createAnalyze(const AnalyzeMeta &meta)
 {
   auto prepare = mConnection.Prepare(
-      "INSERT INTO job (experiment_id, job_id, name, scientists, datetime, location, notes) VALUES (?, ?, ?, ?, ?, ?, "
+      "INSERT INTO analyzes (run_id, analyze_id, name, scientists, datetime, location, notes) VALUES (?, ?, ?, ?, ?, "
+      "?, "
       "?)");
   // Convert it to time since epoch
   auto timeNowMs = (duckdb::timestamp_t) std::chrono::duration_cast<std::chrono::microseconds>(
                        std::chrono::high_resolution_clock::now().time_since_epoch())
                        .count();
-  prepare->Execute(duckdb::Value::UUID(meta.experimentId), duckdb::Value::UUID(meta.jobId), duckdb::Value(meta.name),
+  prepare->Execute(duckdb::Value::UUID(meta.runId), duckdb::Value::UUID(meta.analyzeId), duckdb::Value(meta.name),
                    duckdb::Value::LIST({meta.scientists.begin(), meta.scientists.end()}),
                    duckdb::Value::TIMESTAMP(timeNowMs), duckdb::Value(meta.location), duckdb::Value(meta.notes));
 }
@@ -158,12 +161,12 @@ void Database::createJob(const JobMeta &meta)
 ///
 void Database::createPlate(const PlateMeta &meta)
 {
-  auto prepare = mConnection.Prepare("INSERT INTO plate (job_id, plate_id, datetime, notes) VALUES (?, ?, ?, ?)");
+  auto prepare = mConnection.Prepare("INSERT INTO plate (analyze_id, plate_id, notes) VALUES (?, ?, ?)");
 
   auto timestamp = duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(
                                            std::chrono::high_resolution_clock::now().time_since_epoch())
                                            .count());
-  prepare->Execute(duckdb::Value::UUID(meta.jobId), meta.plateId, duckdb::Value::TIMESTAMP(timestamp), meta.notes);
+  prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.plateId, meta.notes);
 }
 
 ///
@@ -173,8 +176,8 @@ void Database::createPlate(const PlateMeta &meta)
 void Database::createWell(const WellMeta &meta)
 {
   auto prepare = mConnection.Prepare(
-      "INSERT INTO well (job_id, plate_id, well_id,well_pos_x,well_pos_y, notes) VALUES (?, ?, ?, ?, ?, ?)");
-  prepare->Execute(duckdb::Value::UUID(meta.jobId), meta.plateId, meta.wellId, meta.wellPosX, meta.wellPosY,
+      "INSERT INTO well (analyze_id, plate_id, well_id,well_pos_x,well_pos_y, notes) VALUES (?, ?, ?, ?, ?, ?)");
+  prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.plateId, meta.wellId, meta.wellPosX, meta.wellPosY,
                    meta.notes);
 }
 
@@ -184,11 +187,21 @@ void Database::createWell(const WellMeta &meta)
 ///
 void Database::createImage(const ImageMeta &meta)
 {
-  auto prepare = mConnection.Prepare(
-      "INSERT INTO image (job_id, plate_id, well_id, image_id, file_name, width, height) VALUES "
-      "(?, ?, ?, ?, ?, ?, ?)");
-  prepare->Execute(duckdb::Value::UUID(meta.jobId), meta.plateId, meta.wellId, meta.imageId, meta.imageName, meta.width,
-                   meta.height);
+  {
+    auto prepare = mConnection.Prepare(
+        "INSERT INTO image (analyze_id, image_id, image_idx, file_name, original_image_path, width, height) VALUES "
+        "(?, ?, ?, ?, ?, ?, ?)");
+    prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.imageIdx,
+                     meta.originalImagePath.filename().string(), meta.originalImagePath.string(), meta.width,
+                     meta.height);
+  }
+
+  {
+    auto prepare = mConnection.Prepare(
+        "INSERT INTO image_well (analyze_id, image_id, plate_id, well_id) VALUES "
+        "(?, ?, ?, ?)");
+    prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.plateId, meta.wellId);
+  }
 }
 
 ///
@@ -198,11 +211,11 @@ void Database::createImage(const ImageMeta &meta)
 void Database::createChannel(const ChannelMeta &meta)
 {
   auto prepare = mConnection.Prepare(
-      "INSERT INTO channel (job_id, plate_id, well_id, image_id, channel_id, name, control_image_path) VALUES "
-      "(?, ?, ?, ?, ?, ?, ?)");
+      "INSERT INTO channel (analyze_id, image_id, channel_id, name, control_image_path) VALUES "
+      "(?, ?, ?, ?, ?)");
 
-  prepare->Execute(duckdb::Value::UUID(meta.jobId), meta.plateId, meta.wellId, meta.imageId, meta.channelId, meta.name,
-                   meta.controlImagePath);
+  prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.channelId, meta.name,
+                   meta.controlImagePath.string());
 }
 
 ///
@@ -216,14 +229,12 @@ void Database::createObjects(const ObjectMeta &data)
   // Loop to insert 100 elements
 
   auto id   = DurationCount::start("loop");    // 30ms
-  auto uuid = duckdb::Value::UUID(data.jobId);
+  auto uuid = duckdb::Value::UUID(data.analyzeId);
 
   for(const auto &[objectKey, measureValues] : data.objects) {
     appender.BeginRow();
     appender.Append(uuid);
-    appender.Append<uint8_t>(data.plateId);
-    appender.Append<uint16_t>(data.wellId);
-    appender.Append<uint32_t>(data.imageId);
+    appender.Append<uint64_t>(data.imageId);
     appender.Append<uint16_t>(data.channelId);
     appender.Append<uint32_t>(objectKey);
     appender.Append<uint16_t>(data.tileId);
@@ -249,3 +260,14 @@ void Database::createObjects(const ObjectMeta &data)
 
 // SELECT SUM(element_at(values, 0)[1]) as val_sum FROM test_with_idx.main."object" WHERE plate_id=1 AND well_id=1 AND
 // image_id=10585059649949508029 AND channel_id=1
+
+/*
+
+SELECT SUM(element_at(values, 65536)[1]) as val_sum  FROM object INNER JOIN image_well ON
+object.image_id=image_well.image_id WHERE object.image_id=4261282133957314495
+*/
+
+/*
+SELECT SUM(element_at(values, 65536)[1]) as val_sum  FROM object INNER JOIN image_well ON
+object.image_id=image_well.image_id WHERE image_well.well_id=266
+*/

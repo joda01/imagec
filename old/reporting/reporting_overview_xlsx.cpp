@@ -19,7 +19,7 @@ namespace joda::pipeline::reporting {
 ///
 std::tuple<int, int> OverviewReport::writeReport(const joda::results::ReportingSettings &reportingSettings,
                                                  const joda::results::Channel &results, const std::string &headerText,
-                                                 const std::string &jobName, int /*sheetRowOffset*/, int rowOffset,
+                                                 const std::string &analyzeName, int /*sheetRowOffset*/, int rowOffset,
                                                  int startRow, lxw_worksheet *worksheet, lxw_format *header,
                                                  lxw_format *headerInvalid, lxw_format *merge_format,
                                                  lxw_format *numberFormat, lxw_format *numberFormatInvalid,
@@ -102,7 +102,7 @@ std::tuple<int, int> OverviewReport::writeReport(const joda::results::ReportingS
       if(rowOffset == startRow) {
         auto imageFileName = imgMeta->imageFileName;
         std::string filePath =
-            "external:.\\" + results::RESULTS_IMAGE_FILE_NAME + "_" + imageFileName + "_" + jobName + ".xlsx";
+            "external:.\\" + results::RESULTS_IMAGE_FILE_NAME + "_" + imageFileName + "_" + analyzeName + ".xlsx";
         lxw_format *format = imageHeaderHyperlinkFormat;
         worksheet_write_url(worksheet, rowOffset, headerColumnRowOffset, filePath.data(), format);
         worksheet_write_string(worksheet, rowOffset, headerColumnRowOffset, imageFileName.data(), format);

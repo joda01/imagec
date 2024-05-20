@@ -73,29 +73,30 @@ public:
   /// \author     Joachim Danmayr
   ///
   static auto
-  startNewJob(const settings::AnalyzeSettings &settings, const std::string &inputFolder, const std::string &jobName,
+  startNewJob(const settings::AnalyzeSettings &settings, const std::string &inputFolder, const std::string &analyzeName,
               joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *imageFileContainer,
               const pipeline::Pipeline::ThreadingSettings &threadingSettings = pipeline::Pipeline::ThreadingSettings())
       -> std::string
   {
-    std::string jobId = std::to_string(mJobCount++);
-    mJob = std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder, jobName, threadingSettings);
+    std::string analyzeId = std::to_string(mJobCount++);
+    mJob =
+        std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder, analyzeName, threadingSettings);
     if(mJob != nullptr) {
       mLastOutputFolder = mJob->getOutputFolder();
     }
-    return jobId;
+    return analyzeId;
   };
 
-  static void stopJob(const std::string jobId)
+  static void stopJob(const std::string analyzeId)
   {
     if(mJob) {
       return mJob->stopJob();
     }
 
-    throw std::invalid_argument("Job with ID >" + jobId + "< not found!");
+    throw std::invalid_argument("Job with ID >" + analyzeId + "< not found!");
   }
 
-  static auto getState(const std::string jobId)
+  static auto getState(const std::string analyzeId)
       -> std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string>
   {
     if(mJob) {
@@ -108,7 +109,7 @@ public:
     }
   }
 
-  static auto getOutputFolder(const std::string jobId) -> std::string
+  static auto getOutputFolder(const std::string analyzeId) -> std::string
   {
     return mLastOutputFolder;
   }

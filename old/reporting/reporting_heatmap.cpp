@@ -400,10 +400,10 @@ void Heatmap::createAllOverHeatMap(const joda::results::ReportingSettings &repor
           for(const auto &[objKey, obj] : results.getObjects()) {
             for(const auto &[measKey, val] : obj.getMeasurements()) {
               if(reportingSettings.detail.measureChannels.contains(measKey.getMeasureChannel())) {
-                std::string jobName = allOverReport.getJobMeta().jobName;
+                std::string analyzeName = allOverReport.getAnalyzeMeta().analyzeName;
 
                 auto writeNumber = [&outputFileName, &sheet, &rowOffset, &row, &col, &numberFormat,
-                                    &numberFormatInvalid, &generateHeatmapForWells, &jobName,
+                                    &numberFormatInvalid, &generateHeatmapForWells, &analyzeName,
                                     &group = group](double value, bool areThereInvalidImagesInside) {
                   if(generateHeatmapForWells) {
                     std::string filePath = "external:.\\" + outputFileName + "_" + group + ".xlsx";

@@ -44,19 +44,19 @@ struct adl_serializer<std::chrono::system_clock::time_point>
 namespace joda::results {
 
 ///
-/// \class      JobMeta
+/// \class      AnalyzeMeta
 /// \author     Joachim Danmayr
 /// \brief      Job information
 ///
-struct JobMeta
+struct AnalyzeMeta
 {
   std::string swVersion;
   std::string buildTime;
-  std::string jobName;
+  std::string analyzeName;
   std::chrono::system_clock::time_point timeStarted;
   std::chrono::system_clock::time_point timeFinished;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(JobMeta, swVersion, buildTime, jobName, timeStarted, timeFinished);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AnalyzeMeta, swVersion, buildTime, analyzeName, timeStarted, timeFinished);
 };
 
 ///

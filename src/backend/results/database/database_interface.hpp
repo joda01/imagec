@@ -20,26 +20,27 @@
 
 namespace joda::results::db {
 
-struct JobMeta
+struct AnalyzeMeta
 {
-  std::string experimentId;
-  std::string jobId;
+  std::string runId;
+  std::string analyzeId;
   std::string name;
   std::vector<std::string> scientists;
+  std::chrono::system_clock::time_point timestamp;
   std::string location;
   std::string notes;
 };
 
 struct PlateMeta
 {
-  std::string jobId;
+  std::string analyzeId;
   uint8_t plateId;
   std::string notes;
 };
 
 struct WellMeta
 {
-  std::string jobId;
+  std::string analyzeId;
   uint8_t plateId;
   uint16_t wellId;
   uint8_t wellPosX;
@@ -49,24 +50,23 @@ struct WellMeta
 
 struct ImageMeta
 {
-  std::string jobId;
+  std::string analyzeId;
   uint8_t plateId;
   uint16_t wellId;
-  uint32_t imageId;
-  std::string imageName;
+  uint64_t imageId;
+  uint32_t imageIdx;
+  std::filesystem::path originalImagePath;
   uint64_t width;
   uint64_t height;
 };
 
 struct ChannelMeta
 {
-  std::string jobId;
-  uint8_t plateId;
-  uint16_t wellId;
-  uint32_t imageId;
+  std::string analyzeId;
+  uint64_t imageId;
   uint8_t channelId;
   std::string name;
-  std::string controlImagePath;
+  std::filesystem::path controlImagePath;
 };
 
 struct Data
@@ -80,10 +80,8 @@ using objects_t = std::map<uint32_t, Data>;
 
 struct ObjectMeta
 {
-  std::string jobId;
-  uint8_t plateId;
-  uint16_t wellId;
-  uint32_t imageId;
+  std::string analyzeId;
+  uint64_t imageId;
   uint8_t channelId;
   uint16_t tileId;
   objects_t &objects;

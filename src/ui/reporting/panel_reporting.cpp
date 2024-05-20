@@ -508,7 +508,7 @@ void PanelReporting::onTableDoubleClicked(const QModelIndex &index)
 
   std::string outputFolder = mExportPath.string() + separator + joda::results::REPORT_EXPORT_FOLDER_PATH + separator +
                              results::RESULTS_SUMMARY_FILE_NAME + "_marked_" +
-                             mActualSelectedWorksheet.getJobMeta().jobName + ".png";
+                             mActualSelectedWorksheet.getAnalyzeMeta().analyzeName + ".png";
 
   cv::imwrite(outputFolder, markedImage);
   */

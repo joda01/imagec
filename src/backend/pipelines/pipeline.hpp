@@ -85,7 +85,7 @@ public:
 
   Pipeline(const joda::settings::AnalyzeSettings &,
            joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *imageFileContainer,
-           const std::filesystem::path &inputFolder, const std::string &jobName,
+           const std::filesystem::path &inputFolder, const std::string &analyzeName,
            const ThreadingSettings &threadingSettings = ThreadingSettings());
   ~Pipeline()
   {
@@ -152,9 +152,6 @@ private:
   }
 
 private:
-  /////////////////////////////////////////////////////
-  static inline const std::string OUTPUT_FOLDER_PATH{"imagec"};
-
   /////////////////////////////////////////////////////
   ///
   /// \brief Returns if the thread should be stopped

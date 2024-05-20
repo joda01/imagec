@@ -21,6 +21,7 @@
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/results/database/database.hpp"
+#include "backend/results/database/database_interface.hpp"
 #include "backend/results/db_column_ids.hpp"
 #include "backend/settings/channel/channel_index.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
@@ -38,8 +39,9 @@ class Analyzer
 {
 public:
   Analyzer(const std::filesystem::path &databasePath);
-  auto getImagesForJob(const std::string &jobId) -> std::vector<db::ImageMeta>;
-  auto getChannelsForImage(const std::string &jobId, uint32_t imageId) -> std::vector<db::ChannelMeta>;
+  auto getAnalyzes() -> std::vector<db::AnalyzeMeta>;
+  auto getImagesForJob(const std::string &analyzeId) -> std::vector<db::ImageMeta>;
+  auto getChannelsForImage(const std::string &analyzeId, uint64_t imageId) -> std::vector<db::ChannelMeta>;
 
 private:
   joda::results::db::Database mDatabase;

@@ -65,19 +65,19 @@ BS::thread_pool mGlobThreadPool{10};
 
 Pipeline::Pipeline(const joda::settings::AnalyzeSettings &settings,
                    joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *imageFileContainer,
-                   const std::filesystem::path &inputFolder, const std::string &jobName,
+                   const std::filesystem::path &inputFolder, const std::string &analyzeName,
                    const ThreadingSettings &threadingSettings) :
     mInputFolder(inputFolder),
-    mResults(std::filesystem::path(inputFolder / OUTPUT_FOLDER_PATH),
-             joda::results::ExperimentSetting{.experimentId       = helper::generate_uuid(),
-                                              .jobName            = jobName,
+    mResults(std::filesystem::path(inputFolder),
+             joda::results::ExperimentSetting{.runId              = helper::generate_uuid(),
+                                              .analyzeName        = analyzeName,
                                               .scientistName      = "",
                                               .imageFileNameRegex = settings.experimentSettings.filenameRegex,
                                               .plateIdx           = 1,
                                               .plateRowNr         = 16,
                                               .plateColNr         = 16}),
     mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mThreadingSettings(threadingSettings),
-    mJobName(jobName), mListOfChannelSettings(settings.channels.size()),
+    mJobName(analyzeName), mListOfChannelSettings(settings.channels.size()),
     mListOfVChannelSettings(settings.vChannels.size())
 {
   try {
@@ -191,15 +191,14 @@ void Pipeline::stopJob()
 ///
 void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath)
 {
-  // std::string imageName       = helper::getFileNameFromPath(imagePath.getFilePath());
-  // std::string imageParentPath = helper::getFolderNameFromPath(imagePath.getFilePath());
-
   //
   // Execute for each tile
   //
-
   auto series   = mAnalyzeSettings.channels.begin()->meta.series;
   auto propsOut = joda::pipeline::ImageProcessor::loadChannelProperties(imagePath, series);
+
+  // Make entry in database
+  mResults.appendImageToDetailReport(propsOut.props, imagePath.getFilePath());
 
   int64_t runs = 1;
   if(propsOut.props.imageSize > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {

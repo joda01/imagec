@@ -45,8 +45,8 @@ void JobInformation::writeReport(const joda::results::WorkSheet &results, lxw_wo
   writeRow("Version", Version::getVersion());
   writeRow("Build", Version::getBuildTime());
   emptyLine(2);
-  const results::JobMeta &meta = results.getJobMeta();
-  writeRow("Job name", meta.jobName);
+  const results::AnalyzeMeta &meta = results.getAnalyzeMeta();
+  writeRow("Job name", meta.analyzeName);
   writeRow("Job started at", joda::helper::timepointToIsoString(meta.timeStarted));
   writeRow("Job finished at", joda::helper::timepointToIsoString(meta.timeFinished));
   // writeRow("Nr. of channels", std::to_string(analyzeSettings.channels.size()));

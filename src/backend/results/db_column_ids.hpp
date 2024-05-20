@@ -84,7 +84,7 @@ struct WellId
     uint16_t wellId = 0;
     uint8_t wellPos[2];
   } well;
-  uint32_t imageId = 0;
+  uint32_t imageIdx = 0;
 };
 
 class MeasureChannelId

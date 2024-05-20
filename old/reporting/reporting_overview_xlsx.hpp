@@ -29,7 +29,7 @@ class OverviewReport
 public:
   static std::tuple<int, int> writeReport(const joda::results::ReportingSettings &reportingSettings,
                                           const joda::results::Channel &results, const std::string &headerText,
-                                          const std::string &jobName, int colOffset, int rowOffset, int startRow,
+                                          const std::string &analyzeName, int colOffset, int rowOffset, int startRow,
                                           lxw_worksheet *worksheet, lxw_format *header, lxw_format *headerInvalid,
                                           lxw_format *merge_format, lxw_format *numberFormat,
                                           lxw_format *numberFormatInvalid, lxw_format *imageHeaderHyperlinkFormat,

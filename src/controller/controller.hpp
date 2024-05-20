@@ -30,7 +30,7 @@ public:
   /////////////////////////////////////////////////////
   Controller();
   void start(const settings::AnalyzeSettings &settings, const pipeline::Pipeline::ThreadingSettings &threadSettings,
-             const std::string &jobName);
+             const std::string &analyzeName);
   void stop();
   void reset();
   std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string> getState();

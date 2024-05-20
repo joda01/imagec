@@ -245,10 +245,10 @@ std::string removeFileExtension(const std::string &filename)
 /// \param[out]
 /// \return
 ///
-void WorkSheet::saveToFile(std::string filename, const JobMeta &meta,
+void WorkSheet::saveToFile(std::string filename, const AnalyzeMeta &meta,
                            const std::optional<ExperimentMeta> &experimentMeta, std::optional<ImageMeta> imgMeta)
 {
-  this->jobMeta        = meta;
+  this->AnalyzeMeta    = meta;
   this->experimentMeta = experimentMeta;
   this->imageMeta      = imgMeta;
   filename             = removeFileExtension(filename);

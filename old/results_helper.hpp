@@ -54,7 +54,7 @@ public:
 
   static void appendToDetailReport(const joda::settings::AnalyzeSettings &analyzeSettings,
                                    const joda::image::detect::&result, joda::results::WorkSheet &detailReportTable,
-                                   const std::string &detailReportOutputPath, const std::string &jobName,
+                                   const std::string &detailReportOutputPath, const std::string &analyzeName,
                                    joda::settings::ChannelIndex realChannelIdx, uint32_t tileIdx,
                                    const ImageProperties &imgProps, const std::string &imagePath,
                                    const std::string &imageName);

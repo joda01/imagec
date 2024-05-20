@@ -112,7 +112,7 @@ void ReportGenerator::flushReportToFile(const joda::results::WorkSheet &resultsW
     joda::pipeline::reporting::JobInformation::writeReport(resultsWorkbook, worksheetMeta, headerBold, fontNormal);
   }
 
-  auto meta                = resultsWorkbook.getJobMeta();
+  auto meta                = resultsWorkbook.getAnalyzeMeta();
   int colOffsetIn          = 0;
   int rowOffsetIn          = 0;
   int rowOffsetStart       = 0;
@@ -122,9 +122,9 @@ void ReportGenerator::flushReportToFile(const joda::results::WorkSheet &resultsW
       // colOffset = table.flushReportToFileXlsx(colOffset, worksheet, header, merge_format);
       if(OutputFormat::HORIZONTAL == format) {
         auto [colOffset, rowOffset] = joda::pipeline::reporting::OverviewReport::writeReport(
-            reportingSettings, channel, groupName, meta.jobName, colOffsetIn, rowOffsetIn, rowOffsetStart, worksheet,
-            header, headerInvalid, merge_format, numberFormat, numberFormatInvalid, imageHeaderHyperlinkFormat,
-            imageHeaderHyperlinkFormatInvalid);
+            reportingSettings, channel, groupName, meta.analyzeName, colOffsetIn, rowOffsetIn, rowOffsetStart,
+            worksheet, header, headerInvalid, merge_format, numberFormat, numberFormatInvalid,
+            imageHeaderHyperlinkFormat, imageHeaderHyperlinkFormatInvalid);
         colOffsetIn = colOffset;
         rowOffsetIn = rowOffset;
       }

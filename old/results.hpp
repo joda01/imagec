@@ -302,14 +302,14 @@ public:
   Channel &emplaceChannel(const ChannelKey &key, const ChannelMeta &);
 
   [[nodiscard]] auto getGroups() const -> const std::map<GroupKey, Group> &;
-  [[nodiscard]] auto getJobMeta() const -> const JobMeta &
+  [[nodiscard]] auto getAnalyzeMeta() const -> const AnalyzeMeta &
   {
-    return jobMeta;
+    return AnalyzeMeta;
   }
-  void setMeta(const JobMeta &meta, const std::optional<ExperimentMeta> &experimentMeta,
+  void setMeta(const AnalyzeMeta &meta, const std::optional<ExperimentMeta> &experimentMeta,
                std::optional<ImageMeta> imgMeta)
   {
-    this->jobMeta        = meta;
+    this->AnalyzeMeta    = meta;
     this->experimentMeta = experimentMeta;
     this->imageMeta      = imgMeta;
   }
@@ -338,7 +338,7 @@ public:
     return groups.at("");
   }
 
-  void saveToFile(std::string filename, const JobMeta &meta, const std::optional<ExperimentMeta> &experimentMeta,
+  void saveToFile(std::string filename, const AnalyzeMeta &meta, const std::optional<ExperimentMeta> &experimentMeta,
                   std::optional<ImageMeta> imgMeta);
   void loadFromFile(const std::string &filename);
   void deserialize(const std::string &data);
@@ -347,11 +347,11 @@ private:
   /////////////////////////////////////////////////////
 
   /////////////////////////////////////////////////////
-  JobMeta jobMeta;
+  AnalyzeMeta AnalyzeMeta;
   std::optional<ImageMeta> imageMeta;
   std::optional<ExperimentMeta> experimentMeta;
   std::map<GroupKey, Group> groups;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WorkSheet, jobMeta, imageMeta, experimentMeta, groups);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WorkSheet, AnalyzeMeta, imageMeta, experimentMeta, groups);
 };
 
 ///
