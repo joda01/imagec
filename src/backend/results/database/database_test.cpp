@@ -7,6 +7,7 @@
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/results/analyzer/analyzer.hpp"
+#include "backend/results/analyzer/plugins/heatmap_for_plate.hpp"
 #include "backend/results/results.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -155,4 +156,8 @@ TEST_CASE("database:test", "[database_read]")
     std::cout << std::to_string(img.wellPosY) << " | ";
     std::cout << img.notes << std::endl;
   }
+
+  // res.getData(4261282133957314495, 266);
+  auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(res, 1, 15, 15);
+  result.print();
 }

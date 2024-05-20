@@ -23,6 +23,7 @@
 #include "backend/results/database/database.hpp"
 #include "backend/results/database/database_interface.hpp"
 #include "backend/results/db_column_ids.hpp"
+#include "backend/results/table/table.hpp"
 #include "backend/settings/channel/channel_index.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/channel/channel_settings_meta.hpp"
@@ -38,12 +39,16 @@ namespace joda::results {
 class Analyzer
 {
 public:
-  Analyzer(const std::filesystem::path &databasePath);
+  explicit Analyzer(const std::filesystem::path &databasePath);
   auto getAnalyzes() -> std::vector<db::AnalyzeMeta>;
   auto getImagesForAnalyses(const std::string &analyzeId) -> std::vector<db::ImageMeta>;
   auto getChannelsForImage(const std::string &analyzeId, uint64_t imageId) -> std::vector<db::ChannelMeta>;
   auto getPlatesForAnalyses(const std::string &analyzeId) -> std::vector<db::PlateMeta>;
   auto getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -> std::vector<db::WellMeta>;
+  auto getDatabase() -> joda::results::db::Database &
+  {
+    return mDatabase;
+  }
 
 private:
   joda::results::db::Database mDatabase;

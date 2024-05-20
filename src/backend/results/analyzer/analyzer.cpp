@@ -17,6 +17,8 @@
 #include <memory>
 #include <string>
 #include "backend/results/database/database_interface.hpp"
+#include "backend/results/db_column_ids.hpp"
+#include "plugins/stats_for_well.hpp"
 #include <duckdb/common/types/value.hpp>
 #include <duckdb/main/stream_query_result.hpp>
 
