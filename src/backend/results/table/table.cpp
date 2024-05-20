@@ -31,7 +31,7 @@ void Table::print()
   for(const auto &outerPair : mData) {
     int innerIdx = 0;
     for(const auto &innerPair : outerPair.second) {
-      colWidths[innerIdx] = max(colWidths[innerIdx], to_string(innerPair.second).size());
+      colWidths[innerIdx] = max(colWidths[innerIdx], to_string(innerPair.second.getVal()).size());
       innerIdx++;
     }
   }
@@ -56,7 +56,7 @@ void Table::print()
   for(const auto &outerPair : mData) {
     cout << mRowHeader[outerPair.first];
     for(const auto &innerPair : outerPair.second) {
-      cout << right << setw(colWidths[innerPair.first] + 2) << fixed << setprecision(2) << innerPair.second;
+      cout << right << setw(colWidths[innerPair.first] + 2) << fixed << setprecision(2) << innerPair.second.getVal();
     }
     cout << endl;
   }

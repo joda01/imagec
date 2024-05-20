@@ -140,9 +140,6 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 PanelReporting::~PanelReporting()
 {
   mSearchFileStopToken = true;
-  if(mLoadingFilesThread != nullptr && mLoadingFilesThread->joinable()) {
-    mLoadingFilesThread->join();
-  }
 }
 
 ///
@@ -235,10 +232,7 @@ void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &i
   mProgressSelector->setMaximum(0);
   mProgressSelector->setMinimum(0);
 
-  if(mLoadingFilesThread != nullptr && mLoadingFilesThread->joinable()) {
-    mLoadingFilesThread->join();
-  }
-  mLoadingFilesThread = std::make_shared<std::thread>(&PanelReporting::lookingForFilesThread, this);
+  mAnalyzer = std::make_shared<joda::results::Analyzer>(imageCFile);
 }
 
 ///

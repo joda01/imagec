@@ -817,26 +817,38 @@ void WindowMain::onOpenReportingAreaClicked()
   QFileDialog::Options opt;
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
-  QString filePath =
-      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "imageC Files (*xz);;All Files (*)", nullptr, opt);
+  QString filePath = QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
+                                                  "imageC Files (*.duckdb);All Files (*)", nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
   }
-  mPanelReporting->setActualSelectedWorkingFile(filePath.toStdString());
+  try {
+    mPanelReporting->setActualSelectedWorkingFile(filePath.toStdString());
 
-  // Open reporting area
-  mBackButton->setEnabled(true);
-  mOPenProject->setVisible(false);
-  mSaveProject->setVisible(false);
-  mSaveProject->setVisible(false);
-  mStartAnalysis->setVisible(false);
-  mJobNameAction->setVisible(false);
-  mDeleteChannel->setVisible(false);
-  mFirstSeparator->setVisible(false);
-  mSecondSeparator->setVisible(false);
-  mOpenReportingArea->setVisible(false);
-  mStackedWidget->setCurrentIndex(mStackedWidget->count() - 1);
+    // Open reporting area
+    mBackButton->setEnabled(true);
+    mOPenProject->setVisible(false);
+    mSaveProject->setVisible(false);
+    mSaveProject->setVisible(false);
+    mStartAnalysis->setVisible(false);
+    mJobNameAction->setVisible(false);
+    mDeleteChannel->setVisible(false);
+    mFirstSeparator->setVisible(false);
+    mSecondSeparator->setVisible(false);
+    mOpenReportingArea->setVisible(false);
+    mStackedWidget->setCurrentIndex(mStackedWidget->count() - 1);
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not load database!");
+    messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
 }
 
 ///

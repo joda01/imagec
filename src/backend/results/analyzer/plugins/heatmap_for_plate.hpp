@@ -36,7 +36,6 @@ public:
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
     }
-
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     Table results;
 
@@ -47,7 +46,7 @@ public:
       results.getMutableRowHeader()[row] = std::string(toWrt);
       for(uint8_t col = 0; col < plarteCols; col++) {
         results.getMutableColHeader()[col] = std::to_string(col + 1);
-        results.data()[row][col]           = 0;
+        results.data()[row][col]           = TableCell{0, false};
       }
     }
 
@@ -57,7 +56,7 @@ public:
       uint8_t row              = wellID.well.wellPos[WellId::POS_Y] - 1;
       uint8_t col              = wellID.well.wellPos[WellId::POS_X] - 1;
       double val               = materializedResult->GetValue(4, n).GetValue<double>();    // AVG
-      results.data()[row][col] = val;
+      results.data()[row][col] = TableCell{val, true};
     }
 
     return results;

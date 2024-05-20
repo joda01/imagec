@@ -57,9 +57,8 @@ public:
   {
     if(mFoundFilesCombo->count() > 0) {
       return mFoundFilesCombo->currentData().toInt();
-    } else {
-      return -1;
     }
+    return -1;
   }
   joda::ctrl::Controller *getController()
   {

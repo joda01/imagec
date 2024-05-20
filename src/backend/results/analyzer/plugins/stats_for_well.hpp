@@ -41,13 +41,13 @@ public:
     Table results;
     results.setColHeader({{0, "image"}, {1, "sum"}, {2, "min"}, {3, "max"}, {4, "avg"}, {5, "stddev"}});
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-      results.data()[n][0]             = materializedResult->GetValue(0, n).GetValue<uint64_t>();
-      results.getMutableRowHeader()[n] = materializedResult->GetValue(1, n).GetValue<std::string>();
-      results.data()[n][1]             = materializedResult->GetValue(2, n).GetValue<double>();
-      results.data()[n][2]             = materializedResult->GetValue(3, n).GetValue<double>();
-      results.data()[n][3]             = materializedResult->GetValue(4, n).GetValue<double>();
-      results.data()[n][4]             = materializedResult->GetValue(5, n).GetValue<double>();
-      results.data()[n][5]             = materializedResult->GetValue(6, n).GetValue<double>();
+      // results.data()[n][0]             = TableCell{materializedResult->GetValue(0, n).GetValue<uint64_t>(), true};
+      results.getMutableRowHeader()[n] = materializedResult->GetValue(1, n).GetValue<std::string>(), true;
+      results.data()[n][0]             = TableCell{materializedResult->GetValue(2, n).GetValue<double>(), true};
+      results.data()[n][1]             = TableCell{materializedResult->GetValue(3, n).GetValue<double>(), true};
+      results.data()[n][2]             = TableCell{materializedResult->GetValue(4, n).GetValue<double>(), true};
+      results.data()[n][3]             = TableCell{materializedResult->GetValue(5, n).GetValue<double>(), true};
+      results.data()[n][4]             = TableCell{materializedResult->GetValue(6, n).GetValue<double>(), true};
     }
 
     results.print();

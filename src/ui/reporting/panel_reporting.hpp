@@ -23,6 +23,7 @@
 #include <thread>
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/xz/archive_reader.hpp"
+#include "backend/results/analyzer/analyzer.hpp"
 #include "backend/results/results.hpp"
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_function.hpp"
@@ -64,11 +65,12 @@ private:
   bool mSearchFileStopToken = false;
   std::filesystem::path mExportPath;
 
+  std::shared_ptr<joda::results::Analyzer> mAnalyzer;
+
   // Selector
   QVBoxLayout *mSelectorLayout;
   std::shared_ptr<ContainerFunction<QString, int>> mFileSelector;
   QProgressBar *mProgressSelector;
-  std::shared_ptr<std::thread> mLoadingFilesThread;
   std::vector<ContainerFunction<QString, int>::ComboEntry> entry;
 
   // Heatmap

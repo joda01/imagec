@@ -19,7 +19,35 @@
 
 namespace joda::results {
 
-using entry_t = std::map<uint32_t, std::map<uint32_t, double>>;
+class TableCell
+{
+public:
+  /////////////////////////////////////////////////////
+  TableCell()
+  {
+  }
+
+  TableCell(double val, bool valid) : value(val), validity(valid)
+  {
+  }
+
+  [[nodiscard]] double getVal() const
+  {
+    return value;
+  }
+
+  [[nodiscard]] bool isValid() const
+  {
+    return validity;
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  double value  = 0;
+  bool validity = true;
+};
+
+using entry_t = std::map<uint32_t, std::map<uint32_t, TableCell>>;
 
 ///
 /// \class      Table
