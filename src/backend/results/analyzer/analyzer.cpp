@@ -73,7 +73,7 @@ auto Analyzer::getAnalyzes() -> std::vector<db::AnalyzeMeta>
 /// \brief      Create control image
 /// \author     Joachim Danmayr
 ///
-auto Analyzer::getImagesForJob(const std::string &analyzeId) -> std::vector<db::ImageMeta>
+auto Analyzer::getImagesForAnalyses(const std::string &analyzeId) -> std::vector<db::ImageMeta>
 {
   std::vector<db::ImageMeta> images;
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
@@ -129,6 +129,62 @@ auto Analyzer::getChannelsForImage(const std::string &analyzeId, uint64_t imageI
     });
 
   return channels;
+}
+
+///
+/// \brief      Create control image
+/// \author     Joachim Danmayr
+///
+auto Analyzer::getPlatesForAnalyses(const std::string &analyzeId) -> std::vector<db::PlateMeta>
+{
+  std::vector<db::PlateMeta> plates;
+  std::unique_ptr<duckdb::QueryResult> result =
+      mDatabase.select("SELECT * FROM plate WHERE analyze_id=? ORDER BY plate_id", duckdb::Value::UUID(analyzeId));
+
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    plates.emplace_back(db::PlateMeta{
+        .analyzeId = materializedResult->GetValue(0, n).GetValue<std::string>(),
+        .plateId   = materializedResult->GetValue(1, n).GetValue<uint8_t>(),
+        .notes     = materializedResult->GetValue(2, n).GetValue<std::string>(),
+    });
+  }
+
+  return plates;
+}
+
+///
+/// \brief      Create control image
+/// \author     Joachim Danmayr
+///
+auto Analyzer::getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -> std::vector<db::WellMeta>
+{
+  std::vector<db::WellMeta> wells;
+  std::unique_ptr<duckdb::QueryResult> result =
+      mDatabase.select("SELECT * FROM well WHERE analyze_id=? AND plate_id=? ORDER BY (plate_id,well_id)",
+                       duckdb::Value::UUID(analyzeId), plateId);
+
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    wells.emplace_back(db::WellMeta{
+        .analyzeId = materializedResult->GetValue(0, n).GetValue<std::string>(),
+        .plateId   = materializedResult->GetValue(1, n).GetValue<uint8_t>(),
+        .wellId    = materializedResult->GetValue(2, n).GetValue<uint16_t>(),
+        .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint8_t>(),
+        .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint8_t>(),
+        .notes     = materializedResult->GetValue(5, n).GetValue<std::string>(),
+    });
+  }
+
+  return wells;
 }
 
 }    // namespace joda::results

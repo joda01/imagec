@@ -143,7 +143,7 @@ TEST_CASE("database:test", "[database_read]")
     std::cout << joda::helper::timepointToIsoString(job.timestamp) << std::endl;
   }
 
-  auto images = res.getImagesForJob("10217c38-3056-43cb-9397-2a15b7756833");
+  auto images = res.getImagesForAnalyses("10217c38-3056-43cb-9397-2a15b7756833");
   for(const auto &img : images) {
     std::cout << img.analyzeId << " | ";
     std::cout << img.originalImagePath.filename().string() << " | ";
@@ -161,5 +161,21 @@ TEST_CASE("database:test", "[database_read]")
     std::cout << std::to_string(img.imageId) << " | ";
     std::cout << std::to_string(img.channelId) << " | ";
     std::cout << img.name << std::endl;
+  }
+
+  auto plates = res.getPlatesForAnalyses("10217c38-3056-43cb-9397-2a15b7756833");
+  for(const auto &img : plates) {
+    std::cout << img.analyzeId << " | ";
+    std::cout << std::to_string(img.plateId) << " | ";
+    std::cout << img.notes << std::endl;
+  }
+
+  auto wells = res.getWellsForPlate("10217c38-3056-43cb-9397-2a15b7756833", 1);
+  for(const auto &img : wells) {
+    std::cout << img.analyzeId << " | ";
+    std::cout << std::to_string(img.plateId) << " | ";
+    std::cout << std::to_string(img.wellPosX) << " | ";
+    std::cout << std::to_string(img.wellPosY) << " | ";
+    std::cout << img.notes << std::endl;
   }
 }

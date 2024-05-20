@@ -40,8 +40,10 @@ class Analyzer
 public:
   Analyzer(const std::filesystem::path &databasePath);
   auto getAnalyzes() -> std::vector<db::AnalyzeMeta>;
-  auto getImagesForJob(const std::string &analyzeId) -> std::vector<db::ImageMeta>;
+  auto getImagesForAnalyses(const std::string &analyzeId) -> std::vector<db::ImageMeta>;
   auto getChannelsForImage(const std::string &analyzeId, uint64_t imageId) -> std::vector<db::ChannelMeta>;
+  auto getPlatesForAnalyses(const std::string &analyzeId) -> std::vector<db::PlateMeta>;
+  auto getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -> std::vector<db::WellMeta>;
 
 private:
   joda::results::db::Database mDatabase;
