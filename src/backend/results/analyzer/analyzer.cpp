@@ -51,8 +51,6 @@ auto Analyzer::getAnalyzes() -> std::vector<db::AnalyzeMeta>
       for(auto const &data : scientistName) {
         scientists.push_back(data.GetValue<std::string>());
       }
-    } else {
-      std::cout << "T: " << std::to_string((uint8_t) value.type().id()) << std::endl;
     }
 
     // std::cout << dataChunk->ToString() << std::endl;
@@ -86,7 +84,7 @@ auto Analyzer::getImagesForAnalyses(const std::string &analyzeId) -> std::vector
   }
 
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-  for(size_t n = 0; n < materializedResult->RowCount(); n++)
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
     images.emplace_back(db::ImageMeta{
         .analyzeId         = materializedResult->GetValue(0, n).GetValue<std::string>(),
         .plateId           = materializedResult->GetValue(9, n).GetValue<uint8_t>(),
@@ -98,6 +96,7 @@ auto Analyzer::getImagesForAnalyses(const std::string &analyzeId) -> std::vector
         .height            = materializedResult->GetValue(6, n).GetValue<uint64_t>(),
 
     });
+  }
 
   return images;
 }
@@ -118,7 +117,7 @@ auto Analyzer::getChannelsForImage(const std::string &analyzeId, uint64_t imageI
   }
 
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-  for(size_t n = 0; n < materializedResult->RowCount(); n++)
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
     channels.emplace_back(db::ChannelMeta{
         .analyzeId        = materializedResult->GetValue(0, n).GetValue<std::string>(),
         .imageId          = materializedResult->GetValue(1, n).GetValue<uint64_t>(),
@@ -127,6 +126,7 @@ auto Analyzer::getChannelsForImage(const std::string &analyzeId, uint64_t imageI
         .controlImagePath = materializedResult->GetValue(4, n).GetValue<std::string>(),
 
     });
+  }
 
   return channels;
 }
