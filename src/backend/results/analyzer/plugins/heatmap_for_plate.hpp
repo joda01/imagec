@@ -46,17 +46,17 @@ public:
       results.getMutableRowHeader()[row] = std::string(toWrt);
       for(uint8_t col = 0; col < plarteCols; col++) {
         results.getMutableColHeader()[col] = std::to_string(col + 1);
-        results.data()[row][col]           = TableCell{0, false};
+        results.setData(row, col, TableCell{0, false});
       }
     }
 
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
       WellId wellID{.well{.wellId = materializedResult->GetValue(0, n).GetValue<uint16_t>()}, .imageIdx = 0};
 
-      uint8_t row              = wellID.well.wellPos[WellId::POS_Y] - 1;
-      uint8_t col              = wellID.well.wellPos[WellId::POS_X] - 1;
-      double val               = materializedResult->GetValue(4, n).GetValue<double>();    // AVG
-      results.data()[row][col] = TableCell{val, true};
+      uint8_t row = wellID.well.wellPos[WellId::POS_Y] - 1;
+      uint8_t col = wellID.well.wellPos[WellId::POS_X] - 1;
+      double val  = materializedResult->GetValue(4, n).GetValue<double>();    // AVG
+      results.setData(row, col, TableCell{val, true});
     }
 
     return results;

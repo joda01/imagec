@@ -29,6 +29,7 @@
 #include "ui/container/container_function.hpp"
 #include "ui/helper/waitingspinnerwidget.hpp"
 #include "ui/panel_preview.hpp"
+#include "ui/reporting/plugins/panel_heatmap.hpp"
 
 namespace joda::ui::qt {
 
@@ -83,6 +84,7 @@ private:
 
   // Table
   QTableWidget *mTable;
+  reporting::plugin::PanelHeatmap *mHeatmap;
 
   /////////////////////////////////////////////////////
   QHBoxLayout *createLayout();

@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <map>
 #include <string>
 #include <vector>
@@ -70,14 +71,39 @@ public:
     return mColHeader;
   }
   void print();
-  entry_t &data()
+  [[nodiscard]] const entry_t &data() const
   {
     return mData;
+  }
+
+  void setData(uint32_t row, uint32_t col, const TableCell &data)
+  {
+    if(data.isValid()) {
+      mMin = std::min(mMin, data.getVal());
+      mMax = std::min(mMax, data.getVal());
+    }
+    mData[row][col] = data;
+  }
+
+  [[nodiscard]] auto getMinMax() const -> std::tuple<double, double>
+  {
+    return {mMin, mMax};
+  }
+
+  uint32_t getRows()
+  {
+    return mData.size();
+  }
+  uint32_t getCols()
+  {
+    return mColHeader.size();
   }
 
 private:
   /////////////////////////////////////////////////////
   entry_t mData;    // <ROW, <COL, DATA>>
+  double mMin = std::numeric_limits<double>::max();
+  double mMax = std::numeric_limits<double>::min();
 
   std::map<uint32_t, std::string> mColHeader;
   std::map<uint32_t, std::string> mRowHeader;

@@ -31,8 +31,10 @@
 #include <thread>
 #include <vector>
 #include "../window_main.hpp"
+#include "backend/results/analyzer/plugins/heatmap_for_plate.hpp"
 #include "backend/results/results.hpp"
 #include "ui/container/container_function_base.hpp"
+#include "ui/reporting/plugins/panel_heatmap.hpp"
 
 namespace joda::ui::qt {
 
@@ -119,15 +121,19 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   }
   verticalLayoutContainer->addStretch(0);
 
+  auto [tableContainer, tableContainerLayout] =
+      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 16777215, 16);
+
   {
-    auto [tableContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 16777215, 16);
+      // mTable = new QTableWidget(0, 0, tableContainerLayout);
+      // mTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+      // mTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+      // QObject::connect(mTable, &QTableView::doubleClicked, this, &PanelReporting::onTableDoubleClicked);
 
-    mTable = new QTableWidget(0, 0, _1);
-    mTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    mTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    QObject::connect(mTable, &QTableView::doubleClicked, this, &PanelReporting::onTableDoubleClicked);
-
-    tableContainer->addWidget(mTable);
+      // tableContainer->addWidget(mTable);
+  } {
+    mHeatmap = new reporting::plugin::PanelHeatmap(tableContainerLayout);
+    tableContainer->addWidget(mHeatmap);
   }
 
   //
@@ -232,7 +238,9 @@ void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &i
   mProgressSelector->setMaximum(0);
   mProgressSelector->setMinimum(0);
 
-  mAnalyzer = std::make_shared<joda::results::Analyzer>(imageCFile);
+  mAnalyzer   = std::make_shared<joda::results::Analyzer>(imageCFile);
+  auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(*mAnalyzer, 1, 15, 15);
+  mHeatmap->setData(result);
 }
 
 ///
