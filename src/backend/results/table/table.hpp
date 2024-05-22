@@ -80,8 +80,9 @@ public:
   {
     if(data.isValid()) {
       mMin = std::min(mMin, data.getVal());
-      mMax = std::min(mMax, data.getVal());
+      mMax = std::max(mMax, data.getVal());
     }
+
     mData[row][col] = data;
   }
 
