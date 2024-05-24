@@ -17,7 +17,6 @@
 #include <chrono>
 #include <filesystem>
 #include <string>
-#include <vector>
 #include <duckdb/main/connection.hpp>
 #include <duckdb/main/database.hpp>
 #include "database_interface.hpp"
@@ -42,6 +41,7 @@ public:
   void createWell(const WellMeta &);
   void createImage(const ImageMeta &);
   void createChannel(const ChannelMeta &);
+  void createImageChannel(const ImageChannelMeta &);
   void createObjects(const ObjectMeta &);
 
   template <typename... ARGS>

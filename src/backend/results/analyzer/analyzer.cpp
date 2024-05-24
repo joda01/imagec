@@ -90,13 +90,12 @@ auto Analyzer::getImagesForAnalyses(const std::string &analyzeId) -> std::vector
     images.emplace_back(db::ImageMeta{
         .analyzeId         = materializedResult->GetValue(0, n).GetValue<std::string>(),
         .plateId           = materializedResult->GetValue(9, n).GetValue<uint8_t>(),
-        .wellId            = materializedResult->GetValue(10, n).GetValue<uint16_t>(),
+        .wellId            = WellId{.well{.wellId = materializedResult->GetValue(10, n).GetValue<uint16_t>()}},
         .imageId           = materializedResult->GetValue(1, n).GetValue<uint64_t>(),
         .imageIdx          = materializedResult->GetValue(2, n).GetValue<uint32_t>(),
         .originalImagePath = materializedResult->GetValue(4, n).GetValue<std::string>(),
         .width             = materializedResult->GetValue(5, n).GetValue<uint64_t>(),
         .height            = materializedResult->GetValue(6, n).GetValue<uint64_t>(),
-
     });
   }
 
@@ -107,12 +106,11 @@ auto Analyzer::getImagesForAnalyses(const std::string &analyzeId) -> std::vector
 /// \brief      Create control image
 /// \author     Joachim Danmayr
 ///
-auto Analyzer::getChannelsForImage(const std::string &analyzeId, uint64_t imageId) -> std::vector<db::ChannelMeta>
+auto Analyzer::getChannelsForAnalyses(const std::string &analyzeId) -> std::vector<db::ChannelMeta>
 {
   std::vector<db::ChannelMeta> channels;
   std::unique_ptr<duckdb::QueryResult> result =
-      mDatabase.select("SELECT * FROM channel WHERE analyze_id=? AND image_id=? ORDER BY control_image_path",
-                       duckdb::Value::UUID(analyzeId), imageId);
+      mDatabase.select("SELECT * FROM channel WHERE analyze_id=? ORDER BY name", duckdb::Value::UUID(analyzeId));
 
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
@@ -120,12 +118,23 @@ auto Analyzer::getChannelsForImage(const std::string &analyzeId, uint64_t imageI
 
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    std::vector<MeasureChannelId> measurements;
+    const auto &value = materializedResult->GetValue(3, n);
+
+    if(value.IsNull()) {
+      std::cout << "NULL value found" << std::endl;
+    } else if(value.type().id() == duckdb::LogicalTypeId::LIST) {
+      const auto &measurementList = duckdb::ListValue::GetChildren(value);
+      for(auto const &data : measurementList) {
+        measurements.push_back(MeasureChannelId(data.GetValue<uint32_t>()));
+      }
+    }
+
     channels.emplace_back(db::ChannelMeta{
-        .analyzeId        = materializedResult->GetValue(0, n).GetValue<std::string>(),
-        .imageId          = materializedResult->GetValue(1, n).GetValue<uint64_t>(),
-        .channelId        = materializedResult->GetValue(2, n).GetValue<uint8_t>(),
-        .name             = materializedResult->GetValue(3, n).GetValue<std::string>(),
-        .controlImagePath = materializedResult->GetValue(4, n).GetValue<std::string>(),
+        .analyzeId    = materializedResult->GetValue(0, n).GetValue<std::string>(),
+        .channelId    = static_cast<ChannelIndex>(materializedResult->GetValue(1, n).GetValue<uint8_t>()),
+        .name         = materializedResult->GetValue(2, n).GetValue<std::string>(),
+        .measurements = std::move(measurements),
 
     });
   }
@@ -179,7 +188,7 @@ auto Analyzer::getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -
     wells.emplace_back(db::WellMeta{
         .analyzeId = materializedResult->GetValue(0, n).GetValue<std::string>(),
         .plateId   = materializedResult->GetValue(1, n).GetValue<uint8_t>(),
-        .wellId    = materializedResult->GetValue(2, n).GetValue<uint16_t>(),
+        .wellId    = WellId{.well{.wellId = materializedResult->GetValue(2, n).GetValue<uint16_t>()}},
         .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint8_t>(),
         .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint8_t>(),
         .notes     = materializedResult->GetValue(5, n).GetValue<std::string>(),

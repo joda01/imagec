@@ -8,7 +8,10 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/results/analyzer/analyzer.hpp"
 #include "backend/results/analyzer/plugins/heatmap_for_plate.hpp"
+#include "backend/results/database/database_interface.hpp"
+#include "backend/results/db_column_ids.hpp"
 #include "backend/results/results.hpp"
+#include "backend/settings/channel/channel_index.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <duckdb/common/types.hpp>
@@ -49,8 +52,10 @@ TEST_CASE("database:test", "[database_test]")
   }
 
   try {
-    db.createWell(::joda::results::db::WellMeta{
-        .analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32", .plateId = 1, .wellId = 1, .notes = "May plate"});
+    db.createWell(::joda::results::db::WellMeta{.analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
+                                                .plateId   = 1,
+                                                .wellId    = {joda::results::WellId{.well = {.wellId = 1}}},
+                                                .notes     = "May plate"});
   } catch(const std::exception &ex) {
     std::cout << ex.what() << std::endl;
   }
@@ -62,21 +67,25 @@ TEST_CASE("database:test", "[database_test]")
     std::string imgName = "A110_" + std::to_string(n) + ".vsi";
 
     try {
-      db.createImage(::joda::results::db::ImageMeta{.analyzeId         = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
-                                                    .plateId           = 1,
-                                                    .wellId            = 1,
-                                                    .imageId           = n,
-                                                    .originalImagePath = imgName,
-                                                    .width             = 10,
-                                                    .height            = 10});
+      db.createImage(
+          ::joda::results::db::ImageMeta{.analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
+                                         .plateId   = 1,
+                                         .wellId    = joda::results::WellId{.well{.wellId = static_cast<uint16_t>(1)}},
+                                         .imageId   = n,
+                                         .originalImagePath = imgName,
+                                         .width             = 10,
+                                         .height            = 10});
     } catch(const std::exception &ex) {
       std::cout << ex.what() << std::endl;
     }
 
     for(uint8_t ch = 0; ch < NRCHANNELS; ch++) {
       try {
-        db.createChannel(::joda::results::db::ChannelMeta{
-            .analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32", .imageId = n, .channelId = ch});
+        db.createChannel(::joda::results::db::ChannelMeta{.analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
+                                                          .channelId = joda::results::ChannelIndex::A,
+
+                                                          .name         = "A",
+                                                          .measurements = {}});
       } catch(const std::exception &ex) {
         std::cout << ex.what() << std::endl;
       }
@@ -126,18 +135,16 @@ TEST_CASE("database:test", "[database_read]")
     std::cout << img.analyzeId << " | ";
     std::cout << img.originalImagePath.filename().string() << " | ";
     std::cout << std::to_string(img.plateId) << " | ";
-    std::cout << std::to_string(img.wellId) << " | ";
+    std::cout << std::to_string(img.wellId.well.wellId) << " | ";
     std::cout << std::to_string(img.imageId) << " | ";
     std::cout << std::to_string(img.width) << " | ";
     std::cout << std::to_string(img.height) << std::endl;
   }
 
-  auto channels = res.getChannelsForImage("10217c38-3056-43cb-9397-2a15b7756833", 4261282133957314495);
+  auto channels = res.getChannelsForAnalyses("10217c38-3056-43cb-9397-2a15b7756833");
   for(const auto &img : channels) {
     std::cout << img.analyzeId << " | ";
-    std::cout << img.controlImagePath.string() << " | ";
-    std::cout << std::to_string(img.imageId) << " | ";
-    std::cout << std::to_string(img.channelId) << " | ";
+    std::cout << std::to_string(static_cast<uint32_t>(img.channelId)) << " | ";
     std::cout << img.name << std::endl;
   }
 

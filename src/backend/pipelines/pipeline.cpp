@@ -126,6 +126,9 @@ void Pipeline::runJob()
   joda::settings::Settings::storeSettings((getOutputFolder() / ("settings_" + mJobName + ".json")).string(),
                                           mAnalyzeSettings);
 
+  // Prepare database
+  mResults.appendChannelsToDetailReport(mAnalyzeSettings);
+
   // Look for onnx models in the model folder
   mOnnxModels = onnx::OnnxParser::findOnnxFiles();
 

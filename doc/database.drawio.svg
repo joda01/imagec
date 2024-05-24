@@ -1,237 +1,211 @@
-<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1492px" height="991px" viewBox="-0.5 -0.5 1492 991" content="&lt;mxfile&gt;&lt;diagram id=&quot;XxNFNkssesB8QG5SHpC6&quot; name=&quot;Page-1&quot;&gt;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&lt;/diagram&gt;&lt;/mxfile&gt;">
+<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1540px" height="1032px" viewBox="-0.5 -0.5 1540 1032" content="&lt;mxfile&gt;&lt;diagram id=&quot;XxNFNkssesB8QG5SHpC6&quot; name=&quot;Page-1&quot;&gt;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&lt;/diagram&gt;&lt;/mxfile&gt;">
     <defs/>
     <g>
-        <path d="M 410 90 L 410 73.5 Q 410 60 396.5 60 L 263.5 60 Q 250 60 250 73.5 L 250 90" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="all"/>
-        <path d="M 250 90 L 250 286.5 Q 250 300 263.5 300 L 396.5 300 Q 410 300 410 286.5 L 410 90" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 250 90 L 410 90" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 410 131 L 410 114.5 Q 410 101 396.5 101 L 263.5 101 Q 250 101 250 114.5 L 250 131" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 250 131 L 250 327.5 Q 250 341 263.5 341 L 396.5 341 Q 410 341 410 327.5 L 410 131" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 250 131 L 410 131" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="329.5" y="80.5">
+            <text x="329.5" y="121.5">
                 Job
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="255.5" y="107.5">
+            <text x="255.5" y="148.5">
                 +(PK)experimentId: UUID
             </text>
-            <text x="255.5" y="121.5">
-                +(PK)analyzeId: UUID
+            <text x="255.5" y="162.5">
+                +(PK)jobId: UUID
             </text>
-            <text x="255.5" y="135.5">
+            <text x="255.5" y="176.5">
                 +name: VARCHAR
             </text>
-            <text x="255.5" y="149.5">
+            <text x="255.5" y="190.5">
                 +scientists: VARCHAR[]
             </text>
-            <text x="255.5" y="163.5">
+            <text x="255.5" y="204.5">
                 +datetime: TIMESTAMP
             </text>
-            <text x="255.5" y="177.5">
+            <text x="255.5" y="218.5">
                 +location:VARCHAR
             </text>
-            <text x="255.5" y="191.5">
+            <text x="255.5" y="232.5">
                 +notes: VARCHAR
             </text>
         </g>
-        <path d="M 1250 130 L 1250 113.5 Q 1250 100 1236.5 100 L 1103.5 100 Q 1090 100 1090 113.5 L 1090 130" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1090 130 L 1090 216.5 Q 1090 230 1103.5 230 L 1236.5 230 Q 1250 230 1250 216.5 L 1250 130" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1090 130 L 1250 130" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1260 31 L 1260 14.5 Q 1260 1 1246.5 1 L 1103.5 1 Q 1090 1 1090 14.5 L 1090 31" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1090 31 L 1090 117.5 Q 1090 131 1103.5 131 L 1246.5 131 Q 1260 131 1260 117.5 L 1260 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1090 31 L 1260 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="1169.5" y="120.5">
+            <text x="1174.5" y="21.5">
                 Plate
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="1095.5" y="147.5">
+            <text x="1095.5" y="48.5">
                 +(PK)analyzeId: UUID
             </text>
-            <text x="1095.5" y="161.5">
+            <text x="1095.5" y="62.5">
                 +(PK)plateId: UTINYINT
             </text>
-            <text x="1095.5" y="175.5">
+            <text x="1095.5" y="76.5">
                 +notes: VARCHAR
             </text>
         </g>
-        <path d="M 1250 330 L 1250 313.5 Q 1250 300 1236.5 300 L 1103.5 300 Q 1090 300 1090 313.5 L 1090 330" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1090 330 L 1090 416.5 Q 1090 430 1103.5 430 L 1236.5 430 Q 1250 430 1250 416.5 L 1250 330" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1090 330 L 1250 330" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1260 226 L 1260 209.5 Q 1260 196 1246.5 196 L 1103.5 196 Q 1090 196 1090 209.5 L 1090 226" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1090 226 L 1090 312.5 Q 1090 326 1103.5 326 L 1246.5 326 Q 1260 326 1260 312.5 L 1260 226" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1090 226 L 1260 226" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="1169.5" y="320.5">
+            <text x="1174.5" y="216.5">
                 Image
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="1095.5" y="347.5">
+            <text x="1095.5" y="243.5">
                 +(PK)analyzeId: UUID
             </text>
-            <text x="1095.5" y="361.5">
+            <text x="1095.5" y="257.5">
                 +(PK)imageId: UHUGEINT
             </text>
-            <text x="1095.5" y="375.5">
+            <text x="1095.5" y="271.5">
                 +fileName: TEXT
             </text>
-            <text x="1095.5" y="389.5">
+            <text x="1095.5" y="285.5">
                 +originalImagePath: TEXT
             </text>
-            <text x="1095.5" y="403.5">
+            <text x="1095.5" y="299.5">
                 +width: UHUGEINT
             </text>
-            <text x="1095.5" y="417.5">
+            <text x="1095.5" y="313.5">
                 +height: UHUGEINT
             </text>
         </g>
-        <path d="M 1250 630 L 1250 613.5 Q 1250 600 1236.5 600 L 1103.5 600 Q 1090 600 1090 613.5 L 1090 630" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1090 630 L 1090 726.5 Q 1090 740 1103.5 740 L 1236.5 740 Q 1250 740 1250 726.5 L 1250 630" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1090 630 L 1250 630" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1490 621 L 1490 604.5 Q 1490 591 1476.5 591 L 1343.5 591 Q 1330 591 1330 604.5 L 1330 621" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1330 621 L 1330 717.5 Q 1330 731 1343.5 731 L 1476.5 731 Q 1490 731 1490 717.5 L 1490 621" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1330 621 L 1490 621" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="1169.5" y="620.5">
+            <text x="1409.5" y="611.5">
                 Object
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="1095.5" y="647.5">
+            <text x="1335.5" y="638.5">
                 +(PK)analyzeId: UUID
             </text>
-            <text x="1095.5" y="661.5">
+            <text x="1335.5" y="652.5">
                 +(PK)imageId: UHUGEINT
             </text>
-            <text x="1095.5" y="675.5">
+            <text x="1335.5" y="666.5">
                 +(PK)channelId: UTINYINT
             </text>
-            <text x="1095.5" y="689.5">
+            <text x="1335.5" y="680.5">
                 +(PK)objectId: UINTEGER
             </text>
-            <text x="1095.5" y="703.5">
+            <text x="1335.5" y="694.5">
                 + validity: UINTEGER
             </text>
-            <text x="1095.5" y="717.5">
+            <text x="1335.5" y="708.5">
                 + values: MAP(UINTEGER, DOUBLE)
             </text>
         </g>
-        <path d="M 1490 130 L 1490 113.5 Q 1490 100 1476.5 100 L 1343.5 100 Q 1330 100 1330 113.5 L 1330 130" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1330 130 L 1330 216.5 Q 1330 230 1343.5 230 L 1476.5 230 Q 1490 230 1490 216.5 L 1490 130" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1330 130 L 1490 130" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1490 31 L 1490 14.5 Q 1490 1 1476.5 1 L 1343.5 1 Q 1330 1 1330 14.5 L 1330 31" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1330 31 L 1330 117.5 Q 1330 131 1343.5 131 L 1476.5 131 Q 1490 131 1490 117.5 L 1490 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1330 31 L 1490 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="1409.5" y="120.5">
+            <text x="1409.5" y="21.5">
                 Well
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="1335.5" y="147.5">
+            <text x="1335.5" y="48.5">
                 +(PK)analyzeId: UUID
             </text>
-            <text x="1335.5" y="161.5">
+            <text x="1335.5" y="62.5">
                 +(PK)plateId: UTINYINT
             </text>
-            <text x="1335.5" y="175.5">
+            <text x="1335.5" y="76.5">
                 +(PK)wellId: USMALLINT
             </text>
-            <text x="1335.5" y="189.5">
+            <text x="1335.5" y="90.5">
                 +xPos: USMALLINT
             </text>
-            <text x="1335.5" y="203.5">
+            <text x="1335.5" y="104.5">
                 +yPos: USMALLINT
             </text>
-            <text x="1335.5" y="217.5">
+            <text x="1335.5" y="118.5">
                 +notes: VARCHAR
             </text>
         </g>
-        <path d="M 1250 490 L 1250 473.5 Q 1250 460 1236.5 460 L 1103.5 460 Q 1090 460 1090 473.5 L 1090 490" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1090 490 L 1090 556.5 Q 1090 570 1103.5 570 L 1236.5 570 Q 1250 570 1250 556.5 L 1250 490" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1090 490 L 1250 490" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 170 131 L 170 114.5 Q 170 101 156.5 101 L 23.5 101 Q 10 101 10 114.5 L 10 131" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 10 131 L 10 327.5 Q 10 341 23.5 341 L 156.5 341 Q 170 341 170 327.5 L 170 131" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 10 131 L 170 131" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="1169.5" y="480.5">
-                Channel
-            </text>
-        </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="1095.5" y="507.5">
-                +(PK)analyzeId: UUID
-            </text>
-            <text x="1095.5" y="521.5">
-                +(PK)imageId: UHUGEINT
-            </text>
-            <text x="1095.5" y="535.5">
-                +(PK)channelId: UTINYINT
-            </text>
-            <text x="1095.5" y="549.5">
-                +name: VARCHAR
-            </text>
-        </g>
-        <path d="M 1170 430 L 1170 460" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1166 452 L 1174 452 M 1174 460 L 1170 452 L 1166 460" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1170 570 L 1170 600" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1166 592 L 1174 592 M 1174 600 L 1170 592 L 1166 600" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 170 90 L 170 73.5 Q 170 60 156.5 60 L 23.5 60 Q 10 60 10 73.5 L 10 90" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 10 90 L 10 286.5 Q 10 300 23.5 300 L 156.5 300 Q 170 300 170 286.5 L 170 90" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 10 90 L 170 90" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="89.5" y="80.5">
+            <text x="89.5" y="121.5">
                 Experiment
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="15.5" y="107.5">
+            <text x="15.5" y="148.5">
                 +(PK)experimentId: UUID
             </text>
-            <text x="15.5" y="121.5">
+            <text x="15.5" y="162.5">
                 +name: VARCHAR
             </text>
-            <text x="15.5" y="135.5">
+            <text x="15.5" y="176.5">
                 +scientists: VARCHAR[]
             </text>
-            <text x="15.5" y="149.5">
+            <text x="15.5" y="190.5">
                 +datetime: TIMESTAMP
             </text>
-            <text x="15.5" y="163.5">
+            <text x="15.5" y="204.5">
                 +location:VARCHAR
             </text>
-            <text x="15.5" y="177.5">
+            <text x="15.5" y="218.5">
                 +notes: VARCHAR
             </text>
         </g>
-        <path d="M 170 195 L 190 195 Q 200 195 210 195 L 215 195 Q 220 195 230 195 L 250 195" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 242 199 L 242 191 M 250 191 L 242 195 L 250 199" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 650 90 L 650 73.5 Q 650 60 636.5 60 L 503.5 60 Q 490 60 490 73.5 L 490 90" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 490 90 L 490 286.5 Q 490 300 503.5 300 L 636.5 300 Q 650 300 650 286.5 L 650 90" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 490 90 L 650 90" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 170 236 L 190 236 Q 200 236 210 236 L 215 236 Q 220 236 230 236 L 250 236" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 242 240 L 242 232 M 250 232 L 242 236 L 250 240" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 650 131 L 650 114.5 Q 650 101 636.5 101 L 503.5 101 Q 490 101 490 114.5 L 490 131" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 490 131 L 490 327.5 Q 490 341 503.5 341 L 636.5 341 Q 650 341 650 327.5 L 650 131" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 490 131 L 650 131" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="569.5" y="80.5">
+            <text x="569.5" y="121.5">
                 Run
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="495.5" y="107.5">
+            <text x="495.5" y="148.5">
                 +(PK)experimentId: UUID
             </text>
-            <text x="495.5" y="121.5">
-                +(PK)analyzeId: UUID
+            <text x="495.5" y="162.5">
+                +(PK)jobId: UUID
             </text>
-            <text x="495.5" y="135.5">
+            <text x="495.5" y="176.5">
                 +(PK)runId: UUID
             </text>
-            <text x="495.5" y="149.5">
+            <text x="495.5" y="190.5">
                 +name: VARCHAR
             </text>
-            <text x="495.5" y="163.5">
+            <text x="495.5" y="204.5">
                 +scientists: VARCHAR[]
             </text>
-            <text x="495.5" y="177.5">
+            <text x="495.5" y="218.5">
                 +datetime: TIMESTAMP
             </text>
-            <text x="495.5" y="191.5">
+            <text x="495.5" y="232.5">
                 +location:VARCHAR
             </text>
-            <text x="495.5" y="205.5">
+            <text x="495.5" y="246.5">
                 +notes: VARCHAR
             </text>
         </g>
-        <path d="M 410 195 L 430 195 Q 440 195 450 195 L 455 195 Q 460 195 470 195 L 490 195" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 482 199 L 482 191 M 490 191 L 482 195 L 490 199" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <rect x="10" y="650" width="580" height="330" rx="16.5" ry="16.5" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
+        <path d="M 410 236 L 430 236 Q 440 236 450 236 L 455 236 Q 460 236 470 236 L 490 236" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 482 240 L 482 232 M 490 232 L 482 236 L 490 240" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <rect x="10" y="691" width="580" height="330" rx="16.5" ry="16.5" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 578px; height: 1px; padding-top: 657px; margin-left: 11px;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 578px; height: 1px; padding-top: 698px; margin-left: 11px;">
                         <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
                             <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; font-weight: bold; font-style: italic; white-space: normal; overflow-wrap: normal;">
                                 Experiment
@@ -239,16 +213,16 @@
                         </div>
                     </div>
                 </foreignObject>
-                <text x="300" y="669" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold" font-style="italic">
+                <text x="300" y="710" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold" font-style="italic">
                     Experiment
                 </text>
             </switch>
         </g>
-        <rect x="20" y="690" width="560" height="280" rx="22.4" ry="22.4" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
+        <rect x="20" y="731" width="560" height="280" rx="22.4" ry="22.4" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 558px; height: 1px; padding-top: 697px; margin-left: 21px;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 558px; height: 1px; padding-top: 738px; margin-left: 21px;">
                         <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
                             <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; font-weight: bold; font-style: italic; white-space: normal; overflow-wrap: normal;">
                                 Job
@@ -256,16 +230,16 @@
                         </div>
                     </div>
                 </foreignObject>
-                <text x="300" y="709" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold" font-style="italic">
+                <text x="300" y="750" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold" font-style="italic">
                     Job
                 </text>
             </switch>
         </g>
-        <rect x="30" y="750" width="210" height="210" rx="16.8" ry="16.8" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
+        <rect x="30" y="791" width="210" height="210" rx="16.8" ry="16.8" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 208px; height: 1px; padding-top: 757px; margin-left: 31px;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 208px; height: 1px; padding-top: 798px; margin-left: 31px;">
                         <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
                             <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; font-weight: bold; font-style: italic; white-space: normal; overflow-wrap: normal;">
                                 Run
@@ -273,17 +247,17 @@
                         </div>
                     </div>
                 </foreignObject>
-                <text x="135" y="769" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold" font-style="italic">
+                <text x="135" y="810" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold" font-style="italic">
                     Run
                 </text>
             </switch>
         </g>
-        <path d="M 681.32 20 L 617.17 47.49" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 612.35 49.56 L 617.4 43.59 L 617.17 47.49 L 620.16 50.02 Z" fill="rgb(0, 0, 0)" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 681.32 61 L 617.17 88.49" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 612.35 90.56 L 617.4 84.59 L 617.17 88.49 L 620.16 91.02 Z" fill="rgb(0, 0, 0)" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 15px; margin-left: 760px;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 56px; margin-left: 760px;">
                         <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
                             <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; white-space: nowrap;">
                                 Generates RAW data
@@ -291,50 +265,50 @@
                         </div>
                     </div>
                 </foreignObject>
-                <text x="760" y="19" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px" text-anchor="middle">
+                <text x="760" y="60" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px" text-anchor="middle">
                     Generates RAW data
                 </text>
             </switch>
         </g>
-        <path d="M 1010 170 L 1010 153.5 Q 1010 140 996.5 140 L 863.5 140 Q 850 140 850 153.5 L 850 170" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 850 170 L 850 286.5 Q 850 300 863.5 300 L 996.5 300 Q 1010 300 1010 286.5 L 1010 170" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 850 170 L 1010 170" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1010 211 L 1010 194.5 Q 1010 181 996.5 181 L 863.5 181 Q 850 181 850 194.5 L 850 211" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 850 211 L 850 327.5 Q 850 341 863.5 341 L 996.5 341 Q 1010 341 1010 327.5 L 1010 211" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 850 211 L 1010 211" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="929.5" y="160.5">
+            <text x="929.5" y="201.5">
                 Analyze
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="855.5" y="187.5">
+            <text x="855.5" y="228.5">
                 +(PK)analyzeId: UUID
             </text>
-            <text x="855.5" y="201.5">
+            <text x="855.5" y="242.5">
                 +(FK)runId: UUID
             </text>
-            <text x="855.5" y="215.5">
+            <text x="855.5" y="256.5">
                 +name: VARCHAR
             </text>
-            <text x="855.5" y="229.5">
+            <text x="855.5" y="270.5">
                 +scientists: VARCHAR[]
             </text>
-            <text x="855.5" y="243.5">
+            <text x="855.5" y="284.5">
                 +datetime: TIMESTAMP
             </text>
-            <text x="855.5" y="257.5">
+            <text x="855.5" y="298.5">
                 +location:VARCHAR
             </text>
-            <text x="855.5" y="271.5">
+            <text x="855.5" y="312.5">
                 +notes: VARCHAR
             </text>
         </g>
-        <path d="M 650 195 L 670 195 Q 680 195 689.62 197.75 L 810.38 232.25 Q 820 235 830 235 L 850 235" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 842 239 L 842 231 M 850 231 L 842 235 L 850 239" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 50 793.67 C 50 791.64 54.48 790 60 790 C 62.65 790 65.2 790.39 67.07 791.07 C 68.95 791.76 70 792.69 70 793.67 L 70 806.33 C 70 808.36 65.52 810 60 810 C 54.48 810 50 808.36 50 806.33 Z" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 70 793.67 C 70 795.69 65.52 797.33 60 797.33 C 54.48 797.33 50 795.69 50 793.67" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 650 236 L 670 236 Q 680 236 689.62 238.75 L 810.38 273.25 Q 820 276 830 276 L 850 276" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 842 280 L 842 272 M 850 272 L 842 276 L 850 280" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 50 834.67 C 50 832.64 54.48 831 60 831 C 62.65 831 65.2 831.39 67.07 832.07 C 68.95 832.76 70 833.69 70 834.67 L 70 847.33 C 70 849.36 65.52 851 60 851 C 54.48 851 50 849.36 50 847.33 Z" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 70 834.67 C 70 836.69 65.52 838.33 60 838.33 C 54.48 838.33 50 836.69 50 834.67" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 820px; margin-left: 60px;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 861px; margin-left: 60px;">
                         <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
                             <div style="display: inline-block; font-size: 9px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; white-space: nowrap;">
                                 raw data
@@ -342,17 +316,17 @@
                         </div>
                     </div>
                 </foreignObject>
-                <text x="60" y="823" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="9px" text-anchor="middle">
+                <text x="60" y="864" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="9px" text-anchor="middle">
                     raw data
                 </text>
             </switch>
         </g>
-        <path d="M 99 813.67 C 99 811.64 103.48 810 109 810 C 111.65 810 114.2 810.39 116.07 811.07 C 117.95 811.76 119 812.69 119 813.67 L 119 826.33 C 119 828.36 114.52 830 109 830 C 103.48 830 99 828.36 99 826.33 Z" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 119 813.67 C 119 815.69 114.52 817.33 109 817.33 C 103.48 817.33 99 815.69 99 813.67" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 99 854.67 C 99 852.64 103.48 851 109 851 C 111.65 851 114.2 851.39 116.07 852.07 C 117.95 852.76 119 853.69 119 854.67 L 119 867.33 C 119 869.36 114.52 871 109 871 C 103.48 871 99 869.36 99 867.33 Z" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 119 854.67 C 119 856.69 114.52 858.33 109 858.33 C 103.48 858.33 99 856.69 99 854.67" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 1px; height: 1px; padding-top: 820px; margin-left: 122px;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 1px; height: 1px; padding-top: 861px; margin-left: 122px;">
                         <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: left;">
                             <div style="display: inline-block; font-size: 9px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; white-space: nowrap;">
                                 analyzed data
@@ -360,18 +334,18 @@
                         </div>
                     </div>
                 </foreignObject>
-                <text x="122" y="823" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="9px">
+                <text x="122" y="864" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="9px">
                     analyzed data
                 </text>
             </switch>
         </g>
-        <rect x="90" y="800" width="140" height="40" rx="3.2" ry="3.2" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
-        <path d="M 99 863.67 C 99 861.64 103.48 860 109 860 C 111.65 860 114.2 860.39 116.07 861.07 C 117.95 861.76 119 862.69 119 863.67 L 119 876.33 C 119 878.36 114.52 880 109 880 C 103.48 880 99 878.36 99 876.33 Z" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 119 863.67 C 119 865.69 114.52 867.33 109 867.33 C 103.48 867.33 99 865.69 99 863.67" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <rect x="90" y="841" width="140" height="40" rx="3.2" ry="3.2" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
+        <path d="M 99 904.67 C 99 902.64 103.48 901 109 901 C 111.65 901 114.2 901.39 116.07 902.07 C 117.95 902.76 119 903.69 119 904.67 L 119 917.33 C 119 919.36 114.52 921 109 921 C 103.48 921 99 919.36 99 917.33 Z" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 119 904.67 C 119 906.69 114.52 908.33 109 908.33 C 103.48 908.33 99 906.69 99 904.67" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 1px; height: 1px; padding-top: 870px; margin-left: 122px;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 1px; height: 1px; padding-top: 911px; margin-left: 122px;">
                         <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: left;">
                             <div style="display: inline-block; font-size: 9px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; white-space: nowrap;">
                                 analyzed data
@@ -379,18 +353,18 @@
                         </div>
                     </div>
                 </foreignObject>
-                <text x="122" y="873" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="9px">
+                <text x="122" y="914" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="9px">
                     analyzed data
                 </text>
             </switch>
         </g>
-        <rect x="90" y="850" width="140" height="40" rx="3.2" ry="3.2" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
-        <path d="M 99 913.67 C 99 911.64 103.48 910 109 910 C 111.65 910 114.2 910.39 116.07 911.07 C 117.95 911.76 119 912.69 119 913.67 L 119 926.33 C 119 928.36 114.52 930 109 930 C 103.48 930 99 928.36 99 926.33 Z" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 119 913.67 C 119 915.69 114.52 917.33 109 917.33 C 103.48 917.33 99 915.69 99 913.67" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <rect x="90" y="891" width="140" height="40" rx="3.2" ry="3.2" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
+        <path d="M 99 954.67 C 99 952.64 103.48 951 109 951 C 111.65 951 114.2 951.39 116.07 952.07 C 117.95 952.76 119 953.69 119 954.67 L 119 967.33 C 119 969.36 114.52 971 109 971 C 103.48 971 99 969.36 99 967.33 Z" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 119 954.67 C 119 956.69 114.52 958.33 109 958.33 C 103.48 958.33 99 956.69 99 954.67" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 1px; height: 1px; padding-top: 920px; margin-left: 122px;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 1px; height: 1px; padding-top: 961px; margin-left: 122px;">
                         <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: left;">
                             <div style="display: inline-block; font-size: 9px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; white-space: nowrap;">
                                 analyzed data
@@ -398,17 +372,17 @@
                         </div>
                     </div>
                 </foreignObject>
-                <text x="122" y="923" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="9px">
+                <text x="122" y="964" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="9px">
                     analyzed data
                 </text>
             </switch>
         </g>
-        <rect x="90" y="900" width="140" height="40" rx="3.2" ry="3.2" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
-        <rect x="0" y="620" width="860" height="370" rx="18.5" ry="18.5" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
+        <rect x="90" y="941" width="140" height="40" rx="3.2" ry="3.2" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
+        <rect x="0" y="661" width="860" height="370" rx="18.5" ry="18.5" fill="none" stroke="rgb(0, 0, 0)" pointer-events="none"/>
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 858px; height: 1px; padding-top: 627px; margin-left: 1px;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 858px; height: 1px; padding-top: 668px; margin-left: 1px;">
                         <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
                             <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; font-weight: bold; font-style: italic; white-space: normal; overflow-wrap: normal;">
                                 Program
@@ -416,47 +390,102 @@
                         </div>
                     </div>
                 </foreignObject>
-                <text x="430" y="639" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold" font-style="italic">
+                <text x="430" y="680" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold" font-style="italic">
                     Program
                 </text>
             </switch>
         </g>
-        <path d="M 1010 267.5 L 1030 267.5 Q 1040 267.5 1041.75 277.35 L 1058.25 370.15 Q 1060 380 1070 380 L 1090 380" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1082 384 L 1082 376 M 1090 376 L 1082 380 L 1090 384" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1250 180 L 1330 180" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1322 184 L 1322 176 M 1330 176 L 1322 180 L 1330 184" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1010 202.5 L 1030 202.5 Q 1040 202.5 1043.88 193.28 L 1056.12 164.22 Q 1060 155 1070 155 L 1090 155" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1082 159 L 1082 151 M 1090 151 L 1082 155 L 1090 159" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1410 230 L 1410 300" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1406 292 L 1414 292 M 1414 300 L 1410 292 L 1406 300" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1490 330 L 1490 313.5 Q 1490 300 1476.5 300 L 1343.5 300 Q 1330 300 1330 313.5 L 1330 330" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1330 330 L 1330 416.5 Q 1330 430 1343.5 430 L 1476.5 430 Q 1490 430 1490 416.5 L 1490 330" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1330 330 L 1490 330" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1010 276 L 1030 276 Q 1040 276 1050 276 L 1055 276 Q 1060 276 1070 276 L 1090 276" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1082 280 L 1082 272 M 1090 272 L 1082 276 L 1090 280" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1260 81 L 1330 81" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1322 85 L 1322 77 M 1330 77 L 1322 81 L 1330 85" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1010 243.5 L 1030 243.5 Q 1040 243.5 1041.22 233.57 L 1058.78 90.93 Q 1060 81 1070 81 L 1090 81" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1082 85 L 1082 77 M 1090 77 L 1082 81 L 1090 85" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1410 131 L 1410 196" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1406 188 L 1414 188 M 1414 196 L 1410 188 L 1406 196" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1490 226 L 1490 209.5 Q 1490 196 1476.5 196 L 1343.5 196 Q 1330 196 1330 209.5 L 1330 226" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1330 226 L 1330 312.5 Q 1330 326 1343.5 326 L 1476.5 326 Q 1490 326 1490 312.5 L 1490 226" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1330 226 L 1490 226" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="1409.5" y="320.5">
+            <text x="1409.5" y="216.5">
                 image_well
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="1335.5" y="347.5">
+            <text x="1335.5" y="243.5">
                 +(PK)analyzeId: UUID
             </text>
-            <text x="1335.5" y="361.5">
+            <text x="1335.5" y="257.5">
                 +(PK)imageId: UHUGEINT
             </text>
-            <text x="1335.5" y="375.5">
+            <text x="1335.5" y="271.5">
                 +(PK)plateId: UTINYINT
             </text>
-            <text x="1335.5" y="389.5">
+            <text x="1335.5" y="285.5">
                 +(PK)wellId: USMALLINT
             </text>
-            <text x="1335.5" y="403.5">
+            <text x="1335.5" y="299.5">
                 +imageIdx: USMALLINT
             </text>
         </g>
-        <path d="M 1250 380 L 1270 380 Q 1280 380 1290 380 L 1295 380 Q 1300 380 1310 380 L 1330 380" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1254 376 L 1254 384 M 1258 376 L 1258 384" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1326 384 L 1326 376 M 1322 384 L 1322 376" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1260 276 L 1280 276 Q 1290 276 1295 276 L 1297.5 276 Q 1300 276 1310 276 L 1330 276" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1264 272 L 1264 280 M 1268 272 L 1268 280" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1326 280 L 1326 272 M 1322 280 L 1322 272" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1490 431 L 1490 414.5 Q 1490 401 1476.5 401 L 1343.5 401 Q 1330 401 1330 414.5 L 1330 431" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1330 431 L 1330 507.5 Q 1330 521 1343.5 521 L 1476.5 521 Q 1490 521 1490 507.5 L 1490 431" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1330 431 L 1490 431" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
+            <text x="1409.5" y="421.5">
+                channel_image
+            </text>
+        </g>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
+            <text x="1335.5" y="448.5">
+                +(PK)analyzeId: UUID
+            </text>
+            <text x="1335.5" y="462.5">
+                +(PK)imageId: UHUGEINT
+            </text>
+            <text x="1335.5" y="476.5">
+                +(PK)channelId: UTINYINT
+            </text>
+            <text x="1335.5" y="490.5">
+                +validity
+            </text>
+            <text x="1335.5" y="504.5">
+                +controlImagePath: TEXT
+            </text>
+        </g>
+        <path d="M 1010 308.5 L 1030 308.5 Q 1040 308.5 1041.19 318.43 L 1058.81 466.07 Q 1060 476 1070 476 L 1090 476" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1082 480 L 1082 472 M 1090 472 L 1082 476 L 1090 480" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1260 431 L 1260 414.5 Q 1260 401 1246.5 401 L 1103.5 401 Q 1090 401 1090 414.5 L 1090 431" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1090 431 L 1090 507.5 Q 1090 521 1103.5 521 L 1246.5 521 Q 1260 521 1260 507.5 L 1260 431" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1090 431 L 1260 431" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
+            <text x="1174.5" y="421.5">
+                channels
+            </text>
+        </g>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
+            <text x="1095.5" y="448.5">
+                +(PK)analyzeId: UUID
+            </text>
+            <text x="1095.5" y="462.5">
+                +(PK)channelId: UTINYINT
+            </text>
+            <text x="1095.5" y="476.5">
+                +name: VARCHAR
+            </text>
+            <text x="1095.5" y="490.5">
+                +measurments: UINTEGER[]
+            </text>
+        </g>
+        <path d="M 1260 476 L 1280 476 Q 1290 476 1295 476 L 1297.5 476 Q 1300 476 1310 476 L 1330 476" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1322 480 L 1322 472 M 1330 472 L 1322 476 L 1330 480" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1260 301 L 1280 301 Q 1290 301 1290.77 310.97 L 1299.23 421.03 Q 1300 431 1310 431 L 1330 431" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1322 435 L 1322 427 M 1330 427 L 1322 431 L 1330 435" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1410 521 L 1410 591" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1406 583 L 1414 583 M 1414 591 L 1410 583 L 1406 591" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
     </g>
     <switch>
         <g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/>

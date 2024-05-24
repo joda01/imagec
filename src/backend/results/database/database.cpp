@@ -103,10 +103,19 @@ void Database::open()
 
       "CREATE TABLE IF NOT EXISTS channel ("
       "	analyze_id UUID,"
-      "	image_id UHUGEINT,"
       "	channel_id UTINYINT,"
       " name TEXT,"
+      " measurements UINTEGER[],"
+      " PRIMARY KEY (analyze_id, channel_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS channel_image ("
+      "	analyze_id UUID,"
+      "	image_id UHUGEINT,"
+      "	channel_id UTINYINT,"
       " control_image_path TEXT,"
+      " validity UINTEGER,"
+      " invalidateAll BOOLEAN,"
       " PRIMARY KEY (analyze_id, image_id, channel_id),"
       " FOREIGN KEY(analyze_id, image_id) REFERENCES image(analyze_id, image_id)"
       ");"
@@ -177,8 +186,8 @@ void Database::createWell(const WellMeta &meta)
 {
   auto prepare = mConnection.Prepare(
       "INSERT INTO well (analyze_id, plate_id, well_id,well_pos_x,well_pos_y, notes) VALUES (?, ?, ?, ?, ?, ?)");
-  prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.plateId, meta.wellId, meta.wellPosX, meta.wellPosY,
-                   meta.notes);
+  prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.plateId, meta.wellId.well.wellId, meta.wellPosX,
+                   meta.wellPosY, meta.notes);
 }
 
 ///
@@ -200,7 +209,7 @@ void Database::createImage(const ImageMeta &meta)
     auto prepare = mConnection.Prepare(
         "INSERT INTO image_well (analyze_id, image_id, plate_id, well_id) VALUES "
         "(?, ?, ?, ?)");
-    prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.plateId, meta.wellId);
+    prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.plateId, meta.wellId.well.wellId);
   }
 }
 
@@ -211,11 +220,33 @@ void Database::createImage(const ImageMeta &meta)
 void Database::createChannel(const ChannelMeta &meta)
 {
   auto prepare = mConnection.Prepare(
-      "INSERT INTO channel (analyze_id, image_id, channel_id, name, control_image_path) VALUES "
-      "(?, ?, ?, ?, ?)");
+      "INSERT INTO channel (analyze_id, channel_id, name, measurements) VALUES "
+      "(?, ?, ?, ?)");
 
-  prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.channelId, meta.name,
-                   meta.controlImagePath.string());
+  duckdb::vector<duckdb::Value> measurements(meta.measurements.size());
+  int n = 0;
+  for(const auto &val : meta.measurements) {
+    measurements[n] = duckdb::Value::UINTEGER(val.getKey());
+    n++;
+  }
+
+  prepare->Execute(duckdb::Value::UUID(meta.analyzeId), duckdb::Value(static_cast<uint8_t>(meta.channelId)),
+                   duckdb::Value(meta.name), duckdb::Value::LIST(std::move(measurements)));
+}
+
+///
+/// \brief      Close database connection
+/// \author     Joachim Danmayr
+///
+void Database::createImageChannel(const ImageChannelMeta &meta)
+{
+  auto prepare = mConnection.Prepare(
+      "INSERT INTO channel_image (analyze_id, image_id, channel_id, control_image_path, validity, invalidateAll) "
+      "VALUES "
+      "(?, ?, ?, ?, ?, ?)");
+
+  prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, static_cast<uint8_t>(meta.channelId),
+                   meta.controlImagePath.string(), static_cast<uint32_t>(meta.validity), meta.invalidateAll);
 }
 
 ///
@@ -238,7 +269,7 @@ void Database::createObjects(const ObjectMeta &data)
     appender.Append<uint16_t>(data.channelId);
     appender.Append<uint32_t>(objectKey);
     appender.Append<uint16_t>(data.tileId);
-    appender.Append<uint32_t>(measureValues.validity);
+    appender.Append<uint32_t>(static_cast<uint32_t>(measureValues.validity));
     // 0.02 ms
     auto mapToInsert =
         duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),

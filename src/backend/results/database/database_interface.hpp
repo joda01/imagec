@@ -16,6 +16,8 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include "backend/results/db_column_ids.hpp"
+#include <duckdb/common/types.hpp>
 #include <duckdb.hpp>
 
 namespace joda::results::db {
@@ -42,7 +44,7 @@ struct WellMeta
 {
   std::string analyzeId;
   uint8_t plateId;
-  uint16_t wellId;
+  WellId wellId;
   uint8_t wellPosX;
   uint8_t wellPosY;
   std::string notes;
@@ -52,7 +54,7 @@ struct ImageMeta
 {
   std::string analyzeId;
   uint8_t plateId;
-  uint16_t wellId;
+  WellId wellId;
   uint64_t imageId;
   uint32_t imageIdx;
   std::filesystem::path originalImagePath;
@@ -63,15 +65,24 @@ struct ImageMeta
 struct ChannelMeta
 {
   std::string analyzeId;
-  uint64_t imageId;
-  uint8_t channelId;
+  ChannelIndex channelId;
   std::string name;
+  std::vector<MeasureChannelId> measurements;
+};
+
+struct ImageChannelMeta
+{
+  std::string analyzeId;
+  uint64_t imageId         = 0;
+  ChannelIndex channelId   = ChannelIndex::ME;
+  ChannelValidity validity = ChannelValidity::VALID;
+  bool invalidateAll       = false;
   std::filesystem::path controlImagePath;
 };
 
 struct Data
 {
-  uint32_t validity;
+  ObjectValidity validity = ObjectValidity::VALID;
   duckdb::vector<duckdb::Value> keys;
   duckdb::vector<duckdb::Value> vals;
 };

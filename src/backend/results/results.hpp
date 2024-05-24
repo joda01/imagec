@@ -22,6 +22,7 @@
 #include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/results/database/database.hpp"
 #include "backend/results/db_column_ids.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_index.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/channel/channel_settings_meta.hpp"
@@ -50,6 +51,7 @@ class Results
 public:
   Results(const std::filesystem::path &pathToRawData, const ExperimentSetting &settings);
 
+  void appendChannelsToDetailReport(const joda::settings::AnalyzeSettings &);
   void appendImageToDetailReport(const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
   void appendToDetailReport(const joda::image::detect::DetectionResponse &result,
                             const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,

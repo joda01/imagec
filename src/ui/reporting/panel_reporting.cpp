@@ -56,15 +56,29 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     connect(this, &PanelReporting::loadingFilesfinished, this, &PanelReporting::onLoadingFileFinished);
 
     auto [selector, _2] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-    selector->addWidget(createTitle("Results"));
+    selector->addWidget(createTitle("Selector"));
     mSelectorLayout = selector;
 
-    mProgressSelector = createProgressBar(_2);
-    mProgressSelector->setVisible(true);
-    mProgressSelector->setRange(0, 0);
-    mProgressSelector->setMaximum(0);
-    mProgressSelector->setMinimum(0);
-    selector->addWidget(mProgressSelector);
+    //
+    mAnalyzeSelector = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
+        "icons8-folder-50.png", "Analysis", "Analysis", "", "", {{"Experiment 1", "1"}}, mWindowMain, ""));
+    selector->addWidget(mAnalyzeSelector->getEditableWidget());
+    connect(mAnalyzeSelector.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onResultsFileSelected);
+
+    //
+    mChannelSelector = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
+        "icons8-folder-50.png", "Channel", "Chanel", "", "", {{"Experiment 1", "1"}}, mWindowMain, ""));
+    selector->addWidget(mChannelSelector->getEditableWidget());
+    connect(mChannelSelector.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onResultsFileSelected);
+
+    //
+    mMeasureChannelSelector = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
+        "icons8-folder-50.png", "Measurement", "Measurement", "", "",
+        {{"Circularity", "1"}, {"Validity", "1"}, {"Intensity", "1"}}, mWindowMain, ""));
+    selector->addWidget(mMeasureChannelSelector->getEditableWidget());
+    connect(mMeasureChannelSelector.get(), &ContainerFunctionBase::valueChanged, this,
+            &PanelReporting::onResultsFileSelected);
+
     _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
 
@@ -157,8 +171,6 @@ PanelReporting::~PanelReporting()
 ///
 void PanelReporting::lookingForFilesThread()
 {
-  entry.clear();
-
   emit loadingFilesfinished();
 }
 
@@ -171,12 +183,7 @@ void PanelReporting::lookingForFilesThread()
 ///
 void PanelReporting::onLoadingFileFinished()
 {
-  mFileSelector = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-folder-50.png", "Results files", "Results files", "", "", entry, mWindowMain, ""));
-  mSelectorLayout->insertWidget(1, mFileSelector->getEditableWidget());
-  connect(mFileSelector.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onResultsFileSelected);
   onResultsFileSelected();
-  mProgressSelector->setVisible(false);
 }
 
 ///
@@ -229,14 +236,6 @@ void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &i
 {
   mExportPath = imageCFile.parent_path();
   mWindowMain->setMiddelLabelText(imageCFile.filename().string().data());
-
-  if(mFileSelector != nullptr) {
-    mSelectorLayout->removeWidget(mFileSelector->getEditableWidget());
-  }
-  mProgressSelector->setVisible(true);
-  mProgressSelector->setRange(0, 0);
-  mProgressSelector->setMaximum(0);
-  mProgressSelector->setMinimum(0);
 
   mAnalyzer   = std::make_shared<joda::results::Analyzer>(imageCFile);
   auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(*mAnalyzer, 1, 15, 15);

@@ -42,7 +42,7 @@ public:
   explicit Analyzer(const std::filesystem::path &databasePath);
   auto getAnalyzes() -> std::vector<db::AnalyzeMeta>;
   auto getImagesForAnalyses(const std::string &analyzeId) -> std::vector<db::ImageMeta>;
-  auto getChannelsForImage(const std::string &analyzeId, uint64_t imageId) -> std::vector<db::ChannelMeta>;
+  auto getChannelsForAnalyses(const std::string &analyzeId) -> std::vector<db::ChannelMeta>;
   auto getPlatesForAnalyses(const std::string &analyzeId) -> std::vector<db::PlateMeta>;
   auto getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -> std::vector<db::WellMeta>;
   auto getDatabase() -> joda::results::db::Database &

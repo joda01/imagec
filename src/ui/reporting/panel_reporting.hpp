@@ -70,9 +70,9 @@ private:
 
   // Selector
   QVBoxLayout *mSelectorLayout;
-  std::shared_ptr<ContainerFunction<QString, int>> mFileSelector;
-  QProgressBar *mProgressSelector;
-  std::vector<ContainerFunction<QString, int>::ComboEntry> entry;
+  std::shared_ptr<ContainerFunction<QString, int>> mAnalyzeSelector;
+  std::shared_ptr<ContainerFunction<QString, int>> mChannelSelector;
+  std::shared_ptr<ContainerFunction<QString, int>> mMeasureChannelSelector;
 
   // Heatmap
   std::shared_ptr<ContainerFunction<QString, int>> mHeatmapSlice;

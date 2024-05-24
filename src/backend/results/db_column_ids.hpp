@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <stdexcept>
+#include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/roi/roi.hpp"
 #include "backend/settings/channel/channel_index.hpp"
 
@@ -39,7 +40,7 @@ enum class MeasureChannel : uint16_t
   CROSS_CHANNEL_COUNT         = 15
 };
 
-enum class ChannelIndex : uint16_t
+enum class ChannelIndex : uint8_t
 {
   ME  = 0,
   CH0 = 1,
@@ -72,7 +73,14 @@ enum class ObjectValidity : uint32_t
   INVALID              = 0x40,
   AT_THE_EDGE          = 0x80,
   UNKNOWN              = 0xFFFFFFFF,
+};
 
+enum class ChannelValidity : uint32_t
+{
+
+  VALID                    = 0x0,
+  POSSIBLE_NOISE           = 0x01,
+  POSSIBLE_WRONG_THRESHOLD = 0x02
 };
 
 struct WellId
@@ -91,6 +99,13 @@ class MeasureChannelId
 {
 public:
   static constexpr uint32_t MEASURE_CH_SHIFT = 16;
+  MeasureChannelId()
+  {
+  }
+
+  MeasureChannelId(uint32_t val) : mChannelIndex(val)
+  {
+  }
 
   MeasureChannelId(MeasureChannel measureCh, ChannelIndex idx) :
       mChannelIndex((static_cast<uint32_t>(measureCh) << MEASURE_CH_SHIFT) | static_cast<uint32_t>(idx))
@@ -108,10 +123,10 @@ public:
   }
 
 private:
-  uint32_t mChannelIndex;
+  uint32_t mChannelIndex = 0;
 };
 
-inline ChannelIndex toMeasureChannelIndex(joda::settings::ChannelIndex idx)
+inline ChannelIndex toChannelIndex(joda::settings::ChannelIndex idx)
 {
   switch(idx) {
     case settings::ChannelIndex::NONE:
@@ -153,15 +168,30 @@ inline ChannelIndex toMeasureChannelIndex(joda::settings::ChannelIndex idx)
   }
 }
 
-inline uint32_t toValidity(image::ParticleValidity validity)
+inline ObjectValidity toValidity(image::ParticleValidity validity)
 {
   switch(validity) {
     case image::ParticleValidity::UNKNOWN:
-      return static_cast<uint32_t>(ObjectValidity::UNKNOWN);
+      return ObjectValidity::UNKNOWN;
     case image::ParticleValidity::VALID:
-      return static_cast<uint32_t>(ObjectValidity::VALID);
+      return ObjectValidity::VALID;
     default:
-      return static_cast<uint32_t>(validity);
+      return static_cast<ObjectValidity>(validity);
+  }
+}
+
+inline ChannelValidity toValidity(joda::image::detect::ResponseDataValidity validity)
+{
+  switch(validity) {
+    case image::detect::ResponseDataValidity::UNKNOWN:
+    case image::detect::ResponseDataValidity::VALID:
+      return ChannelValidity::VALID;
+    case image::detect::ResponseDataValidity::POSSIBLE_NOISE:
+      return ChannelValidity::POSSIBLE_NOISE;
+    case image::detect::ResponseDataValidity::POSSIBLE_WRONG_THRESHOLD:
+      return ChannelValidity::POSSIBLE_WRONG_THRESHOLD;
+    default:
+      throw std::runtime_error("Unknown validity!");
   }
 }
 
