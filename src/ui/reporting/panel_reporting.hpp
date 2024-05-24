@@ -24,6 +24,7 @@
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/xz/archive_reader.hpp"
 #include "backend/results/analyzer/analyzer.hpp"
+#include "backend/results/db_column_ids.hpp"
 #include "backend/results/results.hpp"
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_function.hpp"
@@ -71,12 +72,13 @@ private:
   // Selector
   QVBoxLayout *mSelectorLayout;
   std::shared_ptr<ContainerFunction<QString, int>> mAnalyzeSelector;
-  std::shared_ptr<ContainerFunction<QString, int>> mChannelSelector;
-  std::shared_ptr<ContainerFunction<QString, int>> mMeasureChannelSelector;
+  std::shared_ptr<ContainerFunction<joda::results::ChannelIndex, int>> mChannelSelector;
+  std::shared_ptr<ContainerFunction<uint32_t, int>> mMeasureChannelSelector;
+  std::vector<results::db::ChannelMeta> mChannelInfos;
 
   // Heatmap
+  std::shared_ptr<ContainerFunction<uint32_t, uint32_t>> mPlateSize;
   std::shared_ptr<ContainerFunction<QString, int>> mHeatmapSlice;
-  std::shared_ptr<ContainerFunction<bool, bool>> mGenerateHeatmapForWells;
 
   QProgressBar *mProgressHeatmap;
   ContainerButton *mButtonReportingSettingsHeatmap;
@@ -108,6 +110,8 @@ private slots:
   void onExportToXlsxHeatmapClicked();
   void onLoadingFileFinished();
   void onResultsFileSelected();
+  void onChannelChanged();
+  void onMeasurementChanged();
   void onTableDoubleClicked(const QModelIndex &index);
 };
 

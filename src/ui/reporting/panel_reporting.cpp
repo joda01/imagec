@@ -27,6 +27,7 @@
 #include <filesystem>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -61,25 +62,56 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 
     //
     mAnalyzeSelector = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-        "icons8-folder-50.png", "Analysis", "Analysis", "", "", {{"Experiment 1", "1"}}, mWindowMain, ""));
+        "icons8-folder-50.png", "Analysis", "Analysis", "", "", {}, mWindowMain, ""));
     selector->addWidget(mAnalyzeSelector->getEditableWidget());
     connect(mAnalyzeSelector.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onResultsFileSelected);
 
     //
-    mChannelSelector = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-        "icons8-folder-50.png", "Channel", "Chanel", "", "", {{"Experiment 1", "1"}}, mWindowMain, ""));
+    mChannelSelector = std::shared_ptr<ContainerFunction<joda::results::ChannelIndex, int>>(
+        new ContainerFunction<joda::results::ChannelIndex, int>("icons8-folder-50.png", "Channel", "Channel", "",
+                                                                joda::results::ChannelIndex::ME, {}, mWindowMain, ""));
     selector->addWidget(mChannelSelector->getEditableWidget());
-    connect(mChannelSelector.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onResultsFileSelected);
+    connect(mChannelSelector.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onChannelChanged);
 
     //
-    mMeasureChannelSelector = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-        "icons8-folder-50.png", "Measurement", "Measurement", "", "",
-        {{"Circularity", "1"}, {"Validity", "1"}, {"Intensity", "1"}}, mWindowMain, ""));
+    mMeasureChannelSelector = std::shared_ptr<ContainerFunction<uint32_t, int>>(new ContainerFunction<uint32_t, int>(
+        "icons8-folder-50.png", "Measurement", "Measurement", "", 0, {}, mWindowMain, ""));
     selector->addWidget(mMeasureChannelSelector->getEditableWidget());
     connect(mMeasureChannelSelector.get(), &ContainerFunctionBase::valueChanged, this,
-            &PanelReporting::onResultsFileSelected);
+            &PanelReporting::onMeasurementChanged);
 
     _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  }
+
+  //
+  // Plate settings
+  //
+  {
+    auto [verticalLayoutHeatmap, layout] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+    verticalLayoutHeatmap->addWidget(createTitle("Heatmap"));
+    // Settings
+
+    mHeatmapSlice = std::shared_ptr<ContainerFunction<QString, int>>(
+        new ContainerFunction<QString, int>("icons8-light-50.png", "[200,300]", "Image heatmap area size [px]",
+                                            "200, 300", mWindowMain, "heatmap_image_area_size.json"));
+    verticalLayoutHeatmap->addWidget(mHeatmapSlice->getEditableWidget());
+
+    mPlateSize = std::shared_ptr<ContainerFunction<uint32_t, uint32_t>>(
+        new ContainerFunction<uint32_t, uint32_t>("icons8-full-image-50.png", "Plate size", "Plate size", "", 0,
+                                                  {
+                                                      {1, "1", ""},
+                                                      {203, "2 x 3", ""},
+                                                      {304, "3 x 4", ""},
+                                                      {406, "4 x 6", ""},
+                                                      {608, "6 x 8", ""},
+                                                      {812, "8 x 12", ""},
+                                                      {1624, "16 x 24", ""},
+                                                      {3248, "32 x 48", ""},
+                                                      {4872, "48 x 72", ""},
+                                                  },
+                                                  mWindowMain, "heatmap_generate_for_well.json"));
+    connect(mPlateSize.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onMeasurementChanged);
+    verticalLayoutHeatmap->addWidget(mPlateSize->getEditableWidget());
   }
 
   //
@@ -102,37 +134,6 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
 
-  //
-  // Heatmap
-  //
-  {
-    auto [verticalLayoutHeatmap, layout] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-    verticalLayoutHeatmap->addWidget(createTitle("Heatmap"));
-    // Settings
-
-    mHeatmapSlice = std::shared_ptr<ContainerFunction<QString, int>>(
-        new ContainerFunction<QString, int>("icons8-light-50.png", "[200,300]", "Image heatmap area size [px]",
-                                            "200, 300", mWindowMain, "heatmap_image_area_size.json"));
-    verticalLayoutHeatmap->addWidget(mHeatmapSlice->getEditableWidget());
-
-    mGenerateHeatmapForWells = std::shared_ptr<ContainerFunction<bool, bool>>(new ContainerFunction<bool, bool>(
-        "icons8-table-top-view-50.png", "Generate heatmap for wells", "Generate heatmap for wells", false, mWindowMain,
-        "heatmap_generate_for_well.json"));
-    verticalLayoutHeatmap->addWidget(mGenerateHeatmapForWells->getEditableWidget());
-
-    mButtonReportingSettingsHeatmap = new ContainerButton("Measure channel", "", mWindowMain);
-    connect(mButtonReportingSettingsHeatmap, &ContainerButton::valueChanged, this,
-            &PanelReporting::onHeatmapExportChannelsClicked);
-    verticalLayoutHeatmap->addWidget(mButtonReportingSettingsHeatmap->getEditableWidget());
-
-    // Export button
-    mButtonExportHeatmap = new ContainerButton("Start export", "icons8-heat-map-50.png", mWindowMain);
-    connect(mButtonExportHeatmap, &ContainerButton::valueChanged, this, &PanelReporting::onExportToXlsxHeatmapClicked);
-    verticalLayoutHeatmap->addWidget(mButtonExportHeatmap->getEditableWidget());
-    mProgressHeatmap = createProgressBar(layout);
-    verticalLayoutHeatmap->addWidget(mProgressHeatmap);
-    layout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  }
   verticalLayoutContainer->addStretch(0);
 
   auto [tableContainer, tableContainerLayout] =
@@ -236,9 +237,82 @@ void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &i
 {
   mExportPath = imageCFile.parent_path();
   mWindowMain->setMiddelLabelText(imageCFile.filename().string().data());
+  mAnalyzer = std::make_shared<joda::results::Analyzer>(imageCFile);
 
-  mAnalyzer   = std::make_shared<joda::results::Analyzer>(imageCFile);
-  auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(*mAnalyzer, 1, 15, 15);
+  std::string analysisId;
+  {
+    // Analysis
+    auto analyses = mAnalyzer->getAnalyzes();
+    std::vector<ContainerFunction<QString, int>::ComboEntry> entry;
+    for(const auto &analyse : analyses) {
+      if(analysisId.empty()) {
+        analysisId = analyse.analyzeId;
+      }
+      entry.push_back(ContainerFunction<QString, int>::ComboEntry{
+          .key = analyse.analyzeId.data(), .label = analyse.name.data(), .icon = ""});
+    }
+    if(!analyses.empty()) {
+      mAnalyzeSelector->setOptions("icons8-gantt-chart-50.png", entry, analysisId.data());
+    } else {
+      mAnalyzeSelector->setOptions("icons8-gantt-chart-50.png", {}, "");
+    }
+  }
+  {
+    // Channels
+    mChannelInfos = mAnalyzer->getChannelsForAnalyses(analysisId);
+    std::vector<ContainerFunction<joda::results::ChannelIndex, int>::ComboEntry> entry;
+    for(const auto &channel : mChannelInfos) {
+      entry.push_back(ContainerFunction<joda::results::ChannelIndex, int>::ComboEntry{
+          .key = channel.channelId, .label = channel.name.data(), .icon = ""});
+    }
+    if(!mChannelInfos.empty()) {
+      mChannelSelector->setOptions("icons8-sheets-50.png", entry, mChannelInfos[0].channelId);
+    } else {
+      mChannelSelector->setOptions("icons8-sheets-50.png", {}, joda::results::ChannelIndex::ME);
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelReporting::onChannelChanged()
+{
+  for(const auto &channel : mChannelInfos) {
+    if(channel.channelId == mChannelSelector->getValue()) {
+      std::vector<ContainerFunction<uint32_t, int>::ComboEntry> entry;
+      for(const auto &measure : channel.measurements) {
+        entry.push_back(ContainerFunction<uint32_t, int>::ComboEntry{
+            .key = measure.getKey(), .label = measure.toString().data(), .icon = ""});
+      }
+      if(!entry.empty()) {
+        mMeasureChannelSelector->setOptions("icons8-filter-50.png", entry, entry[0].key);
+      } else {
+        mMeasureChannelSelector->setOptions("icons8-filter-50.png", {}, 0);
+      }
+      break;
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelReporting::onMeasurementChanged()
+{
+  auto value    = mPlateSize->getValue();
+  uint32_t rows = value / 100;
+  uint32_t cols = value % 100;
+  auto result   = joda::results::analyze::plugins::HeatmapPerPlate::getData(
+      *mAnalyzer, 1, rows, cols, joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()));
   mHeatmap->setData(result);
 }
 

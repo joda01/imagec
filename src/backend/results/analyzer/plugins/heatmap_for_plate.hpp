@@ -14,7 +14,8 @@ public:
   /// \brief      Create control image
   /// \author     Joachim Danmayr
   ///
-  static auto getData(Analyzer &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plarteCols) -> Table
+  static auto getData(Analyzer &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plarteCols,
+                      const MeasureChannelId &measurment) -> Table
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
         "SELECT"
@@ -31,7 +32,7 @@ public:
         " image_well.plate_id=$2 AND validity=0 "
         "GROUP BY"
         "  (image_well.well_id) ",
-        MeasureChannelId(MeasureChannel::CONFIDENCE, ChannelIndex::ME).getKey(), plateId);
+        measurment.getKey(), plateId);
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());

@@ -117,9 +117,127 @@ public:
     return mChannelIndex;
   }
 
+  [[nodiscard]] ChannelIndex getChannelIndex() const
+  {
+    return static_cast<ChannelIndex>(mChannelIndex & 0xFFFF);
+  }
+
+  [[nodiscard]] MeasureChannel getMeasureChannel() const
+  {
+    return static_cast<MeasureChannel>(mChannelIndex >> MEASURE_CH_SHIFT);
+  }
+
   explicit operator uint32_t() const
   {
     return mChannelIndex;
+  }
+
+  [[nodiscard]] std::string toString() const
+  {
+    std::string txt;
+    switch(getMeasureChannel()) {
+      case MeasureChannel::CONFIDENCE:
+        txt = "Confidence";
+        break;
+      case MeasureChannel::AREA_SIZE:
+        txt = "Area size";
+        break;
+      case MeasureChannel::PERIMETER:
+        txt = "Perimeter";
+        break;
+      case MeasureChannel::CIRCULARITY:
+        txt = "Circularity";
+        break;
+      case MeasureChannel::CENTER_OF_MASS_X:
+        txt = "X";
+        break;
+      case MeasureChannel::CENTER_OF_MASS_Y:
+        txt = "Y";
+        break;
+      case MeasureChannel::BOUNDING_BOX_WIDTH:
+        txt = "Bounding box width";
+        break;
+      case MeasureChannel::BOUNDING_BOX_HEIGHT:
+        txt = "Bounding box height";
+        break;
+      case MeasureChannel::INTENSITY_AVG:
+        txt = "Intensity AVG";
+        break;
+      case MeasureChannel::INTENSITY_MIN:
+        txt = "Intensity Min";
+        break;
+      case MeasureChannel::INTENSITY_MAX:
+        txt = "Intensity Max";
+        break;
+      case MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG:
+        txt = "Intensity AVG";
+        break;
+      case MeasureChannel::CROSS_CHANNEL_INTENSITY_MIN:
+        txt = "Intensity Min";
+        break;
+      case MeasureChannel::CROSS_CHANNEL_INTENSITY_MAX:
+        txt = "Intensity Max";
+        break;
+      case MeasureChannel::CROSS_CHANNEL_COUNT:
+        txt = "Cross count";
+        break;
+        break;
+    }
+
+    switch(getChannelIndex()) {
+      case ChannelIndex::ME:
+        break;
+      case ChannelIndex::CH0:
+        txt += "(0)";
+        break;
+      case ChannelIndex::CH1:
+        txt += "(1)";
+        break;
+      case ChannelIndex::CH2:
+        txt += "(2)";
+        break;
+      case ChannelIndex::CH3:
+        txt += "(3)";
+        break;
+      case ChannelIndex::CH4:
+        txt += "(4)";
+        break;
+      case ChannelIndex::CH5:
+        txt += "(5)";
+        break;
+      case ChannelIndex::CH6:
+        txt += "(6)";
+        break;
+      case ChannelIndex::CH7:
+        txt += "(7)";
+        break;
+      case ChannelIndex::CH8:
+        txt += "(8)";
+        break;
+      case ChannelIndex::CH9:
+        txt += "(9)";
+        break;
+      case ChannelIndex::A:
+        txt += "(A)";
+        break;
+      case ChannelIndex::B:
+        txt += "(B)";
+        break;
+      case ChannelIndex::C:
+        txt += "(C)";
+        break;
+      case ChannelIndex::D:
+        txt += "(D)";
+        break;
+      case ChannelIndex::E:
+        txt += "(E)";
+        break;
+      case ChannelIndex::F:
+        txt += "(F)";
+        break;
+        break;
+    }
+    return txt;
   }
 
 private:
