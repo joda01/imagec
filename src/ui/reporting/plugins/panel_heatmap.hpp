@@ -33,6 +33,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  QString formatDoubleScientific(double value, int precision = 3);
   void paintEvent(QPaintEvent *ev) override;
   joda::results::Table mData;
   std::map<float, QColor> mColorMap{
