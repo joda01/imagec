@@ -12,7 +12,10 @@
 ///
 
 #include "panel_heatmap.hpp"
+#include <qboxlayout.h>
+#include <qevent.h>
 #include <qgridlayout.h>
+#include <qnamespace.h>
 #include <qwidget.h>
 #include <QPainter>
 #include <QPainterPath>
@@ -20,6 +23,7 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include "ui/helper/layout_generator.hpp"
 
 namespace joda::ui::qt::reporting::plugin {
 
@@ -30,26 +34,38 @@ namespace joda::ui::qt::reporting::plugin {
 PanelHeatmap::PanelHeatmap(QWidget *parent) : QWidget(parent)
 {
   // Create and set up the grid layout
-  QGridLayout *gridLayout = new QGridLayout(this);
-  gridLayout->setSpacing(2);
+  auto *horizontalLayout = joda::ui::qt::helper::createLayout(this);
 
-  mHeatmap01 = new ChartHeatMap(this);
-  gridLayout->addWidget(mHeatmap01, 0, 0);
-  mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  //
+  // Plate view
+  //
+  {
+    auto [plateViewer, plateViewerWidget] =
+        joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgb(251, 252, 253)", 16, false, 800, 2048);
+    mHeatmap01 = new ChartHeatMap(this);
+    plateViewer->addWidget(mHeatmap01);
+    mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    plateViewerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  }
 
-  // mHeatmap02 = new ChartHeatMap(this);
-  // gridLayout->addWidget(mHeatmap02, 0, 1);
-  // mHeatmap02->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  // mHeatmap03 = new ChartHeatMap(this);
-  // gridLayout->addWidget(mHeatmap03, 1, 0);
-  // mHeatmap03->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  // gridLayout->addWidget(new ChartHeatMap(this), 0, 1);
+  //
+  // Well edit
+  //
+  {
+    auto [verticalLayoutContainer, _1] =
+        joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 250, 16);
 
-  // Add spacers for resizing
-  // gridLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum), 0, 4);
-  // gridLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding), 4, 0);
+    auto [verticalLayoutMeta, _2] =
+        joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
 
-  setLayout(gridLayout);
+    verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Well editor"));
+
+    _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+    verticalLayoutContainer->addStretch();
+  }
+
+  setLayout(horizontalLayout);
+  // horizontalLayout->addStretch();
 }
 
 ///
@@ -69,12 +85,14 @@ void PanelHeatmap::setData(const joda::results::Table &data)
 ChartHeatMap::ChartHeatMap(QWidget *parent) : QWidget(parent)
 {
   setMinimumSize(parent->size());
+  setMouseTracking(true);
 }
 
 void ChartHeatMap::setData(const joda::results::Table &data)
 {
   mData = data;
-  std::cout << "Set data " << std::to_string(mData.getRows()) << std::endl;
+  mRows = mData.getRows();
+  mCols = mData.getCols();
 
   update();
 }
@@ -93,17 +111,13 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
   // Create a uniform real distribution to produce numbers in the range [0, 1)
   std::uniform_real_distribution<> dis(0.0, 1.0);
 
-  const uint32_t spacing       = 4;
-  const uint32_t Y_TOP_MARING  = 16;
-  const uint32_t X_LEFT_MARGIN = 10;
-  uint32_t rows                = mData.getRows();
-  uint32_t cols                = mData.getCols();
-  uint32_t width               = size().width() - (spacing + X_LEFT_MARGIN);
-  uint32_t height              = size().height() - (spacing + Y_TOP_MARING);
+  uint32_t width  = size().width() - (spacing + X_LEFT_MARGIN);
+  uint32_t height = size().height() - (spacing + Y_TOP_MARING);
 
   auto [min, max] = mData.getMinMax();
-  if(rows > 0 && cols > 0) {
-    uint32_t rectWidth = std::min(width / cols, height / rows);
+
+  if(mRows > 0 && mCols > 0) {
+    uint32_t rectWidth = std::min(width / mCols, height / mRows);
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);    // Enable smooth edges
@@ -116,11 +130,12 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     QFontMetrics fm(fontHeader);
 
     // Define rectangle properties
-    for(uint32_t x = 0; x < cols; x++) {
+    uint32_t idx = 0;
+    for(uint32_t x = 0; x < mCols; x++) {
       uint32_t txtX = x * rectWidth + spacing + X_LEFT_MARGIN + rectWidth / 2 - 6;
       painter.drawText(txtX, spacing * 4, QString::number(x));
 
-      for(uint32_t y = 0; y < rows; y++) {
+      for(uint32_t y = 0; y < mRows; y++) {
         uint32_t txtY   = y * rectWidth + rectWidth / 2 + spacing + Y_TOP_MARING;
         char toPrint[2] = {0};
         toPrint[0]      = y + 'A';
@@ -145,7 +160,11 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 
         painter.setBrush(color);    // Change color as desired
         painter.fillPath(path, painter.brush());
-        painter.setPen(QPen(Qt::black, 1));
+        if(idx == mHoveredWell) {
+          painter.setPen(QPen(Qt::red, 1));
+        } else {
+          painter.setPen(QPen(Qt::black, 1));
+        }
         painter.drawPath(path);
 
         const int32_t xReduce = rectWidth / 3;
@@ -182,8 +201,45 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
           int textY = rect.center().y() + textRect.height() / 2 - fontMetrics.descent();    // Adjust for descent
           painter.drawText(textX, textY, txtToPaint);
         }
+        idx++;
       }
     }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ChartHeatMap::mouseMoveEvent(QMouseEvent *event)
+{
+  int32_t newHoveringIdx = -1;
+  uint32_t width         = size().width() - (spacing + X_LEFT_MARGIN);
+  uint32_t height        = size().height() - (spacing + Y_TOP_MARING);
+  auto [min, max]        = mData.getMinMax();
+  if(mRows > 0 && mCols > 0) {
+    uint32_t rectWidth = std::min(width / mCols, height / mRows);
+    uint32_t idx       = 0;
+    for(uint32_t x = 0; x < mCols; x++) {
+      for(uint32_t y = 0; y < mRows; y++) {
+        uint32_t rectXPos = x * rectWidth + spacing + X_LEFT_MARGIN;
+        uint32_t rectYPos = y * rectWidth + spacing + Y_TOP_MARING;
+        QRectF rect(rectXPos, rectYPos, rectWidth, rectWidth);
+        if(rect.contains(event->pos())) {
+          newHoveringIdx = idx;
+          break;
+        }
+        idx++;
+      }
+    }
+  }
+  // Update hovering index and trigger repaint if necessary
+  if(mHoveredWell != newHoveringIdx) {
+    mHoveredWell = newHoveringIdx;
+    update();    // Trigger repaint to reflect hover state change
   }
 }
 

@@ -35,6 +35,7 @@
 #include "backend/results/analyzer/plugins/heatmap_for_plate.hpp"
 #include "backend/results/results.hpp"
 #include "ui/container/container_function_base.hpp"
+#include "ui/helper/layout_generator.hpp"
 #include "ui/reporting/plugins/panel_heatmap.hpp"
 
 namespace joda::ui::qt {
@@ -47,8 +48,9 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelReporting");
 
-  auto *horizontalLayout             = createLayout();
-  auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+  auto *horizontalLayout = joda::ui::qt::helper::createLayout(this);
+  auto [verticalLayoutContainer, _1] =
+      joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 250, 16);
 
   //
   // Selector
@@ -56,7 +58,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   {
     connect(this, &PanelReporting::loadingFilesfinished, this, &PanelReporting::onLoadingFileFinished);
 
-    auto [selector, _2] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+    auto [selector, _2] = joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
     selector->addWidget(createTitle("Selector"));
     mSelectorLayout = selector;
 
@@ -87,7 +89,8 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   // Plate settings
   //
   {
-    auto [verticalLayoutHeatmap, layout] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+    auto [verticalLayoutHeatmap, layout] =
+        joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
     verticalLayoutHeatmap->addWidget(createTitle("Heatmap"));
     // Settings
 
@@ -118,7 +121,8 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   // Excel export
   //
   {
-    auto [verticalLayoutXlsx, _2] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+    auto [verticalLayoutXlsx, _2] =
+        joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
     verticalLayoutXlsx->addWidget(createTitle("Export as xlsx"));
 
     mButtonReportingSettings = new ContainerButton("Measure channel", "", mWindowMain);
@@ -136,8 +140,8 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 
   verticalLayoutContainer->addStretch(0);
 
-  auto [tableContainer, tableContainerLayout] =
-      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 16777215, 16);
+  auto [tableContainer, tableContainerLayout] = joda::ui::qt::helper::addVerticalPanel(
+      horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 16777215, 16777215, 16);
 
   {
       // mTable = new QTableWidget(0, 0, tableContainerLayout);
@@ -372,124 +376,6 @@ QLabel *PanelReporting::createTitle(const QString &title)
   label->setText(title);
 
   return label;
-}
-
-QHBoxLayout *PanelReporting::createLayout()
-{
-  QScrollArea *scrollArea = new QScrollArea(this);
-  scrollArea->setObjectName("scrollArea");
-  scrollArea->setStyleSheet("QScrollArea#scrollArea { background-color: rgba(0, 0, 0, 0);}");
-  scrollArea->setFrameStyle(0);
-  scrollArea->setContentsMargins(0, 0, 0, 0);
-  scrollArea->verticalScrollBar()->setStyleSheet(
-      "QScrollBar:vertical {"
-      "    border: none;"
-      "    background: rgba(0, 0, 0, 0);"
-      "    width: 6px;"
-      "    margin: 0px 0px 0px 0px;"
-      "}"
-      "QScrollBar::handle:vertical {"
-      "    background: rgba(32, 27, 23, 0.6);"
-      "    min-height: 20px;"
-      "    border-radius: 12px;"
-      "}"
-      "QScrollBar::add-line:vertical {"
-      "    border: none;"
-      "    background: rgba(0, 0, 0, 0);"
-      "    height: 20px;"
-      "    subcontrol-position: bottom;"
-      "    subcontrol-origin: margin;"
-      "}"
-      "QScrollBar::sub-line:vertical {"
-      "    border: none;"
-      "    background: rgba(0, 0, 0, 0);"
-      "    height: 20px;"
-      "    subcontrol-position: top;"
-      "    subcontrol-origin: margin;"
-      "}");
-
-  // Create a widget to hold the panels
-  QWidget *contentWidget = new QWidget;
-  contentWidget->setObjectName("contentOverview");
-  contentWidget->setStyleSheet("QWidget#contentOverview { background-color: rgb(251, 252, 253);}");
-
-  scrollArea->setWidget(contentWidget);
-  scrollArea->setWidgetResizable(true);
-
-  // Create a horizontal layout for the panels
-  QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
-  horizontalLayout->setContentsMargins(16, 16, 16, 16);
-  horizontalLayout->setSpacing(16);    // Adjust this value as needed
-  contentWidget->setLayout(horizontalLayout);
-  return horizontalLayout;
-}
-
-std::tuple<QVBoxLayout *, QWidget *> PanelReporting::addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
-                                                                      int margin, bool enableScrolling, int maxWidth,
-                                                                      int spacing) const
-{
-  QVBoxLayout *layout = new QVBoxLayout();
-  layout->setSpacing(spacing);
-  QWidget *contentWidget = new QWidget();
-
-  layout->setContentsMargins(margin, margin, margin, margin);
-  layout->setAlignment(Qt::AlignTop);
-
-  contentWidget->setObjectName("verticalContentChannel");
-  contentWidget->setLayout(layout);
-  contentWidget->setStyleSheet(
-      "QWidget#verticalContentChannel { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
-      "padding-bottom: 10px;"
-      "background-color: " +
-      bgColor + ";}");
-
-  if(enableScrolling) {
-    QScrollArea *scrollArea = new QScrollArea();
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
-    scrollArea->setObjectName("scrollArea");
-    scrollArea->setStyleSheet("QScrollArea#scrollArea { background-color: rgba(0, 0, 0, 0);}");
-    scrollArea->setFrameStyle(0);
-    scrollArea->setContentsMargins(0, 0, 0, 0);
-    scrollArea->verticalScrollBar()->setStyleSheet(
-        "QScrollBar:vertical {"
-        "    border: none;"
-        "    background: rgba(0, 0, 0, 0);"
-        "    width: 6px;"
-        "    margin: 0px 0px 0px 0px;"
-        "}"
-        "QScrollBar::handle:vertical {"
-        "    background: rgba(32, 27, 23, 0.6);"
-        "    min-height: 20px;"
-        "    border-radius: 12px;"
-        "}"
-        "QScrollBar::add-line:vertical {"
-        "    border: none;"
-        "    background: rgba(0, 0, 0, 0);"
-        "    height: 20px;"
-        "    subcontrol-position: bottom;"
-        "    subcontrol-origin: margin;"
-        "}"
-        "QScrollBar::sub-line:vertical {"
-        "    border: none;"
-        "    background: rgba(0, 0, 0, 0);"
-        "    height: 20px;"
-        "    subcontrol-position: top;"
-        "    subcontrol-origin: margin;"
-        "}");
-
-    scrollArea->setWidget(contentWidget);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setMinimumWidth(maxWidth);
-    scrollArea->setMaximumWidth(maxWidth);
-
-    horizontalLayout->addWidget(scrollArea);
-    return {layout, scrollArea};
-  }
-  contentWidget->setMinimumWidth(maxWidth);
-  contentWidget->setMaximumWidth(maxWidth);
-  horizontalLayout->addWidget(contentWidget);
-
-  return {layout, contentWidget};
 }
 
 ///

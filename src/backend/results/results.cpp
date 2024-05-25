@@ -29,6 +29,7 @@
 #include "backend/results/database/database.hpp"
 #include "backend/results/database/database_interface.hpp"
 #include "backend/results/db_column_ids.hpp"
+#include "backend/settings/channel/channel_settings_meta.hpp"
 #include <duckdb/common/types/value.hpp>
 
 namespace joda::results {
@@ -93,9 +94,9 @@ void Results::prepareOutputFolders(const std::filesystem::path &resultsFolder)
 ///
 void Results::appendChannelsToDetailReport(const joda::settings::AnalyzeSettings &settings)
 {
-  for(const auto &channel : settings.channels) {
+  auto addToVector = [this](const settings::ChannelSettingsMeta &meta,
+                            const settings::CrossChannelSettings &crossChannel) {
     std::vector<MeasureChannelId> measureChannels;
-
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::CONFIDENCE, ChannelIndex::ME));
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::AREA_SIZE, ChannelIndex::ME));
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::PERIMETER, ChannelIndex::ME));
@@ -108,7 +109,7 @@ void Results::appendChannelsToDetailReport(const joda::settings::AnalyzeSettings
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::INTENSITY_MIN, ChannelIndex::ME));
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::INTENSITY_MAX, ChannelIndex::ME));
 
-    for(const auto crossChannelIntensityIdx : channel.crossChannel.crossChannelIntensityChannels) {
+    for(const auto crossChannelIntensityIdx : crossChannel.crossChannelIntensityChannels) {
       measureChannels.emplace_back(
           MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG, toChannelIndex(crossChannelIntensityIdx)));
 
@@ -119,17 +120,30 @@ void Results::appendChannelsToDetailReport(const joda::settings::AnalyzeSettings
           MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_MAX, toChannelIndex(crossChannelIntensityIdx)));
     }
 
-    for(const auto crossChannelCountIdx : channel.crossChannel.crossChannelCountChannels) {
+    for(const auto crossChannelCountIdx : crossChannel.crossChannelCountChannels) {
       measureChannels.emplace_back(
           MeasureChannelId(MeasureChannel::CROSS_CHANNEL_COUNT, toChannelIndex(crossChannelCountIdx)));
     }
 
     mDatabase->createChannel(db::ChannelMeta{.analyzeId    = mAnalyzeId,
-                                             .channelId    = toChannelIndex(channel.meta.channelIdx),
-                                             .name         = channel.meta.name,
+                                             .channelId    = toChannelIndex(meta.channelIdx),
+                                             .name         = meta.name,
                                              .measurements = std::move(measureChannels)
 
     });
+  };
+
+  for(const auto &channel : settings.channels) {
+    addToVector(channel.meta, channel.crossChannel);
+  }
+
+  for(const auto &channel : settings.vChannels) {
+    if(channel.$intersection.has_value()) {
+      addToVector(channel.$intersection->meta, channel.$intersection->crossChannel);
+    }
+    if(channel.$voronoi.has_value()) {
+      addToVector(channel.$voronoi->meta, channel.$voronoi->crossChannel);
+    }
   }
 }
 

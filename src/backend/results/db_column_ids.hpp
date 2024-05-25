@@ -21,6 +21,16 @@
 
 namespace joda::results {
 
+enum class Stats
+{
+  NO,
+  AVG,
+  SUM,
+  MIN,
+  MAX,
+  STDDEV
+};
+
 enum class MeasureChannel : uint16_t
 {
   CONFIDENCE                  = 1,

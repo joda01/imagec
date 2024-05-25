@@ -89,11 +89,7 @@ private:
   reporting::plugin::PanelHeatmap *mHeatmap;
 
   /////////////////////////////////////////////////////
-  QHBoxLayout *createLayout();
   QProgressBar *createProgressBar(QWidget *parent);
-  std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
-                                                        int margin = 16, bool enableScrolling = false,
-                                                        int maxWidth = 250, int spacing = 4) const;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

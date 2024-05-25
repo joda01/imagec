@@ -56,8 +56,10 @@ public:
         WellId wellID{.well{.wellId = materializedResult->GetValue(0, n).GetValue<uint16_t>()}, .imageIdx = 0};
         uint8_t row = wellID.well.wellPos[WellId::POS_Y] - 1;
         uint8_t col = wellID.well.wellPos[WellId::POS_X] - 1;
-        double val  = materializedResult->GetValue(4, n).GetValue<double>();    // AVG
-        results.setData(row, col, TableCell{val, true});
+        if(row < plateRows && col < plarteCols) {
+          double val = materializedResult->GetValue(4, n).GetValue<double>();    // AVG
+          results.setData(row, col, TableCell{val, true});
+        }
       } catch(const duckdb::InternalException &) {
       }
     }

@@ -35,12 +35,23 @@ private:
   /////////////////////////////////////////////////////
   QString formatDoubleScientific(double value, int precision = 3);
   void paintEvent(QPaintEvent *ev) override;
+  void mouseMoveEvent(QMouseEvent *event) override;
   joda::results::Table mData;
   std::map<float, QColor> mColorMap{
       {0.1, QColor{32, 102, 168}},  {0.1, QColor{32, 102, 168}},  {0.2, QColor{142, 193, 218}},
       {0.3, QColor{205, 225, 236}}, {0.4, QColor{237, 237, 237}}, {0.5, QColor{246, 214, 194}},
       {0.6, QColor{246, 214, 194}}, {0.7, QColor{246, 214, 194}}, {0.7, QColor{212, 114, 100}},
       {0.8, QColor{174, 40, 44}},   {0.9, QColor{174, 40, 44}},   {1.1, QColor{174, 40, 44}}};
+
+  /////////////////////////////////////////////////////
+  static inline const uint32_t spacing       = 4;
+  static inline const uint32_t Y_TOP_MARING  = 16;
+  static inline const uint32_t X_LEFT_MARGIN = 10;
+
+  uint32_t mRows        = 0;
+  uint32_t mCols        = 0;
+  int32_t mHoveredWell  = -1;
+  int32_t mSelectedWell = -1;
 };
 
 ///
