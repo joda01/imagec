@@ -16,6 +16,7 @@
 #include <chrono>
 #include <cstddef>
 #include <iostream>
+#include <memory>
 #include <random>
 #include <stdexcept>
 #include <string>
@@ -28,14 +29,21 @@
 #include <duckdb/common/types/value.hpp>
 #include <duckdb/common/types/vector.hpp>
 #include <duckdb/main/appender.hpp>
+#include <duckdb/main/config.hpp>
 #include <duckdb/main/connection.hpp>
 #include <duckdb/main/database.hpp>
 #include <duckdb.hpp>
 
 namespace joda::results::db {
 
-Database::Database(const std::filesystem::path &dbFile) : mDb(dbFile.string()), mConnection(mDb)
+Database::Database(const std::filesystem::path &dbFile)
 {
+  // cfg.SetOption("memory_limit", "10GB");
+  // cfg.SetOption("external_threads", 1);
+  // mDbCfg.SetOption("threads", threadsToUse);
+  mDbCfg.SetOption("temp_directory", dbFile.parent_path().string());
+  mDb         = std::make_unique<duckdb::DuckDB>(dbFile.string(), &mDbCfg);
+  mConnection = std::make_unique<duckdb::Connection>(*mDb);
 }
 Database::~Database()
 {
@@ -131,7 +139,7 @@ void Database::open()
       ");"
       "CREATE INDEX object_idx ON object (analyze_id, image_id, channel_id);";
 
-  auto result = mConnection.Query(create_table_sql);
+  auto result = mConnection->Query(create_table_sql);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -151,7 +159,7 @@ void Database::close()
 ///
 void Database::createAnalyze(const AnalyzeMeta &meta)
 {
-  auto prepare = mConnection.Prepare(
+  auto prepare = mConnection->Prepare(
       "INSERT INTO analyzes (run_id, analyze_id, name, scientists, datetime, location, notes) VALUES (?, ?, ?, ?, ?, "
       "?, "
       "?)");
@@ -170,7 +178,7 @@ void Database::createAnalyze(const AnalyzeMeta &meta)
 ///
 void Database::createPlate(const PlateMeta &meta)
 {
-  auto prepare = mConnection.Prepare("INSERT INTO plate (analyze_id, plate_id, notes) VALUES (?, ?, ?)");
+  auto prepare = mConnection->Prepare("INSERT INTO plate (analyze_id, plate_id, notes) VALUES (?, ?, ?)");
 
   auto timestamp = duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(
                                            std::chrono::high_resolution_clock::now().time_since_epoch())
@@ -184,7 +192,7 @@ void Database::createPlate(const PlateMeta &meta)
 ///
 void Database::createWell(const WellMeta &meta)
 {
-  auto prepare = mConnection.Prepare(
+  auto prepare = mConnection->Prepare(
       "INSERT INTO well (analyze_id, plate_id, well_id,well_pos_x,well_pos_y, notes) VALUES (?, ?, ?, ?, ?, ?)");
   prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.plateId, meta.wellId.well.wellId, meta.wellPosX,
                    meta.wellPosY, meta.notes);
@@ -197,7 +205,7 @@ void Database::createWell(const WellMeta &meta)
 void Database::createImage(const ImageMeta &meta)
 {
   {
-    auto prepare = mConnection.Prepare(
+    auto prepare = mConnection->Prepare(
         "INSERT INTO image (analyze_id, image_id, image_idx, file_name, original_image_path, width, height) VALUES "
         "(?, ?, ?, ?, ?, ?, ?)");
     prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.imageIdx,
@@ -206,7 +214,7 @@ void Database::createImage(const ImageMeta &meta)
   }
 
   {
-    auto prepare = mConnection.Prepare(
+    auto prepare = mConnection->Prepare(
         "INSERT INTO image_well (analyze_id, image_id, plate_id, well_id) VALUES "
         "(?, ?, ?, ?)");
     prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.plateId, meta.wellId.well.wellId);
@@ -219,7 +227,7 @@ void Database::createImage(const ImageMeta &meta)
 ///
 void Database::createChannel(const ChannelMeta &meta)
 {
-  auto prepare = mConnection.Prepare(
+  auto prepare = mConnection->Prepare(
       "INSERT INTO channel (analyze_id, channel_id, name, measurements) VALUES "
       "(?, ?, ?, ?)");
 
@@ -240,7 +248,7 @@ void Database::createChannel(const ChannelMeta &meta)
 ///
 void Database::createImageChannel(const ImageChannelMeta &meta)
 {
-  auto prepare = mConnection.Prepare(
+  auto prepare = mConnection->Prepare(
       "INSERT INTO channel_image (analyze_id, image_id, channel_id, control_image_path, validity, invalidateAll) "
       "VALUES "
       "(?, ?, ?, ?, ?, ?)");
@@ -255,7 +263,7 @@ void Database::createImageChannel(const ImageChannelMeta &meta)
 ///
 void Database::createObjects(const ObjectMeta &data)
 {
-  duckdb::Appender appender(mConnection, "object");
+  duckdb::Appender appender(*mConnection, "object");
 
   // Loop to insert 100 elements
 

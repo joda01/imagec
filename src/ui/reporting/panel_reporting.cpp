@@ -32,7 +32,6 @@
 #include <thread>
 #include <vector>
 #include "../window_main.hpp"
-#include "backend/results/analyzer/plugins/heatmap_for_plate.hpp"
 #include "backend/results/results.hpp"
 #include "ui/container/container_function_base.hpp"
 #include "ui/helper/layout_generator.hpp"
@@ -81,6 +80,19 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     selector->addWidget(mMeasureChannelSelector->getEditableWidget());
     connect(mMeasureChannelSelector.get(), &ContainerFunctionBase::valueChanged, this,
             &PanelReporting::onMeasurementChanged);
+
+    mStats =
+        std::shared_ptr<ContainerFunction<joda::results::Stats, int>>(new ContainerFunction<joda::results::Stats, int>(
+            "icons8-folder-50.png", "Statistics", "Statistics", "", joda::results::Stats::AVG,
+            {{joda::results::Stats::AVG, "AVG"},
+             {joda::results::Stats::MEDIAN, "MEDIAN"},
+             {joda::results::Stats::MIN, "MIN"},
+             {joda::results::Stats::MAX, "MAX"},
+             {joda::results::Stats::STDDEV, "STDDEV"},
+             {joda::results::Stats::SUM, "SUM"}},
+            mWindowMain, ""));
+    selector->addWidget(mStats->getEditableWidget());
+    connect(mStats.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onMeasurementChanged);
 
     _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
@@ -151,7 +163,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 
       // tableContainer->addWidget(mTable);
   } {
-    mHeatmap = new reporting::plugin::PanelHeatmap(tableContainerLayout);
+    mHeatmap = new reporting::plugin::PanelHeatmap(mWindowMain, tableContainerLayout);
     tableContainer->addWidget(mHeatmap);
   }
 
@@ -315,9 +327,13 @@ void PanelReporting::onMeasurementChanged()
   auto value    = mPlateSize->getValue();
   uint32_t rows = value / 100;
   uint32_t cols = value % 100;
-  auto result   = joda::results::analyze::plugins::HeatmapPerPlate::getData(
-      *mAnalyzer, 1, rows, cols, joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()));
-  mHeatmap->setData(result);
+  mHeatmap->setData(mAnalyzer,
+                    reporting::plugin::PanelHeatmap::SelectedFilter{
+                        .plateRows      = rows,
+                        .plateCols      = cols,
+                        .plateId        = 1,
+                        .measureChannel = joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()),
+                        .stats          = mStats->getValue()});
 }
 
 ///

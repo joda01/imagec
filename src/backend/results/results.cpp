@@ -101,6 +101,8 @@ void Results::appendChannelsToDetailReport(const joda::settings::AnalyzeSettings
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::AREA_SIZE, ChannelIndex::ME));
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::PERIMETER, ChannelIndex::ME));
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::CIRCULARITY, ChannelIndex::ME));
+    measureChannels.emplace_back(MeasureChannelId(MeasureChannel::VALID, ChannelIndex::ME));
+    measureChannels.emplace_back(MeasureChannelId(MeasureChannel::INVALID, ChannelIndex::ME));
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::CENTER_OF_MASS_X, ChannelIndex::ME));
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::CENTER_OF_MASS_Y, ChannelIndex::ME));
     measureChannels.emplace_back(MeasureChannelId(MeasureChannel::BOUNDING_BOX_WIDTH, ChannelIndex::ME));
@@ -233,6 +235,14 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
     chan.keys.emplace_back(
         duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CIRCULARITY, ChannelIndex::ME)));
     chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getCircularity()));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::VALID, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::TINYINT(roi.isValid() ? 1 : 0));
+
+    chan.keys.emplace_back(
+        duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INVALID, ChannelIndex::ME)));
+    chan.vals.emplace_back(duckdb::Value::TINYINT(roi.isValid() ? 0 : 1));
 
     chan.keys.emplace_back(
         duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CENTER_OF_MASS_X, ChannelIndex::ME)));

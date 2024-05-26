@@ -23,8 +23,8 @@ namespace joda::results {
 
 enum class Stats
 {
-  NO,
   AVG,
+  MEDIAN,
   SUM,
   MIN,
   MAX,
@@ -37,17 +37,20 @@ enum class MeasureChannel : uint16_t
   AREA_SIZE                   = 2,
   PERIMETER                   = 3,
   CIRCULARITY                 = 4,
-  CENTER_OF_MASS_X            = 5,
-  CENTER_OF_MASS_Y            = 6,
-  BOUNDING_BOX_WIDTH          = 7,
-  BOUNDING_BOX_HEIGHT         = 8,
-  INTENSITY_AVG               = 9,
-  INTENSITY_MIN               = 10,
-  INTENSITY_MAX               = 11,
-  CROSS_CHANNEL_INTENSITY_AVG = 12,
-  CROSS_CHANNEL_INTENSITY_MIN = 13,
-  CROSS_CHANNEL_INTENSITY_MAX = 14,
-  CROSS_CHANNEL_COUNT         = 15
+  VALID                       = 5,
+  INVALID                     = 6,
+  CENTER_OF_MASS_X            = 7,
+  CENTER_OF_MASS_Y            = 8,
+  BOUNDING_BOX_WIDTH          = 9,
+  BOUNDING_BOX_HEIGHT         = 10,
+  INTENSITY_AVG               = 11,
+  INTENSITY_MIN               = 12,
+  INTENSITY_MAX               = 13,
+  CROSS_CHANNEL_INTENSITY_AVG = 14,
+  CROSS_CHANNEL_INTENSITY_MIN = 15,
+  CROSS_CHANNEL_INTENSITY_MAX = 16,
+  CROSS_CHANNEL_COUNT         = 17,
+
 };
 
 enum class ChannelIndex : uint8_t
@@ -158,6 +161,12 @@ public:
       case MeasureChannel::CIRCULARITY:
         txt = "Circularity";
         break;
+      case MeasureChannel::VALID:
+        txt = "Valid";
+        break;
+      case MeasureChannel::INVALID:
+        txt = "Invalid";
+        break;
       case MeasureChannel::CENTER_OF_MASS_X:
         txt = "X";
         break;
@@ -190,7 +199,6 @@ public:
         break;
       case MeasureChannel::CROSS_CHANNEL_COUNT:
         txt = "Cross count";
-        break;
         break;
     }
 

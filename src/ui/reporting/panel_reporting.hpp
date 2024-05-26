@@ -74,6 +74,8 @@ private:
   std::shared_ptr<ContainerFunction<QString, int>> mAnalyzeSelector;
   std::shared_ptr<ContainerFunction<joda::results::ChannelIndex, int>> mChannelSelector;
   std::shared_ptr<ContainerFunction<uint32_t, int>> mMeasureChannelSelector;
+  std::shared_ptr<ContainerFunction<joda::results::Stats, int>> mStats;
+
   std::vector<results::db::ChannelMeta> mChannelInfos;
 
   // Heatmap

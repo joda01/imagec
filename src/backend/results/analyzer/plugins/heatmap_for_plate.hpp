@@ -1,9 +1,11 @@
 
+#pragma once
 
 #include <cstdint>
 #include <string>
 #include "backend/results/analyzer/analyzer.hpp"
 #include "backend/results/db_column_ids.hpp"
+#include "helper.hpp"
 
 namespace joda::results::analyze::plugins {
 
@@ -11,28 +13,24 @@ class HeatmapPerPlate
 {
 public:
   ///
-  /// \brief      Create control image
+  /// \brief      Get data for plate
   /// \author     Joachim Danmayr
   ///
   static auto getData(Analyzer &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plarteCols,
-                      const MeasureChannelId &measurment) -> Table
+                      const MeasureChannelId &measurement, Stats stats) -> Table
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
         "SELECT"
-        "  image_well.well_id as well_id,"
-        "  SUM(element_at(values, $1)[1]) as val_sum,"
-        "  MIN(element_at(values, $1)[1]) as val_min,"
-        "  MAX(element_at(values, $1)[1]) as val_max,"
-        "  AVG(element_at(values, $1)[1]) as val_avg,"
-        "  STDDEV(element_at(values, $1)[1]) as val_stddev "
-        "FROM object "
-        "INNER JOIN image_well ON object.image_id=image_well.image_id "
-        "INNER JOIN image ON object.image_id=image.image_id "
-        "WHERE"
-        " image_well.plate_id=$2 AND validity=0 "
-        "GROUP BY"
-        "  (image_well.well_id) ",
-        measurment.getKey(), plateId);
+        "  image_well.well_id as well_id," +
+            getStatsString(stats) +
+            "FROM object "
+            "INNER JOIN image_well ON object.image_id=image_well.image_id "
+            "INNER JOIN image ON object.image_id=image.image_id "
+            "WHERE"
+            " image_well.plate_id=$2 AND validity=0 "
+            "GROUP BY"
+            "  (image_well.well_id) ",
+        measurement.getKey(), plateId);
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -57,7 +55,7 @@ public:
         uint8_t row = wellID.well.wellPos[WellId::POS_Y] - 1;
         uint8_t col = wellID.well.wellPos[WellId::POS_X] - 1;
         if(row < plateRows && col < plarteCols) {
-          double val = materializedResult->GetValue(4, n).GetValue<double>();    // AVG
+          double val = materializedResult->GetValue(1, n).GetValue<double>();
           results.setData(row, col, TableCell{val, true});
         }
       } catch(const duckdb::InternalException &) {

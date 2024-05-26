@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include <cstdint>
 #include "backend/results/analyzer/analyzer.hpp"
@@ -9,7 +9,7 @@ class StatsPerWell
 {
 public:
   ///
-  /// \brief      Create control image
+  /// \brief      Get data for well
   /// \author     Joachim Danmayr
   ///
   static auto getData(Analyzer &analyzer, uint8_t plateId, uint16_t wellId) -> Table

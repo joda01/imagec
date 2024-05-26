@@ -16,6 +16,7 @@
 #include <duckdb.h>
 #include <chrono>
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <duckdb/main/connection.hpp>
 #include <duckdb/main/database.hpp>
@@ -47,14 +48,15 @@ public:
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)
   {
-    auto prep = mConnection.Prepare(query);
+    auto prep = mConnection->Prepare(query);
     return prep->Execute(std::forward<ARGS>(args)...);
   }
 
 private:
   /////////////////////////////////////////////////////
-  duckdb::DuckDB mDb;
-  duckdb::Connection mConnection;
+  duckdb::DBConfig mDbCfg;
+  std::unique_ptr<duckdb::DuckDB> mDb;
+  std::unique_ptr<duckdb::Connection> mConnection;
 };
 
 }    // namespace joda::results::db
