@@ -110,6 +110,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
         new ContainerFunction<QString, int>("icons8-light-50.png", "[200,300]", "Image heatmap area size [px]", "200",
                                             mWindowMain, "heatmap_image_area_size.json"));
     verticalLayoutHeatmap->addWidget(mHeatmapSlice->getEditableWidget());
+    connect(mHeatmapSlice.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onMeasurementChanged);
 
     mPlateSize = std::shared_ptr<ContainerFunction<uint32_t, uint32_t>>(
         new ContainerFunction<uint32_t, uint32_t>("icons8-full-image-50.png", "Plate size", "Plate size", "", 1624,
@@ -330,12 +331,13 @@ void PanelReporting::onMeasurementChanged()
   uint32_t cols = value % 100;
   mHeatmap->setData(mAnalyzer,
                     reporting::plugin::PanelHeatmap::SelectedFilter{
-                        .plateRows      = rows,
-                        .plateCols      = cols,
-                        .plateId        = 1,
-                        .channelIdx     = mChannelSelector->getValue(),
-                        .measureChannel = joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()),
-                        .stats          = mStats->getValue()});
+                        .plateRows          = rows,
+                        .plateCols          = cols,
+                        .plateId            = 1,
+                        .channelIdx         = mChannelSelector->getValue(),
+                        .measureChannel     = joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()),
+                        .stats              = mStats->getValue(),
+                        .densityMapAreaSize = mHeatmapSlice->getValue().toUInt()});
 }
 
 ///
@@ -353,17 +355,6 @@ void PanelReporting::onExportToXlsxClicked()
 ///
 void PanelReporting::onExportToXlsxHeatmapClicked()
 {
-  static const std::string separator(1, std::filesystem::path::preferred_separator);
-
-  QStringList pieces = mHeatmapSlice->getValue().split(",");
-  std::set<int> sizes;
-  for(const auto &part : pieces) {
-    bool okay = false;
-    int idx   = part.toInt(&okay);
-    if(okay) {
-      sizes.emplace(idx);
-    }
-  }
 }
 
 ///

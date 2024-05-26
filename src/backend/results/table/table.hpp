@@ -14,9 +14,11 @@
 #pragma once
 
 #include <algorithm>
+#include <filesystem>
 #include <map>
 #include <string>
 #include <vector>
+#include "backend/helper/helper.hpp"
 
 namespace joda::results {
 
@@ -28,7 +30,8 @@ public:
   {
   }
 
-  TableCell(double val, uint64_t id, bool valid) : value(val), id(id), validity(valid)
+  TableCell(double val, uint64_t id, bool valid, const std::string &linkToImage) :
+      value(val), id(id), validity(valid), linkToImage(linkToImage)
   {
   }
 
@@ -47,11 +50,17 @@ public:
     return validity;
   }
 
+  [[nodiscard]] const std::filesystem::path &getControlImagePath() const
+  {
+    return linkToImage;
+  }
+
 private:
   /////////////////////////////////////////////////////
   double value  = 0;
   uint64_t id   = 0;
   bool validity = true;
+  std::filesystem::path linkToImage;
 };
 
 using entry_t = std::map<uint32_t, std::map<uint32_t, TableCell>>;

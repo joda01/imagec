@@ -46,11 +46,11 @@ public:
 
         // results.data()[n][0]             = TableCell{materializedResult->GetValue(0, n).GetValue<uint64_t>(), true};
         results.getMutableRowHeader()[n] = materializedResult->GetValue(1, n).GetValue<std::string>(), true;
-        results.setData(n, 0, TableCell{materializedResult->GetValue(2, n).GetValue<double>(), id, true});
-        results.setData(n, 1, TableCell{materializedResult->GetValue(3, n).GetValue<double>(), id, true});
-        results.setData(n, 2, TableCell{materializedResult->GetValue(4, n).GetValue<double>(), id, true});
-        results.setData(n, 3, TableCell{materializedResult->GetValue(5, n).GetValue<double>(), id, true});
-        results.setData(n, 4, TableCell{materializedResult->GetValue(6, n).GetValue<double>(), id, true});
+        results.setData(n, 0, TableCell{materializedResult->GetValue(2, n).GetValue<double>(), id, true, ""});
+        results.setData(n, 1, TableCell{materializedResult->GetValue(3, n).GetValue<double>(), id, true, ""});
+        results.setData(n, 2, TableCell{materializedResult->GetValue(4, n).GetValue<double>(), id, true, ""});
+        results.setData(n, 3, TableCell{materializedResult->GetValue(5, n).GetValue<double>(), id, true, ""});
+        results.setData(n, 4, TableCell{materializedResult->GetValue(6, n).GetValue<double>(), id, true, ""});
       } catch(const duckdb::InternalException &) {
       }
     }

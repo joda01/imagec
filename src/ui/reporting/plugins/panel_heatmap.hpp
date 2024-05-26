@@ -104,6 +104,7 @@ public:
     joda::results::ChannelIndex channelIdx;
     joda::results::MeasureChannelId measureChannel;
     joda::results::Stats stats;
+    uint32_t densityMapAreaSize = 200;
   };
 
   /////////////////////////////////////////////////////

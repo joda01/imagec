@@ -166,6 +166,6 @@ TEST_CASE("database:test", "[database_read]")
 
   // res.getData(4261282133957314495, 266);
   auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(
-      res, 1, 15, 15, joda::results::MeasureChannelId(0), joda::results::Stats::AVG);
+      res, 1, 15, 15, joda::results::ChannelIndex::CH0, joda::results::MeasureChannelId(0), joda::results::Stats::AVG);
   result.print();
 }

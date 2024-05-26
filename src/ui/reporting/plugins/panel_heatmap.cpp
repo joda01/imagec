@@ -28,6 +28,7 @@
 #include <random>
 #include <string>
 #include <utility>
+#include "backend/results/analyzer/plugins/heatmap_for_image.hpp"
 #include "backend/results/analyzer/plugins/heatmap_for_plate.hpp"
 #include "backend/results/analyzer/plugins/heatmap_for_well.hpp"
 #include "backend/results/db_column_ids.hpp"
@@ -170,6 +171,7 @@ void PanelHeatmap::onOpenNextLevel(uint64_t id)
       paintWell();
       break;
     case Navigation::IMAGE:
+      mSelectedImageId = id;
       paintImage();
       break;
   }
@@ -233,15 +235,14 @@ void PanelHeatmap::paintWell()
 ///
 void PanelHeatmap::paintImage()
 {
-  /*
   mBackButton->setEnabled(true);
   if(mAnalyzer != nullptr) {
     mNavigation = Navigation::IMAGE;
-    auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
-        *mAnalyzer, mFilter.plateId, mHeatmap01->getSelectedWell(), mFilter.channelIdx, mFilter.measureChannel,
-        mFilter.stats);
+    auto result = joda::results::analyze::plugins::HeatmapForImage::getData(*mAnalyzer, mSelectedImageId,
+                                                                            mFilter.channelIdx, mFilter.measureChannel,
+                                                                            mFilter.stats, mFilter.densityMapAreaSize);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE);
-  }*/
+  }
 }
 
 ///

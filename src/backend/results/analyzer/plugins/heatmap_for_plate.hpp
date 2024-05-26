@@ -45,7 +45,7 @@ public:
       results.getMutableRowHeader()[row] = std::string(toWrt);
       for(uint8_t col = 0; col < plarteCols; col++) {
         results.getMutableColHeader()[col] = std::to_string(col + 1);
-        results.setData(row, col, TableCell{0, 0, false});
+        results.setData(row, col, TableCell{0, 0, false, ""});
       }
     }
 
@@ -56,7 +56,7 @@ public:
         uint8_t col = wellID.well.wellPos[WellId::POS_X] - 1;
         if(row < plateRows && col < plarteCols) {
           double val = materializedResult->GetValue(1, n).GetValue<double>();
-          results.setData(row, col, TableCell{val, wellID.well.wellId, true});
+          results.setData(row, col, TableCell{val, wellID.well.wellId, true, ""});
         }
       } catch(const duckdb::InternalException &) {
       }

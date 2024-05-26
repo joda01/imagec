@@ -40,13 +40,16 @@ public:
         "SELECT"
         "  object.image_id as image_id,"
         "  image.image_idx as image_idx,"
+        "  any_value(channel_image.control_image_path) as control_image_path, "
+        "  any_value(object.tile_id) as tile_id, "
         "  image.file_name as file_name," +
             getStatsString(stats) +
             "FROM object "
             "INNER JOIN image_well ON object.image_id=image_well.image_id "
             "INNER JOIN image ON object.image_id=image.image_id "
+            "INNER JOIN channel_image ON object.image_id=channel_image.image_id "
             "WHERE"
-            " image_well.well_id=$2 AND validity=0 AND channel_id=$3 "
+            " image_well.well_id=$2 AND object.validity=0 AND object.channel_id=$3 "
             "GROUP BY"
             "  (object.image_id, image.file_name, image.image_idx) "
             "ORDER BY image.file_name",
@@ -70,17 +73,22 @@ public:
       results.getMutableRowHeader()[row] = std::string(toWrt);
       for(uint8_t col = 0; col < sizeX; col++) {
         results.getMutableColHeader()[col] = std::to_string(col + 1);
-        results.setData(row, col, TableCell{0, 0, false});
+        results.setData(row, col, TableCell{0, 0, false, ""});
       }
     }
 
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
       try {
-        uint64_t imageId = materializedResult->GetValue(0, n).GetValue<uint64_t>();
-        uint32_t imgIdx  = materializedResult->GetValue(1, n).GetValue<uint32_t>();
-        auto pos         = wellPos[imgIdx];
-        double value     = materializedResult->GetValue(3, n).GetValue<double>();
-        results.setData(pos.x, pos.y, TableCell{value, imageId, true});
+        uint64_t imageId             = materializedResult->GetValue(0, n).GetValue<uint64_t>();
+        uint32_t imgIdx              = materializedResult->GetValue(1, n).GetValue<uint32_t>();
+        std::string controlImagePath = materializedResult->GetValue(2, n).GetValue<std::string>();
+        uint16_t tileId              = materializedResult->GetValue(3, n).GetValue<uint16_t>();
+
+        auto pos     = wellPos[imgIdx];
+        double value = materializedResult->GetValue(5, n).GetValue<double>();
+
+        helper::stringReplace(controlImagePath, "${tileIdx}", std::to_string(tileId));
+        results.setData(pos.x, pos.y, TableCell{value, imageId, true, controlImagePath});
       } catch(const duckdb::InternalException &) {
       }
     }

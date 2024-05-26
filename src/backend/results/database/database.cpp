@@ -133,7 +133,7 @@ void Database::open()
       "	image_id UHUGEINT,"
       "	channel_id UTINYINT,"
       "	object_id UINTEGER,"
-      "	tile_id UTINYINT,"
+      "	tile_id USMALLINT,"
       " validity UINTEGER,"
       " values MAP(UINTEGER, DOUBLE)"
       ");"
