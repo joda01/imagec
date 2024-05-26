@@ -93,7 +93,7 @@ public:
 
           std::string linkToImage = controlImgPath;
           helper::stringReplace(linkToImage, "${tile_id}", std::to_string(tileId));
-          results.setData(x, y, TableCell{value, tileId, true, linkToImage});
+          results.setData(y, x, TableCell{value, tileId, true, linkToImage});
         } catch(const duckdb::InternalException &) {
         }
       }
