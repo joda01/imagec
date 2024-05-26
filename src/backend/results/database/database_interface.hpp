@@ -93,7 +93,7 @@ struct ObjectMeta
 {
   std::string analyzeId;
   uint64_t imageId;
-  uint8_t channelId;
+  ChannelIndex channelId;
   uint16_t tileId;
   objects_t &objects;
 };

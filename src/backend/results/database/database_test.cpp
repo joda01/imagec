@@ -92,8 +92,10 @@ TEST_CASE("database:test", "[database_test]")
 
       auto id = DurationCount::start("Insert");
       try {
-        db.createObjects(::joda::results::db::ObjectMeta{
-            .analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32", .imageId = n, .channelId = ch, .objects = obj});
+        db.createObjects(::joda::results::db::ObjectMeta{.analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
+                                                         .imageId   = n,
+                                                         .channelId = (joda::results::ChannelIndex) ch,
+                                                         .objects   = obj});
       } catch(const std::exception &ex) {
         std::cout << ex.what() << std::endl;
       }

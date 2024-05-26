@@ -55,23 +55,23 @@ enum class MeasureChannel : uint16_t
 
 enum class ChannelIndex : uint8_t
 {
-  ME  = 0,
-  CH0 = 1,
-  CH1 = 2,
-  CH2 = 3,
-  CH3 = 4,
-  CH4 = 5,
-  CH5 = 6,
-  CH6 = 7,
-  CH7 = 8,
-  CH8 = 9,
-  CH9 = 10,
+  CH0 = 0,
+  CH1 = 1,
+  CH2 = 2,
+  CH3 = 3,
+  CH4 = 4,
+  CH5 = 5,
+  CH6 = 6,
+  CH7 = 7,
+  CH8 = 8,
+  CH9 = 9,
   A   = 65,
   B   = 66,
   C   = 67,
   D   = 68,
   E   = 69,
-  F   = 70
+  F   = 70,
+  ME  = 0xFF
 };
 
 enum class ObjectValidity : uint32_t
@@ -252,7 +252,6 @@ public:
         break;
       case ChannelIndex::F:
         txt += "(F)";
-        break;
         break;
     }
     return txt;

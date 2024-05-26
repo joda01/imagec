@@ -313,7 +313,7 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
 
   mDatabase->createObjects(db::ObjectMeta{.analyzeId = mAnalyzeId,
                                           .imageId   = imageId,
-                                          .channelId = static_cast<uint8_t>(channelSettings.channelIdx),
+                                          .channelId = toChannelIndex(channelSettings.channelIdx),
                                           .tileId    = tileIdx,
                                           .objects   = objects});
 

@@ -19,6 +19,7 @@
 #include <qlayout.h>
 #include <qnamespace.h>
 #include <qpushbutton.h>
+#include <qsize.h>
 #include <qwidget.h>
 #include <QPainter>
 #include <QPainterPath>
@@ -210,7 +211,7 @@ void PanelHeatmap::paintPlate()
     auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(
         *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.channelIdx, mFilter.measureChannel,
         mFilter.stats);
-    mHeatmap01->setData(result, ChartHeatMap::MatrixForm::CIRCLE);
+    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::CIRCLE);
   }
 }
 
@@ -225,7 +226,7 @@ void PanelHeatmap::paintWell()
     mNavigation = Navigation::WELL;
     auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
         *mAnalyzer, mFilter.plateId, mSelectedWellId, mFilter.channelIdx, mFilter.measureChannel, mFilter.stats);
-    mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE);
+    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE);
   }
 }
 
@@ -241,7 +242,7 @@ void PanelHeatmap::paintImage()
     auto result = joda::results::analyze::plugins::HeatmapForImage::getData(*mAnalyzer, mSelectedImageId,
                                                                             mFilter.channelIdx, mFilter.measureChannel,
                                                                             mFilter.stats, mFilter.densityMapAreaSize);
-    mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE);
+    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE);
   }
 }
 
@@ -255,11 +256,13 @@ ChartHeatMap::ChartHeatMap(PanelHeatmap *parent) : QWidget(parent), mParent(pare
   setMouseTracking(true);
 }
 
-void ChartHeatMap::setData(const joda::results::Table &data, MatrixForm form)
+void ChartHeatMap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &data,
+                           MatrixForm form)
 {
-  mData = data;
-  mRows = mData.getRows();
-  mCols = mData.getCols();
+  mAnalyzer = analyzer;
+  mData     = data;
+  mRows     = mData.getRows();
+  mCols     = mData.getCols();
 
   mForm = form;
   update();
@@ -279,7 +282,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
   // Create a uniform real distribution to produce numbers in the range [0, 1)
   std::uniform_real_distribution<> dis(0.0, 1.0);
 
-  uint32_t width  = size().width() - (spacing + X_LEFT_MARGIN);
+  uint32_t width  = size().width() / 2 - (spacing + X_LEFT_MARGIN);
   uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
 
   auto [min, max] = mData.getMinMax();
@@ -296,6 +299,8 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     fontHeader.setFamily("Courier New");
     painter.setFont(fontHeader);
     QFontMetrics fm(fontHeader);
+
+    QString newControlImagePath;
 
     // Define rectangle properties
     uint32_t idx = 0;
@@ -326,7 +331,13 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 
         // Generate a random number
         // double random_number = dis(gen);
-        auto data    = mData.data();
+        auto data = mData.data();
+
+        auto ctrl = data[y][x].getControlImagePath().string();
+        if(!ctrl.empty()) {
+          newControlImagePath = ctrl.data();
+        }
+
         double value = data[y][x].getVal();
         double val   = (value - min) / (max - min);
         auto color   = mColorMap.upper_bound(val)->second;
@@ -389,7 +400,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     {
       uint32_t xStart = spacing + X_LEFT_MARGIN;
       uint32_t yStart = mRows * rectWidth + spacing + Y_TOP_MARING + 3 * spacing;
-      float length    = (mCols * rectWidth + spacing + Y_TOP_MARING) - xStart;
+      float length    = (mCols * rectWidth + spacing + X_LEFT_MARGIN) - xStart;
       // painter.drawRect(xStart, yStart, length, LEGEND_HEIGHT);
 
       uint32_t partWith = std::floor(length / static_cast<float>(mColorMap.size()));
@@ -411,6 +422,27 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
                            formatDoubleScientific(max));
         }
       }
+    }
+
+    //
+    // Paint control image
+    //
+    {
+      if(newControlImagePath != mActControlImagePath) {
+        mActControlImagePath = newControlImagePath;
+        auto path            = mAnalyzer->getAbsolutePathToControlImage(mActControlImagePath.toStdString());
+        std::cout << "path: " << path.string() << std::endl;
+
+        mActControlImage.load(path.string().data());
+        mActControlImage = mActControlImage.scaled(QSize(size().width() / 2, size().height()), Qt::KeepAspectRatio,
+                                                   Qt::SmoothTransformation);
+      }
+      uint32_t xStart = spacing + X_LEFT_MARGIN + (mCols * rectWidth + spacing + Y_TOP_MARING);
+      uint32_t yStart = spacing + Y_TOP_MARING;
+
+      uint32_t width  = rectWidth * mCols;
+      uint32_t height = rectWidth * mRows;
+      painter.drawImage(xStart, yStart, mActControlImage);
     }
   }
 }
@@ -483,7 +515,7 @@ std::tuple<int32_t, ChartHeatMap::Point> ChartHeatMap::getWellUnderMouse(QMouseE
 {
   int32_t newSelectedWellId = -1;
   Point newSelectedWell;
-  uint32_t width  = size().width() - (spacing + X_LEFT_MARGIN);
+  uint32_t width  = size().width() / 2 - (spacing + X_LEFT_MARGIN);
   uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
   auto [min, max] = mData.getMinMax();
   if(mRows > 0 && mCols > 0) {

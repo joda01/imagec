@@ -46,6 +46,9 @@ public:
       uint64_t imgWeight     = imageMaterialized->GetValue(2, 0).GetValue<uint64_t>();
       controlImgPath         = imageMaterialized->GetValue(4, 0).GetValue<std::string>();
 
+      std::string linkToImage = controlImgPath;
+      helper::stringReplace(linkToImage, "${tile_id}", std::to_string(0));
+
       uint64_t width  = imgWidth / areaSize;
       uint64_t height = imgWeight / areaSize;
 
@@ -53,7 +56,7 @@ public:
         results.getMutableRowHeader()[row] = std::to_string(row + 1);
         for(uint64_t col = 0; col < width; col++) {
           results.getMutableColHeader()[col] = std::to_string(col + 1);
-          results.setData(row, col, TableCell{0, 0, false, controlImgPath});
+          results.setData(row, col, TableCell{0, 0, false, linkToImage});
         }
       }
     }
@@ -88,8 +91,8 @@ public:
           uint32_t x = rectangleX / areaSize;
           uint32_t y = rectangleY / areaSize;
 
-          auto linkToImage = controlImgPath;
-          helper::stringReplace(linkToImage, "${tileIdx}", std::to_string(tileId));
+          std::string linkToImage = controlImgPath;
+          helper::stringReplace(linkToImage, "${tile_id}", std::to_string(tileId));
           results.setData(x, y, TableCell{value, tileId, true, linkToImage});
         } catch(const duckdb::InternalException &) {
         }

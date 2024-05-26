@@ -47,7 +47,8 @@ public:
             "FROM object "
             "INNER JOIN image_well ON object.image_id=image_well.image_id "
             "INNER JOIN image ON object.image_id=image.image_id "
-            "INNER JOIN channel_image ON object.image_id=channel_image.image_id "
+            "INNER JOIN channel_image ON (object.image_id=channel_image.image_id AND "
+            "object.channel_id=channel_image.channel_id)"
             "WHERE"
             " image_well.well_id=$2 AND object.validity=0 AND object.channel_id=$3 "
             "GROUP BY"
@@ -87,7 +88,7 @@ public:
         auto pos     = wellPos[imgIdx];
         double value = materializedResult->GetValue(5, n).GetValue<double>();
 
-        helper::stringReplace(controlImagePath, "${tileIdx}", std::to_string(tileId));
+        helper::stringReplace(controlImagePath, "${tile_id}", std::to_string(tileId));
         results.setData(pos.x, pos.y, TableCell{value, imageId, true, controlImagePath});
       } catch(const duckdb::InternalException &) {
       }

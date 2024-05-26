@@ -40,6 +40,7 @@ class Analyzer
 {
 public:
   explicit Analyzer(const std::filesystem::path &databasePath);
+  auto getAbsolutePathToControlImage(const std::string &relativePath) const -> std::filesystem::path;
   auto getAnalyzes() -> std::vector<db::AnalyzeMeta>;
   auto getImagesForAnalyses(const std::string &analyzeId) -> std::vector<db::ImageMeta>;
   auto getChannelsForAnalyses(const std::string &analyzeId) -> std::vector<db::ChannelMeta>;
@@ -52,6 +53,7 @@ public:
 
 private:
   joda::results::db::Database mDatabase;
+  std::filesystem::path mParentPathToDb;
 };
 
 }    // namespace joda::results

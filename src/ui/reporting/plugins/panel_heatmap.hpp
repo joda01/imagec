@@ -42,7 +42,7 @@ public:
   };
   /////////////////////////////////////////////////////
   ChartHeatMap(PanelHeatmap *parent);
-  void setData(const joda::results::Table &, MatrixForm form);
+  void setData(std::shared_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form);
 
 signals:
   void onDoubleClicked(uint64_t id);
@@ -77,6 +77,7 @@ private:
   static inline const uint32_t LEGEND_COLOR_ROW_HEIGHT = 15;
   static inline const uint32_t HEATMAP_FONT_SIZE       = 12;
 
+  std::shared_ptr<joda::results::Analyzer> mAnalyzer;
   PanelHeatmap *mParent;
   MatrixForm mForm      = MatrixForm::CIRCLE;
   uint32_t mRows        = 0;
@@ -84,6 +85,9 @@ private:
   int32_t mHoveredWell  = -1;
   int32_t mSelectedWell = -1;
   Point mSelectedPoint;
+
+  QString mActControlImagePath;
+  QImage mActControlImage;
 };
 
 ///

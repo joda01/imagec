@@ -13,6 +13,7 @@
 
 #include "analyzer.hpp"
 #include <cstddef>
+#include <filesystem>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -24,7 +25,8 @@
 
 namespace joda::results {
 
-Analyzer::Analyzer(const std::filesystem::path &databasePath) : mDatabase(databasePath)
+Analyzer::Analyzer(const std::filesystem::path &databasePath) :
+    mDatabase(databasePath), mParentPathToDb(databasePath.parent_path())
 {
 }
 
@@ -67,6 +69,15 @@ auto Analyzer::getAnalyzes() -> std::vector<db::AnalyzeMeta>
                         .notes      = materializedResult->GetValue(6, n).GetValue<std::string>()});
   }
   return jobs;
+}
+
+///
+/// \brief      Create control image
+/// \author     Joachim Danmayr
+///
+auto Analyzer::getAbsolutePathToControlImage(const std::string &relativePath) const -> std::filesystem::path
+{
+  return mParentPathToDb / relativePath;
 }
 
 ///

@@ -274,7 +274,7 @@ void Database::createObjects(const ObjectMeta &data)
     appender.BeginRow();
     appender.Append(uuid);
     appender.Append<uint64_t>(data.imageId);
-    appender.Append<uint16_t>(data.channelId);
+    appender.Append<uint16_t>(static_cast<uint16_t>(data.channelId));
     appender.Append<uint32_t>(objectKey);
     appender.Append<uint16_t>(data.tileId);
     appender.Append<uint32_t>(static_cast<uint32_t>(measureValues.validity));
