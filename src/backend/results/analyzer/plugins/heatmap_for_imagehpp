@@ -8,7 +8,7 @@
 
 namespace joda::results::analyze::plugins {
 
-class HeatmapForWell
+class HeatmapForImage
 {
 private:
   ///

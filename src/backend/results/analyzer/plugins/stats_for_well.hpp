@@ -42,13 +42,15 @@ public:
     results.setColHeader({{0, "image"}, {1, "sum"}, {2, "min"}, {3, "max"}, {4, "avg"}, {5, "stddev"}});
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
       try {
+        uint64_t id = materializedResult->GetValue(0, n).GetValue<uint64_t>();
+
         // results.data()[n][0]             = TableCell{materializedResult->GetValue(0, n).GetValue<uint64_t>(), true};
         results.getMutableRowHeader()[n] = materializedResult->GetValue(1, n).GetValue<std::string>(), true;
-        results.setData(n, 0, TableCell{materializedResult->GetValue(2, n).GetValue<double>(), true});
-        results.setData(n, 1, TableCell{materializedResult->GetValue(3, n).GetValue<double>(), true});
-        results.setData(n, 2, TableCell{materializedResult->GetValue(4, n).GetValue<double>(), true});
-        results.setData(n, 3, TableCell{materializedResult->GetValue(5, n).GetValue<double>(), true});
-        results.setData(n, 4, TableCell{materializedResult->GetValue(6, n).GetValue<double>(), true});
+        results.setData(n, 0, TableCell{materializedResult->GetValue(2, n).GetValue<double>(), id, true});
+        results.setData(n, 1, TableCell{materializedResult->GetValue(3, n).GetValue<double>(), id, true});
+        results.setData(n, 2, TableCell{materializedResult->GetValue(4, n).GetValue<double>(), id, true});
+        results.setData(n, 3, TableCell{materializedResult->GetValue(5, n).GetValue<double>(), id, true});
+        results.setData(n, 4, TableCell{materializedResult->GetValue(6, n).GetValue<double>(), id, true});
       } catch(const duckdb::InternalException &) {
       }
     }

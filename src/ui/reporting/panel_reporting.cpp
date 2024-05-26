@@ -333,6 +333,7 @@ void PanelReporting::onMeasurementChanged()
                         .plateRows      = rows,
                         .plateCols      = cols,
                         .plateId        = 1,
+                        .channelIdx     = mChannelSelector->getValue(),
                         .measureChannel = joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()),
                         .stats          = mStats->getValue()});
 }

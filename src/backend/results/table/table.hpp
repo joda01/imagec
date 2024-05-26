@@ -28,13 +28,18 @@ public:
   {
   }
 
-  TableCell(double val, bool valid) : value(val), validity(valid)
+  TableCell(double val, uint64_t id, bool valid) : value(val), id(id), validity(valid)
   {
   }
 
   [[nodiscard]] double getVal() const
   {
     return value;
+  }
+
+  [[nodiscard]] uint64_t getId() const
+  {
+    return id;
   }
 
   [[nodiscard]] bool isValid() const
@@ -45,6 +50,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   double value  = 0;
+  uint64_t id   = 0;
   bool validity = true;
 };
 

@@ -17,7 +17,7 @@ public:
   /// \author     Joachim Danmayr
   ///
   static auto getData(Analyzer &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plarteCols,
-                      const MeasureChannelId &measurement, Stats stats) -> Table
+                      ChannelIndex channelId, const MeasureChannelId &measurement, Stats stats) -> Table
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
         "SELECT"
@@ -27,10 +27,10 @@ public:
             "INNER JOIN image_well ON object.image_id=image_well.image_id "
             "INNER JOIN image ON object.image_id=image.image_id "
             "WHERE"
-            " image_well.plate_id=$2 AND validity=0 "
+            " image_well.plate_id=$2 AND validity=0 AND channel_id=$3 "
             "GROUP BY"
             "  (image_well.well_id) ",
-        measurement.getKey(), plateId);
+        measurement.getKey(), plateId, static_cast<uint8_t>(channelId));
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -45,7 +45,7 @@ public:
       results.getMutableRowHeader()[row] = std::string(toWrt);
       for(uint8_t col = 0; col < plarteCols; col++) {
         results.getMutableColHeader()[col] = std::to_string(col + 1);
-        results.setData(row, col, TableCell{0, false});
+        results.setData(row, col, TableCell{0, 0, false});
       }
     }
 
@@ -56,7 +56,7 @@ public:
         uint8_t col = wellID.well.wellPos[WellId::POS_X] - 1;
         if(row < plateRows && col < plarteCols) {
           double val = materializedResult->GetValue(1, n).GetValue<double>();
-          results.setData(row, col, TableCell{val, true});
+          results.setData(row, col, TableCell{val, wellID.well.wellId, true});
         }
       } catch(const duckdb::InternalException &) {
       }

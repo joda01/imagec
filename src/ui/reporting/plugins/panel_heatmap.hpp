@@ -43,22 +43,24 @@ public:
   /////////////////////////////////////////////////////
   ChartHeatMap(PanelHeatmap *parent);
   void setData(const joda::results::Table &, MatrixForm form);
-  [[nodiscard]] results::WellId getSelectedWell() const
-  {
-    return mSelectedWellId;
-  }
 
 signals:
-  void onDoubleClicked();
+  void onDoubleClicked(uint64_t id);
 
 private:
+  struct Point
+  {
+    uint32_t x = 0;
+    uint32_t y = 0;
+  };
+
   /////////////////////////////////////////////////////
   QString formatDoubleScientific(double value, int precision = 3);
   void paintEvent(QPaintEvent *ev) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *event) override;
-  std::tuple<int32_t, results::WellId> getWellUnderMouse(QMouseEvent *event);
+  std::tuple<int32_t, Point> getWellUnderMouse(QMouseEvent *event);
 
   joda::results::Table mData;
   std::map<float, QColor> mColorMap{{0.1, QColor{32, 102, 168}},  {0.2, QColor{142, 193, 218}},
@@ -81,7 +83,7 @@ private:
   uint32_t mCols        = 0;
   int32_t mHoveredWell  = -1;
   int32_t mSelectedWell = -1;
-  results::WellId mSelectedWellId;
+  Point mSelectedPoint;
 };
 
 ///
@@ -99,6 +101,7 @@ public:
     uint32_t plateRows = 0;
     uint32_t plateCols = 0;
     uint32_t plateId   = 1;
+    joda::results::ChannelIndex channelIdx;
     joda::results::MeasureChannelId measureChannel;
     joda::results::Stats stats;
   };
@@ -125,8 +128,12 @@ private:
   SelectedFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
 
+  /////////////////////////////////////////////////////
+  results::WellId mSelectedWellId;
+  uint64_t mSelectedImageId;
+
 public slots:
-  void onOpenNextLevel();
+  void onOpenNextLevel(uint64_t id);
   void onBackClicked();
   void repaintHeatmap();
   void paintPlate();

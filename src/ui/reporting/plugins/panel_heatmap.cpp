@@ -154,7 +154,7 @@ void PanelHeatmap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, co
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelHeatmap::onOpenNextLevel()
+void PanelHeatmap::onOpenNextLevel(uint64_t id)
 {
   int actMenu = static_cast<int>(mNavigation);
   actMenu++;
@@ -166,6 +166,7 @@ void PanelHeatmap::onOpenNextLevel()
       paintPlate();
       break;
     case Navigation::WELL:
+      mSelectedWellId.well.wellId = static_cast<uint16_t>(id);
       paintWell();
       break;
     case Navigation::IMAGE:
@@ -205,7 +206,8 @@ void PanelHeatmap::paintPlate()
   if(mAnalyzer != nullptr) {
     mNavigation = Navigation::PLATE;
     auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(
-        *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.measureChannel, mFilter.stats);
+        *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.channelIdx, mFilter.measureChannel,
+        mFilter.stats);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::CIRCLE);
   }
 }
@@ -220,7 +222,7 @@ void PanelHeatmap::paintWell()
   if(mAnalyzer != nullptr) {
     mNavigation = Navigation::WELL;
     auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
-        *mAnalyzer, mFilter.plateId, mHeatmap01->getSelectedWell(), mFilter.measureChannel, mFilter.stats);
+        *mAnalyzer, mFilter.plateId, mSelectedWellId, mFilter.channelIdx, mFilter.measureChannel, mFilter.stats);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE);
   }
 }
@@ -231,13 +233,15 @@ void PanelHeatmap::paintWell()
 ///
 void PanelHeatmap::paintImage()
 {
+  /*
   mBackButton->setEnabled(true);
   if(mAnalyzer != nullptr) {
     mNavigation = Navigation::IMAGE;
     auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
-        *mAnalyzer, mFilter.plateId, mHeatmap01->getSelectedWell(), mFilter.measureChannel, mFilter.stats);
+        *mAnalyzer, mFilter.plateId, mHeatmap01->getSelectedWell(), mFilter.channelIdx, mFilter.measureChannel,
+        mFilter.stats);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE);
-  }
+  }*/
 }
 
 ///
@@ -436,11 +440,11 @@ void ChartHeatMap::mouseMoveEvent(QMouseEvent *event)
 ///
 void ChartHeatMap::mousePressEvent(QMouseEvent *event)
 {
-  auto [newSelectedWellId, selectedWell] = getWellUnderMouse(event);
+  auto [newSelectedWellId, selectedPoint] = getWellUnderMouse(event);
   // Update hovering index and trigger repaint if necessary
   if(newSelectedWellId >= 0 && mSelectedWell != newSelectedWellId) {
-    mSelectedWell   = newSelectedWellId;
-    mSelectedWellId = selectedWell;
+    mSelectedWell  = newSelectedWellId;
+    mSelectedPoint = selectedPoint;
     update();    // Trigger repaint to reflect hover state change
   }
 }
@@ -454,14 +458,17 @@ void ChartHeatMap::mousePressEvent(QMouseEvent *event)
 ///
 void ChartHeatMap::mouseDoubleClickEvent(QMouseEvent *event)
 {
-  auto [newSelectedWellId, selectedWell] = getWellUnderMouse(event);
+  auto [newSelectedWellId, selectedPoint] = getWellUnderMouse(event);
   // Update hovering index and trigger repaint if necessary
   if(newSelectedWellId >= 0 && mSelectedWell != newSelectedWellId) {
-    mSelectedWell   = newSelectedWellId;
-    mSelectedWellId = selectedWell;
+    mSelectedWell  = newSelectedWellId;
+    mSelectedPoint = selectedPoint;
     update();    // Trigger repaint to reflect hover state change
   }
-  emit onDoubleClicked();
+  auto id = mData.data().at(mSelectedPoint.x).at(mSelectedPoint.y).getId();
+  std::cout << "X: " << std::to_string(mSelectedPoint.x) << " Y:" << std::to_string(mSelectedPoint.y)
+            << " U: " << std::to_string(id) << std::endl;
+  emit onDoubleClicked(id);
 }
 
 ///
@@ -471,10 +478,10 @@ void ChartHeatMap::mouseDoubleClickEvent(QMouseEvent *event)
 /// \param[out]
 /// \return
 ///
-std::tuple<int32_t, results::WellId> ChartHeatMap::getWellUnderMouse(QMouseEvent *event)
+std::tuple<int32_t, ChartHeatMap::Point> ChartHeatMap::getWellUnderMouse(QMouseEvent *event)
 {
   int32_t newSelectedWellId = -1;
-  results::WellId newSelectedWell;
+  Point newSelectedWell;
   uint32_t width  = size().width() - (spacing + X_LEFT_MARGIN);
   uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
   auto [min, max] = mData.getMinMax();
@@ -487,9 +494,9 @@ std::tuple<int32_t, results::WellId> ChartHeatMap::getWellUnderMouse(QMouseEvent
         uint32_t rectYPos = row * rectWidth + spacing + Y_TOP_MARING;
         QRectF rect(rectXPos, rectYPos, rectWidth, rectWidth);
         if(rect.contains(event->pos())) {
-          newSelectedWellId                                    = idx;
-          newSelectedWell.well.wellPos[results::WellId::POS_X] = col + 1;
-          newSelectedWell.well.wellPos[results::WellId::POS_Y] = row + 1;
+          newSelectedWellId = idx;
+          newSelectedWell.x = row;
+          newSelectedWell.y = col;
           break;
         }
         idx++;
