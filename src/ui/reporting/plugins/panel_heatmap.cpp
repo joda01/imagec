@@ -211,7 +211,7 @@ void PanelHeatmap::paintPlate()
     auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(
         *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.channelIdx, mFilter.measureChannel,
         mFilter.stats);
-    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::CIRCLE);
+    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO);
   }
 }
 
@@ -226,7 +226,7 @@ void PanelHeatmap::paintWell()
     mNavigation = Navigation::WELL;
     auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
         *mAnalyzer, mFilter.plateId, mSelectedWellId, mFilter.channelIdx, mFilter.measureChannel, mFilter.stats);
-    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE);
+    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO);
   }
 }
 
@@ -242,7 +242,7 @@ void PanelHeatmap::paintImage()
     auto result = joda::results::analyze::plugins::HeatmapForImage::getData(*mAnalyzer, mSelectedImageId,
                                                                             mFilter.channelIdx, mFilter.measureChannel,
                                                                             mFilter.stats, mFilter.densityMapAreaSize);
-    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE);
+    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES);
   }
 }
 
@@ -257,14 +257,15 @@ ChartHeatMap::ChartHeatMap(PanelHeatmap *parent) : QWidget(parent), mParent(pare
 }
 
 void ChartHeatMap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &data,
-                           MatrixForm form)
+                           MatrixForm form, PaintControlImage paint)
 {
   mAnalyzer = analyzer;
   mData     = data;
   mRows     = mData.getRows();
   mCols     = mData.getCols();
 
-  mForm = form;
+  mForm           = form;
+  mPaintCtrlImage = paint;
   update();
 }
 
@@ -281,8 +282,12 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 
   // Create a uniform real distribution to produce numbers in the range [0, 1)
   std::uniform_real_distribution<> dis(0.0, 1.0);
+  double dividend = 1;
+  if(mPaintCtrlImage == PaintControlImage::YES) {
+    dividend = 2;
+  }
 
-  uint32_t width  = size().width() / 2 - (spacing + X_LEFT_MARGIN);
+  uint32_t width  = size().width() / dividend - (spacing + X_LEFT_MARGIN);
   uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
 
   auto [min, max] = mData.getMinMax();
@@ -340,7 +345,13 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 
         double value = data[y][x].getVal();
         double val   = (value - min) / (max - min);
-        auto color   = mColorMap.upper_bound(val)->second;
+        auto iter    = mColorMap.upper_bound(val);
+        QColor color;
+        if(iter != mColorMap.end()) {
+          color = iter->second;
+        } else {
+          color = mColorMap[1];
+        }
         if(!data[y][x].isValid()) {
           color = QColor(255, 255, 255);
         }
@@ -427,11 +438,10 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     //
     // Paint control image
     //
-    {
+    if(mPaintCtrlImage == PaintControlImage::YES) {
       if(newControlImagePath != mActControlImagePath) {
         mActControlImagePath = newControlImagePath;
         auto path            = mAnalyzer->getAbsolutePathToControlImage(mActControlImagePath.toStdString());
-        std::cout << "path: " << path.string() << std::endl;
 
         mActControlImage.load(path.string().data());
         mActControlImage = mActControlImage.scaled(QSize(size().width() / 2, size().height()), Qt::KeepAspectRatio,
@@ -513,9 +523,14 @@ void ChartHeatMap::mouseDoubleClickEvent(QMouseEvent *event)
 ///
 std::tuple<int32_t, ChartHeatMap::Point> ChartHeatMap::getWellUnderMouse(QMouseEvent *event)
 {
+  double dividend = 1;
+  if(mPaintCtrlImage == PaintControlImage::YES) {
+    dividend = 2;
+  }
+
   int32_t newSelectedWellId = -1;
   Point newSelectedWell;
-  uint32_t width  = size().width() / 2 - (spacing + X_LEFT_MARGIN);
+  uint32_t width  = size().width() / dividend - (spacing + X_LEFT_MARGIN);
   uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
   auto [min, max] = mData.getMinMax();
   if(mRows > 0 && mCols > 0) {

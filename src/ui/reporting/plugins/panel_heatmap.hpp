@@ -40,9 +40,17 @@ public:
     CIRCLE,
     RECTANGLE
   };
+
+  enum class PaintControlImage
+  {
+    NO,
+    YES
+  };
+
   /////////////////////////////////////////////////////
   ChartHeatMap(PanelHeatmap *parent);
-  void setData(std::shared_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form);
+  void setData(std::shared_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form,
+               PaintControlImage paint);
 
 signals:
   void onDoubleClicked(uint64_t id);
@@ -67,7 +75,7 @@ private:
                                     {0.3, QColor{205, 225, 236}}, {0.4, QColor{237, 237, 237}},
                                     {0.5, QColor{246, 214, 194}}, {0.6, QColor{246, 214, 194}},
                                     {0.7, QColor{246, 214, 194}}, {0.8, QColor{212, 114, 100}},
-                                    {0.9, QColor{174, 40, 44}},   {1.01, QColor{174, 40, 44}}};
+                                    {0.9, QColor{174, 40, 44}},   {1, QColor{174, 40, 44}}};
 
   /////////////////////////////////////////////////////
   static inline const uint32_t spacing                 = 4;
@@ -79,7 +87,9 @@ private:
 
   std::shared_ptr<joda::results::Analyzer> mAnalyzer;
   PanelHeatmap *mParent;
-  MatrixForm mForm      = MatrixForm::CIRCLE;
+  MatrixForm mForm = MatrixForm::CIRCLE;
+  PaintControlImage mPaintCtrlImage;
+
   uint32_t mRows        = 0;
   uint32_t mCols        = 0;
   int32_t mHoveredWell  = -1;
