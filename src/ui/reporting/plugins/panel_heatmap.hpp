@@ -23,6 +23,8 @@
 
 namespace joda::ui::qt::reporting::plugin {
 
+class PanelHeatmap;
+
 ///
 /// \class      ChartHeatMap
 /// \author     Joachim Danmayr
@@ -30,6 +32,8 @@ namespace joda::ui::qt::reporting::plugin {
 ///
 class ChartHeatMap : public QWidget
 {
+  Q_OBJECT
+
 public:
   enum class MatrixForm
   {
@@ -37,12 +41,15 @@ public:
     RECTANGLE
   };
   /////////////////////////////////////////////////////
-  ChartHeatMap(QWidget *parent);
+  ChartHeatMap(PanelHeatmap *parent);
   void setData(const joda::results::Table &, MatrixForm form);
   [[nodiscard]] results::WellId getSelectedWell() const
   {
     return mSelectedWellId;
   }
+
+signals:
+  void onDoubleClicked();
 
 private:
   /////////////////////////////////////////////////////
@@ -50,6 +57,9 @@ private:
   void paintEvent(QPaintEvent *ev) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
+  std::tuple<int32_t, results::WellId> getWellUnderMouse(QMouseEvent *event);
+
   joda::results::Table mData;
   std::map<float, QColor> mColorMap{{0.1, QColor{32, 102, 168}},  {0.2, QColor{142, 193, 218}},
                                     {0.3, QColor{205, 225, 236}}, {0.4, QColor{237, 237, 237}},
@@ -65,6 +75,7 @@ private:
   static inline const uint32_t LEGEND_COLOR_ROW_HEIGHT = 15;
   static inline const uint32_t HEATMAP_FONT_SIZE       = 12;
 
+  PanelHeatmap *mParent;
   MatrixForm mForm      = MatrixForm::CIRCLE;
   uint32_t mRows        = 0;
   uint32_t mCols        = 0;
@@ -104,16 +115,23 @@ private:
     WELL  = 1,
     IMAGE = 2
   };
+  /////////////////////////////////////////////////////
+  QWidget *createBreadCrump(QWidget *);
+  QAction *mBackButton;
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;
   std::shared_ptr<joda::results::Analyzer> mAnalyzer;
   SelectedFilter mFilter;
-
   Navigation mNavigation = Navigation::PLATE;
 
-private slots:
-  void onOpenWellClicked();
+public slots:
+  void onOpenNextLevel();
+  void onBackClicked();
+  void repaintHeatmap();
+  void paintPlate();
+  void paintWell();
+  void paintImage();
 };
 
 }    // namespace joda::ui::qt::reporting::plugin

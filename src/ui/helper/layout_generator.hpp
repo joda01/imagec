@@ -15,7 +15,7 @@
 
 namespace joda::ui::qt::helper {
 
-inline QHBoxLayout *createLayout(QWidget *parent)
+inline std::tuple<QHBoxLayout *, QWidget *> createLayout(QWidget *parent)
 {
   QScrollArea *scrollArea = new QScrollArea(parent);
   scrollArea->setObjectName("scrollArea");
@@ -62,7 +62,7 @@ inline QHBoxLayout *createLayout(QWidget *parent)
   horizontalLayout->setContentsMargins(16, 16, 16, 16);
   horizontalLayout->setSpacing(16);    // Adjust this value as needed
   contentWidget->setLayout(horizontalLayout);
-  return horizontalLayout;
+  return {horizontalLayout, contentWidget};
 }
 
 inline std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,

@@ -47,7 +47,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelReporting");
 
-  auto *horizontalLayout = joda::ui::qt::helper::createLayout(this);
+  auto [horizontalLayout, _] = joda::ui::qt::helper::createLayout(this);
   auto [verticalLayoutContainer, _1] =
       joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 250, 16);
 
@@ -107,12 +107,12 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     // Settings
 
     mHeatmapSlice = std::shared_ptr<ContainerFunction<QString, int>>(
-        new ContainerFunction<QString, int>("icons8-light-50.png", "[200,300]", "Image heatmap area size [px]",
-                                            "200, 300", mWindowMain, "heatmap_image_area_size.json"));
+        new ContainerFunction<QString, int>("icons8-light-50.png", "[200,300]", "Image heatmap area size [px]", "200",
+                                            mWindowMain, "heatmap_image_area_size.json"));
     verticalLayoutHeatmap->addWidget(mHeatmapSlice->getEditableWidget());
 
     mPlateSize = std::shared_ptr<ContainerFunction<uint32_t, uint32_t>>(
-        new ContainerFunction<uint32_t, uint32_t>("icons8-full-image-50.png", "Plate size", "Plate size", "", 0,
+        new ContainerFunction<uint32_t, uint32_t>("icons8-full-image-50.png", "Plate size", "Plate size", "", 1624,
                                                   {
                                                       {1, "1", ""},
                                                       {203, "2 x 3", ""},
@@ -135,7 +135,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   {
     auto [verticalLayoutXlsx, _2] =
         joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-    verticalLayoutXlsx->addWidget(createTitle("Export as xlsx"));
+    verticalLayoutXlsx->addWidget(createTitle("Export"));
 
     mButtonReportingSettings = new ContainerButton("Measure channel", "", mWindowMain);
     connect(mButtonReportingSettings, &ContainerButton::valueChanged, this,
@@ -153,7 +153,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   verticalLayoutContainer->addStretch(0);
 
   auto [tableContainer, tableContainerLayout] = joda::ui::qt::helper::addVerticalPanel(
-      horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 16777215, 16777215, 16);
+      horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 16777215, 16777215, 0);
 
   {
       // mTable = new QTableWidget(0, 0, tableContainerLayout);
@@ -163,6 +163,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 
       // tableContainer->addWidget(mTable);
   } {
+    tableContainer->setContentsMargins(0, 0, 0, 0);
     mHeatmap = new reporting::plugin::PanelHeatmap(mWindowMain, tableContainerLayout);
     tableContainer->addWidget(mHeatmap);
   }

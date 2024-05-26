@@ -12,10 +12,13 @@
 ///
 
 #include "panel_heatmap.hpp"
+#include <qaction.h>
 #include <qboxlayout.h>
 #include <qevent.h>
 #include <qgridlayout.h>
+#include <qlayout.h>
 #include <qnamespace.h>
+#include <qpushbutton.h>
 #include <qwidget.h>
 #include <QPainter>
 #include <QPainterPath>
@@ -40,15 +43,25 @@ namespace joda::ui::qt::reporting::plugin {
 PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(parent)
 {
   // Create and set up the grid layout
-  auto *horizontalLayout = joda::ui::qt::helper::createLayout(this);
+  auto [horizontalLayout, centerWidget] = joda::ui::qt::helper::createLayout(this);
+  horizontalLayout->setContentsMargins(0, 0, 0, 0);
+
+  // vertical->addWidget(createBreadCrump());
+  // vertical->addWidget(centerWidget);
 
   //
   // Plate view
   //
   {
     auto [plateViewer, plateViewerWidget] =
-        joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgb(251, 252, 253)", 16, false, 800, 2048);
+        joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgb(251, 252, 253)", 16, false, 800, 2048, 24);
     mHeatmap01 = new ChartHeatMap(this);
+    connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelHeatmap::onOpenNextLevel);
+    auto *breadCrump = createBreadCrump(this);
+    plateViewer->setContentsMargins(16, 0, 16, 16);
+    plateViewer->addWidget(breadCrump);
+    breadCrump->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
     plateViewer->addWidget(mHeatmap01);
     mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     plateViewerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -66,13 +79,14 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
 
     verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Well editor"));
 
-    auto *openWellButton = new ContainerButton("Show well", "", windowMain);
-    connect(openWellButton, &ContainerButton::valueChanged, this, &PanelHeatmap::onOpenWellClicked);
+    auto *openWellButton = new ContainerButton("Open well", "", windowMain);
+    connect(openWellButton, &ContainerButton::valueChanged, this, &PanelHeatmap::paintWell);
     verticalLayoutMeta->addWidget(openWellButton->getEditableWidget());
 
     _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
     verticalLayoutContainer->addStretch();
   }
+  centerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   setLayout(horizontalLayout);
   // horizontalLayout->addStretch();
@@ -82,17 +96,117 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
+QWidget *PanelHeatmap::createBreadCrump(QWidget *parent)
+{
+  QWidget *breadCrump = new QWidget(parent);
+  breadCrump->setObjectName("BreadCrump");
+
+  breadCrump->setStyleSheet(
+      "QWidget#BreadCrump { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
+      "padding-bottom: 10px;"
+      "background-color: rgb(246, 246, 246);}");
+
+  QHBoxLayout *layout = new QHBoxLayout(breadCrump);
+  breadCrump->setMaximumHeight(48);
+  breadCrump->setMaximumHeight(48);
+
+  mBackButton = new QAction(QIcon(":/icons/outlined/icons8-left-50.png"), "Back");
+  mBackButton->setEnabled(false);
+  connect(mBackButton, &QAction::triggered, this, &PanelHeatmap::onBackClicked);
+  QToolButton *actionButton = new QToolButton(this);
+  actionButton->setDefaultAction(mBackButton);
+
+  layout->addWidget(actionButton);
+
+  breadCrump->setLayout(layout);
+
+  layout->addStretch();
+
+  return breadCrump;
+}
+
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+void PanelHeatmap::onBackClicked()
+{
+  int actMenu = static_cast<int>(mNavigation);
+  actMenu--;
+  if(actMenu >= 0) {
+    mNavigation = static_cast<Navigation>(actMenu);
+  }
+  repaintHeatmap();
+}
+
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
 void PanelHeatmap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, const SelectedFilter &filter)
 {
   mAnalyzer = std::move(analyzer);
+  mFilter   = filter;
+  repaintHeatmap();
+}
 
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+void PanelHeatmap::onOpenNextLevel()
+{
+  int actMenu = static_cast<int>(mNavigation);
+  actMenu++;
+  if(actMenu <= 2) {
+    mNavigation = static_cast<Navigation>(actMenu);
+  }
+  switch(mNavigation) {
+    case Navigation::PLATE:
+      paintPlate();
+      break;
+    case Navigation::WELL:
+      paintWell();
+      break;
+    case Navigation::IMAGE:
+      paintImage();
+      break;
+  }
+  update();
+}
+
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+void PanelHeatmap::repaintHeatmap()
+{
+  switch(mNavigation) {
+    case Navigation::PLATE:
+      paintPlate();
+      break;
+    case Navigation::WELL:
+      paintWell();
+      break;
+    case Navigation::IMAGE:
+      paintImage();
+      break;
+  }
+  update();
+}
+
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+void PanelHeatmap::paintPlate()
+{
+  mBackButton->setEnabled(false);
   if(mAnalyzer != nullptr) {
-    mFilter     = filter;
+    mNavigation = Navigation::PLATE;
     auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(
         *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.measureChannel, mFilter.stats);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::CIRCLE);
-
-    update();
   }
 }
 
@@ -100,9 +214,11 @@ void PanelHeatmap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, co
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelHeatmap::onOpenWellClicked()
+void PanelHeatmap::paintWell()
 {
+  mBackButton->setEnabled(true);
   if(mAnalyzer != nullptr) {
+    mNavigation = Navigation::WELL;
     auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
         *mAnalyzer, mFilter.plateId, mHeatmap01->getSelectedWell(), mFilter.measureChannel, mFilter.stats);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE);
@@ -113,7 +229,22 @@ void PanelHeatmap::onOpenWellClicked()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-ChartHeatMap::ChartHeatMap(QWidget *parent) : QWidget(parent)
+void PanelHeatmap::paintImage()
+{
+  mBackButton->setEnabled(true);
+  if(mAnalyzer != nullptr) {
+    mNavigation = Navigation::IMAGE;
+    auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
+        *mAnalyzer, mFilter.plateId, mHeatmap01->getSelectedWell(), mFilter.measureChannel, mFilter.stats);
+    mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE);
+  }
+}
+
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+ChartHeatMap::ChartHeatMap(PanelHeatmap *parent) : QWidget(parent), mParent(parent)
 {
   setMinimumSize(parent->size());
   setMouseTracking(true);
@@ -288,29 +419,10 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 ///
 void ChartHeatMap::mouseMoveEvent(QMouseEvent *event)
 {
-  int32_t newHoveringIdx = -1;
-  uint32_t width         = size().width() - (spacing + X_LEFT_MARGIN);
-  uint32_t height        = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
-  auto [min, max]        = mData.getMinMax();
-  if(mRows > 0 && mCols > 0) {
-    uint32_t rectWidth = std::min(width / mCols, height / mRows);
-    uint32_t idx       = 0;
-    for(uint32_t x = 0; x < mCols; x++) {
-      for(uint32_t y = 0; y < mRows; y++) {
-        uint32_t rectXPos = x * rectWidth + spacing + X_LEFT_MARGIN;
-        uint32_t rectYPos = y * rectWidth + spacing + Y_TOP_MARING;
-        QRectF rect(rectXPos, rectYPos, rectWidth, rectWidth);
-        if(rect.contains(event->pos())) {
-          newHoveringIdx = idx;
-          break;
-        }
-        idx++;
-      }
-    }
-  }
+  auto [newHoveredWellId, _] = getWellUnderMouse(event);
   // Update hovering index and trigger repaint if necessary
-  if(mHoveredWell != newHoveringIdx) {
-    mHoveredWell = newHoveringIdx;
+  if(newHoveredWellId >= 0 && mHoveredWell != newHoveredWellId) {
+    mHoveredWell = newHoveredWellId;
     update();    // Trigger repaint to reflect hover state change
   }
 }
@@ -324,33 +436,67 @@ void ChartHeatMap::mouseMoveEvent(QMouseEvent *event)
 ///
 void ChartHeatMap::mousePressEvent(QMouseEvent *event)
 {
-  int32_t newHoveringIdx = -1;
-  uint32_t width         = size().width() - (spacing + X_LEFT_MARGIN);
-  uint32_t height        = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
-  auto [min, max]        = mData.getMinMax();
+  auto [newSelectedWellId, selectedWell] = getWellUnderMouse(event);
+  // Update hovering index and trigger repaint if necessary
+  if(newSelectedWellId >= 0 && mSelectedWell != newSelectedWellId) {
+    mSelectedWell   = newSelectedWellId;
+    mSelectedWellId = selectedWell;
+    update();    // Trigger repaint to reflect hover state change
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ChartHeatMap::mouseDoubleClickEvent(QMouseEvent *event)
+{
+  auto [newSelectedWellId, selectedWell] = getWellUnderMouse(event);
+  // Update hovering index and trigger repaint if necessary
+  if(newSelectedWellId >= 0 && mSelectedWell != newSelectedWellId) {
+    mSelectedWell   = newSelectedWellId;
+    mSelectedWellId = selectedWell;
+    update();    // Trigger repaint to reflect hover state change
+  }
+  emit onDoubleClicked();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::tuple<int32_t, results::WellId> ChartHeatMap::getWellUnderMouse(QMouseEvent *event)
+{
+  int32_t newSelectedWellId = -1;
+  results::WellId newSelectedWell;
+  uint32_t width  = size().width() - (spacing + X_LEFT_MARGIN);
+  uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
+  auto [min, max] = mData.getMinMax();
   if(mRows > 0 && mCols > 0) {
     uint32_t rectWidth = std::min(width / mCols, height / mRows);
     uint32_t idx       = 0;
-    for(uint32_t x = 0; x < mCols; x++) {
-      for(uint32_t y = 0; y < mRows; y++) {
-        uint32_t rectXPos = x * rectWidth + spacing + X_LEFT_MARGIN;
-        uint32_t rectYPos = y * rectWidth + spacing + Y_TOP_MARING;
+    for(uint32_t col = 0; col < mCols; col++) {
+      for(uint32_t row = 0; row < mRows; row++) {
+        uint32_t rectXPos = col * rectWidth + spacing + X_LEFT_MARGIN;
+        uint32_t rectYPos = row * rectWidth + spacing + Y_TOP_MARING;
         QRectF rect(rectXPos, rectYPos, rectWidth, rectWidth);
         if(rect.contains(event->pos())) {
-          mSelectedWell                                        = idx;
-          mSelectedWellId.well.wellPos[results::WellId::POS_X] = x;
-          mSelectedWellId.well.wellPos[results::WellId::POS_Y] = y;
+          newSelectedWellId                                    = idx;
+          newSelectedWell.well.wellPos[results::WellId::POS_X] = col + 1;
+          newSelectedWell.well.wellPos[results::WellId::POS_Y] = row + 1;
           break;
         }
         idx++;
       }
     }
   }
-  // Update hovering index and trigger repaint if necessary
-  if(mHoveredWell != newHoveringIdx) {
-    mHoveredWell = newHoveringIdx;
-    update();    // Trigger repaint to reflect hover state change
-  }
+  return {newSelectedWellId, newSelectedWell};
 }
 
 QString ChartHeatMap::formatDoubleScientific(double value, int precision)
