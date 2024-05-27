@@ -85,6 +85,16 @@ public:
   {
     return mColHeader;
   }
+
+  [[nodiscard]] auto getRowHeader() const -> const std::map<uint32_t, std::string> &
+  {
+    return mRowHeader;
+  }
+  [[nodiscard]] auto getColHeader() const -> const std::map<uint32_t, std::string> &
+  {
+    return mColHeader;
+  }
+
   void print();
   [[nodiscard]] const entry_t &data() const
   {
@@ -106,11 +116,11 @@ public:
     return {mMin, mMax};
   }
 
-  uint32_t getRows()
+  [[nodiscard]] uint32_t getRows() const
   {
     return mData.size();
   }
-  uint32_t getCols()
+  [[nodiscard]] uint32_t getCols() const
   {
     return mColHeader.size();
   }

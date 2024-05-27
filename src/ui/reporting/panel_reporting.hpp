@@ -75,6 +75,7 @@ private:
   std::shared_ptr<ContainerFunction<joda::results::ChannelIndex, int>> mChannelSelector;
   std::shared_ptr<ContainerFunction<uint32_t, int>> mMeasureChannelSelector;
   std::shared_ptr<ContainerFunction<joda::results::Stats, int>> mStats;
+  reporting::plugin::PanelHeatmap::SelectedFilter mFilter;
 
   std::vector<results::db::ChannelMeta> mChannelInfos;
 
@@ -102,10 +103,7 @@ private:
   void loadDetailReportToTable();
 
 private slots:
-  void onExcelExportChannelsClicked();
-  void onHeatmapExportChannelsClicked();
   void onExportToXlsxClicked();
-  void onExportToXlsxHeatmapClicked();
   void onLoadingFileFinished();
   void onResultsFileSelected();
   void onChannelChanged();

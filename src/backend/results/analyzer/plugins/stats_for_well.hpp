@@ -12,7 +12,8 @@ public:
   /// \brief      Get data for well
   /// \author     Joachim Danmayr
   ///
-  static auto getData(Analyzer &analyzer, uint8_t plateId, uint16_t wellId) -> Table
+  static auto getData(Analyzer &analyzer, uint8_t plateId, results::WellId wellId, ChannelIndex channelId,
+                      const MeasureChannelId &measurement) -> Table
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
         "SELECT"
@@ -27,11 +28,11 @@ public:
         "INNER JOIN image_well ON object.image_id=image_well.image_id "
         "INNER JOIN image ON object.image_id=image.image_id "
         "WHERE"
-        " image_well.well_id=$2 AND validity=0 "
+        " image_well.well_id=$2 AND object.validity=0 AND object.channel_id=$3 "
         "GROUP BY"
         "  (object.image_id, image.file_name) "
         "ORDER BY image.file_name",
-        MeasureChannelId(MeasureChannel::CONFIDENCE, ChannelIndex::ME).getKey(), wellId);
+        measurement.getKey(), wellId.well.wellId, static_cast<uint8_t>(channelId));
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -39,7 +40,7 @@ public:
 
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     Table results;
-    results.setColHeader({{0, "image"}, {1, "sum"}, {2, "min"}, {3, "max"}, {4, "avg"}, {5, "stddev"}});
+    results.setColHeader({{0, "sum"}, {1, "min"}, {2, "max"}, {3, "avg"}, {4, "stddev"}});
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
       try {
         uint64_t id = materializedResult->GetValue(0, n).GetValue<uint64_t>();

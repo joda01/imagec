@@ -110,6 +110,13 @@ class PanelHeatmap : public QWidget
   Q_OBJECT
 
 public:
+  enum class Navigation
+  {
+    PLATE = 0,
+    WELL  = 1,
+    IMAGE = 2
+  };
+
   struct SelectedFilter
   {
     uint32_t plateRows = 0;
@@ -124,15 +131,22 @@ public:
   /////////////////////////////////////////////////////
   PanelHeatmap(QMainWindow *win, QWidget *parent);
   void setData(std::shared_ptr<joda::results::Analyzer> analyzer, const SelectedFilter &);
+  [[nodiscard]] Navigation getActualNavigation() const
+  {
+    return mNavigation;
+  }
+
+  [[nodiscard]] results::WellId getSelectedWell() const
+  {
+    return mSelectedWellId;
+  }
+
+  [[nodiscard]] uint64_t getSelectedImage() const
+  {
+    return mSelectedImageId;
+  }
 
 private:
-  /////////////////////////////////////////////////////
-  enum class Navigation
-  {
-    PLATE = 0,
-    WELL  = 1,
-    IMAGE = 2
-  };
   /////////////////////////////////////////////////////
   QWidget *createBreadCrump(QWidget *);
   QAction *mBackButton;

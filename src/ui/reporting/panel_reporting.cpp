@@ -32,6 +32,9 @@
 #include <thread>
 #include <vector>
 #include "../window_main.hpp"
+#include "backend/results/analyzer/plugins/stats_for_image.hpp"
+#include "backend/results/analyzer/plugins/stats_for_well.hpp"
+#include "backend/results/exporter/exporter_xlsx.hpp"
 #include "backend/results/results.hpp"
 #include "ui/container/container_function_base.hpp"
 #include "ui/helper/layout_generator.hpp"
@@ -139,8 +142,6 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     verticalLayoutXlsx->addWidget(createTitle("Export"));
 
     mButtonReportingSettings = new ContainerButton("Measure channel", "", mWindowMain);
-    connect(mButtonReportingSettings, &ContainerButton::valueChanged, this,
-            &PanelReporting::onExcelExportChannelsClicked);
     verticalLayoutXlsx->addWidget(mButtonReportingSettings->getEditableWidget());
 
     mButtonExportExcel = new ContainerButton("Start export", "icons8-export-excel-50.png", mWindowMain);
@@ -329,15 +330,17 @@ void PanelReporting::onMeasurementChanged()
   auto value    = mPlateSize->getValue();
   uint32_t rows = value / 100;
   uint32_t cols = value % 100;
-  mHeatmap->setData(mAnalyzer,
-                    reporting::plugin::PanelHeatmap::SelectedFilter{
-                        .plateRows          = rows,
-                        .plateCols          = cols,
-                        .plateId            = 1,
-                        .channelIdx         = mChannelSelector->getValue(),
-                        .measureChannel     = joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()),
-                        .stats              = mStats->getValue(),
-                        .densityMapAreaSize = mHeatmapSlice->getValue().toUInt()});
+
+  mFilter = reporting::plugin::PanelHeatmap::SelectedFilter{
+      .plateRows          = rows,
+      .plateCols          = cols,
+      .plateId            = 1,
+      .channelIdx         = mChannelSelector->getValue(),
+      .measureChannel     = joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()),
+      .stats              = mStats->getValue(),
+      .densityMapAreaSize = mHeatmapSlice->getValue().toUInt()};
+
+  mHeatmap->setData(mAnalyzer, mFilter);
 }
 
 ///
@@ -346,31 +349,25 @@ void PanelReporting::onMeasurementChanged()
 ///
 void PanelReporting::onExportToXlsxClicked()
 {
-  static const std::string separator(1, std::filesystem::path::preferred_separator);
-}
+  QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "XLSX Files (*.xlsx)");
+  if(filePath.isEmpty()) {
+    return;
+  }
 
-///
-/// \brief      Export to xlsx
-/// \author     Joachim Danmayr
-///
-void PanelReporting::onExportToXlsxHeatmapClicked()
-{
-}
-
-///
-/// \brief      Edit measurements for this channel
-/// \author     Joachim Danmayr
-///
-void PanelReporting::onExcelExportChannelsClicked()
-{
-}
-
-///
-/// \brief      Edit measurements for this channel
-/// \author     Joachim Danmayr
-///
-void PanelReporting::onHeatmapExportChannelsClicked()
-{
+  switch(mHeatmap->getActualNavigation()) {
+    case reporting::plugin::PanelHeatmap::Navigation::PLATE:
+      break;
+    case reporting::plugin::PanelHeatmap::Navigation::WELL: {
+      auto result = joda::results::analyze::plugins::StatsPerWell::getData(
+          *mAnalyzer, mFilter.plateId, mHeatmap->getSelectedWell(), mFilter.channelIdx, mFilter.measureChannel);
+      joda::results::exporter::ExporterXlsx::startExport(result, filePath.toStdString());
+    } break;
+    case reporting::plugin::PanelHeatmap::Navigation::IMAGE:
+      auto result = joda::results::analyze::plugins::StatsPerImage::getData(
+          *mAnalyzer, mFilter.plateId, mHeatmap->getSelectedImage(), mFilter.channelIdx, mFilter.measureChannel);
+      joda::results::exporter::ExporterXlsx::startExport(result, filePath.toStdString());
+      break;
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////
