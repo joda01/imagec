@@ -35,6 +35,7 @@
 #include "backend/results/db_column_ids.hpp"
 #include "ui/container/container_button.hpp"
 #include "ui/helper/layout_generator.hpp"
+#include "ui/panel_preview.hpp"
 
 namespace joda::ui::qt::reporting::plugin {
 
@@ -64,29 +65,49 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
     plateViewer->addWidget(breadCrump);
     breadCrump->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-    plateViewer->addWidget(mHeatmap01);
+    //
+    // Middle widget
+    //
+    QWidget *middleWidget     = new QWidget();
+    QHBoxLayout *middleLayout = new QHBoxLayout();
+    middleLayout->addSpacing(64);
+    middleWidget->setLayout(middleLayout);
+    //
+    // Preview
+    //
+    mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, middleWidget);
+    mPreviewImage->resetImage("");
+    middleLayout->addWidget(mHeatmap01);
+    middleLayout->addWidget(mPreviewImage);
+
+    //
+    // Plate
+    //
+    plateViewer->addWidget(middleWidget);
     mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     plateViewerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   }
 
-  //
-  // Well edit
-  //
   {
     auto [verticalLayoutContainer, _1] =
         joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 250, 16);
 
-    auto [verticalLayoutMeta, _2] =
-        joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+    //
+    // Well edit
+    //
+    {
+      auto [verticalLayoutMeta, _2] =
+          joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
 
-    verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Well editor"));
+      verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Well editor"));
 
-    auto *openWellButton = new ContainerButton("Open well", "", windowMain);
-    connect(openWellButton, &ContainerButton::valueChanged, this, &PanelHeatmap::paintWell);
-    verticalLayoutMeta->addWidget(openWellButton->getEditableWidget());
+      auto *openWellButton = new ContainerButton("Open well", "", windowMain);
+      connect(openWellButton, &ContainerButton::valueChanged, this, &PanelHeatmap::paintWell);
+      verticalLayoutMeta->addWidget(openWellButton->getEditableWidget());
 
-    _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
-    verticalLayoutContainer->addStretch();
+      _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+      verticalLayoutContainer->addStretch();
+    }
   }
   centerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -162,6 +183,8 @@ void PanelHeatmap::onOpenNextLevel(uint64_t id)
   actMenu++;
   if(actMenu <= 2) {
     mNavigation = static_cast<Navigation>(actMenu);
+  } else {
+    return;
   }
   switch(mNavigation) {
     case Navigation::PLATE:
@@ -265,7 +288,7 @@ void ChartHeatMap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, co
   mCols     = mData.getCols();
 
   mForm           = form;
-  mPaintCtrlImage = paint;
+  mPaintCtrlImage = PaintControlImage::NO;
   update();
 }
 
@@ -336,14 +359,14 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 
         // Generate a random number
         // double random_number = dis(gen);
-        auto data = mData.data();
+        auto data = mData.data(y, x);
 
-        auto ctrl = data[y][x].getControlImagePath().string();
+        auto ctrl = data.getControlImagePath().string();
         if(!ctrl.empty()) {
           newControlImagePath = ctrl.data();
         }
 
-        double value = data[y][x].getVal();
+        double value = data.getVal();
         double val   = (value - min) / (max - min);
         auto iter    = mColorMap.upper_bound(val);
         QColor color;
@@ -352,7 +375,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
         } else {
           color = mColorMap[1];
         }
-        if(!data[y][x].isValid()) {
+        if(!data.isValid()) {
           color = QColor(255, 255, 255);
         }
 
@@ -369,7 +392,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 
         const int32_t xReduce = rectWidth / 3;
         const int32_t yReduce = rectWidth / 3;
-        if(!data[y][x].isValid()) {
+        if(!data.isValid()) {
           painter.drawLine(x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
                            y * rectWidth + spacing + yReduce + Y_TOP_MARING,
                            x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
@@ -508,9 +531,7 @@ void ChartHeatMap::mouseDoubleClickEvent(QMouseEvent *event)
     mSelectedPoint = selectedPoint;
     update();    // Trigger repaint to reflect hover state change
   }
-  auto id = mData.data().at(mSelectedPoint.x).at(mSelectedPoint.y).getId();
-  std::cout << "X: " << std::to_string(mSelectedPoint.x) << " Y:" << std::to_string(mSelectedPoint.y)
-            << " U: " << std::to_string(id) << std::endl;
+  auto id = mData.data(mSelectedPoint.x, mSelectedPoint.y).getId();
   emit onDoubleClicked(id);
 }
 

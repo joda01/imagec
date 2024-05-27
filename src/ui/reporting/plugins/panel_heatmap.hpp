@@ -20,6 +20,7 @@
 #include "backend/results/analyzer/analyzer.hpp"
 #include "backend/results/db_column_ids.hpp"
 #include "backend/results/table/table.hpp"
+#include "ui/panel_preview.hpp"
 
 namespace joda::ui::qt::reporting::plugin {
 
@@ -148,8 +149,12 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  static constexpr int32_t PREVIEW_BASE_SIZE = 450;
+
+  /////////////////////////////////////////////////////
   QWidget *createBreadCrump(QWidget *);
   QAction *mBackButton;
+  PanelPreview *mPreviewImage;
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;

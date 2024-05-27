@@ -86,19 +86,30 @@ public:
     return mColHeader;
   }
 
-  [[nodiscard]] auto getRowHeader() const -> const std::map<uint32_t, std::string> &
+  [[nodiscard]] auto getRowHeader(uint32_t idx) const -> std::string
   {
-    return mRowHeader;
+    if(mRowHeader.contains(idx)) {
+      return mRowHeader.at(idx);
+    }
+    return "";
   }
-  [[nodiscard]] auto getColHeader() const -> const std::map<uint32_t, std::string> &
+  [[nodiscard]] auto getColHeader(uint32_t idx) const -> std::string
   {
-    return mColHeader;
+    if(mColHeader.contains(idx)) {
+      return mColHeader.at(idx);
+    }
+    return "";
   }
 
   void print();
-  [[nodiscard]] const entry_t &data() const
+  [[nodiscard]] TableCell data(uint32_t row, uint32_t col) const
   {
-    return mData;
+    if(mData.contains(row)) {
+      if(mData.at(row).contains(col)) {
+        return mData.at(row).at(col);
+      }
+    }
+    return {};
   }
 
   void setData(uint32_t row, uint32_t col, const TableCell &data)
@@ -122,6 +133,15 @@ public:
   }
   [[nodiscard]] uint32_t getCols() const
   {
+    return std::max(mNrOfCols, getColHeaderSize());
+  }
+
+  [[nodiscard]] uint32_t getRowHeaderSize() const
+  {
+    return mRowHeader.size();
+  }
+  [[nodiscard]] uint32_t getColHeaderSize() const
+  {
     return mColHeader.size();
   }
 
@@ -133,6 +153,7 @@ private:
 
   std::map<uint32_t, std::string> mColHeader;
   std::map<uint32_t, std::string> mRowHeader;
+  uint32_t mNrOfCols = 0;
 };
 
 }    // namespace joda::results

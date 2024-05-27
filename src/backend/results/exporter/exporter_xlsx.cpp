@@ -109,17 +109,17 @@ void ExporterXlsx::startExport(const joda::results::Table &table, std::string ou
 
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, "results");
 
-  for(int n = 0; n < table.getColHeader().size(); n++) {
-    worksheet_write_string(worksheet, 0, n + 1, table.getColHeader().at(n).data(), header);
+  for(int n = 0; n < table.getColHeaderSize(); n++) {
+    worksheet_write_string(worksheet, 0, n + 1, table.getColHeader(n).data(), header);
   }
 
-  for(int n = 0; n < table.getRowHeader().size(); n++) {
-    worksheet_write_string(worksheet, 1 + n, 0, table.getRowHeader().at(n).data(), header);
+  for(int n = 0; n < table.getRowHeaderSize(); n++) {
+    worksheet_write_string(worksheet, 1 + n, 0, table.getRowHeader(n).data(), header);
   }
 
-  for(int row = 0; row < table.data().size(); row++) {
-    for(int col = 0; col < table.data().at(row).size(); col++) {
-      worksheet_write_number(worksheet, 1 + row, 1 + col, table.data().at(row).at(col).getVal(), numberFormat);
+  for(int row = 0; row < table.getRows(); row++) {
+    for(int col = 0; col < table.getCols(); col++) {
+      worksheet_write_number(worksheet, 1 + row, 1 + col, table.data(row, col).getVal(), numberFormat);
     }
   }
 

@@ -68,6 +68,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     mAnalyzeSelector = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
         "icons8-folder-50.png", "Analysis", "Analysis", "", "", {}, mWindowMain, ""));
     selector->addWidget(mAnalyzeSelector->getEditableWidget());
+    mAnalyzeSelector->getEditableWidget()->setVisible(false);
     connect(mAnalyzeSelector.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onResultsFileSelected);
 
     //

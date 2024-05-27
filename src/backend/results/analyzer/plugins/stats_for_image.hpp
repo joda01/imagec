@@ -37,13 +37,13 @@ public:
       }
 
       auto materializedResult = stats->Cast<duckdb::StreamQueryResult>().Materialize();
-      results.setColHeader({{1, "channel"}});
+      results.setColHeader({{0, measurement.toString()}});
 
-      results.getMutableRowHeader()[1] = "sum";
-      results.getMutableRowHeader()[2] = "min";
-      results.getMutableRowHeader()[3] = "max";
-      results.getMutableRowHeader()[4] = "avg";
-      results.getMutableRowHeader()[5] = "stddev";
+      results.getMutableRowHeader()[0] = "sum";
+      results.getMutableRowHeader()[1] = "min";
+      results.getMutableRowHeader()[2] = "max";
+      results.getMutableRowHeader()[3] = "avg";
+      results.getMutableRowHeader()[4] = "stddev";
       for(size_t n = 0; n < materializedResult->RowCount(); n++) {
         try {
           results.setData(0, n, TableCell{materializedResult->GetValue(0, 0).GetValue<double>(), 0, true, ""});
@@ -77,10 +77,10 @@ public:
       for(size_t n = 0; n < materializedResult->RowCount(); n++) {
         try {
           uint64_t id = materializedResult->GetValue(0, n).GetValue<uint64_t>();
-          results.getMutableRowHeader()[n + 5] =
+          results.getMutableRowHeader()[n + 6] =
               std::to_string(materializedResult->GetValue(0, n).GetValue<uint64_t>()),
                                             true;
-          results.setData(n + 5, 0, TableCell{materializedResult->GetValue(0, n).GetValue<double>(), id, true, ""});
+          results.setData(n + 6, 0, TableCell{materializedResult->GetValue(0, n).GetValue<double>(), id, true, ""});
 
         } catch(const duckdb::InternalException &) {
         }
