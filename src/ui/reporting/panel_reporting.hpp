@@ -61,12 +61,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  QProgressBar *mProgressExportExcel;
-  ContainerButton *mButtonReportingSettings;
-  ContainerButton *mButtonExportExcel;
-  bool mSearchFileStopToken = false;
-  std::filesystem::path mExportPath;
-
   std::shared_ptr<joda::results::Analyzer> mAnalyzer;
 
   // Selector
@@ -84,8 +78,8 @@ private:
   std::shared_ptr<ContainerFunction<QString, int>> mHeatmapSlice;
 
   QProgressBar *mProgressHeatmap;
-  ContainerButton *mButtonReportingSettingsHeatmap;
   ContainerButton *mButtonExportHeatmap;
+  ContainerButton *mButtonExportList;
 
   // Table
   QTableWidget *mTable;
@@ -103,7 +97,8 @@ private:
   void loadDetailReportToTable();
 
 private slots:
-  void onExportToXlsxClicked();
+  void onExportListClicked();
+  void onExportHeatmapClicked();
   void onLoadingFileFinished();
   void onResultsFileSelected();
   void onChannelChanged();

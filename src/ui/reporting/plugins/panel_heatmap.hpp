@@ -54,6 +54,11 @@ public:
   void setData(std::shared_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form,
                PaintControlImage paint, int32_t newHierarchy);
 
+  [[nodiscard]] const results::Table &getData() const
+  {
+    return mData;
+  }
+
 signals:
   void onElementClick(results::TableCell value);
   void onDoubleClicked(results::TableCell value);
@@ -156,6 +161,11 @@ public:
   [[nodiscard]] uint64_t getSelectedImage() const
   {
     return mSelectedImageId;
+  }
+
+  [[nodiscard]] const results::Table &getData() const
+  {
+    return mHeatmap01->getData();
   }
 
 private:

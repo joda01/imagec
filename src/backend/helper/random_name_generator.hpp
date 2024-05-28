@@ -1194,6 +1194,8 @@ class RandomNameGenerator
       // Biologist supports the project with testing
       "plank",
 
+      // Biologist supports the project with testing
+      "khanna",
   };
 
 public:

@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <xlsxwriter/workbook.h>
 #include "backend/results/table/table.hpp"
 
 namespace joda::results::exporter {
@@ -20,7 +21,35 @@ namespace joda::results::exporter {
 class ExporterXlsx
 {
 public:
-  static void startExport(const joda::results::Table &table, std::string outputFileName);
+  /////////////////////////////////////////////////////
+  static void exportAsList(const joda::results::Table &table, std::string outputFileName);
+  static void exportAsHeatmap(const joda::results::Table &table, std::string outputFileName);
+
+private:
+  /////////////////////////////////////////////////////
+  static constexpr int32_t CELL_SIZE = 60;
+
+  struct WorkBook
+  {
+    lxw_workbook *workbook;
+    lxw_format *header;
+    lxw_format *headerInvalid;
+    lxw_format *imageHeaderHyperlinkFormat;
+    lxw_format *imageHeaderHyperlinkFormatInvalid;
+    lxw_format *merge_format;
+    lxw_format *headerBold;
+    lxw_format *fontNormal;
+    lxw_format *numberFormat;
+    lxw_format *numberFormatInvalid;
+
+    lxw_format *numberFormatScientific;
+    lxw_format *numberFormatInvalidScientific;
+  };
+
+  /////////////////////////////////////////////////////
+  static WorkBook prepare(std::string outputFileName);
+  static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,
+                               lxw_format *numberFormat);
 };
 
 }    // namespace joda::results::exporter

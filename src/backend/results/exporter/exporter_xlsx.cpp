@@ -24,7 +24,62 @@ namespace joda::results::exporter {
 /// \param[out]
 /// \return
 ///
-void ExporterXlsx::startExport(const joda::results::Table &table, std::string outputFileName)
+void ExporterXlsx::exportAsList(const joda::results::Table &table, std::string outputFileName)
+{
+  auto workbookSettings    = prepare(outputFileName);
+  lxw_worksheet *worksheet = workbook_add_worksheet(workbookSettings.workbook, "results");
+
+  for(int n = 0; n < table.getColHeaderSize(); n++) {
+    worksheet_write_string(worksheet, 0, n + 1, table.getColHeader(n).data(), workbookSettings.header);
+  }
+
+  for(int n = 0; n < table.getRowHeaderSize(); n++) {
+    worksheet_write_string(worksheet, 1 + n, 0, table.getRowHeader(n).data(), workbookSettings.header);
+  }
+
+  for(int row = 0; row < table.getRows(); row++) {
+    for(int col = 0; col < table.getCols(); col++) {
+      worksheet_write_number(worksheet, 1 + row, 1 + col, table.data(row, col).getVal(), workbookSettings.numberFormat);
+    }
+  }
+
+  workbook_close(workbookSettings.workbook);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ExporterXlsx::exportAsHeatmap(const joda::results::Table &table, std::string outputFileName)
+{
+  auto workbookSettings    = prepare(outputFileName);
+  lxw_worksheet *worksheet = workbook_add_worksheet(workbookSettings.workbook, "results");
+  paintPlateBorder(worksheet, table.getRows(), table.getCols(), 0, workbookSettings.header,
+                   workbookSettings.numberFormatScientific);
+
+  for(int row = 0; row < table.getRows(); row++) {
+    for(int col = 0; col < table.getCols(); col++) {
+      auto *format = workbookSettings.numberFormatScientific;
+      if(!table.data(row, col).isValid()) {
+        format = workbookSettings.numberFormatInvalidScientific;
+      }
+      worksheet_write_number(worksheet, 1 + row, 1 + col, table.data(row, col).getVal(), format);
+    }
+  }
+  workbook_close(workbookSettings.workbook);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+ExporterXlsx::WorkBook ExporterXlsx::prepare(std::string outputFileName)
 {
   if(!outputFileName.ends_with(".xlsx")) {
     outputFileName += ".xlsx";
@@ -107,23 +162,85 @@ void ExporterXlsx::startExport(const joda::results::Table &table, std::string ou
   format_set_font_size(numberFormatInvalid, 10);
   format_set_font_color(numberFormatInvalid, 0x820000);
 
-  lxw_worksheet *worksheet = workbook_add_worksheet(workbook, "results");
+  // Number format scientific
+  lxw_format *numberFormatScientific = workbook_add_format(workbook);
+  format_set_num_format(numberFormatScientific, "0.00E+00");
+  format_set_font_size(numberFormatScientific, 10);
+  format_set_align(numberFormatScientific, LXW_ALIGN_CENTER);
+  format_set_align(numberFormatScientific, LXW_ALIGN_VERTICAL_CENTER);
 
-  for(int n = 0; n < table.getColHeaderSize(); n++) {
-    worksheet_write_string(worksheet, 0, n + 1, table.getColHeader(n).data(), header);
+  // Number format invalid scientific
+  lxw_format *numberFormatInvalidScientific = workbook_add_format(workbook);
+  numberFormatInvalidScientific             = workbook_add_format(workbook);
+  format_set_num_format(numberFormatInvalidScientific, "0.00E+00");
+  format_set_font_size(numberFormatInvalidScientific, 10);
+  format_set_align(numberFormatInvalidScientific, LXW_ALIGN_CENTER);
+  format_set_align(numberFormatInvalidScientific, LXW_ALIGN_VERTICAL_CENTER);
+  // format_set_border(numberFormatInvalid, LXW_BORDER_THIN);                 // Set border style to thin
+  format_set_diag_type(numberFormatInvalidScientific, LXW_DIAGONAL_BORDER_UP_DOWN);
+
+  return WorkBook{workbook,
+                  header,
+                  headerInvalid,
+                  imageHeaderHyperlinkFormat,
+                  imageHeaderHyperlinkFormatInvalid,
+                  merge_format,
+                  headerBold,
+                  fontNormal,
+                  numberFormat,
+                  numberFormatInvalid,
+                  numberFormatScientific,
+                  numberFormatInvalidScientific};
+}
+
+///
+/// \brief      Paint the borders of the heatmap
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ExporterXlsx::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset,
+                                    lxw_format *header, lxw_format *numberFormat)
+{
+  const int32_t HEADER_CELL_SIZE = 15;
+
+  ///////////////////////////7
+  lxw_conditional_format *condFormat = new lxw_conditional_format();
+  condFormat->type                   = LXW_CONDITIONAL_3_COLOR_SCALE;
+  condFormat->format                 = numberFormat;
+  condFormat->min_color              = 0x63BE7B;
+  condFormat->min_rule_type          = LXW_CONDITIONAL_RULE_TYPE_MINIMUM;
+  condFormat->mid_color              = 0xFFEB84;
+  condFormat->mid_rule_type          = LXW_CONDITIONAL_RULE_TYPE_PERCENTILE;
+  condFormat->mid_value              = 50;
+  condFormat->max_color              = 0xF8696B;
+  condFormat->max_rule_type          = LXW_CONDITIONAL_RULE_TYPE_MAXIMUM;
+  ///////////////////
+
+  // Column
+  worksheet_set_column_pixels(sheet, 0, 0, HEADER_CELL_SIZE, NULL);
+  worksheet_set_column_pixels(sheet, cols + 1, cols + 1, HEADER_CELL_SIZE, NULL);
+
+  for(int col = 1; col < cols + 1; col++) {
+    worksheet_set_column_pixels(sheet, col, col, CELL_SIZE, NULL);
+    worksheet_write_string(sheet, rowOffset, col, std::to_string(col).data(), header);
+    worksheet_write_string(sheet, rows + rowOffset + 1, col, std::to_string(col).data(), header);
   }
 
-  for(int n = 0; n < table.getRowHeaderSize(); n++) {
-    worksheet_write_string(worksheet, 1 + n, 0, table.getRowHeader(n).data(), header);
+  // Row
+  worksheet_set_row_pixels(sheet, rowOffset, HEADER_CELL_SIZE, NULL);
+  for(int row = 1; row < rows + 1; row++) {
+    char toWrt[2];
+    toWrt[0] = (row - 1) + 'A';
+    toWrt[1] = 0;
+
+    worksheet_set_row_pixels(sheet, row + rowOffset, CELL_SIZE, NULL);
+    worksheet_write_string(sheet, row + rowOffset, 0, toWrt, header);
+    worksheet_write_string(sheet, row + rowOffset, cols + 1, toWrt, header);
   }
 
-  for(int row = 0; row < table.getRows(); row++) {
-    for(int col = 0; col < table.getCols(); col++) {
-      worksheet_write_number(worksheet, 1 + row, 1 + col, table.data(row, col).getVal(), numberFormat);
-    }
-  }
-
-  workbook_close(workbook);
+  worksheet_conditional_format_range(sheet, 1 + rowOffset, 1, 1 + rowOffset + rows, 1 + cols, condFormat);
 }
 
 }    // namespace joda::results::exporter

@@ -142,14 +142,14 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
         joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
     verticalLayoutXlsx->addWidget(createTitle("Export"));
 
-    mButtonReportingSettings = new ContainerButton("Measure channel", "", mWindowMain);
-    verticalLayoutXlsx->addWidget(mButtonReportingSettings->getEditableWidget());
+    mButtonExportHeatmap = new ContainerButton("Export heatmap", "icons8-export-excel-50.png", mWindowMain);
+    connect(mButtonExportHeatmap, &ContainerButton::valueChanged, this, &PanelReporting::onExportHeatmapClicked);
+    verticalLayoutXlsx->addWidget(mButtonExportHeatmap->getEditableWidget());
 
-    mButtonExportExcel = new ContainerButton("Start export", "icons8-export-excel-50.png", mWindowMain);
-    connect(mButtonExportExcel, &ContainerButton::valueChanged, this, &PanelReporting::onExportToXlsxClicked);
-    verticalLayoutXlsx->addWidget(mButtonExportExcel->getEditableWidget());
-    mProgressExportExcel = createProgressBar(_2);
-    verticalLayoutXlsx->addWidget(mProgressExportExcel);
+    mButtonExportList = new ContainerButton("Export list", "icons8-export-excel-50.png", mWindowMain);
+    connect(mButtonExportList, &ContainerButton::valueChanged, this, &PanelReporting::onExportListClicked);
+    verticalLayoutXlsx->addWidget(mButtonExportList->getEditableWidget());
+
     _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
 
@@ -180,7 +180,6 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 
 PanelReporting::~PanelReporting()
 {
-  mSearchFileStopToken = true;
 }
 
 ///
@@ -255,7 +254,6 @@ void PanelReporting::close()
 ///
 void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &imageCFile)
 {
-  mExportPath = imageCFile.parent_path();
   mWindowMain->setMiddelLabelText(imageCFile.filename().string().data());
   mAnalyzer = std::make_shared<joda::results::Analyzer>(imageCFile);
 
@@ -349,7 +347,7 @@ void PanelReporting::onMeasurementChanged()
 /// \brief      Export to xlsx
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::onExportToXlsxClicked()
+void PanelReporting::onExportListClicked()
 {
   QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "XLSX Files (*.xlsx)");
   if(filePath.isEmpty()) {
@@ -362,14 +360,27 @@ void PanelReporting::onExportToXlsxClicked()
     case reporting::plugin::PanelHeatmap::Navigation::WELL: {
       auto result = joda::results::analyze::plugins::StatsPerWell::getData(
           *mAnalyzer, mFilter.plateId, mHeatmap->getSelectedWell(), mFilter.channelIdx, mFilter.measureChannel);
-      joda::results::exporter::ExporterXlsx::startExport(result, filePath.toStdString());
+      joda::results::exporter::ExporterXlsx::exportAsList(result, filePath.toStdString());
     } break;
     case reporting::plugin::PanelHeatmap::Navigation::IMAGE:
       auto result = joda::results::analyze::plugins::StatsPerImage::getData(
           *mAnalyzer, mFilter.plateId, mHeatmap->getSelectedImage(), mFilter.channelIdx, mFilter.measureChannel);
-      joda::results::exporter::ExporterXlsx::startExport(result, filePath.toStdString());
+      joda::results::exporter::ExporterXlsx::exportAsList(result, filePath.toStdString());
       break;
   }
+}
+
+///
+/// \brief      Export to xlsx
+/// \author     Joachim Danmayr
+///
+void PanelReporting::onExportHeatmapClicked()
+{
+  QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "XLSX Files (*.xlsx)");
+  if(filePath.isEmpty()) {
+    return;
+  }
+  joda::results::exporter::ExporterXlsx::exportAsHeatmap(mHeatmap->getData(), filePath.toStdString());
 }
 
 /////////////////////////////////////////////////////////////////////////////
