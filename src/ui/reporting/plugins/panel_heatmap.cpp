@@ -491,6 +491,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     // Paint the legend
     //
     {
+      painter.setPen(QPen(Qt::black, 1));
       uint32_t xStart = spacing + X_LEFT_MARGIN;
       uint32_t yStart = mRows * rectWidth + spacing + Y_TOP_MARING + 3 * spacing;
       float length    = (mCols * rectWidth + spacing + X_LEFT_MARGIN) - xStart;
