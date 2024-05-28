@@ -20,6 +20,7 @@
 #include "backend/results/analyzer/analyzer.hpp"
 #include "backend/results/db_column_ids.hpp"
 #include "backend/results/table/table.hpp"
+#include "ui/container/container_label.hpp"
 #include "ui/panel_preview.hpp"
 
 namespace joda::ui::qt::reporting::plugin {
@@ -54,6 +55,7 @@ public:
                PaintControlImage paint);
 
 signals:
+  void onElementClick(uint64_t id);
   void onDoubleClicked(uint64_t id);
 
 private:
@@ -120,6 +122,7 @@ public:
 
   struct SelectedFilter
   {
+    std::string analyzeId;
     uint32_t plateRows = 0;
     uint32_t plateCols = 0;
     uint32_t plateId   = 1;
@@ -163,11 +166,16 @@ private:
   Navigation mNavigation = Navigation::PLATE;
 
   /////////////////////////////////////////////////////
+  ContainerLabel *mLabelName;
+  ContainerLabel *mLabelValue;
+
+  /////////////////////////////////////////////////////
   results::WellId mSelectedWellId;
   uint64_t mSelectedImageId;
 
 public slots:
-  void onOpenNextLevel(uint64_t id);
+  void onElementSelected(uint64_t elementId);
+  void onOpenNextLevel(uint64_t elementId);
   void onBackClicked();
   void repaintHeatmap();
   void paintPlate();

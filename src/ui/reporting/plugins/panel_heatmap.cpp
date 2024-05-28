@@ -34,6 +34,7 @@
 #include "backend/results/analyzer/plugins/heatmap_for_well.hpp"
 #include "backend/results/db_column_ids.hpp"
 #include "ui/container/container_button.hpp"
+#include "ui/container/container_label.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
 
@@ -59,6 +60,7 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
     auto [plateViewer, plateViewerWidget] =
         joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgb(251, 252, 253)", 16, false, 800, 2048, 24);
     mHeatmap01 = new ChartHeatMap(this);
+    connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelHeatmap::onElementSelected);
     connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelHeatmap::onOpenNextLevel);
     auto *breadCrump = createBreadCrump(this);
     plateViewer->setContentsMargins(16, 0, 16, 16);
@@ -68,22 +70,22 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
     //
     // Middle widget
     //
-    QWidget *middleWidget     = new QWidget();
-    QHBoxLayout *middleLayout = new QHBoxLayout();
-    middleLayout->addSpacing(64);
-    middleWidget->setLayout(middleLayout);
+    // QWidget *middleWidget     = new QWidget();
+    // QHBoxLayout *middleLayout = new QHBoxLayout();
+    // middleLayout->addSpacing(64);
+    // middleWidget->setLayout(middleLayout);
     //
     // Preview
     //
-    mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, middleWidget);
-    mPreviewImage->resetImage("");
-    middleLayout->addWidget(mHeatmap01);
-    middleLayout->addWidget(mPreviewImage);
+    // mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, middleWidget);
+    // mPreviewImage->resetImage("");
+    // middleLayout->addWidget(mHeatmap01);
+    // middleLayout->addWidget(mPreviewImage);
 
     //
     // Plate
     //
-    plateViewer->addWidget(middleWidget);
+    plateViewer->addWidget(mHeatmap01);
     mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     plateViewerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   }
@@ -99,11 +101,13 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
       auto [verticalLayoutMeta, _2] =
           joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
 
-      verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Well editor"));
+      verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Info"));
 
-      auto *openWellButton = new ContainerButton("Open well", "", windowMain);
-      connect(openWellButton, &ContainerButton::valueChanged, this, &PanelHeatmap::paintWell);
-      verticalLayoutMeta->addWidget(openWellButton->getEditableWidget());
+      mLabelName = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mLabelName->getEditableWidget());
+
+      mLabelValue = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mLabelValue->getEditableWidget());
 
       _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
       verticalLayoutContainer->addStretch();
@@ -174,7 +178,30 @@ void PanelHeatmap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, co
 }
 
 ///
-/// \brief      Constructor
+/// \brief      An element has been selected
+/// \author     Joachim Danmayr
+///
+void PanelHeatmap::onElementSelected(uint64_t elementId)
+{
+  switch(mNavigation) {
+    case Navigation::PLATE:
+      mLabelName->setText("Selected Well " + QString::number(elementId));
+      mAnalyzer->getWellInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
+                                    results::WellId{.well{.wellId = static_cast<uint16_t>(elementId)}});
+      break;
+    case Navigation::WELL:
+      mLabelName->setText("Selected Image " + QString::number(elementId));
+
+      mAnalyzer->getImageInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, elementId);
+      break;
+    case Navigation::IMAGE:
+      mLabelName->setText("Selected Object " + QString::number(elementId));
+      break;
+  }
+}
+
+///
+/// \brief      Open the next deeper level form the element with given id
 /// \author     Joachim Danmayr
 ///
 void PanelHeatmap::onOpenNextLevel(uint64_t id)
@@ -513,6 +540,8 @@ void ChartHeatMap::mousePressEvent(QMouseEvent *event)
     mSelectedPoint = selectedPoint;
     update();    // Trigger repaint to reflect hover state change
   }
+  auto id = mData.data(mSelectedPoint.x, mSelectedPoint.y).getId();
+  emit onElementClick(id);
 }
 
 ///

@@ -43,9 +43,14 @@ public:
   auto getAbsolutePathToControlImage(const std::string &relativePath) const -> std::filesystem::path;
   auto getAnalyzes() -> std::vector<db::AnalyzeMeta>;
   auto getImagesForAnalyses(const std::string &analyzeId) -> std::vector<db::ImageMeta>;
+  auto getImageInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel, uint64_t imageId)
+      -> std::tuple<db::ImageMeta, db::ChannelMeta>;
   auto getChannelsForAnalyses(const std::string &analyzeId) -> std::vector<db::ChannelMeta>;
   auto getPlatesForAnalyses(const std::string &analyzeId) -> std::vector<db::PlateMeta>;
   auto getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -> std::vector<db::WellMeta>;
+  auto getWellInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel, WellId wellId)
+      -> std::tuple<db::WellMeta, db::ChannelMeta>;
+
   auto getDatabase() -> joda::results::db::Database &
   {
     return mDatabase;

@@ -17,6 +17,7 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <tuple>
 #include "backend/results/database/database_interface.hpp"
 #include "backend/results/db_column_ids.hpp"
 #include "plugins/stats_for_well.hpp"
@@ -114,6 +115,84 @@ auto Analyzer::getImagesForAnalyses(const std::string &analyzeId) -> std::vector
 }
 
 ///
+/// \brief      Get information about one image
+/// \author     Joachim Danmayr
+///
+auto Analyzer::getImageInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
+                                   uint64_t imageId) -> std::tuple<db::ImageMeta, db::ChannelMeta>
+{
+  db::ImageMeta imageMeta;
+  db::ChannelMeta channelMeta;
+  std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
+      "SELECT * FROM image "
+      "INNER JOIN image_well ON image.image_id=image_well.image_id "
+      "INNER JOIN channel_image ON (image.image_id=channel_image.image_id) "
+      "INNER JOIN channel ON (channel_image.channel_id=channel.channel_id) "
+      "WHERE image.analyze_id=? AND image.image_id=? AND channel_image.channel_id=?",
+      duckdb::Value::UUID(analyzeId), imageId, (uint8_t) channel);
+
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    auto analyzeId    = materializedResult->GetValue(0, n).GetValue<std::string>();    // Analyze ID
+    auto imageId      = materializedResult->GetValue(1, n).GetValue<uint64_t>();       // Image ID
+    auto imageIdx     = materializedResult->GetValue(2, n).GetValue<uint32_t>();       // Image IDX
+    auto fileName     = materializedResult->GetValue(3, n).GetValue<std::string>();    // Filename
+    auto originalPath = materializedResult->GetValue(4, n).GetValue<std::string>();    // Original image path
+    auto width        = materializedResult->GetValue(5, n).GetValue<uint64_t>();       // width
+    auto height       = materializedResult->GetValue(6, n).GetValue<uint64_t>();       // height
+    // materializedResult->GetValue(7, n).GetValue<std::string>();                        // Analyze ID
+    // materializedResult->GetValue(8, n).GetValue<uint64_t>();                           // Image ID
+    auto plateId = materializedResult->GetValue(9, n).GetValue<uint8_t>();      // Plate ID
+    auto wellId  = materializedResult->GetValue(10, n).GetValue<uint16_t>();    // Well ID
+    // materializedResult->GetValue(11, n).GetValue<std::string>();                // Analyze ID
+    // materializedResult->GetValue(12, n).GetValue<uint64_t>();                   // Image ID
+    auto channelId        = materializedResult->GetValue(13, n).GetValue<uint8_t>();        // Channel ID
+    auto controlImagePath = materializedResult->GetValue(14, n).GetValue<std::string>();    // Control image path
+    auto validity         = materializedResult->GetValue(15, n).GetValue<uint32_t>();       // Validity
+    auto invalidateAll    = materializedResult->GetValue(16, n).GetValue<bool>();           // Invalidate all
+    // materializedResult->GetValue(17, n).GetValue<std::string>();                // Analyze ID
+    // auto channelId = materializedResult->GetValue(18, n).GetValue<uint8_t>();    // Channel ID
+    auto channelName = materializedResult->GetValue(19, n).GetValue<std::string>();    // Control image path
+
+    std::vector<MeasureChannelId> measurements;
+    const auto &value = materializedResult->GetValue(20, n);
+
+    if(value.IsNull()) {
+      std::cout << "NULL value found" << std::endl;
+    } else if(value.type().id() == duckdb::LogicalTypeId::LIST) {
+      const auto &measurementList = duckdb::ListValue::GetChildren(value);
+      for(auto const &data : measurementList) {
+        measurements.push_back(MeasureChannelId(data.GetValue<uint32_t>()));
+      }
+    }
+
+    imageMeta = db::ImageMeta{
+        .analyzeId         = analyzeId,
+        .plateId           = plateId,
+        .wellId            = WellId{.well{.wellId = wellId}},
+        .imageId           = imageId,
+        .imageIdx          = imageIdx,
+        .originalImagePath = originalPath,
+        .width             = width,
+        .height            = height,
+    };
+
+    auto channel = db::ChannelMeta{
+        .analyzeId    = analyzeId,
+        .channelId    = static_cast<ChannelIndex>(channelId),
+        .name         = channelName,
+        .measurements = std::move(measurements),
+    };
+  }
+
+  return {imageMeta, channelMeta};
+}
+
+///
 /// \brief      Create control image
 /// \author     Joachim Danmayr
 ///
@@ -207,6 +286,72 @@ auto Analyzer::getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -
   }
 
   return wells;
+}
+
+///
+/// \brief      Create control image
+/// \author     Joachim Danmayr
+///
+auto Analyzer::getWellInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel, WellId wellId)
+    -> std::tuple<db::WellMeta, db::ChannelMeta>
+{
+  db::WellMeta wellMeta;
+  db::ChannelMeta channelMeta;
+
+  {
+    std::unique_ptr<duckdb::QueryResult> result =
+        mDatabase.select("SELECT * FROM well WHERE analyze_id=? AND plate_id=? AND well_id=?",
+                         duckdb::Value::UUID(analyzeId), plateId, wellId.well.wellId);
+
+    if(result->HasError()) {
+      throw std::invalid_argument(result->GetError());
+    }
+
+    auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+    for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+      wellMeta = db::WellMeta{
+          .analyzeId = materializedResult->GetValue(0, n).GetValue<std::string>(),
+          .plateId   = materializedResult->GetValue(1, n).GetValue<uint8_t>(),
+          .wellId    = WellId{.well{.wellId = materializedResult->GetValue(2, n).GetValue<uint16_t>()}},
+          .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint8_t>(),
+          .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint8_t>(),
+          .notes     = materializedResult->GetValue(5, n).GetValue<std::string>(),
+      };
+    }
+  }
+  {
+    std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
+        "SELECT * FROM channel WHERE analyze_id=? AND channel_id=?", duckdb::Value::UUID(analyzeId), (uint8_t) channel);
+
+    if(result->HasError()) {
+      throw std::invalid_argument(result->GetError());
+    }
+
+    auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+    for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+      std::vector<MeasureChannelId> measurements;
+      const auto &value = materializedResult->GetValue(3, n);
+
+      if(value.IsNull()) {
+        std::cout << "NULL value found" << std::endl;
+      } else if(value.type().id() == duckdb::LogicalTypeId::LIST) {
+        const auto &measurementList = duckdb::ListValue::GetChildren(value);
+        for(auto const &data : measurementList) {
+          measurements.push_back(MeasureChannelId(data.GetValue<uint32_t>()));
+        }
+      }
+
+      channelMeta = db::ChannelMeta{
+          .analyzeId    = materializedResult->GetValue(0, n).GetValue<std::string>(),
+          .channelId    = static_cast<ChannelIndex>(materializedResult->GetValue(1, n).GetValue<uint8_t>()),
+          .name         = materializedResult->GetValue(2, n).GetValue<std::string>(),
+          .measurements = std::move(measurements),
+
+      };
+    }
+  }
+
+  return {wellMeta, channelMeta};
 }
 
 }    // namespace joda::results
