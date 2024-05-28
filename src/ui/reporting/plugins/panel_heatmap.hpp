@@ -52,11 +52,11 @@ public:
   /////////////////////////////////////////////////////
   ChartHeatMap(PanelHeatmap *parent);
   void setData(std::shared_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form,
-               PaintControlImage paint);
+               PaintControlImage paint, int32_t newHierarchy);
 
 signals:
-  void onElementClick(uint64_t id);
-  void onDoubleClicked(uint64_t id);
+  void onElementClick(results::TableCell value);
+  void onDoubleClicked(results::TableCell value);
 
 private:
   struct Point
@@ -93,11 +93,19 @@ private:
   MatrixForm mForm = MatrixForm::CIRCLE;
   PaintControlImage mPaintCtrlImage;
 
-  uint32_t mRows        = 0;
-  uint32_t mCols        = 0;
-  int32_t mHoveredWell  = -1;
-  int32_t mSelectedWell = -1;
-  Point mSelectedPoint;
+  uint32_t mRows       = 0;
+  uint32_t mCols       = 0;
+  int32_t mHoveredWell = -1;
+
+  int32_t mActHierarchy = 0;
+
+  struct Selection
+  {
+    int32_t mSelectedWell = -1;
+    Point mSelectedPoint;
+  };
+
+  std::map<int32_t, Selection> mSelection;
 
   QString mActControlImagePath;
   QImage mActControlImage;
@@ -168,14 +176,15 @@ private:
   /////////////////////////////////////////////////////
   ContainerLabel *mLabelName;
   ContainerLabel *mLabelValue;
+  ContainerLabel *mLabelMeta;
 
   /////////////////////////////////////////////////////
   results::WellId mSelectedWellId;
   uint64_t mSelectedImageId;
 
 public slots:
-  void onElementSelected(uint64_t elementId);
-  void onOpenNextLevel(uint64_t elementId);
+  void onElementSelected(results::TableCell value);
+  void onOpenNextLevel(results::TableCell value);
   void onBackClicked();
   void repaintHeatmap();
   void paintPlate();

@@ -14,6 +14,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <map>
 #include <string>
@@ -55,9 +56,14 @@ public:
     return linkToImage;
   }
 
+  [[nodiscard]] bool isNAN() const
+  {
+    return std::isnan(value);
+  }
+
 private:
   /////////////////////////////////////////////////////
-  double value  = 0;
+  double value  = std::numeric_limits<double>::quiet_NaN();
   uint64_t id   = 0;
   bool validity = true;
   std::filesystem::path linkToImage;

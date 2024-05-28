@@ -74,7 +74,7 @@ public:
       results.getMutableRowHeader()[row] = std::string(toWrt);
       for(uint8_t col = 0; col < sizeX; col++) {
         results.getMutableColHeader()[col] = std::to_string(col + 1);
-        results.setData(row, col, TableCell{0, 0, false, ""});
+        results.setData(row, col, TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, ""});
       }
     }
 

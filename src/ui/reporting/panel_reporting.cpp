@@ -333,6 +333,7 @@ void PanelReporting::onMeasurementChanged()
   uint32_t cols = value % 100;
 
   mFilter = reporting::plugin::PanelHeatmap::SelectedFilter{
+      .analyzeId          = mAnalyzeSelector->getValue().toStdString(),
       .plateRows          = rows,
       .plateCols          = cols,
       .plateId            = 1,

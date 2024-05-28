@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <stdexcept>
+#include <string>
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/roi/roi.hpp"
 #include "backend/settings/channel/channel_index.hpp"
@@ -106,6 +107,11 @@ struct WellId
     uint8_t wellPos[2];
   } well;
   uint32_t imageIdx = 0;
+  std::string toString() const
+  {
+    char al = (well.wellPos[POS_Y] - 1 + 'A');
+    return std::string(1, al) + "x" + std::to_string(well.wellPos[POS_X]);
+  }
 };
 
 class MeasureChannelId

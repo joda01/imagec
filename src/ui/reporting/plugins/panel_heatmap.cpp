@@ -109,6 +109,9 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
       mLabelValue = new ContainerLabel("...", "", windowMain);
       verticalLayoutMeta->addWidget(mLabelValue->getEditableWidget());
 
+      mLabelMeta = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mLabelMeta->getEditableWidget());
+
       _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
       verticalLayoutContainer->addStretch();
     }
@@ -181,21 +184,31 @@ void PanelHeatmap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, co
 /// \brief      An element has been selected
 /// \author     Joachim Danmayr
 ///
-void PanelHeatmap::onElementSelected(uint64_t elementId)
+void PanelHeatmap::onElementSelected(results::TableCell value)
 {
   switch(mNavigation) {
-    case Navigation::PLATE:
-      mLabelName->setText("Selected Well " + QString::number(elementId));
-      mAnalyzer->getWellInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
-                                    results::WellId{.well{.wellId = static_cast<uint16_t>(elementId)}});
-      break;
-    case Navigation::WELL:
-      mLabelName->setText("Selected Image " + QString::number(elementId));
+    case Navigation::PLATE: {
+      auto wellId = results::WellId{.well{.wellId = static_cast<uint16_t>(value.getId())}};
+      mLabelName->setText("Well: " + QString(wellId.toString().data()));
+      auto [result, channel] =
+          mAnalyzer->getWellInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, wellId);
 
-      mAnalyzer->getImageInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, elementId);
-      break;
+      mLabelValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
+      mLabelMeta->setText(channel.name.data());
+    } break;
+    case Navigation::WELL: {
+      auto [image, channel] =
+          mAnalyzer->getImageInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, value.getId());
+
+      mLabelName->setText(image.originalImagePath.filename().string().data());
+      mLabelValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
+      mLabelMeta->setText(channel.name.data());
+
+    }
+
+    break;
     case Navigation::IMAGE:
-      mLabelName->setText("Selected Object " + QString::number(elementId));
+      mLabelName->setText("Selected Object " + QString::number(value.getId()));
       break;
   }
 }
@@ -204,7 +217,7 @@ void PanelHeatmap::onElementSelected(uint64_t elementId)
 /// \brief      Open the next deeper level form the element with given id
 /// \author     Joachim Danmayr
 ///
-void PanelHeatmap::onOpenNextLevel(uint64_t id)
+void PanelHeatmap::onOpenNextLevel(results::TableCell value)
 {
   int actMenu = static_cast<int>(mNavigation);
   actMenu++;
@@ -218,11 +231,11 @@ void PanelHeatmap::onOpenNextLevel(uint64_t id)
       paintPlate();
       break;
     case Navigation::WELL:
-      mSelectedWellId.well.wellId = static_cast<uint16_t>(id);
+      mSelectedWellId.well.wellId = static_cast<uint16_t>(value.getId());
       paintWell();
       break;
     case Navigation::IMAGE:
-      mSelectedImageId = id;
+      mSelectedImageId = value.getId();
       paintImage();
       break;
   }
@@ -261,7 +274,8 @@ void PanelHeatmap::paintPlate()
     auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(
         *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.channelIdx, mFilter.measureChannel,
         mFilter.stats);
-    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO);
+    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO,
+                        static_cast<int32_t>(mNavigation));
   }
 }
 
@@ -276,7 +290,8 @@ void PanelHeatmap::paintWell()
     mNavigation = Navigation::WELL;
     auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
         *mAnalyzer, mFilter.plateId, mSelectedWellId, mFilter.channelIdx, mFilter.measureChannel, mFilter.stats);
-    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO);
+    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO,
+                        static_cast<int32_t>(mNavigation));
   }
 }
 
@@ -292,7 +307,8 @@ void PanelHeatmap::paintImage()
     auto result = joda::results::analyze::plugins::HeatmapForImage::getData(*mAnalyzer, mSelectedImageId,
                                                                             mFilter.channelIdx, mFilter.measureChannel,
                                                                             mFilter.stats, mFilter.densityMapAreaSize);
-    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES);
+    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES,
+                        static_cast<int32_t>(mNavigation));
   }
 }
 
@@ -307,16 +323,26 @@ ChartHeatMap::ChartHeatMap(PanelHeatmap *parent) : QWidget(parent), mParent(pare
 }
 
 void ChartHeatMap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &data,
-                           MatrixForm form, PaintControlImage paint)
+                           MatrixForm form, PaintControlImage paint, int32_t newHierarchy)
 {
-  mAnalyzer = analyzer;
-  mData     = data;
-  mRows     = mData.getRows();
-  mCols     = mData.getCols();
+  if(mActHierarchy > newHierarchy) {
+    // We navigate back
+    mSelection[mActHierarchy].mSelectedWell = -1;
+    mHoveredWell                            = -1;
+  }
+  mActHierarchy = newHierarchy;
+  mAnalyzer     = analyzer;
+  mData         = data;
+  mRows         = mData.getRows();
+  mCols         = mData.getCols();
 
   mForm           = form;
   mPaintCtrlImage = PaintControlImage::NO;
   update();
+  if(mSelection[mActHierarchy].mSelectedWell >= 0) {
+    emit onElementClick(
+        mData.data(mSelection[mActHierarchy].mSelectedPoint.x, mSelection[mActHierarchy].mSelectedPoint.y));
+  }
 }
 
 ///
@@ -361,13 +387,14 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     uint32_t idx = 0;
     for(uint32_t x = 0; x < mCols; x++) {
       uint32_t txtX = x * rectWidth + spacing + X_LEFT_MARGIN + rectWidth / 2 - 6;
+      painter.setPen(QPen(Qt::black, 1));
       painter.drawText(txtX, spacing * 4, QString::number(x + 1));
 
       for(uint32_t y = 0; y < mRows; y++) {
-        uint32_t txtY   = y * rectWidth + rectWidth / 2 + spacing + Y_TOP_MARING;
-        char toPrint[2] = {0};
-        toPrint[0]      = y + 'A';
-        painter.drawText(spacing, txtY, std::string(toPrint, 1).data());
+        uint32_t txtY = y * rectWidth + rectWidth / 2 + spacing + Y_TOP_MARING;
+        painter.setPen(QPen(Qt::black, 1));
+        char toPrint = y + 'A';
+        painter.drawText(spacing, txtY, std::string(1, toPrint).data());
 
         uint32_t rectXPos = x * rectWidth + spacing + X_LEFT_MARGIN;
         uint32_t rectYPos = y * rectWidth + spacing + Y_TOP_MARING;
@@ -408,27 +435,32 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 
         painter.setBrush(color);    // Change color as desired
         painter.fillPath(path, painter.brush());
-        if(idx == mSelectedWell) {
+        if(data.isNAN() && !data.isValid()) {
+          painter.setPen(QPen(Qt::lightGray, 1));
+        } else if(idx == mSelection[mActHierarchy].mSelectedWell) {
           painter.setPen(QPen(Qt::green, 1));
         } else if(idx == mHoveredWell) {
           painter.setPen(QPen(Qt::red, 1));
         } else {
           painter.setPen(QPen(Qt::black, 1));
         }
+
         painter.drawPath(path);
 
         const int32_t xReduce = rectWidth / 3;
         const int32_t yReduce = rectWidth / 3;
         if(!data.isValid()) {
-          painter.drawLine(x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
-                           y * rectWidth + spacing + yReduce + Y_TOP_MARING,
-                           x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
-                           y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
+          if(!data.isNAN()) {
+            painter.drawLine(x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
+                             y * rectWidth + spacing + yReduce + Y_TOP_MARING,
+                             x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
+                             y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
 
-          painter.drawLine(x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
-                           y * rectWidth + spacing + yReduce + Y_TOP_MARING,
-                           x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
-                           y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
+            painter.drawLine(x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
+                             y * rectWidth + spacing + yReduce + Y_TOP_MARING,
+                             x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
+                             y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
+          }
         } else {
           QString txtToPaint = formatDoubleScientific(value);
           // Get text metrics
@@ -535,18 +567,21 @@ void ChartHeatMap::mousePressEvent(QMouseEvent *event)
 {
   auto [newSelectedWellId, selectedPoint] = getWellUnderMouse(event);
   // Update hovering index and trigger repaint if necessary
-  if(newSelectedWellId >= 0 && mSelectedWell != newSelectedWellId) {
-    mSelectedWell  = newSelectedWellId;
-    mSelectedPoint = selectedPoint;
-    update();    // Trigger repaint to reflect hover state change
+  auto selectedData = mData.data(selectedPoint.x, selectedPoint.y);
+  if(!selectedData.isNAN()) {
+    if(newSelectedWellId >= 0 && mSelection[mActHierarchy].mSelectedWell != newSelectedWellId) {
+      mSelection[mActHierarchy].mSelectedWell  = newSelectedWellId;
+      mSelection[mActHierarchy].mSelectedPoint = selectedPoint;
+      update();    // Trigger repaint to reflect hover state change
+    }
+
+    emit onElementClick(selectedData);
   }
-  auto id = mData.data(mSelectedPoint.x, mSelectedPoint.y).getId();
-  emit onElementClick(id);
 }
 
 ///
 /// \brief
-/// \author
+/// \authors
 /// \param[in]
 /// \param[out]
 /// \return
@@ -555,13 +590,15 @@ void ChartHeatMap::mouseDoubleClickEvent(QMouseEvent *event)
 {
   auto [newSelectedWellId, selectedPoint] = getWellUnderMouse(event);
   // Update hovering index and trigger repaint if necessary
-  if(newSelectedWellId >= 0 && mSelectedWell != newSelectedWellId) {
-    mSelectedWell  = newSelectedWellId;
-    mSelectedPoint = selectedPoint;
-    update();    // Trigger repaint to reflect hover state change
+  auto selectedData = mData.data(selectedPoint.x, selectedPoint.y);
+  if(!selectedData.isNAN()) {
+    if(newSelectedWellId >= 0 && mSelection[mActHierarchy].mSelectedWell != newSelectedWellId) {
+      mSelection[mActHierarchy].mSelectedWell  = newSelectedWellId;
+      mSelection[mActHierarchy].mSelectedPoint = selectedPoint;
+      update();    // Trigger repaint to reflect hover state change
+    }
+    emit onDoubleClicked(selectedData);
   }
-  auto id = mData.data(mSelectedPoint.x, mSelectedPoint.y).getId();
-  emit onDoubleClicked(id);
 }
 
 ///

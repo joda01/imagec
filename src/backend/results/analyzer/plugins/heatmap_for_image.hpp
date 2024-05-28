@@ -56,7 +56,7 @@ public:
         results.getMutableRowHeader()[row] = std::to_string(row + 1);
         for(uint64_t col = 0; col < width; col++) {
           results.getMutableColHeader()[col] = std::to_string(col + 1);
-          results.setData(row, col, TableCell{0, 0, false, linkToImage});
+          results.setData(row, col, TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, linkToImage});
         }
       }
     }
