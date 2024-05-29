@@ -280,7 +280,7 @@ void ImageProcessor::doFiltering(
             if(referenceRoi.isValid() && spot.isValid()) {
               auto isIntersecting = referenceRoi.isIntersecting(spot, 0.7);
               if(isIntersecting) {
-                spot.setValidity(image::ParticleValidity::REFERENCE_SPOT);
+                spot.setValidity(image::ParticleValidityEnums::REFERENCE_SPOT);
                 break;
               }
             }
@@ -305,7 +305,8 @@ void ImageProcessor::doFiltering(
     //
     if(channelSetting.imageFilter.maxObjects > 0 &&
        detectionResult.result.size() > channelSetting.imageFilter.maxObjects) {
-      detectionResult.responseValidity = image::detect::ResponseDataValidity::POSSIBLE_NOISE;
+      detectionResult.responseValidity.set(
+          static_cast<size_t>(image::detect::ResponseDataValidityEnum::POSSIBLE_NOISE));
     }
 
     //

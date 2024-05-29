@@ -51,6 +51,11 @@ public:
   auto getWellInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel, WellId wellId)
       -> std::tuple<db::WellMeta, db::ChannelMeta>;
 
+  void markImageChannelAsManualInvalid(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
+                                       uint64_t imageId);
+  void unMarkImageChannelAsManualInvalid(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
+                                         uint64_t imageId);
+
   auto getDatabase() -> joda::results::db::Database &
   {
     return mDatabase;

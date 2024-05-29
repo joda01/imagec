@@ -51,7 +51,8 @@ inline void applyHistogramFilter(const cv::Mat &originalImg, image::detect::Dete
     float filterThreshold = static_cast<float>(maxIdx) * channelSetting.imageFilter.histMinThresholdFilterFactor;
     if(channelSetting.detection.detectionMode == joda::settings::DetectionSettings::DetectionMode::THRESHOLD) {
       if(channelSetting.detection.threshold.thresholdMin < filterThreshold) {
-        detectionResult.responseValidity = image::detect::ResponseDataValidity::POSSIBLE_WRONG_THRESHOLD;
+        detectionResult.responseValidity.set(
+            static_cast<size_t>(image::detect::ResponseDataValidityEnum::POSSIBLE_WRONG_THRESHOLD));
       }
       std::cout << "Hist idx: " << std::to_string(maxIdx) << " | " << std::to_string(filterThreshold) << std::endl;
     }

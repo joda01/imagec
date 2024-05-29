@@ -19,20 +19,23 @@ namespace joda::image::detect {
 
 using DetectionResults = std::vector<ROI>;
 
-enum class ResponseDataValidity : int
+enum class ResponseDataValidityEnum
 {
-  UNKNOWN                  = 0,
-  VALID                    = 0x01,
-  POSSIBLE_NOISE           = 0x02,
-  POSSIBLE_WRONG_THRESHOLD = 0x04
+  UNKNOWN                  = 1,
+  INVALID                  = 2,
+  MANUAL_OUT_SORTED        = 3,
+  POSSIBLE_NOISE           = 4,
+  POSSIBLE_WRONG_THRESHOLD = 5
 };
+
+using ResponseDataValidity = std::bitset<32>;
 
 struct DetectionResponse
 {
   DetectionResults result;
   cv::Mat originalImage                 = {};
   cv::Mat controlImage                  = {};
-  ResponseDataValidity responseValidity = ResponseDataValidity::VALID;
+  ResponseDataValidity responseValidity = {};
   bool invalidateWholeImage             = false;
 };
 

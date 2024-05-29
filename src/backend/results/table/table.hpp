@@ -36,6 +36,10 @@ public:
   {
   }
 
+  TableCell(double val, uint64_t id, const std::string &linkToImage) : value(val), id(id), linkToImage(linkToImage)
+  {
+  }
+
   [[nodiscard]] double getVal() const
   {
     return value;

@@ -20,6 +20,7 @@
 #include "backend/results/analyzer/analyzer.hpp"
 #include "backend/results/db_column_ids.hpp"
 #include "backend/results/table/table.hpp"
+#include "ui/container/container_function.hpp"
 #include "ui/container/container_label.hpp"
 #include "ui/panel_preview.hpp"
 
@@ -187,12 +188,14 @@ private:
   ContainerLabel *mLabelName;
   ContainerLabel *mLabelValue;
   ContainerLabel *mLabelMeta;
+  std::shared_ptr<ContainerFunction<bool, bool>> mMarkAsInvalid;
 
   /////////////////////////////////////////////////////
   results::WellId mSelectedWellId;
   uint64_t mSelectedImageId;
 
 public slots:
+  void onMarkAsInvalidClicked();
   void onElementSelected(results::TableCell value);
   void onOpenNextLevel(results::TableCell value);
   void onBackClicked();

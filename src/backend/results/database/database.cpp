@@ -122,7 +122,7 @@ void Database::open()
       "	image_id UHUGEINT,"
       "	channel_id UTINYINT,"
       " control_image_path TEXT,"
-      " validity UINTEGER,"
+      " validity BITSTRING,"
       " invalidateAll BOOLEAN,"
       " PRIMARY KEY (analyze_id, image_id, channel_id),"
       " FOREIGN KEY(analyze_id, image_id) REFERENCES image(analyze_id, image_id)"
@@ -134,7 +134,7 @@ void Database::open()
       "	channel_id UTINYINT,"
       "	object_id UINTEGER,"
       "	tile_id USMALLINT,"
-      " validity UINTEGER,"
+      " validity BITSTRING,"
       " values MAP(UINTEGER, DOUBLE)"
       ");"
       "CREATE INDEX object_idx ON object (analyze_id, image_id, channel_id);";
@@ -254,7 +254,7 @@ void Database::createImageChannel(const ImageChannelMeta &meta)
       "(?, ?, ?, ?, ?, ?)");
 
   prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, static_cast<uint8_t>(meta.channelId),
-                   meta.controlImagePath.string(), static_cast<uint32_t>(meta.validity), meta.invalidateAll);
+                   meta.controlImagePath.string(), duckdb::Value::BIT(meta.validity.to_string()), meta.invalidateAll);
 }
 
 ///
@@ -277,7 +277,7 @@ void Database::createObjects(const ObjectMeta &data)
     appender.Append<uint16_t>(static_cast<uint16_t>(data.channelId));
     appender.Append<uint32_t>(objectKey);
     appender.Append<uint16_t>(data.tileId);
-    appender.Append<uint32_t>(static_cast<uint32_t>(measureValues.validity));
+    appender.Append(duckdb::Value::BIT(measureValues.validity.to_string()));
     // 0.02 ms
     auto mapToInsert =
         duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),

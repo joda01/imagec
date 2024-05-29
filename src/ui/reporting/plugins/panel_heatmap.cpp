@@ -112,6 +112,12 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
       mLabelMeta = new ContainerLabel("...", "", windowMain);
       verticalLayoutMeta->addWidget(mLabelMeta->getEditableWidget());
 
+      mMarkAsInvalid = std::shared_ptr<ContainerFunction<bool, bool>>(
+          new ContainerFunction<bool, bool>("icons8-split-50", "Mark as invalid", "Mark as invalid", false, windowMain,
+                                            "reporting_mark_as_invalid.json"));
+      verticalLayoutMeta->addWidget(mMarkAsInvalid->getEditableWidget());
+      connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelHeatmap::onMarkAsInvalidClicked);
+
       _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
       verticalLayoutContainer->addStretch();
     }
@@ -167,6 +173,21 @@ void PanelHeatmap::onBackClicked()
     mNavigation = static_cast<Navigation>(actMenu);
   }
   repaintHeatmap();
+}
+
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+void PanelHeatmap::onMarkAsInvalidClicked()
+{
+  if(mMarkAsInvalid->getValue()) {
+    mAnalyzer->markImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
+                                               mSelectedImageId);
+  } else {
+    mAnalyzer->unMarkImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
+                                                 mSelectedImageId);
+  }
 }
 
 ///

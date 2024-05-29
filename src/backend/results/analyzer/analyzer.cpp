@@ -150,10 +150,10 @@ auto Analyzer::getImageInformation(const std::string &analyzeId, uint8_t plateId
     auto wellId  = materializedResult->GetValue(10, n).GetValue<uint16_t>();    // Well ID
     // materializedResult->GetValue(11, n).GetValue<std::string>();                // Analyze ID
     // materializedResult->GetValue(12, n).GetValue<uint64_t>();                   // Image ID
-    auto channelId        = materializedResult->GetValue(13, n).GetValue<uint8_t>();        // Channel ID
-    auto controlImagePath = materializedResult->GetValue(14, n).GetValue<std::string>();    // Control image path
-    auto validity         = materializedResult->GetValue(15, n).GetValue<uint32_t>();       // Validity
-    auto invalidateAll    = materializedResult->GetValue(16, n).GetValue<bool>();           // Invalidate all
+    auto channelId        = materializedResult->GetValue(13, n).GetValue<uint8_t>();          // Channel ID
+    auto controlImagePath = materializedResult->GetValue(14, n).GetValue<std::string>();      // Control image path
+    ChannelValidity validity{materializedResult->GetValue(15, n).GetValue<std::string>()};    // Validity
+    auto invalidateAll = materializedResult->GetValue(16, n).GetValue<bool>();                // Invalidate all
     // materializedResult->GetValue(17, n).GetValue<std::string>();                // Analyze ID
     // auto channelId = materializedResult->GetValue(18, n).GetValue<uint8_t>();    // Channel ID
     auto channelName = materializedResult->GetValue(19, n).GetValue<std::string>();    // Control image path
@@ -352,6 +352,35 @@ auto Analyzer::getWellInformation(const std::string &analyzeId, uint8_t plateId,
   }
 
   return {wellMeta, channelMeta};
+}
+
+///
+/// \brief      Create control image
+/// \author     Joachim Danmayr
+///
+void Analyzer::markImageChannelAsManualInvalid(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
+                                               uint64_t imageId)
+{
+  std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
+      "UPDATE channel_image SET validity | '1000':BIT WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      duckdb::Value::UUID(analyzeId), (uint8_t) channel, imageId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  std::cout << result->ToString() << std::endl;
+}
+
+void Analyzer::unMarkImageChannelAsManualInvalid(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
+                                                 uint64_t imageId)
+{
+  std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
+      "UPDATE channel_image SET validity & ~('1000':BIT) WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      duckdb::Value::UUID(analyzeId), (uint8_t) channel, imageId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  std::cout << result->ToString() << std::endl;
 }
 
 }    // namespace joda::results

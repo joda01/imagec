@@ -159,7 +159,7 @@ void ROI::calculateMetrics(const std::map<joda::settings::ChannelIndex, const cv
     if(filter != nullptr) {
       applyParticleFilter(filter);
     } else {
-      validity = ParticleValidity::VALID;
+      validity = {};
     }
   }
 }
@@ -308,22 +308,16 @@ double ROI::calcPerimeter(const std::vector<cv::Point> &points) const
 ///
 void ROI::applyParticleFilter(const joda::settings::ChannelSettingsFilter *filter)
 {
-  validity = ParticleValidity::UNKNOWN;
+  validity = {};
   if(areaSize > filter->maxParticleSize) {
-    validity = static_cast<ParticleValidity>(static_cast<int>(validity) | static_cast<int>(ParticleValidity::TOO_BIG));
+    validity.set(static_cast<size_t>(ParticleValidityEnums::TOO_BIG));
   }
   if(areaSize < filter->minParticleSize) {
-    validity =
-        static_cast<ParticleValidity>(static_cast<int>(validity) | static_cast<int>(ParticleValidity::TOO_SMALL));
+    validity.set(static_cast<size_t>(ParticleValidityEnums::TOO_SMALL));
   }
   if(circularity < filter->minCircularity) {
-    validity = static_cast<ParticleValidity>(static_cast<int>(validity) |
-                                             static_cast<int>(ParticleValidity::TOO_LESS_CIRCULARITY));
+    validity.set(static_cast<size_t>(ParticleValidityEnums::TOO_LESS_CIRCULARITY));
   }
-  if(validity == ParticleValidity::UNKNOWN) {
-    validity = ParticleValidity::VALID;
-  }
-
   // filter.getSnapAreaSize();
 }
 
@@ -371,7 +365,7 @@ ROI::calcIntersection(const ROI &roi, const std::map<joda::settings::ChannelInde
       ROI intersectionROI(index, intersectingMask.intersectionArea, 0, intersectingMask.intersectedRect,
                           intersectingMask.intersectedMask, contour, imageOriginal);
       if(intersectingMask.intersectionArea < minIntersection) {
-        intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
+        intersectionROI.setValidity(ParticleValidityEnums::TOO_LESS_OVERLAPPING);
       }
       return {intersectionROI, true};
     }

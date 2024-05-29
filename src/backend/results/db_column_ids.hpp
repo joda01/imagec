@@ -13,7 +13,10 @@
 
 #pragma once
 
+#include <bit>
+#include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include "backend/image_processing/detection/detection_response.hpp"
@@ -75,27 +78,31 @@ enum class ChannelIndex : uint8_t
   ME  = 0xFF
 };
 
-enum class ObjectValidity : uint32_t
+enum class ObjectValidityEnum : size_t
 {
-
-  VALID                = 0x00,
-  TOO_SMALL            = 0x02,
-  TOO_BIG              = 0x04,
-  TOO_LESS_CIRCULARITY = 0x08,
-  TOO_LESS_OVERLAPPING = 0x10,
-  REFERENCE_SPOT       = 0x20,
-  INVALID              = 0x40,
-  AT_THE_EDGE          = 0x80,
-  UNKNOWN              = 0xFFFFFFFF,
+  UNKNOWN              = 1,
+  INVALID              = 2,
+  MANUAL_OUT_SORTED    = 3,
+  TOO_SMALL            = 4,
+  TOO_BIG              = 5,
+  TOO_LESS_CIRCULARITY = 6,
+  TOO_LESS_OVERLAPPING = 7,
+  REFERENCE_SPOT       = 8,
+  AT_THE_EDGE          = 9,
 };
 
-enum class ChannelValidity : uint32_t
-{
+using ObjectValidity = std::bitset<32>;
 
-  VALID                    = 0x0,
-  POSSIBLE_NOISE           = 0x01,
-  POSSIBLE_WRONG_THRESHOLD = 0x02
+enum class ChannelValidityEnum : size_t
+{
+  UNKNOWN                  = 1,
+  INVALID                  = 2,
+  MANUAL_OUT_SORTED        = 3,
+  POSSIBLE_NOISE           = 4,
+  POSSIBLE_WRONG_THRESHOLD = 5
 };
+
+using ChannelValidity = std::bitset<32>;
 
 struct WellId
 {
@@ -311,29 +318,58 @@ inline ChannelIndex toChannelIndex(joda::settings::ChannelIndex idx)
 
 inline ObjectValidity toValidity(image::ParticleValidity validity)
 {
-  switch(validity) {
-    case image::ParticleValidity::UNKNOWN:
-      return ObjectValidity::UNKNOWN;
-    case image::ParticleValidity::VALID:
-      return ObjectValidity::VALID;
-    default:
-      return static_cast<ObjectValidity>(validity);
+  ObjectValidity ret{};
+  if(validity.test(static_cast<size_t>(ObjectValidityEnum::UNKNOWN))) {
+    ret.set(static_cast<size_t>(ObjectValidityEnum::UNKNOWN));
   }
+  if(validity.test(static_cast<size_t>(ObjectValidityEnum::INVALID))) {
+    ret.set(static_cast<size_t>(ObjectValidityEnum::INVALID));
+  }
+  if(validity.test(static_cast<size_t>(ObjectValidityEnum::TOO_SMALL))) {
+    ret.set(static_cast<size_t>(ObjectValidityEnum::TOO_SMALL));
+  }
+  if(validity.test(static_cast<size_t>(ObjectValidityEnum::TOO_BIG))) {
+    ret.set(static_cast<size_t>(ObjectValidityEnum::TOO_BIG));
+  }
+  if(validity.test(static_cast<size_t>(ObjectValidityEnum::TOO_LESS_CIRCULARITY))) {
+    ret.set(static_cast<size_t>(ObjectValidityEnum::TOO_LESS_CIRCULARITY));
+  }
+  if(validity.test(static_cast<size_t>(ObjectValidityEnum::TOO_LESS_OVERLAPPING))) {
+    ret.set(static_cast<size_t>(ObjectValidityEnum::TOO_LESS_OVERLAPPING));
+  }
+  if(validity.test(static_cast<size_t>(ObjectValidityEnum::REFERENCE_SPOT))) {
+    ret.set(static_cast<size_t>(ObjectValidityEnum::REFERENCE_SPOT));
+  }
+  if(validity.test(static_cast<size_t>(ObjectValidityEnum::AT_THE_EDGE))) {
+    ret.set(static_cast<size_t>(ObjectValidityEnum::AT_THE_EDGE));
+  }
+  if(validity.test(static_cast<size_t>(ObjectValidityEnum::MANUAL_OUT_SORTED))) {
+    ret.set(static_cast<size_t>(ObjectValidityEnum::MANUAL_OUT_SORTED));
+  }
+
+  return ret;
 }
 
-inline ChannelValidity toValidity(joda::image::detect::ResponseDataValidity validity)
+inline ChannelValidity toChannelValidity(joda::image::detect::ResponseDataValidity validity)
 {
-  switch(validity) {
-    case image::detect::ResponseDataValidity::UNKNOWN:
-    case image::detect::ResponseDataValidity::VALID:
-      return ChannelValidity::VALID;
-    case image::detect::ResponseDataValidity::POSSIBLE_NOISE:
-      return ChannelValidity::POSSIBLE_NOISE;
-    case image::detect::ResponseDataValidity::POSSIBLE_WRONG_THRESHOLD:
-      return ChannelValidity::POSSIBLE_WRONG_THRESHOLD;
-    default:
-      throw std::runtime_error("Unknown validity!");
+  ChannelValidity ret{};
+
+  if(validity.test(static_cast<size_t>(ChannelValidityEnum::UNKNOWN))) {
+    ret.set(static_cast<size_t>(ChannelValidityEnum::UNKNOWN));
   }
+  if(validity.test(static_cast<size_t>(ChannelValidityEnum::INVALID))) {
+    ret.set(static_cast<size_t>(ChannelValidityEnum::INVALID));
+  }
+  if(validity.test(static_cast<size_t>(ChannelValidityEnum::MANUAL_OUT_SORTED))) {
+    ret.set(static_cast<size_t>(ChannelValidityEnum::MANUAL_OUT_SORTED));
+  }
+  if(validity.test(static_cast<size_t>(ChannelValidityEnum::POSSIBLE_NOISE))) {
+    ret.set(static_cast<size_t>(ChannelValidityEnum::POSSIBLE_NOISE));
+  }
+  if(validity.test(static_cast<size_t>(ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD))) {
+    ret.set(static_cast<size_t>(ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD));
+  }
+  return ret;
 }
 
 }    // namespace joda::results

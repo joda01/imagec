@@ -28,7 +28,7 @@ public:
         "INNER JOIN image_well ON object.image_id=image_well.image_id "
         "INNER JOIN image ON object.image_id=image.image_id "
         "WHERE"
-        " image_well.well_id=$2 AND object.validity=0 AND object.channel_id=$3 "
+        " image_well.well_id=$2 AND bit_count(object.validity)=0 AND object.channel_id=$3 "
         "GROUP BY"
         "  (object.image_id, image.file_name) "
         "ORDER BY image.file_name",

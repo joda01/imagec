@@ -66,7 +66,7 @@ auto CalcVoronoi::execute(
             //
             if(mExcludeAreasWithoutPoint) {
               if(!doesAreaContainsPoint(cutedVoronoiArea, voronoiPointsChannel.result)) {
-                cutedVoronoiArea.setValidity(image::ParticleValidity::INVALID);
+                cutedVoronoiArea.setValidity(image::ParticleValidityEnums::INVALID);
               }
             }
 
@@ -74,9 +74,9 @@ auto CalcVoronoi::execute(
             // Check area size
             //
             if(cutedVoronoiArea.getAreaSize() < mMinSize) {
-              cutedVoronoiArea.setValidity(image::ParticleValidity::TOO_SMALL);
+              cutedVoronoiArea.setValidity(image::ParticleValidityEnums::TOO_SMALL);
             } else if(cutedVoronoiArea.getAreaSize() > mMaxSize) {
-              cutedVoronoiArea.setValidity(image::ParticleValidity::TOO_BIG);
+              cutedVoronoiArea.setValidity(image::ParticleValidityEnums::TOO_BIG);
             }
 
             //
@@ -86,7 +86,7 @@ auto CalcVoronoi::execute(
               auto box = cutedVoronoiArea.getBoundingBox();
               if(box.x <= 0 || box.y <= 0 || box.x + box.width >= CalcVoronoiResult.originalImage.cols ||
                  box.y + box.height >= CalcVoronoiResult.originalImage.rows) {
-                cutedVoronoiArea.setValidity(image::ParticleValidity::AT_THE_EDGE);
+                cutedVoronoiArea.setValidity(image::ParticleValidityEnums::AT_THE_EDGE);
               }
             }
             response.result.push_back(cutedVoronoiArea);

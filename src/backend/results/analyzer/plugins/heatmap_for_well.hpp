@@ -50,7 +50,7 @@ public:
             "INNER JOIN channel_image ON (object.image_id=channel_image.image_id AND "
             "object.channel_id=channel_image.channel_id)"
             "WHERE"
-            " image_well.well_id=$2 AND object.validity=0 AND object.channel_id=$3 "
+            " image_well.well_id=$2 AND bit_count(object.validity)=0 AND object.channel_id=$3 "
             "GROUP BY"
             "  (object.image_id, image.file_name, image.image_idx) "
             "ORDER BY image.file_name",
@@ -74,7 +74,7 @@ public:
       results.getMutableRowHeader()[row] = std::string(toWrt);
       for(uint8_t col = 0; col < sizeX; col++) {
         results.getMutableColHeader()[col] = std::to_string(col + 1);
-        results.setData(row, col, TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, ""});
+        results.setData(row, col, TableCell{std::numeric_limits<double>::quiet_NaN(), 0, true, ""});
       }
     }
 
@@ -89,7 +89,7 @@ public:
         double value = materializedResult->GetValue(5, n).GetValue<double>();
 
         helper::stringReplace(controlImagePath, "${tile_id}", std::to_string(tileId));
-        results.setData(pos.x, pos.y, TableCell{value, imageId, true, controlImagePath});
+        results.setData(pos.x, pos.y, TableCell{value, imageId, controlImagePath});
       } catch(const duckdb::InternalException &) {
       }
     }

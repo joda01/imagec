@@ -75,14 +75,14 @@ struct ImageChannelMeta
   std::string analyzeId;
   uint64_t imageId         = 0;
   ChannelIndex channelId   = ChannelIndex::ME;
-  ChannelValidity validity = ChannelValidity::VALID;
+  ChannelValidity validity = {};
   bool invalidateAll       = false;
   std::filesystem::path controlImagePath;
 };
 
 struct Data
 {
-  ObjectValidity validity = ObjectValidity::VALID;
+  ObjectValidity validity = {};
   duckdb::vector<duckdb::Value> keys;
   duckdb::vector<duckdb::Value> vals;
 };
