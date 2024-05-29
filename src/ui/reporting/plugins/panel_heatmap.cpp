@@ -113,9 +113,10 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
       verticalLayoutMeta->addWidget(mLabelMeta->getEditableWidget());
 
       mMarkAsInvalid = std::shared_ptr<ContainerFunction<bool, bool>>(
-          new ContainerFunction<bool, bool>("icons8-split-50", "Mark as invalid", "Mark as invalid", false, windowMain,
-                                            "reporting_mark_as_invalid.json"));
+          new ContainerFunction<bool, bool>("icons8-multiply-50.png", "Mark as invalid", "Mark as invalid", false,
+                                            windowMain, "reporting_mark_as_invalid.json"));
       verticalLayoutMeta->addWidget(mMarkAsInvalid->getEditableWidget());
+      mMarkAsInvalid->getEditableWidget()->setVisible(false);
       connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelHeatmap::onMarkAsInvalidClicked);
 
       _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
@@ -159,20 +160,6 @@ QWidget *PanelHeatmap::createBreadCrump(QWidget *parent)
   layout->addStretch();
 
   return breadCrump;
-}
-
-///
-/// \brief      Constructor
-/// \author     Joachim Danmayr
-///
-void PanelHeatmap::onBackClicked()
-{
-  int actMenu = static_cast<int>(mNavigation);
-  actMenu--;
-  if(actMenu >= 0) {
-    mNavigation = static_cast<Navigation>(actMenu);
-  }
-  repaintHeatmap();
 }
 
 ///
@@ -262,18 +249,29 @@ void PanelHeatmap::onOpenNextLevel(results::TableCell value)
   }
   switch(mNavigation) {
     case Navigation::PLATE:
-      paintPlate();
       break;
     case Navigation::WELL:
       mSelectedWellId.well.wellId = static_cast<uint16_t>(value.getId());
-      paintWell();
       break;
     case Navigation::IMAGE:
       mSelectedImageId = value.getId();
-      paintImage();
       break;
   }
-  update();
+  repaintHeatmap();
+}
+
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+void PanelHeatmap::onBackClicked()
+{
+  int actMenu = static_cast<int>(mNavigation);
+  actMenu--;
+  if(actMenu >= 0) {
+    mNavigation = static_cast<Navigation>(actMenu);
+  }
+  repaintHeatmap();
 }
 
 ///
@@ -284,12 +282,15 @@ void PanelHeatmap::repaintHeatmap()
 {
   switch(mNavigation) {
     case Navigation::PLATE:
+      mMarkAsInvalid->getEditableWidget()->setVisible(false);
       paintPlate();
       break;
     case Navigation::WELL:
+      mMarkAsInvalid->getEditableWidget()->setVisible(true);
       paintWell();
       break;
     case Navigation::IMAGE:
+      mMarkAsInvalid->getEditableWidget()->setVisible(false);
       paintImage();
       break;
   }
