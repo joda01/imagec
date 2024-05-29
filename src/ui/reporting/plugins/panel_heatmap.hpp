@@ -23,6 +23,7 @@
 #include "ui/container/container_function.hpp"
 #include "ui/container/container_label.hpp"
 #include "ui/panel_preview.hpp"
+#include "ui/reporting/plugins/heatmap_color_generator.hpp"
 
 namespace joda::ui::qt::reporting::plugin {
 
@@ -74,18 +75,24 @@ private:
   /////////////////////////////////////////////////////
   QString formatDoubleScientific(double value, int precision = 3);
   static void drawGaussianCurve(QPainter &painter, int startX, int startY, int height, int length);
+  static double calcValueOnGaussianCurve(double x, double avg, double sttdev);
   void paintEvent(QPaintEvent *ev) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *event) override;
+
+  // Function to find the nearest element in the map to a given value x
+  static std::pair<float, QColor> findNearest(std::map<float, QColor> &myMap, double target);
   std::tuple<int32_t, Point> getWellUnderMouse(QMouseEvent *event);
 
   joda::results::Table mData;
-  std::map<float, QColor> mColorMap{{0.1, QColor{32, 102, 168}},  {0.2, QColor{142, 193, 218}},
+  /*std::map<float, QColor> mColorMap{{0.1, QColor{32, 102, 168}},  {0.2, QColor{142, 193, 218}},
                                     {0.3, QColor{205, 225, 236}}, {0.4, QColor{237, 237, 237}},
                                     {0.5, QColor{246, 214, 194}}, {0.6, QColor{246, 214, 194}},
                                     {0.7, QColor{246, 214, 194}}, {0.8, QColor{212, 114, 100}},
-                                    {0.9, QColor{174, 40, 44}},   {1, QColor{174, 40, 44}}};
+                                    {0.9, QColor{174, 40, 44}},   {1, QColor{174, 40, 44}}};*/
+
+  std::map<float, QColor> mColorMap{generateColorMap()};
 
   /////////////////////////////////////////////////////
   static inline const uint32_t spacing                 = 4;

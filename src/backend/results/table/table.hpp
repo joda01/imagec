@@ -137,6 +137,42 @@ public:
     return {mMin, mMax};
   }
 
+  [[nodiscard]] auto getAvg(double *sizeOut = nullptr) const -> double
+  {
+    double sum  = 0.0;
+    double size = 0;
+    for(int row = 0; row < getRows(); row++) {
+      for(int col = 0; col < getCols(); col++) {
+        if(data(row, col).isValid() && !data(row, col).isNAN()) {
+          sum += data(row, col).getVal();
+          size++;
+        }
+      }
+    }
+    if(sizeOut != nullptr) {
+      *sizeOut = size;
+    }
+    return sum / size;
+  }
+
+  [[nodiscard]] auto getStddev() const -> double
+  {
+    double size    = 0;
+    double average = getAvg(&size);
+    if(size <= 1) {
+      return 0.0;    // Handle case of empty or single-element array
+    }
+    double variance = 0.0;
+    for(int row = 0; row < getRows(); row++) {
+      for(int col = 0; col < getCols(); col++) {
+        if(data(row, col).isValid() && !data(row, col).isNAN()) {
+          variance += pow(data(row, col).getVal() - average, 2);
+        }
+      }
+    }
+    return sqrt(variance / (size - 1));    // Use unbiased sample standard deviation
+  }
+
   [[nodiscard]] uint32_t getRows() const
   {
     return mData.size();

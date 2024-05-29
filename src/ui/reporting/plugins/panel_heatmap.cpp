@@ -401,6 +401,8 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
   uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
 
   auto [min, max] = mData.getMinMax();
+  auto avg        = mData.getAvg();
+  auto stddev     = mData.getStddev();
 
   if(mRows > 0 && mCols > 0) {
     uint32_t rectWidth = std::min(width / mCols, height / mRows);
@@ -454,15 +456,17 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
           newControlImagePath = ctrl.data();
         }
 
-        double value = data.getVal();
-        double val   = (value - min) / (max - min);
-        auto iter    = mColorMap.upper_bound(val);
-        QColor color;
-        if(iter != mColorMap.end()) {
-          color = iter->second;
-        } else {
-          color = mColorMap[1];
-        }
+        double value   = data.getVal();
+        double statVal = (value - min) / (max - min);
+        // double statVal = (value - avg) / stddev;    // Standadisierung
+        // statVal        = calcValueOnGaussianCurve(statVal, avg, stddev);
+        // std::cout << "----\n"
+        //          << std::to_string(avg) << " | " << std::to_string(stddev) << " | " << std::to_string(statVal) << " |
+        //          "
+        //          << std::to_string(value) << std::endl;
+        auto iter    = findNearest(mColorMap, statVal);
+        QColor color = iter.second;
+
         if(data.isNAN()) {
           color = QColor(255, 255, 255);
         }
@@ -471,7 +475,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
         if(data.isNAN() && !data.isValid()) {
           painter.setPen(QPen(Qt::lightGray, 1));
         } else if(idx == mSelection[mActHierarchy].mSelectedWell) {
-          painter.setPen(QPen(Qt::black, 2));
+          painter.setPen(QPen(Qt::blue, 2));
 
         } else if(idx == mHoveredWell) {
           // painter.setPen(QPen(Qt::red, 1));
@@ -533,6 +537,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
       // painter.drawRect(xStart, yStart, length, LEGEND_HEIGHT);
 
       uint32_t partWith = std::floor(length / static_cast<float>(mColorMap.size()));
+      int middle        = mColorMap.size() / 2;
       for(int n = 0; n < mColorMap.size(); n++) {
         uint32_t startX = xStart + n * partWith;
         float val       = (float) n / (float) mColorMap.size();
@@ -545,6 +550,12 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
           painter.drawText(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE,
                            formatDoubleScientific(min));
         }
+        if(n == middle) {
+          painter.setPen(QPen(Qt::black, 1));
+          painter.drawText(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE,
+                           formatDoubleScientific(avg));
+        }
+
         if(n == mColorMap.size() - 1) {
           painter.setPen(QPen(Qt::black, 1));
           painter.drawText(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE,
@@ -552,7 +563,9 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
         }
       }
 
-      drawGaussianCurve(painter, xStart, yStart + LEGEND_COLOR_ROW_HEIGHT, LEGEND_COLOR_ROW_HEIGHT, length);
+      drawGaussianCurve(painter, xStart,
+                        yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE + HEATMAP_FONT_SIZE,
+                        LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE + HEATMAP_FONT_SIZE - 4, length);
     }
 
     //
@@ -576,6 +589,49 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     }
   }
 }
+
+std::pair<float, QColor> ChartHeatMap::findNearest(std::map<float, QColor> &myMap, double target)
+{
+  // Handle empty map case
+  if(myMap.empty()) {
+    return {};    // Or throw an appropriate exception
+  }
+
+  // Find the middle key using iterators
+  auto it = myMap.lower_bound(0.5);
+
+  // Initialize variables to track nearest key and difference
+  double nearestKey = it->first;
+  double minDiff    = abs(it->first - target);
+
+  // Iterate left and right from the middle, comparing differences
+  while(it != myMap.begin()) {
+    auto prev       = std::prev(it);
+    double prevDiff = abs(prev->first - target);
+    if(prevDiff < minDiff) {
+      nearestKey = prev->first;
+      minDiff    = prevDiff;
+    }
+    --it;
+  }
+
+  it = myMap.begin();
+  while(it != myMap.end()) {
+    auto next = std::next(it);
+    if(next != myMap.end()) {
+      double nextDiff = abs(next->first - target);
+      if(nextDiff < minDiff) {
+        nearestKey = next->first;
+        minDiff    = nextDiff;
+      }
+    }
+    ++it;
+  }
+
+  // Return the nearest key-value pair
+  return std::make_pair(nearestKey, myMap.at(nearestKey));
+}
+
 ///
 /// \brief
 /// \author
@@ -599,6 +655,20 @@ void ChartHeatMap::drawGaussianCurve(QPainter &painter, int startX, int startY, 
 
   // Draw the curve
   painter.drawPolyline(points.constData(), points.size());
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+double ChartHeatMap::calcValueOnGaussianCurve(double x, double avg, double sttdev)
+{
+  double ex  = std::exp(-(1 / 2) * std::pow((x - avg) / sttdev, 2.0));
+  double bef = sttdev * std::sqrt(2 * M_PI);
+  return ex / bef;
 }
 
 ///
