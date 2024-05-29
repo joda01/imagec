@@ -26,8 +26,11 @@ public:
             "FROM object "
             "INNER JOIN image_well ON object.image_id=image_well.image_id "
             "INNER JOIN image ON object.image_id=image.image_id "
+            "INNER JOIN channel_image ON (object.image_id=channel_image.image_id AND "
+            "object.channel_id=channel_image.channel_id) "
             "WHERE"
-            " image_well.plate_id=$2 AND bit_count(validity)=0 AND channel_id=$3 "
+            " image_well.plate_id=$2 AND bit_count(object.validity)=0 AND bit_count(channel_image.validity)=0 AND "
+            "object.channel_id=$3 "
             "GROUP BY"
             "  (image_well.well_id) ",
         measurement.getKey(), plateId, static_cast<uint8_t>(channelId));

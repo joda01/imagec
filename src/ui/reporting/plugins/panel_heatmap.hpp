@@ -73,6 +73,7 @@ private:
 
   /////////////////////////////////////////////////////
   QString formatDoubleScientific(double value, int precision = 3);
+  static void drawGaussianCurve(QPainter &painter, int startX, int startY, int height, int length);
   void paintEvent(QPaintEvent *ev) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;

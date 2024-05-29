@@ -551,6 +551,8 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
                            formatDoubleScientific(max));
         }
       }
+
+      drawGaussianCurve(painter, xStart, yStart + LEGEND_COLOR_ROW_HEIGHT, LEGEND_COLOR_ROW_HEIGHT, length);
     }
 
     //
@@ -573,6 +575,30 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
       painter.drawImage(xStart, yStart, mActControlImage);
     }
   }
+}
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ChartHeatMap::drawGaussianCurve(QPainter &painter, int startX, int startY, int height, int length)
+{
+  // Define Gaussian function parameters
+  double sigma = length / 6.0;    // Standard deviation
+  double mu    = length / 2.0;    // Mean
+
+  // Calculate points on the curve
+  QVector<QPointF> points;
+  for(int x = 0; x <= length; ++x) {
+    double normalizedX = (x - mu) / sigma;
+    double y           = height * exp(-0.5 * normalizedX * normalizedX);
+    points.append(QPointF(startX + x, startY - y));
+  }
+
+  // Draw the curve
+  painter.drawPolyline(points.constData(), points.size());
 }
 
 ///
