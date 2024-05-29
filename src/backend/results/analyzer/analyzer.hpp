@@ -44,7 +44,7 @@ public:
   auto getAnalyzes() -> std::vector<db::AnalyzeMeta>;
   auto getImagesForAnalyses(const std::string &analyzeId) -> std::vector<db::ImageMeta>;
   auto getImageInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel, uint64_t imageId)
-      -> std::tuple<db::ImageMeta, db::ChannelMeta>;
+      -> std::tuple<db::ImageMeta, db::ChannelMeta, db::ImageChannelMeta>;
   auto getChannelsForAnalyses(const std::string &analyzeId) -> std::vector<db::ChannelMeta>;
   auto getPlatesForAnalyses(const std::string &analyzeId) -> std::vector<db::PlateMeta>;
   auto getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -> std::vector<db::WellMeta>;
@@ -62,6 +62,7 @@ public:
   }
 
 private:
+  static constexpr uint32_t BITSET_OFFSET = 31;
   joda::results::db::Database mDatabase;
   std::filesystem::path mParentPathToDb;
 };

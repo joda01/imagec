@@ -200,7 +200,7 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
   mDatabase->createImageChannel(db::ImageChannelMeta{.analyzeId        = mAnalyzeId,
                                                      .imageId          = imageId,
                                                      .channelId        = channelId,
-                                                     .validity         = toValidity(results.responseValidity),
+                                                     .validity         = toChannelValidity(results.responseValidity),
                                                      .invalidateAll    = results.invalidateWholeImage,
                                                      .controlImagePath = controlImagePath.string()});
 

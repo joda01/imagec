@@ -115,6 +115,7 @@ private:
 
   QString mActControlImagePath;
   QImage mActControlImage;
+  bool mIsHovering = false;
 };
 
 ///
@@ -193,6 +194,8 @@ private:
   /////////////////////////////////////////////////////
   results::WellId mSelectedWellId;
   uint64_t mSelectedImageId;
+
+  uint64_t mSelectedElementId;
 
 public slots:
   void onMarkAsInvalidClicked();

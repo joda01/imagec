@@ -42,6 +42,7 @@ public:
         "  image.image_idx as image_idx,"
         "  any_value(channel_image.control_image_path) as control_image_path, "
         "  any_value(object.tile_id) as tile_id, "
+        "  ANY_VALUE(channel_image.validity) as validity,"
         "  image.file_name as file_name," +
             getStatsString(stats) +
             "FROM object "
@@ -84,12 +85,13 @@ public:
         uint32_t imgIdx              = materializedResult->GetValue(1, n).GetValue<uint32_t>();
         std::string controlImagePath = materializedResult->GetValue(2, n).GetValue<std::string>();
         uint16_t tileId              = materializedResult->GetValue(3, n).GetValue<uint16_t>();
+        ChannelValidity validity{materializedResult->GetValue(4, n).GetValue<std::string>()};
 
         auto pos     = wellPos[imgIdx];
-        double value = materializedResult->GetValue(5, n).GetValue<double>();
+        double value = materializedResult->GetValue(6, n).GetValue<double>();
 
         helper::stringReplace(controlImagePath, "${tile_id}", std::to_string(tileId));
-        results.setData(pos.x, pos.y, TableCell{value, imageId, controlImagePath});
+        results.setData(pos.x, pos.y, TableCell{value, imageId, !validity.any(), controlImagePath});
       } catch(const duckdb::InternalException &) {
       }
     }

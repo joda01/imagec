@@ -91,7 +91,15 @@ enum class ObjectValidityEnum : size_t
   AT_THE_EDGE          = 9,
 };
 
-using ObjectValidity = std::bitset<32>;
+struct ObjectValidity : public std::bitset<32>
+{
+  using bitset<32>::bitset;
+
+  bool test(ObjectValidityEnum idx)
+  {
+    return bitset<32>::test(static_cast<size_t>(idx));
+  }
+};
 
 enum class ChannelValidityEnum : size_t
 {
@@ -102,7 +110,15 @@ enum class ChannelValidityEnum : size_t
   POSSIBLE_WRONG_THRESHOLD = 5
 };
 
-using ChannelValidity = std::bitset<32>;
+struct ChannelValidity : public std::bitset<32>
+{
+  using bitset<32>::bitset;
+
+  bool test(ChannelValidityEnum idx)
+  {
+    return bitset<32>::test(static_cast<size_t>(idx));
+  }
+};
 
 struct WellId
 {

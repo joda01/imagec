@@ -119,10 +119,11 @@ auto Analyzer::getImagesForAnalyses(const std::string &analyzeId) -> std::vector
 /// \author     Joachim Danmayr
 ///
 auto Analyzer::getImageInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
-                                   uint64_t imageId) -> std::tuple<db::ImageMeta, db::ChannelMeta>
+                                   uint64_t imageId) -> std::tuple<db::ImageMeta, db::ChannelMeta, db::ImageChannelMeta>
 {
   db::ImageMeta imageMeta;
   db::ChannelMeta channelMeta;
+  db::ImageChannelMeta imgChannelMeta;
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
       "SELECT * FROM image "
       "INNER JOIN image_well ON image.image_id=image_well.image_id "
@@ -181,15 +182,22 @@ auto Analyzer::getImageInformation(const std::string &analyzeId, uint8_t plateId
         .height            = height,
     };
 
-    auto channel = db::ChannelMeta{
+    channelMeta = db::ChannelMeta{
         .analyzeId    = analyzeId,
         .channelId    = static_cast<ChannelIndex>(channelId),
         .name         = channelName,
         .measurements = std::move(measurements),
     };
+
+    imgChannelMeta = db::ImageChannelMeta{.analyzeId        = analyzeId,
+                                          .imageId          = imageId,
+                                          .channelId        = static_cast<ChannelIndex>(channelId),
+                                          .validity         = validity,
+                                          .invalidateAll    = invalidateAll,
+                                          .controlImagePath = controlImagePath};
   }
 
-  return {imageMeta, channelMeta};
+  return {imageMeta, channelMeta, imgChannelMeta};
 }
 
 ///
@@ -362,25 +370,24 @@ void Analyzer::markImageChannelAsManualInvalid(const std::string &analyzeId, uin
                                                uint64_t imageId)
 {
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "UPDATE channel_image SET validity | '1000':BIT WHERE analyze_id=? AND channel_id=? AND image_id=?",
-      duckdb::Value::UUID(analyzeId), (uint8_t) channel, imageId);
+      "UPDATE channel_image SET validity = set_bit(validity, ?, 1) WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      BITSET_OFFSET - static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED), duckdb::Value::UUID(analyzeId),
+      static_cast<uint8_t>(channel), imageId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
-
-  std::cout << result->ToString() << std::endl;
 }
 
 void Analyzer::unMarkImageChannelAsManualInvalid(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
                                                  uint64_t imageId)
 {
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "UPDATE channel_image SET validity & ~('1000':BIT) WHERE analyze_id=? AND channel_id=? AND image_id=?",
-      duckdb::Value::UUID(analyzeId), (uint8_t) channel, imageId);
+      "UPDATE channel_image SET validity = set_bit(validity, ?, 0) WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      BITSET_OFFSET - static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED), duckdb::Value::UUID(analyzeId),
+      static_cast<uint8_t>(channel), imageId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
-  std::cout << result->ToString() << std::endl;
 }
 
 }    // namespace joda::results

@@ -183,11 +183,12 @@ void PanelHeatmap::onMarkAsInvalidClicked()
 {
   if(mMarkAsInvalid->getValue()) {
     mAnalyzer->markImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
-                                               mSelectedImageId);
+                                               mSelectedElementId);
   } else {
     mAnalyzer->unMarkImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
-                                                 mSelectedImageId);
+                                                 mSelectedElementId);
   }
+  repaintHeatmap();
 }
 
 ///
@@ -216,20 +217,32 @@ void PanelHeatmap::onElementSelected(results::TableCell value)
 
       mLabelValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
       mLabelMeta->setText(channel.name.data());
+      mSelectedElementId = value.getId();
     } break;
     case Navigation::WELL: {
-      auto [image, channel] =
+      auto [image, channel, imageChannelMeta] =
           mAnalyzer->getImageInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, value.getId());
 
       mLabelName->setText(image.originalImagePath.filename().string().data());
       mLabelValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
       mLabelMeta->setText(channel.name.data());
+      mSelectedElementId = value.getId();
 
+      disconnect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this,
+                 &PanelHeatmap::onMarkAsInvalidClicked);
+
+      if(imageChannelMeta.validity.test(results::ChannelValidityEnum::MANUAL_OUT_SORTED)) {
+        mMarkAsInvalid->setValue(true);
+      } else {
+        mMarkAsInvalid->setValue(false);
+      }
+      connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelHeatmap::onMarkAsInvalidClicked);
     }
 
     break;
     case Navigation::IMAGE:
       mLabelName->setText("Selected Object " + QString::number(value.getId()));
+      mSelectedElementId = value.getId();
       break;
   }
 }
@@ -419,7 +432,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 
         uint32_t rectXPos = x * rectWidth + spacing + X_LEFT_MARGIN;
         uint32_t rectYPos = y * rectWidth + spacing + Y_TOP_MARING;
-        QRectF rect(rectXPos, rectYPos, rectWidth, rectWidth);
+        QRectF rect(rectXPos + 2, rectYPos + 2, rectWidth - 4, rectWidth - 4);
         int cornerRadius = 10;
         QPainterPath path;
         // path.addRoundedRect(rect, cornerRadius, cornerRadius);
@@ -450,18 +463,18 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
         } else {
           color = mColorMap[1];
         }
-        if(!data.isValid()) {
+        if(data.isNAN()) {
           color = QColor(255, 255, 255);
         }
-
         painter.setBrush(color);    // Change color as desired
         painter.fillPath(path, painter.brush());
         if(data.isNAN() && !data.isValid()) {
           painter.setPen(QPen(Qt::lightGray, 1));
         } else if(idx == mSelection[mActHierarchy].mSelectedWell) {
-          painter.setPen(QPen(Qt::green, 1));
+          painter.setPen(QPen(Qt::black, 2));
+
         } else if(idx == mHoveredWell) {
-          painter.setPen(QPen(Qt::red, 1));
+          // painter.setPen(QPen(Qt::red, 1));
         } else {
           painter.setPen(QPen(Qt::black, 1));
         }
@@ -470,18 +483,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 
         const int32_t xReduce = rectWidth / 3;
         const int32_t yReduce = rectWidth / 3;
-        if(!data.isValid()) {
-          if(!data.isNAN()) {
-            painter.drawLine(x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
-                             y * rectWidth + spacing + yReduce + Y_TOP_MARING,
-                             x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
-                             y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
-
-            painter.drawLine(x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
-                             y * rectWidth + spacing + yReduce + Y_TOP_MARING,
-                             x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
-                             y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
-          }
+        if(data.isNAN()) {
         } else {
           QString txtToPaint = formatDoubleScientific(value);
           // Get text metrics
@@ -503,6 +505,18 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
           int textX = rect.center().x() - textRect.width() / 2;
           int textY = rect.center().y() + textRect.height() / 2 - fontMetrics.descent();    // Adjust for descent
           painter.drawText(textX, textY, txtToPaint);
+
+          if(!data.isValid()) {
+            painter.drawLine(x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
+                             y * rectWidth + spacing + yReduce + Y_TOP_MARING,
+                             x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
+                             y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
+
+            painter.drawLine(x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
+                             y * rectWidth + spacing + yReduce + Y_TOP_MARING,
+                             x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
+                             y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
+          }
         }
         idx++;
       }
@@ -571,6 +585,17 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 void ChartHeatMap::mouseMoveEvent(QMouseEvent *event)
 {
   auto [newHoveredWellId, _] = getWellUnderMouse(event);
+  if(newHoveredWellId >= 0) {
+    if(!mIsHovering) {
+      mIsHovering = true;
+      QApplication::setOverrideCursor(QCursor(Qt::CrossCursor));
+    }
+  } else {
+    if(mIsHovering) {
+      mIsHovering = false;
+      QApplication::restoreOverrideCursor();
+    }
+  }
   // Update hovering index and trigger repaint if necessary
   if(newHoveredWellId >= 0 && mHoveredWell != newHoveredWellId) {
     mHoveredWell = newHoveredWellId;
