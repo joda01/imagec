@@ -118,7 +118,7 @@ IF (WIN32)
     libzip::zip
     LibLZMA::LibLZMA
     SQLite::SQLite3
-    D:/a/_temp/msys64/mingw64/duckdb.dll
+    D:/a/_temp/msys64/mingw64/bin/duckdb.dll
   )
 ELSE()
   set(LIBS
