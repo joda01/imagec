@@ -8,15 +8,14 @@ Copy-Item -Path ".\lib\libduckdb-windows-amd64\libduckdb.dll.a" -Destination "$m
 Copy-Item -Path ".\lib\libduckdb-windows-amd64\libduckdb_static.a" -Destination "$mingwBasePathWin\lib" -Force
 Copy-Item -Path ".\lib\libduckdb-windows-amd64\duckdb.hpp" -Destination "$mingwBasePathWin\include" -Force
 Copy-Item -Path ".\lib\libduckdb-windows-amd64\duckdb.h" -Destination "$mingwBasePathWin\include" -Force
-Copy-Item -Path ".\lib\libduckdb-windows-amd64\libduckdb.dll" -Destination "$mingwBasePathWin\bin" -Force
 Copy-Item -Path ".\lib\libduckdb-windows-amd64\libparquet.dll.a" -Destination "$mingwBasePathWin\lib" -Force
 Copy-Item -Path ".\lib\libduckdb-windows-amd64\libparquet_extension.a" -Destination "$mingwBasePathWin\lib" -Force
 Copy-Item -Recurse -Path ".\lib\libduckdb-windows-amd64\duckdb" -Destination "$mingwBasePathWin\include" -Force
-Copy-Item -Recurse -Path ".\lib\libduckdb-windows-amd64\cmake\*.cmake" -Destination "$mingwBasePathWin\lib\cmake\duckdb"
+Copy-Item -Recurse -Path ".\lib\libduckdb-windows-amd64\cmake_local\*.cmake" -Destination "$mingwBasePathWin\lib\cmake\duckdb" -Force
 Copy-Item -Recurse -Path ".\lib\libduckdb-windows-amd64\third_party\*.a" -Destination "$mingwBasePathWin\lib" -Force
 
 
-cmake --no-warn-unused-cli -DTAG_NAME="$env:TAG_NAME" -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=C:\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=C:\msys64\mingw64\bin\g++.exe -S"./" -B"./build" -G "MinGW Makefiles"
+cmake --no-warn-unused-cli -DTAG_NAME="$env:TAG_NAME" -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=C:\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=C:\msys64\mingw64\bin\g++.exe -S"./" -B"./build" -G "MinGW Makefiles"
 # This is a dirty hack, because the resource compiler did not create windows path correctly
 cd build/build
 
@@ -29,7 +28,7 @@ ni "dlls" -ItemType Directory
 #Copy-Item -Path "$jvmdll" -Destination "./dlls" -Force
 
 cd ../..
-cmake --build build --target imagec --parallel 2 --config Release
+cmake --build build --target imagec --parallel 2
 cd build/build
 
 $input = $(ldd imagec.exe)

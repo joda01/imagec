@@ -1182,6 +1182,9 @@ class RandomNameGenerator
       // Russian Aviation. https://en.wikipedia.org/wiki/Nikolay_Yegorovich_Zhukovsky
       "zhukovsky",
 
+      // Biologist supports the project with testing
+      "plank",
+
       // Biologist and initiator of the project
       "schuerz",
 
@@ -1190,9 +1193,6 @@ class RandomNameGenerator
 
       // Biologist supports the project with testing
       "hrasnova",
-
-      // Biologist supports the project with testing
-      "plank",
 
       // Biologist supports the project with testing
       "khanna",
