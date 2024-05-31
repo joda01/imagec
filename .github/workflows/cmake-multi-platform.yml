@@ -67,7 +67,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-22.04
     container: 
-      image: joda001/imagec:v1.7.7
+      image: joda001/imagec:v1.7.8
 
     steps:
       - name: Checkout code
