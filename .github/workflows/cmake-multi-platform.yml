@@ -55,7 +55,6 @@ jobs:
           TAG_NAME: "${{ github.ref_name }}"
         run: |
           echo "Workspace: $env:GITHUB_WORKSPACE"
-          ./build_duckdb.ps1
           ./build.ps1
       
       - name: Upload Artifact
