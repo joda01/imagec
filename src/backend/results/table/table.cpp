@@ -31,7 +31,7 @@ void Table::print()
   for(const auto &outerPair : mData) {
     int innerIdx = 0;
     for(const auto &innerPair : outerPair.second) {
-      colWidths[innerIdx] = max(colWidths[innerIdx], to_string(innerPair.second.getVal()).size());
+      colWidths[innerIdx] = max(colWidths[innerIdx], (unsigned long) to_string(innerPair.second.getVal()).size());
       innerIdx++;
     }
   }

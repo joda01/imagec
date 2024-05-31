@@ -346,7 +346,7 @@ std::filesystem::path Results::createControlImage(const joda::image::detect::Det
   }
 
   if(!result.controlImage.empty()) {
-    std::string crlImgFileNameWithTile = controlImageFileNameWithPlaceholder;
+    std::string crlImgFileNameWithTile = controlImageFileNameWithPlaceholder.string();
     helper::stringReplace(crlImgFileNameWithTile, "${tile_id}", std::to_string(tileIdx));
     std::to_string(tileIdx);
     cv::imwrite((absoluteFolderToWrite / crlImgFileNameWithTile).string(), result.controlImage, compression_params);

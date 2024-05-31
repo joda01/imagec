@@ -73,14 +73,9 @@ find_package( protobuf CONFIG REQUIRED )
 find_package( ZLIB REQUIRED)
 find_package( libzip REQUIRED)
 find_package( liblzma REQUIRED)
-find_package( SQLite3 REQUIRED)
+find_package( DuckDB REQUIRED)
+SET(DuckDB_USE_STATIC_LIBS TRUE)
 
-
-IF (WIN32)
-ELSE()
-  find_package( DuckDB REQUIRED)
-  SET(DuckDB_USE_STATIC_LIBS TRUE)
-ENDIF()
 
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
@@ -117,8 +112,7 @@ IF (WIN32)
     ZLIB::ZLIB
     libzip::zip
     LibLZMA::LibLZMA
-    SQLite::SQLite3
-    D:/a/_temp/msys64/mingw64/bin/duckdb.dll
+    duckdb
   )
 ELSE()
   set(LIBS
@@ -133,7 +127,6 @@ ELSE()
     ZLIB::ZLIB
     libzip::zip
     LibLZMA::LibLZMA
-    SQLite::SQLite3
     duckdb
   )
 ENDIF()

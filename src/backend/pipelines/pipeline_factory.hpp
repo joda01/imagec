@@ -82,7 +82,7 @@ public:
     mJob =
         std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder, analyzeName, threadingSettings);
     if(mJob != nullptr) {
-      mLastOutputFolder = mJob->getOutputFolder();
+      mLastOutputFolder = mJob->getOutputFolder().string();
     }
     return analyzeId;
   };
