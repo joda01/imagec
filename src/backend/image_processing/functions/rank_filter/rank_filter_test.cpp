@@ -1,4 +1,5 @@
 #include <opencv2/core/hal/interface.h>
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/image_processing/functions/blur/blur.hpp"
 #include "backend/image_processing/functions/threshold/threshold.hpp"
 #include "backend/image_processing/functions/threshold/threshold_manual.hpp"
@@ -26,8 +27,10 @@ TEST_CASE("func::rank", "[rank]")
   imgClone      = imgClone * ((float) 255.0F / (float) 65536.0F) * 255;
   cv::imwrite("zz_start.jpg", imgClone);
 
+  auto id = DurationCount::start("Start");
   joda::image::func::RankFilter rank;
   rank.rank(img, 3.0, joda::image::func::RankFilter::MEDIAN);
+  DurationCount::stop(id);
 
   auto imgCloneRes = img.clone();
   imgCloneRes      = imgCloneRes * ((float) 255.0F / (float) 65536.0F) * 255;

@@ -28,7 +28,7 @@ ni "dlls\templates" -ItemType Directory
 #Copy-Item -Path "$jvmdll" -Destination "./dlls" -Force
 
 cd ../..
-cmake --build build --target imagec --parallel 8
+cmake --build build --target imagec --config Release --parallel 8
 cd build/build
 
 
