@@ -17,7 +17,6 @@
 #include <string>
 #include <vector>
 #include "backend/results/db_column_ids.hpp"
-#include <duckdb/common/types.hpp>
 #include <duckdb.hpp>
 
 namespace joda::results::db {
