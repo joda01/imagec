@@ -48,7 +48,7 @@ public:
   /// \brief      Find all images in the given infolder and its subfolder.
   /// \author     Joachim Danmayr
   ///
-  inline void setWorkingDirectory(const std::string &inputFolder)
+  inline void setWorkingDirectory(const std::filesystem::path &inputFolder)
   {
     if(mWorkingDirectory != inputFolder) {
       mWorkingDirectory = inputFolder;
@@ -65,9 +65,9 @@ public:
   /// \brief      Returns the selected working directory
   /// \author     Joachim Danmayr
   ///
-  inline const std::string &getWorkingDirectory()
+  inline std::string getWorkingDirectory()
   {
-    return mWorkingDirectory;
+    return mWorkingDirectory.string();
   }
 
   ///
@@ -162,7 +162,7 @@ private:
 
   /////////////////////////////////////////////////////
   std::set<std::string> mSupportedFormats;
-  std::string mWorkingDirectory;
+  std::filesystem::path mWorkingDirectory;
   std::vector<FILEINFO> mListOfImagePaths;
   bool mIsStopped = false;
   bool mIsRunning = false;

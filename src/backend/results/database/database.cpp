@@ -24,7 +24,6 @@
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
 #include "backend/helper/logger/console_logger.hpp"
-#include <duckdb.hpp>
 
 namespace joda::results::db {
 

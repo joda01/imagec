@@ -19,7 +19,6 @@
 #include <memory>
 #include <string>
 #include "database_interface.hpp"
-#include <duckdb.hpp>
 
 namespace joda::results::db {
 
