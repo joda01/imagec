@@ -3,6 +3,7 @@ $mingwBasePathWin =  'D:\a\_temp\msys64\mingw64'
 $mingwQtPlatformsPath =  'D:\a\_temp\msys64\mingw64\share\qt6\plugins\platforms'
 $mingwQtImageFormatsPath =  'D:\a\_temp\msys64\mingw64\share\qt6\plugins\imageformats'
 
+ni "$mingwBasePathWin\lib\cmake\duckdb" -ItemType Directory
 
 Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll" -Destination "$mingwBasePathWin\bin" -Force
 Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll.a" -Destination "$mingwBasePathWin\lib" -Force
