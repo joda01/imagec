@@ -114,6 +114,7 @@ IF (WIN32)
     libzip::zip
     LibLZMA::LibLZMA
     SQLite::SQLite3
+    duckdb
   )
 ELSE()
   set(LIBS

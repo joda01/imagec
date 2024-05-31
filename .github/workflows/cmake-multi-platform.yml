@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - reporting-pipelines
+      - duckdb
     tags:
       - '*'
   pull_request:

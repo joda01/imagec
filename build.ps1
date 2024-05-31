@@ -1,5 +1,13 @@
 
 
+
+
+
+
+
+Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.dll" -Destination "$mingwBasePathWin\bin\duckdb.dll" -Force
+
+
 $mingwBasePathWin =  'D:\a\_temp\msys64\mingw64'
 
 $mingwQtPlatformsPath =  'D:\a\_temp\msys64\mingw64\share\qt6\plugins\platforms'
