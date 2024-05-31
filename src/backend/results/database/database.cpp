@@ -24,14 +24,6 @@
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
 #include "backend/helper/logger/console_logger.hpp"
-#include <duckdb/common/bind_helpers.hpp>
-#include <duckdb/common/types.hpp>
-#include <duckdb/common/types/value.hpp>
-#include <duckdb/common/types/vector.hpp>
-#include <duckdb/main/appender.hpp>
-#include <duckdb/main/config.hpp>
-#include <duckdb/main/connection.hpp>
-#include <duckdb/main/database.hpp>
 #include <duckdb.hpp>
 
 namespace joda::results::db {

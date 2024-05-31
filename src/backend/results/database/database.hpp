@@ -18,8 +18,6 @@
 #include <filesystem>
 #include <memory>
 #include <string>
-#include <duckdb/main/connection.hpp>
-#include <duckdb/main/database.hpp>
 #include "database_interface.hpp"
 #include <duckdb.hpp>
 
