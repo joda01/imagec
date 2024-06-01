@@ -90,10 +90,12 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
 
   // Find contours in the binary image
 
+  auto fc = DurationCount::start("Find contours");
   binaryImage.convertTo(binaryImage, CV_8UC1);
   std::vector<std::vector<cv::Point>> contours;
   std::vector<cv::Vec4i> hierarchy;
   cv::findContours(binaryImage, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
+  DurationCount::stop(fc);
 
   if(contours.size() > 50000) {
     joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
@@ -102,6 +104,8 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
 
   cv::Mat boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
   cv::fillPoly(boxMask, contours, cv::Scalar(255));
+
+  auto ro = DurationCount::start("Add to ROI");
 
   // Create a mask for each contour and draw bounding boxes
   size_t idx = 0;
@@ -132,6 +136,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
       response.push_back(detect);
     }
   }
+  DurationCount::stop(ro);
 
   cv::Mat grayImageFloat;
   srcImg.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UINT16_MAX);
