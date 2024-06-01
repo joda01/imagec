@@ -73,6 +73,7 @@ void Database::open()
       "	well_id USMALLINT,"
       "	well_pos_x UTINYINT,"
       "	well_pos_y UTINYINT,"
+      " name TEXT, "
       " notes TEXT,"
       " PRIMARY KEY (analyze_id, plate_id, well_id),"
       " FOREIGN KEY(analyze_id, plate_id) REFERENCES plate(analyze_id, plate_id)"
@@ -184,9 +185,10 @@ void Database::createPlate(const PlateMeta &meta)
 void Database::createWell(const WellMeta &meta)
 {
   auto prepare = mConnection->Prepare(
-      "INSERT INTO well (analyze_id, plate_id, well_id,well_pos_x,well_pos_y, notes) VALUES (?, ?, ?, ?, ?, ?)");
+      "INSERT INTO well (analyze_id, plate_id, well_id,well_pos_x,well_pos_y, name, notes) VALUES (?, ?, ?, ?, ?, ?, "
+      "?)");
   prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.plateId, meta.wellId.well.wellId, meta.wellPosX,
-                   meta.wellPosY, meta.notes);
+                   meta.wellPosY, meta.name, meta.notes);
 }
 
 ///

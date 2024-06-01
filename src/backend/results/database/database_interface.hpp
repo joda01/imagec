@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include "backend/results/db_column_ids.hpp"
+#include "nlohmann/json.hpp"
 #include <duckdb.hpp>
 
 namespace joda::results::db {
@@ -32,6 +33,26 @@ struct AnalyzeMeta
   std::string notes;
 };
 
+struct Temp
+{
+  std::vector<std::vector<int32_t>> order;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Temp, order);
+};
+inline auto matrixStringToArrayOrder(const std::string &stringMatrix) -> std::vector<std::vector<int32_t>>
+{
+  std::vector<std::vector<int32_t>> wellImageOrder;
+  try {
+    nlohmann::json wellImageOrderJson = nlohmann::json::parse(stringMatrix);
+    nlohmann::json obj;
+    obj["order"]   = wellImageOrderJson;
+    Temp tm        = nlohmann::json::parse(obj.dump());
+    wellImageOrder = tm.order;
+  } catch(...) {
+    wellImageOrder.clear();
+  }
+  return wellImageOrder;
+}
+
 struct PlateMeta
 {
   std::string analyzeId;
@@ -46,6 +67,7 @@ struct WellMeta
   WellId wellId;
   uint8_t wellPosX;
   uint8_t wellPosY;
+  std::string name;
   std::string notes;
 };
 

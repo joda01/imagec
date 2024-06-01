@@ -76,6 +76,7 @@ private:
   // Heatmap
   std::shared_ptr<ContainerFunction<uint32_t, uint32_t>> mPlateSize;
   std::shared_ptr<ContainerFunction<QString, int>> mHeatmapSlice;
+  std::shared_ptr<ContainerFunction<QString, int>> mWellOrdering;
 
   QProgressBar *mProgressHeatmap;
   ContainerButton *mButtonExportHeatmap;

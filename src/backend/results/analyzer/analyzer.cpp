@@ -289,7 +289,8 @@ auto Analyzer::getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -
         .wellId    = WellId{.well{.wellId = materializedResult->GetValue(2, n).GetValue<uint16_t>()}},
         .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint8_t>(),
         .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint8_t>(),
-        .notes     = materializedResult->GetValue(5, n).GetValue<std::string>(),
+        .name      = materializedResult->GetValue(5, n).GetValue<std::string>(),
+        .notes     = materializedResult->GetValue(6, n).GetValue<std::string>(),
     });
   }
 
@@ -323,7 +324,8 @@ auto Analyzer::getWellInformation(const std::string &analyzeId, uint8_t plateId,
           .wellId    = WellId{.well{.wellId = materializedResult->GetValue(2, n).GetValue<uint16_t>()}},
           .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint8_t>(),
           .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint8_t>(),
-          .notes     = materializedResult->GetValue(5, n).GetValue<std::string>(),
+          .name      = materializedResult->GetValue(5, n).GetValue<std::string>(),
+          .notes     = materializedResult->GetValue(6, n).GetValue<std::string>(),
       };
     }
   }

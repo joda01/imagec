@@ -151,6 +151,7 @@ public:
     uint32_t plateId   = 1;
     joda::results::ChannelIndex channelIdx;
     joda::results::MeasureChannelId measureChannel;
+    std::vector<std::vector<int32_t>> wellImageOrder;
     joda::results::Stats stats;
     uint32_t densityMapAreaSize = 200;
   };

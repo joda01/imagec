@@ -109,13 +109,20 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
         joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
     verticalLayoutHeatmap->addWidget(createTitle("Heatmap"));
     // Settings
-
-    mHeatmapSlice = std::shared_ptr<ContainerFunction<QString, int>>(
-        new ContainerFunction<QString, int>("icons8-light-50.png", "[200,300]", "Image heatmap area size [px]", "200",
-                                            mWindowMain, "heatmap_image_area_size.json"));
-    verticalLayoutHeatmap->addWidget(mHeatmapSlice->getEditableWidget());
-    connect(mHeatmapSlice.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onMeasurementChanged);
-
+    {
+      mHeatmapSlice = std::shared_ptr<ContainerFunction<QString, int>>(
+          new ContainerFunction<QString, int>("icons8-light-50.png", "[200,300]", "Image heatmap area size [px]", "200",
+                                              mWindowMain, "heatmap_image_area_size.json"));
+      verticalLayoutHeatmap->addWidget(mHeatmapSlice->getEditableWidget());
+      connect(mHeatmapSlice.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onMeasurementChanged);
+    }
+    {
+      mWellOrdering = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
+          "icons8-light-50.png", "[[],[],[],[]]", "Well order", "[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]",
+          mWindowMain, "heatmap_image_area_size.json"));
+      verticalLayoutHeatmap->addWidget(mWellOrdering->getEditableWidget());
+      connect(mWellOrdering.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onMeasurementChanged);
+    }
     mPlateSize = std::shared_ptr<ContainerFunction<uint32_t, uint32_t>>(
         new ContainerFunction<uint32_t, uint32_t>("icons8-full-image-50.png", "Plate size", "Plate size", "", 1624,
                                                   {
@@ -337,6 +344,7 @@ void PanelReporting::onMeasurementChanged()
       .plateId            = 1,
       .channelIdx         = mChannelSelector->getValue(),
       .measureChannel     = joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()),
+      .wellImageOrder     = joda::results::db::matrixStringToArrayOrder(mWellOrdering->getValue().toStdString()),
       .stats              = mStats->getValue(),
       .densityMapAreaSize = mHeatmapSlice->getValue().toUInt()};
 

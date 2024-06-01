@@ -16,6 +16,8 @@
 #include <regex.h>
 #include <filesystem>
 #include <memory>
+#include <mutex>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include "backend/image_processing/detection/detection_response.hpp"
@@ -26,6 +28,7 @@
 #include "backend/settings/channel/channel_index.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/channel/channel_settings_meta.hpp"
+#include "backend/settings/experiment_settings.hpp"
 
 namespace joda::results {
 
@@ -35,6 +38,7 @@ struct ExperimentSetting
   std::string analyzeName;
   std::string scientistName;
   std::string imageFileNameRegex;
+  joda::settings::ExperimentSettings::GroupBy groupBy;
   uint8_t plateIdx    = 0;
   uint16_t plateRowNr = 0;
   uint16_t plateColNr = 0;
@@ -58,7 +62,7 @@ public:
                             const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
 
   /////////////////////////////////////////////////////
-  static WellId applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
+  static std::tuple<WellId, std::string> applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
   static uint64_t calcImagePathHash(const std::string &runId, const std::filesystem::path &pathToOriginalImage);
 
   const std::filesystem::path &getOutputFolder() const
@@ -81,6 +85,8 @@ private:
                                            const std::filesystem::path &imagePath);
   void prepareOutputFolders(const std::filesystem::path &resultsFolder);
 
+  void createWellPositionBasesOnGroupName(WellId &wellInOut, const std::string &groupName);
+
   /////////////////////////////////////////////////////
   ExperimentSetting mExperimentSettings;
   std::filesystem::path mPathToRawData;
@@ -89,6 +95,40 @@ private:
   std::filesystem::path mOutputFolderImages;
   std::shared_ptr<joda::results::db::Database> mDatabase;
   std::string mAnalyzeId;
+
+  struct WellPosGenerator
+  {
+    static const inline int32_t MAX_COLS = 24;
+    static const inline int32_t MAX_ROWS = 16;
+    struct Pos
+    {
+      uint8_t x = UINT8_MAX;
+      uint8_t y = UINT8_MAX;
+    };
+    std::map<std::string, Pos> mNameToWellId;
+    uint32_t actWellPos = 0;
+    uint32_t imgIdx     = 1;
+
+    Pos nextFreeWell()
+    {
+      auto newPos = Pos{.x = static_cast<uint8_t>((actWellPos % MAX_COLS) + 1),
+                        .y = static_cast<uint8_t>((actWellPos / MAX_COLS) + 1)};
+      if(newPos.x * newPos.y >= MAX_COLS * MAX_ROWS) {
+        throw std::runtime_error("Too many groups!");
+      }
+      actWellPos++;
+      return newPos;
+    }
+
+    uint32_t nextFreeImgIdx()
+    {
+      uint32_t toReturn = imgIdx;
+      imgIdx++;
+      return toReturn;
+    }
+  };
+  WellPosGenerator mWellPosGenerator;
+  std::mutex mWellGeneratorLock;
 };
 
 }    // namespace joda::results
