@@ -50,6 +50,7 @@ public:
   }
 
 private:
+  static std::string convertPath(const std::filesystem::path &);
   /////////////////////////////////////////////////////
   duckdb::DBConfig mDbCfg;
   std::unique_ptr<duckdb::DuckDB> mDb;

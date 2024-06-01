@@ -200,7 +200,7 @@ void Database::createImage(const ImageMeta &meta)
         "INSERT INTO image (analyze_id, image_id, image_idx, file_name, original_image_path, width, height) VALUES "
         "(?, ?, ?, ?, ?, ?, ?)");
     prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.imageIdx,
-                     meta.originalImagePath.filename().string(), meta.originalImagePath.string(), meta.width,
+                     convertPath(meta.originalImagePath.filename()), convertPath(meta.originalImagePath), meta.width,
                      meta.height);
   }
 
@@ -245,7 +245,8 @@ void Database::createImageChannel(const ImageChannelMeta &meta)
       "(?, ?, ?, ?, ?, ?)");
 
   prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, static_cast<uint8_t>(meta.channelId),
-                   meta.controlImagePath.string(), duckdb::Value::BIT(meta.validity.to_string()), meta.invalidateAll);
+                   convertPath(meta.controlImagePath), duckdb::Value::BIT(meta.validity.to_string()),
+                   meta.invalidateAll);
 }
 
 ///
@@ -284,6 +285,13 @@ void Database::createObjects(const ObjectMeta &data)
 
   appender.Close();
   // DurationCount::stop(id);
+}
+
+std::string Database::convertPath(const std::filesystem::path &pathIn)
+{
+  std::string path = pathIn.string();
+  std::replace(path.begin(), path.end(), '\\', '/');
+  return path;
 }
 
 }    // namespace joda::results::db

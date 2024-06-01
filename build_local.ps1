@@ -28,7 +28,8 @@ ni "dlls" -ItemType Directory
 #Copy-Item -Path "$jvmdll" -Destination "./dlls" -Force
 
 cd ../..
-cmake --build build --target imagec --parallel 2
+cmake --build build --target imagec --parallel 4
+#cmake --build build --target tests --parallel 4
 cd build/build
 
 $input = $(ldd imagec.exe)
@@ -53,7 +54,7 @@ Copy-Item -Path "$mingwBasePathWin\bin\*.dll" -Destination "$destinationDirector
 
 #ls ./dlls
 
-strip imagec.exe
+#strip imagec.exe
 
 #Compress-Archive -Path ./dlls -DestinationPath win-dlls.zip
 
