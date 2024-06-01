@@ -171,7 +171,7 @@ void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, 
       wellPosition.imageIdx                    = UINT32_MAX;
     } break;
     case settings::ExperimentSettings::GroupBy::DIRECTORY: {
-      groupName                                = imagePath.parent_path();
+      groupName                                = imagePath.parent_path().string();
       wellPosition.well.wellPos[WellId::POS_Y] = UINT8_MAX;
       wellPosition.well.wellPos[WellId::POS_X] = UINT8_MAX;
       wellPosition.imageIdx                    = UINT32_MAX;
