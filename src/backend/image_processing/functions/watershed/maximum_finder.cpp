@@ -423,9 +423,9 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, bool strict, do
  *                  is encoded in the upper 32 bits and the pixel offset in the lower 32 bit
  * Note: Do not use the positions of the points marked as MAXIMUM in typeP, they are invalid for images with a roi.
  */
-std::shared_ptr<int64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool excludeEdgesNow,
-                                                           bool isEDM, float globalMin, float globalMax,
-                                                           double threshold, size_t &maxPointSize)
+std::shared_ptr<uint64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool excludeEdgesNow,
+                                                            bool isEDM, float globalMin, float globalMax,
+                                                            double threshold, size_t &maxPointSize)
 {
   // byte[] types        = (byte[]) typeP.getPixels();
   int nMax            = 0;    // counts local maxima
@@ -471,16 +471,17 @@ std::shared_ptr<int64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat 
   // long t1 = System.currentTimeMillis();IJ.log("markMax:"+(t1-t0));
 
   float vFactor = (float) (2e9 / (globalMax - globalMin));    // for converting float values into a 32-bit int
-  std::shared_ptr<int64_t> maxPoints(new int64_t[nMax]{0}, [](int64_t *p) {
+  std::shared_ptr<uint64_t> maxPoints(new uint64_t[nMax]{0}, [](uint64_t *p) {
     delete[] p;
   });    // value (int) is in the upper 32 bit, pixel offset in the lower
+
   int iMax = 0;
   for(int y = 0; y < ip.rows; y++)    // enter all maxima into an array
     for(int x = 0, p = x + y * width; x < ip.cols; x++, p++)
       if(typeP.at<uint8_t>(p) == MAXIMUM) {
         float fValue = isEDM ? trueEdmHeight(x, y, ip) : ip.at<float>(y, x);
         int iValue   = (int) ((fValue - globalMin) * vFactor);    // 32-bit int, linear function of float value
-        maxPoints.get()[iMax++] = (long) iValue << 32 | p;
+        maxPoints.get()[iMax++] = (uint64_t) iValue << 32 | p;
       }
   // long t2 = System.currentTimeMillis();IJ.log("makeArray:"+(t2-t1));
   // Arrays.sort(maxPoints);    // sort the maxima by value
@@ -505,7 +506,7 @@ std::shared_ptr<int64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat 
  *                       take the height correction in 'trueEdmHeight' into account
  * \param outputType
  */
-void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, std::shared_ptr<int64_t> maxPoints,
+void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, std::shared_ptr<uint64_t> maxPoints,
                                          size_t maxPointsSize, bool excludeEdgesNow, bool isEDM, float globalMin,
                                          double tolerance, bool strict, int outputType, float maxSortingError)
 {
@@ -741,7 +742,7 @@ float MaximumFinder::trueEdmHeight(int x, int y, const cv::Mat &ip)
  * \param typeP     the types of the pixels are marked here
  * \param maxPoints array containing the coordinates of all maxima that might be relevant
  */
-void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, std::shared_ptr<int64_t> maxPoints,
+void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, std::shared_ptr<uint64_t> maxPoints,
                                   size_t maxPointSize)
 {
   // byte[] pixels = (byte[]) outIp.getPixels();
