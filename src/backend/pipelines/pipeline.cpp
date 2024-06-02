@@ -307,11 +307,12 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   BS::timer tmr;
   tmr.start();
 
+  auto appender = mResults.prepareDetailReportAdding();
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
   // Execute intersection calculation
   //
-  auto calcIntersection = [this, &imagePath, &detectionResults,
+  auto calcIntersection = [this, appender, &imagePath, &detectionResults,
                            &channelProperties](int tileIdx, settings::VChannelIntersection intersect) {
     joda::pipeline::CalcIntersection intersectAlgo(
         intersect.meta.channelIdx, intersect.intersection.intersectingChannels, intersect.objectFilter.minParticleSize);
@@ -320,7 +321,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
 
     auto id = DurationCount::start("Append to detail report intersect");
 
-    mResults.appendToDetailReport(detectionResults.at(intersect.meta.channelIdx), intersect.meta, tileIdx,
+    mResults.appendToDetailReport(appender, detectionResults.at(intersect.meta.channelIdx), intersect.meta, tileIdx,
                                   channelProperties.props, imagePath.getFilePath());
     DurationCount::stop(id);
   };
@@ -349,8 +350,8 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   //
   // Execute post processing pipeline steps
   //
-  auto calcVoronoi = [this, &imagePath, &detectionResults, &channelProperties](int tileIdx,
-                                                                               settings::VChannelVoronoi voronoi) {
+  auto calcVoronoi = [this, appender, &imagePath, &detectionResults,
+                      &channelProperties](int tileIdx, settings::VChannelVoronoi voronoi) {
     joda::pipeline::CalcVoronoi function(voronoi.meta.channelIdx, voronoi.voronoi.gridPointsChannelIdx,
                                          voronoi.voronoi.overlayMaskChannelIdx, voronoi.voronoi.maxVoronoiAreaRadius,
                                          voronoi.objectFilter.excludeAreasWithoutCenterOfMass,
@@ -373,7 +374,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
     }
     auto id = DurationCount::start("Append to detail report vorono");
 
-    mResults.appendToDetailReport(detectionResults.at(voronoi.meta.channelIdx), voronoi.meta, tileIdx,
+    mResults.appendToDetailReport(appender, detectionResults.at(voronoi.meta.channelIdx), voronoi.meta, tileIdx,
                                   channelProperties.props, imagePath.getFilePath());
     DurationCount::stop(id);
   };
@@ -393,7 +394,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   //
   // Channel stats
   //
-  auto writeStats = [this, &imagePath, &detectionResults,
+  auto writeStats = [this, appender, &imagePath, &detectionResults,
                      &channelProperties](int tileIdx, settings::ChannelSettings channelSettings) {
     //
     // Measure intensity from ROI area of channel X in channel Y
@@ -415,8 +416,8 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
     auto id = DurationCount::start("Append to detail report stats");
 
     if(detectionResults.contains(channelSettings.meta.channelIdx)) {
-      mResults.appendToDetailReport(detectionResults.at(channelSettings.meta.channelIdx), channelSettings.meta, tileIdx,
-                                    channelProperties.props, imagePath.getFilePath());
+      mResults.appendToDetailReport(appender, detectionResults.at(channelSettings.meta.channelIdx),
+                                    channelSettings.meta, tileIdx, channelProperties.props, imagePath.getFilePath());
     }
     DurationCount::stop(id);
   };
@@ -435,6 +436,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
       }
     }
   }
+  mResults.writePredatedData(appender);
 
   tmr.stop();
   std::cout << "Post processing " << tmr.ms() << " ms.\n";

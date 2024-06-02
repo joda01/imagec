@@ -100,22 +100,4 @@ struct ImageChannelMeta
   bool invalidateAll       = false;
   std::filesystem::path controlImagePath;
 };
-
-struct Data
-{
-  ObjectValidity validity = {};
-  duckdb::vector<duckdb::Value> keys;
-  duckdb::vector<duckdb::Value> vals;
-};
-
-using objects_t = std::map<uint32_t, Data>;
-
-struct ObjectMeta
-{
-  std::string analyzeId;
-  uint64_t imageId;
-  ChannelIndex channelId;
-  uint16_t tileId;
-  objects_t &objects;
-};
 }    // namespace joda::results::db

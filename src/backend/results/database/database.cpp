@@ -34,7 +34,7 @@ Database::Database(const std::filesystem::path &dbFile)
   // mDbCfg.SetOption("threads", threadsToUse);
   mDbCfg.SetOption("temp_directory", dbFile.parent_path().string());
   mDb         = std::make_unique<duckdb::DuckDB>(dbFile.string(), &mDbCfg);
-  mConnection = std::make_unique<duckdb::Connection>(*mDb);
+  mConnection = std::make_shared<duckdb::Connection>(*mDb);
 }
 Database::~Database()
 {
@@ -128,8 +128,8 @@ void Database::open()
       "	tile_id USMALLINT,"
       " validity UHUGEINT,"
       " values MAP(UINTEGER, DOUBLE)"
-      ");"
-      "CREATE INDEX object_idx ON object (image_id, channel_id);";
+      ");";
+  //"CREATE INDEX object_idx ON object (image_id, channel_id);";
 
   auto result = mConnection->Query(create_table_sql);
   if(result->HasError()) {
@@ -248,48 +248,6 @@ void Database::createImageChannel(const ImageChannelMeta &meta)
 
   prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, static_cast<uint8_t>(meta.channelId),
                    convertPath(meta.controlImagePath), meta.validity.to_ulong(), meta.invalidateAll);
-}
-
-///
-/// \brief      Close database connection
-/// \author     Joachim Danmayr
-///
-void Database::createObjects(const ObjectMeta &data)
-{
-  duckdb::Appender appender(*mConnection, "object");
-
-  // Loop to insert 100 elements
-
-  auto id   = DurationCount::start("loop db");    // 30ms
-  auto uuid = duckdb::Value::UUID(data.analyzeId);
-
-  for(const auto &[objectKey, measureValues] : data.objects) {
-    appender.BeginRow();
-    appender.Append(uuid);
-    appender.Append<uint64_t>(data.imageId);
-    appender.Append<uint16_t>(static_cast<uint16_t>(data.channelId));
-    appender.Append<uint32_t>(objectKey);
-    appender.Append<uint16_t>(data.tileId);
-    appender.Append(measureValues.validity.to_ulong());
-    // 0.02 ms
-    auto mapToInsert =
-        duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
-                           duckdb::LogicalType(duckdb::LogicalTypeId::DOUBLE), measureValues.keys, measureValues.vals);
-
-    appender.Append<duckdb::Value>(mapToInsert);    // 0.004ms
-
-    appender.EndRow();
-  }
-  DurationCount::stop(id);
-
-  // id = DurationCount::start("Close");    // 80ms
-
-  auto id2 = DurationCount::start("close db >" + std::to_string(data.objects.size()) + "<");    // 30ms
-
-  appender.Close();
-  DurationCount::stop(id2);
-
-  // DurationCount::stop(id);
 }
 
 std::string Database::convertPath(const std::filesystem::path &pathIn)

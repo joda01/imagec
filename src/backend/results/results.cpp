@@ -210,7 +210,9 @@ void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, 
                                          .width             = imgProps.width,
                                          .height            = imgProps.height});
   } catch(const std::exception &ex) {
-    joda::log::logWarning("Ceate Image:" + std::string(ex.what()));
+    joda::log::logWarning("Ceate Image:" + std::string(ex.what()) + "\n" +
+                          std::filesystem::relative(imagePath, mOutputFolder).string() + "\n" +
+                          std::to_string(imageId));
   }
 }
 
@@ -221,7 +223,35 @@ void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, 
 /// \param[out]
 /// \return
 ///
-void Results::appendToDetailReport(const joda::image::detect::DetectionResponse &results,
+auto Results::prepareDetailReportAdding() -> std::shared_ptr<duckdb::Appender>
+{
+  auto appender = std::make_shared<duckdb::Appender>(*mDatabase->getConnection(), "object");
+  return appender;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Results::writePredatedData(std::shared_ptr<duckdb::Appender> appender)
+{
+  auto id = DurationCount::start("Close");
+  appender->Close();
+  DurationCount::stop(id);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Results::appendToDetailReport(std::shared_ptr<duckdb::Appender> appender,
+                                   const joda::image::detect::DetectionResponse &results,
                                    const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                                    const image::ImageProperties &imgProps, const std::filesystem::path &imagePath)
 {
@@ -244,57 +274,57 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
     int64_t xMul            = offsetX * imgProps.tileWidth;
     int64_t yMul            = offsetY * imgProps.tileHeight;
 
-    db::objects_t objects;
     uint64_t roiIdx = 0;
     auto id2 = DurationCount::start("loop db prepare >" + std::to_string(results.result.size()) + "<.");    // 30ms
 
+    auto uuid = duckdb::Value::UUID(mAnalyzeId);
     for(const auto &roi : results.result) {
       uint64_t index = roiIdx;
       roiIdx++;
-      db::Data &chan = objects[index];
+      // db::Data &chan = objects[index];
 
-      chan.validity = toValidity(roi.getValidity());
+      duckdb::vector<duckdb::Value> keys;
+      duckdb::vector<duckdb::Value> vals;
 
       // Measure channels
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CONFIDENCE, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getConfidence()));
+      vals.emplace_back(duckdb::Value::DOUBLE(roi.getConfidence()));
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::AREA_SIZE, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getAreaSize()));
+      vals.emplace_back(duckdb::Value::DOUBLE(roi.getAreaSize()));
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::PERIMETER, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getPerimeter()));
+      vals.emplace_back(duckdb::Value::DOUBLE(roi.getPerimeter()));
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CIRCULARITY, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(roi.getCircularity()));
+      vals.emplace_back(duckdb::Value::DOUBLE(roi.getCircularity()));
 
-      chan.keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::VALID, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::TINYINT(roi.isValid() ? 1 : 0));
+      keys.emplace_back(duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::VALID, ChannelIndex::ME)));
+      vals.emplace_back(duckdb::Value::TINYINT(roi.isValid() ? 1 : 0));
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INVALID, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::TINYINT(roi.isValid() ? 0 : 1));
+      vals.emplace_back(duckdb::Value::TINYINT(roi.isValid() ? 0 : 1));
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CENTER_OF_MASS_X, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getCenterOfMass().x) + xMul));
+      vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getCenterOfMass().x) + xMul));
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CENTER_OF_MASS_Y, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getCenterOfMass().y) + yMul));
+      vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getCenterOfMass().y) + yMul));
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::BOUNDING_BOX_WIDTH, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getBoundingBox().width)));
+      vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getBoundingBox().width)));
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::BOUNDING_BOX_HEIGHT, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getBoundingBox().height)));
+      vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getBoundingBox().height)));
 
       double intensityAvg = 0;
       double intensityMin = 0;
@@ -306,34 +336,34 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
         intensityMax     = intensityMe.intensityMax;
       }
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INTENSITY_AVG, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(intensityAvg));
+      vals.emplace_back(duckdb::Value::DOUBLE(intensityAvg));
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INTENSITY_MIN, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(intensityMin));
+      vals.emplace_back(duckdb::Value::DOUBLE(intensityMin));
 
-      chan.keys.emplace_back(
+      keys.emplace_back(
           duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INTENSITY_MAX, ChannelIndex::ME)));
-      chan.vals.emplace_back(duckdb::Value::DOUBLE(intensityMax));
+      vals.emplace_back(duckdb::Value::DOUBLE(intensityMax));
 
       //
       // Intensity channels
       //
       for(const auto &[idx, intensity] : roi.getIntensity()) {
         if(idx != channelSettings.channelIdx) {
-          chan.keys.emplace_back(duckdb::Value::UINTEGER(
+          keys.emplace_back(duckdb::Value::UINTEGER(
               (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG, toChannelIndex(idx))));
-          chan.vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensity));
+          vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensity));
 
-          chan.keys.emplace_back(duckdb::Value::UINTEGER(
+          keys.emplace_back(duckdb::Value::UINTEGER(
               (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_MIN, toChannelIndex(idx))));
-          chan.vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensityMin));
+          vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensityMin));
 
-          chan.keys.emplace_back(duckdb::Value::UINTEGER(
+          keys.emplace_back(duckdb::Value::UINTEGER(
               (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_MAX, toChannelIndex(idx))));
-          chan.vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensityMax));
+          vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensityMax));
         }
       }
 
@@ -341,18 +371,27 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
       // Counting channels
       //
       for(const auto &[idx, intersecting] : roi.getIntersectingRois()) {
-        chan.keys.emplace_back(duckdb::Value::UINTEGER(
+        keys.emplace_back(duckdb::Value::UINTEGER(
             (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_COUNT, toChannelIndex(idx))));
-        chan.vals.emplace_back(duckdb::Value::DOUBLE(intersecting.roiValid.size()));
+        vals.emplace_back(duckdb::Value::DOUBLE(intersecting.roiValid.size()));
+      }
+
+      {
+        std::lock_guard<std::mutex> lock(mAppenderMutex);
+        appender->BeginRow();
+        appender->Append(uuid);
+        appender->Append<uint64_t>(imageId);
+        appender->Append<uint16_t>(static_cast<uint16_t>(channelId));
+        appender->Append<uint32_t>(index);
+        appender->Append<uint16_t>(tileIdx);
+        appender->Append(toValidity(roi.getValidity()).to_ulong());
+        auto mapToInsert = duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
+                                              duckdb::LogicalType(duckdb::LogicalTypeId::DOUBLE), keys, vals);
+        appender->Append<duckdb::Value>(mapToInsert);    // 0.004ms
+        appender->EndRow();
       }
     }
     DurationCount::stop(id2);
-
-    mDatabase->createObjects(db::ObjectMeta{.analyzeId = mAnalyzeId,
-                                            .imageId   = imageId,
-                                            .channelId = toChannelIndex(channelSettings.channelIdx),
-                                            .tileId    = tileIdx,
-                                            .objects   = objects});
 
     DurationCount::stop(id);
   } catch(const std::exception &ex) {

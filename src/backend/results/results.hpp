@@ -29,6 +29,7 @@
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/channel/channel_settings_meta.hpp"
 #include "backend/settings/experiment_settings.hpp"
+#include <duckdb/main/appender.hpp>
 
 namespace joda::results {
 
@@ -57,9 +58,12 @@ public:
 
   void appendChannelsToDetailReport(const joda::settings::AnalyzeSettings &);
   void appendImageToDetailReport(const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
-  void appendToDetailReport(const joda::image::detect::DetectionResponse &result,
+
+  auto prepareDetailReportAdding() -> std::shared_ptr<duckdb::Appender>;
+  void appendToDetailReport(std::shared_ptr<duckdb::Appender>, const joda::image::detect::DetectionResponse &result,
                             const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                             const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
+  void writePredatedData(std::shared_ptr<duckdb::Appender>);
 
   /////////////////////////////////////////////////////
   static std::tuple<WellId, std::string> applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
@@ -129,6 +133,7 @@ private:
   };
   WellPosGenerator mWellPosGenerator;
   std::mutex mWellGeneratorLock;
+  std::mutex mAppenderMutex;
 };
 
 }    // namespace joda::results

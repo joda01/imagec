@@ -40,7 +40,6 @@ public:
   void createImage(const ImageMeta &);
   void createChannel(const ChannelMeta &);
   void createImageChannel(const ImageChannelMeta &);
-  void createObjects(const ObjectMeta &);
 
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)
@@ -49,12 +48,17 @@ public:
     return prep->Execute(std::forward<ARGS>(args)...);
   }
 
+  std::shared_ptr<duckdb::Connection> getConnection()
+  {
+    return mConnection;
+  }
+
 private:
   static std::string convertPath(const std::filesystem::path &);
   /////////////////////////////////////////////////////
   duckdb::DBConfig mDbCfg;
   std::unique_ptr<duckdb::DuckDB> mDb;
-  std::unique_ptr<duckdb::Connection> mConnection;
+  std::shared_ptr<duckdb::Connection> mConnection;
 };
 
 }    // namespace joda::results::db
