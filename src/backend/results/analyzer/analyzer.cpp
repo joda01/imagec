@@ -372,9 +372,9 @@ void Analyzer::markImageChannelAsManualInvalid(const std::string &analyzeId, uin
                                                uint64_t imageId)
 {
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "UPDATE channel_image SET validity = (validity | (1 << ?)) WHERE analyze_id=? AND channel_id=? AND image_id=?",
-      BITSET_OFFSET - static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED), duckdb::Value::UUID(analyzeId),
-      static_cast<uint8_t>(channel), imageId);
+      "UPDATE channel_image SET validity = validity | ? WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      static_cast<uint64_t>((1 << static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED))),
+      duckdb::Value::UUID(analyzeId), static_cast<uint8_t>(channel), imageId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -384,9 +384,9 @@ void Analyzer::unMarkImageChannelAsManualInvalid(const std::string &analyzeId, u
                                                  uint64_t imageId)
 {
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "UPDATE channel_image SET validity = (validity | ~(1 << ?)) WHERE analyze_id=? AND channel_id=? AND image_id=?",
-      BITSET_OFFSET - static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED), duckdb::Value::UUID(analyzeId),
-      static_cast<uint8_t>(channel), imageId);
+      "UPDATE channel_image SET validity = validity & ? WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      ~static_cast<uint64_t>((1 << static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED))),
+      duckdb::Value::UUID(analyzeId), static_cast<uint8_t>(channel), imageId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }

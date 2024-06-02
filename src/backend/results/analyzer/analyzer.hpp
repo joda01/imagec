@@ -62,7 +62,6 @@ public:
   }
 
 private:
-  static constexpr uint32_t BITSET_OFFSET = 31;
   joda::results::db::Database mDatabase;
   std::filesystem::path mParentPathToDb;
 };
