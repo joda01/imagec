@@ -384,7 +384,7 @@ void Results::appendToDetailReport(std::shared_ptr<duckdb::Appender> appender,
         appender->Append<uint16_t>(static_cast<uint16_t>(channelId));
         appender->Append<uint32_t>(index);
         appender->Append<uint16_t>(tileIdx);
-        appender->Append(toValidity(roi.getValidity()).to_ulong());
+        appender->Append<uint64_t>(toValidity(roi.getValidity()).to_ulong());
         auto mapToInsert = duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
                                               duckdb::LogicalType(duckdb::LogicalTypeId::DOUBLE), keys, vals);
         appender->Append<duckdb::Value>(mapToInsert);    // 0.004ms
@@ -427,7 +427,6 @@ std::filesystem::path Results::createControlImage(const joda::image::detect::Det
   if(!result.controlImage.empty()) {
     std::string crlImgFileNameWithTile = controlImageFileNameWithPlaceholder.string();
     helper::stringReplace(crlImgFileNameWithTile, "${tile_id}", std::to_string(tileIdx));
-    std::to_string(tileIdx);
     cv::imwrite((absoluteFolderToWrite / crlImgFileNameWithTile).string(), result.controlImage, compression_params);
   } else {
     std::cout << "CTRL img null" << std::endl;

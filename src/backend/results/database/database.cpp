@@ -247,7 +247,8 @@ void Database::createImageChannel(const ImageChannelMeta &meta)
       "(?, ?, ?, ?, ?, ?)");
 
   prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, static_cast<uint8_t>(meta.channelId),
-                   convertPath(meta.controlImagePath), meta.validity.to_ulong(), meta.invalidateAll);
+                   convertPath(meta.controlImagePath), duckdb::Value::UHUGEINT(meta.validity.to_ulong()),
+                   meta.invalidateAll);
 }
 
 std::string Database::convertPath(const std::filesystem::path &pathIn)
