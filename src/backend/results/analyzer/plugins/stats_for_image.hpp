@@ -29,7 +29,7 @@ public:
           "  STDDEV(element_at(values, $1)[1]) as val_stddev "
           "FROM object "
           "WHERE"
-          " object.image_id=$2 AND bit_count(object.validity)=0 AND object.channel_id=$3 ",
+          " object.image_id=$2 AND object.validity=0 AND object.channel_id=$3 ",
           measurement.getKey(), imageId, static_cast<uint8_t>(channelId));
 
       if(stats->HasError()) {
@@ -65,7 +65,7 @@ public:
           "  element_at(values, $1)[1] as val "
           "FROM object "
           "WHERE"
-          " object.image_id=$2 AND bit_count(object.validity)=0 AND object.channel_id=$3 "
+          " object.image_id=$2 AND object.validity=0 AND object.channel_id=$3 "
           "ORDER BY object.object_id",
           measurement.getKey(), imageId, static_cast<uint8_t>(channelId));
 

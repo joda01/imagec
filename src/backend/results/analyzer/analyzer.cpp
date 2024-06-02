@@ -151,10 +151,10 @@ auto Analyzer::getImageInformation(const std::string &analyzeId, uint8_t plateId
     auto wellId  = materializedResult->GetValue(10, n).GetValue<uint16_t>();    // Well ID
     // materializedResult->GetValue(11, n).GetValue<std::string>();                // Analyze ID
     // materializedResult->GetValue(12, n).GetValue<uint64_t>();                   // Image ID
-    auto channelId        = materializedResult->GetValue(13, n).GetValue<uint8_t>();          // Channel ID
-    auto controlImagePath = materializedResult->GetValue(14, n).GetValue<std::string>();      // Control image path
-    ChannelValidity validity{materializedResult->GetValue(15, n).GetValue<std::string>()};    // Validity
-    auto invalidateAll = materializedResult->GetValue(16, n).GetValue<bool>();                // Invalidate all
+    auto channelId        = materializedResult->GetValue(13, n).GetValue<uint8_t>();        // Channel ID
+    auto controlImagePath = materializedResult->GetValue(14, n).GetValue<std::string>();    // Control image path
+    ChannelValidity validity{materializedResult->GetValue(15, n).GetValue<uint64_t>()};     // Validity
+    auto invalidateAll = materializedResult->GetValue(16, n).GetValue<bool>();              // Invalidate all
     // materializedResult->GetValue(17, n).GetValue<std::string>();                // Analyze ID
     // auto channelId = materializedResult->GetValue(18, n).GetValue<uint8_t>();    // Channel ID
     auto channelName = materializedResult->GetValue(19, n).GetValue<std::string>();    // Control image path
@@ -372,7 +372,7 @@ void Analyzer::markImageChannelAsManualInvalid(const std::string &analyzeId, uin
                                                uint64_t imageId)
 {
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "UPDATE channel_image SET validity = set_bit(validity, ?, 1) WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      "UPDATE channel_image SET validity = (validity | (1 << ?)) WHERE analyze_id=? AND channel_id=? AND image_id=?",
       BITSET_OFFSET - static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED), duckdb::Value::UUID(analyzeId),
       static_cast<uint8_t>(channel), imageId);
   if(result->HasError()) {
@@ -384,7 +384,7 @@ void Analyzer::unMarkImageChannelAsManualInvalid(const std::string &analyzeId, u
                                                  uint64_t imageId)
 {
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "UPDATE channel_image SET validity = set_bit(validity, ?, 0) WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      "UPDATE channel_image SET validity = (validity | ~(1 << ?)) WHERE analyze_id=? AND channel_id=? AND image_id=?",
       BITSET_OFFSET - static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED), duckdb::Value::UUID(analyzeId),
       static_cast<uint8_t>(channel), imageId);
   if(result->HasError()) {

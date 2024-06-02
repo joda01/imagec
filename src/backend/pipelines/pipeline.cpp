@@ -313,13 +313,16 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   //
   auto calcIntersection = [this, &imagePath, &detectionResults,
                            &channelProperties](int tileIdx, settings::VChannelIntersection intersect) {
-    joda::pipeline::CalcIntersection intersectAlgo(intersect.intersection.intersectingChannels,
-                                                   intersect.intersection.minIntersection);
+    joda::pipeline::CalcIntersection intersectAlgo(
+        intersect.meta.channelIdx, intersect.intersection.intersectingChannels, intersect.objectFilter.minParticleSize);
     auto response = intersectAlgo.execute(mAnalyzeSettings, detectionResults);
     detectionResults.emplace(intersect.meta.channelIdx, response);
 
+    auto id = DurationCount::start("Append to detail report intersect");
+
     mResults.appendToDetailReport(detectionResults.at(intersect.meta.channelIdx), intersect.meta, tileIdx,
                                   channelProperties.props, imagePath.getFilePath());
+    DurationCount::stop(id);
   };
 
   if(poolSize > 1) {
@@ -368,9 +371,11 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
       CalcCount counting(idx, voronoi.crossChannel.crossChannelCountChannels);
       counting.execute(mAnalyzeSettings, detectionResults);
     }
+    auto id = DurationCount::start("Append to detail report vorono");
 
     mResults.appendToDetailReport(detectionResults.at(voronoi.meta.channelIdx), voronoi.meta, tileIdx,
                                   channelProperties.props, imagePath.getFilePath());
+    DurationCount::stop(id);
   };
 
   if(!mStop && mState != State::ERROR_) {
@@ -407,20 +412,13 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
       intensity.execute(mAnalyzeSettings, detectionResults);
     }
 
-//
-// This is the last stage, write the detail settings
-//
-#warning "Write report here!"
+    auto id = DurationCount::start("Append to detail report stats");
 
-    /*
-    if(mState != State::ERROR_) {
-      joda::results::Helper::setDetailReportHeader(mAnalyzeSettings, detailReports, channelSettings.meta.name,
-                                                   channelSettings.meta.channelIdx);
-    }*/
     if(detectionResults.contains(channelSettings.meta.channelIdx)) {
       mResults.appendToDetailReport(detectionResults.at(channelSettings.meta.channelIdx), channelSettings.meta, tileIdx,
                                     channelProperties.props, imagePath.getFilePath());
     }
+    DurationCount::stop(id);
   };
 
   if(poolSize > 1) {

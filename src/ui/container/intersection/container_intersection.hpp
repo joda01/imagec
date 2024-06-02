@@ -75,7 +75,7 @@ private:
   std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>> mChannelType;
   std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>> mColorAndChannelIndex;
 
-  std::shared_ptr<ContainerFunction<float, int>> mMinIntersection;
+  std::shared_ptr<ContainerFunction<int, int>> mMinIntersection;
 
   // Cross-Channel//////////////////////////////////
   std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntersection;

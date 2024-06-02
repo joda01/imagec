@@ -20,6 +20,7 @@
 #include <mutex>
 #include <regex>
 #include <stdexcept>
+#include <string>
 #include <vector>
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
@@ -245,6 +246,8 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
 
     db::objects_t objects;
     uint64_t roiIdx = 0;
+    auto id2 = DurationCount::start("loop db prepare >" + std::to_string(results.result.size()) + "<.");    // 30ms
+
     for(const auto &roi : results.result) {
       uint64_t index = roiIdx;
       roiIdx++;
@@ -343,6 +346,7 @@ void Results::appendToDetailReport(const joda::image::detect::DetectionResponse 
         chan.vals.emplace_back(duckdb::Value::DOUBLE(intersecting.roiValid.size()));
       }
     }
+    DurationCount::stop(id2);
 
     mDatabase->createObjects(db::ObjectMeta{.analyzeId = mAnalyzeId,
                                             .imageId   = imageId,

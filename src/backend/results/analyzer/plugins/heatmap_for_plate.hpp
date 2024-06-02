@@ -29,7 +29,7 @@ public:
             "INNER JOIN channel_image ON (object.image_id=channel_image.image_id AND "
             "object.channel_id=channel_image.channel_id) "
             "WHERE"
-            " image_well.plate_id=$2 AND bit_count(object.validity)=0 AND bit_count(channel_image.validity)=0 AND "
+            " image_well.plate_id=$2 AND object.validity=0 AND channel_image.validity=0 AND "
             "object.channel_id=$3 "
             "GROUP BY"
             "  (image_well.well_id) ",

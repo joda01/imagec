@@ -17,7 +17,12 @@
 
 namespace joda::image::detect {
 
-using DetectionResults = std::vector<ROI>;
+class DetectionResults : public std::vector<ROI>
+{
+public:
+  using std::vector<ROI>::vector;
+  void createBinaryImage(cv::Mat &img) const;
+};
 
 enum class ResponseDataValidityEnum
 {

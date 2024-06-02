@@ -114,7 +114,7 @@ void Database::open()
       "	image_id UHUGEINT,"
       "	channel_id UTINYINT,"
       " control_image_path TEXT,"
-      " validity BITSTRING,"
+      " validity UHUGEINT,"
       " invalidateAll BOOLEAN,"
       " PRIMARY KEY (analyze_id, image_id, channel_id),"
       " FOREIGN KEY(analyze_id, image_id) REFERENCES image(analyze_id, image_id)"
@@ -126,10 +126,10 @@ void Database::open()
       "	channel_id UTINYINT,"
       "	object_id UINTEGER,"
       "	tile_id USMALLINT,"
-      " validity BITSTRING,"
+      " validity UHUGEINT,"
       " values MAP(UINTEGER, DOUBLE)"
       ");"
-      "CREATE INDEX object_idx ON object (analyze_id, image_id, channel_id);";
+      "CREATE INDEX object_idx ON object (image_id, channel_id);";
 
   auto result = mConnection->Query(create_table_sql);
   if(result->HasError()) {
@@ -247,8 +247,7 @@ void Database::createImageChannel(const ImageChannelMeta &meta)
       "(?, ?, ?, ?, ?, ?)");
 
   prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, static_cast<uint8_t>(meta.channelId),
-                   convertPath(meta.controlImagePath), duckdb::Value::BIT(meta.validity.to_string()),
-                   meta.invalidateAll);
+                   convertPath(meta.controlImagePath), meta.validity.to_ulong(), meta.invalidateAll);
 }
 
 ///
@@ -261,7 +260,7 @@ void Database::createObjects(const ObjectMeta &data)
 
   // Loop to insert 100 elements
 
-  auto id   = DurationCount::start("loop");    // 30ms
+  auto id   = DurationCount::start("loop db");    // 30ms
   auto uuid = duckdb::Value::UUID(data.analyzeId);
 
   for(const auto &[objectKey, measureValues] : data.objects) {
@@ -271,7 +270,7 @@ void Database::createObjects(const ObjectMeta &data)
     appender.Append<uint16_t>(static_cast<uint16_t>(data.channelId));
     appender.Append<uint32_t>(objectKey);
     appender.Append<uint16_t>(data.tileId);
-    appender.Append(duckdb::Value::BIT(measureValues.validity.to_string()));
+    appender.Append(measureValues.validity.to_ulong());
     // 0.02 ms
     auto mapToInsert =
         duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
@@ -285,7 +284,11 @@ void Database::createObjects(const ObjectMeta &data)
 
   // id = DurationCount::start("Close");    // 80ms
 
+  auto id2 = DurationCount::start("close db >" + std::to_string(data.objects.size()) + "<");    // 30ms
+
   appender.Close();
+  DurationCount::stop(id2);
+
   // DurationCount::stop(id);
 }
 

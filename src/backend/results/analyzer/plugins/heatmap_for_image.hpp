@@ -70,7 +70,7 @@ public:
               getStatsString(stats) +
               "FROM object "
               "WHERE"
-              " image_id=$2 AND bit_count(validity)=0 AND channel_id=$3 "
+              " image_id=$2 AND validity=0 AND channel_id=$3 "
               "GROUP BY floor(element_at(values, $5)[1] / $4), floor(element_at(values, $6)[1] / $4)",
           measurement.getKey(), imageId, static_cast<uint8_t>(channelId), duckdb::Value::DOUBLE(areaSize),
           MeasureChannelId(MeasureChannel::CENTER_OF_MASS_X, ChannelIndex::ME).getKey(),

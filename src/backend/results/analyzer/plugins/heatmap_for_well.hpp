@@ -51,7 +51,7 @@ public:
             "INNER JOIN channel_image ON (object.image_id=channel_image.image_id AND "
             "object.channel_id=channel_image.channel_id)"
             "WHERE"
-            " image_well.well_id=$2 AND bit_count(object.validity)=0 AND object.channel_id=$3 "
+            " image_well.well_id=$2 AND object.validity=0 AND object.channel_id=$3 "
             "GROUP BY"
             "  (object.image_id, image.file_name, image.image_idx) "
             "ORDER BY image.file_name",
@@ -85,7 +85,7 @@ public:
         uint32_t imgIdx              = materializedResult->GetValue(1, n).GetValue<uint32_t>();
         std::string controlImagePath = materializedResult->GetValue(2, n).GetValue<std::string>();
         uint16_t tileId              = materializedResult->GetValue(3, n).GetValue<uint16_t>();
-        ChannelValidity validity{materializedResult->GetValue(4, n).GetValue<std::string>()};
+        ChannelValidity validity{materializedResult->GetValue(4, n).GetValue<uint64_t>()};
 
         auto pos     = wellPos[imgIdx];
         double value = materializedResult->GetValue(6, n).GetValue<double>();

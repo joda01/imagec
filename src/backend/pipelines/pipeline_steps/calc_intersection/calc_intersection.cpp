@@ -12,17 +12,21 @@
 ///
 
 #include "calc_intersection.hpp"
+#include <cstdint>
 #include <string>
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/image_processing/detection/detection.hpp"
+#include "backend/image_processing/detection/object_segmentation/object_segmentation.hpp"
 #include <opencv2/core.hpp>
+#include <opencv2/core/mat.hpp>
 
 namespace joda::pipeline {
 
-CalcIntersection::CalcIntersection(const std::set<joda::settings::ChannelIndex> &indexesToIntersect,
-                                   float minIntersection) :
-    mIndexesToIntersect(indexesToIntersect.begin(), indexesToIntersect.end()),
-    mMinIntersection(minIntersection)
+CalcIntersection::CalcIntersection(joda::settings::ChannelIndex channelIndexMe,
+                                   const std::set<joda::settings::ChannelIndex> &indexesToIntersect,
+                                   uint64_t minIntersection) :
+    mChannelIndexMe(channelIndexMe),
+    mIndexesToIntersect(indexesToIntersect.begin(), indexesToIntersect.end()), mMinIntersection(minIntersection)
 {
 }
 
@@ -37,91 +41,66 @@ auto CalcIntersection::execute(
     return joda::image::detect::DetectionResponse{};
   }
 
-  std::vector<const joda::image::detect::DetectionResponse *> channelsToIntersect;
-  std::map<joda::settings::ChannelIndex, const cv::Mat *> channelsToIntersectImages;
-
-  joda::settings::ChannelIndex idx1 = *mIndexesToIntersect.begin();
-  joda::settings::ChannelIndex idx2 = *(std::next(mIndexesToIntersect.begin()));
+  cv::Mat intersectingMask =
+      cv::Mat(detectionResultsIn.at(*mIndexesToIntersect.begin()).controlImage.size(), CV_8UC1, cv::Scalar(255));
+  cv::Mat originalImage =
+      cv::Mat::ones(detectionResultsIn.at(*mIndexesToIntersect.begin()).controlImage.size(), CV_16UC1) * 65535;
 
   for(const auto idxToIntersect : mIndexesToIntersect) {
     if(detectionResultsIn.contains(idxToIntersect)) {
-      channelsToIntersect.push_back(&detectionResultsIn.at(idxToIntersect));
-      channelsToIntersectImages.emplace(idxToIntersect, &detectionResultsIn.at(idxToIntersect).originalImage);
+      cv::Mat binaryImage = cv::Mat::zeros(detectionResultsIn.at(idxToIntersect).originalImage.size(), CV_8UC1);
+      detectionResultsIn.at(idxToIntersect).result.createBinaryImage(binaryImage);
+      cv::bitwise_and(intersectingMask, binaryImage, intersectingMask);
+
+      // Calculate the intersection of the original images
+      originalImage = cv::min(detectionResultsIn.at(idxToIntersect).originalImage, originalImage);
     }
   }
 
-  // Sort in descending order (largest first)
-  auto compareByX = [](const joda::image::detect::DetectionResponse *a,
-                       const joda::image::detect::DetectionResponse *b) -> bool {
-    {
-      return a->result.size() > b->result.size();
-    }
-  };
+  joda::settings::ChannelSettingsFilter filter;
+  filter.maxParticleSize = INT64_MAX;
+  filter.minParticleSize = mMinIntersection;    ///\todo Add filtering
+  filter.snapAreaSize    = 0;
+  filter.minCircularity  = 0;
+  joda::image::segment::ObjectSegmentation seg(filter, 200, joda::settings::ThresholdSettings::Mode::MANUAL, false);
+  joda::image::detect::DetectionResponse response = seg.forward(intersectingMask, originalImage, mChannelIndexMe);
 
-  std::sort(channelsToIntersect.begin(), channelsToIntersect.end(), compareByX);
-
-  //
-  // Calculate the intersection
-  //
-  std::vector<image::detect::DetectionFunction::OverlaySettings> overlayPainting;
-  joda::image::detect::DetectionResponse response;
-  response = *channelsToIntersect[0];
-  overlayPainting.push_back({.result          = &channelsToIntersect[0]->result,
-                             .backgroundColor = cv::Scalar(255, 0, 0),
-                             .borderColor     = cv::Scalar(0, 0, 0),
-                             .paintRectangel  = false,
-                             .opaque          = 0.3});
-
-  for(auto n = 1; n < channelsToIntersect.size(); n++) {
-    const auto *ch1 = channelsToIntersect[n];
-
-    overlayPainting.push_back({.result          = &ch1->result,
-                               .backgroundColor = cv::Scalar(0, 255, 0),
-                               .borderColor     = cv::Scalar(0, 0, 0),
-                               .paintRectangel  = false,
-                               .opaque          = 0.3});
-
-    joda::image::detect::DetectionResponse respTmp;
-    for(auto const &roi01 : response.result) {
-      for(auto const &roi02 : ch1->result) {
-        if(roi01.isValid() && roi02.isValid()) {
-          auto [colocROI, ok] = roi01.calcIntersection(roi02, channelsToIntersectImages, mMinIntersection);
-          // We only log the first occurency of intersestion. Intersection over more particles is not logged yet
-          if(ok) {
-            respTmp.result.push_back(colocROI);
-            break;
-          }
-        }
-      }
-    }
-
-    response = respTmp;
-  }
-
-  //
-  // Calculate the intersection of the original images
-  //
-  response.originalImage = cv::Mat::ones(channelsToIntersectImages.begin()->second->rows,
-                                         channelsToIntersectImages.begin()->second->cols, CV_16UC1) *
-                           65535;
-  for(const auto &img : channelsToIntersectImages) {
-    response.originalImage = cv::min(*img.second, response.originalImage);
-  }
-
-  overlayPainting.insert(overlayPainting.begin(),
-                         image::detect::DetectionFunction::OverlaySettings{.result          = &response.result,
-                                                                           .backgroundColor = cv::Scalar(0, 0, 255),
-                                                                           .borderColor     = cv::Scalar(0, 0, 0),
-                                                                           .paintRectangel  = false,
-                                                                           .opaque          = 1});
-
-  response.controlImage =
-      cv::Mat::zeros(channelsToIntersect[0]->originalImage.rows, channelsToIntersect[0]->originalImage.cols, CV_32FC3);
-
-  joda::image::detect::DetectionFunction::paintOverlay(response.controlImage, overlayPainting);
+  image::detect::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FFFF", false, false);
 
   DurationCount::stop(id);
   return response;
 }
+
+//
+// Calculate the intersection
+//
+/*
+std::vector<image::detect::DetectionFunction::OverlaySettings> overlayPainting;
+overlayPainting.push_back({.result          = &channelsToIntersect[0]->result,
+                           .backgroundColor = cv::Scalar(255, 0, 0),
+                           .borderColor     = cv::Scalar(0, 0, 0),
+                           .paintRectangel  = false,
+                           .opaque          = 0.3});
+
+
+  overlayPainting.push_back({.result          = &ch1->result,
+                             .backgroundColor = cv::Scalar(0, 255, 0),
+                             .borderColor     = cv::Scalar(0, 0, 0),
+                             .paintRectangel  = false,
+                             .opaque          = 0.3});
+*/
+
+/*overlayPainting.insert(overlayPainting.begin(),
+                       image::detect::DetectionFunction::OverlaySettings{.result          = &response.result,
+                                                                         .backgroundColor = cv::Scalar(0, 0, 255),
+                                                                         .borderColor     = cv::Scalar(0, 0, 0),
+                                                                         .paintRectangel  = false,
+                                                                         .opaque          = 1});*/
+
+// response.controlImage =
+//     cv::Mat::zeros(channelsToIntersect[0]->originalImage.rows, channelsToIntersect[0]->originalImage.cols,
+//     CV_32FC3);
+
+// joda::image::detect::DetectionFunction::paintOverlay(response.controlImage, overlayPainting);
 
 }    // namespace joda::pipeline

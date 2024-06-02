@@ -25,7 +25,8 @@ class CalcIntersection : public PipelineStep
 {
 public:
   /////////////////////////////////////////////////////
-  CalcIntersection(const std::set<joda::settings::ChannelIndex> &indexesToIntersect, float minIntersection);
+  CalcIntersection(joda::settings::ChannelIndex channelIndexMe,
+                   const std::set<joda::settings::ChannelIndex> &indexesToIntersect, uint64_t minIntersection);
 
   auto execute(const settings::AnalyzeSettings &,
                const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &) const
@@ -33,7 +34,8 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  joda::settings::ChannelIndex mChannelIndexMe;
   const std::vector<joda::settings::ChannelIndex> mIndexesToIntersect;
-  const float mMinIntersection;
+  const uint64_t mMinIntersection;
 };
 }    // namespace joda::pipeline

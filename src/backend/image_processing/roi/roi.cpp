@@ -394,18 +394,25 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
   }
   result.intersectedMask = cv::Mat::zeros(result.intersectedRect.height, result.intersectedRect.width, CV_8UC1);
 
+  const int32_t xM1Base = (result.intersectedRect.x - getSnapAreaBoundingBox().x);
+  const int32_t yM1Base = (result.intersectedRect.y - getSnapAreaBoundingBox().y);
+
+  const int32_t xM2Base = (result.intersectedRect.x - roi.getSnapAreaBoundingBox().x);
+  const int32_t yM2Base = (result.intersectedRect.y - roi.getSnapAreaBoundingBox().y);
+
   // Iterate through the pixels in the intersection and set them in the new mask
   for(int y = 0; y < result.intersectedRect.height; ++y) {
     for(int x = 0; x < result.intersectedRect.width; ++x) {
-      int xM1      = x + (result.intersectedRect.x - getSnapAreaBoundingBox().x);
-      int yM1      = y + (result.intersectedRect.y - getSnapAreaBoundingBox().y);
+      int xM1 = x + xM1Base;
+      int yM1 = y + yM1Base;
+
       bool mask1On = false;
       if(xM1 >= 0 && yM1 >= 0) {
         mask1On = getSnapAreaMask().at<uchar>(yM1, xM1) > 0;
       }
 
-      int xM2      = x + (result.intersectedRect.x - roi.getSnapAreaBoundingBox().x);
-      int yM2      = y + (result.intersectedRect.y - roi.getSnapAreaBoundingBox().y);
+      int xM2      = x + xM2Base;
+      int yM2      = y + yM2Base;
       bool mask2On = false;
       if(xM2 >= 0 && yM2 >= 0) {
         mask2On = roi.getSnapAreaMask().at<uchar>(yM2, xM2) > 0;
