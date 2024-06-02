@@ -109,32 +109,28 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
 
   // Create a mask for each contour and draw bounding boxes
   size_t idx = 0;
-  for(size_t i = 0; i < contours.size(); ++i) {
+  size_t i   = 0;
+  for(auto &contour : contours) {
     // Do not paint a contour for elements inside an element.
     // In other words if there is a particle with a hole, ignore the hole.
     // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
     if(hierarchy[i][3] == -1) {
-      // Extract the region of intereset
-      // \\todo find more efficent way
-      cv::Mat tempMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
-      std::vector<std::vector<cv::Point>> contourOfInterest;
-      contourOfInterest.push_back(contours[i]);
-      cv::drawContours(tempMask, contourOfInterest, 0, cv::Scalar(255), cv::FILLED);
-
-      // Find the bounding box for the contour
-      auto box     = cv::boundingRect(contours[i]);
-      cv::Mat mask = tempMask(box) >= 1;
-
+      auto boundingBox = cv::boundingRect(contour);
+      cv::Mat mask     = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
       // Bring the contours box in the area of the bounding box
-      for(auto &point : contours[i]) {
-        point.x = point.x - box.x;
-        point.y = point.y - box.y;
+      for(auto &point : contour) {
+        point.x = point.x - boundingBox.x;
+        point.y = point.y - boundingBox.y;
       }
-
-      ROI detect(idx, usedThersholdVal, 0, box, mask, contours[i], originalImage, channelIndex, getFilterSettings());
+      std::vector<std::vector<cv::Point>> contoursToPaint;
+      contoursToPaint.push_back(contour);    // fillPoly expects a vector of contours
+      fillPoly(mask, contoursToPaint, cv::Scalar(255));
+      ROI detect(idx, usedThersholdVal, 0, boundingBox, mask, contour, originalImage, channelIndex,
+                 getFilterSettings());
       idx++;
       response.push_back(detect);
     }
+    i++;
   }
   DurationCount::stop(ro);
 

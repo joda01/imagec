@@ -244,8 +244,9 @@ double ROI::getTracedPerimeter(const std::vector<cv::Point> &points) const
   int side2    = 0;
   for(int i = 0; i < nPoints; i++) {
     int nexti = i + 1;
-    if(nexti == nPoints)
+    if(nexti == nPoints) {
       nexti = 0;
+    }
     dx2 = points[nexti].x - points[i].x;
     dy2 = points[nexti].y - points[i].y;
     sumdx += std::abs(dx1);
@@ -269,8 +270,9 @@ double ROI::getTracedPerimeter(const std::vector<cv::Point> &points) const
 double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape) const
 {
   auto npoints = points.size();
-  if(npoints < 2)
+  if(npoints < 2) {
     return 0;
+  }
   double pixelWidth = 1.0, pixelHeight = 1.0;
   double length = 0;
   for(int i = 0; i < npoints - 1; i++)
