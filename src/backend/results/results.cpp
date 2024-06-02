@@ -178,9 +178,10 @@ void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, 
       wellPosition.imageIdx                    = UINT32_MAX;
     } break;
     case settings::ExperimentSettings::GroupBy::FILENAME: {
-      auto [wellPos, grpName] = applyRegex(mExperimentSettings.imageFileNameRegex, imagePath);
-      wellPosition            = wellPos;
-      groupName               = grpName;
+      auto [wellPos, grpName]  = applyRegex(mExperimentSettings.imageFileNameRegex, imagePath);
+      wellPosition.imageIdx    = wellPos.imageIdx;
+      wellPosition.well.wellId = wellPos.well.wellId;
+      groupName                = grpName;
     } break;
   }
 
@@ -441,7 +442,7 @@ std::filesystem::path Results::createControlImage(const joda::image::detect::Det
 ///
 void Results::createWellPositionBasesOnGroupName(WellId &wellInOut, const std::string &groupName)
 {
-  if(wellInOut.well.wellPos[WellId::POS_Y] == 255 || wellInOut.well.wellPos[WellId::POS_X] == 255) {
+  if(wellInOut.well.wellPos[WellId::POS_Y] == UINT8_MAX || wellInOut.well.wellPos[WellId::POS_X] == UINT8_MAX) {
     std::lock_guard<std::mutex> lock(mWellGeneratorLock);
     auto found = mWellPosGenerator.mNameToWellId.find(groupName);
     if(found != mWellPosGenerator.mNameToWellId.end()) {

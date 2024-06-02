@@ -31,7 +31,7 @@ Database::Database(const std::filesystem::path &dbFile)
 {
   // cfg.SetOption("memory_limit", "10GB");
   // cfg.SetOption("external_threads", 1);
-  // mDbCfg.SetOption("threads", threadsToUse);
+  // mDbCfg.SetOption("threads", 1);
   mDbCfg.SetOption("temp_directory", dbFile.parent_path().string());
   mDb         = std::make_unique<duckdb::DuckDB>(dbFile.string(), &mDbCfg);
   mConnection = std::make_shared<duckdb::Connection>(*mDb);
