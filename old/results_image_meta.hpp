@@ -82,7 +82,7 @@ struct ImageMeta
   std::string imageFileName;
   int64_t height = 0;
   int64_t width  = 0;
-  ImgPositionInWell imgPosInWell;    /// Position of the image on the plate
+  ImgPositionInWell imgPosInWell;    /// Position of the image on the plates
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageMeta, height, width, imgPosInWell, imageFileName);
 };
@@ -131,7 +131,7 @@ struct Position
 struct GroupMeta
 {
   std::string name;           ///< Name of the group
-  Position wellPosOnPlate;    /// Position of the group on the plate
+  Position wellPosOnPlate;    /// Position of the group on the plates
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(GroupMeta, name, wellPosOnPlate);
 };

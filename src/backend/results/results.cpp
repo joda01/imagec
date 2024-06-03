@@ -228,7 +228,7 @@ auto Results::prepareDetailReportAdding()
 {
   auto connection = mDatabase->acquire();
   // connection->BeginTransaction();
-  auto appender = std::make_shared<duckdb::Appender>(*connection, "object");
+  auto appender = std::make_shared<duckdb::Appender>(*connection, "objects");
   return {appender, connection};
 }
 

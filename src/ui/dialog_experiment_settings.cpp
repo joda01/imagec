@@ -68,7 +68,7 @@ DialogExperimentSettings::DialogExperimentSettings(QWidget *windowMain, joda::se
   mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
   groupBoxLayout->addWidget(mWellOrderMatrix);
 
-  auto *groupByLabel = new QLabel("Regex to extract coordinates of Well in plate from image filename", groupBox);
+  auto *groupByLabel = new QLabel("Regex to extract coordinates of Well in plates from image filename", groupBox);
   groupBoxLayout->addWidget(groupByLabel);
   mRegexToFindTheWellPosition = new QComboBox(groupBox);
   mRegexToFindTheWellPosition->addItem("_((.)([0-9]+))_([0-9]+)", "_((.)([0-9]+))_([0-9]+)");

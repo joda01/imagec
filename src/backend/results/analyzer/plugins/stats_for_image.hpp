@@ -27,9 +27,9 @@ public:
           "  MAX(element_at(values, $1)[1]) as val_max,"
           "  AVG(element_at(values, $1)[1]) as val_avg,"
           "  STDDEV(element_at(values, $1)[1]) as val_stddev "
-          "FROM object "
+          "FROM objects "
           "WHERE"
-          " object.image_id=$2 AND object.validity=0 AND object.channel_id=$3 ",
+          " objects.image_id=$2 AND objects.validity=0 AND objects.channel_id=$3 ",
           measurement.getKey(), imageId, static_cast<uint8_t>(channelId));
 
       if(stats->HasError()) {
@@ -61,12 +61,12 @@ public:
     {
       std::unique_ptr<duckdb::QueryResult> stats = analyzer.getDatabase().select(
           "SELECT"
-          "  object.object_id as object_id,"
+          "  objects.object_id as object_id,"
           "  element_at(values, $1)[1] as val "
-          "FROM object "
+          "FROM objects "
           "WHERE"
-          " object.image_id=$2 AND object.validity=0 AND object.channel_id=$3 "
-          "ORDER BY object.object_id",
+          " objects.image_id=$2 AND objects.validity=0 AND objects.channel_id=$3 "
+          "ORDER BY objects.object_id",
           measurement.getKey(), imageId, static_cast<uint8_t>(channelId));
 
       if(stats->HasError()) {

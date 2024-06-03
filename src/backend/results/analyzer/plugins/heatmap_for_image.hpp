@@ -24,24 +24,24 @@ public:
     std::string controlImgPath;
 
     {
-      std::unique_ptr<duckdb::QueryResult> image = analyzer.getDatabase().select(
+      std::unique_ptr<duckdb::QueryResult> images = analyzer.getDatabase().select(
           "SELECT"
-          "  image.image_id as image_id,"
-          "  image.width as width,"
-          "  image.height as height,"
-          "  image.file_name as file_name,"
-          "  channel_image.control_image_path as control_image_path "
-          "FROM image "
-          "INNER JOIN channel_image ON image.image_id=channel_image.image_id "
+          "  images.image_id as image_id,"
+          "  images.width as width,"
+          "  images.height as height,"
+          "  images.file_name as file_name,"
+          "  channels_images.control_image_path as control_image_path "
+          "FROM images "
+          "INNER JOIN channels_images ON images.image_id=channels_images.image_id "
           "WHERE"
-          " channel_image.image_id=$1 AND channel_image.channel_id=$2 ",
+          " channels_images.image_id=$1 AND channels_images.channel_id=$2 ",
           imageId, static_cast<uint8_t>(channelId));
 
-      if(image->HasError()) {
-        throw std::invalid_argument(image->GetError());
+      if(images->HasError()) {
+        throw std::invalid_argument(images->GetError());
       }
 
-      auto imageMaterialized = image->Cast<duckdb::StreamQueryResult>().Materialize();
+      auto imageMaterialized = images->Cast<duckdb::StreamQueryResult>().Materialize();
       uint64_t imgWidth      = imageMaterialized->GetValue(1, 0).GetValue<uint64_t>();
       uint64_t imgWeight     = imageMaterialized->GetValue(2, 0).GetValue<uint64_t>();
       controlImgPath         = imageMaterialized->GetValue(4, 0).GetValue<std::string>();
@@ -68,7 +68,7 @@ public:
           "floor(element_at(values, $6)[1] / $4) * $4 AS rectangle_y,"
           "any_value(tile_id) tile_id, " +
               getStatsString(stats) +
-              "FROM object "
+              "FROM objects "
               "WHERE"
               " image_id=$2 AND validity=0 AND channel_id=$3 "
               "GROUP BY floor(element_at(values, $5)[1] / $4), floor(element_at(values, $6)[1] / $4)",

@@ -1079,7 +1079,7 @@ class RandomNameGenerator
       "tesla",
 
       // Marie Tharp - American geologist and oceanic cartographer who co-created the first scientific
-      // map of the Atlantic Ocean floor. Her work led to the acceptance of the theories of plate
+      // map of the Atlantic Ocean floor. Her work led to the acceptance of the theories of plates
       // tectonics and continental drift. https://en.wikipedia.org/wiki/Marie_Tharp
       "tharp",
 

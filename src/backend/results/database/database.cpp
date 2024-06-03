@@ -59,7 +59,7 @@ void Database::open()
       " PRIMARY KEY (analyze_id)"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS plate ("
+      "CREATE TABLE IF NOT EXISTS plates ("
       "	analyze_id UUID,"
       "	plate_id UTINYINT,"
       " notes TEXT,"
@@ -67,7 +67,7 @@ void Database::open()
       " FOREIGN KEY(analyze_id) REFERENCES analyzes(analyze_id)"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS group ("
+      "CREATE TABLE IF NOT EXISTS groups ("
       "	analyze_id UUID,"
       "	plate_id UTINYINT,"
       "	group_id USMALLINT,"
@@ -76,10 +76,10 @@ void Database::open()
       " name TEXT, "
       " notes TEXT,"
       " PRIMARY KEY (analyze_id, plate_id, group_id),"
-      " FOREIGN KEY(analyze_id, plate_id) REFERENCES plate(analyze_id, plate_id)"
+      " FOREIGN KEY(analyze_id, plate_id) REFERENCES plates(analyze_id, plate_id)"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS image ("
+      "CREATE TABLE IF NOT EXISTS images ("
       "	analyze_id UUID,"
       "	image_id UHUGEINT,"
       " image_idx UINTEGER,"
@@ -91,17 +91,17 @@ void Database::open()
       " FOREIGN KEY(analyze_id) REFERENCES analyzes(analyze_id)"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS image_group ("
+      "CREATE TABLE IF NOT EXISTS images_groups ("
       "	analyze_id UUID,"
       "	image_id UHUGEINT,"
       "	plate_id UTINYINT,"
       "	group_id USMALLINT,"
       " PRIMARY KEY (analyze_id, image_id),"
-      " FOREIGN KEY(analyze_id, image_id) REFERENCES image(analyze_id, image_id),"
-      " FOREIGN KEY(analyze_id, plate_id, group_id) REFERENCES group(analyze_id, plate_id, group_id),"
+      " FOREIGN KEY(analyze_id, image_id) REFERENCES images(analyze_id, image_id),"
+      " FOREIGN KEY(analyze_id, plate_id, group_id) REFERENCES groups(analyze_id, plate_id, group_id),"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS channel ("
+      "CREATE TABLE IF NOT EXISTS channels ("
       "	analyze_id UUID,"
       "	channel_id UTINYINT,"
       " name TEXT,"
@@ -109,18 +109,18 @@ void Database::open()
       " PRIMARY KEY (analyze_id, channel_id)"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS channel_image ("
+      "CREATE TABLE IF NOT EXISTS channels_images ("
       "	analyze_id UUID,"
       "	image_id UHUGEINT,"
       "	channel_id UTINYINT,"
       " control_image_path TEXT,"
       " validity UHUGEINT,"
-      " invalidateAll BOOLEAN,"
+      " invalidate_all BOOLEAN,"
       " PRIMARY KEY (analyze_id, image_id, channel_id),"
-      " FOREIGN KEY(analyze_id, image_id) REFERENCES image(analyze_id, image_id)"
+      " FOREIGN KEY(analyze_id, image_id) REFERENCES images(analyze_id, image_id)"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS object ("
+      "CREATE TABLE IF NOT EXISTS objects ("
       "	analyze_id UUID,"
       "	image_id UHUGEINT,"
       "	channel_id UTINYINT,"
@@ -129,7 +129,7 @@ void Database::open()
       " validity UHUGEINT,"
       " values MAP(UINTEGER, DOUBLE)"
       ");";
-  //"CREATE INDEX object_idx ON object (image_id, channel_id);";
+  //"CREATE INDEX object_idx ON objects (image_id, channel_id);";
   auto connection = acquire();
   auto result     = connection->Query(create_table_sql);
   if(result->HasError()) {
@@ -172,7 +172,7 @@ void Database::createAnalyze(const AnalyzeMeta &meta)
 void Database::createPlate(const PlateMeta &meta)
 {
   auto connection = acquire();
-  auto prepare    = connection->Prepare("INSERT INTO plate (analyze_id, plate_id, notes) VALUES (?, ?, ?)");
+  auto prepare    = connection->Prepare("INSERT INTO plates (analyze_id, plate_id, notes) VALUES (?, ?, ?)");
 
   auto timestamp = duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(
                                            std::chrono::high_resolution_clock::now().time_since_epoch())
@@ -188,8 +188,8 @@ void Database::createGroup(const GroupMeta &meta)
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare(
-      "INSERT INTO group (analyze_id, plate_id, group_id,well_pos_x,well_pos_y, name, notes) VALUES (?, ?, ?, ?, ?, ?, "
-         "?)");
+      "INSERT INTO groups (analyze_id, plate_id, group_id,well_pos_x,well_pos_y, name, notes) VALUES (?, ?, ?, ?, ?, "
+         "?, ?)");
   prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.plateId, meta.groupId, meta.wellPosX, meta.wellPosY,
                    meta.name, meta.notes);
 }
@@ -203,7 +203,7 @@ void Database::createImage(const ImageMeta &meta)
   auto connection = acquire();
   {
     auto prepare = connection->Prepare(
-        "INSERT INTO image (analyze_id, image_id, image_idx, file_name, original_image_path, width, height) VALUES "
+        "INSERT INTO images (analyze_id, image_id, image_idx, file_name, original_image_path, width, height) VALUES "
         "(?, ?, ?, ?, ?, ?, ?)");
     prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.imageIdx,
                      convertPath(meta.originalImagePath.filename()), convertPath(meta.originalImagePath), meta.width,
@@ -212,7 +212,7 @@ void Database::createImage(const ImageMeta &meta)
 
   {
     auto prepare = connection->Prepare(
-        "INSERT INTO image_group (analyze_id, image_id, plate_id, group_id) VALUES "
+        "INSERT INTO images_groups (analyze_id, image_id, plate_id, group_id) VALUES "
         "(?, ?, ?, ?)");
     prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.plateId, meta.groupId);
   }
@@ -227,7 +227,7 @@ void Database::createChannel(const ChannelMeta &meta)
   auto connection = acquire();
 
   auto prepare = connection->Prepare(
-      "INSERT INTO channel (analyze_id, channel_id, name, measurements) VALUES "
+      "INSERT INTO channels (analyze_id, channel_id, name, measurements) VALUES "
       "(?, ?, ?, ?)");
 
   duckdb::vector<duckdb::Value> measurements(meta.measurements.size());
@@ -249,7 +249,7 @@ void Database::createImageChannel(const ImageChannelMeta &meta)
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare(
-      "INSERT INTO channel_image (analyze_id, image_id, channel_id, control_image_path, validity, invalidateAll) "
+      "INSERT INTO channels_images (analyze_id, image_id, channel_id, control_image_path, validity, invalidate_all) "
          "VALUES "
          "(?, ?, ?, ?, ?, ?)");
 
@@ -267,16 +267,16 @@ std::string Database::convertPath(const std::filesystem::path &pathIn)
 
 }    // namespace joda::results::db
 
-// SELECT SUM(element_at(values, 0)[1]) as val_sum FROM test_with_idx.main."object" WHERE plate_id=1 AND group_id=1 AND
+// SELECT SUM(element_at(values, 0)[1]) as val_sum FROM test_with_idx.main."objects" WHERE plate_id=1 AND group_id=1 AND
 // image_id=10585059649949508029 AND channel_id=1
 
 /*
 
-SELECT SUM(element_at(values, 65536)[1]) as val_sum  FROM object INNER JOIN image_group ON
-object.image_id=image_group.image_id WHERE object.image_id=4261282133957314495
+SELECT SUM(element_at(values, 65536)[1]) as val_sum  FROM objects INNER JOIN images_groups ON
+objects.image_id=images_groups.image_id WHERE objects.image_id=4261282133957314495
 */
 
 /*
-SELECT SUM(element_at(values, 65536)[1]) as val_sum  FROM object INNER JOIN image_group ON
-object.image_id=image_group.image_id WHERE image_group.group_id=266
+SELECT SUM(element_at(values, 65536)[1]) as val_sum  FROM objects INNER JOIN images_groups ON
+objects.image_id=images_groups.image_id WHERE images_groups.group_id=266
 */

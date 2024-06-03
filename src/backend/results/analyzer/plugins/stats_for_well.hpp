@@ -17,21 +17,21 @@ public:
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
         "SELECT"
-        "  object.image_id as image_id,"
-        "  image.file_name as file_name,"
+        "  objects.image_id as image_id,"
+        "  images.file_name as file_name,"
         "  SUM(element_at(values, $1)[1]) as val_sum,"
         "  MIN(element_at(values, $1)[1]) as val_min,"
         "  MAX(element_at(values, $1)[1]) as val_max,"
         "  AVG(element_at(values, $1)[1]) as val_avg,"
         "  STDDEV(element_at(values, $1)[1]) as val_stddev "
-        "FROM object "
-        "INNER JOIN image_group ON object.image_id=image_group.image_id "
-        "INNER JOIN image ON object.image_id=image.image_id "
+        "FROM objects "
+        "INNER JOIN images_groups ON objects.image_id=images_groups.image_id "
+        "INNER JOIN images ON objects.image_id=images.image_id "
         "WHERE"
-        " image_group.group_id=$2 AND object.validity=0 AND object.channel_id=$3 "
+        " images_groups.group_id=$2 AND objects.validity=0 AND objects.channel_id=$3 "
         "GROUP BY"
-        "  (object.image_id, image.file_name) "
-        "ORDER BY image.file_name",
+        "  (objects.image_id, images.file_name) "
+        "ORDER BY images.file_name",
         measurement.getKey(), groupId, static_cast<uint8_t>(channelId));
 
     if(result->HasError()) {

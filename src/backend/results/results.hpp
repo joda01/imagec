@@ -135,7 +135,13 @@ private:
     {
       // This group still exists
       if(mGroups.contains(groupInfo.groupName)) {
-        return mGroups.at(groupInfo.groupName);
+        auto newPos = mGroups.at(groupInfo.groupName);
+        if(groupInfo.well.imageIdx == UINT32_MAX) {
+          newPos.imgIdx = nextFreeImgIdx();
+        } else {
+          newPos.imgIdx = groupInfo.well.imageIdx;
+        }
+        return newPos;
       }
       Pos newPos;
       newPos.groupName = groupInfo.groupName;

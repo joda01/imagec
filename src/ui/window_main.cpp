@@ -62,7 +62,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 {
   const QIcon myIcon(":/icons/outlined/icon.png");
   setWindowIcon(myIcon);
-  setWindowTitle("imageC");
+  setWindowTitle("EVAnalyzer2 powered by imageC");
   createTopToolbar();
   createBottomToolbar();
   setMinimumSize(1600, 800);

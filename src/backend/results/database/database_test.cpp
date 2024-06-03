@@ -45,16 +45,14 @@ TEST_CASE("database:test", "[database_test]")
 
   try {
     db.createPlate(::joda::results::db::PlateMeta{
-        .analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32", .plateId = 1, .notes = "May plate"});
+        .analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32", .plateId = 1, .notes = "May plates"});
   } catch(const std::exception &ex) {
     std::cout << ex.what() << std::endl;
   }
 
   try {
-    db.createWell(::joda::results::db::WellMeta{.analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
-                                                .plateId   = 1,
-                                                .wellId    = {joda::results::WellId{.well = {.wellId = 1}}},
-                                                .notes     = "May plate"});
+    db.createGroup(::joda::results::db::GroupMeta{
+        .analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32", .plateId = 1, .groupId = 1, .notes = "May plates"});
   } catch(const std::exception &ex) {
     std::cout << ex.what() << std::endl;
   }
@@ -66,14 +64,13 @@ TEST_CASE("database:test", "[database_test]")
     std::string imgName = "A110_" + std::to_string(n) + ".vsi";
 
     try {
-      db.createImage(
-          ::joda::results::db::ImageMeta{.analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
-                                         .plateId   = 1,
-                                         .wellId    = joda::results::WellId{.well{.wellId = static_cast<uint16_t>(1)}},
-                                         .imageId   = n,
-                                         .originalImagePath = imgName,
-                                         .width             = 10,
-                                         .height            = 10});
+      db.createImage(::joda::results::db::ImageMeta{.analyzeId         = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
+                                                    .plateId           = 1,
+                                                    .groupId           = 1,
+                                                    .imageId           = n,
+                                                    .originalImagePath = imgName,
+                                                    .width             = 10,
+                                                    .height            = 10});
     } catch(const std::exception &ex) {
       std::cout << ex.what() << std::endl;
     }
@@ -101,7 +98,7 @@ TEST_CASE("database:test", "[database_test]")
       DurationCount::stop(id);
     }
 
-    joda::log::logInfo("Added image >" + std::to_string(n) + "<");
+    joda::log::logInfo("Added images >" + std::to_string(n) + "<");
   }
 
   db.close();
@@ -136,7 +133,7 @@ TEST_CASE("database:test", "[database_read]")
     std::cout << img.analyzeId << " | ";
     std::cout << img.originalImagePath.filename().string() << " | ";
     std::cout << std::to_string(img.plateId) << " | ";
-    std::cout << std::to_string(img.wellId.well.wellId) << " | ";
+    std::cout << std::to_string(img.groupId) << " | ";
     std::cout << std::to_string(img.imageId) << " | ";
     std::cout << std::to_string(img.width) << " | ";
     std::cout << std::to_string(img.height) << std::endl;
@@ -156,7 +153,7 @@ TEST_CASE("database:test", "[database_read]")
     std::cout << img.notes << std::endl;
   }
 
-  auto wells = res.getWellsForPlate("10217c38-3056-43cb-9397-2a15b7756833", 1);
+  auto wells = res.getGroupsForPlate("10217c38-3056-43cb-9397-2a15b7756833", 1);
   for(const auto &img : wells) {
     std::cout << img.analyzeId << " | ";
     std::cout << std::to_string(img.plateId) << " | ";

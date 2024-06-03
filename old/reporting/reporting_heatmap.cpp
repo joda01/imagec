@@ -371,7 +371,7 @@ void Heatmap::createAllOverHeatMap(const joda::results::ReportingSettings &repor
       if(results.getChannelMeta().name == "INVALID") {
         break;
       }
-      // Write plate
+      // Write plates
       if(!sheets.contains(channelIdx)) {
         sheets[channelIdx] = workbook_add_worksheet(workbook, results.getChannelMeta().name.data());
         rowOffset          = ROW_OFFSET_START;

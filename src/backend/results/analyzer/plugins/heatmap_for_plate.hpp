@@ -13,7 +13,7 @@ class HeatmapPerPlate
 {
 public:
   ///
-  /// \brief      Get data for plate
+  /// \brief      Get data for plates
   /// \author     Joachim Danmayr
   ///
   static auto getData(Analyzer &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plarteCols,
@@ -21,21 +21,21 @@ public:
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
         "SELECT"
-        "  image_group.group_id as group_id,"
-        "  group.well_pos_x as x "
-        "  group.well_pos_y as y " +
+        "  images_groups.group_id as group_id,"
+        "  ANY_VALUE(groups.well_pos_x) as wx, "
+        "  ANY_VALUE(groups.well_pos_y) as wy, " +
             getStatsString(stats) +
-            "FROM object "
-            "INNER JOIN image_group ON object.image_id=image_group.image_id "
-            "INNER JOIN image ON object.image_id=image.image_id "
-            "INNER JOIN channel_image ON (object.image_id=channel_image.image_id AND "
-            "INNER JOIN group ON image_group.group_id=group.group_id "
-            "object.channel_id=channel_image.channel_id) "
+            "FROM objects "
+            "INNER JOIN images_groups ON objects.image_id=images_groups.image_id "
+            "INNER JOIN images ON objects.image_id=images.image_id "
+            "INNER JOIN channels_images ON (objects.image_id=channels_images.image_id AND "
+            "objects.channel_id=channels_images.channel_id) "
+            "INNER JOIN groups ON images_groups.group_id=groups.group_id "
             "WHERE"
-            " image_group.plate_id=$2 AND object.validity=0 AND channel_image.validity=0 AND "
-            "object.channel_id=$3 "
+            " images_groups.plate_id=$2 AND objects.validity=0 AND channels_images.validity=0 AND "
+            "objects.channel_id=$3 "
             "GROUP BY"
-            "  (image_group.group_id) ",
+            "  (images_groups.group_id) ",
         measurement.getKey(), plateId, static_cast<uint8_t>(channelId));
 
     if(result->HasError()) {
@@ -60,6 +60,13 @@ public:
         uint16_t groupId = materializedResult->GetValue(0, n).GetValue<uint16_t>();
         uint16_t col     = materializedResult->GetValue(1, n).GetValue<uint16_t>();
         uint16_t row     = materializedResult->GetValue(2, n).GetValue<uint16_t>();
+        if(col > 0) {
+          col--;
+        }
+        if(row > 0) {
+          row--;
+        }
+
         if(row < plateRows && col < plarteCols) {
           double val = materializedResult->GetValue(3, n).GetValue<double>();
           results.setData(row, col, TableCell{val, groupId, true, ""});

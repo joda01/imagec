@@ -89,9 +89,8 @@ auto Analyzer::getImagesForAnalyses(const std::string &analyzeId) -> std::vector
 {
   std::vector<db::ImageMeta> images;
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "SELECT * FROM image INNER JOIN image_group ON image.image_id=image_group.image_id WHERE image.analyze_id=? "
-      "ORDER "
-      "BY file_name",
+      "SELECT * FROM images INNER JOIN images_groups ON images.image_id=images_groups.image_id WHERE "
+      "images.analyze_id=? ORDER BY file_name",
       duckdb::Value::UUID(analyzeId));
 
   if(result->HasError()) {
@@ -126,11 +125,11 @@ auto Analyzer::getImageInformation(const std::string &analyzeId, uint8_t plateId
   db::ChannelMeta channelMeta;
   db::ImageChannelMeta imgChannelMeta;
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "SELECT * FROM image "
-      "INNER JOIN image_group ON image.image_id=image_group.image_id "
-      "INNER JOIN channel_image ON (image.image_id=channel_image.image_id) "
-      "INNER JOIN channel ON (channel_image.channel_id=channel.channel_id) "
-      "WHERE image.analyze_id=? AND image.image_id=? AND channel_image.channel_id=?",
+      "SELECT * FROM images "
+      "INNER JOIN images_groups ON images.image_id=images_groups.image_id "
+      "INNER JOIN channels_images ON (images.image_id=channels_images.image_id) "
+      "INNER JOIN channels ON (channels_images.channel_id=channels.channel_id) "
+      "WHERE images.analyze_id=? AND images.image_id=? AND channels_images.channel_id=?",
       duckdb::Value::UUID(analyzeId), imageId, (uint8_t) channel);
 
   if(result->HasError()) {
@@ -209,7 +208,7 @@ auto Analyzer::getChannelsForAnalyses(const std::string &analyzeId) -> std::vect
 {
   std::vector<db::ChannelMeta> channels;
   std::unique_ptr<duckdb::QueryResult> result =
-      mDatabase.select("SELECT * FROM channel WHERE analyze_id=? ORDER BY name", duckdb::Value::UUID(analyzeId));
+      mDatabase.select("SELECT * FROM channels WHERE analyze_id=? ORDER BY name", duckdb::Value::UUID(analyzeId));
 
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
@@ -249,7 +248,7 @@ auto Analyzer::getPlatesForAnalyses(const std::string &analyzeId) -> std::vector
 {
   std::vector<db::PlateMeta> plates;
   std::unique_ptr<duckdb::QueryResult> result =
-      mDatabase.select("SELECT * FROM plate WHERE analyze_id=? ORDER BY plate_id", duckdb::Value::UUID(analyzeId));
+      mDatabase.select("SELECT * FROM plates WHERE analyze_id=? ORDER BY plate_id", duckdb::Value::UUID(analyzeId));
 
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
@@ -275,7 +274,7 @@ auto Analyzer::getGroupsForPlate(const std::string &analyzeId, uint8_t plateId) 
 {
   std::vector<db::GroupMeta> groups;
   std::unique_ptr<duckdb::QueryResult> result =
-      mDatabase.select("SELECT * FROM group WHERE analyze_id=? AND plate_id=? ORDER BY (plate_id,group_id)",
+      mDatabase.select("SELECT * FROM groups WHERE analyze_id=? AND plate_id=? ORDER BY (plate_id,group_id)",
                        duckdb::Value::UUID(analyzeId), plateId);
 
   if(result->HasError()) {
@@ -288,8 +287,8 @@ auto Analyzer::getGroupsForPlate(const std::string &analyzeId, uint8_t plateId) 
         .analyzeId = materializedResult->GetValue(0, n).GetValue<std::string>(),
         .plateId   = materializedResult->GetValue(1, n).GetValue<uint8_t>(),
         .groupId   = materializedResult->GetValue(2, n).GetValue<uint16_t>(),
-        .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint8_t>(),
-        .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint8_t>(),
+        .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint16_t>(),
+        .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint16_t>(),
         .name      = materializedResult->GetValue(5, n).GetValue<std::string>(),
         .notes     = materializedResult->GetValue(6, n).GetValue<std::string>(),
     });
@@ -310,7 +309,7 @@ auto Analyzer::getGroupInformation(const std::string &analyzeId, uint8_t plateId
 
   {
     std::unique_ptr<duckdb::QueryResult> result =
-        mDatabase.select("SELECT * FROM group WHERE analyze_id=? AND plate_id=? AND group_id=?",
+        mDatabase.select("SELECT * FROM groups WHERE analyze_id=? AND plate_id=? AND group_id=?",
                          duckdb::Value::UUID(analyzeId), plateId, groupId);
 
     if(result->HasError()) {
@@ -323,16 +322,17 @@ auto Analyzer::getGroupInformation(const std::string &analyzeId, uint8_t plateId
           .analyzeId = materializedResult->GetValue(0, n).GetValue<std::string>(),
           .plateId   = materializedResult->GetValue(1, n).GetValue<uint8_t>(),
           .groupId   = materializedResult->GetValue(2, n).GetValue<uint16_t>(),
-          .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint8_t>(),
-          .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint8_t>(),
+          .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint16_t>(),
+          .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint16_t>(),
           .name      = materializedResult->GetValue(5, n).GetValue<std::string>(),
           .notes     = materializedResult->GetValue(6, n).GetValue<std::string>(),
       };
     }
   }
   {
-    std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-        "SELECT * FROM channel WHERE analyze_id=? AND channel_id=?", duckdb::Value::UUID(analyzeId), (uint8_t) channel);
+    std::unique_ptr<duckdb::QueryResult> result =
+        mDatabase.select("SELECT * FROM channels WHERE analyze_id=? AND channel_id=?", duckdb::Value::UUID(analyzeId),
+                         (uint8_t) channel);
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -373,7 +373,7 @@ void Analyzer::markImageChannelAsManualInvalid(const std::string &analyzeId, uin
                                                uint64_t imageId)
 {
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "UPDATE channel_image SET validity = validity | ? WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      "UPDATE channels_images SET validity = validity | ? WHERE analyze_id=? AND channel_id=? AND image_id=?",
       static_cast<uint64_t>((1 << static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED))),
       duckdb::Value::UUID(analyzeId), static_cast<uint8_t>(channel), imageId);
   if(result->HasError()) {
@@ -385,7 +385,7 @@ void Analyzer::unMarkImageChannelAsManualInvalid(const std::string &analyzeId, u
                                                  uint64_t imageId)
 {
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "UPDATE channel_image SET validity = validity & ? WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      "UPDATE channels_images SET validity = validity & ? WHERE analyze_id=? AND channel_id=? AND image_id=?",
       ~static_cast<uint64_t>((1 << static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED))),
       duckdb::Value::UUID(analyzeId), static_cast<uint8_t>(channel), imageId);
   if(result->HasError()) {
