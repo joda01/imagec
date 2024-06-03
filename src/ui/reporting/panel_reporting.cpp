@@ -366,8 +366,8 @@ void PanelReporting::onExportListClicked()
     case reporting::plugin::PanelHeatmap::Navigation::PLATE:
       break;
     case reporting::plugin::PanelHeatmap::Navigation::WELL: {
-      auto result = joda::results::analyze::plugins::StatsPerWell::getData(
-          *mAnalyzer, mFilter.plateId, mHeatmap->getSelectedWell(), mFilter.channelIdx, mFilter.measureChannel);
+      auto result = joda::results::analyze::plugins::StatsPerGroup::getData(
+          *mAnalyzer, mFilter.plateId, mHeatmap->getSelectedGroup(), mFilter.channelIdx, mFilter.measureChannel);
       joda::results::exporter::ExporterXlsx::exportAsList(result, filePath.toStdString());
     } break;
     case reporting::plugin::PanelHeatmap::Navigation::IMAGE:

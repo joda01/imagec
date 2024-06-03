@@ -36,7 +36,7 @@ public:
   void close();
   void createAnalyze(const AnalyzeMeta &);
   void createPlate(const PlateMeta &);
-  void createWell(const WellMeta &);
+  void createGroup(const GroupMeta &);
   void createImage(const ImageMeta &);
   void createChannel(const ChannelMeta &);
   void createImageChannel(const ImageChannelMeta &);

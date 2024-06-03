@@ -197,9 +197,9 @@ void PanelHeatmap::onElementSelected(results::TableCell value)
 {
   switch(mNavigation) {
     case Navigation::PLATE: {
-      auto wellId = results::WellId{.well{.wellId = static_cast<uint16_t>(value.getId())}};
+      auto groupId = value.getId();
       auto [result, channel] =
-          mAnalyzer->getWellInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, wellId);
+          mAnalyzer->getGroupInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, groupId);
       mLabelName->setText("Well: " + QString(result.name.data()));
       mLabelValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
       mLabelMeta->setText(channel.name.data());
@@ -250,7 +250,7 @@ void PanelHeatmap::onOpenNextLevel(results::TableCell value)
     case Navigation::PLATE:
       break;
     case Navigation::WELL:
-      mSelectedWellId.well.wellId = static_cast<uint16_t>(value.getId());
+      mSelectedGroupId = static_cast<uint16_t>(value.getId());
       break;
     case Navigation::IMAGE:
       mSelectedImageId = value.getId();
@@ -322,9 +322,9 @@ void PanelHeatmap::paintWell()
   mBackButton->setEnabled(true);
   if(mAnalyzer != nullptr) {
     mNavigation = Navigation::WELL;
-    auto result = joda::results::analyze::plugins::HeatmapForWell::getData(*mAnalyzer, mFilter.plateId, mSelectedWellId,
-                                                                           mFilter.channelIdx, mFilter.measureChannel,
-                                                                           mFilter.stats, mFilter.wellImageOrder);
+    auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
+        *mAnalyzer, mFilter.plateId, mSelectedGroupId, mFilter.channelIdx, mFilter.measureChannel, mFilter.stats,
+        mFilter.wellImageOrder);
     mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
   }

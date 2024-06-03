@@ -67,15 +67,15 @@ void Database::open()
       " FOREIGN KEY(analyze_id) REFERENCES analyzes(analyze_id)"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS well ("
+      "CREATE TABLE IF NOT EXISTS group ("
       "	analyze_id UUID,"
       "	plate_id UTINYINT,"
-      "	well_id USMALLINT,"
-      "	well_pos_x UTINYINT,"
-      "	well_pos_y UTINYINT,"
+      "	group_id USMALLINT,"
+      "	well_pos_x USMALLINT,"
+      "	well_pos_y USMALLINT,"
       " name TEXT, "
       " notes TEXT,"
-      " PRIMARY KEY (analyze_id, plate_id, well_id),"
+      " PRIMARY KEY (analyze_id, plate_id, group_id),"
       " FOREIGN KEY(analyze_id, plate_id) REFERENCES plate(analyze_id, plate_id)"
       ");"
 
@@ -91,14 +91,14 @@ void Database::open()
       " FOREIGN KEY(analyze_id) REFERENCES analyzes(analyze_id)"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS image_well ("
+      "CREATE TABLE IF NOT EXISTS image_group ("
       "	analyze_id UUID,"
       "	image_id UHUGEINT,"
       "	plate_id UTINYINT,"
-      "	well_id USMALLINT,"
+      "	group_id USMALLINT,"
       " PRIMARY KEY (analyze_id, image_id),"
       " FOREIGN KEY(analyze_id, image_id) REFERENCES image(analyze_id, image_id),"
-      " FOREIGN KEY(analyze_id, plate_id, well_id) REFERENCES well(analyze_id, plate_id, well_id),"
+      " FOREIGN KEY(analyze_id, plate_id, group_id) REFERENCES group(analyze_id, plate_id, group_id),"
       ");"
 
       "CREATE TABLE IF NOT EXISTS channel ("
@@ -184,14 +184,14 @@ void Database::createPlate(const PlateMeta &meta)
 /// \brief      Close database connection
 /// \author     Joachim Danmayr
 ///
-void Database::createWell(const WellMeta &meta)
+void Database::createGroup(const GroupMeta &meta)
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare(
-      "INSERT INTO well (analyze_id, plate_id, well_id,well_pos_x,well_pos_y, name, notes) VALUES (?, ?, ?, ?, ?, ?, "
+      "INSERT INTO group (analyze_id, plate_id, group_id,well_pos_x,well_pos_y, name, notes) VALUES (?, ?, ?, ?, ?, ?, "
          "?)");
-  prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.plateId, meta.wellId.well.wellId, meta.wellPosX,
-                   meta.wellPosY, meta.name, meta.notes);
+  prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.plateId, meta.groupId, meta.wellPosX, meta.wellPosY,
+                   meta.name, meta.notes);
 }
 
 ///
@@ -212,9 +212,9 @@ void Database::createImage(const ImageMeta &meta)
 
   {
     auto prepare = connection->Prepare(
-        "INSERT INTO image_well (analyze_id, image_id, plate_id, well_id) VALUES "
+        "INSERT INTO image_group (analyze_id, image_id, plate_id, group_id) VALUES "
         "(?, ?, ?, ?)");
-    prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.plateId, meta.wellId.well.wellId);
+    prepare->Execute(duckdb::Value::UUID(meta.analyzeId), meta.imageId, meta.plateId, meta.groupId);
   }
 }
 
@@ -267,16 +267,16 @@ std::string Database::convertPath(const std::filesystem::path &pathIn)
 
 }    // namespace joda::results::db
 
-// SELECT SUM(element_at(values, 0)[1]) as val_sum FROM test_with_idx.main."object" WHERE plate_id=1 AND well_id=1 AND
+// SELECT SUM(element_at(values, 0)[1]) as val_sum FROM test_with_idx.main."object" WHERE plate_id=1 AND group_id=1 AND
 // image_id=10585059649949508029 AND channel_id=1
 
 /*
 
-SELECT SUM(element_at(values, 65536)[1]) as val_sum  FROM object INNER JOIN image_well ON
-object.image_id=image_well.image_id WHERE object.image_id=4261282133957314495
+SELECT SUM(element_at(values, 65536)[1]) as val_sum  FROM object INNER JOIN image_group ON
+object.image_id=image_group.image_id WHERE object.image_id=4261282133957314495
 */
 
 /*
-SELECT SUM(element_at(values, 65536)[1]) as val_sum  FROM object INNER JOIN image_well ON
-object.image_id=image_well.image_id WHERE image_well.well_id=266
+SELECT SUM(element_at(values, 65536)[1]) as val_sum  FROM object INNER JOIN image_group ON
+object.image_id=image_group.image_id WHERE image_group.group_id=266
 */

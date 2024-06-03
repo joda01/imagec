@@ -47,9 +47,9 @@ public:
       -> std::tuple<db::ImageMeta, db::ChannelMeta, db::ImageChannelMeta>;
   auto getChannelsForAnalyses(const std::string &analyzeId) -> std::vector<db::ChannelMeta>;
   auto getPlatesForAnalyses(const std::string &analyzeId) -> std::vector<db::PlateMeta>;
-  auto getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -> std::vector<db::WellMeta>;
-  auto getWellInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel, WellId wellId)
-      -> std::tuple<db::WellMeta, db::ChannelMeta>;
+  auto getGroupsForPlate(const std::string &analyzeId, uint8_t plateId) -> std::vector<db::GroupMeta>;
+  auto getGroupInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel, uint16_t groupId)
+      -> std::tuple<db::GroupMeta, db::ChannelMeta>;
 
   void markImageChannelAsManualInvalid(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
                                        uint64_t imageId);

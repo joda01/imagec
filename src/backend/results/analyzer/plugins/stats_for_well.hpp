@@ -5,14 +5,14 @@
 
 namespace joda::results::analyze::plugins {
 
-class StatsPerWell
+class StatsPerGroup
 {
 public:
   ///
-  /// \brief      Get data for well
+  /// \brief      Get data for group
   /// \author     Joachim Danmayr
   ///
-  static auto getData(Analyzer &analyzer, uint8_t plateId, results::WellId wellId, ChannelIndex channelId,
+  static auto getData(Analyzer &analyzer, uint8_t plateId, uint16_t groupId, ChannelIndex channelId,
                       const MeasureChannelId &measurement) -> Table
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
@@ -25,14 +25,14 @@ public:
         "  AVG(element_at(values, $1)[1]) as val_avg,"
         "  STDDEV(element_at(values, $1)[1]) as val_stddev "
         "FROM object "
-        "INNER JOIN image_well ON object.image_id=image_well.image_id "
+        "INNER JOIN image_group ON object.image_id=image_group.image_id "
         "INNER JOIN image ON object.image_id=image.image_id "
         "WHERE"
-        " image_well.well_id=$2 AND object.validity=0 AND object.channel_id=$3 "
+        " image_group.group_id=$2 AND object.validity=0 AND object.channel_id=$3 "
         "GROUP BY"
         "  (object.image_id, image.file_name) "
         "ORDER BY image.file_name",
-        measurement.getKey(), wellId.well.wellId, static_cast<uint8_t>(channelId));
+        measurement.getKey(), groupId, static_cast<uint8_t>(channelId));
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());

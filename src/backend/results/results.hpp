@@ -14,6 +14,7 @@
 #pragma once
 
 #include <regex.h>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <mutex>
@@ -46,6 +47,24 @@ struct ExperimentSetting
   uint16_t plateColNr = 0;
 };
 
+struct WellPosition
+{
+  uint16_t wellPosX = 0;
+  uint16_t wellPosY = 0;
+  uint32_t imageIdx = 0;
+  std::string toString() const
+  {
+    char al = (wellPosY - 1 + 'A');
+    return std::string(1, al) + "x" + std::to_string(wellPosX);
+  }
+};
+
+struct GroupInformation
+{
+  std::string groupName;
+  WellPosition well;
+};
+
 ///
 /// \class      Results
 /// \author     Joachim Danmayr
@@ -68,7 +87,7 @@ public:
   void writePredatedData(std::shared_ptr<duckdb::Appender>, std::shared_ptr<duckdb::Connection>);
 
   /////////////////////////////////////////////////////
-  static std::tuple<WellId, std::string> applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
+  static GroupInformation applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
   static uint64_t calcImagePathHash(const std::string &runId, const std::filesystem::path &pathToOriginalImage);
 
   const std::filesystem::path &getOutputFolder() const
@@ -91,8 +110,6 @@ private:
                                            const std::filesystem::path &imagePath);
   void prepareOutputFolders(const std::filesystem::path &resultsFolder);
 
-  void createWellPositionBasesOnGroupName(WellId &wellInOut, const std::string &groupName);
-
   /////////////////////////////////////////////////////
   ExperimentSetting mExperimentSettings;
   std::filesystem::path mPathToRawData;
@@ -102,27 +119,46 @@ private:
   std::shared_ptr<joda::results::db::Database> mDatabase;
   std::string mAnalyzeId;
 
-  struct WellPosGenerator
+  class WellPosGenerator
   {
-    static const inline int32_t MAX_COLS = 24;
-    static const inline int32_t MAX_ROWS = 16;
+  public:
     struct Pos
     {
-      uint8_t x = UINT8_MAX;
-      uint8_t y = UINT8_MAX;
+      std::string groupName;
+      uint16_t groupId = 0;
+      uint32_t imgIdx  = 0;
+      uint16_t x       = UINT8_MAX;
+      uint16_t y       = UINT8_MAX;
     };
-    std::map<std::string, Pos> mNameToWellId;
-    uint32_t actWellPos = 0;
-    uint32_t imgIdx     = 1;
 
-    Pos nextFreeWell()
+    Pos getGroupId(const GroupInformation &groupInfo)
     {
-      auto newPos = Pos{.x = static_cast<uint8_t>((actWellPos % MAX_COLS) + 1),
-                        .y = static_cast<uint8_t>((actWellPos / MAX_COLS) + 1)};
-      if(newPos.x * newPos.y >= MAX_COLS * MAX_ROWS) {
-        throw std::runtime_error("Too many groups!");
+      // This group still exists
+      if(mGroups.contains(groupInfo.groupName)) {
+        return mGroups.at(groupInfo.groupName);
       }
+      Pos newPos;
+      newPos.groupName = groupInfo.groupName;
+      // This group does not yet exist
+      if(groupInfo.well.wellPosX == UINT16_MAX || groupInfo.well.wellPosY == UINT16_MAX) {
+        newPos = Pos{.groupId = actGroupId,
+                     .x       = static_cast<uint8_t>((actWellPos % MAX_COLS) + 1),
+                     .y       = static_cast<uint8_t>((actWellPos / MAX_COLS) + 1)};
+      } else {
+        newPos = Pos{.groupId = actGroupId, .x = groupInfo.well.wellPosX, .y = groupInfo.well.wellPosY};
+      }
+
+      if(groupInfo.well.imageIdx == UINT32_MAX) {
+        newPos.imgIdx = nextFreeImgIdx();
+      } else {
+        newPos.imgIdx = groupInfo.well.imageIdx;
+      }
+
       actWellPos++;
+      actGroupId++;
+
+      mGroups.emplace(groupInfo.groupName, newPos);
+
       return newPos;
     }
 
@@ -132,6 +168,16 @@ private:
       imgIdx++;
       return toReturn;
     }
+
+  private:
+    /////////////////////////////////////////////////////
+    static const inline int32_t MAX_COLS = 24;
+    static const inline int32_t MAX_ROWS = 16;
+
+    std::map<std::string, Pos> mGroups;
+    uint32_t actWellPos = 0;
+    uint32_t imgIdx     = 1;
+    uint16_t actGroupId = 0;
   };
   WellPosGenerator mWellPosGenerator;
   std::mutex mWellGeneratorLock;

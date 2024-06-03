@@ -60,13 +60,13 @@ struct PlateMeta
   std::string notes;
 };
 
-struct WellMeta
+struct GroupMeta
 {
   std::string analyzeId;
   uint8_t plateId;
-  WellId wellId;
-  uint8_t wellPosX;
-  uint8_t wellPosY;
+  uint16_t groupId;
+  uint16_t wellPosX;
+  uint16_t wellPosY;
   std::string name;
   std::string notes;
 };
@@ -75,7 +75,7 @@ struct ImageMeta
 {
   std::string analyzeId;
   uint8_t plateId;
-  WellId wellId;
+  uint16_t groupId;
   uint64_t imageId;
   uint32_t imageIdx;
   std::filesystem::path originalImagePath;

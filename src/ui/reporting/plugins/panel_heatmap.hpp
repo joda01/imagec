@@ -164,9 +164,9 @@ public:
     return mNavigation;
   }
 
-  [[nodiscard]] results::WellId getSelectedWell() const
+  [[nodiscard]] uint16_t getSelectedGroup() const
   {
-    return mSelectedWellId;
+    return mSelectedGroupId;
   }
 
   [[nodiscard]] uint64_t getSelectedImage() const
@@ -201,7 +201,7 @@ private:
   std::shared_ptr<ContainerFunction<bool, bool>> mMarkAsInvalid;
 
   /////////////////////////////////////////////////////
-  results::WellId mSelectedWellId;
+  uint16_t mSelectedGroupId;
   uint64_t mSelectedImageId;
 
   uint64_t mSelectedElementId;

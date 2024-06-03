@@ -89,7 +89,8 @@ auto Analyzer::getImagesForAnalyses(const std::string &analyzeId) -> std::vector
 {
   std::vector<db::ImageMeta> images;
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
-      "SELECT * FROM image INNER JOIN image_well ON image.image_id=image_well.image_id WHERE image.analyze_id=? ORDER "
+      "SELECT * FROM image INNER JOIN image_group ON image.image_id=image_group.image_id WHERE image.analyze_id=? "
+      "ORDER "
       "BY file_name",
       duckdb::Value::UUID(analyzeId));
 
@@ -102,7 +103,7 @@ auto Analyzer::getImagesForAnalyses(const std::string &analyzeId) -> std::vector
     images.emplace_back(db::ImageMeta{
         .analyzeId         = materializedResult->GetValue(0, n).GetValue<std::string>(),
         .plateId           = materializedResult->GetValue(9, n).GetValue<uint8_t>(),
-        .wellId            = WellId{.well{.wellId = materializedResult->GetValue(10, n).GetValue<uint16_t>()}},
+        .groupId           = materializedResult->GetValue(10, n).GetValue<uint16_t>(),
         .imageId           = materializedResult->GetValue(1, n).GetValue<uint64_t>(),
         .imageIdx          = materializedResult->GetValue(2, n).GetValue<uint32_t>(),
         .originalImagePath = materializedResult->GetValue(4, n).GetValue<std::string>(),
@@ -126,7 +127,7 @@ auto Analyzer::getImageInformation(const std::string &analyzeId, uint8_t plateId
   db::ImageChannelMeta imgChannelMeta;
   std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
       "SELECT * FROM image "
-      "INNER JOIN image_well ON image.image_id=image_well.image_id "
+      "INNER JOIN image_group ON image.image_id=image_group.image_id "
       "INNER JOIN channel_image ON (image.image_id=channel_image.image_id) "
       "INNER JOIN channel ON (channel_image.channel_id=channel.channel_id) "
       "WHERE image.analyze_id=? AND image.image_id=? AND channel_image.channel_id=?",
@@ -148,7 +149,7 @@ auto Analyzer::getImageInformation(const std::string &analyzeId, uint8_t plateId
     // materializedResult->GetValue(7, n).GetValue<std::string>();                        // Analyze ID
     // materializedResult->GetValue(8, n).GetValue<uint64_t>();                           // Image ID
     auto plateId = materializedResult->GetValue(9, n).GetValue<uint8_t>();      // Plate ID
-    auto wellId  = materializedResult->GetValue(10, n).GetValue<uint16_t>();    // Well ID
+    auto groupId = materializedResult->GetValue(10, n).GetValue<uint16_t>();    // Group ID
     // materializedResult->GetValue(11, n).GetValue<std::string>();                // Analyze ID
     // materializedResult->GetValue(12, n).GetValue<uint64_t>();                   // Image ID
     auto channelId        = materializedResult->GetValue(13, n).GetValue<uint8_t>();        // Channel ID
@@ -174,7 +175,7 @@ auto Analyzer::getImageInformation(const std::string &analyzeId, uint8_t plateId
     imageMeta = db::ImageMeta{
         .analyzeId         = analyzeId,
         .plateId           = plateId,
-        .wellId            = WellId{.well{.wellId = wellId}},
+        .groupId           = groupId,
         .imageId           = imageId,
         .imageIdx          = imageIdx,
         .originalImagePath = originalPath,
@@ -270,11 +271,11 @@ auto Analyzer::getPlatesForAnalyses(const std::string &analyzeId) -> std::vector
 /// \brief      Create control image
 /// \author     Joachim Danmayr
 ///
-auto Analyzer::getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -> std::vector<db::WellMeta>
+auto Analyzer::getGroupsForPlate(const std::string &analyzeId, uint8_t plateId) -> std::vector<db::GroupMeta>
 {
-  std::vector<db::WellMeta> wells;
+  std::vector<db::GroupMeta> groups;
   std::unique_ptr<duckdb::QueryResult> result =
-      mDatabase.select("SELECT * FROM well WHERE analyze_id=? AND plate_id=? ORDER BY (plate_id,well_id)",
+      mDatabase.select("SELECT * FROM group WHERE analyze_id=? AND plate_id=? ORDER BY (plate_id,group_id)",
                        duckdb::Value::UUID(analyzeId), plateId);
 
   if(result->HasError()) {
@@ -283,10 +284,10 @@ auto Analyzer::getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -
 
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    wells.emplace_back(db::WellMeta{
+    groups.emplace_back(db::GroupMeta{
         .analyzeId = materializedResult->GetValue(0, n).GetValue<std::string>(),
         .plateId   = materializedResult->GetValue(1, n).GetValue<uint8_t>(),
-        .wellId    = WellId{.well{.wellId = materializedResult->GetValue(2, n).GetValue<uint16_t>()}},
+        .groupId   = materializedResult->GetValue(2, n).GetValue<uint16_t>(),
         .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint8_t>(),
         .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint8_t>(),
         .name      = materializedResult->GetValue(5, n).GetValue<std::string>(),
@@ -294,23 +295,23 @@ auto Analyzer::getWellsForPlate(const std::string &analyzeId, uint8_t plateId) -
     });
   }
 
-  return wells;
+  return groups;
 }
 
 ///
 /// \brief      Create control image
 /// \author     Joachim Danmayr
 ///
-auto Analyzer::getWellInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel, WellId wellId)
-    -> std::tuple<db::WellMeta, db::ChannelMeta>
+auto Analyzer::getGroupInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
+                                   uint16_t groupId) -> std::tuple<db::GroupMeta, db::ChannelMeta>
 {
-  db::WellMeta wellMeta;
+  db::GroupMeta groupMeta;
   db::ChannelMeta channelMeta;
 
   {
     std::unique_ptr<duckdb::QueryResult> result =
-        mDatabase.select("SELECT * FROM well WHERE analyze_id=? AND plate_id=? AND well_id=?",
-                         duckdb::Value::UUID(analyzeId), plateId, wellId.well.wellId);
+        mDatabase.select("SELECT * FROM group WHERE analyze_id=? AND plate_id=? AND group_id=?",
+                         duckdb::Value::UUID(analyzeId), plateId, groupId);
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -318,10 +319,10 @@ auto Analyzer::getWellInformation(const std::string &analyzeId, uint8_t plateId,
 
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-      wellMeta = db::WellMeta{
+      groupMeta = db::GroupMeta{
           .analyzeId = materializedResult->GetValue(0, n).GetValue<std::string>(),
           .plateId   = materializedResult->GetValue(1, n).GetValue<uint8_t>(),
-          .wellId    = WellId{.well{.wellId = materializedResult->GetValue(2, n).GetValue<uint16_t>()}},
+          .groupId   = materializedResult->GetValue(2, n).GetValue<uint16_t>(),
           .wellPosX  = materializedResult->GetValue(3, n).GetValue<uint8_t>(),
           .wellPosY  = materializedResult->GetValue(4, n).GetValue<uint8_t>(),
           .name      = materializedResult->GetValue(5, n).GetValue<std::string>(),
@@ -361,7 +362,7 @@ auto Analyzer::getWellInformation(const std::string &analyzeId, uint8_t plateId,
     }
   }
 
-  return {wellMeta, channelMeta};
+  return {groupMeta, channelMeta};
 }
 
 ///

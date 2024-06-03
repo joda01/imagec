@@ -162,41 +162,40 @@ void Results::appendChannelsToDetailReport(const joda::settings::AnalyzeSettings
 ///
 void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, const std::filesystem::path &imagePath)
 {
-  WellId wellPosition;
-  std::string groupName;
-  switch(mExperimentSettings.groupBy) {
-    case settings::ExperimentSettings::GroupBy::OFF: {
-      groupName                                = "";
-      wellPosition.well.wellPos[WellId::POS_Y] = UINT8_MAX;
-      wellPosition.well.wellPos[WellId::POS_X] = UINT8_MAX;
-      wellPosition.imageIdx                    = UINT32_MAX;
-    } break;
-    case settings::ExperimentSettings::GroupBy::DIRECTORY: {
-      groupName                                = imagePath.parent_path().string();
-      wellPosition.well.wellPos[WellId::POS_Y] = UINT8_MAX;
-      wellPosition.well.wellPos[WellId::POS_X] = UINT8_MAX;
-      wellPosition.imageIdx                    = UINT32_MAX;
-    } break;
-    case settings::ExperimentSettings::GroupBy::FILENAME: {
-      auto [wellPos, grpName]  = applyRegex(mExperimentSettings.imageFileNameRegex, imagePath);
-      wellPosition.imageIdx    = wellPos.imageIdx;
-      wellPosition.well.wellId = wellPos.well.wellId;
-      groupName                = grpName;
-    } break;
-  }
+  WellPosGenerator::Pos posInWell;
+  {
+    GroupInformation groupInfo;
+    switch(mExperimentSettings.groupBy) {
+      case settings::ExperimentSettings::GroupBy::OFF: {
+        groupInfo.groupName     = "";
+        groupInfo.well.wellPosY = UINT16_MAX;
+        groupInfo.well.wellPosX = UINT16_MAX;
+        groupInfo.well.imageIdx = UINT32_MAX;
+      } break;
+      case settings::ExperimentSettings::GroupBy::DIRECTORY: {
+        groupInfo.groupName     = imagePath.parent_path().string();
+        groupInfo.well.wellPosY = UINT8_MAX;
+        groupInfo.well.wellPosX = UINT8_MAX;
+        groupInfo.well.imageIdx = UINT32_MAX;
+      } break;
+      case settings::ExperimentSettings::GroupBy::FILENAME: {
+        groupInfo = applyRegex(mExperimentSettings.imageFileNameRegex, imagePath);
+      } break;
+    }
 
-  createWellPositionBasesOnGroupName(wellPosition, groupName);
+    posInWell = mWellPosGenerator.getGroupId(groupInfo);
+  }
 
   uint64_t imageId = calcImagePathHash(mExperimentSettings.runId, imagePath);
 
   try {
-    mDatabase->createWell(db::WellMeta{.analyzeId = mAnalyzeId,
-                                       .plateId   = mExperimentSettings.plateIdx,
-                                       .wellId    = WellId{.well{.wellId = wellPosition.well.wellId}},
-                                       .wellPosX  = wellPosition.well.wellPos[WellId::POS_X],
-                                       .wellPosY  = wellPosition.well.wellPos[WellId::POS_Y],
-                                       .name      = groupName,
-                                       .notes     = ""});
+    mDatabase->createGroup(db::GroupMeta{.analyzeId = mAnalyzeId,
+                                         .plateId   = mExperimentSettings.plateIdx,
+                                         .groupId   = posInWell.groupId,
+                                         .wellPosX  = posInWell.x,
+                                         .wellPosY  = posInWell.y,
+                                         .name      = posInWell.groupName,
+                                         .notes     = ""});
   } catch(const std::exception &ex) {
     joda::log::logWarning("Ceate Well:" + std::string(ex.what()));
   }
@@ -204,9 +203,9 @@ void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, 
   try {
     mDatabase->createImage(db::ImageMeta{.analyzeId         = mAnalyzeId,
                                          .plateId           = mExperimentSettings.plateIdx,
-                                         .wellId            = WellId{.well{.wellId = wellPosition.well.wellId}},
+                                         .groupId           = posInWell.groupId,
                                          .imageId           = imageId,
-                                         .imageIdx          = wellPosition.imageIdx,
+                                         .imageIdx          = posInWell.imgIdx,
                                          .originalImagePath = std::filesystem::relative(imagePath, mOutputFolder),
                                          .width             = imgProps.width,
                                          .height            = imgProps.height});
@@ -442,67 +441,39 @@ std::filesystem::path Results::createControlImage(const joda::image::detect::Det
 }
 
 ///
-/// \brief      If we have no well position in the filename, we assign one, based on the filename
-/// \author     Joachim Danmayr
-///
-void Results::createWellPositionBasesOnGroupName(WellId &wellInOut, const std::string &groupName)
-{
-  if(wellInOut.well.wellPos[WellId::POS_Y] == UINT8_MAX || wellInOut.well.wellPos[WellId::POS_X] == UINT8_MAX) {
-    std::lock_guard<std::mutex> lock(mWellGeneratorLock);
-    auto found = mWellPosGenerator.mNameToWellId.find(groupName);
-    if(found != mWellPosGenerator.mNameToWellId.end()) {
-      wellInOut.well.wellPos[WellId::POS_X] = found->second.x;
-      wellInOut.well.wellPos[WellId::POS_Y] = found->second.y;
-    } else {
-      auto newWellPos = mWellPosGenerator.nextFreeWell();
-      mWellPosGenerator.mNameToWellId.emplace(groupName, newWellPos);
-      wellInOut.well.wellPos[WellId::POS_X] = newWellPos.x;
-      wellInOut.well.wellPos[WellId::POS_Y] = newWellPos.y;
-    }
-  }
-
-  if(wellInOut.imageIdx == UINT32_MAX) {
-    std::lock_guard<std::mutex> lock(mWellGeneratorLock);
-    wellInOut.imageIdx = mWellPosGenerator.nextFreeImgIdx();
-  }
-  // Everything fine, do nothing
-}
-
-///
 /// \brief      Apply regex
 /// \author     Joachim Danmayr
 ///
-std::tuple<WellId, std::string> Results::applyRegex(const std::string &regex, const std::filesystem::path &imagePath)
+GroupInformation Results::applyRegex(const std::string &regex, const std::filesystem::path &imagePath)
 {
   std::regex pattern(regex);
   std::smatch match;
-  WellId result;
-  std::string groupName;
+  GroupInformation result;
 
   std::string fileName = imagePath.filename().string();
   if(std::regex_search(fileName, match, pattern)) {
     if(match.size() >= 5) {
-      groupName                          = match[1].str();
-      result.well.wellPos[WellId::POS_Y] = helper::stringToNumber(match[2].str());
-      result.well.wellPos[WellId::POS_X] = helper::stringToNumber(match[3].str());
-      result.imageIdx                    = helper::stringToNumber(match[4].str());
+      result.groupName     = match[1].str();
+      result.well.wellPosY = helper::stringToNumber(match[2].str());
+      result.well.wellPosX = helper::stringToNumber(match[3].str());
+      result.well.imageIdx = helper::stringToNumber(match[4].str());
     } else if(match.size() >= 3) {
-      groupName                          = match[1].str();
-      result.well.wellPos[WellId::POS_Y] = UINT8_MAX;
-      result.well.wellPos[WellId::POS_X] = UINT8_MAX;
-      result.imageIdx                    = helper::stringToNumber(match[2].str());
+      result.groupName     = match[1].str();
+      result.well.wellPosY = UINT8_MAX;
+      result.well.wellPosX = UINT8_MAX;
+      result.well.imageIdx = helper::stringToNumber(match[2].str());
     } else if(match.size() >= 2) {
-      groupName                          = match[1].str();
-      result.well.wellPos[WellId::POS_Y] = UINT8_MAX;
-      result.well.wellPos[WellId::POS_X] = UINT8_MAX;
-      result.imageIdx                    = UINT32_MAX;
+      result.groupName     = match[1].str();
+      result.well.wellPosY = UINT8_MAX;
+      result.well.wellPosX = UINT8_MAX;
+      result.well.imageIdx = UINT32_MAX;
     } else {
       throw std::invalid_argument("Pattern not found.");
     }
   } else {
     throw std::invalid_argument("Pattern not found.");
   }
-  return {result, groupName};
+  return result;
 }
 
 ///

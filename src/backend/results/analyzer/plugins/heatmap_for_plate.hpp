@@ -21,18 +21,21 @@ public:
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
         "SELECT"
-        "  image_well.well_id as well_id," +
+        "  image_group.group_id as group_id,"
+        "  group.well_pos_x as x "
+        "  group.well_pos_y as y " +
             getStatsString(stats) +
             "FROM object "
-            "INNER JOIN image_well ON object.image_id=image_well.image_id "
+            "INNER JOIN image_group ON object.image_id=image_group.image_id "
             "INNER JOIN image ON object.image_id=image.image_id "
             "INNER JOIN channel_image ON (object.image_id=channel_image.image_id AND "
+            "INNER JOIN group ON image_group.group_id=group.group_id "
             "object.channel_id=channel_image.channel_id) "
             "WHERE"
-            " image_well.plate_id=$2 AND object.validity=0 AND channel_image.validity=0 AND "
+            " image_group.plate_id=$2 AND object.validity=0 AND channel_image.validity=0 AND "
             "object.channel_id=$3 "
             "GROUP BY"
-            "  (image_well.well_id) ",
+            "  (image_group.group_id) ",
         measurement.getKey(), plateId, static_cast<uint8_t>(channelId));
 
     if(result->HasError()) {
@@ -54,12 +57,12 @@ public:
 
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
       try {
-        WellId wellID{.well{.wellId = materializedResult->GetValue(0, n).GetValue<uint16_t>()}, .imageIdx = 0};
-        uint8_t row = wellID.well.wellPos[WellId::POS_Y] - 1;
-        uint8_t col = wellID.well.wellPos[WellId::POS_X] - 1;
+        uint16_t groupId = materializedResult->GetValue(0, n).GetValue<uint16_t>();
+        uint16_t col     = materializedResult->GetValue(1, n).GetValue<uint16_t>();
+        uint16_t row     = materializedResult->GetValue(2, n).GetValue<uint16_t>();
         if(row < plateRows && col < plarteCols) {
-          double val = materializedResult->GetValue(1, n).GetValue<double>();
-          results.setData(row, col, TableCell{val, wellID.well.wellId, true, ""});
+          double val = materializedResult->GetValue(3, n).GetValue<double>();
+          results.setData(row, col, TableCell{val, groupId, true, ""});
         }
       } catch(const duckdb::InternalException &) {
       }

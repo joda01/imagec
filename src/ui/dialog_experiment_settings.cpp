@@ -159,15 +159,14 @@ void DialogExperimentSettings::toSettings()
 void DialogExperimentSettings::applyRegex()
 {
   try {
-    auto [regexResult, groupName] = joda::results::Results::applyRegex(
-        mRegexToFindTheWellPosition->currentText().toStdString(), mTestFileName->text().toStdString());
+    auto regexResult = joda::results::Results::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
+                                                          mTestFileName->text().toStdString());
 
-    std::string matching = "Match: " + std::to_string(regexResult.well.wellId);
-    std::string name     = "| Group: " + groupName;
-    std::string row      = "| Row: " + std::to_string(regexResult.well.wellPos[::joda::results::WellId::POS_X]);
-    std::string column   = "| Col: " + std::to_string(regexResult.well.wellPos[::joda::results::WellId::POS_Y]);
-    std::string img      = "| Img: " + std::to_string(regexResult.imageIdx);
-    std::string toText   = matching + name + row + column + img;
+    std::string matching = "| Group: " + regexResult.groupName;
+    std::string row      = "| Row: " + std::to_string(regexResult.well.wellPosX);
+    std::string column   = "| Col: " + std::to_string(regexResult.well.wellPosY);
+    std::string img      = "| Img: " + std::to_string(regexResult.well.imageIdx);
+    std::string toText   = matching + row + column + img;
     mTestFileResult->setText(QString(toText.data()));
   } catch(const std::exception &ex) {
     mTestFileResult->setText(ex.what());

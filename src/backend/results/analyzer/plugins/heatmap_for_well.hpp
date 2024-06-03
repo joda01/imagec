@@ -29,7 +29,7 @@ public:
   /// \author     Joachim Danmayr
   /// \param[in]  wellImageOrder  First dimension of the vector are the rows, second the columns
   ///
-  static auto getData(Analyzer &analyzer, uint8_t plateId, results::WellId wellId, ChannelIndex channelId,
+  static auto getData(Analyzer &analyzer, uint8_t plateId, uint16_t groupId, ChannelIndex channelId,
                       const MeasureChannelId &measurement, Stats stats,
                       const std::vector<std::vector<int32_t>> &wellImageOrder = {{1, 2, 3, 4},
                                                                                  {5, 6, 7, 8},
@@ -46,16 +46,16 @@ public:
         "  image.file_name as file_name," +
             getStatsString(stats) +
             "FROM object "
-            "INNER JOIN image_well ON object.image_id=image_well.image_id "
+            "INNER JOIN image_group ON object.image_id=image_group.image_id "
             "INNER JOIN image ON object.image_id=image.image_id "
             "INNER JOIN channel_image ON (object.image_id=channel_image.image_id AND "
             "object.channel_id=channel_image.channel_id)"
             "WHERE"
-            " image_well.well_id=$2 AND object.validity=0 AND object.channel_id=$3 "
+            " image_group.group_id=$2 AND object.validity=0 AND object.channel_id=$3 "
             "GROUP BY"
             "  (object.image_id, image.file_name, image.image_idx) "
             "ORDER BY image.file_name",
-        measurement.getKey(), wellId.well.wellId, static_cast<uint8_t>(channelId));
+        measurement.getKey(), groupId, static_cast<uint8_t>(channelId));
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());

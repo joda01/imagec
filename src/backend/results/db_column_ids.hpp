@@ -120,23 +120,6 @@ struct ChannelValidity : public std::bitset<32>
   }
 };
 
-struct WellId
-{
-  static constexpr uint32_t POS_X = 0;
-  static constexpr uint32_t POS_Y = 1;
-  union
-  {
-    uint16_t wellId = 0;
-    uint8_t wellPos[2];
-  } well;
-  uint32_t imageIdx = 0;
-  std::string toString() const
-  {
-    char al = (well.wellPos[POS_Y] - 1 + 'A');
-    return std::string(1, al) + "x" + std::to_string(well.wellPos[POS_X]);
-  }
-};
-
 class MeasureChannelId
 {
 public:
