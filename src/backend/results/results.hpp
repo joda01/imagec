@@ -19,6 +19,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/reader/image_reader.hpp"
@@ -59,11 +60,12 @@ public:
   void appendChannelsToDetailReport(const joda::settings::AnalyzeSettings &);
   void appendImageToDetailReport(const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
 
-  auto prepareDetailReportAdding() -> std::shared_ptr<duckdb::Appender>;
+  auto prepareDetailReportAdding()
+      -> std::tuple<std::shared_ptr<duckdb::Appender>, std::shared_ptr<duckdb::Connection>>;
   void appendToDetailReport(std::shared_ptr<duckdb::Appender>, const joda::image::detect::DetectionResponse &result,
                             const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                             const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
-  void writePredatedData(std::shared_ptr<duckdb::Appender>);
+  void writePredatedData(std::shared_ptr<duckdb::Appender>, std::shared_ptr<duckdb::Connection>);
 
   /////////////////////////////////////////////////////
   static std::tuple<WellId, std::string> applyRegex(const std::string &regex, const std::filesystem::path &imagePath);

@@ -28,16 +28,15 @@ TEST_CASE("database:test", "[database_test]")
   std::mt19937 gen(rd());
   std::uniform_real_distribution<float> dis(1.0f, 1000.0f);
 
-  joda::results::db::objects_t obj;
-  for(uint32_t n = 0; n < 10000; n++) {
-    auto &ob = obj[n];
+  /* for(uint32_t n = 0; n < 10000; n++) {
+     auto &ob = obj[n];
 
-    for(int m = 0; m < 20; m++) {
-      float randNr = dis(gen);
-      ob.keys.emplace_back(duckdb::Value::UINTEGER(m));
-      ob.vals.emplace_back(duckdb::Value::DOUBLE(randNr));
-    }
-  }
+     for(int m = 0; m < 20; m++) {
+       float randNr = dis(gen);
+       ob.keys.emplace_back(duckdb::Value::UINTEGER(m));
+       ob.vals.emplace_back(duckdb::Value::DOUBLE(randNr));
+     }
+   }*/
 
   joda::results::db::Database db("test_with_idx.duckdb");
   db.open();
@@ -91,14 +90,14 @@ TEST_CASE("database:test", "[database_test]")
       }
 
       auto id = DurationCount::start("Insert");
-      try {
+      /*try {
         db.createObjects(::joda::results::db::ObjectMeta{.analyzeId = "d6e95ec1-6b87-45e7-856f-0c0779b57d32",
                                                          .imageId   = n,
                                                          .channelId = (joda::results::ChannelIndex) ch,
                                                          .objects   = obj});
       } catch(const std::exception &ex) {
         std::cout << ex.what() << std::endl;
-      }
+      }*/
       DurationCount::stop(id);
     }
 

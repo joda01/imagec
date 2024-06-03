@@ -224,10 +224,13 @@ void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, 
 /// \param[out]
 /// \return
 ///
-auto Results::prepareDetailReportAdding() -> std::shared_ptr<duckdb::Appender>
+auto Results::prepareDetailReportAdding()
+    -> std::tuple<std::shared_ptr<duckdb::Appender>, std::shared_ptr<duckdb::Connection>>
 {
-  auto appender = std::make_shared<duckdb::Appender>(*mDatabase->getConnection(), "object");
-  return appender;
+  auto connection = mDatabase->acquire();
+  // connection->BeginTransaction();
+  auto appender = std::make_shared<duckdb::Appender>(*connection, "object");
+  return {appender, connection};
 }
 
 ///
@@ -237,10 +240,12 @@ auto Results::prepareDetailReportAdding() -> std::shared_ptr<duckdb::Appender>
 /// \param[out]
 /// \return
 ///
-void Results::writePredatedData(std::shared_ptr<duckdb::Appender> appender)
+void Results::writePredatedData(std::shared_ptr<duckdb::Appender> appender,
+                                std::shared_ptr<duckdb::Connection> connection)
 {
   auto id = DurationCount::start("Close");
   appender->Close();
+  // connection->Commit();
   DurationCount::stop(id);
 }
 

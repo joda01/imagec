@@ -307,12 +307,12 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   BS::timer tmr;
   tmr.start();
 
-  auto appender = mResults.prepareDetailReportAdding();
+  auto [appender, connection] = mResults.prepareDetailReportAdding();
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
   // Execute intersection calculation
   //
-  auto calcIntersection = [this, appender, &imagePath, &detectionResults,
+  auto calcIntersection = [this, appender = appender, &imagePath, &detectionResults,
                            &channelProperties](int tileIdx, settings::VChannelIntersection intersect) {
     joda::pipeline::CalcIntersection intersectAlgo(
         intersect.meta.channelIdx, intersect.intersection.intersectingChannels, intersect.objectFilter.minParticleSize);
@@ -350,7 +350,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   //
   // Execute post processing pipeline steps
   //
-  auto calcVoronoi = [this, appender, &imagePath, &detectionResults,
+  auto calcVoronoi = [this, appender = appender, &imagePath, &detectionResults,
                       &channelProperties](int tileIdx, settings::VChannelVoronoi voronoi) {
     joda::pipeline::CalcVoronoi function(voronoi.meta.channelIdx, voronoi.voronoi.gridPointsChannelIdx,
                                          voronoi.voronoi.overlayMaskChannelIdx, voronoi.voronoi.maxVoronoiAreaRadius,
@@ -394,7 +394,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   //
   // Channel stats
   //
-  auto writeStats = [this, appender, &imagePath, &detectionResults,
+  auto writeStats = [this, appender = appender, &imagePath, &detectionResults,
                      &channelProperties](int tileIdx, settings::ChannelSettings channelSettings) {
     //
     // Measure intensity from ROI area of channel X in channel Y
@@ -436,7 +436,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
       }
     }
   }
-  mResults.writePredatedData(appender);
+  mResults.writePredatedData(appender, connection);
 
   tmr.stop();
   std::cout << "Post processing " << tmr.ms() << " ms.\n";

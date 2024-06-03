@@ -44,13 +44,15 @@ public:
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)
   {
-    auto prep = mConnection->Prepare(query);
+    auto connection = acquire();
+    auto prep       = connection->Prepare(query);
     return prep->Execute(std::forward<ARGS>(args)...);
   }
 
-  std::shared_ptr<duckdb::Connection> getConnection()
+  std::shared_ptr<duckdb::Connection> acquire() const
   {
-    return mConnection;
+    std::shared_ptr<duckdb::Connection> connection = std::make_shared<duckdb::Connection>(*mDb);
+    return connection;
   }
 
 private:
@@ -58,7 +60,6 @@ private:
   /////////////////////////////////////////////////////
   duckdb::DBConfig mDbCfg;
   std::unique_ptr<duckdb::DuckDB> mDb;
-  std::shared_ptr<duckdb::Connection> mConnection;
 };
 
 }    // namespace joda::results::db
