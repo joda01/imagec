@@ -127,8 +127,8 @@ private:
       std::string groupName;
       uint16_t groupId = 0;
       uint32_t imgIdx  = 0;
-      uint16_t x       = UINT8_MAX;
-      uint16_t y       = UINT8_MAX;
+      uint16_t x       = UINT16_MAX;
+      uint16_t y       = UINT16_MAX;
     };
 
     Pos getGroupId(const GroupInformation &groupInfo)
@@ -144,14 +144,17 @@ private:
         return newPos;
       }
       Pos newPos;
-      newPos.groupName = groupInfo.groupName;
       // This group does not yet exist
       if(groupInfo.well.wellPosX == UINT16_MAX || groupInfo.well.wellPosY == UINT16_MAX) {
-        newPos = Pos{.groupId = actGroupId,
-                     .x       = static_cast<uint8_t>((actWellPos % MAX_COLS) + 1),
-                     .y       = static_cast<uint8_t>((actWellPos / MAX_COLS) + 1)};
+        newPos = Pos{.groupName = groupInfo.groupName,
+                     .groupId   = actGroupId,
+                     .x         = static_cast<uint8_t>((actWellPos % MAX_COLS) + 1),
+                     .y         = static_cast<uint8_t>((actWellPos / MAX_COLS) + 1)};
       } else {
-        newPos = Pos{.groupId = actGroupId, .x = groupInfo.well.wellPosX, .y = groupInfo.well.wellPosY};
+        newPos = Pos{.groupName = groupInfo.groupName,
+                     .groupId   = actGroupId,
+                     .x         = groupInfo.well.wellPosX,
+                     .y         = groupInfo.well.wellPosY};
       }
 
       if(groupInfo.well.imageIdx == UINT32_MAX) {
