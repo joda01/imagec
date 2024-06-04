@@ -91,7 +91,7 @@ public:
         double value = materializedResult->GetValue(6, n).GetValue<double>();
 
         helper::stringReplace(controlImagePath, "${tile_id}", std::to_string(tileId));
-        results.setData(pos.x, pos.y, TableCell{value, imageId, !validity.any(), controlImagePath});
+        results.setData(pos.y, pos.x, TableCell{value, imageId, !validity.any(), controlImagePath});
       } catch(const duckdb::InternalException &) {
       }
     }
