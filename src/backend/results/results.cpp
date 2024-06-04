@@ -174,16 +174,18 @@ void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, 
       } break;
       case settings::ExperimentSettings::GroupBy::DIRECTORY: {
         groupInfo.groupName     = imagePath.parent_path().string();
-        groupInfo.well.wellPosY = UINT8_MAX;
-        groupInfo.well.wellPosX = UINT8_MAX;
+        groupInfo.well.wellPosY = UINT16_MAX;
+        groupInfo.well.wellPosX = UINT16_MAX;
         groupInfo.well.imageIdx = UINT32_MAX;
       } break;
       case settings::ExperimentSettings::GroupBy::FILENAME: {
         groupInfo = applyRegex(mExperimentSettings.imageFileNameRegex, imagePath);
       } break;
     }
-
-    posInWell = mWellPosGenerator.getGroupId(groupInfo);
+    {
+      std::lock_guard<std::mutex> lock(mWellGeneratorLock);
+      posInWell = mWellPosGenerator.getGroupId(groupInfo);
+    }
   }
 
   uint64_t imageId = calcImagePathHash(mExperimentSettings.runId, imagePath);
@@ -459,13 +461,13 @@ GroupInformation Results::applyRegex(const std::string &regex, const std::filesy
       result.well.imageIdx = helper::stringToNumber(match[4].str());
     } else if(match.size() >= 3) {
       result.groupName     = match[1].str();
-      result.well.wellPosY = UINT8_MAX;
-      result.well.wellPosX = UINT8_MAX;
+      result.well.wellPosY = UINT16_MAX;
+      result.well.wellPosX = UINT16_MAX;
       result.well.imageIdx = helper::stringToNumber(match[2].str());
     } else if(match.size() >= 2) {
       result.groupName     = match[1].str();
-      result.well.wellPosY = UINT8_MAX;
-      result.well.wellPosX = UINT8_MAX;
+      result.well.wellPosY = UINT16_MAX;
+      result.well.wellPosX = UINT16_MAX;
       result.well.imageIdx = UINT32_MAX;
     } else {
       throw std::invalid_argument("Pattern not found.");
