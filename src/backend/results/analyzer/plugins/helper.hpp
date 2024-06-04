@@ -23,22 +23,22 @@ inline std::string getStatsString(Stats stats)
   std::string statsStr;
   switch(stats) {
     case Stats::AVG:
-      statsStr = "  AVG(element_at(values, $1)[1]) as val_avg ";
+      statsStr = "  AVG(element_at(values, $1)[1]) as val_img ";
       break;
     case Stats::MEDIAN:
-      statsStr = "  MEDIAN(element_at(values, $1)[1]) as val_avg ";
+      statsStr = "  MEDIAN(element_at(values, $1)[1]) as val_img ";
       break;
     case Stats::SUM:
-      statsStr = "  SUM(element_at(values, $1)[1]) as val_sum ";
+      statsStr = "  SUM(element_at(values, $1)[1]) as val_img ";
       break;
     case Stats::MIN:
-      statsStr = "  MIN(element_at(values, $1)[1]) as val_min ";
+      statsStr = "  MIN(element_at(values, $1)[1]) as val_img ";
       break;
     case Stats::MAX:
-      statsStr = "  MAX(element_at(values, $1)[1]) as val_max ";
+      statsStr = "  MAX(element_at(values, $1)[1]) as val_img ";
       break;
     case Stats::STDDEV:
-      statsStr = "  STDDEV(element_at(values, $1)[1]) as val_stddev ";
+      statsStr = "  STDDEV(element_at(values, $1)[1]) as val_img ";
       break;
   };
   return statsStr;
