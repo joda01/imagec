@@ -169,11 +169,11 @@ QWidget *PanelHeatmap::createBreadCrump(QWidget *parent)
 void PanelHeatmap::onMarkAsInvalidClicked()
 {
   if(mMarkAsInvalid->getValue()) {
-    mAnalyzer->markImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
-                                               mSelectedElementId);
+    mAnalyzer.lock()->markImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
+                                                      mSelectedElementId);
   } else {
-    mAnalyzer->unMarkImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
-                                                 mSelectedElementId);
+    mAnalyzer.lock()->unMarkImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
+                                                        mSelectedElementId);
   }
   repaintHeatmap();
 }
@@ -182,7 +182,7 @@ void PanelHeatmap::onMarkAsInvalidClicked()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelHeatmap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, const SelectedFilter &filter)
+void PanelHeatmap::setData(std::weak_ptr<joda::results::Analyzer> analyzer, const SelectedFilter &filter)
 {
   mAnalyzer = std::move(analyzer);
   mFilter   = filter;
@@ -199,7 +199,7 @@ void PanelHeatmap::onElementSelected(results::TableCell value)
     case Navigation::PLATE: {
       auto groupId = value.getId();
       auto [result, channel] =
-          mAnalyzer->getGroupInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, groupId);
+          mAnalyzer.lock()->getGroupInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, groupId);
       mLabelName->setText("Well: " + QString(result.name.data()));
       mLabelValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
       mLabelMeta->setText(channel.name.data());
@@ -207,7 +207,7 @@ void PanelHeatmap::onElementSelected(results::TableCell value)
     } break;
     case Navigation::WELL: {
       auto [image, channel, imageChannelMeta] =
-          mAnalyzer->getImageInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, value.getId());
+          mAnalyzer.lock()->getImageInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, value.getId());
 
       mLabelName->setText(image.originalImagePath.filename().string().data());
       mLabelValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
@@ -303,11 +303,11 @@ void PanelHeatmap::repaintHeatmap()
 void PanelHeatmap::paintPlate()
 {
   mBackButton->setEnabled(false);
-  if(mAnalyzer != nullptr) {
+  if(!mAnalyzer.expired()) {
     mNavigation = Navigation::PLATE;
     auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(
-        *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.channelIdx, mFilter.measureChannel,
-        mFilter.stats);
+        *mAnalyzer.lock(), mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.channelIdx,
+        mFilter.measureChannel, mFilter.stats);
     mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
   }
@@ -320,10 +320,10 @@ void PanelHeatmap::paintPlate()
 void PanelHeatmap::paintWell()
 {
   mBackButton->setEnabled(true);
-  if(mAnalyzer != nullptr) {
+  if(!mAnalyzer.expired()) {
     mNavigation = Navigation::WELL;
     auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
-        *mAnalyzer, mFilter.plateId, mSelectedGroupId, mFilter.channelIdx, mFilter.measureChannel, mFilter.stats,
+        *mAnalyzer.lock(), mFilter.plateId, mSelectedGroupId, mFilter.channelIdx, mFilter.measureChannel, mFilter.stats,
         mFilter.wellImageOrder);
     mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
@@ -337,9 +337,9 @@ void PanelHeatmap::paintWell()
 void PanelHeatmap::paintImage()
 {
   mBackButton->setEnabled(true);
-  if(mAnalyzer != nullptr) {
+  if(!mAnalyzer.expired()) {
     mNavigation = Navigation::IMAGE;
-    auto result = joda::results::analyze::plugins::HeatmapForImage::getData(*mAnalyzer, mSelectedImageId,
+    auto result = joda::results::analyze::plugins::HeatmapForImage::getData(*mAnalyzer.lock(), mSelectedImageId,
                                                                             mFilter.channelIdx, mFilter.measureChannel,
                                                                             mFilter.stats, mFilter.densityMapAreaSize);
     mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES,
@@ -357,7 +357,7 @@ ChartHeatMap::ChartHeatMap(PanelHeatmap *parent) : QWidget(parent), mParent(pare
   setMouseTracking(true);
 }
 
-void ChartHeatMap::setData(std::shared_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &data,
+void ChartHeatMap::setData(std::weak_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &data,
                            MatrixForm form, PaintControlImage paint, int32_t newHierarchy)
 {
   if(mActHierarchy > newHierarchy) {
@@ -575,7 +575,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     if(mPaintCtrlImage == PaintControlImage::YES) {
       if(newControlImagePath != mActControlImagePath) {
         mActControlImagePath = newControlImagePath;
-        auto path            = mAnalyzer->getAbsolutePathToControlImage(mActControlImagePath.toStdString());
+        auto path            = mAnalyzer.lock()->getAbsolutePathToControlImage(mActControlImagePath.toStdString());
 
         mActControlImage.load(path.string().data());
         mActControlImage = mActControlImage.scaled(QSize(size().width() / 2, size().height()), Qt::KeepAspectRatio,

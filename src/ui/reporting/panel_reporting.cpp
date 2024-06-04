@@ -250,6 +250,9 @@ QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
 ///
 void PanelReporting::close()
 {
+  if(mAnalyzer != nullptr) {
+    mAnalyzer.reset();
+  }
 }
 
 ///

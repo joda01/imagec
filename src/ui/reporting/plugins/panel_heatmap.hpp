@@ -53,7 +53,7 @@ public:
 
   /////////////////////////////////////////////////////
   ChartHeatMap(PanelHeatmap *parent);
-  void setData(std::shared_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form,
+  void setData(std::weak_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form,
                PaintControlImage paint, int32_t newHierarchy);
 
   [[nodiscard]] const results::Table &getData() const
@@ -102,7 +102,7 @@ private:
   static inline const uint32_t LEGEND_COLOR_ROW_HEIGHT = 15;
   static inline const uint32_t HEATMAP_FONT_SIZE       = 12;
 
-  std::shared_ptr<joda::results::Analyzer> mAnalyzer;
+  std::weak_ptr<joda::results::Analyzer> mAnalyzer;
   PanelHeatmap *mParent;
   MatrixForm mForm = MatrixForm::CIRCLE;
   PaintControlImage mPaintCtrlImage;
@@ -158,7 +158,7 @@ public:
 
   /////////////////////////////////////////////////////
   PanelHeatmap(QMainWindow *win, QWidget *parent);
-  void setData(std::shared_ptr<joda::results::Analyzer> analyzer, const SelectedFilter &);
+  void setData(std::weak_ptr<joda::results::Analyzer> analyzer, const SelectedFilter &);
   [[nodiscard]] Navigation getActualNavigation() const
   {
     return mNavigation;
@@ -190,7 +190,7 @@ private:
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;
-  std::shared_ptr<joda::results::Analyzer> mAnalyzer;
+  std::weak_ptr<joda::results::Analyzer> mAnalyzer;
   SelectedFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
 
