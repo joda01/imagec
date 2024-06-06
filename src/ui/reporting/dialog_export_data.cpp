@@ -58,13 +58,13 @@ using Stat = results::Stats;
 /// \param[out]
 /// \return
 ///
-DialogExportData::DialogExportData(QWidget *windowMain) : QDialog(windowMain)
+DialogExportData::DialogExportData(QWidget *windowMain) : DialogShadow(windowMain)
 {
   setWindowTitle("Settings");
   setBaseSize(500, 200);
 
   auto *mainLayout = new QVBoxLayout(this);
-  auto *groupBox   = new QGroupBox("Measurements", this);
+  auto *groupBox   = new QWidget(this);
   auto *gridLayout = new QGridLayout(groupBox);
 
   gridLayout->addWidget(new QLabel("Detail"), 0, 1, Qt::AlignCenter);
@@ -107,11 +107,39 @@ DialogExportData::DialogExportData(QWidget *windowMain) : QDialog(windowMain)
   createCheckBoxes(Base::CROSS_CHANNEL_COUNT, Stat::SUM, "Cross ch. count avg");
 
   mainLayout->addWidget(groupBox);
+
+  //
+  // Footer buttons
+  //
+  QWidget *buttons = new QWidget();
+  buttons->setContentsMargins(0, 0, 0, 0);
+  QHBoxLayout *hBox = new QHBoxLayout(buttons);
+
+  // Close button
+  QPushButton *close = new QPushButton("Close", buttons);
+  close->setCursor(Qt::PointingHandCursor);
+  close->setObjectName("DialogButton");
+  connect(close, &QPushButton::clicked, this, &DialogExportData::onCancelClicked);
+
+  // Export button
+  QPushButton *exportHeatmap = new QPushButton("Export", buttons);
+  exportHeatmap->setCursor(Qt::PointingHandCursor);
+  exportHeatmap->setObjectName("DialogButton");
+  connect(exportHeatmap, &QPushButton::clicked, this, &DialogExportData::onOkayClicked);
+
+  hBox->addStretch();
+  hBox->addWidget(exportHeatmap);
+  hBox->addWidget(close);
+  QLayout *mainL = layout();
+  mainL->addWidget(buttons);
 }
 
 DialogExportData::Ret DialogExportData::execute()
 {
   int ret = QDialog::exec();
+  if(ret != 0) {
+    return {ret, {}, {}};
+  }
 
   std::map<results::MeasureChannel, results::Stats> details;
   for(const auto &[key, val] : mMeasurementDetailsReport) {
@@ -128,14 +156,16 @@ DialogExportData::Ret DialogExportData::execute()
     }
   }
 
-  return {details, overview};
+  return {0, details, overview};
 }
 
 void DialogExportData::onOkayClicked()
 {
 }
+
 void DialogExportData::onCancelClicked()
 {
+  close();
 }
 
 }    // namespace joda::ui::qt

@@ -133,6 +133,27 @@ int main(int argc, char *argv[])
       "   color: rgb(170, 170, 170);"
       "}"
 
+      /*Push button dialogs*/
+      "QPushButton#DialogButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgba(0, 0, 0, 0);"
+      "   color: rgb(255, 144, 144);"
+      "   padding: 10px 10px;"
+      "   border-radius: 4px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover#DialogButton {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed#DialogButton {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}"
+
       /*Combo box*/
       "QComboBox {"
       "   border: 1px solid rgb(0, 0, 0);"

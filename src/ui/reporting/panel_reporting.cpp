@@ -391,36 +391,38 @@ void PanelReporting::onExportHeatmapClicked()
   DialogExportData exportData(mWindowMain);
   auto measureChannelsToExport = exportData.execute();
 
-  QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "XLSX Files (*.xlsx)");
-  if(filePath.isEmpty()) {
-    return;
-  }
-
-  auto value    = mPlateSize->getValue();
-  uint16_t rows = value / 100;
-  uint16_t cols = value % 100;
-
-  std::map<joda::results::ChannelIndex, joda::results::exporter::BatchExporter::Settings::Channel> imageChannels;
-
-  for(const auto &channel : mChannelInfos) {
-    joda::results::exporter::BatchExporter::Settings::Channel channelData;
-    channelData.name = channel.name;
-
-    for(const auto &measureChannel : channel.measurements) {
-      if(measureChannelsToExport.overview.contains(measureChannel.getMeasureChannel())) {
-        channelData.measureChannels.emplace(measureChannel,
-                                            measureChannelsToExport.overview.at(measureChannel.getMeasureChannel()));
-      }
+  if(measureChannelsToExport.ret == 0) {
+    QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "XLSX Files (*.xlsx)");
+    if(filePath.isEmpty()) {
+      return;
     }
-    imageChannels.emplace(channel.channelId, channelData);
+
+    auto value    = mPlateSize->getValue();
+    uint16_t rows = value / 100;
+    uint16_t cols = value % 100;
+
+    std::map<joda::results::ChannelIndex, joda::results::exporter::BatchExporter::Settings::Channel> imageChannels;
+
+    for(const auto &channel : mChannelInfos) {
+      joda::results::exporter::BatchExporter::Settings::Channel channelData;
+      channelData.name = channel.name;
+
+      for(const auto &measureChannel : channel.measurements) {
+        if(measureChannelsToExport.overview.contains(measureChannel.getMeasureChannel())) {
+          channelData.measureChannels.emplace(measureChannel,
+                                              measureChannelsToExport.overview.at(measureChannel.getMeasureChannel()));
+        }
+      }
+      imageChannels.emplace(channel.channelId, channelData);
+    }
+
+    joda::results::exporter::BatchExporter::Settings settings{
+        .imageChannels = imageChannels, .analyzer = *mAnalyzer, .plateId = 1, .plateRows = rows, .plarteCols = cols};
+
+    joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
+
+    // joda::results::exporter::ExporterXlsx::exportAsHeatmap(mHeatmap->getData(), filePath.toStdString());
   }
-
-  joda::results::exporter::BatchExporter::Settings settings{
-      .imageChannels = imageChannels, .analyzer = *mAnalyzer, .plateId = 1, .plateRows = rows, .plarteCols = cols};
-
-  joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
-
-  // joda::results::exporter::ExporterXlsx::exportAsHeatmap(mHeatmap->getData(), filePath.toStdString());
 }
 
 /////////////////////////////////////////////////////////////////////////////

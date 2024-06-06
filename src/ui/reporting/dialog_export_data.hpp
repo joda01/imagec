@@ -23,11 +23,12 @@
 #include <thread>
 #include <tuple>
 #include "backend/results/exporter/exporter.hpp"
+#include "ui/dialog_shadow/dialog_shadow.h"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
 
-class DialogExportData : public QDialog
+class DialogExportData : public DialogShadow
 {
   Q_OBJECT
 
@@ -36,6 +37,7 @@ public:
   DialogExportData(QWidget *windowMain);
   struct Ret
   {
+    int ret = -1;
     std::map<results::MeasureChannel, results::Stats> details;
     std::map<results::MeasureChannel, results::Stats> overview;
   };
