@@ -21,25 +21,31 @@
 #include <qwindow.h>
 #include <memory>
 #include <thread>
-#include "backend/results/results_reporting_settings.hpp"
+#include <tuple>
+#include "backend/results/exporter/exporter.hpp"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
 
-class DialogChannelMeasurement : public QDialog
+class DialogExportData : public QDialog
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogChannelMeasurement(QWidget *windowMain, joda::results::ReportingSettings &reportingSettings);
-  int exec() override;
+  DialogExportData(QWidget *windowMain);
+  struct Ret
+  {
+    std::map<results::MeasureChannel, results::Stats> details;
+    std::map<results::MeasureChannel, results::Stats> overview;
+  };
+  Ret execute();
 
 private:
-  std::map<joda::results::ReportingSettings::MeasureChannelsCombi, QCheckBox *> mMeasurementOverViewReport;
-  std::map<joda::results::ReportingSettings::MeasureChannels, QCheckBox *> mMeasurementDetailsReport;
+  std::map<std::tuple<results::MeasureChannel, results::Stats>, QCheckBox *> mMeasurementOverViewReport;
+  std::map<std::tuple<results::MeasureChannel, results::Stats>, QCheckBox *> mMeasurementDetailsReport;
 
-  joda::results::ReportingSettings &mReportingSettings;
+  // joda::results::exporter::BatchExporter::Settings exportSettings;
 
 private slots:
   void onOkayClicked();

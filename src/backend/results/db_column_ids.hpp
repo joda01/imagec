@@ -157,6 +157,11 @@ public:
     return mChannelIndex;
   }
 
+  bool operator<(const MeasureChannelId &in) const
+  {
+    return mChannelIndex < static_cast<uint32_t>(in);
+  }
+
   [[nodiscard]] std::string toString() const
   {
     std::string txt;

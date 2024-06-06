@@ -41,7 +41,6 @@ private:
     lxw_format *fontNormal;
     lxw_format *numberFormat;
     lxw_format *numberFormatInvalid;
-
     lxw_format *numberFormatScientific;
     lxw_format *numberFormatInvalidScientific;
   };

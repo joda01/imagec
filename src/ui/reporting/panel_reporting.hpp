@@ -70,7 +70,6 @@ private:
   std::shared_ptr<ContainerFunction<uint32_t, int>> mMeasureChannelSelector;
   std::shared_ptr<ContainerFunction<joda::results::Stats, int>> mStats;
   reporting::plugin::PanelHeatmap::SelectedFilter mFilter;
-
   std::vector<results::db::ChannelMeta> mChannelInfos;
 
   // Heatmap
