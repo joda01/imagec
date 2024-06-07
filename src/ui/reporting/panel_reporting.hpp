@@ -78,8 +78,7 @@ private:
   std::shared_ptr<ContainerFunction<QString, int>> mWellOrdering;
 
   QProgressBar *mProgressHeatmap;
-  ContainerButton *mButtonExportHeatmap;
-  ContainerButton *mButtonExportList;
+  ContainerButton *mButtonExport;
 
   // Table
   QTableWidget *mTable;

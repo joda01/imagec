@@ -150,13 +150,9 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
         joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
     verticalLayoutXlsx->addWidget(createTitle("Export"));
 
-    mButtonExportHeatmap = new ContainerButton("Export heatmap", "icons8-export-excel-50.png", mWindowMain);
-    connect(mButtonExportHeatmap, &ContainerButton::valueChanged, this, &PanelReporting::onExportHeatmapClicked);
-    verticalLayoutXlsx->addWidget(mButtonExportHeatmap->getEditableWidget());
-
-    mButtonExportList = new ContainerButton("Export list", "icons8-export-excel-50.png", mWindowMain);
-    connect(mButtonExportList, &ContainerButton::valueChanged, this, &PanelReporting::onExportListClicked);
-    verticalLayoutXlsx->addWidget(mButtonExportList->getEditableWidget());
+    mButtonExport = new ContainerButton("Export", "icons8-export-excel-50.png", mWindowMain);
+    connect(mButtonExport, &ContainerButton::valueChanged, this, &PanelReporting::onExportHeatmapClicked);
+    verticalLayoutXlsx->addWidget(mButtonExport->getEditableWidget());
 
     _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
