@@ -137,8 +137,8 @@ DialogExportData::DialogExportData(QWidget *windowMain) : DialogShadow(windowMai
 DialogExportData::Ret DialogExportData::execute()
 {
   int ret = QDialog::exec();
-  if(ret != 0) {
-    return {ret, {}, {}};
+  if(retVal != 0) {
+    return {retVal, {}, {}};
   }
 
   std::map<results::MeasureChannel, results::Stats> details;
@@ -165,6 +165,7 @@ void DialogExportData::onOkayClicked()
 
 void DialogExportData::onCancelClicked()
 {
+  retVal = -1;
   close();
 }
 

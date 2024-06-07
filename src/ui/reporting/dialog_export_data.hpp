@@ -47,7 +47,7 @@ private:
   std::map<std::tuple<results::MeasureChannel, results::Stats>, QCheckBox *> mMeasurementOverViewReport;
   std::map<std::tuple<results::MeasureChannel, results::Stats>, QCheckBox *> mMeasurementDetailsReport;
 
-  // joda::results::exporter::BatchExporter::Settings exportSettings;
+  int retVal = 0;
 
 private slots:
   void onOkayClicked();
