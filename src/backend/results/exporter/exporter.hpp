@@ -51,8 +51,8 @@ private:
 
   struct Pos
   {
-    u_int32_t row = 0;
-    u_int32_t col = 0;
+    uint32_t row = 0;
+    uint32_t col = 0;
   };
   static WorkBook createWorkBook(std::string outputFileName);
 
