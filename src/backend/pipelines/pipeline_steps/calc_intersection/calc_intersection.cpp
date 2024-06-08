@@ -26,7 +26,7 @@ namespace joda::pipeline {
 
 CalcIntersection::CalcIntersection(joda::settings::ChannelIndex channelIndexMe,
                                    const std::set<joda::settings::ChannelIndex> &indexesToIntersect,
-                                   uint64_t minIntersection) :
+                                   float minIntersection) :
     mChannelIndexMe(channelIndexMe),
     mIndexesToIntersect(indexesToIntersect.begin(), indexesToIntersect.end()), mMinIntersection(minIntersection)
 {
@@ -65,7 +65,7 @@ auto CalcIntersection::execute(
   for(; it != mIndexesToIntersect.end(); ++it) {
     if(detectionResultsIn.contains(*it)) {
       const auto &element = detectionResultsIn.at(*it);
-      response.result     = response.result->calcIntersections(element.result, channelsToIntersectImages, 0.5);
+      response.result = response.result->calcIntersections(element.result, channelsToIntersectImages, mMinIntersection);
 
       // detectionResultsIn.at(idxToIntersect).
     }

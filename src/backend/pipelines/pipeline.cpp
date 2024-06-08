@@ -315,7 +315,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   auto calcIntersection = [this, appender = appender, &imagePath, &detectionResults,
                            &channelProperties](int tileIdx, settings::VChannelIntersection intersect) {
     joda::pipeline::CalcIntersection intersectAlgo(
-        intersect.meta.channelIdx, intersect.intersection.intersectingChannels, intersect.objectFilter.minParticleSize);
+        intersect.meta.channelIdx, intersect.intersection.intersectingChannels, intersect.intersection.minIntersection);
     auto response = intersectAlgo.execute(mAnalyzeSettings, detectionResults);
     detectionResults.emplace(intersect.meta.channelIdx, std::move(response));
 

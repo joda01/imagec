@@ -17,24 +17,17 @@ public:
     //
     std::set<ChannelIndex> intersectingChannels;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectionSettings, intersectingChannels);
-  };
-
-  struct IntersectionFiltering
-  {
     //
-    // Every particle with a diameter lower than that is ignored during analysis.
-    // Value in [px]
+    // Minimum intersection in [0-1]
     //
-    uint64_t minParticleSize = 0;
+    float minIntersection = 0.1F;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectionFiltering, minParticleSize);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectionSettings, intersectingChannels, minIntersection);
   };
 
   ChannelSettingsMeta meta;
   CrossChannelSettings crossChannel;
   IntersectionSettings intersection;
-  IntersectionFiltering objectFilter;
 
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/intersectrion-settings.json";

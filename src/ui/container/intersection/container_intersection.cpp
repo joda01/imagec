@@ -66,9 +66,8 @@ ContainerIntersection::ContainerIntersection(WindowMain *windowMain, joda::setti
            {joda::settings::ChannelIndex::F, "Slot F"}},
           joda::settings::ChannelIndex::A, windowMain));
 
-  mMinIntersection = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
-                                      "Min. intersection area", "px", 1, 0, INT32_MAX, windowMain));
+  mMinIntersection = std::shared_ptr<ContainerFunction<float, int>>(new ContainerFunction<float, int>(
+      "icons8-all-out-50.png", "[0 -1]", "Min. intersection area", "%", 1, 0.8, 1, windowMain));
 
   mCrossChannelIntersection = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
       "icons8-query-inner-join-50.png", "[0,1,2,3,..]", "Cross channel intersection", "", windowMain));
@@ -117,7 +116,7 @@ void ContainerIntersection::fromSettings()
   mColorAndChannelIndex->setValueSecond(mSettings.meta.channelIdx);
 
   // Filtering
-  mMinIntersection->setValue(mSettings.objectFilter.minParticleSize);
+  mMinIntersection->setValue(mSettings.intersection.minIntersection);
 
   {
     auto &crossChannelIntensity = mSettings.intersection.intersectingChannels;
@@ -190,7 +189,7 @@ void ContainerIntersection::toSettings()
   mSettings.meta.type       = mChannelType->getValue();
   mSettings.meta.name       = mChannelName->getValue().toStdString();
 
-  mSettings.objectFilter.minParticleSize = mMinIntersection->getValue();
+  mSettings.intersection.minIntersection = mMinIntersection->getValue();
 
   // Cross channel settings
   {
