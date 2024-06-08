@@ -161,6 +161,8 @@ DialogExportData::Ret DialogExportData::execute()
 
 void DialogExportData::onOkayClicked()
 {
+  retVal = 0;
+  close();
 }
 
 void DialogExportData::onCancelClicked()
