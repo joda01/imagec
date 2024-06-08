@@ -24,7 +24,6 @@ SpatialHash::calcIntersections(const std::unique_ptr<detect::DetectionResults> &
             auto [colocROI, ok] = box1->calcIntersection(*box2, imageOriginal, minIntersecion);
             if(ok) {
               potential_collisions->push_back(colocROI);
-              break;
             }
           }
         }
