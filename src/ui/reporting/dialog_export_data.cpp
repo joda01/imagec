@@ -61,31 +61,33 @@ using Stat = results::Stats;
 DialogExportData::DialogExportData(QWidget *windowMain) : DialogShadow(windowMain)
 {
   setWindowTitle("Settings");
-  setBaseSize(500, 200);
+  setBaseSize(500, 400);
+  setMinimumWidth(250);
 
   auto *mainLayout = new QVBoxLayout(this);
   auto *groupBox   = new QWidget(this);
   auto *gridLayout = new QGridLayout(groupBox);
 
-  gridLayout->addWidget(new QLabel("Detail"), 0, 1, Qt::AlignCenter);
-  gridLayout->addWidget(new QLabel("Overview"), 0, 2, Qt::AlignCenter);
+  gridLayout->addWidget(new QLabel("Export heatmap"), 1, 0);
+  mExportHeatmap = new QCheckBox(groupBox);
+  gridLayout->addWidget(mExportHeatmap, 1, 1, Qt::AlignCenter);
 
-  std::map<Base, Stat> measureChannelsDetails;
+  gridLayout->addWidget(new QLabel("Export list"), 2, 0);
+  mExportList = new QCheckBox(groupBox);
+  gridLayout->addWidget(mExportList, 2, 1, Qt::AlignCenter);
+
+  gridLayout->addWidget(new QLabel("Measurments to export"), 3, 0, 1, 2);
+
   std::map<Base, Stat> measureChannelsOverview;
 
-  int row               = 1;
-  auto createCheckBoxes = [this, &measureChannelsDetails, &measureChannelsOverview, &gridLayout, &groupBox,
+  int row               = 4;
+  auto createCheckBoxes = [this, &measureChannelsOverview, &gridLayout, &groupBox,
                            &row](Base detail, Stat stat, const std::string &description) {
     gridLayout->addWidget(new QLabel(description.data()), row, 0);
 
     QCheckBox *onOffOverview = new QCheckBox(groupBox);
-    gridLayout->addWidget(onOffOverview, row, 2, Qt::AlignCenter);
-    mMeasurementOverViewReport.emplace(std::tuple<results::MeasureChannel, results::Stats>{detail, stat},
-                                       onOffOverview);
-
-    QCheckBox *onOffDetail = new QCheckBox(groupBox);
-    mMeasurementDetailsReport.emplace(std::tuple<results::MeasureChannel, results::Stats>{detail, stat}, onOffDetail);
-    gridLayout->addWidget(onOffDetail, row, 1, Qt::AlignCenter);
+    gridLayout->addWidget(onOffOverview, row, 1, Qt::AlignCenter);
+    mChannelsToExport.emplace(std::tuple<results::MeasureChannel, results::Stats>{detail, stat}, onOffOverview);
 
     row++;
   };
@@ -138,25 +140,18 @@ DialogExportData::Ret DialogExportData::execute()
 {
   int ret = QDialog::exec();
   if(retVal != 0) {
-    return {retVal, {}, {}};
-  }
-
-  std::map<results::MeasureChannel, results::Stats> details;
-  for(const auto &[key, val] : mMeasurementDetailsReport) {
-    if(val->isChecked()) {
-      details.emplace(std::get<0>(key), static_cast<results::Stats>(std::get<1>(key)));
-    }
+    return {retVal, {}};
   }
 
   std::map<results::MeasureChannel, results::Stats> overview;
-  for(auto const &[key, val] : mMeasurementOverViewReport) {
+  for(auto const &[key, val] : mChannelsToExport) {
     if(val->isChecked()) {
       auto [measureChannel, stat] = key;
       overview.emplace(std::get<0>(key), static_cast<results::Stats>(std::get<1>(key)));
     }
   }
 
-  return {0, details, overview};
+  return {0, overview};
 }
 
 void DialogExportData::onOkayClicked()

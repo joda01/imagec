@@ -38,14 +38,14 @@ public:
   struct Ret
   {
     int ret = -1;
-    std::map<results::MeasureChannel, results::Stats> details;
-    std::map<results::MeasureChannel, results::Stats> overview;
+    std::map<results::MeasureChannel, results::Stats> channelsToExport;
   };
   Ret execute();
 
 private:
-  std::map<std::tuple<results::MeasureChannel, results::Stats>, QCheckBox *> mMeasurementOverViewReport;
-  std::map<std::tuple<results::MeasureChannel, results::Stats>, QCheckBox *> mMeasurementDetailsReport;
+  std::map<std::tuple<results::MeasureChannel, results::Stats>, QCheckBox *> mChannelsToExport;
+  QCheckBox *mExportHeatmap;
+  QCheckBox *mExportList;
 
   int retVal = 0;
 

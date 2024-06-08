@@ -279,21 +279,42 @@ void PanelHeatmap::onBackClicked()
 ///
 void PanelHeatmap::repaintHeatmap()
 {
-  switch(mNavigation) {
-    case Navigation::PLATE:
-      mMarkAsInvalid->getEditableWidget()->setVisible(false);
-      paintPlate();
-      break;
-    case Navigation::WELL:
-      mMarkAsInvalid->getEditableWidget()->setVisible(true);
-      paintWell();
-      break;
-    case Navigation::IMAGE:
-      mMarkAsInvalid->getEditableWidget()->setVisible(false);
-      paintImage();
-      break;
+  if(!mIsLoading) {
+    mIsLoading = true;
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+
+    emit loadingStarted();
+
+    switch(mNavigation) {
+      case Navigation::PLATE:
+        mMarkAsInvalid->getEditableWidget()->setVisible(false);
+        break;
+      case Navigation::WELL:
+        mMarkAsInvalid->getEditableWidget()->setVisible(true);
+        break;
+      case Navigation::IMAGE:
+        mMarkAsInvalid->getEditableWidget()->setVisible(false);
+        break;
+    }
+
+    std::thread([this] {
+      switch(mNavigation) {
+        case Navigation::PLATE:
+          paintPlate();
+          break;
+        case Navigation::WELL:
+          paintWell();
+          break;
+        case Navigation::IMAGE:
+          paintImage();
+          break;
+      }
+      update();
+      QApplication::restoreOverrideCursor();
+      mIsLoading = false;
+      emit loadingFinished();
+    }).detach();
   }
-  update();
 }
 
 ///
@@ -685,12 +706,12 @@ void ChartHeatMap::mouseMoveEvent(QMouseEvent *event)
   if(newHoveredWellId >= 0) {
     if(!mIsHovering) {
       mIsHovering = true;
-      QApplication::setOverrideCursor(QCursor(Qt::CrossCursor));
+      // QApplication::setOverrideCursor(QCursor(Qt::CrossCursor));
     }
   } else {
     if(mIsHovering) {
       mIsHovering = false;
-      QApplication::restoreOverrideCursor();
+      // QApplication::restoreOverrideCursor();
     }
   }
   // Update hovering index and trigger repaint if necessary

@@ -179,6 +179,10 @@ public:
     return mHeatmap01->getData();
   }
 
+signals:
+  void loadingStarted();
+  void loadingFinished();
+
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
@@ -203,8 +207,9 @@ private:
   /////////////////////////////////////////////////////
   uint16_t mSelectedGroupId;
   uint64_t mSelectedImageId;
-
   uint64_t mSelectedElementId;
+
+  bool mIsLoading = false;
 
 public slots:
   void onMarkAsInvalidClicked();

@@ -817,8 +817,8 @@ void WindowMain::onOpenReportingAreaClicked()
   QFileDialog::Options opt;
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
-  QString filePath = QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
-                                                  "imageC Files (*.duckdb);All Files (*)", nullptr, opt);
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "imageC Files (*.duckdb)", nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;

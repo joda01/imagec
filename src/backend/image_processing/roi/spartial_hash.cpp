@@ -11,6 +11,7 @@ SpatialHash::calcIntersections(const std::unique_ptr<detect::DetectionResults> &
                                float minIntersecion)
 {
   auto potential_collisions = std::make_unique<joda::image::detect::DetectionResults>();
+  std::set<ROI *> intersecting;
 
   // Check for collisions between objects in grid1 and grid2
   for(const auto &cell : grid) {
@@ -20,10 +21,15 @@ SpatialHash::calcIntersections(const std::unique_ptr<detect::DetectionResults> &
       const auto &boxes2 = it->second;
       for(const auto &box1 : boxes1) {
         for(const auto &box2 : boxes2) {
-          if(isCollision(box1, box2)) {
-            auto [colocROI, ok] = box1->calcIntersection(*box2, imageOriginal, minIntersecion);
-            if(ok) {
-              potential_collisions->push_back(colocROI);
+          // Each intersecting particle is only allowed to be counted once
+          if(!intersecting.contains(box1) && !intersecting.contains(box2)) {
+            if(isCollision(box1, box2)) {
+              auto [colocROI, ok] = box1->calcIntersection(*box2, imageOriginal, minIntersecion);
+              if(ok) {
+                potential_collisions->push_back(colocROI);
+                intersecting.emplace(box1);
+                intersecting.emplace(box2);
+              }
             }
           }
         }

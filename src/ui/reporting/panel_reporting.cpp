@@ -51,6 +51,8 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelReporting");
 
+  connect(this, &PanelReporting::exportFinished, this, &PanelReporting::onExportFinished);
+
   auto [horizontalLayout, _] = joda::ui::qt::helper::createLayout(this);
   auto [verticalLayoutContainer, _1] =
       joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 250, 16);
@@ -61,7 +63,9 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   {
     connect(this, &PanelReporting::loadingFilesfinished, this, &PanelReporting::onLoadingFileFinished);
 
-    auto [selector, _2] = joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+    auto [selector, _2]     = joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+    mProgressBarTableSelect = createProgressBar(_2);
+
     selector->addWidget(createTitle("Selector"));
     mSelectorLayout = selector;
 
@@ -98,6 +102,8 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
             mWindowMain, ""));
     selector->addWidget(mStats->getEditableWidget());
     connect(mStats.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onMeasurementChanged);
+
+    selector->addWidget(mProgressBarTableSelect);
 
     _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
@@ -149,10 +155,14 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     auto [verticalLayoutXlsx, _2] =
         joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
     verticalLayoutXlsx->addWidget(createTitle("Export"));
+    mProgressBarExport = createProgressBar(_2);
 
     mButtonExport = new ContainerButton("Export", "icons8-export-excel-50.png", mWindowMain);
     connect(mButtonExport, &ContainerButton::valueChanged, this, &PanelReporting::onExportHeatmapClicked);
     verticalLayoutXlsx->addWidget(mButtonExport->getEditableWidget());
+
+    mProgressBarExport->setVisible(false);
+    verticalLayoutXlsx->addWidget(mProgressBarExport);
 
     _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   }
@@ -173,6 +183,8 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     tableContainer->setContentsMargins(0, 0, 0, 0);
     mHeatmap = new reporting::plugin::PanelHeatmap(mWindowMain, tableContainerLayout);
     tableContainer->addWidget(mHeatmap);
+    connect(mHeatmap, &reporting::plugin::PanelHeatmap::loadingStarted, this, &PanelReporting::onLoadingStarted);
+    connect(mHeatmap, &reporting::plugin::PanelHeatmap::loadingFinished, this, &PanelReporting::onLoadingFinished);
   }
 
   //
@@ -231,7 +243,10 @@ void PanelReporting::onResultsFileSelected()
 QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
 {
   QProgressBar *progress = new QProgressBar(parent);
-  progress->setVisible(false);
+  progress->setRange(0, 0);
+  progress->setMaximum(0);
+  progress->setMinimum(0);
+  // progress->setVisible(false);
   progress->setMaximumHeight(8);
   progress->setTextVisible(false);
   progress->setContentsMargins(8, 8, 8, 0);
@@ -333,22 +348,67 @@ void PanelReporting::onChannelChanged()
 ///
 void PanelReporting::onMeasurementChanged()
 {
-  auto value    = mPlateSize->getValue();
-  uint32_t rows = value / 100;
-  uint32_t cols = value % 100;
+  if(mProgressBarTableSelect != nullptr) {
+    // Show progress bar
+    setLoadingData(true);
 
-  mFilter = reporting::plugin::PanelHeatmap::SelectedFilter{
-      .analyzeId          = mAnalyzeSelector->getValue().toStdString(),
-      .plateRows          = rows,
-      .plateCols          = cols,
-      .plateId            = 1,
-      .channelIdx         = mChannelSelector->getValue(),
-      .measureChannel     = joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()),
-      .wellImageOrder     = joda::results::db::matrixStringToArrayOrder(mWellOrdering->getValue().toStdString()),
-      .stats              = mStats->getValue(),
-      .densityMapAreaSize = mHeatmapSlice->getValue().toUInt()};
+    // Select
+    auto value    = mPlateSize->getValue();
+    uint32_t rows = value / 100;
+    uint32_t cols = value % 100;
 
-  mHeatmap->setData(mAnalyzer, mFilter);
+    mFilter = reporting::plugin::PanelHeatmap::SelectedFilter{
+        .analyzeId          = mAnalyzeSelector->getValue().toStdString(),
+        .plateRows          = rows,
+        .plateCols          = cols,
+        .plateId            = 1,
+        .channelIdx         = mChannelSelector->getValue(),
+        .measureChannel     = joda::results::MeasureChannelId(mMeasureChannelSelector->getValue()),
+        .wellImageOrder     = joda::results::db::matrixStringToArrayOrder(mWellOrdering->getValue().toStdString()),
+        .stats              = mStats->getValue(),
+        .densityMapAreaSize = mHeatmapSlice->getValue().toUInt()};
+    mHeatmap->setData(mAnalyzer, mFilter);
+  }
+}
+///
+/// \brief      Export to xlsx
+/// \author     Joachim Danmayr
+///
+void PanelReporting::onLoadingStarted()
+{
+  setLoadingData(true);
+}
+
+///
+/// \brief      Export to xlsx
+/// \author     Joachim Danmayr
+///
+void PanelReporting::onLoadingFinished()
+{
+  setLoadingData(false);
+}
+
+///
+/// \brief      Export to xlsx
+/// \author     Joachim Danmayr
+///
+void PanelReporting::onExportFinished()
+{
+}
+
+///
+/// \brief      Export to xlsx
+/// \author     Joachim Danmayr
+///
+void PanelReporting::setLoadingData(bool load)
+{
+  mProgressBarTableSelect->setVisible(load);
+  mChannelSelector->getEditableWidget()->setEnabled(!load);
+  mMeasureChannelSelector->getEditableWidget()->setEnabled(!load);
+  mStats->getEditableWidget()->setEnabled(!load);
+  mPlateSize->getEditableWidget()->setEnabled(!load);
+  mHeatmapSlice->getEditableWidget()->setEnabled(!load);
+  mWellOrdering->getEditableWidget()->setEnabled(!load);
 }
 
 ///
@@ -404,9 +464,9 @@ void PanelReporting::onExportHeatmapClicked()
       channelData.name = channel.name;
 
       for(const auto &measureChannel : channel.measurements) {
-        if(measureChannelsToExport.overview.contains(measureChannel.getMeasureChannel())) {
-          channelData.measureChannels.emplace(measureChannel,
-                                              measureChannelsToExport.overview.at(measureChannel.getMeasureChannel()));
+        if(measureChannelsToExport.channelsToExport.contains(measureChannel.getMeasureChannel())) {
+          channelData.measureChannels.emplace(
+              measureChannel, measureChannelsToExport.channelsToExport.at(measureChannel.getMeasureChannel()));
         }
       }
       imageChannels.emplace(channel.channelId, channelData);

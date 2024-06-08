@@ -77,7 +77,8 @@ private:
   std::shared_ptr<ContainerFunction<QString, int>> mHeatmapSlice;
   std::shared_ptr<ContainerFunction<QString, int>> mWellOrdering;
 
-  QProgressBar *mProgressHeatmap;
+  QProgressBar *mProgressBarTableSelect = nullptr;
+  QProgressBar *mProgressBarExport      = nullptr;
   ContainerButton *mButtonExport;
 
   // Table
@@ -94,6 +95,10 @@ private:
 
   void lookingForFilesThread();
   void loadDetailReportToTable();
+  void setLoadingData(bool);
+
+signals:
+  void exportFinished();
 
 private slots:
   void onExportListClicked();
@@ -103,6 +108,9 @@ private slots:
   void onChannelChanged();
   void onMeasurementChanged();
   void onTableDoubleClicked(const QModelIndex &index);
+  void onLoadingStarted();
+  void onLoadingFinished();
+  void onExportFinished();
 };
 
 }    // namespace joda::ui::qt
