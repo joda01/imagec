@@ -96,7 +96,7 @@ void Helper::setDetailReportHeader(const joda::settings::AnalyzeSettings &analyz
 /// \param[in]  result The results of a channel
 ///
 void Helper::appendToDetailReport(const joda::settings::AnalyzeSettings &analyzeSettings,
-                                  const joda::image::detect::DetectionResults &result,
+                                  const std::unique_ptr<joda::image::detect::DetectionResults> result,
                                   joda::results::WorkSheet &detailReportTable,
                                   const std::string &detailReportOutputPath, const std::string &analyzeName,
                                   joda::settings::ChannelIndex chIdx, uint32_t tileIdx, const ImageProperties &imgProps,

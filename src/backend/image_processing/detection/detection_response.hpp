@@ -13,14 +13,16 @@
 
 #pragma once
 
+#include <memory>
 #include "backend/image_processing/roi/roi.hpp"
+#include "backend/image_processing/roi/spartial_hash.hpp"
 
 namespace joda::image::detect {
 
-class DetectionResults : public std::vector<ROI>
+class DetectionResults : public SpatialHash
 {
 public:
-  using std::vector<ROI>::vector;
+  using SpatialHash::SpatialHash;
   void createBinaryImage(cv::Mat &img) const;
 };
 
@@ -37,11 +39,11 @@ using ResponseDataValidity = std::bitset<32>;
 
 struct DetectionResponse
 {
-  DetectionResults result;
-  cv::Mat originalImage                 = {};
-  cv::Mat controlImage                  = {};
-  ResponseDataValidity responseValidity = {};
-  bool invalidateWholeImage             = false;
+  std::unique_ptr<DetectionResults> result = std::make_unique<DetectionResults>();
+  cv::Mat originalImage                    = {};
+  cv::Mat controlImage                     = {};
+  ResponseDataValidity responseValidity    = {};
+  bool invalidateWholeImage                = false;
 };
 
 }    // namespace joda::image::detect

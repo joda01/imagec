@@ -36,10 +36,10 @@ auto CalcCount::execute(
         const_cast<joda::image::detect::DetectionResponse &>(detectionResultsIn.at(mReferenceChannelIndex));
     for(const auto idxToIntersect : mChannelsToCalcIntensityIn) {
       if(detectionResultsIn.contains(idxToIntersect)) {
-        for(image::ROI &roiMe : myResults.result) {
+        for(image::ROI &roiMe : *myResults.result) {
           if(roiMe.isValid()) {
-            if(!detectionResultsIn.empty() && !detectionResultsIn.at(idxToIntersect).result.empty()) {
-              for(const auto &roiOther : detectionResultsIn.at(idxToIntersect).result) {
+            if(!detectionResultsIn.empty() && !detectionResultsIn.at(idxToIntersect).result->empty()) {
+              for(const auto &roiOther : *detectionResultsIn.at(idxToIntersect).result) {
                 roiMe.calcIntersectionAndAdd(idxToIntersect, &roiOther);
               }
             } else {

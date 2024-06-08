@@ -12,6 +12,7 @@
 ///
 
 #include "ai_object_detection.h"
+#include <memory>
 #include <set>
 #include <string>
 #include "../detection.hpp"
@@ -62,7 +63,7 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &o
   auto results = postProcessing(inputImageOriginal, originalImage, outputs, channelIndex);
 
   DurationCount::stop(id);
-  return {.result = results, .controlImage = inputImage};
+  return {.result = std::move(results), .controlImage = inputImage};
 }
 
 ///
@@ -84,7 +85,7 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &o
 ///
 auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const cv::Mat &originalImage,
                                     const std::vector<cv::Mat> &predictionMatrix,
-                                    joda::settings::ChannelIndex channelIndex) -> DetectionResults
+                                    joda::settings::ChannelIndex channelIndex) -> std::unique_ptr<DetectionResults>
 
 {
   // Initialize vectors to hold respective outputs while unwrapping     detections.
@@ -171,8 +172,8 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const cv::Mat &or
   //
   // Remove all elements which where suppressed by the NMS algoeithm
   //
-  DetectionResults result;
-  uint32_t index = 0;
+  std::unique_ptr<DetectionResults> result = std::make_unique<DetectionResults>();
+  uint32_t index                           = 0;
   for(int n = 0; n < confidences.size(); n++) {
     if(keptIndexesSet.count(n) == 1) {
       cv::Mat boxMask = cv::Mat::ones(inputImage.size(), CV_8UC1);
@@ -185,7 +186,7 @@ auto ObjectDetector::postProcessing(const cv::Mat &inputImage, const cv::Mat &or
       }
       ROI roi(index, confidences[n], classIds[n], boxes[n], boxMask, contours[0], originalImage, channelIndex,
               getFilterSettings());
-      result.push_back(roi);
+      result->push_back(roi);
       index++;
     }
   }

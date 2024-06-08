@@ -14,6 +14,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include "../detection.hpp"
 #include "../detection_response.hpp"
@@ -34,10 +35,11 @@ class VoronoiGrid : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  explicit VoronoiGrid(const DetectionResults &result, int maxRadius) : DetectionFunction({}), mMaxRadius(maxRadius)
+  explicit VoronoiGrid(const std::unique_ptr<DetectionResults> &result, int maxRadius) :
+      DetectionFunction({}), mMaxRadius(maxRadius)
   {
     // Extract points from the result bounding boxes
-    for(const auto &res : result) {
+    for(const auto &res : *result) {
       if(res.isValid()) {
         int x = static_cast<int>(static_cast<float>(res.getBoundingBox().x) +
                                  static_cast<float>(res.getBoundingBox().width) / 2.0F);
@@ -176,7 +178,7 @@ public:
       }
 
       ROI roi(i, 1, 0, box, boxMask, contours[idxMax], {{joda::settings::ChannelIndex::NONE, &imgOriginal}});
-      response.result.push_back(roi);
+      response.result->push_back(roi);
     }
 
     paintBoundingBox(response.controlImage, response.result, {}, "#FF0000", false, false);

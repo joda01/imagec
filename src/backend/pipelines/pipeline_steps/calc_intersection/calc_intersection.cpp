@@ -13,9 +13,11 @@
 
 #include "calc_intersection.hpp"
 #include <cstdint>
+#include <memory>
 #include <string>
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/image_processing/detection/detection.hpp"
+#include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/detection/object_segmentation/object_segmentation.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -32,43 +34,78 @@ CalcIntersection::CalcIntersection(joda::settings::ChannelIndex channelIndexMe,
 
 auto CalcIntersection::execute(
     const settings::AnalyzeSettings &settings,
-    const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &detectionResultsIn) const
-    -> joda::image::detect::DetectionResponse
+    const std::map<joda::settings::ChannelIndex, image::detect::DetectionResponse> &detectionResultsIn) const
+    -> image::detect::DetectionResponse
 {
   auto id = DurationCount::start("Intersection");
 
   if(mIndexesToIntersect.empty() || !detectionResultsIn.contains(*mIndexesToIntersect.begin())) {
-    return joda::image::detect::DetectionResponse{};
+    return image::detect::DetectionResponse{};
   }
+  auto it = mIndexesToIntersect.begin();
 
-  cv::Mat intersectingMask =
-      cv::Mat(detectionResultsIn.at(*mIndexesToIntersect.begin()).controlImage.size(), CV_8UC1, cv::Scalar(255));
-  cv::Mat originalImage =
-      cv::Mat::ones(detectionResultsIn.at(*mIndexesToIntersect.begin()).controlImage.size(), CV_16UC1) * 65535;
+  image::detect::DetectionResponse response{
+      .result               = detectionResultsIn.at(*it).result->clone(),
+      .originalImage        = {},
+      .controlImage         = cv::Mat::zeros(detectionResultsIn.at(*it).originalImage.size(), CV_32FC3),
+      .responseValidity     = {},
+      .invalidateWholeImage = false};
+
+  std::map<joda::settings::ChannelIndex, const cv::Mat *> channelsToIntersectImages;
 
   for(const auto idxToIntersect : mIndexesToIntersect) {
     if(detectionResultsIn.contains(idxToIntersect)) {
-      cv::Mat binaryImage = cv::Mat::zeros(detectionResultsIn.at(idxToIntersect).originalImage.size(), CV_8UC1);
-      detectionResultsIn.at(idxToIntersect).result.createBinaryImage(binaryImage);
-      cv::bitwise_and(intersectingMask, binaryImage, intersectingMask);
-
-      // Calculate the intersection of the original images
-      originalImage = cv::min(detectionResultsIn.at(idxToIntersect).originalImage, originalImage);
+      channelsToIntersectImages.emplace(idxToIntersect, &detectionResultsIn.at(idxToIntersect).originalImage);
     }
   }
 
-  joda::settings::ChannelSettingsFilter filter;
-  filter.maxParticleSize = INT64_MAX;
-  filter.minParticleSize = mMinIntersection;    ///\todo Add filtering
-  filter.snapAreaSize    = 0;
-  filter.minCircularity  = 0;
-  joda::image::segment::ObjectSegmentation seg(filter, 200, joda::settings::ThresholdSettings::Mode::MANUAL, false);
-  joda::image::detect::DetectionResponse response = seg.forward(intersectingMask, originalImage, mChannelIndexMe);
+  if(it != mIndexesToIntersect.end()) {
+    ++it;
+  }
+  for(; it != mIndexesToIntersect.end(); ++it) {
+    if(detectionResultsIn.contains(*it)) {
+      const auto &element = detectionResultsIn.at(*it);
+      response.result     = response.result->calcIntersections(element.result, channelsToIntersectImages, 0.5);
+
+      // detectionResultsIn.at(idxToIntersect).
+    }
+  }
 
   image::detect::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FFFF", false, false);
-
   DurationCount::stop(id);
+
   return response;
+}
+/*
+cv::Mat intersectingMask =
+    cv::Mat(detectionResultsIn.at(*mIndexesToIntersect.begin()).controlImage.size(), CV_8UC1, cv::Scalar(255));
+cv::Mat originalImage =
+    cv::Mat::ones(detectionResultsIn.at(*mIndexesToIntersect.begin()).controlImage.size(), CV_16UC1) * 65535;
+
+for(const auto idxToIntersect : mIndexesToIntersect) {
+  if(detectionResultsIn.contains(idxToIntersect)) {
+    cv::Mat binaryImage = cv::Mat::zeros(detectionResultsIn.at(idxToIntersect).originalImage.size(), CV_8UC1);
+    detectionResultsIn.at(idxToIntersect).result.createBinaryImage(binaryImage);
+    cv::bitwise_and(intersectingMask, binaryImage, intersectingMask);
+    // Calculate the intersection of the original images
+    originalImage = cv::min(detectionResultsIn.at(idxToIntersect).originalImage, originalImage);
+  }
+}
+
+joda::settings::ChannelSettingsFilter filter;
+filter.maxParticleSize = INT64_MAX;
+filter.minParticleSize = mMinIntersection;    ///\todo Add filtering
+filter.snapAreaSize    = 0;
+filter.minCircularity  = 0;
+joda::image::segment::ObjectSegmentation seg(filter, 200, joda::settings::ThresholdSettings::Mode::MANUAL, false);
+std::unique_ptr<image::detect::DetectionResponse> response = seg.forward(intersectingMask,
+originalImage, mChannelIndexMe);
+
+image::detect::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FFFF", false, false);
+
+DurationCount::stop(id);
+return response;
+* /
 }
 
 //
@@ -77,17 +114,17 @@ auto CalcIntersection::execute(
 /*
 std::vector<image::detect::DetectionFunction::OverlaySettings> overlayPainting;
 overlayPainting.push_back({.result          = &channelsToIntersect[0]->result,
-                           .backgroundColor = cv::Scalar(255, 0, 0),
+                         .backgroundColor = cv::Scalar(255, 0, 0),
+                         .borderColor     = cv::Scalar(0, 0, 0),
+                         .paintRectangel  = false,
+                         .opaque          = 0.3});
+
+
+overlayPainting.push_back({.result          = &ch1->result,
+                           .backgroundColor = cv::Scalar(0, 255, 0),
                            .borderColor     = cv::Scalar(0, 0, 0),
                            .paintRectangel  = false,
                            .opaque          = 0.3});
-
-
-  overlayPainting.push_back({.result          = &ch1->result,
-                             .backgroundColor = cv::Scalar(0, 255, 0),
-                             .borderColor     = cv::Scalar(0, 0, 0),
-                             .paintRectangel  = false,
-                             .opaque          = 0.3});
 */
 
 /*overlayPainting.insert(overlayPainting.begin(),

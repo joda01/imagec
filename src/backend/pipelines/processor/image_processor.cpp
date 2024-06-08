@@ -275,8 +275,8 @@ void ImageProcessor::doFiltering(
         //
         // Remove reference spots
         //
-        for(auto const &referenceRoi : referenceSpotChannel->second.result) {
-          for(auto &spot : detectionResult.result) {
+        for(auto const &referenceRoi : *referenceSpotChannel->second.result) {
+          for(auto &spot : *detectionResult.result) {
             if(referenceRoi.isValid() && spot.isValid()) {
               auto isIntersecting = referenceRoi.isIntersecting(spot, 0.7);
               if(isIntersecting) {
@@ -304,7 +304,7 @@ void ImageProcessor::doFiltering(
     // Filter by max particles
     //
     if(channelSetting.imageFilter.maxObjects > 0 &&
-       detectionResult.result.size() > channelSetting.imageFilter.maxObjects) {
+       detectionResult.result->size() > channelSetting.imageFilter.maxObjects) {
       detectionResult.responseValidity.set(
           static_cast<size_t>(image::detect::ResponseDataValidityEnum::POSSIBLE_NOISE));
     }

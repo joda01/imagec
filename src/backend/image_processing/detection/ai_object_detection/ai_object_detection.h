@@ -42,7 +42,7 @@ private:
   /////////////////////////////////////////////////////
   auto postProcessing(const cv::Mat &inputImage, const cv::Mat &originalImage,
                       const std::vector<cv::Mat> &predictionMatrix, joda::settings::ChannelIndex channelIndex)
-      -> DetectionResults;
+      -> std::unique_ptr<DetectionResults>;
   void drawLabel(cv::Mat &input_image, const std::string &label, int left, int top);
   /////////////////////////////////////////////////////
   const float INPUT_WIDTH          = 640.0;

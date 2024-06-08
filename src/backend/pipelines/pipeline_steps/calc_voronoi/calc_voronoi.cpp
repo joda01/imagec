@@ -40,7 +40,7 @@ auto CalcVoronoi::execute(
   // Calculate a limited CalcVoronoi grid based on the center of nucleus
   //
   if(detectionResults.contains(voronoiPoints)) {
-    auto voronoiPointsChannel = detectionResults.at(voronoiPoints);
+    const auto &voronoiPointsChannel = detectionResults.at(voronoiPoints);
 
     image::detect::VoronoiGrid grid(voronoiPointsChannel.result, mMaxVoronoiAreaSize);
     auto CalcVoronoiResult =
@@ -54,7 +54,7 @@ auto CalcVoronoi::execute(
 
     auto filterVoronoiAreas = [this, &response, &voronoiPointsChannel, &CalcVoronoiResult,
                                &mask](std::optional<const image::ROI> toIntersect) {
-      for(auto &voronoiArea : CalcVoronoiResult.result) {
+      for(auto &voronoiArea : *CalcVoronoiResult.result) {
         if(voronoiArea.isValid()) {
           //
           // Apply filter
@@ -89,7 +89,7 @@ auto CalcVoronoi::execute(
                 cutedVoronoiArea.setValidity(image::ParticleValidityEnums::AT_THE_EDGE);
               }
             }
-            response.result.push_back(cutedVoronoiArea);
+            response.result->push_back(cutedVoronoiArea);
           };
 
           //
@@ -112,7 +112,7 @@ auto CalcVoronoi::execute(
     };
 
     if(mask != nullptr) {
-      for(const auto &toIntersect : mask->result) {
+      for(const auto &toIntersect : *mask->result) {
         if(toIntersect.isValid()) {
           filterVoronoiAreas(toIntersect);
         }
@@ -132,9 +132,9 @@ auto CalcVoronoi::execute(
 }
 
 bool CalcVoronoi::doesAreaContainsPoint(const image::ROI &voronoiArea,
-                                        const joda::image::detect::DetectionResults &voronoiPoints)
+                                        const std::unique_ptr<joda::image::detect::DetectionResults> &voronoiPoints)
 {
-  for(const auto &point : voronoiPoints) {
+  for(const auto &point : *voronoiPoints) {
     if(voronoiArea.isIntersecting(point, 0.1)) {
       return true;
     }

@@ -429,7 +429,7 @@ void PanelChannelEdit::updatePreview()
                     QPixmap pixmap = QPixmap::fromImage(image);
                     int valid      = 0;
                     int invalid    = 0;
-                    for(const auto &roi : preview.detectionResult) {
+                    for(const auto &roi : *preview.detectionResult) {
                       if(roi.isValid()) {
                         valid++;
                       } else {

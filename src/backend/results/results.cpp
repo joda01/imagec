@@ -282,10 +282,10 @@ void Results::appendToDetailReport(std::shared_ptr<duckdb::Appender> appender,
     int64_t yMul            = offsetY * imgProps.tileHeight;
 
     uint64_t roiIdx = 0;
-    auto id2 = DurationCount::start("loop db prepare >" + std::to_string(results.result.size()) + "<.");    // 30ms
+    auto id2 = DurationCount::start("loop db prepare >" + std::to_string(results.result->size()) + "<.");    // 30ms
 
     auto uuid = duckdb::Value::UUID(mAnalyzeId);
-    for(const auto &roi : results.result) {
+    for(const auto &roi : *results.result) {
       uint64_t index = roiIdx;
       roiIdx++;
       // db::Data &chan = objects[index];

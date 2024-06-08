@@ -317,7 +317,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
     joda::pipeline::CalcIntersection intersectAlgo(
         intersect.meta.channelIdx, intersect.intersection.intersectingChannels, intersect.objectFilter.minParticleSize);
     auto response = intersectAlgo.execute(mAnalyzeSettings, detectionResults);
-    detectionResults.emplace(intersect.meta.channelIdx, response);
+    detectionResults.emplace(intersect.meta.channelIdx, std::move(response));
 
     auto id = DurationCount::start("Append to detail report intersect");
 
@@ -361,7 +361,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
 
     auto idx = voronoi.meta.channelIdx;
 
-    detectionResults.emplace(idx, response);
+    detectionResults.emplace(idx, std::move(response));
 
     if(!voronoi.crossChannel.crossChannelIntensityChannels.empty()) {
       CalcIntensity intensity(idx, voronoi.crossChannel.crossChannelIntensityChannels);
@@ -458,7 +458,7 @@ void Pipeline::analyszeChannel(
                                                              &channelProperties, &detectionResults);
     // Add processing result to the detection result map
     std::lock_guard<std::mutex> lock(mAddToDetailReportMutex);
-    detectionResults.emplace(channelIndex, processingResult);
+    detectionResults.emplace(channelIndex, std::move(processingResult));
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
   }

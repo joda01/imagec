@@ -161,7 +161,7 @@ auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex
     return {.data            = buffer,
             .height          = result.controlImage.rows,
             .width           = result.controlImage.cols,
-            .detectionResult = result.result,
+            .detectionResult = std::move(result.result),
             .imageFileName   = imagePath.getFilePath().string()};
   }
   return {.data = {}, .height = 0, .width = 0, .detectionResult = {}, .imageFileName = {}};

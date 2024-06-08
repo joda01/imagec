@@ -45,7 +45,7 @@ public:
     std::vector<uchar> data;
     int height;
     int width;
-    joda::image::detect::DetectionResults detectionResult;
+    std::unique_ptr<joda::image::detect::DetectionResults> detectionResult;
     std::string imageFileName;
   };
   auto preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex) -> Preview;

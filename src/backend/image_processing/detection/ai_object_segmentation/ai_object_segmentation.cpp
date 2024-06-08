@@ -12,6 +12,7 @@
 /// \link      https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
 #include "ai_object_segmentation.hpp"
+#include <memory>
 #include <string>
 #include "../detection.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -160,7 +161,7 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
   vector<Mat> maskChannels;
   split(masks, maskChannels);
 
-  image::detect::DetectionResults output;
+  std::unique_ptr<image::detect::DetectionResults> output = std::make_unique<image::detect::DetectionResults>();
   Rect holeImgRect(0, 0, inputImage.cols, inputImage.rows);
   for(int i = 0; i < nms_result.size(); ++i) {
     int idx      = nms_result[i];
@@ -182,12 +183,12 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
 
     ROI roi(i, confidences[idx], classIds[idx], box, mask, contours[idxMax], originalImage, channelIndex,
             getFilterSettings());
-    output.push_back(roi);
+    output->push_back(roi);
   }
 
   DurationCount::stop(id);
 
-  return {.result = output, .controlImage = inputImage};
+  return {.result = std::move(output), .controlImage = inputImage};
 }
 
 ///

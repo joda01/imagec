@@ -55,7 +55,7 @@ private:
   };
 
   static bool doesAreaContainsPoint(const image::ROI &voronoiArea,
-                                    const joda::image::detect::DetectionResults &voronoiPoints);
+                                    const std::unique_ptr<joda::image::detect::DetectionResults> &voronoiPoints);
 
   /////////////////////////////////////////////////////
   joda::settings::ChannelIndex mChannelIndexMe;

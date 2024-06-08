@@ -35,7 +35,7 @@ auto CalcIntensity::execute(
         const_cast<joda::image::detect::DetectionResponse &>(detectionResultsIn.at(mReferenceChannelIndex));
     for(const auto idxToIntersect : mChannelsToCalcIntensityIn) {
       if(detectionResultsIn.contains(idxToIntersect)) {
-        for(image::ROI &roi : myResults.result) {
+        for(image::ROI &roi : *myResults.result) {
           if(roi.isValid()) {
             roi.measureAndAddIntensity(idxToIntersect, detectionResultsIn.at(idxToIntersect).originalImage);
           } else {

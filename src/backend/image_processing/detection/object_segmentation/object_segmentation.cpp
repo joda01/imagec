@@ -86,7 +86,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
     watershed.execute(binaryImage);
   }
 
-  image::detect::DetectionResults response;
+  std::unique_ptr<image::detect::DetectionResults> response = std::make_unique<image::detect::DetectionResults>();
 
   // Find contours in the binary image
 
@@ -99,7 +99,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
 
   if(contours.size() > 50000) {
     joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
-    return {.result = response, .controlImage = {}};
+    return {.result = std::move(response), .controlImage = {}};
   }
 
   cv::Mat boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
@@ -128,7 +128,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
       ROI detect(idx, usedThersholdVal, 0, boundingBox, mask, contour, originalImage, channelIndex,
                  getFilterSettings());
       idx++;
-      response.push_back(detect);
+      response->push_back(detect);
     }
     i++;
   }
@@ -140,6 +140,6 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
 
   DurationCount::stop(id);
-  return {.result = response, .controlImage = inputImage};
+  return {.result = std::move(response), .controlImage = inputImage};
 }
 }    // namespace joda::image::segment

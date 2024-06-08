@@ -27,5 +27,5 @@ TEST_CASE("cell:counter:ai", "[cell_counter_ai]")
   joda::image::detect::DetectionFunction::paintBoundingBox(result.controlImage, result.result, data, {}, true, true);
   cv::imwrite("test/img/ao.png", result.controlImage);    // A JPG FILE IS BEING SAVED
 
-  CHECK(result.result.size() == 15);
+  CHECK(result.result->size() == 15);
 }

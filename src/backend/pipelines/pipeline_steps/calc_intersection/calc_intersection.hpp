@@ -29,8 +29,8 @@ public:
                    const std::set<joda::settings::ChannelIndex> &indexesToIntersect, uint64_t minIntersection);
 
   auto execute(const settings::AnalyzeSettings &,
-               const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &) const
-      -> joda::image::detect::DetectionResponse override;
+               const std::map<joda::settings::ChannelIndex, image::detect::DetectionResponse> &) const
+      -> image::detect::DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////
