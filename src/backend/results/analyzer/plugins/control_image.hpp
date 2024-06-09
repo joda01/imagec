@@ -55,13 +55,13 @@ public:
 
     // Draw horizontal line
     cv::line(image, cv::Point(0, pointOfInterest.y), cv::Point(image.cols - 1, pointOfInterest.y),
-             cv::Scalar(0, 0, 255, 128), 2);
+             cv::Scalar(0, 0, 255, 128), 1);
 
     // Draw vertical line
     cv::line(image, cv::Point(pointOfInterest.x, 0), cv::Point(pointOfInterest.x, image.rows - 1),
-             cv::Scalar(0, 0, 255, 128), 2);
+             cv::Scalar(0, 0, 255, 128), 1);
 
-    // Paint rectabgle
+    // Paint rectangle
     cv::rectangle(image, boundingBox, cv::Scalar(0, 0, 255, 128), 2);
 
     return image;
