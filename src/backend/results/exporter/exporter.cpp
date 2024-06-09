@@ -2,7 +2,11 @@
 
 #include "exporter.hpp"
 #include <string>
+#include "backend/results/analyzer/plugins/heatmap_for_image.hpp"
+#include "backend/results/analyzer/plugins/heatmap_for_well.hpp"
+#include "backend/results/analyzer/plugins/stats_for_image.hpp"
 #include "backend/results/analyzer/plugins/stats_for_plate.hpp"
+#include "backend/results/analyzer/plugins/stats_for_well.hpp"
 
 namespace joda::results::exporter {
 
@@ -45,11 +49,25 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
 
     Pos offsets;
     for(const auto &[measureChannelId, stats] : imageChannel.measureChannels) {
-      auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(settings.analyzer, settings.plateId,
-                                                                             settings.plateRows, settings.plarteCols,
-                                                                             imageChannelId, measureChannelId, stats);
+      Table table;
+      switch(settings.exportDetail) {
+        case Settings::ExportDetail::PLATE:
+          table = joda::results::analyze::plugins::HeatmapPerPlate::getData(settings.analyzer, settings.plateId,
+                                                                            settings.plateRows, settings.plarteCols,
+                                                                            imageChannelId, measureChannelId, stats);
+          break;
+        case Settings::ExportDetail::WELL:
+          table = joda::results::analyze::plugins::HeatmapForWell::getData(
+              settings.analyzer, settings.plateId, settings.groupId, imageChannelId, measureChannelId, stats,
+              settings.wellImageOrder);
+          break;
+        case Settings::ExportDetail::IMAGE:
+          table = joda::results::analyze::plugins::HeatmapForImage::getData(
+              settings.analyzer, settings.imageId, imageChannelId, measureChannelId, stats, settings.heatmapAreaSize);
+          break;
+      }
 
-      paintPlateBorder(worksheet, settings.plateRows, settings.plarteCols, offsets.row, workbookSettings.header,
+      paintPlateBorder(worksheet, table.getRows(), table.getCols(), offsets.row, workbookSettings.header,
                        workbookSettings.merge_format, workbookSettings.numberFormat, measureChannelId.toString());
       offsets = paintHeatmap(workbookSettings, worksheet, table, offsets.row);
       offsets.row += 4;
@@ -78,15 +96,30 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
     worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET, imageChannel.name.data(), workbookSettings.header);
 
     for(const auto &[measureChannelId, stats] : imageChannel.measureChannels) {
-      auto table = joda::results::analyze::plugins::StatsPerPlate::getData(settings.analyzer, settings.plateId,
-                                                                           settings.plateRows, settings.plarteCols,
-                                                                           imageChannelId, measureChannelId, stats);
+      Table table;
+
+      switch(settings.exportDetail) {
+        case Settings::ExportDetail::PLATE:
+          table = joda::results::analyze::plugins::StatsPerPlate::getData(settings.analyzer, settings.plateId,
+                                                                          settings.plateRows, settings.plarteCols,
+                                                                          imageChannelId, measureChannelId, stats);
+          break;
+        case Settings::ExportDetail::WELL:
+          table = joda::results::analyze::plugins::StatsPerGroup::getData(
+              settings.analyzer, settings.plateId, settings.groupId, imageChannelId, measureChannelId);
+          break;
+        case Settings::ExportDetail::IMAGE:
+          table = joda::results::analyze::plugins::StatsPerImage::getData(
+              settings.analyzer, settings.plateId, settings.imageId, imageChannelId, measureChannelId);
+          break;
+      }
 
       for(int col = 0; col < table.getCols(); col++) {
         worksheet_write_string(worksheet, 1, colOffset + COL_OFFSET, table.getMutableColHeader()[col].data(),
                                workbookSettings.header);
 
         for(int row = 0; row < table.getRows(); row++) {
+          // Row header
           worksheet_write_string(worksheet, 1 + ROW_OFFSET + row, 0, table.getRowHeader(row).data(),
                                  workbookSettings.header);
 

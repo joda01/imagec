@@ -22,6 +22,13 @@ public:
       LIST
     };
 
+    enum class ExportDetail
+    {
+      PLATE,
+      WELL,
+      IMAGE
+    };
+
     struct Channel
     {
       std::string name;
@@ -30,9 +37,14 @@ public:
     std::map<ChannelIndex, Channel> imageChannels;
     Analyzer &analyzer;
     uint8_t plateId;
+    uint16_t groupId;
+    uint64_t imageId;
     uint16_t plateRows;
     uint16_t plarteCols;
+    uint32_t heatmapAreaSize;
+    std::vector<std::vector<int32_t>> wellImageOrder;
     ExportType exportType;
+    ExportDetail exportDetail;
   };
 
   static void startExport(const Settings &settings, const std::string &outputFileName);

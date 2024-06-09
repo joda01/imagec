@@ -473,25 +473,48 @@ void PanelReporting::onExportHeatmapClicked()
       imageChannels.emplace(channel.channelId, channelData);
     }
 
+    joda::results::exporter::BatchExporter::Settings::ExportDetail exp;
+    switch(mHeatmap->getActualNavigation()) {
+      case reporting::plugin::PanelHeatmap::Navigation::PLATE:
+        exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::PLATE;
+        break;
+      case reporting::plugin::PanelHeatmap::Navigation::WELL:
+        exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::WELL;
+        break;
+      case reporting::plugin::PanelHeatmap::Navigation::IMAGE:
+        exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::IMAGE;
+        break;
+    }
+
     if(measureChannelsToExport.exportHeatmap) {
       joda::results::exporter::BatchExporter::Settings settings{
-          .imageChannels = imageChannels,
-          .analyzer      = *mAnalyzer,
-          .plateId       = 1,
-          .plateRows     = rows,
-          .plarteCols    = cols,
-          .exportType    = joda::results::exporter::BatchExporter::Settings::ExportType::HEATMAP};
+          .imageChannels   = imageChannels,
+          .analyzer        = *mAnalyzer,
+          .plateId         = 1,
+          .groupId         = mHeatmap->getSelectedGroup(),
+          .imageId         = mHeatmap->getSelectedImage(),
+          .plateRows       = rows,
+          .plarteCols      = cols,
+          .heatmapAreaSize = mHeatmapSlice->getValue().toUInt(),
+          .wellImageOrder  = joda::results::db::matrixStringToArrayOrder(mWellOrdering->getValue().toStdString()),
+          .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::HEATMAP,
+          .exportDetail    = exp};
       joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
     }
 
     if(measureChannelsToExport.exportList) {
       joda::results::exporter::BatchExporter::Settings settings{
-          .imageChannels = imageChannels,
-          .analyzer      = *mAnalyzer,
-          .plateId       = 1,
-          .plateRows     = rows,
-          .plarteCols    = cols,
-          .exportType    = joda::results::exporter::BatchExporter::Settings::ExportType::LIST};
+          .imageChannels   = imageChannels,
+          .analyzer        = *mAnalyzer,
+          .plateId         = 1,
+          .groupId         = mHeatmap->getSelectedGroup(),
+          .imageId         = mHeatmap->getSelectedImage(),
+          .plateRows       = rows,
+          .plarteCols      = cols,
+          .heatmapAreaSize = mHeatmapSlice->getValue().toUInt(),
+          .wellImageOrder  = joda::results::db::matrixStringToArrayOrder(mWellOrdering->getValue().toStdString()),
+          .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::LIST,
+          .exportDetail    = exp};
       joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
     }
 

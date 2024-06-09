@@ -40,9 +40,17 @@ public:
 
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     Table results;
-    results.setColHeader({{0, "sum"}, {1, "min"}, {2, "max"}, {3, "avg"}, {4, "stddev"}});
+
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
       try {
+        if(0 == n) {
+          results.setColHeader({{0, measurement.toString() + "(sum)"},
+                                {1, measurement.toString() + "(min)"},
+                                {2, measurement.toString() + "(max)"},
+                                {3, measurement.toString() + "(avg)"},
+                                {4, measurement.toString() + "(stddev)"}});
+        }
+
         uint64_t id = materializedResult->GetValue(0, n).GetValue<uint64_t>();
 
         // results.data()[n][0]             = TableCell{materializedResult->GetValue(0, n).GetValue<uint64_t>(), true};
