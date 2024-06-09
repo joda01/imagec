@@ -68,16 +68,6 @@ DialogExportData::DialogExportData(QWidget *windowMain) : DialogShadow(windowMai
   auto *groupBox   = new QWidget(this);
   auto *gridLayout = new QGridLayout(groupBox);
 
-  gridLayout->addWidget(new QLabel("Export heatmap"), 1, 0);
-  mExportHeatmap = new QCheckBox(groupBox);
-  gridLayout->addWidget(mExportHeatmap, 1, 1, Qt::AlignCenter);
-
-  gridLayout->addWidget(new QLabel("Export list"), 2, 0);
-  mExportList = new QCheckBox(groupBox);
-  gridLayout->addWidget(mExportList, 2, 1, Qt::AlignCenter);
-
-  gridLayout->addWidget(new QLabel("Measurments to export"), 3, 0, 1, 2);
-
   std::map<Base, Stat> measureChannelsOverview;
 
   int row               = 4;
@@ -124,12 +114,19 @@ DialogExportData::DialogExportData(QWidget *windowMain) : DialogShadow(windowMai
   connect(close, &QPushButton::clicked, this, &DialogExportData::onCancelClicked);
 
   // Export button
-  QPushButton *exportHeatmap = new QPushButton("Export", buttons);
+  QPushButton *exportHeatmap = new QPushButton("Export as heatmap", buttons);
   exportHeatmap->setCursor(Qt::PointingHandCursor);
   exportHeatmap->setObjectName("DialogButton");
-  connect(exportHeatmap, &QPushButton::clicked, this, &DialogExportData::onOkayClicked);
+  connect(exportHeatmap, &QPushButton::clicked, this, &DialogExportData::onExportHeatmapClicked);
+
+  // Export button
+  QPushButton *exportList = new QPushButton("Export as list", buttons);
+  exportList->setCursor(Qt::PointingHandCursor);
+  exportList->setObjectName("DialogButton");
+  connect(exportList, &QPushButton::clicked, this, &DialogExportData::onExportListClicked);
 
   hBox->addStretch();
+  hBox->addWidget(exportList);
   hBox->addWidget(exportHeatmap);
   hBox->addWidget(close);
   QLayout *mainL = layout();
@@ -151,15 +148,20 @@ DialogExportData::Ret DialogExportData::execute()
     }
   }
 
-  return {.ret              = 0,
-          .channelsToExport = overview,
-          .exportHeatmap    = mExportHeatmap->isChecked(),
-          .exportList       = mExportList->isChecked()};
+  return {.ret = 0, .channelsToExport = overview, .exportHeatmap = mExportHeatmap, .exportList = mExportList};
 }
 
-void DialogExportData::onOkayClicked()
+void DialogExportData::onExportListClicked()
 {
-  retVal = 0;
+  retVal      = 0;
+  mExportList = true;
+  close();
+}
+
+void DialogExportData::onExportHeatmapClicked()
+{
+  retVal         = 0;
+  mExportHeatmap = true;
   close();
 }
 

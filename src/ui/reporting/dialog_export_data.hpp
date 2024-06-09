@@ -46,13 +46,13 @@ public:
 
 private:
   std::map<std::tuple<results::MeasureChannel, results::Stats>, QCheckBox *> mChannelsToExport;
-  QCheckBox *mExportHeatmap;
-  QCheckBox *mExportList;
-
-  int retVal = 0;
+  int retVal          = 0;
+  bool mExportHeatmap = false;
+  bool mExportList    = false;
 
 private slots:
-  void onOkayClicked();
+  void onExportListClicked();
+  void onExportHeatmapClicked();
   void onCancelClicked();
 };
 

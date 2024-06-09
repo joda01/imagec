@@ -96,13 +96,13 @@ private:
   void lookingForFilesThread();
   void loadDetailReportToTable();
   void setLoadingData(bool);
+  void setExportingData(bool);
 
 signals:
   void exportFinished();
 
 private slots:
-  void onExportListClicked();
-  void onExportHeatmapClicked();
+  void onExportClicked();
   void onLoadingFileFinished();
   void onResultsFileSelected();
   void onChannelChanged();

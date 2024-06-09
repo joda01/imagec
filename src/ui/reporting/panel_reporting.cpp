@@ -52,8 +52,6 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
   // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelReporting");
 
-  connect(this, &PanelReporting::exportFinished, this, &PanelReporting::onExportFinished);
-
   auto [horizontalLayout, _] = joda::ui::qt::helper::createLayout(this);
   auto [verticalLayoutContainer, _1] =
       joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 250, 16);
@@ -159,7 +157,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     mProgressBarExport = createProgressBar(_2);
 
     mButtonExport = new ContainerButton("Export", "icons8-export-excel-50.png", mWindowMain);
-    connect(mButtonExport, &ContainerButton::valueChanged, this, &PanelReporting::onExportHeatmapClicked);
+    connect(mButtonExport, &ContainerButton::valueChanged, this, &PanelReporting::onExportClicked);
     verticalLayoutXlsx->addWidget(mButtonExport->getEditableWidget());
 
     mProgressBarExport->setVisible(false);
@@ -186,6 +184,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
     tableContainer->addWidget(mHeatmap);
     connect(mHeatmap, &reporting::plugin::PanelHeatmap::loadingStarted, this, &PanelReporting::onLoadingStarted);
     connect(mHeatmap, &reporting::plugin::PanelHeatmap::loadingFinished, this, &PanelReporting::onLoadingFinished);
+    connect(this, &PanelReporting::exportFinished, this, &PanelReporting::onExportFinished);
   }
 
   //
@@ -395,6 +394,7 @@ void PanelReporting::onLoadingFinished()
 ///
 void PanelReporting::onExportFinished()
 {
+  setExportingData(false);
 }
 
 ///
@@ -413,47 +413,34 @@ void PanelReporting::setLoadingData(bool load)
 }
 
 ///
-/// \brief      Export to xlsx
+/// \brief      Exporting
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::onExportListClicked()
+void PanelReporting::setExportingData(bool exportIng)
 {
-  QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "XLSX Files (*.xlsx)");
-  if(filePath.isEmpty()) {
-    return;
-  }
-
-  switch(mHeatmap->getActualNavigation()) {
-    case reporting::plugin::PanelHeatmap::Navigation::PLATE:
-      break;
-    case reporting::plugin::PanelHeatmap::Navigation::WELL: {
-      auto result = joda::results::analyze::plugins::StatsPerGroup::getData(
-          *mAnalyzer, mFilter.plateId, mHeatmap->getSelectedGroup(), mFilter.channelIdx, mFilter.measureChannel);
-      joda::results::exporter::ExporterXlsx::exportAsList(result, filePath.toStdString());
-    } break;
-    case reporting::plugin::PanelHeatmap::Navigation::IMAGE:
-      auto result = joda::results::analyze::plugins::StatsPerImage::getData(
-          *mAnalyzer, mFilter.plateId, mHeatmap->getSelectedImage(), mFilter.channelIdx, mFilter.measureChannel);
-      joda::results::exporter::ExporterXlsx::exportAsList(result, filePath.toStdString());
-      break;
-  }
+  mProgressBarExport->setVisible(exportIng);
+  mButtonExport->getEditableWidget()->setEnabled(!exportIng);
 }
 
 ///
 /// \brief      Export to xlsx
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::onExportHeatmapClicked()
+void PanelReporting::onExportClicked()
 {
   DialogExportData exportData(mWindowMain);
   auto measureChannelsToExport = exportData.execute();
 
-  if(measureChannelsToExport.ret == 0) {
-    QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "XLSX Files (*.xlsx)");
-    if(filePath.isEmpty()) {
-      return;
-    }
+  if(measureChannelsToExport.ret != 0) {
+    return;
+  }
+  QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "XLSX Files (*.xlsx)");
+  if(filePath.isEmpty()) {
+    return;
+  }
+  setExportingData(true);
 
+  std::thread([this, measureChannelsToExport = measureChannelsToExport, filePath = filePath] {
     auto value    = mPlateSize->getValue();
     uint16_t rows = value / 100;
     uint16_t cols = value % 100;
@@ -518,8 +505,11 @@ void PanelReporting::onExportHeatmapClicked()
       joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
     }
 
+    QDesktopServices::openUrl(QUrl("file:///" + filePath));
+
+    emit exportFinished();
     // joda::results::exporter::ExporterXlsx::exportAsHeatmap(mHeatmap->getData(), filePath.toStdString());
-  }
+  }).detach();
 }
 
 /////////////////////////////////////////////////////////////////////////////
