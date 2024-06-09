@@ -61,11 +61,11 @@ public:
     {
       std::unique_ptr<duckdb::QueryResult> stats = analyzer.getDatabase().select(
           "SELECT"
-          "  objects.object_id as object_id,"
+          "  object_id,"
           "  element_at(values, $1)[1] as val "
           "FROM objects "
           "WHERE"
-          " objects.image_id=$2 AND objects.validity=0 AND objects.channel_id=$3 "
+          " image_id=$2 AND validity=0 AND channel_id=$3 "
           "ORDER BY objects.object_id",
           measurement.getKey(), imageId, static_cast<uint8_t>(channelId));
 
@@ -76,8 +76,8 @@ public:
       auto materializedResult = stats->Cast<duckdb::StreamQueryResult>().Materialize();
       for(size_t n = 0; n < materializedResult->RowCount(); n++) {
         try {
-          uint64_t id                      = materializedResult->GetValue(0, n).GetValue<uint64_t>();
-          results.getMutableRowHeader()[n] = std::to_string(materializedResult->GetValue(0, n).GetValue<uint64_t>()),
+          uint32_t id                      = materializedResult->GetValue(0, n).GetValue<uint32_t>();
+          results.getMutableRowHeader()[n] = std::to_string(id),
           results.setData(n, 0, TableCell{materializedResult->GetValue(1, n).GetValue<double>(), id, true, ""});
 
         } catch(const duckdb::InternalException &) {
@@ -85,7 +85,6 @@ public:
       }
     }
 
-    results.print();
     return results;
   }
 };

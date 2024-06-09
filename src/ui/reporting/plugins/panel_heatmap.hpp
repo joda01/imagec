@@ -221,8 +221,8 @@ private:
   uint64_t mActImageId;
 
   uint32_t mSelectedWellId;
-  uint32_t mSelectedImageId;
-  uint64_t mSelectedTileId;
+  uint64_t mSelectedImageId;
+  uint32_t mSelectedTileId;
   Point mSelectedAreaPos;
 
   bool mIsLoading = false;
