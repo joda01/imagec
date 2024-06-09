@@ -76,9 +76,12 @@ auto Analyzer::getAnalyzes() -> std::vector<db::AnalyzeMeta>
 /// \brief      Create control image
 /// \author     Joachim Danmayr
 ///
-auto Analyzer::getAbsolutePathToControlImage(const std::string &relativePath) const -> std::filesystem::path
+auto Analyzer::getAbsolutePathToControlImage(const std::string &relativePath, int32_t tileID) const
+    -> std::filesystem::path
 {
-  return mParentPathToDb / relativePath;
+  std::string pathRel = relativePath;
+  helper::stringReplace(pathRel, "${tile_id}", std::to_string(tileID));
+  return mParentPathToDb / pathRel;
 }
 
 ///

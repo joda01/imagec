@@ -29,6 +29,7 @@
 #include <random>
 #include <string>
 #include <utility>
+#include "backend/results/analyzer/plugins/control_image.hpp"
 #include "backend/results/analyzer/plugins/heatmap_for_image.hpp"
 #include "backend/results/analyzer/plugins/heatmap_for_plate.hpp"
 #include "backend/results/analyzer/plugins/heatmap_for_well.hpp"
@@ -101,16 +102,37 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
       auto [verticalLayoutMeta, _2] =
           joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
 
-      verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Info"));
+      verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Well"));
 
-      mLabelName = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mLabelName->getEditableWidget());
+      mWellName = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mWellName->getEditableWidget());
 
-      mLabelValue = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mLabelValue->getEditableWidget());
+      mWellValue = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mWellValue->getEditableWidget());
 
-      mLabelMeta = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mLabelMeta->getEditableWidget());
+      mWellMeta = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mWellMeta->getEditableWidget());
+
+      _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+    }
+
+    //
+    // Image edit
+    //
+    {
+      auto [verticalLayoutMeta, _2] =
+          joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+      mImageInfoWidget = _2;
+      verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Image"));
+
+      mImageName = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mImageName->getEditableWidget());
+
+      mImageValue = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mImageValue->getEditableWidget());
+
+      mImageMeta = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mImageMeta->getEditableWidget());
 
       mMarkAsInvalid = std::shared_ptr<ContainerFunction<bool, bool>>(
           new ContainerFunction<bool, bool>("icons8-multiply-50.png", "Mark as invalid", "Mark as invalid", false,
@@ -120,9 +142,37 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
       connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelHeatmap::onMarkAsInvalidClicked);
 
       _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
-      verticalLayoutContainer->addStretch();
+      mImageInfoWidget->setVisible(false);
     }
+
+    //
+    // Area edit
+    //
+    {
+      auto [verticalLayoutMeta, _2] =
+          joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+      mAreaInfoWidget = _2;
+      verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Area"));
+
+      mAreaName = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mAreaName->getEditableWidget());
+
+      mAreaValue = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mAreaValue->getEditableWidget());
+
+      mAreaMeta = new ContainerLabel("...", "", windowMain);
+      verticalLayoutMeta->addWidget(mAreaMeta->getEditableWidget());
+
+      auto saveImageButton = new ContainerButton("Export", "icons8-export-excel-50.png", windowMain);
+      connect(saveImageButton, &ContainerButton::valueChanged, this, &PanelHeatmap::onExportImageClicked);
+      verticalLayoutMeta->addWidget(saveImageButton->getEditableWidget());
+
+      _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+      mAreaInfoWidget->setVisible(false);
+    }
+    verticalLayoutContainer->addStretch();
   }
+
   centerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   setLayout(horizontalLayout);
@@ -163,6 +213,33 @@ QWidget *PanelHeatmap::createBreadCrump(QWidget *parent)
 }
 
 ///
+/// \brief      Export image
+/// \author     Joachim Danmayr
+///
+void PanelHeatmap::onExportImageClicked()
+{
+  cv::Rect rectangle;
+  rectangle.x      = mSelectedAreaPos.y * mFilter.densityMapAreaSize;    // Images are mirrored in the coordinates
+  rectangle.y      = mSelectedAreaPos.x * mFilter.densityMapAreaSize;    // Images are mirrored in the coordinates
+  rectangle.width  = mFilter.densityMapAreaSize;
+  rectangle.height = mFilter.densityMapAreaSize;
+
+  auto retImage = joda::results::analyze::plugins::ControlImage::getControlImage(
+      *mAnalyzer.lock(), mActImageId, mFilter.channelIdx, mSelectedTileId, rectangle);
+
+  QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "PNG Files (*.png)");
+  if(filePath.isEmpty()) {
+    return;
+  }
+  if(!filePath.endsWith(".png")) {
+    filePath += ".png";
+  }
+  bool isSuccess = cv::imwrite(filePath.toStdString(), retImage);
+
+  QDesktopServices::openUrl(QUrl("file:///" + filePath));
+}
+
+///
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
@@ -170,10 +247,10 @@ void PanelHeatmap::onMarkAsInvalidClicked()
 {
   if(mMarkAsInvalid->getValue()) {
     mAnalyzer.lock()->markImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
-                                                      mSelectedElementId);
+                                                      mSelectedImageId);
   } else {
     mAnalyzer.lock()->unMarkImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
-                                                        mSelectedElementId);
+                                                        mSelectedImageId);
   }
   repaintHeatmap();
 }
@@ -193,26 +270,28 @@ void PanelHeatmap::setData(std::weak_ptr<joda::results::Analyzer> analyzer, cons
 /// \brief      An element has been selected
 /// \author     Joachim Danmayr
 ///
-void PanelHeatmap::onElementSelected(results::TableCell value)
+void PanelHeatmap::onElementSelected(int cellX, int cellY, results::TableCell value)
 {
   switch(mNavigation) {
     case Navigation::PLATE: {
       auto groupId = value.getId();
       auto [result, channel] =
           mAnalyzer.lock()->getGroupInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, groupId);
-      mLabelName->setText("Well: " + QString(result.name.data()));
-      mLabelValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
-      mLabelMeta->setText(channel.name.data());
-      mSelectedElementId = value.getId();
+      mWellName->setText("Well: " + QString(result.name.data()));
+      mWellValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
+      mWellMeta->setText(channel.name.data());
+      mSelectedWellId = value.getId();
+      mImageInfoWidget->setVisible(false);
+      mAreaInfoWidget->setVisible(false);
     } break;
     case Navigation::WELL: {
       auto [image, channel, imageChannelMeta] =
           mAnalyzer.lock()->getImageInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, value.getId());
 
-      mLabelName->setText(image.originalImagePath.filename().string().data());
-      mLabelValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
-      mLabelMeta->setText(channel.name.data());
-      mSelectedElementId = value.getId();
+      mImageName->setText(image.originalImagePath.filename().string().data());
+      mImageValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
+      mImageMeta->setText(channel.name.data());
+      mSelectedImageId = value.getId();
 
       disconnect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this,
                  &PanelHeatmap::onMarkAsInvalidClicked);
@@ -223,12 +302,19 @@ void PanelHeatmap::onElementSelected(results::TableCell value)
         mMarkAsInvalid->setValue(false);
       }
       connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelHeatmap::onMarkAsInvalidClicked);
+      mImageInfoWidget->setVisible(true);
+      mAreaInfoWidget->setVisible(false);
     }
 
     break;
     case Navigation::IMAGE:
-      mLabelName->setText("Selected Object " + QString::number(value.getId()));
-      mSelectedElementId = value.getId();
+      mAreaName->setText("Tile: " + QString::number(value.getId()));
+      mAreaValue->setText((std::to_string(cellX) + "x" + std::to_string(cellY)).data());
+      mSelectedTileId = value.getId();
+      mImageInfoWidget->setVisible(true);
+      mAreaInfoWidget->setVisible(true);
+      mSelectedAreaPos.x = cellX;
+      mSelectedAreaPos.y = cellY;
       break;
   }
 }
@@ -237,23 +323,25 @@ void PanelHeatmap::onElementSelected(results::TableCell value)
 /// \brief      Open the next deeper level form the element with given id
 /// \author     Joachim Danmayr
 ///
-void PanelHeatmap::onOpenNextLevel(results::TableCell value)
+void PanelHeatmap::onOpenNextLevel(int cellX, int cellY, results::TableCell value)
 {
   int actMenu = static_cast<int>(mNavigation);
   actMenu++;
   if(actMenu <= 2) {
     mNavigation = static_cast<Navigation>(actMenu);
   } else {
+    // An area has been selected within an image -> trigger an export
+    onExportImageClicked();
     return;
   }
   switch(mNavigation) {
     case Navigation::PLATE:
       break;
     case Navigation::WELL:
-      mSelectedGroupId = static_cast<uint16_t>(value.getId());
+      mActGroupId = static_cast<uint16_t>(value.getId());
       break;
     case Navigation::IMAGE:
-      mSelectedImageId = value.getId();
+      mActImageId = value.getId();
       break;
   }
   repaintHeatmap();
@@ -284,18 +372,6 @@ void PanelHeatmap::repaintHeatmap()
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
     emit loadingStarted();
-
-    switch(mNavigation) {
-      case Navigation::PLATE:
-        mMarkAsInvalid->getEditableWidget()->setVisible(false);
-        break;
-      case Navigation::WELL:
-        mMarkAsInvalid->getEditableWidget()->setVisible(true);
-        break;
-      case Navigation::IMAGE:
-        mMarkAsInvalid->getEditableWidget()->setVisible(false);
-        break;
-    }
 
     std::thread([this] {
       switch(mNavigation) {
@@ -344,7 +420,7 @@ void PanelHeatmap::paintWell()
   if(!mAnalyzer.expired()) {
     mNavigation = Navigation::WELL;
     auto result = joda::results::analyze::plugins::HeatmapForWell::getData(
-        *mAnalyzer.lock(), mFilter.plateId, mSelectedGroupId, mFilter.channelIdx, mFilter.measureChannel, mFilter.stats,
+        *mAnalyzer.lock(), mFilter.plateId, mActGroupId, mFilter.channelIdx, mFilter.measureChannel, mFilter.stats,
         mFilter.wellImageOrder);
     mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
@@ -360,7 +436,7 @@ void PanelHeatmap::paintImage()
   mBackButton->setEnabled(true);
   if(!mAnalyzer.expired()) {
     mNavigation = Navigation::IMAGE;
-    auto result = joda::results::analyze::plugins::HeatmapForImage::getData(*mAnalyzer.lock(), mSelectedImageId,
+    auto result = joda::results::analyze::plugins::HeatmapForImage::getData(*mAnalyzer.lock(), mActImageId,
                                                                             mFilter.channelIdx, mFilter.measureChannel,
                                                                             mFilter.stats, mFilter.densityMapAreaSize);
     mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES,
@@ -396,8 +472,9 @@ void ChartHeatMap::setData(std::weak_ptr<joda::results::Analyzer> analyzer, cons
   mPaintCtrlImage = PaintControlImage::NO;
   update();
   if(mSelection[mActHierarchy].mSelectedWell >= 0) {
-    emit onElementClick(
-        mData.data(mSelection[mActHierarchy].mSelectedPoint.x, mSelection[mActHierarchy].mSelectedPoint.y));
+    auto x = mSelection[mActHierarchy].mSelectedPoint.x;
+    auto y = mSelection[mActHierarchy].mSelectedPoint.y;
+    emit onElementClick(x, y, mData.data(x, y));
   }
 }
 
@@ -593,6 +670,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     //
     // Paint control image
     //
+    /*
     if(mPaintCtrlImage == PaintControlImage::YES) {
       if(newControlImagePath != mActControlImagePath) {
         mActControlImagePath = newControlImagePath;
@@ -608,7 +686,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
       uint32_t width  = rectWidth * mCols;
       uint32_t height = rectWidth * mRows;
       painter.drawImage(xStart, yStart, mActControlImage);
-    }
+    }*/
   }
 }
 
@@ -740,7 +818,8 @@ void ChartHeatMap::mousePressEvent(QMouseEvent *event)
       update();    // Trigger repaint to reflect hover state change
     }
 
-    emit onElementClick(selectedData);
+    emit onElementClick(mSelection[mActHierarchy].mSelectedPoint.x, mSelection[mActHierarchy].mSelectedPoint.y,
+                        selectedData);
   }
 }
 
@@ -762,7 +841,8 @@ void ChartHeatMap::mouseDoubleClickEvent(QMouseEvent *event)
       mSelection[mActHierarchy].mSelectedPoint = selectedPoint;
       update();    // Trigger repaint to reflect hover state change
     }
-    emit onDoubleClicked(selectedData);
+    emit onDoubleClicked(mSelection[mActHierarchy].mSelectedPoint.x, mSelection[mActHierarchy].mSelectedPoint.y,
+                         selectedData);
   }
 }
 
@@ -773,7 +853,7 @@ void ChartHeatMap::mouseDoubleClickEvent(QMouseEvent *event)
 /// \param[out]
 /// \return
 ///
-std::tuple<int32_t, ChartHeatMap::Point> ChartHeatMap::getWellUnderMouse(QMouseEvent *event)
+std::tuple<int32_t, Point> ChartHeatMap::getWellUnderMouse(QMouseEvent *event)
 {
   double dividend = 1;
   if(mPaintCtrlImage == PaintControlImage::YES) {

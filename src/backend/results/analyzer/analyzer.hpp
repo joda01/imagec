@@ -40,7 +40,7 @@ class Analyzer
 {
 public:
   explicit Analyzer(const std::filesystem::path &databasePath);
-  auto getAbsolutePathToControlImage(const std::string &relativePath) const -> std::filesystem::path;
+  auto getAbsolutePathToControlImage(const std::string &relativePath, int32_t tileID) const -> std::filesystem::path;
   auto getAnalyzes() -> std::vector<db::AnalyzeMeta>;
   auto getImagesForAnalyses(const std::string &analyzeId) -> std::vector<db::ImageMeta>;
   auto getImageInformation(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel, uint64_t imageId)

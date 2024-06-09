@@ -757,6 +757,9 @@ void WindowMain::onStartClicked()
 ///
 void WindowMain::onBackClicked()
 {
+  if(mPanelReporting != nullptr) {
+  }
+
   setMiddelLabelText("");
   mBackButton->setEnabled(false);
   mSaveProject->setVisible(true);

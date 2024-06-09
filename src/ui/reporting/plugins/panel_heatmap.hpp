@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <qboxlayout.h>
 #include <qcolormap.h>
 #include <qmainwindow.h>
 #include <qtmetamacros.h>
@@ -28,6 +29,12 @@
 namespace joda::ui::qt::reporting::plugin {
 
 class PanelHeatmap;
+
+struct Point
+{
+  uint32_t x = 0;
+  uint32_t y = 0;
+};
 
 ///
 /// \class      ChartHeatMap
@@ -62,16 +69,10 @@ public:
   }
 
 signals:
-  void onElementClick(results::TableCell value);
-  void onDoubleClicked(results::TableCell value);
+  void onElementClick(int cellX, int cellY, results::TableCell value);
+  void onDoubleClicked(int cellX, int cellY, results::TableCell value);
 
 private:
-  struct Point
-  {
-    uint32_t x = 0;
-    uint32_t y = 0;
-  };
-
   /////////////////////////////////////////////////////
   QString formatDoubleScientific(double value, int precision = 3);
   static void drawGaussianCurve(QPainter &painter, int startX, int startY, int height, int length);
@@ -107,10 +108,9 @@ private:
   MatrixForm mForm = MatrixForm::CIRCLE;
   PaintControlImage mPaintCtrlImage;
 
-  uint32_t mRows       = 0;
-  uint32_t mCols       = 0;
-  int32_t mHoveredWell = -1;
-
+  uint32_t mRows        = 0;
+  uint32_t mCols        = 0;
+  int32_t mHoveredWell  = -1;
   int32_t mActHierarchy = 0;
 
   struct Selection
@@ -166,7 +166,7 @@ public:
 
   [[nodiscard]] uint16_t getSelectedGroup() const
   {
-    return mSelectedGroupId;
+    return mActGroupId;
   }
 
   [[nodiscard]] uint64_t getSelectedImage() const
@@ -198,28 +198,45 @@ private:
   SelectedFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
 
-  /////////////////////////////////////////////////////
-  ContainerLabel *mLabelName;
-  ContainerLabel *mLabelValue;
-  ContainerLabel *mLabelMeta;
+  // WELL///////////////////////////////////////////////////
+  ContainerLabel *mWellName;
+  ContainerLabel *mWellValue;
+  ContainerLabel *mWellMeta;
+
+  // Image///////////////////////////////////////////////////
+  QWidget *mImageInfoWidget;
+  ContainerLabel *mImageName;
+  ContainerLabel *mImageValue;
+  ContainerLabel *mImageMeta;
   std::shared_ptr<ContainerFunction<bool, bool>> mMarkAsInvalid;
 
+  // Area///////////////////////////////////////////////////
+  QWidget *mAreaInfoWidget;
+  ContainerLabel *mAreaName;
+  ContainerLabel *mAreaValue;
+  ContainerLabel *mAreaMeta;
+
   /////////////////////////////////////////////////////
-  uint16_t mSelectedGroupId;
-  uint64_t mSelectedImageId;
-  uint64_t mSelectedElementId;
+  uint16_t mActGroupId;
+  uint64_t mActImageId;
+
+  uint32_t mSelectedWellId;
+  uint32_t mSelectedImageId;
+  uint64_t mSelectedTileId;
+  Point mSelectedAreaPos;
 
   bool mIsLoading = false;
 
 public slots:
   void onMarkAsInvalidClicked();
-  void onElementSelected(results::TableCell value);
-  void onOpenNextLevel(results::TableCell value);
+  void onElementSelected(int cellX, int cellY, results::TableCell value);
+  void onOpenNextLevel(int cellX, int cellY, results::TableCell value);
   void onBackClicked();
   void repaintHeatmap();
   void paintPlate();
   void paintWell();
   void paintImage();
+  void onExportImageClicked();
 };
 
 }    // namespace joda::ui::qt::reporting::plugin
