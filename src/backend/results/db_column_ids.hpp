@@ -57,7 +57,7 @@ enum class MeasureChannel : uint16_t
 
 };
 
-enum class ChannelIndex : uint8_t
+enum class ChannelIndex : uint16_t
 {
   CH0 = 0,
   CH1 = 1,
@@ -75,7 +75,7 @@ enum class ChannelIndex : uint8_t
   D   = 68,
   E   = 69,
   F   = 70,
-  ME  = 0xFF
+  ME  = 0xFFFF
 };
 
 enum class ObjectValidityEnum : size_t
