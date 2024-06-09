@@ -20,15 +20,19 @@ SpatialHash::calcIntersections(const std::unique_ptr<detect::DetectionResults> &
     if(it != other->grid.end()) {
       const auto &boxes2 = it->second;
       for(const auto &box1 : boxes1) {
-        for(const auto &box2 : boxes2) {
-          // Each intersecting particle is only allowed to be counted once
-          if(!intersecting.contains(box1) && !intersecting.contains(box2)) {
-            if(isCollision(box1, box2)) {
-              auto [colocROI, ok] = box1->calcIntersection(*box2, imageOriginal, minIntersecion);
-              if(ok) {
-                potential_collisions->push_back(colocROI);
-                intersecting.emplace(box1);
-                intersecting.emplace(box2);
+        if(box1->isValid()) {
+          for(const auto &box2 : boxes2) {
+            if(box2->isValid()) {
+              // Each intersecting particle is only allowed to be counted once
+              if(!intersecting.contains(box1) && !intersecting.contains(box2)) {
+                if(isCollision(box1, box2)) {
+                  auto [colocROI, ok] = box1->calcIntersection(*box2, imageOriginal, minIntersecion);
+                  if(ok) {
+                    potential_collisions->push_back(colocROI);
+                    intersecting.emplace(box1);
+                    intersecting.emplace(box2);
+                  }
+                }
               }
             }
           }
