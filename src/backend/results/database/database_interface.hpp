@@ -31,6 +31,7 @@ struct AnalyzeMeta
   std::chrono::system_clock::time_point timestamp;
   std::string location;
   std::string notes;
+  std::string analysesSettingsJsonDump;
 };
 
 struct Temp

@@ -45,20 +45,24 @@ namespace joda::results {
 /// \param[out]
 /// \return
 ///
-Results::Results(const std::filesystem::path &pathToRawData, const ExperimentSetting &settings) :
-    mPathToRawData(pathToRawData), mExperimentSettings(settings), mAnalyzeId(joda::helper::generate_uuid())
+Results::Results(const std::filesystem::path &pathToRawData, const ExperimentSetting &settings,
+                 const joda::settings::AnalyzeSettings &analyzeSettings) :
+    mPathToRawData(pathToRawData),
+    mExperimentSettings(settings), mAnalyzeId(joda::helper::generate_uuid())
 {
   // std::filesystem::path = ".."/pathToRawData;
   prepareOutputFolders(pathToRawData / "imagec");
   mDatabase = std::make_shared<db::Database>(mDatabaseFileName);
   mDatabase->open();
   try {
-    mDatabase->createAnalyze(db::AnalyzeMeta{.runId      = settings.runId,
-                                             .analyzeId  = mAnalyzeId,
-                                             .name       = settings.analyzeName,
-                                             .scientists = {settings.scientistName},
-                                             .location   = "",
-                                             .notes      = ""});
+    nlohmann::json analyzeSettingsJson = analyzeSettings;
+    mDatabase->createAnalyze(db::AnalyzeMeta{.runId                    = settings.runId,
+                                             .analyzeId                = mAnalyzeId,
+                                             .name                     = settings.analyzeName,
+                                             .scientists               = {settings.scientistName},
+                                             .location                 = "",
+                                             .notes                    = "",
+                                             .analysesSettingsJsonDump = analyzeSettingsJson.dump()});
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
   }

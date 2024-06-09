@@ -434,7 +434,8 @@ void PanelReporting::onExportClicked()
   if(measureChannelsToExport.ret != 0) {
     return;
   }
-  QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "XLSX Files (*.xlsx)");
+  QString filePath =
+      QFileDialog::getSaveFileName(this, "Save File", mAnalyzer->getBasePath().string().data(), "XLSX Files (*.xlsx)");
   if(filePath.isEmpty()) {
     return;
   }

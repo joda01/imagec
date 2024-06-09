@@ -74,7 +74,8 @@ struct GroupInformation
 class Results
 {
 public:
-  Results(const std::filesystem::path &pathToRawData, const ExperimentSetting &settings);
+  Results(const std::filesystem::path &pathToRawData, const ExperimentSetting &settings,
+          const joda::settings::AnalyzeSettings &analyzeSettings);
 
   void appendChannelsToDetailReport(const joda::settings::AnalyzeSettings &);
   void appendImageToDetailReport(const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);

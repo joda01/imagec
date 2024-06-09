@@ -61,6 +61,11 @@ public:
     return mDatabase;
   }
 
+  auto getBasePath() const -> const std::filesystem::path &
+  {
+    return mParentPathToDb;
+  }
+
 private:
   joda::results::db::Database mDatabase;
   std::filesystem::path mParentPathToDb;

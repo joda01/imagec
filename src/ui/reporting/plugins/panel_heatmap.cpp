@@ -227,7 +227,8 @@ void PanelHeatmap::onExportImageClicked()
   auto retImage = joda::results::analyze::plugins::ControlImage::getControlImage(
       *mAnalyzer.lock(), mActImageId, mFilter.channelIdx, mSelectedTileId, rectangle);
 
-  QString filePath = QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "PNG Files (*.png)");
+  QString filePath = QFileDialog::getSaveFileName(this, "Save File", mAnalyzer.lock()->getBasePath().string().data(),
+                                                  "PNG Files (*.png)");
   if(filePath.isEmpty()) {
     return;
   }
