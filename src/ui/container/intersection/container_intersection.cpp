@@ -67,7 +67,7 @@ ContainerIntersection::ContainerIntersection(WindowMain *windowMain, joda::setti
           joda::settings::ChannelIndex::A, windowMain));
 
   mMinIntersection = std::shared_ptr<ContainerFunction<float, int>>(new ContainerFunction<float, int>(
-      "icons8-percentage-50.png", "[0 - 1]", "Min. intersection", "%", 0.1, 0, 1, windowMain));
+      "icons8-all-out-50.png", "[0 -1]", "Min. intersection area", "%", 1, 0.8, 1, windowMain));
 
   mCrossChannelIntersection = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
       "icons8-query-inner-join-50.png", "[0,1,2,3,..]", "Cross channel intersection", "", windowMain));

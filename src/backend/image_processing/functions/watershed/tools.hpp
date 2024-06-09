@@ -12,7 +12,7 @@
 #include <cstddef>
 #include <memory>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \brief       Returns a sorted list of indices of the specified double array.
@@ -36,4 +36,4 @@ inline std::shared_ptr<int> rank(std::shared_ptr<double> values, size_t length)
   return indexes2;
 }
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

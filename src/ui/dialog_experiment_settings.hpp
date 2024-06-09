@@ -44,12 +44,7 @@ private:
   /////////////////////////////////////////////////////
   joda::settings::ExperimentSettings &mSettings;
 
-  QComboBox *mGroupedHeatmapOnOff;
-  QComboBox *mWellHeatmapOnOff;
-  QComboBox *mImageHeatmapOnOff;
   QLineEdit *mWellOrderMatrix;
-
-  QLineEdit *mHeatmapSlice;
   QComboBox *mGroupByComboBox;
   QComboBox *mRegexToFindTheWellPosition;
   QLineEdit *mTestFileName;

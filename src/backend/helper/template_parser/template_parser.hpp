@@ -26,7 +26,7 @@
 #include <opencv2/gapi/infer/onnx.hpp>
 #include <opencv2/opencv.hpp>
 
-namespace joda::settings::templates {
+namespace joda::helper::templates {
 
 namespace fs = std::filesystem;
 // using namespace ::onnx;
@@ -59,4 +59,4 @@ public:
 
 private:
 };
-}    // namespace joda::settings::templates
+}    // namespace joda::helper::templates

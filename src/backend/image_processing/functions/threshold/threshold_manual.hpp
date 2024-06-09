@@ -15,7 +15,7 @@
 
 #include "threshold.hpp"
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \class      Threshold
@@ -41,4 +41,4 @@ private:
   }
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

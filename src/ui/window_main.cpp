@@ -34,8 +34,9 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/random_name_generator.hpp"
-#include "backend/logger/console_logger.hpp"
+#include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/settings.hpp"
@@ -49,6 +50,7 @@
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_experiment_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
+#include "ui/reporting/panel_reporting.hpp"
 #include "build_info.h"
 #include "version.h"
 
@@ -60,7 +62,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 {
   const QIcon myIcon(":/icons/outlined/icon.png");
   setWindowIcon(myIcon);
-  setWindowTitle("imageC");
+  setWindowTitle("EVAnalyzer2 powered by imageC");
   createTopToolbar();
   createBottomToolbar();
   setMinimumSize(1600, 800);
@@ -165,6 +167,11 @@ void WindowMain::createTopToolbar()
     toolbar->addAction(mOPenProject);
     mSecondSeparator = toolbar->addSeparator();
 
+    mOpenReportingArea = new QAction(QIcon(":/icons/outlined/icons8-graph-50.png"), "Reporting area", toolbar);
+    mOpenReportingArea->setToolTip("Open reporting area");
+    connect(mOpenReportingArea, &QAction::triggered, this, &WindowMain::onOpenReportingAreaClicked);
+    toolbar->addAction(mOpenReportingArea);
+
     mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
     mStartAnalysis->setEnabled(false);
     mStartAnalysis->setToolTip("Start analysis!");
@@ -202,6 +209,8 @@ void WindowMain::createTopToolbar()
   }
 
   // Place middle here
+  mMiddle = new QLabel();
+  toolbar->addWidget(mMiddle);
 
   // Right
   {
@@ -237,6 +246,7 @@ QWidget *WindowMain::createStackedWidget()
   mStackedWidget->setObjectName("stackedWidget");
   mStackedWidget->addWidget(createOverviewWidget());
   mStackedWidget->addWidget(createChannelWidget());
+  mStackedWidget->addWidget(createReportingWidget());
   return mStackedWidget;
 }
 
@@ -320,6 +330,16 @@ QWidget *WindowMain::createOverviewWidget()
 QWidget *WindowMain::createChannelWidget()
 {
   return new QWidget(this);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+QWidget *WindowMain::createReportingWidget()
+{
+  mPanelReporting = new PanelReporting(this);
+  return mPanelReporting;
 }
 
 QWidget *WindowMain::createAddChannelPanel()
@@ -455,6 +475,7 @@ void WindowMain::onOpenProjectClicked()
   if(selectedDirectory.isEmpty()) {
     return;
   }
+
   setWorkingDirectory(selectedDirectory.toStdString());
 }
 
@@ -564,7 +585,7 @@ void WindowMain::setWorkingDirectory(const std::string &workingDir)
 ///
 void WindowMain::waitForFileSearchFinished()
 {
-  auto result = settings::templates::TemplateParser::findTemplates();
+  auto result = helper::templates::TemplateParser::findTemplates();
   emit lookingForTemplateFinished(result);
 
   while(true) {
@@ -656,8 +677,7 @@ void WindowMain::onSaveProjectClicked()
 /// \brief      Templates loaded from templates folder
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onFindTemplatesFinished(
-    std::map<std::string, joda::settings::templates::TemplateParser::Data> foundTemplates)
+void WindowMain::onFindTemplatesFinished(std::map<std::string, helper::templates::TemplateParser::Data> foundTemplates)
 {
   mTemplateSelection->clear();
   const QIcon empty(":/icons/outlined/icons8-select-none-50.png");
@@ -737,6 +757,10 @@ void WindowMain::onStartClicked()
 ///
 void WindowMain::onBackClicked()
 {
+  if(mPanelReporting != nullptr) {
+  }
+
+  setMiddelLabelText("");
   mBackButton->setEnabled(false);
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
@@ -746,7 +770,11 @@ void WindowMain::onBackClicked()
   mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(true);
   mSecondSeparator->setVisible(true);
+  mOpenReportingArea->setVisible(true);
   mStackedWidget->setCurrentIndex(0);
+  if(mPanelReporting != nullptr) {
+    mPanelReporting->close();
+  }
   if(mSelectedChannel != nullptr) {
     mSelectedChannel->toSettings();
     mSelectedChannel->setActive(false);
@@ -772,10 +800,58 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
   mDeleteChannel->setVisible(true);
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(false);
-
+  mOpenReportingArea->setVisible(false);
   mStackedWidget->removeWidget(mStackedWidget->widget(1));
-  mStackedWidget->addWidget(selectedChannel->getEditPanel());
+  mStackedWidget->insertWidget(1, selectedChannel->getEditPanel());
   mStackedWidget->setCurrentIndex(1);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onOpenReportingAreaClicked()
+{
+  QString folderToOpen = QDir::homePath();
+  if(!mSelectedWorkingDirectory.isEmpty()) {
+    folderToOpen = mSelectedWorkingDirectory;
+  }
+
+  QFileDialog::Options opt;
+  opt.setFlag(QFileDialog::DontUseNativeDialog, false);
+
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "imageC Files (*.duckdb)", nullptr, opt);
+
+  if(filePath.isEmpty()) {
+    return;
+  }
+  try {
+    mPanelReporting->setActualSelectedWorkingFile(filePath.toStdString());
+
+    // Open reporting area
+    mBackButton->setEnabled(true);
+    mOPenProject->setVisible(false);
+    mSaveProject->setVisible(false);
+    mSaveProject->setVisible(false);
+    mStartAnalysis->setVisible(false);
+    mJobNameAction->setVisible(false);
+    mDeleteChannel->setVisible(false);
+    mFirstSeparator->setVisible(false);
+    mSecondSeparator->setVisible(false);
+    mOpenReportingArea->setVisible(false);
+    mStackedWidget->setCurrentIndex(mStackedWidget->count() - 1);
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not load database!");
+    messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
 }
 
 ///

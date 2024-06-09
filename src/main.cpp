@@ -1,7 +1,7 @@
 #include <QtWidgets>
-#include "backend/duration_count/duration_count.h"
-#include "backend/image_reader/bioformats/bioformats_loader.hpp"
-#include "backend/image_reader/tif/image_loader_tif.hpp"
+#include "backend/helper/duration_count/duration_count.h"
+#include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
+#include "backend/image_processing/reader/tif/image_loader_tif.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "controller/controller.hpp"
 #include "ui/window_main.hpp"
@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
   // Init
   //
   Version::initVersion(std::string(argv[0]));
-  TiffLoader::initLibTif();
-  BioformatsLoader::init();
+  joda::image::TiffLoader::initLibTif();
+  joda::image::BioformatsLoader::init();
   joda::pipeline::PipelineFactory::init();
 
   //
@@ -133,6 +133,27 @@ int main(int argc, char *argv[])
       "   color: rgb(170, 170, 170);"
       "}"
 
+      /*Push button dialogs*/
+      "QPushButton#DialogButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgba(0, 0, 0, 0);"
+      "   color: rgb(255, 144, 144);"
+      "   padding: 10px 10px;"
+      "   border-radius: 4px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover#DialogButton {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed#DialogButton {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}"
+
       /*Combo box*/
       "QComboBox {"
       "   border: 1px solid rgb(0, 0, 0);"
@@ -185,7 +206,9 @@ int main(int argc, char *argv[])
   );
 
   // Option 1, like in the mentioned stackoverflow answer
-  // QWidget window;
+  // QWidget window
+
+  //  freopen("output.txt", "w", stdout);
 
   auto *controller = new joda::ctrl::Controller();
   joda::ui::qt::WindowMain mainWindow(controller);
@@ -194,6 +217,6 @@ int main(int argc, char *argv[])
 
   auto ret = app.exec();
   joda::pipeline::PipelineFactory::shutdown();
-  BioformatsLoader::destroy();
+  joda::image::BioformatsLoader::destroy();
   return ret;
 }

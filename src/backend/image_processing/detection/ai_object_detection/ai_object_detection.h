@@ -22,7 +22,7 @@
 #include <opencv2/dnn/all_layers.hpp>
 #include <opencv2/opencv.hpp>
 
-namespace joda::func::ai {
+namespace joda::image::detect::ai {
 
 ///
 /// \class      ObjectDetector
@@ -42,7 +42,7 @@ private:
   /////////////////////////////////////////////////////
   auto postProcessing(const cv::Mat &inputImage, const cv::Mat &originalImage,
                       const std::vector<cv::Mat> &predictionMatrix, joda::settings::ChannelIndex channelIndex)
-      -> DetectionResults;
+      -> std::unique_ptr<DetectionResults>;
   void drawLabel(cv::Mat &input_image, const std::string &label, int left, int top);
   /////////////////////////////////////////////////////
   const float INPUT_WIDTH          = 640.0;
@@ -61,4 +61,4 @@ private:
   cv::dnn::Net mNet;
 };
 
-}    // namespace joda::func::ai
+}    // namespace joda::image::detect::ai

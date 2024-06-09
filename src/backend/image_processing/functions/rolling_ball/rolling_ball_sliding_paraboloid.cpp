@@ -31,7 +31,7 @@
 #include <climits>
 #include "rolling_ball.hpp"
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \brief     Create background for a float image by sliding a paraboloid over the image
@@ -337,4 +337,4 @@ void RollingBallBackground::correctCorners(cv::Mat &pixels, float coeff2, float 
   delete[] correctedEdges;
 }
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

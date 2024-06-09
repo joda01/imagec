@@ -1,12 +1,12 @@
 #include <opencv2/core/hal/interface.h>
-#include "../../../image_reader/jpg/image_loader_jpg.hpp"
-#include "../../../image_reader/tif/image_loader_tif.hpp"
 #include "../../../settings/channel/channel_settings.hpp"
 #include "backend/image_processing/functions/blur/blur.hpp"
 #include "backend/image_processing/functions/rolling_ball/rolling_ball.hpp"
 #include "backend/image_processing/functions/threshold/threshold.hpp"
 #include "backend/image_processing/functions/threshold/threshold_manual.hpp"
-#include "backend/image_reader/bioformats/bioformats_loader.hpp"
+#include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
+#include "backend/image_processing/reader/jpg/image_loader_jpg.hpp"
+#include "backend/image_processing/reader/tif/image_loader_tif.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/core.hpp>
@@ -21,12 +21,12 @@
 TEST_CASE("func::watershed", "[watershed]")
 {
   double MAXFINDER_TOLERANCE = 0.5;    // reasonable v
-  BioformatsLoader::init();
+  joda::image::BioformatsLoader::init();
 
-  auto img = BioformatsLoader::loadEntireImage("test/test_in_cell_counting/A10_01.vsi", 1, 0);
-  joda::func::img::RollingBallBackground bg({});
-  joda::func::img::Blur blur({});
-  joda::func::img::ThresholdManual th(100);
+  auto img = joda::image::BioformatsLoader::loadEntireImage("test/test_in_cell_counting/A10_01.vsi", 1, 0);
+  joda::image::func::RollingBallBackground bg({});
+  joda::image::func::Blur blur({});
+  joda::image::func::ThresholdManual th(100);
   bg.execute(img);
   blur.execute(img);
   cv::Mat binaryImage;
@@ -34,7 +34,7 @@ TEST_CASE("func::watershed", "[watershed]")
 
   cv::imwrite("zz_inout.jpg", binaryImage);
 
-  joda::func::img::Watershed watershed;
+  joda::image::func::Watershed watershed;
   watershed.execute(binaryImage);
   cv::imwrite("zz_result.jpg", binaryImage);
 }

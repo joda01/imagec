@@ -33,13 +33,13 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/utility.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \class      RollingBall
@@ -378,4 +378,4 @@ double RollingBallBackground::filter3(cv::Mat &ip, int length, int pixel0, int i
   return shiftBy;
 }
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

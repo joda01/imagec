@@ -11,5 +11,32 @@
 /// \brief     Functions on detection response
 ///
 
-namespace joda::func {
+#include "detection_response.hpp"
+#include <opencv2/core/types.hpp>
+
+namespace joda::image::detect {
+
+void DetectionResults::createBinaryImage(cv::Mat &img) const
+{
+  for(const auto &roi : *this) {
+    if(roi.isValid()) {
+      int left   = roi.getBoundingBox().x;
+      int top    = roi.getBoundingBox().y;
+      int width  = roi.getBoundingBox().width;
+      int height = roi.getBoundingBox().height;
+
+      if(!roi.getMask().empty() && !roi.getBoundingBox().empty() && roi.getBoundingBox().x >= 0 &&
+         roi.getBoundingBox().y >= 0 && roi.getBoundingBox().width >= 0 && roi.getBoundingBox().height >= 0 &&
+         roi.getBoundingBox().x + roi.getBoundingBox().width <= img.cols &&
+         roi.getBoundingBox().y + roi.getBoundingBox().height <= img.rows) {
+        try {
+          img(roi.getBoundingBox()).setTo(cv::Scalar(255), roi.getMask());
+        } catch(const std::exception &ex) {
+          std::cout << "PA: " << ex.what() << std::endl;
+        }
+      }
+    }
+  }
 }
+
+}    // namespace joda::image::detect

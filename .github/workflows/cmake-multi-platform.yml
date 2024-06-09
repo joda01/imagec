@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - duckdb
     tags:
       - '*'
   pull_request:
@@ -34,6 +35,11 @@ jobs:
             mingw-w64-x86_64-python-mingw-ldd
             mingw-w64-x86_64-qt6-base
             mingw-w64-x86_64-libxlsxwriter
+            mingw-w64-x86_64-xz
+            mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-libzip
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
       - name: Put MSYS2_MinGW64 on PATH
         run: |
           echo "D:/a/_temp/msys64/mingw64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
@@ -62,7 +68,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-22.04
     container: 
-      image: joda001/imagec:v1.6.0
+      image: joda001/imagec:v1.7.8
 
     steps:
       - name: Checkout code

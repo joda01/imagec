@@ -20,7 +20,7 @@
 #include <opencv2/imgproc.hpp>
 #include "detection_response.hpp"
 
-namespace joda::func {
+namespace joda::image::detect {
 
 ///
 /// \class      Detection
@@ -48,7 +48,7 @@ public:
   /////////////////////////////////////////////////////
   virtual auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
       -> DetectionResponse = 0;
-  static void paintBoundingBox(cv::Mat &img, const DetectionResults &result,
+  static void paintBoundingBox(cv::Mat &img, const std::unique_ptr<DetectionResults> &result,
                                const joda::onnx::OnnxParser::Data &modelInfo, const std::string &fillColor,
                                bool paintRectangel, bool paintLabels);
   static void paintOverlay(cv::Mat &img, const std::vector<OverlaySettings> &overlays);
@@ -103,4 +103,4 @@ private:
             FONT_THICKNESS);
   }
 };
-}    // namespace joda::func
+}    // namespace joda::image::detect

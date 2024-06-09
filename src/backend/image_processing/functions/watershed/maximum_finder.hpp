@@ -14,7 +14,7 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 using Polygon = std::vector<cv::Point>;
 
@@ -49,17 +49,18 @@ public:
 private:
   /////////////////////////////////////////////////////
   void makeDirectionOffsets(cv::Mat &ip);
-  std::shared_ptr<int64_t> getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool excludeEdgesNow, bool isEDM,
-                                              float globalMin, float globalMax, double threshold, size_t &maxPointSize);
+  std::shared_ptr<uint64_t> getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool excludeEdgesNow, bool isEDM,
+                                               float globalMin, float globalMax, double threshold,
+                                               size_t &maxPointSize);
 
-  void analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, std::shared_ptr<int64_t> maxPoints, size_t maxPointsSize,
-                            bool excludeEdgesNow, bool isEDM, float globalMin, double tolerance, bool strict,
-                            int outputType, float maxSortingError);
+  void analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, std::shared_ptr<uint64_t> maxPoints,
+                            size_t maxPointsSize, bool excludeEdgesNow, bool isEDM, float globalMin, double tolerance,
+                            bool strict, int outputType, float maxSortingError);
 
   bool isWithin(int x, int y, int direction);
   float trueEdmHeight(int x, int y, const cv::Mat &ip);
   cv::Mat make8bit(cv::Mat &ip, cv::Mat &typeP, bool isEDM, float globalMin, float globalMax, double threshold);
-  void cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, std::shared_ptr<int64_t> maxPoints, size_t maxPointSize);
+  void cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, std::shared_ptr<uint64_t> maxPoints, size_t maxPointSize);
   bool watershedSegment(cv::Mat &ip);
   void cleanupExtraLines(cv::Mat &ip);
   static void watershedPostProcess(cv::Mat &ip);
@@ -115,4 +116,4 @@ private:
                                                 MAX_AREA};    ///< type masks corresponding to the output types
   static const inline float SQRT2            = 1.4142135624F;
 };
-}    // namespace joda::func::img
+}    // namespace joda::image::func

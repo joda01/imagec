@@ -19,7 +19,7 @@
 #include <cstddef>
 #include <opencv2/core/types.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 /** OPEN, CLOSE, TOPHAT need more than one run of the underlying filter */
 
@@ -233,13 +233,7 @@ void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t
   int previousY = kHeight / 2 - cacheHeight;
   bool rgb      = false;
 
-  int y = 0;
-  while(true) {
-    bool threadFinished = y >= height || y < 0;    // y<0 if aborted
-    if(threadFinished) {
-      break;    // all done, break the loop
-    }
-
+  for(int y = 0; y < height; y++) {
     for(int i = 0; i < cachePointersLength; i++) {    // shift kernel pointers to new line
       cachePointers.get()[i] = (cachePointers.get()[i] + cacheWidth * (y - previousY)) % cacheLength;
     }
@@ -258,9 +252,6 @@ void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t
     if(!isFloat) {    // Float images: data are written already during 'filterLine'
       writeLineToPixels(values, ip, y * width, ip.cols);    // W R I T E
     }
-
-    y++;    // y of the next line that needs processing
-
   }    // while (true); loop over y (lines)
 
   delete[] values;
@@ -281,9 +272,10 @@ void RankFilter::filterLine(float *values, int width, float *cache, std::shared_
   for(int x = 0; x < roi.cols; x++, valuesP++) {    // x is with respect to roi.x
     if(fullCalculation) {
       fullCalculation = smallKernel;    // for small kernel, always use the full area, not incremental algorithm
-      if(minOrMaxOrOutliers)
+      if(minOrMaxOrOutliers) {
         max = getAreaMax(cache, x, cachePointers, cachePointersLength, 0, -std::numeric_limits<float>::max(),
                          minMaxOutliersSign);
+      }
       if(minOrMax) {
         values[valuesP] = max * minMaxOutliersSign;
         continue;
@@ -683,4 +675,4 @@ std::shared_ptr<int> RankFilter::makeCachePointers(int *lineRadii, size_t lineRa
   return cachePointers;
 }
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

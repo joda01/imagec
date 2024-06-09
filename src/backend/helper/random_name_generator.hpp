@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <array>
 #include <random>
 #include <string>
 
@@ -22,7 +23,7 @@ namespace joda::helper {
 
 class RandomNameGenerator
 {
-  static const inline std::string left[] = {
+  static const inline std::array left = {
       "admiring",
       "adoring",
       "affectionate", /*"agitated",*/
@@ -129,7 +130,7 @@ class RandomNameGenerator
   // Docker, starting from 0.7.x, generates names from notable scientists and hackers.
   // Please, for any amazing man that you add to the list, consider adding an equally amazing woman to it, and
   // vice versa.
-  static const inline std::string right[] = {
+  static const inline std::array right = {
       // Maria Gaetana Agnesi - Italian mathematician, philosopher, theologian and humanitarian. She was the
       // first woman to write a mathematics handbook and the first woman appointed as a Mathematics
       // Professor at a University. https://en.wikipedia.org/wiki/Maria_Gaetana_Agnesi
@@ -1078,7 +1079,7 @@ class RandomNameGenerator
       "tesla",
 
       // Marie Tharp - American geologist and oceanic cartographer who co-created the first scientific
-      // map of the Atlantic Ocean floor. Her work led to the acceptance of the theories of plate
+      // map of the Atlantic Ocean floor. Her work led to the acceptance of the theories of plates
       // tectonics and continental drift. https://en.wikipedia.org/wiki/Marie_Tharp
       "tharp",
 
@@ -1181,6 +1182,9 @@ class RandomNameGenerator
       // Russian Aviation. https://en.wikipedia.org/wiki/Nikolay_Yegorovich_Zhukovsky
       "zhukovsky",
 
+      // Biologist supports the project with testing
+      "plank",
+
       // Biologist and initiator of the project
       "schuerz",
 
@@ -1191,8 +1195,7 @@ class RandomNameGenerator
       "hrasnova",
 
       // Biologist supports the project with testing
-      "plank",
-
+      "khanna",
   };
 
 public:
@@ -1203,21 +1206,15 @@ public:
   {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> distributionLeft(0, sizeof(left) / sizeof(left[0]));
-    std::uniform_int_distribution<int> distributionRight(0, sizeof(right) / sizeof(right[0]));
+    std::uniform_int_distribution<int> distributionLeft(0, left.size());
+    std::uniform_int_distribution<int> distributionRight(0, right.size());
 
-  begin:
     int leftRandom  = distributionLeft(gen);
     int rightRandom = distributionRight(gen);
 
-    std::string name =
-        left[leftRandom] + "_" + right[rightRandom];    // nolint:gosec // G404: Use of weak random number
-                                                        // generator (math/rand instead of crypto/rand)
-    if(name == "boring_wozniak")                        /* Steve Wozniak is not boring */
-    {
-      goto begin;
-    }
-
+    std::string name = std::string(left.at(leftRandom)) + "_" +
+                       std::string(right.at(rightRandom));    // nolint:gosec // G404: Use of weak random number
+                                                              // generator (math/rand instead of crypto/rand)
     return name;
   }
 };

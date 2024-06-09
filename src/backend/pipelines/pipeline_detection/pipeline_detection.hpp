@@ -19,7 +19,7 @@
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
 
-namespace joda::pipeline::detection {
+namespace joda::pipeline {
 
 ///
 /// \class      Pipeline
@@ -35,7 +35,7 @@ public:
   }
 
   virtual auto execute(const cv::Mat &img, const cv::Mat &imgOriginal,
-                       const joda::settings::ChannelSettings &channelSetting) -> func::DetectionResponse = 0;
+                       const joda::settings::ChannelSettings &channelSetting) -> image::detect::DetectionResponse = 0;
 
   [[nodiscard]] auto getAvailableModels() const -> const std::map<std::string, joda::onnx::OnnxParser::Data> &
   {
@@ -46,4 +46,4 @@ private:
   /////////////////////////////////////////////////////
   std::map<std::string, joda::onnx::OnnxParser::Data> mAvailableModels;
 };
-}    // namespace joda::pipeline::detection
+}    // namespace joda::pipeline

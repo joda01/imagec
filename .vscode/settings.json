@@ -96,6 +96,7 @@
     "editor.formatOnSave": true,
     "cSpell.words": [
         "detailoutput",
+        "duckdb",
         "schemaid",
         "Voronoi"
     ],

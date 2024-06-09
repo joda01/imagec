@@ -23,7 +23,7 @@
 #include <map>
 #include <set>
 #include <string>
-#include "../../image_reader/image_reader.hpp"
+#include "backend/image_processing/reader/image_reader.hpp"
 #include <pugixml.hpp>
 
 namespace joda::ome {
@@ -40,8 +40,8 @@ public:
   OmeInfo();
 
   void loadOmeInformationFromString(const std::string &omeXML);
-  ImageProperties loadOmeInformationFromJsonString(const std::string &omeJson);
-  void emulateOmeInformationFromTiff(const ImageProperties &);
+  joda::image::ImageProperties loadOmeInformationFromJsonString(const std::string &omeJson);
+  void emulateOmeInformationFromTiff(const joda::image::ImageProperties &);
 
   [[nodiscard]] int getNrOfChannels() const;
   [[nodiscard]] uint64_t getImageSize() const;
@@ -61,11 +61,11 @@ private:
   };
 
   /////////////////////////////////////////////////////
-  int mNrOfChannels    = 0;
-  int64_t mImageSize   = 0;
-  int64_t mImageWidth  = 0;
-  int64_t mImageHeight = 0;
-  int32_t mBits        = 8;
+  int mNrOfChannels     = 0;
+  int64_t mImageSize    = 0;
+  uint64_t mImageWidth  = 0;
+  uint64_t mImageHeight = 0;
+  int32_t mBits         = 8;
 
   std::map<uint32_t, ChannelInfo> mChannels;    ///< Contains the channel information <channelIdx | channelinfo>
 };

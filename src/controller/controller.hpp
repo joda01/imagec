@@ -14,6 +14,7 @@
 #pragma once
 
 #include "backend/helper/directory_iterator.hpp"
+#include "backend/helper/file_info_images.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 
 namespace joda::ctrl {
@@ -29,12 +30,12 @@ public:
   /////////////////////////////////////////////////////
   Controller();
   void start(const settings::AnalyzeSettings &settings, const pipeline::Pipeline::ThreadingSettings &threadSettings,
-             const std::string &jobName);
+             const std::string &analyzeName);
   void stop();
   void reset();
   std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string> getState();
   auto getNrOfFoundImages() -> uint32_t;
-  auto getListOfFoundImages() -> const std::vector<FileInfo> &;
+  auto getListOfFoundImages() -> const std::vector<helper::fs::FileInfoImages> &;
   bool isLookingForFiles();
   void stopLookingForFiles();
   void getSettings();
@@ -44,11 +45,11 @@ public:
     std::vector<uchar> data;
     int height;
     int width;
-    joda::func::DetectionResults detectionResult;
+    std::unique_ptr<joda::image::detect::DetectionResults> detectionResult;
     std::string imageFileName;
   };
   auto preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex) -> Preview;
-  auto getImageProperties(int imgIndex, int series) -> ImageProperties;
+  auto getImageProperties(int imgIndex, int series) -> joda::image::ImageProperties;
   struct Resources
   {
     uint64_t ramTotal;    // RAM in bytes
@@ -63,7 +64,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  joda::helper::ImageFileContainer mWorkingDirectory;
+  joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> mWorkingDirectory;
   std::string mActProcessId;
 };
 

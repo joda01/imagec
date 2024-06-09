@@ -29,7 +29,7 @@
 #include <iostream>
 #include <memory>
 #include <thread>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 
 namespace joda::ui::qt {
 

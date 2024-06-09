@@ -38,11 +38,11 @@ SET(CMAKE_CXX20_STANDARD 20)
 SET(CMAKE_CXX20_STANDARD_REQUIRED true)
 set(CMAKE_AUTOMOC ON)
 
-
+# -Ofast
 IF (WIN32)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -Ofast -pthread -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -lm -std=c++20")  
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -pthread -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -lm -std=c++20")  
 ELSE()
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -Ofast -pthread -Wno-unknown-pragmas -lm -std=c++20")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -pthread -Wno-unknown-pragmas -lm -std=c++20")
   set(CMAKE_INSTALL_RPATH "$ORIGIN")
 ENDIF()
 SET(CMAKE_GENERATOR "Unix Makefiles")
@@ -70,8 +70,15 @@ find_package( OpenSSL  )
 find_package( JNI REQUIRED )
 find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
+find_package( ZLIB REQUIRED)
+find_package( libzip REQUIRED)
+find_package( liblzma REQUIRED)
+find_package( DuckDB REQUIRED)
+SET(DuckDB_USE_STATIC_LIBS TRUE)
 
+
+
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
 
 
 include_directories(${JNI_INCLUDE_DIRS})
@@ -92,7 +99,6 @@ ENDIF()
 # Link to libraries
 #
 IF (WIN32)
-  # WINDOWS (msys)
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
@@ -103,12 +109,12 @@ IF (WIN32)
     Qt6::Widgets
     Qt6::Core
     xlsxwriter
-    #JNI::JVM
-    #JNI::JNI
-    #JNI::AWT
+    ZLIB::ZLIB
+    libzip::zip
+    LibLZMA::LibLZMA
+    duckdb
   )
 ELSE()
-  # c
   set(LIBS
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
@@ -118,12 +124,12 @@ ELSE()
     Qt6::Widgets
     Qt6::Core
     PkgConfig::Xlsxwriter
-    #JNI::JVM
-    #JNI::JNI
-    #JNI::AWT
+    ZLIB::ZLIB
+    libzip::zip
+    LibLZMA::LibLZMA
+    duckdb
   )
 ENDIF()
-
 
 set(RESOURCE_FILES
     resources/resource.qrc

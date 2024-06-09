@@ -23,7 +23,7 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 class RollingBall;
 
@@ -85,4 +85,4 @@ private:
   const int nPasses          = 1;
   const int flags = 0;    //= DOES_8G | DOES_16 | DOES_RGB | FINAL_PROCESSING | KEEP_PREVIEW | PARALLELIZE_STACKS;
 };
-}    // namespace joda::func::img
+}    // namespace joda::image::func

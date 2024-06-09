@@ -37,8 +37,8 @@ public:
   }
   /////////////////////////////////////////////////////
   auto execute(const settings::AnalyzeSettings &,
-               const std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &,
-               const std::string &detailoutputPath) const -> joda::func::DetectionResponse override;
+               const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &) const
+      -> joda::image::detect::DetectionResponse override;
 
 private:
   /////////////////////////////////////////////////////
@@ -54,7 +54,8 @@ private:
     CELL_INTERSECTING_WITH = 7
   };
 
-  static bool doesAreaContainsPoint(const func::ROI &voronoiArea, const joda::func::DetectionResults &voronoiPoints);
+  static bool doesAreaContainsPoint(const image::ROI &voronoiArea,
+                                    const std::unique_ptr<joda::image::detect::DetectionResults> &voronoiPoints);
 
   /////////////////////////////////////////////////////
   joda::settings::ChannelIndex mChannelIndexMe;

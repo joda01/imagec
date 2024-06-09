@@ -18,7 +18,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \class      Threshold
@@ -119,4 +119,4 @@ private:
   uint16_t mMinThreshold = 0;
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

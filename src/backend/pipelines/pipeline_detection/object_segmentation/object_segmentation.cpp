@@ -21,7 +21,7 @@
 #include "backend/image_processing/detection/ai_object_segmentation/ai_object_segmentation.hpp"
 #include "backend/image_processing/detection/object_segmentation/object_segmentation.hpp"
 
-namespace joda::pipeline::detection {
+namespace joda::pipeline {
 
 ///
 /// \brief      Counts the number of nucleus in an image
@@ -29,18 +29,19 @@ namespace joda::pipeline::detection {
 /// \param[in]  img     Image to analyze
 ///
 auto ObjectSegmentation::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
-                                 const joda::settings::ChannelSettings &channelSetting) -> func::DetectionResponse
+                                 const joda::settings::ChannelSettings &channelSetting)
+    -> image::detect::DetectionResponse
 {
   if(channelSetting.detection.detectionMode == settings::DetectionSettings::DetectionMode::THRESHOLD) {
-    joda::func::threshold::ObjectSegmentation th(
+    joda::image::segment::ObjectSegmentation th(
         channelSetting.objectFilter, channelSetting.detection.threshold.thresholdMin,
         channelSetting.detection.threshold.mode, channelSetting.detection.threshold.$watershedSegmentation.enabled);
     return th.forward(img, imgOriginal, channelSetting.meta.channelIdx);
   } else {
     auto modelData = getAvailableModels().find(channelSetting.detection.ai.modelPath);
     if(modelData != getAvailableModels().end()) {
-      joda::func::ai::ObjectSegmentation obj(channelSetting.objectFilter, modelData->second,
-                                             channelSetting.detection.ai.minProbability);
+      joda::image::segment::ai::ObjectSegmentation obj(channelSetting.objectFilter, modelData->second,
+                                                       channelSetting.detection.ai.minProbability);
       return obj.forward(img, imgOriginal, channelSetting.meta.channelIdx);
     } else {
       throw std::runtime_error("Selected model >" + channelSetting.detection.ai.modelPath +
@@ -49,4 +50,4 @@ auto ObjectSegmentation::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
   }
 }
 
-}    // namespace joda::pipeline::detection
+}    // namespace joda::pipeline

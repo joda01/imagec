@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <string>
+
 namespace joda::exceptions {
 
 class RuntimeException : public std::exception

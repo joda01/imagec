@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <bitset>
 #include <string>
 #include <vector>
 #include "backend/settings/channel/channel_settings_filter.hpp"
@@ -22,24 +23,26 @@
 #include <opencv2/dnn/all_layers.hpp>
 #include <opencv2/opencv.hpp>
 
-namespace joda::func {
+namespace joda::image {
 
 using Boxes      = cv::Rect;
 using Confidence = float;
 using ClassId    = int;
 
-enum class ParticleValidity : int
+enum class ParticleValidityEnums
 {
-  UNKNOWN              = 0,
-  VALID                = 0x01,
-  TOO_SMALL            = 0x02,
-  TOO_BIG              = 0x04,
-  TOO_LESS_CIRCULARITY = 0x08,
-  TOO_LESS_OVERLAPPING = 0x10,
-  REFERENCE_SPOT       = 0x20,
-  INVALID              = 0x40,
-  AT_THE_EDGE          = 0x80
+  UNKNOWN              = 1,
+  INVALID              = 2,
+  MANUAL_OUT_SORTED    = 3,
+  TOO_SMALL            = 4,
+  TOO_BIG              = 5,
+  TOO_LESS_CIRCULARITY = 6,
+  TOO_LESS_OVERLAPPING = 7,
+  REFERENCE_SPOT       = 8,
+  AT_THE_EDGE          = 9,
 };
+
+using ParticleValidity = std::bitset<32>;
 
 ///
 /// \class      ROI
@@ -178,7 +181,7 @@ public:
 
   [[nodiscard]] bool isValid() const
   {
-    return validity == ParticleValidity::VALID;
+    return 0 == validity.to_ulong();
   }
 
   [[nodiscard]] auto getValidity() const
@@ -186,9 +189,9 @@ public:
     return validity;
   }
 
-  void setValidity(ParticleValidity valid)
+  void setValidity(ParticleValidityEnums valid)
   {
-    validity = valid;
+    validity.set(static_cast<size_t>(valid));
   }
 
   [[nodiscard]] std::tuple<ROI, bool>
@@ -231,10 +234,10 @@ private:
   std::map<joda::settings::ChannelIndex, Intersecting>
       intersectingRois;    ///< Key is the channel index, value an array of ROIs which intersects with this ROI
 
-  uint64_t areaSize         = 0;    ///< size of the masking area [px^2 / px^3]
-  float perimeter           = 0;    ///< Perimter (boundary size) [px]
-  float circularity         = 0;    ///< Circularity of the masking area [0-1]
-  ParticleValidity validity = ParticleValidity::UNKNOWN;
-  bool mHasSnapArea         = false;
+  uint64_t areaSize = 0;    ///< size of the masking area [px^2 / px^3]
+  float perimeter   = 0;    ///< Perimter (boundary size) [px]
+  float circularity = 0;    ///< Circularity of the masking area [0-1]
+  ParticleValidity validity{};
+  bool mHasSnapArea = false;
 };
-}    // namespace joda::func
+}    // namespace joda::image

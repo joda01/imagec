@@ -25,7 +25,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-namespace joda::func {
+namespace joda::image {
 
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour) :
@@ -159,7 +159,7 @@ void ROI::calculateMetrics(const std::map<joda::settings::ChannelIndex, const cv
     if(filter != nullptr) {
       applyParticleFilter(filter);
     } else {
-      validity = ParticleValidity::VALID;
+      validity = {};
     }
   }
 }
@@ -244,8 +244,9 @@ double ROI::getTracedPerimeter(const std::vector<cv::Point> &points) const
   int side2    = 0;
   for(int i = 0; i < nPoints; i++) {
     int nexti = i + 1;
-    if(nexti == nPoints)
+    if(nexti == nPoints) {
       nexti = 0;
+    }
     dx2 = points[nexti].x - points[i].x;
     dy2 = points[nexti].y - points[i].y;
     sumdx += std::abs(dx1);
@@ -269,8 +270,9 @@ double ROI::getTracedPerimeter(const std::vector<cv::Point> &points) const
 double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape) const
 {
   auto npoints = points.size();
-  if(npoints < 2)
+  if(npoints < 2) {
     return 0;
+  }
   double pixelWidth = 1.0, pixelHeight = 1.0;
   double length = 0;
   for(int i = 0; i < npoints - 1; i++)
@@ -308,22 +310,16 @@ double ROI::calcPerimeter(const std::vector<cv::Point> &points) const
 ///
 void ROI::applyParticleFilter(const joda::settings::ChannelSettingsFilter *filter)
 {
-  validity = ParticleValidity::UNKNOWN;
+  validity = {};
   if(areaSize > filter->maxParticleSize) {
-    validity = static_cast<ParticleValidity>(static_cast<int>(validity) | static_cast<int>(ParticleValidity::TOO_BIG));
+    validity.set(static_cast<size_t>(ParticleValidityEnums::TOO_BIG));
   }
   if(areaSize < filter->minParticleSize) {
-    validity =
-        static_cast<ParticleValidity>(static_cast<int>(validity) | static_cast<int>(ParticleValidity::TOO_SMALL));
+    validity.set(static_cast<size_t>(ParticleValidityEnums::TOO_SMALL));
   }
   if(circularity < filter->minCircularity) {
-    validity = static_cast<ParticleValidity>(static_cast<int>(validity) |
-                                             static_cast<int>(ParticleValidity::TOO_LESS_CIRCULARITY));
+    validity.set(static_cast<size_t>(ParticleValidityEnums::TOO_LESS_CIRCULARITY));
   }
-  if(validity == ParticleValidity::UNKNOWN) {
-    validity = ParticleValidity::VALID;
-  }
-
   // filter.getSnapAreaSize();
 }
 
@@ -371,7 +367,7 @@ ROI::calcIntersection(const ROI &roi, const std::map<joda::settings::ChannelInde
       ROI intersectionROI(index, intersectingMask.intersectionArea, 0, intersectingMask.intersectedRect,
                           intersectingMask.intersectedMask, contour, imageOriginal);
       if(intersectingMask.intersectionArea < minIntersection) {
-        intersectionROI.setValidity(ParticleValidity::TOO_LESS_OVERLAPPING);
+        intersectionROI.setValidity(ParticleValidityEnums::TOO_LESS_OVERLAPPING);
       }
       return {intersectionROI, true};
     }
@@ -398,18 +394,25 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
   }
   result.intersectedMask = cv::Mat::zeros(result.intersectedRect.height, result.intersectedRect.width, CV_8UC1);
 
+  const int32_t xM1Base = (result.intersectedRect.x - getSnapAreaBoundingBox().x);
+  const int32_t yM1Base = (result.intersectedRect.y - getSnapAreaBoundingBox().y);
+
+  const int32_t xM2Base = (result.intersectedRect.x - roi.getSnapAreaBoundingBox().x);
+  const int32_t yM2Base = (result.intersectedRect.y - roi.getSnapAreaBoundingBox().y);
+
   // Iterate through the pixels in the intersection and set them in the new mask
   for(int y = 0; y < result.intersectedRect.height; ++y) {
     for(int x = 0; x < result.intersectedRect.width; ++x) {
-      int xM1      = x + (result.intersectedRect.x - getSnapAreaBoundingBox().x);
-      int yM1      = y + (result.intersectedRect.y - getSnapAreaBoundingBox().y);
+      int xM1 = x + xM1Base;
+      int yM1 = y + yM1Base;
+
       bool mask1On = false;
       if(xM1 >= 0 && yM1 >= 0) {
         mask1On = getSnapAreaMask().at<uchar>(yM1, xM1) > 0;
       }
 
-      int xM2      = x + (result.intersectedRect.x - roi.getSnapAreaBoundingBox().x);
-      int yM2      = y + (result.intersectedRect.y - roi.getSnapAreaBoundingBox().y);
+      int xM2      = x + xM2Base;
+      int yM2      = y + yM2Base;
       bool mask2On = false;
       if(xM2 >= 0 && yM2 >= 0) {
         mask2On = roi.getSnapAreaMask().at<uchar>(yM2, xM2) > 0;
@@ -484,4 +487,4 @@ void ROI::calcIntersectionAndAdd(joda::settings::ChannelIndex channelIdx, const 
   }
 }
 
-}    // namespace joda::func
+}    // namespace joda::image

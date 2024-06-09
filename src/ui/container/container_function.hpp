@@ -40,8 +40,8 @@ struct is_enum
 };
 
 template <typename T>
-concept IntFloatConcept = std::same_as<T, int> || std::same_as<T, float> || std::same_as<T, bool> ||
-                          std::same_as<T, QString> || std::is_enum<T>::value;
+concept IntFloatConcept = std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, float> ||
+                          std::same_as<T, bool> || std::same_as<T, QString> || std::is_enum<T>::value;
 
 template <IntFloatConcept VALUE_T, IntFloatConcept VALUE2_T>
 class ContainerFunction : public ContainerFunctionBase
@@ -63,7 +63,8 @@ public:
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
                     std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal, QWidget *parent,
                     const QString &pathToHelpFile = "")
-    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> || std::is_enum<VALUE_T>::value
+    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float> ||
+                 std::is_enum<VALUE_T>::value
       : mUnit(unit), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
@@ -75,7 +76,8 @@ public:
                     std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal,
                     const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault, QWidget *parent,
                     const QString &pathToHelpFile = "")
-    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> || std::is_enum<VALUE_T>::value
+    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float> ||
+                 std::is_enum<VALUE_T>::value
       :
       mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault), mParent(parent),
       mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
@@ -98,7 +100,8 @@ public:
   ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
                     std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options, QWidget *parent,
                     const QString &pathToHelpFile = "")
-    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::is_enum<VALUE_T>::value
+    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
+                 std::is_enum<VALUE_T>::value
       : mUnit(unit), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
@@ -110,7 +113,8 @@ public:
                     std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
                     const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault, QWidget *parent,
                     const QString &pathToHelpFile = "")
-    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::is_enum<VALUE_T>::value
+    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
+                 std::is_enum<VALUE_T>::value
       :
       mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault), mParent(parent),
       mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
@@ -148,6 +152,9 @@ public:
     if(mComboBox != nullptr) {
       if constexpr(std::same_as<VALUE_T, int> || std::is_enum<VALUE_T>::value) {
         return mComboBox->currentData().toInt() >= 0;
+      }
+      if constexpr(std::same_as<VALUE_T, uint32_t>) {
+        return mComboBox->currentData().toUInt() >= 0;
       }
       if constexpr(std::same_as<VALUE_T, QString>) {
         return mComboBox->currentData().toString() != "NONE" && mComboBox->currentData().toString() != "OFF";
@@ -195,8 +202,8 @@ public:
   /// \return
   ///
   void setValue(VALUE_T newValue)
-    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> || std::same_as<VALUE_T, QString> ||
-             std::is_enum<VALUE_T>::value
+    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float> ||
+             std::same_as<VALUE_T, QString> || std::is_enum<VALUE_T>::value
   {
     if(mLineEdit != nullptr) {
       if constexpr(std::same_as<VALUE_T, QString>) {
@@ -230,8 +237,8 @@ public:
   /// \return
   ///
   void setValueSecond(VALUE2_T newValue)
-    requires std::same_as<VALUE2_T, int> || std::same_as<VALUE2_T, float> || std::same_as<VALUE2_T, QString> ||
-             std::is_enum<VALUE2_T>::value
+    requires std::same_as<VALUE2_T, int> || std::same_as<VALUE2_T, uint32_t> || std::same_as<VALUE2_T, float> ||
+             std::same_as<VALUE2_T, QString> || std::is_enum<VALUE2_T>::value
   {
     if(mComboBoxSecond != nullptr) {
       int idx = -1;
@@ -279,6 +286,27 @@ public:
       }
       if(mComboBox != nullptr) {
         return mComboBox->currentData().toInt();
+      }
+      return 0;
+    } catch(const std::exception &) {
+      return 0;
+    }
+  }
+
+  ///
+  /// \brief      Creates an editable element
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
+  int getValue()
+    requires std::same_as<VALUE_T, uint32_t>
+  {
+    try {
+      if(mLineEdit != nullptr) {
+        return mLineEdit->text().toUInt();
+      }
+      if(mComboBox != nullptr) {
+        return mComboBox->currentData().toUInt();
       }
       return 0;
     } catch(const std::exception &) {
@@ -405,6 +433,23 @@ public:
   /// \author     Joachim Danmayr
   /// \return
   ///
+  int getValueSecond()
+    requires std::same_as<VALUE2_T, uint32_t>
+  {
+    try {
+      if(mComboBoxSecond != nullptr) {
+        return mComboBoxSecond->currentData().toUInt();
+      }
+      return 0.0;
+    } catch(const std::exception &) {
+      return 0.0;
+    }
+  }
+  ///
+  /// \brief      Creates an editable element
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
   VALUE2_T getValueSecond()
     requires std::is_enum<VALUE2_T>::value
   {
@@ -434,6 +479,44 @@ public:
       }
     } catch(const std::exception &) {
       return "";
+    }
+  }
+  ///
+  /// \brief      Creates an editable element
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
+  void setOptions(const QString &icon, const std::vector<ComboEntry> &options, const std::optional<VALUE_T> &defaultVal)
+  {
+    if(mComboBox != nullptr) {
+      mComboBox->clear();
+      mDefaultValue = defaultVal;
+      const QIcon myIcon(":/icons/outlined/" + icon);
+      for(const auto &data : options) {
+        QVariant variant;
+        if constexpr(std::is_enum<VALUE_T>::value) {
+          variant = QVariant(static_cast<int>(data.key));
+        } else {
+          variant = QVariant(data.key);
+        }
+        if(data.icon.isEmpty()) {
+          mComboBox->addItem(QIcon(myIcon.pixmap(28, 28)), data.label, variant);
+        } else {
+          const QIcon myIcon(":/icons/outlined/" + data.icon);
+          mComboBox->addItem(QIcon(myIcon.pixmap(28, 28)), data.label, variant);
+        }
+      }
+      int32_t idx = 0;
+      if(defaultVal.has_value()) {
+        if constexpr(std::is_enum<VALUE_T>::value) {
+          idx = mComboBox->findData(static_cast<int>(defaultVal.value()));
+        } else {
+          idx = mComboBox->findData(defaultVal.value());
+        }
+      }
+      if(idx >= 0) {
+        mComboBox->setCurrentIndex(idx);
+      }
     }
   }
 
@@ -468,8 +551,8 @@ private:
 
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
                             std::optional<VALUE_T> defaultVal, VALUE_T min = 0, VALUE_T max = 0)
-    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> || std::same_as<VALUE_T, QString> ||
-             std::is_enum<VALUE_T>::value
+    requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float> ||
+             std::same_as<VALUE_T, QString> || std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
@@ -493,9 +576,12 @@ private:
     connect(mLineEdit, &QLineEdit::returnPressed, this, &ContainerFunction::lineEditingChanged);
     connect(mLineEdit, &QLineEdit::textChanged, this, &ContainerFunction::textChanged);
 
-    if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>) {
+    if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float>) {
       QValidator *validator;
       if constexpr(std::same_as<VALUE_T, int>) {
+        validator = new QIntValidator(min, max, mLineEdit);
+      }
+      if constexpr(std::same_as<VALUE_T, uint32_t>) {
         validator = new QIntValidator(min, max, mLineEdit);
       }
       if constexpr(std::same_as<VALUE_T, float>) {
@@ -520,8 +606,8 @@ private:
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
                             std::optional<VALUE_T> defaultVal, VALUE_T min, VALUE_T max, const QString &unit,
                             const std::vector<ComboEntry2> &optionsSecond)
-    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, bool> ||
-             std::is_enum<VALUE_T>::value
+    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
+             std::same_as<VALUE_T, bool> || std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
@@ -548,9 +634,12 @@ private:
     connect(mLineEdit, &QLineEdit::returnPressed, this, &ContainerFunction::lineEditingChanged);
     connect(mLineEdit, &QLineEdit::textChanged, this, &ContainerFunction::textChanged);
 
-    if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float>) {
+    if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float>) {
       QValidator *validator;
       if constexpr(std::same_as<VALUE_T, int>) {
+        validator = new QIntValidator(min, max, mLineEdit);
+      }
+      if constexpr(std::same_as<VALUE_T, uint32_t>) {
         validator = new QIntValidator(min, max, mLineEdit);
       }
       if constexpr(std::same_as<VALUE_T, float>) {
@@ -581,8 +670,8 @@ private:
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
                             const QString &unit, const std::vector<ComboEntry> &options,
                             const std::vector<ComboEntry2> &optionsSecond, const std::optional<VALUE_T> &defaultVal)
-    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, bool> ||
-             std::is_enum<VALUE_T>::value
+    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
+             std::same_as<VALUE_T, bool> || std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");

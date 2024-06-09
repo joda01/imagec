@@ -1,9 +1,24 @@
 
-
 $mingwBasePathWin =  'D:\a\_temp\msys64\mingw64'
-
 $mingwQtPlatformsPath =  'D:\a\_temp\msys64\mingw64\share\qt6\plugins\platforms'
 $mingwQtImageFormatsPath =  'D:\a\_temp\msys64\mingw64\share\qt6\plugins\imageformats'
+
+ni "$mingwBasePathWin\lib\cmake\duckdb" -ItemType Directory
+
+Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll" -Destination "$mingwBasePathWin\bin" -Force
+Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll.a" -Destination "$mingwBasePathWin\lib" -Force
+Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb_static.a" -Destination "$mingwBasePathWin\lib" -Force
+Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.hpp" -Destination "$mingwBasePathWin\include" -Force
+Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.h" -Destination "$mingwBasePathWin\include" -Force
+Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libparquet.dll.a" -Destination "$mingwBasePathWin\lib" -Force
+Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libparquet_extension.a" -Destination "$mingwBasePathWin\lib" -Force
+Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb" -Destination "$mingwBasePathWin\include" -Force
+Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\cmake\*.cmake" -Destination "$mingwBasePathWin\lib\cmake\duckdb" -Force
+Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\third_party\*.a" -Destination "$mingwBasePathWin\lib" -Force
+
+
+ls "$mingwBasePathWin\lib\cmake"
+ls "$mingwBasePathWin\lib\cmake\duckdb"
 
 cmake --no-warn-unused-cli -DTAG_NAME="$env:TAG_NAME" -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_C_COMPILER:FILEPATH=D:\a\_temp\msys64\mingw64\bin\gcc.exe -DCMAKE_CXX_COMPILER:FILEPATH=D:\a\_temp\msys64\mingw64\bin\g++.exe -S"$env:GITHUB_WORKSPACE" -B"$env:GITHUB_WORKSPACE/build" -G "MinGW Makefiles"
 # This is a dirty hack, because the resource compiler did not create windows path correctly
@@ -20,7 +35,7 @@ ni "dlls\templates" -ItemType Directory
 #Copy-Item -Path "$jvmdll" -Destination "./dlls" -Force
 
 cd ../..
-cmake --build build --target imagec --parallel 8
+cmake --build build --target imagec --config Release --parallel 8
 cd build/build
 
 

@@ -16,14 +16,16 @@
 #include <map>
 #include <ranges>
 #include "backend/helper/file_info.hpp"
+#include "backend/helper/file_info_images.hpp"
 #include "backend/helper/system_resources.hpp"
-#include "backend/image_reader/bioformats/bioformats_loader.hpp"
+#include "backend/image_processing/detection/detection_response.hpp"
+#include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/analze_settings.hpp"
 
 namespace joda::ctrl {
 
-Controller::Controller()
+Controller::Controller() : mWorkingDirectory({})
 {
 }
 
@@ -32,11 +34,11 @@ Controller::Controller()
 /// \author     Joachim Danmayr
 ///
 void Controller::start(const settings::AnalyzeSettings &settings,
-                       const pipeline::Pipeline::ThreadingSettings &threadSettings, const std::string &jobName)
+                       const pipeline::Pipeline::ThreadingSettings &threadSettings, const std::string &analyzeName)
 {
   try {
     mActProcessId = joda::pipeline::PipelineFactory::startNewJob(settings, mWorkingDirectory.getWorkingDirectory(),
-                                                                 jobName, &mWorkingDirectory, threadSettings);
+                                                                 analyzeName, &mWorkingDirectory, threadSettings);
     joda::log::logInfo("Analyze started!");
   } catch(const std::exception &ex) {
     joda::log::logWarning("Analyze could not be started! Got " + std::string(ex.what()) + ".");
@@ -128,7 +130,7 @@ void Controller::stopLookingForFiles()
 /// \brief      Sets the working directory
 /// \author     Joachim Danmayr
 ///
-auto Controller::getListOfFoundImages() -> const std::vector<FileInfo> &
+auto Controller::getListOfFoundImages() -> const std::vector<helper::fs::FileInfoImages> &
 {
   return mWorkingDirectory.getFilesList();
 }
@@ -143,12 +145,12 @@ auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex
   // channels This is a little bit more complicated therefor not supported yet
 
   // Now we can process the original channel
-  auto imageFileName = mWorkingDirectory.getFileAt(imgIndex);
-  auto onnxModels    = onnx::OnnxParser::findOnnxFiles();
-  if(!imageFileName.getFilename().empty()) {
-    std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> referenceChannelResults;
-    auto result = joda::algo::ImageProcessor::executeAlgorithm(imageFileName, settings, tileIndex, onnxModels, nullptr,
-                                                               &referenceChannelResults);
+  auto imagePath  = mWorkingDirectory.getFileAt(imgIndex);
+  auto onnxModels = onnx::OnnxParser::findOnnxFiles();
+  if(!imagePath.getFilename().empty()) {
+    std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> referenceChannelResults;
+    auto result = joda::pipeline::ImageProcessor::executeAlgorithm(imagePath, settings, tileIndex, onnxModels, nullptr,
+                                                                   &referenceChannelResults);
     std::vector<uchar> buffer;
     std::vector<int> compression_params;
     compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
@@ -159,8 +161,8 @@ auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex
     return {.data            = buffer,
             .height          = result.controlImage.rows,
             .width           = result.controlImage.cols,
-            .detectionResult = result.result,
-            .imageFileName   = imageFileName};
+            .detectionResult = std::move(result.result),
+            .imageFileName   = imagePath.getFilePath().string()};
   }
   return {.data = {}, .height = 0, .width = 0, .detectionResult = {}, .imageFileName = {}};
 }
@@ -169,20 +171,20 @@ auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex
 /// \brief      Returns properties of given image
 /// \author     Joachim Danmayr
 ///
-auto Controller::getImageProperties(int imgIndex, int series) -> ImageProperties
+auto Controller::getImageProperties(int imgIndex, int series) -> image::ImageProperties
 {
   auto imagePath = mWorkingDirectory.getFileAt(imgIndex);
 
-  ImageProperties props;
+  image::ImageProperties props;
   switch(imagePath.getDecoder()) {
-    case FileInfo::Decoder::JPG:
-      props = JpgLoader::getImageProperties(imagePath);
+    case helper::fs::FileInfoImages::Decoder::JPG:
+      props = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
       break;
-    case FileInfo::Decoder::TIFF:
-      props = TiffLoader::getImageProperties(imagePath, 0);
+    case helper::fs::FileInfoImages::Decoder::TIFF:
+      props = image::TiffLoader::getImageProperties(imagePath.getFilePath().string(), 0);
       break;
-    case FileInfo::Decoder::BIOFORMATS:
-      auto [_, propIn] = BioformatsLoader::getOmeInformation(imagePath, series);
+    case helper::fs::FileInfoImages::Decoder::BIOFORMATS:
+      auto [_, propIn] = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
       props            = propIn;
       break;
   }
@@ -221,9 +223,9 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   int64_t channelNr = settings.channels.size();
 
   auto systemRecources = getSystemResources();
-  if(props.imageSize > joda::algo::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-    tileNr              = props.nrOfTiles / joda::algo::TILES_TO_LOAD_PER_RUN;
-    threads.ramPerImage = props.tileSize * joda::algo::TILES_TO_LOAD_PER_RUN;
+  if(props.imageSize > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    tileNr              = props.nrOfTiles / joda::pipeline::TILES_TO_LOAD_PER_RUN;
+    threads.ramPerImage = props.tileSize * joda::pipeline::TILES_TO_LOAD_PER_RUN;
   } else {
     threads.ramPerImage = props.imageSize;
   }

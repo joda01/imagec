@@ -123,7 +123,6 @@ RUN cd ./opencv &&\
 #
 # QT
 #
-
 RUN apt-get update &&\
     apt-get install -y build-essential perl python git &&\
     apt-get install -y libfontconfig1-dev libdbus-1-dev libfreetype6-dev libicu-dev libinput-dev libxkbcommon-dev libsqlite3-dev libssl-dev
@@ -171,8 +170,6 @@ RUN mkdir qt6-build &&\
     cmake --install .
 
 
-
-
 #
 # libtiff
 #
@@ -181,8 +178,6 @@ RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtif
     cmake -DBUILD_SHARED_LIBS=OFF . &&\
     cmake --build . --config Release --target install &&\
     cp -r libtiff/*.h  /usr/local/include
-
-
 
 #
 # xlsx writer
@@ -196,7 +191,41 @@ RUN git clone -b RELEASE_1.1.5 --depth 1 https://github.com/jmcnamara/libxlsxwri
     make install
 
 
+#
+# xz-utils
+#
+RUN git clone --depth 1 -b v5.6.1 https://github.com/joda01/xz.git /xz
+RUN cd /xz &&\
+    cmake . -DCMAKE_BUILD_TYPE="Release" -DBUILD_SHARED_LIBS=true &&\
+    make &&\
+    make install
+#
+# zlib
+#
+RUN git clone --depth 1 -b v1.3.1 https://github.com/joda01/zlib.git /zlib
+RUN cd /zlib &&\
+    cmake . &&\
+    make &&\
+    make install
 
+#
+# Libzip
+#
+RUN git clone --depth 1 -b v1.10.1 https://github.com/joda01/libzip.git /libzip
+RUN cd /libzip &&\
+    cmake -DBUILD_SHARED_LIBS=OFF . &&\
+    make &&\
+    make install
+
+#
+# DuckDb
+#
+RUN git clone --depth 1 -b v0.10.2 https://github.com/joda01/duckdb.git /duckdb
+RUN cd /duckdb &&\
+    cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release  &&\
+    cmake --build . --config Release --parallel 6
+RUN cd /duckdb &&\
+    cmake --build . --target install --config Release --parallel 6
 
 
 #

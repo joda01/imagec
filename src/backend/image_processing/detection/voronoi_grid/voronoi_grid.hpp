@@ -14,6 +14,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include "../detection.hpp"
 #include "../detection_response.hpp"
@@ -23,7 +24,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-namespace joda::func::img {
+namespace joda::image::detect {
 
 ///
 /// \class      Function
@@ -34,10 +35,11 @@ class VoronoiGrid : public DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  explicit VoronoiGrid(const DetectionResults &result, int maxRadius) : DetectionFunction({}), mMaxRadius(maxRadius)
+  explicit VoronoiGrid(const std::unique_ptr<DetectionResults> &result, int maxRadius) :
+      DetectionFunction({}), mMaxRadius(maxRadius)
   {
     // Extract points from the result bounding boxes
-    for(const auto &res : result) {
+    for(const auto &res : *result) {
       if(res.isValid()) {
         int x = static_cast<int>(static_cast<float>(res.getBoundingBox().x) +
                                  static_cast<float>(res.getBoundingBox().width) / 2.0F);
@@ -63,29 +65,28 @@ public:
       subdiv.insert(mPoint);
     }
 
+    //
     // Draw delaunay triangles
-    cv::Scalar delaunay_color(255, 255, 255), points_color(0, 0, 255);
-    // drawDelaunay(image, subdiv, delaunay_color);
-
-    // cv::imwrite("test.jpg", image);
+    //
+    /*
+     cv::Scalar delaunay_color(255, 255, 255), points_color(0, 0, 255);
+     drawDelaunay(image, subdiv, delaunay_color);
+     cv::imwrite("test.jpg", image);
+     */
 
     // Allocate space for Voronoi Diagram
-    cv::Mat img_voronoi = cv::Mat::zeros(image.size(), CV_8UC1);
     // Draw Voronoi diagram
-    auto result = drawVoronoi(img_voronoi, originalImage, subdiv, mMaxRadius);
+    auto result = drawVoronoi(originalImage, subdiv, mMaxRadius);
 
+    /*
     cv::Mat grayImageFloat;
     img_voronoi.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UCHAR_MAX);
-
     cv::Mat inputImage;
     cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
-
-    // std::cout << std::to_string(img_voronoi.type()) << "|" << std::to_string(img_voronoi.channels()) << "--"
-    //           << std::to_string(image.type()) << "|" << std::to_string(image.channels()) << std::endl;
     img_voronoi = inputImage * 0.5 + image;
-
-    // cv::imwrite("voronoi.png", inputImage);
-    // cv::imwrite("voronoi_combi.png", img_voronoi);
+    cv::imwrite("voronoi.png", inputImage);
+    cv::imwrite("voronoi_combi.png", img_voronoi);
+    */
 
     return result;
   }
@@ -118,17 +119,15 @@ public:
   /// \brief      Draw voronoi grid
   /// \author     Joachim Danmayr
   /// \ref        https://learnopencv.com/delaunay-triangulation-and-voronoi-diagram-using-opencv-c-python/
-  /// \param[out]  img      Image to draw the grid on
   /// \param[in]   subdiv   Sub division points
   ///
-  static auto drawVoronoi(const cv::Mat &img, const cv::Mat &imgOriginal, cv::Subdiv2D &subdiv, int circleSize)
-      -> DetectionResponse
+  static auto drawVoronoi(const cv::Mat &imgOriginal, cv::Subdiv2D &subdiv, int circleSize) -> DetectionResponse
   {
     DetectionResponse response;
     std::vector<std::vector<cv::Point2f>> facets;
     std::vector<cv::Point2f> centers;
     subdiv.getVoronoiFacetList(std::vector<int>(), facets, centers);
-    response.controlImage  = cv::Mat::zeros(img.rows, img.cols, CV_32FC3);
+    response.controlImage  = cv::Mat::zeros(imgOriginal.size(), CV_32FC3);
     response.originalImage = imgOriginal;
 
     for(size_t i = 0; i < facets.size(); i++) {
@@ -144,20 +143,18 @@ public:
       std::vector<cv::Point> circleMask;
       cv::ellipse2Poly(centers[i], cv::Size(circleSize, circleSize), 0, 0, 360, 1, circleMask);
 
-      cv::Mat mask1 = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+      cv::Mat mask1 = cv::Mat::zeros(imgOriginal.size(), CV_8UC1);
       fillConvexPoly(mask1, ifacet, cv::Scalar(255), 8, 0);
 
-      cv::Mat mask2 = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+      cv::Mat mask2 = cv::Mat::zeros(imgOriginal.size(), CV_8UC1);
       fillConvexPoly(mask2, circleMask, cv::Scalar(255), 8, 0);
 
-      cv::Mat result = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+      cv::Mat result = cv::Mat::zeros(imgOriginal.size(), CV_8UC1);
       if(circleSize >= 0) {
         cv::bitwise_and(mask1, mask2, result);
       } else {
         result = mask1;
       }
-
-      img += result;
 
       ifacets[0] = ifacet;
       polylines(response.controlImage, ifacets, true, cv::Scalar(), 1, cv::LINE_AA, 0);
@@ -181,7 +178,7 @@ public:
       }
 
       ROI roi(i, 1, 0, box, boxMask, contours[idxMax], {{joda::settings::ChannelIndex::NONE, &imgOriginal}});
-      response.result.push_back(roi);
+      response.result->push_back(roi);
     }
 
     paintBoundingBox(response.controlImage, response.result, {}, "#FF0000", false, false);
@@ -196,4 +193,4 @@ private:
   std::vector<cv::Point2f> mPoints;
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::detect

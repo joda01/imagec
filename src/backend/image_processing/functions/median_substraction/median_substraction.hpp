@@ -14,13 +14,13 @@
 #pragma once
 
 #include "../../functions/function.hpp"
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/image_processing/functions/rank_filter/rank_filter.hpp"
 #include "backend/settings/preprocessing/functions/median_subtract.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \class      Function
@@ -41,8 +41,8 @@ public:
   {
     auto idStart               = DurationCount::start("MedianSubtraction");
     auto medianBlurredImageOut = image.clone();
-    joda::func::img::RankFilter rank;
-    rank.rank(medianBlurredImageOut, mSettings.kernelSize, joda::func::img::RankFilter::MEDIAN);
+    joda::image::func::RankFilter rank;
+    rank.rank(medianBlurredImageOut, mSettings.kernelSize, joda::image::func::RankFilter::MEDIAN);
     image = image - medianBlurredImageOut;
     DurationCount::stop(idStart);
   }
@@ -52,4 +52,4 @@ private:
   const joda::settings::MedianSubtraction &mSettings;
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

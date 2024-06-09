@@ -17,7 +17,7 @@
 #include "blur.hpp"
 #include <opencv2/core/mat.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 void Blur::filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize) const
 {
@@ -155,4 +155,4 @@ void Blur::filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize)
   }
 }
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

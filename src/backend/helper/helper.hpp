@@ -23,24 +23,20 @@ inline auto timeNowToString() -> std::string
   return now_str;
 }
 
-inline auto getFileNameFromPath(const std::string &filePathIn) -> std::string
+inline auto getFileNameFromPath(const std::filesystem::path &filePathIn) -> std::string
 {
-  std::filesystem::path filePath(filePathIn);
-
   std::regex pattern("[^.a-zA-Z0-9_-]");
 
   // Use the regex_replace function to replace all matches with an empty string
-  return std::regex_replace(filePath.filename().string(), pattern, "");
+  return std::regex_replace(filePathIn.filename().string(), pattern, "");
 }
 
-inline auto getFolderNameFromPath(const std::string &filePathIn) -> std::string
+inline auto getFolderNameFromPath(const std::filesystem::path &filePathIn) -> std::string
 {
-  std::filesystem::path filePath(filePathIn);
-
   std::regex pattern("[^\\/\\a-zA-Z0-9_-]");
 
   // Use the regex_replace function to replace all matches with an empty string
-  return std::regex_replace(filePath.parent_path().string(), pattern, "");
+  return std::regex_replace(filePathIn.parent_path().string(), pattern, "");
 }
 
 inline std::string execCommand(const std::string &cmd, int &out_exitStatus)
@@ -80,6 +76,25 @@ inline void stringReplace(std::string &str, const std::string &searchStr, const 
     pos = str.find(searchStr, pos + replaceStr.length());
   }
 }
+
+///
+/// \brief      Converts a a string to a number
+/// \author     Joachim Danmayr
+///
+inline auto stringToNumber(const std::string &str) -> int
+{
+  int result = 0;
+  for(char c : str) {
+    if(isdigit(c)) {
+      result = result * 10 + (c - '0');    // Convert digit character to integer
+    } else if(isalpha(c)) {
+      result = result * 10 + (toupper(c) - 'A' + 1);    // Convert alphabetic character to integer
+    } else {
+      std::cerr << "Invalid character encountered: " << c << std::endl;
+    }
+  }
+  return result;
+};
 
 inline std::string timepointToIsoString(const std::chrono::system_clock::time_point &tp)
 {

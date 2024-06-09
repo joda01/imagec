@@ -1,40 +1,86 @@
-# imageC
+# imageC (EVAnalyzer 2)
 
-Designed for analyzing microscopy images in the biological sciences, ImageC is a powerful image analysis tool.
+is an open source application designed for high throughput analyzing of microscopy images in the biological sciences.  
 
-## Features
+With imageC image processing pipelines can be defined which are applied on a set of images to analyze.
+The resulting data is stored in a file-based database (duckdb) and can either be viewed directly in imageC using the built-in reporting tool, or the data can be exported to other file formats.  
 
-- Support for big tiff.
-- Support for [Bio-Formats](https://www.openmicroscopy.org/bio-formats/) image reader.
-- Multi channel batch analysis of images with up to 12 different channels per image.
-- Can interpret the [OME-XML](https://docs.openmicroscopy.org/ome-model/5.6.3/ome-xml/) description stored in the image.
-- AI or Threshold based ROI (region of interest) detection.
-- Supporting channel types: `SPOT`, `CELL`, `NUCLEUS`, `TETRASPECK BEAD`.
-- Automatic CSV report generation.
-- Single vesicle/cell/nucleus analysis and detailed reporting.
+imageC (EVAnalayzer 2), the direct successor of [EVAnalayzer](https://github.com/joda01/evanalyzer) an imageJ plugin with more than 3000 downloads (June 2024), is a standalone application written in C++.
+The main goals were to improve performance, allow the processing of big tiffs and improve usability.
 
-### Supported pipelines
+## Feature comparison
 
-#### Counting
+|                                                           |imageC   |EVA 1  |
+|-----------------------------------------------------------|-------  |-------|
+|[BioFormats support](https://github.com/ome/bioformats)    |x        |x      |
+|[OME-XML support](https://docs.openmicroscopy.org/)        |x        |x      |
+|XLSX report generation                                     |x        |x      |
+|Max. channels                                              |10       |5      |
+|Max image size                                             |no limit |2GB    |
+|Support for big tiff                                       |x        |-      |
+|AI based object detection                                  |x        |-      |
+|Database based result processing                           |x        |-      |
+|Heatmap generation                                         |x        |-      |
+|Image density map generation                               |x        |-      |
+|In image object marker                                     |x        |-      |
+|Built-in reporting tool                                    |x        |-      |
 
-Allows to count `EVs`, `CELLs` and `NUCLEI` in the different channels of an image.
-Single particle analysis is done and data are stored as detailed and summery in CSV report files.
+## Screenshots
 
-## Example pictures
+![doc/screenshot_start.png](doc/screenshot_start.png)
+![doc/screenshot_channel.png](doc/screenshot_channel.png)
+![doc/screenshot_plate.png](doc/screenshot_plate.png)
+![doc/screenshot_well.png](doc/screenshot_well.png)
+![doc/screenshot_selector.png](doc/screenshot_selector.png)
 
-*cell segmentation*
-![doc/cell_segmentation.jpg](doc/cell_segmentation.jpg)
 
+-----
 
-## Class diagram
+## Developers section
 
-![doc/class_diagram.drawio.svg](doc/class_diagram.drawio.svg)
+This section contains information needed for anyone who is interested and especially for those who would like to contribute.
 
-## Todo
+### Database schema
 
-- [ ] Ignore result folder
-- [ ] Support for reference spot removal in preview.
+All data generated during an analysis run are stored using the file based database duckdb.
+Following database schema is used:
 
+![doc/database_schema.drawio.svg](doc/database_schema.drawio.svg)
+
+The data generated for each detected ROI are stored in the `objects` table.
+The row `objects.values` is a map containing the measured values.
+The key of the mep describes which data is stored, the value is the double formatted measurement value.  
+
+#### Value coding
+
+The measure channel key is a 32 bit unsigned integer coding the measurement channel and the image channel to which the value applies.
+The upper 16 bits are coding the measure channel, the lower 16 bits the image channel whereby a image channel of `0xFFFF` is the `this` channel meaning use the channel stored in `objects.channel_id`.
+
+```
++-----------------+-----------------+
+| Measure channel |   Image channel |
++-----------------+-----------------+
+| MSB             |             LSB |
++-----------------+-----------------+
+```
+
+*Example:* The measure channel `AREA_SIZE = 2` for this channel is coded as `2 << 16 | 0xFFFF = 0x2FFFF = 196607`  
+*Example:* The measure channel `CROSS_CHANNEL_COUNT = 17` for channel `0` is coded as `17 << 16 | 0x0 = 0x110000 = 1114112`  
+
+To calculate the average value of the area size of image `4261282133957314495` following SQL query can be used:
+```SQL
+SELECT 
+    AVG(element_at(values, 393215)[1]) as val_avg  
+FROM 
+    objects 
+WHERE 
+    objects.image_id=4261282133957314495
+```
+
+#### Image ID coding
+
+The `object.image_id` identifies an image unique per run.
+This id is calculated by the `fnv1a` hash: `object.image_id = fnv1a(analyzes.run_id + <ORIGINAL-IMAGE-PATH>)`
 
 ## Debugging
 
@@ -47,8 +93,8 @@ Single particle analysis is done and data are stored as detailed and summery in 
 ### Deploy build docker image
 
 docker build --target live -t joda001/imagec:live .
-docker build --target build -t joda001/imagec:v1.6.0 .
-docker push  joda001/imagec:v1.6.0
+docker build --target build -t joda001/imagec:v1.7.8 .
+docker push  joda001/imagec:v1.7.8
 
 ### Build for Windows
 
@@ -90,28 +136,27 @@ mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
 strip.exe imagec.exe
 `
 
-### ONNX model reader
 
-git clone https://github.com/onnx/onnx.git
-protoc onnx/onnx.proto --cpp_out="out"
+## Used open source libs
 
-
-```
-export LD_LIBRARY_PATH=/Documents/privat/github/imagec/imagec/build/build:$LD_LIBRARY_PATH
-export QT_QPA_PLATFORM_PLUGIN_PATH=/Documents/privat/github/imagec/imagec/build/build/platforms
-
-```
-sudo apt-get install libxcb-xinerama0
-sudo apt-get install libxkbcommon-x11-0
-apt-get install --reinstall libxcb-xinerama0
+Many thank's to the authors of following open source libraries I used:
 
 
-sudo apt-get install libxcb-util-dev
+Title                   | Link                                          | License
+------                  |-------                                        |--------
+nlohmann/json           |https://github.com/nlohmann/json.git           | MIT
+zeux/pugixml            |https://github.com/zeux/pugixml                | MIT
+protocolbuffers/protobuf|https://github.com/protocolbuffers/protobuf    | Google Inc.
+opencv/opencv           |https://github.com/opencv/opencv.git           | Apache-2.0
+qt6                     |https://code.qt.io/cgit/                       | LGPL-3.0
+libtiff/libtiff         |https://gitlab.com/libtiff/libtiff.git         | Silicon Graphics, Inc.
+jmcnamara/libxlsxwriter |https://github.com/jmcnamara/libxlsxwriter.git | FreeBSD
+tukaani-project/xz      |https://github.com/tukaani-project/xz          | GPL-3.0
+madler/zlib             |https://github.com/madler/zlib                 | Own
+nih-at/libzip           |https://github.com/nih-at/libzip               | Own
+duckdb/duckdb           |https://github.com/duckdb/duckdb               | MIT
+ome/bioformats          |https://github.com/ome/bioformats              | GPL-2.0
 
 
-apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-
-
-## TODO
-
-- [ ] For tiled images, calculate real X/Y values of pixels in region of interest
+Thank's to the authors of [imagej](https://github.com/imagej/imagej2) I ported some image processing algorithms from to C++.  
+imageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).

@@ -13,27 +13,37 @@
 
 #pragma once
 
-#include "../roi/roi.hpp"
+#include <memory>
+#include "backend/image_processing/roi/roi.hpp"
+#include "backend/image_processing/roi/spartial_hash.hpp"
 
-namespace joda::func {
+namespace joda::image::detect {
 
-using DetectionResults = std::vector<ROI>;
-
-enum class ResponseDataValidity : int
+class DetectionResults : public SpatialHash
 {
-  UNKNOWN                  = 0,
-  VALID                    = 0x01,
-  POSSIBLE_NOISE           = 0x02,
-  POSSIBLE_WRONG_THRESHOLD = 0x04
+public:
+  using SpatialHash::SpatialHash;
+  void createBinaryImage(cv::Mat &img) const;
 };
+
+enum class ResponseDataValidityEnum
+{
+  UNKNOWN                  = 1,
+  INVALID                  = 2,
+  MANUAL_OUT_SORTED        = 3,
+  POSSIBLE_NOISE           = 4,
+  POSSIBLE_WRONG_THRESHOLD = 5
+};
+
+using ResponseDataValidity = std::bitset<32>;
 
 struct DetectionResponse
 {
-  joda::func::DetectionResults result;
-  cv::Mat originalImage                 = {};
-  cv::Mat controlImage                  = {};
-  ResponseDataValidity responseValidity = ResponseDataValidity::VALID;
-  bool invalidateWholeImage             = false;
+  std::unique_ptr<DetectionResults> result = std::make_unique<DetectionResults>();
+  cv::Mat originalImage                    = {};
+  cv::Mat controlImage                     = {};
+  ResponseDataValidity responseValidity    = {};
+  bool invalidateWholeImage                = false;
 };
 
-}    // namespace joda::func
+}    // namespace joda::image::detect

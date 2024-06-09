@@ -14,10 +14,10 @@
 #include "detection.hpp"
 #include <random>
 #include <string>
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/types.hpp>
 
-namespace joda::func {
+namespace joda::image::detect {
 
 std::string generateRandomColorHex()
 {
@@ -49,7 +49,7 @@ std::string generateRandomColorHex()
 /// \param[in]  img    Image where the mask should be painted on
 /// \param[in]  result Prediction result of the forward
 ///
-void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &result,
+void DetectionFunction::paintBoundingBox(cv::Mat &img, const std::unique_ptr<DetectionResults> &result,
                                          const joda::onnx::OnnxParser::Data &modelInfo, const std::string &fillColor,
                                          bool paintRectangel, bool paintLabels)
 {
@@ -57,44 +57,45 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
   cv::Mat mask         = img.clone();
   cv::Scalar areaColor = hexToScalar("#" + generateRandomColorHex());
 
-  for(int i = 0; i < result.size(); i++) {
-    int left      = result[i].getBoundingBox().x;
-    int top       = result[i].getBoundingBox().y;
-    int width     = result[i].getBoundingBox().width;
-    int height    = result[i].getBoundingBox().height;
-    int color_num = i;
+  int i = 0;
+  for(const auto &roi : *result) {
+    int left      = roi.getBoundingBox().x;
+    int top       = roi.getBoundingBox().y;
+    int width     = roi.getBoundingBox().width;
+    int height    = roi.getBoundingBox().height;
+    int color_num = ++i;
 
-    if(!result[i].getMask().empty() && !result[i].getBoundingBox().empty()) {
+    if(!roi.getMask().empty() && !roi.getBoundingBox().empty()) {
       try {
-        if(!result[i].isValid()) {
+        if(!roi.isValid()) {
           areaColor = WHITE;
         } else {
           areaColor = hexToScalar("#" + generateRandomColorHex());
         }
 
         // Boundding box
-        if(paintRectangel && !result[i].getBoundingBox().empty()) {
-          rectangle(img, result[i].getBoundingBox(), areaColor, 1 * THICKNESS, cv::LINE_4);
+        if(paintRectangel && !roi.getBoundingBox().empty()) {
+          rectangle(img, roi.getBoundingBox(), areaColor, 1 * THICKNESS, cv::LINE_4);
         }
 
         // Fill area
-        mask(result[i].getBoundingBox()).setTo(areaColor, result[i].getMask());
+        mask(roi.getBoundingBox()).setTo(areaColor, roi.getMask());
 
         // Paint contour only for valid particles
-        if(result[i].isValid()) {
+        if(roi.isValid()) {
           cv::Scalar contourColor = GREEN;    // hexToScalar(fillColor);
 
           {
             std::vector<std::vector<cv::Point>> contours;
-            contours.push_back(result[i].getContour());
+            contours.push_back(roi.getContour());
             if(!contours.empty())
-              drawContours(img(result[i].getBoundingBox()), contours, -1, contourColor, 1);
+              drawContours(img(roi.getBoundingBox()), contours, -1, contourColor, 1);
           }
-          if(result[i].hasSnapArea()) {
+          if(roi.hasSnapArea()) {
             std::vector<std::vector<cv::Point>> contours;
-            contours.push_back(result[i].getSnapAreaContour());
+            contours.push_back(roi.getSnapAreaContour());
             if(!contours.empty())
-              drawContours(img(result[i].getSnapAreaBoundingBox()), contours, -1, contourColor, 1);
+              drawContours(img(roi.getSnapAreaBoundingBox()), contours, -1, contourColor, 1);
           }
         }
       } catch(const std::exception &ex) {
@@ -102,9 +103,9 @@ void DetectionFunction::paintBoundingBox(cv::Mat &img, const DetectionResults &r
       }
     }
     if(paintLabels) {
-      std::string label = std::to_string(result[i].getIndex()) + " | " + std::to_string(result[i].getConfidence());
-      if(modelInfo.classes.size() > result[i].getClassId()) {
-        label += " | " + modelInfo.classes[result[i].getClassId()];
+      std::string label = std::to_string(roi.getIndex()) + " | " + std::to_string(roi.getConfidence());
+      if(modelInfo.classes.size() > roi.getClassId()) {
+        label += " | " + modelInfo.classes[roi.getClassId()];
       }
 
       drawLabel(img, areaColor, label, left, top);
@@ -135,15 +136,15 @@ void DetectionFunction::paintOverlay(cv::Mat &img, const std::vector<OverlaySett
 {
   for(const auto &ov : overlays) {
     cv::Mat mask = img.clone();
-
-    for(int i = 0; i < ov.result->size(); i++) {
-      auto resultI = ov.result->at(i);
+    int i        = 0;
+    for(const auto &roi : *ov.result) {
+      const auto &resultI = roi;
 
       int left      = resultI.getBoundingBox().x;
       int top       = resultI.getBoundingBox().y;
       int width     = resultI.getBoundingBox().width;
       int height    = resultI.getBoundingBox().height;
-      int color_num = i;
+      int color_num = ++i;
 
       if(ov.paintRectangel && !resultI.getBoundingBox().empty()) {
         rectangle(mask, resultI.getBoundingBox(), RED, 1 * THICKNESS, cv::LINE_4);
@@ -178,4 +179,4 @@ void DetectionFunction::paintOverlay(cv::Mat &img, const std::vector<OverlaySett
   }
 }
 
-}    // namespace joda::func
+}    // namespace joda::image::detect

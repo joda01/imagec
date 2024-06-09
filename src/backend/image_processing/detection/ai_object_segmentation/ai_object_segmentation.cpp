@@ -12,14 +12,15 @@
 /// \link      https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
 #include "ai_object_segmentation.hpp"
+#include <memory>
 #include <string>
-#include "../../../duration_count/duration_count.h"
 #include "../detection.hpp"
+#include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::func::ai {
+namespace joda::image::segment::ai {
 
 using namespace std;
 using namespace cv;
@@ -68,7 +69,7 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
 /// \return     Result of the analysis
 ///
 auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage,
-                                 joda::settings::ChannelIndex channelIndex) -> DetectionResponse
+                                 joda::settings::ChannelIndex channelIndex) -> image::detect::DetectionResponse
 {
   auto id = DurationCount::start("AiObjectSegmentation");
 
@@ -160,7 +161,7 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
   vector<Mat> maskChannels;
   split(masks, maskChannels);
 
-  DetectionResults output;
+  std::unique_ptr<image::detect::DetectionResults> output = std::make_unique<image::detect::DetectionResults>();
   Rect holeImgRect(0, 0, inputImage.cols, inputImage.rows);
   for(int i = 0; i < nms_result.size(); ++i) {
     int idx      = nms_result[i];
@@ -182,12 +183,12 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
 
     ROI roi(i, confidences[idx], classIds[idx], box, mask, contours[idxMax], originalImage, channelIndex,
             getFilterSettings());
-    output.push_back(roi);
+    output->push_back(roi);
   }
 
   DurationCount::stop(id);
 
-  return {.result = output, .controlImage = inputImage};
+  return {.result = std::move(output), .controlImage = inputImage};
 }
 
 ///
@@ -280,4 +281,4 @@ void ObjectSegmentation::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::
   cv::copyMakeBorder(outImage, outImage, top, bottom, left, right, cv::BORDER_CONSTANT, color);
 }
 
-}    // namespace joda::func::ai
+}    // namespace joda::image::segment::ai

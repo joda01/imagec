@@ -13,6 +13,7 @@
 
 #pragma once
 // #include <memory>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -20,19 +21,17 @@
 #include <vector>
 #include "../helper/directory_iterator.hpp"
 #include "../helper/helper.hpp"
-#include "../image_processing/detection/detection_response.hpp"
-#include "../logger/console_logger.hpp"
-#include "../results/results.h"
+#include "../results/results.hpp"
+#include "backend/helper/file_info_images.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/thread_pool.hpp"
-#include "backend/image_reader/image_reader.hpp"
+#include "backend/image_processing/detection/detection_response.hpp"
+#include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
-#include "backend/results/results_container.hpp"
+#include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
-#include "reporting/reporting_details.xlsx.hpp"
-#include "reporting/reporting_heatmap.hpp"
-#include "reporting/reporting_overview_xlsx.hpp"
 
 namespace joda::pipeline {
 
@@ -84,8 +83,9 @@ public:
     ERROR_   = 5
   };
 
-  Pipeline(const joda::settings::AnalyzeSettings &, joda::helper::ImageFileContainer *imageFileContainer,
-           const std::string &inputFolder, const std::string &jobName,
+  Pipeline(const joda::settings::AnalyzeSettings &,
+           joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *imageFileContainer,
+           const std::filesystem::path &inputFolder, const std::string &analyzeName,
            const ThreadingSettings &threadingSettings = ThreadingSettings());
   ~Pipeline()
   {
@@ -99,9 +99,9 @@ public:
     return mLastErrorMessage;
   }
 
-  [[nodiscard]] const std::string &getOutputFolder() const
+  [[nodiscard]] const std::filesystem::path &getOutputFolder() const
   {
-    return mOutputFolder;
+    return mResults.getOutputFolder();
   }
 
 protected:
@@ -153,10 +153,6 @@ private:
 
 private:
   /////////////////////////////////////////////////////
-  static inline const std::string RESULTS_PATH_NAME{"results"};
-
-  /////////////////////////////////////////////////////
-  auto prepareOutputFolder(const std::string &inputFolder, const std::string &jobName) -> std::string;
   ///
   /// \brief Returns if the thread should be stopped
   [[nodiscard]] auto shouldThreadBeStopped() const -> bool
@@ -164,23 +160,22 @@ private:
     return mStop;
   }
 
-  void analyzeImage(std::map<std::string, joda::results::ReportingContainer> &alloverReport, const FileInfo &imagePath);
+  void analyzeImage(const helper::fs::FileInfoImages &imagePath);
 
-  void analyzeTile(joda::results::ReportingContainer &detailReports, FileInfo imagePath, std::string detailOutputFolder,
-                   int tileIdx, const joda::algo::ChannelProperties &channelProperties);
-  void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::func::DetectionResponse> &detectionResults,
-                       const joda::settings::ChannelSettings &channelSettings, FileInfo imagePath, int tileIdx,
-                       const joda::algo::ChannelProperties &channelProperties);
+  void analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, const ChannelProperties &channelProperties);
+  void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &detectionResults,
+                       const joda::settings::ChannelSettings &channelSettings, helper::fs::FileInfoImages imagePath,
+                       int tileIdx, const ChannelProperties &channelProperties);
 
   /////////////////////////////////////////////////////
-  std::string mInputFolder;
-  std::string mOutputFolder;
+  std::filesystem::path mInputFolder;
+  joda::results::Results mResults;
   bool mStop = false;
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   std::vector<const joda::settings::ChannelSettings *> mListOfChannelSettings;
   std::vector<const joda::settings::VChannelSettings *> mListOfVChannelSettings;
 
-  joda::helper::ImageFileContainer *mImageFileContainer;
+  joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *mImageFileContainer;
 
   ProgressIndicator mProgress;
   State mState;
@@ -190,6 +185,13 @@ private:
   std::mutex mAddToDetailReportMutex;
   std::map<std::string, joda::onnx::OnnxParser::Data> mOnnxModels;
   std::string mJobName;
+  std::chrono::system_clock::time_point mTimePipelineStarted;
+  joda::results::ExperimentSetting mExperimentMeta;
+
+  /////////////////////////////////////////////////////
+  int32_t mWellSizeX = 0;
+  int32_t mWellSizeY = 0;
+  // std::map<int32_t, results::ImgPositionInWell> mTransformedWellMatrix;
 };
 
 }    // namespace joda::pipeline

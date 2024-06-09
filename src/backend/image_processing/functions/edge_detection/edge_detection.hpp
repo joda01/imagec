@@ -14,13 +14,13 @@
 #pragma once
 
 #include "../../functions/function.hpp"
-#include "backend/duration_count/duration_count.h"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/settings/preprocessing/functions/edge_detection.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
 
-namespace joda::func::img {
+namespace joda::image::func {
 
 ///
 /// \class      Function
@@ -61,4 +61,4 @@ private:
   const joda::settings::EdgeDetection &mSetting;
 };
 
-}    // namespace joda::func::img
+}    // namespace joda::image::func

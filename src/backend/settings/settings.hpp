@@ -15,7 +15,6 @@
 #include <set>
 #include <string>
 #include "backend/settings/analze_settings.hpp"
-#include "backend/settings/channel/channel_reporting_settings.hpp"
 #include "backend/settings/channel/channel_settings_cross.hpp"
 
 namespace joda::settings {
@@ -36,10 +35,6 @@ public:
 
   static std::string getChannelNameOfChannelIndex(const joda::settings::AnalyzeSettings &settings,
                                                   joda::settings::ChannelIndex channelIdx);
-
-  static const joda::settings::ChannelReportingSettings &
-  getReportingSettingsForChannel(const joda::settings::AnalyzeSettings &settings,
-                                 joda::settings::ChannelIndex channelIdx);
 
   static const joda::settings::CrossChannelSettings &
   getCrossChannelSettingsForChannel(const joda::settings::AnalyzeSettings &settings,

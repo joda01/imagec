@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <set>
+#include "backend/helper/json_optional_parser_helper.hpp"
 #include "functions/blur.hpp"
 #include "functions/channel_subtaction.hpp"
 #include "functions/edge_detection.hpp"
@@ -13,8 +14,6 @@
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
-
-#include "backend/helper/json_optional_parser_helper.hpp"
 
 class PreprocessingPipelineSteps
 {
