@@ -128,8 +128,8 @@ void Database::open()
       "	tile_id USMALLINT,"
       " validity UHUGEINT,"
       " values MAP(UINTEGER, DOUBLE)"
-      ");";
-  //"CREATE INDEX object_idx ON objects (image_id, channel_id);";
+      ");"
+      "CREATE INDEX object_idx ON objects (channel_id, validity);";
   auto connection = acquire();
   auto result     = connection->Query(create_table_sql);
   if(result->HasError()) {
