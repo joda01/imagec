@@ -2,6 +2,7 @@
 
 #include "exporter.hpp"
 #include <string>
+#include "backend/results/analyzer/plugins/stats_for_plate.hpp"
 
 namespace joda::results::exporter {
 
@@ -14,8 +15,28 @@ namespace joda::results::exporter {
 ///
 void BatchExporter::startExport(const Settings &settings, const std::string &outputFileName)
 {
+  setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   auto workbookSettings = createWorkBook(outputFileName);
+  switch(settings.exportType) {
+    case Settings::ExportType::HEATMAP:
+      createHeatmapSummary(workbookSettings, settings);
+      break;
+    case Settings::ExportType::LIST:
+      createListSummary(workbookSettings, settings);
+      break;
+  }
+  workbook_close(workbookSettings.workbook);
+}
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Settings &settings)
+{
   for(const auto &[imageChannelId, imageChannel] : settings.imageChannels) {
     lxw_worksheet *worksheet = workbook_add_worksheet(
         workbookSettings.workbook,
@@ -34,8 +55,54 @@ void BatchExporter::startExport(const Settings &settings, const std::string &out
       offsets.row += 4;
     }
   }
+}
 
-  workbook_close(workbookSettings.workbook);
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings &settings)
+{
+  const int ROW_OFFSET = 1;
+  const int COL_OFFSET = 1;
+
+  lxw_worksheet *worksheet = workbook_add_worksheet(workbookSettings.workbook, "overview");
+  int colOffset            = 0;
+  for(const auto &[imageChannelId, imageChannel] : settings.imageChannels) {
+    worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET, 0,
+                          colOffset + COL_OFFSET + imageChannel.measureChannels.size() - 1, "-",
+                          workbookSettings.merge_format);
+    worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET, imageChannel.name.data(), workbookSettings.header);
+
+    for(const auto &[measureChannelId, stats] : imageChannel.measureChannels) {
+      auto table = joda::results::analyze::plugins::StatsPerPlate::getData(settings.analyzer, settings.plateId,
+                                                                           settings.plateRows, settings.plarteCols,
+                                                                           imageChannelId, measureChannelId, stats);
+
+      for(int col = 0; col < table.getCols(); col++) {
+        worksheet_write_string(worksheet, 1, colOffset + COL_OFFSET, table.getMutableColHeader()[col].data(),
+                               workbookSettings.header);
+
+        for(int row = 0; row < table.getRows(); row++) {
+          worksheet_write_string(worksheet, 1 + ROW_OFFSET + row, 0, table.getRowHeader(row).data(),
+                                 workbookSettings.header);
+
+          auto *format = workbookSettings.numberFormat;
+          if(!table.data(row, col).isValid()) {
+            format = workbookSettings.numberFormatInvalid;
+          }
+          // Offset 2 because of title and plate numbering
+          double val = table.data(row, col).getVal();
+          worksheet_write_number(worksheet, 1 + ROW_OFFSET + row, colOffset + COL_OFFSET, val, format);
+        }
+        colOffset++;
+      }
+    }
+    colOffset++;
+  }
 }
 
 ///

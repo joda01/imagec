@@ -34,6 +34,7 @@
 #include "../window_main.hpp"
 #include "backend/results/analyzer/plugins/stats_for_image.hpp"
 #include "backend/results/analyzer/plugins/stats_for_well.hpp"
+#include "backend/results/exporter/exporter.hpp"
 #include "backend/results/exporter/exporter_xlsx.hpp"
 #include "backend/results/results.hpp"
 #include "ui/container/container_function_base.hpp"
@@ -472,10 +473,27 @@ void PanelReporting::onExportHeatmapClicked()
       imageChannels.emplace(channel.channelId, channelData);
     }
 
-    joda::results::exporter::BatchExporter::Settings settings{
-        .imageChannels = imageChannels, .analyzer = *mAnalyzer, .plateId = 1, .plateRows = rows, .plarteCols = cols};
+    if(measureChannelsToExport.exportHeatmap) {
+      joda::results::exporter::BatchExporter::Settings settings{
+          .imageChannels = imageChannels,
+          .analyzer      = *mAnalyzer,
+          .plateId       = 1,
+          .plateRows     = rows,
+          .plarteCols    = cols,
+          .exportType    = joda::results::exporter::BatchExporter::Settings::ExportType::HEATMAP};
+      joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
+    }
 
-    joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
+    if(measureChannelsToExport.exportList) {
+      joda::results::exporter::BatchExporter::Settings settings{
+          .imageChannels = imageChannels,
+          .analyzer      = *mAnalyzer,
+          .plateId       = 1,
+          .plateRows     = rows,
+          .plarteCols    = cols,
+          .exportType    = joda::results::exporter::BatchExporter::Settings::ExportType::LIST};
+      joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
+    }
 
     // joda::results::exporter::ExporterXlsx::exportAsHeatmap(mHeatmap->getData(), filePath.toStdString());
   }

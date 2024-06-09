@@ -16,6 +16,12 @@ class BatchExporter
 public:
   struct Settings
   {
+    enum class ExportType
+    {
+      HEATMAP,
+      LIST
+    };
+
     struct Channel
     {
       std::string name;
@@ -26,6 +32,7 @@ public:
     uint8_t plateId;
     uint16_t plateRows;
     uint16_t plarteCols;
+    ExportType exportType;
   };
 
   static void startExport(const Settings &settings, const std::string &outputFileName);
@@ -55,6 +62,8 @@ private:
     uint32_t col = 0;
   };
   static WorkBook createWorkBook(std::string outputFileName);
+  static void createHeatmapSummary(WorkBook &, const Settings &settings);
+  static void createListSummary(WorkBook &workbookSettings, const Settings &settings);
 
   static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,
                                lxw_format *numberFormat, lxw_format *mergeFormat, const std::string &title);

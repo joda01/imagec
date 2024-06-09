@@ -151,7 +151,10 @@ DialogExportData::Ret DialogExportData::execute()
     }
   }
 
-  return {0, overview};
+  return {.ret              = 0,
+          .channelsToExport = overview,
+          .exportHeatmap    = mExportHeatmap->isChecked(),
+          .exportList       = mExportList->isChecked()};
 }
 
 void DialogExportData::onOkayClicked()

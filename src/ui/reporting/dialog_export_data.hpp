@@ -39,6 +39,8 @@ public:
   {
     int ret = -1;
     std::map<results::MeasureChannel, results::Stats> channelsToExport;
+    bool exportHeatmap = false;
+    bool exportList    = false;
   };
   Ret execute();
 
