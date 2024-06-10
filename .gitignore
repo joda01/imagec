@@ -24,7 +24,7 @@ output/
 *.tiff
 *.out.*
 result.txt
-test
+test_local
 pred/image_out8.jpg
 out
 out/*.csv
@@ -35,7 +35,6 @@ build/build/imagec
 deploy/
 build/
 test_nucleus/
-
 test_cell/
 test_spot
 test_areosold_Evs
