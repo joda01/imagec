@@ -10,7 +10,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("func::rollingball", "[rolling_ball]")
+TEST_CASE("func::rollingball", "[.][rolling_ball]")
 {
   auto img = joda::image::TiffLoader::loadEntireImage("test_areosold_Evs/hoechst.tiff", 0);
   joda::image::func::RollingBallBackground bg({});

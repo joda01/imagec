@@ -18,7 +18,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("func::watershed", "[watershed]")
+TEST_CASE("func::watershed", "[.][watershed]")
 {
   double MAXFINDER_TOLERANCE = 0.5;    // reasonable v
   joda::image::BioformatsLoader::init();

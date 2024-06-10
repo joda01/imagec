@@ -11,7 +11,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("thresholdt", "[tjreshold]")
+TEST_CASE("thresholdt", "[.][tjreshold]")
 {
   cv::Mat img = joda::image::JpgLoader::loadEntireImage("test_cell/test.jpg");
   ::joda::settings::ChannelSettings ch;

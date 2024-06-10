@@ -13,7 +13,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test", "[pipeline_test]")
+TEST_CASE("pipeline:test", "[.][pipeline_test]")
 {
   for(int n = 0; n < 4; n++) {
     joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test_areosold_Evs/config.json"});
@@ -37,7 +37,7 @@ TEST_CASE("pipeline:test", "[pipeline_test]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:voronoi", "[pipeline_test_voronoi]")
+TEST_CASE("pipeline:test:voronoi", "[.][pipeline_test_voronoi]")
 {
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test/test_areosold_Evs/config.json"});
   joda::helper::fs::DirectoryWatcher<joda::helper::fs::FileInfoImages> imageFileContainer({});
@@ -54,7 +54,7 @@ TEST_CASE("pipeline:test:voronoi", "[pipeline_test_voronoi]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:spots", "[pipeline_test_spots]")
+TEST_CASE("pipeline:test:spots", "[.][pipeline_test_spots]")
 {
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test/test_spot/config.json"});
   joda::helper::fs::DirectoryWatcher<joda::helper::fs::FileInfoImages> imageFileContainer({});
@@ -71,7 +71,7 @@ TEST_CASE("pipeline:test:spots", "[pipeline_test_spots]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:cells", "[pipeline_test_cells]")
+TEST_CASE("pipeline:test:cells", "[.][pipeline_test_cells]")
 {
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test/test_cell/config.json"});
   joda::helper::fs::DirectoryWatcher<joda::helper::fs::FileInfoImages> imageFileContainer({});
@@ -88,7 +88,7 @@ TEST_CASE("pipeline:test:cells", "[pipeline_test_cells]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:cell_area", "[pipeline_test_cell_area]")
+TEST_CASE("pipeline:test:cell_area", "[.][pipeline_test_cell_area]")
 {
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test/test_cell/config_cell.json"});
   joda::helper::fs::DirectoryWatcher<joda::helper::fs::FileInfoImages> imageFileContainer({});
@@ -105,7 +105,7 @@ TEST_CASE("pipeline:test:cell_area", "[pipeline_test_cell_area]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:nucleus", "[pipeline_test_nucleus]")
+TEST_CASE("pipeline:test:nucleus", "[.][pipeline_test_nucleus]")
 {
   joda::ctrl::Controller controller;
   controller.setWorkingDirectory("test/test_nucleus/");
@@ -128,7 +128,7 @@ TEST_CASE("pipeline:test:nucleus", "[pipeline_test_nucleus]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:spots_real", "[pipeline_test_spots_real]")
+TEST_CASE("pipeline:test:spots_real", "[.][pipeline_test_spots_real]")
 {
   joda::ctrl::Controller controller;
   controller.setWorkingDirectory("test/test_spot/evanalyzer_comp");
@@ -151,7 +151,7 @@ TEST_CASE("pipeline:test:spots_real", "[pipeline_test_spots_real]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:histo", "[pipeline_test_histo]")
+TEST_CASE("pipeline:test:histo", "[.][pipeline_test_histo]")
 {
   joda::image::BioformatsLoader::init();
 
@@ -175,7 +175,7 @@ TEST_CASE("pipeline:test:histo", "[pipeline_test_histo]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:spots:tetraspeck", "[pipeline_test_spots_tetraspeck]")
+TEST_CASE("pipeline:test:spots:tetraspeck", "[.][pipeline_test_spots_tetraspeck]")
 {
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test/test_spot/config_tetra.json"});
   joda::helper::fs::DirectoryWatcher<joda::helper::fs::FileInfoImages> imageFileContainer({});
@@ -192,7 +192,7 @@ TEST_CASE("pipeline:test:spots:tetraspeck", "[pipeline_test_spots_tetraspeck]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:svi_tanja", "[pipeline_test_svi_tanja]")
+TEST_CASE("pipeline:test:svi_tanja", "[.][pipeline_test_svi_tanja]")
 {
   joda::image::BioformatsLoader::init();
 
@@ -212,7 +212,7 @@ TEST_CASE("pipeline:test:svi_tanja", "[pipeline_test_svi_tanja]")
 /// \brief  Spot test
 /// \author Joachim Danmayr
 ///
-TEST_CASE("pipeline:test:heatmap_small", "[pipeline_test_heatmap_small]")
+TEST_CASE("pipeline:test:heatmap_small", "[.][pipeline_test_heatmap_small]")
 {
   joda::image::BioformatsLoader::init();
   joda::ctrl::Controller controller;
