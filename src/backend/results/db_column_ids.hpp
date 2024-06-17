@@ -51,6 +51,7 @@ inline std::string toString(Stats stats)
     case Stats::STDDEV:
       return "STDDEV";
   }
+  return "";
 }
 
 enum class MeasureChannel : uint16_t
@@ -113,6 +114,7 @@ inline std::string toString(MeasureChannel ch)
     case MeasureChannel::CROSS_CHANNEL_COUNT:
       return "CROSS_CHANNEL_COUNT";
   }
+  return "";
 }
 
 enum class ChannelIndex : uint16_t
@@ -135,6 +137,47 @@ enum class ChannelIndex : uint16_t
   F   = 70,
   ME  = 0xFFFF
 };
+
+inline std::string toString(ChannelIndex ch)
+{
+  switch(ch) {
+    case ChannelIndex::CH0:
+      return "CH0";
+    case ChannelIndex::CH1:
+      return "CH1";
+    case ChannelIndex::CH2:
+      return "CH2";
+    case ChannelIndex::CH3:
+      return "CH3";
+    case ChannelIndex::CH4:
+      return "CH4";
+    case ChannelIndex::CH5:
+      return "CH5";
+    case ChannelIndex::CH6:
+      return "CH6";
+    case ChannelIndex::CH7:
+      return "CH7";
+    case ChannelIndex::CH8:
+      return "CH8";
+    case ChannelIndex::CH9:
+      return "CH9";
+    case ChannelIndex::A:
+      return "A";
+    case ChannelIndex::B:
+      return "B";
+    case ChannelIndex::C:
+      return "C";
+    case ChannelIndex::D:
+      return "D";
+    case ChannelIndex::E:
+      return "E";
+    case ChannelIndex::F:
+      return "F";
+    default:
+    case ChannelIndex::ME:
+      return "ME";
+  }
+}
 
 enum class ObjectValidityEnum : size_t
 {
