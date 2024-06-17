@@ -218,8 +218,8 @@ TEST_CASE("pipeline:test:heatmap_small", "[.][pipeline_test_heatmap_small]")
   joda::ctrl::Controller controller;
 
   joda::settings::AnalyzeSettings settings =
-      nlohmann::json::parse(std::ifstream{"test/test_heatmap_small/config.json"});
-  controller.setWorkingDirectory("test/test_heatmap_small");
+      nlohmann::json::parse(std::ifstream{"test_local/test_heatmap_small/config.json"});
+  controller.setWorkingDirectory("test_local/test_heatmap_small");
   sleep(2);
   controller.start(settings, controller.calcOptimalThreadNumber(settings, 0),
                    joda::helper::RandomNameGenerator::GetRandomName());

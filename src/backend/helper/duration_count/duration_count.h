@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -40,7 +41,7 @@ public:
 
   static uint32_t start(std::string comment);
   static void stop(uint32_t rand);
-  static void printStats(double nrOfImages);
+  static void printStats(double nrOfImages, const std::filesystem::path &outputDir);
   static void resetStats();
 
 private:

@@ -174,7 +174,7 @@ void Pipeline::runJob()
   // Analyze finished
 
   mState = State::FINISHED;
-  DurationCount::printStats(images.size());
+  DurationCount::printStats(images.size(), getOutputFolder());
 
   while(!mStop) {
     sleep(1);

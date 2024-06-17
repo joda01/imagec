@@ -104,7 +104,7 @@ TEST_CASE("database:test", "[.][database_test]")
   db.close();
 
   // DurationCount::stop(id);
-  DurationCount::printStats(1);
+  // DurationCount::printStats(1);
 }
 
 ///
