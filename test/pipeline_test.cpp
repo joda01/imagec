@@ -251,6 +251,33 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
           }
         }
       }
+      for(int i = 1; i < 18; i++) {
+        auto measure = (joda::results::MeasureChannel) i;
+
+        std::cout << "THEN(\"Check the " + toString(measure) + " data\")\n";
+        std::cout << "{\n";
+        for(int s = 0; s < 6; s++) {
+          auto stats = (joda::results::Stats) s;
+
+          auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
+              *results, 1, 16, 24, joda::results::ChannelIndex::CH0, {measure, joda::results::ChannelIndex::ME}, stats);
+
+          std::cout << "{\n";
+          std::cout << "auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(*results, 1, 16, 24, "
+                       "joda::results::ChannelIndex::CH0,{joda::results::MeasureChannel::" +
+                           toString(measure) +
+                           ", "
+                           "joda::results::ChannelIndex::ME}, joda::results::Stats::" +
+                           toString(stats) + ");\n";
+
+          std::cout << "CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(" << std::fixed
+                    << std::setprecision(4) << table.data(0, 9).getVal() << ", 0.0001));\n";
+          std::cout << "CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(" << std::fixed
+                    << std::setprecision(4) << table.data(1, 9).getVal() << ", 0.0001));\n";
+          std::cout << "}\n";
+        }
+        std::cout << "}\n";
+      }
     }
   }
 

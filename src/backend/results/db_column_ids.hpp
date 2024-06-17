@@ -35,6 +35,24 @@ enum class Stats
   STDDEV
 };
 
+inline std::string toString(Stats stats)
+{
+  switch(stats) {
+    case Stats::AVG:
+      return "AVG";
+    case Stats::MEDIAN:
+      return "MEDIAN";
+    case Stats::SUM:
+      return "SUM";
+    case Stats::MIN:
+      return "MIN";
+    case Stats::MAX:
+      return "MAX";
+    case Stats::STDDEV:
+      return "STDDEV";
+  }
+}
+
 enum class MeasureChannel : uint16_t
 {
   CONFIDENCE                  = 1,
@@ -56,6 +74,46 @@ enum class MeasureChannel : uint16_t
   CROSS_CHANNEL_COUNT         = 17,
 
 };
+
+inline std::string toString(MeasureChannel ch)
+{
+  switch(ch) {
+    case MeasureChannel::CONFIDENCE:
+      return "CONFIDENCE";
+    case MeasureChannel::AREA_SIZE:
+      return "AREA_SIZE";
+    case MeasureChannel::PERIMETER:
+      return "PERIMETER";
+    case MeasureChannel::CIRCULARITY:
+      return "CIRCULARITY";
+    case MeasureChannel::VALID:
+      return "VALID";
+    case MeasureChannel::INVALID:
+      return "INVALID";
+    case MeasureChannel::CENTER_OF_MASS_X:
+      return "CENTER_OF_MASS_X";
+    case MeasureChannel::CENTER_OF_MASS_Y:
+      return "CENTER_OF_MASS_Y";
+    case MeasureChannel::BOUNDING_BOX_WIDTH:
+      return "BOUNDING_BOX_WIDTH";
+    case MeasureChannel::BOUNDING_BOX_HEIGHT:
+      return "BOUNDING_BOX_HEIGHT";
+    case MeasureChannel::INTENSITY_AVG:
+      return "INTENSITY_AVG";
+    case MeasureChannel::INTENSITY_MIN:
+      return "INTENSITY_MIN";
+    case MeasureChannel::INTENSITY_MAX:
+      return "INTENSITY_MAX";
+    case MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG:
+      return "CROSS_CHANNEL_INTENSITY_AVG";
+    case MeasureChannel::CROSS_CHANNEL_INTENSITY_MIN:
+      return "CROSS_CHANNEL_INTENSITY_MIN";
+    case MeasureChannel::CROSS_CHANNEL_INTENSITY_MAX:
+      return "CROSS_CHANNEL_INTENSITY_MAX";
+    case MeasureChannel::CROSS_CHANNEL_COUNT:
+      return "CROSS_CHANNEL_COUNT";
+  }
+}
 
 enum class ChannelIndex : uint16_t
 {
