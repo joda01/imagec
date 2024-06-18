@@ -93,8 +93,8 @@ This id is calculated by the `fnv1a` hash: `object.image_id = fnv1a(analyzes.run
 ### Deploy build docker image
 
 docker build --target live -t joda001/imagec:live .
-docker build --target build -t joda001/imagec:v1.7.8 .
-docker push  joda001/imagec:v1.7.8
+docker build --target build -t joda001/imagec:v1.7.x .
+docker push  joda001/imagec:v1.7.x
 
 ### Build for Windows
 

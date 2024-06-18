@@ -8,4 +8,8 @@ if [ -d "$FOLDER_PATH" ]; then
     cd ..
 else
     git clone https://github.com/joda01/imagec_test.git test_data
+    cd test_data
+    git lfs fetch --all
+    git lfs checkout
+    cd ..
 fi
