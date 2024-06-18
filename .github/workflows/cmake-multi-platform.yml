@@ -98,7 +98,7 @@ jobs:
         with:
           name: Catch2 tests
           path: test-results.xml
-          reporter: jest-juni
+          reporter: jest-junit
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
