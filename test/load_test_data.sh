@@ -7,7 +7,7 @@ if [ -d "$FOLDER_PATH" ]; then
     git pull
     cd ..
 else
-    git clone https://github.com/joda01/imagec_test.git test_data
+    git clone -b v1.0.0 https://github.com/joda01/imagec_test.git test_data
     cd test_data
     git lfs fetch --all
     git lfs checkout
