@@ -6,7 +6,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("onnx_parser:test", "[onnx_parser_test]")
+TEST_CASE("onnx_parser:test", "[.][onnx_parser_test]")
 {
   auto result = joda::onnx::OnnxParser::findOnnxFiles("models");
 

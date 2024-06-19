@@ -9,7 +9,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("controller:test", "[optimal_thread_number_tile]")
+TEST_CASE("controller:test", "[.][optimal_thread_number_tile]")
 {
   joda::ctrl::Controller ctrl;
   ctrl.setWorkingDirectory("test_nucleus");
@@ -28,7 +28,7 @@ TEST_CASE("controller:test", "[optimal_thread_number_tile]")
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("controller:test", "[optimal_thread_number_img]")
+TEST_CASE("controller:test", "[.][optimal_thread_number_img]")
 {
   joda::ctrl::Controller ctrl;
   ctrl.setWorkingDirectory("test_areosold_Evs");
@@ -47,7 +47,7 @@ TEST_CASE("controller:test", "[optimal_thread_number_img]")
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("controller:test", "[optimal_thread_number_img_multi]")
+TEST_CASE("controller:test", "[.][optimal_thread_number_img_multi]")
 {
   joda::ctrl::Controller ctrl;
   ctrl.setWorkingDirectory("test_spot/evanalyzer_comp");

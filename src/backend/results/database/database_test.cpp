@@ -22,7 +22,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("database:test", "[database_test]")
+TEST_CASE("database:test", "[.][database_test]")
 {
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -104,14 +104,14 @@ TEST_CASE("database:test", "[database_test]")
   db.close();
 
   // DurationCount::stop(id);
-  DurationCount::printStats(1);
+  // DurationCount::printStats(1);
 }
 
 ///
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("database:test", "[database_read]")
+TEST_CASE("database:test", "[.][database_read]")
 {
   joda::results::Analyzer res(std::filesystem::path("src/backend/results/database/test/results.duckdb"));
   auto jobs = res.getAnalyzes();

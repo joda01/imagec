@@ -262,6 +262,11 @@ RUN echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-15 main" >> 
     ln -s /usr/bin/clangd-15 /usr/bin/clangd &&\
     ln -s /usr/bin/clang-format-15 /usr/bin/clang-format
 
+#
+# git lfs
+#
+COPY lib/install_git_lfs.sh /install_git_lfs.sh
+RUN ./install_git_lfs.sh
 
 
 COPY --from=live /opt /opt

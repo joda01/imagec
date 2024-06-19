@@ -63,7 +63,7 @@ public:
   static void shutdown()
   {
     mStopped = true;
-    if(mMainThread) {
+    if(mMainThread != nullptr && mMainThread->joinable()) {
       mMainThread->join();
     }
   }

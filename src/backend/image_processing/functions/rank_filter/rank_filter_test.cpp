@@ -16,7 +16,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("func::rank", "[rank]")
+TEST_CASE("func::rank", "[.][rank]")
 {
   joda::image::BioformatsLoader::init();
 

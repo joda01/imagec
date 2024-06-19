@@ -12,7 +12,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("cell:counter:ai", "[cell_counter_ai]")
+TEST_CASE("cell:counter:ai", "[.][cell_counter_ai]")
 {
   joda::image::BioformatsLoader::init();
   auto img = joda::image::BioformatsLoader::loadEntireImage("test/test_heatmap_small/A10_06.vsi", 4, 0);

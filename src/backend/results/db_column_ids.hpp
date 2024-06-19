@@ -35,6 +35,25 @@ enum class Stats
   STDDEV
 };
 
+inline std::string toString(Stats stats)
+{
+  switch(stats) {
+    case Stats::AVG:
+      return "AVG";
+    case Stats::MEDIAN:
+      return "MEDIAN";
+    case Stats::SUM:
+      return "SUM";
+    case Stats::MIN:
+      return "MIN";
+    case Stats::MAX:
+      return "MAX";
+    case Stats::STDDEV:
+      return "STDDEV";
+  }
+  return "";
+}
+
 enum class MeasureChannel : uint16_t
 {
   CONFIDENCE                  = 1,
@@ -57,6 +76,47 @@ enum class MeasureChannel : uint16_t
 
 };
 
+inline std::string toString(MeasureChannel ch)
+{
+  switch(ch) {
+    case MeasureChannel::CONFIDENCE:
+      return "CONFIDENCE";
+    case MeasureChannel::AREA_SIZE:
+      return "AREA_SIZE";
+    case MeasureChannel::PERIMETER:
+      return "PERIMETER";
+    case MeasureChannel::CIRCULARITY:
+      return "CIRCULARITY";
+    case MeasureChannel::VALID:
+      return "VALID";
+    case MeasureChannel::INVALID:
+      return "INVALID";
+    case MeasureChannel::CENTER_OF_MASS_X:
+      return "CENTER_OF_MASS_X";
+    case MeasureChannel::CENTER_OF_MASS_Y:
+      return "CENTER_OF_MASS_Y";
+    case MeasureChannel::BOUNDING_BOX_WIDTH:
+      return "BOUNDING_BOX_WIDTH";
+    case MeasureChannel::BOUNDING_BOX_HEIGHT:
+      return "BOUNDING_BOX_HEIGHT";
+    case MeasureChannel::INTENSITY_AVG:
+      return "INTENSITY_AVG";
+    case MeasureChannel::INTENSITY_MIN:
+      return "INTENSITY_MIN";
+    case MeasureChannel::INTENSITY_MAX:
+      return "INTENSITY_MAX";
+    case MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG:
+      return "CROSS_CHANNEL_INTENSITY_AVG";
+    case MeasureChannel::CROSS_CHANNEL_INTENSITY_MIN:
+      return "CROSS_CHANNEL_INTENSITY_MIN";
+    case MeasureChannel::CROSS_CHANNEL_INTENSITY_MAX:
+      return "CROSS_CHANNEL_INTENSITY_MAX";
+    case MeasureChannel::CROSS_CHANNEL_COUNT:
+      return "CROSS_CHANNEL_COUNT";
+  }
+  return "";
+}
+
 enum class ChannelIndex : uint16_t
 {
   CH0 = 0,
@@ -77,6 +137,47 @@ enum class ChannelIndex : uint16_t
   F   = 70,
   ME  = 0xFFFF
 };
+
+inline std::string toString(ChannelIndex ch)
+{
+  switch(ch) {
+    case ChannelIndex::CH0:
+      return "CH0";
+    case ChannelIndex::CH1:
+      return "CH1";
+    case ChannelIndex::CH2:
+      return "CH2";
+    case ChannelIndex::CH3:
+      return "CH3";
+    case ChannelIndex::CH4:
+      return "CH4";
+    case ChannelIndex::CH5:
+      return "CH5";
+    case ChannelIndex::CH6:
+      return "CH6";
+    case ChannelIndex::CH7:
+      return "CH7";
+    case ChannelIndex::CH8:
+      return "CH8";
+    case ChannelIndex::CH9:
+      return "CH9";
+    case ChannelIndex::A:
+      return "A";
+    case ChannelIndex::B:
+      return "B";
+    case ChannelIndex::C:
+      return "C";
+    case ChannelIndex::D:
+      return "D";
+    case ChannelIndex::E:
+      return "E";
+    case ChannelIndex::F:
+      return "F";
+    default:
+    case ChannelIndex::ME:
+      return "ME";
+  }
+}
 
 enum class ObjectValidityEnum : size_t
 {

@@ -1,7 +1,0 @@
-Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: imageC
-Source: https://www.imagec.org/download
-
-Files: *
-Copyright: 2023 Joachim Danmayr
-License: GPL-3+

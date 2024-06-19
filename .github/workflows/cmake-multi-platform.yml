@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - duckdb
     tags:
       - '*'
   pull_request:
@@ -68,7 +67,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-22.04
     container: 
-      image: joda001/imagec:v1.7.8
+      image: joda001/imagec:v1.7.9
 
     steps:
       - name: Checkout code
@@ -81,6 +80,24 @@ jobs:
           ./clean.sh
           ./build.sh
           strip build/build/imagec
+
+      - name: Test code
+        run: |
+          ./execute_test.sh
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: test-results.xml
+
+    #  - name: Publish Test Results
+    #    uses: dorny/test-reporter@v1
+    #    if: always()
+    #    with:
+    #      name: Catch2 tests
+    #      path: test-results.xml
+    #      reporter: jest-junit
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3

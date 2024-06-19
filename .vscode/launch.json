@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "/workspaces/imagec/build/build/tests",
             "args": [
-                "[pipeline_test_heatmap_small]"
+                "[pipeline]"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

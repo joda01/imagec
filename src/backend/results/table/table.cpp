@@ -57,7 +57,7 @@ void Table::print()
     cout << mRowHeader[outerPair.first];
     for(const auto &innerPair : outerPair.second) {
       if(colWidths.size() > innerPair.first) {
-        cout << right << setw(colWidths[innerPair.first] + 2) << fixed << setprecision(2) << innerPair.second.getVal();
+        cout << right << setw(colWidths[innerPair.first] + 2) << fixed << setprecision(4) << innerPair.second.getVal();
       }
     }
     cout << endl;

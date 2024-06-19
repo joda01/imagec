@@ -9,7 +9,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("image:loader:ome", "[image_loader_ome")
+TEST_CASE("image:loader:ome", "[.][image_loader_ome")
 {
   auto prop = joda::image::TiffLoader::getOmeInformation("test/GMEV5minM1OT3_0001.btf");
 
@@ -20,7 +20,7 @@ TEST_CASE("image:loader:ome", "[image_loader_ome")
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("image:loader:bigtiff", "[image_loader_bigtiff]")
+TEST_CASE("image:loader:bigtiff", "[.][image_loader_bigtiff]")
 {
   auto prop = joda::image::TiffLoader::getImageProperties("test/GMEV5minM1OT3_0001.btf", 0);
   std::cout << std::to_string(prop.nrOfTiles) << std::endl;
@@ -36,7 +36,7 @@ TEST_CASE("image:loader:bigtiff", "[image_loader_bigtiff]")
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("image:loader:single", "[image_loader_single]")
+TEST_CASE("image:loader:single", "[.][image_loader_single]")
 {
   auto img = joda::image::TiffLoader::loadEntireImage(
       "test_cell/B2_0001.vsi - 001 CY7, CY5, Cy5-Cy7-FRET, DAPI_MB, BF - Z=5.tif", 4);

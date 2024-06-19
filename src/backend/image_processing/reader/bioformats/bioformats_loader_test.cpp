@@ -9,7 +9,7 @@
 /// \brief  Load a config file
 /// \author Joachim Danmayr
 ///
-TEST_CASE("image:loader:bioformats", "[image_loader_bioformats]")
+TEST_CASE("image:loader:bioformats", "[.][image_loader_bioformats]")
 {
   joda::image::BioformatsLoader::init();
 
