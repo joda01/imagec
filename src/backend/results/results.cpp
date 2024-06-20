@@ -13,6 +13,8 @@
 
 #include "results.hpp"
 #include <regex.h>
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <exception>
 #include <filesystem>
@@ -229,13 +231,13 @@ void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, 
 /// \param[out]
 /// \return
 ///
-auto Results::prepareDetailReportAdding()
-    -> std::tuple<std::shared_ptr<duckdb::Appender>, std::shared_ptr<duckdb::Connection>>
+auto Results::prepareDetailReportAdding() -> DetailReportAdder
 {
   auto connection = mDatabase->acquire();
   // connection->BeginTransaction();
-  auto appender = std::make_shared<duckdb::Appender>(*connection, "objects");
-  return {appender, connection};
+  auto objects    = std::make_shared<duckdb::Appender>(*connection, "objects");
+  auto imageStats = std::make_shared<duckdb::Appender>(*connection, "image_stats");
+  return {connection, objects, imageStats};
 }
 
 ///
@@ -245,11 +247,11 @@ auto Results::prepareDetailReportAdding()
 /// \param[out]
 /// \return
 ///
-void Results::writePredatedData(std::shared_ptr<duckdb::Appender> appender,
-                                std::shared_ptr<duckdb::Connection> connection)
+void Results::writePredatedData(const DetailReportAdder &adders)
 {
   auto id = DurationCount::start("Close");
-  appender->Close();
+  adders.imageStats->Close();
+  adders.objects->Close();
   // connection->Commit();
   DurationCount::stop(id);
 }
@@ -261,11 +263,74 @@ void Results::writePredatedData(std::shared_ptr<duckdb::Appender> appender,
 /// \param[out]
 /// \return
 ///
-void Results::appendToDetailReport(std::shared_ptr<duckdb::Appender> appender,
+void Results::appendToDetailReport(const DetailReportAdder &appender,
                                    const joda::image::detect::DetectionResponse &results,
                                    const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                                    const image::ImageProperties &imgProps, const std::filesystem::path &imagePath)
 {
+  struct ImageStats
+  {
+    double sumVal = 0;
+    std::multiset<double> values;
+
+    [[nodiscard]] double sum() const
+    {
+      return sumVal;
+    }
+
+    [[nodiscard]] double cnt() const
+    {
+      return values.size();
+    }
+
+    [[nodiscard]] double min() const
+    {
+      if(values.empty()) {
+        return 0;
+      }
+      return *values.begin();
+    }
+
+    [[nodiscard]] double max() const
+    {
+      if(values.empty()) {
+        return 0;
+      }
+      return *values.end();
+    }
+
+    [[nodiscard]] double median() const
+    {
+      auto it = values.begin();
+      std::advance(it, values.size() / 2);
+      double median = *it;
+    }
+    [[nodiscard]] double avg() const
+    {
+      if(values.empty()) {
+        return 0.0;    // Handle the case for an empty set
+      }
+
+      return sumVal / values.size();
+    }
+
+    [[nodiscard]] double stddev(double mean) const
+    {
+      if(values.size() <= 1) {
+        return 0.0;    // Standard deviation is 0 if there are no elements or only one element
+      }
+
+      double sumOfSquares = 0.0;
+      for(const auto &num : values) {
+        sumOfSquares += (num - mean) * (num - mean);
+      }
+
+      double variance = sumOfSquares / (values.size() - 1);    // Using n-1 for an unbiased estimator
+      return std::sqrt(variance);
+    }
+  };
+  std::map<MeasureChannelId, ImageStats> imgStats;
+
   try {
     auto id          = DurationCount::start("Append to detail report");
     uint64_t imageId = calcImagePathHash(mExperimentSettings.runId, imagePath);
@@ -297,45 +362,37 @@ void Results::appendToDetailReport(std::shared_ptr<duckdb::Appender> appender,
       duckdb::vector<duckdb::Value> keys;
       duckdb::vector<duckdb::Value> vals;
 
+      auto addToStats = [&imgStats, &keys, &vals](const MeasureChannelId &ch, double val) {
+        keys.emplace_back(duckdb::Value::UINTEGER((uint32_t) ch));
+        vals.emplace_back(duckdb::Value::DOUBLE(val));
+
+        imgStats[ch].values.emplace(val);
+        imgStats[ch].sumVal += val;
+      };
+
+      auto addToStatsInt = [&imgStats, &keys, &vals](const MeasureChannelId &ch, uint8_t val) {
+        keys.emplace_back(duckdb::Value::UINTEGER((uint32_t) ch));
+        vals.emplace_back(duckdb::Value::TINYINT(val));
+        imgStats[ch].values.emplace(val);
+        imgStats[ch].sumVal += val;
+      };
+
       // Measure channels
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CONFIDENCE, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(roi.getConfidence()));
 
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::AREA_SIZE, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(roi.getAreaSize()));
-
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::PERIMETER, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(roi.getPerimeter()));
-
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CIRCULARITY, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(roi.getCircularity()));
-
-      keys.emplace_back(duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::VALID, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::TINYINT(roi.isValid() ? 1 : 0));
-
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INVALID, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::TINYINT(roi.isValid() ? 0 : 1));
-
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CENTER_OF_MASS_X, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getCenterOfMass().x) + xMul));
-
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::CENTER_OF_MASS_Y, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getCenterOfMass().y) + yMul));
-
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::BOUNDING_BOX_WIDTH, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getBoundingBox().width)));
-
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::BOUNDING_BOX_HEIGHT, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(static_cast<double>(roi.getBoundingBox().height)));
+      addToStats(MeasureChannelId(MeasureChannel::CONFIDENCE, ChannelIndex::ME), roi.getConfidence());
+      addToStats(MeasureChannelId(MeasureChannel::AREA_SIZE, ChannelIndex::ME), roi.getAreaSize());
+      addToStats(MeasureChannelId(MeasureChannel::PERIMETER, ChannelIndex::ME), roi.getPerimeter());
+      addToStats(MeasureChannelId(MeasureChannel::CIRCULARITY, ChannelIndex::ME), roi.getCircularity());
+      addToStatsInt(MeasureChannelId(MeasureChannel::VALID, ChannelIndex::ME), roi.isValid() ? 1 : 0);
+      addToStatsInt(MeasureChannelId(MeasureChannel::INVALID, ChannelIndex::ME), roi.isValid() ? 0 : 1);
+      addToStats(MeasureChannelId(MeasureChannel::CENTER_OF_MASS_X, ChannelIndex::ME),
+                 static_cast<double>(roi.getCenterOfMass().x) + xMul);
+      addToStats(MeasureChannelId(MeasureChannel::CENTER_OF_MASS_Y, ChannelIndex::ME),
+                 static_cast<double>(roi.getCenterOfMass().y) + yMul);
+      addToStats(MeasureChannelId(MeasureChannel::BOUNDING_BOX_WIDTH, ChannelIndex::ME),
+                 static_cast<double>(roi.getBoundingBox().width));
+      addToStats(MeasureChannelId(MeasureChannel::BOUNDING_BOX_HEIGHT, ChannelIndex::ME),
+                 static_cast<double>(roi.getBoundingBox().height));
 
       double intensityAvg = 0;
       double intensityMin = 0;
@@ -347,34 +404,23 @@ void Results::appendToDetailReport(std::shared_ptr<duckdb::Appender> appender,
         intensityMax     = intensityMe.intensityMax;
       }
 
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INTENSITY_AVG, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(intensityAvg));
-
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INTENSITY_MIN, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(intensityMin));
-
-      keys.emplace_back(
-          duckdb::Value::UINTEGER((uint32_t) MeasureChannelId(MeasureChannel::INTENSITY_MAX, ChannelIndex::ME)));
-      vals.emplace_back(duckdb::Value::DOUBLE(intensityMax));
+      addToStats(MeasureChannelId(MeasureChannel::INTENSITY_AVG, ChannelIndex::ME), intensityAvg);
+      addToStats(MeasureChannelId(MeasureChannel::INTENSITY_MIN, ChannelIndex::ME), intensityMin);
+      addToStats(MeasureChannelId(MeasureChannel::INTENSITY_MAX, ChannelIndex::ME), intensityMax);
 
       //
       // Intensity channels
       //
       for(const auto &[idx, intensity] : roi.getIntensity()) {
         if(idx != channelSettings.channelIdx) {
-          keys.emplace_back(duckdb::Value::UINTEGER(
-              (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG, toChannelIndex(idx))));
-          vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensity));
+          addToStats(MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_AVG, toChannelIndex(idx)),
+                     intensity.intensity);
 
-          keys.emplace_back(duckdb::Value::UINTEGER(
-              (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_MIN, toChannelIndex(idx))));
-          vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensityMin));
+          addToStats(MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_MIN, toChannelIndex(idx)),
+                     intensity.intensityMin);
 
-          keys.emplace_back(duckdb::Value::UINTEGER(
-              (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_MAX, toChannelIndex(idx))));
-          vals.emplace_back(duckdb::Value::DOUBLE(intensity.intensityMax));
+          addToStats(MeasureChannelId(MeasureChannel::CROSS_CHANNEL_INTENSITY_MAX, toChannelIndex(idx)),
+                     intensity.intensityMax);
         }
       }
 
@@ -382,27 +428,87 @@ void Results::appendToDetailReport(std::shared_ptr<duckdb::Appender> appender,
       // Counting channels
       //
       for(const auto &[idx, intersecting] : roi.getIntersectingRois()) {
-        keys.emplace_back(duckdb::Value::UINTEGER(
-            (uint32_t) MeasureChannelId(MeasureChannel::CROSS_CHANNEL_COUNT, toChannelIndex(idx))));
-        vals.emplace_back(duckdb::Value::DOUBLE(intersecting.roiValid.size()));
+        {
+          addToStats(MeasureChannelId(MeasureChannel::CROSS_CHANNEL_COUNT, toChannelIndex(idx)),
+                     intersecting.roiValid.size());
+        }
       }
 
       {
         std::lock_guard<std::mutex> lock(mAppenderMutex);
-        appender->BeginRow();
-        appender->Append(uuid);
-        appender->Append<uint64_t>(imageId);
-        appender->Append<uint16_t>(static_cast<uint16_t>(channelId));
-        appender->Append<uint32_t>(index);
-        appender->Append<uint16_t>(tileIdx);
-        appender->Append<uint64_t>(toValidity(roi.getValidity()).to_ulong());
+        appender.objects->BeginRow();
+        appender.objects->Append(uuid);
+        appender.objects->Append<uint64_t>(imageId);
+        appender.objects->Append<uint16_t>(static_cast<uint16_t>(channelId));
+        appender.objects->Append<uint32_t>(index);
+        appender.objects->Append<uint16_t>(tileIdx);
+        appender.objects->Append<uint64_t>(toValidity(roi.getValidity()).to_ulong());
         auto mapToInsert = duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
                                               duckdb::LogicalType(duckdb::LogicalTypeId::DOUBLE), keys, vals);
-        appender->Append<duckdb::Value>(mapToInsert);    // 0.004ms
-        appender->EndRow();
+        appender.objects->Append<duckdb::Value>(mapToInsert);    // 0.004ms
+        appender.objects->EndRow();
       }
     }
     DurationCount::stop(id2);
+
+    {
+      struct DbStats
+      {
+        duckdb::vector<duckdb::Value> keys;
+        duckdb::vector<duckdb::Value> vals;
+
+        void addToStats(const MeasureChannelId &ch, double val)
+        {
+          keys.emplace_back(duckdb::Value::UINTEGER((uint32_t) ch));
+          vals.emplace_back(duckdb::Value::DOUBLE(val));
+        };
+      };
+      DbStats statsSum;
+      DbStats statsCnt;
+      DbStats statsMin;
+      DbStats statsMax;
+      DbStats statsMedian;
+      DbStats statsAvg;
+      DbStats statsStddev;
+
+      for(const auto &[ch, stats] : imgStats) {
+        statsSum.addToStats(ch, stats.sum());
+        statsCnt.addToStats(ch, stats.cnt());
+        statsMin.addToStats(ch, stats.min());
+        statsMax.addToStats(ch, stats.max());
+        statsMedian.addToStats(ch, stats.median());
+        auto avg = stats.avg();
+        statsAvg.addToStats(ch, avg);
+        statsStddev.addToStats(ch, stats.stddev(avg));
+      }
+
+      auto addToMap = [&appender](const DbStats &stats) {
+        auto mapToInsert =
+            duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
+                               duckdb::LogicalType(duckdb::LogicalTypeId::DOUBLE), stats.keys, stats.vals);
+        appender.imageStats->Append<duckdb::Value>(mapToInsert);    // 0.004ms
+      };
+
+      // Append to image stats
+      for(const auto &[ch, stats] : imgStats) {
+        {
+          std::lock_guard<std::mutex> lock(mAppenderMutex);
+          appender.imageStats->BeginRow();
+          appender.imageStats->Append(uuid);
+          appender.imageStats->Append<uint64_t>(imageId);
+          appender.imageStats->Append<uint16_t>(static_cast<uint16_t>(channelId));
+          appender.imageStats->Append<uint16_t>(tileIdx);
+          addToMap(statsSum);
+          addToMap(statsCnt);
+          addToMap(statsMin);
+          addToMap(statsMax);
+          addToMap(statsMedian);
+          addToMap(statsAvg);
+          addToMap(statsStddev);
+          appender.imageStats->EndRow();
+        }
+      }
+    }
 
     DurationCount::stop(id);
   } catch(const std::exception &ex) {

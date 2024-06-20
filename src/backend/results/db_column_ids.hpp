@@ -27,12 +27,13 @@ namespace joda::results {
 
 enum class Stats
 {
-  AVG,
-  MEDIAN,
-  SUM,
-  MIN,
-  MAX,
-  STDDEV
+  AVG    = 0,
+  MEDIAN = 1,
+  SUM    = 2,
+  MIN    = 3,
+  MAX    = 4,
+  STDDEV = 5,
+  CNT    = 6
 };
 
 inline std::string toString(Stats stats)
@@ -50,6 +51,8 @@ inline std::string toString(Stats stats)
       return "MAX";
     case Stats::STDDEV:
       return "STDDEV";
+    case Stats::CNT:
+      return "CNT";
   }
   return "";
 }

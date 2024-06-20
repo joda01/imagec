@@ -74,18 +74,24 @@ struct GroupInformation
 class Results
 {
 public:
+  struct DetailReportAdder
+  {
+    std::shared_ptr<duckdb::Connection> connection;
+    std::shared_ptr<duckdb::Appender> objects;
+    std::shared_ptr<duckdb::Appender> imageStats;
+  };
+
   Results(const std::filesystem::path &pathToRawData, const ExperimentSetting &settings,
           const joda::settings::AnalyzeSettings &analyzeSettings);
 
   void appendChannelsToDetailReport(const joda::settings::AnalyzeSettings &);
   void appendImageToDetailReport(const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
 
-  auto prepareDetailReportAdding()
-      -> std::tuple<std::shared_ptr<duckdb::Appender>, std::shared_ptr<duckdb::Connection>>;
-  void appendToDetailReport(std::shared_ptr<duckdb::Appender>, const joda::image::detect::DetectionResponse &result,
+  auto prepareDetailReportAdding() -> DetailReportAdder;
+  void appendToDetailReport(const DetailReportAdder &, const joda::image::detect::DetectionResponse &result,
                             const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
                             const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
-  void writePredatedData(std::shared_ptr<duckdb::Appender>, std::shared_ptr<duckdb::Connection>);
+  void writePredatedData(const DetailReportAdder &);
 
   /////////////////////////////////////////////////////
   static GroupInformation applyRegex(const std::string &regex, const std::filesystem::path &imagePath);
