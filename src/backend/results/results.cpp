@@ -304,6 +304,7 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
       auto it = values.begin();
       std::advance(it, values.size() / 2);
       double median = *it;
+      return median;
     }
     [[nodiscard]] double avg() const
     {
@@ -489,25 +490,20 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
         appender.imageStats->Append<duckdb::Value>(mapToInsert);    // 0.004ms
       };
 
-      // Append to image stats
-      for(const auto &[ch, stats] : imgStats) {
-        {
-          std::lock_guard<std::mutex> lock(mAppenderMutex);
-          appender.imageStats->BeginRow();
-          appender.imageStats->Append(uuid);
-          appender.imageStats->Append<uint64_t>(imageId);
-          appender.imageStats->Append<uint16_t>(static_cast<uint16_t>(channelId));
-          appender.imageStats->Append<uint16_t>(tileIdx);
-          addToMap(statsSum);
-          addToMap(statsCnt);
-          addToMap(statsMin);
-          addToMap(statsMax);
-          addToMap(statsMedian);
-          addToMap(statsAvg);
-          addToMap(statsStddev);
-          appender.imageStats->EndRow();
-        }
-      }
+      std::lock_guard<std::mutex> lock(mAppenderMutex);
+      appender.imageStats->BeginRow();
+      appender.imageStats->Append(uuid);
+      appender.imageStats->Append<uint64_t>(imageId);
+      appender.imageStats->Append<uint16_t>(static_cast<uint16_t>(channelId));
+      appender.imageStats->Append<uint16_t>(tileIdx);
+      addToMap(statsSum);
+      addToMap(statsCnt);
+      addToMap(statsMin);
+      addToMap(statsMax);
+      addToMap(statsMedian);
+      addToMap(statsAvg);
+      addToMap(statsStddev);
+      appender.imageStats->EndRow();
     }
 
     DurationCount::stop(id);

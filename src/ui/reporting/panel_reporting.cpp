@@ -97,7 +97,8 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
              {joda::results::Stats::MIN, "MIN"},
              {joda::results::Stats::MAX, "MAX"},
              {joda::results::Stats::STDDEV, "STDDEV"},
-             {joda::results::Stats::SUM, "SUM"}},
+             {joda::results::Stats::SUM, "SUM"},
+             {joda::results::Stats::CNT, "CNT"}},
             mWindowMain, ""));
     selector->addWidget(mStats->getEditableWidget());
     connect(mStats.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onMeasurementChanged);

@@ -308,7 +308,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   BS::timer tmr;
   tmr.start();
 
-  auto [appender, connection] = mResults.prepareDetailReportAdding();
+  auto appender = mResults.prepareDetailReportAdding();
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
   // Execute intersection calculation
@@ -437,7 +437,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
       }
     }
   }
-  mResults.writePredatedData(appender, connection);
+  mResults.writePredatedData(appender);
 
   tmr.stop();
   std::cout << "Post processing " << tmr.ms() << " ms.\n";
