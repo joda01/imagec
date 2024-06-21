@@ -330,11 +330,19 @@ void PanelReporting::onChannelChanged()
         entry.push_back(ContainerFunction<uint32_t, int>::ComboEntry{
             .key = measure.getKey(), .label = measure.toString().data(), .icon = ""});
       }
+      auto lastSelected = mMeasureChannelSelector->getValue();
+      disconnect(mMeasureChannelSelector.get(), &ContainerFunctionBase::valueChanged, this,
+                 &PanelReporting::onMeasurementChanged);
       if(!entry.empty()) {
         mMeasureChannelSelector->setOptions("icons8-filter-50.png", entry, entry[0].key);
       } else {
         mMeasureChannelSelector->setOptions("icons8-filter-50.png", {}, 0);
       }
+      mMeasureChannelSelector->setValue(lastSelected);
+      connect(mMeasureChannelSelector.get(), &ContainerFunctionBase::valueChanged, this,
+              &PanelReporting::onMeasurementChanged);
+      onMeasurementChanged();
+
       break;
     }
   }

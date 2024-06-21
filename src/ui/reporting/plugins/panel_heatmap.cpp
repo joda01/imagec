@@ -138,7 +138,6 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
           new ContainerFunction<bool, bool>("icons8-multiply-50.png", "Mark as invalid", "Mark as invalid", false,
                                             windowMain, "reporting_mark_as_invalid.json"));
       verticalLayoutMeta->addWidget(mMarkAsInvalid->getEditableWidget());
-      mMarkAsInvalid->getEditableWidget()->setVisible(false);
       connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelHeatmap::onMarkAsInvalidClicked);
 
       _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
@@ -501,8 +500,9 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
   uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
 
   auto [min, max] = mData.getMinMax();
-  auto avg        = mData.getAvg();
-  auto stddev     = mData.getStddev();
+  auto avg        = (min + max) / 2.0;
+  //  auto avg        = mData.getAvg();
+  //   auto stddev     = mData.getStddev();
 
   if(mRows > 0 && mCols > 0) {
     uint32_t rectWidth = std::min(width / mCols, height / mRows);
