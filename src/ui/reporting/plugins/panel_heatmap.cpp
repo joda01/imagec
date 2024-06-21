@@ -499,8 +499,13 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
   uint32_t width  = size().width() / dividend - (spacing + X_LEFT_MARGIN);
   uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
 
-  auto [min, max] = mData.getMinMax();
-  auto avg        = (min + max) / 2.0;
+  if(mMinMaxMode == HeatmapMinMax::AUTO) {
+    auto [min, max]    = mData.getMinMax();
+    mHeatMapMinMax.min = min;
+    mHeatMapMinMax.max = max;
+  }
+
+  auto avg = (mHeatMapMinMax.min + mHeatMapMinMax.max) / 2.0;
   //  auto avg        = mData.getAvg();
   //   auto stddev     = mData.getStddev();
 
@@ -557,7 +562,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
         }
 
         double value   = data.getVal();
-        double statVal = (value - min) / (max - min);
+        double statVal = (value - mHeatMapMinMax.min) / (mHeatMapMinMax.max - mHeatMapMinMax.min);
         // double statVal = (value - avg) / stddev;    // Standadisierung
         // statVal        = calcValueOnGaussianCurve(statVal, avg, stddev);
         // std::cout << "----\n"
@@ -642,13 +647,19 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
         uint32_t startX = xStart + n * partWith;
         float val       = (float) n / (float) mColorMap.size();
         auto color      = mColorMap.upper_bound(val)->second;
+        painter.setPen(QPen(Qt::black, 1));
         painter.setBrush(color);    // Change color as desired
         painter.drawRect(startX, yStart, partWith, LEGEND_COLOR_ROW_HEIGHT);
 
         if(n == 0) {
-          painter.setPen(QPen(Qt::black, 1));
-          painter.drawText(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE,
-                           formatDoubleScientific(min));
+          if(mMinMaxMode == HeatmapMinMax::AUTO) {
+            painter.setPen(QPen(Qt::black, 1));
+          } else {
+            painter.setPen(QPen(Qt::red, 1));
+          }
+          mHeatMapMinMax.textMinPos = QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE,
+                                            partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
+          painter.drawText(mHeatMapMinMax.textMinPos, Qt::AlignLeft, formatDoubleScientific(mHeatMapMinMax.min));
         }
         if(n == middle) {
           painter.setPen(QPen(Qt::black, 1));
@@ -657,12 +668,17 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
         }
 
         if(n == mColorMap.size() - 1) {
-          painter.setPen(QPen(Qt::black, 1));
-          painter.drawText(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE,
-                           formatDoubleScientific(max));
+          if(mMinMaxMode == HeatmapMinMax::AUTO) {
+            painter.setPen(QPen(Qt::black, 1));
+          } else {
+            painter.setPen(QPen(Qt::red, 1));
+          }
+          mHeatMapMinMax.textMaxPos = QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE,
+                                            partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
+          painter.drawText(mHeatMapMinMax.textMaxPos, Qt::AlignRight, formatDoubleScientific(mHeatMapMinMax.max));
         }
       }
-
+      painter.setPen(QPen(Qt::black, 1));
       drawGaussianCurve(painter, xStart,
                         yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE + HEATMAP_FONT_SIZE,
                         LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE + HEATMAP_FONT_SIZE - 4, length);
@@ -821,6 +837,39 @@ void ChartHeatMap::mousePressEvent(QMouseEvent *event)
 
     emit onElementClick(mSelection[mActHierarchy].mSelectedPoint.x, mSelection[mActHierarchy].mSelectedPoint.y,
                         selectedData);
+  }
+
+  if(mHeatMapMinMax.textMinPos.contains(event->pos())) {
+    // Text min pos clicked
+    mHeatMapMinMax.min = showInputDialog(mHeatMapMinMax.min);
+    update();
+  }
+
+  if(mHeatMapMinMax.textMaxPos.contains(event->pos())) {
+    // Text min pos clicked
+    mHeatMapMinMax.max = showInputDialog(mHeatMapMinMax.max);
+    update();
+  }
+}
+
+double ChartHeatMap::showInputDialog(double defaultVal)
+{
+  QInputDialog inputDialog;
+  inputDialog.setLabelText("Enter value:");
+  inputDialog.setInputMode(QInputDialog::DoubleInput);
+  inputDialog.setDoubleDecimals(3);    // Allow up to 3 decimal places
+  inputDialog.setCancelButtonText("Reset");
+  inputDialog.setDoubleMinimum(std::numeric_limits<double>::min());
+  inputDialog.setDoubleMaximum(std::numeric_limits<double>::max());
+  inputDialog.setDoubleValue(defaultVal);
+
+  auto ret = inputDialog.exec();
+  if(QInputDialog::Accepted == ret) {
+    mMinMaxMode = HeatmapMinMax::MANUAL;
+    return inputDialog.doubleValue();
+  } else {
+    mMinMaxMode = HeatmapMinMax::AUTO;
+    return defaultVal;
   }
 }
 

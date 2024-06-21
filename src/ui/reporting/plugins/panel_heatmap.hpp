@@ -58,6 +58,12 @@ public:
     YES
   };
 
+  enum class HeatmapMinMax
+  {
+    AUTO,
+    MANUAL
+  };
+
   /////////////////////////////////////////////////////
   ChartHeatMap(PanelHeatmap *parent);
   void setData(std::weak_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form,
@@ -94,19 +100,29 @@ private:
                                     {0.9, QColor{174, 40, 44}},   {1, QColor{174, 40, 44}}};*/
 
   std::map<float, QColor> mColorMap{generateColorMap()};
+  double showInputDialog(double defaultVal);
 
   /////////////////////////////////////////////////////
-  static inline const uint32_t spacing                 = 4;
-  static inline const uint32_t Y_TOP_MARING            = 16;
-  static inline const uint32_t X_LEFT_MARGIN           = 10;
-  static inline const uint32_t LEGEND_HEIGHT           = 30;
-  static inline const uint32_t LEGEND_COLOR_ROW_HEIGHT = 15;
-  static inline const uint32_t HEATMAP_FONT_SIZE       = 12;
+  static inline const uint32_t spacing                       = 4;
+  static inline const uint32_t Y_TOP_MARING                  = 16;
+  static inline const uint32_t X_LEFT_MARGIN                 = 10;
+  static inline const uint32_t LEGEND_HEIGHT                 = 30;
+  static inline const uint32_t LEGEND_COLOR_ROW_HEIGHT       = 15;
+  static inline const uint32_t HEATMAP_FONT_SIZE             = 12;
+  static inline const uint32_t HEATMAP_COLOR_ROW_TEXT_HEIGHT = 25;
 
   std::weak_ptr<joda::results::Analyzer> mAnalyzer;
   PanelHeatmap *mParent;
   MatrixForm mForm = MatrixForm::CIRCLE;
   PaintControlImage mPaintCtrlImage;
+  HeatmapMinMax mMinMaxMode = HeatmapMinMax::AUTO;
+  struct HeatMapMinMax
+  {
+    QRect textMinPos;
+    QRect textMaxPos;
+    double min = 0;
+    double max = 0;
+  } mHeatMapMinMax;
 
   uint32_t mRows        = 0;
   uint32_t mCols        = 0;
