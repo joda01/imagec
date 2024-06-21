@@ -20,70 +20,29 @@ public:
                       ChannelIndex channelId, const MeasureChannelId &measurement, Stats stats) -> Table
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
-        "WITH image_avg AS("
         "SELECT"
         "	images_groups.group_id as group_id,"
-        " objects.image_id as image_id,"
         "	ANY_VALUE(groups.well_pos_x) as wx,"
         "	ANY_VALUE(groups.well_pos_y) as wy," +
-            getStatsString(stats) +
+            getAvgStatsFromStats(stats) +
             "FROM"
-            "	objects "
+            "	image_stats "
             "INNER JOIN images_groups ON"
-            "	objects.image_id = images_groups.image_id "
+            "	image_stats.image_id = images_groups.image_id "
             "INNER JOIN images ON"
-            "	objects.image_id = images.image_id "
+            "	image_stats.image_id = images.image_id "
             "INNER JOIN channels_images ON"
-            "	(objects.image_id = channels_images.image_id AND objects.channel_id = channels_images.channel_id) "
+            "	(image_stats.image_id = channels_images.image_id AND image_stats.channel_id = "
+            "channels_images.channel_id) "
             "INNER JOIN groups ON"
             "	images_groups.group_id = groups.group_id "
             "WHERE"
             "	images_groups.plate_id = $2 "
-            "	AND objects.validity = 0 "
             "	AND channels_images.validity = 0 "
-            "	AND objects.channel_id = $3 "
+            "	AND image_stats.channel_id = $3 "
             "GROUP BY"
-            "	(images_groups.group_id, objects.image_id)"
-            "        ),"
-            "      group_avg AS("
-            "SELECT"
-            "	group_id,"
-            "	ANY_VALUE(wx) as wx,"
-            "	ANY_VALUE(wy) as wy,"
-            "	AVG(val_img) AS avg_of_avgs_per_group "
-            "FROM"
-            "	image_avg "
-            "GROUP BY"
-            "	group_id"
-            "      )"
-            "        SELECT"
-            "	group_id,"
-            "	wx,"
-            "	wy,"
-            "	avg_of_avgs_per_group "
-            "FROM"
-            "	group_avg",
+            "	(images_groups.group_id);",
         measurement.getKey(), plateId, static_cast<uint8_t>(channelId));
-
-    /*
-    std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
-        "SELECT"
-        "  images_groups.group_id as group_id,"
-        "  ANY_VALUE(groups.well_pos_x) as wx, "
-        "  ANY_VALUE(groups.well_pos_y) as wy, " +
-            getStatsString(stats) +
-            "FROM objects "
-            "INNER JOIN images_groups ON objects.image_id=images_groups.image_id "
-            "INNER JOIN images ON objects.image_id=images.image_id "
-            "INNER JOIN channels_images ON (objects.image_id=channels_images.image_id AND "
-            "objects.channel_id=channels_images.channel_id) "
-            "INNER JOIN groups ON images_groups.group_id=groups.group_id "
-            "WHERE"
-            " images_groups.plate_id=$2 AND objects.validity=0 AND channels_images.validity=0 AND "
-            "objects.channel_id=$3 "
-            "GROUP BY"
-            "  (images_groups.group_id) ",
-        measurement.getKey(), plateId, static_cast<uint8_t>(channelId));*/
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -118,7 +77,7 @@ public:
           double val = materializedResult->GetValue(3, n).GetValue<double>();
           results.setData(row, col, TableCell{val, groupId, true, ""});
         }
-      } catch(const duckdb::InternalException &) {
+      } catch(const duckdb::InternalException &ex) {
       }
     }
 

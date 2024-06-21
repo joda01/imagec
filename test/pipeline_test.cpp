@@ -3312,15 +3312,15 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
                 *results, 1, 16, 24, joda::results::ChannelIndex::A,
                 {joda::results::MeasureChannel::VALID, joda::results::ChannelIndex::ME}, joda::results::Stats::AVG);
-            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(1.0000, 0.0001));
-            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(1.0000, 0.0001));
+            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.0984, 0.0001));
+            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.1101, 0.0001));
           }
           {
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
                 *results, 1, 16, 24, joda::results::ChannelIndex::A,
                 {joda::results::MeasureChannel::VALID, joda::results::ChannelIndex::ME}, joda::results::Stats::MEDIAN);
-            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(1.0000, 0.0001));
-            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(1.0000, 0.0001));
+            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0, 0.0001));
+            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0, 0.0001));
           }
           {
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
@@ -3333,8 +3333,8 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
                 *results, 1, 16, 24, joda::results::ChannelIndex::A,
                 {joda::results::MeasureChannel::VALID, joda::results::ChannelIndex::ME}, joda::results::Stats::MIN);
-            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(1.0000, 0.0001));
-            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(1.0000, 0.0001));
+            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
+            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
           }
           {
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
@@ -3347,8 +3347,8 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
                 *results, 1, 16, 24, joda::results::ChannelIndex::A,
                 {joda::results::MeasureChannel::VALID, joda::results::ChannelIndex::ME}, joda::results::Stats::STDDEV);
-            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
-            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
+            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.2981, 0.0001));
+            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.3132, 0.0001));
           }
         }
         THEN("Check the INVALID for A data")
@@ -3357,23 +3357,23 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
                 *results, 1, 16, 24, joda::results::ChannelIndex::A,
                 {joda::results::MeasureChannel::INVALID, joda::results::ChannelIndex::ME}, joda::results::Stats::AVG);
-            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
-            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
+            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.9015, 0.0001));
+            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.8898, 0.0001));
           }
           {
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
                 *results, 1, 16, 24, joda::results::ChannelIndex::A,
                 {joda::results::MeasureChannel::INVALID, joda::results::ChannelIndex::ME},
                 joda::results::Stats::MEDIAN);
-            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
-            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
+            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(1.0000, 0.0001));
+            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(1.0000, 0.0001));
           }
           {
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
                 *results, 1, 16, 24, joda::results::ChannelIndex::A,
                 {joda::results::MeasureChannel::INVALID, joda::results::ChannelIndex::ME}, joda::results::Stats::SUM);
-            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
-            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
+            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(458.0000, 0.0001));
+            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(695.0000, 0.0001));
           }
           {
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
@@ -3386,16 +3386,16 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
                 *results, 1, 16, 24, joda::results::ChannelIndex::A,
                 {joda::results::MeasureChannel::INVALID, joda::results::ChannelIndex::ME}, joda::results::Stats::MAX);
-            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
-            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
+            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(1.0000, 0.0001));
+            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(1.0000, 0.0001));
           }
           {
             auto table = joda::results::analyze::plugins::HeatmapPerPlate::getData(
                 *results, 1, 16, 24, joda::results::ChannelIndex::A,
                 {joda::results::MeasureChannel::INVALID, joda::results::ChannelIndex::ME},
                 joda::results::Stats::STDDEV);
-            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
-            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.0000, 0.0001));
+            CHECK_THAT(table.data(0, 9).getVal(), Catch::Matchers::WithinAbs(0.2981, 0.0001));
+            CHECK_THAT(table.data(1, 9).getVal(), Catch::Matchers::WithinAbs(0.3132, 0.0001));
           }
         }
         THEN("Check the CENTER_OF_MASS_X for A data")
