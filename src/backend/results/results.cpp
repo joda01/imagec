@@ -296,7 +296,7 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
       if(values.empty()) {
         return 0;
       }
-      return *values.end();
+      return *values.rbegin();
     }
 
     [[nodiscard]] double median() const
@@ -304,7 +304,13 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
       auto it = values.begin();
       std::advance(it, values.size() / 2);
       double median = *it;
-      return median;
+      if(values.size() % 2 != 0) {
+        // If the number of elements is odd, return the middle element
+        return *it;
+      }    // If the number of elements is even, return the average of the two middle elements
+      auto it1 = it;
+      auto it2 = std::prev(it);
+      return (*it1 + *it2) / 2.0;
     }
     [[nodiscard]] double avg() const
     {
@@ -312,7 +318,7 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
         return 0.0;    // Handle the case for an empty set
       }
 
-      return sumVal / values.size();
+      return sumVal / static_cast<double>(values.size());
     }
 
     [[nodiscard]] double stddev(double mean) const
@@ -326,7 +332,7 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
         sumOfSquares += (num - mean) * (num - mean);
       }
 
-      double variance = sumOfSquares / (values.size() - 1);    // Using n-1 for an unbiased estimator
+      double variance = sumOfSquares / static_cast<double>(values.size() - 1);    // Using n-1 for an unbiased estimator
       return std::sqrt(variance);
     }
   };
@@ -363,15 +369,17 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
       duckdb::vector<duckdb::Value> keys;
       duckdb::vector<duckdb::Value> vals;
 
-      auto addToStats = [&imgStats, &keys, &vals](const MeasureChannelId &ch, double val) {
+      auto isValid    = roi.isValid();
+      auto addToStats = [&imgStats, &keys, &vals, &isValid](const MeasureChannelId &ch, double val) {
         keys.emplace_back(duckdb::Value::UINTEGER((uint32_t) ch));
         vals.emplace_back(duckdb::Value::DOUBLE(val));
-
-        imgStats[ch].values.emplace(val);
-        imgStats[ch].sumVal += val;
+        if(isValid) {
+          imgStats[ch].values.emplace(val);
+          imgStats[ch].sumVal += val;
+        }
       };
 
-      auto addToStatsInt = [&imgStats, &keys, &vals](const MeasureChannelId &ch, uint8_t val) {
+      auto addToStatsValidity = [&imgStats, &keys, &vals](const MeasureChannelId &ch, uint8_t val) {
         keys.emplace_back(duckdb::Value::UINTEGER((uint32_t) ch));
         vals.emplace_back(duckdb::Value::TINYINT(val));
         imgStats[ch].values.emplace(val);
@@ -384,8 +392,8 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
       addToStats(MeasureChannelId(MeasureChannel::AREA_SIZE, ChannelIndex::ME), roi.getAreaSize());
       addToStats(MeasureChannelId(MeasureChannel::PERIMETER, ChannelIndex::ME), roi.getPerimeter());
       addToStats(MeasureChannelId(MeasureChannel::CIRCULARITY, ChannelIndex::ME), roi.getCircularity());
-      addToStatsInt(MeasureChannelId(MeasureChannel::VALID, ChannelIndex::ME), roi.isValid() ? 1 : 0);
-      addToStatsInt(MeasureChannelId(MeasureChannel::INVALID, ChannelIndex::ME), roi.isValid() ? 0 : 1);
+      addToStatsValidity(MeasureChannelId(MeasureChannel::VALID, ChannelIndex::ME), roi.isValid() ? 1 : 0);
+      addToStatsValidity(MeasureChannelId(MeasureChannel::INVALID, ChannelIndex::ME), roi.isValid() ? 0 : 1);
       addToStats(MeasureChannelId(MeasureChannel::CENTER_OF_MASS_X, ChannelIndex::ME),
                  static_cast<double>(roi.getCenterOfMass().x) + xMul);
       addToStats(MeasureChannelId(MeasureChannel::CENTER_OF_MASS_Y, ChannelIndex::ME),

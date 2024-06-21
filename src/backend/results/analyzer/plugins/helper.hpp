@@ -40,6 +40,38 @@ inline std::string getStatsString(Stats stats)
     case Stats::STDDEV:
       statsStr = "  STDDEV(element_at(values, $1)[1]) as val_img ";
       break;
+    case Stats::CNT:
+      statsStr = "  COUNT(element_at(values, $1)[1]) as val_img ";
+      break;
+  };
+  return statsStr;
+}
+
+inline std::string getAvgStatsFromStats(Stats stats)
+{
+  std::string statsStr;
+  switch(stats) {
+    case Stats::AVG:
+      statsStr = "  AVG(element_at(avg, $1)[1]) as avg_of_avgs_per_group ";
+      break;
+    case Stats::MEDIAN:
+      statsStr = "  AVG(element_at(median, $1)[1]) as avg_of_avgs_per_group ";
+      break;
+    case Stats::SUM:
+      statsStr = "  AVG(element_at(sum, $1)[1]) as avg_of_avgs_per_group ";
+      break;
+    case Stats::MIN:
+      statsStr = "  AVG(element_at(min, $1)[1]) as avg_of_avgs_per_group ";
+      break;
+    case Stats::MAX:
+      statsStr = "  AVG(element_at(max, $1)[1]) as avg_of_avgs_per_group ";
+      break;
+    case Stats::STDDEV:
+      statsStr = "  AVG(element_at(stddev, $1)[1]) as avg_of_avgs_per_group ";
+      break;
+    case Stats::CNT:
+      statsStr = "  AVG(element_at(cnt, $1)[1]) as avg_of_avgs_per_group ";
+      break;
   };
   return statsStr;
 }

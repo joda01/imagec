@@ -38,22 +38,22 @@ public:
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
         "SELECT"
-        "  objects.image_id as image_id,"
+        "  image_stats.image_id as image_id,"
         "  images.image_idx as image_idx,"
         "  any_value(channels_images.control_image_path) as control_image_path, "
-        "  any_value(objects.tile_id) as tile_id, "
+        "  any_value(image_stats.tile_id) as tile_id, "
         "  ANY_VALUE(channels_images.validity) as validity,"
         "  images.file_name as file_name," +
-            getStatsString(stats) +
-            "FROM objects "
-            "INNER JOIN images_groups ON objects.image_id=images_groups.image_id "
-            "INNER JOIN images ON objects.image_id=images.image_id "
-            "INNER JOIN channels_images ON (objects.image_id=channels_images.image_id AND "
-            "objects.channel_id=channels_images.channel_id)"
+            getAvgStatsFromStats(stats) +
+            "FROM image_stats "
+            "INNER JOIN images_groups ON image_stats.image_id=images_groups.image_id "
+            "INNER JOIN images ON image_stats.image_id=images.image_id "
+            "INNER JOIN channels_images ON (image_stats.image_id=channels_images.image_id AND "
+            "image_stats.channel_id=channels_images.channel_id)"
             "WHERE"
-            " images_groups.group_id=$2 AND objects.validity=0 AND objects.channel_id=$3 "
+            " images_groups.group_id=$2 AND image_stats.channel_id=$3 "
             "GROUP BY"
-            "  (objects.image_id, images.file_name, images.image_idx) "
+            "  (image_stats.image_id, images.file_name, images.image_idx) "
             "ORDER BY images.file_name",
         measurement.getKey(), groupId, static_cast<uint8_t>(channelId));
 
