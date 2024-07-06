@@ -22,7 +22,8 @@
 
 namespace joda::ui::qt {
 
-DialogShadow::DialogShadow(QWidget *parent, bool showClose) : QDialog(parent), mShowCloseButton(showClose)
+DialogShadow::DialogShadow(QWidget *parent, bool showClose, const QString &closeButtonText) :
+    QDialog(parent), mShowCloseButton(showClose), mCloseButtonString(closeButtonText)
 {
   setModal(true);
   setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Dialog);
@@ -50,13 +51,13 @@ int DialogShadow::exec()
     QWidget *buttons = new QWidget();
     buttons->setContentsMargins(0, 0, 0, 0);
     QHBoxLayout *hBox  = new QHBoxLayout(buttons);
-    QPushButton *close = new QPushButton("Close", buttons);
+    QPushButton *close = new QPushButton(mCloseButtonString, buttons);
     close->setCursor(Qt::PointingHandCursor);
     close->setStyleSheet(
         "QPushButton {"
         "   background-color: rgba(0, 0, 0, 0);"
         "   border: 1px solid rgba(0, 0, 0, 0);"
-        "   color: rgb(255, 144, 144);"
+        "   color: rgb(0, 51, 102);"
         "   padding: 10px 10px;"
         "   border-radius: 4px;"
         "   font-size: 14px;"

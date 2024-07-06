@@ -44,7 +44,7 @@ struct Temp
 /// \return
 ///
 DialogExperimentSettings::DialogExperimentSettings(QWidget *windowMain, joda::settings::ExperimentSettings &settings) :
-    DialogShadow(windowMain), mSettings(settings)
+    DialogShadow(windowMain, true, "Apply"), mSettings(settings)
 {
   setWindowTitle("Settings");
   setBaseSize(500, 200);

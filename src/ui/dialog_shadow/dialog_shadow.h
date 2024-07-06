@@ -31,7 +31,7 @@ class DialogShadow : public QDialog
   Q_OBJECT
 
 public:
-  DialogShadow(QWidget *parent, bool showClose = true);
+  DialogShadow(QWidget *parent, bool showClose = true, const QString &closeButtonText = "Close");
   int exec() override;
 
 private:
@@ -54,7 +54,8 @@ private:
     }
   }
 
-  QWidget *dimmer       = nullptr;
+  QWidget *dimmer = nullptr;
+  QString mCloseButtonString;
   bool mShowCloseButton = true;
 
 private slots:

@@ -62,7 +62,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 {
   const QIcon myIcon(":/icons/outlined/icon.png");
   setWindowIcon(myIcon);
-  setWindowTitle("EVAnalyzer2 powered by imageC");
+  setWindowTitle(Version::getTitle().data());
   createTopToolbar();
   createBottomToolbar();
   setMinimumSize(1600, 800);
@@ -281,10 +281,12 @@ QWidget *WindowMain::createStartWidget()
   QPixmap pixmap(":/icons/outlined/icon.png");
   iconLabel->setPixmap(pixmap.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
   layout->addWidget(iconLabel);
-  QString text =
-      "<p><span style='font-weight: bold;'>EVAnalyzer2 powered by imageC</span><br>"
-      "<span style='font-size: 10pt; color: darkgray;'>" +
-      QString(Version::getVersion().data()) + "</span></p>";
+  QString text = "<p><span style='font-weight: bold;'>" + QString(Version::getTitle().data()) +
+                 "&nbsp;</span><span style='font-weight: bold; font-size: 10pt;'>" +
+                 QString(Version::getSubtitle().data()) +
+                 "</span><br>"
+                 "<span style='font-size: 10pt; color: darkgray;'>" +
+                 QString(Version::getVersion().data()) + "</span></p>";
   QLabel *startText = new QLabel(text);
   layout->addWidget(startText);
 
@@ -317,7 +319,7 @@ QWidget *WindowMain::createStartWidget()
   openProject->setIconSize({16, 16});
   openProject->setIcon(intersectionIcon);
   openProject->setText("Open project");
-  connect(openProject, &QPushButton::pressed, this, &WindowMain::onOpenProjectClicked);
+  connect(openProject, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
   layout->addWidget(openProject);
 
   //
@@ -551,7 +553,7 @@ QWidget *WindowMain::createAddChannelPanel()
   QPushButton *openSettingsButton = new QPushButton();
   openSettingsButton->setText("Load channel settings");
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
-  layout->addWidget(openSettingsButton);
+  // layout->addWidget(openSettingsButton);
 
   //
   // Add giraf
@@ -981,7 +983,7 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(false);
   mOpenReportingArea->setVisible(false);
-  mStackedWidget->removeWidget(mStackedWidget->widget(1));
+  mStackedWidget->removeWidget(mStackedWidget->widget(2));
   mStackedWidget->insertWidget(2, selectedChannel->getEditPanel());
   mStackedWidget->setCurrentIndex(2);
   mNavigation = Navigation::CHANNEL_EDIT;
@@ -1002,7 +1004,7 @@ void WindowMain::onOpenReportingAreaClicked()
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
   QString filePath =
-      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "imageC Files (*.duckdb)", nullptr, opt);
+      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "Results file (*.duckdb)", nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
@@ -1104,6 +1106,10 @@ void WindowMain::onOpenSettingsDialog()
 {
   DialogExperimentSettings di(this, mAnalyzeSettings.experimentSettings);
   di.exec();
+  if(mNavigation == Navigation::START_SCREEN) {
+    removeAllChannels();
+    showProjectOverview();
+  }
 }
 
 ///
@@ -1288,8 +1294,8 @@ void WindowMain::onShowInfoDialog()
   auto *mainLayout = new QVBoxLayout(&messageBox);
   mainLayout->setContentsMargins(28, 28, 28, 28);
   QLabel *helpTextLabel = new QLabel(
-      "<p style=\"text-align: left;\"><strong>imageC " + QString(Version::getVersion().data()) + " (" +
-      QString(Version::getBuildTime().data()) +
+      "<p style=\"text-align: left;\"><strong>" + QString(Version::getProgamName().data()) + " " +
+      QString(Version::getVersion().data()) + " (" + QString(Version::getBuildTime().data()) +
       ")</strong></p>"
       "<p style=\"text-align: left;\"><em>Licensed under AGPL-3.0<br />Free for non commercial use."
       "</em></p>"
