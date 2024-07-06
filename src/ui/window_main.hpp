@@ -47,6 +47,8 @@ public:
   {
   }
   void showChannelEdit(ContainerBase *);
+  void showStartScreen();
+  void showProjectOverview();
   void removeChannel(ContainerBase *toRemove);
   void removeAllChannels();
   int getSelectedSeries() const
@@ -103,10 +105,20 @@ private:
   static constexpr int32_t V_CHANNEL_COL = OVERVIEW_COLS;
 
   /////////////////////////////////////////////////////
+  enum class Navigation
+  {
+    START_SCREEN     = 0,
+    PROJECT_OVERVIEW = 1,
+    CHANNEL_EDIT     = 2,
+    REPORTING        = 3
+  };
+
+  /////////////////////////////////////////////////////
   void createTopToolbar();
   void createBottomToolbar();
 
   QWidget *createStackedWidget();
+  QWidget *createStartWidget();
   QWidget *createOverviewWidget();
   QWidget *createChannelWidget();
   QWidget *createReportingWidget();
@@ -133,12 +145,16 @@ private:
   bool mNewFolderSelected = false;
   QLabel *mMiddle         = nullptr;
 
+  ////Navifation/////////////////////////////////////////////////
+  Navigation mNavigation = Navigation::START_SCREEN;
+
   ////Project settings/////////////////////////////////////////////////
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   std::map<ContainerBase *, void *>
       mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
 
   ////Toolbar/////////////////////////////////////////////////
+  QToolBar *mButtomToolbar;
   QLineEdit *mJobName;
 
   ////Made project settings/////////////////////////////////////////////////
@@ -153,11 +169,10 @@ private:
   QAction *mImageTilesComboBox   = nullptr;
   QAction *mFileSearchHintLabel  = nullptr;
   QAction *mSaveProject          = nullptr;
-  QAction *mOPenProject          = nullptr;
   QAction *mStartAnalysis        = nullptr;
   QAction *mOpenReportingArea    = nullptr;
   QAction *mJobNameAction        = nullptr;
-  QAction *mSettings             = nullptr;
+  QAction *mProjectSettings      = nullptr;
   QAction *mDeleteChannel        = nullptr;
   QAction *mShowInfoDialog       = nullptr;
   QAction *mFirstSeparator       = nullptr;

@@ -75,7 +75,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setCentralWidget(createStackedWidget());
 
   // Start with the main page
-  onBackClicked();
+  showStartScreen();
 
   mMainThread = new std::thread(&WindowMain::waitForFileSearchFinished, this);
   connect(this, &WindowMain::lookingForFilesFinished, this, &WindowMain::onLookingForFilesFinished);
@@ -84,55 +84,55 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 
 void WindowMain::createBottomToolbar()
 {
-  auto *toolbar = new QToolBar(this);
-  toolbar->setStyleSheet("QToolBar{spacing:8px;}");
+  mButtomToolbar = new QToolBar(this);
+  mButtomToolbar->setStyleSheet("QToolBar{spacing:8px;}");
 
-  toolbar->setMinimumHeight(48);
-  toolbar->setMovable(false);
-  toolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
+  mButtomToolbar->setMinimumHeight(48);
+  mButtomToolbar->setMovable(false);
+  mButtomToolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
   // Middle
 
   {
     // Add a spacer to push the next action to the middle
     QWidget *spacerWidget = new QWidget();
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    toolbar->setMaximumHeight(32);
-    toolbar->addWidget(spacerWidget);
+    mButtomToolbar->setMaximumHeight(32);
+    mButtomToolbar->addWidget(spacerWidget);
   }
 
   // Add the QComboBox in the middle
-  mFoundFilesCombo = new QComboBox(toolbar);
+  mFoundFilesCombo = new QComboBox(mButtomToolbar);
   mFoundFilesCombo->setMinimumWidth(250);
   mFoundFilesCombo->setMaximumWidth(300);
-  mFileSelectorComboBox = toolbar->addWidget(mFoundFilesCombo);
+  mFileSelectorComboBox = mButtomToolbar->addWidget(mFoundFilesCombo);
   mFileSelectorComboBox->setVisible(false);
 
-  mImageSeriesCombo = new QComboBox(toolbar);
+  mImageSeriesCombo = new QComboBox(mButtomToolbar);
   mImageSeriesCombo->addItem("Series 0", 0);
   mImageSeriesCombo->addItem("Series 1", 1);
   mImageSeriesCombo->addItem("Series 2", 2);
   mImageSeriesCombo->addItem("Series 3", 3);
-  mImageSeriesComboBox = toolbar->addWidget(mImageSeriesCombo);
+  mImageSeriesComboBox = mButtomToolbar->addWidget(mImageSeriesCombo);
   mImageSeriesComboBox->setVisible(false);
 
-  mImageTilesCombo = new QComboBox(toolbar);
+  mImageTilesCombo = new QComboBox(mButtomToolbar);
   mImageTilesCombo->addItem("0", 0);
   mImageTilesCombo->setToolTip("Select image tile");
-  mImageTilesComboBox = toolbar->addWidget(mImageTilesCombo);
+  mImageTilesComboBox = mButtomToolbar->addWidget(mImageTilesCombo);
   mImageTilesComboBox->setVisible(false);
 
-  mFoundFilesHint = new ClickableLabel(toolbar);
+  mFoundFilesHint = new ClickableLabel(mButtomToolbar);
   mFoundFilesHint->setText("Please open a working directory ...");
-  mFileSearchHintLabel = toolbar->addWidget(mFoundFilesHint);
+  mFileSearchHintLabel = mButtomToolbar->addWidget(mFoundFilesHint);
   connect(mFoundFilesHint, &ClickableLabel::clicked, this, &WindowMain::onOpenProjectClicked);
 
-  addToolBar(Qt::ToolBarArea::BottomToolBarArea, toolbar);
+  addToolBar(Qt::ToolBarArea::BottomToolBarArea, mButtomToolbar);
 
   // Right
   {
     QWidget *spacerWidget = new QWidget();
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    toolbar->addWidget(spacerWidget);
+    mButtomToolbar->addWidget(spacerWidget);
   }
 }
 
@@ -161,10 +161,6 @@ void WindowMain::createTopToolbar()
     connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProjectClicked);
     toolbar->addAction(mSaveProject);
 
-    mOPenProject = new QAction(QIcon(":/icons/outlined/icons8-folder-50.png"), "Open", toolbar);
-    mOPenProject->setToolTip("Open folder!");
-    connect(mOPenProject, &QAction::triggered, this, &WindowMain::onOpenProjectClicked);
-    toolbar->addAction(mOPenProject);
     mSecondSeparator = toolbar->addSeparator();
 
     mOpenReportingArea = new QAction(QIcon(":/icons/outlined/icons8-graph-50.png"), "Reporting area", toolbar);
@@ -190,7 +186,6 @@ void WindowMain::createTopToolbar()
       mJobName->setMaximumWidth(200);
       mJobNameAction = toolbar->addWidget(mJobName);
     }
-    // toolbar->addSeparator();
 
     mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
     mDeleteChannel->setToolTip("Delete channel!");
@@ -219,15 +214,11 @@ void WindowMain::createTopToolbar()
     toolbar->addWidget(spacerWidget);
   }
 
-  toolbar->addSeparator();
-
   {
-    mSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", toolbar);
-    mSettings->setToolTip("Settings");
-    connect(mSettings, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
-    toolbar->addAction(mSettings);
-
-    toolbar->addSeparator();
+    mProjectSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", toolbar);
+    mProjectSettings->setToolTip("Settings");
+    connect(mProjectSettings, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
+    toolbar->addAction(mProjectSettings);
 
     mShowInfoDialog = new QAction(QIcon(":/icons/outlined/icons8-info-50.png"), "Info", toolbar);
     mShowInfoDialog->setToolTip("Info");
@@ -244,10 +235,154 @@ QWidget *WindowMain::createStackedWidget()
 {
   mStackedWidget = new QStackedWidget();
   mStackedWidget->setObjectName("stackedWidget");
+  mStackedWidget->addWidget(createStartWidget());
   mStackedWidget->addWidget(createOverviewWidget());
   mStackedWidget->addWidget(createChannelWidget());
   mStackedWidget->addWidget(createReportingWidget());
   return mStackedWidget;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+QWidget *WindowMain::createStartWidget()
+{
+  QWidget *startScreenWidget = new QWidget();
+  // setStyleSheet("border: 1px solid black; padding: 10px;");
+  startScreenWidget->setObjectName("PanelChannelOverview");
+  startScreenWidget->setMinimumHeight(350);
+  startScreenWidget->setMinimumWidth(350);
+  startScreenWidget->setMaximumWidth(350);
+  QVBoxLayout *layout = new QVBoxLayout(); /*this*/
+  layout->setContentsMargins(16, 16, 16, 16);
+
+  layout->setObjectName("mainWindowChannelGridLayout");
+  startScreenWidget->setStyleSheet(
+      "QWidget#PanelChannelOverview { border-radius: 12px; border: 1px solid rgb(170, 170, 170); padding-top: "
+      "10px; "
+      "padding-bottom: 10px;"
+      "background-color: rgba(0, 104, 117, 0);}");
+
+  startScreenWidget->setLayout(layout);
+  layout->setSpacing(0);
+
+  QWidget *widgetAddChannel     = new QWidget();
+  QHBoxLayout *layoutAddChannel = new QHBoxLayout();
+  layoutAddChannel->setContentsMargins(0, 0, 0, 0);
+
+  widgetAddChannel->setLayout(layoutAddChannel);
+
+  //
+  // Label
+  //
+  // Create a label
+  QLabel *iconLabel = new QLabel();
+  QPixmap pixmap(":/icons/outlined/icon.png");
+  iconLabel->setPixmap(pixmap.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  layout->addWidget(iconLabel);
+  QString text =
+      "<p><span style='font-weight: bold;'>EVAnalyzer2 powered by imageC</span><br>"
+      "<span style='font-size: 10pt; color: darkgray;'>" +
+      QString(Version::getVersion().data()) + "</span></p>";
+  QLabel *startText = new QLabel(text);
+  layout->addWidget(startText);
+
+  //
+  // Separator
+  //
+  layout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::Expanding));
+  QFrame *line = new QFrame();
+  line->setFrameShape(QFrame::HLine);
+  line->setFrameShadow(QFrame::Sunken);
+  layout->addWidget(line);
+  layout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::Expanding));
+
+  //
+  // New project
+  //
+  QPushButton *newProject = new QPushButton();
+  const QIcon voronoiIcon(":/icons/outlined/icons8-add-new-50.png");
+  newProject->setText("New project");
+  newProject->setIconSize({16, 16});
+  newProject->setIcon(voronoiIcon);
+  connect(newProject, &QPushButton::pressed, this, &WindowMain::onOpenSettingsDialog);
+  layout->addWidget(newProject);
+
+  //
+  // Open existing project
+  //
+  QPushButton *openProject = new QPushButton();
+  const QIcon intersectionIcon(":/icons/outlined/icons8-opened-folder-50.png");
+  openProject->setIconSize({16, 16});
+  openProject->setIcon(intersectionIcon);
+  openProject->setText("Open project");
+  connect(openProject, &QPushButton::pressed, this, &WindowMain::onOpenProjectClicked);
+  layout->addWidget(openProject);
+
+  //
+  // Open results
+  //
+  QPushButton *openResults = new QPushButton();
+  const QIcon openResultsIcon(":/icons/outlined/icons8-graph-50.png");
+  openResults->setIconSize({16, 16});
+  openResults->setIcon(openResultsIcon);
+  openResults->setText("Open results");
+  connect(openResults, &QPushButton::pressed, this, &WindowMain::onOpenReportingAreaClicked);
+  layout->addWidget(openResults);
+
+  layout->setSpacing(8);    // Adjust this value as needed
+  layout->addStretch();
+  startScreenWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+
+  ////////////////////////////////////////
+
+  auto createVerticalContainer = []() -> std::tuple<QGridLayout *, QWidget *> {
+    QWidget *contentWidget = new QWidget;
+    QGridLayout *layout    = new QGridLayout(contentWidget);
+    layout->setObjectName("mainWindowGridLayout");
+    layout->setContentsMargins(16, 16, 16, 16);
+    layout->setSpacing(8);    // Adjust this value as needed
+    contentWidget->setLayout(layout);
+    return {layout, contentWidget};
+  };
+
+  auto [channelsOverViewLayout, channelsOverviewWidget] = createVerticalContainer();
+  mLayoutChannelOverview                                = channelsOverViewLayout;
+
+  channelsOverViewLayout->addWidget(startScreenWidget);
+
+  mLastElement = new QLabel();
+  channelsOverViewLayout->addWidget(mLastElement, 1, 0, 1, 3);
+
+  channelsOverViewLayout->setRowStretch(0, 1);
+  channelsOverViewLayout->setRowStretch(1, 1);
+  channelsOverViewLayout->setRowStretch(2, 1);
+  channelsOverViewLayout->setRowStretch(4, 3);
+
+  // channelsOverViewLayout->addStretch();
+  // Create a horizontal layout for the panels
+  // Create a widget to hold the panels
+  auto *contentWidget = new QWidget;
+  contentWidget->setObjectName("contentOverview");
+  contentWidget->setStyleSheet("QWidget#contentOverview { background-color: rgb(251, 252, 253);}");
+  auto *horizontalLayout = new QHBoxLayout(contentWidget);
+  horizontalLayout->setObjectName("mainWindowHLayout");
+  horizontalLayout->setContentsMargins(16, 16, 16, 16);
+  horizontalLayout->setSpacing(16);    // Adjust this value as needed
+  contentWidget->setLayout(horizontalLayout);
+  horizontalLayout->addStretch();
+  horizontalLayout->addWidget(channelsOverviewWidget);
+
+  QScrollArea *scrollArea = new QScrollArea(this);
+  scrollArea->setFrameStyle(0);
+  scrollArea->setObjectName("scrollAreaOverview");
+  scrollArea->setStyleSheet("QScrollArea#scrollAreaOverview { background-color: rgb(251, 252, 253);}");
+  scrollArea->setWidget(contentWidget);
+  scrollArea->setWidgetResizable(true);
+  horizontalLayout->addStretch();
+
+  return scrollArea;
 }
 
 ///
@@ -757,29 +892,73 @@ void WindowMain::onStartClicked()
 ///
 void WindowMain::onBackClicked()
 {
-  if(mPanelReporting != nullptr) {
+  switch(mNavigation) {
+    case Navigation::START_SCREEN:
+      break;
+    case Navigation::PROJECT_OVERVIEW:
+      showStartScreen();
+      break;
+    case Navigation::CHANNEL_EDIT:
+      showProjectOverview();
+      if(mSelectedChannel != nullptr) {
+        mSelectedChannel->toSettings();
+        mSelectedChannel->setActive(false);
+        mSelectedChannel = nullptr;
+      }
+      break;
+    case Navigation::REPORTING:
+      showStartScreen();
+      if(mPanelReporting != nullptr) {
+        mPanelReporting->close();
+      }
+      break;
   }
+}
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::showStartScreen()
+{
   setMiddelLabelText("");
+  mButtomToolbar->setVisible(false);
+  mProjectSettings->setVisible(false);
   mBackButton->setEnabled(false);
+  mBackButton->setVisible(false);
+  mSaveProject->setVisible(false);
+  mSaveProject->setVisible(false);
+  mStartAnalysis->setVisible(false);
+  mJobNameAction->setVisible(false);
+  mDeleteChannel->setVisible(false);
+  mFirstSeparator->setVisible(false);
+  mSecondSeparator->setVisible(false);
+  mOpenReportingArea->setVisible(false);
+  mStackedWidget->setCurrentIndex(0);
+  mNavigation = Navigation::START_SCREEN;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::showProjectOverview()
+{
+  setMiddelLabelText("");
+  mButtomToolbar->setVisible(true);
+  mProjectSettings->setVisible(true);
+  mBackButton->setEnabled(true);
+  mBackButton->setVisible(true);
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
-  mOPenProject->setVisible(true);
   mStartAnalysis->setVisible(true);
   mJobNameAction->setVisible(true);
   mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(true);
   mSecondSeparator->setVisible(true);
   mOpenReportingArea->setVisible(true);
-  mStackedWidget->setCurrentIndex(0);
-  if(mPanelReporting != nullptr) {
-    mPanelReporting->close();
-  }
-  if(mSelectedChannel != nullptr) {
-    mSelectedChannel->toSettings();
-    mSelectedChannel->setActive(false);
-    mSelectedChannel = nullptr;
-  }
+  mStackedWidget->setCurrentIndex(1);
+  mNavigation = Navigation::PROJECT_OVERVIEW;
 }
 
 ///
@@ -789,12 +968,13 @@ void WindowMain::onBackClicked()
 void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 {
   mSelectedChannel = selectedChannel;
+  mButtomToolbar->setVisible(true);
   selectedChannel->setActive(true);
-
+  mProjectSettings->setVisible(true);
   mBackButton->setEnabled(true);
+  mBackButton->setVisible(true);
   mSaveProject->setVisible(false);
   mSaveProject->setVisible(false);
-  mOPenProject->setVisible(false);
   mStartAnalysis->setVisible(false);
   mJobNameAction->setVisible(false);
   mDeleteChannel->setVisible(true);
@@ -802,8 +982,9 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
   mSecondSeparator->setVisible(false);
   mOpenReportingArea->setVisible(false);
   mStackedWidget->removeWidget(mStackedWidget->widget(1));
-  mStackedWidget->insertWidget(1, selectedChannel->getEditPanel());
-  mStackedWidget->setCurrentIndex(1);
+  mStackedWidget->insertWidget(2, selectedChannel->getEditPanel());
+  mStackedWidget->setCurrentIndex(2);
+  mNavigation = Navigation::CHANNEL_EDIT;
 }
 
 ///
@@ -830,8 +1011,10 @@ void WindowMain::onOpenReportingAreaClicked()
     mPanelReporting->setActualSelectedWorkingFile(filePath.toStdString());
 
     // Open reporting area
+    mButtomToolbar->setVisible(false);
+    mProjectSettings->setVisible(false);
     mBackButton->setEnabled(true);
-    mOPenProject->setVisible(false);
+    mBackButton->setVisible(true);
     mSaveProject->setVisible(false);
     mSaveProject->setVisible(false);
     mStartAnalysis->setVisible(false);
@@ -852,6 +1035,7 @@ void WindowMain::onOpenReportingAreaClicked()
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
+  mNavigation = Navigation::REPORTING;
 }
 
 ///
