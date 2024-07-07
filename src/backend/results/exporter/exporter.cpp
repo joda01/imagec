@@ -1,6 +1,7 @@
 
 
 #include "exporter.hpp"
+#include <cstddef>
 #include <string>
 #include "backend/results/analyzer/plugins/heatmap_for_image.hpp"
 #include "backend/results/analyzer/plugins/heatmap_for_well.hpp"
@@ -41,11 +42,19 @@ void BatchExporter::startExport(const Settings &settings, const std::string &out
 ///
 void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Settings &settings)
 {
+  const size_t MAX_WORKSHETT_NAME_LENGTH = 30;
+
   for(const auto &[imageChannelId, imageChannel] : settings.imageChannels) {
+    std::string worksheetName       = imageChannel.name;
+    std::string worksheetNameSuffix = "(" + std::to_string(static_cast<int32_t>(imageChannelId)) + ")";
+    // Excel only allows 31 Chars as worksheet name -> we have to limit this
+    size_t leftChars = MAX_WORKSHETT_NAME_LENGTH - worksheetNameSuffix.size();
+    if(worksheetName.size() > leftChars) {
+      worksheetName.resize(leftChars);
+    }
+
     lxw_worksheet *worksheet = workbook_add_worksheet(
-        workbookSettings.workbook,
-        static_cast<std ::string>(imageChannel.name + "(" + std::to_string(static_cast<int32_t>(imageChannelId)) + ")")
-            .data());
+        workbookSettings.workbook, static_cast<std ::string>(worksheetName + worksheetNameSuffix).data());
 
     Pos offsets;
     for(const auto &[measureChannelId, stats] : imageChannel.measureChannels) {

@@ -37,6 +37,7 @@ ContainerIntersection::ContainerIntersection(WindowMain *windowMain, joda::setti
 {
   mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(
       new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name", windowMain));
+  mChannelName->setMaxLength(15);
 
   mChannelType = std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>>(
       new ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>(

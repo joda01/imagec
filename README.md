@@ -18,23 +18,24 @@ The main goals were to improve performance, allow the processing of big tiffs an
 
 ## Feature comparison
 
-|                                                           |imageC   |EVA 1  |
-|-----------------------------------------------------------|-------  |-------|
-|[BioFormats support](https://github.com/ome/bioformats)    |x        |x      |
-|[OME-XML support](https://docs.openmicroscopy.org/)        |x        |x      |
-|XLSX report generation                                     |x        |x      |
-|Max. channels                                              |10       |5      |
-|Max image size                                             |no limit |2GB    |
-|Support for big tiff                                       |x        |-      |
-|AI based object detection                                  |x        |-      |
-|Database based result processing                           |x        |-      |
-|Heatmap generation                                         |x        |-      |
-|Image density map generation                               |x        |-      |
-|In image object marker                                     |x        |-      |
-|Built-in reporting tool                                    |x        |-      |
+|                                                           |imageC   |EVAnalyzer |
+|-----------------------------------------------------------|-------  |-------    |
+|[BioFormats support](https://github.com/ome/bioformats)    |x        |x          |
+|[OME-XML support](https://docs.openmicroscopy.org/)        |x        |x          |
+|XLSX report generation                                     |x        |x          |
+|Max. channels                                              |10       |5          |
+|Max image size                                             |no limit |2GB        |
+|Support for big tiff                                       |x        |-          |
+|AI based object detection                                  |x        |-          |
+|Database based result processing                           |x        |-          |
+|Heatmap generation                                         |x        |-          |
+|Image density map generation                               |x        |-          |
+|In image object marker                                     |x        |-          |
+|Built-in reporting tool                                    |x        |-          |
 
 ## Screenshots
 
+![doc/screenshot_start_wizard.png](doc/screenshot_start_wizard.png)
 ![doc/screenshot_start.png](doc/screenshot_start.png)
 ![doc/screenshot_channel.png](doc/screenshot_channel.png)
 ![doc/screenshot_plate.png](doc/screenshot_plate.png)

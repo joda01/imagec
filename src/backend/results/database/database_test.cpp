@@ -41,7 +41,7 @@ TEST_CASE("database:test", "[.][database_test]")
   joda::results::db::Database db("test_with_idx.duckdb");
   db.open();
   db.createAnalyze(::joda::results::db::AnalyzeMeta{
-      .name = "Hello", .scientists = {"Joachim", "Melanie"}, .location = "SBG", .notes = "Notes"});
+      .name = "Hello", .scientists = {"Joachim", "Melanie"}, .addressOrganization = "SBG", .notes = "Notes"});
 
   try {
     db.createPlate(::joda::results::db::PlateMeta{
@@ -119,7 +119,7 @@ TEST_CASE("database:test", "[.][database_read]")
   for(const auto &job : jobs) {
     std::cout << job.runId << " | ";
     std::cout << job.analyzeId << " | ";
-    std::cout << job.location << " | ";
+    std::cout << job.addressOrganization << " | ";
     std::cout << job.name << " | ";
     std::cout << job.notes << " | ";
     for(const auto &name : job.scientists) {

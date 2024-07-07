@@ -27,6 +27,7 @@
 #include <QMainWindow>
 #include <QToolBar>
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -62,7 +63,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 {
   const QIcon myIcon(":/icons/outlined/icon.png");
   setWindowIcon(myIcon);
-  setWindowTitle("EVAnalyzer2 powered by imageC");
+  setWindowTitle(Version::getTitle().data());
   createTopToolbar();
   createBottomToolbar();
   setMinimumSize(1600, 800);
@@ -75,7 +76,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setCentralWidget(createStackedWidget());
 
   // Start with the main page
-  onBackClicked();
+  showStartScreen(false);
 
   mMainThread = new std::thread(&WindowMain::waitForFileSearchFinished, this);
   connect(this, &WindowMain::lookingForFilesFinished, this, &WindowMain::onLookingForFilesFinished);
@@ -84,55 +85,55 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 
 void WindowMain::createBottomToolbar()
 {
-  auto *toolbar = new QToolBar(this);
-  toolbar->setStyleSheet("QToolBar{spacing:8px;}");
+  mButtomToolbar = new QToolBar(this);
+  mButtomToolbar->setStyleSheet("QToolBar{spacing:8px;}");
 
-  toolbar->setMinimumHeight(48);
-  toolbar->setMovable(false);
-  toolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
+  mButtomToolbar->setMinimumHeight(48);
+  mButtomToolbar->setMovable(false);
+  mButtomToolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
   // Middle
 
   {
     // Add a spacer to push the next action to the middle
     QWidget *spacerWidget = new QWidget();
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    toolbar->setMaximumHeight(32);
-    toolbar->addWidget(spacerWidget);
+    mButtomToolbar->setMaximumHeight(32);
+    mButtomToolbar->addWidget(spacerWidget);
   }
 
   // Add the QComboBox in the middle
-  mFoundFilesCombo = new QComboBox(toolbar);
+  mFoundFilesCombo = new QComboBox(mButtomToolbar);
   mFoundFilesCombo->setMinimumWidth(250);
   mFoundFilesCombo->setMaximumWidth(300);
-  mFileSelectorComboBox = toolbar->addWidget(mFoundFilesCombo);
+  mFileSelectorComboBox = mButtomToolbar->addWidget(mFoundFilesCombo);
   mFileSelectorComboBox->setVisible(false);
 
-  mImageSeriesCombo = new QComboBox(toolbar);
+  mImageSeriesCombo = new QComboBox(mButtomToolbar);
   mImageSeriesCombo->addItem("Series 0", 0);
   mImageSeriesCombo->addItem("Series 1", 1);
   mImageSeriesCombo->addItem("Series 2", 2);
   mImageSeriesCombo->addItem("Series 3", 3);
-  mImageSeriesComboBox = toolbar->addWidget(mImageSeriesCombo);
+  mImageSeriesComboBox = mButtomToolbar->addWidget(mImageSeriesCombo);
   mImageSeriesComboBox->setVisible(false);
 
-  mImageTilesCombo = new QComboBox(toolbar);
+  mImageTilesCombo = new QComboBox(mButtomToolbar);
   mImageTilesCombo->addItem("0", 0);
   mImageTilesCombo->setToolTip("Select image tile");
-  mImageTilesComboBox = toolbar->addWidget(mImageTilesCombo);
+  mImageTilesComboBox = mButtomToolbar->addWidget(mImageTilesCombo);
   mImageTilesComboBox->setVisible(false);
 
-  mFoundFilesHint = new ClickableLabel(toolbar);
+  mFoundFilesHint = new ClickableLabel(mButtomToolbar);
   mFoundFilesHint->setText("Please open a working directory ...");
-  mFileSearchHintLabel = toolbar->addWidget(mFoundFilesHint);
-  connect(mFoundFilesHint, &ClickableLabel::clicked, this, &WindowMain::onOpenProjectClicked);
+  mFileSearchHintLabel = mButtomToolbar->addWidget(mFoundFilesHint);
+  connect(mFoundFilesHint, &ClickableLabel::clicked, this, &WindowMain::onOpenSettingsDialog);
 
-  addToolBar(Qt::ToolBarArea::BottomToolBarArea, toolbar);
+  addToolBar(Qt::ToolBarArea::BottomToolBarArea, mButtomToolbar);
 
   // Right
   {
     QWidget *spacerWidget = new QWidget();
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    toolbar->addWidget(spacerWidget);
+    mButtomToolbar->addWidget(spacerWidget);
   }
 }
 
@@ -158,19 +159,15 @@ void WindowMain::createTopToolbar()
 
     mSaveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", toolbar);
     mSaveProject->setToolTip("Save project!");
-    connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProjectClicked);
+    connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
     toolbar->addAction(mSaveProject);
 
-    mOPenProject = new QAction(QIcon(":/icons/outlined/icons8-folder-50.png"), "Open", toolbar);
-    mOPenProject->setToolTip("Open folder!");
-    connect(mOPenProject, &QAction::triggered, this, &WindowMain::onOpenProjectClicked);
-    toolbar->addAction(mOPenProject);
     mSecondSeparator = toolbar->addSeparator();
 
     mOpenReportingArea = new QAction(QIcon(":/icons/outlined/icons8-graph-50.png"), "Reporting area", toolbar);
     mOpenReportingArea->setToolTip("Open reporting area");
     connect(mOpenReportingArea, &QAction::triggered, this, &WindowMain::onOpenReportingAreaClicked);
-    toolbar->addAction(mOpenReportingArea);
+    //  toolbar->addAction(mOpenReportingArea);
 
     mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
     mStartAnalysis->setEnabled(false);
@@ -190,7 +187,6 @@ void WindowMain::createTopToolbar()
       mJobName->setMaximumWidth(200);
       mJobNameAction = toolbar->addWidget(mJobName);
     }
-    // toolbar->addSeparator();
 
     mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
     mDeleteChannel->setToolTip("Delete channel!");
@@ -219,15 +215,11 @@ void WindowMain::createTopToolbar()
     toolbar->addWidget(spacerWidget);
   }
 
-  toolbar->addSeparator();
-
   {
-    mSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", toolbar);
-    mSettings->setToolTip("Settings");
-    connect(mSettings, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
-    toolbar->addAction(mSettings);
-
-    toolbar->addSeparator();
+    mProjectSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", toolbar);
+    mProjectSettings->setToolTip("Settings");
+    connect(mProjectSettings, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
+    toolbar->addAction(mProjectSettings);
 
     mShowInfoDialog = new QAction(QIcon(":/icons/outlined/icons8-info-50.png"), "Info", toolbar);
     mShowInfoDialog->setToolTip("Info");
@@ -244,10 +236,156 @@ QWidget *WindowMain::createStackedWidget()
 {
   mStackedWidget = new QStackedWidget();
   mStackedWidget->setObjectName("stackedWidget");
+  mStackedWidget->addWidget(createStartWidget());
   mStackedWidget->addWidget(createOverviewWidget());
   mStackedWidget->addWidget(createChannelWidget());
   mStackedWidget->addWidget(createReportingWidget());
   return mStackedWidget;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+QWidget *WindowMain::createStartWidget()
+{
+  QWidget *startScreenWidget = new QWidget();
+  // setStyleSheet("border: 1px solid black; padding: 10px;");
+  startScreenWidget->setObjectName("PanelChannelOverview");
+  startScreenWidget->setMinimumHeight(350);
+  startScreenWidget->setMinimumWidth(350);
+  startScreenWidget->setMaximumWidth(350);
+  QVBoxLayout *layout = new QVBoxLayout(); /*this*/
+  layout->setContentsMargins(16, 16, 16, 16);
+
+  layout->setObjectName("mainWindowChannelGridLayout");
+  startScreenWidget->setStyleSheet(
+      "QWidget#PanelChannelOverview { border-radius: 12px; border: 1px solid rgb(170, 170, 170); padding-top: "
+      "10px; "
+      "padding-bottom: 10px;"
+      "background-color: rgba(0, 104, 117, 0);}");
+
+  startScreenWidget->setLayout(layout);
+  layout->setSpacing(0);
+
+  QWidget *widgetAddChannel     = new QWidget();
+  QHBoxLayout *layoutAddChannel = new QHBoxLayout();
+  layoutAddChannel->setContentsMargins(0, 0, 0, 0);
+
+  widgetAddChannel->setLayout(layoutAddChannel);
+
+  //
+  // Label
+  //
+  // Create a label
+  QLabel *iconLabel = new QLabel();
+  QPixmap pixmap(":/icons/outlined/icon.png");
+  iconLabel->setPixmap(pixmap.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  layout->addWidget(iconLabel);
+  QString text = "<p><span style='font-weight: bold;'>" + QString(Version::getTitle().data()) +
+                 "&nbsp;</span><span style='font-weight: bold; font-size: 10pt;'>" +
+                 QString(Version::getSubtitle().data()) +
+                 "</span><br>"
+                 "<span style='font-size: 10pt; color: darkgray;'>" +
+                 QString(Version::getVersion().data()) + "</span></p>";
+  QLabel *startText = new QLabel(text);
+  layout->addWidget(startText);
+
+  //
+  // Separator
+  //
+  layout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::Expanding));
+  QFrame *line = new QFrame();
+  line->setFrameShape(QFrame::HLine);
+  line->setFrameShadow(QFrame::Sunken);
+  layout->addWidget(line);
+  layout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::Expanding));
+
+  //
+  // New project
+  //
+  QPushButton *newProject = new QPushButton();
+  const QIcon voronoiIcon(":/icons/outlined/icons8-add-new-50.png");
+  newProject->setText("New project");
+  newProject->setIconSize({16, 16});
+  newProject->setIcon(voronoiIcon);
+  connect(newProject, &QPushButton::pressed, this, &WindowMain::onOpenSettingsDialog);
+  layout->addWidget(newProject);
+
+  //
+  // Open existing project
+  //
+  QPushButton *openProject = new QPushButton();
+  const QIcon intersectionIcon(":/icons/outlined/icons8-opened-folder-50.png");
+  openProject->setIconSize({16, 16});
+  openProject->setIcon(intersectionIcon);
+  openProject->setText("Open project");
+  connect(openProject, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
+  layout->addWidget(openProject);
+
+  //
+  // Open results
+  //
+  QPushButton *openResults = new QPushButton();
+  const QIcon openResultsIcon(":/icons/outlined/icons8-graph-50.png");
+  openResults->setIconSize({16, 16});
+  openResults->setIcon(openResultsIcon);
+  openResults->setText("Open results");
+  connect(openResults, &QPushButton::pressed, this, &WindowMain::onOpenReportingAreaClicked);
+  layout->addWidget(openResults);
+
+  layout->setSpacing(8);    // Adjust this value as needed
+  layout->addStretch();
+  startScreenWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+
+  ////////////////////////////////////////
+
+  auto createVerticalContainer = []() -> std::tuple<QGridLayout *, QWidget *> {
+    QWidget *contentWidget = new QWidget;
+    QGridLayout *layout    = new QGridLayout(contentWidget);
+    layout->setObjectName("mainWindowGridLayout");
+    layout->setContentsMargins(16, 16, 16, 16);
+    layout->setSpacing(8);    // Adjust this value as needed
+    contentWidget->setLayout(layout);
+    return {layout, contentWidget};
+  };
+
+  auto [channelsOverViewLayout, channelsOverviewWidget] = createVerticalContainer();
+  mLayoutChannelOverview                                = channelsOverViewLayout;
+
+  channelsOverViewLayout->addWidget(startScreenWidget);
+
+  mLastElement = new QLabel();
+  channelsOverViewLayout->addWidget(mLastElement, 1, 0, 1, 3);
+
+  channelsOverViewLayout->setRowStretch(0, 1);
+  channelsOverViewLayout->setRowStretch(1, 1);
+  channelsOverViewLayout->setRowStretch(2, 1);
+  channelsOverViewLayout->setRowStretch(4, 3);
+
+  // channelsOverViewLayout->addStretch();
+  // Create a horizontal layout for the panels
+  // Create a widget to hold the panels
+  auto *contentWidget = new QWidget;
+  contentWidget->setObjectName("contentOverview");
+  contentWidget->setStyleSheet("QWidget#contentOverview { background-color: rgb(251, 252, 253);}");
+  auto *horizontalLayout = new QHBoxLayout(contentWidget);
+  horizontalLayout->setObjectName("mainWindowHLayout");
+  horizontalLayout->setContentsMargins(16, 16, 16, 16);
+  horizontalLayout->setSpacing(16);    // Adjust this value as needed
+  contentWidget->setLayout(horizontalLayout);
+  horizontalLayout->addStretch();
+  horizontalLayout->addWidget(channelsOverviewWidget);
+
+  QScrollArea *scrollArea = new QScrollArea(this);
+  scrollArea->setFrameStyle(0);
+  scrollArea->setObjectName("scrollAreaOverview");
+  scrollArea->setStyleSheet("QScrollArea#scrollAreaOverview { background-color: rgb(251, 252, 253);}");
+  scrollArea->setWidget(contentWidget);
+  scrollArea->setWidgetResizable(true);
+  horizontalLayout->addStretch();
+
+  return scrollArea;
 }
 
 ///
@@ -416,7 +554,7 @@ QWidget *WindowMain::createAddChannelPanel()
   QPushButton *openSettingsButton = new QPushButton();
   openSettingsButton->setText("Load channel settings");
   connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
-  layout->addWidget(openSettingsButton);
+  // layout->addWidget(openSettingsButton);
 
   //
   // Add giraf
@@ -464,37 +602,20 @@ void WindowMain::onAddGirafClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onOpenProjectClicked()
-{
-  QString folderToOpen = QDir::homePath();
-  if(!mSelectedWorkingDirectory.isEmpty()) {
-    folderToOpen = mSelectedWorkingDirectory;
-  }
-  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen);
-
-  if(selectedDirectory.isEmpty()) {
-    return;
-  }
-
-  setWorkingDirectory(selectedDirectory.toStdString());
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
 void WindowMain::onOpenAnalyzeSettingsClicked()
 {
   QString folderToOpen = QDir::homePath();
-  if(!mSelectedWorkingDirectory.isEmpty()) {
-    folderToOpen = mSelectedWorkingDirectory;
+  if(!mSelectedImagesDirectory.empty()) {
+    folderToOpen = mSelectedImagesDirectory.string().data();
+  }
+  if(!mSelectedProjectSettingsFilePath.empty()) {
+    folderToOpen = mSelectedProjectSettingsFilePath.string().data();
   }
 
   QFileDialog::Options opt;
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
-  QString filePath =
-      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "JSON Files (*.json);;All Files (*)", nullptr, opt);
+  QString filePath = QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "JSON Files (*.json)", nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
@@ -520,6 +641,12 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
     }
 
     mAnalyzeSettings.experimentSettings = analyzeSettings.experimentSettings;
+    mAnalyzeSettingsOld                 = mAnalyzeSettings;
+    mSelectedProjectSettingsFilePath    = filePath.toStdString();
+    mSelectedImagesDirectory.clear();
+    checkForSettingsChanged();
+    onSaveProject();
+    showProjectOverview();
 
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
@@ -566,17 +693,19 @@ ContainerBase *WindowMain::addChannelFromTemplate(const QString &filePath)
 ///
 void WindowMain::setWorkingDirectory(const std::string &workingDir)
 {
-  mSelectedWorkingDirectory = workingDir.data();
+  if(mSelectedImagesDirectory.string() != workingDir) {
+    mSelectedImagesDirectory = workingDir;
 
-  std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
-  mFoundFilesHint->setText("Looking for images ...");
-  mFoundFilesCombo->clear();
-  mFileSelectorComboBox->setVisible(false);
-  mImageSeriesComboBox->setVisible(false);
-  mImageTilesComboBox->setVisible(false);
-  mFileSearchHintLabel->setVisible(true);
-  mController->setWorkingDirectory(mSelectedWorkingDirectory.toStdString());
-  mNewFolderSelected = true;
+    std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
+    mFoundFilesHint->setText("Looking for images ...");
+    mFoundFilesCombo->clear();
+    mFileSelectorComboBox->setVisible(false);
+    mImageSeriesComboBox->setVisible(false);
+    mImageTilesComboBox->setVisible(false);
+    mFileSearchHintLabel->setVisible(true);
+    mController->setWorkingDirectory(mSelectedImagesDirectory.string());
+    mNewFolderSelected = true;
+  }
 }
 
 ///
@@ -661,15 +790,72 @@ void WindowMain::onLookingForFilesFinished()
 }
 
 ///
+/// \brief      Check if some settings have been changed
+/// \author     Joachim Danmayr
+///
+void WindowMain::checkForSettingsChanged()
+{
+  if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
+    // Not equal
+    mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50-red.png"));
+  } else {
+    // Equal
+    mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50.png"));
+  }
+}
+
+///
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onSaveProjectClicked()
+void WindowMain::onSaveProjectAsClicked()
 {
+  std::filesystem::path folderToSaveSettings(mSelectedProjectSettingsFilePath.parent_path());
   QString filePath =
-      QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "JSON Files (*.json);;All Files (*)");
+      QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(), "JSON Files (*.json)");
   if(!filePath.isEmpty()) {
     joda::settings::Settings::storeSettings(filePath.toStdString(), mAnalyzeSettings);
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onSaveProject()
+{
+  try {
+    if(mSelectedProjectSettingsFilePath.empty()) {
+      std::filesystem::path filePath(mSelectedImagesDirectory);
+      filePath = filePath / "imagec";
+      if(!std::filesystem::exists(filePath)) {
+        std::filesystem::create_directories(filePath);
+      }
+      filePath = filePath / "settings.json";
+      QString filePathOfSettingsFile =
+          QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(), "JSON Files (*.json)");
+      mSelectedProjectSettingsFilePath = filePathOfSettingsFile.toStdString();
+    }
+
+    if(!mSelectedProjectSettingsFilePath.empty()) {
+      setMiddelLabelText(mSelectedProjectSettingsFilePath.filename().string().data());
+      if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
+        joda::settings::Settings::storeSettings(mSelectedProjectSettingsFilePath.string(), mAnalyzeSettings);
+      }
+      mAnalyzeSettingsOld = mAnalyzeSettings;
+      checkForSettingsChanged();
+    }
+
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not save settings!");
+    messageBox.setText("Could not save settings, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
   }
 }
 
@@ -757,29 +943,129 @@ void WindowMain::onStartClicked()
 ///
 void WindowMain::onBackClicked()
 {
-  if(mPanelReporting != nullptr) {
+  switch(mNavigation) {
+    case Navigation::START_SCREEN:
+      break;
+    case Navigation::PROJECT_OVERVIEW:
+      if(showStartScreen(true)) {
+        checkForSettingsChanged();
+      }
+      break;
+    case Navigation::CHANNEL_EDIT:
+      showProjectOverview();
+      if(mSelectedChannel != nullptr) {
+        mSelectedChannel->toSettings();
+        mSelectedChannel->setActive(false);
+        mSelectedChannel = nullptr;
+      }
+      checkForSettingsChanged();
+      break;
+    case Navigation::REPORTING:
+      if(showStartScreen(true)) {
+        if(mPanelReporting != nullptr) {
+          mPanelReporting->close();
+        }
+      }
+      break;
   }
+}
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+bool WindowMain::showStartScreen(bool warnBeforeSwitch)
+{
+  if(warnBeforeSwitch) {
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+    // messageBox.setAttribute(Qt::WA_TranslucentBackground);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Close project?");
+    messageBox.setText("Do you want to close the screen? Unsaved settings will get lost!");
+    messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    // Rounded borders -->
+    const int radius = 12;
+    messageBox.setStyleSheet(QString("QDialog { "
+                                     "border-radius: %1px; "
+                                     "border: 2px solid palette(shadow); "
+                                     "background-color: palette(base); "
+                                     "}")
+                                 .arg(radius));
+
+    // The effect will not be actually visible outside the rounded window,
+    // but it does help get rid of the pixelated rounded corners.
+    QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
+    // The color should match the border color set in CSS.
+    effect->setColor(QApplication::palette().color(QPalette::Shadow));
+    effect->setBlurRadius(8);
+    messageBox.setGraphicsEffect(effect);
+
+    // Need to show the box before we can get its proper dimensions.
+    messageBox.show();
+
+    // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
+    // The mask is sized based on the current window geometry. If the window were resizable (somehow)
+    // then the mask would need to be set in resizeEvent().
+    const QRect rect(QPoint(0, 0), messageBox.geometry().size());
+    QBitmap b(rect.size());
+    b.fill(QColor(Qt::color0));
+    QPainter painter(&b);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(Qt::color1);
+    // this radius should match the CSS radius
+    painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
+    painter.end();
+    messageBox.setMask(b);
+    // <--
+
+    auto reply = messageBox.exec();
+    if(reply != 1) {
+      return false;
+    }
+  }
   setMiddelLabelText("");
+  mButtomToolbar->setVisible(false);
+  mProjectSettings->setVisible(false);
   mBackButton->setEnabled(false);
+  mBackButton->setVisible(false);
+  mSaveProject->setVisible(false);
+  mSaveProject->setVisible(false);
+  mStartAnalysis->setVisible(false);
+  mJobNameAction->setVisible(false);
+  mDeleteChannel->setVisible(false);
+  mFirstSeparator->setVisible(false);
+  mSecondSeparator->setVisible(false);
+  mOpenReportingArea->setVisible(false);
+  mStackedWidget->setCurrentIndex(0);
+  mNavigation = Navigation::START_SCREEN;
+  return true;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::showProjectOverview()
+{
+  // setMiddelLabelText(mSelectedWorkingDirectory);
+  mButtomToolbar->setVisible(true);
+  mProjectSettings->setVisible(true);
+  mBackButton->setIcon(QIcon(":/icons/outlined/icons8-home-50.png"));
+  mBackButton->setEnabled(true);
+  mBackButton->setVisible(true);
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
-  mOPenProject->setVisible(true);
   mStartAnalysis->setVisible(true);
   mJobNameAction->setVisible(true);
   mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(true);
   mSecondSeparator->setVisible(true);
   mOpenReportingArea->setVisible(true);
-  mStackedWidget->setCurrentIndex(0);
-  if(mPanelReporting != nullptr) {
-    mPanelReporting->close();
-  }
-  if(mSelectedChannel != nullptr) {
-    mSelectedChannel->toSettings();
-    mSelectedChannel->setActive(false);
-    mSelectedChannel = nullptr;
-  }
+  mStackedWidget->setCurrentIndex(1);
+  mNavigation = Navigation::PROJECT_OVERVIEW;
 }
 
 ///
@@ -789,21 +1075,24 @@ void WindowMain::onBackClicked()
 void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 {
   mSelectedChannel = selectedChannel;
+  mButtomToolbar->setVisible(true);
   selectedChannel->setActive(true);
-
+  mProjectSettings->setVisible(true);
+  mBackButton->setIcon(QIcon(":/icons/outlined/icons8-left-50.png"));
   mBackButton->setEnabled(true);
+  mBackButton->setVisible(true);
   mSaveProject->setVisible(false);
   mSaveProject->setVisible(false);
-  mOPenProject->setVisible(false);
   mStartAnalysis->setVisible(false);
   mJobNameAction->setVisible(false);
   mDeleteChannel->setVisible(true);
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(false);
   mOpenReportingArea->setVisible(false);
-  mStackedWidget->removeWidget(mStackedWidget->widget(1));
-  mStackedWidget->insertWidget(1, selectedChannel->getEditPanel());
-  mStackedWidget->setCurrentIndex(1);
+  mStackedWidget->removeWidget(mStackedWidget->widget(2));
+  mStackedWidget->insertWidget(2, selectedChannel->getEditPanel());
+  mStackedWidget->setCurrentIndex(2);
+  mNavigation = Navigation::CHANNEL_EDIT;
 }
 
 ///
@@ -813,15 +1102,15 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 void WindowMain::onOpenReportingAreaClicked()
 {
   QString folderToOpen = QDir::homePath();
-  if(!mSelectedWorkingDirectory.isEmpty()) {
-    folderToOpen = mSelectedWorkingDirectory;
+  if(!mSelectedImagesDirectory.empty()) {
+    folderToOpen = mSelectedImagesDirectory.string().data();
   }
 
   QFileDialog::Options opt;
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
   QString filePath =
-      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "imageC Files (*.duckdb)", nullptr, opt);
+      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "Results file (*.duckdb)", nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
@@ -830,8 +1119,11 @@ void WindowMain::onOpenReportingAreaClicked()
     mPanelReporting->setActualSelectedWorkingFile(filePath.toStdString());
 
     // Open reporting area
+    mButtomToolbar->setVisible(false);
+    mProjectSettings->setVisible(false);
+    mBackButton->setIcon(QIcon(":/icons/outlined/icons8-home-50.png"));
     mBackButton->setEnabled(true);
-    mOPenProject->setVisible(false);
+    mBackButton->setVisible(true);
     mSaveProject->setVisible(false);
     mSaveProject->setVisible(false);
     mStartAnalysis->setVisible(false);
@@ -852,6 +1144,7 @@ void WindowMain::onOpenReportingAreaClicked()
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
+  mNavigation = Navigation::REPORTING;
 }
 
 ///
@@ -920,6 +1213,13 @@ void WindowMain::onOpenSettingsDialog()
 {
   DialogExperimentSettings di(this, mAnalyzeSettings.experimentSettings);
   di.exec();
+  setWorkingDirectory(mAnalyzeSettings.experimentSettings.wotkingDirectory);
+  if(mNavigation == Navigation::START_SCREEN) {
+    mSelectedProjectSettingsFilePath.clear();
+    removeAllChannels();
+    showProjectOverview();
+  }
+  checkForSettingsChanged();
 }
 
 ///
@@ -949,6 +1249,7 @@ ContainerBase *WindowMain::addChannel(joda::settings::ChannelSettings settings)
     panel1->toSettings();
     mChannels.emplace(panel1, &newlyAdded);
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+    checkForSettingsChanged();
     return panel1;
   }
   return nullptr;
@@ -982,6 +1283,7 @@ ContainerBase *WindowMain::addVChannelVoronoi(joda::settings::VChannelVoronoi se
     mChannels.emplace(panel1, &newlyAdded);
 
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+    checkForSettingsChanged();
     return panel1;
   }
   return nullptr;
@@ -1015,6 +1317,7 @@ ContainerBase *WindowMain::addVChannelIntersection(joda::settings::VChannelInter
     mChannels.emplace(panel1, &newlyAdded);
 
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+    checkForSettingsChanged();
     return panel1;
   }
   return nullptr;
@@ -1104,8 +1407,8 @@ void WindowMain::onShowInfoDialog()
   auto *mainLayout = new QVBoxLayout(&messageBox);
   mainLayout->setContentsMargins(28, 28, 28, 28);
   QLabel *helpTextLabel = new QLabel(
-      "<p style=\"text-align: left;\"><strong>imageC " + QString(Version::getVersion().data()) + " (" +
-      QString(Version::getBuildTime().data()) +
+      "<p style=\"text-align: left;\"><strong>" + QString(Version::getProgamName().data()) + " " +
+      QString(Version::getVersion().data()) + " (" + QString(Version::getBuildTime().data()) +
       ")</strong></p>"
       "<p style=\"text-align: left;\"><em>Licensed under AGPL-3.0<br />Free for non commercial use."
       "</em></p>"

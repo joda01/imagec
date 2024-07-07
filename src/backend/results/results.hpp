@@ -39,7 +39,6 @@ struct ExperimentSetting
 {
   std::string runId;
   std::string analyzeName;
-  std::string scientistName;
   std::string imageFileNameRegex;
   joda::settings::ExperimentSettings::GroupBy groupBy;
   uint8_t plateIdx    = 0;

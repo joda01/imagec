@@ -187,13 +187,14 @@ jobs:
           files: |
             build/build/imagec-x64-linux
             build/build/imagec-x64-win.exe
-            build/build/win-dlls.zip
-            java/jre-linux.zip
-            java/jre-win.zip
-            java/bioformats-jni-wrapper.zip
             imagec-x64-linux-bundle.zip
             imagec-x64-win-bundle.zip
       
+# build/build/win-dlls.zip
+# java/jre-linux.zip
+# java/jre-win.zip
+# java/bioformats-jni-wrapper.zip      
+
       - name: Upload to imagec.org
         if: startsWith(github.ref, 'refs/tags/')
         env:

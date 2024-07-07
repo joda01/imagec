@@ -99,7 +99,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
              {joda::results::Stats::STDDEV, "STDDEV"},
              {joda::results::Stats::SUM, "SUM"},
              {joda::results::Stats::CNT, "CNT"}},
-            mWindowMain, ""));
+            mWindowMain, "reporting_statistics.json"));
     selector->addWidget(mStats->getEditableWidget());
     connect(mStats.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onMeasurementChanged);
 

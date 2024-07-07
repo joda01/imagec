@@ -45,6 +45,21 @@ public:
     return mCalculatedHash;
   }
 
+  static std::string getProgamName()
+  {
+    return "imageC";
+  }
+
+  static std::string getTitle()
+  {
+    return "EVAnalayzer2";
+  }
+
+  static std::string getSubtitle()
+  {
+    return "powered by " + getProgamName();
+  }
+
   static std::string getLogo()
   {
     std::string logo = "    _                            ______ \n";

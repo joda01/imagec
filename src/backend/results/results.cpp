@@ -58,13 +58,14 @@ Results::Results(const std::filesystem::path &pathToRawData, const ExperimentSet
   mDatabase->open();
   try {
     nlohmann::json analyzeSettingsJson = analyzeSettings;
-    mDatabase->createAnalyze(db::AnalyzeMeta{.runId                    = settings.runId,
-                                             .analyzeId                = mAnalyzeId,
-                                             .name                     = settings.analyzeName,
-                                             .scientists               = {settings.scientistName},
-                                             .location                 = "",
-                                             .notes                    = "",
-                                             .analysesSettingsJsonDump = analyzeSettingsJson.dump()});
+    mDatabase->createAnalyze(
+        db::AnalyzeMeta{.runId                    = settings.runId,
+                        .analyzeId                = mAnalyzeId,
+                        .name                     = settings.analyzeName,
+                        .scientists               = analyzeSettings.experimentSettings.scientistsNames,
+                        .addressOrganization      = analyzeSettings.experimentSettings.address.organization,
+                        .notes                    = analyzeSettings.experimentSettings.notes,
+                        .analysesSettingsJsonDump = analyzeSettingsJson.dump()});
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
   }

@@ -41,5 +41,7 @@ public:
                                     joda::settings::ChannelIndex channelIdx);
 
   static void checkSettings(const joda::settings::AnalyzeSettings &settings);
+  static bool isEqual(const joda::settings::AnalyzeSettings &settingsOld,
+                      const joda::settings::AnalyzeSettings &settingsNew);
 };
 }    // namespace joda::settings

@@ -29,7 +29,7 @@ struct AnalyzeMeta
   std::string name;
   std::vector<std::string> scientists;
   std::chrono::system_clock::time_point timestamp;
-  std::string location;
+  std::string addressOrganization;
   std::string notes;
   std::string analysesSettingsJsonDump;
 };

@@ -369,11 +369,11 @@ void PanelHeatmap::repaintHeatmap()
 {
   if(!mIsLoading) {
     mIsLoading = true;
-    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
     emit loadingStarted();
 
     std::thread([this] {
+      QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
       switch(mNavigation) {
         case Navigation::PLATE:
           paintPlate();
