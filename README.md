@@ -35,6 +35,7 @@ The main goals were to improve performance, allow the processing of big tiffs an
 
 ## Screenshots
 
+![doc/screenshot_start_wizard.png](doc/screenshot_start_wizard.png)
 ![doc/screenshot_start.png](doc/screenshot_start.png)
 ![doc/screenshot_channel.png](doc/screenshot_channel.png)
 ![doc/screenshot_plate.png](doc/screenshot_plate.png)
