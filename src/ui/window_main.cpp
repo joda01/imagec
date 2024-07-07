@@ -27,6 +27,7 @@
 #include <QMainWindow>
 #include <QToolBar>
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -75,7 +76,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setCentralWidget(createStackedWidget());
 
   // Start with the main page
-  showStartScreen();
+  showStartScreen(false);
 
   mMainThread = new std::thread(&WindowMain::waitForFileSearchFinished, this);
   connect(this, &WindowMain::lookingForFilesFinished, this, &WindowMain::onLookingForFilesFinished);
@@ -124,7 +125,7 @@ void WindowMain::createBottomToolbar()
   mFoundFilesHint = new ClickableLabel(mButtomToolbar);
   mFoundFilesHint->setText("Please open a working directory ...");
   mFileSearchHintLabel = mButtomToolbar->addWidget(mFoundFilesHint);
-  connect(mFoundFilesHint, &ClickableLabel::clicked, this, &WindowMain::onOpenProjectClicked);
+  connect(mFoundFilesHint, &ClickableLabel::clicked, this, &WindowMain::onOpenSettingsDialog);
 
   addToolBar(Qt::ToolBarArea::BottomToolBarArea, mButtomToolbar);
 
@@ -158,7 +159,7 @@ void WindowMain::createTopToolbar()
 
     mSaveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", toolbar);
     mSaveProject->setToolTip("Save project!");
-    connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProjectClicked);
+    connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
     toolbar->addAction(mSaveProject);
 
     mSecondSeparator = toolbar->addSeparator();
@@ -166,7 +167,7 @@ void WindowMain::createTopToolbar()
     mOpenReportingArea = new QAction(QIcon(":/icons/outlined/icons8-graph-50.png"), "Reporting area", toolbar);
     mOpenReportingArea->setToolTip("Open reporting area");
     connect(mOpenReportingArea, &QAction::triggered, this, &WindowMain::onOpenReportingAreaClicked);
-    toolbar->addAction(mOpenReportingArea);
+    //  toolbar->addAction(mOpenReportingArea);
 
     mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
     mStartAnalysis->setEnabled(false);
@@ -601,37 +602,20 @@ void WindowMain::onAddGirafClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onOpenProjectClicked()
-{
-  QString folderToOpen = QDir::homePath();
-  if(!mSelectedWorkingDirectory.isEmpty()) {
-    folderToOpen = mSelectedWorkingDirectory;
-  }
-  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen);
-
-  if(selectedDirectory.isEmpty()) {
-    return;
-  }
-
-  setWorkingDirectory(selectedDirectory.toStdString());
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
 void WindowMain::onOpenAnalyzeSettingsClicked()
 {
   QString folderToOpen = QDir::homePath();
-  if(!mSelectedWorkingDirectory.isEmpty()) {
-    folderToOpen = mSelectedWorkingDirectory;
+  if(!mSelectedImagesDirectory.empty()) {
+    folderToOpen = mSelectedImagesDirectory.string().data();
+  }
+  if(!mSelectedProjectSettingsFilePath.empty()) {
+    folderToOpen = mSelectedProjectSettingsFilePath.string().data();
   }
 
   QFileDialog::Options opt;
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
-  QString filePath =
-      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "JSON Files (*.json);;All Files (*)", nullptr, opt);
+  QString filePath = QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "JSON Files (*.json)", nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
@@ -657,6 +641,12 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
     }
 
     mAnalyzeSettings.experimentSettings = analyzeSettings.experimentSettings;
+    mAnalyzeSettingsOld                 = mAnalyzeSettings;
+    mSelectedProjectSettingsFilePath    = filePath.toStdString();
+    mSelectedImagesDirectory.clear();
+    checkForSettingsChanged();
+    onSaveProject();
+    showProjectOverview();
 
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
@@ -703,17 +693,19 @@ ContainerBase *WindowMain::addChannelFromTemplate(const QString &filePath)
 ///
 void WindowMain::setWorkingDirectory(const std::string &workingDir)
 {
-  mSelectedWorkingDirectory = workingDir.data();
+  if(mSelectedImagesDirectory.string() != workingDir) {
+    mSelectedImagesDirectory = workingDir;
 
-  std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
-  mFoundFilesHint->setText("Looking for images ...");
-  mFoundFilesCombo->clear();
-  mFileSelectorComboBox->setVisible(false);
-  mImageSeriesComboBox->setVisible(false);
-  mImageTilesComboBox->setVisible(false);
-  mFileSearchHintLabel->setVisible(true);
-  mController->setWorkingDirectory(mSelectedWorkingDirectory.toStdString());
-  mNewFolderSelected = true;
+    std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
+    mFoundFilesHint->setText("Looking for images ...");
+    mFoundFilesCombo->clear();
+    mFileSelectorComboBox->setVisible(false);
+    mImageSeriesComboBox->setVisible(false);
+    mImageTilesComboBox->setVisible(false);
+    mFileSearchHintLabel->setVisible(true);
+    mController->setWorkingDirectory(mSelectedImagesDirectory.string());
+    mNewFolderSelected = true;
+  }
 }
 
 ///
@@ -798,15 +790,72 @@ void WindowMain::onLookingForFilesFinished()
 }
 
 ///
+/// \brief      Check if some settings have been changed
+/// \author     Joachim Danmayr
+///
+void WindowMain::checkForSettingsChanged()
+{
+  if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
+    // Not equal
+    mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50-red.png"));
+  } else {
+    // Equal
+    mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50.png"));
+  }
+}
+
+///
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onSaveProjectClicked()
+void WindowMain::onSaveProjectAsClicked()
 {
+  std::filesystem::path folderToSaveSettings(mSelectedProjectSettingsFilePath.parent_path());
   QString filePath =
-      QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "JSON Files (*.json);;All Files (*)");
+      QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(), "JSON Files (*.json)");
   if(!filePath.isEmpty()) {
     joda::settings::Settings::storeSettings(filePath.toStdString(), mAnalyzeSettings);
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onSaveProject()
+{
+  try {
+    if(mSelectedProjectSettingsFilePath.empty()) {
+      std::filesystem::path filePath(mSelectedImagesDirectory);
+      filePath = filePath / "imagec";
+      if(!std::filesystem::exists(filePath)) {
+        std::filesystem::create_directories(filePath);
+      }
+      filePath = filePath / "settings.json";
+      QString filePathOfSettingsFile =
+          QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(), "JSON Files (*.json)");
+      mSelectedProjectSettingsFilePath = filePathOfSettingsFile.toStdString();
+    }
+
+    if(!mSelectedProjectSettingsFilePath.empty()) {
+      setMiddelLabelText(mSelectedProjectSettingsFilePath.filename().string().data());
+      if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
+        joda::settings::Settings::storeSettings(mSelectedProjectSettingsFilePath.string(), mAnalyzeSettings);
+      }
+      mAnalyzeSettingsOld = mAnalyzeSettings;
+      checkForSettingsChanged();
+    }
+
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not save settings!");
+    messageBox.setText("Could not save settings, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
   }
 }
 
@@ -898,7 +947,9 @@ void WindowMain::onBackClicked()
     case Navigation::START_SCREEN:
       break;
     case Navigation::PROJECT_OVERVIEW:
-      showStartScreen();
+      if(showStartScreen(true)) {
+        checkForSettingsChanged();
+      }
       break;
     case Navigation::CHANNEL_EDIT:
       showProjectOverview();
@@ -907,11 +958,13 @@ void WindowMain::onBackClicked()
         mSelectedChannel->setActive(false);
         mSelectedChannel = nullptr;
       }
+      checkForSettingsChanged();
       break;
     case Navigation::REPORTING:
-      showStartScreen();
-      if(mPanelReporting != nullptr) {
-        mPanelReporting->close();
+      if(showStartScreen(true)) {
+        if(mPanelReporting != nullptr) {
+          mPanelReporting->close();
+        }
       }
       break;
   }
@@ -921,8 +974,58 @@ void WindowMain::onBackClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::showStartScreen()
+bool WindowMain::showStartScreen(bool warnBeforeSwitch)
 {
+  if(warnBeforeSwitch) {
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
+    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+    // messageBox.setAttribute(Qt::WA_TranslucentBackground);
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Close project?");
+    messageBox.setText("Do you want to close the screen? Unsaved settings will get lost!");
+    messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    // Rounded borders -->
+    const int radius = 12;
+    messageBox.setStyleSheet(QString("QDialog { "
+                                     "border-radius: %1px; "
+                                     "border: 2px solid palette(shadow); "
+                                     "background-color: palette(base); "
+                                     "}")
+                                 .arg(radius));
+
+    // The effect will not be actually visible outside the rounded window,
+    // but it does help get rid of the pixelated rounded corners.
+    QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
+    // The color should match the border color set in CSS.
+    effect->setColor(QApplication::palette().color(QPalette::Shadow));
+    effect->setBlurRadius(8);
+    messageBox.setGraphicsEffect(effect);
+
+    // Need to show the box before we can get its proper dimensions.
+    messageBox.show();
+
+    // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
+    // The mask is sized based on the current window geometry. If the window were resizable (somehow)
+    // then the mask would need to be set in resizeEvent().
+    const QRect rect(QPoint(0, 0), messageBox.geometry().size());
+    QBitmap b(rect.size());
+    b.fill(QColor(Qt::color0));
+    QPainter painter(&b);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(Qt::color1);
+    // this radius should match the CSS radius
+    painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
+    painter.end();
+    messageBox.setMask(b);
+    // <--
+
+    auto reply = messageBox.exec();
+    if(reply != 1) {
+      return false;
+    }
+  }
   setMiddelLabelText("");
   mButtomToolbar->setVisible(false);
   mProjectSettings->setVisible(false);
@@ -938,6 +1041,7 @@ void WindowMain::showStartScreen()
   mOpenReportingArea->setVisible(false);
   mStackedWidget->setCurrentIndex(0);
   mNavigation = Navigation::START_SCREEN;
+  return true;
 }
 
 ///
@@ -946,9 +1050,10 @@ void WindowMain::showStartScreen()
 ///
 void WindowMain::showProjectOverview()
 {
-  setMiddelLabelText("");
+  // setMiddelLabelText(mSelectedWorkingDirectory);
   mButtomToolbar->setVisible(true);
   mProjectSettings->setVisible(true);
+  mBackButton->setIcon(QIcon(":/icons/outlined/icons8-home-50.png"));
   mBackButton->setEnabled(true);
   mBackButton->setVisible(true);
   mSaveProject->setVisible(true);
@@ -973,6 +1078,7 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
   mButtomToolbar->setVisible(true);
   selectedChannel->setActive(true);
   mProjectSettings->setVisible(true);
+  mBackButton->setIcon(QIcon(":/icons/outlined/icons8-left-50.png"));
   mBackButton->setEnabled(true);
   mBackButton->setVisible(true);
   mSaveProject->setVisible(false);
@@ -996,8 +1102,8 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 void WindowMain::onOpenReportingAreaClicked()
 {
   QString folderToOpen = QDir::homePath();
-  if(!mSelectedWorkingDirectory.isEmpty()) {
-    folderToOpen = mSelectedWorkingDirectory;
+  if(!mSelectedImagesDirectory.empty()) {
+    folderToOpen = mSelectedImagesDirectory.string().data();
   }
 
   QFileDialog::Options opt;
@@ -1015,6 +1121,7 @@ void WindowMain::onOpenReportingAreaClicked()
     // Open reporting area
     mButtomToolbar->setVisible(false);
     mProjectSettings->setVisible(false);
+    mBackButton->setIcon(QIcon(":/icons/outlined/icons8-home-50.png"));
     mBackButton->setEnabled(true);
     mBackButton->setVisible(true);
     mSaveProject->setVisible(false);
@@ -1106,10 +1213,13 @@ void WindowMain::onOpenSettingsDialog()
 {
   DialogExperimentSettings di(this, mAnalyzeSettings.experimentSettings);
   di.exec();
+  setWorkingDirectory(mAnalyzeSettings.experimentSettings.wotkingDirectory);
   if(mNavigation == Navigation::START_SCREEN) {
+    mSelectedProjectSettingsFilePath.clear();
     removeAllChannels();
     showProjectOverview();
   }
+  checkForSettingsChanged();
 }
 
 ///
@@ -1139,6 +1249,7 @@ ContainerBase *WindowMain::addChannel(joda::settings::ChannelSettings settings)
     panel1->toSettings();
     mChannels.emplace(panel1, &newlyAdded);
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+    checkForSettingsChanged();
     return panel1;
   }
   return nullptr;
@@ -1172,6 +1283,7 @@ ContainerBase *WindowMain::addVChannelVoronoi(joda::settings::VChannelVoronoi se
     mChannels.emplace(panel1, &newlyAdded);
 
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+    checkForSettingsChanged();
     return panel1;
   }
   return nullptr;
@@ -1205,6 +1317,7 @@ ContainerBase *WindowMain::addVChannelIntersection(joda::settings::VChannelInter
     mChannels.emplace(panel1, &newlyAdded);
 
     mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+    checkForSettingsChanged();
     return panel1;
   }
   return nullptr;

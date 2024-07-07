@@ -26,6 +26,17 @@ public:
     FILENAME
   };
 
+  struct Address
+  {
+    std::string country;
+    std::string organization;
+    std::string streetAddress;
+    std::string postalCode;
+    std::string city;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Address, country, organization, streetAddress, postalCode, city);
+  };
+
   //
   // Image grouping option [NONE, FOLDER, FILENAME]
   //
@@ -43,7 +54,28 @@ public:
   //
   std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, groupBy, filenameRegex, wellImageOrder);
+  //
+  // Notes to the experiment.
+  //
+  std::string notes;
+
+  //
+  // Names of the scientists doing this analysis.
+  //
+  std::vector<std::string> scientistsNames;
+
+  //
+  // The address of the experiment.
+  //
+  Address address;
+
+  //
+  // This is not stored in the JSON > Working directory
+  //
+  std::string wotkingDirectory;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, groupBy, filenameRegex, wellImageOrder, notes,
+                                              scientistsNames, address);
 };
 
 // map TaskState values to JSON as strings

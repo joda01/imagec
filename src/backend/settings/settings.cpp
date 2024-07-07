@@ -36,6 +36,14 @@ void Settings::storeSettings(std::string path, const joda::settings::AnalyzeSett
   }
 }
 
+bool Settings::isEqual(const joda::settings::AnalyzeSettings &settingsOld,
+                       const joda::settings::AnalyzeSettings &settingsNew)
+{
+  nlohmann::json jsonOld = settingsOld;
+  nlohmann::json jsonNew = settingsNew;
+  return jsonOld.dump() == jsonNew.dump();
+}
+
 int32_t Settings::getNrOfAllChannels(const joda::settings::AnalyzeSettings &settings)
 {
   return settings.channels.size() + settings.vChannels.size();

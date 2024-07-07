@@ -66,8 +66,8 @@ auto Analyzer::getAnalyzes() -> std::vector<db::AnalyzeMeta>
                         .scientists = std::move(scientists),
                         .timestamp  = std::chrono::system_clock::from_time_t(duckdb::Timestamp::GetEpochSeconds(
                             materializedResult->GetValue<duckdb::timestamp_t>(4, n))),
-                        .location   = materializedResult->GetValue(5, n).GetValue<std::string>(),
-                        .notes      = materializedResult->GetValue(6, n).GetValue<std::string>()});
+                        .addressOrganization = materializedResult->GetValue(5, n).GetValue<std::string>(),
+                        .notes               = materializedResult->GetValue(6, n).GetValue<std::string>()});
   }
   return jobs;
 }

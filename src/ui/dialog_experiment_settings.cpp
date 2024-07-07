@@ -20,18 +20,22 @@
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qlineedit.h>
+#include <qpushbutton.h>
 #include <qscrollarea.h>
 #include <qscrollbar.h>
 #include <qspinbox.h>
 #include <qwidget.h>
+#include <QFileDialog>
 #include <QFormLayout>
 #include <QMessageBox>
 #include <exception>
 #include <string>
 #include <vector>
+#include "backend/helper/username.hpp"
 #include "backend/results/results.hpp"
 #include "backend/settings/experiment_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
+#include "ui/window_main.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json_fwd.hpp>
 
@@ -50,14 +54,18 @@ struct Temp
 /// \param[out]
 /// \return
 ///
-DialogExperimentSettings::DialogExperimentSettings(QWidget *windowMain, joda::settings::ExperimentSettings &settings) :
-    DialogShadow(windowMain, true, "Apply"), mSettings(settings)
+DialogExperimentSettings::DialogExperimentSettings(WindowMain *windowMain,
+                                                   joda::settings::ExperimentSettings &settings) :
+    DialogShadow(windowMain, true, "Apply"),
+    mParentWindow(windowMain), mSettings(settings)
 {
   setWindowTitle("Settings");
-  setBaseSize(500, 200);
+  setBaseSize(650, 200);
+  setMinimumWidth(650);
+  setMaximumHeight(300);
   createLayout();
-  // fromSettings();
-  // applyRegex();
+  fromSettings();
+  applyRegex();
 }
 
 int DialogExperimentSettings::exec()
@@ -67,17 +75,13 @@ int DialogExperimentSettings::exec()
   return ret;
 }
 
-/////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
-
 void DialogExperimentSettings::createLayout()
 {
   createScientistGroupBox();
   createExperimentGroupBox();
 
   mNotes = new QTextEdit;
-  mNotes->setPlaceholderText("Some notes to the experiment!");
+  mNotes->setPlaceholderText("Notes on the experiment...");
 
   QVBoxLayout *mainLayout = new QVBoxLayout(this);
   mainLayout->setContentsMargins(28, 28, 28, 28);
@@ -95,28 +99,26 @@ void DialogExperimentSettings::createLayout()
 ///
 void DialogExperimentSettings::createScientistGroupBox()
 {
-  mScientistsGroup    = new QGroupBox(tr("Scientists"));
-  QGridLayout *layout = new QGridLayout;
+  mScientistsGroup    = new QGroupBox(tr("Who is?"));
+  QFormLayout *layout = new QFormLayout;
 
   //
   // Scientists
   //
   for(int i = 0; i < NR_OF_SCIENTISTS; ++i) {
-    mScientistsLabel[i] = new QLabel(tr("Scientist %1:").arg(i + 1));
-    mScientists[i]      = new QLineEdit;
-    layout->addWidget(mScientistsLabel[i], i, 0);
-    layout->addWidget(mScientists[i], i, 1);
+    mScientists[i] = new QLineEdit;
+    layout->addRow(new QLabel(tr("Scientist name:")), mScientists[i]);
   }
+
+  mScientists[0]->setPlaceholderText(joda::helper::getLoggedInUserName());
 
   //
   // Location
   //
-  mLocation = new QTextEdit;
-  mLocation->setPlaceholderText("Hellbrunner Str. 34, 5020 Salzburg");
-  layout->addWidget(mLocation, 0, 2, NR_OF_SCIENTISTS, 1);
+  mAddressOrganisation = new QLineEdit;
+  mAddressOrganisation->setPlaceholderText("Univesity of Salzburg");
+  layout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
 
-  layout->setColumnStretch(1, 10);
-  layout->setColumnStretch(2, 20);
   mScientistsGroup->setLayout(layout);
 }
 
@@ -131,6 +133,21 @@ void DialogExperimentSettings::createExperimentGroupBox()
 {
   mExperimentGroup    = new QGroupBox(tr("Experiment"));
   QFormLayout *layout = new QFormLayout;
+
+  //
+  // Working directory
+  //
+  mWorkingDir = new QLineEdit();
+  mWorkingDir->setReadOnly(true);
+  mWorkingDir->setPlaceholderText("Directory your images are placed in...");
+  QHBoxLayout *workingDir = new QHBoxLayout;
+  workingDir->addWidget(mWorkingDir);
+  QPushButton *openDir = new QPushButton(QIcon(":/icons/outlined/icons8-folder-50.png"), "");
+  // openDir->setObjectName("ToolButton");
+  connect(openDir, &QPushButton::clicked, this, &DialogExperimentSettings::onOpenWorkingDirectoryClicked);
+  workingDir->addWidget(openDir);
+  workingDir->setStretch(0, 1);    // Make label take all available space
+  layout->addRow(new QLabel(tr("Working directory:")), workingDir);
 
   //
   // Well order matrix
@@ -173,10 +190,13 @@ void DialogExperimentSettings::createExperimentGroupBox()
   mExperimentGroup->setLayout(layout);
 }
 
-/////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
-
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void DialogExperimentSettings::fromSettings()
 {
   {
@@ -208,12 +228,39 @@ void DialogExperimentSettings::fromSettings()
     }
   }
 
+  mWorkingDir->setText(mSettings.wotkingDirectory.data());
   mRegexToFindTheWellPosition->setCurrentText(mSettings.filenameRegex.data());
+  mNotes->setText(mSettings.notes.data());
+  mAddressOrganisation->setText(mSettings.address.organization.data());
+  int idx = 0;
+  for(const auto &scientist : mSettings.scientistsNames) {
+    if(idx >= mScientists.size()) {
+      mScientists.push_back(new QLineEdit());
+      /// \todo Add Qline edit of other scientst to layout
+    }
+    mScientists[idx]->setText(scientist.data());
+    idx++;
+  }
   applyRegex();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void DialogExperimentSettings::toSettings()
 {
+  mSettings.wotkingDirectory     = mWorkingDir->text().toStdString();
+  mSettings.address.organization = mAddressOrganisation->text().trimmed().toStdString();
+  mSettings.notes                = mNotes->toPlainText().toStdString();
+  mSettings.scientistsNames.clear();
+  for(const auto *textLabel : mScientists) {
+    mSettings.scientistsNames.push_back(textLabel->text().trimmed().toStdString());
+  }
+
   mSettings.groupBy = static_cast<joda::settings::ExperimentSettings::GroupBy>(mGroupByComboBox->currentData().toInt());
   mSettings.filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
 
@@ -230,6 +277,13 @@ void DialogExperimentSettings::toSettings()
   }
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void DialogExperimentSettings::applyRegex()
 {
   try {
@@ -245,6 +299,21 @@ void DialogExperimentSettings::applyRegex()
   } catch(const std::exception &ex) {
     mTestFileResult->setText(ex.what());
   }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void DialogExperimentSettings::onOpenWorkingDirectoryClicked()
+{
+  QString folderToOpen      = QDir::homePath();
+  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen);
+
+  if(selectedDirectory.isEmpty()) {
+    return;
+  }
+  mWorkingDir->setText(selectedDirectory);
 }
 
 void DialogExperimentSettings::onOkayClicked()

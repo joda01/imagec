@@ -28,13 +28,15 @@
 
 namespace joda::ui::qt {
 
+class WindowMain;
+
 class DialogExperimentSettings : public DialogShadow
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogExperimentSettings(QWidget *windowMain, joda::settings::ExperimentSettings &settings);
+  DialogExperimentSettings(WindowMain *windowMain, joda::settings::ExperimentSettings &settings);
 
   int exec() override;
 
@@ -48,6 +50,7 @@ private:
   void createExperimentGroupBox();
 
   /////////////////////////////////////////////////////
+  WindowMain *mParentWindow;
   joda::settings::ExperimentSettings &mSettings;
 
   QComboBox *mGroupByComboBox;
@@ -55,20 +58,22 @@ private:
   QLabel *mTestFileResult;
 
   /////////////////////////////////////////////////////
-  static constexpr int32_t NR_OF_SCIENTISTS = 3;
+  static constexpr int32_t NR_OF_SCIENTISTS = 1;
 
   QGroupBox *mScientistsGroup;
-  QTextEdit *mLocation;
-  std::vector<QLabel *> mScientistsLabel{NR_OF_SCIENTISTS};
+  QLineEdit *mAddressOrganisation;
   std::vector<QLineEdit *> mScientists{NR_OF_SCIENTISTS};
 
   QGroupBox *mExperimentGroup;
+  QLineEdit *mWorkingDir;
+
   QLineEdit *mWellOrderMatrix;
   QComboBox *mRegexToFindTheWellPosition;
 
   QTextEdit *mNotes;
 
 private slots:
+  void onOpenWorkingDirectoryClicked();
   void onOkayClicked();
   void onCancelClicked();
   void applyRegex();

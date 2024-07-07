@@ -54,7 +54,7 @@ void Database::open()
       "	name TEXT,"
       " scientists TEXT[],"
       " datetime TIMESTAMP,"
-      " location TEXT,"
+      " address_organization TEXT,"
       " notes TEXT,"
       " analyze_settings_json TEXT, "
       " PRIMARY KEY (analyze_id)"
@@ -168,7 +168,8 @@ void Database::createAnalyze(const AnalyzeMeta &meta)
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare(
-      "INSERT INTO analyzes (run_id, analyze_id, name, scientists, datetime, location, notes, analyze_settings_json) "
+      "INSERT INTO analyzes (run_id, analyze_id, name, scientists, datetime, address_organization, notes, "
+         "analyze_settings_json) "
          "VALUES (?, ?, ?, ?, ?, "
          "?, ?, ?)");
   // Convert it to time since epoch
@@ -177,8 +178,8 @@ void Database::createAnalyze(const AnalyzeMeta &meta)
                        .count();
   prepare->Execute(duckdb::Value::UUID(meta.runId), duckdb::Value::UUID(meta.analyzeId), duckdb::Value(meta.name),
                    duckdb::Value::LIST({meta.scientists.begin(), meta.scientists.end()}),
-                   duckdb::Value::TIMESTAMP(timeNowMs), duckdb::Value(meta.location), duckdb::Value(meta.notes),
-                   duckdb::Value(meta.analysesSettingsJsonDump));
+                   duckdb::Value::TIMESTAMP(timeNowMs), duckdb::Value(meta.addressOrganization),
+                   duckdb::Value(meta.notes), duckdb::Value(meta.analysesSettingsJsonDump));
 }
 
 ///

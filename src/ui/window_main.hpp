@@ -16,6 +16,7 @@
 #include <qcombobox.h>
 #include <qwidget.h>
 #include <QtWidgets>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -47,10 +48,11 @@ public:
   {
   }
   void showChannelEdit(ContainerBase *);
-  void showStartScreen();
+  bool showStartScreen(bool warnBeforeSwitch);
   void showProjectOverview();
   void removeChannel(ContainerBase *toRemove);
   void removeAllChannels();
+  void setWorkingDirectory(const std::string &workingDir);
   int getSelectedSeries() const
   {
     return mImageSeriesCombo->currentData().toInt();
@@ -116,6 +118,7 @@ private:
   /////////////////////////////////////////////////////
   void createTopToolbar();
   void createBottomToolbar();
+  void checkForSettingsChanged();
 
   QWidget *createStackedWidget();
   QWidget *createStartWidget();
@@ -124,7 +127,6 @@ private:
   QWidget *createReportingWidget();
 
   void waitForFileSearchFinished();
-  void setWorkingDirectory(const std::string &workingDir);
   ContainerBase *addChannel(joda::settings::ChannelSettings);
   ContainerBase *addVChannelVoronoi(joda::settings::VChannelVoronoi);
   ContainerBase *addVChannelIntersection(joda::settings::VChannelIntersection);
@@ -150,6 +152,7 @@ private:
 
   ////Project settings/////////////////////////////////////////////////
   joda::settings::AnalyzeSettings mAnalyzeSettings;
+  joda::settings::AnalyzeSettings mAnalyzeSettingsOld;
   std::map<ContainerBase *, void *>
       mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
 
@@ -159,7 +162,8 @@ private:
 
   ////Made project settings/////////////////////////////////////////////////
   ContainerBase *mSelectedChannel = nullptr;
-  QString mSelectedWorkingDirectory;
+  std::filesystem::path mSelectedImagesDirectory;
+  std::filesystem::path mSelectedProjectSettingsFilePath;
   std::mutex mLookingForFilesMutex;
   PanelReporting *mPanelReporting = nullptr;
 
@@ -184,8 +188,8 @@ private:
   QMovie *mGiraf;
 
 private slots:
-  void onOpenProjectClicked();
-  void onSaveProjectClicked();
+  void onSaveProject();
+  void onSaveProjectAsClicked();
   void onStartClicked();
   void onOpenReportingAreaClicked();
   void onAddChannelClicked();
