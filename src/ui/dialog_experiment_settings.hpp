@@ -15,7 +15,9 @@
 
 #include <qcombobox.h>
 #include <qdialog.h>
+#include <qgroupbox.h>
 #include <qlabel.h>
+#include <qtextedit.h>
 #include <qtmetamacros.h>
 #include <qwindow.h>
 #include <memory>
@@ -41,14 +43,30 @@ private:
   void fromSettings();
   void toSettings();
 
+  void createLayout();
+  void createScientistGroupBox();
+  void createExperimentGroupBox();
+
   /////////////////////////////////////////////////////
   joda::settings::ExperimentSettings &mSettings;
 
-  QLineEdit *mWellOrderMatrix;
   QComboBox *mGroupByComboBox;
-  QComboBox *mRegexToFindTheWellPosition;
   QLineEdit *mTestFileName;
   QLabel *mTestFileResult;
+
+  /////////////////////////////////////////////////////
+  static constexpr int32_t NR_OF_SCIENTISTS = 3;
+
+  QGroupBox *mScientistsGroup;
+  QTextEdit *mLocation;
+  std::vector<QLabel *> mScientistsLabel{NR_OF_SCIENTISTS};
+  std::vector<QLineEdit *> mScientists{NR_OF_SCIENTISTS};
+
+  QGroupBox *mExperimentGroup;
+  QLineEdit *mWellOrderMatrix;
+  QComboBox *mRegexToFindTheWellPosition;
+
+  QTextEdit *mNotes;
 
 private slots:
   void onOkayClicked();
