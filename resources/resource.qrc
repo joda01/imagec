@@ -7,6 +7,8 @@
         <file>helptext/rolling_ball.json</file>
         <file>helptext/cross_channel_intensity.json</file>
         <file>helptext/image_filter_histogram_threshold_filter.json</file>
+        <file>helptext/channel_type.json</file>
+        <file>helptext/reporting_statistics.json</file>
     </qresource>
     <qresource prefix="/icons">
         <file>outlined/icons8-table-top-view-50.png</file>
@@ -113,6 +115,7 @@
         <file>outlined/icons8-rotate-right-50.png</file>
         <file>outlined/icons8-rounded-square-50.png</file>
         <file>outlined/icons8-save-50.png</file>
+        <file>outlined/icons8-save-50-red.png</file>
         <file>outlined/icons8-send-backward-50.png</file>
         <file>outlined/icons8-send-to-back-50.png</file>
         <file>outlined/icons8-settings-50.png</file>
@@ -121,6 +124,8 @@
         <file>outlined/icons8-skip-to-start-50.png</file>
         <file>outlined/icons8-slide-up-50.png</file>
         <file>outlined/icons8-smartphone-ram-50.png</file>
+        <file>outlined/icons8-info-50-blue.png</file>
+        <file>outlined/icons8-home-50.png</file>
         <file>outlined/icons8-sort-left-50.png</file>
         <file>outlined/icons8-sphere-50.png</file>
         <file>outlined/icons8-spinner-50.png</file>

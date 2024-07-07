@@ -1,0 +1,10 @@
+{
+    "textLong": "<ul>    <li>AVG … Average of the average of &lt;measurement&gt; per image.</li>    <li>MEDIAN … Average median of &lt;measurement&gt; per image.</li>    <li>MIN … Average min value of &lt;measurement&gt; per image.</li>    <li>MAX … Average max value of &lt;measurement&gt; per image.</li>    <li>STDDEV … Average standard deviation of &lt;measurement&gt; per image.</li>    <li>SUM … Average sum of &lt;measurment&gt; per image.</li>    <li>CNT … Average number of values per image used to calculate the selected &lt;measurement&gt;.</li></ul><p>In all statistical calculations, only valid objects are utilised, with the exception of the \"Valid\" and \"Invalid\" measurements, which are observed in their entirety.</p><p>Examples:&nbsp;</p><ul>    <li>The utilisation of CNT in the context of measurement, whether valid or invalid, yields a consistent outcome, namely the total count of objects.</li>    <li>The application of the SUM function to the measurement of valid objects within an image allows the calculation of the average number of valid objects per image.</li></ul>",
+    "cite": [],
+    "source": [
+        {
+            "href": "https://github.com/joda01/imagec/blob/main/src/backend/results/results.cpp",
+            "title": "ImageC"
+        }
+    ]
+}

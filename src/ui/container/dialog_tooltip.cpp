@@ -37,7 +37,7 @@ DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QS
     DialogShadow(windowMain)
 {
   setWindowTitle(title);
-  setMaximumWidth(500);
+  setMaximumWidth(650);
   setModal(true);
 
   /////////////////////////////////////////////////////////////////
