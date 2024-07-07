@@ -314,6 +314,8 @@ void DialogExperimentSettings::onOpenWorkingDirectoryClicked()
     return;
   }
   mWorkingDir->setText(selectedDirectory);
+  mWorkingDir->update();
+  mWorkingDir->repaint();
 }
 
 void DialogExperimentSettings::onOkayClicked()
