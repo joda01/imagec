@@ -984,8 +984,9 @@ bool WindowMain::showStartScreen(bool warnBeforeSwitch)
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Close project?");
     messageBox.setText("Do you want to close the screen? Unsaved settings will get lost!");
-    messageBox.addButton(tr("No"), QMessageBox::NoRole);
-    messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    messageBox.setDefaultButton(noButton);
     // Rounded borders -->
     const int radius = 12;
     messageBox.setStyleSheet(QString("QDialog { "
@@ -1022,7 +1023,7 @@ bool WindowMain::showStartScreen(bool warnBeforeSwitch)
     // <--
 
     auto reply = messageBox.exec();
-    if(reply != 1) {
+    if(messageBox.clickedButton() == noButton) {
       return false;
     }
   }
@@ -1161,8 +1162,9 @@ void WindowMain::onRemoveChannelClicked()
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Remove channel?");
     messageBox.setText("Do you want to remove the channel?");
-    messageBox.addButton(tr("No"), QMessageBox::NoRole);
-    messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    messageBox.setDefaultButton(noButton);
     // Rounded borders -->
     const int radius = 12;
     messageBox.setStyleSheet(QString("QDialog { "
@@ -1199,7 +1201,7 @@ void WindowMain::onRemoveChannelClicked()
     // <--
 
     auto reply = messageBox.exec();
-    if(reply == 1) {
+    if(messageBox.clickedButton() == yesButton) {
       removeChannel(mSelectedChannel);
     }
   }
