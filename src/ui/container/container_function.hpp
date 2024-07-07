@@ -207,7 +207,7 @@ public:
   {
     if(mLineEdit != nullptr) {
       if constexpr(std::same_as<VALUE_T, QString>) {
-        mLineEdit->setText(newValue);
+        mLineEdit->setText(newValue.trimmed());
       } else if constexpr(std::is_enum<VALUE_T>::value) {
         mLineEdit->setText(QString::number(static_cast<int>(newValue)));
       } else {
@@ -517,6 +517,13 @@ public:
       if(idx >= 0) {
         mComboBox->setCurrentIndex(idx);
       }
+    }
+  }
+
+  void setMaxLength(int maxLength)
+  {
+    if(mLineEdit != nullptr) {
+      mLineEdit->setMaxLength(maxLength);
     }
   }
 
