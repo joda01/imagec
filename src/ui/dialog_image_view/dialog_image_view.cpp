@@ -27,6 +27,7 @@ namespace joda::ui::qt {
 DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
 {
   setModal(false);
+  setBaseSize(800, 800);
 
   QGridLayout *centralLayout = new QGridLayout(this);
 

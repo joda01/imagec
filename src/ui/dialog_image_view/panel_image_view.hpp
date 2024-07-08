@@ -36,6 +36,7 @@ public:
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
+  void setZoomFactorAndPosition(const QPoint &position, float scale);
 
 signals:
   void updateImage();
