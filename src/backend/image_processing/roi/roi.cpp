@@ -168,7 +168,7 @@ auto ROI::calcIntensity(const cv::Mat &imageOriginal) -> Intensity
 {
   // \todo make more efficient
   Intensity intensityRet;
-  cv::Mat maskImg = (imageOriginal) (mBoundingBox);
+  cv::Mat maskImg = (imageOriginal) (mBoundingBox).clone();
   for(int x = 0; x < maskImg.cols; x++) {
     for(int y = 0; y < maskImg.rows; y++) {
       if(mMask.at<uint8_t>(y, x) <= 0) {
