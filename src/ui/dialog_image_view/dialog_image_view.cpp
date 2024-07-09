@@ -14,6 +14,7 @@
 #include "dialog_image_view.hpp"
 #include <qdialog.h>
 #include <qgridlayout.h>
+#include "backend/image_processing/image/image.hpp"
 
 namespace joda::ui::qt {
 
@@ -26,25 +27,71 @@ namespace joda::ui::qt {
 ///
 DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
 {
+  setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
   setModal(false);
   setBaseSize(800, 800);
+  setMinimumSize(800, 800);
 
-  QGridLayout *centralLayout = new QGridLayout(this);
+  QVBoxLayout *layout = new QVBoxLayout(this);
+  // Toolbar
+  {
+    QToolBar *toolBar = new QToolBar(this);
 
-  mImageViewLeft = new PanelImageView(this);
-  mImageViewLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  centralLayout->addWidget(mImageViewLeft, 0, 0);
-  mImageViewLeft->resetImage();
+    QAction *action1 = new QAction("Action 1", this);
+    QAction *action2 = new QAction("Action 2", this);
 
-  mImageViewRight = new PanelImageView(this);
-  mImageViewRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  centralLayout->addWidget(mImageViewRight, 0, 1);
-  mImageViewRight->resetImage();
+    // connect(action1, &QAction::triggered, this, &MyDialog::onAction1Triggered);
+    // connect(action2, &QAction::triggered, this, &MyDialog::onAction2Triggered);
 
-  connect(mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
-  connect(mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
+    toolBar->addAction(action1);
+    toolBar->addAction(action2);
+
+    layout->addWidget(toolBar);
+  }
+
+  // Central images
+  {
+    QGridLayout *centralLayout = new QGridLayout();
+    mImageViewLeft             = new PanelImageView(this);
+    mImageViewLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    centralLayout->addWidget(mImageViewLeft, 0, 0);
+    mImageViewLeft->resetImage();
+
+    mImageViewRight = new PanelImageView(this);
+    mImageViewRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    centralLayout->addWidget(mImageViewRight, 0, 1);
+    mImageViewRight->resetImage();
+
+    connect(mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
+    connect(mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
+    layout->addLayout(centralLayout);
+  }
+
+  setLayout(layout);
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::setImage(const joda::image::Image &leftImage, const joda::image::Image &rightImage)
+{
+  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
+    mImageViewLeft->setImage(leftImage);
+    mImageViewRight->setImage(rightImage);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void DialogImageViewer::onLeftViewChanged()
 {
   if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
@@ -60,6 +107,13 @@ void DialogImageViewer::onLeftViewChanged()
   }
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void DialogImageViewer::onRightViewChanged()
 {
   if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {

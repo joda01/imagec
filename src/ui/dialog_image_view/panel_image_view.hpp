@@ -19,6 +19,7 @@
 #include <QtWidgets>
 #include <iostream>
 #include <string>
+#include "backend/image_processing/image/image.hpp"
 
 namespace joda::ui::qt {
 
@@ -32,7 +33,7 @@ class PanelImageView : public QGraphicsView
 public:
   /////////////////////////////////////////////////////
   PanelImageView(QWidget *parent = nullptr);
-  void setPixmap(const QPixmap &pix);
+  void setImage(const joda::image::Image &image);
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
@@ -58,7 +59,7 @@ private:
 
   /////////////////////////////////////////////////////
   bool mPlaceholderImageSet = true;
-  QPixmap mActPixmapOriginal;
+  joda::image::Image mActPixmapOriginal;
   QGraphicsPixmapItem *mActPixmap = nullptr;
   QGraphicsScene *scene;
   bool isDragging = false;

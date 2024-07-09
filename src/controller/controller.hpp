@@ -13,11 +13,19 @@
 
 #pragma once
 
+#include <cstdint>
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/file_info_images.hpp"
+#include "backend/image_processing/image/image.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 
 namespace joda::ctrl {
+
+struct PreviewSettings
+{
+  int lowerBrightness = 0;
+  int upperBrightness = UINT16_MAX;
+};
 
 ///
 /// \class      Controller
@@ -42,13 +50,14 @@ public:
   void setWorkingDirectory(const std::string &dir);
   struct Preview
   {
-    std::vector<uchar> data;
+    joda::image::Image previewImage;
+    joda::image::Image originalImage;
     int height;
     int width;
     std::unique_ptr<joda::image::detect::DetectionResults> detectionResult;
     std::string imageFileName;
   };
-  auto preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex) -> Preview;
+  void preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex, Preview &previewOut);
   auto getImageProperties(int imgIndex, int series) -> joda::image::ImageProperties;
   struct Resources
   {

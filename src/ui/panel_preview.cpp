@@ -31,7 +31,7 @@ namespace joda::ui::qt {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelPreview::PanelPreview(int width, int height, QWidget *parent) : mPreviewLabel(parent)
+PanelPreview::PanelPreview(int width, int height, QWidget *parent) : mPreviewLabel(parent), mImageViewer(parent)
 {
   mPreviewLabel.setMinimumWidth(width);
   mPreviewLabel.setMinimumHeight(height);
@@ -119,8 +119,7 @@ void PanelPreview::onFitImageToScreenSizeClicked()
 
 void PanelPreview::onOpenFullScreenClickec()
 {
-  mImageViewer = std::make_unique<DialogImageViewer>(this->parentWidget());
-  mImageViewer->show();
+  mImageViewer.show();
 }
 
 }    // namespace joda::ui::qt

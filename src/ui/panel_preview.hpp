@@ -20,6 +20,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "backend/image_processing/image/image.hpp"
+#include "controller/controller.hpp"
 #include "ui/dialog_image_view/dialog_image_view.hpp"
 #include "ui/dialog_image_view/panel_image_view.hpp"
 
@@ -31,10 +33,12 @@ class PanelPreview : public QWidget
 
 public:
   PanelPreview(int width, int height, QWidget *parent);
-  void setPixmap(const QPixmap &pix, int width, int height, const QString &info)
+  void setImage(const joda::image::Image &originalImage, const joda::image::Image &previewImage, int width, int height,
+                const QString &info)
   {
-    mPreviewLabel.setPixmap(pix);
+    mPreviewLabel.setImage(previewImage);
     mPreviewInfo->setText(info);
+    mImageViewer.setImage(originalImage, previewImage);
   }
   void resetImage(const QString &info)
   {
@@ -55,6 +59,6 @@ private:
 
   /////////////////////////////////////////////////////
   PanelImageView mPreviewLabel;
-  std::unique_ptr<DialogImageViewer> mImageViewer;
+  DialogImageViewer mImageViewer;
 };
 }    // namespace joda::ui::qt

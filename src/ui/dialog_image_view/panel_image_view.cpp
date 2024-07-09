@@ -13,6 +13,7 @@
 
 #include "panel_image_view.hpp"
 #include <qtmetamacros.h>
+#include "backend/image_processing/image/image.hpp"
 
 namespace joda::ui::qt {
 
@@ -45,9 +46,9 @@ PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent)
   connect(this, &PanelImageView::updateImage, this, &PanelImageView::onUpdateImage);
 }
 
-void PanelImageView::setPixmap(const QPixmap &pixIn)
+void PanelImageView::setImage(const joda::image::Image &image)
 {
-  mActPixmapOriginal = pixIn;
+  mActPixmapOriginal.setImage(image.getImage());
 
   if(mPlaceholderImageSet) {
     fitImageToScreenSize();
@@ -59,7 +60,6 @@ void PanelImageView::setPixmap(const QPixmap &pixIn)
 
 void PanelImageView::resetImage()
 {
-  mActPixmapOriginal   = QPixmap(PLACEHOLDER);
   mPlaceholderImageSet = true;
   fitImageToScreenSize();
   emit updateImage();
@@ -68,13 +68,13 @@ void PanelImageView::resetImage()
 
 void PanelImageView::onUpdateImage()
 {
-  scene->setSceneRect(mActPixmapOriginal.rect());
+  scene->setSceneRect(mActPixmapOriginal.getPixmap().rect());
 
   if(nullptr == mActPixmap) {
-    mActPixmap = scene->addPixmap(mActPixmapOriginal);
+    mActPixmap = scene->addPixmap(mActPixmapOriginal.getPixmap());
   } else {
     scene->removeItem(mActPixmap);
-    mActPixmap = scene->addPixmap(mActPixmapOriginal);
+    mActPixmap = scene->addPixmap(mActPixmapOriginal.getPixmap());
   }
 
   scene->update();
@@ -139,7 +139,7 @@ void PanelImageView::zoomImage(bool inOut)
 void PanelImageView::fitImageToScreenSize()
 {
   resetTransform();
-  float zoomFactor = static_cast<float>(width()) / static_cast<float>(mActPixmapOriginal.size().width());
+  float zoomFactor = static_cast<float>(width()) / static_cast<float>(mActPixmapOriginal.getPixmap().size().width());
   scale(zoomFactor, zoomFactor);
   emit onImageRepainted();
 }

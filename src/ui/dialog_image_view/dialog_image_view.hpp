@@ -14,6 +14,7 @@
 #pragma once
 
 #include <qdialog.h>
+#include "backend/image_processing/image/image.hpp"
 #include "panel_image_view.hpp"
 
 namespace joda::ui::qt {
@@ -30,6 +31,7 @@ class DialogImageViewer : public QDialog
 public:
   /////////////////////////////////////////////////////
   DialogImageViewer(QWidget *parent);
+  void setImage(const joda::image::Image &leftImage, const joda::image::Image &rightImage);
 
 private:
   PanelImageView *mImageViewLeft;
