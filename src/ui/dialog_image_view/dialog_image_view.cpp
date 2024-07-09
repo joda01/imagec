@@ -40,6 +40,39 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
   mImageViewRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   centralLayout->addWidget(mImageViewRight, 0, 1);
   mImageViewRight->resetImage();
+
+  connect(mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
+  connect(mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
+}
+
+void DialogImageViewer::onLeftViewChanged()
+{
+  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
+    mImageViewRight->blockSignals(true);
+    mImageViewLeft->blockSignals(true);
+
+    mImageViewRight->horizontalScrollBar()->setValue(mImageViewLeft->horizontalScrollBar()->value());
+    mImageViewRight->verticalScrollBar()->setValue(mImageViewLeft->verticalScrollBar()->value());
+    mImageViewRight->setTransform(mImageViewLeft->transform());
+
+    mImageViewRight->blockSignals(false);
+    mImageViewLeft->blockSignals(false);
+  }
+}
+
+void DialogImageViewer::onRightViewChanged()
+{
+  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
+    mImageViewRight->blockSignals(true);
+    mImageViewLeft->blockSignals(true);
+
+    mImageViewLeft->horizontalScrollBar()->setValue(mImageViewRight->horizontalScrollBar()->value());
+    mImageViewLeft->verticalScrollBar()->setValue(mImageViewRight->verticalScrollBar()->value());
+    mImageViewLeft->setTransform(mImageViewRight->transform());
+
+    mImageViewRight->blockSignals(false);
+    mImageViewLeft->blockSignals(false);
+  }
 }
 
 }    // namespace joda::ui::qt

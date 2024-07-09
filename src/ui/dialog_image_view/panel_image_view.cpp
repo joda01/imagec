@@ -12,6 +12,7 @@
 ///
 
 #include "panel_image_view.hpp"
+#include <qtmetamacros.h>
 
 namespace joda::ui::qt {
 
@@ -53,6 +54,7 @@ void PanelImageView::setPixmap(const QPixmap &pixIn)
     mPlaceholderImageSet = false;
   }
   emit updateImage();
+  emit onImageRepainted();
 }
 
 void PanelImageView::resetImage()
@@ -61,6 +63,7 @@ void PanelImageView::resetImage()
   mPlaceholderImageSet = true;
   fitImageToScreenSize();
   emit updateImage();
+  emit onImageRepainted();
 }
 
 void PanelImageView::onUpdateImage()
@@ -76,6 +79,7 @@ void PanelImageView::onUpdateImage()
 
   scene->update();
   update();
+  emit onImageRepainted();
 }
 
 void PanelImageView::mouseMoveEvent(QMouseEvent *event)
@@ -91,6 +95,53 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
     // Update the last position
     lastPos = event->pos();
   }
+  emit onImageRepainted();
+}
+
+void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
+{
+  if(event->button() == Qt::LeftButton) {
+    // End dragging
+    isDragging = false;
+  }
+}
+
+void PanelImageView::mousePressEvent(QMouseEvent *event)
+{
+  if(event->button() == Qt::LeftButton) {
+    // Start dragging
+    isDragging = true;
+    lastPos    = event->pos();
+  }
+}
+
+void PanelImageView::wheelEvent(QWheelEvent *event)
+{
+  zoomImage(event->angleDelta().y() > 0);
+}
+
+void PanelImageView::zoomImage(bool inOut)
+{
+  qreal zoomFactor = 1.05;
+  if(inOut) {
+    scale(zoomFactor, zoomFactor);
+  } else {
+    scale(1.0 / zoomFactor, 1.0 / zoomFactor);
+  }
+  emit onImageRepainted();
+
+  /*
+  QPointF center = mapToScene(viewport()->rect().center());
+  centerOn(center);
+  */
+}
+
+void PanelImageView::fitImageToScreenSize()
+{
+  resetTransform();
+  float zoomFactor = static_cast<float>(width()) / static_cast<float>(mActPixmapOriginal.size().width());
+  scale(zoomFactor, zoomFactor);
+  emit onImageRepainted();
 }
 
 void PanelImageView::paintEvent(QPaintEvent *event)
@@ -128,14 +179,6 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   }
 }
 
-void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
-{
-  if(event->button() == Qt::LeftButton) {
-    // End dragging
-    isDragging = false;
-  }
-}
-
 void PanelImageView::enterEvent(QEnterEvent *)
 {
 }
@@ -144,48 +187,4 @@ void PanelImageView::leaveEvent(QEvent *)
 {
 }
 
-void PanelImageView::mousePressEvent(QMouseEvent *event)
-{
-  if(event->button() == Qt::LeftButton) {
-    // Start dragging
-    isDragging = true;
-    lastPos    = event->pos();
-  }
-}
-
-void PanelImageView::wheelEvent(QWheelEvent *event)
-{
-  qreal zoomFactor = 1.05;
-
-  if(event->angleDelta().y() > 0) {
-    // Zoom in
-    scale(zoomFactor, zoomFactor);
-  } else if(event->angleDelta().y() < 0) {
-    // Zoom out
-    scale(1.0 / zoomFactor, 1.0 / zoomFactor);
-  }
-}
-
-void PanelImageView::zoomImage(bool inOut)
-{
-  qreal zoomFactor = 1.05;
-  if(inOut) {
-    scale(zoomFactor, zoomFactor);
-  } else {
-    scale(1.0 / zoomFactor, 1.0 / zoomFactor);
-  }
-
-  QPointF center = mapToScene(viewport()->rect().center());
-  // Set the new center point after scaling
-  centerOn(center);
-  // Ensure the view doesn't go beyond the scene boundaries
-  // ensureVisible(sceneRect());
-}
-
-void PanelImageView::fitImageToScreenSize()
-{
-  resetTransform();
-  float zoomFactor = static_cast<float>(width()) / static_cast<float>(mActPixmapOriginal.size().width());
-  scale(zoomFactor, zoomFactor);
-}
 }    // namespace joda::ui::qt

@@ -34,6 +34,10 @@ public:
 private:
   PanelImageView *mImageViewLeft;
   PanelImageView *mImageViewRight;
+
+private slots:
+  void onLeftViewChanged();
+  void onRightViewChanged();
 };
 
 }    // namespace joda::ui::qt
