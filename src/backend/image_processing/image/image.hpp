@@ -49,16 +49,15 @@ public:
 private:
   /////////////////////////////////////////////////////
   void update();
-  std::vector<uchar> encodeToPNG();
-  void toPixmap();
+  std::vector<uchar> encodeToPNG(const cv::Mat &image);
+  void toPixmap(const cv::Mat &image);
 
   //// BRIGHTNESS /////////////////////////////////////////////////
-  int32_t mLowerValue = 0;
-  int32_t mUpperValue = UINT16_MAX;
+  float mLowerValue = 0;
+  float mUpperValue = UINT16_MAX;
 
   //// IMAGE /////////////////////////////////////////////////
   cv::Mat mImageOriginal;
-  cv::Mat mEditedImage;
   QPixmap mPixmap;
 };
 

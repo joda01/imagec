@@ -13,7 +13,10 @@
 
 #include "panel_image_view.hpp"
 #include <qtmetamacros.h>
+#include <cstdint>
+#include <string>
 #include "backend/image_processing/image/image.hpp"
+#include <opencv2/imgproc.hpp>
 
 namespace joda::ui::qt {
 
@@ -176,6 +179,63 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   if(viewPort.width() < RECT_SIZE) {
     painter.drawRect(rectangle);
     painter.drawRect(viewPort);
+  }
+
+  // Draw histogram
+
+  drawHistogram(mActPixmapOriginal.getImage());
+}
+
+void PanelImageView::drawHistogram(const cv::Mat &image)
+{
+  const float RECT_START_X = 10;
+  const float RECT_START_Y = 10;
+  const float RECT_HEIGHT  = 80;
+  float RECT_WIDTH         = static_cast<float>(width()) - (RECT_START_X * 2);
+
+  int type  = image.type();
+  int depth = type & CV_MAT_DEPTH_MASK;
+  if(depth != CV_32F) {
+    if(!image.empty()) {
+      // Compute the histogram
+      int histSize           = UINT16_MAX + 1;
+      float range[]          = {0, UINT16_MAX + 1};
+      const float *histRange = {range};
+      bool uniform           = true;
+      bool accumulate        = false;
+      cv::Mat hist;
+      cv::calcHist(&image, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
+
+      // Normalize the histogram to [0, histImage.height()]
+      hist.at<float>(0) = 0;    // We don't want to display black
+      cv::normalize(hist, hist, 0, RECT_HEIGHT, cv::NORM_MINMAX);
+
+      // Draw the histogram
+
+      QPainter painter(viewport());
+
+      // Place for the histogram
+      {
+        painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
+        painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
+        QRect rectangle(width() - RECT_START_X - RECT_WIDTH, height() - RECT_START_Y - RECT_HEIGHT, RECT_WIDTH,
+                        RECT_HEIGHT);    // Adjust the size as needed
+        // painter.drawRect(rectangle);
+      }
+
+      float binWidth = RECT_WIDTH / histSize;
+      for(int i = 1; i < UINT16_MAX; i++) {
+        float startX = ((float) width() - RECT_START_X - RECT_WIDTH) + (float) i * binWidth;
+        float startY = (float) height() - RECT_START_Y;
+        if(hist.at<float>(i) > 0) {
+          // std::cout << "H: " << std::to_string(startX) << " | " << std::to_string(hist.at<float>(i)) << std::endl;
+        }
+        painter.drawLine(startX, startY, startX, startY - hist.at<float>(i));
+
+        /* painter.drawLine(binWidth * (i - 1), RECT_HEIGHT - qRound(hist.at<float>(i - 1)), binWidth * i,
+                          RECT_HEIGHT - qRound(hist.at<float>(i)));*/
+      }
+    }
   }
 }
 

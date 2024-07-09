@@ -57,49 +57,6 @@
                         }
                     }
                 ]
-            },
-            "reporting": {
-                "detail": {
-                    "measureChannels": [
-                        "Confidence",
-                        "AreaSize",
-                        "Circularity",
-                        "Validity",
-                        "Invalidity",
-                        "CenterOfMassX",
-                        "CenterOfMassY",
-                        "IntensityAvg",
-                        "IntensityMin",
-                        "IntensityMax",
-                        "CrossChannelIntensityAvg",
-                        "CrossChannelIntensityMin",
-                        "CrossChannelIntensityMax"
-                    ]
-                },
-                "heatmap": {
-                    "measureChannels": [
-                        "ConfidenceAvg"
-                    ]
-                },
-                "overview": {
-                    "measureChannels": [
-                        "ConfidenceAvg",
-                        "AreaSizeAvg",
-                        "CircularityAvf",
-                        "CenterOfMassXAvg",
-                        "CenterOfMassYAvg",
-                        "IntensityAvgAvg",
-                        "IntensityMinAvg",
-                        "IntensityMaxAvg",
-                        "CrossChannelIntensityAvgAvg",
-                        "CrossChannelIntensityMinAvg",
-                        "CrossChannelIntensityMaxAvg",
-                        "CrossChannelCountAvg",
-                        "ValidityAvf",
-                        "InvalidityAvf",
-                        "CrossChannelCountSum"
-                    ]
-                }
             }
         },
         {
@@ -159,41 +116,6 @@
                         }
                     }
                 ]
-            },
-            "reporting": {
-                "detail": {
-                    "measureChannels": [
-                        "Confidence",
-                        "AreaSize",
-                        "Circularity",
-                        "Validity",
-                        "Invalidity",
-                        "CenterOfMassX",
-                        "CenterOfMassY",
-                        "IntensityAvg",
-                        "IntensityMin",
-                        "IntensityMax",
-                        "CrossChannelIntensityAvg",
-                        "CrossChannelIntensityMin",
-                        "CrossChannelIntensityMax"
-                    ]
-                },
-                "heatmap": {
-                    "measureChannels": [
-                        "ConfidenceAvg"
-                    ]
-                },
-                "overview": {
-                    "measureChannels": [
-                        "ConfidenceAvg",
-                        "AreaSizeAvg",
-                        "CircularityAvf",
-                        "CenterOfMassXAvg",
-                        "CenterOfMassYAvg",
-                        "ValidityAvf",
-                        "InvalidityAvf"
-                    ]
-                }
             }
         },
         {
@@ -247,35 +169,6 @@
                         }
                     }
                 ]
-            },
-            "reporting": {
-                "detail": {
-                    "measureChannels": [
-                        "Confidence",
-                        "AreaSize",
-                        "Circularity",
-                        "Validity",
-                        "Invalidity",
-                        "CenterOfMassX",
-                        "CenterOfMassY",
-                        "IntensityAvg",
-                        "IntensityMin",
-                        "IntensityMax",
-                        "CrossChannelIntensityAvg",
-                        "CrossChannelIntensityMin",
-                        "CrossChannelIntensityMax"
-                    ]
-                },
-                "heatmap": {
-                    "measureChannels": [
-                        "ConfidenceAvg"
-                    ]
-                },
-                "overview": {
-                    "measureChannels": [
-                        "ConfidenceAvg"
-                    ]
-                }
             }
         },
         {
@@ -341,32 +234,6 @@
                         }
                     }
                 ]
-            },
-            "reporting": {
-                "detail": {
-                    "measureChannels": [
-                        "Confidence",
-                        "AreaSize",
-                        "Circularity",
-                        "Validity",
-                        "Invalidity",
-                        "CenterOfMassX",
-                        "CenterOfMassY",
-                        "CrossChannelIntensityAvg",
-                        "CrossChannelIntensityMin",
-                        "CrossChannelIntensityMax"
-                    ]
-                },
-                "heatmap": {
-                    "measureChannels": [
-                        "ConfidenceAvg"
-                    ]
-                },
-                "overview": {
-                    "measureChannels": [
-                        "ConfidenceAvg"
-                    ]
-                }
             }
         }
     ],
@@ -377,6 +244,17 @@
         "generateHeatmapForPlate": true,
         "generateHeatmapForWell": true,
         "groupBy": "Filename",
+        "address": {
+            "city": "",
+            "country": "",
+            "organization": "",
+            "postalCode": "",
+            "streetAddress": ""
+        },
+        "notes": "My Notes",
+        "scientistsNames": [
+            "Test"
+        ],
         "imageHeatmapAreaSizes": [
             100,
             200
@@ -427,40 +305,6 @@
                     "series": 0,
                     "type": "Spot"
                 },
-                "reporting": {
-                    "detail": {
-                        "measureChannels": [
-                            "Confidence",
-                            "AreaSize",
-                            "Circularity",
-                            "Validity",
-                            "Invalidity",
-                            "CenterOfMassX",
-                            "CenterOfMassY",
-                            "IntensityAvg",
-                            "IntensityMin",
-                            "IntensityMax",
-                            "CrossChannelIntensityAvg",
-                            "CrossChannelIntensityMin",
-                            "CrossChannelIntensityMax"
-                        ]
-                    },
-                    "heatmap": {
-                        "measureChannels": [
-                            "ConfidenceAvg"
-                        ]
-                    },
-                    "overview": {
-                        "measureChannels": [
-                            "ConfidenceAvg",
-                            "IntensityMaxAvg",
-                            "CrossChannelIntensityAvgAvg",
-                            "CrossChannelIntensityMinAvg",
-                            "CrossChannelIntensityMaxAvg",
-                            "CrossChannelCountAvg"
-                        ]
-                    }
-                },
                 "voronoi": {
                     "gridPointsChannelIdx": "3",
                     "maxVoronoiAreaRadius": 1000,
@@ -489,45 +333,6 @@
                     "name": "Cy5Cy7",
                     "series": 0,
                     "type": "Spot"
-                },
-                "reporting": {
-                    "detail": {
-                        "measureChannels": [
-                            "Confidence",
-                            "AreaSize",
-                            "Circularity",
-                            "Validity",
-                            "Invalidity",
-                            "CenterOfMassX",
-                            "CenterOfMassY",
-                            "IntensityAvg",
-                            "IntensityMin",
-                            "IntensityMax",
-                            "CrossChannelIntensityAvg",
-                            "CrossChannelIntensityMin",
-                            "CrossChannelIntensityMax"
-                        ]
-                    },
-                    "heatmap": {
-                        "measureChannels": [
-                            "ConfidenceAvg"
-                        ]
-                    },
-                    "overview": {
-                        "measureChannels": [
-                            "ConfidenceAvg",
-                            "CenterOfMassXAvg",
-                            "CenterOfMassYAvg",
-                            "IntensityAvgAvg",
-                            "IntensityMinAvg",
-                            "IntensityMaxAvg",
-                            "CrossChannelIntensityAvgAvg",
-                            "CrossChannelIntensityMinAvg",
-                            "CrossChannelIntensityMaxAvg",
-                            "CrossChannelCountAvg",
-                            "CrossChannelCountSum"
-                        ]
-                    }
                 }
             }
         }

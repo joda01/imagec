@@ -41,7 +41,6 @@ Image::Image()
 void Image::setImage(const cv::Mat &imageToDisplay)
 {
   mImageOriginal = imageToDisplay;
-  mEditedImage   = imageToDisplay;
   update();
 }
 
@@ -59,12 +58,39 @@ void Image::update()
   // PxlInImg....New
   int type  = mImageOriginal.type();
   int depth = type & CV_MAT_DEPTH_MASK;
+  cv::Mat image;
   if(depth != CV_32F) {
-    std::cout << "Upper " << std::to_string(mUpperValue) << std::endl;
-    mEditedImage = mImageOriginal * (float) UINT16_MAX / (float) mUpperValue;
-  }
+    image = mImageOriginal.clone();
+    // Ensure minVal is less than maxVal
+    if(mLowerValue >= mUpperValue) {
+      std::cerr << "Minimum value must be less than maximum value." << std::endl;
+      return;
+    }
 
-  toPixmap();
+    // Create a lookup table for mapping pixel values
+    cv::Mat lookupTable(1, 65535, CV_16U);
+
+    for(int i = 0; i < 65535; ++i) {
+      if(i < mLowerValue) {
+        lookupTable.at<uint16_t>(i) = 0;
+      } else if(i > mUpperValue) {
+        lookupTable.at<uint16_t>(i) = 65535;
+      } else {
+        lookupTable.at<uint16_t>(i) = static_cast<uint16_t>((i - mLowerValue) * 65535.0 / (mUpperValue - mLowerValue));
+      }
+    }
+
+    // Apply the lookup table to the source image to get the destination image
+    for(int y = 0; y < image.rows; ++y) {
+      for(int x = 0; x < image.cols; ++x) {
+        uint16_t pixelValue      = image.at<uint16_t>(y, x);
+        image.at<uint16_t>(y, x) = lookupTable.at<uint16_t>(pixelValue);
+      }
+    }
+    toPixmap(image);
+  } else {
+    toPixmap(mImageOriginal);
+  }
 }
 
 ///
@@ -88,17 +114,17 @@ void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue)
 /// \param[out]
 /// \return
 ///
-std::vector<uchar> Image::encodeToPNG()
+std::vector<uchar> Image::encodeToPNG(const cv::Mat &image)
 {
   cv::Mat originalImageFloat;
-  int type  = mEditedImage.type();
+  int type  = image.type();
   int depth = type & CV_MAT_DEPTH_MASK;
   if(depth != CV_32F) {
     cv::Mat grayImageFloat;
-    mEditedImage.convertTo(grayImageFloat, CV_32FC3, (float) UINT8_MAX / (float) UINT16_MAX);
+    image.convertTo(grayImageFloat, CV_32FC3, (float) UINT8_MAX / (float) UINT16_MAX);
     cv::cvtColor(grayImageFloat, originalImageFloat, cv::COLOR_GRAY2BGR);
   } else {
-    originalImageFloat = mEditedImage;
+    originalImageFloat = image;
   }
 
   std::vector<int> compression_params;
@@ -116,9 +142,10 @@ std::vector<uchar> Image::encodeToPNG()
 /// \param[out]
 /// \return
 ///
-void Image::toPixmap()
+void Image::toPixmap(const cv::Mat &image)
 {
-  auto data = encodeToPNG();
+  auto data = encodeToPNG(image);
+  mPixmap   = {};
   mPixmap.loadFromData(data.data(), data.size(), "PNG");
 }
 

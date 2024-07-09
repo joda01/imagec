@@ -59,6 +59,7 @@ protected:
   void leaveEvent(QEvent *) override;
   void wheelEvent(QWheelEvent *event) override;
   void paintEvent(QPaintEvent *event) override;
+  void drawHistogram(const cv::Mat &image);
 
 private:
   /////////////////////////////////////////////////////

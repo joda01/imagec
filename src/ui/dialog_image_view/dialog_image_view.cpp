@@ -16,9 +16,12 @@
 #include <qgridlayout.h>
 #include <qslider.h>
 #include <cstdint>
+#include <thread>
 #include "backend/image_processing/image/image.hpp"
 
 namespace joda::ui::qt {
+
+using namespace std::chrono_literals;
 
 ///
 /// \brief
@@ -41,18 +44,19 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
 
     QAction *action1 = new QAction("Action 1", this);
     QAction *action2 = new QAction("Action 2", this);
-    QSlider *slider  = new QSlider(this);
-    slider->setMinimum(1);
-    slider->setMaximum(UINT16_MAX);
-    slider->setValue(UINT16_MAX);
-    connect(slider, &QSlider::sliderMoved, this, &DialogImageViewer::onSliderMoved);
+    mSlider          = new QSlider(this);
+    mSlider->setMinimum(1);
+    mSlider->setMaximum(UINT16_MAX);
+    mSlider->setValue(UINT16_MAX);
+    mSlider->setOrientation(Qt::Orientation::Horizontal);
+    connect(mSlider, &QSlider::sliderMoved, this, &DialogImageViewer::onSliderMoved);
 
     // connect(action1, &QAction::triggered, this, &MyDialog::onAction1Triggered);
     // connect(action2, &QAction::triggered, this, &MyDialog::onAction2Triggered);
-    toolBar->addWidget(slider);
+    toolBar->addWidget(mSlider);
 
-    toolBar->addAction(action1);
-    toolBar->addAction(action2);
+    // toolBar->addAction(action1);
+    // toolBar->addAction(action2);
 
     layout->addWidget(toolBar);
   }
@@ -78,6 +82,15 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
   setLayout(layout);
 }
 
+DialogImageViewer::~DialogImageViewer()
+{
+  if(mPreviewThread != nullptr) {
+    if(mPreviewThread->joinable()) {
+      mPreviewThread->join();
+    }
+  }
+}
+
 ///
 /// \brief
 /// \author
@@ -87,8 +100,35 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
 ///
 void DialogImageViewer::onSliderMoved(int position)
 {
-  mImageViewLeft->getImage().setBrightnessRange(0, position);
-  mImageViewLeft->emitUpdateImage();
+  if(mPreviewCounter == 0) {
+    {
+      std::lock_guard<std::mutex> lock(mPreviewMutex);
+      mPreviewCounter++;
+    }
+    if(mPreviewThread != nullptr) {
+      if(mPreviewThread->joinable()) {
+        mPreviewThread->join();
+      }
+    }
+    mPreviewThread = std::make_unique<std::thread>([this] {
+      int previewCounter = 0;
+      std::this_thread::sleep_for(50ms);
+      do {
+        mImageViewLeft->getImage().setBrightnessRange(0, mSlider->value());
+        mImageViewLeft->emitUpdateImage();
+        std::this_thread::sleep_for(50ms);
+        {
+          std::lock_guard<std::mutex> lock(mPreviewMutex);
+          previewCounter = mPreviewCounter;
+          previewCounter--;
+          mPreviewCounter = previewCounter;
+        }
+      } while(previewCounter > 0);
+    });
+  } else {
+    std::lock_guard<std::mutex> lock(mPreviewMutex);
+    mPreviewCounter++;
+  }
 }
 
 ///

@@ -31,11 +31,16 @@ class DialogImageViewer : public QDialog
 public:
   /////////////////////////////////////////////////////
   DialogImageViewer(QWidget *parent);
+  ~DialogImageViewer();
   void setImage(const joda::image::Image &leftImage, const joda::image::Image &rightImage);
 
 private:
+  QSlider *mSlider;
   PanelImageView *mImageViewLeft;
   PanelImageView *mImageViewRight;
+  std::unique_ptr<std::thread> mPreviewThread = nullptr;
+  std::mutex mPreviewMutex;
+  int mPreviewCounter = 0;
 
 private slots:
   void onLeftViewChanged();
