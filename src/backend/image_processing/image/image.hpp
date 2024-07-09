@@ -14,6 +14,7 @@
 #pragma once
 
 #include <qpixmap.h>
+#include <cstdint>
 #include <vector>
 #include <opencv2/core/mat.hpp>
 
@@ -43,12 +44,19 @@ public:
     return mPixmap;
   }
 
+  void setBrightnessRange(int32_t lowerValue, int32_t upperValue);
+
 private:
   /////////////////////////////////////////////////////
+  void update();
   std::vector<uchar> encodeToPNG();
   void toPixmap();
 
-  /////////////////////////////////////////////////////
+  //// BRIGHTNESS /////////////////////////////////////////////////
+  int32_t mLowerValue = 0;
+  int32_t mUpperValue = UINT16_MAX;
+
+  //// IMAGE /////////////////////////////////////////////////
   cv::Mat mImageOriginal;
   cv::Mat mEditedImage;
   QPixmap mPixmap;

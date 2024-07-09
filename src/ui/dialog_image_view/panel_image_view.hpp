@@ -37,6 +37,14 @@ public:
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
+  joda::image::Image &getImage()
+  {
+    return mActPixmapOriginal;
+  }
+  void emitUpdateImage()
+  {
+    emit updateImage();
+  }
 
 signals:
   void updateImage();

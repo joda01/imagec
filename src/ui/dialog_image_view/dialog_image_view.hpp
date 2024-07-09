@@ -40,6 +40,7 @@ private:
 private slots:
   void onLeftViewChanged();
   void onRightViewChanged();
+  void onSliderMoved(int position);
 };
 
 }    // namespace joda::ui::qt

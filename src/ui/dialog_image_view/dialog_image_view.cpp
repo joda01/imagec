@@ -14,6 +14,8 @@
 #include "dialog_image_view.hpp"
 #include <qdialog.h>
 #include <qgridlayout.h>
+#include <qslider.h>
+#include <cstdint>
 #include "backend/image_processing/image/image.hpp"
 
 namespace joda::ui::qt {
@@ -39,9 +41,15 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
 
     QAction *action1 = new QAction("Action 1", this);
     QAction *action2 = new QAction("Action 2", this);
+    QSlider *slider  = new QSlider(this);
+    slider->setMinimum(1);
+    slider->setMaximum(UINT16_MAX);
+    slider->setValue(UINT16_MAX);
+    connect(slider, &QSlider::sliderMoved, this, &DialogImageViewer::onSliderMoved);
 
     // connect(action1, &QAction::triggered, this, &MyDialog::onAction1Triggered);
     // connect(action2, &QAction::triggered, this, &MyDialog::onAction2Triggered);
+    toolBar->addWidget(slider);
 
     toolBar->addAction(action1);
     toolBar->addAction(action2);
@@ -68,6 +76,19 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
   }
 
   setLayout(layout);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onSliderMoved(int position)
+{
+  mImageViewLeft->getImage().setBrightnessRange(0, position);
+  mImageViewLeft->emitUpdateImage();
 }
 
 ///

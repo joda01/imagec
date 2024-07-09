@@ -12,6 +12,9 @@
 ///
 
 #include "image.hpp"
+#include <cstdint>
+#include <iostream>
+#include <string>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -28,13 +31,63 @@ Image::Image()
 {
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Image::setImage(const cv::Mat &imageToDisplay)
 {
   mImageOriginal = imageToDisplay;
   mEditedImage   = imageToDisplay;
+  update();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Image::update()
+{
+  // 65535....65535
+  // 3000 .......65535
+  // PxlInImg....New
+  int type  = mImageOriginal.type();
+  int depth = type & CV_MAT_DEPTH_MASK;
+  if(depth != CV_32F) {
+    std::cout << "Upper " << std::to_string(mUpperValue) << std::endl;
+    mEditedImage = mImageOriginal * (float) UINT16_MAX / (float) mUpperValue;
+  }
+
   toPixmap();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue)
+{
+  mLowerValue = lowerValue;
+  mUpperValue = upperValue;
+  update();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 std::vector<uchar> Image::encodeToPNG()
 {
   cv::Mat originalImageFloat;
@@ -42,7 +95,7 @@ std::vector<uchar> Image::encodeToPNG()
   int depth = type & CV_MAT_DEPTH_MASK;
   if(depth != CV_32F) {
     cv::Mat grayImageFloat;
-    mEditedImage.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UINT16_MAX);
+    mEditedImage.convertTo(grayImageFloat, CV_32FC3, (float) UINT8_MAX / (float) UINT16_MAX);
     cv::cvtColor(grayImageFloat, originalImageFloat, cv::COLOR_GRAY2BGR);
   } else {
     originalImageFloat = mEditedImage;
@@ -56,13 +109,17 @@ std::vector<uchar> Image::encodeToPNG()
   return buffer;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Image::toPixmap()
 {
   auto data = encodeToPNG();
-  QByteArray byteArray(reinterpret_cast<const char *>(data.data()), data.size());
-  QImage originalImage;
-  originalImage.loadFromData(byteArray, "PNG");
-  mPixmap = QPixmap::fromImage(originalImage);
+  mPixmap.loadFromData(data.data(), data.size(), "PNG");
 }
 
 }    // namespace joda::image
