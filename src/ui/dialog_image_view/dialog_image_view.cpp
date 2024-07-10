@@ -34,8 +34,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
 {
   setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
   setModal(false);
-  setBaseSize(800, 800);
-  setMinimumSize(800, 800);
+  setBaseSize(1200, 600);
+  setMinimumSize(1200, 600);
 
   QVBoxLayout *layout = new QVBoxLayout(this);
   // Toolbar
@@ -91,6 +91,14 @@ DialogImageViewer::~DialogImageViewer()
   }
 }
 
+void DialogImageViewer::fitImageToScreenSize()
+{
+  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
+    mImageViewLeft->fitImageToScreenSize();
+    mImageViewRight->fitImageToScreenSize();
+  }
+}
+
 ///
 /// \brief
 /// \author
@@ -112,11 +120,10 @@ void DialogImageViewer::onSliderMoved(int position)
     }
     mPreviewThread = std::make_unique<std::thread>([this] {
       int previewCounter = 0;
-      std::this_thread::sleep_for(50ms);
       do {
         mImageViewLeft->getImage().setBrightnessRange(0, mSlider->value());
         mImageViewLeft->emitUpdateImage();
-        std::this_thread::sleep_for(50ms);
+        std::this_thread::sleep_for(20ms);
         {
           std::lock_guard<std::mutex> lock(mPreviewMutex);
           previewCounter = mPreviewCounter;

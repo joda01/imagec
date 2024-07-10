@@ -49,8 +49,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   void update();
-  std::vector<uchar> encodeToPNG(const cv::Mat &image);
-  void toPixmap(const cv::Mat &image);
+  void encode(const cv::Mat &image);
 
   //// BRIGHTNESS /////////////////////////////////////////////////
   float mLowerValue = 0;

@@ -120,6 +120,7 @@ void PanelPreview::onFitImageToScreenSizeClicked()
 void PanelPreview::onOpenFullScreenClickec()
 {
   mImageViewer.show();
+  mImageViewer.fitImageToScreenSize();
 }
 
 }    // namespace joda::ui::qt

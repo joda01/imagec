@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -87,9 +88,9 @@ void Image::update()
         image.at<uint16_t>(y, x) = lookupTable.at<uint16_t>(pixelValue);
       }
     }
-    toPixmap(image);
+    encode(image);
   } else {
-    toPixmap(mImageOriginal);
+    encode(mImageOriginal);
   }
 }
 
@@ -114,39 +115,42 @@ void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue)
 /// \param[out]
 /// \return
 ///
-std::vector<uchar> Image::encodeToPNG(const cv::Mat &image)
+void Image::encode(const cv::Mat &image)
 {
   cv::Mat originalImageFloat;
   int type  = image.type();
   int depth = type & CV_MAT_DEPTH_MASK;
-  if(depth != CV_32F) {
-    cv::Mat grayImageFloat;
-    image.convertTo(grayImageFloat, CV_32FC3, (float) UINT8_MAX / (float) UINT16_MAX);
-    cv::cvtColor(grayImageFloat, originalImageFloat, cv::COLOR_GRAY2BGR);
-  } else {
+  if(image.type() == CV_16UC1) {
+    cv::Mat img8;
+    image.convertTo(img8, CV_8UC1, 1.0 / 256.0);    // scaling factor to convert 16-bit to 8-bit
+    cv::cvtColor(img8, originalImageFloat, cv::COLOR_GRAY2BGR);
+  } else if(image.type() == CV_32FC3) {
+    image.convertTo(originalImageFloat, CV_8UC3, 1);    // scaling factor to convert 16-bit to 8-bit
+  } else if(image.type() == CV_8UC3) {
     originalImageFloat = image;
+  } else {
+    std::cout << "Not supported 1" << std::endl;
   }
 
-  std::vector<int> compression_params;
-  compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-  compression_params.push_back(0);
-  std::vector<uchar> buffer;
-  cv::imencode(".png", originalImageFloat, buffer, compression_params);
-  return buffer;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void Image::toPixmap(const cv::Mat &image)
-{
-  auto data = encodeToPNG(image);
-  mPixmap   = {};
-  mPixmap.loadFromData(data.data(), data.size(), "PNG");
+  switch(originalImageFloat.type()) {
+    case CV_8UC1: {
+      mPixmap = QPixmap::fromImage(QImage(originalImageFloat.data, originalImageFloat.cols, originalImageFloat.rows,
+                                          static_cast<int>(originalImageFloat.step), QImage::Format_Grayscale8));
+    } break;
+    case CV_32FC3:
+    case CV_8UC3: {
+      mPixmap = QPixmap::fromImage(QImage(originalImageFloat.data, originalImageFloat.cols, originalImageFloat.rows,
+                                          static_cast<int>(originalImageFloat.step), QImage::Format_RGB888)
+                                       .rgbSwapped());
+    } break;
+    case CV_8UC4: {
+      mPixmap = QPixmap::fromImage(QImage(originalImageFloat.data, originalImageFloat.cols, originalImageFloat.rows,
+                                          static_cast<int>(originalImageFloat.step), QImage::Format_ARGB32));
+    } break;
+    default:
+      std::cout << "Not supported" << std::endl;
+      break;
+  }
 }
 
 }    // namespace joda::image

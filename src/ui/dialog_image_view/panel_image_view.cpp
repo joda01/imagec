@@ -72,13 +72,11 @@ void PanelImageView::resetImage()
 void PanelImageView::onUpdateImage()
 {
   scene->setSceneRect(mActPixmapOriginal.getPixmap().rect());
-
-  if(nullptr == mActPixmap) {
-    mActPixmap = scene->addPixmap(mActPixmapOriginal.getPixmap());
-  } else {
+  if(nullptr != mActPixmap) {
     scene->removeItem(mActPixmap);
-    mActPixmap = scene->addPixmap(mActPixmapOriginal.getPixmap());
+    delete mActPixmap;
   }
+  mActPixmap = scene->addPixmap(mActPixmapOriginal.getPixmap());
 
   scene->update();
   update();

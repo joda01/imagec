@@ -33,6 +33,7 @@ public:
   DialogImageViewer(QWidget *parent);
   ~DialogImageViewer();
   void setImage(const joda::image::Image &leftImage, const joda::image::Image &rightImage);
+  void fitImageToScreenSize();
 
 private:
   QSlider *mSlider;
