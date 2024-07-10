@@ -77,7 +77,9 @@ void Image::update()
       } else if(i > mUpperValue) {
         lookupTable.at<uint16_t>(i) = 65535;
       } else {
-        lookupTable.at<uint16_t>(i) = static_cast<uint16_t>((i - mLowerValue) * 65535.0 / (mUpperValue - mLowerValue));
+        lookupTable.at<uint16_t>(i) =
+            static_cast<uint16_t>((i - static_cast<float>(mLowerValue)) * 65535.0 /
+                                  (static_cast<float>(mUpperValue) - static_cast<float>(mLowerValue)));
       }
     }
 
@@ -101,10 +103,13 @@ void Image::update()
 /// \param[out]
 /// \return
 ///
-void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue)
+void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor,
+                               uint16_t histogramOffset)
 {
-  mLowerValue = lowerValue;
-  mUpperValue = upperValue;
+  mLowerValue          = lowerValue;
+  mUpperValue          = upperValue;
+  mHistogramZoomFactor = histogramZoomFactor;
+  mHistogramOffset     = histogramOffset;
   update();
 }
 

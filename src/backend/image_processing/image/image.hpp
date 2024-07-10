@@ -43,8 +43,22 @@ public:
   {
     return mPixmap;
   }
+  [[nodiscard]] float getHitogramZoomFactor() const
+  {
+    return mHistogramZoomFactor;
+  }
+  [[nodiscard]] float getHistogramOffset() const
+  {
+    return mHistogramOffset;
+  }
 
-  void setBrightnessRange(int32_t lowerValue, int32_t upperValue);
+  [[nodiscard]] uint16_t getUpperLevelContrast() const
+  {
+    return mUpperValue;
+  }
+
+  void setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor,
+                          uint16_t histogramOffset);
 
 private:
   /////////////////////////////////////////////////////
@@ -52,8 +66,10 @@ private:
   void encode(const cv::Mat &image);
 
   //// BRIGHTNESS /////////////////////////////////////////////////
-  float mLowerValue = 0;
-  float mUpperValue = UINT16_MAX;
+  uint16_t mLowerValue       = 0;
+  uint16_t mUpperValue       = UINT16_MAX;
+  float mHistogramZoomFactor = 1;
+  float mHistogramOffset     = 0;
 
   //// IMAGE /////////////////////////////////////////////////
   cv::Mat mImageOriginal;

@@ -37,6 +37,9 @@ public:
 
 private:
   QSlider *mSlider;
+  QSlider *mSliderScaling;
+  QScrollBar *mSliderHistogramOffset;
+
   PanelImageView *mImageViewLeft;
   PanelImageView *mImageViewRight;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;

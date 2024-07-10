@@ -12,10 +12,12 @@
 ///
 
 #include "dialog_image_view.hpp"
+#include <qboxlayout.h>
 #include <qdialog.h>
 #include <qgridlayout.h>
 #include <qslider.h>
 #include <cstdint>
+#include <string>
 #include <thread>
 #include "backend/image_processing/image/image.hpp"
 
@@ -37,10 +39,13 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
   setBaseSize(1200, 600);
   setMinimumSize(1200, 600);
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QHBoxLayout *layout = new QHBoxLayout(this);
   // Toolbar
   {
-    QToolBar *toolBar = new QToolBar(this);
+    QWidget *toolBar = new QWidget(this);
+    toolBar->setMaximumWidth(150);
+    toolBar->setMinimumWidth(150);
+    QVBoxLayout *toolLayout = new QVBoxLayout();
 
     QAction *action1 = new QAction("Action 1", this);
     QAction *action2 = new QAction("Action 2", this);
@@ -49,15 +54,33 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
     mSlider->setMaximum(UINT16_MAX);
     mSlider->setValue(UINT16_MAX);
     mSlider->setOrientation(Qt::Orientation::Horizontal);
-    connect(mSlider, &QSlider::sliderMoved, this, &DialogImageViewer::onSliderMoved);
+    connect(mSlider, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
+    toolLayout->addWidget(mSlider);
+
+    mSliderScaling = new QSlider(this);
+    mSliderScaling->setMinimum(1);
+    mSliderScaling->setMaximum(UINT8_MAX);
+    mSliderScaling->setValue(1);
+    mSliderScaling->setOrientation(Qt::Orientation::Horizontal);
+    connect(mSliderScaling, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
+    toolLayout->addWidget(mSliderScaling);
+
+    mSliderHistogramOffset = new QScrollBar(this);
+    mSliderHistogramOffset->setMinimum(0);
+    mSliderHistogramOffset->setMaximum(0);
+    mSliderHistogramOffset->setValue(0);
+    mSliderHistogramOffset->setOrientation(Qt::Orientation::Horizontal);
+    connect(mSliderHistogramOffset, &QScrollBar::valueChanged, this, &DialogImageViewer::onSliderMoved);
+    toolLayout->addWidget(mSliderHistogramOffset);
+
+    toolLayout->addStretch();
 
     // connect(action1, &QAction::triggered, this, &MyDialog::onAction1Triggered);
     // connect(action2, &QAction::triggered, this, &MyDialog::onAction2Triggered);
-    toolBar->addWidget(mSlider);
 
     // toolBar->addAction(action1);
     // toolBar->addAction(action2);
-
+    toolBar->setLayout(toolLayout);
     layout->addWidget(toolBar);
   }
 
@@ -108,6 +131,14 @@ void DialogImageViewer::fitImageToScreenSize()
 ///
 void DialogImageViewer::onSliderMoved(int position)
 {
+  blockSignals(true);
+  int number = (float) UINT16_MAX / mSliderScaling->value();
+  int max    = UINT16_MAX - number;
+  mSliderHistogramOffset->setMaximum(max);
+  mSlider->setMinimum(mSliderHistogramOffset->value());
+  mSlider->setMaximum(mSliderHistogramOffset->value() + number);
+  blockSignals(false);
+
   if(mPreviewCounter == 0) {
     {
       std::lock_guard<std::mutex> lock(mPreviewMutex);
@@ -121,7 +152,8 @@ void DialogImageViewer::onSliderMoved(int position)
     mPreviewThread = std::make_unique<std::thread>([this] {
       int previewCounter = 0;
       do {
-        mImageViewLeft->getImage().setBrightnessRange(0, mSlider->value());
+        mImageViewLeft->getImage().setBrightnessRange(0, mSlider->value(), mSliderScaling->value(),
+                                                      mSliderHistogramOffset->value());
         mImageViewLeft->emitUpdateImage();
         std::this_thread::sleep_for(20ms);
         {
