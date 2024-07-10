@@ -39,50 +39,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
   setBaseSize(1200, 600);
   setMinimumSize(1200, 600);
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  // Toolbar
-  {
-    QWidget *toolBar = new QWidget(this);
-    toolBar->setMaximumWidth(150);
-    toolBar->setMinimumWidth(150);
-    QVBoxLayout *toolLayout = new QVBoxLayout();
-
-    QAction *action1 = new QAction("Action 1", this);
-    QAction *action2 = new QAction("Action 2", this);
-    mSlider          = new QSlider(this);
-    mSlider->setMinimum(1);
-    mSlider->setMaximum(UINT16_MAX);
-    mSlider->setValue(UINT16_MAX);
-    mSlider->setOrientation(Qt::Orientation::Horizontal);
-    connect(mSlider, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
-    toolLayout->addWidget(mSlider);
-
-    mSliderScaling = new QSlider(this);
-    mSliderScaling->setMinimum(1);
-    mSliderScaling->setMaximum(UINT8_MAX);
-    mSliderScaling->setValue(1);
-    mSliderScaling->setOrientation(Qt::Orientation::Horizontal);
-    connect(mSliderScaling, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
-    toolLayout->addWidget(mSliderScaling);
-
-    mSliderHistogramOffset = new QScrollBar(this);
-    mSliderHistogramOffset->setMinimum(0);
-    mSliderHistogramOffset->setMaximum(0);
-    mSliderHistogramOffset->setValue(0);
-    mSliderHistogramOffset->setOrientation(Qt::Orientation::Horizontal);
-    connect(mSliderHistogramOffset, &QScrollBar::valueChanged, this, &DialogImageViewer::onSliderMoved);
-    toolLayout->addWidget(mSliderHistogramOffset);
-
-    toolLayout->addStretch();
-
-    // connect(action1, &QAction::triggered, this, &MyDialog::onAction1Triggered);
-    // connect(action2, &QAction::triggered, this, &MyDialog::onAction2Triggered);
-
-    // toolBar->addAction(action1);
-    // toolBar->addAction(action2);
-    toolBar->setLayout(toolLayout);
-    layout->addWidget(toolBar);
-  }
+  QVBoxLayout *layout = new QVBoxLayout(this);
 
   // Central images
   {
@@ -102,7 +59,58 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
     layout->addLayout(centralLayout);
   }
 
+  // Toolbar
+  {
+    QWidget *toolBar = new QWidget(this);
+    toolBar->setMaximumHeight(32);
+    QGridLayout *toolGrid = new QGridLayout();
+
+    QHBoxLayout *leftToolBar = new QHBoxLayout();
+
+    mSlider = new QSlider(this);
+    mSlider->setMinimum(1);
+    mSlider->setMaximum(UINT16_MAX);
+    mSlider->setValue(600);
+    mSlider->setOrientation(Qt::Orientation::Horizontal);
+    connect(mSlider, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
+    leftToolBar->addWidget(mSlider);
+
+    toolGrid->addLayout(leftToolBar, 0, 0);
+
+    QHBoxLayout *rightToolBar = new QHBoxLayout();
+
+    QAction *action1 = new QAction("Action 1", this);
+    QAction *action2 = new QAction("Action 2", this);
+
+    // connect(action1, &QAction::triggered, this, &MyDialog::onAction1Triggered);
+    // connect(action2, &QAction::triggered, this, &MyDialog::onAction2Triggered);
+
+    // toolBar->addAction(action1);
+    // toolBar->addAction(action2);
+
+    mSliderScaling = new QSlider(this);
+    mSliderScaling->setMinimum(1);
+    mSliderScaling->setMaximum(UINT8_MAX);
+    mSliderScaling->setValue(128);
+    mSliderScaling->setOrientation(Qt::Orientation::Horizontal);
+    connect(mSliderScaling, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
+    rightToolBar->addWidget(mSliderScaling);
+
+    mSliderHistogramOffset = new QScrollBar(this);
+    mSliderHistogramOffset->setMinimum(0);
+    mSliderHistogramOffset->setMaximum(0);
+    mSliderHistogramOffset->setValue(0);
+    mSliderHistogramOffset->setOrientation(Qt::Orientation::Horizontal);
+    connect(mSliderHistogramOffset, &QScrollBar::valueChanged, this, &DialogImageViewer::onSliderMoved);
+    rightToolBar->addWidget(mSliderHistogramOffset);
+
+    toolGrid->addLayout(rightToolBar, 0, 1);
+    toolBar->setLayout(toolGrid);
+    layout->addWidget(toolBar);
+  }
+
   setLayout(layout);
+  onSliderMoved(0);
 }
 
 DialogImageViewer::~DialogImageViewer()
