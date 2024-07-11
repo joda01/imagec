@@ -34,73 +34,87 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
+DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
 {
-  setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
-  setModal(false);
+  // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
   setBaseSize(1200, 600);
   setMinimumSize(1200, 600);
-
-  QVBoxLayout *layout = new QVBoxLayout(this);
 
   {
     QToolBar *toolbarTop = new QToolBar();
     toolbarTop->setContentsMargins(0, 0, 0, 0);
     toolbarTop->setMaximumHeight(32);
 
-    QAction *action1 = new QAction(QIcon(":/icons/outlined/icons8-normal-distribution-histogram-50.png"), "");
-    connect(action1, &QAction::triggered, this, &DialogImageViewer::onShowHistogramDialog);
-    toolbarTop->addAction(action1);
-
     QAction *action2 = new QAction(QIcon(":/icons/outlined/icons8-hand-50.png"), "");
     //  connect(action2, &QAction::triggered, this, &MyDialog::onAction2Triggered);
     toolbarTop->addAction(action2);
 
-    layout->addWidget(toolbarTop);
+    QAction *fitToScreen = new QAction(QIcon(":/icons/outlined/icons8-full-image-50.png"), "");
+    fitToScreen->setObjectName("ToolButton");
+    fitToScreen->setToolTip("Fit image to screen");
+    connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
+    toolbarTop->addAction(fitToScreen);
+
+    QAction *zoomIn = new QAction(QIcon(":/icons/outlined/icons8-zoom-in-50.png"), "");
+    zoomIn->setObjectName("ToolButton");
+    zoomIn->setToolTip("Zoom in");
+    connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
+    toolbarTop->addAction(zoomIn);
+
+    QAction *zoomOut = new QAction(QIcon(":/icons/outlined/icons8-zoom-out-50.png"), "");
+    zoomOut->setObjectName("ToolButton");
+    zoomOut->setToolTip("Zoom out");
+    connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
+    toolbarTop->addAction(zoomOut);
+
+    toolbarTop->addSeparator();
+
+    QAction *action1 = new QAction(QIcon(":/icons/outlined/icons8-normal-distribution-histogram-50.png"), "");
+    connect(action1, &QAction::triggered, this, &DialogImageViewer::onShowHistogramDialog);
+    toolbarTop->addAction(action1);
+
+    addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
 
   // Central images
   {
-    QGridLayout *centralLayout = new QGridLayout();
-    mImageViewLeft             = new PanelImageView(this);
+    QGridLayout *centralLayout = new QGridLayout(this);
+    QWidget *centralWidget     = new QWidget();
+    mImageViewLeft             = new PanelImageView();
     mImageViewLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     centralLayout->addWidget(mImageViewLeft, 0, 0);
     mImageViewLeft->resetImage();
 
-    mImageViewRight = new PanelImageView(this);
+    mImageViewRight = new PanelImageView();
     mImageViewRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     centralLayout->addWidget(mImageViewRight, 0, 1);
     mImageViewRight->resetImage();
 
+    // centralLayout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    centralWidget->setLayout(centralLayout);
+    setCentralWidget(centralWidget);
+
     connect(mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
     connect(mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
-    layout->addLayout(centralLayout);
   }
 
   // Toolbar buttom
   {
-    QWidget *toolBar = new QWidget(this);
+    QToolBar *toolBar = new QToolBar();
     toolBar->setMaximumHeight(32);
-    QGridLayout *toolGrid = new QGridLayout();
 
-    QHBoxLayout *leftToolBar = new QHBoxLayout();
-
-    mSlider = new QSlider(this);
+    mSlider = new QSlider();
     mSlider->setMinimum(1);
     mSlider->setMaximum(UINT16_MAX);
     mSlider->setValue(600);
     mSlider->setOrientation(Qt::Orientation::Horizontal);
     connect(mSlider, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
-    leftToolBar->addWidget(mSlider);
+    toolBar->addWidget(mSlider);
 
-    toolGrid->addLayout(leftToolBar, 0, 0);
-    toolGrid->addWidget(new QLabel(), 0, 1);
-
-    toolBar->setLayout(toolGrid);
-    layout->addWidget(toolBar);
+    addToolBar(Qt::ToolBarArea::BottomToolBarArea, toolBar);
   }
   createHistogramDialog();
-  setLayout(layout);
   onSliderMoved(0);
 }
 
@@ -273,6 +287,42 @@ void DialogImageViewer::createHistogramDialog()
   }
 
   mHistogramDialog->setLayout(layoutMain);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onZoomInClicked()
+{
+  mImageViewLeft->zoomImage(true);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onZoomOutClicked()
+{
+  mImageViewLeft->zoomImage(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onFitImageToScreenSizeClicked()
+{
+  mImageViewLeft->fitImageToScreenSize();
 }
 
 ///

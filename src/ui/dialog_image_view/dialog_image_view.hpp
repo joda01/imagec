@@ -14,6 +14,7 @@
 #pragma once
 
 #include <qdialog.h>
+#include <qwindow.h>
 #include "backend/image_processing/image/image.hpp"
 #include "panel_image_view.hpp"
 
@@ -24,7 +25,7 @@ namespace joda::ui::qt {
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DialogImageViewer : public QDialog
+class DialogImageViewer : public QMainWindow
 {
   Q_OBJECT
 
@@ -51,6 +52,9 @@ private:
   QDialog *mHistogramDialog;
 
 private slots:
+  void onFitImageToScreenSizeClicked();
+  void onZoomOutClicked();
+  void onZoomInClicked();
   void onLeftViewChanged();
   void onRightViewChanged();
   void onSliderMoved(int position);
