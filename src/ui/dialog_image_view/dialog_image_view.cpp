@@ -79,7 +79,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
     paintRectangle->setCheckable(true);
     connect(paintRectangle, &QAction::triggered, this, &DialogImageViewer::onSetStateToPaintRect);
     buttonGroup->addAction(paintRectangle);
-    toolbarTop->addAction(paintRectangle);
+    // toolbarTop->addAction(paintRectangle);
 
     toolbarTop->addSeparator();
 
