@@ -12,6 +12,7 @@
 ///
 
 #include "dialog_image_view.hpp"
+#include <qactiongroup.h>
 #include <qboxlayout.h>
 #include <qdialog.h>
 #include <qgridlayout.h>
@@ -45,11 +46,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
     toolbarTop->setContentsMargins(0, 0, 0, 0);
     toolbarTop->setMaximumHeight(32);
 
-    QAction *action2 = new QAction(QIcon(":/icons/outlined/icons8-hand-50.png"), "");
-    //  connect(action2, &QAction::triggered, this, &MyDialog::onAction2Triggered);
-    toolbarTop->addAction(action2);
-
-    QAction *fitToScreen = new QAction(QIcon(":/icons/outlined/icons8-full-image-50.png"), "");
+    QAction *fitToScreen = new QAction(QIcon(":/icons/outlined/icons8-full-screen-50.png"), "");
     fitToScreen->setObjectName("ToolButton");
     fitToScreen->setToolTip("Fit image to screen");
     connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
@@ -66,6 +63,23 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
     zoomOut->setToolTip("Zoom out");
     connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
     toolbarTop->addAction(zoomOut);
+
+    toolbarTop->addSeparator();
+
+    QActionGroup *buttonGroup = new QActionGroup(toolbarTop);
+
+    QAction *action2 = new QAction(QIcon(":/icons/outlined/icons8-hand-50.png"), "");
+    action2->setCheckable(true);
+    action2->setChecked(true);
+    connect(action2, &QAction::triggered, this, &DialogImageViewer::onSetSateToMove);
+    buttonGroup->addAction(action2);
+    toolbarTop->addAction(action2);
+
+    QAction *paintRectangle = new QAction(QIcon(":/icons/outlined/icons8-rectangle-50.png"), "");
+    paintRectangle->setCheckable(true);
+    connect(paintRectangle, &QAction::triggered, this, &DialogImageViewer::onSetStateToPaintRect);
+    buttonGroup->addAction(paintRectangle);
+    toolbarTop->addAction(paintRectangle);
 
     toolbarTop->addSeparator();
 
@@ -336,6 +350,36 @@ void DialogImageViewer::onShowHistogramDialog()
 {
   if(!mHistogramDialog->isVisible()) {
     mHistogramDialog->show();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onSetSateToMove()
+{
+  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
+    mImageViewLeft->setState(PanelImageView::State::MOVE);
+    mImageViewRight->setState(PanelImageView::State::MOVE);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onSetStateToPaintRect()
+{
+  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
+    mImageViewLeft->setState(PanelImageView::State::PAINT);
+    mImageViewRight->setState(PanelImageView::State::PAINT);
   }
 }
 

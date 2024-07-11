@@ -71,10 +71,10 @@ QWidget *PanelPreview::createToolBar()
   move->setCheckable(true);
   move->setToolTip("Move the image");
   move->setChecked(true);
-  buttonGroup->addButton(move);
-  layout->addWidget(move);
+  // buttonGroup->addButton(move);
+  // layout->addWidget(move);
 
-  QPushButton *fitToScreen = new QPushButton(QIcon(":/icons/outlined/icons8-full-image-50.png"), "");
+  QPushButton *fitToScreen = new QPushButton(QIcon(":/icons/outlined/icons8-full-screen-50.png"), "");
   fitToScreen->setObjectName("ToolButton");
   fitToScreen->setToolTip("Fit image to screen");
   connect(fitToScreen, &QPushButton::pressed, this, &PanelPreview::onFitImageToScreenSizeClicked);

@@ -59,6 +59,8 @@ private slots:
   void onRightViewChanged();
   void onSliderMoved(int position);
   void onShowHistogramDialog();
+  void onSetSateToMove();
+  void onSetStateToPaintRect();
 };
 
 }    // namespace joda::ui::qt

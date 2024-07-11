@@ -131,7 +131,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
       connect(mWellOrdering.get(), &ContainerFunctionBase::valueChanged, this, &PanelReporting::onMeasurementChanged);
     }
     mPlateSize = std::shared_ptr<ContainerFunction<uint32_t, uint32_t>>(
-        new ContainerFunction<uint32_t, uint32_t>("icons8-full-image-50.png", "Plate size", "Plate size", "", 1624,
+        new ContainerFunction<uint32_t, uint32_t>("icons8-full-screen-50.png", "Plate size", "Plate size", "", 1624,
                                                   {
                                                       {1, "1", ""},
                                                       {203, "2 x 3", ""},

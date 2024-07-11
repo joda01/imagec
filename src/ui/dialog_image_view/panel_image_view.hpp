@@ -31,6 +31,12 @@ class PanelImageView : public QGraphicsView
 {
   Q_OBJECT
 public:
+  enum State
+  {
+    MOVE,
+    PAINT
+  };
+
   /////////////////////////////////////////////////////
   PanelImageView(QWidget *parent = nullptr);
   void setImage(const joda::image::Image &image);
@@ -45,6 +51,8 @@ public:
   {
     emit updateImage();
   }
+
+  void setState(State);
 
 signals:
   void updateImage();
@@ -73,6 +81,7 @@ private:
   QGraphicsScene *scene;
   bool isDragging = false;
   QPoint lastPos;
+  State mState = State::MOVE;
 
 private slots:
   void onUpdateImage();

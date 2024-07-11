@@ -49,6 +49,22 @@ PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent)
   connect(this, &PanelImageView::updateImage, this, &PanelImageView::onUpdateImage);
 }
 
+void PanelImageView::setState(State state)
+{
+  mState = state;
+  switch(mState) {
+    case MOVE:
+      viewport()->setCursor(QCursor(Qt::OpenHandCursor));
+      break;
+    case PAINT:
+      viewport()->setCursor(QCursor(Qt::CrossCursor));
+      break;
+  }
+
+  emit updateImage();
+  emit onImageRepainted();
+}
+
 void PanelImageView::setImage(const joda::image::Image &image)
 {
   mActPixmapOriginal.setImage(image.getImage());
