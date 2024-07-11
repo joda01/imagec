@@ -34,10 +34,11 @@ public:
   ~DialogImageViewer();
   void setImage(const joda::image::Image &leftImage, const joda::image::Image &rightImage);
   void fitImageToScreenSize();
+  void createHistogramDialog();
 
 private:
   QSlider *mSlider;
-  QSlider *mSliderScaling;
+  QScrollBar *mSliderScaling;
   QScrollBar *mSliderHistogramOffset;
 
   PanelImageView *mImageViewLeft;
@@ -46,10 +47,14 @@ private:
   std::mutex mPreviewMutex;
   int mPreviewCounter = 0;
 
+  /////////////////////////////////////////////////////
+  QDialog *mHistogramDialog;
+
 private slots:
   void onLeftViewChanged();
   void onRightViewChanged();
   void onSliderMoved(int position);
+  void onShowHistogramDialog();
 };
 
 }    // namespace joda::ui::qt

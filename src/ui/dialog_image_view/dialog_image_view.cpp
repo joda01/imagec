@@ -15,6 +15,8 @@
 #include <qboxlayout.h>
 #include <qdialog.h>
 #include <qgridlayout.h>
+#include <qlabel.h>
+#include <qlineedit.h>
 #include <qslider.h>
 #include <cstdint>
 #include <string>
@@ -41,6 +43,22 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
 
   QVBoxLayout *layout = new QVBoxLayout(this);
 
+  {
+    QToolBar *toolbarTop = new QToolBar();
+    toolbarTop->setContentsMargins(0, 0, 0, 0);
+    toolbarTop->setMaximumHeight(32);
+
+    QAction *action1 = new QAction(QIcon(":/icons/outlined/icons8-normal-distribution-histogram-50.png"), "");
+    connect(action1, &QAction::triggered, this, &DialogImageViewer::onShowHistogramDialog);
+    toolbarTop->addAction(action1);
+
+    QAction *action2 = new QAction(QIcon(":/icons/outlined/icons8-hand-50.png"), "");
+    //  connect(action2, &QAction::triggered, this, &MyDialog::onAction2Triggered);
+    toolbarTop->addAction(action2);
+
+    layout->addWidget(toolbarTop);
+  }
+
   // Central images
   {
     QGridLayout *centralLayout = new QGridLayout();
@@ -59,7 +77,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
     layout->addLayout(centralLayout);
   }
 
-  // Toolbar
+  // Toolbar buttom
   {
     QWidget *toolBar = new QWidget(this);
     toolBar->setMaximumHeight(32);
@@ -76,39 +94,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QDialog(parent)
     leftToolBar->addWidget(mSlider);
 
     toolGrid->addLayout(leftToolBar, 0, 0);
+    toolGrid->addWidget(new QLabel(), 0, 1);
 
-    QHBoxLayout *rightToolBar = new QHBoxLayout();
-
-    QAction *action1 = new QAction("Action 1", this);
-    QAction *action2 = new QAction("Action 2", this);
-
-    // connect(action1, &QAction::triggered, this, &MyDialog::onAction1Triggered);
-    // connect(action2, &QAction::triggered, this, &MyDialog::onAction2Triggered);
-
-    // toolBar->addAction(action1);
-    // toolBar->addAction(action2);
-
-    mSliderScaling = new QSlider(this);
-    mSliderScaling->setMinimum(1);
-    mSliderScaling->setMaximum(UINT8_MAX);
-    mSliderScaling->setValue(128);
-    mSliderScaling->setOrientation(Qt::Orientation::Horizontal);
-    connect(mSliderScaling, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
-    rightToolBar->addWidget(mSliderScaling);
-
-    mSliderHistogramOffset = new QScrollBar(this);
-    mSliderHistogramOffset->setMinimum(0);
-    mSliderHistogramOffset->setMaximum(0);
-    mSliderHistogramOffset->setValue(0);
-    mSliderHistogramOffset->setOrientation(Qt::Orientation::Horizontal);
-    connect(mSliderHistogramOffset, &QScrollBar::valueChanged, this, &DialogImageViewer::onSliderMoved);
-    rightToolBar->addWidget(mSliderHistogramOffset);
-
-    toolGrid->addLayout(rightToolBar, 0, 1);
     toolBar->setLayout(toolGrid);
     layout->addWidget(toolBar);
   }
-
+  createHistogramDialog();
   setLayout(layout);
   onSliderMoved(0);
 }
@@ -234,6 +225,67 @@ void DialogImageViewer::onRightViewChanged()
 
     mImageViewRight->blockSignals(false);
     mImageViewLeft->blockSignals(false);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::createHistogramDialog()
+{
+  mHistogramDialog = new QDialog(this);
+  mHistogramDialog->setWindowTitle("Histogram");
+  // mHistogramDialog->setModal(true);
+
+  QVBoxLayout *layoutMain = new QVBoxLayout();
+  // Tools
+  {
+    QHBoxLayout *layout = new QHBoxLayout();
+    mSliderScaling      = new QScrollBar(mHistogramDialog);
+    mSliderScaling->setMinimum(1);
+    mSliderScaling->setMaximum(UINT8_MAX);
+    mSliderScaling->setValue(128);
+    mSliderScaling->setOrientation(Qt::Orientation::Horizontal);
+    mSliderScaling->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    connect(mSliderScaling, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
+
+    layout->addWidget(mSliderScaling);
+    layoutMain->addWidget(new QLabel("Histogram zoom"));
+    layoutMain->addLayout(layout);
+  }
+  {
+    QHBoxLayout *layout    = new QHBoxLayout();
+    mSliderHistogramOffset = new QScrollBar(mHistogramDialog);
+    mSliderHistogramOffset->setMinimum(0);
+    mSliderHistogramOffset->setMaximum(0);
+    mSliderHistogramOffset->setValue(0);
+    mSliderHistogramOffset->setOrientation(Qt::Orientation::Horizontal);
+    mSliderScaling->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    connect(mSliderHistogramOffset, &QScrollBar::valueChanged, this, &DialogImageViewer::onSliderMoved);
+
+    layout->addWidget(mSliderHistogramOffset);
+    layoutMain->addWidget(new QLabel("Histogram position"));
+    layoutMain->addLayout(layout);
+  }
+
+  mHistogramDialog->setLayout(layoutMain);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onShowHistogramDialog()
+{
+  if(!mHistogramDialog->isVisible()) {
+    mHistogramDialog->show();
   }
 }
 
