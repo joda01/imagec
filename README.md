@@ -32,12 +32,14 @@ The main goals were to improve performance, allow the processing of big tiffs an
 |Image density map generation                               |x        |-          |
 |In image object marker                                     |x        |-          |
 |Built-in reporting tool                                    |x        |-          |
+|Side by side image comparison                              |x        |-          |
 
 ## Screenshots
 
 ![doc/screenshot_start_wizard.png](doc/screenshot_start_wizard.png)
 ![doc/screenshot_start.png](doc/screenshot_start.png)
 ![doc/screenshot_channel.png](doc/screenshot_channel.png)
+![doc/screenshot_comparison.png](doc/screenshot_comparison.png)
 ![doc/screenshot_plate.png](doc/screenshot_plate.png)
 ![doc/screenshot_well.png](doc/screenshot_well.png)
 ![doc/screenshot_selector.png](doc/screenshot_selector.png)

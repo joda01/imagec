@@ -18,54 +18,14 @@
 #include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>
+#include <memory>
 #include <string>
+#include "backend/image_processing/image/image.hpp"
+#include "controller/controller.hpp"
+#include "ui/dialog_image_view/dialog_image_view.hpp"
+#include "ui/dialog_image_view/panel_image_view.hpp"
 
 namespace joda::ui::qt {
-
-///
-/// \class      PreviewLabel
-/// \author     Joachim Danmayr
-///
-class PreviewLabel : public QGraphicsView
-{
-  Q_OBJECT
-public:
-  /////////////////////////////////////////////////////
-  PreviewLabel(int width, int height, QWidget *parent = nullptr);
-  void setPixmap(const QPixmap &pix);
-  void resetImage();
-  void fitImageToScreenSize();
-  void zoomImage(bool inOut);
-
-signals:
-  void updateImage();
-
-protected:
-  /////////////////////////////////////////////////////
-  void mousePressEvent(QMouseEvent *event) override;
-  void mouseMoveEvent(QMouseEvent *event) override;
-  void mouseReleaseEvent(QMouseEvent *event) override;
-  void enterEvent(QEnterEvent *) override;
-  void leaveEvent(QEvent *) override;
-  void wheelEvent(QWheelEvent *event) override;
-  void paintEvent(QPaintEvent *event) override;
-
-private:
-  /////////////////////////////////////////////////////
-  static constexpr int32_t PLACEHOLDER_BASE_SIZE = 450;
-  static inline const QString PLACEHOLDER{":/icons/outlined/icons8-picture-1000-lightgray.png"};
-
-  /////////////////////////////////////////////////////
-  bool mPlaceholderImageSet = true;
-  QPixmap mActPixmapOriginal;
-  QGraphicsPixmapItem *mActPixmap = nullptr;
-  QGraphicsScene *scene;
-  bool isDragging = false;
-  QPoint lastPos;
-
-private slots:
-  void onUpdateImage();
-};
 
 class PanelPreview : public QWidget
 {
@@ -73,10 +33,12 @@ class PanelPreview : public QWidget
 
 public:
   PanelPreview(int width, int height, QWidget *parent);
-  void setPixmap(const QPixmap &pix, int width, int height, const QString &info)
+  void setImage(const joda::image::Image &originalImage, const joda::image::Image &previewImage, int width, int height,
+                const QString &info)
   {
-    mPreviewLabel.setPixmap(pix);
+    mPreviewLabel.setImage(previewImage);
     mPreviewInfo->setText(info);
+    mImageViewer.setImage(originalImage, previewImage);
   }
   void resetImage(const QString &info)
   {
@@ -88,6 +50,7 @@ private slots:
   void onFitImageToScreenSizeClicked();
   void onZoomOutClicked();
   void onZoomInClicked();
+  void onOpenFullScreenClickec();
 
 private:
   /////////////////////////////////////////////////////
@@ -95,6 +58,7 @@ private:
   QLabel *mPreviewInfo;
 
   /////////////////////////////////////////////////////
-  PreviewLabel mPreviewLabel;
+  PanelImageView mPreviewLabel;
+  DialogImageViewer mImageViewer;
 };
 }    // namespace joda::ui::qt

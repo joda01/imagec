@@ -420,29 +420,24 @@ void PanelChannelEdit::updatePreview()
               try {
                 int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();
                 mParentContainer->toSettings();
-                auto preview = controller->preview(mParentContainer->mSettings, imgIndex, tileIdx);
-                if(!preview.data.empty()) {
+                controller->preview(mParentContainer->mSettings, imgIndex, tileIdx, mPreviewResult);
+                if(!mPreviewResult.previewImage.empty()) {
                   // Create a QByteArray from the char array
-                  QByteArray byteArray(reinterpret_cast<const char *>(preview.data.data()), preview.data.size());
-                  QImage image;
-                  if(image.loadFromData(byteArray, "PNG")) {
-                    QPixmap pixmap = QPixmap::fromImage(image);
-                    int valid      = 0;
-                    int invalid    = 0;
-                    for(const auto &roi : *preview.detectionResult) {
-                      if(roi.isValid()) {
-                        valid++;
-                      } else {
-                        invalid++;
-                      }
+                  int valid   = 0;
+                  int invalid = 0;
+                  for(const auto &roi : *mPreviewResult.detectionResult) {
+                    if(roi.isValid()) {
+                      valid++;
+                    } else {
+                      invalid++;
                     }
-
-                    QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
-                    mPreviewImage->setPixmap(pixmap, PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, info);
-
-                  } else {
-                    mPreviewImage->resetImage("");
                   }
+                  QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
+                  mPreviewImage->setImage(mPreviewResult.originalImage, mPreviewResult.previewImage, PREVIEW_BASE_SIZE,
+                                          PREVIEW_BASE_SIZE, info);
+
+                } else {
+                  mPreviewImage->resetImage("");
                 }
               } catch(const std::exception &error) {
                 mPreviewImage->resetImage(error.what());

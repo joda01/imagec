@@ -17,6 +17,7 @@
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
+#include "controller/controller.hpp"
 #include "ui/helper/waitingspinnerwidget.hpp"
 #include "ui/panel_preview.hpp"
 
@@ -70,6 +71,7 @@ private:
   int mPreviewCounter                         = 0;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
+  joda::ctrl::Controller::Preview mPreviewResult;
 
 private slots:
   /////////////////////////////////////////////////////

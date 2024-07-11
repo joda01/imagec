@@ -139,7 +139,7 @@ auto Controller::getListOfFoundImages() -> const std::vector<helper::fs::FileInf
 /// \brief      Returns preview
 /// \author     Joachim Danmayr
 ///
-auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex) -> Preview
+void Controller::preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex, Preview &previewOut)
 {
   // To also preview tetraspeck removal we must first process the reference spot
   // channels This is a little bit more complicated therefor not supported yet
@@ -151,20 +151,13 @@ auto Controller::preview(const settings::ChannelSettings &settings, int imgIndex
     std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> referenceChannelResults;
     auto result = joda::pipeline::ImageProcessor::executeAlgorithm(imagePath, settings, tileIndex, onnxModels, nullptr,
                                                                    &referenceChannelResults);
-    std::vector<uchar> buffer;
-    std::vector<int> compression_params;
-    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-    compression_params.push_back(0);
-    cv::imencode(".png", result.controlImage, buffer,
-                 compression_params);    // Assuming you want to encode as JPEG
-
-    return {.data            = buffer,
-            .height          = result.controlImage.rows,
-            .width           = result.controlImage.cols,
-            .detectionResult = std::move(result.result),
-            .imageFileName   = imagePath.getFilePath().string()};
+    previewOut.previewImage.setImage(result.controlImage);
+    previewOut.originalImage.setImage(result.originalImage);
+    previewOut.height          = result.controlImage.rows;
+    previewOut.width           = result.controlImage.cols;
+    previewOut.detectionResult = std::move(result.result);
+    previewOut.imageFileName   = imagePath.getFilePath().string();
   }
-  return {.data = {}, .height = 0, .width = 0, .detectionResult = {}, .imageFileName = {}};
 }
 
 ///
