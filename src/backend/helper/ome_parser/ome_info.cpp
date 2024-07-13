@@ -31,265 +31,279 @@ OmeInfo::OmeInfo()
 }
 
 ///
-/// \brief      Reads OME image information from a JSON object defined as
-///             The orders is a 3D array containg the index of the channels of the Z-Stack
-///             of the time stack
-///             [ # Channel 0
-///                 [ # Time Frame 0
-///                     [0,1,2]     # Z-Index
-///                   # Time Frame 1
-///                     [0,1,2]     # Z-Index
-///                 ], # Channel 1
-///                 [ # Time Frame 0
-///                     [0,1,2]     # Z-Index
-///                   # Time Frame 1
-///                     [0,1,2]     # Z-Index
-///                 ],
-///             ]
-///
-///             Real world example:
-///             {"width":2048,"height":2048,"bits":16,"ch":5,"planes":15,"tile_height":2048,"tile_width":2048,"series_count":
-///             "2","dim_order": "XYCZT","orders": [[[0,5,10]],[[1,6,11]],[[2,7,12]],[[3,8,13]],[[4,9,14]]]}
-///
-/// \author     Joachim Danmayr
-/// \param[in]  omeJson  Read OME JSON data as string
-/// \return     Parsed OME information
-///
-joda::image::ImageProperties OmeInfo::loadOmeInformationFromJsonString(const std::string &omeJson)
-{
-  /// \todo Add error handling here
-  auto parsedJson = nlohmann::json::parse(omeJson);
-
-  mNrOfChannels = parsedJson["ch"];
-  mImageWidth   = parsedJson["width"];
-  mImageHeight  = parsedJson["height"];
-  mImageSize    = mImageWidth * mImageHeight;
-  mBits         = parsedJson["bits"];
-
-  uint16_t docs       = parsedJson["planes"];
-  uint64_t tileHeight = (int32_t) parsedJson["tile_height"];
-  uint64_t tileWidth  = (int32_t) parsedJson["tile_width"];
-  int64_t tileSize    = tileHeight * tileWidth;
-
-  int chIdx = 0;
-  for(const auto &channel : parsedJson["orders"]) {
-    int zIdx = 0;
-    for(const auto &zStack : channel) {
-      for(const auto &timeStack : zStack) {
-        mChannels[chIdx].zStackForTimeFrame[zIdx].emplace((int32_t) timeStack);
-      }
-      zIdx++;
-    }
-    chIdx++;
-  }
-
-  int64_t nrOfTiles = 1;
-  if(tileSize > 0) {
-    nrOfTiles = mImageSize / tileSize;
-  }
-
-  return {.imageSize     = mImageSize,
-          .tileSize      = tileSize,
-          .nrOfTiles     = nrOfTiles,
-          .nrOfDocuments = docs,
-          .width         = mImageWidth,
-          .height        = mImageHeight,
-          .tileWidth     = tileWidth,
-          .tileHeight    = tileHeight};
-}
-
-///
 /// \brief      Reads OME image information regarding the OME TIFF specification
 /// \link       https://docs.openmicroscopy.org/ome-model/6.1.0/ome-tiff/specification.html
 /// \author     Joachim Danmayr
 /// \param[in]  omeXML  Read OME XML data as string
 /// \return     Parsed OME information
 ///
-void OmeInfo::loadOmeInformationFromString(const std::string &omeXML)
+joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML)
 {
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_string(omeXML.c_str());
   if(!result) {
     throw std::invalid_argument("Error parsing OME information from file!");
   }
+  std::string keyPrefix;    // OME:
 
-  auto imageName = std::string(doc.child("OME").child("OME:Image").attribute("Name").as_string());
+  auto objectivManufacturer = std::string(doc.child("OME")
+                                              .child(std::string(keyPrefix + "Instrument").data())
+                                              .child(std::string(keyPrefix + "Objective").data())
+                                              .attribute("Manufacturer")
+                                              .as_string());
+  auto objectivModel        = std::string(doc.child("OME")
+                                              .child(std::string(keyPrefix + "Instrument").data())
+                                              .child(std::string(keyPrefix + "Objective").data())
+                                              .attribute("Model")
+                                              .as_string());
+  auto magnification        = doc.child("OME")
+                           .child(std::string(keyPrefix + "Instrument").data())
+                           .child(std::string(keyPrefix + "Objective").data())
+                           .attribute("NominalMagnification")
+                           .as_int();
+  auto medium = std::string(doc.child("OME")
+                                .child(std::string(keyPrefix + "Image").data())
+                                .child(std::string(keyPrefix + "ObjectiveSettings").data())
+                                .attribute("Medium")
+                                .as_string());
 
-  //
-  // Plane numbers
-  //
-  auto sizeC = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeC").as_int();
-  auto sizeZ = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeZ").as_int();
-  auto sizeT = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeT").as_int();
-  auto dimOrder =
-      std::string(doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("DimensionOrder").as_string());
+  mObjectiveInfo = ObjectiveInfo{
+      .manufacturer = objectivManufacturer, .model = objectivModel, .medium = medium, .magnification = magnification};
 
-  auto sizeX   = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeX").as_ullong();
-  auto sizeY   = doc.child("OME").child("OME:Image").child("OME:Pixels").attribute("SizeY").as_ullong();
-  mImageSize   = sizeX * sizeY;
-  mImageWidth  = sizeX;
-  mImageHeight = sizeY;
+  for(pugi::xml_node image : doc.child("OME").children(std::string(keyPrefix + "Image").data())) {
+  TRY_AGAIN:
+    std::string imageName = std::string(image.attribute("Name").as_string());
+    if(imageName.empty() && keyPrefix.empty()) {
+      keyPrefix = "OME:";
+      goto TRY_AGAIN;
+    }
 
-  //
-  // TIFF Data
-  // This is the implementation of the specification section >The TiffDataElement<
-  // https://docs.openmicroscopy.org/ome-model/6.1.0/ome-tiff/specification.html
-  // It is used to determine which plane is associated to which IFD (tiff directory) in the tiff
-  //
-  mNrOfChannels = sizeC;
-  union Order
-  {
-    uint32_t order = 0xFFFFFFFF;
-    struct _order_t
+    //
+    // Plane numbers
+    //
+    auto sizeC = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeC").as_int();
+    auto sizeZ = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeZ").as_int();
+    auto sizeT = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeT").as_int();
+    auto dimOrder =
+        std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("DimensionOrder").as_string());
+
+    auto sizeX   = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeX").as_ullong();
+    auto sizeY   = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeY").as_ullong();
+    mImageSize   = sizeX * sizeY;
+    mImageWidth  = sizeX;
+    mImageHeight = sizeY;
+
+    auto type = std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("Type").as_string());
+    if(type == "uint8") {
+      mBits = 8;
+    } else if(type == "uint16") {
+      mBits = 16;
+    } else {
+      mBits = 16;
+    }
+
+    //
+    // TIFF Data
+    // This is the implementation of the specification section >The TiffDataElement<
+    // https://docs.openmicroscopy.org/ome-model/6.1.0/ome-tiff/specification.html
+    // It is used to determine which plane is associated to which IFD (tiff directory) in the tiff
+    //
+    mNrOfChannels = sizeC;
+    union Order
     {
-      uint8_t C;
-      uint8_t Z;
-      uint8_t T;
-      uint8_t unused;
-    } _order;
-  };
+      uint32_t order = 0xFFFFFFFF;
+      struct _order_t
+      {
+        uint8_t C;
+        uint8_t Z;
+        uint8_t T;
+        uint8_t unused;
+      } _order;
+    };
 
-  int nrOfIFDS = sizeC * sizeZ * sizeT;
-  std::map<uint32_t, Order> planeIFDorder;
-  uint32_t startIfd = 0;
-  for(pugi::xml_node tiffData : doc.child("OME").child("OME:Image").child("OME:Pixels").children("OME:TiffData")) {
-    startIfd                         = tiffData.attribute("IFD").as_int(0);
-    planeIFDorder[startIfd]._order.C = tiffData.attribute("FirstC").as_int(0);
-    planeIFDorder[startIfd]._order.Z = tiffData.attribute("FirstZ").as_int(0);
-    planeIFDorder[startIfd]._order.T = tiffData.attribute("FirstT").as_int(0);
-    nrOfIFDS                         = tiffData.attribute("PlaneCount").as_int(nrOfIFDS);
-  }
+    int nrOfIFDS = sizeC * sizeZ * sizeT;
+    std::map<uint32_t, Order> planeIFDorder;
+    uint32_t startIfd = 0;
 
-  int cCnt = 0;
-  int zCnt = 0;
-  int tCnt = 0;
-
-  int *pCnt  = &cCnt;
-  int *qCnt  = &zCnt;
-  int *rCnt  = &tCnt;
-  int *pSize = &sizeC;
-  int *qSize = &sizeZ;
-  int *rSize = &sizeT;
-
-  if(dimOrder == "XYZTC") {
-    pCnt  = &zCnt;
-    qCnt  = &tCnt;
-    rCnt  = &cCnt;
-    pSize = &sizeZ;
-    qSize = &sizeT;
-    rSize = &sizeZ;
-  }
-  if(dimOrder == "XYZCT") {
-    pCnt  = &zCnt;
-    qCnt  = &cCnt;
-    rCnt  = &tCnt;
-    pSize = &sizeZ;
-    qSize = &sizeC;
-    rSize = &sizeT;
-  }
-  if(dimOrder == "XYTCZ") {
-    pCnt  = &tCnt;
-    qCnt  = &cCnt;
-    rCnt  = &zCnt;
-    pSize = &sizeT;
-    qSize = &sizeC;
-    rSize = &sizeZ;
-  }
-  if(dimOrder == "XYTZC") {
-    pCnt  = &tCnt;
-    qCnt  = &zCnt;
-    rCnt  = &cCnt;
-    pSize = &sizeT;
-    qSize = &sizeZ;
-    rSize = &sizeC;
-  }
-  if(dimOrder == "XYCTZ") {
-    pCnt  = &cCnt;
-    qCnt  = &tCnt;
-    rCnt  = &zCnt;
-    pSize = &sizeC;
-    qSize = &sizeT;
-    rSize = &sizeZ;
-  }
-  if(dimOrder == "XYCZT") {
-    pCnt  = &cCnt;
-    qCnt  = &zCnt;
-    rCnt  = &tCnt;
-    pSize = &sizeC;
-    qSize = &sizeZ;
-    rSize = &sizeT;
-  }
-
-  for(int idf = startIfd; idf < nrOfIFDS; idf++) {
-    if(0xFF == planeIFDorder[idf]._order.C) {
-      planeIFDorder[idf]._order.C = cCnt;
-    }
-    if(0xFF == planeIFDorder[idf]._order.Z) {
-      planeIFDorder[idf]._order.Z = zCnt;
-    }
-    if(0xFF == planeIFDorder[idf]._order.T) {
-      planeIFDorder[idf]._order.T = tCnt;
+    pugi::xml_node pixels = image.child("Pixels");
+    for(pugi::xml_node tiffData = pixels.child("TiffData"); tiffData != nullptr;
+        tiffData                = tiffData.next_sibling("TiffData")) {
+      startIfd                         = tiffData.attribute("IFD").as_int(0);
+      planeIFDorder[startIfd]._order.C = tiffData.attribute("FirstC").as_int(0);
+      planeIFDorder[startIfd]._order.Z = tiffData.attribute("FirstZ").as_int(0);
+      planeIFDorder[startIfd]._order.T = tiffData.attribute("FirstT").as_int(0);
+      nrOfIFDS                         = tiffData.attribute("PlaneCount").as_int(nrOfIFDS);
     }
 
-    // Counter for the matrix
-    *pCnt = (*pCnt + 1) % *pSize;
-    if(*pCnt == 0) {
-      *qCnt = (*qCnt + 1) % *qSize;
+    int cCnt = 0;
+    int zCnt = 0;
+    int tCnt = 0;
+
+    int *pCnt  = &cCnt;
+    int *qCnt  = &zCnt;
+    int *rCnt  = &tCnt;
+    int *pSize = &sizeC;
+    int *qSize = &sizeZ;
+    int *rSize = &sizeT;
+
+    if(dimOrder == "XYZTC") {
+      pCnt  = &zCnt;
+      qCnt  = &tCnt;
+      rCnt  = &cCnt;
+      pSize = &sizeZ;
+      qSize = &sizeT;
+      rSize = &sizeZ;
     }
-    if(*qCnt == 0 && *pCnt == 0) {
-      *rCnt = (*rCnt + 1) % *rSize;
+    if(dimOrder == "XYZCT") {
+      pCnt  = &zCnt;
+      qCnt  = &cCnt;
+      rCnt  = &tCnt;
+      pSize = &sizeZ;
+      qSize = &sizeC;
+      rSize = &sizeT;
     }
-  }
-
-  //
-  // Load channels
-  //
-  for(pugi::xml_node channel : doc.child("OME").child("OME:Image").child("OME:Pixels").children("OME:Channel")) {
-    auto channelId = std::string(channel.attribute("ID").as_string());
-    std::string channelNrString{channelId};
-    joda::helper::stringReplace(channelNrString, "Channel:", "");
-    int channelNr = -1;
-    try {
-      channelNr = std::stoi(channelNrString);
-    } catch(const std::exception &) {
-      joda::log::logWarning("Cannot parse channel nr for. Got >" + channelId + "<");
+    if(dimOrder == "XYTCZ") {
+      pCnt  = &tCnt;
+      qCnt  = &cCnt;
+      rCnt  = &zCnt;
+      pSize = &sizeT;
+      qSize = &sizeC;
+      rSize = &sizeZ;
+    }
+    if(dimOrder == "XYTZC") {
+      pCnt  = &tCnt;
+      qCnt  = &zCnt;
+      rCnt  = &cCnt;
+      pSize = &sizeT;
+      qSize = &sizeZ;
+      rSize = &sizeC;
+    }
+    if(dimOrder == "XYCTZ") {
+      pCnt  = &cCnt;
+      qCnt  = &tCnt;
+      rCnt  = &zCnt;
+      pSize = &sizeC;
+      qSize = &sizeT;
+      rSize = &sizeZ;
+    }
+    if(dimOrder == "XYCZT") {
+      pCnt  = &cCnt;
+      qCnt  = &zCnt;
+      rCnt  = &tCnt;
+      pSize = &sizeC;
+      qSize = &sizeZ;
+      rSize = &sizeT;
     }
 
-    auto channelName            = std::string(channel.attribute("Name").as_string());
-    auto samplesPerPixel        = channel.attribute("SamplesPerPixel").as_float();
-    auto contrastMethod         = std::string(channel.attribute("ContrastMethod").as_string());
-    auto emissionWaveLength     = channel.attribute("EmissionWavelength").as_float();
-    auto emissionWaveLengthUnit = std::string(channel.attribute("EmissionWavelengthUnit").as_string());
-    auto color                  = channel.attribute("EmissionWavelength").as_uint();
-    // auto prefix                 = std::string(channel.attribute("__prefix").as_string());
+    for(int idf = startIfd; idf < nrOfIFDS; idf++) {
+      if(0xFF == planeIFDorder[idf]._order.C) {
+        planeIFDorder[idf]._order.C = cCnt;
+      }
+      if(0xFF == planeIFDorder[idf]._order.Z) {
+        planeIFDorder[idf]._order.Z = zCnt;
+      }
+      if(0xFF == planeIFDorder[idf]._order.T) {
+        planeIFDorder[idf]._order.T = tCnt;
+      }
 
-    auto detectorSettings = channel.child("DetectorSettings");
-    auto detectorId       = std::string(detectorSettings.attribute("ID").as_string());
-    auto detectorBinning  = std::string(detectorSettings.attribute("Binning").as_string());
-
-    mNrOfChannels++;
-
-    std::map<uint32_t, TimeFrame> zStackForTimeFrame;
-    for(const auto &[idf, order] : planeIFDorder) {
-      if(order._order.C == channelNr) {
-        // This is our channel -> Add the IDF of the timeframe
-        zStackForTimeFrame[order._order.T].emplace(idf);
+      // Counter for the matrix
+      *pCnt = (*pCnt + 1) % *pSize;
+      if(*pCnt == 0) {
+        *qCnt = (*qCnt + 1) % *qSize;
+      }
+      if(*qCnt == 0 && *pCnt == 0) {
+        *rCnt = (*rCnt + 1) % *rSize;
       }
     }
 
-    mChannels.emplace(channelNr,
-                      ChannelInfo{.name = channelName, .color = color, .zStackForTimeFrame = zStackForTimeFrame});
-  }
+    //
+    // Load channels
+    //
+    int idx = 0;
+    for(pugi::xml_node channelNode = pixels.child("Channel"); channelNode != nullptr;
+        channelNode                = channelNode.next_sibling("Channel")) {
+      auto channelId = std::string(channelNode.attribute("ID").as_string());
+      const std::string &channelNrString{channelId};
+      int channelNr = -1;
 
-  //
-  // Load planes
-  //
-  for(pugi::xml_node plane : doc.child("OME").child("OME:Image").child("OME:Pixels").children("OME:Plane")) {
-    auto theZ           = plane.attribute("TheZ").as_int();
-    auto theT           = plane.attribute("TheT").as_int();
-    auto theC           = plane.attribute("TheC").as_int();
-    ChannelInfo &chInfo = mChannels.at(theC);
+      size_t last_colon = channelNrString.rfind(':');
+      if(last_colon != std::string::npos) {
+        std::string number_str = channelNrString.substr(last_colon + 1);
+        try {
+          channelNr = std::stoi(number_str);
+        } catch(const std::invalid_argument &e) {
+          joda::log::logWarning("Cannot parse channel nr for. Got >" + channelId + "<");
+        }
+      } else {
+        joda::log::logWarning("Wrong Channel ID format in OME XML.");
+      }
+
+      auto channelName            = std::string(channelNode.attribute("Name").as_string());
+      auto samplesPerPixel        = channelNode.attribute("SamplesPerPixel").as_float();
+      auto contrastMethod         = std::string(channelNode.attribute("ContrastMethod").as_string());
+      auto emissionWaveLength     = channelNode.attribute("EmissionWavelength").as_float();
+      auto emissionWaveLengthUnit = std::string(channelNode.attribute("EmissionWavelengthUnit").as_string());
+      // auto prefix                 = std::string(channel.attribute("__prefix").as_string());
+
+      auto detectorSettings = channelNode.child("DetectorSettings");
+      auto detectorId       = std::string(detectorSettings.attribute("ID").as_string());
+      auto detectorBinning  = std::string(detectorSettings.attribute("Binning").as_string());
+
+      mNrOfChannels++;
+
+      std::map<uint32_t, TimeFrame> zStackForTimeFrame;
+      for(const auto &[idf, order] : planeIFDorder) {
+        if(order._order.C == channelNr) {
+          // This is our channel -> Add the IDF of the timeframe
+          zStackForTimeFrame[order._order.T].emplace(idf);
+        }
+      }
+
+      mChannels.emplace(channelNr, ChannelInfo{.channelId              = channelId,
+                                               .name                   = channelName,
+                                               .emissionWaveLength     = emissionWaveLength,
+                                               .emissionWaveLengthUnit = emissionWaveLengthUnit,
+                                               .contrastMethos         = contrastMethod,
+                                               .exposuerTime           = 0,
+                                               .zStackForTimeFrame     = zStackForTimeFrame});
+
+      idx++;
+    }
+
+    //
+    // Load planes
+    //
+    uint16_t nrOfPlanes = 0;
+    for(pugi::xml_node plane = pixels.child("Plane"); plane != nullptr; plane = plane.next_sibling("Plane")) {
+      auto theZ               = plane.attribute("TheZ").as_int();
+      auto theT               = plane.attribute("TheT").as_int();
+      auto theC               = plane.attribute("TheC").as_int();
+      ChannelInfo &chInfo     = mChannels.at(theC);
+      chInfo.exposuerTime     = plane.attribute("ExposureTime").as_int();
+      chInfo.exposuerTimeUnit = std::string(plane.attribute("ExposureTimeUnit").as_string());
+      nrOfPlanes++;
+    }
+
+    uint64_t tileWidth  = doc.child("JODA").attribute("TileWidht").as_int();
+    uint64_t tileHeight = doc.child("JODA").attribute("TileHeight").as_int();
+
+    int64_t nrOfTiles = 1;
+    int64_t tileSize  = tileHeight * tileWidth;
+    if(tileSize > 0) {
+      nrOfTiles = mImageSize / tileSize;
+    }
+
+    return {.imageSize     = mImageSize,
+            .tileSize      = tileSize,
+            .nrOfTiles     = nrOfTiles,
+            .nrOfDocuments = nrOfPlanes,
+            .width         = mImageWidth,
+            .height        = mImageHeight,
+            .tileWidth     = tileWidth,
+            .tileHeight    = tileHeight,
+            .bits          = mBits};
   }
+  return {};
 }
 
 ///
@@ -306,7 +320,12 @@ void OmeInfo::emulateOmeInformationFromTiff(const joda::image::ImageProperties &
   for(uint32_t idx = 0; idx < mNrOfChannels; idx++) {
     std::map<uint32_t, TimeFrame> zStackForTimeFrame;
     zStackForTimeFrame.emplace(0, TimeFrame{idx});
-    mChannels.emplace(idx, ChannelInfo{.name = "", .color = 0, .zStackForTimeFrame = zStackForTimeFrame});
+    mChannels.emplace(idx, ChannelInfo{.channelId              = "Channel:" + std::to_string(idx),
+                                       .name                   = "",
+                                       .emissionWaveLength     = 0,
+                                       .emissionWaveLengthUnit = "",
+                                       .contrastMethos         = "",
+                                       .zStackForTimeFrame     = zStackForTimeFrame});
   }
 }
 

@@ -27,5 +27,6 @@ struct ImageProperties
   uint64_t height        = 0;
   uint64_t tileWidth     = 0;
   uint64_t tileHeight    = 0;
+  int8_t bits            = 16;
 };
 }    // namespace joda::image

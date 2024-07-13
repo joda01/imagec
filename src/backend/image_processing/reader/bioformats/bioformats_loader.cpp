@@ -213,19 +213,18 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
     jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, 0,
                                                                static_cast<int>(series));
     const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
-    auto parsedJson         = nlohmann::json::parse(std::string(stringChars));
-    myEnv->ReleaseStringUTFChars(result, stringChars);
-    uint32_t width  = parsedJson["width"];
-    uint32_t height = parsedJson["height"];
-    uint32_t bits   = parsedJson["bits"];
 
-    cv::Mat retValue   = cv::Mat::zeros(height, width, CV_16UC1);
+    joda::ome::OmeInfo omeInfo;
+    ImageProperties props = omeInfo.loadOmeInformationFromXMLString(
+        std::string(stringChars));    ///\todo this method can throw an excaption
+
+    cv::Mat retValue   = cv::Mat::zeros(props.height, props.width, CV_16UC1);
     jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, directory,
                                                                     static_cast<int>(series));
-    if(bits == 8) {
-      myEnv->GetByteArrayRegion(readImg, 0, width * height, (jbyte *) retValue.data);
-    } else if(bits == 16) {
-      myEnv->GetByteArrayRegion(readImg, 0, width * height * 2, (jbyte *) retValue.data);
+    if(props.bits == 8) {
+      myEnv->GetByteArrayRegion(readImg, 0, props.width * props.height, (jbyte *) retValue.data);
+    } else if(props.bits == 16) {
+      myEnv->GetByteArrayRegion(readImg, 0, props.width * props.height * 2, (jbyte *) retValue.data);
     }
 
     myEnv->DeleteLocalRef(filePath);
@@ -256,13 +255,12 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
                                                                static_cast<int>(series));
     myEnv->DeleteLocalRef(filePath);
     const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
-    std::string jsonResult(stringChars);
+    std::string omeXML(stringChars);
     myEnv->ReleaseStringUTFChars(result, stringChars);
     joda::ome::OmeInfo omeInfo;
     ImageProperties props =
-        omeInfo.loadOmeInformationFromJsonString(jsonResult);    ///\todo this method can throw an excaption
+        omeInfo.loadOmeInformationFromXMLString(omeXML);    ///\todo this method can throw an excaption
     myJVM->DetachCurrentThread();
-
     DurationCount::stop(id);
     return {omeInfo, props};
   }

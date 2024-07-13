@@ -73,7 +73,7 @@ auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::Om
     char *omeXML = nullptr;
     if(1 == TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &omeXML)) {
       try {
-        omeInfo.loadOmeInformationFromString(std::string(omeXML));
+        omeInfo.loadOmeInformationFromXMLString(std::string(omeXML));
       } catch(const std::exception &ex) {
         // No OME information found, emulate it by just using the TIFF meta data
         joda::log::logInfo("No OME information found. Use TIFF meta data instead!");

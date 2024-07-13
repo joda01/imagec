@@ -39,8 +39,7 @@ public:
   /////////////////////////////////////////////////////
   OmeInfo();
 
-  void loadOmeInformationFromString(const std::string &omeXML);
-  joda::image::ImageProperties loadOmeInformationFromJsonString(const std::string &omeJson);
+  joda::image::ImageProperties loadOmeInformationFromXMLString(const std::string &omeXML);
   void emulateOmeInformationFromTiff(const joda::image::ImageProperties &);
 
   [[nodiscard]] int getNrOfChannels() const;
@@ -55,9 +54,22 @@ private:
 
   struct ChannelInfo
   {
+    std::string channelId;
     std::string name;
-    uint32_t color;
+    float emissionWaveLength = 0;
+    std::string emissionWaveLengthUnit;
+    std::string contrastMethos;
+    uint32_t exposuerTime = 0;
+    std::string exposuerTimeUnit;
     std::map<uint32_t, TimeFrame> zStackForTimeFrame;    ///< TimeFrame <Time-Index, Frames in the time>
+  };
+
+  struct ObjectiveInfo
+  {
+    std::string manufacturer;
+    std::string model;
+    std::string medium;
+    int32_t magnification = 0;
   };
 
   /////////////////////////////////////////////////////
@@ -65,8 +77,9 @@ private:
   int64_t mImageSize    = 0;
   uint64_t mImageWidth  = 0;
   uint64_t mImageHeight = 0;
-  int32_t mBits         = 8;
+  int8_t mBits          = 16;
 
+  ObjectiveInfo mObjectiveInfo;
   std::map<uint32_t, ChannelInfo> mChannels;    ///< Contains the channel information <channelIdx | channelinfo>
 };
 }    // namespace joda::ome
