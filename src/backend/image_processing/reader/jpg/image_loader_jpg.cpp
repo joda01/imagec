@@ -12,7 +12,6 @@
 ///
 
 #include "image_loader_jpg.hpp"
-#include "../image_reader.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -25,21 +24,24 @@ auto JpgLoader::readImageMeta(const std::string &filename) -> std::string
 {
   return "";
 }
-auto JpgLoader::getImageProperties(const std::string &filename) -> ImageProperties
+auto JpgLoader::getImageProperties(const std::string &filename) -> joda::ome::OmeInfo
 {
   auto image      = cv::imread(filename, cv::IMREAD_COLOR);
   uint64_t width  = image.cols;
   uint64_t height = image.rows;
   int64_t size    = width * height;
-
-  return ImageProperties{.imageSize     = size,
-                         .tileSize      = size,
-                         .nrOfTiles     = 1,
-                         .nrOfDocuments = 1,
-                         .width         = width,
-                         .height        = height,
-                         .tileWidth     = width,
-                         .tileHeight    = height};
+  joda::ome::OmeInfo omeInfo;
+  omeInfo.emulateOmeInformationFromTiff(joda::ome::OmeInfo::ImageInfo{.nrOfChannels  = 1,
+                                                                      .imageSize     = size,
+                                                                      .imageWidth    = width,
+                                                                      .imageHeight   = height,
+                                                                      .bits          = 16,
+                                                                      .tileSize      = size,
+                                                                      .nrOfTiles     = 1,
+                                                                      .nrOfDocuments = 1,
+                                                                      .tileWidth     = width,
+                                                                      .tileHeight    = height});
+  return omeInfo;
 }
 cv::Mat JpgLoader::loadEntireImage(const std::string &filename)
 {

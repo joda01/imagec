@@ -40,7 +40,6 @@
 #include "backend/helper/uuid.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
-#include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/pipelines/pipeline_steps/calc_count/calc_count.hpp"
 #include "backend/pipelines/pipeline_steps/calc_intensity/calc_intensity.hpp"
 #include "backend/pipelines/pipeline_steps/calc_intersection/calc_intersection.hpp"
@@ -198,15 +197,15 @@ void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath)
   //
   // Execute for each tile
   //
-  auto series   = mAnalyzeSettings.channels.begin()->meta.series;
-  auto propsOut = joda::pipeline::ImageProcessor::loadChannelProperties(imagePath, series);
-
+  auto series       = mAnalyzeSettings.channels.begin()->meta.series;
+  auto propsOut     = joda::pipeline::ImageProcessor::loadChannelProperties(imagePath, series);
+  const auto &props = propsOut.ome.getImageInfo();
   // Make entry in database
-  mResults.appendImageToDetailReport(propsOut.props, imagePath.getFilePath());
+  mResults.appendImageToDetailReport(propsOut.ome, imagePath.getFilePath());
 
   int64_t runs = 1;
-  if(propsOut.props.imageSize > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-    runs = propsOut.props.nrOfTiles / joda::pipeline::TILES_TO_LOAD_PER_RUN;
+  if(props.imageSize > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    runs = props.nrOfTiles / joda::pipeline::TILES_TO_LOAD_PER_RUN;
   }
 
   //
@@ -322,7 +321,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
     auto id = DurationCount::start("Append to detail report intersect");
 
     mResults.appendToDetailReport(appender, detectionResults.at(intersect.meta.channelIdx), intersect.meta, tileIdx,
-                                  channelProperties.props, imagePath.getFilePath());
+                                  channelProperties.ome, imagePath.getFilePath());
     DurationCount::stop(id);
   };
 
@@ -375,7 +374,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
     auto id = DurationCount::start("Append to detail report vorono");
 
     mResults.appendToDetailReport(appender, detectionResults.at(voronoi.meta.channelIdx), voronoi.meta, tileIdx,
-                                  channelProperties.props, imagePath.getFilePath());
+                                  channelProperties.ome, imagePath.getFilePath());
     DurationCount::stop(id);
   };
 
@@ -417,7 +416,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
 
     if(detectionResults.contains(channelSettings.meta.channelIdx)) {
       mResults.appendToDetailReport(appender, detectionResults.at(channelSettings.meta.channelIdx),
-                                    channelSettings.meta, tileIdx, channelProperties.props, imagePath.getFilePath());
+                                    channelSettings.meta, tileIdx, channelProperties.ome, imagePath.getFilePath());
     }
     DurationCount::stop(id);
   };

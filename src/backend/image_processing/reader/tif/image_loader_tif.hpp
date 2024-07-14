@@ -6,7 +6,6 @@
 #include <iostream>
 #include <string>
 #include <utility>
-#include "../image_reader.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -32,12 +31,12 @@ public:
   static cv::Mat loadImageTile(const std::string &filename, uint16_t directory, int offset, int nrOfTilesToRead);
   static cv::Mat loadEntireImage(const std::string &filename, int directory);
   static auto getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo;
-  static auto getImageProperties(const std::string &filename, uint16_t directory) -> ImageProperties;
   static auto calculateTileXYoffset(int32_t nrOfTilesToRead, int32_t offset, int64_t width, int64_t height,
                                     int64_t tilewidth, int64_t tileheight) -> std::tuple<int64_t, int64_t>;
 
 private:
   /////////////////////////////////////////////////////
+  static auto getImageProperties(const std::string &filename, uint16_t directory) -> ome::OmeInfo;
 
   ///
   /// \brief      Reads a grayscale TIFF image and scales it to a 16bit

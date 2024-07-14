@@ -70,14 +70,23 @@ auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::Om
   if(tif) {
     // Set the directory to load the image from this directory
     TIFFSetDirectory(tif, 0);
-    char *omeXML = nullptr;
-    if(1 == TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &omeXML)) {
+    char *omeXMLchar = nullptr;
+    if(1 == TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &omeXMLchar)) {
       try {
+        unsigned int tileWidth  = 0;    //= tif->tif_dir.td_tilewidth;
+        unsigned int tileHeight = 0;    //= tif->tif_dir.td_tilelength;
+        TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tileWidth);
+        TIFFGetField(tif, TIFFTAG_TILELENGTH, &tileHeight);
+        auto omeXML = std::string(omeXMLchar);
+        omeXML      = omeXML + "\n<JODA xmlns=\"https://www.imagec.org/\" TileWidht=\"" + std::to_string(tileHeight) +
+                 "\" TileHeight=\"" + std::to_string(tileWidth) + "\"></JODA>";
+
         omeInfo.loadOmeInformationFromXMLString(std::string(omeXML));
       } catch(const std::exception &ex) {
+        std::cout << "NO OME" << std::endl;
         // No OME information found, emulate it by just using the TIFF meta data
         joda::log::logInfo("No OME information found. Use TIFF meta data instead!");
-        omeInfo.emulateOmeInformationFromTiff(getImageProperties(filename, 0));
+        omeInfo = getImageProperties(filename, 0);
       }
       // _TIFFfree(omeXML);    // Free allocated memory
     }
@@ -95,7 +104,7 @@ auto TiffLoader::getOmeInformation(const std::string &filename) -> joda::ome::Om
 /// \param[in]  document
 /// \return     Nr. of tiles
 ///
-auto TiffLoader::getImageProperties(const std::string &filename, uint16_t directory) -> ImageProperties
+auto TiffLoader::getImageProperties(const std::string &filename, uint16_t directory) -> ome::OmeInfo
 {
   TIFFSetWarningHandler(DummyHandler);
 
@@ -124,18 +133,23 @@ auto TiffLoader::getImageProperties(const std::string &filename, uint16_t direct
       nrOfTiles = imageSize / tileSize;
     }
     TIFFClose(tif);
+    ome::OmeInfo omeInfo;
+    omeInfo.emulateOmeInformationFromTiff(
+        ome::OmeInfo::ImageInfo{.nrOfChannels  = 1,
+                                .imageSize     = imageSize,
+                                .imageWidth    = width,
+                                .imageHeight   = height,
+                                .bits          = 16,
+                                .tileSize      = tileSize,
+                                .nrOfTiles     = nrOfTiles,
+                                .nrOfDocuments = static_cast<uint16_t>(nrOfDirectories),
+                                .tileWidth     = tileWidth,
+                                .tileHeight    = tileHeight});
 
-    return ImageProperties{.imageSize     = imageSize,
-                           .tileSize      = tileSize,
-                           .nrOfTiles     = nrOfTiles,
-                           .nrOfDocuments = (uint16_t) nrOfDirectories,
-                           .width         = width,
-                           .height        = height,
-                           .tileWidth     = tileWidth,
-                           .tileHeight    = tileHeight};
+    return omeInfo;
   }
 
-  return ImageProperties{};
+  return {};
 }
 
 ///

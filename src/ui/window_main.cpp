@@ -790,7 +790,7 @@ void WindowMain::onLookingForFilesFinished()
   }
   if(mController->getNrOfFoundImages() > 0) {
     mFoundFilesCombo->setCurrentIndex(0);
-    auto [_, props] = mController->getImageProperties(0, 0);
+    auto props = mController->getImageProperties(0, 0).getImageInfo();
     mFoundFilesHint->setText("Finished");
     mFileSearchHintLabel->setVisible(false);
     mFileSelectorComboBox->setVisible(true);
@@ -832,8 +832,7 @@ void WindowMain::resetImageInfo()
 ///
 void WindowMain::onImageSelectionChanged()
 {
-  auto [ome, info] =
-      mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
+  auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
 
   const auto &imgInfo = ome.getImageInfo();
   auto imageData      = QString(
@@ -843,7 +842,7 @@ void WindowMain::onImageSelectionChanged()
                        .arg(imgInfo.imageHeight)
                        .arg(imgInfo.bits)
                        .arg(imgInfo.tileWidth)
-                       .arg(imgInfo.imageHeight)
+                       .arg(imgInfo.tileHeight)
                        .arg(imgInfo.nrOfTiles);
 
   const auto &objectiveInfo = ome.getObjectiveInfo();

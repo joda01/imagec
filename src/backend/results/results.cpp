@@ -167,7 +167,7 @@ void Results::appendChannelsToDetailReport(const joda::settings::AnalyzeSettings
 /// \param[out]
 /// \return
 ///
-void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, const std::filesystem::path &imagePath)
+void Results::appendImageToDetailReport(const joda::ome::OmeInfo &imgProps, const std::filesystem::path &imagePath)
 {
   WellPosGenerator::Pos posInWell;
   {
@@ -216,8 +216,8 @@ void Results::appendImageToDetailReport(const image::ImageProperties &imgProps, 
                                          .imageId           = imageId,
                                          .imageIdx          = posInWell.imgIdx,
                                          .originalImagePath = std::filesystem::relative(imagePath, mOutputFolder),
-                                         .width             = imgProps.width,
-                                         .height            = imgProps.height});
+                                         .width             = imgProps.getImageInfo().imageWidth,
+                                         .height            = imgProps.getImageInfo().imageHeight});
   } catch(const std::exception &ex) {
     joda::log::logWarning("Ceate Image:" + std::string(ex.what()) + "\n" +
                           std::filesystem::relative(imagePath, mOutputFolder).string() + "\n" +
@@ -267,7 +267,7 @@ void Results::writePredatedData(const DetailReportAdder &adders)
 void Results::appendToDetailReport(const DetailReportAdder &appender,
                                    const joda::image::detect::DetectionResponse &results,
                                    const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
-                                   const image::ImageProperties &imgProps, const std::filesystem::path &imagePath)
+                                   const joda::ome::OmeInfo &imgProps, const std::filesystem::path &imagePath)
 {
   struct ImageStats
   {
@@ -352,11 +352,11 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
                                                        .invalidateAll    = results.invalidateWholeImage,
                                                        .controlImagePath = controlImagePath});
 
-    auto [offsetX, offsetY] = ::joda::image::TiffLoader::calculateTileXYoffset(::joda::pipeline::TILES_TO_LOAD_PER_RUN,
-                                                                               tileIdx, imgProps.width, imgProps.height,
-                                                                               imgProps.tileWidth, imgProps.tileHeight);
-    int64_t xMul            = offsetX * imgProps.tileWidth;
-    int64_t yMul            = offsetY * imgProps.tileHeight;
+    auto [offsetX, offsetY] = ::joda::image::TiffLoader::calculateTileXYoffset(
+        ::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.getImageInfo().imageWidth,
+        imgProps.getImageInfo().imageHeight, imgProps.getImageInfo().tileWidth, imgProps.getImageInfo().tileHeight);
+    int64_t xMul = offsetX * imgProps.getImageInfo().tileWidth;
+    int64_t yMul = offsetY * imgProps.getImageInfo().tileHeight;
 
     uint64_t roiIdx = 0;
     auto id2 = DurationCount::start("loop db prepare >" + std::to_string(results.result->size()) + "<.");    // 30ms
@@ -527,7 +527,7 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
 ///
 std::filesystem::path Results::createControlImage(const joda::image::detect::DetectionResponse &result,
                                                   const joda::settings::ChannelSettingsMeta &channelSettings,
-                                                  uint16_t tileIdx, const image::ImageProperties &imgProps,
+                                                  uint16_t tileIdx, const joda::ome::OmeInfo &imgProps,
                                                   const std::filesystem::path &imagePath)
 {
   // Free memory

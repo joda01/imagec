@@ -30,7 +30,6 @@
 #include "backend/image_processing/detection/detection_response.hpp"
 #include "backend/image_processing/functions/watershed/watershed.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
-#include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/image_processing/reader/jpg/image_loader_jpg.hpp"
 #include "backend/image_processing/reader/tif/image_loader_tif.hpp"
 #include "backend/pipelines/pipeline_detection/object_segmentation/object_segmentation.hpp"
@@ -47,7 +46,6 @@ static constexpr int32_t TIME_FRAME                     = 0;
 
 struct ChannelProperties
 {
-  image::ImageProperties props;
   joda::ome::OmeInfo ome;
 };
 

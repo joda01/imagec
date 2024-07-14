@@ -19,7 +19,6 @@
 #include <iostream>
 #include <sstream>
 #include "backend/helper/duration_count/duration_count.h"
-#include "backend/image_processing/reader/image_reader.hpp"
 #include <nlohmann/json.hpp>
 #include <opencv2/core/mat.hpp>
 
@@ -215,16 +214,16 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
     const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
 
     joda::ome::OmeInfo omeInfo;
-    ImageProperties props = omeInfo.loadOmeInformationFromXMLString(
-        std::string(stringChars));    ///\todo this method can throw an excaption
+    omeInfo.loadOmeInformationFromXMLString(std::string(stringChars));    ///\todo this method can throw an excaption
+    const auto &props = omeInfo.getImageInfo();
 
-    cv::Mat retValue   = cv::Mat::zeros(props.height, props.width, CV_16UC1);
+    cv::Mat retValue   = cv::Mat::zeros(props.imageHeight, props.imageWidth, CV_16UC1);
     jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, directory,
                                                                     static_cast<int>(series));
     if(props.bits == 8) {
-      myEnv->GetByteArrayRegion(readImg, 0, props.width * props.height, (jbyte *) retValue.data);
+      myEnv->GetByteArrayRegion(readImg, 0, props.imageWidth * props.imageHeight, (jbyte *) retValue.data);
     } else if(props.bits == 16) {
-      myEnv->GetByteArrayRegion(readImg, 0, props.width * props.height * 2, (jbyte *) retValue.data);
+      myEnv->GetByteArrayRegion(readImg, 0, props.imageWidth * props.imageHeight * 2, (jbyte *) retValue.data);
     }
 
     myEnv->DeleteLocalRef(filePath);
@@ -242,8 +241,7 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
 /// \param[out]
 /// \return
 ///
-auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t series)
-    -> std::tuple<joda::ome::OmeInfo, ImageProperties>
+auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t series) -> joda::ome::OmeInfo
 {
   if(mJVMInitialised) {
     auto id = DurationCount::start("Get OEM");
@@ -258,13 +256,13 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
     std::string omeXML(stringChars);
     myEnv->ReleaseStringUTFChars(result, stringChars);
     joda::ome::OmeInfo omeInfo;
-    ImageProperties props =
-        omeInfo.loadOmeInformationFromXMLString(omeXML);    ///\todo this method can throw an excaption
+
+    omeInfo.loadOmeInformationFromXMLString(omeXML);    ///\todo this method can throw an excaption
     myJVM->DetachCurrentThread();
     DurationCount::stop(id);
-    return {omeInfo, props};
+    return omeInfo;
   }
-  return {{}, {}};
+  return {};
 }
 
 //     jsize imageArraySize = myEnv->GetArrayLength(readImg);

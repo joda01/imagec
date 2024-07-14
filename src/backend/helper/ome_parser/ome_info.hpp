@@ -23,7 +23,6 @@
 #include <map>
 #include <set>
 #include <string>
-#include "backend/image_processing/reader/image_reader.hpp"
 #include <pugixml.hpp>
 
 namespace joda::ome {
@@ -77,8 +76,8 @@ public:
   /////////////////////////////////////////////////////
   OmeInfo();
 
-  joda::image::ImageProperties loadOmeInformationFromXMLString(const std::string &omeXML);
-  void emulateOmeInformationFromTiff(const joda::image::ImageProperties &);
+  void loadOmeInformationFromXMLString(const std::string &omeXML);
+  void emulateOmeInformationFromTiff(const ImageInfo &);
 
   [[nodiscard]] int getNrOfChannels() const;
   [[nodiscard]] uint64_t getImageSize() const;

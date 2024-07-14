@@ -19,7 +19,6 @@
 #include <string>
 #include <vector>
 #include "backend/image_processing/detection/detection_response.hpp"
-#include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/results/database/database.hpp"
 #include "backend/results/database/database_interface.hpp"
 #include "backend/results/db_column_ids.hpp"

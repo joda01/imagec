@@ -27,7 +27,6 @@
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/thread_pool.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
-#include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"

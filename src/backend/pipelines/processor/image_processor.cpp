@@ -51,7 +51,7 @@ image::detect::DetectionResponse ImageProcessor::executeAlgorithm(
   }
 
   auto tifDirs = ImageProcessor::getTifDirs(chProps, channelSetting.meta.channelIdx);
-  if(chProps.props.imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE &&
+  if(chProps.ome.getImageInfo().imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE &&
      imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::TIFF) {
     return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, tifDirs, tileIndex, referenceChannelResults,
                                                onnxModels);
@@ -348,24 +348,20 @@ ChannelProperties ImageProcessor::loadChannelProperties(const helper::fs::FileIn
   //
   // Load image properties
   //
-  image::ImageProperties imgProperties;
   joda::ome::OmeInfo omeInfo;
   switch(imagePath.getDecoder()) {
     case helper::fs::FileInfoImages::Decoder::JPG: {
-      imgProperties = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
+      omeInfo = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
     } break;
     case helper::fs::FileInfoImages::Decoder::TIFF: {
-      omeInfo       = image::TiffLoader::getOmeInformation(imagePath.getFilePath().string());
-      imgProperties = image::TiffLoader::getImageProperties(imagePath.getFilePath().string(), 0);
+      omeInfo = image::TiffLoader::getOmeInformation(imagePath.getFilePath().string());
     } break;
     case helper::fs::FileInfoImages::Decoder::BIOFORMATS: {
-      auto [ome, props] = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
-      omeInfo           = ome;
-      imgProperties     = props;
+      omeInfo = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
     } break;
   }
 
-  return ChannelProperties{.props = imgProperties, .ome = omeInfo};
+  return ChannelProperties{.ome = omeInfo};
 }
 
 ///

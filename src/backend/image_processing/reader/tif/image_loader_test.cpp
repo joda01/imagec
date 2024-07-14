@@ -22,10 +22,9 @@ TEST_CASE("image:loader:ome", "[.][image_loader_ome")
 ///
 TEST_CASE("image:loader:bigtiff", "[.][image_loader_bigtiff]")
 {
-  auto prop = joda::image::TiffLoader::getImageProperties("test/GMEV5minM1OT3_0001.btf", 0);
-  std::cout << std::to_string(prop.nrOfTiles) << std::endl;
+  auto prop = joda::image::TiffLoader::getOmeInformation("test/GMEV5minM1OT3_0001.btf");
 
-  for(int n = 0; n < prop.nrOfTiles / 36; n++) {
+  for(int n = 0; n < prop.getImageInfo().nrOfTiles / 36; n++) {
     auto img = joda::image::TiffLoader::loadImageTile("test/GMEV5minM1OT3_0001.btf", 3, n, 36);
     img *= 0.003906250;
     cv::imwrite("test/img/test_" + std::to_string(n) + ".jpg", img);    // A JPG FILE IS BEING SAVED

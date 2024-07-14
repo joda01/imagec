@@ -164,28 +164,24 @@ void Controller::preview(const settings::ChannelSettings &settings, int imgIndex
 /// \brief      Returns properties of given image
 /// \author     Joachim Danmayr
 ///
-auto Controller::getImageProperties(int imgIndex, int series)
-    -> std::tuple<joda::ome::OmeInfo, joda::image::ImageProperties>
+auto Controller::getImageProperties(int imgIndex, int series) -> joda::ome::OmeInfo
 {
   auto imagePath = mWorkingDirectory.getFileAt(imgIndex);
 
-  image::ImageProperties props;
   joda::ome::OmeInfo ome;
   switch(imagePath.getDecoder()) {
     case helper::fs::FileInfoImages::Decoder::JPG:
-      props = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
+      ome = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
       break;
     case helper::fs::FileInfoImages::Decoder::TIFF:
-      props = image::TiffLoader::getImageProperties(imagePath.getFilePath().string(), 0);
+      ome = image::TiffLoader::getOmeInformation(imagePath.getFilePath().string());
       break;
     case helper::fs::FileInfoImages::Decoder::BIOFORMATS:
-      auto [omeIn, propIn] = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
-      props                = propIn;
-      ome                  = omeIn;
+      ome = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
       break;
   }
 
-  return {ome, props};
+  return ome;
 }
 
 ///
@@ -213,11 +209,11 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
     series = settings.channels.begin()->meta.series;
   }
 
-  auto [_, props]   = getImageProperties(imgIndex, series);
-  int64_t imgNr     = mWorkingDirectory.getNrOfFiles();
-  int64_t tileNr    = 1;
-  int64_t channelNr = settings.channels.size();
-
+  auto ome             = getImageProperties(imgIndex, series);
+  int64_t imgNr        = mWorkingDirectory.getNrOfFiles();
+  int64_t tileNr       = 1;
+  int64_t channelNr    = settings.channels.size();
+  const auto &props    = ome.getImageInfo();
   auto systemRecources = getSystemResources();
   if(props.imageSize > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
     tileNr              = props.nrOfTiles / joda::pipeline::TILES_TO_LOAD_PER_RUN;

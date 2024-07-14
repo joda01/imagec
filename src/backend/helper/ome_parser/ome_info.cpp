@@ -37,7 +37,7 @@ OmeInfo::OmeInfo()
 /// \param[in]  omeXML  Read OME XML data as string
 /// \return     Parsed OME information
 ///
-joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML)
+void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
 
@@ -47,6 +47,14 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
     throw std::invalid_argument("Error parsing OME information from file!");
   }
   std::string keyPrefix;    // OME:
+
+TRY_AGAIN:
+  std::string imageName =
+      std::string(doc.child("OME").child(std::string(keyPrefix + "Image").data()).attribute("Name").as_string());
+  if(imageName.empty() && keyPrefix.empty()) {
+    keyPrefix = "OME:";
+    goto TRY_AGAIN;
+  }
 
   auto objectivManufacturer = std::string(doc.child("OME")
                                               .child(std::string(keyPrefix + "Instrument").data())
@@ -74,12 +82,7 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
 
   for(pugi::xml_node image = doc.child("OME").child(std::string(keyPrefix + "Image").data()); image != nullptr;
       image                = doc.child("OME").child(std::string(keyPrefix + "Image").data()).next_sibling()) {
-  TRY_AGAIN:
     std::string imageName = std::string(image.attribute("Name").as_string());
-    if(imageName.empty() && keyPrefix.empty()) {
-      keyPrefix = "OME:";
-      goto TRY_AGAIN;
-    }
 
     //
     // Plane numbers
@@ -128,9 +131,9 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
     std::map<uint32_t, Order> planeIFDorder;
     uint32_t startIfd = 0;
 
-    pugi::xml_node pixels = image.child("Pixels");
-    for(pugi::xml_node tiffData = pixels.child("TiffData"); tiffData != nullptr;
-        tiffData                = tiffData.next_sibling("TiffData")) {
+    pugi::xml_node pixels = image.child((keyPrefix + "Pixels").data());
+    for(pugi::xml_node tiffData = pixels.child((keyPrefix + "TiffData").data()); tiffData != nullptr;
+        tiffData                = tiffData.next_sibling((keyPrefix + "TiffData").data())) {
       startIfd                         = tiffData.attribute("IFD").as_int(0);
       planeIFDorder[startIfd]._order.C = tiffData.attribute("FirstC").as_int(0);
       planeIFDorder[startIfd]._order.Z = tiffData.attribute("FirstZ").as_int(0);
@@ -223,8 +226,8 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
     // Load channels
     //
     int idx = 0;
-    for(pugi::xml_node channelNode = pixels.child("Channel"); channelNode != nullptr;
-        channelNode                = channelNode.next_sibling("Channel")) {
+    for(pugi::xml_node channelNode = pixels.child((keyPrefix + "Channel").data()); channelNode != nullptr;
+        channelNode                = channelNode.next_sibling((keyPrefix + "Channel").data())) {
       auto channelId = std::string(channelNode.attribute("ID").as_string());
       const std::string &channelNrString{channelId};
       int channelNr = -1;
@@ -275,7 +278,8 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
     // Load planes
     //
     uint16_t nrOfPlanes = 0;
-    for(pugi::xml_node plane = pixels.child("Plane"); plane != nullptr; plane = plane.next_sibling("Plane")) {
+    for(pugi::xml_node plane = pixels.child((keyPrefix + "Plane").data()); plane != nullptr;
+        plane                = plane.next_sibling((keyPrefix + "Plane").data())) {
       auto theZ               = plane.attribute("TheZ").as_int();
       auto theT               = plane.attribute("TheT").as_int();
       auto theC               = plane.attribute("TheC").as_int();
@@ -300,29 +304,17 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
     mImageInfo.tileWidth     = tileWidth;
     mImageInfo.tileHeight    = tileHeight;
 
-    return {.imageSize     = mImageInfo.imageSize,
-            .tileSize      = tileSize,
-            .nrOfTiles     = nrOfTiles,
-            .nrOfDocuments = nrOfPlanes,
-            .width         = mImageInfo.imageWidth,
-            .height        = mImageInfo.imageHeight,
-            .tileWidth     = tileWidth,
-            .tileHeight    = tileHeight,
-            .bits          = mImageInfo.bits};
+    return;
   }
-  return {};
 }
 
 ///
 /// \brief      If no OME information was found, emulate the information from image properties
 /// \author     Joachim Danmayr
 ///
-void OmeInfo::emulateOmeInformationFromTiff(const joda::image::ImageProperties &prop)
+void OmeInfo::emulateOmeInformationFromTiff(const ImageInfo &prop)
 {
-  mImageInfo.imageSize    = prop.imageSize;
-  mImageInfo.imageHeight  = prop.height;
-  mImageInfo.imageWidth   = prop.width;
-  mImageInfo.nrOfChannels = prop.nrOfDocuments;
+  mImageInfo = prop;
 
   for(uint32_t idx = 0; idx < mImageInfo.nrOfChannels; idx++) {
     std::map<uint32_t, TimeFrame> zStackForTimeFrame;

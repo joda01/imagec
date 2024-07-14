@@ -22,8 +22,8 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
-#include "backend/image_processing/reader/image_reader.hpp"
 #include "backend/results/database/database.hpp"
 #include "backend/results/db_column_ids.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -84,12 +84,12 @@ public:
           const joda::settings::AnalyzeSettings &analyzeSettings);
 
   void appendChannelsToDetailReport(const joda::settings::AnalyzeSettings &);
-  void appendImageToDetailReport(const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
+  void appendImageToDetailReport(const joda::ome::OmeInfo &imgProps, const std::filesystem::path &imagePath);
 
   auto prepareDetailReportAdding() -> DetailReportAdder;
   void appendToDetailReport(const DetailReportAdder &, const joda::image::detect::DetectionResponse &result,
                             const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
-                            const image::ImageProperties &imgProps, const std::filesystem::path &imagePath);
+                            const joda::ome::OmeInfo &imgProps, const std::filesystem::path &imagePath);
   void writePredatedData(const DetailReportAdder &);
 
   /////////////////////////////////////////////////////
@@ -112,8 +112,7 @@ private:
   /////////////////////////////////////////////////////
   std::filesystem::path createControlImage(const joda::image::detect::DetectionResponse &result,
                                            const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
-                                           const image::ImageProperties &imgProps,
-                                           const std::filesystem::path &imagePath);
+                                           const joda::ome::OmeInfo &imgProps, const std::filesystem::path &imagePath);
   void prepareOutputFolders(const std::filesystem::path &resultsFolder);
 
   /////////////////////////////////////////////////////
