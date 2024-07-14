@@ -20,10 +20,10 @@
 
 #pragma once
 
+#include <cstdint>
 #include <map>
 #include <set>
 #include <string>
-#include <pugixml.hpp>
 
 namespace joda::ome {
 

@@ -23,6 +23,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
+#include <pugixml.hpp>
 
 namespace joda::ome {
 
