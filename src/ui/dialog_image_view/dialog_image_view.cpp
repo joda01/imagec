@@ -81,11 +81,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
     buttonGroup->addAction(paintRectangle);
     // toolbarTop->addAction(paintRectangle);
 
-    toolbarTop->addSeparator();
-
-    QAction *action1 = new QAction(QIcon(":/icons/outlined/icons8-normal-distribution-histogram-50.png"), "");
-    connect(action1, &QAction::triggered, this, &DialogImageViewer::onShowHistogramDialog);
-    toolbarTop->addAction(action1);
+    // toolbarTop->addSeparator();
 
     addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
@@ -125,6 +121,28 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
     mSlider->setOrientation(Qt::Orientation::Horizontal);
     connect(mSlider, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
     toolBar->addWidget(mSlider);
+
+    // QAction *fitToScreen = new QAction(QIcon(":/icons/outlined/icons8-full-screen-50.png"), "");
+    // fitToScreen->setObjectName("ToolButton");
+    // fitToScreen->setToolTip("Fit histogram to screen");
+    // connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitHistogramToScreenSizeClicked);
+    // toolBar->addAction(fitToScreen);
+
+    QAction *action1 = new QAction(QIcon(":/icons/outlined/icons8-normal-distribution-histogram-50.png"), "");
+    connect(action1, &QAction::triggered, this, &DialogImageViewer::onShowHistogramDialog);
+    toolBar->addAction(action1);
+
+    QAction *zoomIn = new QAction(QIcon(":/icons/outlined/icons8-zoom-in-50.png"), "");
+    zoomIn->setObjectName("ToolButton");
+    zoomIn->setToolTip("Zoom in");
+    connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomHistogramInClicked);
+    toolBar->addAction(zoomIn);
+
+    QAction *zoomOut = new QAction(QIcon(":/icons/outlined/icons8-zoom-out-50.png"), "");
+    zoomOut->setObjectName("ToolButton");
+    zoomOut->setToolTip("Zoom out");
+    connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomHistogramOutClicked);
+    toolBar->addAction(zoomOut);
 
     addToolBar(Qt::ToolBarArea::BottomToolBarArea, toolBar);
   }
@@ -381,6 +399,44 @@ void DialogImageViewer::onSetStateToPaintRect()
     mImageViewLeft->setState(PanelImageView::State::PAINT);
     mImageViewRight->setState(PanelImageView::State::PAINT);
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onFitHistogramToScreenSizeClicked()
+{
+  mSliderScaling->setValue(128);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onZoomHistogramOutClicked()
+{
+  auto value = mSliderScaling->value() - HISTOGRAM_ZOOM_STEP;
+  mSliderScaling->setValue(value);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onZoomHistogramInClicked()
+{
+  auto value = mSliderScaling->value() + HISTOGRAM_ZOOM_STEP;
+  mSliderScaling->setValue(value);
 }
 
 }    // namespace joda::ui::qt
