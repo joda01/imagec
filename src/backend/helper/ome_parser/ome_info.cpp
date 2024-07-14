@@ -39,6 +39,8 @@ OmeInfo::OmeInfo()
 ///
 joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML)
 {
+  setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
+
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_string(omeXML.c_str());
   if(!result) {
@@ -50,12 +52,12 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
                                               .child(std::string(keyPrefix + "Instrument").data())
                                               .child(std::string(keyPrefix + "Objective").data())
                                               .attribute("Manufacturer")
-                                              .as_string());
+                                              .as_string("Unknown"));
   auto objectivModel        = std::string(doc.child("OME")
                                               .child(std::string(keyPrefix + "Instrument").data())
                                               .child(std::string(keyPrefix + "Objective").data())
                                               .attribute("Model")
-                                              .as_string());
+                                              .as_string("Unknown"));
   auto magnification        = doc.child("OME")
                            .child(std::string(keyPrefix + "Instrument").data())
                            .child(std::string(keyPrefix + "Objective").data())
@@ -65,12 +67,13 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
                                 .child(std::string(keyPrefix + "Image").data())
                                 .child(std::string(keyPrefix + "ObjectiveSettings").data())
                                 .attribute("Medium")
-                                .as_string());
+                                .as_string("Unknown"));
 
   mObjectiveInfo = ObjectiveInfo{
       .manufacturer = objectivManufacturer, .model = objectivModel, .medium = medium, .magnification = magnification};
 
-  for(pugi::xml_node image : doc.child("OME").children(std::string(keyPrefix + "Image").data())) {
+  for(pugi::xml_node image = doc.child("OME").child(std::string(keyPrefix + "Image").data()); image != nullptr;
+      image                = doc.child("OME").child(std::string(keyPrefix + "Image").data()).next_sibling()) {
   TRY_AGAIN:
     std::string imageName = std::string(image.attribute("Name").as_string());
     if(imageName.empty() && keyPrefix.empty()) {
@@ -87,19 +90,19 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
     auto dimOrder =
         std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("DimensionOrder").as_string());
 
-    auto sizeX   = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeX").as_ullong();
-    auto sizeY   = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeY").as_ullong();
-    mImageSize   = sizeX * sizeY;
-    mImageWidth  = sizeX;
-    mImageHeight = sizeY;
+    auto sizeX             = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeX").as_ullong();
+    auto sizeY             = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeY").as_ullong();
+    mImageInfo.imageSize   = sizeX * sizeY;
+    mImageInfo.imageWidth  = sizeX;
+    mImageInfo.imageHeight = sizeY;
 
     auto type = std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("Type").as_string());
     if(type == "uint8") {
-      mBits = 8;
+      mImageInfo.bits = 8;
     } else if(type == "uint16") {
-      mBits = 16;
+      mImageInfo.bits = 16;
     } else {
-      mBits = 16;
+      mImageInfo.bits = 16;
     }
 
     //
@@ -108,7 +111,7 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
     // https://docs.openmicroscopy.org/ome-model/6.1.0/ome-tiff/specification.html
     // It is used to determine which plane is associated to which IFD (tiff directory) in the tiff
     //
-    mNrOfChannels = sizeC;
+    mImageInfo.nrOfChannels = sizeC;
     union Order
     {
       uint32_t order = 0xFFFFFFFF;
@@ -238,18 +241,16 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
         joda::log::logWarning("Wrong Channel ID format in OME XML.");
       }
 
-      auto channelName            = std::string(channelNode.attribute("Name").as_string());
+      auto channelName            = std::string(channelNode.attribute("Name").as_string("Unknown"));
       auto samplesPerPixel        = channelNode.attribute("SamplesPerPixel").as_float();
-      auto contrastMethod         = std::string(channelNode.attribute("ContrastMethod").as_string());
+      auto contrastMethod         = std::string(channelNode.attribute("ContrastMethod").as_string("Unknown"));
       auto emissionWaveLength     = channelNode.attribute("EmissionWavelength").as_float();
       auto emissionWaveLengthUnit = std::string(channelNode.attribute("EmissionWavelengthUnit").as_string());
-      // auto prefix                 = std::string(channel.attribute("__prefix").as_string());
+      auto detectorSettings       = channelNode.child("DetectorSettings");
+      auto detectorId             = std::string(detectorSettings.attribute("ID").as_string());
+      auto detectorBinning        = std::string(detectorSettings.attribute("Binning").as_string());
 
-      auto detectorSettings = channelNode.child("DetectorSettings");
-      auto detectorId       = std::string(detectorSettings.attribute("ID").as_string());
-      auto detectorBinning  = std::string(detectorSettings.attribute("Binning").as_string());
-
-      mNrOfChannels++;
+      mImageInfo.nrOfChannels++;
 
       std::map<uint32_t, TimeFrame> zStackForTimeFrame;
       for(const auto &[idf, order] : planeIFDorder) {
@@ -264,7 +265,7 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
                                                .emissionWaveLength     = emissionWaveLength,
                                                .emissionWaveLengthUnit = emissionWaveLengthUnit,
                                                .contrastMethos         = contrastMethod,
-                                               .exposuerTime           = 0,
+                                               .exposuerTime           = -1,
                                                .zStackForTimeFrame     = zStackForTimeFrame});
 
       idx++;
@@ -279,7 +280,7 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
       auto theT               = plane.attribute("TheT").as_int();
       auto theC               = plane.attribute("TheC").as_int();
       ChannelInfo &chInfo     = mChannels.at(theC);
-      chInfo.exposuerTime     = plane.attribute("ExposureTime").as_int();
+      chInfo.exposuerTime     = plane.attribute("ExposureTime").as_float();
       chInfo.exposuerTimeUnit = std::string(plane.attribute("ExposureTimeUnit").as_string());
       nrOfPlanes++;
     }
@@ -290,18 +291,24 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
     int64_t nrOfTiles = 1;
     int64_t tileSize  = tileHeight * tileWidth;
     if(tileSize > 0) {
-      nrOfTiles = mImageSize / tileSize;
+      nrOfTiles = mImageInfo.imageSize / tileSize;
     }
 
-    return {.imageSize     = mImageSize,
+    mImageInfo.tileSize      = tileSize;
+    mImageInfo.nrOfTiles     = nrOfTiles;
+    mImageInfo.nrOfDocuments = nrOfPlanes;
+    mImageInfo.tileWidth     = tileWidth;
+    mImageInfo.tileHeight    = tileHeight;
+
+    return {.imageSize     = mImageInfo.imageSize,
             .tileSize      = tileSize,
             .nrOfTiles     = nrOfTiles,
             .nrOfDocuments = nrOfPlanes,
-            .width         = mImageWidth,
-            .height        = mImageHeight,
+            .width         = mImageInfo.imageWidth,
+            .height        = mImageInfo.imageHeight,
             .tileWidth     = tileWidth,
             .tileHeight    = tileHeight,
-            .bits          = mBits};
+            .bits          = mImageInfo.bits};
   }
   return {};
 }
@@ -312,12 +319,12 @@ joda::image::ImageProperties OmeInfo::loadOmeInformationFromXMLString(const std:
 ///
 void OmeInfo::emulateOmeInformationFromTiff(const joda::image::ImageProperties &prop)
 {
-  mImageSize    = prop.imageSize;
-  mImageHeight  = prop.height;
-  mImageWidth   = prop.width;
-  mNrOfChannels = prop.nrOfDocuments;
+  mImageInfo.imageSize    = prop.imageSize;
+  mImageInfo.imageHeight  = prop.height;
+  mImageInfo.imageWidth   = prop.width;
+  mImageInfo.nrOfChannels = prop.nrOfDocuments;
 
-  for(uint32_t idx = 0; idx < mNrOfChannels; idx++) {
+  for(uint32_t idx = 0; idx < mImageInfo.nrOfChannels; idx++) {
     std::map<uint32_t, TimeFrame> zStackForTimeFrame;
     zStackForTimeFrame.emplace(0, TimeFrame{idx});
     mChannels.emplace(idx, ChannelInfo{.channelId              = "Channel:" + std::to_string(idx),
@@ -335,7 +342,7 @@ void OmeInfo::emulateOmeInformationFromTiff(const joda::image::ImageProperties &
 ///
 int OmeInfo::getNrOfChannels() const
 {
-  return mNrOfChannels;
+  return mImageInfo.nrOfChannels;
 }
 
 ///
@@ -344,7 +351,7 @@ int OmeInfo::getNrOfChannels() const
 ///
 uint64_t OmeInfo::getImageSize() const
 {
-  return mImageSize;
+  return mImageInfo.imageSize;
 }
 
 ///
@@ -353,7 +360,7 @@ uint64_t OmeInfo::getImageSize() const
 ///
 [[nodiscard]] int32_t OmeInfo::getBits() const
 {
-  return mBits;
+  return mImageInfo.bits;
 }
 
 ///
@@ -362,7 +369,7 @@ uint64_t OmeInfo::getImageSize() const
 ///
 [[nodiscard]] std::tuple<int64_t, int64_t> OmeInfo::getSize() const
 {
-  return {mImageWidth, mImageHeight};
+  return {mImageInfo.imageWidth, mImageInfo.imageHeight};
 }
 
 ///

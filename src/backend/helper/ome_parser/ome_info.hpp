@@ -37,21 +37,9 @@ class OmeInfo
 {
 public:
   /////////////////////////////////////////////////////
-  OmeInfo();
-
-  joda::image::ImageProperties loadOmeInformationFromXMLString(const std::string &omeXML);
-  void emulateOmeInformationFromTiff(const joda::image::ImageProperties &);
-
-  [[nodiscard]] int getNrOfChannels() const;
-  [[nodiscard]] uint64_t getImageSize() const;
-  [[nodiscard]] std::tuple<int64_t, int64_t> getSize() const;
-  [[nodiscard]] int32_t getBits() const;
-  [[nodiscard]] auto getDirectoryForChannel(uint32_t channel, uint32_t timeFrame) const -> std::set<uint32_t>;
-
-private:
-  /////////////////////////////////////////////////////
   using TimeFrame = std::set<uint32_t>;
 
+  /////////////////////////////////////////////////////
   struct ChannelInfo
   {
     std::string channelId;
@@ -59,7 +47,7 @@ private:
     float emissionWaveLength = 0;
     std::string emissionWaveLengthUnit;
     std::string contrastMethos;
-    uint32_t exposuerTime = 0;
+    float exposuerTime = 0.0;
     std::string exposuerTimeUnit;
     std::map<uint32_t, TimeFrame> zStackForTimeFrame;    ///< TimeFrame <Time-Index, Frames in the time>
   };
@@ -72,13 +60,48 @@ private:
     int32_t magnification = 0;
   };
 
-  /////////////////////////////////////////////////////
-  int mNrOfChannels     = 0;
-  int64_t mImageSize    = 0;
-  uint64_t mImageWidth  = 0;
-  uint64_t mImageHeight = 0;
-  int8_t mBits          = 16;
+  struct ImageInfo
+  {
+    int nrOfChannels       = 0;
+    int64_t imageSize      = 0;
+    uint64_t imageWidth    = 0;
+    uint64_t imageHeight   = 0;
+    int8_t bits            = 16;
+    int64_t tileSize       = 0;
+    int64_t nrOfTiles      = 0;
+    uint16_t nrOfDocuments = 0;
+    uint64_t tileWidth     = 0;
+    uint64_t tileHeight    = 0;
+  };
 
+  /////////////////////////////////////////////////////
+  OmeInfo();
+
+  joda::image::ImageProperties loadOmeInformationFromXMLString(const std::string &omeXML);
+  void emulateOmeInformationFromTiff(const joda::image::ImageProperties &);
+
+  [[nodiscard]] int getNrOfChannels() const;
+  [[nodiscard]] uint64_t getImageSize() const;
+  [[nodiscard]] std::tuple<int64_t, int64_t> getSize() const;
+  [[nodiscard]] int32_t getBits() const;
+  [[nodiscard]] auto getDirectoryForChannel(uint32_t channel, uint32_t timeFrame) const -> std::set<uint32_t>;
+  [[nodiscard]] const ImageInfo &getImageInfo() const
+  {
+    return mImageInfo;
+  }
+  [[nodiscard]] const ObjectiveInfo &getObjectiveInfo() const
+  {
+    return mObjectiveInfo;
+  }
+
+  [[nodiscard]] const std::map<uint32_t, ChannelInfo> &getChannelInfos() const
+  {
+    return mChannels;
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  ImageInfo mImageInfo;
   ObjectiveInfo mObjectiveInfo;
   std::map<uint32_t, ChannelInfo> mChannels;    ///< Contains the channel information <channelIdx | channelinfo>
 };

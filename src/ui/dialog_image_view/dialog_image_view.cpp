@@ -92,7 +92,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
 
   // Central images
   {
-    QGridLayout *centralLayout = new QGridLayout(this);
+    QGridLayout *centralLayout = new QGridLayout();
     QWidget *centralWidget     = new QWidget();
     mImageViewLeft             = new PanelImageView();
     mImageViewLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

@@ -118,7 +118,9 @@ private:
   /////////////////////////////////////////////////////
   void createTopToolbar();
   void createBottomToolbar();
+  void createRightToolbar();
   void checkForSettingsChanged();
+  void resetImageInfo();
 
   QWidget *createStackedWidget();
   QWidget *createStartWidget();
@@ -158,7 +160,11 @@ private:
 
   ////Toolbar/////////////////////////////////////////////////
   QToolBar *mButtomToolbar;
+  QToolBar *mRightToolBar;
   QLineEdit *mJobName;
+
+  ////Right Toolbar/////////////////////////////////////////////////
+  QTextEdit *mLabelImageInfo;
 
   ////Made project settings/////////////////////////////////////////////////
   ContainerBase *mSelectedChannel = nullptr;
@@ -202,6 +208,7 @@ private slots:
   void onLookingForFilesFinished();
   void onOpenAnalyzeSettingsClicked();
   void onAddGirafClicked();
+  void onImageSelectionChanged();
 
   void onOpenSettingsDialog();
   void onFindTemplatesFinished(std::map<std::string, helper::templates::TemplateParser::Data>);

@@ -36,6 +36,7 @@
 #include <string>
 #include <thread>
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
 #include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -66,6 +67,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setWindowTitle(Version::getTitle().data());
   createTopToolbar();
   createBottomToolbar();
+  createRightToolbar();
   setMinimumSize(1600, 800);
   setObjectName("windowMain");
   setStyleSheet(
@@ -81,6 +83,9 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   mMainThread = new std::thread(&WindowMain::waitForFileSearchFinished, this);
   connect(this, &WindowMain::lookingForFilesFinished, this, &WindowMain::onLookingForFilesFinished);
   connect(this, &WindowMain::lookingForTemplateFinished, this, &WindowMain::onFindTemplatesFinished);
+  connect(getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
+  connect(getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
+  connect(getImageTilesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
 }
 
 void WindowMain::createBottomToolbar()
@@ -226,6 +231,28 @@ void WindowMain::createTopToolbar()
     connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
     toolbar->addAction(mShowInfoDialog);
   }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::createRightToolbar()
+{
+  mRightToolBar = new QToolBar(this);
+  mRightToolBar->setStyleSheet("QToolBar{spacing:8px;}");
+  mRightToolBar->setMovable(false);
+  mRightToolBar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
+
+  {
+    mLabelImageInfo = new QTextEdit();
+    mLabelImageInfo->setStyleSheet("QTextEdit { border: none; background-color: rgb(251,252,253); }");
+    mLabelImageInfo->setReadOnly(true);
+    mRightToolBar->addWidget(mLabelImageInfo);
+  }
+  resetImageInfo();
+  mRightToolBar->setVisible(false);
+  addToolBar(Qt::ToolBarArea::RightToolBarArea, mRightToolBar);
 }
 
 ///
@@ -763,7 +790,7 @@ void WindowMain::onLookingForFilesFinished()
   }
   if(mController->getNrOfFoundImages() > 0) {
     mFoundFilesCombo->setCurrentIndex(0);
-    auto props = mController->getImageProperties(0, 0);
+    auto [_, props] = mController->getImageProperties(0, 0);
     mFoundFilesHint->setText("Finished");
     mFileSearchHintLabel->setVisible(false);
     mFileSelectorComboBox->setVisible(true);
@@ -784,9 +811,74 @@ void WindowMain::onLookingForFilesFinished()
 
   } else {
     // mFoundFilesCombo->setVisible(false);
+    resetImageInfo();
     mFoundFilesHint->setText("No images found!");
     mStartAnalysis->setEnabled(false);
   }
+}
+
+///
+/// \brief      A new image has been selected
+/// \author     Joachim Danmayr
+///
+void WindowMain::resetImageInfo()
+{
+  mLabelImageInfo->setText("...");
+}
+
+///
+/// \brief      A new image has been selected
+/// \author     Joachim Danmayr
+///
+void WindowMain::onImageSelectionChanged()
+{
+  auto [ome, info] =
+      mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
+
+  const auto &imgInfo = ome.getImageInfo();
+  auto imageData      = QString(
+                       "<p><strong>Image</strong></p>"
+                            "<p>Size: %1 x %2<br />Bits: %3<br />Tile size: %4 x %5<br />Nr. of tiles: %6</p>")
+                       .arg(imgInfo.imageWidth)
+                       .arg(imgInfo.imageHeight)
+                       .arg(imgInfo.bits)
+                       .arg(imgInfo.tileWidth)
+                       .arg(imgInfo.imageHeight)
+                       .arg(imgInfo.nrOfTiles);
+
+  const auto &objectiveInfo = ome.getObjectiveInfo();
+  auto objectiveData        = QString(
+                           "<p><strong>Objective</strong></p>"
+                                  "<p>Manufacturer: %1<br />Model: %2<br />Medium: %3<br />Magnification: x%4</p>")
+                           .arg(objectiveInfo.manufacturer.data())
+                           .arg(objectiveInfo.model.data())
+                           .arg(objectiveInfo.medium.data())
+                           .arg(objectiveInfo.magnification);
+
+  QString channelInfoStr;
+  for(const auto &[idx, channelInfo] : ome.getChannelInfos()) {
+    int32_t zStack = 1;
+    if(!channelInfo.zStackForTimeFrame.empty()) {
+      zStack = channelInfo.zStackForTimeFrame.begin()->second.size();
+    }
+    QString channelData =
+        QString(
+            "<p><strong>Channel %1</strong></p>"
+            "<p>ID: %2<br />Name: %3<br />Emission wave length: %4 %5<br />Contrast method: %6<br />Expousre: "
+            "%7 %8<br />Z-Stack: %9</p>")
+            .arg(idx)
+            .arg(channelInfo.channelId.data())
+            .arg(channelInfo.name.data())
+            .arg(channelInfo.emissionWaveLength)
+            .arg(channelInfo.emissionWaveLengthUnit.data())
+            .arg(channelInfo.contrastMethos.data())
+            .arg(channelInfo.exposuerTime)
+            .arg(channelInfo.exposuerTimeUnit.data())
+            .arg(zStack);
+    channelInfoStr += channelData;
+  }
+
+  mLabelImageInfo->setHtml(imageData + objectiveData + channelInfoStr);
 }
 
 ///
@@ -1028,6 +1120,7 @@ bool WindowMain::showStartScreen(bool warnBeforeSwitch)
     }
   }
   setMiddelLabelText("");
+  mRightToolBar->setVisible(false);
   mButtomToolbar->setVisible(false);
   mProjectSettings->setVisible(false);
   mBackButton->setEnabled(false);
@@ -1052,6 +1145,7 @@ bool WindowMain::showStartScreen(bool warnBeforeSwitch)
 void WindowMain::showProjectOverview()
 {
   // setMiddelLabelText(mSelectedWorkingDirectory);
+  mRightToolBar->setVisible(true);
   mButtomToolbar->setVisible(true);
   mProjectSettings->setVisible(true);
   mBackButton->setIcon(QIcon(":/icons/outlined/icons8-home-50.png"));
@@ -1076,6 +1170,7 @@ void WindowMain::showProjectOverview()
 void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 {
   mSelectedChannel = selectedChannel;
+  mRightToolBar->setVisible(false);
   mButtomToolbar->setVisible(true);
   selectedChannel->setActive(true);
   mProjectSettings->setVisible(true);
@@ -1120,6 +1215,7 @@ void WindowMain::onOpenReportingAreaClicked()
     mPanelReporting->setActualSelectedWorkingFile(filePath.toStdString());
 
     // Open reporting area
+    mRightToolBar->setVisible(false);
     mButtomToolbar->setVisible(false);
     mProjectSettings->setVisible(false);
     mBackButton->setIcon(QIcon(":/icons/outlined/icons8-home-50.png"));
