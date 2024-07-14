@@ -38,6 +38,10 @@ public:
   void createHistogramDialog();
 
 private:
+  /////////////////////////////////////////////////////
+  static constexpr float HISTOGRAM_ZOOM_STEP = 25;
+
+  /////////////////////////////////////////////////////
   QSlider *mSlider;
   QScrollBar *mSliderScaling;
   QScrollBar *mSliderHistogramOffset;
@@ -61,6 +65,9 @@ private slots:
   void onShowHistogramDialog();
   void onSetSateToMove();
   void onSetStateToPaintRect();
+  void onFitHistogramToScreenSizeClicked();
+  void onZoomHistogramOutClicked();
+  void onZoomHistogramInClicked();
 };
 
 }    // namespace joda::ui::qt

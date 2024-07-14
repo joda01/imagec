@@ -58,7 +58,7 @@ public:
     std::string imageFileName;
   };
   void preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex, Preview &previewOut);
-  auto getImageProperties(int imgIndex, int series) -> joda::image::ImageProperties;
+  auto getImageProperties(int imgIndex, int series) -> std::tuple<joda::ome::OmeInfo, joda::image::ImageProperties>;
   struct Resources
   {
     uint64_t ramTotal;    // RAM in bytes

@@ -164,11 +164,13 @@ void Controller::preview(const settings::ChannelSettings &settings, int imgIndex
 /// \brief      Returns properties of given image
 /// \author     Joachim Danmayr
 ///
-auto Controller::getImageProperties(int imgIndex, int series) -> image::ImageProperties
+auto Controller::getImageProperties(int imgIndex, int series)
+    -> std::tuple<joda::ome::OmeInfo, joda::image::ImageProperties>
 {
   auto imagePath = mWorkingDirectory.getFileAt(imgIndex);
 
   image::ImageProperties props;
+  joda::ome::OmeInfo ome;
   switch(imagePath.getDecoder()) {
     case helper::fs::FileInfoImages::Decoder::JPG:
       props = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
@@ -177,12 +179,13 @@ auto Controller::getImageProperties(int imgIndex, int series) -> image::ImagePro
       props = image::TiffLoader::getImageProperties(imagePath.getFilePath().string(), 0);
       break;
     case helper::fs::FileInfoImages::Decoder::BIOFORMATS:
-      auto [_, propIn] = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
-      props            = propIn;
+      auto [omeIn, propIn] = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
+      props                = propIn;
+      ome                  = omeIn;
       break;
   }
 
-  return props;
+  return {ome, props};
 }
 
 ///
@@ -210,7 +213,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
     series = settings.channels.begin()->meta.series;
   }
 
-  auto props        = getImageProperties(imgIndex, series);
+  auto [_, props]   = getImageProperties(imgIndex, series);
   int64_t imgNr     = mWorkingDirectory.getNrOfFiles();
   int64_t tileNr    = 1;
   int64_t channelNr = settings.channels.size();

@@ -1,7 +1,13 @@
 
 // BioFormatsWrapper.java
 
+import loci.common.services.ServiceFactory;
 import loci.formats.ImageReader;
+import loci.formats.in.OMEXMLReader;
+import loci.formats.meta.IMetadata;
+import loci.formats.services.OMEXMLService;
+import ome.xml.meta.OMEXMLMetadata;
+import ome.xml.model.primitives.PositiveInteger;
 import loci.common.DebugTools;
 import loci.formats.IFormatReader;
 
@@ -73,63 +79,33 @@ public class BioFormatsWrapper {
     public static String getImageProperties(String imagePath, int directory, int series) {
         DebugTools.setRootLevel("OFF");
 
-        String ret = "{}";
+        String omeXML = "";
 
         try {
+            // Create a service factory
+            ServiceFactory factory = new ServiceFactory();
+            OMEXMLService service = factory.getInstance(OMEXMLService.class);
+            // Create metadata object
+            IMetadata metadata = service.createOMEXMLMetadata();
+
+
             // Create an appropriate reader for the format
-            IFormatReader formatReader = new ImageReader();
+            ImageReader formatReader = new ImageReader();
+   
+
+
 
             // Initialize the reader with the image file
+            formatReader.setMetadataStore(metadata);
             formatReader.setId(imagePath);
             formatReader.setSeries(series);
-
-            // OMEXMLMetadata omeMetadata = (OMEXMLMetadata)
-            // formatReader.getMetadataStore();
-            String channelOrder = "";
-            for (int c = 0; c < formatReader.getSizeC(); c++) {
-                String tOrder = "[";
-
-                for (int t = 0; t < formatReader.getSizeT(); t++) {
-                    String zOrder = "[";
-                    for (int z = 0; z < formatReader.getSizeZ(); z++) {
-                        zOrder = zOrder.concat(String.valueOf(formatReader.getIndex(z, c, t)));
-                        if (z + 1 < formatReader.getSizeZ()) {
-                            zOrder = zOrder.concat(",");
-                        }
-                    }
-                    zOrder = zOrder.concat("]");
-                    tOrder = tOrder.concat(zOrder);
-
-                    if (t + 1 < formatReader.getSizeT()) {
-                        zOrder = zOrder.concat(",");
-                    }
-                }
-                tOrder = tOrder.concat("]");
-                channelOrder = channelOrder.concat(tOrder);
-                if (c + 1 < formatReader.getSizeC()) {
-                    channelOrder = channelOrder.concat(",");
-                }
-            }
-
-            ret = ("{");
-            ret = ret.concat("\"width\":" + String.valueOf(formatReader.getSizeX()) + ",");
-            ret = ret.concat("\"height\":" + String.valueOf(formatReader.getSizeY()) + ",");
-            ret = ret.concat("\"bits\":" + String.valueOf(formatReader.getBitsPerPixel()) + ",");
-            ret = ret.concat("\"ch\":" + String.valueOf(formatReader.getSizeC()) + ",");
-            ret = ret.concat("\"planes\":" + String.valueOf(formatReader.getImageCount()) + ",");
-            ret = ret.concat("\"tile_height\":" + String.valueOf(formatReader.getOptimalTileHeight()) + ",");
-            ret = ret.concat("\"tile_width\":" + String.valueOf(formatReader.getOptimalTileWidth()) + ",");
-            ret = ret.concat("\"series_count\": \"" + formatReader.getSeriesCount() + "\",");
-            ret = ret.concat("\"dim_order\": \"" + formatReader.getDimensionOrder() + "\",");
-            ret = ret.concat("\"orders\": [");
-            ret = ret.concat(channelOrder);
-            ret = ret.concat("]");
-            ret = ret.concat("}");
+            omeXML = service.getOMEXML(metadata);
+            omeXML = omeXML + "\n<JODA xmlns=\"https://www.imagec.org/\" TileWidht=\""+String.valueOf(formatReader.getOptimalTileHeight())+"\" TileHeight=\""+String.valueOf(formatReader.getOptimalTileWidth())+"\"></JODA>";
             formatReader.close();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return ret;
+        return omeXML;
     }
 }
