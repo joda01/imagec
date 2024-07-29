@@ -29,7 +29,7 @@
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/uuid.hpp"
-#include "backend/image_processing/reader/tif/image_loader_tif.hpp"
+#include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/database/database.hpp"
 #include "backend/results/database/database_interface.hpp"
@@ -352,7 +352,7 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
                                                        .invalidateAll    = results.invalidateWholeImage,
                                                        .controlImagePath = controlImagePath});
 
-    auto [offsetX, offsetY] = ::joda::image::TiffLoader::calculateTileXYoffset(
+    auto [offsetX, offsetY] = ::joda::image::BioformatsLoader::calculateTileXYoffset(
         ::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.getImageInfo().imageWidth,
         imgProps.getImageInfo().imageHeight, imgProps.getImageInfo().tileWidth, imgProps.getImageInfo().tileHeight);
     int64_t xMul = offsetX * imgProps.getImageInfo().tileWidth;

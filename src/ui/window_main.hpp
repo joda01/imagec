@@ -82,6 +82,11 @@ public:
     return mImageTilesCombo;
   }
 
+  [[nodiscard]] const QComboBox *getImageResolutionCombo() const
+  {
+    return mImageResolutionCombo;
+  }
+
   [[nodiscard]] auto getJobName() const -> std::string
   {
     if(mJobName->text().isEmpty()) {
@@ -143,6 +148,8 @@ private:
   QComboBox *mFoundFilesCombo;
   QComboBox *mImageSeriesCombo;
   QComboBox *mImageTilesCombo;
+  QComboBox *mImageResolutionCombo;
+
   QComboBox *mTemplateSelection;
   ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
@@ -174,19 +181,20 @@ private:
   PanelReporting *mPanelReporting = nullptr;
 
   ////ToolbarIcons/////////////////////////////////////////////////
-  QAction *mFileSelectorComboBox = nullptr;
-  QAction *mImageSeriesComboBox  = nullptr;
-  QAction *mImageTilesComboBox   = nullptr;
-  QAction *mFileSearchHintLabel  = nullptr;
-  QAction *mSaveProject          = nullptr;
-  QAction *mStartAnalysis        = nullptr;
-  QAction *mOpenReportingArea    = nullptr;
-  QAction *mJobNameAction        = nullptr;
-  QAction *mProjectSettings      = nullptr;
-  QAction *mDeleteChannel        = nullptr;
-  QAction *mShowInfoDialog       = nullptr;
-  QAction *mFirstSeparator       = nullptr;
-  QAction *mSecondSeparator      = nullptr;
+  QAction *mFileSelectorComboBox    = nullptr;
+  QAction *mImageSeriesComboBox     = nullptr;
+  QAction *mImageResolutionComboBox = nullptr;
+  QAction *mImageTilesComboBox      = nullptr;
+  QAction *mFileSearchHintLabel     = nullptr;
+  QAction *mSaveProject             = nullptr;
+  QAction *mStartAnalysis           = nullptr;
+  QAction *mOpenReportingArea       = nullptr;
+  QAction *mJobNameAction           = nullptr;
+  QAction *mProjectSettings         = nullptr;
+  QAction *mDeleteChannel           = nullptr;
+  QAction *mShowInfoDialog          = nullptr;
+  QAction *mFirstSeparator          = nullptr;
+  QAction *mSecondSeparator         = nullptr;
 
   ////Giraf/////////////////////////////////////////////////
   QPushButton *mUseImageC;

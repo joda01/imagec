@@ -49,7 +49,6 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
 {
   if(!initialized) {
     initialized = true;
-    joda::image::TiffLoader::initLibTif();
     joda::image::BioformatsLoader::init();
     joda::pipeline::PipelineFactory::init();
 

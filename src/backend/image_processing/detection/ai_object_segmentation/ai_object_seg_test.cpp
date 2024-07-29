@@ -15,7 +15,7 @@
 TEST_CASE("cell:counter:ai", "[.][cell_counter_ai]")
 {
   joda::image::BioformatsLoader::init();
-  auto img = joda::image::BioformatsLoader::loadEntireImage("test/test_heatmap_small/A10_06.vsi", 4, 0);
+  auto img = joda::image::BioformatsLoader::loadEntireImage("test/test_heatmap_small/A10_06.vsi", 4, 0, 0);
   joda::settings::ChannelSettingsFilter ch;
   joda::onnx::OnnxParser::Data data;
   // data.modelPath = "models/cell-brightfield-02-v1.onnx";

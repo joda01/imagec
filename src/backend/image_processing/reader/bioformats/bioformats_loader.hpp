@@ -14,6 +14,7 @@
 #pragma once
 
 #include <jni.h>
+#include <cstdint>
 #include <iostream>
 #include <mutex>
 #include <string>
@@ -26,10 +27,14 @@ class BioformatsLoader
 {
 public:
   /////////////////////////////////////////////////////
-  static cv::Mat loadEntireImage(const std::string &filename, int directory, uint16_t series);
-  static auto getOmeInformation(const std::string &filename, uint16_t series) -> joda::ome::OmeInfo;
+  static cv::Mat loadImageTile(const std::string &filename, uint16_t directory, uint16_t series, int offset,
+                               int nrOfTilesToRead, uint16_t resolutionIdx);
+  static cv::Mat loadEntireImage(const std::string &filename, int directory, uint16_t series, uint16_t resolutionIdx);
+  static auto getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo;
   static void init();
   static void destroy();
+  static auto calculateTileXYoffset(int32_t nrOfTilesToRead, int32_t offset, int64_t width, int64_t height,
+                                    int64_t tilewidth, int64_t tileheight) -> std::tuple<int64_t, int64_t>;
   // static std::string getJavaVersion();
 
 private:
@@ -46,7 +51,9 @@ private:
   static inline bool mJVMInitialised = false;
 
   static inline jclass mBioformatsClass;
+  static inline jmethodID mGetImageInfo;
   static inline jmethodID mGetImageProperties;
   static inline jmethodID mReadImage;
+  static inline jmethodID mReadImageTile;
 };
 }    // namespace joda::image

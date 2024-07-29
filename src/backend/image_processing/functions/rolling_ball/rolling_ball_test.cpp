@@ -1,6 +1,6 @@
 #include "../../../settings/channel/channel_settings.hpp"
+#include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_processing/reader/jpg/image_loader_jpg.hpp"
-#include "backend/image_processing/reader/tif/image_loader_tif.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -12,7 +12,7 @@
 ///
 TEST_CASE("func::rollingball", "[.][rolling_ball]")
 {
-  auto img = joda::image::TiffLoader::loadEntireImage("test_areosold_Evs/hoechst.tiff", 0);
+  auto img = joda::image::BioformatsLoader::loadEntireImage("test_areosold_Evs/hoechst.tiff", 0, 0, 0);
   joda::image::func::RollingBallBackground bg({});
   bg.execute(img);
 

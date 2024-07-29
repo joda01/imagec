@@ -15,9 +15,11 @@
 
 #include <jni.h>
 #include <stdio.h>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include "backend/helper/duration_count/duration_count.h"
 #include <nlohmann/json.hpp>
 #include <opencv2/core/mat.hpp>
@@ -148,7 +150,10 @@ void BioformatsLoader::init()
       } else {
         mGetImageProperties = myGlobEnv->GetStaticMethodID(mBioformatsClass, "getImageProperties",
                                                            "(Ljava/lang/String;II)Ljava/lang/String;");
-        mReadImage          = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;II)[B");
+        mReadImage          = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;III)[B");
+        mReadImageTile =
+            myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageTile", "(Ljava/lang/String;IIIIIII)[B");
+        mGetImageInfo = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageInfo", "(Ljava/lang/String;III)[I");
       }
     }
   } catch(const std::exception &ex) {
@@ -200,7 +205,8 @@ std::string BioformatsLoader::getJavaVersion()
 /// \param[out]
 /// \return
 ///
-cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int directory, uint16_t series)
+cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int directory, uint16_t series,
+                                          uint16_t resolutionIdx)
 {
   // Takes 150 ms
   if(mJVMInitialised) {
@@ -209,23 +215,21 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
     jstring filePath = myEnv->NewStringUTF(filename.c_str());
-    jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, 0,
-                                                               static_cast<int>(series));
-    const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
+    jintArray readImgInfo =
+        (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, directory,
+                                                  static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
+    int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
+    myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
+        mBioformatsClass, mReadImage, filePath, directory, static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
-    joda::ome::OmeInfo omeInfo;
-    omeInfo.loadOmeInformationFromXMLString(std::string(stringChars));    ///\todo this method can throw an excaption
-    const auto &props = omeInfo.getImageInfo();
+    // This is the image information
+    cv::Mat retValue = cv::Mat::zeros(imageInfo[0], imageInfo[1], CV_16UC1);
+    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) retValue.data);
 
-    cv::Mat retValue   = cv::Mat::zeros(props.imageHeight, props.imageWidth, CV_16UC1);
-    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, directory,
-                                                                    static_cast<int>(series));
-    if(props.bits == 8) {
-      myEnv->GetByteArrayRegion(readImg, 0, props.imageWidth * props.imageHeight, (jbyte *) retValue.data);
-    } else if(props.bits == 16) {
-      myEnv->GetByteArrayRegion(readImg, 0, props.imageWidth * props.imageHeight * 2, (jbyte *) retValue.data);
-    }
-
+    delete[] imageInfo;
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
     return retValue;
@@ -235,14 +239,148 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
 }
 
 ///
+/// \brief      Used to load (very) large TIFF images that cannot be loaded as a whole into RAM.
+///             Prerequisite is that the TIF is saved as a tiled TIFF.
+///             With this method it is possible to load tile by tile, and it is possible to load
+///             more than one tile and create a composite image from these tiles.
+///
+///             Loads >nrOfTilesToRead< tiles of a tiled TIFF image starting at >offset<
+///             The tiles are read in squares and assembled into an image.
+///             Offset is the number of composite tiles to read.
+///
+///             If sqrt(nrOfTilesToRead) is not a multiplier of nrOfTilesX / nrOfTilesY
+///             the image is padded with black "virtual" tiles.
+///             Example shows an image with size 4x7 tiles and nrOfTilesToRead = 9
+///             Numbers in brackets are padded part of the image
+///
+///
+///         (6) +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |(3)  |(3)  |(3)  |(4)  |(4)  |(4)  |(5)  |(5)  |(5)  |
+///             |     |     |     |     |     |     |     |     |     |
+///         (5) +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |(3)  |(3)  |(3)  |(4)  |(4)  |(4)  |(5)  |(5)  |(5)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           4 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |3    |3    |3    |4    |4    |4    |5    |(5)  |(5)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           3 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           2 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           1 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           0 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             0     1     2     3     4     5     6     (7)   (8)
+///
+/// \author     Joachim Danmayr
+/// \ref        http://www.simplesystems.org/libtiff//functions.html
+///
+/// \param[in]  filename  Name of the file to load
+/// \param[in]  directory  If it is multi document tiff, the index of
+///                       the document which should be loaded
+/// \param[in]  offset    Composite tile number to load
+/// \param[in]  nrOfTilesToRead Nr of tiles which should form one composite image
+/// \return Loaded composite image
+///
+cv::Mat BioformatsLoader::loadImageTile(const std::string &filename, uint16_t directory, uint16_t series, int offset,
+                                        int nrOfTilesToRead, uint16_t resolutionIdx)
+{
+  if(mJVMInitialised) {
+    JNIEnv *myEnv;
+    myJVM->AttachCurrentThread((void **) &myEnv, NULL);
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+
+    // ReadImage Info
+    int32_t width;         //= tif->tif_dir.td_imagewidth;
+    int32_t height;        //= tif->tif_dir.td_imagelength;
+    int32_t tilewidth;     //= tif->tif_dir.td_tilewidth;
+    int32_t tileheight;    //= tif->tif_dir.td_tilelength;
+    uint16_t bitDepth;     //= tif->tif_dir.td_bitspersample;
+
+    {
+      jintArray readImgInfo =
+          (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, directory,
+                                                    static_cast<int>(series), static_cast<int>(resolutionIdx));
+      jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
+      int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
+      myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
+
+      height     = imageInfo[0];
+      width      = imageInfo[1];
+      tileheight = imageInfo[2];
+      tilewidth  = imageInfo[3];
+      bitDepth   = imageInfo[4];
+      delete[] imageInfo;
+    }
+
+    //
+    // Load TIF meta data
+    //
+
+    //
+    // Messy piece of code. But I realized that there are TIFFs where the TIFFTAG_TILELENGTH meta is wrong.
+    // In such a case we assume square tiles using the correct value read from TIFFTAG_TILEWIDTH
+    //
+    if(tileheight <= 0) {
+      tileheight = tilewidth;
+    }
+
+    auto [offsetX, offsetY] = calculateTileXYoffset(nrOfTilesToRead, offset, width, height, tilewidth, tileheight);
+
+    //
+    // We read squares, therefore calculate the square root of the number of
+    // tiles to read and divide them evenly in x and y direction.
+    // The result is the size of the newly created composite image we get at the end.
+    //
+    int32_t tilesPerLine   = std::sqrt(nrOfTilesToRead);
+    int32_t newImageWidth  = tilewidth * tilesPerLine;
+    int32_t newImageHeight = tileheight * tilesPerLine;
+    offsetX *= tilewidth;
+    offsetY *= tileheight;
+
+    if(offsetX + newImageWidth > width) {
+      newImageWidth = width - offsetX;
+      if(newImageWidth < 0) {
+        newImageWidth = 0;
+      }
+    }
+    if(offsetY + newImageHeight > height) {
+      newImageWidth = height - offsetY;
+      if(newImageHeight < 0) {
+        newImageHeight = 0;
+      }
+    }
+
+    cv::Mat image = cv::Mat::zeros(newImageHeight, newImageWidth, CV_16UC1);
+
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
+        mBioformatsClass, mReadImageTile, filePath, directory, static_cast<int>(series),
+        static_cast<int>(resolutionIdx), offsetX, offsetY, newImageWidth, newImageHeight);
+    jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
+
+    // This is the image information
+    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) image.data);
+
+    myEnv->DeleteLocalRef(filePath);
+    myJVM->DetachCurrentThread();
+    return image;
+  }
+  throw std::runtime_error("Could not open image!");
+}
+
+///
 /// \brief
 /// \author
 /// \param[in]
 /// \param[out]
 /// \return
 ///
-auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t series) -> joda::ome::OmeInfo
+auto BioformatsLoader::getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo
 {
+  const int32_t series = 0;
   if(mJVMInitialised) {
     auto id = DurationCount::start("Get OEM");
     JNIEnv *myEnv;
@@ -258,11 +396,69 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
     joda::ome::OmeInfo omeInfo;
 
     omeInfo.loadOmeInformationFromXMLString(omeXML);    ///\todo this method can throw an excaption
+
     myJVM->DetachCurrentThread();
     DurationCount::stop(id);
     return omeInfo;
   }
   return {};
+}
+
+///
+/// \brief      Calculates the tile x and y offset based on the image and tile size.
+///             This is used because we load more than one tile at once.
+///             For padding reasons at the edges of the image the calculation of these
+///             offsets is a little bit more complicated
+/// \author     Joachim Danmayr
+/// \param[in]  nrOfTilesToRead  Nr. of tiles to read at once
+/// \param[in]  offset   Tile part index to read
+/// \param[in]  width    Image width
+/// \param[in]  height   Image height
+/// \param[in]  tilewidth    Tile width
+/// \param[in]  tileheight   Tile height
+/// \return Tile x,y offset
+///
+std::tuple<int64_t, int64_t> BioformatsLoader::calculateTileXYoffset(int32_t nrOfTilesToRead, int32_t offset,
+                                                                     int64_t width, int64_t height, int64_t tilewidth,
+                                                                     int64_t tileheight)
+{
+  // Calculate the total number of tiles in x, y direction and the total number of tiles of the whole image
+  if(tilewidth <= 0) {
+    tilewidth = width;
+  }
+  if(tileheight <= 0) {
+    tileheight = height;
+  }
+  uint64_t nrOfXTiles = width / tilewidth;
+  uint64_t nrOfYTiles = height / tileheight;
+
+  //
+  // We read squares, therefore calculate the square root of the number of
+  // tiles to read and divide them evenly in x and y direction.
+  // The result is the size of the newly created composite image we get at the end.
+  //
+  uint64_t tilesPerLine = std::sqrt(nrOfTilesToRead);
+
+  //
+  // Padding the image (make the number of tiles in x and y direction a multiplier of tilesPerLine)
+  //
+  uint64_t nrOfXTilesPadded = nrOfXTiles;
+  if(nrOfXTiles % tilesPerLine > 0) {
+    nrOfXTilesPadded += (tilesPerLine - (nrOfXTiles % tilesPerLine));
+  }
+
+  uint64_t nrOfYTilesPadded = nrOfYTiles;
+  if(nrOfYTiles % tilesPerLine > 0) {
+    nrOfYTilesPadded += (tilesPerLine - (nrOfYTiles % tilesPerLine));
+  }
+
+  //
+  // Calculates the x and y tile offset based on the padded composite image offset
+  //
+  uint64_t offsetX = (offset * tilesPerLine) % nrOfXTilesPadded;
+  uint64_t offsetY = ((uint64_t) (offset * tilesPerLine) / nrOfYTilesPadded) * tilesPerLine;
+
+  return {offsetX, offsetY};
 }
 
 //     jsize imageArraySize = myEnv->GetArrayLength(readImg);

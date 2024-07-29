@@ -37,7 +37,7 @@ auto JpgLoader::getImageProperties(const std::string &filename) -> joda::ome::Om
                                                                       .imageHeight   = height,
                                                                       .bits          = 16,
                                                                       .tileSize      = size,
-                                                                      .nrOfTiles     = 1,
+                                                                      .tileNr        = 1,
                                                                       .nrOfDocuments = 1,
                                                                       .tileWidth     = width,
                                                                       .tileHeight    = height});

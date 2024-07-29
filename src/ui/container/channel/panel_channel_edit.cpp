@@ -222,6 +222,8 @@ void PanelChannelEdit::init()
   connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
   connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
   connect(mWindowMain->getImageTilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
+  connect(mWindowMain->getImageResolutionCombo(), &QComboBox::currentIndexChanged, this,
+          &PanelChannelEdit::updatePreview);
 }
 
 PanelChannelEdit::~PanelChannelEdit()
@@ -418,9 +420,10 @@ void PanelChannelEdit::updatePreview()
             if(imgIndex >= 0) {
               auto *controller = mWindowMain->getController();
               try {
-                int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();
+                int32_t tileIdx    = mWindowMain->getImageTilesCombo()->currentData().toInt();
+                int32_t resolution = mWindowMain->getImageResolutionCombo()->currentData().toInt();
                 mParentContainer->toSettings();
-                controller->preview(mParentContainer->mSettings, imgIndex, tileIdx, mPreviewResult);
+                controller->preview(mParentContainer->mSettings, imgIndex, tileIdx, resolution, mPreviewResult);
                 if(!mPreviewResult.previewImage.empty()) {
                   // Create a QByteArray from the char array
                   int valid   = 0;

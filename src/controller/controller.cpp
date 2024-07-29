@@ -139,7 +139,8 @@ auto Controller::getListOfFoundImages() -> const std::vector<helper::fs::FileInf
 /// \brief      Returns preview
 /// \author     Joachim Danmayr
 ///
-void Controller::preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex, Preview &previewOut)
+void Controller::preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex, uint16_t resolution,
+                         Preview &previewOut)
 {
   // To also preview tetraspeck removal we must first process the reference spot
   // channels This is a little bit more complicated therefor not supported yet
@@ -149,8 +150,8 @@ void Controller::preview(const settings::ChannelSettings &settings, int imgIndex
   auto onnxModels = onnx::OnnxParser::findOnnxFiles();
   if(!imagePath.getFilename().empty()) {
     std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> referenceChannelResults;
-    auto result = joda::pipeline::ImageProcessor::executeAlgorithm(imagePath, settings, tileIndex, onnxModels, nullptr,
-                                                                   &referenceChannelResults);
+    auto result = joda::pipeline::ImageProcessor::executeAlgorithm(imagePath, settings, tileIndex, resolution,
+                                                                   onnxModels, nullptr, &referenceChannelResults);
     previewOut.previewImage.setImage(result.controlImage);
     previewOut.originalImage.setImage(result.originalImage);
     previewOut.height          = result.controlImage.rows;
@@ -174,10 +175,10 @@ auto Controller::getImageProperties(int imgIndex, int series) -> joda::ome::OmeI
       ome = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
       break;
     case helper::fs::FileInfoImages::Decoder::TIFF:
-      ome = image::TiffLoader::getOmeInformation(imagePath.getFilePath().string());
+      ome = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string());
       break;
     case helper::fs::FileInfoImages::Decoder::BIOFORMATS:
-      ome = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
+      ome = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string());
       break;
   }
 
@@ -216,7 +217,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   const auto &props    = ome.getImageInfo();
   auto systemRecources = getSystemResources();
   if(props.imageSize > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-    tileNr              = props.nrOfTiles / joda::pipeline::TILES_TO_LOAD_PER_RUN;
+    tileNr              = props.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN;
     threads.ramPerImage = props.tileSize * joda::pipeline::TILES_TO_LOAD_PER_RUN;
   } else {
     threads.ramPerImage = props.imageSize;

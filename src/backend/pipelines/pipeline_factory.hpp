@@ -78,9 +78,10 @@ public:
               const pipeline::Pipeline::ThreadingSettings &threadingSettings = pipeline::Pipeline::ThreadingSettings())
       -> std::string
   {
-    std::string analyzeId = std::to_string(mJobCount++);
-    mJob =
-        std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder, analyzeName, threadingSettings);
+    const uint16_t resolution = 0;
+    std::string analyzeId     = std::to_string(mJobCount++);
+    mJob = std::make_unique<pipeline::Pipeline>(settings, imageFileContainer, inputFolder, resolution, analyzeName,
+                                                threadingSettings);
     if(mJob != nullptr) {
       mLastOutputFolder = mJob->getOutputFolder().string();
     }

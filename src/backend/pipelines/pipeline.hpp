@@ -84,7 +84,7 @@ public:
 
   Pipeline(const joda::settings::AnalyzeSettings &,
            joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *imageFileContainer,
-           const std::filesystem::path &inputFolder, const std::string &analyzeName,
+           const std::filesystem::path &inputFolder, uint16_t resolution, const std::string &analyzeName,
            const ThreadingSettings &threadingSettings = ThreadingSettings());
   ~Pipeline()
   {
@@ -159,17 +159,19 @@ private:
     return mStop;
   }
 
-  void analyzeImage(const helper::fs::FileInfoImages &imagePath);
+  void analyzeImage(const helper::fs::FileInfoImages &imagePath, uint16_t resolution);
 
-  void analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, const ChannelProperties &channelProperties);
+  void analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, uint16_t resolution,
+                   const ChannelProperties &channelProperties);
   void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &detectionResults,
                        const joda::settings::ChannelSettings &channelSettings, helper::fs::FileInfoImages imagePath,
-                       int tileIdx, const ChannelProperties &channelProperties);
+                       int tileIdx, uint16_t resolution, const ChannelProperties &channelProperties);
 
   /////////////////////////////////////////////////////
   std::filesystem::path mInputFolder;
   joda::results::Results mResults;
-  bool mStop = false;
+  uint16_t mResolution = 0;
+  bool mStop           = false;
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   std::vector<const joda::settings::ChannelSettings *> mListOfChannelSettings;
   std::vector<const joda::settings::VChannelSettings *> mListOfVChannelSettings;

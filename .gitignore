@@ -48,3 +48,6 @@ output_test.xlsx
 *.txt
 result.xml
 test-results.xml
+lib/bftools/pyramid.ome.btf
+tmpfile
+tmp

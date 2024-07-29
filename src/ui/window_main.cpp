@@ -127,6 +127,16 @@ void WindowMain::createBottomToolbar()
   mImageTilesComboBox = mButtomToolbar->addWidget(mImageTilesCombo);
   mImageTilesComboBox->setVisible(false);
 
+  mImageResolutionCombo = new QComboBox(mButtomToolbar);
+  mImageResolutionCombo->addItem("Resolution 0", 0);
+  mImageResolutionCombo->addItem("Resolution 1", 1);
+  mImageResolutionCombo->addItem("Resolution 2", 2);
+  mImageResolutionCombo->addItem("Resolution 3", 3);
+  mImageResolutionCombo->addItem("Resolution 4", 4);
+  mImageResolutionCombo->addItem("Resolution 5", 5);
+  mImageResolutionComboBox = mButtomToolbar->addWidget(mImageResolutionCombo);
+  mImageResolutionComboBox->setVisible(false);
+
   mFoundFilesHint = new ClickableLabel(mButtomToolbar);
   mFoundFilesHint->setText("Please open a working directory ...");
   mFileSearchHintLabel = mButtomToolbar->addWidget(mFoundFilesHint);
@@ -729,6 +739,7 @@ void WindowMain::setWorkingDirectory(const std::string &workingDir)
     mFileSelectorComboBox->setVisible(false);
     mImageSeriesComboBox->setVisible(false);
     mImageTilesComboBox->setVisible(false);
+    mImageResolutionComboBox->setVisible(false);
     mFileSearchHintLabel->setVisible(true);
     mController->setWorkingDirectory(mSelectedImagesDirectory.string());
     mNewFolderSelected = true;
@@ -796,14 +807,15 @@ void WindowMain::onLookingForFilesFinished()
     mFileSelectorComboBox->setVisible(true);
     mImageSeriesComboBox->setVisible(true);
     mImageTilesComboBox->setVisible(true);
+    mImageResolutionComboBox->setVisible(true);
     mStartAnalysis->setEnabled(true);
 
     mImageTilesCombo->clear();
-    if(props.nrOfTiles == 0) {
+    if(props.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN == 0) {
       mImageTilesCombo->addItem("0", 0);
       mImageTilesCombo->setCurrentIndex(0);
     } else {
-      for(int n = 0; n < props.nrOfTiles; n++) {
+      for(int n = 0; n < props.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN; n++) {
         mImageTilesCombo->addItem(QString::number(n), n);
       }
       mImageTilesCombo->setCurrentIndex(0);
@@ -837,13 +849,18 @@ void WindowMain::onImageSelectionChanged()
   const auto &imgInfo = ome.getImageInfo();
   auto imageData      = QString(
                        "<p><strong>Image</strong></p>"
-                            "<p>Size: %1 x %2<br />Bits: %3<br />Tile size: %4 x %5<br />Nr. of tiles: %6</p>")
+                            "<p>Size: %1 x %2<br />Bits: %3<br />Tile size: %4 x %5<br />Nr. of tiles: %6<br />Nr. of "
+                            "composite tiles: %7<br />Series: "
+                            "%8<br />Pyramid: %9</p>")
                        .arg(imgInfo.imageWidth)
                        .arg(imgInfo.imageHeight)
                        .arg(imgInfo.bits)
                        .arg(imgInfo.tileWidth)
                        .arg(imgInfo.tileHeight)
-                       .arg(imgInfo.nrOfTiles);
+                       .arg(imgInfo.tileNr)
+                       .arg(imgInfo.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN)
+                       .arg(ome.getNrOfSeries())
+                       .arg(ome.getResolutionCount());
 
   const auto &objectiveInfo = ome.getObjectiveInfo();
   auto objectiveData        = QString(

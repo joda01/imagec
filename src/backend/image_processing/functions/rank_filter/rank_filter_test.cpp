@@ -5,7 +5,6 @@
 #include "backend/image_processing/functions/threshold/threshold_manual.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_processing/reader/jpg/image_loader_jpg.hpp"
-#include "backend/image_processing/reader/tif/image_loader_tif.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -20,7 +19,7 @@ TEST_CASE("func::rank", "[.][rank]")
 {
   joda::image::BioformatsLoader::init();
 
-  auto img         = joda::image::BioformatsLoader::loadEntireImage("test/test_in_cell_counting/A10_01.vsi", 0, 0);
+  auto img         = joda::image::BioformatsLoader::loadEntireImage("test/test_in_cell_counting/A10_01.vsi", 0, 0, 0);
   auto imgOriginal = img.clone();
 
   auto imgClone = img.clone();

@@ -6,7 +6,6 @@
 #include "backend/image_processing/functions/threshold/threshold_manual.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/image_processing/reader/jpg/image_loader_jpg.hpp"
-#include "backend/image_processing/reader/tif/image_loader_tif.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/core.hpp>
@@ -23,7 +22,7 @@ TEST_CASE("func::watershed", "[.][watershed]")
   double MAXFINDER_TOLERANCE = 0.5;    // reasonable v
   joda::image::BioformatsLoader::init();
 
-  auto img = joda::image::BioformatsLoader::loadEntireImage("test/test_in_cell_counting/A10_01.vsi", 1, 0);
+  auto img = joda::image::BioformatsLoader::loadEntireImage("test/test_in_cell_counting/A10_01.vsi", 1, 0, 0);
   joda::image::func::RollingBallBackground bg({});
   joda::image::func::Blur blur({});
   joda::image::func::ThresholdManual th(100);

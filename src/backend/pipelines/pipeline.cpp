@@ -64,7 +64,7 @@ BS::thread_pool mGlobThreadPool{10};
 
 Pipeline::Pipeline(const joda::settings::AnalyzeSettings &settings,
                    joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> *imageFileContainer,
-                   const std::filesystem::path &inputFolder, const std::string &analyzeName,
+                   const std::filesystem::path &inputFolder, uint16_t resolution, const std::string &analyzeName,
                    const ThreadingSettings &threadingSettings) :
     mInputFolder(inputFolder),
     mResults(std::filesystem::path(inputFolder),
@@ -76,8 +76,8 @@ Pipeline::Pipeline(const joda::settings::AnalyzeSettings &settings,
                                               .plateRowNr         = 16,
                                               .plateColNr         = 16},
              settings),
-    mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer), mThreadingSettings(threadingSettings),
-    mJobName(analyzeName), mListOfChannelSettings(settings.channels.size()),
+    mResolution(resolution), mAnalyzeSettings(settings), mImageFileContainer(imageFileContainer),
+    mThreadingSettings(threadingSettings), mJobName(analyzeName), mListOfChannelSettings(settings.channels.size()),
     mListOfVChannelSettings(settings.vChannels.size())
 {
   try {
@@ -154,7 +154,7 @@ void Pipeline::runJob()
     BS::multi_future<void>::iterator iter;
 
     for(auto &image : images) {
-      futures.push_back(mGlobThreadPool.submit_task([this, &images, &image]() { analyzeImage(image); }));
+      futures.push_back(mGlobThreadPool.submit_task([this, &images, &image]() { analyzeImage(image, mResolution); }));
       if(mStop) {
         break;
       }
@@ -163,7 +163,7 @@ void Pipeline::runJob()
 
   } else {
     for(auto &image : images) {
-      analyzeImage(image);
+      analyzeImage(image, mResolution);
     }
   }
 
@@ -192,7 +192,7 @@ void Pipeline::stopJob()
 /// \brief      Analyze image
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath)
+void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath, uint16_t resolution)
 {
   //
   // Execute for each tile
@@ -205,7 +205,7 @@ void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath)
 
   int64_t runs = 1;
   if(props.imageSize > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-    runs = props.nrOfTiles / joda::pipeline::TILES_TO_LOAD_PER_RUN;
+    runs = props.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN;
   }
 
   //
@@ -214,12 +214,13 @@ void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath)
   int poolSize = mThreadingSettings.cores[ThreadingSettings::TILES];
   if(poolSize > 1) {
     auto futures = mGlobThreadPool.submit_sequence<unsigned int>(
-        0, runs,
-        [this, &imagePath, &propsOut](const unsigned int tileIdx) { analyzeTile(imagePath, tileIdx, propsOut); });
+        0, runs, [this, &imagePath, &propsOut, resolution](const unsigned int tileIdx) {
+          analyzeTile(imagePath, tileIdx, resolution, propsOut);
+        });
     futures.wait();
   } else {
     for(int tileIdx = 0; tileIdx < runs; tileIdx++) {
-      analyzeTile(imagePath, tileIdx, propsOut);
+      analyzeTile(imagePath, tileIdx, resolution, propsOut);
       if(mStop) {
         break;
       }
@@ -237,7 +238,7 @@ void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath)
 /// \brief      Analyze tile
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
+void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, uint16_t resolution,
                            const joda::pipeline::ChannelProperties &channelProperties)
 {
   std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> detectionResults;
@@ -253,14 +254,16 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
     if(!referenceSpotChannels.empty()) {
       auto futures = mGlobThreadPool.submit_sequence<unsigned int>(
           0, referenceSpotChannels.size(),
-          [this, &detectionResults, &imagePath, &channelProperties, tileIdx, &referenceSpotChannels](unsigned int idx) {
-            analyszeChannel(detectionResults, *referenceSpotChannels.at(idx), imagePath, tileIdx, channelProperties);
+          [this, &detectionResults, &imagePath, &channelProperties, tileIdx, resolution,
+           &referenceSpotChannels](unsigned int idx) {
+            analyszeChannel(detectionResults, *referenceSpotChannels.at(idx), imagePath, tileIdx, resolution,
+                            channelProperties);
           });
       futures.wait();
     }
   } else {
     for(auto const &channel : referenceSpotChannels) {
-      analyszeChannel(detectionResults, *channel, imagePath, tileIdx, channelProperties);
+      analyszeChannel(detectionResults, *channel, imagePath, tileIdx, resolution, channelProperties);
       if(mStop) {
         break;
       }
@@ -273,12 +276,12 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   if(poolSize > 1) {
     auto futures = mGlobThreadPool.submit_sequence<unsigned int>(
         0, mListOfChannelSettings.size(),
-        [this, &detectionResults, &imagePath, &channelProperties, tileIdx](unsigned int idx) {
+        [this, &detectionResults, &imagePath, &channelProperties, tileIdx, resolution](unsigned int idx) {
           if(this->mListOfChannelSettings.at(idx)->meta.type !=
              joda::settings::ChannelSettingsMeta::Type::SPOT_REFERENCE) {
             BS::timer tmr;
             tmr.start();
-            analyszeChannel(detectionResults, *this->mListOfChannelSettings.at(idx), imagePath, tileIdx,
+            analyszeChannel(detectionResults, *this->mListOfChannelSettings.at(idx), imagePath, tileIdx, resolution,
                             channelProperties);
             tmr.stop();
             std::cout << "The elapsed time >" << imagePath.getFilename() << "< >" << std::to_string(idx) << "< was "
@@ -295,7 +298,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
   } else {
     for(auto const &channel : mListOfChannelSettings) {
       if(channel->meta.type != joda::settings::ChannelSettingsMeta::Type::SPOT_REFERENCE) {
-        analyszeChannel(detectionResults, *channel, imagePath, tileIdx, channelProperties);
+        analyszeChannel(detectionResults, *channel, imagePath, tileIdx, resolution, channelProperties);
         if(mStop) {
           break;
         }
@@ -448,13 +451,13 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx,
 void Pipeline::analyszeChannel(
     std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &detectionResults,
     const joda::settings::ChannelSettings &channelSettings, helper::fs::FileInfoImages imagePath, int tileIdx,
-    const ChannelProperties &channelProperties)
+    uint16_t resolution, const ChannelProperties &channelProperties)
 {
   joda::settings::ChannelIndex channelIndex = channelSettings.meta.channelIdx;
 
   try {
-    auto processingResult = ImageProcessor::executeAlgorithm(imagePath, channelSettings, tileIdx, mOnnxModels,
-                                                             &channelProperties, &detectionResults);
+    auto processingResult = ImageProcessor::executeAlgorithm(imagePath, channelSettings, tileIdx, resolution,
+                                                             mOnnxModels, &channelProperties, &detectionResults);
     // Add processing result to the detection result map
     std::lock_guard<std::mutex> lock(mAddToDetailReportMutex);
     detectionResults.emplace(channelIndex, std::move(processingResult));
