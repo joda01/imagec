@@ -49,7 +49,8 @@ The main goals were to improve performance, allow the processing of big tiffs an
 
 Covert to
 
-`bfconvert -no-upgrade -noflat -pyramid-resolutions 4 -pyramid-scale 2 -tilex 512 -tiley 512 /workspaces/imagec/test/test_data/images/pipeline_01/A10_01.vsi /workspaces/imagec/test/test_data/images_pyramid/pyramid.ome.btf
+`
+bfconvert -no-upgrade -noflat -pyramid-resolutions 4 -pyramid-scale 2 -tilex 512 -tiley 512 /workspaces/imagec/test_local/bigtif/GMEV5minM1OT3_0001.btf /workspaces/imagec/test_local/bigtif/GMEV5minM1OT3_0001.ome.btf
 `
 
 -----

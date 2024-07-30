@@ -65,18 +65,22 @@ public:
 
   struct ImageInfo
   {
+    struct Pyramid
+    {
+      int64_t imageMemoryUsage = 0;
+      int64_t imageNrOfPixels  = 0;
+      int64_t imageWidth       = 0;
+      int64_t imageHeight      = 0;
+      int64_t tileNr           = 0;
+    };
     int seriesIdx          = 0;
     int nrOfChannels       = 0;
-    int64_t imageSize      = 0;
-    uint64_t imageWidth    = 0;
-    uint64_t imageHeight   = 0;
     int8_t bits            = 16;
-    int64_t tileSize       = 0;
-    int64_t tileNr         = 0;
+    int64_t tileNrOfPixels = 0;
+    int64_t tileWidth      = 0;
+    int64_t tileHeight     = 0;
     uint16_t nrOfDocuments = 0;
-    std::map<int32_t, cv::Size> resolutions;    // Array of resolutions in case of a pyamid image
-    uint64_t tileWidth  = 0;
-    uint64_t tileHeight = 0;
+    std::map<int32_t, Pyramid> resolutions;      // Array of resolutions in case of a pyamid image
     std::map<uint32_t, ChannelInfo> channels;    ///< Contains the channel information <channelIdx | channelinfo>
   };
 
@@ -90,7 +94,7 @@ public:
   {
     return mImageInfo.size();
   }
-  [[nodiscard]] auto getResolutionCount(int32_t series = -1) const -> const std::map<int32_t, cv::Size> &
+  [[nodiscard]] auto getResolutionCount(int32_t series = -1) const -> const std::map<int32_t, ImageInfo::Pyramid> &
   {
     if(series < 0) {
       series = getSeriesWithHighestResolution();

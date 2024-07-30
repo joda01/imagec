@@ -102,11 +102,11 @@ TRY_AGAIN:
     auto dimOrder =
         std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("DimensionOrder").as_string());
 
-    auto sizeX               = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeX").as_ullong();
-    auto sizeY               = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeY").as_ullong();
-    actImageInfo.imageSize   = sizeX * sizeY;
-    actImageInfo.imageWidth  = sizeX;
-    actImageInfo.imageHeight = sizeY;
+    // auto sizeX               = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeX").as_ullong();
+    // auto sizeY               = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeY").as_ullong();
+    // actImageInfo.imageSize   = sizeX * sizeY;
+    // actImageInfo.imageWidth  = sizeX;
+    // actImageInfo.imageHeight = sizeY;
 
     auto type = std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("Type").as_string());
     if(type == "uint8") {
@@ -298,29 +298,28 @@ TRY_AGAIN:
       nrOfPlanes++;
     }
 
-    uint64_t tileWidth       = doc.child("JODA").attribute("TileWidth").as_int();
-    uint64_t tileHeight      = doc.child("JODA").attribute("TileHeight").as_int();
-    uint64_t resolutionCount = doc.child("JODA").attribute("ResolutionCount").as_int();
+    int64_t tileWidth       = doc.child("JODA").attribute("TileWidth").as_int();
+    int64_t tileHeight      = doc.child("JODA").attribute("TileHeight").as_int();
+    int64_t resolutionCount = doc.child("JODA").attribute("ResolutionCount").as_int();
+    int64_t tileSize        = tileHeight * tileWidth;
 
     for(pugi::xml_node pyramid = doc.child("JODA").child(std::string("PyramidResolution").data()); pyramid != nullptr;
         pyramid                = pyramid.next_sibling(std::string("PyramidResolution").data())) {
       int32_t idx    = pyramid.attribute("idx").as_int();
-      int32_t width  = pyramid.attribute("width").as_int();
-      int32_t height = pyramid.attribute("height").as_int();
-      actImageInfo.resolutions.emplace(idx, cv::Size{width, height});
+      int64_t width  = pyramid.attribute("width").as_int();
+      int64_t height = pyramid.attribute("height").as_int();
+      actImageInfo.resolutions.emplace(idx,
+                                       ImageInfo::Pyramid{.imageMemoryUsage = width * height * (actImageInfo.bits / 8),
+                                                          .imageNrOfPixels  = width * height,
+                                                          .imageWidth       = width,
+                                                          .imageHeight      = height,
+                                                          .tileNr = tileSize > 0 ? (width * height) / tileSize : 1});
     }
 
-    int64_t nrOfTiles = 1;
-    int64_t tileSize  = tileHeight * tileWidth;
-    if(tileSize > 0) {
-      nrOfTiles = actImageInfo.imageSize / tileSize;
-    }
-
-    actImageInfo.tileSize      = tileSize;
-    actImageInfo.tileNr        = nrOfTiles;
-    actImageInfo.nrOfDocuments = nrOfPlanes;
-    actImageInfo.tileWidth     = tileWidth;
-    actImageInfo.tileHeight    = tileHeight;
+    actImageInfo.tileNrOfPixels = tileSize;
+    actImageInfo.nrOfDocuments  = nrOfPlanes;
+    actImageInfo.tileWidth      = tileWidth;
+    actImageInfo.tileHeight     = tileHeight;
   }
 }
 
@@ -366,7 +365,7 @@ uint64_t OmeInfo::getImageSize(int32_t series) const
   if(series < 0) {
     series = getSeriesWithHighestResolution();
   }
-  return mImageInfo.at(series).imageSize;
+  return mImageInfo.at(series).resolutions.at(0).imageNrOfPixels;
 }
 
 ///
@@ -390,7 +389,7 @@ uint64_t OmeInfo::getImageSize(int32_t series) const
   if(series < 0) {
     series = getSeriesWithHighestResolution();
   }
-  return {mImageInfo.at(series).imageWidth, mImageInfo.at(series).imageHeight};
+  return {mImageInfo.at(series).resolutions.at(0).imageWidth, mImageInfo.at(series).resolutions.at(0).imageHeight};
 }
 
 ///
@@ -413,20 +412,11 @@ auto OmeInfo::getDirectoryForChannel(uint32_t channel, uint32_t timeFrame, int32
 ///
 /// \brief     Return the series with the highest resolution
 /// \author     Joachim Danmayr
+/// \todo Support more image series
 ///
 int32_t OmeInfo::getSeriesWithHighestResolution() const
 {
-  auto it         = mImageInfo.begin();
-  int maxSize     = it->second.imageWidth;
-  auto maxElement = it;
-
-  for(++it; it != mImageInfo.end(); ++it) {
-    if(it->second.imageWidth > maxSize) {
-      maxSize    = it->second.imageWidth;
-      maxElement = it;
-    }
-  }
-  return maxElement->first;
+  return 0;
 }
 
 }    // namespace joda::ome

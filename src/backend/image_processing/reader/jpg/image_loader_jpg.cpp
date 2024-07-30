@@ -26,21 +26,26 @@ auto JpgLoader::readImageMeta(const std::string &filename) -> std::string
 }
 auto JpgLoader::getImageProperties(const std::string &filename) -> joda::ome::OmeInfo
 {
-  auto image      = cv::imread(filename, cv::IMREAD_COLOR);
-  uint64_t width  = image.cols;
-  uint64_t height = image.rows;
-  int64_t size    = width * height;
+  auto image     = cv::imread(filename, cv::IMREAD_COLOR);
+  int64_t width  = image.cols;
+  int64_t height = image.rows;
+  int64_t size   = width * height;
   joda::ome::OmeInfo omeInfo;
-  omeInfo.emulateOmeInformationFromTiff(joda::ome::OmeInfo::ImageInfo{.nrOfChannels  = 1,
-                                                                      .imageSize     = size,
-                                                                      .imageWidth    = width,
-                                                                      .imageHeight   = height,
-                                                                      .bits          = 16,
-                                                                      .tileSize      = size,
-                                                                      .tileNr        = 1,
-                                                                      .nrOfDocuments = 1,
-                                                                      .tileWidth     = width,
-                                                                      .tileHeight    = height});
+  omeInfo.emulateOmeInformationFromTiff(
+      joda::ome::OmeInfo::ImageInfo{.seriesIdx      = 0,
+                                    .nrOfChannels   = 1,
+                                    .bits           = 16,
+                                    .tileNrOfPixels = size,
+                                    .tileWidth      = width,
+                                    .tileHeight     = height,
+                                    .nrOfDocuments  = 1,
+                                    .resolutions    = {{0, joda::ome::OmeInfo::ImageInfo::Pyramid{
+                                                               .imageMemoryUsage = 0,
+                                                               .imageNrOfPixels  = size,
+                                                               .imageWidth       = width,
+                                                               .imageHeight      = height,
+                                                               .tileNr           = 1,
+                                                        }}}});
   return omeInfo;
 }
 cv::Mat JpgLoader::loadEntireImage(const std::string &filename)

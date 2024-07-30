@@ -85,7 +85,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   connect(this, &WindowMain::lookingForTemplateFinished, this, &WindowMain::onFindTemplatesFinished);
   connect(getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
   connect(getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
-  connect(getImageTilesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
+  connect(getImageResolutionCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onResolutionChanged);
 }
 
 void WindowMain::createBottomToolbar()
@@ -829,20 +829,19 @@ void WindowMain::resetImageInfo()
 void WindowMain::onImageSelectionChanged()
 {
   auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
-
   const auto &imgInfo = ome.getImageInfo();
   auto imageData      = QString(
                        "<p><strong>Image</strong></p>"
                             "<p>Size: %1 x %2<br />Bits: %3<br />Tile size: %4 x %5<br />Nr. of tiles: %6<br />Nr. of "
                             "composite tiles: %7<br />Series: "
                             "%8<br />Pyramid: %9</p>")
-                       .arg(imgInfo.imageWidth)
-                       .arg(imgInfo.imageHeight)
+                       .arg(imgInfo.resolutions.at(0).imageWidth)
+                       .arg(imgInfo.resolutions.at(0).imageHeight)
                        .arg(imgInfo.bits)
                        .arg(imgInfo.tileWidth)
                        .arg(imgInfo.tileHeight)
-                       .arg(imgInfo.tileNr)
-                       .arg(imgInfo.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN)
+                       .arg(imgInfo.resolutions.at(0).tileNr)
+                       .arg(imgInfo.resolutions.at(0).tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN)
                        .arg(ome.getNrOfSeries())
                        .arg(ome.getResolutionCount().size());
 
@@ -881,27 +880,55 @@ void WindowMain::onImageSelectionChanged()
   mLabelImageInfo->setHtml(imageData + objectiveData + channelInfoStr);
 
   {
+    mImageResolutionCombo->blockSignals(true);
+    auto currentIdx = mImageResolutionCombo->currentIndex();
+    mImageResolutionCombo->clear();
+    for(const auto &[idx, pyramid] : imgInfo.resolutions) {
+      mImageResolutionCombo->addItem(
+          QString((std::to_string(pyramid.imageWidth) + "x" + std::to_string(pyramid.imageHeight)).data()) + " (" +
+              bytesToString(pyramid.imageMemoryUsage) + ")",
+          idx);
+    }
+    if(currentIdx < mImageResolutionCombo->count()) {
+      mImageResolutionCombo->setCurrentIndex(currentIdx);
+    } else {
+      mImageResolutionCombo->setCurrentIndex(0);
+    }
+    mImageResolutionCombo->blockSignals(false);
+  }
+
+  {
     mImageTilesCombo->blockSignals(true);
     mImageTilesCombo->clear();
-    if(imgInfo.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN <= 0) {
+    auto tileNr = imgInfo.resolutions.at(mImageResolutionCombo->currentIndex()).tileNr;
+    if(tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN <= 0) {
       mImageTilesCombo->addItem("0", 0);
       mImageTilesCombo->setCurrentIndex(0);
     } else {
-      for(int n = 0; n < imgInfo.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN; n++) {
+      for(int n = 0; n < tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN; n++) {
         mImageTilesCombo->addItem(QString::number(n), n);
       }
       mImageTilesCombo->setCurrentIndex(0);
     }
     mImageTilesCombo->blockSignals(false);
   }
+}
 
+///
+/// \brief      Resolution has been changes, adapt
+/// \author     Joachim Danmayr
+///
+void WindowMain::onResolutionChanged()
+{
+  auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
+  const auto &imgInfo = ome.getImageInfo();
   {
     mImageResolutionCombo->blockSignals(true);
     auto currentIdx = mImageResolutionCombo->currentIndex();
     mImageResolutionCombo->clear();
     for(const auto &[idx, pyramid] : imgInfo.resolutions) {
-      mImageResolutionCombo->addItem((std::to_string(pyramid.width) + "x" + std::to_string(pyramid.height)).data(),
-                                     idx);
+      mImageResolutionCombo->addItem(
+          (std::to_string(pyramid.imageWidth) + "x" + std::to_string(pyramid.imageHeight)).data(), idx);
     }
     if(currentIdx < mImageResolutionCombo->count()) {
       mImageResolutionCombo->setCurrentIndex(currentIdx);
@@ -1563,6 +1590,25 @@ void WindowMain::onShowInfoDialog()
   helpTextLabel->setMinimumHeight(helpTextLabel->height() + 56);
 
   messageBox.exec();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \return
+///
+QString WindowMain::bytesToString(int64_t bytes)
+{
+  if(bytes >= 1000000000) {
+    return QString::number(static_cast<double>(bytes) / 1000000000.0, 'f', 2) + " GB";
+  }
+  if(bytes >= 1000000) {
+    return QString::number(static_cast<double>(bytes) / 1000000.0, 'f', 2) + " MB";
+  }
+  if(bytes > 1000) {
+    return QString::number(static_cast<double>(bytes) / 1000.0, 'f', 2) + " kB";
+  }
+  return QString::number(static_cast<double>(bytes) / 1.0, 'f', 2) + "  Byte";
 }
 
 }    // namespace joda::ui::qt

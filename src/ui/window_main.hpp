@@ -139,6 +139,8 @@ private:
   ContainerBase *addVChannelIntersection(joda::settings::VChannelIntersection);
   ContainerBase *addChannelFromTemplate(const QString &pathToTemplate);
 
+  static QString bytesToString(int64_t bytes);
+
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;
   QWidget *mAddChannelPanel;
@@ -217,6 +219,7 @@ private slots:
   void onOpenAnalyzeSettingsClicked();
   void onAddGirafClicked();
   void onImageSelectionChanged();
+  void onResolutionChanged();
 
   void onOpenSettingsDialog();
   void onFindTemplatesFinished(std::map<std::string, helper::templates::TemplateParser::Data>);

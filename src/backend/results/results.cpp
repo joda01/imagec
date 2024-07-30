@@ -210,14 +210,15 @@ void Results::appendImageToDetailReport(const joda::ome::OmeInfo &imgProps, cons
   }
 
   try {
-    mDatabase->createImage(db::ImageMeta{.analyzeId         = mAnalyzeId,
-                                         .plateId           = mExperimentSettings.plateIdx,
-                                         .groupId           = posInWell.groupId,
-                                         .imageId           = imageId,
-                                         .imageIdx          = posInWell.imgIdx,
-                                         .originalImagePath = std::filesystem::relative(imagePath, mOutputFolder),
-                                         .width             = imgProps.getImageInfo().imageWidth,
-                                         .height            = imgProps.getImageInfo().imageHeight});
+    mDatabase->createImage(
+        db::ImageMeta{.analyzeId         = mAnalyzeId,
+                      .plateId           = mExperimentSettings.plateIdx,
+                      .groupId           = posInWell.groupId,
+                      .imageId           = imageId,
+                      .imageIdx          = posInWell.imgIdx,
+                      .originalImagePath = std::filesystem::relative(imagePath, mOutputFolder),
+                      .width             = static_cast<uint64_t>(imgProps.getImageInfo().resolutions.at(0).imageWidth),
+                      .height = static_cast<uint64_t>(imgProps.getImageInfo().resolutions.at(0).imageHeight)});
   } catch(const std::exception &ex) {
     joda::log::logWarning("Ceate Image:" + std::string(ex.what()) + "\n" +
                           std::filesystem::relative(imagePath, mOutputFolder).string() + "\n" +
@@ -353,8 +354,9 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
                                                        .controlImagePath = controlImagePath});
 
     auto [offsetX, offsetY] = ::joda::image::BioformatsLoader::calculateTileXYoffset(
-        ::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.getImageInfo().imageWidth,
-        imgProps.getImageInfo().imageHeight, imgProps.getImageInfo().tileWidth, imgProps.getImageInfo().tileHeight);
+        ::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.getImageInfo().resolutions.at(0).imageWidth,
+        imgProps.getImageInfo().resolutions.at(0).imageHeight, imgProps.getImageInfo().tileWidth,
+        imgProps.getImageInfo().tileHeight);
     int64_t xMul = offsetX * imgProps.getImageInfo().tileWidth;
     int64_t yMul = offsetY * imgProps.getImageInfo().tileHeight;
 

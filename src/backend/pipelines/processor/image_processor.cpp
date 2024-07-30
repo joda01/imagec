@@ -51,7 +51,7 @@ image::detect::DetectionResponse ImageProcessor::executeAlgorithm(
   }
 
   auto tifDirs = ImageProcessor::getTifDirs(chProps, channelSetting.meta.channelIdx);
-  if(chProps.ome.getImageInfo().imageSize > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE &&
+  if(chProps.ome.getImageInfo().resolutions.at(resolution).imageNrOfPixels > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE &&
      imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::TIFF) {
     return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, tifDirs, tileIndex, resolution,
                                                referenceChannelResults, onnxModels);

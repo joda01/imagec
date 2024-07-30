@@ -204,8 +204,8 @@ void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath, uint16_
   mResults.appendImageToDetailReport(propsOut.ome, imagePath.getFilePath());
 
   int64_t runs = 1;
-  if(props.imageSize > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-    runs = props.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN;
+  if(props.resolutions.at(resolution).imageNrOfPixels > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    runs = props.resolutions.at(resolution).tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN;
   }
 
   //

@@ -216,11 +216,11 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   int64_t channelNr    = settings.channels.size();
   const auto &props    = ome.getImageInfo();
   auto systemRecources = getSystemResources();
-  if(props.imageSize > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-    tileNr              = props.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN;
-    threads.ramPerImage = props.tileSize * joda::pipeline::TILES_TO_LOAD_PER_RUN;
+  if(props.resolutions.at(0).imageNrOfPixels > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
+    tileNr              = props.resolutions.at(0).tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN;
+    threads.ramPerImage = props.tileNrOfPixels * joda::pipeline::TILES_TO_LOAD_PER_RUN;
   } else {
-    threads.ramPerImage = props.imageSize;
+    threads.ramPerImage = props.resolutions.at(0).imageNrOfPixels;
   }
   if(threads.ramPerImage <= 0) {
     threads.ramPerImage = 1;
