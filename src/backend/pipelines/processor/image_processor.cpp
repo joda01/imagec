@@ -51,8 +51,9 @@ image::detect::DetectionResponse ImageProcessor::executeAlgorithm(
   }
 
   auto tifDirs = ImageProcessor::getTifDirs(chProps, channelSetting.meta.channelIdx);
-  if(chProps.ome.getImageInfo().resolutions.at(resolution).imageNrOfPixels > MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE &&
-     imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::TIFF) {
+  if(chProps.ome.getImageInfo().resolutions.at(resolution).imageMemoryUsage > MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE &&
+     (imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::TIFF ||
+      imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::BIOFORMATS)) {
     return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, tifDirs, tileIndex, resolution,
                                                referenceChannelResults, onnxModels);
   }

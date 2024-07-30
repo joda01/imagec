@@ -923,19 +923,21 @@ void WindowMain::onResolutionChanged()
   auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
   const auto &imgInfo = ome.getImageInfo();
   {
-    mImageResolutionCombo->blockSignals(true);
-    auto currentIdx = mImageResolutionCombo->currentIndex();
-    mImageResolutionCombo->clear();
-    for(const auto &[idx, pyramid] : imgInfo.resolutions) {
-      mImageResolutionCombo->addItem(
-          (std::to_string(pyramid.imageWidth) + "x" + std::to_string(pyramid.imageHeight)).data(), idx);
-    }
-    if(currentIdx < mImageResolutionCombo->count()) {
-      mImageResolutionCombo->setCurrentIndex(currentIdx);
+    mImageTilesCombo->blockSignals(true);
+    mImageTilesCombo->clear();
+    auto tileNr = imgInfo.resolutions.at(mImageResolutionCombo->currentIndex()).tileNr;
+    if(tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN <= 0 ||
+       imgInfo.resolutions.at(mImageResolutionCombo->currentIndex()).imageMemoryUsage <=
+           joda::pipeline::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
+      mImageTilesCombo->addItem("0", 0);
+      mImageTilesCombo->setCurrentIndex(0);
     } else {
-      mImageResolutionCombo->setCurrentIndex(0);
+      for(int n = 0; n < tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN; n++) {
+        mImageTilesCombo->addItem(QString::number(n), n);
+      }
+      mImageTilesCombo->setCurrentIndex(0);
     }
-    mImageResolutionCombo->blockSignals(false);
+    mImageTilesCombo->blockSignals(false);
   }
 }
 

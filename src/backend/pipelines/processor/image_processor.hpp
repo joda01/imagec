@@ -39,9 +39,9 @@
 
 namespace joda::pipeline {
 
-static constexpr int64_t MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE = 71680768;
-static constexpr int64_t TILES_TO_LOAD_PER_RUN          = 36;
-static constexpr int32_t TIME_FRAME                     = 0;
+static constexpr int64_t MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE = 100000000;
+static constexpr int64_t TILES_TO_LOAD_PER_RUN                = 36;
+static constexpr int32_t TIME_FRAME                           = 0;
 
 struct ChannelProperties
 {
