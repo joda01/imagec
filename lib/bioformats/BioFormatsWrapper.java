@@ -127,7 +127,15 @@ public class BioFormatsWrapper {
             omeXML = omeXML + "\n<JODA xmlns=\"https://www.imagec.org/\" TileWidth=\""
                     + String.valueOf(formatReader.getOptimalTileHeight()) + "\" TileHeight=\""
                     + String.valueOf(formatReader.getOptimalTileWidth()) + "\" ResolutionCount=\""
-                    + String.valueOf(formatReader.getResolutionCount()) + "\"></JODA>";
+                    + String.valueOf(formatReader.getResolutionCount()) + "\">";
+            for (int n = 0; n < formatReader.getResolutionCount(); n++) {
+                formatReader.setResolution(n);
+                omeXML += "<PyramidResolution idx=\"" + String.valueOf(n) + "\" width=\""
+                        + String.valueOf(formatReader.getSizeX()) + "\" height=\""
+                        + String.valueOf(formatReader.getSizeY()) + "\" />";
+            }
+            omeXML += "</JODA>";
+
             formatReader.close();
 
         } catch (Exception e) {

@@ -25,6 +25,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <opencv2/core/types.hpp>
 
 namespace joda::ome {
 
@@ -64,18 +65,18 @@ public:
 
   struct ImageInfo
   {
-    int seriesIdx            = 0;
-    int nrOfChannels         = 0;
-    int64_t imageSize        = 0;
-    uint64_t imageWidth      = 0;
-    uint64_t imageHeight     = 0;
-    int8_t bits              = 16;
-    int64_t tileSize         = 0;
-    int64_t tileNr           = 0;
-    uint16_t nrOfDocuments   = 0;
-    uint16_t nrOfResolutions = 0;
-    uint64_t tileWidth       = 0;
-    uint64_t tileHeight      = 0;
+    int seriesIdx          = 0;
+    int nrOfChannels       = 0;
+    int64_t imageSize      = 0;
+    uint64_t imageWidth    = 0;
+    uint64_t imageHeight   = 0;
+    int8_t bits            = 16;
+    int64_t tileSize       = 0;
+    int64_t tileNr         = 0;
+    uint16_t nrOfDocuments = 0;
+    std::map<int32_t, cv::Size> resolutions;    // Array of resolutions in case of a pyamid image
+    uint64_t tileWidth  = 0;
+    uint64_t tileHeight = 0;
     std::map<uint32_t, ChannelInfo> channels;    ///< Contains the channel information <channelIdx | channelinfo>
   };
 
@@ -89,12 +90,12 @@ public:
   {
     return mImageInfo.size();
   }
-  [[nodiscard]] uint16_t getResolutionCount(int32_t series = -1) const
+  [[nodiscard]] auto getResolutionCount(int32_t series = -1) const -> const std::map<int32_t, cv::Size> &
   {
     if(series < 0) {
       series = getSeriesWithHighestResolution();
     }
-    return mImageInfo.at(series).nrOfResolutions;
+    return mImageInfo.at(series).resolutions;
   }
   [[nodiscard]] int getNrOfChannels(int32_t series = -1) const;
   [[nodiscard]] uint64_t getImageSize(int32_t series = -1) const;

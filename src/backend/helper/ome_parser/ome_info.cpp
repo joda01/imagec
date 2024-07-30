@@ -302,18 +302,25 @@ TRY_AGAIN:
     uint64_t tileHeight      = doc.child("JODA").attribute("TileHeight").as_int();
     uint64_t resolutionCount = doc.child("JODA").attribute("ResolutionCount").as_int();
 
+    for(pugi::xml_node pyramid = doc.child("JODA").child(std::string("PyramidResolution").data()); pyramid != nullptr;
+        pyramid                = pyramid.next_sibling(std::string("PyramidResolution").data())) {
+      int32_t idx    = pyramid.attribute("idx").as_int();
+      int32_t width  = pyramid.attribute("width").as_int();
+      int32_t height = pyramid.attribute("height").as_int();
+      actImageInfo.resolutions.emplace(idx, cv::Size{width, height});
+    }
+
     int64_t nrOfTiles = 1;
     int64_t tileSize  = tileHeight * tileWidth;
     if(tileSize > 0) {
       nrOfTiles = actImageInfo.imageSize / tileSize;
     }
 
-    actImageInfo.tileSize        = tileSize;
-    actImageInfo.tileNr          = nrOfTiles;
-    actImageInfo.nrOfDocuments   = nrOfPlanes;
-    actImageInfo.nrOfResolutions = resolutionCount;
-    actImageInfo.tileWidth       = tileWidth;
-    actImageInfo.tileHeight      = tileHeight;
+    actImageInfo.tileSize      = tileSize;
+    actImageInfo.tileNr        = nrOfTiles;
+    actImageInfo.nrOfDocuments = nrOfPlanes;
+    actImageInfo.tileWidth     = tileWidth;
+    actImageInfo.tileHeight    = tileHeight;
   }
 }
 

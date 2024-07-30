@@ -129,11 +129,6 @@ void WindowMain::createBottomToolbar()
 
   mImageResolutionCombo = new QComboBox(mButtomToolbar);
   mImageResolutionCombo->addItem("Resolution 0", 0);
-  mImageResolutionCombo->addItem("Resolution 1", 1);
-  mImageResolutionCombo->addItem("Resolution 2", 2);
-  mImageResolutionCombo->addItem("Resolution 3", 3);
-  mImageResolutionCombo->addItem("Resolution 4", 4);
-  mImageResolutionCombo->addItem("Resolution 5", 5);
   mImageResolutionComboBox = mButtomToolbar->addWidget(mImageResolutionCombo);
   mImageResolutionComboBox->setVisible(false);
 
@@ -810,17 +805,6 @@ void WindowMain::onLookingForFilesFinished()
     mImageResolutionComboBox->setVisible(true);
     mStartAnalysis->setEnabled(true);
 
-    mImageTilesCombo->clear();
-    if(props.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN == 0) {
-      mImageTilesCombo->addItem("0", 0);
-      mImageTilesCombo->setCurrentIndex(0);
-    } else {
-      for(int n = 0; n < props.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN; n++) {
-        mImageTilesCombo->addItem(QString::number(n), n);
-      }
-      mImageTilesCombo->setCurrentIndex(0);
-    }
-
   } else {
     // mFoundFilesCombo->setVisible(false);
     resetImageInfo();
@@ -860,7 +844,7 @@ void WindowMain::onImageSelectionChanged()
                        .arg(imgInfo.tileNr)
                        .arg(imgInfo.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN)
                        .arg(ome.getNrOfSeries())
-                       .arg(ome.getResolutionCount());
+                       .arg(ome.getResolutionCount().size());
 
   const auto &objectiveInfo = ome.getObjectiveInfo();
   auto objectiveData        = QString(
@@ -895,6 +879,37 @@ void WindowMain::onImageSelectionChanged()
   }
 
   mLabelImageInfo->setHtml(imageData + objectiveData + channelInfoStr);
+
+  {
+    mImageTilesCombo->blockSignals(true);
+    mImageTilesCombo->clear();
+    if(imgInfo.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN <= 0) {
+      mImageTilesCombo->addItem("0", 0);
+      mImageTilesCombo->setCurrentIndex(0);
+    } else {
+      for(int n = 0; n < imgInfo.tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN; n++) {
+        mImageTilesCombo->addItem(QString::number(n), n);
+      }
+      mImageTilesCombo->setCurrentIndex(0);
+    }
+    mImageTilesCombo->blockSignals(false);
+  }
+
+  {
+    mImageResolutionCombo->blockSignals(true);
+    auto currentIdx = mImageResolutionCombo->currentIndex();
+    mImageResolutionCombo->clear();
+    for(const auto &[idx, pyramid] : imgInfo.resolutions) {
+      mImageResolutionCombo->addItem((std::to_string(pyramid.width) + "x" + std::to_string(pyramid.height)).data(),
+                                     idx);
+    }
+    if(currentIdx < mImageResolutionCombo->count()) {
+      mImageResolutionCombo->setCurrentIndex(currentIdx);
+    } else {
+      mImageResolutionCombo->setCurrentIndex(0);
+    }
+    mImageResolutionCombo->blockSignals(false);
+  }
 }
 
 ///
