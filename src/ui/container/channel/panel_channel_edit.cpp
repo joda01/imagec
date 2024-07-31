@@ -423,12 +423,14 @@ void PanelChannelEdit::updatePreview()
                 int32_t tileIdx    = mWindowMain->getImageTilesCombo()->currentData().toInt();
                 int32_t resolution = mWindowMain->getImageResolutionCombo()->currentData().toInt();
                 mParentContainer->toSettings();
-                controller->preview(mParentContainer->mSettings, imgIndex, tileIdx, resolution, mPreviewResult);
-                if(!mPreviewResult.previewImage.empty()) {
+                controller->preview(mParentContainer->mSettings, imgIndex, tileIdx, resolution,
+                                    mPreviewImage->getPreviewObject());
+                auto &previewResult = mPreviewImage->getPreviewObject();
+                if(!previewResult.previewImage.empty()) {
                   // Create a QByteArray from the char array
                   int valid   = 0;
                   int invalid = 0;
-                  for(const auto &roi : *mPreviewResult.detectionResult) {
+                  for(const auto &roi : *previewResult.detectionResult) {
                     if(roi.isValid()) {
                       valid++;
                     } else {
@@ -436,8 +438,7 @@ void PanelChannelEdit::updatePreview()
                     }
                   }
                   QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
-                  mPreviewImage->setImage(mPreviewResult.originalImage, mPreviewResult.previewImage, PREVIEW_BASE_SIZE,
-                                          PREVIEW_BASE_SIZE, info);
+                  mPreviewImage->updateImage(info);
 
                 } else {
                   mPreviewImage->resetImage("");

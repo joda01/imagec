@@ -90,12 +90,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
   {
     QGridLayout *centralLayout = new QGridLayout();
     QWidget *centralWidget     = new QWidget();
-    mImageViewLeft             = new PanelImageView();
+    mImageViewLeft             = new PanelImageView(mPreviewImages.originalImage);
     mImageViewLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     centralLayout->addWidget(mImageViewLeft, 0, 0);
     mImageViewLeft->resetImage();
 
-    mImageViewRight = new PanelImageView();
+    mImageViewRight = new PanelImageView(mPreviewImages.previewImage);
     mImageViewRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     centralLayout->addWidget(mImageViewRight, 0, 1);
     mImageViewRight->resetImage();
@@ -197,8 +197,8 @@ void DialogImageViewer::onSliderMoved(int position)
     mPreviewThread = std::make_unique<std::thread>([this] {
       int previewCounter = 0;
       do {
-        mImageViewLeft->getImage().setBrightnessRange(0, mSlider->value(), mSliderScaling->value(),
-                                                      mSliderHistogramOffset->value());
+        mPreviewImages.originalImage.setBrightnessRange(0, mSlider->value(), mSliderScaling->value(),
+                                                        mSliderHistogramOffset->value());
         mImageViewLeft->emitUpdateImage();
         std::this_thread::sleep_for(20ms);
         {
@@ -222,11 +222,11 @@ void DialogImageViewer::onSliderMoved(int position)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::setImage(const joda::image::Image &leftImage, const joda::image::Image &rightImage)
+void DialogImageViewer::imageUpdated()
 {
   if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
-    mImageViewLeft->setImage(leftImage);
-    mImageViewRight->setImage(rightImage);
+    mImageViewLeft->imageUpdated();
+    mImageViewRight->imageUpdated();
   }
 }
 

@@ -31,7 +31,8 @@ namespace joda::ui::qt {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelPreview::PanelPreview(int width, int height, QWidget *parent) : mPreviewLabel(parent), mImageViewer(parent)
+PanelPreview::PanelPreview(int width, int height, QWidget *parent) :
+    mImageViewer(parent), mPreviewLabel(mImageViewer.getPreviewObject().previewImage)
 {
   mPreviewLabel.setMinimumWidth(width);
   mPreviewLabel.setMinimumHeight(height);

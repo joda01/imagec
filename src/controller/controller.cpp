@@ -152,8 +152,8 @@ void Controller::preview(const settings::ChannelSettings &settings, int imgIndex
     std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> referenceChannelResults;
     auto result = joda::pipeline::ImageProcessor::executeAlgorithm(imagePath, settings, tileIndex, resolution,
                                                                    onnxModels, nullptr, &referenceChannelResults);
-    previewOut.previewImage.setImage(result.controlImage);
-    previewOut.originalImage.setImage(result.originalImage);
+    previewOut.previewImage.setImage(std::move(result.controlImage));
+    previewOut.originalImage.setImage(std::move(result.originalImage));
     previewOut.height          = result.controlImage.rows;
     previewOut.width           = result.controlImage.cols;
     previewOut.detectionResult = std::move(result.result);

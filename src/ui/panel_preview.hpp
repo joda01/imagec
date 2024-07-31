@@ -33,17 +33,20 @@ class PanelPreview : public QWidget
 
 public:
   PanelPreview(int width, int height, QWidget *parent);
-  void setImage(const joda::image::Image &originalImage, const joda::image::Image &previewImage, int width, int height,
-                const QString &info)
+  void updateImage(const QString &info)
   {
-    mPreviewLabel.setImage(previewImage);
+    mImageViewer.imageUpdated();
+    mPreviewLabel.imageUpdated();
     mPreviewInfo->setText(info);
-    mImageViewer.setImage(originalImage, previewImage);
   }
   void resetImage(const QString &info)
   {
     mPreviewLabel.resetImage();
     mPreviewInfo->setText(info);
+  }
+  joda::ctrl::Controller::Preview &getPreviewObject()
+  {
+    return mImageViewer.getPreviewObject();
   }
 
 private slots:
@@ -58,7 +61,7 @@ private:
   QLabel *mPreviewInfo;
 
   /////////////////////////////////////////////////////
-  PanelImageView mPreviewLabel;
   DialogImageViewer mImageViewer;
+  PanelImageView mPreviewLabel;
 };
 }    // namespace joda::ui::qt

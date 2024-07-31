@@ -71,7 +71,6 @@ private:
   int mPreviewCounter                         = 0;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
-  joda::ctrl::Controller::Preview mPreviewResult;
 
 private slots:
   /////////////////////////////////////////////////////

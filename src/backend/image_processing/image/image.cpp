@@ -39,7 +39,7 @@ Image::Image()
 /// \param[out]
 /// \return
 ///
-void Image::setImage(const cv::Mat &imageToDisplay)
+void Image::setImage(const cv::Mat &&imageToDisplay)
 {
   mImageOriginal = imageToDisplay;
   update();
@@ -122,35 +122,41 @@ void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float h
 ///
 void Image::encode(const cv::Mat &image)
 {
-  cv::Mat originalImageFloat;
-  int type  = image.type();
-  int depth = type & CV_MAT_DEPTH_MASK;
-  if(image.type() == CV_16UC1) {
-    cv::Mat img8;
-    image.convertTo(img8, CV_8UC1, 1.0 / 256.0);    // scaling factor to convert 16-bit to 8-bit
-    cv::cvtColor(img8, originalImageFloat, cv::COLOR_GRAY2BGR);
-  } else if(image.type() == CV_32FC3) {
-    image.convertTo(originalImageFloat, CV_8UC3, 1);    // scaling factor to convert 16-bit to 8-bit
-  } else if(image.type() == CV_8UC3) {
-    originalImageFloat = image;
-  } else {
-    std::cout << "Not supported 1" << std::endl;
-  }
+  //
+  // int type  = image.type();
+  // int depth = type & CV_MAT_DEPTH_MASK;
+  // if(image.type() == CV_16UC1) {
+  //   cv::Mat img8;
+  //   image.convertTo(img8, CV_8UC1, 1.0 / 256.0);    // scaling factor to convert 16-bit to 8-bit
+  //   cv::cvtColor(img8, originalImageFloat, cv::COLOR_GRAY2BGR);
+  // } else if(image.type() == CV_32FC3) {
+  //   image.convertTo(originalImageFloat, CV_8UC3, 1);    // scaling factor to convert 16-bit to 8-bit
+  // } else if(image.type() == CV_8UC3) {
+  //   originalImageFloat = image;
+  // } else {
+  //   std::cout << "Not supported 1" << std::endl;
+  // }
 
-  switch(originalImageFloat.type()) {
-    case CV_8UC1: {
-      mPixmap = QPixmap::fromImage(QImage(originalImageFloat.data, originalImageFloat.cols, originalImageFloat.rows,
-                                          static_cast<int>(originalImageFloat.step), QImage::Format_Grayscale8));
+  switch(image.type()) {
+    case CV_16UC1: {
+      mPixmap = QPixmap::fromImage(
+          QImage(image.data, image.cols, image.rows, static_cast<uint16_t>(image.step), QImage::Format_Grayscale16));
     } break;
-    case CV_32FC3:
-    case CV_8UC3: {
+
+    case CV_8UC1: {
+      mPixmap = QPixmap::fromImage(
+          QImage(image.data, image.cols, image.rows, static_cast<uint8_t>(image.step), QImage::Format_Grayscale8));
+    } break;
+    case CV_32FC3: {
+      cv::Mat originalImageFloat;
+      image.convertTo(originalImageFloat, CV_8UC3, 1);    // scaling factor to convert 16-bit to 8-bit
       mPixmap = QPixmap::fromImage(QImage(originalImageFloat.data, originalImageFloat.cols, originalImageFloat.rows,
-                                          static_cast<int>(originalImageFloat.step), QImage::Format_RGB888)
+                                          static_cast<float>(originalImageFloat.step), QImage::Format_RGB888)
                                        .rgbSwapped());
     } break;
     case CV_8UC4: {
-      mPixmap = QPixmap::fromImage(QImage(originalImageFloat.data, originalImageFloat.cols, originalImageFloat.rows,
-                                          static_cast<int>(originalImageFloat.step), QImage::Format_ARGB32));
+      mPixmap = QPixmap::fromImage(
+          QImage(image.data, image.cols, image.rows, static_cast<int>(image.step), QImage::Format_ARGB32));
     } break;
     default:
       std::cout << "Not supported" << std::endl;

@@ -38,12 +38,12 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(QWidget *parent = nullptr);
-  void setImage(const joda::image::Image &image);
+  PanelImageView(const joda::image::Image &imageReference, QWidget *parent = nullptr);
+  void imageUpdated();
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
-  joda::image::Image &getImage()
+  const joda::image::Image &getImage()
   {
     return mActPixmapOriginal;
   }
@@ -71,12 +71,8 @@ protected:
 
 private:
   /////////////////////////////////////////////////////
-  static constexpr int32_t PLACEHOLDER_BASE_SIZE = 450;
-  static inline const QString PLACEHOLDER{":/icons/outlined/icons8-picture-1000-lightgray.png"};
-
-  /////////////////////////////////////////////////////
   bool mPlaceholderImageSet = true;
-  joda::image::Image mActPixmapOriginal;
+  const joda::image::Image &mActPixmapOriginal;
   QGraphicsPixmapItem *mActPixmap = nullptr;
   QGraphicsScene *scene;
   bool isDragging = false;

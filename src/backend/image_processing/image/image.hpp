@@ -30,7 +30,7 @@ class Image
 public:
   /////////////////////////////////////////////////////
   Image();
-  void setImage(const cv::Mat &imageToDisplay);
+  void setImage(const cv::Mat &&imageToDisplay);
   bool empty()
   {
     return mImageOriginal.empty();

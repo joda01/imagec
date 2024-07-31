@@ -23,7 +23,8 @@ namespace joda::ui::qt {
 ////////////////////////////////////////////////////////////////
 // Image view section
 //
-PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent)
+PanelImageView::PanelImageView(const joda::image::Image &imageReference, QWidget *parent) :
+    QGraphicsView(parent), mActPixmapOriginal(imageReference)
 {
   scene = new QGraphicsScene(this);
   setScene(scene);
@@ -65,10 +66,8 @@ void PanelImageView::setState(State state)
   emit onImageRepainted();
 }
 
-void PanelImageView::setImage(const joda::image::Image &image)
+void PanelImageView::imageUpdated()
 {
-  mActPixmapOriginal.setImage(image.getImage());
-
   if(mPlaceholderImageSet) {
     fitImageToScreenSize();
     mPlaceholderImageSet = false;
