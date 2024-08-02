@@ -43,14 +43,12 @@ auto CalcVoronoi::execute(
     const auto &voronoiPointsChannel = detectionResults.at(voronoiPoints);
 
     image::detect::VoronoiGrid grid(voronoiPointsChannel.result, mMaxVoronoiAreaSize);
-    auto CalcVoronoiResult =
-        grid.forward(voronoiPointsChannel.controlImage, voronoiPointsChannel.originalImage, mChannelIndexMe);
+    auto CalcVoronoiResult = grid.forward({}, voronoiPointsChannel.originalImage, mChannelIndexMe);
 
     //
     // Now mask the voronoi grid with an other channel
     //
     joda::image::detect::DetectionResponse response;
-    response.controlImage = cv::Mat::zeros(mask->controlImage.rows, mask->controlImage.cols, CV_32FC3);
 
     auto filterVoronoiAreas = [this, &response, &voronoiPointsChannel, &CalcVoronoiResult,
                                &mask](std::optional<const image::ROI> toIntersect) {
@@ -120,8 +118,7 @@ auto CalcVoronoi::execute(
     } else {
       filterVoronoiAreas(std::nullopt);
     }
-    joda::image::detect::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FF0000",
-                                                             false, false);
+
     DurationCount::stop(id);
     return response;
   }

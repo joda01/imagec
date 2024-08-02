@@ -149,14 +149,6 @@ private:
                           const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse>
                               *const referenceChannelResults);
 
-  ///
-  /// \brief      Generate the control image
-  /// \author     Joachim Danmayr
-  ///
-  static void generateControlImage(image::detect::DetectionResponse &detectionResult, const std::string &areaColor,
-                                   const joda::onnx::OnnxParser::Data &onnxModels,
-                                   joda::settings::DetectionSettings::DetectionMode mode);
-
   static std::set<uint32_t> getTifDirs(const ChannelProperties &props, joda::settings::ChannelIndex channelIndex);
 };
 }    // namespace joda::pipeline

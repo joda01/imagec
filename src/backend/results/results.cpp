@@ -548,10 +548,11 @@ std::filesystem::path Results::createControlImage(const joda::image::detect::Det
     std::filesystem::create_directories(absoluteFolderToWrite);
   }
 
-  if(!result.controlImage.empty()) {
+  if(!result.originalImage.empty()) {
     std::string crlImgFileNameWithTile = controlImageFileNameWithPlaceholder.string();
     helper::stringReplace(crlImgFileNameWithTile, "${tile_id}", std::to_string(tileIdx));
-    cv::imwrite((absoluteFolderToWrite / crlImgFileNameWithTile).string(), result.controlImage, compression_params);
+    cv::imwrite((absoluteFolderToWrite / crlImgFileNameWithTile).string(),
+                result.result->generateControlImage("", result.originalImage.size()), compression_params);
   } else {
     std::cout << "CTRL img null" << std::endl;
   }

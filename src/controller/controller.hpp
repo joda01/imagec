@@ -50,6 +50,7 @@ public:
   void setWorkingDirectory(const std::string &dir);
   struct Preview
   {
+    joda::image::Image thumbnail;
     joda::image::Image previewImage;
     joda::image::Image originalImage;
     int height;

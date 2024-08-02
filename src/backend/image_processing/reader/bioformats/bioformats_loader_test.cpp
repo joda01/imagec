@@ -17,7 +17,7 @@ TEST_CASE("image:loader:bioformats", "[.][image_loader_bioformats]")
 
   // img = img * (256.0F / 65536);
   cv::Mat grayImageFloat;
-  img.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UINT16_MAX);
+  img.convertTo(grayImageFloat, CV_8UC3, (float) UCHAR_MAX / (float) UINT16_MAX);
   grayImageFloat *= 1;
   cv::imwrite("test/img/test_bioformats.png", grayImageFloat);    // A JPG FILE IS BEING SAVED
 

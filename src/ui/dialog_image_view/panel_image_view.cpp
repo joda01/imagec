@@ -24,9 +24,8 @@ namespace joda::ui::qt {
 // Image view section
 //
 PanelImageView::PanelImageView(const joda::image::Image &imageReference, QWidget *parent) :
-    QGraphicsView(parent), mActPixmapOriginal(imageReference)
+    QGraphicsView(parent), mActPixmapOriginal(imageReference), scene(new QGraphicsScene(this))
 {
-  scene = new QGraphicsScene(this);
   setScene(scene);
 
   // Set up the view
@@ -87,12 +86,10 @@ void PanelImageView::resetImage()
 void PanelImageView::onUpdateImage()
 {
   scene->setSceneRect(mActPixmapOriginal.getPixmap().rect());
-  if(nullptr != mActPixmap) {
-    scene->removeItem(mActPixmap);
-    delete mActPixmap;
+  if(nullptr == mActPixmap) {
+    mActPixmap = scene->addPixmap(mActPixmapOriginal.getPixmap());
   }
-  mActPixmap = scene->addPixmap(mActPixmapOriginal.getPixmap());
-
+  mActPixmap->setPixmap(mActPixmapOriginal.getPixmap());
   scene->update();
   update();
   emit onImageRepainted();
@@ -195,7 +192,6 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   }
 
   // Draw histogram
-
   drawHistogram(mActPixmapOriginal.getImage());
 }
 
@@ -209,7 +205,7 @@ void PanelImageView::drawHistogram(const cv::Mat &image)
 
   int type  = image.type();
   int depth = type & CV_MAT_DEPTH_MASK;
-  if(depth != CV_32F) {
+  if(depth == CV_16U) {
     if(!image.empty()) {
       // Compute the histogram
       int histSize           = UINT16_MAX + 1;

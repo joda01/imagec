@@ -150,12 +150,13 @@ void Controller::preview(const settings::ChannelSettings &settings, int imgIndex
   auto onnxModels = onnx::OnnxParser::findOnnxFiles();
   if(!imagePath.getFilename().empty()) {
     std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> referenceChannelResults;
-    auto result = joda::pipeline::ImageProcessor::executeAlgorithm(imagePath, settings, tileIndex, resolution,
-                                                                   onnxModels, nullptr, &referenceChannelResults);
-    previewOut.previewImage.setImage(std::move(result.controlImage));
+    auto result       = joda::pipeline::ImageProcessor::executeAlgorithm(imagePath, settings, tileIndex, resolution,
+                                                                         onnxModels, nullptr, &referenceChannelResults);
+    auto controlImage = result.result->generateControlImage(settings.meta.color, result.originalImage.size());
     previewOut.originalImage.setImage(std::move(result.originalImage));
-    previewOut.height          = result.controlImage.rows;
-    previewOut.width           = result.controlImage.cols;
+    previewOut.previewImage.setImage(std::move(controlImage));
+    previewOut.height          = controlImage.rows;
+    previewOut.width           = controlImage.cols;
     previewOut.detectionResult = std::move(result.result);
     previewOut.imageFileName   = imagePath.getFilePath().string();
   }

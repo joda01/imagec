@@ -426,7 +426,7 @@ void PanelChannelEdit::updatePreview()
                 controller->preview(mParentContainer->mSettings, imgIndex, tileIdx, resolution,
                                     mPreviewImage->getPreviewObject());
                 auto &previewResult = mPreviewImage->getPreviewObject();
-                if(!previewResult.previewImage.empty()) {
+                if(!previewResult.detectionResult->empty()) {
                   // Create a QByteArray from the char array
                   int valid   = 0;
                   int invalid = 0;

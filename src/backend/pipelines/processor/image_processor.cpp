@@ -96,12 +96,6 @@ image::detect::DetectionResponse ImageProcessor::processImage(
   detectionResult.originalImage = std::move(originalImg);
 
   auto modelInfo = onnxModels.find(channelSetting.detection.ai.modelPath);
-  if(modelInfo != onnxModels.end()) {
-    generateControlImage(detectionResult, channelSetting.meta.color, modelInfo->second,
-                         channelSetting.detection.detectionMode);
-  } else {
-    generateControlImage(detectionResult, channelSetting.meta.color, {}, channelSetting.detection.detectionMode);
-  }
 
   return detectionResult;
 }
@@ -318,28 +312,6 @@ void ImageProcessor::doFiltering(
     joda::pipeline::applyHistogramFilter(originalImg, detectionResult, channelSetting);
   }
   DurationCount::stop(id);
-}
-
-///
-/// \brief      Generate the control image
-/// \author     Joachim Danmayr
-///
-void ImageProcessor::generateControlImage(image::detect::DetectionResponse &detectionResult,
-                                          const std::string &areaColor, const joda::onnx::OnnxParser::Data &onnxModels,
-                                          joda::settings::DetectionSettings::DetectionMode mode)
-{
-  /*
-  cv::Mat &img, const DetectionResults &result,
-                                 const joda::onnx::OnnxParser::Data &modelInfo, const std::string &fillColor,
-                                 bool paintRectangel, bool paintLabels
-  */
-  if(mode == joda::settings::DetectionSettings::DetectionMode::THRESHOLD) {
-    image::detect::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result, {},
-                                                       areaColor, false, false);
-  } else {
-    image::detect::DetectionFunction::paintBoundingBox(detectionResult.controlImage, detectionResult.result, onnxModels,
-                                                       areaColor, true, true);
-  }
 }
 
 ///

@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -60,7 +61,7 @@ void Image::update()
   int type  = mImageOriginal.type();
   int depth = type & CV_MAT_DEPTH_MASK;
   cv::Mat image;
-  if(depth != CV_32F) {
+  if(depth == CV_16U) {
     image = mImageOriginal.clone();
     // Ensure minVal is less than maxVal
     if(mLowerValue >= mUpperValue) {
@@ -122,41 +123,30 @@ void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float h
 ///
 void Image::encode(const cv::Mat &image)
 {
-  //
-  // int type  = image.type();
-  // int depth = type & CV_MAT_DEPTH_MASK;
-  // if(image.type() == CV_16UC1) {
-  //   cv::Mat img8;
-  //   image.convertTo(img8, CV_8UC1, 1.0 / 256.0);    // scaling factor to convert 16-bit to 8-bit
-  //   cv::cvtColor(img8, originalImageFloat, cv::COLOR_GRAY2BGR);
-  // } else if(image.type() == CV_32FC3) {
-  //   image.convertTo(originalImageFloat, CV_8UC3, 1);    // scaling factor to convert 16-bit to 8-bit
-  // } else if(image.type() == CV_8UC3) {
-  //   originalImageFloat = image;
-  // } else {
-  //   std::cout << "Not supported 1" << std::endl;
-  // }
-
+  const int32_t WIDTH = 2048;
+  mPixmap             = {};
   switch(image.type()) {
     case CV_16UC1: {
-      mPixmap = QPixmap::fromImage(
-          QImage(image.data, image.cols, image.rows, static_cast<uint16_t>(image.step), QImage::Format_Grayscale16));
+      mPixmap = QPixmap::fromImage(QImage(image.data, image.cols, image.rows, static_cast<uint16_t>(image.step),
+                                          QImage::Format_Grayscale16))
+                    .scaled(WIDTH, WIDTH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     } break;
 
     case CV_8UC1: {
-      mPixmap = QPixmap::fromImage(
-          QImage(image.data, image.cols, image.rows, static_cast<uint8_t>(image.step), QImage::Format_Grayscale8));
+      mPixmap = QPixmap::fromImage(QImage(image.data, image.cols, image.rows, static_cast<uint8_t>(image.step),
+                                          QImage::Format_Grayscale8))
+                    .scaled(WIDTH, WIDTH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     } break;
-    case CV_32FC3: {
-      cv::Mat originalImageFloat;
-      image.convertTo(originalImageFloat, CV_8UC3, 1);    // scaling factor to convert 16-bit to 8-bit
-      mPixmap = QPixmap::fromImage(QImage(originalImageFloat.data, originalImageFloat.cols, originalImageFloat.rows,
-                                          static_cast<float>(originalImageFloat.step), QImage::Format_RGB888)
-                                       .rgbSwapped());
+    case CV_8UC3: {
+      mPixmap = QPixmap::fromImage(
+                    QImage(image.data, image.cols, image.rows, static_cast<uint8_t>(image.step), QImage::Format_RGB888)
+                        .rgbSwapped())
+                    .scaled(WIDTH, WIDTH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     } break;
     case CV_8UC4: {
       mPixmap = QPixmap::fromImage(
-          QImage(image.data, image.cols, image.rows, static_cast<int>(image.step), QImage::Format_ARGB32));
+                    QImage(image.data, image.cols, image.rows, static_cast<int>(image.step), QImage::Format_ARGB32))
+                    .scaled(WIDTH, WIDTH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     } break;
     default:
       std::cout << "Not supported" << std::endl;
