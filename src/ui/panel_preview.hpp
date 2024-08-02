@@ -44,6 +44,11 @@ public:
     mPreviewLabel.resetImage();
     mPreviewInfo->setText(info);
   }
+  void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y)
+  {
+    mPreviewLabel.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
+    mImageViewer.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
+  }
   joda::ctrl::Controller::Preview &getPreviewObject()
   {
     return mImageViewer.getPreviewObject();

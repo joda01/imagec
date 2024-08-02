@@ -353,12 +353,12 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
                                                        .invalidateAll    = results.invalidateWholeImage,
                                                        .controlImagePath = controlImagePath});
 
-    auto [offsetX, offsetY] = ::joda::image::BioformatsLoader::calculateTileXYoffset(
+    auto tileInfo = ::joda::image::BioformatsLoader::calculateTileXYoffset(
         ::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.getImageInfo().resolutions.at(0).imageWidth,
         imgProps.getImageInfo().resolutions.at(0).imageHeight, imgProps.getImageInfo().tileWidth,
         imgProps.getImageInfo().tileHeight);
-    int64_t xMul = offsetX * imgProps.getImageInfo().tileWidth;
-    int64_t yMul = offsetY * imgProps.getImageInfo().tileHeight;
+    int64_t xMul = tileInfo.tileXOffset * imgProps.getImageInfo().tileWidth;
+    int64_t yMul = tileInfo.tileYOffset * imgProps.getImageInfo().tileHeight;
 
     uint64_t roiIdx = 0;
     auto id2 = DurationCount::start("loop db prepare >" + std::to_string(results.result->size()) + "<.");    // 30ms

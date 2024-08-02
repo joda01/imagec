@@ -53,6 +53,7 @@ public:
   }
 
   void setState(State);
+  void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y);
 
 signals:
   void updateImage();
@@ -68,6 +69,7 @@ protected:
   void wheelEvent(QWheelEvent *event) override;
   void paintEvent(QPaintEvent *event) override;
   void drawHistogram(const cv::Mat &image);
+  void drawThumbnail();
 
 private:
   /////////////////////////////////////////////////////
@@ -78,6 +80,12 @@ private:
   bool isDragging = false;
   QPoint lastPos;
   State mState = State::MOVE;
+
+  /////////////////////////////////////////////////////
+  uint32_t mNrOfTilesX    = 0;
+  uint32_t mNrOfTilesY    = 0;
+  uint32_t mSelectedTileX = 0;
+  uint32_t mSelectedTileY = 0;
 
 private slots:
   void onUpdateImage();

@@ -21,6 +21,7 @@
 #include <exception>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 #include "../../window_main.hpp"
 #include "../container_function.hpp"
@@ -422,27 +423,36 @@ void PanelChannelEdit::updatePreview()
               try {
                 int32_t tileIdx    = mWindowMain->getImageTilesCombo()->currentData().toInt();
                 int32_t resolution = mWindowMain->getImageResolutionCombo()->currentData().toInt();
+                int32_t series     = mWindowMain->getImageSeriesCombo()->currentData().toInt();
                 mParentContainer->toSettings();
                 controller->preview(mParentContainer->mSettings, imgIndex, tileIdx, resolution,
                                     mPreviewImage->getPreviewObject());
                 auto &previewResult = mPreviewImage->getPreviewObject();
-                if(!previewResult.detectionResult->empty()) {
-                  // Create a QByteArray from the char array
-                  int valid   = 0;
-                  int invalid = 0;
-                  for(const auto &roi : *previewResult.detectionResult) {
-                    if(roi.isValid()) {
-                      valid++;
-                    } else {
-                      invalid++;
-                    }
+                // Create a QByteArray from the char array
+                int valid   = 0;
+                int invalid = 0;
+                for(const auto &roi : *previewResult.detectionResult) {
+                  if(roi.isValid()) {
+                    valid++;
+                  } else {
+                    invalid++;
                   }
-                  QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
-                  mPreviewImage->updateImage(info);
-
-                } else {
-                  mPreviewImage->resetImage("");
                 }
+
+                auto imgProps = mWindowMain->getController()->getImageProperties(imgIndex, series);
+                auto tileInfo = ::joda::image::BioformatsLoader::calculateTileXYoffset(
+                    ::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx,
+                    imgProps.getImageInfo().resolutions.at(0).imageWidth,
+                    imgProps.getImageInfo().resolutions.at(0).imageHeight, imgProps.getImageInfo().tileWidth,
+                    imgProps.getImageInfo().tileHeight);
+
+                mPreviewImage->setThumbnailPosition(tileInfo.nrOfCompositeTilesX, tileInfo.nrOfCompositeTilesY,
+                                                    tileInfo.tileXOffset / tileInfo.tilesPerLine,
+                                                    tileInfo.tileYOffset / tileInfo.tilesPerLine);
+
+                QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
+                mPreviewImage->updateImage(info);
+
               } catch(const std::exception &error) {
                 mPreviewImage->resetImage(error.what());
               }

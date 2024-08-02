@@ -83,6 +83,13 @@ void PanelImageView::resetImage()
   emit onImageRepainted();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::onUpdateImage()
 {
   scene->setSceneRect(mActPixmapOriginal.getPixmap().rect());
@@ -95,6 +102,13 @@ void PanelImageView::onUpdateImage()
   emit onImageRepainted();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::mouseMoveEvent(QMouseEvent *event)
 {
   if(isDragging) {
@@ -111,6 +125,13 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
   emit onImageRepainted();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
@@ -119,6 +140,13 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
   }
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
@@ -128,11 +156,25 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
   }
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::wheelEvent(QWheelEvent *event)
 {
   zoomImage(event->angleDelta().y() > 0);
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::zoomImage(bool inOut)
 {
   qreal zoomFactor = 1.05;
@@ -149,6 +191,13 @@ void PanelImageView::zoomImage(bool inOut)
   */
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::fitImageToScreenSize()
 {
   resetTransform();
@@ -157,6 +206,13 @@ void PanelImageView::fitImageToScreenSize()
   emit onImageRepainted();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::paintEvent(QPaintEvent *event)
 {
   QGraphicsView::paintEvent(event);
@@ -193,8 +249,71 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 
   // Draw histogram
   drawHistogram(mActPixmapOriginal.getImage());
+  drawThumbnail();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::drawThumbnail()
+{
+  const float RECT_START_X = 10;
+  const float RECT_START_Y = 12;
+  const float RECT_HEIGHT  = 128;
+  const float RECT_WIDTH   = 128;
+
+  QPainter painter(viewport());
+  {
+    painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
+    painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
+    QRect rectangle(QPoint(width() - RECT_START_X - RECT_WIDTH, RECT_START_Y),
+                    QSize(RECT_WIDTH,
+                          RECT_HEIGHT));    // Adjust the size as needed
+    painter.drawRect(rectangle);
+  }
+
+  float tileRectWidth  = RECT_WIDTH / mNrOfTilesX;
+  float tileRectHeight = RECT_HEIGHT / mNrOfTilesY;
+
+  for(int y = 0; y < mNrOfTilesY; y++) {
+    for(int x = 0; x < mNrOfTilesX; x++) {
+      int xOffset = x * tileRectWidth;
+      int yOffset = y * tileRectHeight;
+      if(x == mSelectedTileX && y == mSelectedTileY) {
+        painter.setBrush(QColor(255, 0, 0));    // Set the brush to no brush for transparent fill
+
+      } else {
+        painter.setBrush(Qt::NoBrush);    // Set the brush to no brush for transparent fill
+      }
+
+      QRect rectangle(QPoint(width() - RECT_START_X - RECT_WIDTH + xOffset, RECT_START_Y + yOffset),
+                      QSize(tileRectWidth,
+                            tileRectHeight));    // Adjust the size as needed
+      painter.drawRect(rectangle);
+    }
+  }
+}
+
+void PanelImageView::setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y)
+
+{
+  mNrOfTilesX    = nrOfTilesX;
+  mNrOfTilesY    = nrOfTilesY;
+  mSelectedTileX = x;
+  mSelectedTileY = y;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::drawHistogram(const cv::Mat &image)
 {
   const float RECT_START_X  = 10;
