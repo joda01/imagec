@@ -5,7 +5,6 @@
 #include "backend/image_processing/functions/threshold/threshold.hpp"
 #include "backend/image_processing/functions/threshold/threshold_manual.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
-#include "backend/image_processing/reader/jpg/image_loader_jpg.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/core.hpp>

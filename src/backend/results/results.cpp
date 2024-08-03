@@ -267,8 +267,9 @@ void Results::writePredatedData(const DetailReportAdder &adders)
 ///
 void Results::appendToDetailReport(const DetailReportAdder &appender,
                                    const joda::image::detect::DetectionResponse &results,
-                                   const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
-                                   const joda::ome::OmeInfo &imgProps, const std::filesystem::path &imagePath)
+                                   const joda::settings::ChannelSettingsMeta &channelSettings,
+                                   const joda::ome::TileToLoad &tileIdx, const joda::ome::OmeInfo &imgProps,
+                                   const std::filesystem::path &imagePath)
 {
   struct ImageStats
   {
@@ -339,12 +340,12 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
     }
   };
   std::map<MeasureChannelId, ImageStats> imgStats;
-
+  int32_t tileNr = imgProps.getImageInfo().resolutions.at(0).toTileNr(tileIdx);
   try {
     auto id          = DurationCount::start("Append to detail report");
     uint64_t imageId = calcImagePathHash(mExperimentSettings.runId, imagePath);
 
-    auto controlImagePath = createControlImage(results, channelSettings, tileIdx, imgProps, imagePath);
+    auto controlImagePath = createControlImage(results, channelSettings, tileNr, imgProps, imagePath);
     auto channelId        = toChannelIndex(channelSettings.channelIdx);
     mDatabase->createImageChannel(db::ImageChannelMeta{.analyzeId        = mAnalyzeId,
                                                        .imageId          = imageId,
@@ -353,12 +354,8 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
                                                        .invalidateAll    = results.invalidateWholeImage,
                                                        .controlImagePath = controlImagePath});
 
-    auto tileInfo = ::joda::image::BioformatsLoader::calculateTileXYoffset(
-        ::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.getImageInfo().resolutions.at(0).imageWidth,
-        imgProps.getImageInfo().resolutions.at(0).imageHeight, imgProps.getImageInfo().tileWidth,
-        imgProps.getImageInfo().tileHeight);
-    int64_t xMul = tileInfo.tileXOffset * imgProps.getImageInfo().tileWidth;
-    int64_t yMul = tileInfo.tileYOffset * imgProps.getImageInfo().tileHeight;
+    int64_t xMul = tileIdx.tileX * tileIdx.tileWidth;
+    int64_t yMul = tileIdx.tileY * tileIdx.tileHeight;
 
     uint64_t roiIdx = 0;
     auto id2 = DurationCount::start("loop db prepare >" + std::to_string(results.result->size()) + "<.");    // 30ms
@@ -453,7 +450,7 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
         appender.objects->Append<uint64_t>(imageId);
         appender.objects->Append<uint16_t>(static_cast<uint16_t>(channelId));
         appender.objects->Append<uint32_t>(index);
-        appender.objects->Append<uint16_t>(tileIdx);
+        appender.objects->Append<uint16_t>(tileNr);
         appender.objects->Append<uint64_t>(toValidity(roi.getValidity()).to_ulong());
         auto mapToInsert = duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
                                               duckdb::LogicalType(duckdb::LogicalTypeId::DOUBLE), keys, vals);
@@ -506,7 +503,7 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
       appender.imageStats->Append(uuid);
       appender.imageStats->Append<uint64_t>(imageId);
       appender.imageStats->Append<uint16_t>(static_cast<uint16_t>(channelId));
-      appender.imageStats->Append<uint16_t>(tileIdx);
+      appender.imageStats->Append<uint16_t>(tileNr);
       addToMap(statsSum);
       addToMap(statsCnt);
       addToMap(statsMin);

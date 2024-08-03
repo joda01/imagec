@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <map>
@@ -29,7 +30,13 @@
 
 namespace joda::ome {
 
-static constexpr int64_t TILES_TO_LOAD_PER_RUN = 36;
+struct TileToLoad
+{
+  int32_t tileX      = 0;
+  int32_t tileY      = 0;
+  int32_t tileWidth  = 256;
+  int32_t tileHeight = 256;
+};
 
 ///
 /// \class      OmeInfo
@@ -67,20 +74,49 @@ public:
   {
     struct Pyramid
     {
-      int64_t imageMemoryUsage = 0;
-      int64_t imageNrOfPixels  = 0;
-      int64_t imageWidth       = 0;
-      int64_t imageHeight      = 0;
-      int64_t tileNr           = 0;
+      int32_t bits                   = 16;
+      int64_t imageMemoryUsage       = 0;
+      int32_t imageWidth             = 0;
+      int32_t imageHeight            = 0;
+      int64_t optimalTileMemoryUsage = 0;
+      int32_t optimalTileWidth       = 0;
+      int32_t optimalTileHeight      = 0;
+
+      [[nodiscard]] int32_t getTileCount(int32_t tileWidth, int32_t tileHeight) const
+      {
+        auto [x, y] = getNrOfTiles(tileWidth, tileHeight);
+        return x * y;
+      }
+
+      [[nodiscard]] int32_t getTileCount() const
+      {
+        auto [x, y] = getNrOfTiles(optimalTileWidth, optimalTileHeight);
+        return x * y;
+      }
+
+      [[nodiscard]] auto getNrOfTiles(int32_t tileWidth, int32_t tileHeight) const -> std::tuple<int32_t, int32_t>
+      {
+        double tileNrWidth  = std::ceil(static_cast<double>(imageWidth) / static_cast<double>(tileWidth));
+        double tileNrHeight = std::ceil(static_cast<double>(imageHeight) / static_cast<double>(tileHeight));
+        return {tileNrWidth, tileNrHeight};
+      }
+      [[nodiscard]] auto toTileNr(const joda::ome::TileToLoad &tile) const
+      {
+        auto [tileNrX, tileNrY] = getNrOfTiles(tile.tileWidth, tile.tileHeight);
+        return tile.tileX + tile.tileY * tileNrX;
+      }
+      [[nodiscard]] auto tileNrToTile(int32_t tileNr, int32_t tileWidth, int32_t tileHeight) const
+          -> std::tuple<int32_t, int32_t>
+      {
+        auto [tileNrX, tileNrY] = getNrOfTiles(tileWidth, tileHeight);
+        int32_t tileX           = tileNr % tileNrX;
+        int32_t tileY           = tileNr / tileNrX;
+        return {tileX, tileY};
+      }
     };
-    int seriesIdx          = 0;
-    int nrOfChannels       = 0;
-    int8_t bits            = 16;
-    int64_t tileNrOfPixels = 0;
-    int64_t tileWidth      = 0;
-    int64_t tileHeight     = 0;
-    uint16_t nrOfDocuments = 0;
-    std::map<int32_t, Pyramid> resolutions;      // Array of resolutions in case of a pyamid image
+    int seriesIdx    = 0;
+    int nrOfChannels = 0;
+    std::map<int32_t, Pyramid> resolutions;      ///< Array of resolutions in case of a pyamid image
     std::map<uint32_t, ChannelInfo> channels;    ///< Contains the channel information <channelIdx | channelinfo>
   };
 
@@ -102,7 +138,6 @@ public:
     return mImageInfo.at(series).resolutions;
   }
   [[nodiscard]] int getNrOfChannels(int32_t series = -1) const;
-  [[nodiscard]] uint64_t getImageSize(int32_t series = -1) const;
   [[nodiscard]] std::tuple<int64_t, int64_t> getSize(int32_t series = -1) const;
   [[nodiscard]] int32_t getBits(int32_t series = -1) const;
   [[nodiscard]] int32_t getSeriesWithHighestResolution() const;

@@ -203,11 +203,9 @@ void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath, uint16_
   // Make entry in database
   mResults.appendImageToDetailReport(propsOut.ome, imagePath.getFilePath());
 
-  int64_t runs = 1;
-  if(props.resolutions.at(resolution).imageMemoryUsage > joda::pipeline::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
-    runs = props.resolutions.at(resolution).tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN;
-  }
-
+  auto [tilesX, tilesY] =
+      props.resolutions.at(0).getNrOfTiles(joda::pipeline::COMPOSITE_TILE_WIDTH, joda::pipeline::COMPOSITE_TILE_HEIGHT);
+  int32_t runs = tilesX * tilesY;
   //
   // Iterate over each tile
   //
@@ -215,14 +213,25 @@ void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath, uint16_
   if(poolSize > 1) {
     auto futures = mGlobThreadPool.submit_sequence<unsigned int>(
         0, runs, [this, &imagePath, &propsOut, resolution](const unsigned int tileIdx) {
-          analyzeTile(imagePath, tileIdx, resolution, propsOut);
+          auto [tileX, tileY] = propsOut.ome.getImageInfo().resolutions.at(0).tileNrToTile(
+              tileIdx, joda::pipeline::COMPOSITE_TILE_WIDTH, joda::pipeline::COMPOSITE_TILE_HEIGHT);
+
+          analyzeTile(imagePath,
+                      joda::ome::TileToLoad{tileX, tileY, joda::pipeline::COMPOSITE_TILE_WIDTH,
+                                            joda::pipeline::COMPOSITE_TILE_HEIGHT},
+                      resolution, propsOut);
         });
     futures.wait();
   } else {
-    for(int tileIdx = 0; tileIdx < runs; tileIdx++) {
-      analyzeTile(imagePath, tileIdx, resolution, propsOut);
-      if(mStop) {
-        break;
+    for(int tileX = 0; tileX < tilesX; tileX++) {
+      for(int tileY = 0; tileY < tilesY; tileY++) {
+        analyzeTile(imagePath,
+                    joda::ome::TileToLoad{tileX, tileY, joda::pipeline::COMPOSITE_TILE_WIDTH,
+                                          joda::pipeline::COMPOSITE_TILE_HEIGHT},
+                    resolution, propsOut);
+        if(mStop) {
+          break;
+        }
       }
     }
   }
@@ -238,8 +247,8 @@ void Pipeline::analyzeImage(const helper::fs::FileInfoImages &imagePath, uint16_
 /// \brief      Analyze tile
 /// \author     Joachim Danmayr
 ///
-void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, uint16_t resolution,
-                           const joda::pipeline::ChannelProperties &channelProperties)
+void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, const joda::ome::TileToLoad &tileIdx,
+                           uint16_t resolution, const joda::pipeline::ChannelProperties &channelProperties)
 {
   std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> detectionResults;
 
@@ -314,8 +323,8 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, ui
   //
   // Execute intersection calculation
   //
-  auto calcIntersection = [this, appender = appender, &imagePath, &detectionResults,
-                           &channelProperties](int tileIdx, settings::VChannelIntersection intersect) {
+  auto calcIntersection = [this, appender = appender, &imagePath, &detectionResults, &channelProperties](
+                              joda::ome::TileToLoad tileIdx, settings::VChannelIntersection intersect) {
     joda::pipeline::CalcIntersection intersectAlgo(
         intersect.meta.channelIdx, intersect.intersection.intersectingChannels, intersect.intersection.minIntersection);
     auto response = intersectAlgo.execute(mAnalyzeSettings, detectionResults);
@@ -353,7 +362,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, ui
   // Execute post processing pipeline steps
   //
   auto calcVoronoi = [this, appender = appender, &imagePath, &detectionResults,
-                      &channelProperties](int tileIdx, settings::VChannelVoronoi voronoi) {
+                      &channelProperties](joda::ome::TileToLoad tileIdx, settings::VChannelVoronoi voronoi) {
     joda::pipeline::CalcVoronoi function(voronoi.meta.channelIdx, voronoi.voronoi.gridPointsChannelIdx,
                                          voronoi.voronoi.overlayMaskChannelIdx, voronoi.voronoi.maxVoronoiAreaRadius,
                                          voronoi.objectFilter.excludeAreasWithoutCenterOfMass,
@@ -397,7 +406,7 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, ui
   // Channel stats
   //
   auto writeStats = [this, appender = appender, &imagePath, &detectionResults,
-                     &channelProperties](int tileIdx, settings::ChannelSettings channelSettings) {
+                     &channelProperties](joda::ome::TileToLoad tileIdx, settings::ChannelSettings channelSettings) {
     //
     // Measure intensity from ROI area of channel X in channel Y
     //
@@ -450,13 +459,13 @@ void Pipeline::analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, ui
 ///
 void Pipeline::analyszeChannel(
     std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &detectionResults,
-    const joda::settings::ChannelSettings &channelSettings, helper::fs::FileInfoImages imagePath, int tileIdx,
-    uint16_t resolution, const ChannelProperties &channelProperties)
+    const joda::settings::ChannelSettings &channelSettings, helper::fs::FileInfoImages imagePath,
+    const joda::ome::TileToLoad &tileIndex, uint16_t resolution, const ChannelProperties &channelProperties)
 {
   joda::settings::ChannelIndex channelIndex = channelSettings.meta.channelIdx;
 
   try {
-    auto processingResult = ImageProcessor::executeAlgorithm(imagePath, channelSettings, tileIdx, resolution,
+    auto processingResult = ImageProcessor::executeAlgorithm(imagePath, channelSettings, tileIndex, resolution,
                                                              mOnnxModels, &channelProperties, &detectionResults);
     // Add processing result to the detection result map
     std::lock_guard<std::mutex> lock(mAddToDetailReportMutex);

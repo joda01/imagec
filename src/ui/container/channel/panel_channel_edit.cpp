@@ -25,6 +25,7 @@
 #include <thread>
 #include "../../window_main.hpp"
 #include "../container_function.hpp"
+#include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 #include "container_channel.hpp"
 
@@ -425,7 +426,15 @@ void PanelChannelEdit::updatePreview()
                 int32_t resolution = mWindowMain->getImageResolutionCombo()->currentData().toInt();
                 int32_t series     = mWindowMain->getImageSeriesCombo()->currentData().toInt();
                 mParentContainer->toSettings();
-                controller->preview(mParentContainer->mSettings, imgIndex, tileIdx, resolution,
+                auto imgProps = mWindowMain->getController()->getImageProperties(imgIndex, series);
+                int32_t tileX = tileIdx / 100;
+                int32_t tileY = tileIdx % 100;
+                auto [tileNrX, tileNrY] =
+                    imgProps.getImageInfo()
+                        .resolutions.at(resolution)
+                        .getNrOfTiles(::joda::pipeline::COMPOSITE_TILE_WIDTH, ::joda::pipeline::COMPOSITE_TILE_HEIGHT);
+
+                controller->preview(mParentContainer->mSettings, imgIndex, tileX, tileY, resolution,
                                     mPreviewImage->getPreviewObject());
                 auto &previewResult = mPreviewImage->getPreviewObject();
                 // Create a QByteArray from the char array
@@ -439,16 +448,7 @@ void PanelChannelEdit::updatePreview()
                   }
                 }
 
-                auto imgProps = mWindowMain->getController()->getImageProperties(imgIndex, series);
-                auto tileInfo = ::joda::image::BioformatsLoader::calculateTileXYoffset(
-                    ::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx,
-                    imgProps.getImageInfo().resolutions.at(0).imageWidth,
-                    imgProps.getImageInfo().resolutions.at(0).imageHeight, imgProps.getImageInfo().tileWidth,
-                    imgProps.getImageInfo().tileHeight);
-
-                mPreviewImage->setThumbnailPosition(tileInfo.nrOfCompositeTilesX, tileInfo.nrOfCompositeTilesY,
-                                                    tileInfo.tileXOffset / tileInfo.tilesPerLine,
-                                                    tileInfo.tileYOffset / tileInfo.tilesPerLine);
+                mPreviewImage->setThumbnailPosition(tileNrX, tileNrY, tileX, tileY);
 
                 QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
                 mPreviewImage->updateImage(info);

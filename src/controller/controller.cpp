@@ -139,8 +139,8 @@ auto Controller::getListOfFoundImages() -> const std::vector<helper::fs::FileInf
 /// \brief      Returns preview
 /// \author     Joachim Danmayr
 ///
-void Controller::preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex, uint16_t resolution,
-                         Preview &previewOut)
+void Controller::preview(const settings::ChannelSettings &settings, int32_t imgIndex, int32_t tileX, int32_t tileY,
+                         uint16_t resolution, Preview &previewOut)
 {
   // To also preview tetraspeck removal we must first process the reference spot
   // channels This is a little bit more complicated therefor not supported yet
@@ -150,8 +150,11 @@ void Controller::preview(const settings::ChannelSettings &settings, int imgIndex
   auto onnxModels = onnx::OnnxParser::findOnnxFiles();
   if(!imagePath.getFilename().empty()) {
     std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> referenceChannelResults;
-    auto result       = joda::pipeline::ImageProcessor::executeAlgorithm(imagePath, settings, tileIndex, resolution,
-                                                                         onnxModels, nullptr, &referenceChannelResults);
+    auto result = joda::pipeline::ImageProcessor::executeAlgorithm(
+        imagePath, settings,
+        joda::ome::TileToLoad{tileX, tileY, joda::pipeline::COMPOSITE_TILE_WIDTH,
+                              joda::pipeline::COMPOSITE_TILE_HEIGHT},
+        resolution, onnxModels, nullptr, &referenceChannelResults);
     auto controlImage = result.result->generateControlImage(settings.meta.color, result.originalImage.size());
     previewOut.originalImage.setImage(std::move(result.originalImage));
     previewOut.previewImage.setImage(std::move(controlImage));
@@ -169,21 +172,8 @@ void Controller::preview(const settings::ChannelSettings &settings, int imgIndex
 auto Controller::getImageProperties(int imgIndex, int series) -> joda::ome::OmeInfo
 {
   auto imagePath = mWorkingDirectory.getFileAt(imgIndex);
-
-  joda::ome::OmeInfo ome;
-  switch(imagePath.getDecoder()) {
-    case helper::fs::FileInfoImages::Decoder::JPG:
-      ome = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
-      break;
-    case helper::fs::FileInfoImages::Decoder::TIFF:
-      ome = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string());
-      break;
-    case helper::fs::FileInfoImages::Decoder::BIOFORMATS:
-      ome = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string());
-      break;
-  }
-
-  return ome;
+  return image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string());
+  ;
 }
 
 ///
@@ -218,10 +208,13 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   const auto &props    = ome.getImageInfo();
   auto systemRecources = getSystemResources();
   if(props.resolutions.at(0).imageMemoryUsage > joda::pipeline::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
-    tileNr              = props.resolutions.at(0).tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN;
-    threads.ramPerImage = props.tileNrOfPixels * joda::pipeline::TILES_TO_LOAD_PER_RUN;
+    auto [tilesX, tilesY] = props.resolutions.at(0).getNrOfTiles(joda::pipeline::COMPOSITE_TILE_WIDTH,
+                                                                 joda::pipeline::COMPOSITE_TILE_HEIGHT);
+    tileNr                = tilesX * tilesY;
+    threads.ramPerImage   = joda::pipeline::COMPOSITE_TILE_WIDTH * joda::pipeline::COMPOSITE_TILE_HEIGHT *
+                          (props.resolutions.at(0).bits / 8);
   } else {
-    threads.ramPerImage = props.resolutions.at(0).imageNrOfPixels;
+    threads.ramPerImage = props.resolutions.at(0).imageMemoryUsage;
   }
   if(threads.ramPerImage <= 0) {
     threads.ramPerImage = 1;
@@ -238,7 +231,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   //  }
   //}
 
-  // Maximum number of cores depends on the available RAM.
+  // Maximum number of cores depends on the available RAM.)
   int32_t maxNumberOfCoresToAssign =
       std::min(static_cast<uint64_t>(systemRecources.cpus),
                static_cast<uint64_t>(systemRecources.ramAvailable / threads.ramPerImage));

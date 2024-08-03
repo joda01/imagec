@@ -161,11 +161,12 @@ private:
 
   void analyzeImage(const helper::fs::FileInfoImages &imagePath, uint16_t resolution);
 
-  void analyzeTile(helper::fs::FileInfoImages imagePath, int tileIdx, uint16_t resolution,
+  void analyzeTile(helper::fs::FileInfoImages imagePath, const joda::ome::TileToLoad &tileIndex, uint16_t resolution,
                    const ChannelProperties &channelProperties);
   void analyszeChannel(std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> &detectionResults,
                        const joda::settings::ChannelSettings &channelSettings, helper::fs::FileInfoImages imagePath,
-                       int tileIdx, uint16_t resolution, const ChannelProperties &channelProperties);
+                       const joda::ome::TileToLoad &tileIndex, uint16_t resolution,
+                       const ChannelProperties &channelProperties);
 
   /////////////////////////////////////////////////////
   std::filesystem::path mInputFolder;

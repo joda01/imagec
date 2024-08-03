@@ -36,8 +36,8 @@ namespace joda::pipeline {
 ///
 image::detect::DetectionResponse ImageProcessor::executeAlgorithm(
     const helper::fs::FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
-    uint64_t tileIndex, uint16_t resolution, const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels,
-    const ChannelProperties *channelProperties,
+    const joda::ome::TileToLoad &tileIndex, uint16_t resolution,
+    const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels, const ChannelProperties *channelProperties,
     const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> *const referenceChannelResults)
 {
   //
@@ -51,21 +51,12 @@ image::detect::DetectionResponse ImageProcessor::executeAlgorithm(
   }
 
   auto tifDirs = ImageProcessor::getTifDirs(chProps, channelSetting.meta.channelIdx);
-  if(chProps.ome.getImageInfo().resolutions.at(resolution).imageMemoryUsage > MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE &&
-     (imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::TIFF ||
-      imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::BIOFORMATS)) {
-    return processImage<TiffLoaderTileWrapper>(imagePath, channelSetting, tifDirs, tileIndex, resolution,
+  if(chProps.ome.getImageInfo().resolutions.at(resolution).imageMemoryUsage > MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
+    return processImage<BioformatsTileWrapper>(imagePath, channelSetting, tifDirs, tileIndex, resolution,
                                                referenceChannelResults, onnxModels);
   }
-  if(imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::JPG) {
-    return processImage<JpgLoaderEntireWrapper>(imagePath, channelSetting, tifDirs, 0, resolution,
-                                                referenceChannelResults, onnxModels);
-  }
-  if(imagePath.getDecoder() == helper::fs::FileInfoImages::Decoder::TIFF) {
-    return processImage<TiffLoaderEntireWrapper>(imagePath, channelSetting, tifDirs, 0, resolution,
-                                                 referenceChannelResults, onnxModels);
-  }
-  return processImage<BioformatsEntireWrapper>(imagePath, channelSetting, tifDirs, 0, resolution,
+
+  return processImage<BioformatsEntireWrapper>(imagePath, channelSetting, tifDirs, tileIndex, resolution,
                                                referenceChannelResults, onnxModels);
 }
 
@@ -81,14 +72,14 @@ image::detect::DetectionResponse ImageProcessor::executeAlgorithm(
 template <image_loader_t TIFFLOADER>
 image::detect::DetectionResponse ImageProcessor::processImage(
     const helper::fs::FileInfoImages &imagePath, const joda::settings::ChannelSettings &channelSetting,
-    const std::set<uint32_t> &tiffDirectories, int64_t idx, uint16_t resolution,
+    const std::set<uint32_t> &tiffDirectories, const joda::ome::TileToLoad &tileIndex, uint16_t resolution,
     const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> *const referenceChannelResults,
     const std::map<std::string, joda::onnx::OnnxParser::Data> &onnxModels)
 {
-  cv::Mat image       = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, idx, resolution);
+  cv::Mat image       = doZProjection<TIFFLOADER>(imagePath, channelSetting, tiffDirectories, tileIndex, resolution);
   cv::Mat originalImg = image.clone();
 
-  doPreprocessingPipeline<TIFFLOADER>(image, imagePath, channelSetting, tiffDirectories, idx, resolution);
+  doPreprocessingPipeline<TIFFLOADER>(image, imagePath, channelSetting, tiffDirectories, tileIndex, resolution);
 
   auto detectionResult = doDetection(image, originalImg, channelSetting, onnxModels);
 
@@ -110,7 +101,7 @@ image::detect::DetectionResponse ImageProcessor::processImage(
 ///
 template <class TIFFLOADER>
 cv::Mat ImageProcessor::loadTileAndToIntensityProjectionIfEnabled(const helper::fs::FileInfoImages &imagePath,
-                                                                  int64_t idx,
+                                                                  const joda::ome::TileToLoad &tileIndex,
                                                                   const joda::settings::ChannelSettings &channelSetting,
                                                                   const std::set<uint32_t> &tiffDirectories,
                                                                   uint16_t resolution)
@@ -118,8 +109,8 @@ cv::Mat ImageProcessor::loadTileAndToIntensityProjectionIfEnabled(const helper::
   auto series = channelSetting.meta.series;
 
   auto actDirectory = tiffDirectories.begin();
-  cv::Mat tilePart  = TIFFLOADER::loadImage(imagePath.getFilePath().string(), *actDirectory, series, idx,
-                                            TILES_TO_LOAD_PER_RUN, resolution);
+  cv::Mat tilePart =
+      TIFFLOADER::loadImage(imagePath.getFilePath().string(), *actDirectory, series, tileIndex, resolution);
   if(channelSetting.preprocessing.$zStack.method == joda::settings::ZStackProcessing::ZStackMethod::MAX_INTENSITY) {
     //
     // Do maximum intensity projection
@@ -130,8 +121,7 @@ cv::Mat ImageProcessor::loadTileAndToIntensityProjectionIfEnabled(const helper::
         break;
       }
       cv::max(tilePart,
-              TIFFLOADER::loadImage(imagePath.getFilePath().string(), *actDirectory, series, idx, TILES_TO_LOAD_PER_RUN,
-                                    resolution),
+              TIFFLOADER::loadImage(imagePath.getFilePath().string(), *actDirectory, series, tileIndex, resolution),
               tilePart);
     }
   }
@@ -151,12 +141,13 @@ cv::Mat ImageProcessor::loadTileAndToIntensityProjectionIfEnabled(const helper::
 template <class TIFFLOADER>
 cv::Mat ImageProcessor::doZProjection(const helper::fs::FileInfoImages &imagePath,
                                       const joda::settings::ChannelSettings &channelSetting,
-                                      const std::set<uint32_t> &tifDirs, int64_t idx, uint16_t resolution)
+                                      const std::set<uint32_t> &tifDirs, const joda::ome::TileToLoad &tileIndex,
+                                      uint16_t resolution)
 {
   auto id         = DurationCount::start("Zprojection");
   uint16_t series = channelSetting.meta.series;
   cv::Mat tilePart =
-      loadTileAndToIntensityProjectionIfEnabled<TIFFLOADER>(imagePath, idx, channelSetting, tifDirs, resolution);
+      loadTileAndToIntensityProjectionIfEnabled<TIFFLOADER>(imagePath, tileIndex, channelSetting, tifDirs, resolution);
   DurationCount::stop(id);
 
 #warning "Do Margin crop here"
@@ -172,7 +163,8 @@ cv::Mat ImageProcessor::doZProjection(const helper::fs::FileInfoImages &imagePat
 template <class TIFFLOADER>
 void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const helper::fs::FileInfoImages &imagePath,
                                              const joda::settings::ChannelSettings &channelSetting,
-                                             const std::set<uint32_t> &tifDirs, int64_t idx, uint16_t resolution)
+                                             const std::set<uint32_t> &tifDirs, const joda::ome::TileToLoad &tileIndex,
+                                             uint16_t resolution)
 {
   auto series = channelSetting.meta.series;
 
@@ -184,8 +176,8 @@ void ImageProcessor::doPreprocessingPipeline(cv::Mat &image, const helper::fs::F
        pipelineStep.$subtractChannel->channelIdx != joda::settings::ChannelIndex::NONE) {
       // ChannelProperties chPropsToSubtract =
       //     loadChannelProperties(imagePath.getPath(), pipelineStep.$subtractChannel->channelIdx, series);
-      cv::Mat tileToSubtract =
-          loadTileAndToIntensityProjectionIfEnabled<TIFFLOADER>(imagePath, idx, channelSetting, tifDirs, resolution);
+      cv::Mat tileToSubtract = loadTileAndToIntensityProjectionIfEnabled<TIFFLOADER>(
+          imagePath, tileIndex, channelSetting, tifDirs, resolution);
 
       image = image - tileToSubtract;
     }
@@ -320,23 +312,7 @@ void ImageProcessor::doFiltering(
 ///
 ChannelProperties ImageProcessor::loadChannelProperties(const helper::fs::FileInfoImages &imagePath, uint16_t series)
 {
-  //
-  // Load image properties
-  //
-  joda::ome::OmeInfo omeInfo;
-  switch(imagePath.getDecoder()) {
-    case helper::fs::FileInfoImages::Decoder::JPG: {
-      omeInfo = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
-    } break;
-    case helper::fs::FileInfoImages::Decoder::TIFF: {
-      omeInfo = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string());
-    } break;
-    case helper::fs::FileInfoImages::Decoder::BIOFORMATS: {
-      omeInfo = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string());
-    } break;
-  }
-
-  return ChannelProperties{.ome = omeInfo};
+  return ChannelProperties{.ome = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string())};
 }
 
 ///

@@ -26,25 +26,14 @@ namespace joda::image {
 class BioformatsLoader
 {
 public:
-  struct TileInfo
-  {
-    uint64_t nrOfTilesX          = 0;
-    uint64_t nrOfTilesY          = 0;
-    uint64_t nrOfCompositeTilesX = 0;
-    uint64_t nrOfCompositeTilesY = 0;
-    uint64_t tileXOffset         = 0;
-    uint64_t tileYOffset         = 0;
-    uint64_t tilesPerLine        = 0;
-  };
   /////////////////////////////////////////////////////
-  static cv::Mat loadImageTile(const std::string &filename, uint16_t directory, uint16_t series, int offset,
-                               int nrOfTilesToRead, uint16_t resolutionIdx);
-  static cv::Mat loadEntireImage(const std::string &filename, int directory, uint16_t series, uint16_t resolutionIdx);
+  static cv::Mat loadImageTile(const std::string &filename, uint16_t directory, uint16_t series, uint16_t resolutionIdx,
+                               const joda::ome::TileToLoad &tile);
+  static cv::Mat loadEntireImage(const std::string &filename, uint16_t directory, uint16_t series,
+                                 uint16_t resolutionIdx);
   static auto getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo;
   static void init();
   static void destroy();
-  static auto calculateTileXYoffset(int32_t nrOfTilesToRead, int32_t offset, int64_t width, int64_t height,
-                                    int64_t tilewidth, int64_t tileheight) -> TileInfo;
 
 private:
   /////////////////////////////////////////////////////

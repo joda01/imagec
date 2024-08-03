@@ -38,6 +38,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
@@ -830,18 +831,20 @@ void WindowMain::onImageSelectionChanged()
 {
   auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
   const auto &imgInfo = ome.getImageInfo();
-  auto imageData      = QString(
+
+  auto imageData = QString(
                        "<p><strong>Image</strong></p>"
-                            "<p>Size: %1 x %2<br />Bits: %3<br />Tile size: %4 x %5<br />Nr. of tiles: %6<br />Nr. of "
-                            "composite tiles: %7<br />Series: "
-                            "%8<br />Pyramid: %9</p>")
+                       "<p>Size: %1 x %2<br />Bits: %3<br />Tile size: %4 x %5<br />Nr. of tiles: %6<br />Nr. of "
+                       "composite tiles: %7<br />Series: "
+                       "%8<br />Pyramid: %9</p>")
                        .arg(imgInfo.resolutions.at(0).imageWidth)
                        .arg(imgInfo.resolutions.at(0).imageHeight)
-                       .arg(imgInfo.bits)
-                       .arg(imgInfo.tileWidth)
-                       .arg(imgInfo.tileHeight)
-                       .arg(imgInfo.resolutions.at(0).tileNr)
-                       .arg(imgInfo.resolutions.at(0).tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN)
+                       .arg(imgInfo.resolutions.at(0).bits)
+                       .arg(imgInfo.resolutions.at(0).optimalTileWidth)
+                       .arg(imgInfo.resolutions.at(0).optimalTileHeight)
+                       .arg(imgInfo.resolutions.at(0).getTileCount())
+                       .arg(imgInfo.resolutions.at(0).getTileCount(joda::pipeline::COMPOSITE_TILE_WIDTH,
+                                                                   joda::pipeline::COMPOSITE_TILE_HEIGHT))
                        .arg(ome.getNrOfSeries())
                        .arg(ome.getResolutionCount().size());
 
@@ -900,13 +903,18 @@ void WindowMain::onImageSelectionChanged()
   {
     mImageTilesCombo->blockSignals(true);
     mImageTilesCombo->clear();
-    auto tileNr = imgInfo.resolutions.at(mImageResolutionCombo->currentIndex()).tileNr;
-    if(tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN <= 0) {
+    auto [tileNrX, tileNrY] =
+        imgInfo.resolutions.at(mImageResolutionCombo->currentIndex())
+            .getNrOfTiles(joda::pipeline::COMPOSITE_TILE_WIDTH, joda::pipeline::COMPOSITE_TILE_HEIGHT);
+    if(imgInfo.resolutions.at(mImageResolutionCombo->currentIndex()).imageMemoryUsage <=
+       joda::pipeline::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
       mImageTilesCombo->addItem("0", 0);
       mImageTilesCombo->setCurrentIndex(0);
     } else {
-      for(int n = 0; n < tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN; n++) {
-        mImageTilesCombo->addItem(QString::number(n), n);
+      for(int y = 0; y < tileNrY; y++) {
+        for(int x = 0; x < tileNrX; x++) {
+          mImageTilesCombo->addItem("[" + QString::number(x) + "," + QString::number(y) + "]", x * 100 + y);
+        }
       }
       mImageTilesCombo->setCurrentIndex(0);
     }
@@ -925,15 +933,18 @@ void WindowMain::onResolutionChanged()
   {
     mImageTilesCombo->blockSignals(true);
     mImageTilesCombo->clear();
-    auto tileNr = imgInfo.resolutions.at(mImageResolutionCombo->currentIndex()).tileNr;
-    if(tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN <= 0 ||
-       imgInfo.resolutions.at(mImageResolutionCombo->currentIndex()).imageMemoryUsage <=
-           joda::pipeline::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
+    auto [tileNrX, tileNrY] =
+        imgInfo.resolutions.at(mImageResolutionCombo->currentIndex())
+            .getNrOfTiles(joda::pipeline::COMPOSITE_TILE_WIDTH, joda::pipeline::COMPOSITE_TILE_HEIGHT);
+    if(imgInfo.resolutions.at(mImageResolutionCombo->currentIndex()).imageMemoryUsage <=
+       joda::pipeline::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
       mImageTilesCombo->addItem("0", 0);
       mImageTilesCombo->setCurrentIndex(0);
     } else {
-      for(int n = 0; n < tileNr / joda::pipeline::TILES_TO_LOAD_PER_RUN; n++) {
-        mImageTilesCombo->addItem(QString::number(n), n);
+      for(int y = 0; y < tileNrY; y++) {
+        for(int x = 0; x < tileNrX; x++) {
+          mImageTilesCombo->addItem("[" + QString::number(x) + "," + QString::number(y) + "]", x * 100 + y);
+        }
       }
       mImageTilesCombo->setCurrentIndex(0);
     }

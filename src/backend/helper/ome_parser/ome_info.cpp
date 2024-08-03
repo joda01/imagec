@@ -108,14 +108,14 @@ TRY_AGAIN:
     // actImageInfo.imageWidth  = sizeX;
     // actImageInfo.imageHeight = sizeY;
 
-    auto type = std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("Type").as_string());
-    if(type == "uint8") {
-      actImageInfo.bits = 8;
-    } else if(type == "uint16") {
-      actImageInfo.bits = 16;
-    } else {
-      actImageInfo.bits = 16;
-    }
+    // auto type = std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("Type").as_string());
+    // if(type == "uint8") {
+    //   actImageInfo.bits = 8;
+    // } else if(type == "uint16") {
+    //   actImageInfo.bits = 16;
+    // } else {
+    //   actImageInfo.bits = 16;
+    // }
 
     //
     // TIFF Data
@@ -298,28 +298,26 @@ TRY_AGAIN:
       nrOfPlanes++;
     }
 
-    int64_t tileWidth       = doc.child("JODA").attribute("TileWidth").as_int();
-    int64_t tileHeight      = doc.child("JODA").attribute("TileHeight").as_int();
     int64_t resolutionCount = doc.child("JODA").attribute("ResolutionCount").as_int();
-    int64_t tileSize        = tileHeight * tileWidth;
 
     for(pugi::xml_node pyramid = doc.child("JODA").child(std::string("PyramidResolution").data()); pyramid != nullptr;
         pyramid                = pyramid.next_sibling(std::string("PyramidResolution").data())) {
-      int32_t idx    = pyramid.attribute("idx").as_int();
-      int64_t width  = pyramid.attribute("width").as_int();
-      int64_t height = pyramid.attribute("height").as_int();
-      actImageInfo.resolutions.emplace(idx,
-                                       ImageInfo::Pyramid{.imageMemoryUsage = width * height * (actImageInfo.bits / 8),
-                                                          .imageNrOfPixels  = width * height,
-                                                          .imageWidth       = width,
-                                                          .imageHeight      = height,
-                                                          .tileNr = tileSize > 0 ? (width * height) / tileSize : 1});
-    }
+      int32_t idx        = pyramid.attribute("idx").as_int();
+      int32_t width      = pyramid.attribute("width").as_int();
+      int32_t height     = pyramid.attribute("height").as_int();
+      int32_t tileWidth  = pyramid.attribute("TileWidth").as_int();
+      int32_t tileHeight = pyramid.attribute("TileHeight").as_int();
+      int32_t bits       = pyramid.attribute("BitsPerPixel").as_int();
 
-    actImageInfo.tileNrOfPixels = tileSize;
-    actImageInfo.nrOfDocuments  = nrOfPlanes;
-    actImageInfo.tileWidth      = tileWidth;
-    actImageInfo.tileHeight     = tileHeight;
+      actImageInfo.resolutions.emplace(
+          idx, ImageInfo::Pyramid{.bits                   = bits,
+                                  .imageMemoryUsage       = static_cast<int64_t>(width) * height * (bits / 8),
+                                  .imageWidth             = width,
+                                  .imageHeight            = height,
+                                  .optimalTileMemoryUsage = static_cast<int64_t>(tileWidth) * tileHeight * (bits / 8),
+                                  .optimalTileWidth       = tileWidth,
+                                  .optimalTileHeight      = tileHeight});
+    }
   }
 }
 
@@ -357,18 +355,6 @@ int OmeInfo::getNrOfChannels(int32_t series) const
 }
 
 ///
-/// \brief      Returns the image size
-/// \author     Joachim Danmayr
-///
-uint64_t OmeInfo::getImageSize(int32_t series) const
-{
-  if(series < 0) {
-    series = getSeriesWithHighestResolution();
-  }
-  return mImageInfo.at(series).resolutions.at(0).imageNrOfPixels;
-}
-
-///
 /// \brief      Returns the image bits
 /// \author     Joachim Danmayr
 ///
@@ -377,7 +363,7 @@ uint64_t OmeInfo::getImageSize(int32_t series) const
   if(series < 0) {
     series = getSeriesWithHighestResolution();
   }
-  return mImageInfo.at(series).bits;
+  return mImageInfo.at(series).resolutions.at(0).bits;
 }
 
 ///
