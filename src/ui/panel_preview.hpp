@@ -41,6 +41,7 @@ public:
   }
   void resetImage(const QString &info)
   {
+    mImageViewer.resetImage();
     mPreviewLabel.resetImage();
     mPreviewInfo->setText(info);
   }
@@ -54,11 +55,21 @@ public:
     return mImageViewer.getPreviewObject();
   }
 
+  void setWaiting(bool waiting)
+  {
+    mImageViewer.setWaiting(waiting);
+    mPreviewLabel.setWaiting(waiting);
+  }
+
+signals:
+  void tileClicked(int32_t tileX, int32_t tileY);
+
 private slots:
   void onFitImageToScreenSizeClicked();
   void onZoomOutClicked();
   void onZoomInClicked();
   void onOpenFullScreenClickec();
+  void onTileClicked(int32_t tileX, int32_t tileY);
 
 private:
   /////////////////////////////////////////////////////

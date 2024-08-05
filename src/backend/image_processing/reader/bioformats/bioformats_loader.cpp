@@ -21,6 +21,8 @@
 #include <sstream>
 #include <string>
 #include "backend/helper/duration_count/duration_count.h"
+#include "backend/helper/logger/console_logger.hpp"
+#include "backend/image_processing/functions/resize/resize.hpp"
 #include <nlohmann/json.hpp>
 #include <opencv2/core/mat.hpp>
 
@@ -233,6 +235,54 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, uint16_t 
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
     return retValue;
+  }
+
+  return cv::Mat{};
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+cv::Mat BioformatsLoader::loadThumbnail(const std::string &filename, uint16_t directory, uint16_t series)
+{
+  // Takes 150 ms
+  if(mJVMInitialised) {
+    // std::lock_guard<std::mutex> lock(mReadMutex);
+
+    auto ome           = getOmeInformation(filename);
+    auto resolutionIdx = ome.getResolutionCount().size() - 1;
+    auto resolution    = ome.getResolutionCount(series).at(resolutionIdx);
+
+    if(resolution.imageMemoryUsage > 209715200) {
+      joda::log::logWarning("Cannot create thumbnail. Pyramid to big: >" + std::to_string(resolution.imageMemoryUsage) +
+                            "< Bytes.");
+      return cv::Mat{};
+    }
+    JNIEnv *myEnv;
+    myJVM->AttachCurrentThread((void **) &myEnv, NULL);
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+    jintArray readImgInfo =
+        (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, directory,
+                                                  static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
+    int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
+    myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
+        mBioformatsClass, mReadImage, filePath, directory, static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
+
+    // This is the image information
+    cv::Mat tmp = cv::Mat::zeros(imageInfo[0], imageInfo[1], CV_16UC1);
+    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) tmp.data);
+    delete[] imageInfo;
+    myEnv->DeleteLocalRef(filePath);
+    myJVM->DetachCurrentThread();
+    return cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(tmp, 256, 256));
+    ;
   }
 
   return cv::Mat{};

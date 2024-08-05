@@ -4,7 +4,6 @@ Checks: |
   cert-*,
   clang-analyzer-*,
   concurrency-*,
-  cppcoreguidelines-*,
   google-*,
   -google-build-using-namespace,
   misc-*,

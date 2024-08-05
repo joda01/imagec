@@ -122,12 +122,6 @@ void WindowMain::createBottomToolbar()
   mImageSeriesComboBox = mButtomToolbar->addWidget(mImageSeriesCombo);
   mImageSeriesComboBox->setVisible(false);
 
-  mImageTilesCombo = new QComboBox(mButtomToolbar);
-  mImageTilesCombo->addItem("0", 0);
-  mImageTilesCombo->setToolTip("Select image tile");
-  mImageTilesComboBox = mButtomToolbar->addWidget(mImageTilesCombo);
-  mImageTilesComboBox->setVisible(false);
-
   mImageResolutionCombo = new QComboBox(mButtomToolbar);
   mImageResolutionCombo->addItem("Resolution 0", 0);
   mImageResolutionComboBox = mButtomToolbar->addWidget(mImageResolutionCombo);
@@ -734,7 +728,6 @@ void WindowMain::setWorkingDirectory(const std::string &workingDir)
     mFoundFilesCombo->clear();
     mFileSelectorComboBox->setVisible(false);
     mImageSeriesComboBox->setVisible(false);
-    mImageTilesComboBox->setVisible(false);
     mImageResolutionComboBox->setVisible(false);
     mFileSearchHintLabel->setVisible(true);
     mController->setWorkingDirectory(mSelectedImagesDirectory.string());
@@ -802,7 +795,6 @@ void WindowMain::onLookingForFilesFinished()
     mFileSearchHintLabel->setVisible(false);
     mFileSelectorComboBox->setVisible(true);
     mImageSeriesComboBox->setVisible(true);
-    mImageTilesComboBox->setVisible(true);
     mImageResolutionComboBox->setVisible(true);
     mStartAnalysis->setEnabled(true);
 
@@ -899,27 +891,6 @@ void WindowMain::onImageSelectionChanged()
     }
     mImageResolutionCombo->blockSignals(false);
   }
-
-  {
-    mImageTilesCombo->blockSignals(true);
-    mImageTilesCombo->clear();
-    auto [tileNrX, tileNrY] =
-        imgInfo.resolutions.at(mImageResolutionCombo->currentIndex())
-            .getNrOfTiles(joda::pipeline::COMPOSITE_TILE_WIDTH, joda::pipeline::COMPOSITE_TILE_HEIGHT);
-    if(imgInfo.resolutions.at(mImageResolutionCombo->currentIndex()).imageMemoryUsage <=
-       joda::pipeline::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
-      mImageTilesCombo->addItem("0", 0);
-      mImageTilesCombo->setCurrentIndex(0);
-    } else {
-      for(int y = 0; y < tileNrY; y++) {
-        for(int x = 0; x < tileNrX; x++) {
-          mImageTilesCombo->addItem("[" + QString::number(x) + "," + QString::number(y) + "]", x * 100 + y);
-        }
-      }
-      mImageTilesCombo->setCurrentIndex(0);
-    }
-    mImageTilesCombo->blockSignals(false);
-  }
 }
 
 ///
@@ -930,26 +901,6 @@ void WindowMain::onResolutionChanged()
 {
   auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
   const auto &imgInfo = ome.getImageInfo();
-  {
-    mImageTilesCombo->blockSignals(true);
-    mImageTilesCombo->clear();
-    auto [tileNrX, tileNrY] =
-        imgInfo.resolutions.at(mImageResolutionCombo->currentIndex())
-            .getNrOfTiles(joda::pipeline::COMPOSITE_TILE_WIDTH, joda::pipeline::COMPOSITE_TILE_HEIGHT);
-    if(imgInfo.resolutions.at(mImageResolutionCombo->currentIndex()).imageMemoryUsage <=
-       joda::pipeline::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
-      mImageTilesCombo->addItem("0", 0);
-      mImageTilesCombo->setCurrentIndex(0);
-    } else {
-      for(int y = 0; y < tileNrY; y++) {
-        for(int x = 0; x < tileNrX; x++) {
-          mImageTilesCombo->addItem("[" + QString::number(x) + "," + QString::number(y) + "]", x * 100 + y);
-        }
-      }
-      mImageTilesCombo->setCurrentIndex(0);
-    }
-    mImageTilesCombo->blockSignals(false);
-  }
 }
 
 ///

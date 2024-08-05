@@ -12,7 +12,9 @@
 ///
 
 #include "panel_image_view.hpp"
+#include <qpixmap.h>
 #include <qtmetamacros.h>
+#include <cmath>
 #include <cstdint>
 #include <string>
 #include "backend/image_processing/image/image.hpp"
@@ -23,8 +25,11 @@ namespace joda::ui::qt {
 ////////////////////////////////////////////////////////////////
 // Image view section
 //
-PanelImageView::PanelImageView(const joda::image::Image &imageReference, QWidget *parent) :
-    QGraphicsView(parent), mActPixmapOriginal(imageReference), scene(new QGraphicsScene(this))
+PanelImageView::PanelImageView(const joda::image::Image &imageReference,
+                               const joda::image::Image &thumbnailImageReference, QWidget *parent) :
+    QGraphicsView(parent),
+    mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference),
+    scene(new QGraphicsScene(this))
 {
   setScene(scene);
 
@@ -34,6 +39,7 @@ PanelImageView::PanelImageView(const joda::image::Image &imageReference, QWidget
   setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setMouseTracking(true);
 
   /*
   setMinimumWidth(width);
@@ -62,25 +68,20 @@ void PanelImageView::setState(State state)
   }
 
   emit updateImage();
-  emit onImageRepainted();
 }
 
 void PanelImageView::imageUpdated()
 {
-  if(mPlaceholderImageSet) {
-    fitImageToScreenSize();
-    mPlaceholderImageSet = false;
-  }
   emit updateImage();
-  emit onImageRepainted();
 }
 
 void PanelImageView::resetImage()
 {
   mPlaceholderImageSet = true;
+  delete mActPixmap;
+  mActPixmap = nullptr;
   fitImageToScreenSize();
   emit updateImage();
-  emit onImageRepainted();
 }
 
 ///
@@ -92,14 +93,26 @@ void PanelImageView::resetImage()
 ///
 void PanelImageView::onUpdateImage()
 {
-  scene->setSceneRect(mActPixmapOriginal.getPixmap().rect());
-  if(nullptr == mActPixmap) {
-    mActPixmap = scene->addPixmap(mActPixmapOriginal.getPixmap());
+  auto *img = mActPixmapOriginal.getImage();
+  if(img != nullptr) {
+    const auto pixmap = mActPixmapOriginal.getPixmap();
+    scene->setSceneRect(pixmap.rect());
+    if(nullptr == mActPixmap) {
+      mActPixmap = scene->addPixmap(pixmap);
+    } else {
+      mActPixmap->setPixmap(pixmap);
+    }
+    auto size = img->size();
+    if((size.width != mPixmapSize.width) || (size.height != mPixmapSize.height) || mPlaceholderImageSet) {
+      mPixmapSize = size;
+      fitImageToScreenSize();
+      mPlaceholderImageSet = false;
+    } else {
+      emit onImageRepainted();
+    }
+    scene->update();
+    update();
   }
-  mActPixmap->setPixmap(mActPixmapOriginal.getPixmap());
-  scene->update();
-  update();
-  emit onImageRepainted();
 }
 
 ///
@@ -121,8 +134,9 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
 
     // Update the last position
     lastPos = event->pos();
+    emit onImageRepainted();
   }
-  emit onImageRepainted();
+  getThumbnailAreaEntered(event);
 }
 
 ///
@@ -136,6 +150,11 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
     // End dragging
+    if(cursor() != Qt::OpenHandCursor) {
+      setCursor(Qt::OpenHandCursor);
+      viewport()->setCursor(Qt::OpenHandCursor);
+    }
+
     isDragging = false;
   }
 }
@@ -151,8 +170,14 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
     // Start dragging
+    if(cursor() != Qt::ClosedHandCursor) {
+      setCursor(Qt::ClosedHandCursor);
+      viewport()->setCursor(Qt::ClosedHandCursor);
+    }
+
     isDragging = true;
     lastPos    = event->pos();
+    getClickedTileInThumbnail(event);
   }
 }
 
@@ -201,7 +226,7 @@ void PanelImageView::zoomImage(bool inOut)
 void PanelImageView::fitImageToScreenSize()
 {
   resetTransform();
-  float zoomFactor = static_cast<float>(width()) / static_cast<float>(mActPixmapOriginal.getPixmap().size().width());
+  float zoomFactor = static_cast<float>(width()) / static_cast<float>(mPixmapSize.width);
   scale(zoomFactor, zoomFactor);
   emit onImageRepainted();
 }
@@ -248,8 +273,20 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   }
 
   // Draw histogram
-  drawHistogram(mActPixmapOriginal.getImage());
+  drawHistogram();
   drawThumbnail();
+
+  // Overlay
+  if(mWaiting) {
+    QPainter painter(viewport());
+    QRect overlay(0, viewportRect.height() / 2 - 10, viewportRect.width(), 20);
+    painter.setPen(QColor(0, 0, 0));      // Set the pen color to light blue
+    painter.setBrush(QColor(0, 0, 0));    // Set the brush to no brush for transparent fill
+    painter.drawRect(overlay);
+    painter.setPen(QColor(255, 255, 255));      // Set the pen color to light blue
+    painter.setBrush(QColor(255, 255, 255));    // Set the brush to no brush for transparent fill
+    painter.drawText(overlay, Qt::AlignHCenter | Qt::AlignVCenter, "Generating preview ...");
+  }
 }
 
 ///
@@ -261,39 +298,153 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 ///
 void PanelImageView::drawThumbnail()
 {
-  const float RECT_START_X = 10;
-  const float RECT_START_Y = 12;
-  const float RECT_HEIGHT  = 128;
-  const float RECT_WIDTH   = 128;
-
-  QPainter painter(viewport());
-  {
-    painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-    painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
-    QRect rectangle(QPoint(width() - RECT_START_X - RECT_WIDTH, RECT_START_Y),
-                    QSize(RECT_WIDTH,
-                          RECT_HEIGHT));    // Adjust the size as needed
-    painter.drawRect(rectangle);
+  float rectHeight = THUMB_RECT_HEIGHT_NORMAL;
+  float rectWidth  = THUMB_RECT_WIDTH_NORMAL;
+  if(mThumbnailAreaEntered) {
+    rectHeight = THUMB_RECT_HEIGHT_ZOOMED;
+    rectWidth  = THUMB_RECT_WIDTH_ZOOMED;
   }
 
-  float tileRectWidth  = RECT_WIDTH / mNrOfTilesX;
-  float tileRectHeight = RECT_HEIGHT / mNrOfTilesY;
+  QPainter painter(viewport());
+  auto *img = mThumbnailImageReference.getImage();
+  if(img == nullptr) {
+    return;
+  }
+  auto thumbnailWidth  = img->cols;
+  auto thumbnailHeight = img->rows;
 
+  //
+  // Scale thumbnail
+  //
+  int newWidth, newHeight;
+  // Check if width or height is the limiting factor
+  float aspectRatio = static_cast<float>(thumbnailWidth) / static_cast<float>(thumbnailHeight);
+  if(rectWidth / aspectRatio <= rectHeight) {
+    // Width is the limiting factor
+    newWidth  = rectWidth;
+    newHeight = static_cast<int>(rectWidth / aspectRatio);
+  } else {
+    // Height is the limiting factor
+    newHeight = rectHeight;
+    newWidth  = static_cast<int>(rectHeight * aspectRatio);
+  }
+  QRect thumbRect(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y),
+                  QSize(newWidth,
+                        newHeight));    // Adjust the size as needed
+  painter.drawPixmap(thumbRect, mThumbnailImageReference.getPixmap());
+
+  //
+  // Draw bounding rext
+  //
+  painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
+  painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
+  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y),
+                  QSize(rectWidth,
+                        rectHeight));    // Adjust the size as needed
+  painter.drawRect(rectangle);
+
+  //
+  // Draw grid
+  //
+  float tileRectWidth  = rectWidth / mNrOfTilesX;
+  float tileRectHeight = rectHeight / mNrOfTilesY;
+  for(int y = 0; y < mNrOfTilesY; y++) {
+    for(int x = 0; x < mNrOfTilesX; x++) {
+      bool isSelected = false;
+      if(x == mSelectedTileX && y == mSelectedTileY) {
+        painter.setBrush(QColor(173, 216, 230));    // Set the brush to no brush for transparent fill
+        isSelected = true;
+      } else {
+        if(!mThumbnailAreaEntered) {
+          painter.setBrush(Qt::NoBrush);
+        } else {
+          painter.setBrush(Qt::NoBrush);
+        }
+      }
+      if(mThumbnailAreaEntered || isSelected) {
+        float xOffset = std::floor(static_cast<float>(x) * tileRectWidth);
+        float yOffset = std::floor(static_cast<float>(y) * tileRectHeight);
+        QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth + xOffset, THUMB_RECT_START_Y + yOffset),
+                        QSize(tileRectWidth, tileRectHeight));
+        painter.drawRect(rectangle);
+      }
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
+{
+  float rectHeight = THUMB_RECT_HEIGHT_NORMAL;
+  float rectWidth  = THUMB_RECT_WIDTH_NORMAL;
+  if(mThumbnailAreaEntered) {
+    rectHeight = THUMB_RECT_HEIGHT_ZOOMED;
+    rectWidth  = THUMB_RECT_WIDTH_ZOOMED;
+  }
+
+  float tileRectWidth  = rectWidth / mNrOfTilesX;
+  float tileRectHeight = rectHeight / mNrOfTilesY;
   for(int y = 0; y < mNrOfTilesY; y++) {
     for(int x = 0; x < mNrOfTilesX; x++) {
       int xOffset = x * tileRectWidth;
       int yOffset = y * tileRectHeight;
-      if(x == mSelectedTileX && y == mSelectedTileY) {
-        painter.setBrush(QColor(255, 0, 0));    // Set the brush to no brush for transparent fill
 
-      } else {
-        painter.setBrush(Qt::NoBrush);    // Set the brush to no brush for transparent fill
+      QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth + xOffset, THUMB_RECT_START_Y + yOffset),
+                      QSize(tileRectWidth, tileRectHeight));
+      if(rectangle.contains(event->pos())) {
+        mSelectedTileX = x;
+        mSelectedTileY = y;
+        scene->update();
+        update();
+        emit tileClicked(x, y);
+        return;
       }
+    }
+  }
+}
 
-      QRect rectangle(QPoint(width() - RECT_START_X - RECT_WIDTH + xOffset, RECT_START_Y + yOffset),
-                      QSize(tileRectWidth,
-                            tileRectHeight));    // Adjust the size as needed
-      painter.drawRect(rectangle);
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
+{
+  float rectHeight = THUMB_RECT_HEIGHT_NORMAL;
+  float rectWidth  = THUMB_RECT_WIDTH_NORMAL;
+  if(mThumbnailAreaEntered) {
+    rectHeight = THUMB_RECT_HEIGHT_ZOOMED;
+    rectWidth  = THUMB_RECT_WIDTH_ZOOMED;
+  }
+
+  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(rectWidth, rectHeight));
+  if(rectangle.contains(event->pos())) {
+    if(!mThumbnailAreaEntered) {
+      mThumbnailAreaEntered = true;
+      scene->update();
+      update();
+    }
+    if(cursor() != Qt::CrossCursor) {
+      setCursor(Qt::CrossCursor);
+      viewport()->setCursor(Qt::CrossCursor);
+    }
+  } else {
+    if(mThumbnailAreaEntered) {
+      mThumbnailAreaEntered = false;
+      scene->update();
+      update();
+    }
+    if(cursor() != Qt::OpenHandCursor) {
+      setCursor(Qt::OpenHandCursor);
+      viewport()->setCursor(Qt::OpenHandCursor);
     }
   }
 }
@@ -314,18 +465,23 @@ void PanelImageView::setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTile
 /// \param[out]
 /// \return
 ///
-void PanelImageView::drawHistogram(const cv::Mat &image)
+void PanelImageView::drawHistogram()
 {
+  const auto *image = mActPixmapOriginal.getImage();
+  if(image == nullptr) {
+    return;
+  }
+
   const float RECT_START_X  = 10;
   const float RECT_START_Y  = 12;
   const float RECT_HEIGHT   = 80;
   const float NR_OF_MARKERS = 8;
   float RECT_WIDTH          = static_cast<float>(width()) - (RECT_START_X * 2);
 
-  int type  = image.type();
+  int type  = image->type();
   int depth = type & CV_MAT_DEPTH_MASK;
   if(depth == CV_16U) {
-    if(!image.empty()) {
+    if(!image->empty()) {
       // Compute the histogram
       int histSize           = UINT16_MAX + 1;
       float range[]          = {0, UINT16_MAX + 1};
@@ -333,7 +489,7 @@ void PanelImageView::drawHistogram(const cv::Mat &image)
       bool uniform           = true;
       bool accumulate        = false;
       cv::Mat hist;
-      cv::calcHist(&image, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
+      cv::calcHist(image, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
 
       // Normalize the histogram to [0, histImage.height()]
       hist.at<float>(0) = 0;    // We don't want to display black

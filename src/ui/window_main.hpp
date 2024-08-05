@@ -77,10 +77,6 @@ public:
   {
     return mImageSeriesCombo;
   }
-  [[nodiscard]] const QComboBox *getImageTilesCombo() const
-  {
-    return mImageTilesCombo;
-  }
 
   [[nodiscard]] const QComboBox *getImageResolutionCombo() const
   {
@@ -149,7 +145,6 @@ private:
   joda::ctrl::Controller *mController;
   QComboBox *mFoundFilesCombo;
   QComboBox *mImageSeriesCombo;
-  QComboBox *mImageTilesCombo;
   QComboBox *mImageResolutionCombo;
 
   QComboBox *mTemplateSelection;
@@ -186,7 +181,6 @@ private:
   QAction *mFileSelectorComboBox    = nullptr;
   QAction *mImageSeriesComboBox     = nullptr;
   QAction *mImageResolutionComboBox = nullptr;
-  QAction *mImageTilesComboBox      = nullptr;
   QAction *mFileSearchHintLabel     = nullptr;
   QAction *mSaveProject             = nullptr;
   QAction *mStartAnalysis           = nullptr;

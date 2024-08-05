@@ -133,8 +133,6 @@ void PanelIntersectionEdit::init()
           &PanelIntersectionEdit::updatePreview);
   connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this,
           &PanelIntersectionEdit::updatePreview);
-  connect(mWindowMain->getImageTilesCombo(), &QComboBox::currentIndexChanged, this,
-          &PanelIntersectionEdit::updatePreview);
 }
 
 PanelIntersectionEdit::~PanelIntersectionEdit()

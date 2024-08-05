@@ -19,6 +19,7 @@
 #include "backend/helper/file_info_images.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
+#include "backend/image_processing/functions/resize/resize.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -156,10 +157,20 @@ void Controller::preview(const settings::ChannelSettings &settings, int32_t imgI
                               joda::pipeline::COMPOSITE_TILE_HEIGHT},
         resolution, onnxModels, nullptr, &referenceChannelResults);
     auto controlImage = result.result->generateControlImage(settings.meta.color, result.originalImage.size());
+
+    {
+      pipeline::ChannelProperties chProps;
+      chProps      = pipeline::ImageProcessor::loadChannelProperties(imagePath, settings.meta.series);
+      auto tifDirs = pipeline::ImageProcessor::getTifDirs(chProps, settings.meta.channelIdx);
+      uint16_t dir = static_cast<uint16_t>(*tifDirs.begin());
+      previewOut.thumbnail.setImage(
+          joda::image::BioformatsLoader::loadThumbnail(imagePath.getFilePath().string(), dir, settings.meta.series));
+    }
+
+    previewOut.height = controlImage.rows;
+    previewOut.width  = controlImage.cols;
     previewOut.originalImage.setImage(std::move(result.originalImage));
     previewOut.previewImage.setImage(std::move(controlImage));
-    previewOut.height          = controlImage.rows;
-    previewOut.width           = controlImage.cols;
     previewOut.detectionResult = std::move(result.result);
     previewOut.imageFileName   = imagePath.getFilePath().string();
   }

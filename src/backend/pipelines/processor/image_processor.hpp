@@ -95,6 +95,7 @@ public:
   /// \author     Joachim Danmayr
   ///
   static ChannelProperties loadChannelProperties(const helper::fs::FileInfoImages &imagePath, uint16_t series);
+  static std::set<uint32_t> getTifDirs(const ChannelProperties &props, joda::settings::ChannelIndex channelIndex);
 
 private:
   /////////////////////////////////////////////////////
@@ -131,7 +132,5 @@ private:
                           const joda::settings::ChannelSettings &channelSetting,
                           const std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse>
                               *const referenceChannelResults);
-
-  static std::set<uint32_t> getTifDirs(const ChannelProperties &props, joda::settings::ChannelIndex channelIndex);
 };
 }    // namespace joda::pipeline

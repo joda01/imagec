@@ -159,7 +159,6 @@ void PanelVoronoiEdit::init()
   //
   connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelVoronoiEdit::updatePreview);
   connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelVoronoiEdit::updatePreview);
-  connect(mWindowMain->getImageTilesCombo(), &QComboBox::currentIndexChanged, this, &PanelVoronoiEdit::updatePreview);
 }
 
 PanelVoronoiEdit::~PanelVoronoiEdit()

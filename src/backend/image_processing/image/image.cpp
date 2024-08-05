@@ -14,7 +14,9 @@
 #include "image.hpp"
 #include <cstdint>
 #include <iostream>
+#include <mutex>
 #include <string>
+#include "backend/image_processing/functions/resize/resize.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -42,8 +44,8 @@ Image::Image()
 ///
 void Image::setImage(const cv::Mat &&imageToDisplay)
 {
-  mImageOriginal = imageToDisplay;
-  update();
+  delete mImageOriginal;
+  mImageOriginal = new cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, WIDTH, WIDTH));
 }
 
 ///
@@ -53,20 +55,24 @@ void Image::setImage(const cv::Mat &&imageToDisplay)
 /// \param[out]
 /// \return
 ///
-void Image::update()
+QPixmap Image::getPixmap() const
 {
+  if(mImageOriginal == nullptr) {
+    std::cout << "Ups it is null" << std::endl;
+    return {};
+  }
   // 65535....65535
   // 3000 .......65535
   // PxlInImg....New
-  int type  = mImageOriginal.type();
+  int type  = mImageOriginal->type();
   int depth = type & CV_MAT_DEPTH_MASK;
   cv::Mat image;
   if(depth == CV_16U) {
-    image = mImageOriginal.clone();
+    image = mImageOriginal->clone();
     // Ensure minVal is less than maxVal
     if(mLowerValue >= mUpperValue) {
       std::cerr << "Minimum value must be less than maximum value." << std::endl;
-      return;
+      return {};
     }
 
     // Create a lookup table for mapping pixel values
@@ -91,10 +97,9 @@ void Image::update()
         image.at<uint16_t>(y, x) = lookupTable.at<uint16_t>(pixelValue);
       }
     }
-    encode(image);
-  } else {
-    encode(mImageOriginal);
+    return encode(&image);
   }
+  return encode(mImageOriginal);
 }
 
 ///
@@ -111,7 +116,6 @@ void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float h
   mUpperValue          = upperValue;
   mHistogramZoomFactor = histogramZoomFactor;
   mHistogramOffset     = histogramOffset;
-  update();
 }
 
 ///
@@ -121,37 +125,37 @@ void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float h
 /// \param[out]
 /// \return
 ///
-void Image::encode(const cv::Mat &image)
+QPixmap Image::encode(const cv::Mat *image) const
 {
-  const int32_t WIDTH = 2048;
-  mPixmap             = {};
-  switch(image.type()) {
+  if(mImageOriginal == nullptr || image == nullptr) {
+    return {};
+  }
+
+  switch(image->type()) {
     case CV_16UC1: {
-      mPixmap = QPixmap::fromImage(QImage(image.data, image.cols, image.rows, static_cast<uint16_t>(image.step),
-                                          QImage::Format_Grayscale16))
-                    .scaled(WIDTH, WIDTH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step),
+                                       QImage::Format_Grayscale16));
     } break;
 
     case CV_8UC1: {
-      mPixmap = QPixmap::fromImage(QImage(image.data, image.cols, image.rows, static_cast<uint8_t>(image.step),
-                                          QImage::Format_Grayscale8))
-                    .scaled(WIDTH, WIDTH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      return QPixmap::fromImage(
+          QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_Grayscale8));
     } break;
     case CV_8UC3: {
-      mPixmap = QPixmap::fromImage(
-                    QImage(image.data, image.cols, image.rows, static_cast<uint8_t>(image.step), QImage::Format_RGB888)
-                        .rgbSwapped())
-                    .scaled(WIDTH, WIDTH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      auto pixmap = QPixmap::fromImage(
+          QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_RGB888)
+              .rgbSwapped());
+      return pixmap;
     } break;
     case CV_8UC4: {
-      mPixmap = QPixmap::fromImage(
-                    QImage(image.data, image.cols, image.rows, static_cast<int>(image.step), QImage::Format_ARGB32))
-                    .scaled(WIDTH, WIDTH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      return QPixmap::fromImage(
+          QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_ARGB32));
     } break;
     default:
       std::cout << "Not supported" << std::endl;
       break;
   }
+  return {};
 }
 
 }    // namespace joda::image

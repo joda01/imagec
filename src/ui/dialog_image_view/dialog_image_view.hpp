@@ -14,6 +14,7 @@
 #pragma once
 
 #include <qdialog.h>
+#include <qtmetamacros.h>
 #include <qwindow.h>
 #include "backend/image_processing/image/image.hpp"
 #include "controller/controller.hpp"
@@ -43,9 +44,26 @@ public:
   }
   void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y)
   {
-    mImageViewLeft->setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
-    mImageViewRight->setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
+    mImageViewLeft.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
+    mImageViewRight.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
   }
+  void resetImage()
+  {
+    mPreviewImages.previewImage.clear();
+    mPreviewImages.originalImage.clear();
+    mPreviewImages.thumbnail.clear();
+    mPreviewImages.detectionResult;
+    mImageViewLeft.resetImage();
+    mImageViewRight.resetImage();
+  }
+  void setWaiting(bool waiting)
+  {
+    mImageViewLeft.setWaiting(waiting);
+    mImageViewRight.setWaiting(waiting);
+  }
+
+signals:
+  void tileClicked(int32_t tileX, int32_t tileY);
 
 private:
   /////////////////////////////////////////////////////
@@ -57,8 +75,8 @@ private:
   QScrollBar *mSliderHistogramOffset;
 
   joda::ctrl::Controller::Preview mPreviewImages;
-  PanelImageView *mImageViewLeft;
-  PanelImageView *mImageViewRight;
+  PanelImageView mImageViewLeft;
+  PanelImageView mImageViewRight;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter = 0;
@@ -79,6 +97,7 @@ private slots:
   void onFitHistogramToScreenSizeClicked();
   void onZoomHistogramOutClicked();
   void onZoomHistogramInClicked();
+  void onTileClicked(int32_t tileX, int32_t tileY);
 };
 
 }    // namespace joda::ui::qt

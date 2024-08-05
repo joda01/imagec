@@ -31,6 +31,9 @@ public:
                                const joda::ome::TileToLoad &tile);
   static cv::Mat loadEntireImage(const std::string &filename, uint16_t directory, uint16_t series,
                                  uint16_t resolutionIdx);
+
+  static cv::Mat loadThumbnail(const std::string &filename, uint16_t directory, uint16_t series);
+
   static auto getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo;
   static void init();
   static void destroy();
