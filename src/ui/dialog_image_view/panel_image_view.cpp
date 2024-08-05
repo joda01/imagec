@@ -16,6 +16,7 @@
 #include <qtmetamacros.h>
 #include <cmath>
 #include <cstdint>
+#include <ranges>
 #include <string>
 #include "backend/image_processing/image/image.hpp"
 #include <opencv2/imgproc.hpp>
@@ -32,6 +33,8 @@ PanelImageView::PanelImageView(const joda::image::Image &imageReference,
     scene(new QGraphicsScene(this))
 {
   setScene(scene);
+  setBackgroundBrush(QBrush(Qt::black));
+  scene->setBackgroundBrush(QBrush(Qt::black));
 
   // Set up the view
   setRenderHint(QPainter::SmoothPixmapTransform);
@@ -40,15 +43,6 @@ PanelImageView::PanelImageView(const joda::image::Image &imageReference,
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setMouseTracking(true);
-
-  /*
-  setMinimumWidth(width);
-  setMinimumHeight(height);
-  setMaximumWidth(width);
-  setMaximumHeight(height);
-  setFixedWidth(width);
-  setFixedHeight(height);
-  */
 
   setFrameShape(Shape::NoFrame);
 
@@ -110,9 +104,9 @@ void PanelImageView::onUpdateImage()
     } else {
       emit onImageRepainted();
     }
-    scene->update();
-    update();
   }
+  scene->update();
+  update();
 }
 
 ///
@@ -136,7 +130,9 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
     lastPos = event->pos();
     emit onImageRepainted();
   }
-  getThumbnailAreaEntered(event);
+  if(mShowThumbnail) {
+    getThumbnailAreaEntered(event);
+  }
 }
 
 ///
@@ -177,7 +173,9 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
 
     isDragging = true;
     lastPos    = event->pos();
-    getClickedTileInThumbnail(event);
+    if(mShowThumbnail) {
+      getClickedTileInThumbnail(event);
+    }
   }
 }
 
@@ -248,6 +246,13 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 
   // Get the viewport rectangle
   QRect viewportRect = viewport()->rect();
+  if(mActPixmap == nullptr) {
+    QPainter painter(viewport());
+    painter.setPen(QColor(0, 0, 0));      // Set the pen color to light blue
+    painter.setBrush(QColor(0, 0, 0));    // Set the brush to no brush for transparent fill
+    painter.drawRect(viewportRect);
+  }
+
   QRect rectangle(RECT_START_X, RECT_START_Y, RECT_SIZE, RECT_SIZE);    // Adjust the size as needed
 
   float zoomFactor     = viewportTransform().m11();
@@ -274,7 +279,9 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 
   // Draw histogram
   drawHistogram();
-  drawThumbnail();
+  if(mShowThumbnail) {
+    drawThumbnail();
+  }
 
   // Overlay
   if(mWaiting) {
@@ -442,7 +449,7 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
       scene->update();
       update();
     }
-    if(cursor() != Qt::OpenHandCursor) {
+    if(cursor() == Qt::CrossCursor) {
       setCursor(Qt::OpenHandCursor);
       viewport()->setCursor(Qt::OpenHandCursor);
     }
@@ -554,6 +561,13 @@ void PanelImageView::enterEvent(QEnterEvent *)
 
 void PanelImageView::leaveEvent(QEvent *)
 {
+}
+
+void PanelImageView::setShowThumbnail(bool showThumbnail)
+{
+  mShowThumbnail = showThumbnail;
+  viewport()->update();
+  update();
 }
 
 }    // namespace joda::ui::qt

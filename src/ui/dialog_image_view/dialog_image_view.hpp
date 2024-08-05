@@ -52,7 +52,7 @@ public:
     mPreviewImages.previewImage.clear();
     mPreviewImages.originalImage.clear();
     mPreviewImages.thumbnail.clear();
-    mPreviewImages.detectionResult;
+    mPreviewImages.detectionResult.reset();
     mImageViewLeft.resetImage();
     mImageViewRight.resetImage();
   }
@@ -97,6 +97,7 @@ private slots:
   void onFitHistogramToScreenSizeClicked();
   void onZoomHistogramOutClicked();
   void onZoomHistogramInClicked();
+  void onShowThumbnailChanged(bool checked);
   void onTileClicked(int32_t tileX, int32_t tileY);
 };
 

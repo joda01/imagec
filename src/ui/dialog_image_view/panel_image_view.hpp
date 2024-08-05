@@ -61,6 +61,7 @@ public:
   }
 
   void setState(State);
+  void setShowThumbnail(bool);
   void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y);
 
 signals:
@@ -114,7 +115,8 @@ private:
   bool mThumbnailAreaEntered = false;
 
   /////////////////////////////////////////////////////
-  bool mWaiting = false;
+  bool mWaiting       = false;
+  bool mShowThumbnail = true;
 
 private slots:
   void onUpdateImage();

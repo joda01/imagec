@@ -12,6 +12,7 @@
     </qresource>
     <qresource prefix="/icons">
         <file>outlined/icons8-rectangle-50.png</file>
+        <file>outlined/icons8-picture-in-picture-50.png</file>
         <file>outlined/icons8-table-top-view-50.png</file>
         <file>outlined/icons8-heat-map-50.png</file>
         <file>outlined/icons8-gantt-chart-50.png</file>

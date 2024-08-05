@@ -83,7 +83,13 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     buttonGroup->addAction(paintRectangle);
     // toolbarTop->addAction(paintRectangle);
 
-    // toolbarTop->addSeparator();
+    toolbarTop->addSeparator();
+
+    QAction *showThumbnail = new QAction(QIcon(":/icons/outlined/icons8-picture-in-picture-50.png"), "");
+    showThumbnail->setCheckable(true);
+    showThumbnail->setChecked(true);
+    connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
+    toolbarTop->addAction(showThumbnail);
 
     addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
@@ -391,6 +397,19 @@ void DialogImageViewer::onSetStateToPaintRect()
 {
   mImageViewLeft.setState(PanelImageView::State::PAINT);
   mImageViewRight.setState(PanelImageView::State::PAINT);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onShowThumbnailChanged(bool checked)
+{
+  mImageViewLeft.setShowThumbnail(checked);
+  mImageViewRight.setShowThumbnail(checked);
 }
 
 ///

@@ -795,7 +795,7 @@ void WindowMain::onLookingForFilesFinished()
     mFileSearchHintLabel->setVisible(false);
     mFileSelectorComboBox->setVisible(true);
     mImageSeriesComboBox->setVisible(true);
-    mImageResolutionComboBox->setVisible(true);
+    // mImageResolutionComboBox->setVisible(true);
     mStartAnalysis->setEnabled(true);
 
   } else {
