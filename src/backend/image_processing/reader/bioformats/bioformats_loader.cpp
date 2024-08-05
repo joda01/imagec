@@ -351,7 +351,7 @@ cv::Mat BioformatsLoader::loadImageTile(const std::string &filename, uint16_t di
                                                   static_cast<int>(series), static_cast<int>(resolutionIdx));
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     auto *imageInfo           = new int32_t[totalSizeLoadedInfo];
-    myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, static_cast<jint *>(imageInfo));
+    myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
     int32_t imageHeight = imageInfo[0];
     int32_t imageWidth  = imageInfo[1];
     int32_t bitDepth    = imageInfo[4];
