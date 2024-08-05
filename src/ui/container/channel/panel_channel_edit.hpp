@@ -49,6 +49,7 @@ public:
       mIsActiveShown = false;
       std::lock_guard<std::mutex> lock(mPreviewMutex);
       mPreviewCounter = 0;
+      mPreviewImage->resetImage("");
     }
   }
 
@@ -65,19 +66,23 @@ private:
   WindowMain *mWindowMain;
   ContainerChannel *mParentContainer;
   QLabel *createTitle(const QString &);
-  PanelPreview *mPreviewImage    = nullptr;
-  WaitingSpinnerWidget *mSpinner = nullptr;
+  PanelPreview *mPreviewImage = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter                         = 0;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
-  joda::ctrl::Controller::Preview mPreviewResult;
+  /////////////////////////////////////////////////////
+  int32_t mSelectedTileX = 0;
+  int32_t mSelectedTileY = 0;
 
 private slots:
   /////////////////////////////////////////////////////
   void onChannelTypeChanged();
   void onDetectionModechanged();
   void updatePreview();
+  void onTileClicked(int32_t tileX, int32_t tileY);
+  void onPreviewStarted();
+  void onPreviewFinished();
 };
 
 }    // namespace joda::ui::qt

@@ -33,24 +33,43 @@ class PanelPreview : public QWidget
 
 public:
   PanelPreview(int width, int height, QWidget *parent);
-  void setImage(const joda::image::Image &originalImage, const joda::image::Image &previewImage, int width, int height,
-                const QString &info)
+  void updateImage(const QString &info)
   {
-    mPreviewLabel.setImage(previewImage);
+    mImageViewer.imageUpdated();
+    mPreviewLabel.imageUpdated();
     mPreviewInfo->setText(info);
-    mImageViewer.setImage(originalImage, previewImage);
   }
   void resetImage(const QString &info)
   {
+    mImageViewer.resetImage();
     mPreviewLabel.resetImage();
     mPreviewInfo->setText(info);
   }
+  void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y)
+  {
+    mPreviewLabel.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
+    mImageViewer.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
+  }
+  joda::ctrl::Controller::Preview &getPreviewObject()
+  {
+    return mImageViewer.getPreviewObject();
+  }
+
+  void setWaiting(bool waiting)
+  {
+    mImageViewer.setWaiting(waiting);
+    mPreviewLabel.setWaiting(waiting);
+  }
+
+signals:
+  void tileClicked(int32_t tileX, int32_t tileY);
 
 private slots:
   void onFitImageToScreenSizeClicked();
   void onZoomOutClicked();
   void onZoomInClicked();
   void onOpenFullScreenClickec();
+  void onTileClicked(int32_t tileX, int32_t tileY);
 
 private:
   /////////////////////////////////////////////////////
@@ -58,7 +77,7 @@ private:
   QLabel *mPreviewInfo;
 
   /////////////////////////////////////////////////////
-  PanelImageView mPreviewLabel;
   DialogImageViewer mImageViewer;
+  PanelImageView mPreviewLabel;
 };
 }    // namespace joda::ui::qt

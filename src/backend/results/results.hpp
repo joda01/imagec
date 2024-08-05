@@ -88,8 +88,9 @@ public:
 
   auto prepareDetailReportAdding() -> DetailReportAdder;
   void appendToDetailReport(const DetailReportAdder &, const joda::image::detect::DetectionResponse &result,
-                            const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
-                            const joda::ome::OmeInfo &imgProps, const std::filesystem::path &imagePath);
+                            const joda::settings::ChannelSettingsMeta &channelSettings,
+                            const joda::ome::TileToLoad &tileIdx, const joda::ome::OmeInfo &imgProps,
+                            const std::filesystem::path &imagePath);
   void writePredatedData(const DetailReportAdder &);
 
   /////////////////////////////////////////////////////

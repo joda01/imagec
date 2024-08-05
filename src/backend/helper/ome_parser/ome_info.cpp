@@ -12,6 +12,7 @@
 ///
 
 #include "ome_info.hpp"
+#include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <iostream>
@@ -81,8 +82,15 @@ TRY_AGAIN:
   mObjectiveInfo = ObjectiveInfo{
       .manufacturer = objectivManufacturer, .model = objectivModel, .medium = medium, .magnification = magnification};
 
+  int series = 0;
+
   for(pugi::xml_node image = doc.child("OME").child(std::string(keyPrefix + "Image").data()); image != nullptr;
-      image                = doc.child("OME").child(std::string(keyPrefix + "Image").data()).next_sibling()) {
+      image                = image.next_sibling(std::string(keyPrefix + "Image").data())) {
+    mImageInfo.emplace(series, ImageInfo{});
+    auto &actImageInfo     = mImageInfo.at(series);
+    actImageInfo.seriesIdx = series;
+    series++;
+
     std::string imageName = std::string(image.attribute("Name").as_string());
 
     //
@@ -94,20 +102,20 @@ TRY_AGAIN:
     auto dimOrder =
         std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("DimensionOrder").as_string());
 
-    auto sizeX             = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeX").as_ullong();
-    auto sizeY             = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeY").as_ullong();
-    mImageInfo.imageSize   = sizeX * sizeY;
-    mImageInfo.imageWidth  = sizeX;
-    mImageInfo.imageHeight = sizeY;
+    // auto sizeX               = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeX").as_ullong();
+    // auto sizeY               = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeY").as_ullong();
+    // actImageInfo.imageSize   = sizeX * sizeY;
+    // actImageInfo.imageWidth  = sizeX;
+    // actImageInfo.imageHeight = sizeY;
 
-    auto type = std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("Type").as_string());
-    if(type == "uint8") {
-      mImageInfo.bits = 8;
-    } else if(type == "uint16") {
-      mImageInfo.bits = 16;
-    } else {
-      mImageInfo.bits = 16;
-    }
+    // auto type = std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("Type").as_string());
+    // if(type == "uint8") {
+    //   actImageInfo.bits = 8;
+    // } else if(type == "uint16") {
+    //   actImageInfo.bits = 16;
+    // } else {
+    //   actImageInfo.bits = 16;
+    // }
 
     //
     // TIFF Data
@@ -115,7 +123,7 @@ TRY_AGAIN:
     // https://docs.openmicroscopy.org/ome-model/6.1.0/ome-tiff/specification.html
     // It is used to determine which plane is associated to which IFD (tiff directory) in the tiff
     //
-    mImageInfo.nrOfChannels = sizeC;
+    actImageInfo.nrOfChannels = sizeC;
     union Order
     {
       uint32_t order = 0xFFFFFFFF;
@@ -254,7 +262,7 @@ TRY_AGAIN:
       auto detectorId             = std::string(detectorSettings.attribute("ID").as_string());
       auto detectorBinning        = std::string(detectorSettings.attribute("Binning").as_string());
 
-      mImageInfo.nrOfChannels++;
+      actImageInfo.nrOfChannels++;
 
       std::map<uint32_t, TimeFrame> zStackForTimeFrame;
       for(const auto &[idf, order] : planeIFDorder) {
@@ -264,13 +272,13 @@ TRY_AGAIN:
         }
       }
 
-      mChannels.emplace(channelNr, ChannelInfo{.channelId              = channelId,
-                                               .name                   = channelName,
-                                               .emissionWaveLength     = emissionWaveLength,
-                                               .emissionWaveLengthUnit = emissionWaveLengthUnit,
-                                               .contrastMethos         = contrastMethod,
-                                               .exposuerTime           = -1,
-                                               .zStackForTimeFrame     = zStackForTimeFrame});
+      actImageInfo.channels.emplace(channelNr, ChannelInfo{.channelId              = channelId,
+                                                           .name                   = channelName,
+                                                           .emissionWaveLength     = emissionWaveLength,
+                                                           .emissionWaveLengthUnit = emissionWaveLengthUnit,
+                                                           .contrastMethos         = contrastMethod,
+                                                           .exposuerTime           = -1,
+                                                           .zStackForTimeFrame     = zStackForTimeFrame});
 
       idx++;
     }
@@ -284,28 +292,32 @@ TRY_AGAIN:
       auto theZ               = plane.attribute("TheZ").as_int();
       auto theT               = plane.attribute("TheT").as_int();
       auto theC               = plane.attribute("TheC").as_int();
-      ChannelInfo &chInfo     = mChannels.at(theC);
+      ChannelInfo &chInfo     = actImageInfo.channels.at(theC);
       chInfo.exposuerTime     = plane.attribute("ExposureTime").as_float();
       chInfo.exposuerTimeUnit = std::string(plane.attribute("ExposureTimeUnit").as_string());
       nrOfPlanes++;
     }
 
-    uint64_t tileWidth  = doc.child("JODA").attribute("TileWidht").as_int();
-    uint64_t tileHeight = doc.child("JODA").attribute("TileHeight").as_int();
+    int64_t resolutionCount = doc.child("JODA").attribute("ResolutionCount").as_int();
 
-    int64_t nrOfTiles = 1;
-    int64_t tileSize  = tileHeight * tileWidth;
-    if(tileSize > 0) {
-      nrOfTiles = mImageInfo.imageSize / tileSize;
+    for(pugi::xml_node pyramid = doc.child("JODA").child(std::string("PyramidResolution").data()); pyramid != nullptr;
+        pyramid                = pyramid.next_sibling(std::string("PyramidResolution").data())) {
+      int32_t idx        = pyramid.attribute("idx").as_int();
+      int32_t width      = pyramid.attribute("width").as_int();
+      int32_t height     = pyramid.attribute("height").as_int();
+      int32_t tileWidth  = pyramid.attribute("TileWidth").as_int();
+      int32_t tileHeight = pyramid.attribute("TileHeight").as_int();
+      int32_t bits       = pyramid.attribute("BitsPerPixel").as_int();
+
+      actImageInfo.resolutions.emplace(
+          idx, ImageInfo::Pyramid{.bits                   = bits,
+                                  .imageMemoryUsage       = static_cast<int64_t>(width) * height * (bits / 8),
+                                  .imageWidth             = width,
+                                  .imageHeight            = height,
+                                  .optimalTileMemoryUsage = static_cast<int64_t>(tileWidth) * tileHeight * (bits / 8),
+                                  .optimalTileWidth       = tileWidth,
+                                  .optimalTileHeight      = tileHeight});
     }
-
-    mImageInfo.tileSize      = tileSize;
-    mImageInfo.nrOfTiles     = nrOfTiles;
-    mImageInfo.nrOfDocuments = nrOfPlanes;
-    mImageInfo.tileWidth     = tileWidth;
-    mImageInfo.tileHeight    = tileHeight;
-
-    return;
   }
 }
 
@@ -315,17 +327,18 @@ TRY_AGAIN:
 ///
 void OmeInfo::emulateOmeInformationFromTiff(const ImageInfo &prop)
 {
-  mImageInfo = prop;
+  mImageInfo.emplace(0, prop);
+  auto &actImageInfo = mImageInfo.at(0);
 
-  for(uint32_t idx = 0; idx < mImageInfo.nrOfChannels; idx++) {
+  for(uint32_t idx = 0; idx < actImageInfo.nrOfChannels; idx++) {
     std::map<uint32_t, TimeFrame> zStackForTimeFrame;
     zStackForTimeFrame.emplace(0, TimeFrame{idx});
-    mChannels.emplace(idx, ChannelInfo{.channelId              = "Channel:" + std::to_string(idx),
-                                       .name                   = "",
-                                       .emissionWaveLength     = 0,
-                                       .emissionWaveLengthUnit = "",
-                                       .contrastMethos         = "",
-                                       .zStackForTimeFrame     = zStackForTimeFrame});
+    actImageInfo.channels.emplace(idx, ChannelInfo{.channelId              = "Channel:" + std::to_string(idx),
+                                                   .name                   = "",
+                                                   .emissionWaveLength     = 0,
+                                                   .emissionWaveLengthUnit = "",
+                                                   .contrastMethos         = "",
+                                                   .zStackForTimeFrame     = zStackForTimeFrame});
   }
 }
 
@@ -333,49 +346,63 @@ void OmeInfo::emulateOmeInformationFromTiff(const ImageInfo &prop)
 /// \brief      Returns the number of channels
 /// \author     Joachim Danmayr
 ///
-int OmeInfo::getNrOfChannels() const
+int OmeInfo::getNrOfChannels(int32_t series) const
 {
-  return mImageInfo.nrOfChannels;
-}
-
-///
-/// \brief      Returns the image size
-/// \author     Joachim Danmayr
-///
-uint64_t OmeInfo::getImageSize() const
-{
-  return mImageInfo.imageSize;
+  if(series < 0) {
+    series = getSeriesWithHighestResolution();
+  }
+  return mImageInfo.at(series).nrOfChannels;
 }
 
 ///
 /// \brief      Returns the image bits
 /// \author     Joachim Danmayr
 ///
-[[nodiscard]] int32_t OmeInfo::getBits() const
+[[nodiscard]] int32_t OmeInfo::getBits(int32_t series) const
 {
-  return mImageInfo.bits;
+  if(series < 0) {
+    series = getSeriesWithHighestResolution();
+  }
+  return mImageInfo.at(series).resolutions.at(0).bits;
 }
 
 ///
 /// \brief      Returns the width/height size of the image
 /// \author     Joachim Danmayr
 ///
-[[nodiscard]] std::tuple<int64_t, int64_t> OmeInfo::getSize() const
+[[nodiscard]] std::tuple<int64_t, int64_t> OmeInfo::getSize(int32_t series) const
 {
-  return {mImageInfo.imageWidth, mImageInfo.imageHeight};
+  if(series < 0) {
+    series = getSeriesWithHighestResolution();
+  }
+  return {mImageInfo.at(series).resolutions.at(0).imageWidth, mImageInfo.at(series).resolutions.at(0).imageHeight};
 }
 
 ///
 /// \brief      Returns the TIFF directories for one channel and timeframe
 /// \author     Joachim Danmayr
 ///
-auto OmeInfo::getDirectoryForChannel(uint32_t channel, uint32_t timeFrame) const -> std::set<uint32_t>
+auto OmeInfo::getDirectoryForChannel(uint32_t channel, uint32_t timeFrame, int32_t series) const -> std::set<uint32_t>
 {
-  if(mChannels.contains(channel)) {
-    if(mChannels.at(channel).zStackForTimeFrame.contains(timeFrame)) {
-      return mChannels.at(channel).zStackForTimeFrame.at(timeFrame);
+  if(series < 0) {
+    series = getSeriesWithHighestResolution();
+  }
+  if(mImageInfo.at(series).channels.contains(channel)) {
+    if(mImageInfo.at(series).channels.at(channel).zStackForTimeFrame.contains(timeFrame)) {
+      return mImageInfo.at(series).channels.at(channel).zStackForTimeFrame.at(timeFrame);
     }
   }
   return std::set<uint32_t>{};
 }
+
+///
+/// \brief     Return the series with the highest resolution
+/// \author     Joachim Danmayr
+/// \todo Support more image series
+///
+int32_t OmeInfo::getSeriesWithHighestResolution() const
+{
+  return 0;
+}
+
 }    // namespace joda::ome

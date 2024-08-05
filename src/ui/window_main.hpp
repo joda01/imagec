@@ -77,9 +77,10 @@ public:
   {
     return mImageSeriesCombo;
   }
-  [[nodiscard]] const QComboBox *getImageTilesCombo() const
+
+  [[nodiscard]] const QComboBox *getImageResolutionCombo() const
   {
-    return mImageTilesCombo;
+    return mImageResolutionCombo;
   }
 
   [[nodiscard]] auto getJobName() const -> std::string
@@ -134,6 +135,8 @@ private:
   ContainerBase *addVChannelIntersection(joda::settings::VChannelIntersection);
   ContainerBase *addChannelFromTemplate(const QString &pathToTemplate);
 
+  static QString bytesToString(int64_t bytes);
+
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;
   QWidget *mAddChannelPanel;
@@ -142,7 +145,8 @@ private:
   joda::ctrl::Controller *mController;
   QComboBox *mFoundFilesCombo;
   QComboBox *mImageSeriesCombo;
-  QComboBox *mImageTilesCombo;
+  QComboBox *mImageResolutionCombo;
+
   QComboBox *mTemplateSelection;
   ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
@@ -174,19 +178,19 @@ private:
   PanelReporting *mPanelReporting = nullptr;
 
   ////ToolbarIcons/////////////////////////////////////////////////
-  QAction *mFileSelectorComboBox = nullptr;
-  QAction *mImageSeriesComboBox  = nullptr;
-  QAction *mImageTilesComboBox   = nullptr;
-  QAction *mFileSearchHintLabel  = nullptr;
-  QAction *mSaveProject          = nullptr;
-  QAction *mStartAnalysis        = nullptr;
-  QAction *mOpenReportingArea    = nullptr;
-  QAction *mJobNameAction        = nullptr;
-  QAction *mProjectSettings      = nullptr;
-  QAction *mDeleteChannel        = nullptr;
-  QAction *mShowInfoDialog       = nullptr;
-  QAction *mFirstSeparator       = nullptr;
-  QAction *mSecondSeparator      = nullptr;
+  QAction *mFileSelectorComboBox    = nullptr;
+  QAction *mImageSeriesComboBox     = nullptr;
+  QAction *mImageResolutionComboBox = nullptr;
+  QAction *mFileSearchHintLabel     = nullptr;
+  QAction *mSaveProject             = nullptr;
+  QAction *mStartAnalysis           = nullptr;
+  QAction *mOpenReportingArea       = nullptr;
+  QAction *mJobNameAction           = nullptr;
+  QAction *mProjectSettings         = nullptr;
+  QAction *mDeleteChannel           = nullptr;
+  QAction *mShowInfoDialog          = nullptr;
+  QAction *mFirstSeparator          = nullptr;
+  QAction *mSecondSeparator         = nullptr;
 
   ////Giraf/////////////////////////////////////////////////
   QPushButton *mUseImageC;
@@ -209,6 +213,7 @@ private slots:
   void onOpenAnalyzeSettingsClicked();
   void onAddGirafClicked();
   void onImageSelectionChanged();
+  void onResolutionChanged();
 
   void onOpenSettingsDialog();
   void onFindTemplatesFinished(std::map<std::string, helper::templates::TemplateParser::Data>);

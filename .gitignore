@@ -48,3 +48,9 @@ output_test.xlsx
 *.txt
 result.xml
 test-results.xml
+lib/bftools/pyramid.ome.btf
+tmpfile
+tmp
+heaptrack.imagec.109407.gz
+heaptrack.imagec.53243.gz
+heaptrack.imagec.183820.gz

@@ -19,6 +19,7 @@
 #include "backend/helper/file_info_images.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
+#include "backend/image_processing/functions/resize/resize.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -139,7 +140,8 @@ auto Controller::getListOfFoundImages() -> const std::vector<helper::fs::FileInf
 /// \brief      Returns preview
 /// \author     Joachim Danmayr
 ///
-void Controller::preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex, Preview &previewOut)
+void Controller::preview(const settings::ChannelSettings &settings, int32_t imgIndex, int32_t tileX, int32_t tileY,
+                         uint16_t resolution, Preview &previewOut)
 {
   // To also preview tetraspeck removal we must first process the reference spot
   // channels This is a little bit more complicated therefor not supported yet
@@ -149,12 +151,26 @@ void Controller::preview(const settings::ChannelSettings &settings, int imgIndex
   auto onnxModels = onnx::OnnxParser::findOnnxFiles();
   if(!imagePath.getFilename().empty()) {
     std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> referenceChannelResults;
-    auto result = joda::pipeline::ImageProcessor::executeAlgorithm(imagePath, settings, tileIndex, onnxModels, nullptr,
-                                                                   &referenceChannelResults);
-    previewOut.previewImage.setImage(result.controlImage);
-    previewOut.originalImage.setImage(result.originalImage);
-    previewOut.height          = result.controlImage.rows;
-    previewOut.width           = result.controlImage.cols;
+    auto result = joda::pipeline::ImageProcessor::executeAlgorithm(
+        imagePath, settings,
+        joda::ome::TileToLoad{tileX, tileY, joda::pipeline::COMPOSITE_TILE_WIDTH,
+                              joda::pipeline::COMPOSITE_TILE_HEIGHT},
+        resolution, onnxModels, nullptr, &referenceChannelResults);
+    auto controlImage = result.result->generateControlImage(settings.meta.color, result.originalImage.size());
+
+    {
+      pipeline::ChannelProperties chProps;
+      chProps      = pipeline::ImageProcessor::loadChannelProperties(imagePath, settings.meta.series);
+      auto tifDirs = pipeline::ImageProcessor::getTifDirs(chProps, settings.meta.channelIdx);
+      uint16_t dir = static_cast<uint16_t>(*tifDirs.begin());
+      previewOut.thumbnail.setImage(
+          joda::image::BioformatsLoader::loadThumbnail(imagePath.getFilePath().string(), dir, settings.meta.series));
+    }
+
+    previewOut.height = controlImage.rows;
+    previewOut.width  = controlImage.cols;
+    previewOut.originalImage.setImage(std::move(result.originalImage));
+    previewOut.previewImage.setImage(std::move(controlImage));
     previewOut.detectionResult = std::move(result.result);
     previewOut.imageFileName   = imagePath.getFilePath().string();
   }
@@ -167,21 +183,8 @@ void Controller::preview(const settings::ChannelSettings &settings, int imgIndex
 auto Controller::getImageProperties(int imgIndex, int series) -> joda::ome::OmeInfo
 {
   auto imagePath = mWorkingDirectory.getFileAt(imgIndex);
-
-  joda::ome::OmeInfo ome;
-  switch(imagePath.getDecoder()) {
-    case helper::fs::FileInfoImages::Decoder::JPG:
-      ome = image::JpgLoader::getImageProperties(imagePath.getFilePath().string());
-      break;
-    case helper::fs::FileInfoImages::Decoder::TIFF:
-      ome = image::TiffLoader::getOmeInformation(imagePath.getFilePath().string());
-      break;
-    case helper::fs::FileInfoImages::Decoder::BIOFORMATS:
-      ome = image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string(), series);
-      break;
-  }
-
-  return ome;
+  return image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string());
+  ;
 }
 
 ///
@@ -215,11 +218,14 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   int64_t channelNr    = settings.channels.size();
   const auto &props    = ome.getImageInfo();
   auto systemRecources = getSystemResources();
-  if(props.imageSize > joda::pipeline::MAX_IMAGE_SIZE_TO_OPEN_AT_ONCE) {
-    tileNr              = props.nrOfTiles / joda::pipeline::TILES_TO_LOAD_PER_RUN;
-    threads.ramPerImage = props.tileSize * joda::pipeline::TILES_TO_LOAD_PER_RUN;
+  if(props.resolutions.at(0).imageMemoryUsage > joda::pipeline::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
+    auto [tilesX, tilesY] = props.resolutions.at(0).getNrOfTiles(joda::pipeline::COMPOSITE_TILE_WIDTH,
+                                                                 joda::pipeline::COMPOSITE_TILE_HEIGHT);
+    tileNr                = tilesX * tilesY;
+    threads.ramPerImage   = joda::pipeline::COMPOSITE_TILE_WIDTH * joda::pipeline::COMPOSITE_TILE_HEIGHT *
+                          (props.resolutions.at(0).bits / 8);
   } else {
-    threads.ramPerImage = props.imageSize;
+    threads.ramPerImage = props.resolutions.at(0).imageMemoryUsage;
   }
   if(threads.ramPerImage <= 0) {
     threads.ramPerImage = 1;
@@ -236,7 +242,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   //  }
   //}
 
-  // Maximum number of cores depends on the available RAM.
+  // Maximum number of cores depends on the available RAM.)
   int32_t maxNumberOfCoresToAssign =
       std::min(static_cast<uint64_t>(systemRecources.cpus),
                static_cast<uint64_t>(systemRecources.ramAvailable / threads.ramPerImage));

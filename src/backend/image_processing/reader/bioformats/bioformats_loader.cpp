@@ -15,10 +15,14 @@
 
 #include <jni.h>
 #include <stdio.h>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include "backend/helper/duration_count/duration_count.h"
+#include "backend/helper/logger/console_logger.hpp"
+#include "backend/image_processing/functions/resize/resize.hpp"
 #include <nlohmann/json.hpp>
 #include <opencv2/core/mat.hpp>
 
@@ -148,7 +152,10 @@ void BioformatsLoader::init()
       } else {
         mGetImageProperties = myGlobEnv->GetStaticMethodID(mBioformatsClass, "getImageProperties",
                                                            "(Ljava/lang/String;II)Ljava/lang/String;");
-        mReadImage          = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;II)[B");
+        mReadImage          = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;III)[B");
+        mReadImageTile =
+            myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageTile", "(Ljava/lang/String;IIIIIII)[B");
+        mGetImageInfo = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageInfo", "(Ljava/lang/String;III)[I");
       }
     }
   } catch(const std::exception &ex) {
@@ -200,7 +207,8 @@ std::string BioformatsLoader::getJavaVersion()
 /// \param[out]
 /// \return
 ///
-cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int directory, uint16_t series)
+cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, uint16_t directory, uint16_t series,
+                                          uint16_t resolutionIdx)
 {
   // Takes 150 ms
   if(mJVMInitialised) {
@@ -209,23 +217,21 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
     jstring filePath = myEnv->NewStringUTF(filename.c_str());
-    jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, 0,
-                                                               static_cast<int>(series));
-    const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
+    jintArray readImgInfo =
+        (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, directory,
+                                                  static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
+    int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
+    myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
+        mBioformatsClass, mReadImage, filePath, directory, static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
-    joda::ome::OmeInfo omeInfo;
-    omeInfo.loadOmeInformationFromXMLString(std::string(stringChars));    ///\todo this method can throw an excaption
-    const auto &props = omeInfo.getImageInfo();
+    // This is the image information
+    cv::Mat retValue = cv::Mat::zeros(imageInfo[0], imageInfo[1], CV_16UC1);
+    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) retValue.data);
 
-    cv::Mat retValue   = cv::Mat::zeros(props.imageHeight, props.imageWidth, CV_16UC1);
-    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, directory,
-                                                                    static_cast<int>(series));
-    if(props.bits == 8) {
-      myEnv->GetByteArrayRegion(readImg, 0, props.imageWidth * props.imageHeight, (jbyte *) retValue.data);
-    } else if(props.bits == 16) {
-      myEnv->GetByteArrayRegion(readImg, 0, props.imageWidth * props.imageHeight * 2, (jbyte *) retValue.data);
-    }
-
+    delete[] imageInfo;
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
     return retValue;
@@ -241,8 +247,165 @@ cv::Mat BioformatsLoader::loadEntireImage(const std::string &filename, int direc
 /// \param[out]
 /// \return
 ///
-auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t series) -> joda::ome::OmeInfo
+cv::Mat BioformatsLoader::loadThumbnail(const std::string &filename, uint16_t directory, uint16_t series)
 {
+  // Takes 150 ms
+  if(mJVMInitialised) {
+    // std::lock_guard<std::mutex> lock(mReadMutex);
+
+    auto ome           = getOmeInformation(filename);
+    auto resolutionIdx = ome.getResolutionCount().size() - 1;
+    auto resolution    = ome.getResolutionCount(series).at(resolutionIdx);
+
+    if(resolution.imageMemoryUsage > 209715200) {
+      joda::log::logWarning("Cannot create thumbnail. Pyramid to big: >" + std::to_string(resolution.imageMemoryUsage) +
+                            "< Bytes.");
+      return cv::Mat{};
+    }
+    JNIEnv *myEnv;
+    myJVM->AttachCurrentThread((void **) &myEnv, NULL);
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+    jintArray readImgInfo =
+        (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, directory,
+                                                  static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
+    int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
+    myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
+        mBioformatsClass, mReadImage, filePath, directory, static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
+
+    // This is the image information
+    cv::Mat tmp = cv::Mat::zeros(imageInfo[0], imageInfo[1], CV_16UC1);
+    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) tmp.data);
+    delete[] imageInfo;
+    myEnv->DeleteLocalRef(filePath);
+    myJVM->DetachCurrentThread();
+    return cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(tmp, 256, 256));
+    ;
+  }
+
+  return cv::Mat{};
+}
+
+///
+/// \brief      Used to load (very) large TIFF images that cannot be loaded as a whole into RAM.
+///             Prerequisite is that the TIF is saved as a tiled TIFF.
+///             With this method it is possible to load tile by tile, and it is possible to load
+///             more than one tile and create a composite image from these tiles.
+///
+///             Loads >nrOfTilesToRead< tiles of a tiled TIFF image starting at >offset<
+///             The tiles are read in squares and assembled into an image.
+///             Offset is the number of composite tiles to read.
+///
+///             If sqrt(nrOfTilesToRead) is not a multiplier of nrOfTilesX / nrOfTilesY
+///             the image is padded with black "virtual" tiles.
+///             Example shows an image with size 4x7 tiles and nrOfTilesToRead = 9
+///             Numbers in brackets are padded part of the image
+///
+///
+///         (6) +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |(3)  |(3)  |(3)  |(4)  |(4)  |(4)  |(5)  |(5)  |(5)  |
+///             |     |     |     |     |     |     |     |     |     |
+///         (5) +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |(3)  |(3)  |(3)  |(4)  |(4)  |(4)  |(5)  |(5)  |(5)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           4 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |3    |3    |3    |4    |4    |4    |5    |(5)  |(5)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           3 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           2 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           1 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             |0    |0    |0    |1    |1    |1    |2    |(2)  |(2)  |
+///             |     |     |     |     |     |     |     |     |     |
+///           0 +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+///             0     1     2     3     4     5     6     (7)   (8)
+///
+/// \author     Joachim Danmayr
+/// \ref        http://www.simplesystems.org/libtiff//functions.html
+///
+/// \param[in]  filename  Name of the file to load
+/// \param[in]  directory  If it is multi document tiff, the index of
+///                       the document which should be loaded
+/// \param[in]  offset    Composite tile number to load
+/// \param[in]  nrOfTilesToRead Nr of tiles which should form one composite image
+/// \return Loaded composite image
+///
+cv::Mat BioformatsLoader::loadImageTile(const std::string &filename, uint16_t directory, uint16_t series,
+                                        uint16_t resolutionIdx, const joda::ome::TileToLoad &tile)
+{
+  if(mJVMInitialised) {
+    JNIEnv *myEnv = nullptr;
+    myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+
+    //
+    // ReadImage Info
+    //
+    auto *readImgInfo =
+        (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, directory,
+                                                  static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
+    auto *imageInfo           = new int32_t[totalSizeLoadedInfo];
+    myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, static_cast<jint *>(imageInfo));
+    int32_t imageHeight = imageInfo[0];
+    int32_t imageWidth  = imageInfo[1];
+    int32_t bitDepth    = imageInfo[4];
+    delete[] imageInfo;
+
+    //
+    // Calculate tile position
+    //
+    int32_t offsetX          = tile.tileX * tile.tileWidth;
+    int32_t offsetY          = tile.tileY * tile.tileHeight;
+    int32_t tileWidthToLoad  = tile.tileWidth;
+    int32_t tileHeightToLoad = tile.tileHeight;
+    if(offsetX + tile.tileWidth > imageWidth) {
+      tileWidthToLoad = tile.tileWidth - ((offsetX + tile.tileWidth) - imageWidth);
+    }
+
+    if(offsetY + tile.tileHeight > imageHeight) {
+      tileHeightToLoad = tile.tileHeight - ((offsetY + tile.tileHeight) - imageHeight);
+    }
+
+    //
+    // Load image
+    //
+    auto *readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
+        mBioformatsClass, mReadImageTile, filePath, directory, static_cast<int>(series),
+        static_cast<int>(resolutionIdx), offsetX, offsetY, tileWidthToLoad, tileHeightToLoad);
+    jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
+
+    //
+    // Assign image data
+    //
+    cv::Mat image(tileHeightToLoad, tileWidthToLoad, CV_16UC1);
+    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, reinterpret_cast<jbyte *>(image.data));
+
+    //
+    // Cleanup
+    //
+    myEnv->DeleteLocalRef(filePath);
+    myJVM->DetachCurrentThread();
+    return image;
+  }
+  throw std::runtime_error("Could not open image!");
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto BioformatsLoader::getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo
+{
+  const int32_t series = 0;
   if(mJVMInitialised) {
     auto id = DurationCount::start("Get OEM");
     JNIEnv *myEnv;
@@ -258,6 +421,7 @@ auto BioformatsLoader::getOmeInformation(const std::string &filename, uint16_t s
     joda::ome::OmeInfo omeInfo;
 
     omeInfo.loadOmeInformationFromXMLString(omeXML);    ///\todo this method can throw an excaption
+
     myJVM->DetachCurrentThread();
     DurationCount::stop(id);
     return omeInfo;

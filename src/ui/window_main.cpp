@@ -38,6 +38,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
@@ -85,7 +86,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   connect(this, &WindowMain::lookingForTemplateFinished, this, &WindowMain::onFindTemplatesFinished);
   connect(getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
   connect(getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
-  connect(getImageTilesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
+  connect(getImageResolutionCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onResolutionChanged);
 }
 
 void WindowMain::createBottomToolbar()
@@ -121,11 +122,10 @@ void WindowMain::createBottomToolbar()
   mImageSeriesComboBox = mButtomToolbar->addWidget(mImageSeriesCombo);
   mImageSeriesComboBox->setVisible(false);
 
-  mImageTilesCombo = new QComboBox(mButtomToolbar);
-  mImageTilesCombo->addItem("0", 0);
-  mImageTilesCombo->setToolTip("Select image tile");
-  mImageTilesComboBox = mButtomToolbar->addWidget(mImageTilesCombo);
-  mImageTilesComboBox->setVisible(false);
+  mImageResolutionCombo = new QComboBox(mButtomToolbar);
+  mImageResolutionCombo->addItem("Resolution 0", 0);
+  mImageResolutionComboBox = mButtomToolbar->addWidget(mImageResolutionCombo);
+  mImageResolutionComboBox->setVisible(false);
 
   mFoundFilesHint = new ClickableLabel(mButtomToolbar);
   mFoundFilesHint->setText("Please open a working directory ...");
@@ -728,7 +728,7 @@ void WindowMain::setWorkingDirectory(const std::string &workingDir)
     mFoundFilesCombo->clear();
     mFileSelectorComboBox->setVisible(false);
     mImageSeriesComboBox->setVisible(false);
-    mImageTilesComboBox->setVisible(false);
+    mImageResolutionComboBox->setVisible(false);
     mFileSearchHintLabel->setVisible(true);
     mController->setWorkingDirectory(mSelectedImagesDirectory.string());
     mNewFolderSelected = true;
@@ -795,19 +795,8 @@ void WindowMain::onLookingForFilesFinished()
     mFileSearchHintLabel->setVisible(false);
     mFileSelectorComboBox->setVisible(true);
     mImageSeriesComboBox->setVisible(true);
-    mImageTilesComboBox->setVisible(true);
+    // mImageResolutionComboBox->setVisible(true);
     mStartAnalysis->setEnabled(true);
-
-    mImageTilesCombo->clear();
-    if(props.nrOfTiles == 0) {
-      mImageTilesCombo->addItem("0", 0);
-      mImageTilesCombo->setCurrentIndex(0);
-    } else {
-      for(int n = 0; n < props.nrOfTiles; n++) {
-        mImageTilesCombo->addItem(QString::number(n), n);
-      }
-      mImageTilesCombo->setCurrentIndex(0);
-    }
 
   } else {
     // mFoundFilesCombo->setVisible(false);
@@ -833,17 +822,23 @@ void WindowMain::resetImageInfo()
 void WindowMain::onImageSelectionChanged()
 {
   auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
-
   const auto &imgInfo = ome.getImageInfo();
-  auto imageData      = QString(
+
+  auto imageData = QString(
                        "<p><strong>Image</strong></p>"
-                            "<p>Size: %1 x %2<br />Bits: %3<br />Tile size: %4 x %5<br />Nr. of tiles: %6</p>")
-                       .arg(imgInfo.imageWidth)
-                       .arg(imgInfo.imageHeight)
-                       .arg(imgInfo.bits)
-                       .arg(imgInfo.tileWidth)
-                       .arg(imgInfo.tileHeight)
-                       .arg(imgInfo.nrOfTiles);
+                       "<p>Size: %1 x %2<br />Bits: %3<br />Tile size: %4 x %5<br />Nr. of tiles: %6<br />Nr. of "
+                       "composite tiles: %7<br />Series: "
+                       "%8<br />Pyramid: %9</p>")
+                       .arg(imgInfo.resolutions.at(0).imageWidth)
+                       .arg(imgInfo.resolutions.at(0).imageHeight)
+                       .arg(imgInfo.resolutions.at(0).bits)
+                       .arg(imgInfo.resolutions.at(0).optimalTileWidth)
+                       .arg(imgInfo.resolutions.at(0).optimalTileHeight)
+                       .arg(imgInfo.resolutions.at(0).getTileCount())
+                       .arg(imgInfo.resolutions.at(0).getTileCount(joda::pipeline::COMPOSITE_TILE_WIDTH,
+                                                                   joda::pipeline::COMPOSITE_TILE_HEIGHT))
+                       .arg(ome.getNrOfSeries())
+                       .arg(ome.getResolutionCount().size());
 
   const auto &objectiveInfo = ome.getObjectiveInfo();
   auto objectiveData        = QString(
@@ -878,6 +873,34 @@ void WindowMain::onImageSelectionChanged()
   }
 
   mLabelImageInfo->setHtml(imageData + objectiveData + channelInfoStr);
+
+  {
+    mImageResolutionCombo->blockSignals(true);
+    auto currentIdx = mImageResolutionCombo->currentIndex();
+    mImageResolutionCombo->clear();
+    for(const auto &[idx, pyramid] : imgInfo.resolutions) {
+      mImageResolutionCombo->addItem(
+          QString((std::to_string(pyramid.imageWidth) + "x" + std::to_string(pyramid.imageHeight)).data()) + " (" +
+              bytesToString(pyramid.imageMemoryUsage) + ")",
+          idx);
+    }
+    if(currentIdx < mImageResolutionCombo->count()) {
+      mImageResolutionCombo->setCurrentIndex(currentIdx);
+    } else {
+      mImageResolutionCombo->setCurrentIndex(0);
+    }
+    mImageResolutionCombo->blockSignals(false);
+  }
+}
+
+///
+/// \brief      Resolution has been changes, adapt
+/// \author     Joachim Danmayr
+///
+void WindowMain::onResolutionChanged()
+{
+  auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
+  const auto &imgInfo = ome.getImageInfo();
 }
 
 ///
@@ -1531,6 +1554,25 @@ void WindowMain::onShowInfoDialog()
   helpTextLabel->setMinimumHeight(helpTextLabel->height() + 56);
 
   messageBox.exec();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \return
+///
+QString WindowMain::bytesToString(int64_t bytes)
+{
+  if(bytes >= 1000000000) {
+    return QString::number(static_cast<double>(bytes) / 1000000000.0, 'f', 2) + " GB";
+  }
+  if(bytes >= 1000000) {
+    return QString::number(static_cast<double>(bytes) / 1000000.0, 'f', 2) + " MB";
+  }
+  if(bytes > 1000) {
+    return QString::number(static_cast<double>(bytes) / 1000.0, 'f', 2) + " kB";
+  }
+  return QString::number(static_cast<double>(bytes) / 1.0, 'f', 2) + "  Byte";
 }
 
 }    // namespace joda::ui::qt

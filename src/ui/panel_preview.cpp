@@ -19,6 +19,7 @@
 #include <qnamespace.h>
 #include <qpixmap.h>
 #include <qpushbutton.h>
+#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>
@@ -31,7 +32,9 @@ namespace joda::ui::qt {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelPreview::PanelPreview(int width, int height, QWidget *parent) : mPreviewLabel(parent), mImageViewer(parent)
+PanelPreview::PanelPreview(int width, int height, QWidget *parent) :
+    mImageViewer(parent),
+    mPreviewLabel(mImageViewer.getPreviewObject().previewImage, mImageViewer.getPreviewObject().thumbnail)
 {
   mPreviewLabel.setMinimumWidth(width);
   mPreviewLabel.setMinimumHeight(height);
@@ -50,6 +53,9 @@ PanelPreview::PanelPreview(int width, int height, QWidget *parent) : mPreviewLab
   hLayout->addWidget(mPreviewInfo);
 
   hLayout->addStretch();
+
+  connect(&mImageViewer, &DialogImageViewer::tileClicked, this, &PanelPreview::onTileClicked);
+  connect(&mPreviewLabel, &PanelImageView::tileClicked, this, &PanelPreview::onTileClicked);
 }
 
 ///
@@ -121,6 +127,11 @@ void PanelPreview::onOpenFullScreenClickec()
 {
   mImageViewer.show();
   mImageViewer.fitImageToScreenSize();
+}
+
+void PanelPreview::onTileClicked(int32_t tileX, int32_t tileY)
+{
+  emit tileClicked(tileX, tileY);
 }
 
 }    // namespace joda::ui::qt

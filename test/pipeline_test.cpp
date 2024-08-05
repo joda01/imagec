@@ -19,7 +19,6 @@
 #include "backend/helper/file_info_images.hpp"
 #include "backend/helper/random_name_generator.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
-#include "backend/image_processing/reader/jpg/image_loader_jpg.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "backend/results/analyzer/analyzer.hpp"
 #include "backend/results/analyzer/plugins/heatmap_for_plate.hpp"
@@ -49,7 +48,6 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
 {
   if(!initialized) {
     initialized = true;
-    joda::image::TiffLoader::initLibTif();
     joda::image::BioformatsLoader::init();
     joda::pipeline::PipelineFactory::init();
 

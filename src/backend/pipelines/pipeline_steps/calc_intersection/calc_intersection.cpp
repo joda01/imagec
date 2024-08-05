@@ -44,12 +44,10 @@ auto CalcIntersection::execute(
   }
   auto it = mIndexesToIntersect.begin();
 
-  image::detect::DetectionResponse response{
-      .result               = detectionResultsIn.at(*it).result->clone(),
-      .originalImage        = {},
-      .controlImage         = cv::Mat::zeros(detectionResultsIn.at(*it).originalImage.size(), CV_32FC3),
-      .responseValidity     = {},
-      .invalidateWholeImage = false};
+  image::detect::DetectionResponse response{.result               = detectionResultsIn.at(*it).result->clone(),
+                                            .originalImage        = {},
+                                            .responseValidity     = {},
+                                            .invalidateWholeImage = false};
 
   std::map<joda::settings::ChannelIndex, const cv::Mat *> channelsToIntersectImages;
 
@@ -71,7 +69,6 @@ auto CalcIntersection::execute(
     }
   }
 
-  image::detect::DetectionFunction::paintBoundingBox(response.controlImage, response.result, {}, "#FFFF", false, false);
   DurationCount::stop(id);
 
   return response;

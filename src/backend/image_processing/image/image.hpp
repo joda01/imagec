@@ -30,19 +30,23 @@ class Image
 public:
   /////////////////////////////////////////////////////
   Image();
-  void setImage(const cv::Mat &imageToDisplay);
+  ~Image()
+  {
+    clear();
+  }
+  void setImage(const cv::Mat &&imageToDisplay);
   bool empty()
   {
-    return mImageOriginal.empty();
+    if(mImageOriginal != nullptr) {
+      return mImageOriginal->empty();
+    }
+    return true;
   }
-  [[nodiscard]] const cv::Mat &getImage() const
+  [[nodiscard]] const cv::Mat *getImage() const
   {
     return mImageOriginal;
   }
-  [[nodiscard]] const QPixmap &getPixmap() const
-  {
-    return mPixmap;
-  }
+  [[nodiscard]] QPixmap getPixmap() const;
   [[nodiscard]] float getHitogramZoomFactor() const
   {
     return mHistogramZoomFactor;
@@ -56,14 +60,22 @@ public:
   {
     return mUpperValue;
   }
+  void clear()
+  {
+    delete mImageOriginal;
+
+    mImageOriginal = nullptr;
+  }
 
   void setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor,
                           uint16_t histogramOffset);
 
 private:
   /////////////////////////////////////////////////////
-  void update();
-  void encode(const cv::Mat &image);
+  const int32_t WIDTH = 2048;
+
+  /////////////////////////////////////////////////////
+  [[nodiscard]] QPixmap encode(const cv::Mat *image) const;
 
   //// BRIGHTNESS /////////////////////////////////////////////////
   uint16_t mLowerValue       = 0;
@@ -72,8 +84,7 @@ private:
   float mHistogramOffset     = 0;
 
   //// IMAGE /////////////////////////////////////////////////
-  cv::Mat mImageOriginal;
-  QPixmap mPixmap;
+  cv::Mat *mImageOriginal = nullptr;
 };
 
 }    // namespace joda::image

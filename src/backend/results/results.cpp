@@ -29,7 +29,7 @@
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/uuid.hpp"
-#include "backend/image_processing/reader/tif/image_loader_tif.hpp"
+#include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/database/database.hpp"
 #include "backend/results/database/database_interface.hpp"
@@ -210,14 +210,15 @@ void Results::appendImageToDetailReport(const joda::ome::OmeInfo &imgProps, cons
   }
 
   try {
-    mDatabase->createImage(db::ImageMeta{.analyzeId         = mAnalyzeId,
-                                         .plateId           = mExperimentSettings.plateIdx,
-                                         .groupId           = posInWell.groupId,
-                                         .imageId           = imageId,
-                                         .imageIdx          = posInWell.imgIdx,
-                                         .originalImagePath = std::filesystem::relative(imagePath, mOutputFolder),
-                                         .width             = imgProps.getImageInfo().imageWidth,
-                                         .height            = imgProps.getImageInfo().imageHeight});
+    mDatabase->createImage(
+        db::ImageMeta{.analyzeId         = mAnalyzeId,
+                      .plateId           = mExperimentSettings.plateIdx,
+                      .groupId           = posInWell.groupId,
+                      .imageId           = imageId,
+                      .imageIdx          = posInWell.imgIdx,
+                      .originalImagePath = std::filesystem::relative(imagePath, mOutputFolder),
+                      .width             = static_cast<uint64_t>(imgProps.getImageInfo().resolutions.at(0).imageWidth),
+                      .height = static_cast<uint64_t>(imgProps.getImageInfo().resolutions.at(0).imageHeight)});
   } catch(const std::exception &ex) {
     joda::log::logWarning("Ceate Image:" + std::string(ex.what()) + "\n" +
                           std::filesystem::relative(imagePath, mOutputFolder).string() + "\n" +
@@ -266,8 +267,9 @@ void Results::writePredatedData(const DetailReportAdder &adders)
 ///
 void Results::appendToDetailReport(const DetailReportAdder &appender,
                                    const joda::image::detect::DetectionResponse &results,
-                                   const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
-                                   const joda::ome::OmeInfo &imgProps, const std::filesystem::path &imagePath)
+                                   const joda::settings::ChannelSettingsMeta &channelSettings,
+                                   const joda::ome::TileToLoad &tileIdx, const joda::ome::OmeInfo &imgProps,
+                                   const std::filesystem::path &imagePath)
 {
   struct ImageStats
   {
@@ -338,12 +340,12 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
     }
   };
   std::map<MeasureChannelId, ImageStats> imgStats;
-
+  int32_t tileNr = imgProps.getImageInfo().resolutions.at(0).toTileNr(tileIdx);
   try {
     auto id          = DurationCount::start("Append to detail report");
     uint64_t imageId = calcImagePathHash(mExperimentSettings.runId, imagePath);
 
-    auto controlImagePath = createControlImage(results, channelSettings, tileIdx, imgProps, imagePath);
+    auto controlImagePath = createControlImage(results, channelSettings, tileNr, imgProps, imagePath);
     auto channelId        = toChannelIndex(channelSettings.channelIdx);
     mDatabase->createImageChannel(db::ImageChannelMeta{.analyzeId        = mAnalyzeId,
                                                        .imageId          = imageId,
@@ -352,11 +354,8 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
                                                        .invalidateAll    = results.invalidateWholeImage,
                                                        .controlImagePath = controlImagePath});
 
-    auto [offsetX, offsetY] = ::joda::image::TiffLoader::calculateTileXYoffset(
-        ::joda::pipeline::TILES_TO_LOAD_PER_RUN, tileIdx, imgProps.getImageInfo().imageWidth,
-        imgProps.getImageInfo().imageHeight, imgProps.getImageInfo().tileWidth, imgProps.getImageInfo().tileHeight);
-    int64_t xMul = offsetX * imgProps.getImageInfo().tileWidth;
-    int64_t yMul = offsetY * imgProps.getImageInfo().tileHeight;
+    int64_t xMul = tileIdx.tileX * tileIdx.tileWidth;
+    int64_t yMul = tileIdx.tileY * tileIdx.tileHeight;
 
     uint64_t roiIdx = 0;
     auto id2 = DurationCount::start("loop db prepare >" + std::to_string(results.result->size()) + "<.");    // 30ms
@@ -451,7 +450,7 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
         appender.objects->Append<uint64_t>(imageId);
         appender.objects->Append<uint16_t>(static_cast<uint16_t>(channelId));
         appender.objects->Append<uint32_t>(index);
-        appender.objects->Append<uint16_t>(tileIdx);
+        appender.objects->Append<uint16_t>(tileNr);
         appender.objects->Append<uint64_t>(toValidity(roi.getValidity()).to_ulong());
         auto mapToInsert = duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
                                               duckdb::LogicalType(duckdb::LogicalTypeId::DOUBLE), keys, vals);
@@ -504,7 +503,7 @@ void Results::appendToDetailReport(const DetailReportAdder &appender,
       appender.imageStats->Append(uuid);
       appender.imageStats->Append<uint64_t>(imageId);
       appender.imageStats->Append<uint16_t>(static_cast<uint16_t>(channelId));
-      appender.imageStats->Append<uint16_t>(tileIdx);
+      appender.imageStats->Append<uint16_t>(tileNr);
       addToMap(statsSum);
       addToMap(statsCnt);
       addToMap(statsMin);
@@ -546,10 +545,11 @@ std::filesystem::path Results::createControlImage(const joda::image::detect::Det
     std::filesystem::create_directories(absoluteFolderToWrite);
   }
 
-  if(!result.controlImage.empty()) {
+  if(!result.originalImage.empty()) {
     std::string crlImgFileNameWithTile = controlImageFileNameWithPlaceholder.string();
     helper::stringReplace(crlImgFileNameWithTile, "${tile_id}", std::to_string(tileIdx));
-    cv::imwrite((absoluteFolderToWrite / crlImgFileNameWithTile).string(), result.controlImage, compression_params);
+    cv::imwrite((absoluteFolderToWrite / crlImgFileNameWithTile).string(),
+                result.result->generateControlImage("", result.originalImage.size()), compression_params);
   } else {
     std::cout << "CTRL img null" << std::endl;
   }

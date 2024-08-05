@@ -21,9 +21,11 @@
 #include <exception>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 #include "../../window_main.hpp"
 #include "../container_function.hpp"
+#include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 #include "container_channel.hpp"
 
@@ -190,24 +192,11 @@ void PanelChannelEdit::init()
   QHBoxLayout *imageSubTitle = new QHBoxLayout();
   imageSubTitleWidget->setLayout(imageSubTitle);
 
-  mSpinner = new WaitingSpinnerWidget(imageSubTitleWidget);
-  mSpinner->setRoundness(10.0);
-  mSpinner->setMinimumTrailOpacity(15.0);
-  mSpinner->setTrailFadePercentage(70.0);
-  mSpinner->setNumberOfLines(8);
-  mSpinner->setLineLength(5);
-  mSpinner->setLineWidth(2);
-  mSpinner->setInnerRadius(5);
-  mSpinner->setRevolutionsPerSecond(1);
-  mSpinner->start();    // gets the show on the road!
-
   //
   // Signals from extern
   //
-  connect(this, &PanelChannelEdit::updatePreviewStarted, mSpinner, &WaitingSpinnerWidget::start);
-  connect(this, &PanelChannelEdit::updatePreviewFinished, mSpinner, &WaitingSpinnerWidget::stop);
-
-  imageSubTitle->addWidget(mSpinner);
+  connect(this, &PanelChannelEdit::updatePreviewStarted, this, &PanelChannelEdit::onPreviewStarted);
+  connect(this, &PanelChannelEdit::updatePreviewFinished, this, &PanelChannelEdit::onPreviewFinished);
 
   imageSubTitle->addStretch(1);
 
@@ -219,9 +208,11 @@ void PanelChannelEdit::init()
   //
   // Signals from extern
   //
+  connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelChannelEdit::onTileClicked);
   connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
   connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
-  connect(mWindowMain->getImageTilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
+  connect(mWindowMain->getImageResolutionCombo(), &QComboBox::currentIndexChanged, this,
+          &PanelChannelEdit::updatePreview);
 }
 
 PanelChannelEdit::~PanelChannelEdit()
@@ -236,7 +227,6 @@ PanelChannelEdit::~PanelChannelEdit()
     }
   }
   delete mPreviewImage;
-  delete mSpinner;
 }
 
 QLabel *PanelChannelEdit::createTitle(const QString &title)
@@ -418,29 +408,39 @@ void PanelChannelEdit::updatePreview()
             if(imgIndex >= 0) {
               auto *controller = mWindowMain->getController();
               try {
-                int32_t tileIdx = mWindowMain->getImageTilesCombo()->currentData().toInt();
+                int32_t resolution = mWindowMain->getImageResolutionCombo()->currentData().toInt();
+                int32_t series     = mWindowMain->getImageSeriesCombo()->currentData().toInt();
                 mParentContainer->toSettings();
-                controller->preview(mParentContainer->mSettings, imgIndex, tileIdx, mPreviewResult);
-                if(!mPreviewResult.previewImage.empty()) {
-                  // Create a QByteArray from the char array
-                  int valid   = 0;
-                  int invalid = 0;
-                  for(const auto &roi : *mPreviewResult.detectionResult) {
-                    if(roi.isValid()) {
-                      valid++;
-                    } else {
-                      invalid++;
-                    }
-                  }
-                  QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
-                  mPreviewImage->setImage(mPreviewResult.originalImage, mPreviewResult.previewImage, PREVIEW_BASE_SIZE,
-                                          PREVIEW_BASE_SIZE, info);
+                auto imgProps = mWindowMain->getController()->getImageProperties(imgIndex, series);
+                auto [tileNrX, tileNrY] =
+                    imgProps.getImageInfo()
+                        .resolutions.at(resolution)
+                        .getNrOfTiles(::joda::pipeline::COMPOSITE_TILE_WIDTH, ::joda::pipeline::COMPOSITE_TILE_HEIGHT);
 
-                } else {
+                controller->preview(mParentContainer->mSettings, imgIndex, mSelectedTileX, mSelectedTileY, resolution,
+                                    mPreviewImage->getPreviewObject());
+                auto &previewResult = mPreviewImage->getPreviewObject();
+                // Create a QByteArray from the char array
+                int valid   = 0;
+                int invalid = 0;
+                for(const auto &roi : *previewResult.detectionResult) {
+                  if(roi.isValid()) {
+                    valid++;
+                  } else {
+                    invalid++;
+                  }
+                }
+
+                mPreviewImage->setThumbnailPosition(tileNrX, tileNrY, mSelectedTileX, mSelectedTileY);
+
+                QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
+                mPreviewImage->updateImage(info);
+                if(!mIsActiveShown) {
                   mPreviewImage->resetImage("");
                 }
+
               } catch(const std::exception &error) {
-                mPreviewImage->resetImage(error.what());
+                // mPreviewImage->resetImage(error.what());
               }
             }
           }
@@ -452,14 +452,58 @@ void PanelChannelEdit::updatePreview()
             mPreviewCounter = previewCounter;
           }
         } while(previewCounter > 0);
-        if(mSpinner != nullptr) {
-          emit updatePreviewFinished();
-        }
+        emit updatePreviewFinished();
       });
     } else {
       std::lock_guard<std::mutex> lock(mPreviewMutex);
       mPreviewCounter++;
     }
+  } else {
+    if(nullptr != mPreviewImage) {
+      mPreviewImage->resetImage("");
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelEdit::onTileClicked(int32_t tileX, int32_t tileY)
+{
+  mSelectedTileX = tileX;
+  mSelectedTileY = tileY;
+  updatePreview();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelEdit::onPreviewStarted()
+{
+  if(nullptr != mPreviewImage) {
+    mPreviewImage->setWaiting(true);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelChannelEdit::onPreviewFinished()
+{
+  if(nullptr != mPreviewImage) {
+    mPreviewImage->setWaiting(false);
   }
 }
 

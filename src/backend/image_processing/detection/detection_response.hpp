@@ -24,6 +24,10 @@ class DetectionResults : public SpatialHash
 public:
   using SpatialHash::SpatialHash;
   void createBinaryImage(cv::Mat &img) const;
+  cv::Mat generateControlImage(const std::string &areaColor, const cv::Size &size);
+
+private:
+  void paintBoundingBox(cv::Mat &img, const std::string &fillColor, bool paintRectangel, bool paintLabels);
 };
 
 enum class ResponseDataValidityEnum
@@ -41,7 +45,6 @@ struct DetectionResponse
 {
   std::unique_ptr<DetectionResults> result = std::make_unique<DetectionResults>();
   cv::Mat originalImage                    = {};
-  cv::Mat controlImage                     = {};
   ResponseDataValidity responseValidity    = {};
   bool invalidateWholeImage                = false;
 };

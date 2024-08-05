@@ -188,7 +188,7 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
 
   DurationCount::stop(id);
 
-  return {.result = std::move(output), .controlImage = inputImage};
+  return {.result = std::move(output)};
 }
 
 ///

@@ -14,8 +14,10 @@
 #pragma once
 
 #include <qdialog.h>
+#include <qtmetamacros.h>
 #include <qwindow.h>
 #include "backend/image_processing/image/image.hpp"
+#include "controller/controller.hpp"
 #include "panel_image_view.hpp"
 
 namespace joda::ui::qt {
@@ -33,9 +35,35 @@ public:
   /////////////////////////////////////////////////////
   DialogImageViewer(QWidget *parent);
   ~DialogImageViewer();
-  void setImage(const joda::image::Image &leftImage, const joda::image::Image &rightImage);
+  void imageUpdated();
   void fitImageToScreenSize();
   void createHistogramDialog();
+  joda::ctrl::Controller::Preview &getPreviewObject()
+  {
+    return mPreviewImages;
+  }
+  void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y)
+  {
+    mImageViewLeft.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
+    mImageViewRight.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
+  }
+  void resetImage()
+  {
+    mPreviewImages.previewImage.clear();
+    mPreviewImages.originalImage.clear();
+    mPreviewImages.thumbnail.clear();
+    mPreviewImages.detectionResult.reset();
+    mImageViewLeft.resetImage();
+    mImageViewRight.resetImage();
+  }
+  void setWaiting(bool waiting)
+  {
+    mImageViewLeft.setWaiting(waiting);
+    mImageViewRight.setWaiting(waiting);
+  }
+
+signals:
+  void tileClicked(int32_t tileX, int32_t tileY);
 
 private:
   /////////////////////////////////////////////////////
@@ -46,8 +74,9 @@ private:
   QScrollBar *mSliderScaling;
   QScrollBar *mSliderHistogramOffset;
 
-  PanelImageView *mImageViewLeft;
-  PanelImageView *mImageViewRight;
+  joda::ctrl::Controller::Preview mPreviewImages;
+  PanelImageView mImageViewLeft;
+  PanelImageView mImageViewRight;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter = 0;
@@ -68,6 +97,8 @@ private slots:
   void onFitHistogramToScreenSizeClicked();
   void onZoomHistogramOutClicked();
   void onZoomHistogramInClicked();
+  void onShowThumbnailChanged(bool checked);
+  void onTileClicked(int32_t tileX, int32_t tileY);
 };
 
 }    // namespace joda::ui::qt

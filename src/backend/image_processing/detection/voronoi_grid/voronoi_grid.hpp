@@ -50,11 +50,11 @@ public:
     }
   }
 
-  auto forward(const cv::Mat &image, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
+  auto forward(const cv::Mat & /*image*/, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
       -> DetectionResponse override
   {
     // Rectangle to be used with Subdiv2D
-    cv::Size size = image.size();
+    cv::Size size = originalImage.size();
     cv::Rect rect(0, 0, size.width, size.height);
 
     // Create an instance of Subdiv2D
@@ -127,12 +127,11 @@ public:
     std::vector<std::vector<cv::Point2f>> facets;
     std::vector<cv::Point2f> centers;
     subdiv.getVoronoiFacetList(std::vector<int>(), facets, centers);
-    response.controlImage  = cv::Mat::zeros(imgOriginal.size(), CV_32FC3);
     response.originalImage = imgOriginal;
 
     for(size_t i = 0; i < facets.size(); i++) {
       std::vector<cv::Point> ifacet;
-      std::vector<std::vector<cv::Point>> ifacets(1);
+      // std::vector<std::vector<cv::Point>> ifacets(1);
 
       cv::Mat points1_array(3, 1, CV_8U);
       ifacet.resize(facets[i].size());
@@ -156,10 +155,10 @@ public:
         result = mask1;
       }
 
-      ifacets[0] = ifacet;
-      polylines(response.controlImage, ifacets, true, cv::Scalar(), 1, cv::LINE_AA, 0);
-      circle(response.controlImage, centers[i], 3, cv::Scalar(), cv::FILLED, cv::LINE_AA, 0);
-      // circle(img, centers[i], 80, cv::Scalar(0, 0, 0, 255), cv::FILLED, cv::LINE_AA, 0);
+      // ifacets[0] = ifacet;
+      // polylines(response.controlImage, ifacets, true, cv::Scalar(), 1, cv::LINE_AA, 0);
+      // circle(response.controlImage, centers[i], 3, cv::Scalar(), cv::FILLED, cv::LINE_AA, 0);
+      //  circle(img, centers[i], 80, cv::Scalar(0, 0, 0, 255), cv::FILLED, cv::LINE_AA, 0);
 
       auto box        = cv::boundingRect(result);
       cv::Mat boxMask = result(box) >= 0.2;
@@ -180,9 +179,6 @@ public:
       ROI roi(i, 1, 0, box, boxMask, contours[idxMax], {{joda::settings::ChannelIndex::NONE, &imgOriginal}});
       response.result->push_back(roi);
     }
-
-    paintBoundingBox(response.controlImage, response.result, {}, "#FF0000", false, false);
-    // cv::imwrite("voronoi_combi_ctrl.jpg", response.controlImage);
 
     return response;
   }

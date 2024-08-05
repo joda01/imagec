@@ -99,7 +99,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
 
   if(contours.size() > 50000) {
     joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
-    return {.result = std::move(response), .controlImage = {}};
+    return {.result = std::move(response)};
   }
 
   cv::Mat boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
@@ -134,12 +134,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   }
   DurationCount::stop(ro);
 
-  cv::Mat grayImageFloat;
-  srcImg.convertTo(grayImageFloat, CV_32F, (float) UCHAR_MAX / (float) UINT16_MAX);
-  cv::Mat inputImage;
-  cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
-
   DurationCount::stop(id);
-  return {.result = std::move(response), .controlImage = inputImage};
+  return {.result = std::move(response)};
 }
 }    // namespace joda::image::segment

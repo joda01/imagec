@@ -23,15 +23,13 @@ public:
         "  element_at(min, $1)[1] as val_min,"
         "  element_at(max, $1)[1] as val_max,"
         "  element_at(avg, $1)[1] as val_avg,"
-        "  element_at(stddev, $1)[1] as val_stddev "
+        "  element_at(stddev, $1)[1] as val_stddev,"
         "  element_at(cnt, $1)[1] as val_cnt "
         "FROM image_stats "
         "INNER JOIN images_groups ON image_stats.image_id=images_groups.image_id "
         "INNER JOIN images ON image_stats.image_id=images.image_id "
         "WHERE"
         " images_groups.group_id=$2 AND  image_stats.channel_id=$3 "
-        "GROUP BY"
-        "  (image_stats.image_id, images.file_name) "
         "ORDER BY images.file_name",
         measurement.getKey(), groupId, static_cast<uint8_t>(channelId));
 

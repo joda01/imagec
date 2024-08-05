@@ -63,7 +63,7 @@ auto ObjectDetector::forward(const cv::Mat &inputImageOriginal, const cv::Mat &o
   auto results = postProcessing(inputImageOriginal, originalImage, outputs, channelIndex);
 
   DurationCount::stop(id);
-  return {.result = std::move(results), .controlImage = inputImage};
+  return {.result = std::move(results)};
 }
 
 ///

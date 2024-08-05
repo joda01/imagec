@@ -35,7 +35,9 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
+DialogImageViewer::DialogImageViewer(QWidget *parent) :
+    QMainWindow(parent), mImageViewLeft(mPreviewImages.originalImage, mPreviewImages.thumbnail),
+    mImageViewRight(mPreviewImages.previewImage, mPreviewImages.thumbnail)
 {
   // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
   setBaseSize(1200, 600);
@@ -81,7 +83,13 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
     buttonGroup->addAction(paintRectangle);
     // toolbarTop->addAction(paintRectangle);
 
-    // toolbarTop->addSeparator();
+    toolbarTop->addSeparator();
+
+    QAction *showThumbnail = new QAction(QIcon(":/icons/outlined/icons8-picture-in-picture-50.png"), "");
+    showThumbnail->setCheckable(true);
+    showThumbnail->setChecked(true);
+    connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
+    toolbarTop->addAction(showThumbnail);
 
     addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
@@ -90,23 +98,23 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) : QMainWindow(parent)
   {
     QGridLayout *centralLayout = new QGridLayout();
     QWidget *centralWidget     = new QWidget();
-    mImageViewLeft             = new PanelImageView();
-    mImageViewLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    centralLayout->addWidget(mImageViewLeft, 0, 0);
-    mImageViewLeft->resetImage();
+    mImageViewLeft.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    centralLayout->addWidget(&mImageViewLeft, 0, 0);
+    mImageViewLeft.resetImage();
 
-    mImageViewRight = new PanelImageView();
-    mImageViewRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    centralLayout->addWidget(mImageViewRight, 0, 1);
-    mImageViewRight->resetImage();
+    mImageViewRight.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    centralLayout->addWidget(&mImageViewRight, 0, 1);
+    mImageViewRight.resetImage();
 
     // centralLayout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     centralWidget->setLayout(centralLayout);
     setCentralWidget(centralWidget);
 
-    connect(mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
-    connect(mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
+    connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
+    connect(&mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
+    connect(&mImageViewLeft, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
+    connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
   }
 
   // Toolbar buttom
@@ -161,10 +169,8 @@ DialogImageViewer::~DialogImageViewer()
 
 void DialogImageViewer::fitImageToScreenSize()
 {
-  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
-    mImageViewLeft->fitImageToScreenSize();
-    mImageViewRight->fitImageToScreenSize();
-  }
+  mImageViewLeft.fitImageToScreenSize();
+  mImageViewRight.fitImageToScreenSize();
 }
 
 ///
@@ -197,9 +203,11 @@ void DialogImageViewer::onSliderMoved(int position)
     mPreviewThread = std::make_unique<std::thread>([this] {
       int previewCounter = 0;
       do {
-        mImageViewLeft->getImage().setBrightnessRange(0, mSlider->value(), mSliderScaling->value(),
-                                                      mSliderHistogramOffset->value());
-        mImageViewLeft->emitUpdateImage();
+        mPreviewImages.originalImage.setBrightnessRange(0, mSlider->value(), mSliderScaling->value(),
+                                                        mSliderHistogramOffset->value());
+
+        mPreviewImages.thumbnail.setBrightnessRange(0, 600, 128, 0);
+        mImageViewLeft.emitUpdateImage();
         std::this_thread::sleep_for(20ms);
         {
           std::lock_guard<std::mutex> lock(mPreviewMutex);
@@ -222,12 +230,10 @@ void DialogImageViewer::onSliderMoved(int position)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::setImage(const joda::image::Image &leftImage, const joda::image::Image &rightImage)
+void DialogImageViewer::imageUpdated()
 {
-  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
-    mImageViewLeft->setImage(leftImage);
-    mImageViewRight->setImage(rightImage);
-  }
+  mImageViewLeft.imageUpdated();
+  mImageViewRight.imageUpdated();
 }
 
 ///
@@ -239,17 +245,15 @@ void DialogImageViewer::setImage(const joda::image::Image &leftImage, const joda
 ///
 void DialogImageViewer::onLeftViewChanged()
 {
-  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
-    mImageViewRight->blockSignals(true);
-    mImageViewLeft->blockSignals(true);
+  mImageViewRight.blockSignals(true);
+  mImageViewLeft.blockSignals(true);
 
-    mImageViewRight->horizontalScrollBar()->setValue(mImageViewLeft->horizontalScrollBar()->value());
-    mImageViewRight->verticalScrollBar()->setValue(mImageViewLeft->verticalScrollBar()->value());
-    mImageViewRight->setTransform(mImageViewLeft->transform());
+  mImageViewRight.horizontalScrollBar()->setValue(mImageViewLeft.horizontalScrollBar()->value());
+  mImageViewRight.verticalScrollBar()->setValue(mImageViewLeft.verticalScrollBar()->value());
+  mImageViewRight.setTransform(mImageViewLeft.transform());
 
-    mImageViewRight->blockSignals(false);
-    mImageViewLeft->blockSignals(false);
-  }
+  mImageViewRight.blockSignals(false);
+  mImageViewLeft.blockSignals(false);
 }
 
 ///
@@ -261,17 +265,15 @@ void DialogImageViewer::onLeftViewChanged()
 ///
 void DialogImageViewer::onRightViewChanged()
 {
-  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
-    mImageViewRight->blockSignals(true);
-    mImageViewLeft->blockSignals(true);
+  mImageViewRight.blockSignals(true);
+  mImageViewLeft.blockSignals(true);
 
-    mImageViewLeft->horizontalScrollBar()->setValue(mImageViewRight->horizontalScrollBar()->value());
-    mImageViewLeft->verticalScrollBar()->setValue(mImageViewRight->verticalScrollBar()->value());
-    mImageViewLeft->setTransform(mImageViewRight->transform());
+  mImageViewLeft.horizontalScrollBar()->setValue(mImageViewRight.horizontalScrollBar()->value());
+  mImageViewLeft.verticalScrollBar()->setValue(mImageViewRight.verticalScrollBar()->value());
+  mImageViewLeft.setTransform(mImageViewRight.transform());
 
-    mImageViewRight->blockSignals(false);
-    mImageViewLeft->blockSignals(false);
-  }
+  mImageViewRight.blockSignals(false);
+  mImageViewLeft.blockSignals(false);
 }
 
 ///
@@ -330,7 +332,7 @@ void DialogImageViewer::createHistogramDialog()
 ///
 void DialogImageViewer::onZoomInClicked()
 {
-  mImageViewLeft->zoomImage(true);
+  mImageViewLeft.zoomImage(true);
 }
 
 ///
@@ -342,7 +344,7 @@ void DialogImageViewer::onZoomInClicked()
 ///
 void DialogImageViewer::onZoomOutClicked()
 {
-  mImageViewLeft->zoomImage(false);
+  mImageViewLeft.zoomImage(false);
 }
 
 ///
@@ -354,7 +356,7 @@ void DialogImageViewer::onZoomOutClicked()
 ///
 void DialogImageViewer::onFitImageToScreenSizeClicked()
 {
-  mImageViewLeft->fitImageToScreenSize();
+  mImageViewLeft.fitImageToScreenSize();
 }
 
 ///
@@ -380,10 +382,8 @@ void DialogImageViewer::onShowHistogramDialog()
 ///
 void DialogImageViewer::onSetSateToMove()
 {
-  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
-    mImageViewLeft->setState(PanelImageView::State::MOVE);
-    mImageViewRight->setState(PanelImageView::State::MOVE);
-  }
+  mImageViewLeft.setState(PanelImageView::State::MOVE);
+  mImageViewRight.setState(PanelImageView::State::MOVE);
 }
 
 ///
@@ -395,10 +395,21 @@ void DialogImageViewer::onSetSateToMove()
 ///
 void DialogImageViewer::onSetStateToPaintRect()
 {
-  if(nullptr != mImageViewRight && nullptr != mImageViewLeft) {
-    mImageViewLeft->setState(PanelImageView::State::PAINT);
-    mImageViewRight->setState(PanelImageView::State::PAINT);
-  }
+  mImageViewLeft.setState(PanelImageView::State::PAINT);
+  mImageViewRight.setState(PanelImageView::State::PAINT);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onShowThumbnailChanged(bool checked)
+{
+  mImageViewLeft.setShowThumbnail(checked);
+  mImageViewRight.setShowThumbnail(checked);
 }
 
 ///
@@ -437,6 +448,18 @@ void DialogImageViewer::onZoomHistogramInClicked()
 {
   auto value = mSliderScaling->value() + HISTOGRAM_ZOOM_STEP;
   mSliderScaling->setValue(value);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onTileClicked(int32_t tileX, int32_t tileY)
+{
+  emit tileClicked(tileX, tileY);
 }
 
 }    // namespace joda::ui::qt

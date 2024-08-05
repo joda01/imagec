@@ -50,6 +50,7 @@ public:
   void setWorkingDirectory(const std::string &dir);
   struct Preview
   {
+    joda::image::Image thumbnail;
     joda::image::Image previewImage;
     joda::image::Image originalImage;
     int height;
@@ -57,7 +58,8 @@ public:
     std::unique_ptr<joda::image::detect::DetectionResults> detectionResult;
     std::string imageFileName;
   };
-  void preview(const settings::ChannelSettings &settings, int imgIndex, int tileIndex, Preview &previewOut);
+  void preview(const settings::ChannelSettings &settings, int32_t imgIndex, int32_t tileX, int32_t tileY,
+               uint16_t resolution, Preview &previewOut);
   auto getImageProperties(int imgIndex, int series) -> joda::ome::OmeInfo;
   struct Resources
   {
