@@ -26,9 +26,8 @@ public:
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
-    mEditable->setStyleSheet("QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
     QVBoxLayout *layout = new QVBoxLayout();
-    layout->setContentsMargins(8, 8, 8, 0);
+    //     layout->setContentsMargins(8, 8, 8, 0);
 
     mButton = new QPushButton(text, mEditable);
 

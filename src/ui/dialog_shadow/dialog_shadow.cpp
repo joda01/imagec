@@ -26,53 +26,32 @@ DialogShadow::DialogShadow(QWidget *parent, bool showClose, const QString &close
     QDialog(parent), mShowCloseButton(showClose), mCloseButtonString(closeButtonText)
 {
   setModal(true);
-  setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Dialog);
-  setAttribute(Qt::WA_TranslucentBackground, true);
-  setGraphicsEffect(new QGraphicsDropShadowEffect(this));
-  dynamic_cast<QGraphicsDropShadowEffect *>(graphicsEffect())->setBlurRadius(10);
-  dynamic_cast<QGraphicsDropShadowEffect *>(graphicsEffect())->setColor(Qt::black);
-  dynamic_cast<QGraphicsDropShadowEffect *>(graphicsEffect())->setOffset(0, 0);
+  // setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Dialog);
+  // setAttribute(Qt::WA_TranslucentBackground, true);
+  // setGraphicsEffect(new QGraphicsDropShadowEffect(this));
+  // dynamic_cast<QGraphicsDropShadowEffect *>(graphicsEffect())->setBlurRadius(10);
+  // dynamic_cast<QGraphicsDropShadowEffect *>(graphicsEffect())->setColor(Qt::black);
+  // dynamic_cast<QGraphicsDropShadowEffect *>(graphicsEffect())->setOffset(0, 0);
 
   // Dimmed background effect
-  if(parent != nullptr) {
-    dimmer = new QWidget(parent);
-    dimmer->setStyleSheet("background-color: rgba(0, 0, 0, 100);");
-    dimmer->setGeometry(0, 0, 99999, 999999);
-    dimmer->raise();
-    connect(parent, &QWidget::destroyed, this, &QWidget::close);
-  }
-
-  setStyleSheet("QDialog {background-color: white; border-radius: 28px;}");
+  // if(parent != nullptr) {
+  //   dimmer = new QWidget(parent);
+  //   dimmer->setStyleSheet("background-color: rgba(0, 0, 0, 100);");
+  //   dimmer->setGeometry(0, 0, 99999, 999999);
+  //   dimmer->raise();
+  //   connect(parent, &QWidget::destroyed, this, &QWidget::close);
+  // }
 }
 
 int DialogShadow::exec()
 {
   if(mShowCloseButton) {
     QWidget *buttons = new QWidget();
-    buttons->setContentsMargins(0, 0, 0, 0);
+    //     buttons->setContentsMargins(0, 0, 0, 0);
     QHBoxLayout *hBox  = new QHBoxLayout(buttons);
     QPushButton *close = new QPushButton(mCloseButtonString, buttons);
     close->setCursor(Qt::PointingHandCursor);
-    close->setStyleSheet(
-        "QPushButton {"
-        "   background-color: rgba(0, 0, 0, 0);"
-        "   border: 1px solid rgba(0, 0, 0, 0);"
-        "   color: rgb(0, 51, 102);"
-        "   padding: 10px 10px;"
-        "   border-radius: 4px;"
-        "   font-size: 14px;"
-        "   font-weight: normal;"
-        "   text-align: center;"
-        "   text-decoration: none;"
-        "}"
-
-        "QPushButton:hover {"
-        "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
-        "}"
-
-        "QPushButton:pressed {"
-        "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
-        "}");
+    close->setObjectName("closeButton");
 
     connect(close, &QPushButton::clicked, this, &DialogShadow::onCloseWindow);
 
@@ -91,6 +70,7 @@ void DialogShadow::onCloseWindow()
 
 void DialogShadow::paintEvent(QPaintEvent *ev)
 {
+  return;
   // If the transparency flag/hint aren't set then just use the default paint event.
   if(!(windowFlags() & Qt::FramelessWindowHint) && !testAttribute(Qt::WA_TranslucentBackground)) {
     QDialog::paintEvent(ev);

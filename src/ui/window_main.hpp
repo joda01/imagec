@@ -48,8 +48,7 @@ public:
   {
   }
   void showChannelEdit(ContainerBase *);
-  bool showStartScreen(bool warnBeforeSwitch);
-  void showProjectOverview();
+  bool showProjectOverview();
   void removeChannel(ContainerBase *toRemove);
   void removeAllChannels();
   void setWorkingDirectory(const std::string &workingDir);
@@ -85,19 +84,10 @@ public:
 
   [[nodiscard]] auto getJobName() const -> std::string
   {
-    if(mJobName->text().isEmpty()) {
-      return mJobName->placeholderText().toStdString();
-    }
-    return mJobName->text().toStdString();
+    return mJobName.toStdString();
   }
 
-  void setMiddelLabelText(const QString &txt)
-  {
-    if(mMiddle != nullptr) {
-      mMiddle->setText(txt);
-    }
-  }
-
+  void setWindowTitlePrefix(const QString &txt);
 signals:
   void lookingForFilesFinished();
   void lookingForTemplateFinished(std::map<std::string, helper::templates::TemplateParser::Data>);
@@ -110,18 +100,20 @@ private:
   /////////////////////////////////////////////////////
   enum class Navigation
   {
-    START_SCREEN     = 0,
-    PROJECT_OVERVIEW = 1,
-    CHANNEL_EDIT     = 2,
-    REPORTING        = 3
+    PROJECT_OVERVIEW = 0,
+    CHANNEL_EDIT     = 1,
+    REPORTING        = 2
   };
 
   /////////////////////////////////////////////////////
   void createTopToolbar();
   void createBottomToolbar();
-  void createRightToolbar();
+  void createLeftToolbar();
   void checkForSettingsChanged();
   void resetImageInfo();
+
+  void fromProjectSettings();
+  void toProjectSettings();
 
   QWidget *createStackedWidget();
   QWidget *createStartWidget();
@@ -139,7 +131,6 @@ private:
 
   QStackedWidget *mStackedWidget;
   QGridLayout *mLayoutChannelOverview;
-  QWidget *mAddChannelPanel;
   QLabel *mLastElement;
   QAction *mBackButton;
   joda::ctrl::Controller *mController;
@@ -151,10 +142,9 @@ private:
   ClickableLabel *mFoundFilesHint;
   std::thread *mMainThread;
   bool mNewFolderSelected = false;
-  QLabel *mMiddle         = nullptr;
 
   ////Navifation/////////////////////////////////////////////////
-  Navigation mNavigation = Navigation::START_SCREEN;
+  Navigation mNavigation = Navigation::PROJECT_OVERVIEW;
 
   ////Project settings/////////////////////////////////////////////////
   joda::settings::AnalyzeSettings mAnalyzeSettings;
@@ -165,10 +155,10 @@ private:
   ////Toolbar/////////////////////////////////////////////////
   QToolBar *mButtomToolbar;
   QToolBar *mRightToolBar;
-  QLineEdit *mJobName;
+  QString mJobName;
 
   ////Right Toolbar/////////////////////////////////////////////////
-  QTextEdit *mLabelImageInfo;
+  QTableWidget *mLabelImageInfo;
 
   ////Made project settings/////////////////////////////////////////////////
   ContainerBase *mSelectedChannel = nullptr;
@@ -178,6 +168,10 @@ private:
   PanelReporting *mPanelReporting = nullptr;
 
   ////ToolbarIcons/////////////////////////////////////////////////
+  QAction *mNewProjectButton  = nullptr;
+  QAction *mOpenProjectButton = nullptr;
+  QAction *mOpenResultsButton = nullptr;
+
   QAction *mFileSelectorComboBox    = nullptr;
   QAction *mImageSeriesComboBox     = nullptr;
   QAction *mImageResolutionComboBox = nullptr;
@@ -185,12 +179,26 @@ private:
   QAction *mSaveProject             = nullptr;
   QAction *mStartAnalysis           = nullptr;
   QAction *mOpenReportingArea       = nullptr;
-  QAction *mJobNameAction           = nullptr;
-  QAction *mProjectSettings         = nullptr;
   QAction *mDeleteChannel           = nullptr;
   QAction *mShowInfoDialog          = nullptr;
   QAction *mFirstSeparator          = nullptr;
   QAction *mSecondSeparator         = nullptr;
+
+  ////Project settings/////////////////////////////////////////////////
+  static constexpr int32_t NR_OF_SCIENTISTS = 1;
+  QLineEdit *mAddressOrganisation;
+  std::vector<QLineEdit *> mScientists{NR_OF_SCIENTISTS};
+
+  QComboBox *mGroupByComboBox;
+  QLineEdit *mWorkingDir;
+  QLabel *mWellOrderMatrixLabel;
+  QLineEdit *mWellOrderMatrix;
+  QLabel *mRegexToFindTheWellPositionLabel;
+  QComboBox *mRegexToFindTheWellPosition;
+  QLineEdit *mTestFileName;
+  QLabel *mTestFileNameLabel;
+  QLabel *mTestFileResult;
+  QTextEdit *mNotes;
 
   ////Giraf/////////////////////////////////////////////////
   QPushButton *mUseImageC;
@@ -208,15 +216,14 @@ private slots:
   void onBackClicked();
   void onRemoveChannelClicked();
   void onShowInfoDialog();
-  QWidget *createAddChannelPanel();
   void onLookingForFilesFinished();
   void onOpenAnalyzeSettingsClicked();
   void onAddGirafClicked();
   void onImageSelectionChanged();
   void onResolutionChanged();
-
-  void onOpenSettingsDialog();
   void onFindTemplatesFinished(std::map<std::string, helper::templates::TemplateParser::Data>);
+  void applyRegex();
+  void onOpenWorkingDirectoryClicked();
 };
 
 }    // namespace joda::ui::qt

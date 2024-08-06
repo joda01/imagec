@@ -34,7 +34,6 @@ using namespace std::chrono_literals;
 PanelGirafEdit::PanelGirafEdit(WindowMain *wm, ContainerGiraf *parentContainer) :
     mWindowMain(wm), mParentContainer(parentContainer)
 {
-  // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelGirafEdit");
 }
 

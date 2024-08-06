@@ -49,7 +49,7 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
 {
   // Create and set up the grid layout
   auto [horizontalLayout, centerWidget] = joda::ui::qt::helper::createLayout(this);
-  horizontalLayout->setContentsMargins(0, 0, 0, 0);
+  //   horizontalLayout->setContentsMargins(0, 0, 0, 0);
 
   // vertical->addWidget(createBreadCrump());
   // vertical->addWidget(centerWidget);
@@ -64,7 +64,7 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
     connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelHeatmap::onElementSelected);
     connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelHeatmap::onOpenNextLevel);
     auto *breadCrump = createBreadCrump(this);
-    plateViewer->setContentsMargins(16, 0, 16, 16);
+    //     plateViewer->setContentsMargins(16, 0, 16, 16);
     plateViewer->addWidget(breadCrump);
     breadCrump->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
@@ -186,11 +186,6 @@ QWidget *PanelHeatmap::createBreadCrump(QWidget *parent)
 {
   QWidget *breadCrump = new QWidget(parent);
   breadCrump->setObjectName("BreadCrump");
-
-  breadCrump->setStyleSheet(
-      "QWidget#BreadCrump { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
-      "padding-bottom: 10px;"
-      "background-color: rgb(246, 246, 246);}");
 
   QHBoxLayout *layout = new QHBoxLayout(breadCrump);
   breadCrump->setMaximumHeight(48);

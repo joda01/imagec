@@ -45,7 +45,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
   {
     QToolBar *toolbarTop = new QToolBar();
-    toolbarTop->setContentsMargins(0, 0, 0, 0);
+    //     toolbarTop->setContentsMargins(0, 0, 0, 0);
     toolbarTop->setMaximumHeight(32);
 
     QAction *fitToScreen = new QAction(QIcon(":/icons/outlined/icons8-full-screen-50.png"), "");

@@ -563,9 +563,8 @@ private:
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
-    mEditable->setStyleSheet("QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
     QVBoxLayout *layout = new QVBoxLayout();
-    layout->setContentsMargins(8, 8, 8, 0);
+    //     layout->setContentsMargins(8, 8, 8, 0);
 
     const QIcon myIcon(":/icons/outlined/" + icon);
 
@@ -618,13 +617,12 @@ private:
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
-    mEditable->setStyleSheet("QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
     QVBoxLayout *layoutVertical = new QVBoxLayout();
-    layoutVertical->setContentsMargins(8, 8, 8, 0);
+    //     layoutVertical->setContentsMargins(8, 8, 8, 0);
 
     QWidget *horizontaContainer   = new QWidget();
     QHBoxLayout *layoutHorizontal = new QHBoxLayout();
-    layoutHorizontal->setContentsMargins(0, 0, 0, 0);
+    //     layoutHorizontal->setContentsMargins(0, 0, 0, 0);
     layoutHorizontal->setSpacing(4);
 
     const QIcon myIcon(":/icons/outlined/" + icon);
@@ -683,11 +681,11 @@ private:
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
     QVBoxLayout *layoutVertical = new QVBoxLayout();
-    layoutVertical->setContentsMargins(8, 8, 8, 0);
+    //     layoutVertical->setContentsMargins(8, 8, 8, 0);
 
     QWidget *horizontaContainer   = new QWidget();
     QHBoxLayout *layoutHorizontal = new QHBoxLayout();
-    layoutHorizontal->setContentsMargins(0, 0, 0, 0);
+    //     layoutHorizontal->setContentsMargins(0, 0, 0, 0);
     layoutHorizontal->setSpacing(4);
 
     const QIcon myIcon(":/icons/outlined/" + icon);
@@ -740,11 +738,11 @@ private:
   void createHelperText(QVBoxLayout *layout, const QString &helpText)
   {
     QHBoxLayout *hLayout = new QHBoxLayout();
-    hLayout->setContentsMargins(0, 0, 0, 0);
+    //     hLayout->setContentsMargins(0, 0, 0, 0);
     auto *helperText = new QLabel();
     helperText->setObjectName("functionHelperText");
     helperText->setText(helpText);
-    helperText->setContentsMargins(12, 0, 0, 0);
+    //     helperText->setContentsMargins(12, 0, 0, 0);
     // Create a QFont instance
     QFont font;
     font.setPixelSize(12);
@@ -752,7 +750,6 @@ private:
     font.setBold(false);
     font.setWeight(QFont::Light);
     helperText->setFont(font);
-    helperText->setStyleSheet("QLabel#functionHelperText { color : #808080; }");
     hLayout->addWidget(helperText);
 
     // Info icon
@@ -761,18 +758,7 @@ private:
       connect(help, &QPushButton::clicked, this, &ContainerFunction::onHelpButtonClicked);
       const QIcon helpIcon(":/icons/outlined/icons8-info-50-circle.png");
       help->setCursor(Qt::PointingHandCursor);
-      help->setStyleSheet(
-          "QPushButton {"
-          "   background-color: rgba(0, 0, 0, 0);"
-          "   border: 0px solid rgb(111, 121, 123);"
-          "   color: rgb(0, 104, 117);"
-          "   padding: 2px 2px;"
-          "   border-radius: 4px;"
-          "   font-size: 8px;"
-          "   font-weight: normal;"
-          "   text-align: center;"
-          "   text-decoration: none;"
-          "}");
+      help->setObjectName("help");
       help->setIconSize({12, 12});
       help->setIcon(helpIcon);
       hLayout->addWidget(help);

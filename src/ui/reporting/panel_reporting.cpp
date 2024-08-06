@@ -49,7 +49,6 @@ using namespace std::filesystem;
 
 PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 {
-  // setStyleSheet("border: 1px solid black; padding: 10px;");
   setObjectName("PanelReporting");
 
   auto [horizontalLayout, _] = joda::ui::qt::helper::createLayout(this);
@@ -180,7 +179,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 
       // tableContainer->addWidget(mTable);
   } {
-    tableContainer->setContentsMargins(0, 0, 0, 0);
+    //     tableContainer->setContentsMargins(0, 0, 0, 0);
     mHeatmap = new reporting::plugin::PanelHeatmap(mWindowMain, tableContainerLayout);
     tableContainer->addWidget(mHeatmap);
     connect(mHeatmap, &reporting::plugin::PanelHeatmap::loadingStarted, this, &PanelReporting::onLoadingStarted);
@@ -250,7 +249,7 @@ QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
   // progress->setVisible(false);
   progress->setMaximumHeight(8);
   progress->setTextVisible(false);
-  progress->setContentsMargins(8, 8, 8, 0);
+  //   progress->setContentsMargins(8, 8, 8, 0);
   return progress;
 }
 
@@ -277,7 +276,7 @@ void PanelReporting::close()
 ///
 void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &imageCFile)
 {
-  mWindowMain->setMiddelLabelText(imageCFile.filename().string().data());
+  mWindowMain->setWindowTitlePrefix(imageCFile.filename().string().data());
   mAnalyzer = std::make_shared<joda::results::Analyzer>(imageCFile);
 
   std::string analysisId;

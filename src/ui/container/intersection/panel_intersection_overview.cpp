@@ -24,15 +24,10 @@ namespace joda::ui::qt {
 PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIntersection *parent) :
     mWindowMain(wm), mParentContainer(parent)
 {
-  // setStyleSheet("border: 1px solid black; padding: 10px;");
-  setObjectName("PanelIntersectionOverview");
+  setObjectName("PanelChannelOverview");
   setMinimumWidth(350);
   setMaximumWidth(350);
   QGridLayout *layout = new QGridLayout(this);
-  setStyleSheet(
-      "QWidget#PanelIntersectionOverview { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
-      "padding-bottom: 10px;"
-      "background-color: rgb(246, 246, 246);}");
 
   setLayout(layout);
   layout->setSpacing(0);

@@ -104,7 +104,7 @@ DialogExportData::DialogExportData(QWidget *windowMain) : DialogShadow(windowMai
   // Footer buttons
   //
   QWidget *buttons = new QWidget();
-  buttons->setContentsMargins(0, 0, 0, 0);
+  //   buttons->setContentsMargins(0, 0, 0, 0);
   QHBoxLayout *hBox = new QHBoxLayout(buttons);
 
   // Close button

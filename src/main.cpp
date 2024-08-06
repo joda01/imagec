@@ -34,6 +34,8 @@ int main(int argc, char *argv[])
   app.setFont(font);
 
   QApplication::setStyle("Fusion");
+
+  /*
   app.setStyleSheet(
       "QMainWindow#windowMain {"
       "   background-color: rgb(255, 255, 255); "
@@ -80,7 +82,6 @@ int main(int argc, char *argv[])
       "   border: 2px solid #2196F3;"
       "}"
 
-      /*Push button*/
       "QPushButton {"
       "   border: 1px solid rgb(0, 0, 0);"
       "   background-color: rgb(255, 255, 255);"
@@ -102,7 +103,6 @@ int main(int argc, char *argv[])
       "   background-color: rgb(170, 170, 170);"    // Darken on press
       "}"
 
-      /*Tool Push button*/
       "QPushButton#ToolButton {"
       "   border: 0px solid rgb(0, 0, 0);"
       "   background-color: rgb(170, 170, 170);"
@@ -131,7 +131,6 @@ int main(int argc, char *argv[])
       "   color: rgb(170, 170, 170);"
       "}"
 
-      /*Push button dialogs*/
       "QPushButton#DialogButton {"
       "   background-color: rgba(0, 0, 0, 0);"
       "   border: 1px solid rgba(0, 0, 0, 0);"
@@ -152,7 +151,6 @@ int main(int argc, char *argv[])
       "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
       "}"
 
-      /*Combo box*/
       "QComboBox {"
       "   border: 1px solid rgb(0, 0, 0);"
       "   background-color: rgb(255, 255, 255);"
@@ -197,11 +195,110 @@ int main(int argc, char *argv[])
       "   background-color: #fff;"
       "}"
 
-      /*Text field box*/
       "QLineEdit { border-radius: 4px; border: 1px solid rgb(0, 0, 0); padding-top: 10px; padding-bottom: "
       "10px;}"
 
-  );
+      "QMainWindow#windowMain {"
+      "   background-color: rgb(251, 252, 253); "
+      "   border: none;"
+      "}"
+
+      "QToolBar {"
+      "   background-color: rgb(251, 252, 253); "
+      "   border: 0px; border-bottom: 0px;"
+      "   spacing:8px;"
+      "}"
+
+      "QWidget#PanelChannelOverview { "
+      "  border-radius: 12px; "
+      "  border: 1px solid rgb(170, 170, 170);"
+      "  padding-top: 10px; "
+      "  padding-bottom: 10px;"
+      "  background-color: rgba(0, 104, 117, 0);}"
+
+      "QWidget#contentOverview { background-color: rgb(251, 252, 253);}"
+
+      "QScrollArea#scrollAreaOverview { background-color: rgb(251, 252, 253);}"
+
+      "QDialog { "
+      "border-radius: 12px; "
+      "border: 2px solid palette(shadow); "
+      "background-color: palette(base); "
+      "}"
+
+      "QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}"
+
+      "QLabel#functionHelperText { color : #808080; }"
+
+      "QPushButton#help {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 0px solid rgb(111, 121, 123);"
+      "   color: rgb(0, 104, 117);"
+      "   padding: 2px 2px;"
+      "   border-radius: 4px;"
+      "   font-size: 8px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QScrollArea#scrollArea { background-color: rgba(0, 0, 0, 0);}"
+
+      "QScrollBar:vertical#scrollAreaV {"
+      "    border: none;"
+      "    background: rgba(0, 0, 0, 0);"
+      "    width: 6px;"
+      "    margin: 0px 0px 0px 0px;"
+      "}"
+      "QScrollBar::handle:vertical#scrollAreaV {"
+      "    background: rgba(32, 27, 23, 0.6);"
+      "    min-height: 20px;"
+      "    border-radius: 12px;"
+      "}"
+      "QScrollBar::add-line:vertical#scrollAreaV {"
+      "    border: none;"
+      "    background: rgba(0, 0, 0, 0);"
+      "    height: 20px;"
+      "    subcontrol-position: bottom;"
+      "    subcontrol-origin: margin;"
+      "}"
+      "QScrollBar::sub-line:vertical#scrollAreaV {"
+      "    border: none;"
+      "    background: rgba(0, 0, 0, 0);"
+      "    height: 20px;"
+      "    subcontrol-position: top;"
+      "    subcontrol-origin: margin;"
+      "}"
+
+      "QWidget#verticalContentChannel { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
+      "padding-bottom: 10px;"
+      "background-color: rgba(32, 27, 23, 0.6);;}"
+
+      "QPushButton#closeButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 1px solid rgba(0, 0, 0, 0);"
+      "   color: rgb(0, 51, 102);"
+      "   padding: 10px 10px;"
+      "   border-radius: 4px;"
+      "   font-size: 14px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "}"
+
+      "QPushButton:hover#closeButton {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on hover
+      "}"
+
+      "QPushButton:pressed#closeButton {"
+      "   background-color: rgba(0, 0, 0, 0);"    // Darken on press
+      "}"
+
+      "QWidget#BreadCrump { border-radius: 12px; border: 2px none #696969; padding-top: 10px; "
+      "padding-bottom: 10px;"
+      "background-color: rgb(246, 246, 246);}"
+
+  );*/
 
   // Option 1, like in the mentioned stackoverflow answer
   // QWidget window

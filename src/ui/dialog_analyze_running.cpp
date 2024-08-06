@@ -37,7 +37,7 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
   //
   // Set up the layout
   QVBoxLayout *mainLayout = new QVBoxLayout(this);
-  mainLayout->setContentsMargins(28, 28, 28, 28);
+  //   // mainLayout->setContentsMargins(28, 28, 28, 28);
 
   QFont font;
   font.setBold(true);

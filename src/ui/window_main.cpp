@@ -12,6 +12,7 @@
 ///
 
 #include "window_main.hpp"
+#include <qboxlayout.h>
 #include <qcombobox.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
@@ -38,6 +39,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/helper/username.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -51,7 +53,6 @@
 #include "container/voronoi/container_voronoi.hpp"
 #include "ui/container/giraf/container_giraf.hpp"
 #include "ui/dialog_analyze_running.hpp"
-#include "ui/dialog_experiment_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include "ui/reporting/panel_reporting.hpp"
 #include "build_info.h"
@@ -68,18 +69,13 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setWindowTitle(Version::getTitle().data());
   createTopToolbar();
   createBottomToolbar();
-  createRightToolbar();
+  createLeftToolbar();
   setMinimumSize(1600, 800);
   setObjectName("windowMain");
-  setStyleSheet(
-      "QMainWindow#windowMain {"
-      "   background-color: rgb(251, 252, 253); "
-      "   border: none;"
-      "}");
   setCentralWidget(createStackedWidget());
 
   // Start with the main page
-  showStartScreen(false);
+  showProjectOverview();
 
   mMainThread = new std::thread(&WindowMain::waitForFileSearchFinished, this);
   connect(this, &WindowMain::lookingForFilesFinished, this, &WindowMain::onLookingForFilesFinished);
@@ -89,21 +85,25 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   connect(getImageResolutionCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onResolutionChanged);
 }
 
+void WindowMain::setWindowTitlePrefix(const QString &txt)
+{
+  if(!txt.isEmpty()) {
+    setWindowTitle(QString(Version::getTitle().data()) + " - " + txt);
+  } else {
+    setWindowTitle(QString(Version::getTitle().data()));
+  }
+}
+
 void WindowMain::createBottomToolbar()
 {
   mButtomToolbar = new QToolBar(this);
-  mButtomToolbar->setStyleSheet("QToolBar{spacing:8px;}");
-
-  mButtomToolbar->setMinimumHeight(48);
-  mButtomToolbar->setMovable(false);
-  mButtomToolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
+  mButtomToolbar->setMovable(true);
   // Middle
 
   {
     // Add a spacer to push the next action to the middle
     QWidget *spacerWidget = new QWidget();
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    mButtomToolbar->setMaximumHeight(32);
     mButtomToolbar->addWidget(spacerWidget);
   }
 
@@ -130,13 +130,13 @@ void WindowMain::createBottomToolbar()
   mFoundFilesHint = new ClickableLabel(mButtomToolbar);
   mFoundFilesHint->setText("Please open a working directory ...");
   mFileSearchHintLabel = mButtomToolbar->addWidget(mFoundFilesHint);
-  connect(mFoundFilesHint, &ClickableLabel::clicked, this, &WindowMain::onOpenSettingsDialog);
 
   addToolBar(Qt::ToolBarArea::BottomToolBarArea, mButtomToolbar);
 
   // Right
   {
     QWidget *spacerWidget = new QWidget();
+    spacerWidget->setContentsMargins(0, 0, 0, 0);
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     mButtomToolbar->addWidget(spacerWidget);
   }
@@ -149,110 +149,301 @@ void WindowMain::createBottomToolbar()
 void WindowMain::createTopToolbar()
 {
   auto *toolbar = addToolBar("toolbar");
-  toolbar->setMinimumHeight(48);
+  toolbar->setMovable(true);
 
-  toolbar->setMovable(false);
-  toolbar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
+  mBackButton = new QAction(QIcon(":/icons/outlined/icons8-left-50.png"), "Back", toolbar);
+  mBackButton->setEnabled(false);
+  connect(mBackButton, &QAction::triggered, this, &WindowMain::onBackClicked);
+  toolbar->addAction(mBackButton);
+  mFirstSeparator = toolbar->addSeparator();
 
-  // Left
-  {
-    mBackButton = new QAction(QIcon(":/icons/outlined/icons8-left-50.png"), "Back", toolbar);
-    mBackButton->setEnabled(false);
-    connect(mBackButton, &QAction::triggered, this, &WindowMain::onBackClicked);
-    toolbar->addAction(mBackButton);
-    mFirstSeparator = toolbar->addSeparator();
+  mNewProjectButton = new QAction(QIcon(":/icons/outlined/icons8-file-50.png"), "New project", toolbar);
+  // connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
+  toolbar->addAction(mNewProjectButton);
 
-    mSaveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", toolbar);
-    mSaveProject->setToolTip("Save project!");
-    connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
-    toolbar->addAction(mSaveProject);
+  mOpenProjectButton = new QAction(QIcon(":/icons/outlined/icons8-opened-folder-50.png"), "Open project", toolbar);
+  connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenAnalyzeSettingsClicked);
+  toolbar->addAction(mOpenProjectButton);
 
-    mSecondSeparator = toolbar->addSeparator();
+  mSaveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", toolbar);
+  mSaveProject->setToolTip("Save project!");
+  connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
+  toolbar->addAction(mSaveProject);
 
-    mOpenReportingArea = new QAction(QIcon(":/icons/outlined/icons8-graph-50.png"), "Reporting area", toolbar);
-    mOpenReportingArea->setToolTip("Open reporting area");
-    connect(mOpenReportingArea, &QAction::triggered, this, &WindowMain::onOpenReportingAreaClicked);
-    //  toolbar->addAction(mOpenReportingArea);
+  mSecondSeparator = toolbar->addSeparator();
 
-    mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
-    mStartAnalysis->setEnabled(false);
-    mStartAnalysis->setToolTip("Start analysis!");
-    connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onStartClicked);
-    toolbar->addAction(mStartAnalysis);
+  mOpenReportingArea = new QAction(QIcon(":/icons/outlined/icons8-graph-50.png"), "Reporting area", toolbar);
+  mOpenReportingArea->setToolTip("Open reporting area");
+  connect(mOpenReportingArea, &QAction::triggered, this, &WindowMain::onOpenReportingAreaClicked);
+  //  toolbar->addAction(mOpenReportingArea);
 
-    {
-      const QIcon myIcon(":/icons/outlined/icons8-topic-50.png");
-      mJobName = new QLineEdit();
-      mJobName->setObjectName("JobName");
-      mJobName->setStyleSheet("border: 0px solid rgb(190, 209, 207);");
-      mJobName->setText("");
-      mJobName->setClearButtonEnabled(true);
-      // mJobName->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
-      mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
-      mJobName->setMaximumWidth(200);
-      mJobNameAction = toolbar->addWidget(mJobName);
-    }
+  mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
+  mStartAnalysis->setEnabled(false);
+  mStartAnalysis->setToolTip("Start analysis!");
+  connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onStartClicked);
+  toolbar->addAction(mStartAnalysis);
 
-    mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
-    mDeleteChannel->setToolTip("Delete channel!");
-    connect(mDeleteChannel, &QAction::triggered, this, &WindowMain::onRemoveChannelClicked);
-    toolbar->addAction(mDeleteChannel);
-  }
+  mOpenResultsButton = new QAction(QIcon(":/icons/outlined/icons8-graph-50.png"), "Open results", toolbar);
+  connect(mOpenResultsButton, &QAction::triggered, this, &WindowMain::onOpenReportingAreaClicked);
+  toolbar->addAction(mOpenResultsButton);
 
-  // Middle
+  mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
+  mDeleteChannel->setToolTip("Delete channel!");
+  connect(mDeleteChannel, &QAction::triggered, this, &WindowMain::onRemoveChannelClicked);
+  toolbar->addAction(mDeleteChannel);
 
-  {
-    // Add a spacer to push the next action to the middle
-    QWidget *spacerWidget = new QWidget();
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    toolbar->setMaximumHeight(32);
-    toolbar->addWidget(spacerWidget);
-  }
+  toolbar->addSeparator();
 
-  // Place middle here
-  mMiddle = new QLabel();
-  toolbar->addWidget(mMiddle);
-
-  // Right
-  {
-    QWidget *spacerWidget = new QWidget();
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    toolbar->addWidget(spacerWidget);
-  }
-
-  {
-    mProjectSettings = new QAction(QIcon(":/icons/outlined/icons8-settings-50.png"), "Settings", toolbar);
-    mProjectSettings->setToolTip("Settings");
-    connect(mProjectSettings, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
-    toolbar->addAction(mProjectSettings);
-
-    mShowInfoDialog = new QAction(QIcon(":/icons/outlined/icons8-info-50.png"), "Info", toolbar);
-    mShowInfoDialog->setToolTip("Info");
-    connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
-    toolbar->addAction(mShowInfoDialog);
-  }
+  mShowInfoDialog = new QAction(QIcon(":/icons/outlined/icons8-info-50.png"), "Info", toolbar);
+  mShowInfoDialog->setToolTip("Info");
+  connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
+  toolbar->addAction(mShowInfoDialog);
 }
 
 ///
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::createRightToolbar()
+void WindowMain::createLeftToolbar()
 {
   mRightToolBar = new QToolBar(this);
-  mRightToolBar->setStyleSheet("QToolBar{spacing:8px;}");
   mRightToolBar->setMovable(false);
-  mRightToolBar->setStyleSheet("QToolBar {background-color: rgb(251, 252, 253); border: 0px; border-bottom: 0px;}");
+  auto *tabs = new QTabWidget(mRightToolBar);
 
+  // Project Settings
   {
-    mLabelImageInfo = new QTextEdit();
-    mLabelImageInfo->setStyleSheet("QTextEdit { border: none; background-color: rgb(251,252,253); }");
-    mLabelImageInfo->setReadOnly(true);
-    mRightToolBar->addWidget(mLabelImageInfo);
+    auto *pipelineTab       = new QWidget();
+    auto *layout            = new QVBoxLayout();
+    QFormLayout *formLayout = new QFormLayout;
+
+    auto addSeparator = [&formLayout]() {
+      QFrame *separator = new QFrame;
+      separator->setFrameShape(QFrame::HLine);
+      separator->setFrameShadow(QFrame::Sunken);
+      formLayout->addRow(separator);
+    };
+
+    // Scientist
+    {
+      for(int i = 0; i < NR_OF_SCIENTISTS; ++i) {
+        mScientists[i] = new QLineEdit;
+        formLayout->addRow(new QLabel(tr("Scientist:")), mScientists[i]);
+      }
+
+      mScientists[0]->setPlaceholderText(joda::helper::getLoggedInUserName());
+      mAddressOrganisation = new QLineEdit;
+      mAddressOrganisation->setPlaceholderText("University of Salzburg");
+      formLayout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
+    }
+    addSeparator();
+
+    // Working directory
+    {
+      //
+      // Working directory
+      //
+      mWorkingDir = new QLineEdit();
+      mWorkingDir->setReadOnly(true);
+      mWorkingDir->setPlaceholderText("Directory your images are placed in...");
+      QHBoxLayout *workingDir = new QHBoxLayout;
+      workingDir->addWidget(mWorkingDir);
+      QPushButton *openDir = new QPushButton(QIcon(":/icons/outlined/icons8-folder-50.png"), "");
+      // openDir->setObjectName("ToolButton");
+      connect(openDir, &QPushButton::clicked, this, &WindowMain::onOpenWorkingDirectoryClicked);
+      workingDir->addWidget(openDir);
+      workingDir->setStretch(0, 1);    // Make label take all available space
+      formLayout->addRow(new QLabel(tr("Image directory:")), workingDir);
+
+      addSeparator();
+
+      //
+      // Group by
+      //
+      mGroupByComboBox = new QComboBox();
+      mGroupByComboBox->addItem("Ungrouped", static_cast<int>(joda::settings::ExperimentSettings::GroupBy::OFF));
+      mGroupByComboBox->addItem("Group based on foldername",
+                                static_cast<int>(joda::settings::ExperimentSettings::GroupBy::DIRECTORY));
+      mGroupByComboBox->addItem("Group based on filename",
+                                static_cast<int>(joda::settings::ExperimentSettings::GroupBy::FILENAME));
+      formLayout->addRow(new QLabel(tr("Group by:")), mGroupByComboBox);
+
+      //
+      // Well order matrix
+      //
+      mWellOrderMatrix      = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+      mWellOrderMatrixLabel = new QLabel(tr("Well order:"));
+      formLayout->addRow(mWellOrderMatrixLabel, mWellOrderMatrix);
+
+      //
+      // Regex
+      //
+      mRegexToFindTheWellPosition = new QComboBox();
+      mRegexToFindTheWellPosition->addItem("_((.)([0-9]+))_([0-9]+)", "_((.)([0-9]+))_([0-9]+)");
+      mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_([0-9]+)", "((.)([0-9]+))_([0-9]+)");
+      mRegexToFindTheWellPosition->addItem("(.*)_([0-9]*)", "(.*)_([0-9]*)");
+      mRegexToFindTheWellPosition->setEditable(true);
+      connect(mRegexToFindTheWellPosition, &QComboBox::editTextChanged, this, &WindowMain::applyRegex);
+      connect(mRegexToFindTheWellPosition, &QComboBox::currentIndexChanged, this, &WindowMain::applyRegex);
+      connect(mRegexToFindTheWellPosition, &QComboBox::currentTextChanged, this, &WindowMain::applyRegex);
+      mRegexToFindTheWellPositionLabel = new QLabel(tr("Filename regex:"));
+      formLayout->addRow(mRegexToFindTheWellPositionLabel, mRegexToFindTheWellPosition);
+
+      //
+      mTestFileName      = new QLineEdit("your_test_image_file_Name_A99_01.tif");
+      mTestFileNameLabel = new QLabel(tr("Regex test:"));
+      formLayout->addRow(mTestFileNameLabel, mTestFileName);
+      connect(mTestFileName, &QLineEdit::editingFinished, this, &WindowMain::applyRegex);
+
+      mTestFileResult = new QLabel();
+      formLayout->addRow(mTestFileResult);
+    }
+    addSeparator();
+
+    layout->addLayout(formLayout);
+
+    mNotes = new QTextEdit;
+    mNotes->setPlaceholderText("Notes on the experiment...");
+    layout->addWidget(mNotes);
+
+    layout->addStretch();
+    pipelineTab->setLayout(layout);
+    tabs->addTab(pipelineTab, "Project");
   }
+
+  // Pipeline Tab
+  {
+    auto *pipelineTab = new QWidget();
+    auto *layout      = new QVBoxLayout();
+
+    //
+    // Open template
+    //
+    mTemplateSelection = new QComboBox();
+    mTemplateSelection->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    layout->addWidget(mTemplateSelection);
+
+    //
+    // Add channel
+    //
+    QPushButton *addChannelButton = new QPushButton();
+    addChannelButton->setText("Add image Channel");
+    addChannelButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+
+    connect(addChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
+    layout->addWidget(addChannelButton);
+
+    //
+    // Add cell voronoi
+    //
+    QPushButton *addVoronoiButton = new QPushButton();
+    const QIcon voronoiIcon(":/icons/outlined/dom-voronoi-50.png");
+    addVoronoiButton->setText("Add voronoi channel");
+    addVoronoiButton->setIconSize({16, 16});
+    addVoronoiButton->setIcon(voronoiIcon);
+    connect(addVoronoiButton, &QPushButton::pressed, this, &WindowMain::onAddCellApproxClicked);
+    layout->addWidget(addVoronoiButton);
+
+    //
+    // Add intersection voronoi
+    //
+    QPushButton *addIntersection = new QPushButton();
+    const QIcon intersectionIcon(":/icons/outlined/icons8-query-inner-join-50.png");
+    addIntersection->setIconSize({16, 16});
+    addIntersection->setIcon(intersectionIcon);
+    addIntersection->setText("Add intersection channel");
+    connect(addIntersection, &QPushButton::pressed, this, &WindowMain::onAddIntersectionClicked);
+    layout->addWidget(addIntersection);
+
+    //
+    // Add giraf
+    //
+    QPushButton *addGiraf = new QPushButton();
+    addGiraf->setText("Add the Giraf");
+    connect(addGiraf, &QPushButton::pressed, this, &WindowMain::onAddGirafClicked);
+    layout->addWidget(addGiraf);
+
+    layout->addStretch();
+    pipelineTab->setLayout(layout);
+    tabs->addTab(pipelineTab, "Pipeline");
+  }
+
+  // Image Tab
+  {
+    auto *imageTab = new QWidget();
+    auto *layout   = new QVBoxLayout();
+    layout->setContentsMargins(0, 0, 0, 0);
+    mLabelImageInfo = new QTableWidget(3, 2);
+    mLabelImageInfo->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    mLabelImageInfo->verticalHeader()->setVisible(false);
+    mLabelImageInfo->setHorizontalHeaderLabels({"Meta", "Value"});
+    mLabelImageInfo->setAlternatingRowColors(true);
+    mLabelImageInfo->setSelectionBehavior(QAbstractItemView::SelectRows);
+    layout->addWidget(mLabelImageInfo);
+    imageTab->setLayout(layout);
+    tabs->addTab(imageTab, "Image");
+  }
+  mRightToolBar->addWidget(tabs);
+
   resetImageInfo();
   mRightToolBar->setVisible(false);
-  addToolBar(Qt::ToolBarArea::RightToolBarArea, mRightToolBar);
+
+  mRightToolBar->setMinimumWidth(300);
+  addToolBar(Qt::ToolBarArea::LeftToolBarArea, mRightToolBar);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onOpenWorkingDirectoryClicked()
+{
+  QString folderToOpen      = QDir::homePath();
+  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen);
+
+  if(selectedDirectory.isEmpty()) {
+    return;
+  }
+  mWorkingDir->setText(selectedDirectory);
+  mWorkingDir->update();
+  mWorkingDir->repaint();
+  mAnalyzeSettings.experimentSettings.wotkingDirectory = mWorkingDir->text().toStdString();
+  setWorkingDirectory(mAnalyzeSettings.experimentSettings.wotkingDirectory);
+  checkForSettingsChanged();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void WindowMain::applyRegex()
+{
+  try {
+    auto regexResult = joda::results::Results::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
+                                                          mTestFileName->text().toStdString());
+
+    if(regexResult.groupName.length() > 20) {
+      regexResult.groupName =
+          (QString(regexResult.groupName.data()).left(8) + "..." + QString(regexResult.groupName.data()).right(10))
+              .toStdString();
+    }
+    std::string matching = "<html><b>Group:</b> " + regexResult.groupName;
+    std::string row;
+    if(regexResult.well.wellPosX != UINT16_MAX) {
+      row = "| <b>Row:</b> " + std::to_string(regexResult.well.wellPosX);
+    }
+    std::string column;
+    if(regexResult.well.wellPosY != UINT16_MAX) {
+      column = "| <b>Col:</b> " + std::to_string(regexResult.well.wellPosY);
+    }
+    std::string img    = "| <b>Img:</b> " + std::to_string(regexResult.well.imageIdx);
+    std::string toText = matching + row + column + img + "</html>";
+    mTestFileResult->setText(QString(toText.data()));
+  } catch(const std::exception &ex) {
+    mTestFileResult->setText(ex.what());
+  }
 }
 
 ///
@@ -277,28 +468,20 @@ QWidget *WindowMain::createStackedWidget()
 QWidget *WindowMain::createStartWidget()
 {
   QWidget *startScreenWidget = new QWidget();
-  // setStyleSheet("border: 1px solid black; padding: 10px;");
   startScreenWidget->setObjectName("PanelChannelOverview");
   startScreenWidget->setMinimumHeight(350);
   startScreenWidget->setMinimumWidth(350);
   startScreenWidget->setMaximumWidth(350);
   QVBoxLayout *layout = new QVBoxLayout(); /*this*/
-  layout->setContentsMargins(16, 16, 16, 16);
+                                           //   // layout->setContentsMargins(16, 16, 16, 16);
 
   layout->setObjectName("mainWindowChannelGridLayout");
-  startScreenWidget->setStyleSheet(
-      "QWidget#PanelChannelOverview { border-radius: 12px; border: 1px solid rgb(170, 170, 170); padding-top: "
-      "10px; "
-      "padding-bottom: 10px;"
-      "background-color: rgba(0, 104, 117, 0);}");
-
   startScreenWidget->setLayout(layout);
   layout->setSpacing(0);
 
   QWidget *widgetAddChannel     = new QWidget();
   QHBoxLayout *layoutAddChannel = new QHBoxLayout();
-  layoutAddChannel->setContentsMargins(0, 0, 0, 0);
-
+  //   layoutAddChannel->setContentsMargins(0, 0, 0, 0);
   widgetAddChannel->setLayout(layoutAddChannel);
 
   //
@@ -328,39 +511,6 @@ QWidget *WindowMain::createStartWidget()
   layout->addWidget(line);
   layout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
-  //
-  // New project
-  //
-  QPushButton *newProject = new QPushButton();
-  const QIcon voronoiIcon(":/icons/outlined/icons8-add-new-50.png");
-  newProject->setText("New project");
-  newProject->setIconSize({16, 16});
-  newProject->setIcon(voronoiIcon);
-  connect(newProject, &QPushButton::pressed, this, &WindowMain::onOpenSettingsDialog);
-  layout->addWidget(newProject);
-
-  //
-  // Open existing project
-  //
-  QPushButton *openProject = new QPushButton();
-  const QIcon intersectionIcon(":/icons/outlined/icons8-opened-folder-50.png");
-  openProject->setIconSize({16, 16});
-  openProject->setIcon(intersectionIcon);
-  openProject->setText("Open project");
-  connect(openProject, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
-  layout->addWidget(openProject);
-
-  //
-  // Open results
-  //
-  QPushButton *openResults = new QPushButton();
-  const QIcon openResultsIcon(":/icons/outlined/icons8-graph-50.png");
-  openResults->setIconSize({16, 16});
-  openResults->setIcon(openResultsIcon);
-  openResults->setText("Open results");
-  connect(openResults, &QPushButton::pressed, this, &WindowMain::onOpenReportingAreaClicked);
-  layout->addWidget(openResults);
-
   layout->setSpacing(8);    // Adjust this value as needed
   layout->addStretch();
   startScreenWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -371,7 +521,7 @@ QWidget *WindowMain::createStartWidget()
     QWidget *contentWidget = new QWidget;
     QGridLayout *layout    = new QGridLayout(contentWidget);
     layout->setObjectName("mainWindowGridLayout");
-    layout->setContentsMargins(16, 16, 16, 16);
+    //     // layout->setContentsMargins(16, 16, 16, 16);
     layout->setSpacing(8);    // Adjust this value as needed
     contentWidget->setLayout(layout);
     return {layout, contentWidget};
@@ -395,10 +545,9 @@ QWidget *WindowMain::createStartWidget()
   // Create a widget to hold the panels
   auto *contentWidget = new QWidget;
   contentWidget->setObjectName("contentOverview");
-  contentWidget->setStyleSheet("QWidget#contentOverview { background-color: rgb(251, 252, 253);}");
   auto *horizontalLayout = new QHBoxLayout(contentWidget);
   horizontalLayout->setObjectName("mainWindowHLayout");
-  horizontalLayout->setContentsMargins(16, 16, 16, 16);
+  //   // horizontalLayout->setContentsMargins(16, 16, 16, 16);
   horizontalLayout->setSpacing(16);    // Adjust this value as needed
   contentWidget->setLayout(horizontalLayout);
   horizontalLayout->addStretch();
@@ -407,7 +556,6 @@ QWidget *WindowMain::createStartWidget()
   QScrollArea *scrollArea = new QScrollArea(this);
   scrollArea->setFrameStyle(0);
   scrollArea->setObjectName("scrollAreaOverview");
-  scrollArea->setStyleSheet("QScrollArea#scrollAreaOverview { background-color: rgb(251, 252, 253);}");
   scrollArea->setWidget(contentWidget);
   scrollArea->setWidgetResizable(true);
   horizontalLayout->addStretch();
@@ -424,12 +572,10 @@ QWidget *WindowMain::createOverviewWidget()
   QScrollArea *scrollArea = new QScrollArea(this);
   scrollArea->setFrameStyle(0);
   scrollArea->setObjectName("scrollAreaOverview");
-  scrollArea->setStyleSheet("QScrollArea#scrollAreaOverview { background-color: rgb(251, 252, 253);}");
 
   // Create a widget to hold the panels
   QWidget *contentWidget = new QWidget;
   contentWidget->setObjectName("contentOverview");
-  contentWidget->setStyleSheet("QWidget#contentOverview { background-color: rgb(251, 252, 253);}");
 
   scrollArea->setWidget(contentWidget);
   scrollArea->setWidgetResizable(true);
@@ -437,7 +583,7 @@ QWidget *WindowMain::createOverviewWidget()
   // Create a horizontal layout for the panels
   QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
   horizontalLayout->setObjectName("mainWindowHLayout");
-  horizontalLayout->setContentsMargins(16, 16, 16, 16);
+  //   // horizontalLayout->setContentsMargins(16, 16, 16, 16);
   horizontalLayout->setSpacing(16);    // Adjust this value as needed
   contentWidget->setLayout(horizontalLayout);
 
@@ -445,7 +591,7 @@ QWidget *WindowMain::createOverviewWidget()
     QWidget *contentWidget = new QWidget;
     QGridLayout *layout    = new QGridLayout(contentWidget);
     layout->setObjectName("mainWindowGridLayout");
-    layout->setContentsMargins(16, 16, 16, 16);
+    //     // layout->setContentsMargins(16, 16, 16, 16);
     layout->setSpacing(8);    // Adjust this value as needed
     contentWidget->setLayout(layout);
     return {layout, contentWidget};
@@ -455,10 +601,8 @@ QWidget *WindowMain::createOverviewWidget()
     auto [channelsOverViewLayout, channelsOverviewWidget] = createVerticalContainer();
     mLayoutChannelOverview                                = channelsOverViewLayout;
 
-    channelsOverViewLayout->addWidget(createAddChannelPanel());
-
     mLastElement = new QLabel();
-    channelsOverViewLayout->addWidget(mLastElement, 1, 0, 1, 3);
+    channelsOverViewLayout->addWidget(mLastElement, 0, 0, 0, 3);
 
     channelsOverViewLayout->setRowStretch(0, 1);
     channelsOverViewLayout->setRowStretch(1, 1);
@@ -507,122 +651,26 @@ QWidget *WindowMain::createReportingWidget()
   return mPanelReporting;
 }
 
-QWidget *WindowMain::createAddChannelPanel()
-{
-  QWidget *addChannelWidget = new QWidget();
-  // setStyleSheet("border: 1px solid black; padding: 10px;");
-  addChannelWidget->setObjectName("PanelChannelOverview");
-  addChannelWidget->setMinimumHeight(250);
-  addChannelWidget->setMinimumWidth(350);
-  addChannelWidget->setMaximumWidth(350);
-  QVBoxLayout *layout = new QVBoxLayout(); /*this*/
-  layout->setContentsMargins(16, 16, 16, 16);
-
-  layout->setObjectName("mainWindowChannelGridLayout");
-  addChannelWidget->setStyleSheet(
-      "QWidget#PanelChannelOverview { border-radius: 12px; border: 1px solid rgb(170, 170, 170); padding-top: "
-      "10px; "
-      "padding-bottom: 10px;"
-      "background-color: rgba(0, 104, 117, 0);}");
-
-  addChannelWidget->setLayout(layout);
-  layout->setSpacing(0);
-
-  QWidget *widgetAddChannel     = new QWidget();
-  QHBoxLayout *layoutAddChannel = new QHBoxLayout();
-  layoutAddChannel->setContentsMargins(0, 0, 0, 0);
-
-  widgetAddChannel->setLayout(layoutAddChannel);
-
-  //
-  // Open template
-  //
-  mTemplateSelection = new QComboBox();
-  mTemplateSelection->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-  layoutAddChannel->addWidget(mTemplateSelection);
-
-  //
-  // Add channel
-  //
-  QPushButton *addChannelButton = new QPushButton();
-  addChannelButton->setText("Add image Channel");
-  addChannelButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-
-  connect(addChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
-  layoutAddChannel->addWidget(addChannelButton);
-
-  layout->addWidget(widgetAddChannel);
-
-  //
-  // Add cell voronoi
-  //
-  QPushButton *addVoronoiButton = new QPushButton();
-  const QIcon voronoiIcon(":/icons/outlined/dom-voronoi-50.png");
-  addVoronoiButton->setText("Add voronoi channel");
-  addVoronoiButton->setIconSize({16, 16});
-  addVoronoiButton->setIcon(voronoiIcon);
-  connect(addVoronoiButton, &QPushButton::pressed, this, &WindowMain::onAddCellApproxClicked);
-  layout->addWidget(addVoronoiButton);
-
-  //
-  // Add intersection voronoi
-  //
-  QPushButton *addIntersection = new QPushButton();
-  const QIcon intersectionIcon(":/icons/outlined/icons8-query-inner-join-50.png");
-  addIntersection->setIconSize({16, 16});
-  addIntersection->setIcon(intersectionIcon);
-  addIntersection->setText("Add intersection channel");
-  connect(addIntersection, &QPushButton::pressed, this, &WindowMain::onAddIntersectionClicked);
-  layout->addWidget(addIntersection);
-
-  //
-  // Open settings
-  //
-  QPushButton *openSettingsButton = new QPushButton();
-  openSettingsButton->setText("Load channel settings");
-  connect(openSettingsButton, &QPushButton::pressed, this, &WindowMain::onOpenAnalyzeSettingsClicked);
-  // layout->addWidget(openSettingsButton);
-
-  //
-  // Add giraf
-  //
-  QPushButton *addGiraf = new QPushButton();
-  addGiraf->setText("or add the Giraf");
-  connect(addGiraf, &QPushButton::pressed, this, &WindowMain::onAddGirafClicked);
-  layout->addWidget(addGiraf);
-
-  layout->setSpacing(8);    // Adjust this value as needed
-  layout->addStretch();
-  addChannelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-
-  mAddChannelPanel = addChannelWidget;
-  return addChannelWidget;
-}
-
 ///
 /// \brief      On add giraf clicked
 /// \author     Joachim Danmayr
 ///
 void WindowMain::onAddGirafClicked()
 {
-  if(mAddChannelPanel != nullptr) {
-    {
-      int row = (mChannels.size() + 1) / OVERVIEW_COLS;
-      int col = (mChannels.size() + 1) % OVERVIEW_COLS;
-      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
-      mLayoutChannelOverview->removeWidget(mLastElement);
-      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
-      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
-    }
-
-    int row                = mChannels.size() / OVERVIEW_COLS;
-    int col                = mChannels.size() % OVERVIEW_COLS;
-    ContainerGiraf *panel1 = new ContainerGiraf(this);
-    panel1->fromSettings();
-    panel1->toSettings();
-    mChannels.emplace(panel1, &panel1);
-    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+  {
+    int row = (mChannels.size() + 1) / OVERVIEW_COLS;
+    int col = (mChannels.size() + 1) % OVERVIEW_COLS;
+    mLayoutChannelOverview->removeWidget(mLastElement);
+    mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
   }
+
+  int row                = mChannels.size() / OVERVIEW_COLS;
+  int col                = mChannels.size() % OVERVIEW_COLS;
+  ContainerGiraf *panel1 = new ContainerGiraf(this);
+  panel1->fromSettings();
+  panel1->toSettings();
+  mChannels.emplace(panel1, &panel1);
+  mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
 }
 
 ///
@@ -679,7 +727,6 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
@@ -703,7 +750,6 @@ ContainerBase *WindowMain::addChannelFromTemplate(const QString &filePath)
     if(mSelectedChannel != nullptr) {
       QMessageBox messageBox(this);
       auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-      messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
       messageBox.setIconPixmap(icon->pixmap(42, 42));
       messageBox.setWindowTitle("Could not load settings!");
       messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
@@ -812,7 +858,7 @@ void WindowMain::onLookingForFilesFinished()
 ///
 void WindowMain::resetImageInfo()
 {
-  mLabelImageInfo->setText("...");
+#warning "Reset data"
 }
 
 ///
@@ -824,30 +870,56 @@ void WindowMain::onImageSelectionChanged()
   auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
   const auto &imgInfo = ome.getImageInfo();
 
-  auto imageData = QString(
-                       "<p><strong>Image</strong></p>"
-                       "<p>Size: %1 x %2<br />Bits: %3<br />Tile size: %4 x %5<br />Nr. of tiles: %6<br />Nr. of "
-                       "composite tiles: %7<br />Series: "
-                       "%8<br />Pyramid: %9</p>")
-                       .arg(imgInfo.resolutions.at(0).imageWidth)
-                       .arg(imgInfo.resolutions.at(0).imageHeight)
-                       .arg(imgInfo.resolutions.at(0).bits)
-                       .arg(imgInfo.resolutions.at(0).optimalTileWidth)
-                       .arg(imgInfo.resolutions.at(0).optimalTileHeight)
-                       .arg(imgInfo.resolutions.at(0).getTileCount())
-                       .arg(imgInfo.resolutions.at(0).getTileCount(joda::pipeline::COMPOSITE_TILE_WIDTH,
-                                                                   joda::pipeline::COMPOSITE_TILE_HEIGHT))
-                       .arg(ome.getNrOfSeries())
-                       .arg(ome.getResolutionCount().size());
+  mLabelImageInfo->setRowCount(20 + ome.getChannelInfos().size() * 7);
+
+  int32_t row = 0;
+
+  auto addItem = [this, &row](const std::string name, int64_t value, const std::string &prefix) {
+    mLabelImageInfo->setItem(row, 0, new QTableWidgetItem(name.data()));
+    mLabelImageInfo->setItem(row, 1, new QTableWidgetItem(QString::number(value) + " " + QString(prefix.data())));
+    row++;
+  };
+
+  auto addStringItem = [this, &row](const std::string name, const std::string &value) {
+    mLabelImageInfo->setItem(row, 0, new QTableWidgetItem(name.data()));
+    mLabelImageInfo->setItem(row, 1, new QTableWidgetItem(value.data()));
+    row++;
+  };
+
+  auto addTitle = [this, &row](const std::string name) {
+    auto *item = new QTableWidgetItem(name.data());
+    QFont font;
+    font.setBold(true);
+    item->setFont(font);
+    mLabelImageInfo->setItem(row, 0, item);
+    mLabelImageInfo->setItem(row, 1, new QTableWidgetItem(""));
+    row++;
+  };
+
+  addTitle("Image");
+  addItem("Width", imgInfo.resolutions.at(0).imageWidth, "px");
+  addItem("Height", imgInfo.resolutions.at(0).imageHeight, "px");
+  addItem("Bits", imgInfo.resolutions.at(0).bits, "");
+
+  addItem("Tile width", imgInfo.resolutions.at(0).optimalTileWidth, "px");
+  addItem("Tile height", imgInfo.resolutions.at(0).optimalTileHeight, "px");
+  addItem("Tile count", imgInfo.resolutions.at(0).getTileCount(), "");
+
+  addItem("Composite tile width", joda::pipeline::COMPOSITE_TILE_WIDTH, "px");
+  addItem("Composite tile height", joda::pipeline::COMPOSITE_TILE_HEIGHT, "px");
+  addItem("Composite tile count",
+          imgInfo.resolutions.at(0).getTileCount(joda::pipeline::COMPOSITE_TILE_WIDTH,
+                                                 joda::pipeline::COMPOSITE_TILE_HEIGHT),
+          "");
+  addItem("Series", ome.getNrOfSeries(), "");
+  addItem("Pyramids", ome.getResolutionCount().size(), "");
 
   const auto &objectiveInfo = ome.getObjectiveInfo();
-  auto objectiveData        = QString(
-                           "<p><strong>Objective</strong></p>"
-                                  "<p>Manufacturer: %1<br />Model: %2<br />Medium: %3<br />Magnification: x%4</p>")
-                           .arg(objectiveInfo.manufacturer.data())
-                           .arg(objectiveInfo.model.data())
-                           .arg(objectiveInfo.medium.data())
-                           .arg(objectiveInfo.magnification);
+  addTitle("Objective");
+  addStringItem("Manufacturer", objectiveInfo.manufacturer);
+  addStringItem("Model", objectiveInfo.model);
+  addStringItem("Medium", objectiveInfo.medium);
+  addStringItem("Magnification", "x" + std::to_string(objectiveInfo.magnification));
 
   QString channelInfoStr;
   for(const auto &[idx, channelInfo] : ome.getChannelInfos()) {
@@ -855,24 +927,14 @@ void WindowMain::onImageSelectionChanged()
     if(!channelInfo.zStackForTimeFrame.empty()) {
       zStack = channelInfo.zStackForTimeFrame.begin()->second.size();
     }
-    QString channelData =
-        QString(
-            "<p><strong>Channel %1</strong></p>"
-            "<p>ID: %2<br />Name: %3<br />Emission wave length: %4 %5<br />Contrast method: %6<br />Expousre: "
-            "%7 %8<br />Z-Stack: %9</p>")
-            .arg(idx)
-            .arg(channelInfo.channelId.data())
-            .arg(channelInfo.name.data())
-            .arg(channelInfo.emissionWaveLength)
-            .arg(channelInfo.emissionWaveLengthUnit.data())
-            .arg(channelInfo.contrastMethos.data())
-            .arg(channelInfo.exposuerTime)
-            .arg(channelInfo.exposuerTimeUnit.data())
-            .arg(zStack);
-    channelInfoStr += channelData;
+    addTitle("Channel " + std::to_string(idx));
+    addStringItem("ID", channelInfo.channelId);
+    addStringItem("Name", channelInfo.name);
+    addItem("Emission wave length", channelInfo.emissionWaveLength, channelInfo.emissionWaveLengthUnit);
+    addStringItem("Contrast method", channelInfo.contrastMethos);
+    addItem("Exposure time", channelInfo.exposuerTime, channelInfo.exposuerTimeUnit);
+    addItem("Z-Stack", zStack, "");
   }
-
-  mLabelImageInfo->setHtml(imageData + objectiveData + channelInfoStr);
 
   {
     mImageResolutionCombo->blockSignals(true);
@@ -952,7 +1014,7 @@ void WindowMain::onSaveProject()
     }
 
     if(!mSelectedProjectSettingsFilePath.empty()) {
-      setMiddelLabelText(mSelectedProjectSettingsFilePath.filename().string().data());
+      setWindowTitlePrefix(mSelectedProjectSettingsFilePath.filename().string().data());
       if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
         joda::settings::Settings::storeSettings(mSelectedProjectSettingsFilePath.string(), mAnalyzeSettings);
       }
@@ -964,7 +1026,6 @@ void WindowMain::onSaveProject()
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not save settings!");
     messageBox.setText("Could not save settings, got error >" + QString(ex.what()) + "<!");
@@ -1001,52 +1062,15 @@ void WindowMain::onStartClicked()
     dialg.exec();
 
     // Analysis finished -> generate new name
-    mJobName->setText("");
-    mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
+    mJobName.clear();
+    mJobName = joda::helper::RandomNameGenerator::GetRandomName().data();
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-error-50.png");
-    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
-    // messageBox.setAttribute(Qt::WA_TranslucentBackground);
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Error in settings!");
     messageBox.setText(ex.what());
     messageBox.addButton(tr("Okay"), QMessageBox::YesRole);
-    // Rounded borders -->
-    const int radius = 12;
-    messageBox.setStyleSheet(QString("QDialog { "
-                                     "border-radius: %1px; "
-                                     "border: 2px solid palette(shadow); "
-                                     "background-color: palette(base); "
-                                     "}")
-                                 .arg(radius));
-
-    // The effect will not be actually visible outside the rounded window,
-    // but it does help get rid of the pixelated rounded corners.
-    QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
-    // The color should match the border color set in CSS.
-    effect->setColor(QApplication::palette().color(QPalette::Shadow));
-    effect->setBlurRadius(8);
-    messageBox.setGraphicsEffect(effect);
-
-    // Need to show the box before we can get its proper dimensions.
-    messageBox.show();
-
-    // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
-    // The mask is sized based on the current window geometry. If the window were resizable (somehow)
-    // then the mask would need to be set in resizeEvent().
-    const QRect rect(QPoint(0, 0), messageBox.geometry().size());
-    QBitmap b(rect.size());
-    b.fill(QColor(Qt::color0));
-    QPainter painter(&b);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(Qt::color1);
-    // this radius should match the CSS radius
-    painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
-    painter.end();
-    messageBox.setMask(b);
-    // <--
-
     messageBox.exec();
   }
 }
@@ -1058,12 +1082,7 @@ void WindowMain::onStartClicked()
 void WindowMain::onBackClicked()
 {
   switch(mNavigation) {
-    case Navigation::START_SCREEN:
-      break;
     case Navigation::PROJECT_OVERVIEW:
-      if(showStartScreen(true)) {
-        checkForSettingsChanged();
-      }
       break;
     case Navigation::CHANNEL_EDIT:
       showProjectOverview();
@@ -1075,7 +1094,7 @@ void WindowMain::onBackClicked()
       checkForSettingsChanged();
       break;
     case Navigation::REPORTING:
-      if(showStartScreen(true)) {
+      if(showProjectOverview()) {
         if(mPanelReporting != nullptr) {
           mPanelReporting->close();
         }
@@ -1088,101 +1107,26 @@ void WindowMain::onBackClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-bool WindowMain::showStartScreen(bool warnBeforeSwitch)
-{
-  if(warnBeforeSwitch) {
-    QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
-    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
-    // messageBox.setAttribute(Qt::WA_TranslucentBackground);
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
-    messageBox.setWindowTitle("Close project?");
-    messageBox.setText("Do you want to close the screen? Unsaved settings will get lost!");
-    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
-    messageBox.setDefaultButton(noButton);
-    // Rounded borders -->
-    const int radius = 12;
-    messageBox.setStyleSheet(QString("QDialog { "
-                                     "border-radius: %1px; "
-                                     "border: 2px solid palette(shadow); "
-                                     "background-color: palette(base); "
-                                     "}")
-                                 .arg(radius));
-
-    // The effect will not be actually visible outside the rounded window,
-    // but it does help get rid of the pixelated rounded corners.
-    QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
-    // The color should match the border color set in CSS.
-    effect->setColor(QApplication::palette().color(QPalette::Shadow));
-    effect->setBlurRadius(8);
-    messageBox.setGraphicsEffect(effect);
-
-    // Need to show the box before we can get its proper dimensions.
-    messageBox.show();
-
-    // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
-    // The mask is sized based on the current window geometry. If the window were resizable (somehow)
-    // then the mask would need to be set in resizeEvent().
-    const QRect rect(QPoint(0, 0), messageBox.geometry().size());
-    QBitmap b(rect.size());
-    b.fill(QColor(Qt::color0));
-    QPainter painter(&b);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(Qt::color1);
-    // this radius should match the CSS radius
-    painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
-    painter.end();
-    messageBox.setMask(b);
-    // <--
-
-    auto reply = messageBox.exec();
-    if(messageBox.clickedButton() == noButton) {
-      return false;
-    }
-  }
-  setMiddelLabelText("");
-  mRightToolBar->setVisible(false);
-  mButtomToolbar->setVisible(false);
-  mProjectSettings->setVisible(false);
-  mBackButton->setEnabled(false);
-  mBackButton->setVisible(false);
-  mSaveProject->setVisible(false);
-  mSaveProject->setVisible(false);
-  mStartAnalysis->setVisible(false);
-  mJobNameAction->setVisible(false);
-  mDeleteChannel->setVisible(false);
-  mFirstSeparator->setVisible(false);
-  mSecondSeparator->setVisible(false);
-  mOpenReportingArea->setVisible(false);
-  mStackedWidget->setCurrentIndex(0);
-  mNavigation = Navigation::START_SCREEN;
-  return true;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::showProjectOverview()
+bool WindowMain::showProjectOverview()
 {
   // setMiddelLabelText(mSelectedWorkingDirectory);
+  mNewProjectButton->setVisible(true);
+  mOpenProjectButton->setVisible(true);
+  mOpenResultsButton->setVisible(true);
   mRightToolBar->setVisible(true);
   mButtomToolbar->setVisible(true);
-  mProjectSettings->setVisible(true);
-  mBackButton->setIcon(QIcon(":/icons/outlined/icons8-home-50.png"));
-  mBackButton->setEnabled(true);
-  mBackButton->setVisible(true);
+  mBackButton->setEnabled(false);
+  mBackButton->setVisible(false);
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
   mStartAnalysis->setVisible(true);
-  mJobNameAction->setVisible(true);
   mDeleteChannel->setVisible(false);
-  mFirstSeparator->setVisible(true);
+  mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(true);
   mOpenReportingArea->setVisible(true);
   mStackedWidget->setCurrentIndex(1);
   mNavigation = Navigation::PROJECT_OVERVIEW;
+  return true;
 }
 
 ///
@@ -1192,17 +1136,18 @@ void WindowMain::showProjectOverview()
 void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 {
   mSelectedChannel = selectedChannel;
+  mNewProjectButton->setVisible(false);
+  mOpenProjectButton->setVisible(false);
+  mOpenResultsButton->setVisible(false);
+
   mRightToolBar->setVisible(false);
   mButtomToolbar->setVisible(true);
   selectedChannel->setActive(true);
-  mProjectSettings->setVisible(true);
-  mBackButton->setIcon(QIcon(":/icons/outlined/icons8-left-50.png"));
   mBackButton->setEnabled(true);
   mBackButton->setVisible(true);
   mSaveProject->setVisible(false);
   mSaveProject->setVisible(false);
   mStartAnalysis->setVisible(false);
-  mJobNameAction->setVisible(false);
   mDeleteChannel->setVisible(true);
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(false);
@@ -1237,16 +1182,18 @@ void WindowMain::onOpenReportingAreaClicked()
     mPanelReporting->setActualSelectedWorkingFile(filePath.toStdString());
 
     // Open reporting area
+    mNewProjectButton->setVisible(false);
+    mOpenProjectButton->setVisible(false);
+    mOpenResultsButton->setVisible(false);
+
     mRightToolBar->setVisible(false);
     mButtomToolbar->setVisible(false);
-    mProjectSettings->setVisible(false);
     mBackButton->setIcon(QIcon(":/icons/outlined/icons8-home-50.png"));
     mBackButton->setEnabled(true);
     mBackButton->setVisible(true);
     mSaveProject->setVisible(false);
     mSaveProject->setVisible(false);
     mStartAnalysis->setVisible(false);
-    mJobNameAction->setVisible(false);
     mDeleteChannel->setVisible(false);
     mFirstSeparator->setVisible(false);
     mSecondSeparator->setVisible(false);
@@ -1256,7 +1203,6 @@ void WindowMain::onOpenReportingAreaClicked()
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not load database!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
@@ -1275,49 +1221,12 @@ void WindowMain::onRemoveChannelClicked()
   if(mSelectedChannel != nullptr) {
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-    messageBox.setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
-    // messageBox.setAttribute(Qt::WA_TranslucentBackground);
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Remove channel?");
     messageBox.setText("Do you want to remove the channel?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
     QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
     messageBox.setDefaultButton(noButton);
-    // Rounded borders -->
-    const int radius = 12;
-    messageBox.setStyleSheet(QString("QDialog { "
-                                     "border-radius: %1px; "
-                                     "border: 2px solid palette(shadow); "
-                                     "background-color: palette(base); "
-                                     "}")
-                                 .arg(radius));
-
-    // The effect will not be actually visible outside the rounded window,
-    // but it does help get rid of the pixelated rounded corners.
-    QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect();
-    // The color should match the border color set in CSS.
-    effect->setColor(QApplication::palette().color(QPalette::Shadow));
-    effect->setBlurRadius(8);
-    messageBox.setGraphicsEffect(effect);
-
-    // Need to show the box before we can get its proper dimensions.
-    messageBox.show();
-
-    // Here we draw the mask to cover the "cut off" corners, otherwise they show through.
-    // The mask is sized based on the current window geometry. If the window were resizable (somehow)
-    // then the mask would need to be set in resizeEvent().
-    const QRect rect(QPoint(0, 0), messageBox.geometry().size());
-    QBitmap b(rect.size());
-    b.fill(QColor(Qt::color0));
-    QPainter painter(&b);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(Qt::color1);
-    // this radius should match the CSS radius
-    painter.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
-    painter.end();
-    messageBox.setMask(b);
-    // <--
-
     auto reply = messageBox.exec();
     if(messageBox.clickedButton() == yesButton) {
       removeChannel(mSelectedChannel);
@@ -1329,49 +1238,29 @@ void WindowMain::onRemoveChannelClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onOpenSettingsDialog()
-{
-  DialogExperimentSettings di(this, mAnalyzeSettings.experimentSettings);
-  di.exec();
-  setWorkingDirectory(mAnalyzeSettings.experimentSettings.wotkingDirectory);
-  if(mNavigation == Navigation::START_SCREEN) {
-    mSelectedProjectSettingsFilePath.clear();
-    removeAllChannels();
-    showProjectOverview();
-  }
-  checkForSettingsChanged();
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
 ContainerBase *WindowMain::addChannel(joda::settings::ChannelSettings settings)
 {
-  if(mAddChannelPanel != nullptr) {
-    {
-      int row = (mChannels.size() + 1) / OVERVIEW_COLS;
-      int col = (mChannels.size() + 1) % OVERVIEW_COLS;
-      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
-      mLayoutChannelOverview->removeWidget(mLastElement);
-      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
-      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
-    }
-
-    int row = mChannels.size() / OVERVIEW_COLS;
-    int col = mChannels.size() % OVERVIEW_COLS;
-    ContainerBase *panel1;
-
-    mAnalyzeSettings.channels.push_back(settings);
-    joda::settings::ChannelSettings &newlyAdded = mAnalyzeSettings.channels.back();
-    panel1                                      = new ContainerChannel(this, newlyAdded);
-    panel1->fromSettings();
-    panel1->toSettings();
-    mChannels.emplace(panel1, &newlyAdded);
-    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
-    checkForSettingsChanged();
-    return panel1;
+  {
+    int row = (mChannels.size() + 1) / OVERVIEW_COLS;
+    int col = (mChannels.size() + 1) % OVERVIEW_COLS;
+    mLayoutChannelOverview->removeWidget(mLastElement);
+    mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
   }
+
+  int row = mChannels.size() / OVERVIEW_COLS;
+  int col = mChannels.size() % OVERVIEW_COLS;
+  ContainerBase *panel1;
+
+  mAnalyzeSettings.channels.push_back(settings);
+  joda::settings::ChannelSettings &newlyAdded = mAnalyzeSettings.channels.back();
+  panel1                                      = new ContainerChannel(this, newlyAdded);
+  panel1->fromSettings();
+  panel1->toSettings();
+  mChannels.emplace(panel1, &newlyAdded);
+  mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+  checkForSettingsChanged();
+  return panel1;
+
   return nullptr;
 }
 
@@ -1381,32 +1270,27 @@ ContainerBase *WindowMain::addChannel(joda::settings::ChannelSettings settings)
 ///
 ContainerBase *WindowMain::addVChannelVoronoi(joda::settings::VChannelVoronoi settings)
 {
-  if(mAddChannelPanel != nullptr) {
-    {
-      int row = (mChannels.size() + 1) / OVERVIEW_COLS;
-      int col = (mChannels.size() + 1) % OVERVIEW_COLS;
-      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
-      mLayoutChannelOverview->removeWidget(mLastElement);
-      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
-      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
-    }
-
-    int row = mChannels.size() / OVERVIEW_COLS;
-    int col = mChannels.size() % OVERVIEW_COLS;
-    ContainerBase *panel1;
-
-    mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$voronoi = settings});
-    joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
-    panel1                                       = new ContainerVoronoi(this, newlyAdded.$voronoi.value());
-    panel1->fromSettings();
-    panel1->toSettings();
-    mChannels.emplace(panel1, &newlyAdded);
-
-    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
-    checkForSettingsChanged();
-    return panel1;
+  {
+    int row = (mChannels.size() + 1) / OVERVIEW_COLS;
+    int col = (mChannels.size() + 1) % OVERVIEW_COLS;
+    mLayoutChannelOverview->removeWidget(mLastElement);
+    mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
   }
-  return nullptr;
+
+  int row = mChannels.size() / OVERVIEW_COLS;
+  int col = mChannels.size() % OVERVIEW_COLS;
+  ContainerBase *panel1;
+
+  mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$voronoi = settings});
+  joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
+  panel1                                       = new ContainerVoronoi(this, newlyAdded.$voronoi.value());
+  panel1->fromSettings();
+  panel1->toSettings();
+  mChannels.emplace(panel1, &newlyAdded);
+
+  mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+  checkForSettingsChanged();
+  return panel1;
 }
 
 ///
@@ -1415,31 +1299,28 @@ ContainerBase *WindowMain::addVChannelVoronoi(joda::settings::VChannelVoronoi se
 ///
 ContainerBase *WindowMain::addVChannelIntersection(joda::settings::VChannelIntersection settings)
 {
-  if(mAddChannelPanel != nullptr) {
-    {
-      int row = (mChannels.size() + 1) / OVERVIEW_COLS;
-      int col = (mChannels.size() + 1) % OVERVIEW_COLS;
-      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
-      mLayoutChannelOverview->removeWidget(mLastElement);
-      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
-      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
-    }
-
-    int row = mChannels.size() / OVERVIEW_COLS;
-    int col = mChannels.size() % OVERVIEW_COLS;
-    ContainerBase *panel1;
-
-    mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$intersection = settings});
-    joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
-    panel1                                       = new ContainerIntersection(this, newlyAdded.$intersection.value());
-    panel1->fromSettings();
-    panel1->toSettings();
-    mChannels.emplace(panel1, &newlyAdded);
-
-    mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
-    checkForSettingsChanged();
-    return panel1;
+  {
+    int row = (mChannels.size() + 1) / OVERVIEW_COLS;
+    int col = (mChannels.size() + 1) % OVERVIEW_COLS;
+    mLayoutChannelOverview->removeWidget(mLastElement);
+    mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
   }
+
+  int row = mChannels.size() / OVERVIEW_COLS;
+  int col = mChannels.size() % OVERVIEW_COLS;
+  ContainerBase *panel1;
+
+  mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$intersection = settings});
+  joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
+  panel1                                       = new ContainerIntersection(this, newlyAdded.$intersection.value());
+  panel1->fromSettings();
+  panel1->toSettings();
+  mChannels.emplace(panel1, &newlyAdded);
+
+  mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
+  checkForSettingsChanged();
+  return panel1;
+
   return nullptr;
 }
 
@@ -1505,9 +1386,7 @@ void WindowMain::removeChannel(ContainerBase *toRemove)
     {
       int row = (mChannels.size()) / OVERVIEW_COLS;
       int col = (mChannels.size()) % OVERVIEW_COLS;
-      mLayoutChannelOverview->removeWidget(mAddChannelPanel);
       mLayoutChannelOverview->removeWidget(mLastElement);
-      mLayoutChannelOverview->addWidget(mAddChannelPanel, row, col);
       mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
     }
     mSelectedChannel = nullptr;
@@ -1525,7 +1404,7 @@ void WindowMain::onShowInfoDialog()
   DialogShadow messageBox(this);
   messageBox.setWindowTitle("Info");
   auto *mainLayout = new QVBoxLayout(&messageBox);
-  mainLayout->setContentsMargins(28, 28, 28, 28);
+  //   mainLayout->setContentsMargins(28, 28, 28, 28);
   QLabel *helpTextLabel = new QLabel(
       "<p style=\"text-align: left;\"><strong>" + QString(Version::getProgamName().data()) + " " +
       QString(Version::getVersion().data()) + " (" + QString(Version::getBuildTime().data()) +
@@ -1573,6 +1452,100 @@ QString WindowMain::bytesToString(int64_t bytes)
     return QString::number(static_cast<double>(bytes) / 1000.0, 'f', 2) + " kB";
   }
   return QString::number(static_cast<double>(bytes) / 1.0, 'f', 2) + "  Byte";
+}
+
+struct Temp
+{
+  std::vector<std::vector<int32_t>> order;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Temp, order);
+};
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void WindowMain::fromProjectSettings()
+{
+  {
+    auto idx = mGroupByComboBox->findData(static_cast<int>(mAnalyzeSettings.experimentSettings.groupBy));
+    if(idx >= 0) {
+      mGroupByComboBox->setCurrentIndex(idx);
+    } else {
+      mGroupByComboBox->setCurrentIndex(0);
+    }
+  }
+
+  {
+    auto idx = mGroupByComboBox->findData(static_cast<int>(mAnalyzeSettings.experimentSettings.groupBy));
+    if(idx >= 0) {
+      mGroupByComboBox->setCurrentIndex(idx);
+    } else {
+      mGroupByComboBox->setCurrentIndex(0);
+    }
+  }
+
+  {
+    try {
+      Temp tm{.order = mAnalyzeSettings.experimentSettings.wellImageOrder};
+      nlohmann::json j = tm;
+      j                = j["order"];
+      mWellOrderMatrix->setText(j.dump().data());
+    } catch(...) {
+      mWellOrderMatrix->setText("[[1,2,3,4],[5,6,7,8]]");
+    }
+  }
+
+  mWorkingDir->setText(mAnalyzeSettings.experimentSettings.wotkingDirectory.data());
+  mRegexToFindTheWellPosition->setCurrentText(mAnalyzeSettings.experimentSettings.filenameRegex.data());
+  mNotes->setText(mAnalyzeSettings.experimentSettings.notes.data());
+  mAddressOrganisation->setText(mAnalyzeSettings.experimentSettings.address.organization.data());
+  int idx = 0;
+  for(const auto &scientist : mAnalyzeSettings.experimentSettings.scientistsNames) {
+    if(idx >= mScientists.size()) {
+      mScientists.push_back(new QLineEdit());
+      /// \todo Add Qline edit of other scientst to layout
+    }
+    mScientists[idx]->setText(scientist.data());
+    idx++;
+  }
+  applyRegex();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void WindowMain::toProjectSettings()
+{
+  mAnalyzeSettings.experimentSettings.wotkingDirectory     = mWorkingDir->text().toStdString();
+  mAnalyzeSettings.experimentSettings.address.organization = mAddressOrganisation->text().trimmed().toStdString();
+  mAnalyzeSettings.experimentSettings.notes                = mNotes->toPlainText().toStdString();
+  mAnalyzeSettings.experimentSettings.scientistsNames.clear();
+  for(const auto *textLabel : mScientists) {
+    mAnalyzeSettings.experimentSettings.scientistsNames.push_back(textLabel->text().trimmed().toStdString());
+  }
+
+  mAnalyzeSettings.experimentSettings.groupBy =
+      static_cast<joda::settings::ExperimentSettings::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mAnalyzeSettings.experimentSettings.filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
+
+  try {
+    nlohmann::json wellImageOrderJson = nlohmann::json::parse(mWellOrderMatrix->text().toStdString());
+    nlohmann::json obj;
+    obj["order"]                                       = wellImageOrderJson;
+    Temp tm                                            = nlohmann::json::parse(obj.dump());
+    mAnalyzeSettings.experimentSettings.wellImageOrder = tm.order;
+  } catch(...) {
+    mAnalyzeSettings.experimentSettings.wellImageOrder.clear();
+    QMessageBox::warning(this, "Warning",
+                         "The well matrix format is not well defined. Please correct it in the settings dialog!");
+  }
 }
 
 }    // namespace joda::ui::qt

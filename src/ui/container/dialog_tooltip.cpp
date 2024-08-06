@@ -42,7 +42,7 @@ DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QS
 
   /////////////////////////////////////////////////////////////////
   auto *mainLayout = new QVBoxLayout(this);
-  mainLayout->setContentsMargins(28, 28, 28, 28);
+  //   mainLayout->setContentsMargins(28, 28, 28, 28);
 
   QString helpText = "{}";
   QFile file(":/helptext/helptext/" + pathToHelpText);
