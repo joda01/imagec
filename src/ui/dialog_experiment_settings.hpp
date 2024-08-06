@@ -54,8 +54,6 @@ private:
   joda::settings::ExperimentSettings &mSettings;
 
   QComboBox *mGroupByComboBox;
-  QLineEdit *mTestFileName;
-  QLabel *mTestFileResult;
 
   /////////////////////////////////////////////////////
   static constexpr int32_t NR_OF_SCIENTISTS = 1;
@@ -67,12 +65,22 @@ private:
   QGroupBox *mExperimentGroup;
   QLineEdit *mWorkingDir;
 
+  QLabel *mWellOrderMatrixLabel;
   QLineEdit *mWellOrderMatrix;
+
+  QLabel *mRegexToFindTheWellPositionLabel;
   QComboBox *mRegexToFindTheWellPosition;
+
+  QLineEdit *mTestFileName;
+  QLabel *mTestFileNameLabel;
+
+  QLabel *mTestFileResult;
+  QLabel *mTestFileResultLabel;
 
   QTextEdit *mNotes;
 
 private slots:
+  void onGroupByChanged();
   void onOpenWorkingDirectoryClicked();
   void onOkayClicked();
   void onCancelClicked();

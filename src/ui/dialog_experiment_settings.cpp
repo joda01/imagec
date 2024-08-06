@@ -150,12 +150,6 @@ void DialogExperimentSettings::createExperimentGroupBox()
   layout->addRow(new QLabel(tr("Working directory:")), workingDir);
 
   //
-  // Well order matrix
-  //
-  mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
-  layout->addRow(new QLabel(tr("Images in well order:")), mWellOrderMatrix);
-
-  //
   // Group by
   //
   mGroupByComboBox = new QComboBox();
@@ -165,6 +159,14 @@ void DialogExperimentSettings::createExperimentGroupBox()
   mGroupByComboBox->addItem("Group based on filename",
                             static_cast<int>(joda::settings::ExperimentSettings::GroupBy::FILENAME));
   layout->addRow(new QLabel(tr("Group by:")), mGroupByComboBox);
+  connect(mGroupByComboBox, &QComboBox::currentIndexChanged, this, &DialogExperimentSettings::onGroupByChanged);
+
+  //
+  // Well order matrix
+  //
+  mWellOrderMatrix      = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+  mWellOrderMatrixLabel = new QLabel(tr("Images in well order:"));
+  layout->addRow(mWellOrderMatrixLabel, mWellOrderMatrix);
 
   //
   // Regex
@@ -177,17 +179,21 @@ void DialogExperimentSettings::createExperimentGroupBox()
   connect(mRegexToFindTheWellPosition, &QComboBox::editTextChanged, this, &DialogExperimentSettings::applyRegex);
   connect(mRegexToFindTheWellPosition, &QComboBox::currentIndexChanged, this, &DialogExperimentSettings::applyRegex);
   connect(mRegexToFindTheWellPosition, &QComboBox::currentTextChanged, this, &DialogExperimentSettings::applyRegex);
-  layout->addRow(new QLabel(tr("Filename regex:")), mRegexToFindTheWellPosition);
+  mRegexToFindTheWellPositionLabel = new QLabel(tr("Filename regex:"));
+  layout->addRow(mRegexToFindTheWellPositionLabel, mRegexToFindTheWellPosition);
 
   //
-  mTestFileName = new QLineEdit("your_test_image_file_Name_A99_01.tif");
-  layout->addRow(new QLabel(tr("Regex test:")), mTestFileName);
+  mTestFileName      = new QLineEdit("your_test_image_file_Name_A99_01.tif");
+  mTestFileNameLabel = new QLabel(tr("Regex test:"));
+  layout->addRow(mTestFileNameLabel, mTestFileName);
   connect(mTestFileName, &QLineEdit::editingFinished, this, &DialogExperimentSettings::applyRegex);
 
-  mTestFileResult = new QLabel();
-  layout->addRow(new QLabel(tr("Regex test result:")), mTestFileResult);
+  mTestFileResult      = new QLabel();
+  mTestFileResultLabel = new QLabel(tr("Regex test result:"));
+  layout->addRow(mTestFileResultLabel, mTestFileResult);
 
   mExperimentGroup->setLayout(layout);
+  onGroupByChanged();
 }
 
 ///
@@ -290,11 +296,22 @@ void DialogExperimentSettings::applyRegex()
     auto regexResult = joda::results::Results::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
                                                           mTestFileName->text().toStdString());
 
-    std::string matching = "| Group: " + regexResult.groupName;
-    std::string row      = "| Row: " + std::to_string(regexResult.well.wellPosX);
-    std::string column   = "| Col: " + std::to_string(regexResult.well.wellPosY);
-    std::string img      = "| Img: " + std::to_string(regexResult.well.imageIdx);
-    std::string toText   = matching + row + column + img;
+    if(regexResult.groupName.length() > 20) {
+      regexResult.groupName =
+          (QString(regexResult.groupName.data()).left(8) + "..." + QString(regexResult.groupName.data()).right(10))
+              .toStdString();
+    }
+    std::string matching = "<html><b>Group:</b> " + regexResult.groupName;
+    std::string row;
+    if(regexResult.well.wellPosX != UINT16_MAX) {
+      row = "| <b>Row:</b> " + std::to_string(regexResult.well.wellPosX);
+    }
+    std::string column;
+    if(regexResult.well.wellPosY != UINT16_MAX) {
+      column = "| <b>Col:</b> " + std::to_string(regexResult.well.wellPosY);
+    }
+    std::string img    = "| <b>Img:</b> " + std::to_string(regexResult.well.imageIdx);
+    std::string toText = matching + row + column + img + "</html>";
     mTestFileResult->setText(QString(toText.data()));
   } catch(const std::exception &ex) {
     mTestFileResult->setText(ex.what());
@@ -323,6 +340,36 @@ void DialogExperimentSettings::onOkayClicked()
 }
 void DialogExperimentSettings::onCancelClicked()
 {
+}
+
+void DialogExperimentSettings::onGroupByChanged()
+{
+  if(mGroupByComboBox->currentData().toInt() ==
+     static_cast<int>(joda::settings::ExperimentSettings::GroupBy::FILENAME)) {
+    mRegexToFindTheWellPosition->setVisible(true);
+    mRegexToFindTheWellPositionLabel->setVisible(true);
+
+    mTestFileName->setVisible(true);
+    mTestFileNameLabel->setVisible(true);
+
+    mTestFileResult->setVisible(true);
+    mTestFileResultLabel->setVisible(true);
+
+    mWellOrderMatrixLabel->setVisible(true);
+    mWellOrderMatrix->setVisible(true);
+  } else {
+    mRegexToFindTheWellPosition->setVisible(false);
+    mRegexToFindTheWellPositionLabel->setVisible(false);
+
+    mTestFileName->setVisible(false);
+    mTestFileNameLabel->setVisible(false);
+
+    mTestFileResult->setVisible(false);
+    mTestFileResultLabel->setVisible(false);
+
+    mWellOrderMatrixLabel->setVisible(false);
+    mWellOrderMatrix->setVisible(false);
+  }
 }
 
 }    // namespace joda::ui::qt
