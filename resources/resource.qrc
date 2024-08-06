@@ -11,6 +11,7 @@
         <file>helptext/reporting_statistics.json</file>
     </qresource>
     <qresource prefix="/icons">
+        <file>outlined/icons8-gallery-50.png</file>
         <file>outlined/icons8-file-50.png</file>
         <file>outlined/icons8-rectangle-50.png</file>
         <file>outlined/icons8-picture-in-picture-50.png</file>

@@ -326,7 +326,10 @@ void WindowMain::createLeftToolbar()
     // Add channel
     //
     QPushButton *addChannelButton = new QPushButton();
-    addChannelButton->setText("Add image Channel");
+    addChannelButton->setText("Add channel");
+    const QIcon channelIcon(":/icons/outlined/icons8-gallery-50.png");
+    addChannelButton->setIconSize({16, 16});
+    addChannelButton->setIcon(channelIcon);
     addChannelButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
     connect(addChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
@@ -337,7 +340,7 @@ void WindowMain::createLeftToolbar()
     //
     QPushButton *addVoronoiButton = new QPushButton();
     const QIcon voronoiIcon(":/icons/outlined/dom-voronoi-50.png");
-    addVoronoiButton->setText("Add voronoi channel");
+    addVoronoiButton->setText("Add voronoi");
     addVoronoiButton->setIconSize({16, 16});
     addVoronoiButton->setIcon(voronoiIcon);
     connect(addVoronoiButton, &QPushButton::pressed, this, &WindowMain::onAddCellApproxClicked);
@@ -350,7 +353,7 @@ void WindowMain::createLeftToolbar()
     const QIcon intersectionIcon(":/icons/outlined/icons8-query-inner-join-50.png");
     addIntersection->setIconSize({16, 16});
     addIntersection->setIcon(intersectionIcon);
-    addIntersection->setText("Add intersection channel");
+    addIntersection->setText("Add intersection");
     connect(addIntersection, &QPushButton::pressed, this, &WindowMain::onAddIntersectionClicked);
     layout->addWidget(addIntersection);
 
@@ -358,7 +361,7 @@ void WindowMain::createLeftToolbar()
     // Add giraf
     //
     QPushButton *addGiraf = new QPushButton();
-    addGiraf->setText("Add the Giraf");
+    addGiraf->setText("Add Giraffe");
     connect(addGiraf, &QPushButton::pressed, this, &WindowMain::onAddGirafClicked);
     layout->addWidget(addGiraf);
 

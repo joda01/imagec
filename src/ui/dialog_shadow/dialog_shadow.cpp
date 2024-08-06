@@ -26,28 +26,12 @@ DialogShadow::DialogShadow(QWidget *parent, bool showClose, const QString &close
     QDialog(parent), mShowCloseButton(showClose), mCloseButtonString(closeButtonText)
 {
   setModal(true);
-  // setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Dialog);
-  // setAttribute(Qt::WA_TranslucentBackground, true);
-  // setGraphicsEffect(new QGraphicsDropShadowEffect(this));
-  // dynamic_cast<QGraphicsDropShadowEffect *>(graphicsEffect())->setBlurRadius(10);
-  // dynamic_cast<QGraphicsDropShadowEffect *>(graphicsEffect())->setColor(Qt::black);
-  // dynamic_cast<QGraphicsDropShadowEffect *>(graphicsEffect())->setOffset(0, 0);
-
-  // Dimmed background effect
-  // if(parent != nullptr) {
-  //   dimmer = new QWidget(parent);
-  //   dimmer->setStyleSheet("background-color: rgba(0, 0, 0, 100);");
-  //   dimmer->setGeometry(0, 0, 99999, 999999);
-  //   dimmer->raise();
-  //   connect(parent, &QWidget::destroyed, this, &QWidget::close);
-  // }
 }
 
 int DialogShadow::exec()
 {
   if(mShowCloseButton) {
-    QWidget *buttons = new QWidget();
-    //     buttons->setContentsMargins(0, 0, 0, 0);
+    QWidget *buttons   = new QWidget();
     QHBoxLayout *hBox  = new QHBoxLayout(buttons);
     QPushButton *close = new QPushButton(mCloseButtonString, buttons);
     close->setCursor(Qt::PointingHandCursor);
@@ -66,49 +50,6 @@ int DialogShadow::exec()
 void DialogShadow::onCloseWindow()
 {
   close();
-}
-
-void DialogShadow::paintEvent(QPaintEvent *ev)
-{
-  return;
-  // If the transparency flag/hint aren't set then just use the default paint event.
-  if(!(windowFlags() & Qt::FramelessWindowHint) && !testAttribute(Qt::WA_TranslucentBackground)) {
-    QDialog::paintEvent(ev);
-    return;
-  }
-
-  // Initialize the painter.
-  QPainter p(this);
-  p.setRenderHint(QPainter::Antialiasing, true);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, false);
-  QRect rect(8, 8, width() - 16, height() - 16);
-
-  QPen pStyle;
-  pStyle.setCapStyle(Qt::PenCapStyle::FlatCap);
-  pStyle.setJoinStyle(Qt::PenJoinStyle::MiterJoin);
-  pStyle.setColor(Qt::white);
-  pStyle.setStyle(Qt::PenStyle::SolidLine);
-  pStyle.setWidth(1);
-  p.setPen(pStyle);
-
-  p.setBrush(Qt::white);
-  // p.setBrush(Qt::BrushStyle::NoBrush);
-  int radius = 28;
-  if(radius > 0.0) {
-    p.drawRoundedRect(rect, radius, radius, Qt::AbsoluteSize);
-
-    QPainterPath rounded_rect;
-    rounded_rect.addRoundedRect(rect, radius, radius);
-    p.setClipPath(rounded_rect);
-
-    p.fillPath(rounded_rect, p.brush());
-    p.drawPath(rounded_rect);
-  } else {
-    p.drawRect(rect);
-  }
-
-  // C'est finí
-  p.end();
 }
 
 }    // namespace joda::ui::qt

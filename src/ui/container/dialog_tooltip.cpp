@@ -102,7 +102,6 @@ DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QS
   mainLayout->invalidate();
   mainLayout->activate();
   helpTextLabel->adjustSize();
-  helpTextLabel->setMinimumHeight(helpTextLabel->height() + 56);
 }
 
 void DialogToolTip::onCloseClicked()

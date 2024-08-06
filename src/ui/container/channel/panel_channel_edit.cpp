@@ -42,14 +42,15 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
 
 void PanelChannelEdit::init()
 {
-  auto *horizontalLayout = createLayout();
+  auto *horizontalLayout = createLayout(SPACING);
 
   //
   // Column 1
   //
   // rgb(246, 246, 246)
-  auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
-  auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+  auto [verticalLayoutContainer, _1] =
+      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, SPACING);
+  auto [verticalLayoutMeta, _2] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
   verticalLayoutMeta->addWidget(createTitle("Meta"));
   verticalLayoutMeta->addWidget(mParentContainer->mChannelName->getEditableWidget());
   verticalLayoutMeta->addWidget(mParentContainer->mColorAndChannelIndex->getEditableWidget());
@@ -77,8 +78,8 @@ void PanelChannelEdit::init()
   //
   // Column 2
   //
-  auto [functionContainer, _7]      = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
-  auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgb(246, 246, 246)", 16, false);
+  auto [functionContainer, _7] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, SPACING);
+  auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgb(246, 246, 246)", SPACING, false);
   verticalLayoutFuctions->addWidget(createTitle("Preprocessing"));
   verticalLayoutFuctions->addWidget(mParentContainer->mZProjection->getEditableWidget());
   verticalLayoutFuctions->addWidget(mParentContainer->mMarginCrop->getEditableWidget());
@@ -111,7 +112,7 @@ void PanelChannelEdit::init()
   //
   // Column 3
   //
-  auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+  auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, SPACING);
   auto [detection, _5]          = addVerticalPanel(detectionContainer, "rgb(246, 246, 246)");
   detection->addWidget(createTitle("Detection"));
   detection->addWidget(mParentContainer->mUsedDetectionMode->getEditableWidget());
@@ -144,7 +145,7 @@ void PanelChannelEdit::init()
   // Column 4
   //
   auto [filterContainer, filterContainerLayout] =
-      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
+      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, SPACING);
   auto [objectFilter, objectFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)");
   objectFilter->addWidget(createTitle("Object filter"));
   objectFilter->addWidget(mParentContainer->mMinParticleSize->getEditableWidget());
@@ -164,7 +165,7 @@ void PanelChannelEdit::init()
   connect(mParentContainer->mTetraspeckRemoval.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::updatePreview);
 
-  auto [imageFilter, imageFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)", 16, false);
+  auto [imageFilter, imageFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)", SPACING, false);
   imageFilter->addWidget(createTitle("Image filter"));
   imageFilter->addWidget(mParentContainer->mImageFilterMode->getEditableWidget());
   imageFilter->addWidget(mParentContainer->mMaxObjects->getEditableWidget());
@@ -182,8 +183,10 @@ void PanelChannelEdit::init()
   //
   // Preview
   //
-  auto [preview, _9] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE, 16);
-  mPreviewImage      = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
+  auto [preview, _9] =
+      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE, SPACING);
+  mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
+  mPreviewImage->setContentsMargins(0, 0, 0, 0);
   mPreviewImage->resetImage("");
   preview->addWidget(mPreviewImage);
   QWidget *imageSubTitleWidget = new QWidget();
@@ -240,12 +243,12 @@ QLabel *PanelChannelEdit::createTitle(const QString &title)
   return label;
 }
 
-QHBoxLayout *PanelChannelEdit::createLayout()
+QHBoxLayout *PanelChannelEdit::createLayout(int32_t spacing)
 {
   QScrollArea *scrollArea = new QScrollArea(this);
   scrollArea->setObjectName("scrollArea");
   scrollArea->setFrameStyle(0);
-  //   scrollArea->setContentsMargins(0, 0, 0, 0);
+  scrollArea->setContentsMargins(0, 0, 0, 0);
   scrollArea->verticalScrollBar()->setObjectName("scrollAreaV");
 
   // Create a widget to hold the panels
@@ -257,8 +260,8 @@ QHBoxLayout *PanelChannelEdit::createLayout()
 
   // Create a horizontal layout for the panels
   QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
-  //   horizontalLayout->setContentsMargins(16, 16, 16, 16);
-  horizontalLayout->setSpacing(16);    // Adjust this value as needed
+  horizontalLayout->setContentsMargins(spacing, spacing, 0, 0);
+  horizontalLayout->setSpacing(spacing);    // Adjust this value as needed
   contentWidget->setLayout(horizontalLayout);
   return horizontalLayout;
 }
@@ -272,7 +275,7 @@ std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout 
   layout->setSpacing(spacing);
   QWidget *contentWidget = new QWidget();
 
-  //   layout->setContentsMargins(margin, margin, margin, margin);
+  layout->setContentsMargins(margin, margin, margin, margin);
   layout->setAlignment(Qt::AlignTop);
 
   contentWidget->setObjectName("verticalContentChannel");
@@ -287,7 +290,7 @@ std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout 
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
     scrollArea->setObjectName("scrollArea");
     scrollArea->setFrameStyle(0);
-    //     scrollArea->setContentsMargins(0, 0, 0, 0);
+    scrollArea->setContentsMargins(0, 0, 0, 0);
     scrollArea->verticalScrollBar()->setObjectName("scrollAreaV");
 
     scrollArea->setWidget(contentWidget);

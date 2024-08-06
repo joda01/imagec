@@ -44,7 +44,7 @@ PanelPreview::PanelPreview(int width, int height, QWidget *parent) :
   mPreviewLabel.setFixedHeight(height);
 
   QVBoxLayout *hLayout = new QVBoxLayout();
-  //   hLayout->setContentsMargins(0, 0, 0, 0);
+  hLayout->setContentsMargins(0, 0, 0, 0);
   this->setLayout(hLayout);
   hLayout->addWidget(&mPreviewLabel);
   hLayout->addWidget(createToolBar());
@@ -66,7 +66,7 @@ QWidget *PanelPreview::createToolBar()
 {
   QWidget *container  = new QWidget();
   QHBoxLayout *layout = new QHBoxLayout();
-  //   layout->setContentsMargins(0, 0, 0, 0);
+  layout->setContentsMargins(0, 0, 0, 0);
 
   container->setLayout(layout);
 
