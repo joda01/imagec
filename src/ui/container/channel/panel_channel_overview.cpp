@@ -15,8 +15,8 @@
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
-#include "../../window_main.hpp"
 #include "../container_function.hpp"
+#include "ui/window_main/window_main.hpp"
 #include "container_channel.hpp"
 
 namespace joda::ui::qt {

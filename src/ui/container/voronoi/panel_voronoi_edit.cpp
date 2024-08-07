@@ -22,8 +22,9 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include "../../window_main.hpp"
 #include "../container_function.hpp"
+#include "ui/helper/layout_generator.hpp"
+#include "ui/window_main/window_main.hpp"
 #include "container_voronoi.hpp"
 
 namespace joda::ui::qt {
@@ -39,11 +40,12 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
 
 void PanelVoronoiEdit::init()
 {
-  auto *horizontalLayout = createLayout();
+  auto [horizontalLayout, _] = helper::createLayout(this, helper::SPACING);
 
-  auto [verticalLayoutContainer, _1] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
-  auto [verticalLayoutMeta, _2]      = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-  verticalLayoutMeta->addWidget(createTitle("Meta"));
+  auto [verticalLayoutContainer, _1] = helper::addVerticalPanel(
+      horizontalLayout, "rgba(218, 226, 255,0)", 0, false, helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
+  auto [verticalLayoutMeta, _2] = helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+  verticalLayoutMeta->addWidget(helper::createTitle("Meta"));
   verticalLayoutMeta->addWidget(mParentContainer->mChannelName->getEditableWidget());
   verticalLayoutMeta->addWidget(mParentContainer->mColorAndChannelIndex->getEditableWidget());
   _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -54,8 +56,8 @@ void PanelVoronoiEdit::init()
   //
   // Cross channel
   //
-  auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-  llayoutColoc->addWidget(createTitle("Cross-Channel"));
+  auto [llayoutColoc, _11] = helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+  llayoutColoc->addWidget(helper::createTitle("Cross-Channel"));
   // llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
   llayoutColoc->addWidget(mParentContainer->mCrossChannelIntensity->getEditableWidget());
   llayoutColoc->addWidget(mParentContainer->mCrossChannelCount->getEditableWidget());
@@ -67,9 +69,11 @@ void PanelVoronoiEdit::init()
   // auto [verticalLayoutFuctions, _8] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)", 16, false);
 
   // Column 2
-  auto [detectionContainer, _4]   = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
-  auto [verticalLayoutFilter, _6] = addVerticalPanel(detectionContainer, "rgb(246, 246, 246)", 16, false);
-  verticalLayoutFilter->addWidget(createTitle("Voronoi"));
+  auto [detectionContainer, _4] = helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false,
+                                                           helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
+  auto [verticalLayoutFilter, _6] =
+      helper::addVerticalPanel(detectionContainer, "rgb(246, 246, 246)", helper::SPACING, false);
+  verticalLayoutFilter->addWidget(helper::createTitle("Voronoi"));
   verticalLayoutFilter->addWidget(mParentContainer->mVoronoiPoints->getEditableWidget());
   verticalLayoutFilter->addWidget(mParentContainer->mMaxVoronoiAreaSize->getEditableWidget());
   verticalLayoutFilter->addWidget(mParentContainer->mOverlayMaskChannelIndex->getEditableWidget());
@@ -85,10 +89,10 @@ void PanelVoronoiEdit::init()
   //
   // Column 4
   //
-  auto [filterContainer, filterContainerLayout] =
-      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 16);
-  auto [objectFilter, objectFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)");
-  objectFilter->addWidget(createTitle("Object filter"));
+  auto [filterContainer, filterContainerLayout] = helper::addVerticalPanel(
+      horizontalLayout, "rgba(218, 226, 255,0)", 0, false, helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
+  auto [objectFilter, objectFilterLayout] = helper::addVerticalPanel(filterContainer, "rgb(246, 246, 246)");
+  objectFilter->addWidget(helper::createTitle("Object filter"));
   objectFilter->addWidget(mParentContainer->mMinParticleSize->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mMaxParticleSize->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mExcludeAreasAtTheEdges->getEditableWidget());
@@ -173,83 +177,6 @@ PanelVoronoiEdit::~PanelVoronoiEdit()
   }
   delete mPreviewImage;
   delete mSpinner;
-}
-
-QLabel *PanelVoronoiEdit::createTitle(const QString &title)
-{
-  auto *label = new QLabel();
-  QFont font;
-  font.setPixelSize(16);
-  font.setBold(true);
-  label->setFont(font);
-  label->setText(title);
-
-  return label;
-}
-
-QHBoxLayout *PanelVoronoiEdit::createLayout()
-{
-  QScrollArea *scrollArea = new QScrollArea(this);
-  scrollArea->setObjectName("scrollArea");
-  scrollArea->setFrameStyle(0);
-  //   scrollArea->setContentsMargins(0, 0, 0, 0);
-  scrollArea->verticalScrollBar()->setObjectName("scrollAreaV");
-
-  // Create a widget to hold the panels
-  QWidget *contentWidget = new QWidget;
-  contentWidget->setObjectName("contentOverview");
-
-  scrollArea->setWidget(contentWidget);
-  scrollArea->setWidgetResizable(true);
-
-  // Create a horizontal layout for the panels
-  QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
-  //   horizontalLayout->setContentsMargins(16, 16, 16, 16);
-  horizontalLayout->setSpacing(16);    // Adjust this value as needed
-  contentWidget->setLayout(horizontalLayout);
-  return horizontalLayout;
-}
-
-std::tuple<QVBoxLayout *, QWidget *> PanelVoronoiEdit::addVerticalPanel(QLayout *horizontalLayout,
-                                                                        const QString &bgColor, int margin,
-                                                                        bool enableScrolling, int maxWidth,
-                                                                        int spacing) const
-{
-  QVBoxLayout *layout = new QVBoxLayout();
-  layout->setSpacing(spacing);
-  QWidget *contentWidget = new QWidget();
-
-  //   layout->setContentsMargins(margin, margin, margin, margin);
-  layout->setAlignment(Qt::AlignTop);
-
-  contentWidget->setObjectName("verticalContentChannel");
-  contentWidget->setLayout(layout);
-  contentWidget->setStyleSheet(
-      "QWidget#verticalContentChannel { "
-      "background-color: " +
-      bgColor + ";}");
-
-  if(enableScrolling) {
-    QScrollArea *scrollArea = new QScrollArea();
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
-    scrollArea->setObjectName("scrollArea");
-    scrollArea->setFrameStyle(0);
-    //     scrollArea->setContentsMargins(0, 0, 0, 0);
-    scrollArea->verticalScrollBar()->setObjectName("scrollAreaV");
-
-    scrollArea->setWidget(contentWidget);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setMinimumWidth(maxWidth);
-    scrollArea->setMaximumWidth(maxWidth);
-
-    horizontalLayout->addWidget(scrollArea);
-    return {layout, scrollArea};
-  }
-  contentWidget->setMinimumWidth(maxWidth);
-  contentWidget->setMaximumWidth(maxWidth);
-  horizontalLayout->addWidget(contentWidget);
-
-  return {layout, contentWidget};
 }
 
 void PanelVoronoiEdit::onCellApproximationChanged()

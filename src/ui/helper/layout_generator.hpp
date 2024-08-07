@@ -15,12 +15,15 @@
 
 namespace joda::ui::qt::helper {
 
-inline std::tuple<QHBoxLayout *, QWidget *> createLayout(QWidget *parent)
+static constexpr int32_t SPACING     = 16;
+static constexpr int32_t PANEL_WIDTH = 245;
+
+inline std::tuple<QHBoxLayout *, QWidget *> createLayout(QWidget *parent, int32_t spacing)
 {
   QScrollArea *scrollArea = new QScrollArea(parent);
   scrollArea->setObjectName("scrollArea");
   scrollArea->setFrameStyle(0);
-  //   scrollArea->setContentsMargins(0, 0, 0, 0);
+  scrollArea->setContentsMargins(0, 0, 0, 0);
   scrollArea->verticalScrollBar()->setObjectName("scrollAreaV");
 
   // Create a widget to hold the panels
@@ -32,21 +35,22 @@ inline std::tuple<QHBoxLayout *, QWidget *> createLayout(QWidget *parent)
 
   // Create a horizontal layout for the panels
   QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
-  //   horizontalLayout->setContentsMargins(16, 16, 16, 16);
-  horizontalLayout->setSpacing(16);    // Adjust this value as needed
+  horizontalLayout->setContentsMargins(spacing, spacing, 0, 0);
+  horizontalLayout->setSpacing(spacing);    // Adjust this value as needed
   contentWidget->setLayout(horizontalLayout);
   return {horizontalLayout, contentWidget};
 }
 
 inline std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
                                                              int margin = 16, bool enableScrolling = false,
-                                                             int minWidth = 250, int maxWidth = 250, int spacing = 4)
+                                                             int minWidth = PANEL_WIDTH, int maxWidth = PANEL_WIDTH,
+                                                             int spacing = 4)
 {
   QVBoxLayout *layout = new QVBoxLayout();
   layout->setSpacing(spacing);
   QWidget *contentWidget = new QWidget();
 
-  //   layout->setContentsMargins(margin, margin, margin, margin);
+  layout->setContentsMargins(margin, margin, margin, margin);
   layout->setAlignment(Qt::AlignTop);
 
   contentWidget->setObjectName("verticalContentChannel");
@@ -58,7 +62,7 @@ inline std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontal
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
     scrollArea->setObjectName("scrollArea");
     scrollArea->setFrameStyle(0);
-    //     scrollArea->setContentsMargins(0, 0, 0, 0);
+    scrollArea->setContentsMargins(0, 0, 0, 0);
     scrollArea->verticalScrollBar()->setObjectName("scrollAreaV");
 
     scrollArea->setWidget(contentWidget);

@@ -20,12 +20,14 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <string>
 #include "backend/helper/template_parser/template_parser.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/vchannel/vchannel_intersection.hpp"
-#include "container/container_base.hpp"
 #include "controller/controller.hpp"
+#include "ui/container/container_base.hpp"
 #include "ui/helper/clickablelabel.hpp"
+#include "ui/window_main/panel_project_settings.hpp"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
@@ -88,9 +90,11 @@ public:
   }
 
   void setWindowTitlePrefix(const QString &txt);
+  void checkForSettingsChanged();
+
 signals:
   void lookingForFilesFinished();
-  void lookingForTemplateFinished(std::map<std::string, helper::templates::TemplateParser::Data>);
+  void lookingForTemplateFinished(std::map<std::string, joda::helper::templates::TemplateParser::Data>);
 
 private:
   /////////////////////////////////////////////////////
@@ -109,11 +113,7 @@ private:
   void createTopToolbar();
   void createBottomToolbar();
   void createLeftToolbar();
-  void checkForSettingsChanged();
   void resetImageInfo();
-
-  void fromProjectSettings();
-  void toProjectSettings();
 
   QWidget *createStackedWidget();
   QWidget *createStartWidget();
@@ -143,7 +143,7 @@ private:
   std::thread *mMainThread;
   bool mNewFolderSelected = false;
 
-  ////Navifation/////////////////////////////////////////////////
+  ////Navigation/////////////////////////////////////////////////
   Navigation mNavigation = Navigation::PROJECT_OVERVIEW;
 
   ////Project settings/////////////////////////////////////////////////
@@ -157,8 +157,9 @@ private:
   QToolBar *mRightToolBar;
   QString mJobName;
 
-  ////Right Toolbar/////////////////////////////////////////////////
+  ////Left Toolbar/////////////////////////////////////////////////
   QTableWidget *mLabelImageInfo;
+  PanelProjectSettings *mPanelProjectSettings;
 
   ////Made project settings/////////////////////////////////////////////////
   ContainerBase *mSelectedChannel = nullptr;
@@ -184,22 +185,6 @@ private:
   QAction *mFirstSeparator          = nullptr;
   QAction *mSecondSeparator         = nullptr;
 
-  ////Project settings/////////////////////////////////////////////////
-  static constexpr int32_t NR_OF_SCIENTISTS = 1;
-  QLineEdit *mAddressOrganisation;
-  std::vector<QLineEdit *> mScientists{NR_OF_SCIENTISTS};
-
-  QComboBox *mGroupByComboBox;
-  QLineEdit *mWorkingDir;
-  QLabel *mWellOrderMatrixLabel;
-  QLineEdit *mWellOrderMatrix;
-  QLabel *mRegexToFindTheWellPositionLabel;
-  QComboBox *mRegexToFindTheWellPosition;
-  QLineEdit *mTestFileName;
-  QLabel *mTestFileNameLabel;
-  QLabel *mTestFileResult;
-  QTextEdit *mNotes;
-
   ////Giraf/////////////////////////////////////////////////
   QPushButton *mUseImageC;
   QPushButton *mUseTheGiraf;
@@ -221,9 +206,7 @@ private slots:
   void onAddGirafClicked();
   void onImageSelectionChanged();
   void onResolutionChanged();
-  void onFindTemplatesFinished(std::map<std::string, helper::templates::TemplateParser::Data>);
-  void applyRegex();
-  void onOpenWorkingDirectoryClicked();
+  void onFindTemplatesFinished(std::map<std::string, joda::helper::templates::TemplateParser::Data>);
 };
 
 }    // namespace joda::ui::qt

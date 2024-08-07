@@ -48,7 +48,7 @@ namespace joda::ui::qt::reporting::plugin {
 PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(parent)
 {
   // Create and set up the grid layout
-  auto [horizontalLayout, centerWidget] = joda::ui::qt::helper::createLayout(this);
+  auto [horizontalLayout, centerWidget] = joda::ui::qt::helper::createLayout(this, helper::SPACING);
   //   horizontalLayout->setContentsMargins(0, 0, 0, 0);
 
   // vertical->addWidget(createBreadCrump());

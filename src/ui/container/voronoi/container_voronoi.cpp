@@ -20,9 +20,9 @@
 #include <optional>
 #include <string>
 #include <vector>
-#include "../../window_main.hpp"
 #include "../container_function.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
+#include "ui/window_main/window_main.hpp"
 #include "panel_voronoi_edit.hpp"
 #include "panel_voronoi_overview.hpp"
 

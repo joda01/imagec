@@ -20,7 +20,6 @@
 #include <optional>
 #include <string>
 #include <vector>
-#include "../../window_main.hpp"
 #include "../container_function.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/settings/preprocessing/functions/blur.hpp"
@@ -31,6 +30,7 @@
 #include "backend/settings/preprocessing/functions/median_subtract.hpp"
 #include "backend/settings/preprocessing/functions/rolling_ball.hpp"
 #include "backend/settings/preprocessing/functions/zstack.hpp"
+#include "ui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "panel_channel_overview.hpp"
 

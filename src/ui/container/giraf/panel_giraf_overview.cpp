@@ -16,8 +16,8 @@
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qwidget.h>
-#include "../../window_main.hpp"
 #include "../container_function.hpp"
+#include "ui/window_main/window_main.hpp"
 #include "container_giraf.hpp"
 
 namespace joda::ui::qt {

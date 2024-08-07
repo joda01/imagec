@@ -22,9 +22,9 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include "../../window_main.hpp"
 #include "../container_function.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
+#include "ui/window_main/window_main.hpp"
 #include "container_giraf.hpp"
 
 namespace joda::ui::qt {

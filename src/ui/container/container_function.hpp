@@ -46,6 +46,11 @@ concept IntFloatConcept = std::same_as<T, int> || std::same_as<T, uint32_t> || s
 template <IntFloatConcept VALUE_T, IntFloatConcept VALUE2_T>
 class ContainerFunction : public ContainerFunctionBase
 {
+private:
+  static constexpr int32_t TXT_ICON_SIZE  = 16;
+  static constexpr int32_t DISP_ICON_SIZE = 16;
+  static constexpr int32_t HELP_ICON_SIZE = 8;
+
 public:
   struct ComboEntry
   {
@@ -500,10 +505,10 @@ public:
           variant = QVariant(data.key);
         }
         if(data.icon.isEmpty()) {
-          mComboBox->addItem(QIcon(myIcon.pixmap(28, 28)), data.label, variant);
+          mComboBox->addItem(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
         } else {
           const QIcon myIcon(":/icons/outlined/" + data.icon);
-          mComboBox->addItem(QIcon(myIcon.pixmap(28, 28)), data.label, variant);
+          mComboBox->addItem(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
         }
       }
       int32_t idx = 0;
@@ -545,7 +550,8 @@ private:
     QIcon bmp(":/icons/outlined/" + icon);
 
     // Set the icon for the label
-    mDisplayLabelIcon->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
+    mDisplayLabelIcon->setPixmap(
+        bmp.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
     mDisplayLabelIcon->setToolTip(helpText);
 
     // Create a QHBoxLayout to arrange the text and icon horizontally
@@ -564,14 +570,15 @@ private:
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
     QVBoxLayout *layout = new QVBoxLayout();
-    layout->setContentsMargins(8, 8, 8, 0);
+    layout->setContentsMargins(0, 8, 0, 0);
+    layout->setSpacing(0);
 
     const QIcon myIcon(":/icons/outlined/" + icon);
 
     mLineEdit = new QLineEdit();
     mLineEdit->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    mLineEdit->setClearButtonEnabled(true);
-    mLineEdit->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
+    // mLineEdit->setClearButtonEnabled(true);
+    mLineEdit->addAction(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), QLineEdit::LeadingPosition);
     mLineEdit->setPlaceholderText(placeHolderText);
     layout->addWidget(mLineEdit);
     // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);
@@ -615,7 +622,8 @@ private:
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
     QVBoxLayout *layoutVertical = new QVBoxLayout();
-    layoutVertical->setContentsMargins(8, 8, 8, 0);
+    layoutVertical->setContentsMargins(0, 8, 0, 0);
+    layoutVertical->setSpacing(0);
 
     QWidget *horizontaContainer   = new QWidget();
     QHBoxLayout *layoutHorizontal = new QHBoxLayout();
@@ -624,8 +632,8 @@ private:
 
     const QIcon myIcon(":/icons/outlined/" + icon);
     mLineEdit = new QLineEdit();
-    mLineEdit->setClearButtonEnabled(true);
-    mLineEdit->addAction(QIcon(myIcon.pixmap(28, 28)), QLineEdit::LeadingPosition);
+    // mLineEdit->setClearButtonEnabled(true);
+    mLineEdit->addAction(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), QLineEdit::LeadingPosition);
     mLineEdit->setPlaceholderText(placeHolderText);
     layoutHorizontal->addWidget(mLineEdit);
     // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);
@@ -675,7 +683,8 @@ private:
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
     QVBoxLayout *layoutVertical = new QVBoxLayout();
-    layoutVertical->setContentsMargins(8, 8, 8, 0);
+    layoutVertical->setContentsMargins(0, 8, 0, 0);
+    layoutVertical->setSpacing(0);
 
     QWidget *horizontaContainer   = new QWidget();
     QHBoxLayout *layoutHorizontal = new QHBoxLayout();
@@ -695,10 +704,10 @@ private:
         variant = QVariant(data.key);
       }
       if(data.icon.isEmpty()) {
-        mComboBox->addItem(QIcon(myIcon.pixmap(28, 28)), data.label, variant);
+        mComboBox->addItem(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
       } else {
         const QIcon myIcon(":/icons/outlined/" + data.icon);
-        mComboBox->addItem(QIcon(myIcon.pixmap(28, 28)), data.label, variant);
+        mComboBox->addItem(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
       }
     }
     mComboBox->setPlaceholderText(placeHolderText);
@@ -748,7 +757,7 @@ private:
     if(!mPathToHelpFile.isEmpty()) {
       QPushButton *help = new QPushButton();
       connect(help, &QPushButton::clicked, this, &ContainerFunction::onHelpButtonClicked);
-      const QIcon helpIcon(":/icons/outlined/icons8-info-50-circle.png");
+      const QIcon helpIcon(":/icons/outlined/icons8-info-48-fill.png");
       help->setCursor(Qt::PointingHandCursor);
       help->setStyleSheet(
           "QPushButton {"
@@ -763,7 +772,7 @@ private:
           "   text-decoration: none;"
           "}");
       help->setObjectName("help");
-      help->setIconSize({12, 12});
+      help->setIconSize({HELP_ICON_SIZE, HELP_ICON_SIZE});
       help->setIcon(helpIcon);
       hLayout->addWidget(help);
     }
@@ -889,7 +898,8 @@ private slots:
       if(itemData.isValid() && itemData.canConvert<QIcon>()) {
         QIcon selectedIcon = qvariant_cast<QIcon>(itemData);
         // Set the icon for the label
-        mDisplayLabelIcon->setPixmap(selectedIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
+        mDisplayLabelIcon->setPixmap(
+            selectedIcon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
       }
     }
 

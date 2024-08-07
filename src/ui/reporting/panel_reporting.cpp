@@ -31,7 +31,6 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "../window_main.hpp"
 #include "backend/results/analyzer/plugins/stats_for_image.hpp"
 #include "backend/results/analyzer/plugins/stats_for_well.hpp"
 #include "backend/results/exporter/exporter.hpp"
@@ -41,6 +40,7 @@
 #include "ui/helper/layout_generator.hpp"
 #include "ui/reporting/dialog_export_data.hpp"
 #include "ui/reporting/plugins/panel_heatmap.hpp"
+#include "ui/window_main/window_main.hpp"
 
 namespace joda::ui::qt {
 
@@ -51,7 +51,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 {
   setObjectName("PanelReporting");
 
-  auto [horizontalLayout, _] = joda::ui::qt::helper::createLayout(this);
+  auto [horizontalLayout, _] = joda::ui::qt::helper::createLayout(this, helper::SPACING);
   auto [verticalLayoutContainer, _1] =
       joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 250, 16);
 

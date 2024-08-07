@@ -47,14 +47,14 @@
 #include "backend/settings/settings.hpp"
 #include "backend/settings/vchannel/vchannel_settings.hpp"
 #include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
-#include "container/channel/container_channel.hpp"
-#include "container/giraf/container_giraf.hpp"
-#include "container/intersection/container_intersection.hpp"
-#include "container/voronoi/container_voronoi.hpp"
+#include "ui/container/channel/container_channel.hpp"
 #include "ui/container/giraf/container_giraf.hpp"
+#include "ui/container/intersection/container_intersection.hpp"
+#include "ui/container/voronoi/container_voronoi.hpp"
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include "ui/reporting/panel_reporting.hpp"
+#include "ui/window_main/panel_project_settings.hpp"
 #include "build_info.h"
 #include "version.h"
 
@@ -167,6 +167,7 @@ void WindowMain::createTopToolbar()
 
   mSaveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", toolbar);
   mSaveProject->setToolTip("Save project!");
+  mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
   toolbar->addAction(mSaveProject);
 
@@ -211,104 +212,8 @@ void WindowMain::createLeftToolbar()
   auto *tabs = new QTabWidget(mRightToolBar);
 
   // Project Settings
-  {
-    auto *pipelineTab       = new QWidget();
-    auto *layout            = new QVBoxLayout();
-    QFormLayout *formLayout = new QFormLayout;
-
-    auto addSeparator = [&formLayout]() {
-      QFrame *separator = new QFrame;
-      separator->setFrameShape(QFrame::HLine);
-      separator->setFrameShadow(QFrame::Sunken);
-      formLayout->addRow(separator);
-    };
-
-    // Scientist
-    {
-      for(int i = 0; i < NR_OF_SCIENTISTS; ++i) {
-        mScientists[i] = new QLineEdit;
-        formLayout->addRow(new QLabel(tr("Scientist:")), mScientists[i]);
-      }
-
-      mScientists[0]->setPlaceholderText(joda::helper::getLoggedInUserName());
-      mAddressOrganisation = new QLineEdit;
-      mAddressOrganisation->setPlaceholderText("University of Salzburg");
-      formLayout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
-    }
-    addSeparator();
-
-    // Working directory
-    {
-      //
-      // Working directory
-      //
-      mWorkingDir = new QLineEdit();
-      mWorkingDir->setReadOnly(true);
-      mWorkingDir->setPlaceholderText("Directory your images are placed in...");
-      QHBoxLayout *workingDir = new QHBoxLayout;
-      workingDir->addWidget(mWorkingDir);
-      QPushButton *openDir = new QPushButton(QIcon(":/icons/outlined/icons8-folder-50.png"), "");
-      // openDir->setObjectName("ToolButton");
-      connect(openDir, &QPushButton::clicked, this, &WindowMain::onOpenWorkingDirectoryClicked);
-      workingDir->addWidget(openDir);
-      workingDir->setStretch(0, 1);    // Make label take all available space
-      formLayout->addRow(new QLabel(tr("Image directory:")), workingDir);
-
-      addSeparator();
-
-      //
-      // Group by
-      //
-      mGroupByComboBox = new QComboBox();
-      mGroupByComboBox->addItem("Ungrouped", static_cast<int>(joda::settings::ExperimentSettings::GroupBy::OFF));
-      mGroupByComboBox->addItem("Group based on foldername",
-                                static_cast<int>(joda::settings::ExperimentSettings::GroupBy::DIRECTORY));
-      mGroupByComboBox->addItem("Group based on filename",
-                                static_cast<int>(joda::settings::ExperimentSettings::GroupBy::FILENAME));
-      formLayout->addRow(new QLabel(tr("Group by:")), mGroupByComboBox);
-
-      //
-      // Well order matrix
-      //
-      mWellOrderMatrix      = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
-      mWellOrderMatrixLabel = new QLabel(tr("Well order:"));
-      formLayout->addRow(mWellOrderMatrixLabel, mWellOrderMatrix);
-
-      //
-      // Regex
-      //
-      mRegexToFindTheWellPosition = new QComboBox();
-      mRegexToFindTheWellPosition->addItem("_((.)([0-9]+))_([0-9]+)", "_((.)([0-9]+))_([0-9]+)");
-      mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_([0-9]+)", "((.)([0-9]+))_([0-9]+)");
-      mRegexToFindTheWellPosition->addItem("(.*)_([0-9]*)", "(.*)_([0-9]*)");
-      mRegexToFindTheWellPosition->setEditable(true);
-      connect(mRegexToFindTheWellPosition, &QComboBox::editTextChanged, this, &WindowMain::applyRegex);
-      connect(mRegexToFindTheWellPosition, &QComboBox::currentIndexChanged, this, &WindowMain::applyRegex);
-      connect(mRegexToFindTheWellPosition, &QComboBox::currentTextChanged, this, &WindowMain::applyRegex);
-      mRegexToFindTheWellPositionLabel = new QLabel(tr("Filename regex:"));
-      formLayout->addRow(mRegexToFindTheWellPositionLabel, mRegexToFindTheWellPosition);
-
-      //
-      mTestFileName      = new QLineEdit("your_test_image_file_Name_A99_01.tif");
-      mTestFileNameLabel = new QLabel(tr("Regex test:"));
-      formLayout->addRow(mTestFileNameLabel, mTestFileName);
-      connect(mTestFileName, &QLineEdit::editingFinished, this, &WindowMain::applyRegex);
-
-      mTestFileResult = new QLabel();
-      formLayout->addRow(mTestFileResult);
-    }
-    addSeparator();
-
-    layout->addLayout(formLayout);
-
-    mNotes = new QTextEdit;
-    mNotes->setPlaceholderText("Notes on the experiment...");
-    layout->addWidget(mNotes);
-
-    layout->addStretch();
-    pipelineTab->setLayout(layout);
-    tabs->addTab(pipelineTab, "Project");
-  }
+  mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings.experimentSettings, this);
+  tabs->addTab(mPanelProjectSettings, "Project");
 
   // Pipeline Tab
   {
@@ -392,61 +297,6 @@ void WindowMain::createLeftToolbar()
 
   mRightToolBar->setMinimumWidth(300);
   addToolBar(Qt::ToolBarArea::LeftToolBarArea, mRightToolBar);
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::onOpenWorkingDirectoryClicked()
-{
-  QString folderToOpen      = QDir::homePath();
-  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen);
-
-  if(selectedDirectory.isEmpty()) {
-    return;
-  }
-  mWorkingDir->setText(selectedDirectory);
-  mWorkingDir->update();
-  mWorkingDir->repaint();
-  mAnalyzeSettings.experimentSettings.wotkingDirectory = mWorkingDir->text().toStdString();
-  setWorkingDirectory(mAnalyzeSettings.experimentSettings.wotkingDirectory);
-  checkForSettingsChanged();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void WindowMain::applyRegex()
-{
-  try {
-    auto regexResult = joda::results::Results::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
-                                                          mTestFileName->text().toStdString());
-
-    if(regexResult.groupName.length() > 20) {
-      regexResult.groupName =
-          (QString(regexResult.groupName.data()).left(8) + "..." + QString(regexResult.groupName.data()).right(10))
-              .toStdString();
-    }
-    std::string matching = "<html><b>Group:</b> " + regexResult.groupName;
-    std::string row;
-    if(regexResult.well.wellPosX != UINT16_MAX) {
-      row = "| <b>Row:</b> " + std::to_string(regexResult.well.wellPosX);
-    }
-    std::string column;
-    if(regexResult.well.wellPosY != UINT16_MAX) {
-      column = "| <b>Col:</b> " + std::to_string(regexResult.well.wellPosY);
-    }
-    std::string img    = "| <b>Img:</b> " + std::to_string(regexResult.well.imageIdx);
-    std::string toText = matching + row + column + img + "</html>";
-    mTestFileResult->setText(QString(toText.data()));
-  } catch(const std::exception &ex) {
-    mTestFileResult->setText(ex.what());
-  }
 }
 
 ///
@@ -717,10 +567,12 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
         addVChannelIntersection(channel.$intersection.value());
       }
     }
+    mPanelProjectSettings->fromSettings(analyzeSettings.experimentSettings);
 
     mAnalyzeSettings.experimentSettings = analyzeSettings.experimentSettings;
     mAnalyzeSettingsOld                 = mAnalyzeSettings;
-    mSelectedProjectSettingsFilePath    = filePath.toStdString();
+
+    mSelectedProjectSettingsFilePath = filePath.toStdString();
     mSelectedImagesDirectory.clear();
     checkForSettingsChanged();
     onSaveProject();
@@ -977,9 +829,11 @@ void WindowMain::checkForSettingsChanged()
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
     mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50-red.png"));
+    mSaveProject->setEnabled(true);
   } else {
     // Equal
     mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50.png"));
+    mSaveProject->setEnabled(false);
   }
 }
 
@@ -1455,100 +1309,6 @@ QString WindowMain::bytesToString(int64_t bytes)
     return QString::number(static_cast<double>(bytes) / 1000.0, 'f', 2) + " kB";
   }
   return QString::number(static_cast<double>(bytes) / 1.0, 'f', 2) + "  Byte";
-}
-
-struct Temp
-{
-  std::vector<std::vector<int32_t>> order;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Temp, order);
-};
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void WindowMain::fromProjectSettings()
-{
-  {
-    auto idx = mGroupByComboBox->findData(static_cast<int>(mAnalyzeSettings.experimentSettings.groupBy));
-    if(idx >= 0) {
-      mGroupByComboBox->setCurrentIndex(idx);
-    } else {
-      mGroupByComboBox->setCurrentIndex(0);
-    }
-  }
-
-  {
-    auto idx = mGroupByComboBox->findData(static_cast<int>(mAnalyzeSettings.experimentSettings.groupBy));
-    if(idx >= 0) {
-      mGroupByComboBox->setCurrentIndex(idx);
-    } else {
-      mGroupByComboBox->setCurrentIndex(0);
-    }
-  }
-
-  {
-    try {
-      Temp tm{.order = mAnalyzeSettings.experimentSettings.wellImageOrder};
-      nlohmann::json j = tm;
-      j                = j["order"];
-      mWellOrderMatrix->setText(j.dump().data());
-    } catch(...) {
-      mWellOrderMatrix->setText("[[1,2,3,4],[5,6,7,8]]");
-    }
-  }
-
-  mWorkingDir->setText(mAnalyzeSettings.experimentSettings.wotkingDirectory.data());
-  mRegexToFindTheWellPosition->setCurrentText(mAnalyzeSettings.experimentSettings.filenameRegex.data());
-  mNotes->setText(mAnalyzeSettings.experimentSettings.notes.data());
-  mAddressOrganisation->setText(mAnalyzeSettings.experimentSettings.address.organization.data());
-  int idx = 0;
-  for(const auto &scientist : mAnalyzeSettings.experimentSettings.scientistsNames) {
-    if(idx >= mScientists.size()) {
-      mScientists.push_back(new QLineEdit());
-      /// \todo Add Qline edit of other scientst to layout
-    }
-    mScientists[idx]->setText(scientist.data());
-    idx++;
-  }
-  applyRegex();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void WindowMain::toProjectSettings()
-{
-  mAnalyzeSettings.experimentSettings.wotkingDirectory     = mWorkingDir->text().toStdString();
-  mAnalyzeSettings.experimentSettings.address.organization = mAddressOrganisation->text().trimmed().toStdString();
-  mAnalyzeSettings.experimentSettings.notes                = mNotes->toPlainText().toStdString();
-  mAnalyzeSettings.experimentSettings.scientistsNames.clear();
-  for(const auto *textLabel : mScientists) {
-    mAnalyzeSettings.experimentSettings.scientistsNames.push_back(textLabel->text().trimmed().toStdString());
-  }
-
-  mAnalyzeSettings.experimentSettings.groupBy =
-      static_cast<joda::settings::ExperimentSettings::GroupBy>(mGroupByComboBox->currentData().toInt());
-  mAnalyzeSettings.experimentSettings.filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
-
-  try {
-    nlohmann::json wellImageOrderJson = nlohmann::json::parse(mWellOrderMatrix->text().toStdString());
-    nlohmann::json obj;
-    obj["order"]                                       = wellImageOrderJson;
-    Temp tm                                            = nlohmann::json::parse(obj.dump());
-    mAnalyzeSettings.experimentSettings.wellImageOrder = tm.order;
-  } catch(...) {
-    mAnalyzeSettings.experimentSettings.wellImageOrder.clear();
-    QMessageBox::warning(this, "Warning",
-                         "The well matrix format is not well defined. Please correct it in the settings dialog!");
-  }
 }
 
 }    // namespace joda::ui::qt

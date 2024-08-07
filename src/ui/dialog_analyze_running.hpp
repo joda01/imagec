@@ -19,7 +19,7 @@
 #include <thread>
 #include "backend/settings/analze_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
-#include "ui/window_main.hpp"
+#include "ui/window_main/window_main.hpp"
 
 namespace joda::ui::qt {
 

@@ -72,7 +72,7 @@ public:
   //
   // This is not stored in the JSON > Working directory
   //
-  std::string wotkingDirectory;
+  std::string workingDirectory;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, groupBy, filenameRegex, wellImageOrder, notes,
                                               scientistsNames, address);

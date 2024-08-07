@@ -94,9 +94,6 @@ DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QS
   QLabel *helpTextLabel = new QLabel(fullHelpText);
   helpTextLabel->setOpenExternalLinks(true);
   helpTextLabel->setWordWrap(true);
-  QFont fontLineEdit;
-  fontLineEdit.setPixelSize(16);
-  helpTextLabel->setFont(fontLineEdit);
   mainLayout->addWidget(helpTextLabel);
   mainLayout->addStretch();
   mainLayout->invalidate();

@@ -3,7 +3,7 @@
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 #include "controller/controller.hpp"
-#include "ui/window_main.hpp"
+#include "ui/window_main/window_main.hpp"
 #include "version.h"
 
 int main(int argc, char *argv[])
@@ -30,10 +30,34 @@ int main(int argc, char *argv[])
     qWarning() << "Failed to load font file";
   }
 
-  QFont font("Roboto");
-  app.setFont(font);
+  // QFont font("Roboto");
+  // app.setFont(font);
 
   QApplication::setStyle("Fusion");
+
+  QString stylesheet = R"(
+        QLineEdit {
+            min-height: 26px;
+        }
+        QComboBox {
+            min-height: 26px;
+        }
+        QComboBox QAbstractItemView {
+            min-height: 26px;
+        }
+        QPushButton {
+            min-height: 26px;
+        }
+        QWidget#PanelChannelOverview {
+          border-radius: 12px;
+          border: 1px solid rgb(170, 170, 170);
+          padding-top: 10px;
+          padding-bottom: 10px;
+        }
+    )";
+
+  // Apply the stylesheet
+  app.setStyleSheet(stylesheet);
 
   /*
   app.setStyleSheet(

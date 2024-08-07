@@ -56,17 +56,10 @@ public:
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
-  static constexpr int32_t SPACING           = 16;
-
-  QHBoxLayout *createLayout(int32_t spacing);
-  std::tuple<QVBoxLayout *, QWidget *> addVerticalPanel(QLayout *horizontalLayout, const QString &bgColor,
-                                                        int margin = 16, bool enableScrolling = false,
-                                                        int maxWidth = 250, int spacing = 4) const;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
   ContainerChannel *mParentContainer;
-  QLabel *createTitle(const QString &);
   PanelPreview *mPreviewImage = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter                         = 0;

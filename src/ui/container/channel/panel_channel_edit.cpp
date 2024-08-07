@@ -23,10 +23,11 @@
 #include <mutex>
 #include <string>
 #include <thread>
-#include "../../window_main.hpp"
 #include "../container_function.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
+#include "ui/helper/layout_generator.hpp"
+#include "ui/window_main/window_main.hpp"
 #include "container_channel.hpp"
 
 namespace joda::ui::qt {
@@ -42,16 +43,16 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
 
 void PanelChannelEdit::init()
 {
-  auto *horizontalLayout = createLayout(SPACING);
+  auto [horizontalLayout, _] = helper::createLayout(this, helper::SPACING);
 
   //
   // Column 1
   //
   // rgb(246, 246, 246)
-  auto [verticalLayoutContainer, _1] =
-      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, SPACING);
-  auto [verticalLayoutMeta, _2] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-  verticalLayoutMeta->addWidget(createTitle("Meta"));
+  auto [verticalLayoutContainer, _1] = helper::addVerticalPanel(
+      horizontalLayout, "rgba(218, 226, 255,0)", 0, false, helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
+  auto [verticalLayoutMeta, _2] = helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+  verticalLayoutMeta->addWidget(helper::createTitle("Meta"));
   verticalLayoutMeta->addWidget(mParentContainer->mChannelName->getEditableWidget());
   verticalLayoutMeta->addWidget(mParentContainer->mColorAndChannelIndex->getEditableWidget());
   verticalLayoutMeta->addWidget(mParentContainer->mChannelType->getEditableWidget());
@@ -62,8 +63,8 @@ void PanelChannelEdit::init()
           &PanelChannelEdit::updatePreview);
 
   // Cross channel
-  auto [llayoutColoc, _11] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-  llayoutColoc->addWidget(createTitle("Cross-Channel"));
+  auto [llayoutColoc, _11] = helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+  llayoutColoc->addWidget(helper::createTitle("Cross-Channel"));
   // llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
   llayoutColoc->addWidget(mParentContainer->mCrossChannelIntensity->getEditableWidget());
   llayoutColoc->addWidget(mParentContainer->mCrossChannelCount->getEditableWidget());
@@ -78,9 +79,11 @@ void PanelChannelEdit::init()
   //
   // Column 2
   //
-  auto [functionContainer, _7] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, SPACING);
-  auto [verticalLayoutFuctions, _8] = addVerticalPanel(functionContainer, "rgb(246, 246, 246)", SPACING, false);
-  verticalLayoutFuctions->addWidget(createTitle("Preprocessing"));
+  auto [functionContainer, _7] = helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false,
+                                                          helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
+  auto [verticalLayoutFuctions, _8] =
+      helper::addVerticalPanel(functionContainer, "rgb(246, 246, 246)", helper::SPACING, false);
+  verticalLayoutFuctions->addWidget(helper::createTitle("Preprocessing"));
   verticalLayoutFuctions->addWidget(mParentContainer->mZProjection->getEditableWidget());
   verticalLayoutFuctions->addWidget(mParentContainer->mMarginCrop->getEditableWidget());
   verticalLayoutFuctions->addWidget(mParentContainer->mMedianBackgroundSubtraction->getEditableWidget());
@@ -112,9 +115,10 @@ void PanelChannelEdit::init()
   //
   // Column 3
   //
-  auto [detectionContainer, _4] = addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, SPACING);
-  auto [detection, _5]          = addVerticalPanel(detectionContainer, "rgb(246, 246, 246)");
-  detection->addWidget(createTitle("Detection"));
+  auto [detectionContainer, _4] = helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false,
+                                                           helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
+  auto [detection, _5]          = helper::addVerticalPanel(detectionContainer, "rgb(246, 246, 246)");
+  detection->addWidget(helper::createTitle("Detection"));
   detection->addWidget(mParentContainer->mUsedDetectionMode->getEditableWidget());
   connect(mParentContainer->mUsedDetectionMode.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::onDetectionModechanged);
@@ -144,10 +148,10 @@ void PanelChannelEdit::init()
   //
   // Column 4
   //
-  auto [filterContainer, filterContainerLayout] =
-      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, SPACING);
-  auto [objectFilter, objectFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)");
-  objectFilter->addWidget(createTitle("Object filter"));
+  auto [filterContainer, filterContainerLayout] = helper::addVerticalPanel(
+      horizontalLayout, "rgba(218, 226, 255,0)", 0, false, helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
+  auto [objectFilter, objectFilterLayout] = helper::addVerticalPanel(filterContainer, "rgb(246, 246, 246)");
+  objectFilter->addWidget(helper::createTitle("Object filter"));
   objectFilter->addWidget(mParentContainer->mMinParticleSize->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mMaxParticleSize->getEditableWidget());
   objectFilter->addWidget(mParentContainer->mMinCircularity->getEditableWidget());
@@ -165,8 +169,9 @@ void PanelChannelEdit::init()
   connect(mParentContainer->mTetraspeckRemoval.get(), &ContainerFunctionBase::valueChanged, this,
           &PanelChannelEdit::updatePreview);
 
-  auto [imageFilter, imageFilterLayout] = addVerticalPanel(filterContainer, "rgb(246, 246, 246)", SPACING, false);
-  imageFilter->addWidget(createTitle("Image filter"));
+  auto [imageFilter, imageFilterLayout] =
+      helper::addVerticalPanel(filterContainer, "rgb(246, 246, 246)", helper::SPACING, false);
+  imageFilter->addWidget(helper::createTitle("Image filter"));
   imageFilter->addWidget(mParentContainer->mImageFilterMode->getEditableWidget());
   imageFilter->addWidget(mParentContainer->mMaxObjects->getEditableWidget());
   imageFilter->addWidget(mParentContainer->mHistogramThresholdFactor->getEditableWidget());
@@ -183,9 +188,9 @@ void PanelChannelEdit::init()
   //
   // Preview
   //
-  auto [preview, _9] =
-      addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE, SPACING);
-  mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
+  auto [preview, _9] = helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE,
+                                                helper::PANEL_WIDTH, helper::SPACING);
+  mPreviewImage      = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
   mPreviewImage->setContentsMargins(0, 0, 0, 0);
   mPreviewImage->resetImage("");
   preview->addWidget(mPreviewImage);
@@ -229,83 +234,6 @@ PanelChannelEdit::~PanelChannelEdit()
     }
   }
   delete mPreviewImage;
-}
-
-QLabel *PanelChannelEdit::createTitle(const QString &title)
-{
-  auto *label = new QLabel();
-  QFont font;
-  font.setPixelSize(16);
-  font.setBold(true);
-  label->setFont(font);
-  label->setText(title);
-
-  return label;
-}
-
-QHBoxLayout *PanelChannelEdit::createLayout(int32_t spacing)
-{
-  QScrollArea *scrollArea = new QScrollArea(this);
-  scrollArea->setObjectName("scrollArea");
-  scrollArea->setFrameStyle(0);
-  scrollArea->setContentsMargins(0, 0, 0, 0);
-  scrollArea->verticalScrollBar()->setObjectName("scrollAreaV");
-
-  // Create a widget to hold the panels
-  QWidget *contentWidget = new QWidget;
-  contentWidget->setObjectName("contentOverview");
-
-  scrollArea->setWidget(contentWidget);
-  scrollArea->setWidgetResizable(true);
-
-  // Create a horizontal layout for the panels
-  QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
-  horizontalLayout->setContentsMargins(spacing, spacing, 0, 0);
-  horizontalLayout->setSpacing(spacing);    // Adjust this value as needed
-  contentWidget->setLayout(horizontalLayout);
-  return horizontalLayout;
-}
-
-std::tuple<QVBoxLayout *, QWidget *> PanelChannelEdit::addVerticalPanel(QLayout *horizontalLayout,
-                                                                        const QString &bgColor, int margin,
-                                                                        bool enableScrolling, int maxWidth,
-                                                                        int spacing) const
-{
-  QVBoxLayout *layout = new QVBoxLayout();
-  layout->setSpacing(spacing);
-  QWidget *contentWidget = new QWidget();
-
-  layout->setContentsMargins(margin, margin, margin, margin);
-  layout->setAlignment(Qt::AlignTop);
-
-  contentWidget->setObjectName("verticalContentChannel");
-  contentWidget->setLayout(layout);
-  contentWidget->setStyleSheet(
-      "QWidget#verticalContentChannel { "
-      "background-color: " +
-      bgColor + ";}");
-
-  if(enableScrolling) {
-    QScrollArea *scrollArea = new QScrollArea();
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
-    scrollArea->setObjectName("scrollArea");
-    scrollArea->setFrameStyle(0);
-    scrollArea->setContentsMargins(0, 0, 0, 0);
-    scrollArea->verticalScrollBar()->setObjectName("scrollAreaV");
-
-    scrollArea->setWidget(contentWidget);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setMinimumWidth(maxWidth);
-    scrollArea->setMaximumWidth(maxWidth);
-
-    horizontalLayout->addWidget(scrollArea);
-    return {layout, scrollArea};
-  }
-  contentWidget->setMinimumWidth(maxWidth);
-  contentWidget->setMaximumWidth(maxWidth);
-  horizontalLayout->addWidget(contentWidget);
-
-  return {layout, contentWidget};
 }
 
 void PanelChannelEdit::onChannelTypeChanged()
