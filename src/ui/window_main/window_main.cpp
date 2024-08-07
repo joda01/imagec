@@ -307,113 +307,10 @@ QWidget *WindowMain::createStackedWidget()
 {
   mStackedWidget = new QStackedWidget();
   mStackedWidget->setObjectName("stackedWidget");
-  mStackedWidget->addWidget(createStartWidget());
   mStackedWidget->addWidget(createOverviewWidget());
   mStackedWidget->addWidget(createChannelWidget());
   mStackedWidget->addWidget(createReportingWidget());
   return mStackedWidget;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-QWidget *WindowMain::createStartWidget()
-{
-  QWidget *startScreenWidget = new QWidget();
-  startScreenWidget->setObjectName("PanelChannelOverview");
-  startScreenWidget->setMinimumHeight(350);
-  startScreenWidget->setMinimumWidth(350);
-  startScreenWidget->setMaximumWidth(350);
-  QVBoxLayout *layout = new QVBoxLayout(); /*this*/
-                                           //   // layout->setContentsMargins(16, 16, 16, 16);
-
-  layout->setObjectName("mainWindowChannelGridLayout");
-  startScreenWidget->setLayout(layout);
-  layout->setSpacing(0);
-
-  QWidget *widgetAddChannel     = new QWidget();
-  QHBoxLayout *layoutAddChannel = new QHBoxLayout();
-  //   layoutAddChannel->setContentsMargins(0, 0, 0, 0);
-  widgetAddChannel->setLayout(layoutAddChannel);
-
-  //
-  // Label
-  //
-  // Create a label
-  QLabel *iconLabel = new QLabel();
-  QPixmap pixmap(":/icons/outlined/icon.png");
-  iconLabel->setPixmap(pixmap.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-  layout->addWidget(iconLabel);
-  QString text = "<p><span style='font-weight: bold;'>" + QString(Version::getTitle().data()) +
-                 "&nbsp;</span><span style='font-weight: bold; font-size: 10pt;'>" +
-                 QString(Version::getSubtitle().data()) +
-                 "</span><br>"
-                 "<span style='font-size: 10pt; color: darkgray;'>" +
-                 QString(Version::getVersion().data()) + "</span></p>";
-  QLabel *startText = new QLabel(text);
-  layout->addWidget(startText);
-
-  //
-  // Separator
-  //
-  layout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::Expanding));
-  QFrame *line = new QFrame();
-  line->setFrameShape(QFrame::HLine);
-  line->setFrameShadow(QFrame::Sunken);
-  layout->addWidget(line);
-  layout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
-  layout->setSpacing(8);    // Adjust this value as needed
-  layout->addStretch();
-  startScreenWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-
-  ////////////////////////////////////////
-
-  auto createVerticalContainer = []() -> std::tuple<QGridLayout *, QWidget *> {
-    QWidget *contentWidget = new QWidget;
-    QGridLayout *layout    = new QGridLayout(contentWidget);
-    layout->setObjectName("mainWindowGridLayout");
-    //     // layout->setContentsMargins(16, 16, 16, 16);
-    layout->setSpacing(8);    // Adjust this value as needed
-    contentWidget->setLayout(layout);
-    return {layout, contentWidget};
-  };
-
-  auto [channelsOverViewLayout, channelsOverviewWidget] = createVerticalContainer();
-  mLayoutChannelOverview                                = channelsOverViewLayout;
-
-  channelsOverViewLayout->addWidget(startScreenWidget);
-
-  mLastElement = new QLabel();
-  channelsOverViewLayout->addWidget(mLastElement, 1, 0, 1, 3);
-
-  channelsOverViewLayout->setRowStretch(0, 1);
-  channelsOverViewLayout->setRowStretch(1, 1);
-  channelsOverViewLayout->setRowStretch(2, 1);
-  channelsOverViewLayout->setRowStretch(4, 3);
-
-  // channelsOverViewLayout->addStretch();
-  // Create a horizontal layout for the panels
-  // Create a widget to hold the panels
-  auto *contentWidget = new QWidget;
-  contentWidget->setObjectName("contentOverview");
-  auto *horizontalLayout = new QHBoxLayout(contentWidget);
-  horizontalLayout->setObjectName("mainWindowHLayout");
-  //   // horizontalLayout->setContentsMargins(16, 16, 16, 16);
-  horizontalLayout->setSpacing(16);    // Adjust this value as needed
-  contentWidget->setLayout(horizontalLayout);
-  horizontalLayout->addStretch();
-  horizontalLayout->addWidget(channelsOverviewWidget);
-
-  QScrollArea *scrollArea = new QScrollArea(this);
-  scrollArea->setFrameStyle(0);
-  scrollArea->setObjectName("scrollAreaOverview");
-  scrollArea->setWidget(contentWidget);
-  scrollArea->setWidgetResizable(true);
-  horizontalLayout->addStretch();
-
-  return scrollArea;
 }
 
 ///
@@ -690,7 +587,6 @@ void WindowMain::onLookingForFilesFinished()
     idx++;
   }
   if(mController->getNrOfFoundImages() > 0) {
-    mFoundFilesCombo->setCurrentIndex(0);
     auto props = mController->getImageProperties(0, 0).getImageInfo();
     mFoundFilesHint->setText("Finished");
     mFileSearchHintLabel->setVisible(false);
@@ -801,11 +697,6 @@ void WindowMain::onImageSelectionChanged()
               bytesToString(pyramid.imageMemoryUsage) + ")",
           idx);
     }
-    if(currentIdx < mImageResolutionCombo->count()) {
-      mImageResolutionCombo->setCurrentIndex(currentIdx);
-    } else {
-      mImageResolutionCombo->setCurrentIndex(0);
-    }
     mImageResolutionCombo->blockSignals(false);
   }
 }
@@ -913,11 +804,12 @@ void WindowMain::onFindTemplatesFinished(std::map<std::string, helper::templates
 void WindowMain::onStartClicked()
 {
   try {
+    if(mJobName.isEmpty()) {
+      mJobName = joda::helper::RandomNameGenerator::GetRandomName().data();
+    }
     joda::settings::Settings::checkSettings(mAnalyzeSettings);
-
     DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
     dialg.exec();
-
     // Analysis finished -> generate new name
     mJobName.clear();
     mJobName = joda::helper::RandomNameGenerator::GetRandomName().data();
@@ -981,7 +873,7 @@ bool WindowMain::showProjectOverview()
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(true);
   mOpenReportingArea->setVisible(true);
-  mStackedWidget->setCurrentIndex(1);
+  mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::PROJECT_OVERVIEW));
   mNavigation = Navigation::PROJECT_OVERVIEW;
   return true;
 }
@@ -1010,8 +902,8 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
   mSecondSeparator->setVisible(false);
   mOpenReportingArea->setVisible(false);
   mStackedWidget->removeWidget(mStackedWidget->widget(2));
-  mStackedWidget->insertWidget(2, selectedChannel->getEditPanel());
-  mStackedWidget->setCurrentIndex(2);
+  mStackedWidget->insertWidget(static_cast<int32_t>(Navigation::CHANNEL_EDIT), selectedChannel->getEditPanel());
+  mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::CHANNEL_EDIT));
   mNavigation = Navigation::CHANNEL_EDIT;
 }
 
@@ -1055,7 +947,7 @@ void WindowMain::onOpenReportingAreaClicked()
     mFirstSeparator->setVisible(false);
     mSecondSeparator->setVisible(false);
     mOpenReportingArea->setVisible(false);
-    mStackedWidget->setCurrentIndex(mStackedWidget->count() - 1);
+    mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::REPORTING));
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);

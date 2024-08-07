@@ -55,7 +55,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
   connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
   workingDir->addWidget(openDir);
   workingDir->setStretch(0, 1);    // Make label take all available space
-  formLayout->addRow(new QLabel(tr("Image directory:")), workingDir);
+  formLayout->addRow(new QLabel(tr("Working directory:")), workingDir);
 
   addSeparator();
 

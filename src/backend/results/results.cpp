@@ -585,10 +585,18 @@ GroupInformation Results::applyRegex(const std::string &regex, const std::filesy
       result.well.wellPosX = UINT16_MAX;
       result.well.imageIdx = UINT32_MAX;
     } else {
-      throw std::invalid_argument("Pattern not found.");
+      result.groupName     = "";
+      result.well.wellPosY = UINT16_MAX;
+      result.well.wellPosX = UINT16_MAX;
+      result.well.imageIdx = UINT32_MAX;
+      joda::log::logWarning("Regex pattern not found. Use fallback!");
     }
   } else {
-    throw std::invalid_argument("Pattern not found.");
+    result.groupName     = "";
+    result.well.wellPosY = UINT16_MAX;
+    result.well.wellPosX = UINT16_MAX;
+    result.well.imageIdx = UINT32_MAX;
+    joda::log::logWarning("Regex pattern not found. Use fallback!");
   }
   return result;
 }

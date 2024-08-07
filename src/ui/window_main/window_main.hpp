@@ -116,7 +116,6 @@ private:
   void resetImageInfo();
 
   QWidget *createStackedWidget();
-  QWidget *createStartWidget();
   QWidget *createOverviewWidget();
   QWidget *createChannelWidget();
   QWidget *createReportingWidget();
