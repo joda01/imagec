@@ -173,20 +173,11 @@ void WindowMain::createTopToolbar()
 
   mSecondSeparator = toolbar->addSeparator();
 
-  mOpenReportingArea = new QAction(QIcon(":/icons/outlined/icons8-graph-50.png"), "Reporting area", toolbar);
-  mOpenReportingArea->setToolTip("Open reporting area");
-  connect(mOpenReportingArea, &QAction::triggered, this, &WindowMain::onOpenReportingAreaClicked);
-  //  toolbar->addAction(mOpenReportingArea);
-
   mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
   mStartAnalysis->setEnabled(false);
   mStartAnalysis->setToolTip("Start analysis!");
   connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onStartClicked);
   toolbar->addAction(mStartAnalysis);
-
-  mOpenResultsButton = new QAction(QIcon(":/icons/outlined/icons8-graph-50.png"), "Open results", toolbar);
-  connect(mOpenResultsButton, &QAction::triggered, this, &WindowMain::onOpenReportingAreaClicked);
-  toolbar->addAction(mOpenResultsButton);
 
   mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
   mDeleteChannel->setToolTip("Delete channel!");
@@ -226,51 +217,11 @@ void WindowMain::createLeftToolbar()
     mTemplateSelection = new QComboBox();
     mTemplateSelection->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     layout->addWidget(mTemplateSelection);
+    connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
 
-    //
-    // Add channel
-    //
-    QPushButton *addChannelButton = new QPushButton();
-    addChannelButton->setText("Add channel");
-    const QIcon channelIcon(":/icons/outlined/icons8-gallery-50.png");
-    addChannelButton->setIconSize({16, 16});
-    addChannelButton->setIcon(channelIcon);
-    addChannelButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    // Channel list
+    layout->addWidget(createOverviewWidget());
 
-    connect(addChannelButton, &QPushButton::pressed, this, &WindowMain::onAddChannelClicked);
-    layout->addWidget(addChannelButton);
-
-    //
-    // Add cell voronoi
-    //
-    QPushButton *addVoronoiButton = new QPushButton();
-    const QIcon voronoiIcon(":/icons/outlined/dom-voronoi-50.png");
-    addVoronoiButton->setText("Add voronoi");
-    addVoronoiButton->setIconSize({16, 16});
-    addVoronoiButton->setIcon(voronoiIcon);
-    connect(addVoronoiButton, &QPushButton::pressed, this, &WindowMain::onAddCellApproxClicked);
-    layout->addWidget(addVoronoiButton);
-
-    //
-    // Add intersection voronoi
-    //
-    QPushButton *addIntersection = new QPushButton();
-    const QIcon intersectionIcon(":/icons/outlined/icons8-query-inner-join-50.png");
-    addIntersection->setIconSize({16, 16});
-    addIntersection->setIcon(intersectionIcon);
-    addIntersection->setText("Add intersection");
-    connect(addIntersection, &QPushButton::pressed, this, &WindowMain::onAddIntersectionClicked);
-    layout->addWidget(addIntersection);
-
-    //
-    // Add giraf
-    //
-    QPushButton *addGiraf = new QPushButton();
-    addGiraf->setText("Add Giraffe");
-    connect(addGiraf, &QPushButton::pressed, this, &WindowMain::onAddGirafClicked);
-    layout->addWidget(addGiraf);
-
-    layout->addStretch();
     pipelineTab->setLayout(layout);
     tabs->addTab(pipelineTab, "Pipeline");
   }
@@ -280,7 +231,7 @@ void WindowMain::createLeftToolbar()
     auto *imageTab = new QWidget();
     auto *layout   = new QVBoxLayout();
     layout->setContentsMargins(0, 0, 0, 0);
-    mLabelImageInfo = new QTableWidget(3, 2);
+    mLabelImageInfo = new QTableWidget(0, 2);
     mLabelImageInfo->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mLabelImageInfo->verticalHeader()->setVisible(false);
     mLabelImageInfo->setHorizontalHeaderLabels({"Meta", "Value"});
@@ -290,12 +241,18 @@ void WindowMain::createLeftToolbar()
     imageTab->setLayout(layout);
     tabs->addTab(imageTab, "Image");
   }
+
+  // Reportings tab
+  {
+    tabs->addTab(new QWidget(), "Reportings");
+  }
+
   mSidebar->addWidget(tabs);
 
   resetImageInfo();
   mSidebar->setVisible(false);
 
-  mSidebar->setMinimumWidth(300);
+  mSidebar->setMinimumWidth(380);
   addToolBar(Qt::ToolBarArea::LeftToolBarArea, mSidebar);
 }
 
@@ -307,7 +264,7 @@ QWidget *WindowMain::createStackedWidget()
 {
   mStackedWidget = new QStackedWidget();
   mStackedWidget->setObjectName("stackedWidget");
-  mStackedWidget->addWidget(createOverviewWidget());
+  // mStackedWidget->addWidget(createOverviewWidget());
   mStackedWidget->addWidget(createChannelWidget());
   mStackedWidget->addWidget(createReportingWidget());
   return mStackedWidget;
@@ -333,7 +290,7 @@ QWidget *WindowMain::createOverviewWidget()
   // Create a horizontal layout for the panels
   QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
   horizontalLayout->setObjectName("mainWindowHLayout");
-  //   // horizontalLayout->setContentsMargins(16, 16, 16, 16);
+  horizontalLayout->setContentsMargins(0, 0, 0, 0);
   horizontalLayout->setSpacing(16);    // Adjust this value as needed
   contentWidget->setLayout(horizontalLayout);
 
@@ -341,7 +298,7 @@ QWidget *WindowMain::createOverviewWidget()
     QWidget *contentWidget = new QWidget;
     QGridLayout *layout    = new QGridLayout(contentWidget);
     layout->setObjectName("mainWindowGridLayout");
-    //     // layout->setContentsMargins(16, 16, 16, 16);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(8);    // Adjust this value as needed
     contentWidget->setLayout(layout);
     return {layout, contentWidget};
@@ -352,29 +309,12 @@ QWidget *WindowMain::createOverviewWidget()
     mLayoutChannelOverview                                = channelsOverViewLayout;
 
     mLastElement = new QLabel();
-    channelsOverViewLayout->addWidget(mLastElement, 0, 0, 0, 3);
+    channelsOverViewLayout->addWidget(mLastElement, 0, 0, 0, 1);
 
     channelsOverViewLayout->setRowStretch(0, 1);
-    channelsOverViewLayout->setRowStretch(1, 1);
-    channelsOverViewLayout->setRowStretch(2, 1);
-    channelsOverViewLayout->setRowStretch(4, 3);
-
-    // channelsOverViewLayout->addStretch();
 
     horizontalLayout->addStretch();
     horizontalLayout->addWidget(channelsOverviewWidget);
-  }
-
-  {
-    /*
-    auto [channelsOverViewLayout, channelsOverviewWidget] = createVerticalContainer();
-    PanelChannelOverview *panel1                          = new PanelChannelOverview();
-    channelsOverViewLayout->addWidget(panel1);
-    PanelChannelOverview *panel2 = new PanelChannelOverview();
-    channelsOverViewLayout->addWidget(panel2);
-    channelsOverViewLayout->addStretch();
-    horizontalLayout->addWidget(channelsOverviewWidget);
-    */
   }
 
   horizontalLayout->addStretch();
@@ -789,8 +729,16 @@ void WindowMain::onSaveProject()
 void WindowMain::onFindTemplatesFinished(std::map<std::string, helper::templates::TemplateParser::Data> foundTemplates)
 {
   mTemplateSelection->clear();
-  const QIcon empty(":/icons/outlined/icons8-select-none-50.png");
-  mTemplateSelection->addItem(QIcon(empty.pixmap(28, 28)), "Empty channel", "");
+  mTemplateSelection->addItem("Add channel ...", "");
+
+  mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-select-none-50.png").pixmap(28, 28), "Empty channel",
+                              "emptyChannel");
+  mTemplateSelection->addItem(QIcon(":/icons/outlined/dom-voronoi-50.png").pixmap(28, 28), "Voronoi", "voronoiChannel");
+  mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-query-inner-join-50.png").pixmap(28, 28), "Intersection",
+                              "intersectionChannel");
+  mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-select-none-50.png").pixmap(28, 28), "Giraff",
+                              "giraffeChannel");
+
   const QIcon myIcon(":/icons/outlined/icon_eva.png");
   for(const auto &[_, data] : foundTemplates) {
     mTemplateSelection->addItem(QIcon(myIcon.pixmap(28, 28)), data.title.data(), data.path.data());
@@ -861,7 +809,6 @@ bool WindowMain::showProjectOverview()
   // setMiddelLabelText(mSelectedWorkingDirectory);
   mNewProjectButton->setVisible(true);
   mOpenProjectButton->setVisible(true);
-  mOpenResultsButton->setVisible(true);
   mSidebar->setVisible(true);
   mButtomToolbar->setVisible(true);
   mBackButton->setEnabled(false);
@@ -872,7 +819,6 @@ bool WindowMain::showProjectOverview()
   mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(true);
-  mOpenReportingArea->setVisible(true);
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::PROJECT_OVERVIEW));
   mNavigation = Navigation::PROJECT_OVERVIEW;
   return true;
@@ -885,23 +831,23 @@ bool WindowMain::showProjectOverview()
 void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 {
   mSelectedChannel = selectedChannel;
-  mNewProjectButton->setVisible(false);
-  mOpenProjectButton->setVisible(false);
-  mOpenResultsButton->setVisible(false);
+  // mNewProjectButton->setVisible(false);
+  // mOpenProjectButton->setVisible(false);
+  // mOpenResultsButton->setVisible(false);
 
-  mSidebar->setVisible(false);
+  // mSidebar->setVisible(false);
   mButtomToolbar->setVisible(true);
   selectedChannel->setActive(true);
   mBackButton->setEnabled(true);
   mBackButton->setVisible(true);
-  mSaveProject->setVisible(false);
-  mSaveProject->setVisible(false);
-  mStartAnalysis->setVisible(false);
+  // mSaveProject->setVisible(false);
+  // mSaveProject->setVisible(false);
+  // mStartAnalysis->setVisible(false);
   mDeleteChannel->setVisible(true);
-  mFirstSeparator->setVisible(false);
-  mSecondSeparator->setVisible(false);
-  mOpenReportingArea->setVisible(false);
-  mStackedWidget->removeWidget(mStackedWidget->widget(2));
+  // mFirstSeparator->setVisible(false);
+  // mSecondSeparator->setVisible(false);
+  // mOpenReportingArea->setVisible(false);
+  mStackedWidget->removeWidget(mStackedWidget->widget(static_cast<int32_t>(Navigation::CHANNEL_EDIT)));
   mStackedWidget->insertWidget(static_cast<int32_t>(Navigation::CHANNEL_EDIT), selectedChannel->getEditPanel());
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::CHANNEL_EDIT));
   mNavigation = Navigation::CHANNEL_EDIT;
@@ -933,7 +879,6 @@ void WindowMain::onOpenReportingAreaClicked()
     // Open reporting area
     mNewProjectButton->setVisible(false);
     mOpenProjectButton->setVisible(false);
-    mOpenResultsButton->setVisible(false);
 
     // mSidebar->setVisible(false);
     mButtomToolbar->setVisible(false);
@@ -945,7 +890,6 @@ void WindowMain::onOpenReportingAreaClicked()
     mDeleteChannel->setVisible(false);
     mFirstSeparator->setVisible(false);
     mSecondSeparator->setVisible(false);
-    mOpenReportingArea->setVisible(false);
     mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::REPORTING));
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
@@ -1072,35 +1016,22 @@ ContainerBase *WindowMain::addVChannelIntersection(joda::settings::VChannelInter
   return nullptr;
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::onAddChannelClicked()
+void WindowMain::onAddChannel()
 {
-  if(mTemplateSelection->currentIndex() > 0) {
-    addChannelFromTemplate(mTemplateSelection->currentData().toString());
-  } else {
+  auto selection = mTemplateSelection->currentData().toString();
+  if(selection == "") {
+  } else if(selection == "emptyChannel") {
     addChannel({});
+  } else if(selection == "voronoiChannel") {
+    addVChannelVoronoi({});
+  } else if(selection == "intersectionChannel") {
+    addVChannelIntersection({});
+  } else {
+    addChannelFromTemplate(mTemplateSelection->currentData().toString());
   }
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::onAddCellApproxClicked()
-{
-  addVChannelVoronoi({});
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::onAddIntersectionClicked()
-{
-  addVChannelIntersection({});
+  mTemplateSelection->blockSignals(true);
+  mTemplateSelection->setCurrentIndex(0);
+  mTemplateSelection->blockSignals(false);
 }
 
 void WindowMain::removeChannel(ContainerBase *toRemove)

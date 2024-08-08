@@ -47,48 +47,15 @@ public:
   PanelReporting(WindowMain *wm);
   ~PanelReporting();
 
-  void setActive(bool setActive)
-  {
-    if(!mIsActiveShown && setActive) {
-      mIsActiveShown = true;
-    }
-    if(!setActive) {
-      mIsActiveShown = false;
-    }
-  }
   void setActualSelectedWorkingFile(const std::filesystem::path &imageCFile);
-  void close();
 
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<joda::results::Analyzer> mAnalyzer;
-
-  // Selector
-  QVBoxLayout *mSelectorLayout;
-  reporting::plugin::PanelHeatmap::SelectedFilter mFilter;
-
-  // Table
-  QTableWidget *mTable;
   reporting::plugin::PanelHeatmap *mHeatmap;
 
   /////////////////////////////////////////////////////
-  QProgressBar *createProgressBar(QWidget *parent);
-
-  /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
-  QLabel *createTitle(const QString &);
-  bool mIsActiveShown = false;
-
-  void lookingForFilesThread();
-  void loadDetailReportToTable();
-
-signals:
-  void exportFinished();
-
-private slots:
-  void onLoadingFileFinished();
-  void onResultsFileSelected();
-  void onTableDoubleClicked(const QModelIndex &index);
 };
 
 }    // namespace joda::ui::qt

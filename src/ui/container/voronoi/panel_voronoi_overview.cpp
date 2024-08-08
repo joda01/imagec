@@ -25,43 +25,43 @@ PanelVoronoiOverview::PanelVoronoiOverview(WindowMain *wm, ContainerVoronoi *par
     mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
-  setMinimumWidth(350);
-  setMaximumWidth(350);
+  setMinimumWidth(320);
+  // setMaximumWidth(350);
   QGridLayout *layout = new QGridLayout(this);
 
   setLayout(layout);
   layout->setSpacing(0);
 
   // Add the functions
-  layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
+  // layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
 
-  layout->addWidget(parent->mColorAndChannelIndex->getLabelWidget(), 1, 0);
-  layout->addWidget(parent->mVoronoiPoints->getLabelWidget(), 1, 1);
-  layout->addWidget(parent->mOverlayMaskChannelIndex->getLabelWidget(), 1, 2);
+  layout->addWidget(parent->mColorAndChannelIndex->getLabelWidget(), 0, 0);
+  layout->addWidget(parent->mVoronoiPoints->getLabelWidget(), 0, 1);
+  layout->addWidget(parent->mOverlayMaskChannelIndex->getLabelWidget(), 0, 2);
 
-  layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 2, 0);
-  layout->addWidget(parent->mCrossChannelCount->getLabelWidget(), 2, 1);
-  layout->addWidget(parent->mMaxVoronoiAreaSize->getLabelWidget(), 2, 2);
+  layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 1, 0);
+  layout->addWidget(parent->mCrossChannelCount->getLabelWidget(), 1, 1);
+  layout->addWidget(parent->mMaxVoronoiAreaSize->getLabelWidget(), 1, 2);
 
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 0);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 1);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 3, 2);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 2, 0);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 2, 1);
+  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 2, 2);
 
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 0);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 1);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 2);
+  /* layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 0);
+   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 1);
+   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 2);
 
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 0);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 1);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 2);
+   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 0);
+   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 1);
+   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 2);
 
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 0);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 1);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 2);
+   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 0);
+   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 1);
+   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 2);
 
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 3);
+   layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 3);*/
 
-  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
 ///

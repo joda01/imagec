@@ -54,9 +54,6 @@ PanelHeatmap::PanelHeatmap(WindowMain *windowMain, QWidget *parent) : mWindowMai
   auto [horizontalLayout, centerWidget] = joda::ui::qt::helper::createLayout(this, helper::SPACING);
   horizontalLayout->setContentsMargins(0, 0, 0, 0);
 
-  // vertical->addWidget(createBreadCrump());
-  // vertical->addWidget(centerWidget);
-
   //
   // Plate view
   //
@@ -163,7 +160,6 @@ PanelHeatmap::PanelHeatmap(WindowMain *windowMain, QWidget *parent) : mWindowMai
   centerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   setLayout(horizontalLayout);
-  // horizontalLayout->addStretch();
 }
 
 ///

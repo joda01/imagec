@@ -16,7 +16,7 @@
 namespace joda::ui::qt::helper {
 
 static constexpr int32_t SPACING     = 16;
-static constexpr int32_t PANEL_WIDTH = 245;
+static constexpr int32_t PANEL_WIDTH = 200;
 
 inline std::tuple<QHBoxLayout *, QWidget *> createLayout(QWidget *parent, int32_t spacing)
 {

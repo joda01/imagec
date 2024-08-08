@@ -104,7 +104,7 @@ signals:
 
 private:
   /////////////////////////////////////////////////////
-  static constexpr int32_t OVERVIEW_COLS = 3;
+  static constexpr int32_t OVERVIEW_COLS = 1;
   static constexpr int32_t V_CHANNEL_COL = OVERVIEW_COLS;
 
   /////////////////////////////////////////////////////
@@ -176,7 +176,6 @@ private:
   ////ToolbarIcons/////////////////////////////////////////////////
   QAction *mNewProjectButton  = nullptr;
   QAction *mOpenProjectButton = nullptr;
-  QAction *mOpenResultsButton = nullptr;
 
   QAction *mFileSelectorComboBox    = nullptr;
   QAction *mImageSeriesComboBox     = nullptr;
@@ -184,7 +183,6 @@ private:
   QAction *mFileSearchHintLabel     = nullptr;
   QAction *mSaveProject             = nullptr;
   QAction *mStartAnalysis           = nullptr;
-  QAction *mOpenReportingArea       = nullptr;
   QAction *mDeleteChannel           = nullptr;
   QAction *mShowInfoDialog          = nullptr;
   QAction *mFirstSeparator          = nullptr;
@@ -196,13 +194,11 @@ private:
   QMovie *mGiraf;
 
 private slots:
+  void onAddChannel();
   void onSaveProject();
   void onSaveProjectAsClicked();
   void onStartClicked();
   void onOpenReportingAreaClicked();
-  void onAddChannelClicked();
-  void onAddCellApproxClicked();
-  void onAddIntersectionClicked();
   void onBackClicked();
   void onRemoveChannelClicked();
   void onShowInfoDialog();

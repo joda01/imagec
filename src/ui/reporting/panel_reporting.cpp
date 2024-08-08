@@ -49,7 +49,7 @@ using namespace std::filesystem;
 PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 {
   setObjectName("PanelReporting");
-  QVBoxLayout *layout = new QVBoxLayout();
+  auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
   mHeatmap = new reporting::plugin::PanelHeatmap(mWindowMain, this);
   layout->addWidget(mHeatmap);
@@ -67,75 +67,6 @@ PanelReporting::~PanelReporting()
 /// \param[out]
 /// \return
 ///
-void PanelReporting::lookingForFilesThread()
-{
-  emit loadingFilesfinished();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelReporting::onLoadingFileFinished()
-{
-  onResultsFileSelected();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelReporting::onResultsFileSelected()
-{
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
-{
-  QProgressBar *progress = new QProgressBar(parent);
-  progress->setRange(0, 0);
-  progress->setMaximum(0);
-  progress->setMinimum(0);
-  // progress->setVisible(false);
-  progress->setMaximumHeight(8);
-  progress->setTextVisible(false);
-  progress->setContentsMargins(8, 8, 8, 0);
-  return progress;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelReporting::close()
-{
-  if(mAnalyzer != nullptr) {
-    mAnalyzer.reset();
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &imageCFile)
 {
   mWindowMain->setWindowTitlePrefix(imageCFile.filename().string().data());
@@ -143,20 +74,6 @@ void PanelReporting::setActualSelectedWorkingFile(const std::filesystem::path &i
   mHeatmap->setAnalyzer(mAnalyzer);
 }
 
-/////////////////////////////////////////////////////////////////////////////
-//
-QLabel *PanelReporting::createTitle(const QString &title)
-{
-  auto *label = new QLabel();
-  QFont font;
-  font.setPixelSize(16);
-  font.setBold(true);
-  label->setFont(font);
-  label->setText(title);
-
-  return label;
-}
-
 ///
 /// \brief
 /// \author
@@ -164,9 +81,10 @@ QLabel *PanelReporting::createTitle(const QString &title)
 /// \param[out]
 /// \return
 ///
+/*
 void PanelReporting::loadDetailReportToTable()
 {
-  /*
+
   auto &imageMeta          = sheet.getImageMeta();
   if(imageMeta.has_value()) {
     auto firstChannel = sheet.root().getChannels().begin();
@@ -211,8 +129,8 @@ void PanelReporting::loadDetailReportToTable()
       }
       rowIdx++;
     }
-  }*/
-}
+  }
+}*/
 
 ///
 /// \brief
@@ -221,9 +139,10 @@ void PanelReporting::loadDetailReportToTable()
 /// \param[out]
 /// \return
 ///
+/*
 void PanelReporting::onTableDoubleClicked(const QModelIndex &index)
 {
-  /*
+
   static const std::string separator(1, std::filesystem::path::preferred_separator);
 
   const auto &channel = mActualSelectedWorksheet.root().getChannels().begin()->second;
@@ -251,7 +170,7 @@ void PanelReporting::onTableDoubleClicked(const QModelIndex &index)
                              mActualSelectedWorksheet.getAnalyzeMeta().analyzeName + ".png";
 
   cv::imwrite(outputFolder, markedImage);
-  */
-}
+
+}*/
 
 }    // namespace joda::ui::qt
