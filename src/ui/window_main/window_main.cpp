@@ -207,9 +207,9 @@ void WindowMain::createTopToolbar()
 ///
 void WindowMain::createLeftToolbar()
 {
-  mRightToolBar = new QToolBar(this);
-  mRightToolBar->setMovable(false);
-  auto *tabs = new QTabWidget(mRightToolBar);
+  mSidebar = new QToolBar(this);
+  mSidebar->setMovable(false);
+  auto *tabs = new QTabWidget(mSidebar);
 
   // Project Settings
   mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings.experimentSettings, this);
@@ -290,13 +290,13 @@ void WindowMain::createLeftToolbar()
     imageTab->setLayout(layout);
     tabs->addTab(imageTab, "Image");
   }
-  mRightToolBar->addWidget(tabs);
+  mSidebar->addWidget(tabs);
 
   resetImageInfo();
-  mRightToolBar->setVisible(false);
+  mSidebar->setVisible(false);
 
-  mRightToolBar->setMinimumWidth(300);
-  addToolBar(Qt::ToolBarArea::LeftToolBarArea, mRightToolBar);
+  mSidebar->setMinimumWidth(300);
+  addToolBar(Qt::ToolBarArea::LeftToolBarArea, mSidebar);
 }
 
 ///
@@ -862,7 +862,7 @@ bool WindowMain::showProjectOverview()
   mNewProjectButton->setVisible(true);
   mOpenProjectButton->setVisible(true);
   mOpenResultsButton->setVisible(true);
-  mRightToolBar->setVisible(true);
+  mSidebar->setVisible(true);
   mButtomToolbar->setVisible(true);
   mBackButton->setEnabled(false);
   mBackButton->setVisible(false);
@@ -889,7 +889,7 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
   mOpenProjectButton->setVisible(false);
   mOpenResultsButton->setVisible(false);
 
-  mRightToolBar->setVisible(false);
+  mSidebar->setVisible(false);
   mButtomToolbar->setVisible(true);
   selectedChannel->setActive(true);
   mBackButton->setEnabled(true);
@@ -935,9 +935,8 @@ void WindowMain::onOpenReportingAreaClicked()
     mOpenProjectButton->setVisible(false);
     mOpenResultsButton->setVisible(false);
 
-    mRightToolBar->setVisible(false);
+    mSidebar->setVisible(false);
     mButtomToolbar->setVisible(false);
-    mBackButton->setIcon(QIcon(":/icons/outlined/icons8-home-50.png"));
     mBackButton->setEnabled(true);
     mBackButton->setVisible(true);
     mSaveProject->setVisible(false);

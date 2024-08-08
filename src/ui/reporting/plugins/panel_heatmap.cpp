@@ -49,7 +49,7 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
 {
   // Create and set up the grid layout
   auto [horizontalLayout, centerWidget] = joda::ui::qt::helper::createLayout(this, helper::SPACING);
-  //   horizontalLayout->setContentsMargins(0, 0, 0, 0);
+  horizontalLayout->setContentsMargins(0, 0, 0, 0);
 
   // vertical->addWidget(createBreadCrump());
   // vertical->addWidget(centerWidget);
@@ -59,12 +59,12 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
   //
   {
     auto [plateViewer, plateViewerWidget] =
-        joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgb(251, 252, 253)", 16, false, 800, 2048, 24);
+        joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 16, false, 800, 2048, 24);
     mHeatmap01 = new ChartHeatMap(this);
     connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelHeatmap::onElementSelected);
     connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelHeatmap::onOpenNextLevel);
     auto *breadCrump = createBreadCrump(this);
-    //     plateViewer->setContentsMargins(16, 0, 16, 16);
+    plateViewer->setContentsMargins(16, 0, 16, 16);
     plateViewer->addWidget(breadCrump);
     breadCrump->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
@@ -191,9 +191,12 @@ QWidget *PanelHeatmap::createBreadCrump(QWidget *parent)
   breadCrump->setMaximumHeight(48);
   breadCrump->setMaximumHeight(48);
 
+  // Back button
   mBackButton = new QAction(QIcon(":/icons/outlined/icons8-left-50.png"), "Back");
   mBackButton->setEnabled(false);
   connect(mBackButton, &QAction::triggered, this, &PanelHeatmap::onBackClicked);
+
+  // Action buttons
   QToolButton *actionButton = new QToolButton(this);
   actionButton->setDefaultAction(mBackButton);
 

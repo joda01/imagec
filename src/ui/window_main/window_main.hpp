@@ -153,7 +153,7 @@ private:
 
   ////Toolbar/////////////////////////////////////////////////
   QToolBar *mButtomToolbar;
-  QToolBar *mRightToolBar;
+  QToolBar *mSidebar;
   QString mJobName;
 
   ////Left Toolbar/////////////////////////////////////////////////

@@ -179,7 +179,7 @@ PanelReporting::PanelReporting(WindowMain *wm) : mWindowMain(wm)
 
       // tableContainer->addWidget(mTable);
   } {
-    //     tableContainer->setContentsMargins(0, 0, 0, 0);
+    tableContainer->setContentsMargins(0, 0, 0, 0);
     mHeatmap = new reporting::plugin::PanelHeatmap(mWindowMain, tableContainerLayout);
     tableContainer->addWidget(mHeatmap);
     connect(mHeatmap, &reporting::plugin::PanelHeatmap::loadingStarted, this, &PanelReporting::onLoadingStarted);
@@ -249,7 +249,7 @@ QProgressBar *PanelReporting::createProgressBar(QWidget *parent)
   // progress->setVisible(false);
   progress->setMaximumHeight(8);
   progress->setTextVisible(false);
-  //   progress->setContentsMargins(8, 8, 8, 0);
+  progress->setContentsMargins(8, 8, 8, 0);
   return progress;
 }
 
