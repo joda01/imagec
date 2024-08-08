@@ -65,21 +65,7 @@ private:
 
   // Selector
   QVBoxLayout *mSelectorLayout;
-  std::shared_ptr<ContainerFunction<QString, int>> mAnalyzeSelector;
-  std::shared_ptr<ContainerFunction<joda::results::ChannelIndex, int>> mChannelSelector;
-  std::shared_ptr<ContainerFunction<uint32_t, int>> mMeasureChannelSelector;
-  std::shared_ptr<ContainerFunction<joda::results::Stats, int>> mStats;
   reporting::plugin::PanelHeatmap::SelectedFilter mFilter;
-  std::vector<results::db::ChannelMeta> mChannelInfos;
-
-  // Heatmap
-  std::shared_ptr<ContainerFunction<uint32_t, uint32_t>> mPlateSize;
-  std::shared_ptr<ContainerFunction<QString, int>> mHeatmapSlice;
-  std::shared_ptr<ContainerFunction<QString, int>> mWellOrdering;
-
-  QProgressBar *mProgressBarTableSelect = nullptr;
-  QProgressBar *mProgressBarExport      = nullptr;
-  ContainerButton *mButtonExport;
 
   // Table
   QTableWidget *mTable;
@@ -95,22 +81,14 @@ private:
 
   void lookingForFilesThread();
   void loadDetailReportToTable();
-  void setLoadingData(bool);
-  void setExportingData(bool);
 
 signals:
   void exportFinished();
 
 private slots:
-  void onExportClicked();
   void onLoadingFileFinished();
   void onResultsFileSelected();
-  void onChannelChanged();
-  void onMeasurementChanged();
   void onTableDoubleClicked(const QModelIndex &index);
-  void onLoadingStarted();
-  void onLoadingFinished();
-  void onExportFinished();
 };
 
 }    // namespace joda::ui::qt

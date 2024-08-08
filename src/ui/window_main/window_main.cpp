@@ -935,7 +935,7 @@ void WindowMain::onOpenReportingAreaClicked()
     mOpenProjectButton->setVisible(false);
     mOpenResultsButton->setVisible(false);
 
-    mSidebar->setVisible(false);
+    // mSidebar->setVisible(false);
     mButtomToolbar->setVisible(false);
     mBackButton->setEnabled(true);
     mBackButton->setVisible(true);

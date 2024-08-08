@@ -48,6 +48,7 @@ private:
   std::vector<QLineEdit *> mScientists{NR_OF_SCIENTISTS};
 
   QComboBox *mGroupByComboBox;
+  QComboBox *mPlateSize;
   QLineEdit *mWorkingDir;
   QLabel *mWellOrderMatrixLabel;
   QLineEdit *mWellOrderMatrix;

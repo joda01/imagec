@@ -69,8 +69,6 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
 
   mAddressOrganisation = new QLineEdit;
   mAddressOrganisation->setPlaceholderText("University of Salzburg");
-  connect(mAddressOrganisation, &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
-
   formLayout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
 
   addSeparator();
@@ -84,17 +82,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
                             static_cast<int>(joda::settings::ExperimentSettings::GroupBy::DIRECTORY));
   mGroupByComboBox->addItem("Group based on filename",
                             static_cast<int>(joda::settings::ExperimentSettings::GroupBy::FILENAME));
-  connect(mGroupByComboBox, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
-
   formLayout->addRow(new QLabel(tr("Group by:")), mGroupByComboBox);
-
-  //
-  // Well order matrix
-  //
-  mWellOrderMatrix      = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
-  mWellOrderMatrixLabel = new QLabel(tr("Well order:"));
-  connect(mWellOrderMatrix, &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
-  formLayout->addRow(mWellOrderMatrixLabel, mWellOrderMatrix);
 
   //
   // Regex
@@ -104,9 +92,6 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
   mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_([0-9]+)", "((.)([0-9]+))_([0-9]+)");
   mRegexToFindTheWellPosition->addItem("(.*)_([0-9]*)", "(.*)_([0-9]*)");
   mRegexToFindTheWellPosition->setEditable(true);
-  connect(mRegexToFindTheWellPosition, &QComboBox::editTextChanged, this, &PanelProjectSettings::applyRegex);
-  connect(mRegexToFindTheWellPosition, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::applyRegex);
-  connect(mRegexToFindTheWellPosition, &QComboBox::currentTextChanged, this, &PanelProjectSettings::applyRegex);
   mRegexToFindTheWellPositionLabel = new QLabel(tr("Filename regex:"));
   formLayout->addRow(mRegexToFindTheWellPositionLabel, mRegexToFindTheWellPosition);
 
@@ -114,10 +99,34 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
   mTestFileName      = new QLineEdit("your_test_image_file_Name_A99_01.tif");
   mTestFileNameLabel = new QLabel(tr("Regex test:"));
   formLayout->addRow(mTestFileNameLabel, mTestFileName);
-  connect(mTestFileName, &QLineEdit::editingFinished, this, &PanelProjectSettings::applyRegex);
 
   mTestFileResult = new QLabel();
   formLayout->addRow(mTestFileResult);
+
+  addSeparator();
+
+  //
+  // Plate size
+  //
+  mPlateSize = new QComboBox();
+  mPlateSize->addItem("1", 1);
+  mPlateSize->addItem("2 x 3", 203);
+  mPlateSize->addItem("3 x 4", 304);
+  mPlateSize->addItem("4 x 6", 406);
+  mPlateSize->addItem("6 x 8", 608);
+  mPlateSize->addItem("8 x 12", 812);
+  mPlateSize->addItem("16 x 24", 1624);
+  mPlateSize->addItem("32 x 48", 3248);
+  mPlateSize->addItem("48 x 72", 4872);
+
+  //
+  // Well order matrix
+  //
+  mWellOrderMatrix      = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+  mWellOrderMatrixLabel = new QLabel(tr("Well order:"));
+  formLayout->addRow(mWellOrderMatrixLabel, mWellOrderMatrix);
+
+  formLayout->addRow(new QLabel(tr("Plate size:")), mPlateSize);
 
   addSeparator();
 
@@ -125,11 +134,22 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
 
   mNotes = new QTextEdit;
   mNotes->setPlaceholderText("Notes on the experiment...");
-  connect(mNotes, &QTextEdit::textChanged, this, &PanelProjectSettings::onSettingChanged);
   layout->addWidget(mNotes);
 
   layout->addStretch();
   setLayout(layout);
+
+  connect(mPlateSize, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
+  connect(mNotes, &QTextEdit::textChanged, this, &PanelProjectSettings::onSettingChanged);
+  connect(mTestFileName, &QLineEdit::textChanged, this, &PanelProjectSettings::applyRegex);
+  connect(mRegexToFindTheWellPosition, &QComboBox::editTextChanged, this, &PanelProjectSettings::applyRegex);
+  connect(mRegexToFindTheWellPosition, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::applyRegex);
+  connect(mRegexToFindTheWellPosition, &QComboBox::currentTextChanged, this, &PanelProjectSettings::applyRegex);
+  connect(mGroupByComboBox, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
+  connect(mAddressOrganisation, &QLineEdit::textChanged, this, &PanelProjectSettings::onSettingChanged);
+  connect(mWellOrderMatrix, &QLineEdit::textChanged, this, &PanelProjectSettings::onSettingChanged);
+
+  mPlateSize->setCurrentIndex(6);
 }
 
 ///
@@ -169,6 +189,14 @@ void PanelProjectSettings::fromSettings(joda::settings::ExperimentSettings &sett
       mWellOrderMatrix->setText("[[1,2,3,4],[5,6,7,8]]");
     }
   }
+  {
+    auto val = settings.plateSize.rows * 100 + settings.plateSize.cols;
+    auto idx = mPlateSize->findData(val);
+    if(idx >= 0) {
+      mPlateSize->setCurrentIndex(idx);
+    }
+  }
+
   mWorkingDir->setText(settings.workingDirectory.data());
   mRegexToFindTheWellPosition->setCurrentText(settings.filenameRegex.data());
   mNotes->setText(settings.notes.data());
@@ -218,6 +246,11 @@ void PanelProjectSettings::toSettings()
     QMessageBox::warning(this, "Warning",
                          "The well matrix format is not well defined. Please correct it in the settings dialog!");
   }
+
+  auto value               = mPlateSize->currentData().toUInt();
+  mSettings.plateSize.rows = value / 100;
+  mSettings.plateSize.cols = value % 100;
+
   mParentWindow->checkForSettingsChanged();
 }
 

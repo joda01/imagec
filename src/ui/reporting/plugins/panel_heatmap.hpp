@@ -26,6 +26,10 @@
 #include "ui/panel_preview.hpp"
 #include "ui/reporting/plugins/heatmap_color_generator.hpp"
 
+namespace joda::ui::qt {
+class WindowMain;
+}
+
 namespace joda::ui::qt::reporting::plugin {
 
 class PanelHeatmap;
@@ -173,7 +177,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelHeatmap(QMainWindow *win, QWidget *parent);
+  PanelHeatmap(WindowMain *win, QWidget *parent);
   void setData(std::weak_ptr<joda::results::Analyzer> analyzer, const SelectedFilter &);
   [[nodiscard]] Navigation getActualNavigation() const
   {
@@ -195,6 +199,8 @@ public:
     return mHeatmap01->getData();
   }
 
+  void setAnalyzer(const std::weak_ptr<joda::results::Analyzer> &analyzer);
+
 signals:
   void loadingStarted();
   void loadingFinished();
@@ -203,14 +209,22 @@ private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
-  /////////////////////////////////////////////////////
+  WindowMain *mWindowMain;
+  std::weak_ptr<joda::results::Analyzer> mAnalyzer;
+
+  // Breadcrumb///////////////////////////////////////////////////
   QWidget *createBreadCrump(QWidget *);
-  QAction *mBackButton;
+  QPushButton *mBackButton;
   PanelPreview *mPreviewImage;
+  QComboBox *mChannelSelector;
+  QComboBox *mMeasurementSelector;
+  QComboBox *mStatsSelector;
+  std::vector<results::db::ChannelMeta> mChannelInfos;
+  std::string mAnalyzeId;
+  uint32_t mDenesityMapSize = 200;
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;
-  std::weak_ptr<joda::results::Analyzer> mAnalyzer;
   SelectedFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
 
@@ -244,6 +258,7 @@ private:
   bool mIsLoading = false;
 
 public slots:
+  void onExportClicked();
   void onMarkAsInvalidClicked();
   void onElementSelected(int cellX, int cellY, results::TableCell value);
   void onOpenNextLevel(int cellX, int cellY, results::TableCell value);
@@ -253,6 +268,8 @@ public slots:
   void paintWell();
   void paintImage();
   void onExportImageClicked();
+  void onChannelChanged();
+  void onMeasurementChanged();
 };
 
 }    // namespace joda::ui::qt::reporting::plugin

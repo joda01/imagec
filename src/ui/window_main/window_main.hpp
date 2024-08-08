@@ -23,6 +23,7 @@
 #include <string>
 #include "backend/helper/template_parser/template_parser.hpp"
 #include "backend/settings/analze_settings.hpp"
+#include "backend/settings/experiment_settings.hpp"
 #include "backend/settings/vchannel/vchannel_intersection.hpp"
 #include "controller/controller.hpp"
 #include "ui/container/container_base.hpp"
@@ -87,6 +88,11 @@ public:
   [[nodiscard]] auto getJobName() const -> std::string
   {
     return mJobName.toStdString();
+  }
+
+  [[nodiscard]] auto getExperimentSettings() const -> const joda::settings::ExperimentSettings &
+  {
+    return mAnalyzeSettings.experimentSettings;
   }
 
   void setWindowTitlePrefix(const QString &txt);

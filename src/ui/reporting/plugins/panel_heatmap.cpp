@@ -14,6 +14,7 @@
 #include "panel_heatmap.hpp"
 #include <qaction.h>
 #include <qboxlayout.h>
+#include <qcombobox.h>
 #include <qevent.h>
 #include <qgridlayout.h>
 #include <qlayout.h>
@@ -38,6 +39,8 @@
 #include "ui/container/container_label.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
+#include "ui/reporting/dialog_export_data.hpp"
+#include "ui/window_main/window_main.hpp"
 
 namespace joda::ui::qt::reporting::plugin {
 
@@ -45,7 +48,7 @@ namespace joda::ui::qt::reporting::plugin {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(parent)
+PanelHeatmap::PanelHeatmap(WindowMain *windowMain, QWidget *parent) : mWindowMain(windowMain), QWidget(parent)
 {
   // Create and set up the grid layout
   auto [horizontalLayout, centerWidget] = joda::ui::qt::helper::createLayout(this, helper::SPACING);
@@ -67,21 +70,6 @@ PanelHeatmap::PanelHeatmap(QMainWindow *windowMain, QWidget *parent) : QWidget(p
     plateViewer->setContentsMargins(16, 0, 16, 16);
     plateViewer->addWidget(breadCrump);
     breadCrump->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-    //
-    // Middle widget
-    //
-    // QWidget *middleWidget     = new QWidget();
-    // QHBoxLayout *middleLayout = new QHBoxLayout();
-    // middleLayout->addSpacing(64);
-    // middleWidget->setLayout(middleLayout);
-    //
-    // Preview
-    //
-    // mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, middleWidget);
-    // mPreviewImage->resetImage("");
-    // middleLayout->addWidget(mHeatmap01);
-    // middleLayout->addWidget(mPreviewImage);
 
     //
     // Plate
@@ -192,21 +180,137 @@ QWidget *PanelHeatmap::createBreadCrump(QWidget *parent)
   breadCrump->setMaximumHeight(48);
 
   // Back button
-  mBackButton = new QAction(QIcon(":/icons/outlined/icons8-left-50.png"), "Back");
+  mBackButton = new QPushButton(QIcon(":/icons/outlined/icons8-left-50.png"), "Back");
   mBackButton->setEnabled(false);
-  connect(mBackButton, &QAction::triggered, this, &PanelHeatmap::onBackClicked);
+  connect(mBackButton, &QPushButton::pressed, this, &PanelHeatmap::onBackClicked);
+  layout->addWidget(mBackButton);
 
-  // Action buttons
-  QToolButton *actionButton = new QToolButton(this);
-  actionButton->setDefaultAction(mBackButton);
+  //
+  //
+  mChannelSelector = new QComboBox();
+  connect(mChannelSelector, &QComboBox::currentIndexChanged, this, &PanelHeatmap::onChannelChanged);
+  layout->addWidget(mChannelSelector);
 
-  layout->addWidget(actionButton);
+  //
+  //
+  mMeasurementSelector = new QComboBox();
+
+  connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelHeatmap::onMeasurementChanged);
+  layout->addWidget(mMeasurementSelector);
+
+  //
+  //
+  mStatsSelector = new QComboBox();
+  mStatsSelector->addItem("AVG", (int32_t) joda::results::Stats::AVG);
+  mStatsSelector->addItem("MEDIAN", (int32_t) joda::results::Stats::MEDIAN);
+  mStatsSelector->addItem("MIN", (int32_t) joda::results::Stats::MIN);
+  mStatsSelector->addItem("MAX", (int32_t) joda::results::Stats::MAX);
+  mStatsSelector->addItem("STDDEV", (int32_t) joda::results::Stats::STDDEV);
+  mStatsSelector->addItem("SUM", (int32_t) joda::results::Stats::SUM);
+  mStatsSelector->addItem("CNT", (int32_t) joda::results::Stats::CNT);
+  connect(mStatsSelector, &QComboBox::currentIndexChanged, this, &PanelHeatmap::onMeasurementChanged);
+  layout->addWidget(mStatsSelector);
 
   breadCrump->setLayout(layout);
 
   layout->addStretch();
 
   return breadCrump;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelHeatmap::setAnalyzer(const std::weak_ptr<joda::results::Analyzer> &analyzer)
+{
+  mAnalyzer = analyzer;
+  std::string analysisId;
+  auto analyzerPtr = analyzer.lock();
+  {
+    // Analysis
+    auto analyses = analyzerPtr->getAnalyzes();
+    std::vector<ContainerFunction<QString, int>::ComboEntry> entry;
+    for(const auto &analyse : analyses) {
+      if(analysisId.empty()) {
+        analysisId = analyse.analyzeId;
+      }
+      entry.push_back(ContainerFunction<QString, int>::ComboEntry{
+          .key = analyse.analyzeId.data(), .label = analyse.name.data(), .icon = ""});
+    }
+    if(!analyses.empty()) {
+      mAnalyzeId = analysisId;
+    } else {
+      mAnalyzeId = "";
+    }
+  }
+  {
+    // Channels
+    mChannelInfos = analyzerPtr->getChannelsForAnalyses(analysisId);
+    mChannelSelector->clear();
+    for(const auto &channel : mChannelInfos) {
+      mChannelSelector->addItem(channel.name.data(), static_cast<uint32_t>(channel.channelId));
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelHeatmap::onChannelChanged()
+{
+  for(const auto &channel : mChannelInfos) {
+    if(static_cast<uint32_t>(channel.channelId) == mChannelSelector->currentData().toUInt()) {
+      auto lastSelected = mMeasurementSelector->currentData().toUInt();
+      disconnect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelHeatmap::onMeasurementChanged);
+      mMeasurementSelector->clear();
+      int32_t lastSelectedKeyIdx = -1;
+      uint32_t idx               = 0;
+      for(const auto &measure : channel.measurements) {
+        mMeasurementSelector->addItem(measure.toString().data(), measure.getKey());
+        if(lastSelected == measure.getKey()) {
+          lastSelectedKeyIdx = idx;
+        }
+        idx++;
+      }
+
+      mMeasurementSelector->setCurrentIndex(lastSelectedKeyIdx);
+      connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelHeatmap::onMeasurementChanged);
+      onMeasurementChanged();
+      break;
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelHeatmap::onMeasurementChanged()
+{
+  const auto &expSettings = mWindowMain->getExperimentSettings();
+
+  mFilter = reporting::plugin::PanelHeatmap::SelectedFilter{
+      .analyzeId          = mAnalyzeId,
+      .plateRows          = expSettings.plateSize.rows,
+      .plateCols          = expSettings.plateSize.cols,
+      .plateId            = 1,
+      .channelIdx         = static_cast<joda::results::ChannelIndex>(mChannelSelector->currentData().toUInt()),
+      .measureChannel     = joda::results::MeasureChannelId(mMeasurementSelector->currentData().toUInt()),
+      .wellImageOrder     = expSettings.wellImageOrder,
+      .stats              = static_cast<joda::results::Stats>(mStatsSelector->currentData().toInt()),
+      .densityMapAreaSize = 200};
+  setData(mAnalyzer, mFilter);
 }
 
 ///
@@ -944,6 +1048,97 @@ QString ChartHeatMap::formatDoubleScientific(double value, int precision)
     formattedString = "N/A";    // Or any appropriate placeholder
   }
   return formattedString;
+}
+
+///
+/// \brief      Export to xlsx
+/// \author     Joachim Danmayr
+///
+void PanelHeatmap::onExportClicked()
+{
+  DialogExportData exportData(mWindowMain);
+  auto measureChannelsToExport = exportData.execute();
+
+  if(measureChannelsToExport.ret != 0) {
+    return;
+  }
+  QString filePath = QFileDialog::getSaveFileName(
+      mWindowMain, "Save File", mAnalyzer.lock()->getBasePath().string().data(), "XLSX Files (*.xlsx)");
+  if(filePath.isEmpty()) {
+    return;
+  }
+
+  std::thread([this, measureChannelsToExport = measureChannelsToExport, filePath = filePath] {
+    const auto &expSettings = mWindowMain->getExperimentSettings();
+
+    uint16_t rows = expSettings.plateSize.rows;
+    uint16_t cols = expSettings.plateSize.cols;
+
+    std::map<joda::results::ChannelIndex, joda::results::exporter::BatchExporter::Settings::Channel> imageChannels;
+
+    for(const auto &channel : mChannelInfos) {
+      joda::results::exporter::BatchExporter::Settings::Channel channelData;
+      channelData.name = channel.name;
+
+      for(const auto &measureChannel : channel.measurements) {
+        if(measureChannelsToExport.channelsToExport.contains(measureChannel.getMeasureChannel())) {
+          channelData.measureChannels.emplace(
+              measureChannel, measureChannelsToExport.channelsToExport.at(measureChannel.getMeasureChannel()));
+        }
+      }
+      imageChannels.emplace(channel.channelId, channelData);
+    }
+
+    joda::results::exporter::BatchExporter::Settings::ExportDetail exp;
+    switch(getActualNavigation()) {
+      case reporting::plugin::PanelHeatmap::Navigation::PLATE:
+        exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::PLATE;
+        break;
+      case reporting::plugin::PanelHeatmap::Navigation::WELL:
+        exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::WELL;
+        break;
+      case reporting::plugin::PanelHeatmap::Navigation::IMAGE:
+        exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::IMAGE;
+        break;
+    }
+
+    if(measureChannelsToExport.exportHeatmap) {
+      joda::results::exporter::BatchExporter::Settings settings{
+          .imageChannels   = imageChannels,
+          .analyzer        = *mAnalyzer.lock(),
+          .plateId         = 1,
+          .groupId         = getSelectedGroup(),
+          .imageId         = getSelectedImage(),
+          .plateRows       = rows,
+          .plarteCols      = cols,
+          .heatmapAreaSize = mDenesityMapSize,
+          .wellImageOrder  = expSettings.wellImageOrder,
+          .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::HEATMAP,
+          .exportDetail    = exp};
+      joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
+    }
+
+    if(measureChannelsToExport.exportList) {
+      joda::results::exporter::BatchExporter::Settings settings{
+          .imageChannels   = imageChannels,
+          .analyzer        = *mAnalyzer.lock(),
+          .plateId         = 1,
+          .groupId         = getSelectedGroup(),
+          .imageId         = getSelectedImage(),
+          .plateRows       = rows,
+          .plarteCols      = cols,
+          .heatmapAreaSize = mDenesityMapSize,
+          .wellImageOrder  = expSettings.wellImageOrder,
+          .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::LIST,
+          .exportDetail    = exp};
+      joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
+    }
+
+    QDesktopServices::openUrl(QUrl("file:///" + filePath));
+
+    // emit exportFinished();
+    //  joda::results::exporter::ExporterXlsx::exportAsHeatmap(mHeatmap->getData(), filePath.toStdString());
+  }).detach();
 }
 
 }    // namespace joda::ui::qt::reporting::plugin

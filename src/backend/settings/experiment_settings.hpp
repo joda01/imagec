@@ -37,6 +37,13 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Address, country, organization, streetAddress, postalCode, city);
   };
 
+  struct Plate
+  {
+    uint32_t rows = 0;
+    uint32_t cols = 0;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Plate, rows, cols);
+  };
+
   //
   // Image grouping option [NONE, FOLDER, FILENAME]
   //
@@ -53,6 +60,11 @@ public:
   // First dimension of the vector are the rows, second the columns
   //
   std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
+
+  //
+  // Size of the used plate
+  //
+  Plate plateSize;
 
   //
   // Notes to the experiment.
@@ -74,8 +86,8 @@ public:
   //
   std::string workingDirectory;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, groupBy, filenameRegex, wellImageOrder, notes,
-                                              scientistsNames, address);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSettings, groupBy, filenameRegex, wellImageOrder, plateSize,
+                                              notes, scientistsNames, address);
 };
 
 // map TaskState values to JSON as strings
