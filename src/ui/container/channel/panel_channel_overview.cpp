@@ -25,7 +25,6 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
     mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
-  // setMinimumWidth(320);
   QGridLayout *layout = new QGridLayout(this);
 
   setLayout(layout);

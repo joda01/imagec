@@ -42,6 +42,7 @@ public:
     mMainLayout = new QHBoxLayout(contentWidget);
     mMainLayout->setContentsMargins(SPACING, SPACING, 0, 0);
     mMainLayout->setSpacing(SPACING);    // Adjust this value as needed
+    mMainLayout->setAlignment(Qt::AlignLeft);
     contentWidget->setLayout(mMainLayout);
     parent->setLayout(mMainLayout);
   }

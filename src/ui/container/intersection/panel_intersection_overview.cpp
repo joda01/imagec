@@ -25,7 +25,6 @@ PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIn
     mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
-  setMinimumWidth(320);
   QGridLayout *layout = new QGridLayout(this);
 
   setLayout(layout);

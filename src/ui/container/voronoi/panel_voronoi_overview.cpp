@@ -25,8 +25,6 @@ PanelVoronoiOverview::PanelVoronoiOverview(WindowMain *wm, ContainerVoronoi *par
     mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
-  // setMinimumWidth(320);
-  //  setMaximumWidth(350);
   QGridLayout *layout = new QGridLayout(this);
 
   setLayout(layout);
