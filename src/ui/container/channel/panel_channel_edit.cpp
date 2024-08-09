@@ -88,7 +88,7 @@ void PanelChannelEdit::init()
   connect(this, &PanelChannelEdit::updatePreviewFinished, this, &PanelChannelEdit::onPreviewFinished);
 
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelChannelEdit::onTileClicked);
-  connect(getWindowMain()->getImagePanel(), &PanelImageMeta::imageSelectionChanged, this,
+  connect(getWindowMain()->getImagePanel(), &PanelImages::imageSelectionChanged, this,
           &PanelChannelEdit::updatePreview);
 }
 

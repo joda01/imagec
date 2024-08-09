@@ -70,9 +70,9 @@ public:
     return mAnalyzeSettings.experimentSettings;
   }
 
-  [[nodiscard]] const PanelImageMeta *getImagePanel() const
+  [[nodiscard]] const PanelImages *getImagePanel() const
   {
-    return mPanelImageMeta;
+    return mPanelImages;
   }
 
   void setWindowTitlePrefix(const QString &txt);
@@ -100,40 +100,37 @@ private:
   void createLeftToolbar();
   void loadTemplates();
 
+  void openProjectSettings(const QString &filePath);
+  void openReportingSettings(const QString &filePath);
+
   QWidget *createStackedWidget();
   QWidget *createChannelWidget();
   QWidget *createReportingWidget();
 
   static QString bytesToString(int64_t bytes);
 
-  QStackedWidget *mStackedWidget;
-  QLabel *mLastElement;
+  ////Common/////////////////////////////////////////////////
   joda::ctrl::Controller *mController;
-
-  QComboBox *mTemplateSelection;
-  ClickableLabel *mFoundFilesHint;
-  std::thread *mMainThread;
-  bool mNewFolderSelected = false;
-
-  ////Navigation/////////////////////////////////////////////////
-  Navigation mNavigation = Navigation::PROJECT_OVERVIEW;
 
   ////Project settings/////////////////////////////////////////////////
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   joda::settings::AnalyzeSettings mAnalyzeSettingsOld;
-
-  ////Toolbar/////////////////////////////////////////////////
-  QToolBar *mSidebar;
+  std::filesystem::path mSelectedProjectSettingsFilePath;
 
   ////Left Toolbar/////////////////////////////////////////////////
+  QToolBar *mSidebar;
   PanelProjectSettings *mPanelProjectSettings;
   PanelPipeline *mPanelPipeline;
-  PanelImageMeta *mPanelImageMeta;
+  PanelImages *mPanelImages;
 
-  ////Made project settings/////////////////////////////////////////////////
+  ////Stacked widget/////////////////////////////////////////////////
+  QStackedWidget *mStackedWidget;
+  Navigation mNavigation          = Navigation::PROJECT_OVERVIEW;
   ContainerBase *mSelectedChannel = nullptr;
-  std::filesystem::path mSelectedProjectSettingsFilePath;
   PanelReporting *mPanelReporting = nullptr;
+
+  ////Sidebar panels/////////////////////////////////////////////////
+  QComboBox *mTemplateSelection;
 
   ////ToolbarIcons/////////////////////////////////////////////////
   QAction *mNewProjectButton  = nullptr;
@@ -142,20 +139,13 @@ private:
   QAction *mStartAnalysis     = nullptr;
   QAction *mShowInfoDialog    = nullptr;
 
-  ////Giraf/////////////////////////////////////////////////
-  QPushButton *mUseImageC;
-  QPushButton *mUseTheGiraf;
-  QMovie *mGiraf;
-
 private slots:
   void onAddChannel();
   void onSaveProject();
   void onSaveProjectAsClicked();
   void onStartClicked();
-  void onOpenReportingAreaClicked();
   void onShowInfoDialog();
-  void onOpenAnalyzeSettingsClicked();
-  void onAddGirafClicked();
+  void onOpenClicked();
 };
 
 }    // namespace joda::ui::qt

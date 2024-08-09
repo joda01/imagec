@@ -37,7 +37,7 @@ public:
   }
 
 private:
-  ::std::string configSchema = "https://imagec.org/schemas/v1/channel-settings.json";
+  ::std::string configSchema = "https://imagec.org/schemas/v1/channel-settings.imcjsproj";
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings, meta, detection, objectFilter, imageFilter,
                                               preprocessing, crossChannel, configSchema);

@@ -46,7 +46,7 @@ public:
     std::map<std::string, Data> templates;
     if(fs::exists(directory) && fs::is_directory(directory)) {
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
-        if(entry.is_regular_file() && entry.path().extension().string() == ".json") {
+        if(entry.is_regular_file() && entry.path().extension().string() == ".imcjstemplate") {
           std::ifstream ifs(entry.path().string());
           settings::ChannelSettings settings = nlohmann::json::parse(ifs);
           templates.emplace(settings.meta.name,

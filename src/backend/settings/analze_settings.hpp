@@ -44,7 +44,7 @@ public:
   }
 
 private:
-  std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.json";
+  std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.imcjsproj";
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettings, configSchema, experimentSettings, channels, vChannels);
 };

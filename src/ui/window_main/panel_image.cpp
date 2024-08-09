@@ -20,7 +20,7 @@
 
 namespace joda::ui::qt {
 
-PanelImageMeta::PanelImageMeta(WindowMain *windowMain) : mWindowMain(windowMain)
+PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
 {
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
@@ -28,7 +28,7 @@ PanelImageMeta::PanelImageMeta(WindowMain *windowMain) : mWindowMain(windowMain)
     mSearchField = new QLineEdit();
     mSearchField->setPlaceholderText("Search ...");
     layout->addWidget(mSearchField);
-    connect(mSearchField, &QLineEdit::editingFinished, this, &PanelImageMeta::filterImages);
+    connect(mSearchField, &QLineEdit::editingFinished, this, &PanelImages::filterImages);
   }
 
   {
@@ -78,7 +78,7 @@ PanelImageMeta::PanelImageMeta(WindowMain *windowMain) : mWindowMain(windowMain)
 /// \param[out]
 /// \return
 ///
-void PanelImageMeta::filterImages()
+void PanelImages::filterImages()
 {
   updateImagesList();
 }
@@ -90,7 +90,7 @@ void PanelImageMeta::filterImages()
 /// \param[out]
 /// \return
 ///
-auto PanelImageMeta::getSelectedImage() const -> std::tuple<int32_t, int32_t>
+auto PanelImages::getSelectedImage() const -> std::tuple<int32_t, int32_t>
 {
   int selectedRow = mImages->currentRow();
   if(selectedRow >= 0) {
@@ -110,7 +110,7 @@ auto PanelImageMeta::getSelectedImage() const -> std::tuple<int32_t, int32_t>
 /// \param[out]
 /// \return
 ///
-void PanelImageMeta::updateImagesList()
+void PanelImages::updateImagesList()
 {
   mImages->clearSelection();
   std::string searchPattern = mSearchField->text().toLower().toStdString();
@@ -152,7 +152,7 @@ void PanelImageMeta::updateImagesList()
 /// \param[out]
 /// \return
 ///
-void PanelImageMeta::updateImageMeta()
+void PanelImages::updateImageMeta()
 {
   QList<QTableWidgetItem *> selectedItems = mImages->selectedItems();
   if(!selectedItems.isEmpty()) {

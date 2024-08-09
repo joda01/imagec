@@ -35,13 +35,13 @@ class WindowMain;
 /// \author
 /// \brief
 ///
-class PanelImageMeta : public QWidget
+class PanelImages : public QWidget
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelImageMeta(WindowMain *windowMain);
+  explicit PanelImages(WindowMain *windowMain);
   [[nodiscard]] auto getSelectedImage() const -> std::tuple<int32_t, int32_t>;
 
 signals:

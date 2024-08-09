@@ -33,8 +33,7 @@ namespace joda::ui::qt::helper {
 
 class LayoutGenerator
 {
-  static constexpr int32_t SPACING     = 16;
-  static constexpr int32_t PANEL_WIDTH = 200;
+  static constexpr int32_t SPACING = 16;
 
 public:
   explicit LayoutGenerator(PanelEdit *parent);
@@ -92,9 +91,16 @@ public:
     return label;
   }
 
+  void addSeparatorToTopToolbar();
+  void addItemToTopToolbar(QWidget *);
+
 private:
+  /////////////////////////////////////////////////////
+  QToolBar *mToolbarTop;
   QHBoxLayout *mMainLayout;
   PanelEdit *mParent;
+
+  QAction *mSpaceTopToolbar;
 };
 
 }    // namespace joda::ui::qt::helper

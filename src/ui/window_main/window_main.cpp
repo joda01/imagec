@@ -75,8 +75,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setMinimumSize(1600, 800);
   setObjectName("windowMain");
   setCentralWidget(createStackedWidget());
-
-  // Start with the main page
   showProjectOverview();
 }
 
@@ -96,16 +94,14 @@ void WindowMain::setWindowTitlePrefix(const QString &txt)
 void WindowMain::createTopToolbar()
 {
   auto *toolbar = addToolBar("toolbar");
-  toolbar->setMovable(true);
-
-  toolbar->addSeparator();
+  toolbar->setMovable(false);
 
   mNewProjectButton = new QAction(QIcon(":/icons/outlined/icons8-file-50.png"), "New project", toolbar);
   // connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
   toolbar->addAction(mNewProjectButton);
 
   mOpenProjectButton = new QAction(QIcon(":/icons/outlined/icons8-opened-folder-50.png"), "Open project", toolbar);
-  connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenAnalyzeSettingsClicked);
+  connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
   toolbar->addAction(mOpenProjectButton);
 
   mSaveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", toolbar);
@@ -137,12 +133,14 @@ void WindowMain::createTopToolbar()
 void WindowMain::createLeftToolbar()
 {
   mSidebar = new QToolBar(this);
-  mSidebar->setMovable(false);
+  mSidebar->setMovable(true);
   auto *tabs = new QTabWidget(mSidebar);
 
-  // Project Settings
-  mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings.experimentSettings, this);
-  tabs->addTab(mPanelProjectSettings, "Project");
+  // Experiment Settings
+  {
+    mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings.experimentSettings, this);
+    tabs->addTab(mPanelProjectSettings, "Experiment");
+  }
 
   // Pipeline Tab
   {
@@ -165,10 +163,10 @@ void WindowMain::createLeftToolbar()
     tabs->addTab(pipelineTab, "Pipeline");
   }
 
-  // Image Tab
+  // Images Tab
   {
-    mPanelImageMeta = new PanelImageMeta(this);
-    tabs->addTab(mPanelImageMeta, "Images");
+    mPanelImages = new PanelImages(this);
+    tabs->addTab(mPanelImages, "Images");
   }
 
   // Reportings tab
@@ -177,9 +175,6 @@ void WindowMain::createLeftToolbar()
   }
 
   mSidebar->addWidget(tabs);
-
-  mSidebar->setVisible(false);
-
   mSidebar->setMinimumWidth(350);
   addToolBar(Qt::ToolBarArea::LeftToolBarArea, mSidebar);
 }
@@ -192,8 +187,7 @@ QWidget *WindowMain::createStackedWidget()
 {
   mStackedWidget = new QStackedWidget();
   mStackedWidget->setObjectName("stackedWidget");
-  // mStackedWidget->addWidget(createOverviewWidget());
-  mStackedWidget->addWidget(createChannelWidget());
+  // mStackedWidget->addWidget(createChannelWidget());
   mStackedWidget->addWidget(createReportingWidget());
   return mStackedWidget;
 }
@@ -221,7 +215,7 @@ QWidget *WindowMain::createReportingWidget()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onOpenAnalyzeSettingsClicked()
+void WindowMain::onOpenClicked()
 {
   QString folderToOpen = QDir::homePath();
   if(!mAnalyzeSettings.experimentSettings.workingDirectory.empty()) {
@@ -234,12 +228,39 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
   QFileDialog::Options opt;
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
-  QString filePath = QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "JSON Files (*.json)", nullptr, opt);
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
+                                   "ImageC project or results files (*.imcjsproj *.imcdbres);;ImageC project files "
+                                   "(*.imcjsproj);;ImageC results files (*.imcdbres)",
+                                   nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
   }
 
+  if(filePath.endsWith(".imcjsproj")) {
+    openProjectSettings(filePath);
+  }
+  if(filePath.endsWith(".imcdbres")) {
+    openReportingSettings(filePath);
+  }
+}
+
+///
+/// \brief      Open reporting settings
+/// \author     Joachim Danmayr
+///
+void WindowMain::openReportingSettings(const QString &filePath)
+{
+  mPanelReporting->openFromFile(filePath);
+}
+
+///
+/// \brief      Open project settings
+/// \author     Joachim Danmayr
+///
+void WindowMain::openProjectSettings(const QString &filePath)
+{
   try {
     std::ifstream ifs(filePath.toStdString());
     joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(ifs);
@@ -304,8 +325,8 @@ void WindowMain::checkForSettingsChanged()
 void WindowMain::onSaveProjectAsClicked()
 {
   std::filesystem::path folderToSaveSettings(mSelectedProjectSettingsFilePath.parent_path());
-  QString filePath =
-      QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(), "JSON Files (*.json)");
+  QString filePath = QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(),
+                                                  "ImageC project files (*.imcjsproj)");
   if(!filePath.isEmpty()) {
     joda::settings::Settings::storeSettings(filePath.toStdString(), mAnalyzeSettings);
   }
@@ -324,9 +345,9 @@ void WindowMain::onSaveProject()
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath = filePath / "settings.json";
-      QString filePathOfSettingsFile =
-          QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(), "JSON Files (*.json)");
+      filePath                         = filePath / "settings.imcjsproj";
+      QString filePathOfSettingsFile   = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
+                                                                      "ImageC project files (*.imcjsproj)");
       mSelectedProjectSettingsFilePath = filePathOfSettingsFile.toStdString();
     }
 
@@ -462,49 +483,6 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onOpenReportingAreaClicked()
-{
-  QString folderToOpen = QDir::homePath();
-  if(!mAnalyzeSettings.experimentSettings.workingDirectory.empty()) {
-    folderToOpen = mAnalyzeSettings.experimentSettings.workingDirectory.data();
-  }
-
-  QFileDialog::Options opt;
-  opt.setFlag(QFileDialog::DontUseNativeDialog, false);
-
-  QString filePath =
-      QFileDialog::getOpenFileName(this, "Open File", folderToOpen, "Results file (*.duckdb)", nullptr, opt);
-
-  if(filePath.isEmpty()) {
-    return;
-  }
-  try {
-    mPanelReporting->setActualSelectedWorkingFile(filePath.toStdString());
-
-    // Open reporting area
-    mNewProjectButton->setVisible(false);
-    mOpenProjectButton->setVisible(false);
-    mSaveProject->setVisible(false);
-    mSaveProject->setVisible(false);
-    mStartAnalysis->setVisible(false);
-    mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::REPORTING));
-  } catch(const std::exception &ex) {
-    joda::log::logError(ex.what());
-    QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
-    messageBox.setWindowTitle("Could not load database!");
-    messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
-    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
-  }
-  mNavigation = Navigation::REPORTING;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
 void WindowMain::onRemoveChannelClicked()
 {
   if(mSelectedChannel != nullptr) {
@@ -521,17 +499,6 @@ void WindowMain::onRemoveChannelClicked()
       mPanelPipeline->erase(mSelectedChannel);
     }
   }
-}
-
-///
-/// \brief      On add giraf clicked
-/// \author     Joachim Danmayr
-///
-void WindowMain::onAddGirafClicked()
-{
-  ContainerGiraf *panel1 = new ContainerGiraf(this);
-  panel1->fromSettings();
-  panel1->toSettings();
 }
 
 void WindowMain::onAddChannel()

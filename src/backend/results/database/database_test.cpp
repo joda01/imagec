@@ -38,7 +38,7 @@ TEST_CASE("database:test", "[.][database_test]")
      }
    }*/
 
-  joda::results::db::Database db("test_with_idx.duckdb");
+  joda::results::db::Database db("test_with_idx.imcdbres");
   db.open();
   db.createAnalyze(::joda::results::db::AnalyzeMeta{
       .name = "Hello", .scientists = {"Joachim", "Melanie"}, .addressOrganization = "SBG", .notes = "Notes"});
@@ -113,7 +113,7 @@ TEST_CASE("database:test", "[.][database_test]")
 ///
 TEST_CASE("database:test", "[.][database_read]")
 {
-  joda::results::Analyzer res(std::filesystem::path("src/backend/results/database/test/results.duckdb"));
+  joda::results::Analyzer res(std::filesystem::path("src/backend/results/database/test/results.imcdbres"));
   auto jobs = res.getAnalyzes();
   CHECK(jobs[0].analyzeId == "10217c38-3056-43cb-9397-2a15b7756833");
   for(const auto &job : jobs) {

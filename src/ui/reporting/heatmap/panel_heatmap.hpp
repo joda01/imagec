@@ -1,7 +1,7 @@
 ///
 /// \file      panel_heatmap.hpp
 /// \author    Joachim Danmayr
-/// \date      2024-05-21
+/// \date      2024-08-09
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
 ///            All rights reserved! This file is subject
@@ -21,18 +21,11 @@
 #include "backend/results/analyzer/analyzer.hpp"
 #include "backend/results/db_column_ids.hpp"
 #include "backend/results/table/table.hpp"
-#include "ui/container/container_function.hpp"
-#include "ui/container/container_label.hpp"
-#include "ui/panel_preview.hpp"
-#include "ui/reporting/plugins/heatmap_color_generator.hpp"
+#include "heatmap_color_generator.hpp"
 
 namespace joda::ui::qt {
-class WindowMain;
-}
 
-namespace joda::ui::qt::reporting::plugin {
-
-class PanelHeatmap;
+class PanelReporting;
 
 struct Point
 {
@@ -69,7 +62,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  ChartHeatMap(PanelHeatmap *parent);
+  ChartHeatMap(PanelReporting *parent);
   void setData(std::weak_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form,
                PaintControlImage paint, int32_t newHierarchy);
 
@@ -116,7 +109,7 @@ private:
   static inline const uint32_t HEATMAP_COLOR_ROW_TEXT_HEIGHT = 25;
 
   std::weak_ptr<joda::results::Analyzer> mAnalyzer;
-  PanelHeatmap *mParent;
+  PanelReporting *mParent;
   MatrixForm mForm = MatrixForm::CIRCLE;
   PaintControlImage mPaintCtrlImage;
   HeatmapMinMax mMinMaxMode = HeatmapMinMax::AUTO;
@@ -145,131 +138,4 @@ private:
   QImage mActControlImage;
   bool mIsHovering = false;
 };
-
-///
-/// \class      PanelHeatmap
-/// \author     Joachim Danmayr
-/// \brief      Heatmap panel
-///
-class PanelHeatmap : public QWidget
-{
-  Q_OBJECT
-
-public:
-  enum class Navigation
-  {
-    PLATE = 0,
-    WELL  = 1,
-    IMAGE = 2
-  };
-
-  struct SelectedFilter
-  {
-    std::string analyzeId;
-    uint32_t plateRows = 0;
-    uint32_t plateCols = 0;
-    uint32_t plateId   = 1;
-    joda::results::ChannelIndex channelIdx;
-    joda::results::MeasureChannelId measureChannel;
-    std::vector<std::vector<int32_t>> wellImageOrder;
-    joda::results::Stats stats;
-    uint32_t densityMapAreaSize = 200;
-  };
-
-  /////////////////////////////////////////////////////
-  PanelHeatmap(WindowMain *win, QWidget *parent);
-  void setData(std::weak_ptr<joda::results::Analyzer> analyzer, const SelectedFilter &);
-  [[nodiscard]] Navigation getActualNavigation() const
-  {
-    return mNavigation;
-  }
-
-  [[nodiscard]] uint16_t getSelectedGroup() const
-  {
-    return mActGroupId;
-  }
-
-  [[nodiscard]] uint64_t getSelectedImage() const
-  {
-    return mSelectedImageId;
-  }
-
-  [[nodiscard]] const results::Table &getData() const
-  {
-    return mHeatmap01->getData();
-  }
-
-  void setAnalyzer(const std::weak_ptr<joda::results::Analyzer> &analyzer);
-
-signals:
-  void loadingStarted();
-  void loadingFinished();
-
-private:
-  /////////////////////////////////////////////////////
-  static constexpr int32_t PREVIEW_BASE_SIZE = 450;
-
-  WindowMain *mWindowMain;
-  std::weak_ptr<joda::results::Analyzer> mAnalyzer;
-
-  // Breadcrumb///////////////////////////////////////////////////
-  QWidget *createBreadCrump(QWidget *);
-  QPushButton *mBackButton;
-  PanelPreview *mPreviewImage;
-  QComboBox *mChannelSelector;
-  QComboBox *mMeasurementSelector;
-  QComboBox *mStatsSelector;
-  std::vector<results::db::ChannelMeta> mChannelInfos;
-  std::string mAnalyzeId;
-  uint32_t mDenesityMapSize = 200;
-
-  /////////////////////////////////////////////////////
-  ChartHeatMap *mHeatmap01;
-  SelectedFilter mFilter;
-  Navigation mNavigation = Navigation::PLATE;
-
-  // WELL///////////////////////////////////////////////////
-  ContainerLabel *mWellName;
-  ContainerLabel *mWellValue;
-  ContainerLabel *mWellMeta;
-
-  // Image///////////////////////////////////////////////////
-  QWidget *mImageInfoWidget;
-  ContainerLabel *mImageName;
-  ContainerLabel *mImageValue;
-  ContainerLabel *mImageMeta;
-  std::shared_ptr<ContainerFunction<bool, bool>> mMarkAsInvalid;
-
-  // Area///////////////////////////////////////////////////
-  QWidget *mAreaInfoWidget;
-  ContainerLabel *mAreaName;
-  ContainerLabel *mAreaValue;
-  ContainerLabel *mAreaMeta;
-
-  /////////////////////////////////////////////////////
-  uint16_t mActGroupId;
-  uint64_t mActImageId;
-
-  uint32_t mSelectedWellId;
-  uint64_t mSelectedImageId;
-  uint32_t mSelectedTileId;
-  Point mSelectedAreaPos;
-
-  bool mIsLoading = false;
-
-public slots:
-  void onExportClicked();
-  void onMarkAsInvalidClicked();
-  void onElementSelected(int cellX, int cellY, results::TableCell value);
-  void onOpenNextLevel(int cellX, int cellY, results::TableCell value);
-  void onBackClicked();
-  void repaintHeatmap();
-  void paintPlate();
-  void paintWell();
-  void paintImage();
-  void onExportImageClicked();
-  void onChannelChanged();
-  void onMeasurementChanged();
-};
-
-}    // namespace joda::ui::qt::reporting::plugin
+}    // namespace joda::ui::qt
