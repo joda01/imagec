@@ -14,6 +14,7 @@
 #include "panel_image.hpp"
 #include <qboxlayout.h>
 #include <qlineedit.h>
+#include <string>
 #include "backend/helper/directory_iterator.hpp"
 #include "ui/window_main/window_main.hpp"
 
@@ -24,21 +25,23 @@ PanelImageMeta::PanelImageMeta(WindowMain *windowMain) : mWindowMain(windowMain)
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
   {
-    QLineEdit *searchField = new QLineEdit();
-    searchField->setPlaceholderText("Search ...");
-    layout->addWidget(searchField);
+    mSearchField = new QLineEdit();
+    mSearchField->setPlaceholderText("Search ...");
+    layout->addWidget(mSearchField);
+    connect(mSearchField, &QLineEdit::editingFinished, this, &PanelImageMeta::filterImages);
   }
 
   {
-    mImages = new PlaceholderTableWidget(0, 1);
+    mImages = new PlaceholderTableWidget(0, 2);
     mImages->setPlaceholderText("Select a working directory");
     mImages->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mImages->verticalHeader()->setVisible(false);
-    mImages->setHorizontalHeaderLabels({"Images"});
+    mImages->setHorizontalHeaderLabels({"Idx", "Images"});
     mImages->setAlternatingRowColors(true);
     mImages->setSelectionBehavior(QAbstractItemView::SelectRows);
+    mImages->setColumnHidden(0, true);
 
-    connect(mImages, &QTableWidget::itemClicked, [&](QTableWidgetItem *item) { updateImageMeta(); });
+    connect(mImages, &QTableWidget::itemSelectionChanged, [&]() { updateImageMeta(); });
 
     layout->addWidget(mImages);
   }
@@ -75,13 +78,28 @@ PanelImageMeta::PanelImageMeta(WindowMain *windowMain) : mWindowMain(windowMain)
 /// \param[out]
 /// \return
 ///
+void PanelImageMeta::filterImages()
+{
+  updateImagesList();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto PanelImageMeta::getSelectedImage() const -> std::tuple<int32_t, int32_t>
 {
-  QList<QTableWidgetItem *> selectedItems = mImages->selectedItems();
-  if(!selectedItems.isEmpty()) {
-    auto *selectedRow = *selectedItems.begin();
-    return {selectedRow->row(), 0};
+  int selectedRow = mImages->currentRow();
+  if(selectedRow >= 0) {
+    QTableWidgetItem *item = mImages->item(selectedRow, 0);
+    if(item != nullptr) {
+      return {item->text().toInt(), 0};
+    }
   }
+
   return {-1, 0};
 }
 
@@ -94,16 +112,37 @@ auto PanelImageMeta::getSelectedImage() const -> std::tuple<int32_t, int32_t>
 ///
 void PanelImageMeta::updateImagesList()
 {
+  mImages->clearSelection();
+  std::string searchPattern = mSearchField->text().toLower().toStdString();
+  auto contains             = [&searchPattern](const QString &str) {
+    if(searchPattern.empty()) {
+      return true;
+    }
+    std::regex regex(".*" + searchPattern + ".*");
+    return std::regex_match(str.toLower().toStdString(), regex);
+  };
+
   const auto &foundImages = mWindowMain->getController()->getListOfFoundImages();
   mImages->setRowCount(foundImages.size());
   int row = 0;
+  int idx = 0;
   for(const auto &image : foundImages) {
-    auto *item = new QTableWidgetItem(image.getFilename().data());
-    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-    mImages->setItem(row, 0, item);
-    // mImages->setItem(row, 1, new QTableWidgetItem(image.getFilePath().parent_path().string().data()));
-    row++;
+    std::string filename = image.getFilename();
+    if(contains(filename.data())) {
+      auto *index = new QTableWidgetItem(QString(std::to_string(idx).data()));
+      index->setFlags(index->flags() & ~Qt::ItemIsEditable);
+      mImages->setItem(row, 0, index);
+
+      auto *item = new QTableWidgetItem(filename.data());
+      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+      mImages->setItem(row, 1, item);
+      row++;
+    }
+
+    idx++;
   }
+  mImages->setRowCount(row);
+  mSearchField->setPlaceholderText("Search (" + QString::number(row) + ") ...");
 }
 
 ///
@@ -117,11 +156,9 @@ void PanelImageMeta::updateImageMeta()
 {
   QList<QTableWidgetItem *> selectedItems = mImages->selectedItems();
   if(!selectedItems.isEmpty()) {
-    auto *selectedRow = *selectedItems.begin();
-    emit imageSelectionChanged(selectedRow->row(), 0);
+    auto [rowIdx, series] = getSelectedImage();
 
-    auto [ome, imagePath] = mWindowMain->getController()->getImageProperties(selectedRow->row(),
-                                                                             /*series*/ 0);
+    auto [ome, imagePath] = mWindowMain->getController()->getImageProperties(rowIdx, series);
     const auto &imgInfo   = ome.getImageInfo();
 
     mImageMeta->setRowCount(20 + ome.getChannelInfos().size() * 7);

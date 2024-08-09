@@ -32,43 +32,21 @@ class FileInfoImages : public FileInfo
 public:
   using FileInfo::FileInfo;
 
-  enum class Decoder
-  {
-    UNSUPPORTED,
-    TIFF,
-    JPG,
-    BIOFORMATS
-  };
-
-  [[nodiscard]] Decoder getDecoder() const
-  {
-    return mDecoder;
-  }
-
   bool parseFile(const std::filesystem::directory_entry &path,
                  const std::set<std::string> & /*supportedFileFormats*/) override
   {
     auto ext = path.path().extension().string();
-    if(TIF_EXTENSIONS.contains(ext)) {
-      mDecoder = Decoder::TIFF;
-      mPath    = path.path();
+    if(EXTENSIONS.contains(ext)) {
+      mPath = path.path();
       return true;
     }
-    if(BIOFORMATS_EXTENSIONS.contains(ext)) {
-      mDecoder = Decoder::BIOFORMATS;
-      mPath    = path.path();
-      return true;
-    }
-    mDecoder = Decoder::UNSUPPORTED;
+
     return false;
   }
 
 private:
   /////////////////////////////////////////////////////
-  static inline const std::set<std::string> JPG_EXTENSIONS        = {".jpg", ".jpeg"};
-  static inline const std::set<std::string> TIF_EXTENSIONS        = {".tif", ".tiff", ".btif", ".btiff", ".btf"};
-  static inline const std::set<std::string> BIOFORMATS_EXTENSIONS = {".vsi", ".ics", ".czi"};
-
-  Decoder mDecoder = Decoder::UNSUPPORTED;
+  static inline const std::set<std::string> EXTENSIONS = {".tif", ".tiff", ".btif", ".btiff", ".btf",
+                                                          ".jpg", ".jpeg", ".vsi",  ".ics",   ".czi"};
 };
 }    // namespace joda::helper::fs

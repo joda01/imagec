@@ -56,5 +56,9 @@ private:
   WindowMain *mWindowMain;
   PlaceholderTableWidget *mImages;
   PlaceholderTableWidget *mImageMeta;
+  QLineEdit *mSearchField;
+
+private slots:
+  void filterImages();
 };
 }    // namespace joda::ui::qt
