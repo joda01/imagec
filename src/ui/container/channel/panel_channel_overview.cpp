@@ -25,25 +25,26 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
     mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
+  setContentsMargins(0, 4, 4, 4);
   QGridLayout *layout = new QGridLayout(this);
-
+  layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
-  layout->setSpacing(0);
+  layout->setSpacing(4);
 
   // Add the functions
   // layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
 
   layout->addWidget(parent->mColorAndChannelIndex->getLabelWidget(), 0, 0);
-  layout->addWidget(parent->mChannelType->getLabelWidget(), 0, 1);
-  layout->addWidget(parent->mThresholdAlgorithm->getLabelWidget(), 0, 2);
+  layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 1);
+  layout->addWidget(parent->mChannelType->getLabelWidget(), 0, 2);
 
-  layout->addWidget(parent->mThresholdValueMin->getLabelWidget(), 1, 0);
-  layout->addWidget(parent->mMinCircularity->getLabelWidget(), 1, 1);
-  layout->addWidget(parent->mMinParticleSize->getLabelWidget(), 1, 2);
+  layout->addWidget(parent->mUsedDetectionMode->getLabelWidget(), 1, 0);
+  layout->addWidget(parent->mThresholdAlgorithm->getLabelWidget(), 1, 1);
+  layout->addWidget(parent->mThresholdValueMin->getLabelWidget(), 1, 2);
 
-  layout->addWidget(parent->mSnapAreaSize->getLabelWidget(), 2, 0);
-  layout->addWidget(parent->mZProjection->getLabelWidget(), 2, 1);
-  layout->addWidget(parent->mMarginCrop->getLabelWidget(), 2, 2);
+  layout->addWidget(parent->mMinParticleSize->getLabelWidget(), 2, 0);
+  layout->addWidget(parent->mMaxParticleSize->getLabelWidget(), 2, 1);
+  layout->addWidget(parent->mTetraspeckRemoval->getLabelWidget(), 2, 2);
 
   /*
     layout->addWidget(parent->mSubtractChannel->getLabelWidget(), 4, 0);
@@ -58,7 +59,7 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
     layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 6, 1);
     layout->addWidget(parent->mCrossChannelCount->getLabelWidget(), 6, 2);
   */
-  // setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
 ///

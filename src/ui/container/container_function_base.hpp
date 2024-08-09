@@ -32,6 +32,9 @@ public:
   static QWidget *createDisplayAbleWidgetPlaceholder()
   {
     QWidget *displayable = new QWidget();
+    displayable->setContentsMargins(0, 0, 0, 0);
+    displayable->setMinimumWidth(110);
+    displayable->setMaximumWidth(110);
 
     // Create a QLabel
     QLabel *displayLabelIcon = new QLabel();
@@ -50,6 +53,8 @@ public:
 
     // Create a QHBoxLayout to arrange the text and icon horizontally
     QHBoxLayout *layout = new QHBoxLayout;
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(4);
     displayable->setLayout(layout);
     layout->addWidget(displayLabelIcon);
     layout->addWidget(displayLabel);

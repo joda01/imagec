@@ -25,10 +25,11 @@ PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIn
     mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
+  setContentsMargins(0, 4, 4, 4);
   QGridLayout *layout = new QGridLayout(this);
-
+  layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
-  layout->setSpacing(0);
+  layout->setSpacing(4);
 
   // Add the functions
   // layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
@@ -60,7 +61,7 @@ PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIn
 
     layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 3);
   */
-  // setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
 ///

@@ -29,7 +29,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
   setFrameShape(QFrame::NoFrame);
   viewport()->setStyleSheet("background-color: transparent;");
   setObjectName("scrollAreaOverview");
-  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  // setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   // Create a widget to hold the panels
@@ -40,8 +40,8 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 
   // Create a horizontal layout for the panels
   mVerticalLayout = new QVBoxLayout(contentWidget);
-  mVerticalLayout->setContentsMargins(8, 0, 8, 0);
-  mVerticalLayout->setSpacing(16);    // Adjust this value as needed
+  mVerticalLayout->setContentsMargins(0, 0, 0, 0);
+  mVerticalLayout->setSpacing(8);    // Adjust this value as needed
   mVerticalLayout->setAlignment(Qt::AlignTop);
   contentWidget->setLayout(mVerticalLayout);
 }

@@ -100,7 +100,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
           windowMain, "threshold_algorithm.json"));
 
   mThresholdValueMin = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "px", 1000, 0, 65535,
+      new ContainerFunction<int, int>("icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "", 1000, 0, 65535,
                                       windowMain, "threshold_min.json"));
 
   mMinProbability = std::shared_ptr<ContainerFunction<float, float>>(

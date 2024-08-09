@@ -537,6 +537,9 @@ private:
   void createDisplayAbleWidget(const QString &icon, const QString &placeHolderText, const QString &helpText)
   {
     mDisplayable = new QWidget();
+    mDisplayable->setContentsMargins(0, 0, 0, 0);
+    mDisplayable->setMinimumWidth(110);
+    mDisplayable->setMaximumWidth(110);
 
     // Create a QLabel
     mDisplayLabelIcon = new QLabel();
@@ -556,6 +559,8 @@ private:
 
     // Create a QHBoxLayout to arrange the text and icon horizontally
     QHBoxLayout *layout = new QHBoxLayout;
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(4);
     mDisplayable->setLayout(layout);
     layout->addWidget(mDisplayLabelIcon);
     layout->addWidget(mDisplayLabel);

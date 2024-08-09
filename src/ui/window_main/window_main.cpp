@@ -200,7 +200,7 @@ void WindowMain::createLeftToolbar()
   }
 
   mSidebar->addWidget(tabs);
-  mSidebar->setMinimumWidth(350);
+  mSidebar->setMinimumWidth(365);
   addToolBar(Qt::ToolBarArea::LeftToolBarArea, mSidebar);
 }
 
@@ -640,7 +640,10 @@ void WindowMain::onRemoveChannelClicked()
     messageBox.setDefaultButton(noButton);
     auto reply = messageBox.exec();
     if(messageBox.clickedButton() == yesButton) {
-      mPanelPipeline->erase(mSelectedChannel);
+      auto *selectedChanel = mSelectedChannel;
+      showPanelStartPage();
+      mPanelPipeline->erase(selectedChanel);
+      mSelectedChannel = nullptr;
     }
   }
 }
