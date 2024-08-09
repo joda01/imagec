@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include "controller/controller.hpp"
+#include "ui/container/panel_edit_base.hpp"
 #include "ui/helper/waitingspinnerwidget.hpp"
 #include "ui/panel_preview.hpp"
 
@@ -26,7 +27,7 @@ namespace joda::ui::qt {
 class WindowMain;
 class ContainerChannel;
 
-class PanelChannelEdit : public QWidget
+class PanelChannelEdit : public PanelEdit
 {
   Q_OBJECT
 
@@ -69,10 +70,10 @@ private:
   int32_t mSelectedTileX = 0;
   int32_t mSelectedTileY = 0;
 
+  void valueChangedEvent() override;
+
 private slots:
   /////////////////////////////////////////////////////
-  void onChannelTypeChanged();
-  void onDetectionModechanged();
   void updatePreview();
   void onTileClicked(int32_t tileX, int32_t tileY);
   void onPreviewStarted();

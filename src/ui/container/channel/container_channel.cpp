@@ -44,12 +44,12 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
     mWindowMain(windowMain), mSettings(settings)
 {
   mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(new ContainerFunction<QString, QString>(
-      "icons8-text-50.png", "Name", "Channel Name", "Name", windowMain, "channel_name.json"));
+      "icons8-text-50.png", "Name", "Name", "Name", windowMain, "channel_name.json"));
   mChannelName->setMaxLength(15);
 
   mChannelType = std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>>(
       new ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>(
-          "icons8-unknown-status-50.png", "Type", "Channel type", "", joda::settings::ChannelSettingsMeta::Type::SPOT,
+          "icons8-unknown-status-50.png", "Type", "Type", "", joda::settings::ChannelSettingsMeta::Type::SPOT,
           {{joda::settings::ChannelSettingsMeta::Type::SPOT, "Spot"},
            {joda::settings::ChannelSettingsMeta::Type::SPOT_REFERENCE, "Reference Spot"},
            {joda::settings::ChannelSettingsMeta::Type::NUCLEUS, "Nucleus"},
@@ -59,7 +59,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
 
   mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>>(
       new ContainerFunction<QString, joda::settings::ChannelIndex>(
-          "icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
+          "icons8-unknown-status-50.png", "Type", "Index", "", "#B91717",
           {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
            {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
            {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
@@ -166,7 +166,7 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
                                                                windowMain, "subtract_channel.json"));
 
   mMedianBackgroundSubtraction = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,
+      new ContainerFunction<int, int>("icons8-baseline-50.png", "Kernel size", "Median bg. subtraction", "", -1,
                                       {{-1, "Off"},
                                        {3, "3x3"},
                                        {4, "4x4"},
@@ -226,12 +226,11 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
            {joda::settings::ChannelIndex::CH9, "Channel 9"}},
           windowMain, "tetraspeck_removal.json"));
 
-  mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", "",
-                                          windowMain, "cross_channel_intensity.json"));
+  mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
+      "icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross intensity", "", windowMain, "cross_channel_intensity.json"));
 
   mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", windowMain, "cross_channel_count.json"));
+      "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross count", "", windowMain, "cross_channel_count.json"));
 
   //
   // Cross-Channel

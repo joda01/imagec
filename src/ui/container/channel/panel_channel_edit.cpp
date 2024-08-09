@@ -14,6 +14,7 @@
 #include "panel_channel_edit.hpp"
 #include <qboxlayout.h>
 #include <qcombobox.h>
+#include <qgroupbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qpushbutton.h>
@@ -43,178 +44,48 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
 
 void PanelChannelEdit::init()
 {
-  auto [horizontalLayout, _] = helper::createLayout(this, helper::SPACING);
+  helper::LayoutGenerator layout(this);
 
-  //
-  // Column 1
-  //
-  // rgb(246, 246, 246)
-  auto [verticalLayoutContainer, _1] = helper::addVerticalPanel(
-      horizontalLayout, "rgba(218, 226, 255,0)", 0, false, helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
-  auto [verticalLayoutMeta, _2] = helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-  verticalLayoutMeta->addWidget(helper::createTitle("Meta"));
-  verticalLayoutMeta->addWidget(mParentContainer->mChannelName->getEditableWidget());
-  verticalLayoutMeta->addWidget(mParentContainer->mColorAndChannelIndex->getEditableWidget());
-  verticalLayoutMeta->addWidget(mParentContainer->mChannelType->getEditableWidget());
-  _2->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  connect(mParentContainer->mChannelType.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::onChannelTypeChanged);
-  connect(mParentContainer->mColorAndChannelIndex.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
+  {
+    auto *col1 = layout.addVerticalPanel();
+    col1->addGroup("Meta", {mParentContainer->mChannelName, mParentContainer->mColorAndChannelIndex,
+                            mParentContainer->mChannelType});
 
-  // Cross channel
-  auto [llayoutColoc, _11] = helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-  llayoutColoc->addWidget(helper::createTitle("Cross-Channel"));
-  // llayoutColoc->addWidget(parentContainer->mColocGroup->getEditableWidget());
-  llayoutColoc->addWidget(mParentContainer->mCrossChannelIntensity->getEditableWidget());
-  llayoutColoc->addWidget(mParentContainer->mCrossChannelCount->getEditableWidget());
-  _11->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    col1->addGroup("Cross channel", {mParentContainer->mCrossChannelIntensity, mParentContainer->mCrossChannelCount});
 
-  // Measurement
-  // auto [measurement, _6] = addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)", 16, false);
-  // measurement->addWidget(createTitle("Measurement"));
+    col1->addGroup("Image filter", {mParentContainer->mImageFilterMode, mParentContainer->mMaxObjects,
+                                    mParentContainer->mHistogramThresholdFactor});
+  }
 
-  verticalLayoutContainer->addStretch(0);
+  {
+    auto *col2 = layout.addVerticalPanel();
+    col2->addGroup("Preprocessing", {mParentContainer->mZProjection, mParentContainer->mMarginCrop,
+                                     mParentContainer->mMedianBackgroundSubtraction, mParentContainer->mEdgeDetection,
+                                     mParentContainer->mRollingBall, mParentContainer->mSubtractChannel,
+                                     mParentContainer->mSmoothing, mParentContainer->mGaussianBlur});
+  }
 
-  //
-  // Column 2
-  //
-  auto [functionContainer, _7] = helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false,
-                                                          helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
-  auto [verticalLayoutFuctions, _8] =
-      helper::addVerticalPanel(functionContainer, "rgb(246, 246, 246)", helper::SPACING, false);
-  verticalLayoutFuctions->addWidget(helper::createTitle("Preprocessing"));
-  verticalLayoutFuctions->addWidget(mParentContainer->mZProjection->getEditableWidget());
-  verticalLayoutFuctions->addWidget(mParentContainer->mMarginCrop->getEditableWidget());
-  verticalLayoutFuctions->addWidget(mParentContainer->mMedianBackgroundSubtraction->getEditableWidget());
-  verticalLayoutFuctions->addWidget(mParentContainer->mEdgeDetection->getEditableWidget());
-  verticalLayoutFuctions->addWidget(mParentContainer->mRollingBall->getEditableWidget());
-  verticalLayoutFuctions->addWidget(mParentContainer->mSubtractChannel->getEditableWidget());
-  verticalLayoutFuctions->addWidget(mParentContainer->mSmoothing->getEditableWidget());
-  verticalLayoutFuctions->addWidget(mParentContainer->mGaussianBlur->getEditableWidget());
-  _8->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  _7->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+  {
+    auto *col3 = layout.addVerticalPanel();
+    col3->addGroup("Detection", {mParentContainer->mUsedDetectionMode, mParentContainer->mThresholdAlgorithm,
+                                 mParentContainer->mThresholdValueMin, mParentContainer->mAIModels,
+                                 mParentContainer->mMinProbability, mParentContainer->mWateredSegmentation,
+                                 mParentContainer->mSnapAreaSize});
+    col3->addGroup("Filter", {mParentContainer->mMinParticleSize, mParentContainer->mMaxParticleSize,
+                              mParentContainer->mMinCircularity, mParentContainer->mTetraspeckRemoval});
+  }
 
-  connect(mParentContainer->mZProjection.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mMarginCrop.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mMedianBackgroundSubtraction.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mEdgeDetection.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mRollingBall.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mSubtractChannel.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mSmoothing.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mGaussianBlur.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
+  {
+    auto *col4    = layout.addVerticalPanel();
+    mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
+    mPreviewImage->setContentsMargins(0, 0, 0, 0);
+    mPreviewImage->resetImage("");
+    col4->addWidget(mPreviewImage);
+  }
 
-  //
-  // Column 3
-  //
-  auto [detectionContainer, _4] = helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false,
-                                                           helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
-  auto [detection, _5]          = helper::addVerticalPanel(detectionContainer, "rgb(246, 246, 246)");
-  detection->addWidget(helper::createTitle("Detection"));
-  detection->addWidget(mParentContainer->mUsedDetectionMode->getEditableWidget());
-  connect(mParentContainer->mUsedDetectionMode.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::onDetectionModechanged);
-  detection->addWidget(mParentContainer->mThresholdAlgorithm->getEditableWidget());
-  detection->addWidget(mParentContainer->mThresholdValueMin->getEditableWidget());
-  detection->addWidget(mParentContainer->mAIModels->getEditableWidget());
-  detection->addWidget(mParentContainer->mMinProbability->getEditableWidget());
-  detection->addWidget(mParentContainer->mWateredSegmentation->getEditableWidget());
-  detection->addWidget(mParentContainer->mSnapAreaSize->getEditableWidget());
-
-  _5->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  onDetectionModechanged();
-
-  connect(mParentContainer->mThresholdAlgorithm.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mThresholdValueMin.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mAIModels.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mMinProbability.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mWateredSegmentation.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mSnapAreaSize.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-
-  //
-  // Column 4
-  //
-  auto [filterContainer, filterContainerLayout] = helper::addVerticalPanel(
-      horizontalLayout, "rgba(218, 226, 255,0)", 0, false, helper::PANEL_WIDTH, helper::PANEL_WIDTH, helper::SPACING);
-  auto [objectFilter, objectFilterLayout] = helper::addVerticalPanel(filterContainer, "rgb(246, 246, 246)");
-  objectFilter->addWidget(helper::createTitle("Object filter"));
-  objectFilter->addWidget(mParentContainer->mMinParticleSize->getEditableWidget());
-  objectFilter->addWidget(mParentContainer->mMaxParticleSize->getEditableWidget());
-  objectFilter->addWidget(mParentContainer->mMinCircularity->getEditableWidget());
-  objectFilter->addWidget(mParentContainer->mTetraspeckRemoval->getEditableWidget());
-  objectFilter->addStretch();
-  objectFilterLayout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-  connect(mParentContainer->mMinParticleSize.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mMaxParticleSize.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mMinCircularity.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-
-  connect(mParentContainer->mTetraspeckRemoval.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-
-  auto [imageFilter, imageFilterLayout] =
-      helper::addVerticalPanel(filterContainer, "rgb(246, 246, 246)", helper::SPACING, false);
-  imageFilter->addWidget(helper::createTitle("Image filter"));
-  imageFilter->addWidget(mParentContainer->mImageFilterMode->getEditableWidget());
-  imageFilter->addWidget(mParentContainer->mMaxObjects->getEditableWidget());
-  imageFilter->addWidget(mParentContainer->mHistogramThresholdFactor->getEditableWidget());
-
-  connect(mParentContainer->mImageFilterMode.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mMaxObjects.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(mParentContainer->mHistogramThresholdFactor.get(), &ContainerFunctionBase::valueChanged, this,
-          &PanelChannelEdit::updatePreview);
-
-  imageFilterLayout->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-  //
-  // Preview
-  //
-  auto [preview, _9] = helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, PREVIEW_BASE_SIZE,
-                                                helper::PANEL_WIDTH, helper::SPACING);
-  mPreviewImage      = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
-  mPreviewImage->setContentsMargins(0, 0, 0, 0);
-  mPreviewImage->resetImage("");
-  preview->addWidget(mPreviewImage);
-  QWidget *imageSubTitleWidget = new QWidget();
-  imageSubTitleWidget->setMinimumHeight(50);
-  QHBoxLayout *imageSubTitle = new QHBoxLayout();
-  imageSubTitleWidget->setLayout(imageSubTitle);
-
-  //
-  // Signals from extern
-  //
   connect(this, &PanelChannelEdit::updatePreviewStarted, this, &PanelChannelEdit::onPreviewStarted);
   connect(this, &PanelChannelEdit::updatePreviewFinished, this, &PanelChannelEdit::onPreviewFinished);
 
-  imageSubTitle->addStretch(1);
-
-  preview->addWidget(imageSubTitleWidget);
-
-  setLayout(horizontalLayout);
-  horizontalLayout->addStretch();
-
-  //
-  // Signals from extern
-  //
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelChannelEdit::onTileClicked);
   connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
   connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
@@ -236,12 +107,7 @@ PanelChannelEdit::~PanelChannelEdit()
   delete mPreviewImage;
 }
 
-void PanelChannelEdit::onChannelTypeChanged()
-{
-  updatePreview();
-}
-
-void PanelChannelEdit::onDetectionModechanged()
+void PanelChannelEdit::valueChangedEvent()
 {
   if(mParentContainer->mUsedDetectionMode->getValue() == joda::settings::DetectionSettings::DetectionMode::AI) {
     mParentContainer->mMinProbability->getEditableWidget()->setVisible(true);

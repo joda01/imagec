@@ -144,7 +144,7 @@ public:
     return mDisplayable;
   }
 
-  QWidget *getEditableWidget()
+  QWidget *getEditableWidget() override
   {
     return mEditable;
   }
@@ -568,9 +568,10 @@ private:
              std::same_as<VALUE_T, QString> || std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
+    mEditable->setContentsMargins(0, 0, 0, 0);
     mEditable->setObjectName("panelFunction");
     QVBoxLayout *layout = new QVBoxLayout();
-    layout->setContentsMargins(0, 8, 0, 0);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
     const QIcon myIcon(":/icons/outlined/" + icon);
@@ -620,9 +621,10 @@ private:
              std::same_as<VALUE_T, bool> || std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
+    mEditable->setContentsMargins(0, 0, 0, 0);
     mEditable->setObjectName("panelFunction");
     QVBoxLayout *layoutVertical = new QVBoxLayout();
-    layoutVertical->setContentsMargins(0, 8, 0, 0);
+    layoutVertical->setContentsMargins(0, 0, 0, 0);
     layoutVertical->setSpacing(0);
 
     QWidget *horizontaContainer   = new QWidget();
@@ -681,9 +683,10 @@ private:
              std::same_as<VALUE_T, bool> || std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
+    mEditable->setContentsMargins(0, 0, 0, 0);
     mEditable->setObjectName("panelFunction");
     QVBoxLayout *layoutVertical = new QVBoxLayout();
-    layoutVertical->setContentsMargins(0, 8, 0, 0);
+    layoutVertical->setContentsMargins(0, 0, 0, 0);
     layoutVertical->setSpacing(0);
 
     QWidget *horizontaContainer   = new QWidget();
@@ -755,25 +758,26 @@ private:
 
     // Info icon
     if(!mPathToHelpFile.isEmpty()) {
-      QPushButton *help = new QPushButton();
-      connect(help, &QPushButton::clicked, this, &ContainerFunction::onHelpButtonClicked);
-      const QIcon helpIcon(":/icons/outlined/icons8-info-48-fill.png");
-      help->setCursor(Qt::PointingHandCursor);
+      auto *help = new QPushButton();
+      help->setObjectName("helpButton");
       help->setStyleSheet(
-          "QPushButton {"
+          "QPushButton#helpButton {"
           "   background-color: rgba(0, 0, 0, 0);"
           "   border: 0px solid rgb(111, 121, 123);"
           "   color: rgb(0, 104, 117);"
-          "   padding: 2px 2px;"
+          "   padding: 2px 2px 0px 0px;"
+          "   margin: 0px 0px 0px 0px;"
           "   border-radius: 4px;"
           "   font-size: 8px;"
           "   font-weight: normal;"
           "   text-align: center;"
           "   text-decoration: none;"
+          "   min-height: 0px;"
           "}");
-      help->setObjectName("help");
+      help->setCursor(Qt::PointingHandCursor);
       help->setIconSize({HELP_ICON_SIZE, HELP_ICON_SIZE});
-      help->setIcon(helpIcon);
+      help->setIcon(QIcon(":/icons/outlined/icons8-info-48-fill.png"));
+      connect(help, &QPushButton::clicked, this, &ContainerFunction::onHelpButtonClicked);
       hLayout->addWidget(help);
     }
 

@@ -254,7 +254,7 @@ void WindowMain::createLeftToolbar()
   resetImageInfo();
   mSidebar->setVisible(false);
 
-  mSidebar->setMinimumWidth(380);
+  mSidebar->setMinimumWidth(350);
   addToolBar(Qt::ToolBarArea::LeftToolBarArea, mSidebar);
 }
 

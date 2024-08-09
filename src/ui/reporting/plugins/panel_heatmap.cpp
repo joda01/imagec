@@ -50,16 +50,12 @@ namespace joda::ui::qt::reporting::plugin {
 ///
 PanelHeatmap::PanelHeatmap(WindowMain *windowMain, QWidget *parent) : mWindowMain(windowMain), QWidget(parent)
 {
+  /*
   // Create and set up the grid layout
   auto [horizontalLayout, centerWidget] = joda::ui::qt::helper::createLayout(this, helper::SPACING);
   horizontalLayout->setContentsMargins(0, 0, 0, 0);
 
-  //
-  // Plate view
-  //
-  {
-    auto [plateViewer, plateViewerWidget] =
-        joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 16, false, 800, 2048, 24);
+
     mHeatmap01 = new ChartHeatMap(this);
     connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelHeatmap::onElementSelected);
     connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelHeatmap::onOpenNextLevel);
@@ -74,92 +70,95 @@ PanelHeatmap::PanelHeatmap(WindowMain *windowMain, QWidget *parent) : mWindowMai
     plateViewer->addWidget(mHeatmap01);
     mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     plateViewerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  }
+  */
 
-  {
-    auto [verticalLayoutContainer, _1] =
-        joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 250, 16);
-
-    //
-    // Well edit
-    //
+  /*
     {
-      auto [verticalLayoutMeta, _2] =
-          joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+      auto [verticalLayoutContainer, _1] =
+          joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 250, 16);
 
-      verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Well"));
+      //
+      // Well edit
+      //
+      {
+        auto [verticalLayoutMeta, _2] =
+            joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
 
-      mWellName = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mWellName->getEditableWidget());
+        verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Well"));
 
-      mWellValue = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mWellValue->getEditableWidget());
+        mWellName = new ContainerLabel("...", "", windowMain);
+        verticalLayoutMeta->addWidget(mWellName->getEditableWidget());
 
-      mWellMeta = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mWellMeta->getEditableWidget());
+        mWellValue = new ContainerLabel("...", "", windowMain);
+        verticalLayoutMeta->addWidget(mWellValue->getEditableWidget());
 
-      _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+        mWellMeta = new ContainerLabel("...", "", windowMain);
+        verticalLayoutMeta->addWidget(mWellMeta->getEditableWidget());
+
+        _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+      }
+
+      //
+      // Image edit
+      //
+      {
+        auto [verticalLayoutMeta, _2] =
+            joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+        mImageInfoWidget = _2;
+        verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Image"));
+
+        mImageName = new ContainerLabel("...", "", windowMain);
+        verticalLayoutMeta->addWidget(mImageName->getEditableWidget());
+
+        mImageValue = new ContainerLabel("...", "", windowMain);
+        verticalLayoutMeta->addWidget(mImageValue->getEditableWidget());
+
+        mImageMeta = new ContainerLabel("...", "", windowMain);
+        verticalLayoutMeta->addWidget(mImageMeta->getEditableWidget());
+
+        mMarkAsInvalid = std::shared_ptr<ContainerFunction<bool, bool>>(
+            new ContainerFunction<bool, bool>("icons8-multiply-50.png", "Mark as invalid", "Mark as invalid", false,
+                                              windowMain, "reporting_mark_as_invalid.json"));
+        verticalLayoutMeta->addWidget(mMarkAsInvalid->getEditableWidget());
+        connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this,
+    &PanelHeatmap::onMarkAsInvalidClicked);
+
+        _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+        mImageInfoWidget->setVisible(false);
+      }
+
+      //
+      // Area edit
+      //
+      {
+        auto [verticalLayoutMeta, _2] =
+            joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
+        mAreaInfoWidget = _2;
+        verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Area"));
+
+        mAreaName = new ContainerLabel("...", "", windowMain);
+        verticalLayoutMeta->addWidget(mAreaName->getEditableWidget());
+
+        mAreaValue = new ContainerLabel("...", "", windowMain);
+        verticalLayoutMeta->addWidget(mAreaValue->getEditableWidget());
+
+        mAreaMeta = new ContainerLabel("...", "", windowMain);
+        verticalLayoutMeta->addWidget(mAreaMeta->getEditableWidget());
+
+        auto saveImageButton = new ContainerButton("Export", "icons8-export-excel-50.png", windowMain);
+        connect(saveImageButton, &ContainerButton::valueChanged, this, &PanelHeatmap::onExportImageClicked);
+        verticalLayoutMeta->addWidget(saveImageButton->getEditableWidget());
+
+        _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+        mAreaInfoWidget->setVisible(false);
+      }
+      verticalLayoutContainer->addStretch();
     }
 
-    //
-    // Image edit
-    //
-    {
-      auto [verticalLayoutMeta, _2] =
-          joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-      mImageInfoWidget = _2;
-      verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Image"));
-
-      mImageName = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mImageName->getEditableWidget());
-
-      mImageValue = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mImageValue->getEditableWidget());
-
-      mImageMeta = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mImageMeta->getEditableWidget());
-
-      mMarkAsInvalid = std::shared_ptr<ContainerFunction<bool, bool>>(
-          new ContainerFunction<bool, bool>("icons8-multiply-50.png", "Mark as invalid", "Mark as invalid", false,
-                                            windowMain, "reporting_mark_as_invalid.json"));
-      verticalLayoutMeta->addWidget(mMarkAsInvalid->getEditableWidget());
-      connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelHeatmap::onMarkAsInvalidClicked);
-
-      _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
-      mImageInfoWidget->setVisible(false);
-    }
-
-    //
-    // Area edit
-    //
-    {
-      auto [verticalLayoutMeta, _2] =
-          joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-      mAreaInfoWidget = _2;
-      verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Area"));
-
-      mAreaName = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mAreaName->getEditableWidget());
-
-      mAreaValue = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mAreaValue->getEditableWidget());
-
-      mAreaMeta = new ContainerLabel("...", "", windowMain);
-      verticalLayoutMeta->addWidget(mAreaMeta->getEditableWidget());
-
-      auto saveImageButton = new ContainerButton("Export", "icons8-export-excel-50.png", windowMain);
-      connect(saveImageButton, &ContainerButton::valueChanged, this, &PanelHeatmap::onExportImageClicked);
-      verticalLayoutMeta->addWidget(saveImageButton->getEditableWidget());
-
-      _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
-      mAreaInfoWidget->setVisible(false);
-    }
-    verticalLayoutContainer->addStretch();
-  }
 
   centerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-  setLayout(horizontalLayout);
+  setLayout(horizontalLayout);*/
 }
 
 ///

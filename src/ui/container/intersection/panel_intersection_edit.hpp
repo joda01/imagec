@@ -17,6 +17,7 @@
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
+#include "ui/container/panel_edit_base.hpp"
 #include "ui/helper/waitingspinnerwidget.hpp"
 #include "ui/panel_preview.hpp"
 #include "panel_intersection_overview.hpp"
@@ -26,7 +27,7 @@ namespace joda::ui::qt {
 class WindowMain;
 class ContainerIntersection;
 
-class PanelIntersectionEdit : public QWidget
+class PanelIntersectionEdit : public PanelEdit
 {
   Q_OBJECT
 
@@ -43,7 +44,6 @@ public:
   {
     if(!mIsActiveShown && setActive) {
       mIsActiveShown = true;
-      updatePreview();
     }
     if(!setActive) {
       mIsActiveShown = false;
@@ -64,10 +64,7 @@ private:
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
 
-private slots:
-  void onChannelTypeChanged();
-  void onCellApproximationChanged();
-  void updatePreview();
+  void valueChangedEvent() override;
 };
 
 }    // namespace joda::ui::qt

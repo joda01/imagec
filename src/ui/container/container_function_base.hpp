@@ -27,6 +27,8 @@ public:
   {
   }
 
+  virtual QWidget *getEditableWidget() = 0;
+
   static QWidget *createDisplayAbleWidgetPlaceholder()
   {
     QWidget *displayable = new QWidget();
