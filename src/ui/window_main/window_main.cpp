@@ -207,7 +207,7 @@ QWidget *WindowMain::createStackedWidget()
 {
   mStackedWidget = new QStackedWidget();
   mStackedWidget->setObjectName("stackedWidget");
-  mStackedWidget->addWidget(new QWidget(this));
+  mStackedWidget->addWidget(createStartPageWidget());
   mStackedWidget->addWidget(createChannelWidget());
   mStackedWidget->addWidget(createReportingWidget());
   return mStackedWidget;
@@ -220,6 +220,80 @@ QWidget *WindowMain::createStackedWidget()
 QWidget *WindowMain::createChannelWidget()
 {
   return new QWidget(this);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+QWidget *WindowMain::createStartPageWidget()
+{
+  auto *layout = new QVBoxLayout(); /*this*/
+  layout->setContentsMargins(16, 16, 16, 16);
+  layout->setSpacing(8);
+  layout->setAlignment(Qt::AlignTop);
+
+  //
+  // Label
+  //
+  // Create a label
+  auto *iconLabel = new QLabel();
+  QPixmap pixmap(":/icons/outlined/icon.png");
+  iconLabel->setPixmap(pixmap.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  layout->addWidget(iconLabel);
+  QString text = "<p><span style='font-weight: bold;'>" + QString(Version::getTitle().data()) +
+                 "&nbsp;</span><span style='font-weight: bold; font-size: 10pt;'>" +
+                 QString(Version::getSubtitle().data()) +
+                 "</span><br>"
+                 "<span style='font-size: 10pt; color: darkgray;'>" +
+                 QString(Version::getVersion().data()) + "</span></p>";
+  auto *startText = new QLabel(text);
+  layout->addWidget(startText);
+
+  //
+  // Separator
+  //
+  auto *line = new QFrame();
+  line->setFrameShape(QFrame::HLine);
+  line->setFrameShadow(QFrame::Sunken);
+  layout->addWidget(line);
+  /*
+    //
+    // New project
+    //
+    auto *newProject = new QPushButton();
+    const QIcon voronoiIcon(":/icons/outlined/icons8-add-new-50.png");
+    newProject->setText("New project");
+    newProject->setIconSize({16, 16});
+    newProject->setIcon(voronoiIcon);
+    layout->addWidget(newProject);
+
+    //
+    // Open existing project
+    //
+    auto *openProject = new QPushButton();
+    const QIcon intersectionIcon(":/icons/outlined/icons8-opened-folder-50.png");
+    openProject->setIconSize({16, 16});
+    openProject->setIcon(intersectionIcon);
+    openProject->setText("Open project");
+    layout->addWidget(openProject);
+
+    //
+    // Open results
+    //
+    auto *openResults = new QPushButton();
+    const QIcon openResultsIcon(":/icons/outlined/icons8-graph-50.png");
+    openResults->setIconSize({16, 16});
+    openResults->setIcon(openResultsIcon);
+    openResults->setText("Open results");
+    layout->addWidget(openResults);
+  */
+
+  ////////////////////////////////////////
+  auto *startScreenWidget = new QWidget();
+  startScreenWidget->setMaximumWidth(300);
+  startScreenWidget->setLayout(layout);
+  return startScreenWidget;
 }
 
 ///

@@ -107,6 +107,7 @@ private:
   void openResultsSettings(const QString &filePath);
 
   QWidget *createStackedWidget();
+  QWidget *createStartPageWidget();
   QWidget *createChannelWidget();
   QWidget *createReportingWidget();
 
