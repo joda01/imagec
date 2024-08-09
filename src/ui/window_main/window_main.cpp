@@ -45,6 +45,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/settings.hpp"
+#include "backend/settings/vchannel/vchannel_intersection.hpp"
 #include "backend/settings/vchannel/vchannel_settings.hpp"
 #include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
 #include "ui/container/channel/container_channel.hpp"
@@ -54,6 +55,7 @@
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include "ui/reporting/panel_reporting.hpp"
+#include "ui/window_main/panel_pipeline.hpp"
 #include "ui/window_main/panel_project_settings.hpp"
 #include "build_info.h"
 #include "version.h"
@@ -82,7 +84,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   connect(this, &WindowMain::lookingForTemplateFinished, this, &WindowMain::onFindTemplatesFinished);
   connect(getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
   connect(getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
-  connect(getImageResolutionCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onResolutionChanged);
 }
 
 void WindowMain::setWindowTitlePrefix(const QString &txt)
@@ -220,7 +221,8 @@ void WindowMain::createLeftToolbar()
     connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
 
     // Channel list
-    layout->addWidget(createOverviewWidget());
+    mPanelPipeline = new PanelPipeline(this, mAnalyzeSettings);
+    layout->addWidget(mPanelPipeline);
 
     pipelineTab->setLayout(layout);
     tabs->addTab(pipelineTab, "Pipeline");
@@ -274,58 +276,6 @@ QWidget *WindowMain::createStackedWidget()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-QWidget *WindowMain::createOverviewWidget()
-{
-  QScrollArea *scrollArea = new QScrollArea(this);
-  scrollArea->setFrameStyle(0);
-  scrollArea->setObjectName("scrollAreaOverview");
-
-  // Create a widget to hold the panels
-  QWidget *contentWidget = new QWidget;
-  contentWidget->setObjectName("contentOverview");
-
-  scrollArea->setWidget(contentWidget);
-  scrollArea->setWidgetResizable(true);
-
-  // Create a horizontal layout for the panels
-  QHBoxLayout *horizontalLayout = new QHBoxLayout(contentWidget);
-  horizontalLayout->setObjectName("mainWindowHLayout");
-  horizontalLayout->setContentsMargins(0, 0, 0, 0);
-  horizontalLayout->setSpacing(16);    // Adjust this value as needed
-  contentWidget->setLayout(horizontalLayout);
-
-  auto createVerticalContainer = []() -> std::tuple<QGridLayout *, QWidget *> {
-    QWidget *contentWidget = new QWidget;
-    QGridLayout *layout    = new QGridLayout(contentWidget);
-    layout->setObjectName("mainWindowGridLayout");
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(8);    // Adjust this value as needed
-    contentWidget->setLayout(layout);
-    return {layout, contentWidget};
-  };
-
-  {
-    auto [channelsOverViewLayout, channelsOverviewWidget] = createVerticalContainer();
-    mLayoutChannelOverview                                = channelsOverViewLayout;
-
-    mLastElement = new QLabel();
-    channelsOverViewLayout->addWidget(mLastElement, 0, 0, 0, 1);
-
-    channelsOverViewLayout->setRowStretch(0, 1);
-
-    horizontalLayout->addStretch();
-    horizontalLayout->addWidget(channelsOverviewWidget);
-  }
-
-  horizontalLayout->addStretch();
-
-  return scrollArea;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
 QWidget *WindowMain::createChannelWidget()
 {
   return new QWidget(this);
@@ -339,28 +289,6 @@ QWidget *WindowMain::createReportingWidget()
 {
   mPanelReporting = new PanelReporting(this);
   return mPanelReporting;
-}
-
-///
-/// \brief      On add giraf clicked
-/// \author     Joachim Danmayr
-///
-void WindowMain::onAddGirafClicked()
-{
-  {
-    int row = (mChannels.size() + 1) / OVERVIEW_COLS;
-    int col = (mChannels.size() + 1) % OVERVIEW_COLS;
-    mLayoutChannelOverview->removeWidget(mLastElement);
-    mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
-  }
-
-  int row                = mChannels.size() / OVERVIEW_COLS;
-  int col                = mChannels.size() % OVERVIEW_COLS;
-  ContainerGiraf *panel1 = new ContainerGiraf(this);
-  panel1->fromSettings();
-  panel1->toSettings();
-  mChannels.emplace(panel1, &panel1);
-  mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
 }
 
 ///
@@ -389,19 +317,19 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
   try {
     std::ifstream ifs(filePath.toStdString());
     joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(ifs);
-    removeAllChannels();
+    mPanelPipeline->clear();
 
     for(const auto &channel : analyzeSettings.channels) {
-      addChannel(channel);
+      mPanelPipeline->addChannel(channel);
     }
 
     for(const auto &channel : analyzeSettings.vChannels) {
       if(channel.$voronoi.has_value()) {
-        addVChannelVoronoi(channel.$voronoi.value());
+        mPanelPipeline->addChannel(channel.$voronoi.value());
       }
 
       if(channel.$intersection.has_value()) {
-        addVChannelIntersection(channel.$intersection.value());
+        mPanelPipeline->addChannel(channel.$intersection.value());
       }
     }
     mPanelProjectSettings->fromSettings(analyzeSettings.experimentSettings);
@@ -431,31 +359,6 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-ContainerBase *WindowMain::addChannelFromTemplate(const QString &filePath)
-{
-  try {
-    std::ifstream ifs(filePath.toStdString());
-    settings::ChannelSettings settings = nlohmann::json::parse(ifs);
-    auto *newChannel                   = addChannel(settings);
-    return newChannel;
-  } catch(const std::exception &ex) {
-    if(mSelectedChannel != nullptr) {
-      QMessageBox messageBox(this);
-      auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
-      messageBox.setIconPixmap(icon->pixmap(42, 42));
-      messageBox.setWindowTitle("Could not load settings!");
-      messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
-      messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-      auto reply = messageBox.exec();
-    }
-  }
-  return nullptr;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
 void WindowMain::setWorkingDirectory(const std::string &workingDir)
 {
   if(mSelectedImagesDirectory.string() != workingDir) {
@@ -479,40 +382,30 @@ void WindowMain::setWorkingDirectory(const std::string &workingDir)
 ///
 void WindowMain::waitForFileSearchFinished()
 {
-  auto result = helper::templates::TemplateParser::findTemplates();
-  emit lookingForTemplateFinished(result);
+  std::thread([this]() {
+    auto result = helper::templates::TemplateParser::findTemplates();
+    emit lookingForTemplateFinished(result);
 
-  while(true) {
     while(true) {
+      while(true) {
+        {
+          std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
+          if(mNewFolderSelected) {
+            break;
+          }
+        }
+        std::this_thread::sleep_for(2s);
+      }
+      while(mController->isLookingForFiles()) {
+        std::this_thread::sleep_for(500ms);
+      }
       {
         std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
-        if(mNewFolderSelected) {
-          break;
-        }
+        mNewFolderSelected = false;
       }
-      std::this_thread::sleep_for(2s);
+      emit lookingForFilesFinished();
     }
-    while(mController->isLookingForFiles()) {
-      std::this_thread::sleep_for(500ms);
-    }
-    {
-      std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
-      mNewFolderSelected = false;
-    }
-    emit lookingForFilesFinished();
-  }
-}
-
-///
-/// \brief      Remove all channels
-/// \author     Joachim Danmayr
-///
-void WindowMain::removeAllChannels()
-{
-  std::map<ContainerBase *, void *> channelsToDelete = mChannels;
-  for(const auto &[channel, _] : channelsToDelete) {
-    removeChannel(channel);
-  }
+  }).detach();
 }
 
 ///
@@ -642,16 +535,6 @@ void WindowMain::onImageSelectionChanged()
 }
 
 ///
-/// \brief      Resolution has been changes, adapt
-/// \author     Joachim Danmayr
-///
-void WindowMain::onResolutionChanged()
-{
-  auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
-  const auto &imgInfo = ome.getImageInfo();
-}
-
-///
 /// \brief      Check if some settings have been changed
 /// \author     Joachim Danmayr
 ///
@@ -736,8 +619,8 @@ void WindowMain::onFindTemplatesFinished(std::map<std::string, helper::templates
   mTemplateSelection->addItem(QIcon(":/icons/outlined/dom-voronoi-50.png").pixmap(28, 28), "Voronoi", "voronoiChannel");
   mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-query-inner-join-50.png").pixmap(28, 28), "Intersection",
                               "intersectionChannel");
-  mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-select-none-50.png").pixmap(28, 28), "Giraff",
-                              "giraffeChannel");
+  /*mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-select-none-50.png").pixmap(28, 28), "Giraff",
+                              "giraffeChannel");*/
 
   const QIcon myIcon(":/icons/outlined/icon_eva.png");
   for(const auto &[_, data] : foundTemplates) {
@@ -921,99 +804,20 @@ void WindowMain::onRemoveChannelClicked()
     messageBox.setDefaultButton(noButton);
     auto reply = messageBox.exec();
     if(messageBox.clickedButton() == yesButton) {
-      removeChannel(mSelectedChannel);
+      mPanelPipeline->erase(mSelectedChannel);
     }
   }
 }
 
 ///
-/// \brief
+/// \brief      On add giraf clicked
 /// \author     Joachim Danmayr
 ///
-ContainerBase *WindowMain::addChannel(joda::settings::ChannelSettings settings)
+void WindowMain::onAddGirafClicked()
 {
-  {
-    int row = (mChannels.size() + 1) / OVERVIEW_COLS;
-    int col = (mChannels.size() + 1) % OVERVIEW_COLS;
-    mLayoutChannelOverview->removeWidget(mLastElement);
-    mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
-  }
-
-  int row = mChannels.size() / OVERVIEW_COLS;
-  int col = mChannels.size() % OVERVIEW_COLS;
-  ContainerBase *panel1;
-
-  mAnalyzeSettings.channels.push_back(settings);
-  joda::settings::ChannelSettings &newlyAdded = mAnalyzeSettings.channels.back();
-  panel1                                      = new ContainerChannel(this, newlyAdded);
+  ContainerGiraf *panel1 = new ContainerGiraf(this);
   panel1->fromSettings();
   panel1->toSettings();
-  mChannels.emplace(panel1, &newlyAdded);
-  mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
-  checkForSettingsChanged();
-  return panel1;
-
-  return nullptr;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-ContainerBase *WindowMain::addVChannelVoronoi(joda::settings::VChannelVoronoi settings)
-{
-  {
-    int row = (mChannels.size() + 1) / OVERVIEW_COLS;
-    int col = (mChannels.size() + 1) % OVERVIEW_COLS;
-    mLayoutChannelOverview->removeWidget(mLastElement);
-    mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
-  }
-
-  int row = mChannels.size() / OVERVIEW_COLS;
-  int col = mChannels.size() % OVERVIEW_COLS;
-  ContainerBase *panel1;
-
-  mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$voronoi = settings});
-  joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
-  panel1                                       = new ContainerVoronoi(this, newlyAdded.$voronoi.value());
-  panel1->fromSettings();
-  panel1->toSettings();
-  mChannels.emplace(panel1, &newlyAdded);
-
-  mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
-  checkForSettingsChanged();
-  return panel1;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-ContainerBase *WindowMain::addVChannelIntersection(joda::settings::VChannelIntersection settings)
-{
-  {
-    int row = (mChannels.size() + 1) / OVERVIEW_COLS;
-    int col = (mChannels.size() + 1) % OVERVIEW_COLS;
-    mLayoutChannelOverview->removeWidget(mLastElement);
-    mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
-  }
-
-  int row = mChannels.size() / OVERVIEW_COLS;
-  int col = mChannels.size() % OVERVIEW_COLS;
-  ContainerBase *panel1;
-
-  mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$intersection = settings});
-  joda::settings::VChannelSettings &newlyAdded = mAnalyzeSettings.vChannels.back();
-  panel1                                       = new ContainerIntersection(this, newlyAdded.$intersection.value());
-  panel1->fromSettings();
-  panel1->toSettings();
-  mChannels.emplace(panel1, &newlyAdded);
-
-  mLayoutChannelOverview->addWidget(panel1->getOverviewPanel(), row, col);
-  checkForSettingsChanged();
-  return panel1;
-
-  return nullptr;
 }
 
 void WindowMain::onAddChannel()
@@ -1021,56 +825,18 @@ void WindowMain::onAddChannel()
   auto selection = mTemplateSelection->currentData().toString();
   if(selection == "") {
   } else if(selection == "emptyChannel") {
-    addChannel({});
+    mPanelPipeline->addChannel(joda::settings::ChannelSettings{});
   } else if(selection == "voronoiChannel") {
-    addVChannelVoronoi({});
+    mPanelPipeline->addChannel(joda::settings::VChannelVoronoi{});
   } else if(selection == "intersectionChannel") {
-    addVChannelIntersection({});
+    mPanelPipeline->addChannel(joda::settings::VChannelIntersection{});
   } else {
-    addChannelFromTemplate(mTemplateSelection->currentData().toString());
+    mPanelPipeline->addChannel(mTemplateSelection->currentData().toString());
   }
+  checkForSettingsChanged();
   mTemplateSelection->blockSignals(true);
   mTemplateSelection->setCurrentIndex(0);
   mTemplateSelection->blockSignals(false);
-}
-
-void WindowMain::removeChannel(ContainerBase *toRemove)
-{
-  /// \todo reorder
-  if(toRemove != nullptr) {
-    toRemove->setActive(false);
-    void *elementInSettings = mChannels.at(toRemove);
-    mChannels.erase(toRemove);
-
-    mAnalyzeSettings.channels.remove_if(
-        [&elementInSettings](const joda::settings::ChannelSettings &item) { return &item == elementInSettings; });
-
-    mAnalyzeSettings.vChannels.remove_if(
-        [&elementInSettings](const joda::settings::VChannelSettings &item) { return &item == elementInSettings; });
-
-    mLayoutChannelOverview->removeWidget(toRemove->getOverviewPanel());
-    toRemove->getOverviewPanel()->setParent(nullptr);
-    delete toRemove;
-
-    // Reorder all panels
-    int cnt = 0;
-    for(const auto &[panelToReorder, _] : mChannels) {
-      mLayoutChannelOverview->removeWidget(panelToReorder->getOverviewPanel());
-      int row = (cnt) / OVERVIEW_COLS;
-      int col = (cnt) % OVERVIEW_COLS;
-      mLayoutChannelOverview->addWidget(panelToReorder->getOverviewPanel(), row, col);
-      cnt++;
-    }
-
-    {
-      int row = (mChannels.size()) / OVERVIEW_COLS;
-      int col = (mChannels.size()) % OVERVIEW_COLS;
-      mLayoutChannelOverview->removeWidget(mLastElement);
-      mLayoutChannelOverview->addWidget(mLastElement, row + 1, 0, 1, OVERVIEW_COLS);
-    }
-    mSelectedChannel = nullptr;
-    onBackClicked();
-  }
 }
 
 ///

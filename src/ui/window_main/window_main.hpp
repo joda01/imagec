@@ -28,6 +28,7 @@
 #include "controller/controller.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/helper/clickablelabel.hpp"
+#include "ui/window_main/panel_pipeline.hpp"
 #include "ui/window_main/panel_project_settings.hpp"
 #include <nlohmann/json_fwd.hpp>
 
@@ -52,8 +53,6 @@ public:
   }
   void showChannelEdit(ContainerBase *);
   bool showProjectOverview();
-  void removeChannel(ContainerBase *toRemove);
-  void removeAllChannels();
   void setWorkingDirectory(const std::string &workingDir);
   int getSelectedSeries() const
   {
@@ -122,20 +121,14 @@ private:
   void resetImageInfo();
 
   QWidget *createStackedWidget();
-  QWidget *createOverviewWidget();
   QWidget *createChannelWidget();
   QWidget *createReportingWidget();
 
   void waitForFileSearchFinished();
-  ContainerBase *addChannel(joda::settings::ChannelSettings);
-  ContainerBase *addVChannelVoronoi(joda::settings::VChannelVoronoi);
-  ContainerBase *addVChannelIntersection(joda::settings::VChannelIntersection);
-  ContainerBase *addChannelFromTemplate(const QString &pathToTemplate);
 
   static QString bytesToString(int64_t bytes);
 
   QStackedWidget *mStackedWidget;
-  QGridLayout *mLayoutChannelOverview;
   QLabel *mLastElement;
   QAction *mBackButton;
   joda::ctrl::Controller *mController;
@@ -154,8 +147,6 @@ private:
   ////Project settings/////////////////////////////////////////////////
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   joda::settings::AnalyzeSettings mAnalyzeSettingsOld;
-  std::map<ContainerBase *, void *>
-      mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
 
   ////Toolbar/////////////////////////////////////////////////
   QToolBar *mButtomToolbar;
@@ -165,6 +156,7 @@ private:
   ////Left Toolbar/////////////////////////////////////////////////
   QTableWidget *mLabelImageInfo;
   PanelProjectSettings *mPanelProjectSettings;
+  PanelPipeline *mPanelPipeline;
 
   ////Made project settings/////////////////////////////////////////////////
   ContainerBase *mSelectedChannel = nullptr;
@@ -206,7 +198,6 @@ private slots:
   void onOpenAnalyzeSettingsClicked();
   void onAddGirafClicked();
   void onImageSelectionChanged();
-  void onResolutionChanged();
   void onFindTemplatesFinished(std::map<std::string, joda::helper::templates::TemplateParser::Data>);
 };
 
