@@ -16,6 +16,7 @@
 #include <qcombobox.h>
 #include <qwidget.h>
 #include <QtWidgets>
+#include "backend/helper/random_name_generator.hpp"
 #include "backend/settings/experiment_settings.hpp"
 
 namespace joda::ui::qt {
@@ -36,6 +37,17 @@ public:
   PanelProjectSettings(joda::settings::ExperimentSettings &settings, WindowMain *parentWindow);
   void fromSettings(joda::settings::ExperimentSettings &settings);
   void toSettings();
+  [[nodiscard]] QString getJobName() const
+  {
+    if(mJobName->text().isEmpty()) {
+      return mJobName->placeholderText();
+    }
+    return mJobName->text();
+  }
+  void generateNewJobName()
+  {
+    mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
+  }
 
 private:
   /////////////////////////////////////////////////////
@@ -45,6 +57,7 @@ private:
   /////////////////////////////////////////////////////
   static constexpr int32_t NR_OF_SCIENTISTS = 1;
   QLineEdit *mAddressOrganisation;
+  QLineEdit *mJobName;
   std::vector<QLineEdit *> mScientists{NR_OF_SCIENTISTS};
 
   QComboBox *mGroupByComboBox;

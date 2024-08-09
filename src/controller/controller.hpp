@@ -48,6 +48,10 @@ public:
   void stopLookingForFiles();
   void getSettings();
   void setWorkingDirectory(const std::string &dir);
+  void registerWorkingDirectoryCallback(const std::function<void(joda::helper::fs::State)> &lookingForFilesFinished)
+  {
+    mWorkingDirectory.addListener(lookingForFilesFinished);
+  }
   struct Preview
   {
     joda::image::Image thumbnail;
@@ -60,7 +64,7 @@ public:
   };
   void preview(const settings::ChannelSettings &settings, int32_t imgIndex, int32_t tileX, int32_t tileY,
                uint16_t resolution, Preview &previewOut);
-  auto getImageProperties(int imgIndex, int series) -> joda::ome::OmeInfo;
+  auto getImageProperties(int imgIndex, int series) -> std::tuple<joda::ome::OmeInfo, std::filesystem::path>;
   struct Resources
   {
     uint64_t ramTotal;    // RAM in bytes

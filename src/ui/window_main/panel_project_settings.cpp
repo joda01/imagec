@@ -71,6 +71,10 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
   mAddressOrganisation->setPlaceholderText("University of Salzburg");
   formLayout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
 
+  mJobName = new QLineEdit;
+  mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
+  formLayout->addRow(new QLabel(tr("Job name:")), mJobName);
+
   addSeparator();
 
   //
@@ -270,7 +274,7 @@ void PanelProjectSettings::onOpenWorkingDirectoryClicked()
   mWorkingDir->update();
   mWorkingDir->repaint();
   mSettings.workingDirectory = mWorkingDir->text().toStdString();
-  mParentWindow->setWorkingDirectory(mSettings.workingDirectory);
+  mParentWindow->getController()->setWorkingDirectory(mSettings.workingDirectory);
   onSettingChanged();
 }
 

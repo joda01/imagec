@@ -1,5 +1,5 @@
 ///
-/// \file      panel_pipeline.hpp
+/// \file      panel_image.hpp
 /// \author    Joachim Danmayr
 /// \date      2024-08-09
 ///
@@ -14,14 +14,17 @@
 #pragma once
 
 #include <qcombobox.h>
+#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
+#include <utility>
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
 #include "ui/container/channel/container_channel.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/container/intersection/container_intersection.hpp"
 #include "ui/container/voronoi/container_voronoi.hpp"
+#include "ui/helper/table_widget.hpp"
 
 namespace joda::ui::qt {
 
@@ -32,27 +35,26 @@ class WindowMain;
 /// \author
 /// \brief
 ///
-class PanelPipeline : public QScrollArea
+class PanelImageMeta : public QWidget
 {
+  Q_OBJECT
+
 public:
   /////////////////////////////////////////////////////
-  explicit PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings);
-  void addElement(ContainerBase *baseContainer, void *pointerToSettings);
-  void erase(ContainerBase *toRemove);
-  void clear();
+  explicit PanelImageMeta(WindowMain *windowMain);
+  [[nodiscard]] auto getSelectedImage() const -> std::tuple<int32_t, int32_t>;
 
-  void addChannel(const joda::settings::ChannelSettings &settings);
-  void addChannel(const joda::settings::VChannelIntersection &settings);
-  void addChannel(const joda::settings::VChannelVoronoi &settings);
-  void addChannel(const QString &pathToSettings);
+signals:
+  void imageSelectionChanged(int32_t newImgIdex, int32_t selectedSeries);
 
 private:
   /////////////////////////////////////////////////////
-  QVBoxLayout *mVerticalLayout;
-  std::map<ContainerBase *, void *>
-      mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
-  WindowMain *mWindowMain;
-  joda::settings::AnalyzeSettings &mAnalyzeSettings;
-};
+  void updateImagesList();
+  void updateImageMeta();
 
+  /////////////////////////////////////////////////////
+  WindowMain *mWindowMain;
+  PlaceholderTableWidget *mImages;
+  PlaceholderTableWidget *mImageMeta;
+};
 }    // namespace joda::ui::qt

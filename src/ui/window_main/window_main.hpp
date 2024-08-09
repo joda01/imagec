@@ -28,6 +28,7 @@
 #include "controller/controller.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/helper/clickablelabel.hpp"
+#include "ui/window_main/panel_image.hpp"
 #include "ui/window_main/panel_pipeline.hpp"
 #include "ui/window_main/panel_project_settings.hpp"
 #include <nlohmann/json_fwd.hpp>
@@ -53,40 +54,15 @@ public:
   }
   void showChannelEdit(ContainerBase *);
   bool showProjectOverview();
-  void setWorkingDirectory(const std::string &workingDir);
-  int getSelectedSeries() const
-  {
-    return mImageSeriesCombo->currentData().toInt();
-  }
-  int getSelectedFileIndex() const
-  {
-    if(mFoundFilesCombo->count() > 0) {
-      return mFoundFilesCombo->currentData().toInt();
-    }
-    return -1;
-  }
+
   joda::ctrl::Controller *getController()
   {
     return mController;
   }
 
-  [[nodiscard]] const QComboBox *getFoundFilesCombo() const
+  [[nodiscard]] auto getJobName() const -> QString
   {
-    return mFoundFilesCombo;
-  }
-  [[nodiscard]] const QComboBox *getImageSeriesCombo() const
-  {
-    return mImageSeriesCombo;
-  }
-
-  [[nodiscard]] const QComboBox *getImageResolutionCombo() const
-  {
-    return mImageResolutionCombo;
-  }
-
-  [[nodiscard]] auto getJobName() const -> std::string
-  {
-    return mJobName.toStdString();
+    return mPanelProjectSettings->getJobName();
   }
 
   [[nodiscard]] auto getExperimentSettings() const -> const joda::settings::ExperimentSettings &
@@ -94,12 +70,13 @@ public:
     return mAnalyzeSettings.experimentSettings;
   }
 
+  [[nodiscard]] const PanelImageMeta *getImagePanel() const
+  {
+    return mPanelImageMeta;
+  }
+
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
-
-signals:
-  void lookingForFilesFinished();
-  void lookingForTemplateFinished(std::map<std::string, joda::helper::templates::TemplateParser::Data>);
 
 public slots:
   void onBackClicked();
@@ -120,24 +97,18 @@ private:
 
   /////////////////////////////////////////////////////
   void createTopToolbar();
-  void createBottomToolbar();
   void createLeftToolbar();
-  void resetImageInfo();
+  void loadTemplates();
 
   QWidget *createStackedWidget();
   QWidget *createChannelWidget();
   QWidget *createReportingWidget();
-
-  void waitForFileSearchFinished();
 
   static QString bytesToString(int64_t bytes);
 
   QStackedWidget *mStackedWidget;
   QLabel *mLastElement;
   joda::ctrl::Controller *mController;
-  QComboBox *mFoundFilesCombo;
-  QComboBox *mImageSeriesCombo;
-  QComboBox *mImageResolutionCombo;
 
   QComboBox *mTemplateSelection;
   ClickableLabel *mFoundFilesHint;
@@ -152,35 +123,24 @@ private:
   joda::settings::AnalyzeSettings mAnalyzeSettingsOld;
 
   ////Toolbar/////////////////////////////////////////////////
-  QToolBar *mButtomToolbar;
   QToolBar *mSidebar;
-  QString mJobName;
 
   ////Left Toolbar/////////////////////////////////////////////////
-  QTableWidget *mLabelImageInfo;
   PanelProjectSettings *mPanelProjectSettings;
   PanelPipeline *mPanelPipeline;
+  PanelImageMeta *mPanelImageMeta;
 
   ////Made project settings/////////////////////////////////////////////////
   ContainerBase *mSelectedChannel = nullptr;
-  std::filesystem::path mSelectedImagesDirectory;
   std::filesystem::path mSelectedProjectSettingsFilePath;
-  std::mutex mLookingForFilesMutex;
   PanelReporting *mPanelReporting = nullptr;
 
   ////ToolbarIcons/////////////////////////////////////////////////
   QAction *mNewProjectButton  = nullptr;
   QAction *mOpenProjectButton = nullptr;
-
-  QAction *mFileSelectorComboBox    = nullptr;
-  QAction *mImageSeriesComboBox     = nullptr;
-  QAction *mImageResolutionComboBox = nullptr;
-  QAction *mFileSearchHintLabel     = nullptr;
-  QAction *mSaveProject             = nullptr;
-  QAction *mStartAnalysis           = nullptr;
-  QAction *mShowInfoDialog          = nullptr;
-  QAction *mFirstSeparator          = nullptr;
-  QAction *mSecondSeparator         = nullptr;
+  QAction *mSaveProject       = nullptr;
+  QAction *mStartAnalysis     = nullptr;
+  QAction *mShowInfoDialog    = nullptr;
 
   ////Giraf/////////////////////////////////////////////////
   QPushButton *mUseImageC;
@@ -194,11 +154,8 @@ private slots:
   void onStartClicked();
   void onOpenReportingAreaClicked();
   void onShowInfoDialog();
-  void onLookingForFilesFinished();
   void onOpenAnalyzeSettingsClicked();
   void onAddGirafClicked();
-  void onImageSelectionChanged();
-  void onFindTemplatesFinished(std::map<std::string, joda::helper::templates::TemplateParser::Data>);
 };
 
 }    // namespace joda::ui::qt

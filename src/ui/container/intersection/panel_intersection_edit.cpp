@@ -55,14 +55,6 @@ void PanelIntersectionEdit::init()
 
     col->addGroup("Intersection", {mParentContainer->mCrossChannelIntersection, mParentContainer->mMinIntersection});
   }
-
-  //
-  // Signals from extern
-  //
-  connect(getWindowMain()->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this,
-          &PanelIntersectionEdit::onValueChanged);
-  connect(getWindowMain()->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this,
-          &PanelIntersectionEdit::onValueChanged);
 }
 
 PanelIntersectionEdit::~PanelIntersectionEdit()

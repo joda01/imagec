@@ -59,14 +59,6 @@ void PanelVoronoiEdit::init()
                   {mParentContainer->mMinParticleSize, mParentContainer->mMaxParticleSize,
                    mParentContainer->mExcludeAreasAtTheEdges, mParentContainer->mExcludeAreasWithoutCenterOfMass});
   }
-
-  //
-  // Signals from extern
-  //
-  connect(getWindowMain()->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this,
-          &PanelVoronoiEdit::onValueChanged);
-  connect(getWindowMain()->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this,
-          &PanelVoronoiEdit::onValueChanged);
 }
 
 PanelVoronoiEdit::~PanelVoronoiEdit()

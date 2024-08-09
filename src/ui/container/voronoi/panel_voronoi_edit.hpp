@@ -31,10 +31,6 @@ class PanelVoronoiEdit : public PanelEdit
 {
   Q_OBJECT
 
-signals:
-  void updatePreviewStarted();
-  void updatePreviewFinished();
-
 public:
   PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *);
   ~PanelVoronoiEdit();

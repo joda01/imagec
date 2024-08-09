@@ -31,10 +31,6 @@ class PanelIntersectionEdit : public PanelEdit
 {
   Q_OBJECT
 
-signals:
-  void updatePreviewStarted();
-  void updatePreviewFinished();
-
 public:
   PanelIntersectionEdit(WindowMain *wm, ContainerIntersection *);
   ~PanelIntersectionEdit();

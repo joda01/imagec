@@ -16,17 +16,25 @@
 #include <algorithm>
 #include <exception>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <set>
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
+#include <vector>
 #include "file_info.hpp"
 #include "helper.hpp"
 
 namespace joda::helper::fs {
 
 using namespace std::filesystem;
+
+enum class State
+{
+  RUNNING,
+  FINISHED
+};
 
 template <class T>
 concept FileInfo_t = std::is_base_of<FileInfo, T>::value;
@@ -130,6 +138,15 @@ public:
     return mListOfImagePaths.size();
   }
 
+  ///
+  /// \brief     Add a file listener
+  /// \author    Joachim Danmayr
+  ///
+  void addListener(const std::function<void(joda::helper::fs::State)> &lookingForFilesFinished)
+  {
+    mCallbacks.emplace_back(lookingForFilesFinished);
+  }
+
 private:
   ///
   /// \brief      Find all images in the given infolder and its subfolder.
@@ -140,6 +157,9 @@ private:
     mIsRunning = true;
     mIsStopped = false;
     mListOfImagePaths.clear();
+    for(const auto &callback : mCallbacks) {
+      callback(joda::helper::fs::State::RUNNING);
+    }
 
     for(recursive_directory_iterator i(mWorkingDirectory), end; i != end; ++i) {
       try {
@@ -158,9 +178,13 @@ private:
       }
     }
     mIsRunning = false;
+    for(const auto &callback : mCallbacks) {
+      callback(joda::helper::fs::State::FINISHED);
+    }
   }
 
   /////////////////////////////////////////////////////
+  std::vector<std::function<void(State)>> mCallbacks;
   std::set<std::string> mSupportedFormats;
   std::filesystem::path mWorkingDirectory;
   std::vector<FILEINFO> mListOfImagePaths;

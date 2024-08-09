@@ -118,7 +118,7 @@ void DialogAnalyzeRunning::refreshThread()
 {
   auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings, 0);
   mWindowMain->getController()->reset();
-  mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName());
+  mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName().toStdString());
   mStartedTime = std::chrono::high_resolution_clock::now();
 
   while(!mStopped) {

@@ -231,9 +231,11 @@ void ContainerVoronoi::fromSettings()
 ///
 void ContainerVoronoi::toSettings()
 {
+  auto [imgIdx, series] = mWindowMain->getImagePanel()->getSelectedImage();
+
   mSettings.meta.channelIdx = mColorAndChannelIndex->getValueSecond();
   mSettings.meta.color      = mColorAndChannelIndex->getValue().toStdString();
-  mSettings.meta.series     = mWindowMain->getSelectedSeries();
+  mSettings.meta.series     = series;
   mSettings.meta.type       = mChannelType->getValue();
   mSettings.meta.name       = mChannelName->getValue().toStdString();
 

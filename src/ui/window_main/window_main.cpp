@@ -55,6 +55,7 @@
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include "ui/reporting/panel_reporting.hpp"
+#include "ui/window_main/panel_image.hpp"
 #include "ui/window_main/panel_pipeline.hpp"
 #include "ui/window_main/panel_project_settings.hpp"
 #include "build_info.h"
@@ -70,7 +71,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setWindowIcon(myIcon);
   setWindowTitle(Version::getTitle().data());
   createTopToolbar();
-  createBottomToolbar();
   createLeftToolbar();
   setMinimumSize(1600, 800);
   setObjectName("windowMain");
@@ -78,12 +78,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
 
   // Start with the main page
   showProjectOverview();
-
-  mMainThread = new std::thread(&WindowMain::waitForFileSearchFinished, this);
-  connect(this, &WindowMain::lookingForFilesFinished, this, &WindowMain::onLookingForFilesFinished);
-  connect(this, &WindowMain::lookingForTemplateFinished, this, &WindowMain::onFindTemplatesFinished);
-  connect(getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
-  connect(getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &WindowMain::onImageSelectionChanged);
 }
 
 void WindowMain::setWindowTitlePrefix(const QString &txt)
@@ -92,54 +86,6 @@ void WindowMain::setWindowTitlePrefix(const QString &txt)
     setWindowTitle(QString(Version::getTitle().data()) + " - " + txt);
   } else {
     setWindowTitle(QString(Version::getTitle().data()));
-  }
-}
-
-void WindowMain::createBottomToolbar()
-{
-  mButtomToolbar = new QToolBar(this);
-  mButtomToolbar->setMovable(true);
-  // Middle
-
-  {
-    // Add a spacer to push the next action to the middle
-    QWidget *spacerWidget = new QWidget();
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    mButtomToolbar->addWidget(spacerWidget);
-  }
-
-  // Add the QComboBox in the middle
-  mFoundFilesCombo = new QComboBox(mButtomToolbar);
-  mFoundFilesCombo->setMinimumWidth(250);
-  mFoundFilesCombo->setMaximumWidth(300);
-  mFileSelectorComboBox = mButtomToolbar->addWidget(mFoundFilesCombo);
-  mFileSelectorComboBox->setVisible(false);
-
-  mImageSeriesCombo = new QComboBox(mButtomToolbar);
-  mImageSeriesCombo->addItem("Series 0", 0);
-  mImageSeriesCombo->addItem("Series 1", 1);
-  mImageSeriesCombo->addItem("Series 2", 2);
-  mImageSeriesCombo->addItem("Series 3", 3);
-  mImageSeriesComboBox = mButtomToolbar->addWidget(mImageSeriesCombo);
-  mImageSeriesComboBox->setVisible(false);
-
-  mImageResolutionCombo = new QComboBox(mButtomToolbar);
-  mImageResolutionCombo->addItem("Resolution 0", 0);
-  mImageResolutionComboBox = mButtomToolbar->addWidget(mImageResolutionCombo);
-  mImageResolutionComboBox->setVisible(false);
-
-  mFoundFilesHint = new ClickableLabel(mButtomToolbar);
-  mFoundFilesHint->setText("Please open a working directory ...");
-  mFileSearchHintLabel = mButtomToolbar->addWidget(mFoundFilesHint);
-
-  addToolBar(Qt::ToolBarArea::BottomToolBarArea, mButtomToolbar);
-
-  // Right
-  {
-    QWidget *spacerWidget = new QWidget();
-    spacerWidget->setContentsMargins(0, 0, 0, 0);
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    mButtomToolbar->addWidget(spacerWidget);
   }
 }
 
@@ -152,7 +98,7 @@ void WindowMain::createTopToolbar()
   auto *toolbar = addToolBar("toolbar");
   toolbar->setMovable(true);
 
-  mFirstSeparator = toolbar->addSeparator();
+  toolbar->addSeparator();
 
   mNewProjectButton = new QAction(QIcon(":/icons/outlined/icons8-file-50.png"), "New project", toolbar);
   // connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
@@ -168,7 +114,7 @@ void WindowMain::createTopToolbar()
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
   toolbar->addAction(mSaveProject);
 
-  mSecondSeparator = toolbar->addSeparator();
+  toolbar->addSeparator();
 
   mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
   mStartAnalysis->setEnabled(false);
@@ -210,7 +156,7 @@ void WindowMain::createLeftToolbar()
     mTemplateSelection->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     layout->addWidget(mTemplateSelection);
     connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
-
+    loadTemplates();
     // Channel list
     mPanelPipeline = new PanelPipeline(this, mAnalyzeSettings);
     layout->addWidget(mPanelPipeline);
@@ -221,18 +167,8 @@ void WindowMain::createLeftToolbar()
 
   // Image Tab
   {
-    auto *imageTab = new QWidget();
-    auto *layout   = new QVBoxLayout();
-    layout->setContentsMargins(0, 0, 0, 0);
-    mLabelImageInfo = new QTableWidget(0, 2);
-    mLabelImageInfo->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    mLabelImageInfo->verticalHeader()->setVisible(false);
-    mLabelImageInfo->setHorizontalHeaderLabels({"Meta", "Value"});
-    mLabelImageInfo->setAlternatingRowColors(true);
-    mLabelImageInfo->setSelectionBehavior(QAbstractItemView::SelectRows);
-    layout->addWidget(mLabelImageInfo);
-    imageTab->setLayout(layout);
-    tabs->addTab(imageTab, "Image");
+    mPanelImageMeta = new PanelImageMeta(this);
+    tabs->addTab(mPanelImageMeta, "Images");
   }
 
   // Reportings tab
@@ -242,7 +178,6 @@ void WindowMain::createLeftToolbar()
 
   mSidebar->addWidget(tabs);
 
-  resetImageInfo();
   mSidebar->setVisible(false);
 
   mSidebar->setMinimumWidth(350);
@@ -289,8 +224,8 @@ QWidget *WindowMain::createReportingWidget()
 void WindowMain::onOpenAnalyzeSettingsClicked()
 {
   QString folderToOpen = QDir::homePath();
-  if(!mSelectedImagesDirectory.empty()) {
-    folderToOpen = mSelectedImagesDirectory.string().data();
+  if(!mAnalyzeSettings.experimentSettings.workingDirectory.empty()) {
+    folderToOpen = mAnalyzeSettings.experimentSettings.workingDirectory.data();
   }
   if(!mSelectedProjectSettingsFilePath.empty()) {
     folderToOpen = mSelectedProjectSettingsFilePath.string().data();
@@ -329,7 +264,6 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
     mAnalyzeSettingsOld                 = mAnalyzeSettings;
 
     mSelectedProjectSettingsFilePath = filePath.toStdString();
-    mSelectedImagesDirectory.clear();
     checkForSettingsChanged();
     onSaveProject();
     showProjectOverview();
@@ -343,185 +277,6 @@ void WindowMain::onOpenAnalyzeSettingsClicked()
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
-  }
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::setWorkingDirectory(const std::string &workingDir)
-{
-  if(mSelectedImagesDirectory.string() != workingDir) {
-    mSelectedImagesDirectory = workingDir;
-
-    std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
-    mFoundFilesHint->setText("Looking for images ...");
-    mFoundFilesCombo->clear();
-    mFileSelectorComboBox->setVisible(false);
-    mImageSeriesComboBox->setVisible(false);
-    mImageResolutionComboBox->setVisible(false);
-    mFileSearchHintLabel->setVisible(true);
-    mController->setWorkingDirectory(mSelectedImagesDirectory.string());
-    mNewFolderSelected = true;
-  }
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::waitForFileSearchFinished()
-{
-  std::thread([this]() {
-    auto result = helper::templates::TemplateParser::findTemplates();
-    emit lookingForTemplateFinished(result);
-
-    while(true) {
-      while(true) {
-        {
-          std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
-          if(mNewFolderSelected) {
-            break;
-          }
-        }
-        std::this_thread::sleep_for(2s);
-      }
-      while(mController->isLookingForFiles()) {
-        std::this_thread::sleep_for(500ms);
-      }
-      {
-        std::lock_guard<std::mutex> lock(mLookingForFilesMutex);
-        mNewFolderSelected = false;
-      }
-      emit lookingForFilesFinished();
-    }
-  }).detach();
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::onLookingForFilesFinished()
-{
-  int idx = 0;
-  for(const auto &file : mController->getListOfFoundImages()) {
-    mFoundFilesCombo->addItem(QString(file.getFilename().data()), idx);
-    idx++;
-  }
-  if(mController->getNrOfFoundImages() > 0) {
-    auto props = mController->getImageProperties(0, 0).getImageInfo();
-    mFoundFilesHint->setText("Finished");
-    mFileSearchHintLabel->setVisible(false);
-    mFileSelectorComboBox->setVisible(true);
-    mImageSeriesComboBox->setVisible(true);
-    // mImageResolutionComboBox->setVisible(true);
-    mStartAnalysis->setEnabled(true);
-
-  } else {
-    // mFoundFilesCombo->setVisible(false);
-    resetImageInfo();
-    mFoundFilesHint->setText("No images found!");
-    mStartAnalysis->setEnabled(false);
-  }
-}
-
-///
-/// \brief      A new image has been selected
-/// \author     Joachim Danmayr
-///
-void WindowMain::resetImageInfo()
-{
-#warning "Reset data"
-}
-
-///
-/// \brief      A new image has been selected
-/// \author     Joachim Danmayr
-///
-void WindowMain::onImageSelectionChanged()
-{
-  auto ome = mController->getImageProperties(mFoundFilesCombo->currentIndex(), mImageSeriesCombo->currentIndex());
-  const auto &imgInfo = ome.getImageInfo();
-
-  mLabelImageInfo->setRowCount(20 + ome.getChannelInfos().size() * 7);
-
-  int32_t row = 0;
-
-  auto addItem = [this, &row](const std::string name, int64_t value, const std::string &prefix) {
-    mLabelImageInfo->setItem(row, 0, new QTableWidgetItem(name.data()));
-    mLabelImageInfo->setItem(row, 1, new QTableWidgetItem(QString::number(value) + " " + QString(prefix.data())));
-    row++;
-  };
-
-  auto addStringItem = [this, &row](const std::string name, const std::string &value) {
-    mLabelImageInfo->setItem(row, 0, new QTableWidgetItem(name.data()));
-    mLabelImageInfo->setItem(row, 1, new QTableWidgetItem(value.data()));
-    row++;
-  };
-
-  auto addTitle = [this, &row](const std::string name) {
-    auto *item = new QTableWidgetItem(name.data());
-    QFont font;
-    font.setBold(true);
-    item->setFont(font);
-    mLabelImageInfo->setItem(row, 0, item);
-    mLabelImageInfo->setItem(row, 1, new QTableWidgetItem(""));
-    row++;
-  };
-
-  addTitle("Image");
-  addItem("Width", imgInfo.resolutions.at(0).imageWidth, "px");
-  addItem("Height", imgInfo.resolutions.at(0).imageHeight, "px");
-  addItem("Bits", imgInfo.resolutions.at(0).bits, "");
-
-  addItem("Tile width", imgInfo.resolutions.at(0).optimalTileWidth, "px");
-  addItem("Tile height", imgInfo.resolutions.at(0).optimalTileHeight, "px");
-  addItem("Tile count", imgInfo.resolutions.at(0).getTileCount(), "");
-
-  addItem("Composite tile width", joda::pipeline::COMPOSITE_TILE_WIDTH, "px");
-  addItem("Composite tile height", joda::pipeline::COMPOSITE_TILE_HEIGHT, "px");
-  addItem("Composite tile count",
-          imgInfo.resolutions.at(0).getTileCount(joda::pipeline::COMPOSITE_TILE_WIDTH,
-                                                 joda::pipeline::COMPOSITE_TILE_HEIGHT),
-          "");
-  addItem("Series", ome.getNrOfSeries(), "");
-  addItem("Pyramids", ome.getResolutionCount().size(), "");
-
-  const auto &objectiveInfo = ome.getObjectiveInfo();
-  addTitle("Objective");
-  addStringItem("Manufacturer", objectiveInfo.manufacturer);
-  addStringItem("Model", objectiveInfo.model);
-  addStringItem("Medium", objectiveInfo.medium);
-  addStringItem("Magnification", "x" + std::to_string(objectiveInfo.magnification));
-
-  QString channelInfoStr;
-  for(const auto &[idx, channelInfo] : ome.getChannelInfos()) {
-    int32_t zStack = 1;
-    if(!channelInfo.zStackForTimeFrame.empty()) {
-      zStack = channelInfo.zStackForTimeFrame.begin()->second.size();
-    }
-    addTitle("Channel " + std::to_string(idx));
-    addStringItem("ID", channelInfo.channelId);
-    addStringItem("Name", channelInfo.name);
-    addItem("Emission wave length", channelInfo.emissionWaveLength, channelInfo.emissionWaveLengthUnit);
-    addStringItem("Contrast method", channelInfo.contrastMethos);
-    addItem("Exposure time", channelInfo.exposuerTime, channelInfo.exposuerTimeUnit);
-    addItem("Z-Stack", zStack, "");
-  }
-
-  {
-    mImageResolutionCombo->blockSignals(true);
-    auto currentIdx = mImageResolutionCombo->currentIndex();
-    mImageResolutionCombo->clear();
-    for(const auto &[idx, pyramid] : imgInfo.resolutions) {
-      mImageResolutionCombo->addItem(
-          QString((std::to_string(pyramid.imageWidth) + "x" + std::to_string(pyramid.imageHeight)).data()) + " (" +
-              bytesToString(pyramid.imageMemoryUsage) + ")",
-          idx);
-    }
-    mImageResolutionCombo->blockSignals(false);
   }
 }
 
@@ -564,7 +319,7 @@ void WindowMain::onSaveProject()
 {
   try {
     if(mSelectedProjectSettingsFilePath.empty()) {
-      std::filesystem::path filePath(mSelectedImagesDirectory);
+      std::filesystem::path filePath(mAnalyzeSettings.experimentSettings.workingDirectory);
       filePath = filePath / "imagec";
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
@@ -600,8 +355,10 @@ void WindowMain::onSaveProject()
 /// \brief      Templates loaded from templates folder
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onFindTemplatesFinished(std::map<std::string, helper::templates::TemplateParser::Data> foundTemplates)
+void WindowMain::loadTemplates()
 {
+  auto foundTemplates = joda::helper::templates::TemplateParser::findTemplates();
+
   mTemplateSelection->clear();
   mTemplateSelection->addItem("Add channel ...", "");
 
@@ -626,15 +383,11 @@ void WindowMain::onFindTemplatesFinished(std::map<std::string, helper::templates
 void WindowMain::onStartClicked()
 {
   try {
-    if(mJobName.isEmpty()) {
-      mJobName = joda::helper::RandomNameGenerator::GetRandomName().data();
-    }
     joda::settings::Settings::checkSettings(mAnalyzeSettings);
     DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
     dialg.exec();
     // Analysis finished -> generate new name
-    mJobName.clear();
-    mJobName = joda::helper::RandomNameGenerator::GetRandomName().data();
+    mPanelProjectSettings->generateNewJobName();
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-error-50.png");
@@ -680,16 +433,12 @@ void WindowMain::onBackClicked()
 ///
 bool WindowMain::showProjectOverview()
 {
-  // setMiddelLabelText(mSelectedWorkingDirectory);
   mNewProjectButton->setVisible(true);
   mOpenProjectButton->setVisible(true);
   mSidebar->setVisible(true);
-  mButtomToolbar->setVisible(true);
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
   mStartAnalysis->setVisible(true);
-  mFirstSeparator->setVisible(false);
-  mSecondSeparator->setVisible(true);
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::PROJECT_OVERVIEW));
   mNavigation = Navigation::PROJECT_OVERVIEW;
   return true;
@@ -702,19 +451,7 @@ bool WindowMain::showProjectOverview()
 void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 {
   mSelectedChannel = selectedChannel;
-  // mNewProjectButton->setVisible(false);
-  // mOpenProjectButton->setVisible(false);
-  // mOpenResultsButton->setVisible(false);
-
-  // mSidebar->setVisible(false);
-  mButtomToolbar->setVisible(true);
   selectedChannel->setActive(true);
-  // mSaveProject->setVisible(false);
-  // mSaveProject->setVisible(false);
-  // mStartAnalysis->setVisible(false);
-  // mFirstSeparator->setVisible(false);
-  // mSecondSeparator->setVisible(false);
-  // mOpenReportingArea->setVisible(false);
   mStackedWidget->removeWidget(mStackedWidget->widget(static_cast<int32_t>(Navigation::CHANNEL_EDIT)));
   mStackedWidget->insertWidget(static_cast<int32_t>(Navigation::CHANNEL_EDIT), selectedChannel->getEditPanel());
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::CHANNEL_EDIT));
@@ -728,8 +465,8 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
 void WindowMain::onOpenReportingAreaClicked()
 {
   QString folderToOpen = QDir::homePath();
-  if(!mSelectedImagesDirectory.empty()) {
-    folderToOpen = mSelectedImagesDirectory.string().data();
+  if(!mAnalyzeSettings.experimentSettings.workingDirectory.empty()) {
+    folderToOpen = mAnalyzeSettings.experimentSettings.workingDirectory.data();
   }
 
   QFileDialog::Options opt;
@@ -747,14 +484,9 @@ void WindowMain::onOpenReportingAreaClicked()
     // Open reporting area
     mNewProjectButton->setVisible(false);
     mOpenProjectButton->setVisible(false);
-
-    // mSidebar->setVisible(false);
-    mButtomToolbar->setVisible(false);
     mSaveProject->setVisible(false);
     mSaveProject->setVisible(false);
     mStartAnalysis->setVisible(false);
-    mFirstSeparator->setVisible(false);
-    mSecondSeparator->setVisible(false);
     mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::REPORTING));
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());

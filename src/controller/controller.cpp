@@ -13,6 +13,7 @@
 
 #include "controller.hpp"
 #include <algorithm>
+#include <filesystem>
 #include <map>
 #include <ranges>
 #include "backend/helper/file_info.hpp"
@@ -180,11 +181,10 @@ void Controller::preview(const settings::ChannelSettings &settings, int32_t imgI
 /// \brief      Returns properties of given image
 /// \author     Joachim Danmayr
 ///
-auto Controller::getImageProperties(int imgIndex, int series) -> joda::ome::OmeInfo
+auto Controller::getImageProperties(int imgIndex, int series) -> std::tuple<joda::ome::OmeInfo, std::filesystem::path>
 {
   auto imagePath = mWorkingDirectory.getFileAt(imgIndex);
-  return image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string());
-  ;
+  return {image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string()), imagePath.getFilePath()};
 }
 
 ///
@@ -212,7 +212,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
     series = settings.channels.begin()->meta.series;
   }
 
-  auto ome             = getImageProperties(imgIndex, series);
+  auto [ome, _]        = getImageProperties(imgIndex, series);
   int64_t imgNr        = mWorkingDirectory.getNrOfFiles();
   int64_t tileNr       = 1;
   int64_t channelNr    = settings.channels.size();

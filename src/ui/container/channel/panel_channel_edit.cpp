@@ -88,11 +88,7 @@ void PanelChannelEdit::init()
   connect(this, &PanelChannelEdit::updatePreviewFinished, this, &PanelChannelEdit::onPreviewFinished);
 
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelChannelEdit::onTileClicked);
-  connect(getWindowMain()->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(getWindowMain()->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this,
-          &PanelChannelEdit::updatePreview);
-  connect(getWindowMain()->getImageResolutionCombo(), &QComboBox::currentIndexChanged, this,
+  connect(getWindowMain()->getImagePanel(), &PanelImageMeta::imageSelectionChanged, this,
           &PanelChannelEdit::updatePreview);
 }
 
@@ -127,11 +123,12 @@ void PanelChannelEdit::valueChangedEvent()
     mParentContainer->mThresholdValueMin->getEditableWidget()->setVisible(true);
   }
 
-  updatePreview();
+  updatePreview(-1, -1);
 }
 
-void PanelChannelEdit::updatePreview()
+void PanelChannelEdit::updatePreview(int32_t /**/, int32_t /**/)
 {
+  auto [newImgIdex, selectedSeries] = getWindowMain()->getImagePanel()->getSelectedImage();
   if(mIsActiveShown) {
     if(mPreviewCounter == 0) {
       {
@@ -144,61 +141,62 @@ void PanelChannelEdit::updatePreview()
           mPreviewThread->join();
         }
       }
-      mPreviewThread = std::make_unique<std::thread>([this]() {
-        int previewCounter = 0;
-        std::this_thread::sleep_for(500ms);
-        do {
-          if(nullptr != mPreviewImage) {
-            int imgIndex = getWindowMain()->getSelectedFileIndex();
-            if(imgIndex >= 0) {
-              auto *controller = getWindowMain()->getController();
-              try {
-                int32_t resolution = getWindowMain()->getImageResolutionCombo()->currentData().toInt();
-                int32_t series     = getWindowMain()->getImageSeriesCombo()->currentData().toInt();
-                mParentContainer->toSettings();
-                auto imgProps = getWindowMain()->getController()->getImageProperties(imgIndex, series);
-                auto [tileNrX, tileNrY] =
-                    imgProps.getImageInfo()
-                        .resolutions.at(resolution)
-                        .getNrOfTiles(::joda::pipeline::COMPOSITE_TILE_WIDTH, ::joda::pipeline::COMPOSITE_TILE_HEIGHT);
+      mPreviewThread =
+          std::make_unique<std::thread>([this, newImgIdex = newImgIdex, selectedSeries = selectedSeries]() {
+            int previewCounter = 0;
+            std::this_thread::sleep_for(500ms);
+            do {
+              if(nullptr != mPreviewImage) {
+                int imgIndex = newImgIdex;
+                if(imgIndex >= 0) {
+                  auto *controller = getWindowMain()->getController();
+                  try {
+                    int32_t resolution = 0;
+                    int32_t series     = selectedSeries;
+                    mParentContainer->toSettings();
+                    auto [imgProps, _]      = getWindowMain()->getController()->getImageProperties(imgIndex, series);
+                    auto [tileNrX, tileNrY] = imgProps.getImageInfo()
+                                                  .resolutions.at(resolution)
+                                                  .getNrOfTiles(::joda::pipeline::COMPOSITE_TILE_WIDTH,
+                                                                ::joda::pipeline::COMPOSITE_TILE_HEIGHT);
 
-                controller->preview(mParentContainer->mSettings, imgIndex, mSelectedTileX, mSelectedTileY, resolution,
-                                    mPreviewImage->getPreviewObject());
-                auto &previewResult = mPreviewImage->getPreviewObject();
-                // Create a QByteArray from the char array
-                int valid   = 0;
-                int invalid = 0;
-                for(const auto &roi : *previewResult.detectionResult) {
-                  if(roi.isValid()) {
-                    valid++;
-                  } else {
-                    invalid++;
+                    controller->preview(mParentContainer->mSettings, imgIndex, mSelectedTileX, mSelectedTileY,
+                                        resolution, mPreviewImage->getPreviewObject());
+                    auto &previewResult = mPreviewImage->getPreviewObject();
+                    // Create a QByteArray from the char array
+                    int valid   = 0;
+                    int invalid = 0;
+                    for(const auto &roi : *previewResult.detectionResult) {
+                      if(roi.isValid()) {
+                        valid++;
+                      } else {
+                        invalid++;
+                      }
+                    }
+
+                    mPreviewImage->setThumbnailPosition(tileNrX, tileNrY, mSelectedTileX, mSelectedTileY);
+
+                    QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
+                    mPreviewImage->updateImage(info);
+                    if(!mIsActiveShown) {
+                      mPreviewImage->resetImage("");
+                    }
+
+                  } catch(const std::exception &error) {
+                    // mPreviewImage->resetImage(error.what());
                   }
                 }
-
-                mPreviewImage->setThumbnailPosition(tileNrX, tileNrY, mSelectedTileX, mSelectedTileY);
-
-                QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
-                mPreviewImage->updateImage(info);
-                if(!mIsActiveShown) {
-                  mPreviewImage->resetImage("");
-                }
-
-              } catch(const std::exception &error) {
-                // mPreviewImage->resetImage(error.what());
               }
-            }
-          }
-          std::this_thread::sleep_for(250ms);
-          {
-            std::lock_guard<std::mutex> lock(mPreviewMutex);
-            previewCounter = mPreviewCounter;
-            previewCounter--;
-            mPreviewCounter = previewCounter;
-          }
-        } while(previewCounter > 0);
-        emit updatePreviewFinished();
-      });
+              std::this_thread::sleep_for(250ms);
+              {
+                std::lock_guard<std::mutex> lock(mPreviewMutex);
+                previewCounter = mPreviewCounter;
+                previewCounter--;
+                mPreviewCounter = previewCounter;
+              }
+            } while(previewCounter > 0);
+            emit updatePreviewFinished();
+          });
     } else {
       std::lock_guard<std::mutex> lock(mPreviewMutex);
       mPreviewCounter++;
@@ -221,7 +219,7 @@ void PanelChannelEdit::onTileClicked(int32_t tileX, int32_t tileY)
 {
   mSelectedTileX = tileX;
   mSelectedTileY = tileY;
-  updatePreview();
+  updatePreview(-1, -1);
 }
 
 ///
