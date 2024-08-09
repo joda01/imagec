@@ -224,6 +224,26 @@ struct ChannelValidity : public std::bitset<32>
   }
 };
 
+inline std::string toString(ChannelValidity valid)
+{
+  if(valid.test(ChannelValidityEnum::UNKNOWN)) {
+    return "Unknown";
+  }
+  if(valid.test(ChannelValidityEnum::INVALID)) {
+    return "Invalid";
+  }
+  if(valid.test(ChannelValidityEnum::MANUAL_OUT_SORTED)) {
+    return "Manuel";
+  }
+  if(valid.test(ChannelValidityEnum::POSSIBLE_NOISE)) {
+    return "Noise";
+  }
+  if(valid.test(ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD)) {
+    return "Threshold";
+  }
+  return "";
+}
+
 class MeasureChannelId
 {
 public:

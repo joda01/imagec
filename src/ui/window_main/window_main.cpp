@@ -58,6 +58,7 @@
 #include "ui/window_main/panel_image.hpp"
 #include "ui/window_main/panel_pipeline.hpp"
 #include "ui/window_main/panel_project_settings.hpp"
+#include "ui/window_main/panel_results_info.hpp"
 #include "build_info.h"
 #include "version.h"
 
@@ -75,7 +76,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setMinimumSize(1600, 800);
   setObjectName("windowMain");
   setCentralWidget(createStackedWidget());
-  showProjectOverview();
+  showPanelStartPage();
 
   getController()->registerWorkingDirectoryCallback([this](joda::helper::fs::State state) {
     if(state == joda::helper::fs::State::FINISHED) {
@@ -189,7 +190,8 @@ void WindowMain::createLeftToolbar()
 
   // Reportings tab
   {
-    tabs->addTab(new QWidget(), "Results");
+    mPanelResultsInfo = new PanelResultsInfo(this);
+    tabs->addTab(mPanelResultsInfo, "Results");
   }
 
   mSidebar->addWidget(tabs);
@@ -205,7 +207,8 @@ QWidget *WindowMain::createStackedWidget()
 {
   mStackedWidget = new QStackedWidget();
   mStackedWidget->setObjectName("stackedWidget");
-  // mStackedWidget->addWidget(createChannelWidget());
+  mStackedWidget->addWidget(new QWidget(this));
+  mStackedWidget->addWidget(createChannelWidget());
   mStackedWidget->addWidget(createReportingWidget());
   return mStackedWidget;
 }
@@ -270,6 +273,7 @@ void WindowMain::onOpenClicked()
 ///
 void WindowMain::openResultsSettings(const QString &filePath)
 {
+  showPanelResults();
   mPanelReporting->openFromFile(filePath);
 }
 
@@ -305,7 +309,7 @@ void WindowMain::openProjectSettings(const QString &filePath)
     mSelectedProjectSettingsFilePath = filePath.toStdString();
     checkForSettingsChanged();
     onSaveProject();
-    showProjectOverview();
+    showPanelStartPage();
 
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
@@ -445,10 +449,10 @@ void WindowMain::onStartClicked()
 void WindowMain::onBackClicked()
 {
   switch(mNavigation) {
-    case Navigation::PROJECT_OVERVIEW:
+    case Navigation::START_PAGE:
       break;
     case Navigation::CHANNEL_EDIT:
-      showProjectOverview();
+      showPanelStartPage();
       if(mSelectedChannel != nullptr) {
         mSelectedChannel->toSettings();
         mSelectedChannel->setActive(false);
@@ -457,9 +461,9 @@ void WindowMain::onBackClicked()
       checkForSettingsChanged();
       break;
     case Navigation::REPORTING:
-      if(showProjectOverview()) {
+      if(showPanelStartPage()) {
         if(mPanelReporting != nullptr) {
-          mPanelReporting->close();
+          mPanelReporting->setActive(false);
         }
       }
       break;
@@ -470,7 +474,7 @@ void WindowMain::onBackClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-bool WindowMain::showProjectOverview()
+bool WindowMain::showPanelStartPage()
 {
   mNewProjectButton->setVisible(true);
   mOpenProjectButton->setVisible(true);
@@ -478,8 +482,8 @@ bool WindowMain::showProjectOverview()
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
   mStartAnalysis->setVisible(true);
-  mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::PROJECT_OVERVIEW));
-  mNavigation = Navigation::PROJECT_OVERVIEW;
+  mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::START_PAGE));
+  mNavigation = Navigation::START_PAGE;
   return true;
 }
 
@@ -487,7 +491,7 @@ bool WindowMain::showProjectOverview()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
+void WindowMain::showPanelChannelEdit(ContainerBase *selectedChannel)
 {
   mSelectedChannel = selectedChannel;
   selectedChannel->setActive(true);
@@ -495,6 +499,17 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
   mStackedWidget->insertWidget(static_cast<int32_t>(Navigation::CHANNEL_EDIT), selectedChannel->getEditPanel());
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::CHANNEL_EDIT));
   mNavigation = Navigation::CHANNEL_EDIT;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::showPanelResults()
+{
+  mPanelReporting->setActive(true);
+  mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::REPORTING));
+  mNavigation = Navigation::REPORTING;
 }
 
 ///

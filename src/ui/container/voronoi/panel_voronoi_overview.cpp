@@ -69,7 +69,7 @@ PanelVoronoiOverview::PanelVoronoiOverview(WindowMain *wm, ContainerVoronoi *par
 void PanelVoronoiOverview::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-    mWindowMain->showChannelEdit(mParentContainer);
+    mWindowMain->showPanelChannelEdit(mParentContainer);
   }
 }
 

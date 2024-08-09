@@ -31,6 +31,7 @@
 #include "ui/window_main/panel_image.hpp"
 #include "ui/window_main/panel_pipeline.hpp"
 #include "ui/window_main/panel_project_settings.hpp"
+#include "ui/window_main/panel_results_info.hpp"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::qt {
@@ -52,8 +53,9 @@ public:
   ~WindowMain()
   {
   }
-  void showChannelEdit(ContainerBase *);
-  bool showProjectOverview();
+  bool showPanelStartPage();
+  void showPanelChannelEdit(ContainerBase *);
+  void showPanelResults();
 
   joda::ctrl::Controller *getController()
   {
@@ -75,6 +77,11 @@ public:
     return mPanelImages;
   }
 
+  [[nodiscard]] PanelResultsInfo *getPanelResultsInfo()
+  {
+    return mPanelResultsInfo;
+  }
+
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
 
@@ -84,15 +91,11 @@ public slots:
 
 private:
   /////////////////////////////////////////////////////
-  static constexpr int32_t OVERVIEW_COLS = 1;
-  static constexpr int32_t V_CHANNEL_COL = OVERVIEW_COLS;
-
-  /////////////////////////////////////////////////////
   enum class Navigation
   {
-    PROJECT_OVERVIEW = 0,
-    CHANNEL_EDIT     = 1,
-    REPORTING        = 2
+    START_PAGE   = 0,
+    CHANNEL_EDIT = 1,
+    REPORTING    = 2
   };
 
   /////////////////////////////////////////////////////
@@ -122,11 +125,12 @@ private:
   PanelProjectSettings *mPanelProjectSettings;
   PanelPipeline *mPanelPipeline;
   PanelImages *mPanelImages;
+  PanelResultsInfo *mPanelResultsInfo;
   QPushButton *mStartAnalysis = nullptr;
 
   ////Stacked widget/////////////////////////////////////////////////
   QStackedWidget *mStackedWidget;
-  Navigation mNavigation          = Navigation::PROJECT_OVERVIEW;
+  Navigation mNavigation          = Navigation::START_PAGE;
   ContainerBase *mSelectedChannel = nullptr;
   PanelResults *mPanelReporting   = nullptr;
 

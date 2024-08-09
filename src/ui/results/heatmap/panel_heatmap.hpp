@@ -63,8 +63,7 @@ public:
 
   /////////////////////////////////////////////////////
   ChartHeatMap(PanelResults *parent);
-  void setData(std::weak_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form,
-               PaintControlImage paint, int32_t newHierarchy);
+  void setData(const joda::results::Table &, MatrixForm form, PaintControlImage paint, int32_t newHierarchy);
 
   [[nodiscard]] const results::Table &getData() const
   {
@@ -108,7 +107,6 @@ private:
   static inline const uint32_t HEATMAP_FONT_SIZE             = 12;
   static inline const uint32_t HEATMAP_COLOR_ROW_TEXT_HEIGHT = 25;
 
-  std::weak_ptr<joda::results::Analyzer> mAnalyzer;
   PanelResults *mParent;
   MatrixForm mForm = MatrixForm::CIRCLE;
   PaintControlImage mPaintCtrlImage;

@@ -55,8 +55,8 @@ ChartHeatMap::ChartHeatMap(PanelResults *parent) : QWidget(parent), mParent(pare
   setMouseTracking(true);
 }
 
-void ChartHeatMap::setData(std::weak_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &data,
-                           MatrixForm form, PaintControlImage paint, int32_t newHierarchy)
+void ChartHeatMap::setData(const joda::results::Table &data, MatrixForm form, PaintControlImage paint,
+                           int32_t newHierarchy)
 {
   if(mActHierarchy > newHierarchy) {
     // We navigate back
@@ -64,7 +64,6 @@ void ChartHeatMap::setData(std::weak_ptr<joda::results::Analyzer> analyzer, cons
     mHoveredWell                            = -1;
   }
   mActHierarchy = newHierarchy;
-  mAnalyzer     = std::move(analyzer);
   mData         = data;
   mRows         = mData.getRows();
   mCols         = mData.getCols();

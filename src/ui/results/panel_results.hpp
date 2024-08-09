@@ -28,6 +28,7 @@
 #include "ui/container/panel_edit_base.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
+#include "ui/window_main/panel_results_info.hpp"
 
 namespace joda::ui::qt {
 class WindowMain;
@@ -69,6 +70,7 @@ public:
   PanelResults(WindowMain *win);
   void openFromFile(const QString &pathToDbFile);
   void setData(const SelectedFilter &);
+  void setActive(bool);
   [[nodiscard]] Navigation getActualNavigation() const
   {
     return mNavigation;
@@ -89,16 +91,15 @@ public:
     return mHeatmap01->getData();
   }
 
-  void setAnalyzer();
-
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
+  void setAnalyzer();
 
   WindowMain *mWindowMain;
-  std::shared_ptr<joda::results::Analyzer> mAnalyzer;
+  std::unique_ptr<joda::results::Analyzer> mAnalyzer;
 
   // Breadcrumb///////////////////////////////////////////////////
   void createBreadCrump(joda::ui::qt::helper::LayoutGenerator *);
@@ -115,24 +116,9 @@ private:
   ChartHeatMap *mHeatmap01;
   SelectedFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
-
-  // WELL///////////////////////////////////////////////////
-  ContainerLabel *mWellName;
-  ContainerLabel *mWellValue;
-  ContainerLabel *mWellMeta;
-
-  // Image///////////////////////////////////////////////////
-  QWidget *mImageInfoWidget;
-  ContainerLabel *mImageName;
-  ContainerLabel *mImageValue;
-  ContainerLabel *mImageMeta;
   std::shared_ptr<ContainerFunction<bool, bool>> mMarkAsInvalid;
 
-  // Area///////////////////////////////////////////////////
-  QWidget *mAreaInfoWidget;
-  ContainerLabel *mAreaName;
-  ContainerLabel *mAreaValue;
-  ContainerLabel *mAreaMeta;
+  PanelResultsInfo::DataSet mSelectedDataSet;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId;

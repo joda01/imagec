@@ -68,7 +68,7 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
 void PanelChannelOverview::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-    mWindowMain->showChannelEdit(mParentContainer);
+    mWindowMain->showPanelChannelEdit(mParentContainer);
   }
 }
 

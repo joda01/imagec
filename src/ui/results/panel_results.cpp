@@ -27,6 +27,7 @@
 #include <QWidget>
 #include <cmath>
 #include <iostream>
+#include <memory>
 #include <random>
 #include <string>
 #include <utility>
@@ -64,120 +65,22 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain), mWin
   col->addWidget(mHeatmap01);
 
   repaintHeatmap();
-
-  /*
-  // Create and set up the grid layout
-  auto [horizontalLayout, centerWidget] = joda::ui::qt::helper::createLayout(this, helper::SPACING);
-  horizontalLayout->setContentsMargins(0, 0, 0, 0);
-
-
-    mHeatmap01 = new ChartHeatMap(this);
-    connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
-    connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
-    auto *breadCrump = createBreadCrump(this);
-    plateViewer->setContentsMargins(16, 0, 16, 16);
-    plateViewer->addWidget(breadCrump);
-    breadCrump->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-    //
-    // Plate
-    //
-    plateViewer->addWidget(mHeatmap01);
-    mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    plateViewerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  */
-
-  /*
-    {
-      auto [verticalLayoutContainer, _1] =
-          joda::ui::qt::helper::addVerticalPanel(horizontalLayout, "rgba(218, 226, 255,0)", 0, false, 250, 250, 16);
-
-      //
-      // Well edit
-      //
-      {
-        auto [verticalLayoutMeta, _2] =
-            joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-
-        verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Well"));
-
-        mWellName = new ContainerLabel("...", "", windowMain);
-        verticalLayoutMeta->addWidget(mWellName->getEditableWidget());
-
-        mWellValue = new ContainerLabel("...", "", windowMain);
-        verticalLayoutMeta->addWidget(mWellValue->getEditableWidget());
-
-        mWellMeta = new ContainerLabel("...", "", windowMain);
-        verticalLayoutMeta->addWidget(mWellMeta->getEditableWidget());
-
-        _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
-      }
-
-      //
-      // Image edit
-      //
-      {
-        auto [verticalLayoutMeta, _2] =
-            joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-        mImageInfoWidget = _2;
-        verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Image"));
-
-        mImageName = new ContainerLabel("...", "", windowMain);
-        verticalLayoutMeta->addWidget(mImageName->getEditableWidget());
-
-        mImageValue = new ContainerLabel("...", "", windowMain);
-        verticalLayoutMeta->addWidget(mImageValue->getEditableWidget());
-
-        mImageMeta = new ContainerLabel("...", "", windowMain);
-        verticalLayoutMeta->addWidget(mImageMeta->getEditableWidget());
-
-        mMarkAsInvalid = std::shared_ptr<ContainerFunction<bool, bool>>(
-            new ContainerFunction<bool, bool>("icons8-multiply-50.png", "Mark as invalid", "Mark as invalid", false,
-                                              windowMain, "reporting_mark_as_invalid.imcjsproj"));
-        verticalLayoutMeta->addWidget(mMarkAsInvalid->getEditableWidget());
-        connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this,
-    &PanelResults::onMarkAsInvalidClicked);
-
-        _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
-        mImageInfoWidget->setVisible(false);
-      }
-
-      //
-      // Area edit
-      //
-      {
-        auto [verticalLayoutMeta, _2] =
-            joda::ui::qt::helper::addVerticalPanel(verticalLayoutContainer, "rgb(246, 246, 246)");
-        mAreaInfoWidget = _2;
-        verticalLayoutMeta->addWidget(joda::ui::qt::helper::createTitle("Area"));
-
-        mAreaName = new ContainerLabel("...", "", windowMain);
-        verticalLayoutMeta->addWidget(mAreaName->getEditableWidget());
-
-        mAreaValue = new ContainerLabel("...", "", windowMain);
-        verticalLayoutMeta->addWidget(mAreaValue->getEditableWidget());
-
-        mAreaMeta = new ContainerLabel("...", "", windowMain);
-        verticalLayoutMeta->addWidget(mAreaMeta->getEditableWidget());
-
-        auto saveImageButton = new ContainerButton("Export", "icons8-export-excel-50.png", windowMain);
-        connect(saveImageButton, &ContainerButton::valueChanged, this, &PanelResults::onExportImageClicked);
-        verticalLayoutMeta->addWidget(saveImageButton->getEditableWidget());
-
-        _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
-        mAreaInfoWidget->setVisible(false);
-      }
-      verticalLayoutContainer->addStretch();
-    }
-
-
-  centerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-  setLayout(horizontalLayout);*/
 }
 
 void PanelResults::valueChangedEvent()
 {
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void PanelResults::setActive(bool active)
+{
+  if(!active) {
+    getWindowMain()->getPanelResultsInfo()->setData({});
+    mAnalyzer.reset();
+  }
 }
 
 ///
@@ -217,6 +120,26 @@ void PanelResults::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *toolb
   mStatsSelector->addItem("CNT", (int32_t) joda::results::Stats::CNT);
   connect(mStatsSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mStatsSelector);
+
+  //
+  //
+  //
+  mMarkAsInvalid = std::shared_ptr<ContainerFunction<bool, bool>>(
+      new ContainerFunction<bool, bool>("icons8-multiply-50.png", "Mark as invalid", "Mark as invalid", false,
+                                        getWindowMain(), "reporting_mark_as_invalid.imcjsproj"));
+  mMarkAsInvalid->getEditableWidget()->setVisible(false);
+  toolbar->addItemToTopToolbar(mMarkAsInvalid->getEditableWidget());
+  connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelResults::onMarkAsInvalidClicked);
+
+  toolbar->addSeparatorToTopToolbar();
+
+  //
+  //
+  //
+  auto *exportData = new QPushButton(QIcon(":/icons/outlined/icons8-export-excel-50.png"), "Export");
+  exportData->setToolTip("Export data");
+  connect(exportData, &QPushButton::pressed, this, &PanelResults::onExportClicked);
+  toolbar->addItemToTopToolbar(exportData);
 }
 
 ///
@@ -278,6 +201,9 @@ void PanelResults::onChannelChanged()
           lastSelectedKeyIdx = idx;
         }
         idx++;
+      }
+      if(lastSelectedKeyIdx < 0) {
+        lastSelectedKeyIdx = 0;
       }
 
       mMeasurementSelector->setCurrentIndex(lastSelectedKeyIdx);
@@ -377,21 +303,22 @@ void PanelResults::onElementSelected(int cellX, int cellY, results::TableCell va
       auto groupId = value.getId();
       auto [result, channel] =
           mAnalyzer->getGroupInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, groupId);
-      mWellName->setText("Well: " + QString(result.name.data()));
-      mWellValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
-      mWellMeta->setText(channel.name.data());
-      mSelectedWellId = value.getId();
-      mImageInfoWidget->setVisible(false);
-      mAreaInfoWidget->setVisible(false);
+      mSelectedDataSet.groupMeta   = result;
+      mSelectedDataSet.channelMeta = channel;
+      mSelectedWellId              = value.getId();
+      mSelectedDataSet.imageMeta.reset();
+      mSelectedDataSet.channelMeta.reset();
+      mSelectedDataSet.imageChannelMeta.reset();
+      mMarkAsInvalid->getEditableWidget()->setVisible(false);
     } break;
     case Navigation::WELL: {
       auto [image, channel, imageChannelMeta] =
           mAnalyzer->getImageInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, value.getId());
 
-      mImageName->setText(image.originalImagePath.filename().string().data());
-      mImageValue->setText(QString(mFilter.measureChannel.toString().data()) + ": " + QString::number(value.getVal()));
-      mImageMeta->setText(channel.name.data());
-      mSelectedImageId = value.getId();
+      mSelectedDataSet.imageMeta        = image;
+      mSelectedDataSet.channelMeta      = channel;
+      mSelectedDataSet.imageChannelMeta = imageChannelMeta;
+      mSelectedImageId                  = value.getId();
 
       disconnect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this,
                  &PanelResults::onMarkAsInvalidClicked);
@@ -402,21 +329,18 @@ void PanelResults::onElementSelected(int cellX, int cellY, results::TableCell va
         mMarkAsInvalid->setValue(false);
       }
       connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelResults::onMarkAsInvalidClicked);
-      mImageInfoWidget->setVisible(true);
-      mAreaInfoWidget->setVisible(false);
+      mMarkAsInvalid->getEditableWidget()->setVisible(true);
     }
 
     break;
     case Navigation::IMAGE:
-      mAreaName->setText("Tile: " + QString::number(value.getId()));
-      mAreaValue->setText((std::to_string(cellX) + "x" + std::to_string(cellY)).data());
       mSelectedTileId = value.getId();
-      mImageInfoWidget->setVisible(true);
-      mAreaInfoWidget->setVisible(true);
+      mMarkAsInvalid->getEditableWidget()->setVisible(false);
       mSelectedAreaPos.x = cellX;
       mSelectedAreaPos.y = cellY;
       break;
   }
+  getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 
 ///
@@ -458,7 +382,20 @@ void PanelResults::onBackClicked()
   if(actMenu >= 0) {
     mNavigation = static_cast<Navigation>(actMenu);
   }
+  switch(mNavigation) {
+    case Navigation::PLATE:
+      mSelectedDataSet.imageMeta.reset();
+      mSelectedDataSet.channelMeta.reset();
+      mSelectedDataSet.imageChannelMeta.reset();
+      break;
+    case Navigation::WELL:
+      break;
+    case Navigation::IMAGE:
+      break;
+  }
+
   repaintHeatmap();
+  getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 
 ///
@@ -501,7 +438,7 @@ void PanelResults::paintPlate()
     auto result = joda::results::analyze::plugins::HeatmapPerPlate::getData(
         *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.channelIdx, mFilter.measureChannel,
         mFilter.stats);
-    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO,
+    mHeatmap01->setData(result, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
   } else {
     joda::results::Table table;
@@ -517,9 +454,7 @@ void PanelResults::paintPlate()
         table.setData(row, col, data);
       }
     }
-
-    std::cout << "Paint " << std::to_string(rows) << std::endl;
-    mHeatmap01->setData(mAnalyzer, table, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO,
+    mHeatmap01->setData(table, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
   }
 }
@@ -536,7 +471,7 @@ void PanelResults::paintWell()
     auto result = joda::results::analyze::plugins::HeatmapForWell::getData(*mAnalyzer, mFilter.plateId, mActGroupId,
                                                                            mFilter.channelIdx, mFilter.measureChannel,
                                                                            mFilter.stats, mFilter.wellImageOrder);
-    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO,
+    mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
   }
 }
@@ -552,7 +487,7 @@ void PanelResults::paintImage()
     mNavigation = Navigation::IMAGE;
     auto result = joda::results::analyze::plugins::HeatmapForImage::getData(
         *mAnalyzer, mActImageId, mFilter.channelIdx, mFilter.measureChannel, mFilter.stats, mFilter.densityMapAreaSize);
-    mHeatmap01->setData(mAnalyzer, result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES,
+    mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES,
                         static_cast<int32_t>(mNavigation));
   }
 }
@@ -658,7 +593,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
     return;
   }
   try {
-    mAnalyzer = std::make_shared<joda::results::Analyzer>(std::filesystem::path(pathToDbFile.toStdString()));
+    mAnalyzer = std::make_unique<joda::results::Analyzer>(std::filesystem::path(pathToDbFile.toStdString()));
     setAnalyzer();
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());

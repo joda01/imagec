@@ -70,7 +70,7 @@ PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIn
 void PanelIntersectionOverview::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-    mWindowMain->showChannelEdit(mParentContainer);
+    mWindowMain->showPanelChannelEdit(mParentContainer);
   }
 }
 

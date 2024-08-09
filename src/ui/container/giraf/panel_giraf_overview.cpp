@@ -63,7 +63,7 @@ void PanelGirafOverview::paintEvent(QPaintEvent *event)
 void PanelGirafOverview::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-    mWindowMain->showChannelEdit(mParentContainer);
+    mWindowMain->showPanelChannelEdit(mParentContainer);
   }
 }
 
