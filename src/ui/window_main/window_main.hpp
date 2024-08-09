@@ -145,11 +145,13 @@ private:
   QAction *mShowInfoDialog    = nullptr;
 
 private slots:
+  void onNewProjectClicked();
   void onAddChannel();
   void onSaveProject();
   void onSaveProjectAsClicked();
   void onStartClicked();
   void onShowInfoDialog();
+  void onShowHelpClicked();
   void onOpenClicked();
 };
 

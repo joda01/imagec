@@ -32,6 +32,18 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
   };
 
   {
+    mResultsProperties = new PlaceholderTableWidget(0, 2);
+    mResultsProperties->setPlaceholderText("Open a results file");
+    mResultsProperties->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    mResultsProperties->verticalHeader()->setVisible(false);
+    mResultsProperties->setHorizontalHeaderLabels({"Name", "Value"});
+    mResultsProperties->setAlternatingRowColors(true);
+    mResultsProperties->setSelectionBehavior(QAbstractItemView::SelectRows);
+    layout->addWidget(mResultsProperties);
+  }
+  addSeparator();
+
+  {
     QFormLayout *formLayout = new QFormLayout;
     //
     // Plate size
@@ -58,19 +70,6 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
 
     connect(mPlateSize, &QComboBox::currentIndexChanged, this, &PanelResultsInfo::settingsChanged);
     connect(mWellOrderMatrix, &QLineEdit::editingFinished, this, &PanelResultsInfo::settingsChanged);
-  }
-
-  addSeparator();
-
-  {
-    mResultsProperties = new PlaceholderTableWidget(0, 2);
-    mResultsProperties->setPlaceholderText("Open a results file");
-    mResultsProperties->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    mResultsProperties->verticalHeader()->setVisible(false);
-    mResultsProperties->setHorizontalHeaderLabels({"Name", "Value"});
-    mResultsProperties->setAlternatingRowColors(true);
-    mResultsProperties->setSelectionBehavior(QAbstractItemView::SelectRows);
-    layout->addWidget(mResultsProperties);
   }
 
   setLayout(layout);

@@ -110,7 +110,7 @@ void WindowMain::createTopToolbar()
   toolbar->setMovable(false);
 
   mNewProjectButton = new QAction(QIcon(":/icons/outlined/icons8-file-50.png"), "New project", toolbar);
-  // connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
+  connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   toolbar->addAction(mNewProjectButton);
 
   mOpenProjectButton =
@@ -128,7 +128,12 @@ void WindowMain::createTopToolbar()
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   toolbar->addWidget(spacerTop);
 
-  mShowInfoDialog = new QAction(QIcon(":/icons/outlined/icons8-info-50.png"), "Info", toolbar);
+  auto *helpButton = new QAction(QIcon(":/icons/outlined/icons8-help-50.png"), "Info", toolbar);
+  helpButton->setToolTip("Help");
+  connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
+  toolbar->addAction(helpButton);
+
+  mShowInfoDialog = new QAction(QIcon(":/icons/outlined/icons8-info-50-circle.png"), "Info", toolbar);
   mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
   toolbar->addAction(mShowInfoDialog);
@@ -310,6 +315,37 @@ QWidget *WindowMain::createReportingWidget()
 /// \brief
 /// \author     Joachim Danmayr
 ///
+void WindowMain::onNewProjectClicked()
+{
+  if(!mSelectedProjectSettingsFilePath.empty()) {
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Create new project?");
+    messageBox.setText("Unsaved settings will get lost! Create new project?");
+    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    messageBox.setDefaultButton(noButton);
+    auto reply = messageBox.exec();
+    if(messageBox.clickedButton() == noButton) {
+      return;
+    }
+  }
+
+  showPanelStartPage();
+  mSelectedProjectSettingsFilePath.clear();
+  mAnalyzeSettings    = {};
+  mAnalyzeSettingsOld = {};
+  mPanelPipeline->clear();
+  mPanelProjectSettings->fromSettings({});
+  checkForSettingsChanged();
+  onSaveProject();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
 void WindowMain::onOpenClicked()
 {
   QString folderToOpen = QDir::homePath();
@@ -448,7 +484,6 @@ void WindowMain::onSaveProject()
     }
 
     if(!mSelectedProjectSettingsFilePath.empty()) {
-      setWindowTitlePrefix(mSelectedProjectSettingsFilePath.filename().string().data());
       if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
         joda::settings::Settings::storeSettings(mSelectedProjectSettingsFilePath.string(), mAnalyzeSettings);
       }
@@ -466,6 +501,8 @@ void WindowMain::onSaveProject()
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
+
+  setWindowTitlePrefix(mSelectedProjectSettingsFilePath.filename().string().data());
 }
 
 ///
@@ -625,6 +662,17 @@ void WindowMain::onAddChannel()
   mTemplateSelection->blockSignals(true);
   mTemplateSelection->setCurrentIndex(0);
   mTemplateSelection->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \return
+///
+void WindowMain::onShowHelpClicked()
+{
+  QUrl url("https://imagec.org/doc");
+  QDesktopServices::openUrl(url);
 }
 
 ///

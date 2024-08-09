@@ -164,7 +164,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
 /// \param[out]
 /// \return
 ///
-void PanelProjectSettings::fromSettings(joda::settings::ExperimentSettings &settings)
+void PanelProjectSettings::fromSettings(const joda::settings::ExperimentSettings &settings)
 {
   {
     auto idx = mGroupByComboBox->findData(static_cast<int>(settings.groupBy));
@@ -207,6 +207,10 @@ void PanelProjectSettings::fromSettings(joda::settings::ExperimentSettings &sett
   mNotes->setText(settings.notes.data());
   mAddressOrganisation->setText(settings.address.organization.data());
   int idx = 0;
+  for(auto &scientists : mScientists) {
+    scientists->clear();
+  }
+
   for(const auto &scientist : settings.scientistsNames) {
     if(idx >= mScientists.size()) {
       mScientists.push_back(new QLineEdit());
@@ -215,6 +219,8 @@ void PanelProjectSettings::fromSettings(joda::settings::ExperimentSettings &sett
     mScientists[idx]->setText(scientist.data());
     idx++;
   }
+
+  mJobName->clear();
   applyRegex();
 }
 

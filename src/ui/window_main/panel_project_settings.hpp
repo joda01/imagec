@@ -35,7 +35,7 @@ class PanelProjectSettings : public QWidget
 public:
   /////////////////////////////////////////////////////
   PanelProjectSettings(joda::settings::ExperimentSettings &settings, WindowMain *parentWindow);
-  void fromSettings(joda::settings::ExperimentSettings &settings);
+  void fromSettings(const joda::settings::ExperimentSettings &settings);
   void toSettings();
   [[nodiscard]] QString getJobName() const
   {
