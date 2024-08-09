@@ -15,6 +15,7 @@
 
 #include <qboxlayout.h>
 #include <qcolormap.h>
+#include <qcombobox.h>
 #include <qmainwindow.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
@@ -116,9 +117,11 @@ private:
   ChartHeatMap *mHeatmap01;
   SelectedFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
-  std::shared_ptr<ContainerFunction<bool, bool>> mMarkAsInvalid;
-
+  QComboBox *mMarkAsInvalid;
   PanelResultsInfo::DataSet mSelectedDataSet;
+
+  /////////////////////////////////////////////////////
+  QAction *mMarkAsInvalidAction;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId;

@@ -54,10 +54,19 @@ public:
   /////////////////////////////////////////////////////
   explicit PanelResultsInfo(WindowMain *windowMain);
   void setData(const DataSet &);
+  [[nodiscard]] auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
+  [[nodiscard]] auto getPlateSize() const -> QSize;
+
+signals:
+  void settingsChanged();
 
 private:
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
   PlaceholderTableWidget *mResultsProperties;
+
+  /////////////////////////////////////////////////////
+  QComboBox *mPlateSize;
+  QLineEdit *mWellOrderMatrix;
 };
 }    // namespace joda::ui::qt

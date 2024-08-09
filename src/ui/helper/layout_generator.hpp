@@ -37,6 +37,10 @@ class LayoutGenerator
 
 public:
   explicit LayoutGenerator(PanelEdit *parent);
+  void disableDeleteButton()
+  {
+    mToolbarBottom->setVisible(false);
+  }
 
   class VerticalPane : public QVBoxLayout
   {
@@ -92,11 +96,12 @@ public:
   }
 
   void addSeparatorToTopToolbar();
-  void addItemToTopToolbar(QWidget *);
+  QAction *addItemToTopToolbar(QWidget *);
 
 private:
   /////////////////////////////////////////////////////
   QToolBar *mToolbarTop;
+  QToolBar *mToolbarBottom;
   QHBoxLayout *mMainLayout;
   PanelEdit *mParent;
 

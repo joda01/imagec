@@ -241,7 +241,7 @@ inline std::string toString(ChannelValidity valid)
   if(valid.test(ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD)) {
     return "Threshold";
   }
-  return "";
+  return "Valid";
 }
 
 class MeasureChannelId

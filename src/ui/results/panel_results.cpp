@@ -42,6 +42,7 @@
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
 #include "ui/results/dialog_export_data.hpp"
+#include "ui/window_main/panel_results_info.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui::qt {
@@ -53,6 +54,7 @@ namespace joda::ui::qt {
 PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain), mWindowMain(windowMain)
 {
   helper::LayoutGenerator layout(this);
+  layout.disableDeleteButton();
   // Drop downs
   createBreadCrump(&layout);
 
@@ -124,12 +126,12 @@ void PanelResults::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *toolb
   //
   //
   //
-  mMarkAsInvalid = std::shared_ptr<ContainerFunction<bool, bool>>(
-      new ContainerFunction<bool, bool>("icons8-multiply-50.png", "Mark as invalid", "Mark as invalid", false,
-                                        getWindowMain(), "reporting_mark_as_invalid.imcjsproj"));
-  mMarkAsInvalid->getEditableWidget()->setVisible(false);
-  toolbar->addItemToTopToolbar(mMarkAsInvalid->getEditableWidget());
-  connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelResults::onMarkAsInvalidClicked);
+  mMarkAsInvalid = new QComboBox();
+  mMarkAsInvalid->addItem("Valid", false);
+  mMarkAsInvalid->addItem("Invalid", true);
+  mMarkAsInvalidAction = toolbar->addItemToTopToolbar(mMarkAsInvalid);
+  mMarkAsInvalidAction->setVisible(false);
+  connect(mMarkAsInvalid, &QComboBox::currentIndexChanged, this, &PanelResults::onMarkAsInvalidClicked);
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -140,6 +142,9 @@ void PanelResults::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *toolb
   exportData->setToolTip("Export data");
   connect(exportData, &QPushButton::pressed, this, &PanelResults::onExportClicked);
   toolbar->addItemToTopToolbar(exportData);
+
+  connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::qt::PanelResultsInfo::settingsChanged, this,
+          &PanelResults::onMeasurementChanged);
 }
 
 ///
@@ -151,32 +156,26 @@ void PanelResults::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *toolb
 ///
 void PanelResults::setAnalyzer()
 {
-  std::string analysisId;
   {
+    mAnalyzeId = "";
     // Analysis
     auto analyses = mAnalyzer->getAnalyzes();
-    std::vector<ContainerFunction<QString, int>::ComboEntry> entry;
     for(const auto &analyse : analyses) {
-      if(analysisId.empty()) {
-        analysisId = analyse.analyzeId;
-      }
-      entry.push_back(ContainerFunction<QString, int>::ComboEntry{
-          .key = analyse.analyzeId.data(), .label = analyse.name.data(), .icon = ""});
-    }
-    if(!analyses.empty()) {
-      mAnalyzeId = analysisId;
-    } else {
-      mAnalyzeId = "";
+      mAnalyzeId                   = analyse.analyzeId;
+      mSelectedDataSet.analyzeMeta = analyse;
+      break;
     }
   }
   {
     // Channels
-    mChannelInfos = mAnalyzer->getChannelsForAnalyses(analysisId);
+    mChannelInfos = mAnalyzer->getChannelsForAnalyses(mAnalyzeId);
     mChannelSelector->clear();
     for(const auto &channel : mChannelInfos) {
       mChannelSelector->addItem(channel.name.data(), static_cast<uint32_t>(channel.channelId));
     }
   }
+
+  getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 
 ///
@@ -223,16 +222,17 @@ void PanelResults::onChannelChanged()
 ///
 void PanelResults::onMeasurementChanged()
 {
-  const auto &expSettings = mWindowMain->getExperimentSettings();
+  const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
+  const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
   mFilter = PanelResults::SelectedFilter{
       .analyzeId          = mAnalyzeId,
-      .plateRows          = expSettings.plateSize.rows,
-      .plateCols          = expSettings.plateSize.cols,
+      .plateRows          = static_cast<uint32_t>(size.height()),
+      .plateCols          = static_cast<uint32_t>(size.width()),
       .plateId            = 1,
       .channelIdx         = static_cast<joda::results::ChannelIndex>(mChannelSelector->currentData().toUInt()),
       .measureChannel     = joda::results::MeasureChannelId(mMeasurementSelector->currentData().toUInt()),
-      .wellImageOrder     = expSettings.wellImageOrder,
+      .wellImageOrder     = wellOrder,
       .stats              = static_cast<joda::results::Stats>(mStatsSelector->currentData().toInt()),
       .densityMapAreaSize = 200};
   setData(mFilter);
@@ -272,7 +272,7 @@ void PanelResults::onExportImageClicked()
 ///
 void PanelResults::onMarkAsInvalidClicked()
 {
-  if(mMarkAsInvalid->getValue()) {
+  if(mMarkAsInvalid->currentData().toBool()) {
     mAnalyzer->markImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
                                                mSelectedImageId);
   } else {
@@ -309,7 +309,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, results::TableCell va
       mSelectedDataSet.imageMeta.reset();
       mSelectedDataSet.channelMeta.reset();
       mSelectedDataSet.imageChannelMeta.reset();
-      mMarkAsInvalid->getEditableWidget()->setVisible(false);
+      mMarkAsInvalidAction->setVisible(false);
     } break;
     case Navigation::WELL: {
       auto [image, channel, imageChannelMeta] =
@@ -320,22 +320,21 @@ void PanelResults::onElementSelected(int cellX, int cellY, results::TableCell va
       mSelectedDataSet.imageChannelMeta = imageChannelMeta;
       mSelectedImageId                  = value.getId();
 
-      disconnect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this,
-                 &PanelResults::onMarkAsInvalidClicked);
+      mMarkAsInvalid->blockSignals(true);
 
       if(imageChannelMeta.validity.test(results::ChannelValidityEnum::MANUAL_OUT_SORTED)) {
-        mMarkAsInvalid->setValue(true);
+        mMarkAsInvalid->setCurrentIndex(1);
       } else {
-        mMarkAsInvalid->setValue(false);
+        mMarkAsInvalid->setCurrentIndex(0);
       }
-      connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelResults::onMarkAsInvalidClicked);
-      mMarkAsInvalid->getEditableWidget()->setVisible(true);
+      mMarkAsInvalid->blockSignals(false);
+      mMarkAsInvalidAction->setVisible(true);
     }
 
     break;
     case Navigation::IMAGE:
       mSelectedTileId = value.getId();
-      mMarkAsInvalid->getEditableWidget()->setVisible(false);
+      mMarkAsInvalidAction->setVisible(false);
       mSelectedAreaPos.x = cellX;
       mSelectedAreaPos.y = cellY;
       break;
@@ -443,9 +442,10 @@ void PanelResults::paintPlate()
   } else {
     joda::results::Table table;
 
-    const auto &expSettings = mWindowMain->getExperimentSettings();
-    uint16_t rows           = expSettings.plateSize.rows;
-    uint16_t cols           = expSettings.plateSize.cols;
+    const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
+    const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
+    uint16_t rows         = size.height();
+    uint16_t cols         = size.width();
     for(int row = 0; row < rows; row++) {
       table.getMutableRowHeader()[row] = "";
       for(int col = 0; col < cols; col++) {
@@ -511,10 +511,11 @@ void PanelResults::onExportClicked()
   }
 
   std::thread([this, measureChannelsToExport = measureChannelsToExport, filePath = filePath] {
-    const auto &expSettings = mWindowMain->getExperimentSettings();
+    const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
+    const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-    uint16_t rows = expSettings.plateSize.rows;
-    uint16_t cols = expSettings.plateSize.cols;
+    uint16_t rows = size.height();
+    uint16_t cols = size.width();
 
     std::map<joda::results::ChannelIndex, joda::results::exporter::BatchExporter::Settings::Channel> imageChannels;
 
@@ -554,7 +555,7 @@ void PanelResults::onExportClicked()
           .plateRows       = rows,
           .plarteCols      = cols,
           .heatmapAreaSize = mDenesityMapSize,
-          .wellImageOrder  = expSettings.wellImageOrder,
+          .wellImageOrder  = wellOrder,
           .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::HEATMAP,
           .exportDetail    = exp};
       joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
@@ -570,7 +571,7 @@ void PanelResults::onExportClicked()
           .plateRows       = rows,
           .plarteCols      = cols,
           .heatmapAreaSize = mDenesityMapSize,
-          .wellImageOrder  = expSettings.wellImageOrder,
+          .wellImageOrder  = wellOrder,
           .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::LIST,
           .exportDetail    = exp};
       joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());

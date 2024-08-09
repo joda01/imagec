@@ -24,6 +24,44 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
 {
   auto *layout = new QVBoxLayout();
 
+  auto addSeparator = [&layout]() {
+    QFrame *separator = new QFrame;
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    layout->addWidget(separator);
+  };
+
+  {
+    QFormLayout *formLayout = new QFormLayout;
+    //
+    // Plate size
+    //
+    mPlateSize = new QComboBox();
+    mPlateSize->addItem("1", 1);
+    mPlateSize->addItem("2 x 3", 203);
+    mPlateSize->addItem("3 x 4", 304);
+    mPlateSize->addItem("4 x 6", 406);
+    mPlateSize->addItem("6 x 8", 608);
+    mPlateSize->addItem("8 x 12", 812);
+    mPlateSize->addItem("16 x 24", 1624);
+    mPlateSize->addItem("32 x 48", 3248);
+    mPlateSize->addItem("48 x 72", 4872);
+    mPlateSize->setCurrentIndex(6);
+
+    //
+    // Well order matrix
+    //
+    mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+    formLayout->addRow(new QLabel(tr("Well order:")), mWellOrderMatrix);
+    formLayout->addRow(new QLabel(tr("Plate size:")), mPlateSize);
+    layout->addLayout(formLayout);
+
+    connect(mPlateSize, &QComboBox::currentIndexChanged, this, &PanelResultsInfo::settingsChanged);
+    connect(mWellOrderMatrix, &QLineEdit::editingFinished, this, &PanelResultsInfo::settingsChanged);
+  }
+
+  addSeparator();
+
   {
     mResultsProperties = new PlaceholderTableWidget(0, 2);
     mResultsProperties->setPlaceholderText("Open a results file");
@@ -36,6 +74,33 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
   }
 
   setLayout(layout);
+}
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] auto PanelResultsInfo::getWellOrder() const -> std::vector<std::vector<int32_t>>
+{
+  return joda::results::db::matrixStringToArrayOrder(mWellOrderMatrix->text().toStdString());
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] auto PanelResultsInfo::getPlateSize() const -> QSize
+{
+  auto value = mPlateSize->currentData().toUInt();
+  QSize size;
+  size.setWidth(value % 100);
+  size.setHeight(value / 100);
+  return size;
 }
 
 ///
@@ -97,11 +162,17 @@ void PanelResultsInfo::setData(const DataSet &data)
   }
 
   if(data.groupMeta.has_value()) {
-    addTitle("Group");
+    addTitle("Group/Well");
     addItem("Id", data.groupMeta->groupId, "");
-    addStringItem("name", data.groupMeta->name);
+    addStringItem("Name", data.groupMeta->name);
     addItem("Well pos. x", data.groupMeta->wellPosX, "");
     addItem("Well pos. y", data.groupMeta->wellPosY, "");
+  }
+
+  if(data.channelMeta.has_value()) {
+    addTitle("Channel");
+    addStringItem("Id", toString(data.channelMeta->channelId));
+    addStringItem("Name", data.channelMeta->name);
   }
 
   if(data.imageMeta.has_value()) {
@@ -111,18 +182,11 @@ void PanelResultsInfo::setData(const DataSet &data)
     addItem("Width", data.imageMeta->width, "px");
     addItem("Height", data.imageMeta->height, "px");
   }
-
-  if(data.channelMeta.has_value()) {
-    addTitle("Channel");
-    addStringItem("Id", toString(data.channelMeta->channelId));
-    addStringItem("Name", data.channelMeta->name);
-  }
-
   if(data.imageChannelMeta.has_value()) {
-    addTitle("Image channel");
-    addStringItem("Control image", data.imageChannelMeta->controlImagePath.string());
+    addStringItem("Control image", data.imageChannelMeta->controlImagePath.filename().string());
     addStringItem("Valid", toString(data.imageChannelMeta->validity));
   }
+
   mResultsProperties->setRowCount(row);
 }
 

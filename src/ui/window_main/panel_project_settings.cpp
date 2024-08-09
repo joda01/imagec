@@ -154,6 +154,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
   connect(mWellOrderMatrix, &QLineEdit::textChanged, this, &PanelProjectSettings::onSettingChanged);
 
   mPlateSize->setCurrentIndex(6);
+  applyRegex();
 }
 
 ///

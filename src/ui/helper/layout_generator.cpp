@@ -48,19 +48,19 @@ LayoutGenerator::LayoutGenerator(PanelEdit *parent) : mParent(parent)
   WindowMain::connect(backButton, &QAction::triggered, mParent->getWindowMain(), &WindowMain::onBackClicked);
   mToolbarTop->addAction(backButton);
 
-  auto *toolBarBottom = new QToolBar();
-  auto *spacerBottom  = new QWidget();
+  mToolbarBottom     = new QToolBar();
+  auto *spacerBottom = new QWidget();
   spacerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  toolBarBottom->addWidget(spacerBottom);
-  auto *deleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolBarBottom);
+  mToolbarBottom->addWidget(spacerBottom);
+  auto *deleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", mToolbarBottom);
   deleteChannel->setToolTip("Delete channel!");
   WindowMain::connect(deleteChannel, &QAction::triggered, mParent->getWindowMain(),
                       &WindowMain::onRemoveChannelClicked);
-  toolBarBottom->addAction(deleteChannel);
+  mToolbarBottom->addAction(deleteChannel);
 
   container->addWidget(mToolbarTop);
   container->addWidget(scrollArea);
-  container->addWidget(toolBarBottom);
+  container->addWidget(mToolbarBottom);
 
   parent->setLayout(container);
 }
@@ -84,9 +84,9 @@ void LayoutGenerator::addSeparatorToTopToolbar()
 /// \param[out]
 /// \return
 ///
-void LayoutGenerator::addItemToTopToolbar(QWidget *widget)
+QAction *LayoutGenerator::addItemToTopToolbar(QWidget *widget)
 {
-  mToolbarTop->insertWidget(mSpaceTopToolbar, widget);
+  return mToolbarTop->insertWidget(mSpaceTopToolbar, widget);
 }
 
 }    // namespace joda::ui::qt::helper
