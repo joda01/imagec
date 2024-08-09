@@ -30,6 +30,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
   viewport()->setStyleSheet("background-color: transparent;");
   setObjectName("scrollAreaOverview");
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   // Create a widget to hold the panels
   auto *contentWidget = new QWidget;

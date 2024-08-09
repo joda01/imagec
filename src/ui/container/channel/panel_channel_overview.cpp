@@ -58,7 +58,7 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
     layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 6, 1);
     layout->addWidget(parent->mCrossChannelCount->getLabelWidget(), 6, 2);
   */
-  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  // setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
 ///

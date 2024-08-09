@@ -60,7 +60,7 @@ PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIn
 
     layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 3);
   */
-  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  // setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 
 ///
