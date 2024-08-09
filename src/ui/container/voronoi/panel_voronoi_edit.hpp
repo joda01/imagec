@@ -55,8 +55,6 @@ public:
 
 private:
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
-
-  WindowMain *mWindowMain;
   ContainerVoronoi *mParentContainer;
   PanelPreview *mPreviewImage    = nullptr;
   WaitingSpinnerWidget *mSpinner = nullptr;

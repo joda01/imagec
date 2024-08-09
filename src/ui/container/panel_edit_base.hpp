@@ -23,12 +23,25 @@
 
 namespace joda::ui::qt {
 
+class WindowMain;
+
 class PanelEdit : public QWidget
 {
   Q_OBJECT
 
+public:
+  explicit PanelEdit(WindowMain *wm) : mWindowMain(wm)
+  {
+  }
+
+  WindowMain *getWindowMain()
+  {
+    return mWindowMain;
+  }
+
 private:
   virtual void valueChangedEvent() = 0;
+  WindowMain *mWindowMain;
 
 public slots:
   void onValueChanged();

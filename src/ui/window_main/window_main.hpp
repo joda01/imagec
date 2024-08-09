@@ -101,6 +101,10 @@ signals:
   void lookingForFilesFinished();
   void lookingForTemplateFinished(std::map<std::string, joda::helper::templates::TemplateParser::Data>);
 
+public slots:
+  void onBackClicked();
+  void onRemoveChannelClicked();
+
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t OVERVIEW_COLS = 1;
@@ -130,7 +134,6 @@ private:
 
   QStackedWidget *mStackedWidget;
   QLabel *mLastElement;
-  QAction *mBackButton;
   joda::ctrl::Controller *mController;
   QComboBox *mFoundFilesCombo;
   QComboBox *mImageSeriesCombo;
@@ -175,7 +178,6 @@ private:
   QAction *mFileSearchHintLabel     = nullptr;
   QAction *mSaveProject             = nullptr;
   QAction *mStartAnalysis           = nullptr;
-  QAction *mDeleteChannel           = nullptr;
   QAction *mShowInfoDialog          = nullptr;
   QAction *mFirstSeparator          = nullptr;
   QAction *mSecondSeparator         = nullptr;
@@ -191,8 +193,6 @@ private slots:
   void onSaveProjectAsClicked();
   void onStartClicked();
   void onOpenReportingAreaClicked();
-  void onBackClicked();
-  void onRemoveChannelClicked();
   void onShowInfoDialog();
   void onLookingForFilesFinished();
   void onOpenAnalyzeSettingsClicked();

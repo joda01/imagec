@@ -1,4 +1,17 @@
+///
+/// \file      layout_generator.hpp
+/// \author
+/// \date      2024-08-09
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            All rights reserved! This file is subject
+///            to the terms and conditions defined in file
+///            LICENSE.txt, which is part of this package.
+///
+/// \brief     A short description what happens here.
+///
 
+#pragma once
 
 #include <qboxlayout.h>
 #include <qcombobox.h>
@@ -11,6 +24,7 @@
 #include <qscrollbar.h>
 #include <qtableview.h>
 #include <qtablewidget.h>
+#include <qtoolbar.h>
 #include <qwidget.h>
 #include "ui/container/container_function.hpp"
 #include "ui/container/panel_edit_base.hpp"
@@ -23,29 +37,7 @@ class LayoutGenerator
   static constexpr int32_t PANEL_WIDTH = 200;
 
 public:
-  explicit LayoutGenerator(PanelEdit *parent) : mParent(parent)
-  {
-    auto *scrollArea = new QScrollArea(parent);
-    scrollArea->setObjectName("scrollArea");
-    scrollArea->setFrameStyle(0);
-    scrollArea->setContentsMargins(0, 0, 0, 0);
-    scrollArea->verticalScrollBar()->setObjectName("scrollAreaV");
-
-    // Create a widget to hold the panels
-    auto *contentWidget = new QWidget;
-    contentWidget->setObjectName("contentOverview");
-
-    scrollArea->setWidget(contentWidget);
-    scrollArea->setWidgetResizable(true);
-
-    // Create a horizontal layout for the panels
-    mMainLayout = new QHBoxLayout(contentWidget);
-    mMainLayout->setContentsMargins(SPACING, SPACING, 0, 0);
-    mMainLayout->setSpacing(SPACING);    // Adjust this value as needed
-    mMainLayout->setAlignment(Qt::AlignLeft);
-    contentWidget->setLayout(mMainLayout);
-    parent->setLayout(mMainLayout);
-  }
+  explicit LayoutGenerator(PanelEdit *parent);
 
   class VerticalPane : public QVBoxLayout
   {

@@ -152,10 +152,6 @@ void WindowMain::createTopToolbar()
   auto *toolbar = addToolBar("toolbar");
   toolbar->setMovable(true);
 
-  mBackButton = new QAction(QIcon(":/icons/outlined/icons8-left-50.png"), "Back", toolbar);
-  mBackButton->setEnabled(false);
-  connect(mBackButton, &QAction::triggered, this, &WindowMain::onBackClicked);
-  toolbar->addAction(mBackButton);
   mFirstSeparator = toolbar->addSeparator();
 
   mNewProjectButton = new QAction(QIcon(":/icons/outlined/icons8-file-50.png"), "New project", toolbar);
@@ -179,11 +175,6 @@ void WindowMain::createTopToolbar()
   mStartAnalysis->setToolTip("Start analysis!");
   connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onStartClicked);
   toolbar->addAction(mStartAnalysis);
-
-  mDeleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", toolbar);
-  mDeleteChannel->setToolTip("Delete channel!");
-  connect(mDeleteChannel, &QAction::triggered, this, &WindowMain::onRemoveChannelClicked);
-  toolbar->addAction(mDeleteChannel);
 
   toolbar->addSeparator();
 
@@ -694,12 +685,9 @@ bool WindowMain::showProjectOverview()
   mOpenProjectButton->setVisible(true);
   mSidebar->setVisible(true);
   mButtomToolbar->setVisible(true);
-  mBackButton->setEnabled(false);
-  mBackButton->setVisible(false);
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
   mStartAnalysis->setVisible(true);
-  mDeleteChannel->setVisible(false);
   mFirstSeparator->setVisible(false);
   mSecondSeparator->setVisible(true);
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::PROJECT_OVERVIEW));
@@ -721,12 +709,9 @@ void WindowMain::showChannelEdit(ContainerBase *selectedChannel)
   // mSidebar->setVisible(false);
   mButtomToolbar->setVisible(true);
   selectedChannel->setActive(true);
-  mBackButton->setEnabled(true);
-  mBackButton->setVisible(true);
   // mSaveProject->setVisible(false);
   // mSaveProject->setVisible(false);
   // mStartAnalysis->setVisible(false);
-  mDeleteChannel->setVisible(true);
   // mFirstSeparator->setVisible(false);
   // mSecondSeparator->setVisible(false);
   // mOpenReportingArea->setVisible(false);
@@ -765,12 +750,9 @@ void WindowMain::onOpenReportingAreaClicked()
 
     // mSidebar->setVisible(false);
     mButtomToolbar->setVisible(false);
-    mBackButton->setEnabled(true);
-    mBackButton->setVisible(true);
     mSaveProject->setVisible(false);
     mSaveProject->setVisible(false);
     mStartAnalysis->setVisible(false);
-    mDeleteChannel->setVisible(false);
     mFirstSeparator->setVisible(false);
     mSecondSeparator->setVisible(false);
     mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::REPORTING));

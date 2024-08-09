@@ -32,7 +32,7 @@ namespace joda::ui::qt {
 using namespace std::chrono_literals;
 
 PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentContainer) :
-    mWindowMain(wm), mParentContainer(parentContainer)
+    PanelEdit(wm), mParentContainer(parentContainer)
 {
   setObjectName("PanelVoronoiEdit");
   init();
@@ -63,8 +63,10 @@ void PanelVoronoiEdit::init()
   //
   // Signals from extern
   //
-  connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelVoronoiEdit::onValueChanged);
-  connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelVoronoiEdit::onValueChanged);
+  connect(getWindowMain()->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this,
+          &PanelVoronoiEdit::onValueChanged);
+  connect(getWindowMain()->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this,
+          &PanelVoronoiEdit::onValueChanged);
 }
 
 PanelVoronoiEdit::~PanelVoronoiEdit()

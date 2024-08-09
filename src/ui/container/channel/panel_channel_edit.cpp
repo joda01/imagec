@@ -27,6 +27,7 @@
 #include "../container_function.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
+#include "ui/container/panel_edit_base.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/window_main/window_main.hpp"
 #include "container_channel.hpp"
@@ -36,7 +37,7 @@ namespace joda::ui::qt {
 using namespace std::chrono_literals;
 
 PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentContainer) :
-    mWindowMain(wm), mParentContainer(parentContainer)
+    PanelEdit(wm), mParentContainer(parentContainer)
 {
   setObjectName("PanelChannelEdit");
   init();
@@ -87,9 +88,11 @@ void PanelChannelEdit::init()
   connect(this, &PanelChannelEdit::updatePreviewFinished, this, &PanelChannelEdit::onPreviewFinished);
 
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelChannelEdit::onTileClicked);
-  connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
-  connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this, &PanelChannelEdit::updatePreview);
-  connect(mWindowMain->getImageResolutionCombo(), &QComboBox::currentIndexChanged, this,
+  connect(getWindowMain()->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(getWindowMain()->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this,
+          &PanelChannelEdit::updatePreview);
+  connect(getWindowMain()->getImageResolutionCombo(), &QComboBox::currentIndexChanged, this,
           &PanelChannelEdit::updatePreview);
 }
 
@@ -146,14 +149,14 @@ void PanelChannelEdit::updatePreview()
         std::this_thread::sleep_for(500ms);
         do {
           if(nullptr != mPreviewImage) {
-            int imgIndex = mWindowMain->getSelectedFileIndex();
+            int imgIndex = getWindowMain()->getSelectedFileIndex();
             if(imgIndex >= 0) {
-              auto *controller = mWindowMain->getController();
+              auto *controller = getWindowMain()->getController();
               try {
-                int32_t resolution = mWindowMain->getImageResolutionCombo()->currentData().toInt();
-                int32_t series     = mWindowMain->getImageSeriesCombo()->currentData().toInt();
+                int32_t resolution = getWindowMain()->getImageResolutionCombo()->currentData().toInt();
+                int32_t series     = getWindowMain()->getImageSeriesCombo()->currentData().toInt();
                 mParentContainer->toSettings();
-                auto imgProps = mWindowMain->getController()->getImageProperties(imgIndex, series);
+                auto imgProps = getWindowMain()->getController()->getImageProperties(imgIndex, series);
                 auto [tileNrX, tileNrY] =
                     imgProps.getImageInfo()
                         .resolutions.at(resolution)

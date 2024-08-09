@@ -32,7 +32,7 @@ namespace joda::ui::qt {
 using namespace std::chrono_literals;
 
 PanelIntersectionEdit::PanelIntersectionEdit(WindowMain *wm, ContainerIntersection *parentContainer) :
-    mWindowMain(wm), mParentContainer(parentContainer)
+    PanelEdit(wm), mParentContainer(parentContainer)
 {
   setObjectName("PanelIntersectionEdit");
   init();
@@ -59,9 +59,9 @@ void PanelIntersectionEdit::init()
   //
   // Signals from extern
   //
-  connect(mWindowMain->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this,
+  connect(getWindowMain()->getFoundFilesCombo(), &QComboBox::currentIndexChanged, this,
           &PanelIntersectionEdit::onValueChanged);
-  connect(mWindowMain->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this,
+  connect(getWindowMain()->getImageSeriesCombo(), &QComboBox::currentIndexChanged, this,
           &PanelIntersectionEdit::onValueChanged);
 }
 
