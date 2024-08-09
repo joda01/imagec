@@ -23,7 +23,7 @@ namespace joda::ui::qt {
 PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
 {
   auto *layout = new QVBoxLayout();
-  layout->setContentsMargins(0, 0, 0, 0);
+  // layout->setContentsMargins(0, 0, 0, 0);
   {
     mSearchField = new QLineEdit();
     mSearchField->setPlaceholderText("Search ...");
