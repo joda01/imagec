@@ -36,11 +36,11 @@ class WindowMain;
 namespace joda::ui::qt {
 
 ///
-/// \class      PanelReporting
+/// \class      PanelResults
 /// \author     Joachim Danmayr
 /// \brief      Heatmap panel
 ///
-class PanelReporting : public PanelEdit
+class PanelResults : public PanelEdit
 {
   Q_OBJECT
 
@@ -66,7 +66,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelReporting(WindowMain *win);
+  PanelResults(WindowMain *win);
   void openFromFile(const QString &pathToDbFile);
   void setData(const SelectedFilter &);
   [[nodiscard]] Navigation getActualNavigation() const

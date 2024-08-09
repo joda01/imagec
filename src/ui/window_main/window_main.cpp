@@ -54,7 +54,7 @@
 #include "ui/container/voronoi/container_voronoi.hpp"
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
-#include "ui/reporting/panel_reporting.hpp"
+#include "ui/results/panel_results.hpp"
 #include "ui/window_main/panel_image.hpp"
 #include "ui/window_main/panel_pipeline.hpp"
 #include "ui/window_main/panel_project_settings.hpp"
@@ -76,6 +76,18 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setObjectName("windowMain");
   setCentralWidget(createStackedWidget());
   showProjectOverview();
+
+  getController()->registerWorkingDirectoryCallback([this](joda::helper::fs::State state) {
+    if(state == joda::helper::fs::State::FINISHED) {
+      if(getController()->getNrOfFoundImages() > 0) {
+        mStartAnalysis->setEnabled(true);
+      } else {
+        mStartAnalysis->setEnabled(false);
+      }
+    } else if(state == joda::helper::fs::State::RUNNING) {
+      mStartAnalysis->setEnabled(false);
+    }
+  });
 }
 
 void WindowMain::setWindowTitlePrefix(const QString &txt)
@@ -100,7 +112,8 @@ void WindowMain::createTopToolbar()
   // connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onOpenSettingsDialog);
   toolbar->addAction(mNewProjectButton);
 
-  mOpenProjectButton = new QAction(QIcon(":/icons/outlined/icons8-opened-folder-50.png"), "Open project", toolbar);
+  mOpenProjectButton =
+      new QAction(QIcon(":/icons/outlined/icons8-opened-folder-50.png"), "Open project or results", toolbar);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
   toolbar->addAction(mOpenProjectButton);
 
@@ -110,15 +123,9 @@ void WindowMain::createTopToolbar()
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
   toolbar->addAction(mSaveProject);
 
-  toolbar->addSeparator();
-
-  mStartAnalysis = new QAction(QIcon(":/icons/outlined/icons8-play-50.png"), "Start", toolbar);
-  mStartAnalysis->setEnabled(false);
-  mStartAnalysis->setToolTip("Start analysis!");
-  connect(mStartAnalysis, &QAction::triggered, this, &WindowMain::onStartClicked);
-  toolbar->addAction(mStartAnalysis);
-
-  toolbar->addSeparator();
+  auto *spacerTop = new QWidget();
+  spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  toolbar->addWidget(spacerTop);
 
   mShowInfoDialog = new QAction(QIcon(":/icons/outlined/icons8-info-50.png"), "Info", toolbar);
   mShowInfoDialog->setToolTip("Info");
@@ -150,17 +157,28 @@ void WindowMain::createLeftToolbar()
     //
     // Open template
     //
+    auto *innerLayout  = new QHBoxLayout();
     mTemplateSelection = new QComboBox();
-    mTemplateSelection->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    layout->addWidget(mTemplateSelection);
-    connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
-    loadTemplates();
+    innerLayout->addWidget(mTemplateSelection);
+
+    mStartAnalysis = new QPushButton(QIcon(":/icons/outlined/icons8-play-50.png"), "");
+    mStartAnalysis->setEnabled(false);
+    mStartAnalysis->setToolTip("Run pipeline!");
+    innerLayout->addWidget(mStartAnalysis);
+
+    innerLayout->setStretch(0, 1);
+    layout->addLayout(innerLayout);
+
     // Channel list
     mPanelPipeline = new PanelPipeline(this, mAnalyzeSettings);
     layout->addWidget(mPanelPipeline);
 
     pipelineTab->setLayout(layout);
     tabs->addTab(pipelineTab, "Pipeline");
+
+    connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
+    connect(mStartAnalysis, &QPushButton::clicked, this, &WindowMain::onStartClicked);
+    loadTemplates();
   }
 
   // Images Tab
@@ -171,7 +189,7 @@ void WindowMain::createLeftToolbar()
 
   // Reportings tab
   {
-    tabs->addTab(new QWidget(), "Reportings");
+    tabs->addTab(new QWidget(), "Results");
   }
 
   mSidebar->addWidget(tabs);
@@ -207,7 +225,7 @@ QWidget *WindowMain::createChannelWidget()
 ///
 QWidget *WindowMain::createReportingWidget()
 {
-  mPanelReporting = new PanelReporting(this);
+  mPanelReporting = new PanelResults(this);
   return mPanelReporting;
 }
 
@@ -242,15 +260,15 @@ void WindowMain::onOpenClicked()
     openProjectSettings(filePath);
   }
   if(filePath.endsWith(".imcdbres")) {
-    openReportingSettings(filePath);
+    openResultsSettings(filePath);
   }
 }
 
 ///
-/// \brief      Open reporting settings
+/// \brief      Open results settings
 /// \author     Joachim Danmayr
 ///
-void WindowMain::openReportingSettings(const QString &filePath)
+void WindowMain::openResultsSettings(const QString &filePath)
 {
   mPanelReporting->openFromFile(filePath);
 }
@@ -309,11 +327,11 @@ void WindowMain::checkForSettingsChanged()
 {
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
-    mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50-red.png"));
+    // mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50-red.png"));
     mSaveProject->setEnabled(true);
   } else {
     // Equal
-    mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50.png"));
+    // mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50.png"));
     mSaveProject->setEnabled(false);
   }
 }

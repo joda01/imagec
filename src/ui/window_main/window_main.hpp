@@ -36,7 +36,7 @@
 namespace joda::ui::qt {
 
 class ContainerChannel;
-class PanelReporting;
+class PanelResults;
 
 ///
 /// \class
@@ -101,7 +101,7 @@ private:
   void loadTemplates();
 
   void openProjectSettings(const QString &filePath);
-  void openReportingSettings(const QString &filePath);
+  void openResultsSettings(const QString &filePath);
 
   QWidget *createStackedWidget();
   QWidget *createChannelWidget();
@@ -122,12 +122,13 @@ private:
   PanelProjectSettings *mPanelProjectSettings;
   PanelPipeline *mPanelPipeline;
   PanelImages *mPanelImages;
+  QPushButton *mStartAnalysis = nullptr;
 
   ////Stacked widget/////////////////////////////////////////////////
   QStackedWidget *mStackedWidget;
   Navigation mNavigation          = Navigation::PROJECT_OVERVIEW;
   ContainerBase *mSelectedChannel = nullptr;
-  PanelReporting *mPanelReporting = nullptr;
+  PanelResults *mPanelReporting   = nullptr;
 
   ////Sidebar panels/////////////////////////////////////////////////
   QComboBox *mTemplateSelection;
@@ -136,7 +137,6 @@ private:
   QAction *mNewProjectButton  = nullptr;
   QAction *mOpenProjectButton = nullptr;
   QAction *mSaveProject       = nullptr;
-  QAction *mStartAnalysis     = nullptr;
   QAction *mShowInfoDialog    = nullptr;
 
 private slots:

@@ -11,7 +11,7 @@
 /// \brief     A short description what happens here.
 ///
 
-#include "panel_reporting.hpp"
+#include "panel_results.hpp"
 #include <qaction.h>
 #include <qboxlayout.h>
 #include <qcombobox.h>
@@ -40,7 +40,7 @@
 #include "ui/container/panel_edit_base.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
-#include "ui/reporting/dialog_export_data.hpp"
+#include "ui/results/dialog_export_data.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui::qt {
@@ -49,7 +49,7 @@ namespace joda::ui::qt {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelReporting::PanelReporting(WindowMain *windowMain) : PanelEdit(windowMain), mWindowMain(windowMain)
+PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain), mWindowMain(windowMain)
 {
   helper::LayoutGenerator layout(this);
   // Drop downs
@@ -59,8 +59,8 @@ PanelReporting::PanelReporting(WindowMain *windowMain) : PanelEdit(windowMain), 
   auto *col  = layout.addVerticalPanel();
   mHeatmap01 = new ChartHeatMap(this);
   mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelReporting::onElementSelected);
-  connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelReporting::onOpenNextLevel);
+  connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
+  connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
   col->addWidget(mHeatmap01);
 
   repaintHeatmap();
@@ -72,8 +72,8 @@ PanelReporting::PanelReporting(WindowMain *windowMain) : PanelEdit(windowMain), 
 
 
     mHeatmap01 = new ChartHeatMap(this);
-    connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelReporting::onElementSelected);
-    connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelReporting::onOpenNextLevel);
+    connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
+    connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
     auto *breadCrump = createBreadCrump(this);
     plateViewer->setContentsMargins(16, 0, 16, 16);
     plateViewer->addWidget(breadCrump);
@@ -136,7 +136,7 @@ PanelReporting::PanelReporting(WindowMain *windowMain) : PanelEdit(windowMain), 
                                               windowMain, "reporting_mark_as_invalid.imcjsproj"));
         verticalLayoutMeta->addWidget(mMarkAsInvalid->getEditableWidget());
         connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this,
-    &PanelReporting::onMarkAsInvalidClicked);
+    &PanelResults::onMarkAsInvalidClicked);
 
         _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
         mImageInfoWidget->setVisible(false);
@@ -161,7 +161,7 @@ PanelReporting::PanelReporting(WindowMain *windowMain) : PanelEdit(windowMain), 
         verticalLayoutMeta->addWidget(mAreaMeta->getEditableWidget());
 
         auto saveImageButton = new ContainerButton("Export", "icons8-export-excel-50.png", windowMain);
-        connect(saveImageButton, &ContainerButton::valueChanged, this, &PanelReporting::onExportImageClicked);
+        connect(saveImageButton, &ContainerButton::valueChanged, this, &PanelResults::onExportImageClicked);
         verticalLayoutMeta->addWidget(saveImageButton->getEditableWidget());
 
         _2->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
@@ -176,7 +176,7 @@ PanelReporting::PanelReporting(WindowMain *windowMain) : PanelEdit(windowMain), 
   setLayout(horizontalLayout);*/
 }
 
-void PanelReporting::valueChangedEvent()
+void PanelResults::valueChangedEvent()
 {
 }
 
@@ -184,25 +184,25 @@ void PanelReporting::valueChangedEvent()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *toolbar)
+void PanelResults::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *toolbar)
 {
   // Back button
   mBackButton = new QPushButton(QIcon(":/icons/outlined/icons8-left-50.png"), "");
   mBackButton->setEnabled(false);
-  connect(mBackButton, &QPushButton::pressed, this, &PanelReporting::onBackClicked);
+  connect(mBackButton, &QPushButton::pressed, this, &PanelResults::onBackClicked);
   toolbar->addItemToTopToolbar(mBackButton);
 
   //
   //
   mChannelSelector = new QComboBox();
-  connect(mChannelSelector, &QComboBox::currentIndexChanged, this, &PanelReporting::onChannelChanged);
+  connect(mChannelSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onChannelChanged);
   toolbar->addItemToTopToolbar(mChannelSelector);
 
   //
   //
   mMeasurementSelector = new QComboBox();
 
-  connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelReporting::onMeasurementChanged);
+  connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mMeasurementSelector);
 
   //
@@ -215,7 +215,7 @@ void PanelReporting::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *too
   mStatsSelector->addItem("STDDEV", (int32_t) joda::results::Stats::STDDEV);
   mStatsSelector->addItem("SUM", (int32_t) joda::results::Stats::SUM);
   mStatsSelector->addItem("CNT", (int32_t) joda::results::Stats::CNT);
-  connect(mStatsSelector, &QComboBox::currentIndexChanged, this, &PanelReporting::onMeasurementChanged);
+  connect(mStatsSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mStatsSelector);
 }
 
@@ -226,7 +226,7 @@ void PanelReporting::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *too
 /// \param[out]
 /// \return
 ///
-void PanelReporting::setAnalyzer()
+void PanelResults::setAnalyzer()
 {
   std::string analysisId;
   {
@@ -263,12 +263,12 @@ void PanelReporting::setAnalyzer()
 /// \param[out]
 /// \return
 ///
-void PanelReporting::onChannelChanged()
+void PanelResults::onChannelChanged()
 {
   for(const auto &channel : mChannelInfos) {
     if(static_cast<uint32_t>(channel.channelId) == mChannelSelector->currentData().toUInt()) {
       auto lastSelected = mMeasurementSelector->currentData().toUInt();
-      disconnect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelReporting::onMeasurementChanged);
+      disconnect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
       mMeasurementSelector->clear();
       int32_t lastSelectedKeyIdx = -1;
       uint32_t idx               = 0;
@@ -281,7 +281,7 @@ void PanelReporting::onChannelChanged()
       }
 
       mMeasurementSelector->setCurrentIndex(lastSelectedKeyIdx);
-      connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelReporting::onMeasurementChanged);
+      connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
       onMeasurementChanged();
       break;
     }
@@ -295,11 +295,11 @@ void PanelReporting::onChannelChanged()
 /// \param[out]
 /// \return
 ///
-void PanelReporting::onMeasurementChanged()
+void PanelResults::onMeasurementChanged()
 {
   const auto &expSettings = mWindowMain->getExperimentSettings();
 
-  mFilter = PanelReporting::SelectedFilter{
+  mFilter = PanelResults::SelectedFilter{
       .analyzeId          = mAnalyzeId,
       .plateRows          = expSettings.plateSize.rows,
       .plateCols          = expSettings.plateSize.cols,
@@ -316,7 +316,7 @@ void PanelReporting::onMeasurementChanged()
 /// \brief      Export image
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::onExportImageClicked()
+void PanelResults::onExportImageClicked()
 {
   cv::Rect rectangle;
   rectangle.x      = mSelectedAreaPos.y * mFilter.densityMapAreaSize;    // Images are mirrored in the coordinates
@@ -344,7 +344,7 @@ void PanelReporting::onExportImageClicked()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::onMarkAsInvalidClicked()
+void PanelResults::onMarkAsInvalidClicked()
 {
   if(mMarkAsInvalid->getValue()) {
     mAnalyzer->markImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
@@ -360,7 +360,7 @@ void PanelReporting::onMarkAsInvalidClicked()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::setData(const SelectedFilter &filter)
+void PanelResults::setData(const SelectedFilter &filter)
 {
   mFilter = filter;
   repaintHeatmap();
@@ -370,7 +370,7 @@ void PanelReporting::setData(const SelectedFilter &filter)
 /// \brief      An element has been selected
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::onElementSelected(int cellX, int cellY, results::TableCell value)
+void PanelResults::onElementSelected(int cellX, int cellY, results::TableCell value)
 {
   switch(mNavigation) {
     case Navigation::PLATE: {
@@ -394,15 +394,14 @@ void PanelReporting::onElementSelected(int cellX, int cellY, results::TableCell 
       mSelectedImageId = value.getId();
 
       disconnect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this,
-                 &PanelReporting::onMarkAsInvalidClicked);
+                 &PanelResults::onMarkAsInvalidClicked);
 
       if(imageChannelMeta.validity.test(results::ChannelValidityEnum::MANUAL_OUT_SORTED)) {
         mMarkAsInvalid->setValue(true);
       } else {
         mMarkAsInvalid->setValue(false);
       }
-      connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this,
-              &PanelReporting::onMarkAsInvalidClicked);
+      connect(mMarkAsInvalid.get(), &ContainerFunctionBase::valueChanged, this, &PanelResults::onMarkAsInvalidClicked);
       mImageInfoWidget->setVisible(true);
       mAreaInfoWidget->setVisible(false);
     }
@@ -424,7 +423,7 @@ void PanelReporting::onElementSelected(int cellX, int cellY, results::TableCell 
 /// \brief      Open the next deeper level form the element with given id
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::onOpenNextLevel(int cellX, int cellY, results::TableCell value)
+void PanelResults::onOpenNextLevel(int cellX, int cellY, results::TableCell value)
 {
   int actMenu = static_cast<int>(mNavigation);
   actMenu++;
@@ -452,7 +451,7 @@ void PanelReporting::onOpenNextLevel(int cellX, int cellY, results::TableCell va
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::onBackClicked()
+void PanelResults::onBackClicked()
 {
   int actMenu = static_cast<int>(mNavigation);
   actMenu--;
@@ -466,7 +465,7 @@ void PanelReporting::onBackClicked()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::repaintHeatmap()
+void PanelResults::repaintHeatmap()
 {
   if(!mIsLoading) {
     mIsLoading = true;
@@ -494,7 +493,7 @@ void PanelReporting::repaintHeatmap()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::paintPlate()
+void PanelResults::paintPlate()
 {
   mBackButton->setEnabled(false);
   if(mAnalyzer) {
@@ -529,7 +528,7 @@ void PanelReporting::paintPlate()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::paintWell()
+void PanelResults::paintWell()
 {
   mBackButton->setEnabled(true);
   if(mAnalyzer) {
@@ -546,7 +545,7 @@ void PanelReporting::paintWell()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::paintImage()
+void PanelResults::paintImage()
 {
   mBackButton->setEnabled(true);
   if(mAnalyzer) {
@@ -562,7 +561,7 @@ void PanelReporting::paintImage()
 /// \brief      Export to xlsx
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::onExportClicked()
+void PanelResults::onExportClicked()
 {
   DialogExportData exportData(mWindowMain);
   auto measureChannelsToExport = exportData.execute();
@@ -653,7 +652,7 @@ void PanelReporting::onExportClicked()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void PanelReporting::openFromFile(const QString &pathToDbFile)
+void PanelResults::openFromFile(const QString &pathToDbFile)
 {
   if(pathToDbFile.isEmpty()) {
     return;

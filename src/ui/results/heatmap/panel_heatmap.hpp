@@ -25,7 +25,7 @@
 
 namespace joda::ui::qt {
 
-class PanelReporting;
+class PanelResults;
 
 struct Point
 {
@@ -62,7 +62,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  ChartHeatMap(PanelReporting *parent);
+  ChartHeatMap(PanelResults *parent);
   void setData(std::weak_ptr<joda::results::Analyzer> analyzer, const joda::results::Table &, MatrixForm form,
                PaintControlImage paint, int32_t newHierarchy);
 
@@ -109,7 +109,7 @@ private:
   static inline const uint32_t HEATMAP_COLOR_ROW_TEXT_HEIGHT = 25;
 
   std::weak_ptr<joda::results::Analyzer> mAnalyzer;
-  PanelReporting *mParent;
+  PanelResults *mParent;
   MatrixForm mForm = MatrixForm::CIRCLE;
   PaintControlImage mPaintCtrlImage;
   HeatmapMinMax mMinMaxMode = HeatmapMinMax::AUTO;

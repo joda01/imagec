@@ -30,7 +30,7 @@
 #include <random>
 #include <string>
 #include <utility>
-#include "../panel_reporting.hpp"
+#include "../panel_results.hpp"
 #include "backend/results/analyzer/plugins/control_image.hpp"
 #include "backend/results/analyzer/plugins/heatmap_for_image.hpp"
 #include "backend/results/analyzer/plugins/heatmap_for_plate.hpp"
@@ -40,7 +40,7 @@
 #include "ui/container/container_label.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
-#include "ui/reporting/dialog_export_data.hpp"
+#include "ui/results/dialog_export_data.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui::qt {
@@ -49,7 +49,7 @@ namespace joda::ui::qt {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-ChartHeatMap::ChartHeatMap(PanelReporting *parent) : QWidget(parent), mParent(parent)
+ChartHeatMap::ChartHeatMap(PanelResults *parent) : QWidget(parent), mParent(parent)
 {
   setMinimumSize(parent->size());
   setMouseTracking(true);
