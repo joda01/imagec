@@ -12,7 +12,7 @@
 
 namespace joda::helper {
 
-inline auto timeNowToString() -> std::string
+inline auto timeNowToString() -> std::tuple<std::string, std::chrono::system_clock::time_point>
 {
   auto now               = std::chrono::system_clock::now();
   std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -20,7 +20,7 @@ inline auto timeNowToString() -> std::string
   std::stringstream ss;
   ss << std::put_time(&now_tm, "%Y-%m-%dT%H%M%S");
   std::string now_str = ss.str();
-  return now_str;
+  return {now_str, now};
 }
 
 inline auto getFileNameFromPath(const std::filesystem::path &filePathIn) -> std::string

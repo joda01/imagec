@@ -103,6 +103,11 @@ public:
     return mResults.getOutputFolder();
   }
 
+  [[nodiscard]] const std::chrono::system_clock::time_point getTimestamp() const
+  {
+    return mResults.getTimestamp();
+  }
+
 protected:
   /////////////////////////////////////////////////////
   [[noreturn]] void setStateError(const std::string &what) noexcept(false)

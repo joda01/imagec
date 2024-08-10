@@ -77,6 +77,16 @@ public:
       -> pipeline::Pipeline::ThreadingSettings;
   [[nodiscard]] std::string getOutputFolder() const;
 
+  struct JobInformation
+  {
+    std::filesystem::path ouputFolder;
+    std::filesystem::path resultsFilePath;
+    std::string jobName;
+    std::chrono::system_clock::time_point timestamp;
+  };
+
+  [[nodiscard]] JobInformation getJobInformation() const;
+
 private:
   /////////////////////////////////////////////////////
   joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> mWorkingDirectory;

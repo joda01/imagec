@@ -17,6 +17,7 @@
 #include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
+#include <filesystem>
 #include <optional>
 #include <utility>
 #include "backend/settings/analze_settings.hpp"
@@ -56,6 +57,9 @@ public:
   void setData(const DataSet &);
   [[nodiscard]] auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
   [[nodiscard]] auto getPlateSize() const -> QSize;
+  void addResultsFileToHistory(const std::filesystem::path &dbFile, const std::string &jobName,
+                               const std::chrono::system_clock::time_point &time);
+  void clearHistory();
 
 signals:
   void settingsChanged();
@@ -63,10 +67,15 @@ signals:
 private:
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
+  PlaceholderTableWidget *mLastLoadedResults;
   PlaceholderTableWidget *mResultsProperties;
+  std::set<std::string> mAddedPaths;
 
   /////////////////////////////////////////////////////
   QComboBox *mPlateSize;
   QLineEdit *mWellOrderMatrix;
+
+private slots:
+  void filterResults();
 };
 }    // namespace joda::ui::qt

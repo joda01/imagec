@@ -349,6 +349,7 @@ void WindowMain::onNewProjectClicked()
   }
 
   showPanelStartPage();
+  mPanelResultsInfo->clearHistory();
   mSelectedProjectSettingsFilePath.clear();
   mAnalyzeSettings    = {};
   mAnalyzeSettingsOld = {};
@@ -566,6 +567,8 @@ void WindowMain::onStartClicked()
     joda::settings::Settings::checkSettings(mAnalyzeSettings);
     DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
     dialg.exec();
+    auto jobIinfo = getController()->getJobInformation();
+    mPanelResultsInfo->addResultsFileToHistory(jobIinfo.resultsFilePath, jobIinfo.jobName, jobIinfo.timestamp);
     // Analysis finished -> generate new name
     mPanelProjectSettings->generateNewJobName();
   } catch(const std::exception &ex) {

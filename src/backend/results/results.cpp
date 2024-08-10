@@ -82,10 +82,11 @@ Results::Results(const std::filesystem::path &pathToRawData, const ExperimentSet
 ///
 void Results::prepareOutputFolders(const std::filesystem::path &resultsFolder)
 {
-  auto nowString      = ::joda::helper::timeNowToString();
-  mOutputFolder       = resultsFolder / (nowString + "_" + mExperimentSettings.analyzeName);
-  mOutputFolderImages = mOutputFolder / mAnalyzeId / CONTROL_IMAGE_PATH;
-  mDatabaseFileName   = mOutputFolder / DB_FILENAME;
+  auto [nowString, time] = ::joda::helper::timeNowToString();
+  mTimestamp             = time;
+  mOutputFolder          = resultsFolder / (nowString + "_" + mExperimentSettings.analyzeName);
+  mOutputFolderImages    = mOutputFolder / mAnalyzeId / CONTROL_IMAGE_PATH;
+  mDatabaseFileName      = mOutputFolder / DB_FILENAME;
 
   if(!std::filesystem::exists(mOutputFolder)) {
     std::filesystem::create_directories(mOutputFolder);

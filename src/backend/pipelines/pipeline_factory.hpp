@@ -84,6 +84,8 @@ public:
                                                 threadingSettings);
     if(mJob != nullptr) {
       mLastOutputFolder = mJob->getOutputFolder().string();
+      mLastJobName      = analyzeName;
+      mLastJobTime      = mJob->getTimestamp();
     }
     return analyzeId;
   };
@@ -115,6 +117,16 @@ public:
     return mLastOutputFolder;
   }
 
+  static auto getTimestamp(const std::string analyzeId) -> std::chrono::system_clock::time_point
+  {
+    return mLastJobTime;
+  }
+
+  static auto getJobName(const std::string analyzeId) -> std::string
+  {
+    return mLastJobName;
+  }
+
 private:
   ///
   /// \brief      Observes running threads and clean up finished ones
@@ -143,6 +155,8 @@ private:
   static inline joda::pipeline::Pipeline::ProgressIndicator mLastJobProgressIndicator;
   static inline std::string mLastErrorMessage;
   static inline std::string mLastOutputFolder;
+  static inline std::string mLastJobName;
+  static inline std::chrono::system_clock::time_point mLastJobTime;
   static inline std::unique_ptr<Pipeline> mJob = nullptr;
   static inline std::shared_ptr<std::thread> mMainThread;
   static inline bool mStopped = false;

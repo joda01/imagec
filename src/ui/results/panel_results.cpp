@@ -594,6 +594,12 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   try {
     mAnalyzer = std::make_unique<joda::results::Analyzer>(std::filesystem::path(pathToDbFile.toStdString()));
     setAnalyzer();
+    if(mSelectedDataSet.analyzeMeta.has_value()) {
+      getWindowMain()->getPanelResultsInfo()->addResultsFileToHistory(std::filesystem::path(pathToDbFile.toStdString()),
+                                                                      mSelectedDataSet.analyzeMeta->name,
+                                                                      mSelectedDataSet.analyzeMeta->timestamp);
+    }
+
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);

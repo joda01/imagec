@@ -93,6 +93,18 @@ std::string Controller::getOutputFolder() const
 }
 
 ///
+/// \brief      Get job information of the actual job
+/// \author     Joachim Danmayr
+///
+[[nodiscard]] Controller::JobInformation Controller::getJobInformation() const
+{
+  return {.ouputFolder     = std::filesystem::path(getOutputFolder()),
+          .resultsFilePath = std::filesystem::path(getOutputFolder()) / joda::results::Results::DB_FILENAME,
+          .jobName         = joda::pipeline::PipelineFactory::getJobName(mActProcessId),
+          .timestamp       = joda::pipeline::PipelineFactory::getTimestamp(mActProcessId)};
+}
+
+///
 /// \brief      Sets the working directory
 /// \author     Joachim Danmayr
 ///

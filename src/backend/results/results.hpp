@@ -73,6 +73,11 @@ struct GroupInformation
 class Results
 {
 public:
+  /////////////////////////////////////////////////////
+  static inline const std::string DB_FILENAME{"results.icresult"};
+  static inline const std::filesystem::path CONTROL_IMAGE_PATH{"images"};
+  static inline const std::string CONTROL_IMAGES_FILE_EXTENSION{".png"};
+
   struct DetailReportAdder
   {
     std::shared_ptr<duckdb::Connection> connection;
@@ -102,14 +107,12 @@ public:
     return mOutputFolder;
   }
 
+  const std::chrono::system_clock::time_point &getTimestamp() const
+  {
+    return mTimestamp;
+  }
+
 private:
-  /////////////////////////////////////////////////////
-  static inline const std::string DB_FILENAME{"results.icresult"};
-  static inline const std::filesystem::path CONTROL_IMAGE_PATH{"images"};
-  static inline const std::string CONTROL_IMAGES_FILE_EXTENSION{".png"};
-
-  /////////////////////////////////////////////////////
-
   /////////////////////////////////////////////////////
   std::filesystem::path createControlImage(const joda::image::detect::DetectionResponse &result,
                                            const joda::settings::ChannelSettingsMeta &channelSettings, uint16_t tileIdx,
@@ -118,6 +121,7 @@ private:
 
   /////////////////////////////////////////////////////
   ExperimentSetting mExperimentSettings;
+  std::chrono::system_clock::time_point mTimestamp;
   std::filesystem::path mPathToRawData;
   std::filesystem::path mOutputFolder;
   std::filesystem::path mDatabaseFileName;
