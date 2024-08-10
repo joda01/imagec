@@ -28,32 +28,34 @@
 #include "backend/image_processing/functions/threshold/threshold_otsu.hpp"
 #include "backend/image_processing/functions/threshold/threshold_triangel.hpp"
 #include "backend/settings/detection/detection_settings_threshold.hpp"
+#include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 namespace joda::image::segment {
 
-ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, uint16_t thresholdValue,
-                                       joda::settings::ThresholdSettings::Mode method, bool doWatershed) :
+ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, uint16_t thresholdValueMin,
+                                       uint16_t thresholdValueMax, joda::settings::ThresholdSettings::Mode method,
+                                       bool doWatershed) :
     DetectionFunction(filt),
     mDoWatershed(doWatershed)
 {
   switch(method) {
     case joda::settings::ThresholdSettings::Mode::LI:
-      mThresoldMethod = std::make_shared<image::func::ThresholdLi>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdLi>(thresholdValueMin, thresholdValueMax);
       break;
     case joda::settings::ThresholdSettings::Mode::TRIANGLE:
-      mThresoldMethod = std::make_shared<image::func::ThresholdTriangle>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdTriangle>(thresholdValueMin, thresholdValueMax);
       break;
     case joda::settings::ThresholdSettings::Mode::MIN_ERROR:
-      mThresoldMethod = std::make_shared<image::func::ThresholdMinError>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdMinError>(thresholdValueMin, thresholdValueMax);
       break;
     case joda::settings::ThresholdSettings::Mode::MOMENTS:
-      mThresoldMethod = std::make_shared<image::func::ThresholdMoments>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdMoments>(thresholdValueMin, thresholdValueMax);
       break;
     case joda::settings::ThresholdSettings::Mode::OTSU:
-      mThresoldMethod = std::make_shared<image::func::ThresholdOtsu>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdOtsu>(thresholdValueMin, thresholdValueMax);
       break;
 
     default:
@@ -69,7 +71,7 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
     case joda::settings::ThresholdSettings::Mode::YEN:
       joda::log::logWarning("Not supported threshold algorithm selected. Using MANUAL as fallback.");
     case joda::settings::ThresholdSettings::Mode::MANUAL:
-      mThresoldMethod = std::make_shared<image::func::ThresholdManual>(thresholdValue);
+      mThresoldMethod = std::make_shared<image::func::ThresholdManual>(thresholdValueMin, thresholdValueMax);
       break;
   }
 }
@@ -80,7 +82,7 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
   auto id = DurationCount::start("ObjectSegmentation");
 
   cv::Mat binaryImage;
-  uint16_t usedThersholdVal = mThresoldMethod->execute(srcImg, binaryImage);
+  auto [usedThersholdValMin, usedThersholdValMax] = mThresoldMethod->execute(srcImg, binaryImage);
   if(mDoWatershed) {
     joda::image::func::Watershed watershed;
     watershed.execute(binaryImage);
@@ -102,9 +104,6 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
     return {.result = std::move(response)};
   }
 
-  cv::Mat boxMask = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
-  cv::fillPoly(boxMask, contours, cv::Scalar(255));
-
   auto ro = DurationCount::start("Add to ROI");
 
   // Create a mask for each contour and draw bounding boxes
@@ -115,17 +114,19 @@ auto ObjectSegmentation::forward(const cv::Mat &srcImg, const cv::Mat &originalI
     // In other words if there is a particle with a hole, ignore the hole.
     // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
     if(hierarchy[i][3] == -1) {
-      auto boundingBox = cv::boundingRect(contour);
-      cv::Mat mask     = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
+      auto boundingBox  = cv::boundingRect(contour);
+      cv::Mat mask      = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
+      cv::Mat imagePart = binaryImage(boundingBox).clone();
+
       // Bring the contours box in the area of the bounding box
       for(auto &point : contour) {
         point.x = point.x - boundingBox.x;
         point.y = point.y - boundingBox.y;
       }
-      std::vector<std::vector<cv::Point>> contoursToPaint;
-      contoursToPaint.push_back(contour);    // fillPoly expects a vector of contours
-      fillPoly(mask, contoursToPaint, cv::Scalar(255));
-      ROI detect(idx, usedThersholdVal, 0, boundingBox, mask, contour, originalImage, channelIndex,
+      cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
+      // Remove inner holes
+      cv::bitwise_and(mask, imagePart, mask);
+      ROI detect(idx, usedThersholdValMin, 0, boundingBox, mask, contour, originalImage, channelIndex,
                  getFilterSettings());
       idx++;
       response->push_back(detect);

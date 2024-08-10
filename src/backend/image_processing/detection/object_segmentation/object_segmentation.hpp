@@ -28,8 +28,8 @@ class ObjectSegmentation : public joda::image::detect::DetectionFunction
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, uint16_t thresholdValue,
-                     joda::settings::ThresholdSettings::Mode method, bool doWatershed);
+  ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, uint16_t thresholdValueMin,
+                     uint16_t thresholdValueMax, joda::settings::ThresholdSettings::Mode method, bool doWatershed);
   auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
       -> joda::image::detect::DetectionResponse override;
 

@@ -121,6 +121,17 @@ void Settings::checkSettings(const joda::settings::AnalyzeSettings &settings)
   index.emplace(joda::settings::ChannelIndex::NONE);    // None is always allowed
 
   //
+  // Check for experiment settings
+  //
+  if(settings.experimentSettings.scientistsNames.empty()) {
+    throw std::runtime_error("Scientist name must not be empty!");
+  }
+
+  if(settings.experimentSettings.address.organization.empty()) {
+    throw std::runtime_error("Organization name must not be empty!");
+  }
+
+  //
   // Check for double indexes and names
   //
   auto checkMap = [&index, &channelName](joda::settings::ChannelIndex idx, const std::string &name) {

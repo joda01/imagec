@@ -80,6 +80,7 @@ private:
 
   std::shared_ptr<ContainerFunction<joda::settings::ThresholdSettings::Mode, QString>> mThresholdAlgorithm;
   std::shared_ptr<ContainerFunction<int, int>> mThresholdValueMin;
+  std::shared_ptr<ContainerFunction<int, int>> mThresholdValueMax;
   std::shared_ptr<ContainerFunction<bool, bool>> mWateredSegmentation;
 
   // Filtering

@@ -35,7 +35,8 @@ auto ObjectSegmentation::execute(const cv::Mat &img, const cv::Mat &imgOriginal,
   if(channelSetting.detection.detectionMode == settings::DetectionSettings::DetectionMode::THRESHOLD) {
     joda::image::segment::ObjectSegmentation th(
         channelSetting.objectFilter, channelSetting.detection.threshold.thresholdMin,
-        channelSetting.detection.threshold.mode, channelSetting.detection.threshold.$watershedSegmentation.enabled);
+        channelSetting.detection.threshold.thresholdMax, channelSetting.detection.threshold.mode,
+        channelSetting.detection.threshold.$watershedSegmentation.enabled);
     return th.forward(img, imgOriginal, channelSetting.meta.channelIdx);
   } else {
     auto modelData = getAvailableModels().find(channelSetting.detection.ai.modelPath);

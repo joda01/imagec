@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -46,7 +47,7 @@ public:
   // Maximum threshold value (default 65535)
   // [0-65535]
   //
-  uint16_t thresholdMax = 0;
+  uint16_t thresholdMax = UINT16_MAX;
 
   struct Watershed
   {

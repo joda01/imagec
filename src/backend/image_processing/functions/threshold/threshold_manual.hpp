@@ -30,9 +30,9 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  [[nodiscard]] uint16_t autoThreshold(const cv::Mat & /*srcImg*/) const override
+  [[nodiscard]] std::tuple<uint16_t, uint16_t> autoThreshold(const cv::Mat & /*srcImg*/) const override
   {
-    return getMinThreshold();
+    return {getMinThreshold(), getMaxThreshold()};
   }
 
   [[nodiscard]] uint16_t calcThresholdValue(cv::Mat & /*histogram*/) const override

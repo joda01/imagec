@@ -62,9 +62,9 @@ PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentConta
   {
     auto *col3 = layout().addVerticalPanel();
     col3->addGroup("Detection", {mParentContainer->mUsedDetectionMode, mParentContainer->mThresholdAlgorithm,
-                                 mParentContainer->mThresholdValueMin, mParentContainer->mAIModels,
-                                 mParentContainer->mMinProbability, mParentContainer->mWateredSegmentation,
-                                 mParentContainer->mSnapAreaSize});
+                                 mParentContainer->mThresholdValueMin, mParentContainer->mThresholdValueMax,
+                                 mParentContainer->mAIModels, mParentContainer->mMinProbability,
+                                 mParentContainer->mWateredSegmentation, mParentContainer->mSnapAreaSize});
     col3->addGroup("Filter", {mParentContainer->mMinParticleSize, mParentContainer->mMaxParticleSize,
                               mParentContainer->mMinCircularity, mParentContainer->mTetraspeckRemoval});
   }
@@ -107,6 +107,7 @@ void PanelChannelEdit::valueChangedEvent()
 
     mParentContainer->mThresholdAlgorithm->getEditableWidget()->setVisible(false);
     mParentContainer->mThresholdValueMin->getEditableWidget()->setVisible(false);
+    mParentContainer->mThresholdValueMax->getEditableWidget()->setVisible(false);
 
   } else {
     mParentContainer->mMinProbability->getEditableWidget()->setVisible(false);
@@ -114,6 +115,7 @@ void PanelChannelEdit::valueChangedEvent()
 
     mParentContainer->mThresholdAlgorithm->getEditableWidget()->setVisible(true);
     mParentContainer->mThresholdValueMin->getEditableWidget()->setVisible(true);
+    mParentContainer->mThresholdValueMax->getEditableWidget()->setVisible(true);
   }
 
   updatePreview(-1, -1);

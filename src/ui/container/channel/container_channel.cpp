@@ -103,6 +103,10 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
       new ContainerFunction<int, int>("icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "", 1000, 0, 65535,
                                       windowMain, "threshold_min.json"));
 
+  mThresholdValueMax = std::shared_ptr<ContainerFunction<int, int>>(
+      new ContainerFunction<int, int>("icons8-grayscale-50.png", "[0 - 65535]", "MAx. threshold", "", UINT16_MAX, 0,
+                                      65535, windowMain, "threshold_min.json"));
+
   mMinProbability = std::shared_ptr<ContainerFunction<float, float>>(
       new ContainerFunction<float, float>("icons8-percentage-50.png", "[0 - 1]", "Min. probability", "%", 0.5, 0, 1,
                                           windowMain, "ai_min_probability.json"));
@@ -282,6 +286,7 @@ void ContainerChannel::fromSettings(const joda::settings::ChannelSettings &setti
 
   mThresholdAlgorithm->clearValue();
   mThresholdValueMin->clearValue();
+  mThresholdValueMax->clearValue();
   mMinCircularity->clearValue();
   mMinParticleSize->clearValue();
   mMaxParticleSize->clearValue();
@@ -345,6 +350,7 @@ void ContainerChannel::fromSettings(const joda::settings::ChannelSettings &setti
   mUsedDetectionMode->setValue(settings.detection.detectionMode);
   mThresholdAlgorithm->setValue(settings.detection.threshold.mode);
   mThresholdValueMin->setValue(settings.detection.threshold.thresholdMin);
+  mThresholdValueMax->setValue(settings.detection.threshold.thresholdMax);
   mAIModels->setValue(settings.detection.ai.modelPath.data());
   mMinProbability->setValue(settings.detection.ai.minProbability);
   mWateredSegmentation->setValue(settings.detection.threshold.$watershedSegmentation.enabled);
@@ -490,9 +496,10 @@ void ContainerChannel::toSettings()
   // Detections
   mSettings.detection.detectionMode = mUsedDetectionMode->getValue();
 
-  mSettings.detection.threshold.mode                           = mThresholdAlgorithm->getValue();
-  mSettings.detection.threshold.thresholdMin                   = mThresholdValueMin->getValue();
-  mSettings.detection.threshold.thresholdMax                   = UINT16_MAX;
+  mSettings.detection.threshold.mode         = mThresholdAlgorithm->getValue();
+  mSettings.detection.threshold.thresholdMin = mThresholdValueMin->getValue();
+  mSettings.detection.threshold.thresholdMax = mThresholdValueMax->getValue();
+  ;
   mSettings.detection.threshold.$watershedSegmentation.enabled = mWateredSegmentation->getValue();
 
   mSettings.detection.ai.modelPath      = mAIModels->getValue().toStdString();

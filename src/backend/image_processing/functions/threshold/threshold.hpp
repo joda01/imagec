@@ -13,7 +13,10 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cstdint>
 #include "backend/image_processing/functions/watershed/watershed.hpp"
+#include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -28,18 +31,24 @@ namespace joda::image::func {
 class Threshold
 {
 public:
-  Threshold(uint16_t minThreshold) : mMinThreshold(minThreshold)
+  Threshold(uint16_t minThreshold, uint16_t maxThreshold) : mMinThreshold(minThreshold), mMaxThreshold(maxThreshold)
   {
   }
   virtual ~Threshold() = default;
 
-  virtual uint16_t execute(const cv::Mat &srcImg, cv::Mat &thresholdImg) const
+  virtual std::tuple<uint16_t, uint16_t> execute(const cv::Mat &srcImg, cv::Mat &thresholdImg) const
   {
-    auto thresholdVal = autoThreshold(srcImg);
-    cv::threshold(srcImg, thresholdImg, thresholdVal, UINT16_MAX, cv::THRESH_BINARY);
+    auto [thresholdValMin, thresholdValMax] = autoThreshold(srcImg);
+    cv::threshold(srcImg, thresholdImg, thresholdValMin, UINT16_MAX, cv::THRESH_BINARY);
+    cv::Mat thresholdTmp;
+    cv::threshold(srcImg, thresholdTmp, thresholdValMax, UINT16_MAX, cv::THRESH_BINARY_INV);
+    cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
+
+    imwrite("output.png", thresholdImg);
+
     // Watershed watershed;
     // watershed.execute(thresholdImg);
-    return thresholdVal;
+    return {thresholdValMin, thresholdValMax};
   }
 
 protected:
@@ -49,11 +58,16 @@ protected:
     return mMinThreshold;
   }
 
+  [[nodiscard]] uint16_t getMaxThreshold() const
+  {
+    return mMaxThreshold;
+  }
+
 private:
   /////////////////////////////////////////////////////
   [[nodiscard]] virtual uint16_t calcThresholdValue(cv::Mat &histogram) const = 0;
 
-  [[nodiscard]] virtual uint16_t autoThreshold(const cv::Mat &srcImg) const
+  [[nodiscard]] virtual std::tuple<uint16_t, uint16_t> autoThreshold(const cv::Mat &srcImg) const
   {
     //
     // Scale image
@@ -87,9 +101,9 @@ private:
     cv::calcHist(&charImg, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange);
     // histogram.at<float>(0) = 0;
 
-    auto thresholdTemp = calcThresholdValue(histogram) + 1;
+    auto thresholdTempMin = scaleAndSetThreshold(0, calcThresholdValue(histogram) + 1, min, max);
 
-    return std::max(getMinThreshold(), static_cast<uint16_t>(scaleAndSetThreshold(0, thresholdTemp, min, max)));
+    return {std::min(std::max(getMinThreshold(), thresholdTempMin), getMaxThreshold()), getMaxThreshold()};
   }
 
   /////////////////////////////////////////////////////
@@ -117,6 +131,7 @@ private:
 
   /////////////////////////////////////////////////////
   uint16_t mMinThreshold = 0;
+  uint16_t mMaxThreshold = 0;
 };
 
 }    // namespace joda::image::func
