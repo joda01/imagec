@@ -305,6 +305,9 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 ///
 void PanelImageView::drawThumbnail()
 {
+  if(mNrOfTilesX <= 1 && mNrOfTilesY <= 1) {
+    return;
+  }
   float rectHeight = THUMB_RECT_HEIGHT_NORMAL;
   float rectWidth  = THUMB_RECT_WIDTH_NORMAL;
   if(mThumbnailAreaEntered) {
