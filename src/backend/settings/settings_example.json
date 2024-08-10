@@ -1,0 +1,235 @@
+{
+    "projectSettings": {
+        "objectClasses": [
+            {
+                "classId": "1",
+                "name": "Spots",
+                "description": "ipsum lorem"
+            },
+            {
+                "classId": "2",
+                "name": "Background",
+                "description": "ipsum lorem"
+            }
+        ]
+    },
+    "pipelines": [
+        {
+            "meta": {
+                "name": "",
+                "icon": "",
+                "color": "#B91717"
+            },
+            "inputImage": {
+                "imageChannelIdx": "CH0",
+                "$zStack": "MaxIntensity",
+                "$tStack": "Individual"
+            },
+            "classifiers": [
+                {
+                    "preprocessing": [
+                        {
+                            "$rollingBall": {
+                                "ballSize": 4
+                            }
+                        },
+                        {
+                            "$smoothing": {
+                                "repeat": 5
+                            }
+                        },
+                        {
+                            "$blur": {
+                                "kSize": 5
+                            }
+                        },
+                        {
+                            "$imageCalculator": {
+                                "operator": "Subtract",
+                                "preprocessing": []
+                            }
+                        }
+                    ],
+                    "detection": [
+                        {
+                            "$threshold": {
+                                "minThreshold": 100,
+                                "maxThreshold": 65535,
+                                "doWatershed": true,
+                                "snapAreaSize": 0,
+                                "objectClass": {
+                                    "meta": {
+                                        "slotId": "X",
+                                        "classId": "1"
+                                    },
+                                    "objectFilter": {
+                                        "minSize": 10,
+                                        "maxSize": 100,
+                                        "minCircularity": 50,
+                                        "referenceSpotRemoval": "Off"
+                                    },
+                                    "imageFilter": {
+                                        "filterMode": "",
+                                        "maxObjects": "",
+                                        "histMinThresholdFilterFactor": ""
+                                    },
+                                    "crossChannel": {
+                                        "crossChannelIntensityChannels": [
+                                            "CH0"
+                                        ],
+                                        "crossChannelCountChannels": [
+                                            "A",
+                                            "B"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "$artificialIntelligence": {
+                                "model": "myModel.onnx",
+                                "minProbability": 0.8,
+                                "snapAreaSize": 0,
+                                "objectClasses": {
+                                    "0": {
+                                        "meta": {
+                                            "slotId": "X",
+                                            "classId": "1"
+                                        },
+                                        "objectFilter": {
+                                            "minSize": 10,
+                                            "maxSize": 100,
+                                            "minCircularity": 50,
+                                            "referenceSpotRemoval": "F"
+                                        },
+                                        "imageFilter": {
+                                            "filterMode": "",
+                                            "maxObjects": "",
+                                            "histMinThresholdFilterFactor": ""
+                                        },
+                                        "crossChannel": {}
+                                    },
+                                    "1": {
+                                        "meta": {
+                                            "slotId": "X",
+                                            "classId": "1"
+                                        },
+                                        "objectFilter": {
+                                            "minSize": 10,
+                                            "maxSize": 100,
+                                            "minCircularity": 50,
+                                            "referenceSpotRemoval": "Off"
+                                        },
+                                        "imageFilter": {
+                                            "filterMode": "",
+                                            "maxObjects": "",
+                                            "histMinThresholdFilterFactor": ""
+                                        },
+                                        "crossChannel": {}
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "meta": {
+                "name": "Voronoi grid",
+                "icon": ""
+            },
+            "inputImage": {
+                "imageChannelIdx": "Empty"
+            },
+            "classifiers": [
+                {
+                    "preprocessing": [
+                        {
+                            "$intersection": {
+                                "slotIds": [
+                                    "B",
+                                    "C"
+                                ],
+                                "minIntersection": 0.2
+                            }
+                        }
+                    ],
+                    "detection": [
+                        {
+                            "$threshold": {
+                                "minThreshold": 100,
+                                "maxThreshold": 65535,
+                                "doWatershed": true,
+                                "snapAreaSize": 0,
+                                "objectClass": {
+                                    "meta": {
+                                        "slotId": "X",
+                                        "classId": "1"
+                                    },
+                                    "objectFilter": {
+                                        "minSize": 10,
+                                        "maxSize": 100,
+                                        "minCircularity": 50,
+                                        "referenceSpotRemoval": "Off"
+                                    },
+                                    "imageFilter": {
+                                        "filterMode": "",
+                                        "maxObjects": "",
+                                        "histMinThresholdFilterFactor": ""
+                                    },
+                                    "crossChannel": {}
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "meta": {
+                "name": "Intersection",
+                "icon": ""
+            },
+            "inputImage": {
+                "imageChannelIdx": "Empty"
+            },
+            "classifiers": [
+                {
+                    "preprocessing": [
+                        {
+                            "$intersection": {
+                                "slotIds": [
+                                    "B",
+                                    "C"
+                                ],
+                                "minIntersection": 0.2
+                            }
+                        }
+                    ],
+                    "detection": [
+                        {
+                            "$threshold": {
+                                "minThreshold": 100,
+                                "maxThreshold": 65535,
+                                "doWatershed": true,
+                                "snapAreaSize": 0,
+                                "objectClass": {
+                                    "slotId": "Y",
+                                    "classId": "1",
+                                    "objectFilter": {
+                                        "minSize": 10,
+                                        "maxSize": 100,
+                                        "minCircularity": 50,
+                                        "referenceSpotRemoval": "Off"
+                                    }
+                                },
+                                "crossChannel": {}
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
