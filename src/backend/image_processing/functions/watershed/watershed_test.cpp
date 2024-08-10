@@ -24,7 +24,7 @@ TEST_CASE("func::watershed", "[.][watershed]")
   auto img = joda::image::BioformatsLoader::loadEntireImage("test/test_in_cell_counting/A10_01.vsi", 1, 0, 0);
   joda::image::func::RollingBallBackground bg({});
   joda::image::func::Blur blur({});
-  joda::image::func::ThresholdManual th(100);
+  joda::image::func::ThresholdManual th(100, 65535);
   bg.execute(img);
   blur.execute(img);
   cv::Mat binaryImage;
