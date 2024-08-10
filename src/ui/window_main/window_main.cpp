@@ -630,6 +630,17 @@ bool WindowMain::showPanelStartPage()
 ///
 void WindowMain::showPanelChannelEdit(ContainerBase *selectedChannel)
 {
+  if(mNavigation == Navigation::REPORTING) {
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Info");
+    messageBox.setText("Please close results view first!");
+    messageBox.addButton(tr("Okay"), QMessageBox::YesRole);
+    messageBox.exec();
+    return;
+  }
+  onBackClicked();
   mSelectedChannel = selectedChannel;
   selectedChannel->setActive(true);
   mStackedWidget->removeWidget(mStackedWidget->widget(static_cast<int32_t>(Navigation::CHANNEL_EDIT)));
@@ -644,6 +655,7 @@ void WindowMain::showPanelChannelEdit(ContainerBase *selectedChannel)
 ///
 void WindowMain::showPanelResults()
 {
+  onBackClicked();
   mPanelReporting->setActive(true);
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::REPORTING));
   mNavigation = Navigation::REPORTING;
