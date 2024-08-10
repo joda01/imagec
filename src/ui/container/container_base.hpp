@@ -32,7 +32,6 @@ public:
   {
   }
   virtual void toSettings()                                     = 0;
-  virtual void fromSettings()                                   = 0;
   virtual QWidget *getOverviewPanel()                           = 0;
   virtual QWidget *getEditPanel()                               = 0;
   virtual void setActive(bool)                                  = 0;

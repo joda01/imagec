@@ -63,7 +63,7 @@ public:
     }
   }
 
-  void fromSettings() override;
+  void fromSettings(const joda::settings::VChannelIntersection &settings);
   void toSettings() override;
   nlohmann::json toJson(const std::string &titlePrefix) override;
 

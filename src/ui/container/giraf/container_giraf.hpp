@@ -67,7 +67,7 @@ public:
     }
   }
 
-  void fromSettings() override;
+  void fromSettings();
   void toSettings() override;
 
 private:

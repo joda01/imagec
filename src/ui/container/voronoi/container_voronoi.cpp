@@ -154,35 +154,35 @@ ContainerVoronoi::~ContainerVoronoi()
 /// \brief      Load values
 /// \author     Joachim Danmayr
 ///
-void ContainerVoronoi::fromSettings()
+void ContainerVoronoi::fromSettings(const joda::settings::VChannelVoronoi &settings)
 {
   mMaxVoronoiAreaSize->clearValue();
   mCrossChannelIntensity->clearValue();
 
   // Meta
-  mChannelType->setValue(mSettings.meta.type);
-  mChannelName->setValue(mSettings.meta.name.data());
-  mColorAndChannelIndex->setValue(mSettings.meta.color.data());
-  mColorAndChannelIndex->setValueSecond(mSettings.meta.channelIdx);
+  mChannelType->setValue(settings.meta.type);
+  mChannelName->setValue(settings.meta.name.data());
+  mColorAndChannelIndex->setValue(settings.meta.color.data());
+  mColorAndChannelIndex->setValueSecond(settings.meta.channelIdx);
 
-  mVoronoiPoints->setValue(mSettings.voronoi.gridPointsChannelIdx);
+  mVoronoiPoints->setValue(settings.voronoi.gridPointsChannelIdx);
 
   // Filtering
-  mMaxVoronoiAreaSize->setValue(mSettings.voronoi.maxVoronoiAreaRadius);
-  mOverlayMaskChannelIndex->setValue(mSettings.voronoi.overlayMaskChannelIdx);
+  mMaxVoronoiAreaSize->setValue(settings.voronoi.maxVoronoiAreaRadius);
+  mOverlayMaskChannelIndex->setValue(settings.voronoi.overlayMaskChannelIdx);
 
   mMinParticleSize->clearValue();
   mMaxParticleSize->clearValue();
 
   // Filtering
-  mMinParticleSize->setValue(mSettings.objectFilter.minParticleSize);
-  if(mSettings.objectFilter.maxParticleSize >= INT32_MAX) {
+  mMinParticleSize->setValue(settings.objectFilter.minParticleSize);
+  if(settings.objectFilter.maxParticleSize >= INT32_MAX) {
     mMaxParticleSize->clearValue();
   } else {
-    mMaxParticleSize->setValue(mSettings.objectFilter.maxParticleSize);
+    mMaxParticleSize->setValue(settings.objectFilter.maxParticleSize);
   }
-  mExcludeAreasWithoutCenterOfMass->setValue(mSettings.objectFilter.excludeAreasWithoutCenterOfMass);
-  mExcludeAreasAtTheEdges->setValue(mSettings.objectFilter.excludeAreasAtEdges);
+  mExcludeAreasWithoutCenterOfMass->setValue(settings.objectFilter.excludeAreasWithoutCenterOfMass);
+  mExcludeAreasAtTheEdges->setValue(settings.objectFilter.excludeAreasAtEdges);
 
   //
   // Cross channel
@@ -190,7 +190,7 @@ void ContainerVoronoi::fromSettings()
 
   // Cross channel intensity
   {
-    auto &crossChannelIntensity = mSettings.crossChannel.crossChannelIntensityChannels;
+    auto &crossChannelIntensity = settings.crossChannel.crossChannelIntensityChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crossChannelIntensity) {
       if(static_cast<int32_t>(chIdx) < 65) {
@@ -208,7 +208,7 @@ void ContainerVoronoi::fromSettings()
 
   // Cross channel count
   {
-    auto &crosschannelCount = mSettings.crossChannel.crossChannelCountChannels;
+    auto &crosschannelCount = settings.crossChannel.crossChannelCountChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crosschannelCount) {
       if(static_cast<int32_t>(chIdx) < 65) {

@@ -272,13 +272,13 @@ ContainerChannel::~ContainerChannel()
 /// \brief      Load values
 /// \author     Joachim Danmayr
 ///
-void ContainerChannel::fromSettings()
+void ContainerChannel::fromSettings(const joda::settings::ChannelSettings &settings)
 {
   // Meta
-  mChannelType->setValue(mSettings.meta.type);
-  mChannelName->setValue(mSettings.meta.name.data());
-  mColorAndChannelIndex->setValue(mSettings.meta.color.data());
-  mColorAndChannelIndex->setValueSecond(mSettings.meta.channelIdx);
+  mChannelType->setValue(settings.meta.type);
+  mChannelName->setValue(settings.meta.name.data());
+  mColorAndChannelIndex->setValue(settings.meta.color.data());
+  mColorAndChannelIndex->setValueSecond(settings.meta.channelIdx);
 
   mThresholdAlgorithm->clearValue();
   mThresholdValueMin->clearValue();
@@ -309,14 +309,14 @@ void ContainerChannel::fromSettings()
   mMaxObjects->clearValue();
   mHistogramThresholdFactor->clearValue();
 
-  mZProjection->setValue(mSettings.preprocessing.$zStack.method);
+  mZProjection->setValue(settings.preprocessing.$zStack.method);
 
-  if(mSettings.preprocessing.$cropMargin.has_value()) {
-    mMarginCrop->setValue(mSettings.preprocessing.$cropMargin->marginSize);
+  if(settings.preprocessing.$cropMargin.has_value()) {
+    mMarginCrop->setValue(settings.preprocessing.$cropMargin->marginSize);
   }
 
   // Preprocessing
-  for(const auto &prepro : mSettings.preprocessing.pipeline) {
+  for(const auto &prepro : settings.preprocessing.pipeline) {
     if(prepro.$medianSubtract.has_value()) {
       mMedianBackgroundSubtraction->setValue(prepro.$medianSubtract->kernelSize);
     }
@@ -342,36 +342,36 @@ void ContainerChannel::fromSettings()
   }
 
   // Detection
-  mUsedDetectionMode->setValue(mSettings.detection.detectionMode);
-  mThresholdAlgorithm->setValue(mSettings.detection.threshold.mode);
-  mThresholdValueMin->setValue(mSettings.detection.threshold.thresholdMin);
-  mAIModels->setValue(mSettings.detection.ai.modelPath.data());
-  mMinProbability->setValue(mSettings.detection.ai.minProbability);
-  mWateredSegmentation->setValue(mSettings.detection.threshold.$watershedSegmentation.enabled);
+  mUsedDetectionMode->setValue(settings.detection.detectionMode);
+  mThresholdAlgorithm->setValue(settings.detection.threshold.mode);
+  mThresholdValueMin->setValue(settings.detection.threshold.thresholdMin);
+  mAIModels->setValue(settings.detection.ai.modelPath.data());
+  mMinProbability->setValue(settings.detection.ai.minProbability);
+  mWateredSegmentation->setValue(settings.detection.threshold.$watershedSegmentation.enabled);
 
   // Filtering
-  mMinParticleSize->setValue(mSettings.objectFilter.minParticleSize);
-  if(mSettings.objectFilter.maxParticleSize >= INT32_MAX) {
+  mMinParticleSize->setValue(settings.objectFilter.minParticleSize);
+  if(settings.objectFilter.maxParticleSize >= INT32_MAX) {
     mMaxParticleSize->clearValue();
   } else {
-    mMaxParticleSize->setValue(mSettings.objectFilter.maxParticleSize);
+    mMaxParticleSize->setValue(settings.objectFilter.maxParticleSize);
   }
-  mMinCircularity->setValue(mSettings.objectFilter.minCircularity);
-  mSnapAreaSize->setValue(mSettings.objectFilter.snapAreaSize);
-  mTetraspeckRemoval->setValue(mSettings.objectFilter.referenceSpotChannelIndex);
+  mMinCircularity->setValue(settings.objectFilter.minCircularity);
+  mSnapAreaSize->setValue(settings.objectFilter.snapAreaSize);
+  mTetraspeckRemoval->setValue(settings.objectFilter.referenceSpotChannelIndex);
 
   // Image filter
-  mImageFilterMode->setValue(mSettings.imageFilter.filterMode);
-  if(mSettings.imageFilter.maxObjects > 0) {
-    mMaxObjects->setValue(mSettings.imageFilter.maxObjects);
+  mImageFilterMode->setValue(settings.imageFilter.filterMode);
+  if(settings.imageFilter.maxObjects > 0) {
+    mMaxObjects->setValue(settings.imageFilter.maxObjects);
   }
-  if(mSettings.imageFilter.histMinThresholdFilterFactor > 0) {
-    mHistogramThresholdFactor->setValue(mSettings.imageFilter.histMinThresholdFilterFactor);
+  if(settings.imageFilter.histMinThresholdFilterFactor > 0) {
+    mHistogramThresholdFactor->setValue(settings.imageFilter.histMinThresholdFilterFactor);
   }
 
   // Cross channel intensity
   {
-    auto &crossChannelIntensity = mSettings.crossChannel.crossChannelIntensityChannels;
+    auto &crossChannelIntensity = settings.crossChannel.crossChannelIntensityChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crossChannelIntensity) {
       if(static_cast<int32_t>(chIdx) < 65) {
@@ -389,7 +389,7 @@ void ContainerChannel::fromSettings()
 
   // Cross channel count
   {
-    auto &crosschannelCount = mSettings.crossChannel.crossChannelCountChannels;
+    auto &crosschannelCount = settings.crossChannel.crossChannelCountChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crosschannelCount) {
       if(static_cast<int32_t>(chIdx) < 65) {

@@ -104,23 +104,23 @@ ContainerIntersection::~ContainerIntersection()
 /// \brief      Load values
 /// \author     Joachim Danmayr
 ///
-void ContainerIntersection::fromSettings()
+void ContainerIntersection::fromSettings(const joda::settings::VChannelIntersection &settings)
 {
   mCrossChannelIntersection->clearValue();
   mCrossChannelCount->clearValue();
   mCrossChannelIntensity->clearValue();
 
   // Meta
-  mChannelType->setValue(mSettings.meta.type);
-  mChannelName->setValue(mSettings.meta.name.data());
-  mColorAndChannelIndex->setValue(mSettings.meta.color.data());
-  mColorAndChannelIndex->setValueSecond(mSettings.meta.channelIdx);
+  mChannelType->setValue(settings.meta.type);
+  mChannelName->setValue(settings.meta.name.data());
+  mColorAndChannelIndex->setValue(settings.meta.color.data());
+  mColorAndChannelIndex->setValueSecond(settings.meta.channelIdx);
 
   // Filtering
-  mMinIntersection->setValue(mSettings.intersection.minIntersection);
+  mMinIntersection->setValue(settings.intersection.minIntersection);
 
   {
-    auto &crossChannelIntensity = mSettings.intersection.intersectingChannels;
+    auto &crossChannelIntensity = settings.intersection.intersectingChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crossChannelIntensity) {
       if(static_cast<int32_t>(chIdx) < 65) {
@@ -143,7 +143,7 @@ void ContainerIntersection::fromSettings()
 
   // Cross channel intensity
   {
-    auto &crossChannelIntensity = mSettings.crossChannel.crossChannelIntensityChannels;
+    auto &crossChannelIntensity = settings.crossChannel.crossChannelIntensityChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crossChannelIntensity) {
       if(static_cast<int32_t>(chIdx) < 65) {
@@ -161,7 +161,7 @@ void ContainerIntersection::fromSettings()
 
   // Cross channel count
   {
-    auto &crosschannelCount = mSettings.crossChannel.crossChannelCountChannels;
+    auto &crosschannelCount = settings.crossChannel.crossChannelCountChannels;
     QString crossChannelIndexes;
     for(const auto chIdx : crosschannelCount) {
       if(static_cast<int32_t>(chIdx) < 65) {

@@ -120,7 +120,7 @@ void PanelPipeline::addChannel(const joda::settings::ChannelSettings &settings)
   mAnalyzeSettings.channels.push_back(settings);
   auto &newlyAdded = mAnalyzeSettings.channels.back();
   auto *panel1     = new ContainerChannel(mWindowMain, newlyAdded);
-  panel1->fromSettings();
+  panel1->fromSettings(settings);
   panel1->toSettings();
   addElement(panel1, &newlyAdded);
 }
@@ -137,7 +137,8 @@ void PanelPipeline::addChannel(const joda::settings::VChannelIntersection &setti
   mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$intersection = settings});
   auto &newlyAdded = mAnalyzeSettings.vChannels.back();
   auto *panel1     = new ContainerIntersection(mWindowMain, newlyAdded.$intersection.value());
-  panel1->fromSettings();
+
+  panel1->fromSettings(settings);
   panel1->toSettings();
   addElement(panel1, &newlyAdded);
 }
@@ -154,7 +155,8 @@ void PanelPipeline::addChannel(const joda::settings::VChannelVoronoi &settings)
   mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$voronoi = settings});
   auto &newlyAdded = mAnalyzeSettings.vChannels.back();
   auto *panel1     = new ContainerVoronoi(mWindowMain, newlyAdded.$voronoi.value());
-  panel1->fromSettings();
+
+  panel1->fromSettings(settings);
   panel1->toSettings();
   addElement(panel1, &newlyAdded);
 }

@@ -40,6 +40,7 @@ PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
     mImages->setAlternatingRowColors(true);
     mImages->setSelectionBehavior(QAbstractItemView::SelectRows);
     mImages->setColumnHidden(0, true);
+    mImages->setMaximumHeight(150);
 
     connect(mImages, &QTableWidget::itemSelectionChanged, [&]() { updateImageMeta(); });
 

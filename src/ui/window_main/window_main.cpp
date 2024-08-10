@@ -413,6 +413,7 @@ void WindowMain::openProjectSettings(const QString &filePath)
   try {
     std::ifstream ifs(filePath.toStdString());
     joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(ifs);
+    ifs.close();
     mPanelPipeline->clear();
 
     for(const auto &channel : analyzeSettings.channels) {
