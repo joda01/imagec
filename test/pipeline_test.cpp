@@ -5001,7 +5001,7 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
 
         //////////////////////////////////////////////////////////
       }
-      generateTestingCode(results.get());
+     // generateTestingCode(results.get());
     }
   }
 

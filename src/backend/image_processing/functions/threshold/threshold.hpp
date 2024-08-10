@@ -44,8 +44,6 @@ public:
     cv::threshold(srcImg, thresholdTmp, thresholdValMax, UINT16_MAX, cv::THRESH_BINARY_INV);
     cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
 
-    imwrite("output.png", thresholdImg);
-
     // Watershed watershed;
     // watershed.execute(thresholdImg);
     return {thresholdValMin, thresholdValMax};
