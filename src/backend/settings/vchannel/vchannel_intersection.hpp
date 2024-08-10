@@ -30,7 +30,7 @@ public:
   IntersectionSettings intersection;
 
 private:
-  std::string configSchema = "https://imagec.org/schemas/v1/intersectrion-settings.imcjsproj";
+  std::string configSchema = "https://imagec.org/schemas/v1/intersectrion-settings.json";
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(VChannelIntersection, meta, crossChannel, intersection, configSchema);
 };

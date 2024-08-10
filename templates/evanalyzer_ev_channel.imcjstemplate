@@ -55,50 +55,5 @@
         }
       }
     ]
-  },
-  "reporting": {
-    "detail": {
-      "measureChannels": [
-        "Confidence",
-        "AreaSize",
-        "Confidence",
-        "Circularity",
-        "Validity",
-        "Invalidity",
-        "CenterOfMassX",
-        "CenterOfMassY",
-        "IntensityAvg",
-        "IntensityMin",
-        "IntensityMax",
-        "CrossChannelIntensityAvg",
-        "CrossChannelIntensityMin",
-        "CrossChannelIntensityMax",
-        "CrossChannelIntersection"
-      ]
-    },
-    "heatmap": {
-      "measureChannels": [
-        "Validity",
-        "IntensityAvg",
-        "CrossChannelIntensityAvg",
-        "CrossChannelIntersection"
-      ]
-    },
-    "overview": {
-      "measureChannels": [
-        "Confidence",
-        "AreaSize",
-        "Circularity",
-        "Validity",
-        "Invalidity",
-        "IntensityAvg",
-        "IntensityMin",
-        "IntensityMax",
-        "CrossChannelIntensityAvg",
-        "CrossChannelIntensityMin",
-        "CrossChannelIntensityMax",
-        "CrossChannelIntersection"
-      ]
-    }
   }
 }

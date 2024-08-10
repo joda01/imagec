@@ -60,7 +60,7 @@ public:
   VoronoiFiltering objectFilter;
 
 private:
-  std::string configSchema = "https://imagec.org/schemas/v1/voronoi-settings.imcjsproj";
+  std::string configSchema = "https://imagec.org/schemas/v1/voronoi-settings.json";
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(VChannelVoronoi, meta, crossChannel, voronoi, objectFilter, configSchema);
 };
