@@ -182,6 +182,16 @@ void ContainerIntersection::fromSettings()
 /// \brief      Get values
 /// \author     Joachim Danmayr
 ///
+nlohmann::json ContainerIntersection::toJson()
+{
+  toSettings();
+  return mSettings;
+}
+
+///
+/// \brief      Get values
+/// \author     Joachim Danmayr
+///
 void ContainerIntersection::toSettings()
 {
   auto [imgIdx, series] = mWindowMain->getImagePanel()->getSelectedImage();

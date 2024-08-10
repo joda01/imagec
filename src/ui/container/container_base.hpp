@@ -36,6 +36,7 @@ public:
   virtual QWidget *getOverviewPanel() = 0;
   virtual QWidget *getEditPanel()     = 0;
   virtual void setActive(bool)        = 0;
+  virtual nlohmann::json toJson()     = 0;
 };
 
 }    // namespace joda::ui::qt

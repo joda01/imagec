@@ -115,6 +115,7 @@ private:
 
   ////Common/////////////////////////////////////////////////
   joda::ctrl::Controller *mController;
+  QFileSystemWatcher mTemplateDirWatcher;
 
   ////Project settings/////////////////////////////////////////////////
   joda::settings::AnalyzeSettings mAnalyzeSettings;

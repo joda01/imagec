@@ -28,7 +28,6 @@
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 #include "ui/container/panel_edit_base.hpp"
-#include "ui/helper/layout_generator.hpp"
 #include "ui/window_main/window_main.hpp"
 #include "container_channel.hpp"
 
@@ -37,18 +36,12 @@ namespace joda::ui::qt {
 using namespace std::chrono_literals;
 
 PanelChannelEdit::PanelChannelEdit(WindowMain *wm, ContainerChannel *parentContainer) :
-    PanelEdit(wm), mParentContainer(parentContainer)
+    PanelEdit(wm, parentContainer), mParentContainer(parentContainer)
 {
   setObjectName("PanelChannelEdit");
-  init();
-}
-
-void PanelChannelEdit::init()
-{
-  helper::LayoutGenerator layout(this);
 
   {
-    auto *col1 = layout.addVerticalPanel();
+    auto *col1 = layout().addVerticalPanel();
     col1->addGroup("Meta", {mParentContainer->mChannelName, mParentContainer->mColorAndChannelIndex,
                             mParentContainer->mChannelType});
 
@@ -59,7 +52,7 @@ void PanelChannelEdit::init()
   }
 
   {
-    auto *col2 = layout.addVerticalPanel();
+    auto *col2 = layout().addVerticalPanel();
     col2->addGroup("Preprocessing", {mParentContainer->mZProjection, mParentContainer->mMarginCrop,
                                      mParentContainer->mMedianBackgroundSubtraction, mParentContainer->mEdgeDetection,
                                      mParentContainer->mRollingBall, mParentContainer->mSubtractChannel,
@@ -67,7 +60,7 @@ void PanelChannelEdit::init()
   }
 
   {
-    auto *col3 = layout.addVerticalPanel();
+    auto *col3 = layout().addVerticalPanel();
     col3->addGroup("Detection", {mParentContainer->mUsedDetectionMode, mParentContainer->mThresholdAlgorithm,
                                  mParentContainer->mThresholdValueMin, mParentContainer->mAIModels,
                                  mParentContainer->mMinProbability, mParentContainer->mWateredSegmentation,
@@ -77,7 +70,7 @@ void PanelChannelEdit::init()
   }
 
   {
-    auto *col4    = layout.addVerticalPanel();
+    auto *col4    = layout().addVerticalPanel();
     mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
     mPreviewImage->setContentsMargins(0, 0, 0, 0);
     mPreviewImage->resetImage("");

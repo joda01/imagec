@@ -32,7 +32,7 @@ namespace joda::ui::qt {
 using namespace std::chrono_literals;
 
 PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentContainer) :
-    PanelEdit(wm), mParentContainer(parentContainer)
+    PanelEdit(wm, parentContainer), mParentContainer(parentContainer)
 {
   setObjectName("PanelVoronoiEdit");
   init();
@@ -40,10 +40,8 @@ PanelVoronoiEdit::PanelVoronoiEdit(WindowMain *wm, ContainerVoronoi *parentConta
 
 void PanelVoronoiEdit::init()
 {
-  helper::LayoutGenerator layout(this);
-
   {
-    auto *col = layout.addVerticalPanel();
+    auto *col = layout().addVerticalPanel();
     col->addGroup("Meta", {mParentContainer->mChannelName, mParentContainer->mColorAndChannelIndex,
                            mParentContainer->mChannelType});
 
@@ -51,7 +49,7 @@ void PanelVoronoiEdit::init()
   }
 
   {
-    auto *col = layout.addVerticalPanel();
+    auto *col = layout().addVerticalPanel();
     col->addGroup("Voronoi", {mParentContainer->mVoronoiPoints, mParentContainer->mMaxVoronoiAreaSize,
                               mParentContainer->mOverlayMaskChannelIndex});
 
@@ -78,6 +76,7 @@ PanelVoronoiEdit::~PanelVoronoiEdit()
 
 void PanelVoronoiEdit::valueChangedEvent()
 {
+  mParentContainer->toSettings();
 }
 
 }    // namespace joda::ui::qt

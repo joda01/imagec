@@ -229,6 +229,16 @@ void ContainerVoronoi::fromSettings()
 /// \brief      Get values
 /// \author     Joachim Danmayr
 ///
+nlohmann::json ContainerVoronoi::toJson()
+{
+  toSettings();
+  return mSettings;
+}
+
+///
+/// \brief      Get values
+/// \author     Joachim Danmayr
+///
 void ContainerVoronoi::toSettings()
 {
   auto [imgIdx, series] = mWindowMain->getImagePanel()->getSelectedImage();

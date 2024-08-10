@@ -51,15 +51,13 @@ namespace joda::ui::qt {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain), mWindowMain(windowMain)
+PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullptr, false), mWindowMain(windowMain)
 {
-  helper::LayoutGenerator layout(this);
-  layout.disableDeleteButton();
   // Drop downs
-  createBreadCrump(&layout);
+  createBreadCrump(&layout());
 
   // Middle layout
-  auto *col  = layout.addVerticalPanel();
+  auto *col  = layout().addVerticalPanel();
   mHeatmap01 = new ChartHeatMap(this);
   mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);

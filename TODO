@@ -1,3 +1,5 @@
 - [ ] For tiled images, calculate real X/Y values of pixels in region of interest
 - [ ] Ignore result folder
 - [ ] Support for reference spot removal in preview.
+- [ ] Describe file extensions
+- [ ] Describe templates

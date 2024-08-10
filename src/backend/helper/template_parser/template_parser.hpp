@@ -13,14 +13,18 @@
 
 #pragma once
 
+#include <qpixmap.h>
 #include <exception>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <regex>
 #include <string>
 #include "backend/settings/channel/channel_settings.hpp"
+#include "backend/settings/vchannel/vchannel_intersection.hpp"
+#include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/gapi/infer/onnx.hpp>
@@ -34,29 +38,36 @@ namespace fs = std::filesystem;
 class TemplateParser
 {
 public:
+  /////////////////////////////////////////////////////
+  static const inline std::string TEMPLATE_ENDIAN = ".ictempl";
+
   struct Data
   {
     std::string title;
     std::string description;
     std::string path;
+    QPixmap icon;
+    bool userTemplate = false;
   };
 
-  static auto findTemplates(const std::string &directory = "templates") -> std::map<std::string, Data>
+  struct LoadedChannel
   {
-    std::map<std::string, Data> templates;
-    if(fs::exists(directory) && fs::is_directory(directory)) {
-      for(const auto &entry : fs::recursive_directory_iterator(directory)) {
-        if(entry.is_regular_file() && entry.path().extension().string() == ".ictempl") {
-          std::ifstream ifs(entry.path().string());
-          settings::ChannelSettings settings = nlohmann::json::parse(ifs);
-          templates.emplace(settings.meta.name,
-                            Data{.title = settings.meta.name, .description = "", .path = entry.path().string()});
-        }
-      }
-    }
-    return templates;
+    std::optional<settings::ChannelSettings> channel;
+    std::optional<settings::VChannelIntersection> intersection;
+    std::optional<settings::VChannelVoronoi> voronoi;
   };
+
+  static void saveTemplate(const LoadedChannel &data, const std::filesystem::path &pathToStoreTemplateIn);
+  static void saveTemplate(nlohmann::json &, const std::filesystem::path &pathToStoreTemplateIn);
+
+  static auto findTemplates(const std::map<std::string, bool> &directories = {
+                                {"templates", false},
+                                {getUsersTemplateDirectory().string(), true}}) -> std::map<std::string, Data>;
+  static auto loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> LoadedChannel;
+  static auto getUsersTemplateDirectory() -> std::filesystem::path;
 
 private:
+  /////////////////////////////////////////////////////
+  static QPixmap base64ToQPixmap(const std::string &base64String);
 };
 }    // namespace joda::helper::templates

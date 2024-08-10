@@ -11,6 +11,7 @@
         <file>helptext/reporting_statistics.json</file>
     </qresource>
     <qresource prefix="/icons">
+        <file>outlined/icons8-copy-50.png</file>
         <file>outlined/icons8-close-50.png</file>
         <file>outlined/icons8-info-48-fill.png</file>
         <file>outlined/icons8-gallery-50.png</file>
@@ -183,6 +184,8 @@
         <file>outlined/icons8-info-50-circle.png</file>
         <file>outlined/icons8-help-50.png</file>
         <file>outlined/icon_eva.png</file>
+        <file>outlined/icons8-add-to-favorites-50.png</file>
+        <file>outlined/icons8-favorite-50.png</file>
         <file>outlined/icon.png</file>
     </qresource>
 </RCC>

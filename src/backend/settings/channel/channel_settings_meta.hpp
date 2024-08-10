@@ -56,7 +56,12 @@ public:
   //
   std::string color = "#B91717";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettingsMeta, channelIdx, series, name, type, label, color);
+  //
+  // Base 64 encoded PNG icon
+  //
+  std::string icon;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettingsMeta, channelIdx, series, name, type, label, color, icon);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ChannelSettingsMeta::Type, {{ChannelSettingsMeta::Type::NONE, ""},

@@ -18,32 +18,48 @@
 #include <memory>
 #include <mutex>
 #include "controller/controller.hpp"
+#include "ui/helper/layout_generator.hpp"
 #include "ui/helper/waitingspinnerwidget.hpp"
 #include "ui/panel_preview.hpp"
 
 namespace joda::ui::qt {
 
 class WindowMain;
+class ContainerBase;
 
+///
+/// \class    PanelEdit
+/// \author   Joachim Danmayr
+/// \brief
+///
 class PanelEdit : public QWidget
 {
   Q_OBJECT
 
 public:
-  explicit PanelEdit(WindowMain *wm) : mWindowMain(wm)
-  {
-  }
+  /////////////////////////////////////////////////////
+  explicit PanelEdit(WindowMain *wm, ContainerBase *containerBase = nullptr, bool withExtraButtons = true);
 
   WindowMain *getWindowMain()
   {
     return mWindowMain;
   }
 
+protected:
+  helper::LayoutGenerator &layout()
+  {
+    return mLayout;
+  }
+
 private:
+  /////////////////////////////////////////////////////
   virtual void valueChangedEvent() = 0;
   WindowMain *mWindowMain;
+  helper::LayoutGenerator mLayout;
+  ContainerBase *mContainerBase = nullptr;
 
 public slots:
+  void onSaveAsTemplate();
   void onValueChanged();
 };
 }    // namespace joda::ui::qt

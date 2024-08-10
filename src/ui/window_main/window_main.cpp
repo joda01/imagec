@@ -39,6 +39,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/helper/template_parser/template_parser.hpp"
 #include "backend/helper/username.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/results/results.hpp"
@@ -78,6 +79,9 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setCentralWidget(createStackedWidget());
   showPanelStartPage();
 
+  //
+  // Watch for working directory changes
+  //
   getController()->registerWorkingDirectoryCallback([this](joda::helper::fs::State state) {
     if(state == joda::helper::fs::State::FINISHED) {
       if(getController()->getNrOfFoundImages() > 0) {
@@ -89,6 +93,18 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
       mStartAnalysis->setEnabled(false);
     }
   });
+
+  //
+  // Watch for new templates added
+  //
+
+  mTemplateDirWatcher.addPath(joda::helper::templates::TemplateParser::getUsersTemplateDirectory()
+                                  .string()
+                                  .data());    // Replace with your desired path
+  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged,
+                   [&](const QString &path) { loadTemplates(); });
+  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged,
+                   [&](const QString &path) { loadTemplates(); });
 }
 
 void WindowMain::setWindowTitlePrefix(const QString &txt)
@@ -515,18 +531,28 @@ void WindowMain::loadTemplates()
 
   mTemplateSelection->clear();
   mTemplateSelection->addItem("Add channel ...", "");
+  mTemplateSelection->insertSeparator(mTemplateSelection->count());
 
   mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-select-none-50.png").pixmap(28, 28), "Empty channel",
                               "emptyChannel");
   mTemplateSelection->addItem(QIcon(":/icons/outlined/dom-voronoi-50.png").pixmap(28, 28), "Voronoi", "voronoiChannel");
   mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-query-inner-join-50.png").pixmap(28, 28), "Intersection",
                               "intersectionChannel");
-  /*mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-select-none-50.png").pixmap(28, 28), "Giraff",
-                              "giraffeChannel");*/
 
-  const QIcon myIcon(":/icons/outlined/icon_eva.png");
+  mTemplateSelection->insertSeparator(mTemplateSelection->count());
+  bool userReached = false;
   for(const auto &[_, data] : foundTemplates) {
-    mTemplateSelection->addItem(QIcon(myIcon.pixmap(28, 28)), data.title.data(), data.path.data());
+    // Now the user templates start, add an addition separator
+    if(data.userTemplate && !userReached) {
+      userReached = true;
+      mTemplateSelection->insertSeparator(mTemplateSelection->count());
+    }
+    if(!data.icon.isNull()) {
+      mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
+    } else {
+      mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-favorite-50.png").pixmap(28, 28), data.title.data(),
+                                  data.path.data());
+    }
   }
 }
 

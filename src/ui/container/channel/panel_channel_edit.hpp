@@ -38,7 +38,6 @@ signals:
 public:
   PanelChannelEdit(WindowMain *wm, ContainerChannel *);
   ~PanelChannelEdit();
-  void init();
 
   void setActive(bool setActive)
   {

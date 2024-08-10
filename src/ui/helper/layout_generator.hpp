@@ -27,7 +27,10 @@
 #include <qtoolbar.h>
 #include <qwidget.h>
 #include "ui/container/container_function.hpp"
-#include "ui/container/panel_edit_base.hpp"
+
+namespace joda::ui::qt {
+class PanelEdit;
+}
 
 namespace joda::ui::qt::helper {
 
@@ -36,11 +39,7 @@ class LayoutGenerator
   static constexpr int32_t SPACING = 16;
 
 public:
-  explicit LayoutGenerator(PanelEdit *parent);
-  void disableDeleteButton()
-  {
-    mToolbarBottom->setVisible(false);
-  }
+  explicit LayoutGenerator(PanelEdit *parent, bool withDeleteButton = true);
 
   class VerticalPane : public QVBoxLayout
   {
@@ -49,19 +48,7 @@ public:
     {
     }
 
-    void addGroup(const QString &title, const std::vector<std::shared_ptr<ContainerFunctionBase>> &elements)
-    {
-      auto *group = new QGroupBox(title);
-      group->setMaximumWidth(220);
-      auto *layout = new QVBoxLayout;
-      for(const auto &element : elements) {
-        layout->addWidget(element->getEditableWidget());
-        connect(element.get(), &ContainerFunctionBase::valueChanged, mParent, &PanelEdit::onValueChanged);
-      }
-
-      group->setLayout(layout);
-      addWidget(group);
-    }
+    void addGroup(const QString &title, const std::vector<std::shared_ptr<ContainerFunctionBase>> &elements);
 
   private:
     PanelEdit *mParent;
@@ -97,6 +84,7 @@ public:
 
   void addSeparatorToTopToolbar();
   QAction *addItemToTopToolbar(QWidget *);
+  void addItemToTopToolbar(QAction *widget);
 
 private:
   /////////////////////////////////////////////////////

@@ -410,6 +410,16 @@ void ContainerChannel::fromSettings()
 /// \brief      Get values
 /// \author     Joachim Danmayr
 ///
+nlohmann::json ContainerChannel::toJson()
+{
+  toSettings();
+  return mSettings;
+}
+
+///
+/// \brief      Get values
+/// \author     Joachim Danmayr
+///
 void ContainerChannel::toSettings()
 {
   auto [imgIdx, series] = mWindowMain->getImagePanel()->getSelectedImage();

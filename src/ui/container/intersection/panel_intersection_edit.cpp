@@ -32,7 +32,7 @@ namespace joda::ui::qt {
 using namespace std::chrono_literals;
 
 PanelIntersectionEdit::PanelIntersectionEdit(WindowMain *wm, ContainerIntersection *parentContainer) :
-    PanelEdit(wm), mParentContainer(parentContainer)
+    PanelEdit(wm, parentContainer), mParentContainer(parentContainer)
 {
   setObjectName("PanelIntersectionEdit");
   init();
@@ -40,10 +40,8 @@ PanelIntersectionEdit::PanelIntersectionEdit(WindowMain *wm, ContainerIntersecti
 
 void PanelIntersectionEdit::init()
 {
-  helper::LayoutGenerator layout(this);
-
   {
-    auto *col = layout.addVerticalPanel();
+    auto *col = layout().addVerticalPanel();
     col->addGroup("Meta", {mParentContainer->mChannelName, mParentContainer->mColorAndChannelIndex,
                            mParentContainer->mChannelType});
 
@@ -51,7 +49,7 @@ void PanelIntersectionEdit::init()
   }
 
   {
-    auto *col = layout.addVerticalPanel();
+    auto *col = layout().addVerticalPanel();
 
     col->addGroup("Intersection", {mParentContainer->mCrossChannelIntersection, mParentContainer->mMinIntersection});
   }
@@ -74,6 +72,7 @@ PanelIntersectionEdit::~PanelIntersectionEdit()
 
 void PanelIntersectionEdit::valueChangedEvent()
 {
+  mParentContainer->toSettings();
 }
 
 }    // namespace joda::ui::qt

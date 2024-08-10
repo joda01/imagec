@@ -65,6 +65,7 @@ public:
 
   void fromSettings() override;
   void toSettings() override;
+  nlohmann::json toJson() override;
 
 private:
   /////////////////////////////////////////////////////

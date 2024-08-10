@@ -12,6 +12,8 @@
 ///
 
 #include "panel_pipeline.hpp"
+#include <filesystem>
+#include "backend/helper/template_parser/template_parser.hpp"
 
 namespace joda::ui::qt {
 
@@ -167,9 +169,15 @@ void PanelPipeline::addChannel(const joda::settings::VChannelVoronoi &settings)
 void PanelPipeline::addChannel(const QString &pathToSettings)
 {
   try {
-    std::ifstream ifs(pathToSettings.toStdString());
-    settings::ChannelSettings settings = nlohmann::json::parse(ifs);
-    addChannel(settings);
+    auto loaded = joda::helper::templates::TemplateParser::loadChannelFromTemplate(
+        std::filesystem::path(pathToSettings.toStdString()));
+    if(loaded.channel.has_value()) {
+      addChannel(loaded.channel.value());
+    } else if(loaded.intersection.has_value()) {
+      addChannel(loaded.intersection.value());
+    } else if(loaded.voronoi.has_value()) {
+      addChannel(loaded.voronoi.value());
+    }
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
