@@ -60,6 +60,7 @@ private:
 
 public slots:
   void onSaveAsTemplate();
+  void onCopyChannel();
   void onValueChanged();
 };
 }    // namespace joda::ui::qt

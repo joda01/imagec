@@ -229,10 +229,12 @@ void ContainerVoronoi::fromSettings()
 /// \brief      Get values
 /// \author     Joachim Danmayr
 ///
-nlohmann::json ContainerVoronoi::toJson()
+nlohmann::json ContainerVoronoi::toJson(const std::string &titlePrefix)
 {
   toSettings();
-  return mSettings;
+  auto settings = mSettings;
+  settings.meta.name += titlePrefix;
+  return settings;
 }
 
 ///

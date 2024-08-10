@@ -182,10 +182,12 @@ void ContainerIntersection::fromSettings()
 /// \brief      Get values
 /// \author     Joachim Danmayr
 ///
-nlohmann::json ContainerIntersection::toJson()
+nlohmann::json ContainerIntersection::toJson(const std::string &titlePrefix)
 {
   toSettings();
-  return mSettings;
+  auto settings = mSettings;
+  settings.meta.name += titlePrefix;
+  return settings;
 }
 
 ///

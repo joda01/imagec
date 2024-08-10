@@ -64,6 +64,7 @@ public:
                                 {"templates", false},
                                 {getUsersTemplateDirectory().string(), true}}) -> std::map<std::string, Data>;
   static auto loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> LoadedChannel;
+  static auto loadChannelFromTemplate(const nlohmann::json &templateJson) -> LoadedChannel;
   static auto getUsersTemplateDirectory() -> std::filesystem::path;
 
 private:

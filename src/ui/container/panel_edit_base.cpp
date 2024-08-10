@@ -15,6 +15,8 @@
 #include <qaction.h>
 #include <qpushbutton.h>
 #include "backend/helper/template_parser/template_parser.hpp"
+#include "ui/window_main/window_main.hpp"
+#include <nlohmann/json_fwd.hpp>
 #include "container_base.hpp"
 
 namespace joda::ui::qt {
@@ -36,6 +38,7 @@ PanelEdit::PanelEdit(WindowMain *wm, ContainerBase *containerBase, bool withExtr
 
     auto *copyChannel = new QAction(QIcon(":/icons/outlined/icons8-copy-50.png"), "Copy channel");
     mLayout.addItemToTopToolbar(copyChannel);
+    connect(copyChannel, &QAction::triggered, this, &PanelEdit::onCopyChannel);
   }
 }
 
@@ -68,9 +71,22 @@ void PanelEdit::onSaveAsTemplate()
       auto reply = messageBox.exec();
       return;
     }
-    auto json = mContainerBase->toJson();
+    auto json = mContainerBase->toJson("");
     joda::helper::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()));
   }
+}
+
+///
+/// \brief       Save as template
+/// \author      Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelEdit::onCopyChannel()
+{
+  nlohmann::json json = mContainerBase->toJson(" (copy)");
+  getWindowMain()->getPanelPipeline()->addChannel(json);
 }
 
 ///

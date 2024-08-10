@@ -64,7 +64,7 @@ public:
 
   void fromSettings() override;
   void toSettings() override;
-  nlohmann::json toJson() override;
+  nlohmann::json toJson(const std::string &titlePrefix = "") override;
 
 private:
   /////////////////////////////////////////////////////

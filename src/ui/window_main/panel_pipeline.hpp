@@ -16,6 +16,7 @@
 #include <qcombobox.h>
 #include <qwidget.h>
 #include <QtWidgets>
+#include "backend/helper/template_parser/template_parser.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
 #include "ui/container/channel/container_channel.hpp"
@@ -45,8 +46,12 @@ public:
   void addChannel(const joda::settings::VChannelIntersection &settings);
   void addChannel(const joda::settings::VChannelVoronoi &settings);
   void addChannel(const QString &pathToSettings);
+  void addChannel(const nlohmann::json &json);
 
 private:
+  /////////////////////////////////////////////////////
+  void addChannel(const joda::helper::templates::TemplateParser::LoadedChannel &loaded);
+
   /////////////////////////////////////////////////////
   QVBoxLayout *mVerticalLayout;
   std::map<ContainerBase *, void *>

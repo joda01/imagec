@@ -82,6 +82,11 @@ public:
     return mPanelResultsInfo;
   }
 
+  [[nodiscard]] PanelPipeline *getPanelPipeline()
+  {
+    return mPanelPipeline;
+  }
+
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
 

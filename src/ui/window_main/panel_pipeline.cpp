@@ -169,15 +169,8 @@ void PanelPipeline::addChannel(const joda::settings::VChannelVoronoi &settings)
 void PanelPipeline::addChannel(const QString &pathToSettings)
 {
   try {
-    auto loaded = joda::helper::templates::TemplateParser::loadChannelFromTemplate(
-        std::filesystem::path(pathToSettings.toStdString()));
-    if(loaded.channel.has_value()) {
-      addChannel(loaded.channel.value());
-    } else if(loaded.intersection.has_value()) {
-      addChannel(loaded.intersection.value());
-    } else if(loaded.voronoi.has_value()) {
-      addChannel(loaded.voronoi.value());
-    }
+    addChannel(joda::helper::templates::TemplateParser::loadChannelFromTemplate(
+        std::filesystem::path(pathToSettings.toStdString())));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
@@ -186,6 +179,46 @@ void PanelPipeline::addChannel(const QString &pathToSettings)
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::addChannel(const nlohmann::json &json)
+{
+  try {
+    addChannel(joda::helper::templates::TemplateParser::loadChannelFromTemplate(json));
+  } catch(const std::exception &ex) {
+    QMessageBox messageBox(this);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not load settings!");
+    messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::addChannel(const joda::helper::templates::TemplateParser::LoadedChannel &loaded)
+{
+  if(loaded.channel.has_value()) {
+    addChannel(loaded.channel.value());
+  } else if(loaded.intersection.has_value()) {
+    addChannel(loaded.intersection.value());
+  } else if(loaded.voronoi.has_value()) {
+    addChannel(loaded.voronoi.value());
   }
 }
 

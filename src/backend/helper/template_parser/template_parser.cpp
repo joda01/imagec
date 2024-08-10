@@ -12,11 +12,13 @@
 ///
 
 #include "template_parser.hpp"
+#include <duckdb.h>
 #include <QDir>
 #include <filesystem>
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/vchannel/vchannel_intersection.hpp"
 #include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::helper::templates {
 
@@ -77,27 +79,37 @@ struct SchemaFinder
 };
 auto TemplateParser::loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> LoadedChannel
 {
-  SchemaFinder schema;
-  {
-    std::ifstream ifs(pathToTemplate.string());
-    schema = nlohmann::json::parse(ifs);
-    ifs.close();
-  }
   std::ifstream ifs(pathToTemplate.string());
+  nlohmann::json json = nlohmann::json::parse(ifs);
+  ifs.close();
+  return loadChannelFromTemplate(json);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto TemplateParser::loadChannelFromTemplate(const nlohmann::json &templateJson) -> LoadedChannel
+{
+  SchemaFinder schema = templateJson;
+
   LoadedChannel loaded;
   if(schema.configSchema == "https://imagec.org/schemas/v1/channel-settings.json") {
-    settings::ChannelSettings settings = nlohmann::json::parse(ifs);
+    settings::ChannelSettings settings = templateJson;
     loaded.channel                     = settings;
   } else if(schema.configSchema == "https://imagec.org/schemas/v1/voronoi-settings.json") {
-    settings::VChannelVoronoi settings = nlohmann::json::parse(ifs);
+    settings::VChannelVoronoi settings = templateJson;
     loaded.voronoi                     = settings;
   } else if(schema.configSchema == "https://imagec.org/schemas/v1/intersectrion-settings.json") {
-    settings::VChannelIntersection settings = nlohmann::json::parse(ifs);
+    settings::VChannelIntersection settings = templateJson;
     loaded.intersection                     = settings;
   }
-  ifs.close();
   return loaded;
 }
+
 ///
 /// \brief      Save template in users home directory
 /// \author
