@@ -104,7 +104,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  static inline const std::string DB_FILENAME{"results.imcdbres"};
+  static inline const std::string DB_FILENAME{"results.icresult"};
   static inline const std::filesystem::path CONTROL_IMAGE_PATH{"images"};
   static inline const std::string CONTROL_IMAGES_FILE_EXTENSION{".png"};
 

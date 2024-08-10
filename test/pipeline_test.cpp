@@ -61,7 +61,7 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
       }
     } catch(...) {
     }
-    controller = executePipeline("test/scenarios/pipeline_01.imcjsproj", "test/test_data/images/pipeline_01");
+    controller = executePipeline("test/scenarios/pipeline_01.icproj", "test/test_data/images/pipeline_01");
   }
 
   GIVEN("A specific initial condition")

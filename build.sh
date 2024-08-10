@@ -46,7 +46,7 @@ cp /opt/Qt6/lib/libQt6DBus.so.6.3.3 ./build/build
 cp -r /opt/Qt6/plugins/* ./build/build/plugins
 cp /opt/Qt6/plugins/platforms/* ./build/build/platforms/
 cp imagec.sh ./build/build
-cp -r ./templates/*.imcjstemplate ./build/build/templates
+cp -r ./templates/*.ictempl ./build/build/templates
 chmod +x ./build/build/imagec.sh
 
 #

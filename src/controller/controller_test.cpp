@@ -15,7 +15,7 @@ TEST_CASE("controller:test", "[.][optimal_thread_number_tile]")
   ctrl.setWorkingDirectory("test_nucleus");
   sleep(1);
 
-  joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test_nucleus/config.imcjsproj"});
+  joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test_nucleus/config.icproj"});
   auto result                              = ctrl.calcOptimalThreadNumber(settings, 0);
 
   std::cout << "Img: " << std::to_string(result.cores[joda::pipeline::Pipeline::ThreadingSettings::IMAGES])
@@ -34,9 +34,8 @@ TEST_CASE("controller:test", "[.][optimal_thread_number_img]")
   ctrl.setWorkingDirectory("test_areosold_Evs");
   sleep(1);
 
-  joda::settings::AnalyzeSettings settings =
-      nlohmann::json::parse(std::ifstream{"test_areosold_Evs/settings.imcjsproj"});
-  auto result = ctrl.calcOptimalThreadNumber(settings, 0);
+  joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{"test_areosold_Evs/settings.icproj"});
+  auto result                              = ctrl.calcOptimalThreadNumber(settings, 0);
 
   std::cout << "Img: " << std::to_string(result.cores[joda::pipeline::Pipeline::ThreadingSettings::IMAGES])
             << " | Chs: " << std::to_string(result.cores[joda::pipeline::Pipeline::ThreadingSettings::CHANNELS])
@@ -55,7 +54,7 @@ TEST_CASE("controller:test", "[.][optimal_thread_number_img_multi]")
   sleep(1);
 
   joda::settings::AnalyzeSettings settings =
-      nlohmann::json::parse(std::ifstream{"test_spot/evanalyzer_comp/mysettings.imcjsproj"});
+      nlohmann::json::parse(std::ifstream{"test_spot/evanalyzer_comp/mysettings.icproj"});
   auto result = ctrl.calcOptimalThreadNumber(settings, 0);
 
   std::cout << "Img: " << std::to_string(result.cores[joda::pipeline::Pipeline::ThreadingSettings::IMAGES])

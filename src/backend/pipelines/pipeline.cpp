@@ -123,7 +123,7 @@ void Pipeline::runJob()
   mTimePipelineStarted = std::chrono::high_resolution_clock::now();
   // Store configuration
   static const std::string separator(1, std::filesystem::path::preferred_separator);
-  joda::settings::Settings::storeSettings((getOutputFolder() / ("settings_" + mJobName + ".imcjsproj")).string(),
+  joda::settings::Settings::storeSettings((getOutputFolder() / ("settings_" + mJobName + ".icproj")).string(),
                                           mAnalyzeSettings);
 
   // Prepare database

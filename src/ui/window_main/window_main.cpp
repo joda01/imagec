@@ -361,18 +361,18 @@ void WindowMain::onOpenClicked()
 
   QString filePath =
       QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
-                                   "ImageC project or results files (*.imcjsproj *.imcdbres);;ImageC project files "
-                                   "(*.imcjsproj);;ImageC results files (*.imcdbres)",
+                                   "ImageC project or results files (*.icproj *.icresult);;ImageC project files "
+                                   "(*.icproj);;ImageC results files (*.icresult)",
                                    nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
   }
 
-  if(filePath.endsWith(".imcjsproj")) {
+  if(filePath.endsWith(".icproj")) {
     openProjectSettings(filePath);
   }
-  if(filePath.endsWith(".imcdbres")) {
+  if(filePath.endsWith(".icresult")) {
     openResultsSettings(filePath);
   }
 }
@@ -458,7 +458,7 @@ void WindowMain::onSaveProjectAsClicked()
 {
   std::filesystem::path folderToSaveSettings(mSelectedProjectSettingsFilePath.parent_path());
   QString filePath = QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(),
-                                                  "ImageC project files (*.imcjsproj)");
+                                                  "ImageC project files (*.icproj)");
   if(!filePath.isEmpty()) {
     joda::settings::Settings::storeSettings(filePath.toStdString(), mAnalyzeSettings);
   }
@@ -477,9 +477,9 @@ void WindowMain::onSaveProject()
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath                         = filePath / "settings.imcjsproj";
-      QString filePathOfSettingsFile   = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
-                                                                      "ImageC project files (*.imcjsproj)");
+      filePath = filePath / "settings.icproj";
+      QString filePathOfSettingsFile =
+          QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(), "ImageC project files (*.icproj)");
       mSelectedProjectSettingsFilePath = filePathOfSettingsFile.toStdString();
     }
 

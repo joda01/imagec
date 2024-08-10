@@ -77,7 +77,7 @@ inline std::unique_ptr<joda::ctrl::Controller> executePipeline(const std::string
 ///
 inline std::unique_ptr<joda::results::Analyzer> getAnalyze(const std::string &outputFolder)
 {
-  auto databaseFile = std::filesystem::path(outputFolder) / "results.imcdbres";
+  auto databaseFile = std::filesystem::path(outputFolder) / "results.icresult";
   auto analyze      = std::make_unique<joda::results::Analyzer>(databaseFile);
   return analyze;
 }
