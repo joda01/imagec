@@ -13,7 +13,7 @@
 #include "roi.hpp"
 
 namespace joda::cmd {
-class ObjectsList;
+class ObjectsListMap;
 }
 
 namespace joda::roi {
@@ -56,10 +56,18 @@ public:
     return grid.empty();
   }
 
+  void clear()
+  {
+    grid.clear();
+    mElements.clear();
+  }
+
   size_t size() const
   {
     return mElements.size();
   }
+
+  void cloneFromOther(const SpatialHash &);
 
   std::unique_ptr<SpatialHash> clone();
 
@@ -86,10 +94,9 @@ public:
     return potential_collisions;
   }
 
-  std::unique_ptr<joda::cmd::ObjectsList>
-  calcIntersections(const std::unique_ptr<SpatialHash> &other,
-                    const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
-                    float minIntersecion);
+  void calcIntersections(const SpatialHash &other, SpatialHash &result,
+                         const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
+                         float minIntersecion) const;
 
   auto begin() const
   {

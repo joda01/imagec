@@ -68,7 +68,8 @@ ImageLoader::ImageLoader(const ImageLoaderSettings &settings, const std::filesys
 /// \param[out]
 /// \return
 ///
-void ImageLoader::execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result)
+void ImageLoader::execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
+                          ObjectsListMap &result)
 {
   auto loadEntireImage = [&context](int32_t z, int32_t c, int32_t t) {
     return joda::image::reader::ImageReader::loadEntireImage(

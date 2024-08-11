@@ -45,7 +45,8 @@ public:
   }
   virtual ~Threshold() = default;
 
-  void execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result) override
+  void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
+               ObjectsListMap &result) override
   {
     auto idStart                            = DurationCount::start("Threshold");
     auto [thresholdValMin, thresholdValMax] = autoThreshold(image);

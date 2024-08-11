@@ -24,42 +24,43 @@
 
 namespace joda::settings {
 
-void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image, cmd::ObjectsListMap &result) const
+void PipelineStep::operator()(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
+                              cmd::ObjectsListMap &result) const
 {
   if($blur) {
     joda::cmd::Factory<joda::cmd::functions::Blur, cmd::functions::BlurSettings> a($blur.value());
-    a.execute(context, image, result);
+    a.execute(context, memory, image, result);
   }
 
   if($saveImage) {
     joda::cmd::Factory<joda::cmd::functions::ImageSaver, cmd::functions::ImageSaverSettings> a($saveImage.value());
-    a.execute(context, image, result);
+    a.execute(context, memory, image, result);
   }
 
   if($threshold) {
     joda::cmd::Factory<joda::cmd::functions::Threshold, cmd::functions::ThresholdSettings> a($threshold.value());
-    a.execute(context, image, result);
+    a.execute(context, memory, image, result);
   }
 
   if($watershed) {
     joda::cmd::Factory<joda::cmd::functions::Watershed, cmd::functions::WatershedSettings> a($watershed.value());
-    a.execute(context, image, result);
+    a.execute(context, memory, image, result);
   }
 
   if($imageFromClass) {
     joda::cmd::Factory<joda::cmd::functions::ImageFromClass, cmd::functions::ImageFromClassSettings> a(
         $imageFromClass.value());
-    a.execute(context, image, result);
+    a.execute(context, memory, image, result);
   }
 
   if($classify) {
     joda::cmd::Factory<joda::cmd::functions::Classifier, cmd::functions::ClassifierSettings> a($classify.value());
-    a.execute(context, image, result);
+    a.execute(context, memory, image, result);
   }
 
   if($aiClassify) {
     joda::cmd::Factory<joda::cmd::functions::AiClassifier, cmd::functions::AiClassifierSettings> a($aiClassify.value());
-    a.execute(context, image, result);
+    a.execute(context, memory, image, result);
   }
 }
 

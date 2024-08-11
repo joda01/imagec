@@ -18,13 +18,13 @@ namespace joda::processor {
 
 ProcessStep &ProcessStep::executeStep(ProcessorMemory &memory, joda::cmd::Command &pipelineStep)
 {
-  pipelineStep.execute(mContext, mImages, mResults);    // Execute the pipeline step
+  pipelineStep.execute(mContext, memory, mImages, mObjects);    // Execute the pipeline step
   return *this;
 }
 
 ProcessStep &ProcessStep::executeStep(ProcessorMemory &memory, const joda::settings::PipelineStep &pipelineStep)
 {
-  pipelineStep(mContext, mImages, mResults);    // Execute the pipeline step
+  pipelineStep(mContext, memory, mImages, mObjects);    // Execute the pipeline step
   return *this;
 }
 

@@ -16,7 +16,7 @@
 #include "backend/commands/command.hpp"
 #include "backend/commands/objects_list.hpp"
 #include "backend/processor/process_context.hpp"
-#include "classifier_settings.hpp"
+#include "intersection_settings.hpp"
 
 namespace joda::cmd::functions {
 
@@ -26,17 +26,17 @@ namespace joda::cmd::functions {
 /// \brief      Classify objects in a grayscal image.
 ///             Each gray value is used for one object class.
 ///
-class Classifier : public Command
+class Intersection : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  Classifier(const ClassifierSettings &);
+  Intersection(const IntersectionSettings &);
   void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
                ObjectsListMap &result) override;
 
 private:
   /////////////////////////////////////////////////////
-  const ClassifierSettings &mSettings;
+  const IntersectionSettings &mSettings;
 };
 
 }    // namespace joda::cmd::functions

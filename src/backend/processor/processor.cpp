@@ -73,7 +73,11 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                 }
                 actStep.executeStep(mMemory, step);
               }
+
+              // Pipeline finished -> Store the settings so that they can used in a later pipeline
+              mMemory.store(joda::enums::Slot::$1, actStep);
             }
+
             // Image section finished
             // Do cross channel measurement here
           }

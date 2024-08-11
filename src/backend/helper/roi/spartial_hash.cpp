@@ -6,19 +6,17 @@
 
 namespace joda::roi {
 
-std::unique_ptr<joda::cmd::ObjectsList>
-SpatialHash::calcIntersections(const std::unique_ptr<SpatialHash> &other,
-                               const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
-                               float minIntersecion)
+void SpatialHash::calcIntersections(const SpatialHash &other, SpatialHash &result,
+                                    const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
+                                    float minIntersecion) const
 {
-  auto potential_collisions = std::make_unique<joda::cmd::ObjectsList>();
   std::set<ROI *> intersecting;
 
   // Check for collisions between objects in grid1 and grid2
   for(const auto &cell : grid) {
     const auto &boxes1 = cell.second;
-    auto it            = other->grid.find(cell.first);
-    if(it != other->grid.end()) {
+    auto it            = other.grid.find(cell.first);
+    if(it != other.grid.end()) {
       const auto &boxes2 = it->second;
       for(const auto &box1 : boxes1) {
         if(box1->isValid()) {
@@ -29,8 +27,7 @@ SpatialHash::calcIntersections(const std::unique_ptr<SpatialHash> &other,
                 if(isCollision(box1, box2)) {
                   auto [colocROI, ok] = box1->calcIntersection(*box2, imageOriginal, minIntersecion);
                   if(ok) {
-#warning "Fix it"
-                    // potential_collisions->push_back(colocROI);
+                    result.push_back(colocROI);
                     intersecting.emplace(box1);
                     intersecting.emplace(box2);
                   }
@@ -42,8 +39,6 @@ SpatialHash::calcIntersections(const std::unique_ptr<SpatialHash> &other,
       }
     }
   }
-
-  return potential_collisions;
 }
 
 std::unique_ptr<SpatialHash> SpatialHash::clone()
@@ -67,6 +62,29 @@ std::unique_ptr<SpatialHash> SpatialHash::clone()
   }
 
   return clone;
+}
+
+void SpatialHash::cloneFromOther(const SpatialHash &other)
+{
+  mElements.clear();
+  grid.clear();
+  mCellSize = other.mCellSize;
+
+  std::map<const ROI *, ROI *> oldNewPtrMap;
+
+  for(const auto &oldRoi : other.mElements) {
+    mElements.push_back(oldRoi);
+    ROI *newPtr = &mElements.back();
+    oldNewPtrMap.emplace(&oldRoi, newPtr);
+  }
+
+  for(const auto &[key, valVec] : other.grid) {
+    std::vector<ROI *> newVec;
+    for(const auto &oldRoi : valVec) {
+      newVec.emplace_back(oldNewPtrMap.at(oldRoi));
+    }
+    grid.emplace(key, newVec);
+  }
 }
 
 }    // namespace joda::roi

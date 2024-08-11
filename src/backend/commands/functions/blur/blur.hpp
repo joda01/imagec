@@ -41,7 +41,8 @@ public:
   explicit Blur(const BlurSettings &settings) : mRepeat(settings.repeat), mKernelSize(settings.kernelSize)
   {
   }
-  void execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result) override
+  void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
+               ObjectsListMap &result) override
   {
     auto id = DurationCount::start("Blur");
     int kernel[3]{0};    //= {-1, -1, -1, -1, 12, -1, -1, -1, -1};

@@ -16,6 +16,7 @@
 #include <memory>
 #include "backend/commands/objects_list.hpp"
 #include "backend/processor/process_context.hpp"
+#include "backend/processor/processor_memory.hpp"
 #include <opencv2/core/mat.hpp>
 
 namespace joda::cmd {
@@ -23,7 +24,8 @@ namespace joda::cmd {
 class Command
 {
 public:
-  virtual void execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result) = 0;
+  virtual void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
+                       ObjectsListMap &result) = 0;
 };
 
 }    // namespace joda::cmd

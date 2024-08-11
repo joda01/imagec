@@ -66,7 +66,8 @@ AiClassifier::AiClassifier(const AiClassifierSettings &settings) :
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, ObjectsListMap &result)
+void AiClassifier::execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &imageNotUse,
+                           ObjectsListMap &result)
 {
   const cv::Mat &inputImageOriginal = imageNotUse;
   auto id                           = DurationCount::start("AiClassifier");

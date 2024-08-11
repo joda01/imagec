@@ -45,7 +45,8 @@ Classifier::Classifier(const ClassifierSettings &settings) : mSettings(settings)
 /// \param[out]
 /// \return
 ///
-void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, ObjectsListMap &result)
+void Classifier::execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &imageIn,
+                         ObjectsListMap &result)
 {
   auto id = DurationCount::start("Classifier");
 

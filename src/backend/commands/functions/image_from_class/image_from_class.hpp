@@ -37,7 +37,8 @@ public:
   explicit ImageFromClass(const ImageFromClassSettings &settings) : mSettings(settings)
   {
   }
-  void execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result) override
+  void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
+               ObjectsListMap &result) override
   {
     auto id = DurationCount::start("ImageFromClass");
     image   = 0;

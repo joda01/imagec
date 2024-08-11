@@ -37,7 +37,8 @@ public:
     return mZStackToLoad;
   }
 
-  void execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result) override;
+  void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
+               ObjectsListMap &result) override;
 
 private:
   /////////////////////////////////////////////////////

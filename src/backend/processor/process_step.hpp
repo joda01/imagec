@@ -43,15 +43,30 @@ public:
     return mContext;
   }
 
+  [[nodiscard]] auto objects() const -> const joda::cmd::ObjectsListMap &
+  {
+    return mObjects;
+  }
+
   [[nodiscard]] const cv::Mat &getImage() const
   {
     return mImages;
   }
 
+  void releaseMemoryOfWorkingImage()
+  {
+    mImages.release();
+  }
+
+  void releaseMemoryOfOriginalImage()
+  {
+    mContext.originalImage.release();
+  }
+
 private:
   // RESULTS /////////////////////////////////
   cv::Mat mImages;
-  joda::cmd::ObjectsListMap mResults;
+  joda::cmd::ObjectsListMap mObjects;
   ProcessContext mContext;
 };
 
