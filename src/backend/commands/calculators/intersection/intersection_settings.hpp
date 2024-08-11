@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <set>
+#include <vector>
 #include "backend/commands/setting.hpp"
 #include "backend/global_enums.hpp"
 #include <nlohmann/json.hpp>
@@ -23,28 +24,37 @@ namespace joda::cmd::functions {
 
 struct IntersectionSettings : public Setting
 {
-  enum Mode
+  struct IntersectingClasses
   {
-    STORE_INTERSECTING_OBJECTS_AS_RESULT,
-    REMOVE_INTERSECTING_OBJECTS_FROM_ORIGIN
+    //
+    // Calc the intersection only with objects of given classes
+    //
+    std::set<joda::enums::ObjectClassId> objectClasses;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectingClasses, objectClasses);
   };
 
   //
   // List of channels to calc the intersection for
   //
-  std::set<joda::enums::Slot> intersectingSlots;
+  std::map<joda::enums::Slot, IntersectingClasses> intersectingSlots;
 
   //
   // Minimum intersection in [0-1]
   //
   float minIntersection = 0.1F;
 
+  //
+  // Resulting object class of the intersecting objects
+  //
+  joda::enums::ObjectClassId objectClass = joda::enums::ObjectClassId::NONE;
+
   /////////////////////////////////////////////////////
   void check() const override
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectionSettings, intersectingSlots, minIntersection);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectionSettings, intersectingSlots, minIntersection, objectClass);
 };
 
 }    // namespace joda::cmd::functions

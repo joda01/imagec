@@ -13,6 +13,7 @@
 
 #include "intersection.hpp"
 #include <cstddef>
+#include <optional>
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
@@ -33,7 +34,7 @@ void Intersection::execute(processor::ProcessContext &context, processor::Proces
   size_t intersectCount          = indexesToIntersect.size();
   try {
     std::map<joda::enums::ImageChannelIndex, const cv::Mat *> channelsToIntersectImages;
-    for(const auto idxToIntersect : indexesToIntersect) {
+    for(const auto [idxToIntersect, _] : indexesToIntersect) {
       auto channel = memory.load(idxToIntersect).context();
       channelsToIntersectImages.emplace(channel.channel, &channel.originalImage);
     }
@@ -45,12 +46,12 @@ void Intersection::execute(processor::ProcessContext &context, processor::Proces
     }
 
     if(intersectCount == 1) {
-      result.cloneFromOther(memory.load(*it).objects());
+      result.cloneFromOther(memory.load(it->first).objects());
       DurationCount::stop(id);
       return;
     }
 
-    const auto *firstDataBuffer     = &memory.load(*it).objects();
+    const auto *firstDataBuffer     = &memory.load(it->first).objects();
     const roi::SpatialHash *working = firstDataBuffer;
     roi::SpatialHash *resultTemp    = nullptr;
     // Directly write to the output buffer
@@ -62,11 +63,17 @@ void Intersection::execute(processor::ProcessContext &context, processor::Proces
       resultTemp = &buffer01;
     }
 
+    std::optional<std::set<joda::enums::ObjectClassId>> objectClassesMe = it->second.objectClasses;
+
     ++it;
     ++idx;
+
     for(; it != indexesToIntersect.end(); ++it) {
-      const auto &objects02 = memory.load(*it).objects();
-      working->calcIntersections(objects02, *resultTemp, channelsToIntersectImages, mSettings.minIntersection);
+      const auto &objects02 = memory.load(it->first).objects();
+      working->calcIntersections(objects02, *resultTemp, channelsToIntersectImages, objectClassesMe,
+                                 it->second.objectClasses, mSettings.objectClass, mSettings.minIntersection);
+      // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
+      objectClassesMe.reset();
       idx++;
       if(idx >= intersectCount) {
         break;

@@ -205,7 +205,8 @@ public:
 
   [[nodiscard]] std::tuple<ROI, bool>
   calcIntersection(const ROI &roi, const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
-                   float minIntersection, bool createRoi = true) const;
+                   float minIntersection, joda::enums::ObjectClassId objectClassIdOfIntersectingObjects,
+                   bool createRoi = true) const;
 
   void measureAndAddIntensity(joda::enums::ImageChannelIndex channelIdx, const cv::Mat &imageOriginal);
   void calcIntersectionAndAdd(joda::enums::ImageChannelIndex channelIdx, const ROI *roi);

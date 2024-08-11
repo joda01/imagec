@@ -96,7 +96,9 @@ public:
 
   void calcIntersections(const SpatialHash &other, SpatialHash &result,
                          const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
-                         float minIntersecion) const;
+                         const std::optional<std::set<joda::enums::ObjectClassId>> objectClassesMe,
+                         const std::set<joda::enums::ObjectClassId> &objectClassesOther,
+                         joda::enums::ObjectClassId objectClasIdOfIntersetingObject, float minIntersecion) const;
 
   auto begin() const
   {

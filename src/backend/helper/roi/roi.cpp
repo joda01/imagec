@@ -346,7 +346,8 @@ void ROI::applyParticleFilter(const ChannelSettingsFilter *filter)
 ///
 [[nodiscard]] std::tuple<ROI, bool>
 ROI::calcIntersection(const ROI &roi, const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
-                      float minIntersection, bool createRoi) const
+                      float minIntersection, joda::enums::ObjectClassId objectClassIdOfIntersectingObjects,
+                      bool createRoi) const
 {
   auto intersectingMask = calcIntersectingMask(roi);
 
@@ -366,8 +367,7 @@ ROI::calcIntersection(const ROI &roi, const std::map<joda::enums::ImageChannelIn
         }
       }
 
-#warning "Which class ID should be taken?"
-      ROI intersectionROI(index, intersectingMask.intersectionArea, joda::enums::ObjectClassId::NONE,
+      ROI intersectionROI(index, intersectingMask.intersectionArea, objectClassIdOfIntersectingObjects,
                           intersectingMask.intersectedRect, intersectingMask.intersectedMask, contour, imageOriginal);
       if(intersectingMask.intersectionArea < minIntersection) {
         intersectionROI.setValidity(ParticleValidityEnums::TOO_LESS_OVERLAPPING);
@@ -375,13 +375,13 @@ ROI::calcIntersection(const ROI &roi, const std::map<joda::enums::ImageChannelIn
       return {intersectionROI, true};
     }
     cv::Mat mat{};
-    return {ROI(index, 0.0, joda::enums::ObjectClassId::NONE, Boxes{}, cv::Mat{}, std::vector<cv::Point>{},
+    return {ROI(index, 0.0, objectClassIdOfIntersectingObjects, Boxes{}, cv::Mat{}, std::vector<cv::Point>{},
                 {{joda::enums::ImageChannelIndex::NONE, &mat}}),
             true};
   }
 
   cv::Mat mat{};
-  return {ROI(index, 0.0, joda::enums::ObjectClassId::NONE, Boxes{}, cv::Mat{}, std::vector<cv::Point>{},
+  return {ROI(index, 0.0, objectClassIdOfIntersectingObjects, Boxes{}, cv::Mat{}, std::vector<cv::Point>{},
               {{joda::enums::ImageChannelIndex::NONE, &mat}}),
           false};
 }

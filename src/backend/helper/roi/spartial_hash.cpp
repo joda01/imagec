@@ -8,6 +8,9 @@ namespace joda::roi {
 
 void SpatialHash::calcIntersections(const SpatialHash &other, SpatialHash &result,
                                     const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
+                                    const std::optional<std::set<joda::enums::ObjectClassId>> objectClassesMe,
+                                    const std::set<joda::enums::ObjectClassId> &objectClassesOther,
+                                    joda::enums::ObjectClassId objectClasIdOfIntersetingObject,
                                     float minIntersecion) const
 {
   std::set<ROI *> intersecting;
@@ -19,13 +22,14 @@ void SpatialHash::calcIntersections(const SpatialHash &other, SpatialHash &resul
     if(it != other.grid.end()) {
       const auto &boxes2 = it->second;
       for(const auto &box1 : boxes1) {
-        if(box1->isValid()) {
+        if(box1->isValid() && (!objectClassesMe.has_value() || objectClassesMe->contains(box1->getClassId()))) {
           for(const auto &box2 : boxes2) {
-            if(box2->isValid()) {
+            if(box2->isValid() && objectClassesOther.contains(box2->getClassId())) {
               // Each intersecting particle is only allowed to be counted once
               if(!intersecting.contains(box1) && !intersecting.contains(box2)) {
                 if(isCollision(box1, box2)) {
-                  auto [colocROI, ok] = box1->calcIntersection(*box2, imageOriginal, minIntersecion);
+                  auto [colocROI, ok] =
+                      box1->calcIntersection(*box2, imageOriginal, minIntersecion, objectClasIdOfIntersetingObject);
                   if(ok) {
                     result.push_back(colocROI);
                     intersecting.emplace(box1);
