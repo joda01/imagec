@@ -13,9 +13,8 @@
 
 #include "pipeline_step.hpp"
 #include <memory>
-#include "backend/commands/ai_classifier/ai_classifier.hpp"
-#include "backend/commands/classifier/classifier.hpp"
-#include "backend/commands/classifier/classifier_settings.hpp"
+#include "backend/commands/classification/ai_classifier/ai_classifier.hpp"
+#include "backend/commands/classification/classifier/classifier.hpp"
 #include "backend/commands/factory.hpp"
 #include "backend/commands/functions/blur/blur.hpp"
 #include "backend/commands/functions/image_from_class/image_from_class.hpp"

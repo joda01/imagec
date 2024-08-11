@@ -69,7 +69,7 @@ AiClassifier::AiClassifier(const AiClassifierSettings &settings) :
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, ObjectsListMap &result)
 {
   const cv::Mat &inputImageOriginal = imageNotUse;
-  auto id                           = DurationCount::start("AiAiClassifier");
+  auto id                           = DurationCount::start("AiClassifier");
 
   // Normalize the pixel values to [0, 255] float for detection
   cv::Mat grayImageFloat;

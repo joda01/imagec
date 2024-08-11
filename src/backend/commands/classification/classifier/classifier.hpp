@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "backend/commands/classifier/classifier_settings.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/commands/objects_list.hpp"
 #include "backend/processor/process_context.hpp"
+#include "classifier_settings.hpp"
 
 namespace joda::cmd::functions {
 

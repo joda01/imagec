@@ -47,6 +47,8 @@ Classifier::Classifier(const ClassifierSettings &settings) : mSettings(settings)
 ///
 void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, ObjectsListMap &result)
 {
+  auto id = DurationCount::start("Classifier");
+
   const cv::Mat &image = imageIn;
   for(const auto &objectClass : mSettings.objectClasses) {
     // Create a mask where pixels with value 1 are set to 255
@@ -62,41 +64,42 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, O
 
     if(contours.size() > 50000) {
       joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
-      return;
-    }
+    } else {
+      // Create a mask for each contour and draw bounding boxes
+      size_t idx = 0;
+      size_t i   = 0;
+      for(auto &contour : contours) {
+        // Do not paint a contour for elements inside an element.
+        // In other words if there is a particle with a hole, ignore the hole.
+        // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
+        if(hierarchy[i][3] == -1) {
+          auto boundingBox  = cv::boundingRect(contour);
+          cv::Mat mask      = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
+          cv::Mat imagePart = binaryImage(boundingBox).clone();
 
-    // Create a mask for each contour and draw bounding boxes
-    size_t idx = 0;
-    size_t i   = 0;
-    for(auto &contour : contours) {
-      // Do not paint a contour for elements inside an element.
-      // In other words if there is a particle with a hole, ignore the hole.
-      // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
-      if(hierarchy[i][3] == -1) {
-        auto boundingBox  = cv::boundingRect(contour);
-        cv::Mat mask      = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
-        cv::Mat imagePart = binaryImage(boundingBox).clone();
-
-        // Bring the contours box in the area of the bounding box
-        for(auto &point : contour) {
-          point.x = point.x - boundingBox.x;
-          point.y = point.y - boundingBox.y;
+          // Bring the contours box in the area of the bounding box
+          for(auto &point : contour) {
+            point.x = point.x - boundingBox.x;
+            point.y = point.y - boundingBox.y;
+          }
+          cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
+          // Remove inner holes from the mask
+          cv::bitwise_and(mask, imagePart, mask);
+          joda::roi::ROI detect(idx, context.appliedMinThreshold, objectClass.classId, boundingBox, mask, contour,
+                                context.originalImage, context.channel,
+                                joda::roi::ChannelSettingsFilter{.maxParticleSize = objectClass.filter.maxParticleSize,
+                                                                 .minParticleSize = objectClass.filter.minParticleSize,
+                                                                 .minCircularity  = objectClass.filter.minCircularity,
+                                                                 .snapAreaSize    = objectClass.filter.snapAreaSize});
+          idx++;
+          result.push_back(detect);
         }
-        cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
-        // Remove inner holes from the mask
-        cv::bitwise_and(mask, imagePart, mask);
-        joda::roi::ROI detect(idx, context.appliedMinThreshold, objectClass.classId, boundingBox, mask, contour,
-                              context.originalImage, context.channel,
-                              joda::roi::ChannelSettingsFilter{.maxParticleSize = objectClass.filter.maxParticleSize,
-                                                               .minParticleSize = objectClass.filter.minParticleSize,
-                                                               .minCircularity  = objectClass.filter.minCircularity,
-                                                               .snapAreaSize    = objectClass.filter.snapAreaSize});
-        idx++;
-        result.push_back(detect);
+        i++;
       }
-      i++;
     }
   }
+
+  DurationCount::stop(id);
 }
 
 }    // namespace joda::cmd::functions
