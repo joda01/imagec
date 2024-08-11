@@ -15,6 +15,8 @@
 #include <memory>
 #include "backend/commands/factory.hpp"
 #include "backend/commands/functions/blur/blur.hpp"
+#include "backend/commands/functions/image_saver/image_saver.hpp"
+#include "backend/commands/functions/image_saver/image_saver_settings.hpp"
 
 namespace joda::settings {
 
@@ -22,6 +24,11 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
 {
   if($blur) {
     joda::cmd::Factory<joda::cmd::functions::Blur, cmd::functions::BlurSettings> a($blur.value());
+    a.execute(context, image, result);
+  }
+
+  if($saveImage) {
+    joda::cmd::Factory<joda::cmd::functions::ImageSaver, cmd::functions::ImageSaverSettings> a($saveImage.value());
     a.execute(context, image, result);
   }
 }

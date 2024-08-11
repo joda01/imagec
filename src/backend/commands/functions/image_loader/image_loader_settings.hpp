@@ -26,8 +26,10 @@ struct ImageLoaderSettings : public cmd::Setting
   TStackHandling tStackHandling;
 
   std::string imageInputDirectory;
+  std::string resultsOutputFolder;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageLoaderSettings, imageInputDirectory, zStackHandling, tStackHandling);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageLoaderSettings, imageInputDirectory, resultsOutputFolder,
+                                              zStackHandling, tStackHandling);
 
   void check() const override
   {

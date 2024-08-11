@@ -35,6 +35,9 @@ Processor::Processor()
 void Processor::execute(const joda::settings::AnalyzeSettings &program)
 {
   joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> images({});
+  images.setWorkingDirectory(program.imageLoader.imageInputDirectory);
+  images.waitForFinished();
+  std::cout << "Working dir " << program.imageLoader.imageInputDirectory << std::endl;
 
   for(const auto &imagePath : images.getFilesList()) {
     joda::cmd::functions::ImageLoader imageLoader(program.imageLoader, imagePath.getFilePath());
@@ -50,19 +53,20 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
             // Start pipeline
             for(const auto &pipeline : program.pipelines) {
               // First of all load the image to process
-              ProcessStep actStep{ProcessContext{.imagePath = imagePath.getFilePath(),
-                                                 .tile      = {tileX, tileY},
-                                                 .tStack    = tStack,
-                                                 .zStack    = zStack,
-                                                 .channel   = joda::settings::ImageChannelIndex::NONE,
-                                                 .loader    = pipeline.channelLoader}};
+              ProcessStep actStep{ProcessContext{.imagePath           = imagePath.getFilePath(),
+                                                 .resultsOutputFolder = program.imageLoader.resultsOutputFolder,
+                                                 .tile                = {tileX, tileY},
+                                                 .tStack              = tStack,
+                                                 .zStack              = zStack,
+                                                 .channel             = pipeline.channelLoader.imageChannelIndex,
+                                                 .loader              = pipeline.channelLoader}};
 
               actStep.executeStep(mMemory, imageLoader);
               for(const auto &step : pipeline.pipelineSteps) {
                 ProcessStep &stepToUseForProcessing = actStep;
-                if(step.input != joda::settings::Slot::$) {
-                  mMemory.loadCopy(step.input, actStep);
-                }
+                // if(step.input != joda::settings::Slot::$) {
+                //   mMemory.loadCopy(step.input, actStep);
+                // }
                 actStep.executeStep(mMemory, step);
               }
             }

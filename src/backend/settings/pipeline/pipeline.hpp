@@ -36,7 +36,7 @@ public:
     }
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Pipeline, meta, pipelineSteps);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Pipeline, meta, channelLoader, pipelineSteps);
 };
 
 }    // namespace joda::settings

@@ -46,6 +46,6 @@ public:
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.icproj";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettings, configSchema, projectSettings, pipelines);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettings, projectSettings, imageLoader, pipelines);
 };
 }    // namespace joda::settings

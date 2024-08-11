@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <set>
 #include "backend/commands/setting.hpp"
+#include "backend/settings/anaylze_settings_enums.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::cmd::functions {
@@ -20,17 +21,17 @@ struct ChannelLoaderSettings : public cmd::Setting
   //
   // The input slot used to to load.
   //
-  settings::Slot input;
+  settings::Slot input = settings::Slot::$;
 
   //
   // Image channel to load
   //
-  joda::settings::ImageChannelIndex imageChannelIndex;
+  joda::settings::ImageChannelIndex imageChannelIndex = settings::ImageChannelIndex::NONE;
 
   //
   // Is only used if zStackHandling is set to INTENSITY_PROJECTION
   //
-  ZProjection zProjection;
+  ZProjection zProjection = ZProjection::NONE;
 
   //
   // Is only used if zStackIndex is set to EXACT_ONE
@@ -42,7 +43,8 @@ struct ChannelLoaderSettings : public cmd::Setting
   //
   int32_t tStackIndex = 0;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelLoaderSettings, zProjection);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelLoaderSettings, input, imageChannelIndex, zProjection, zStackIndex,
+                                              tStackIndex);
 
   void check() const override
   {

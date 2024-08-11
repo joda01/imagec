@@ -23,6 +23,7 @@ namespace joda::processor {
 struct ProcessContext
 {
   std::filesystem::path imagePath;
+  std::filesystem::path resultsOutputFolder;
   joda::settings::tile_t tile     = {0, 0};
   joda::settings::tStack_t tStack = 0;
   joda::settings::zStack_t zStack = 0;
