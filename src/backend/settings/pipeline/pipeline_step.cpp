@@ -13,12 +13,12 @@
 
 #include "pipeline_step.hpp"
 #include <memory>
+#include "backend/commands/ai_classifier/ai_classifier.hpp"
 #include "backend/commands/classifier/classifier.hpp"
 #include "backend/commands/classifier/classifier_settings.hpp"
 #include "backend/commands/factory.hpp"
 #include "backend/commands/functions/blur/blur.hpp"
 #include "backend/commands/functions/image_from_class/image_from_class.hpp"
-#include "backend/commands/functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/commands/functions/image_saver/image_saver.hpp"
 #include "backend/commands/functions/threshold/threshold.hpp"
 #include "backend/commands/functions/watershed/watershed.hpp"
@@ -55,6 +55,11 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
 
   if($classify) {
     joda::cmd::Factory<joda::cmd::functions::Classifier, cmd::functions::ClassifierSettings> a($classify.value());
+    a.execute(context, image, result);
+  }
+
+  if($aiClassify) {
+    joda::cmd::Factory<joda::cmd::functions::AiClassifier, cmd::functions::AiClassifierSettings> a($aiClassify.value());
     a.execute(context, image, result);
   }
 }

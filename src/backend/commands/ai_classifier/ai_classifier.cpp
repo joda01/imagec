@@ -11,16 +11,15 @@
 /// \brief     A short description what happens here.
 /// \link      https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
-#include "ai_object_segmentation.hpp"
+#include "ai_classifier.hpp"
 #include <memory>
 #include <string>
-#include "../detection.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::image::segment::ai {
+namespace joda::cmd::functions {
 
 using namespace std;
 using namespace cv;
@@ -32,12 +31,11 @@ using namespace cv::dnn;
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt,
-                                       const joda::onnx::OnnxParser::Data &model, float classThreshold) :
-    DetectionFunction(filt),
-    mClassNames(model.classes), mClassThreshold(classThreshold), mNmsScoreThreshold(classThreshold * BOX_THRESHOLD)
+AiClassifier::AiClassifier(const AiClassifierSettings &settings) :
+    mSettings(settings), mNumberOfClasses(settings.numberOfClasses), mClassThreshold(settings.classThreshold),
+    mNmsScoreThreshold(settings.classThreshold * BOX_THRESHOLD)
 {
-  mNet        = cv::dnn::readNet(model.modelPath);
+  mNet        = cv::dnn::readNet(settings.modelPath);
   bool isCuda = false;
   if(isCuda) {
     mNet.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
@@ -68,10 +66,10 @@ ObjectSegmentation::ObjectSegmentation(const joda::settings::ChannelSettingsFilt
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &originalImage,
-                                 joda::settings::ChannelIndex channelIndex) -> image::detect::DetectionResponse
+void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, ObjectsListMap &result)
 {
-  auto id = DurationCount::start("AiObjectSegmentation");
+  const cv::Mat &inputImageOriginal = imageNotUse;
+  auto id                           = DurationCount::start("AiAiClassifier");
 
   // Normalize the pixel values to [0, 255] float for detection
   cv::Mat grayImageFloat;
@@ -101,7 +99,7 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
 
   float ratio_h = static_cast<float>(netInputImg.rows) / NET_HEIGHT;
   float ratio_w = static_cast<float>(netInputImg.cols) / NET_WIDTH;
-  int net_width = mClassNames.size() + 5 + SEG_CHANNELS;
+  int net_width = mNumberOfClasses + 5 + SEG_CHANNELS;
   float *pdata  = (float *) netOutputImg[0].data;
   for(int stride = 0; stride < STRIDE_SIZE; stride++) {    // stride
     int grid_x = static_cast<int>(NET_WIDTH / NET_STRIDE[stride]);
@@ -115,13 +113,13 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
           // Get the probability that an object is contained in the box of
           // each row
           if(box_score >= BOX_THRESHOLD) {
-            cv::Mat scores(1, mClassNames.size(), CV_32FC1, pdata + 5);
+            cv::Mat scores(1, mNumberOfClasses, CV_32FC1, pdata + 5);
             Point classIdPoint;
             double maxClassScores;
             minMaxLoc(scores, nullptr, &maxClassScores, nullptr, &classIdPoint);
             maxClassScores = static_cast<float>(maxClassScores);
             if(maxClassScores >= mClassThreshold) {
-              vector<float> temp_proto(pdata + 5 + mClassNames.size(), pdata + net_width);
+              vector<float> temp_proto(pdata + 5 + mNumberOfClasses, pdata + net_width);
               pickedProposals.push_back(temp_proto);
               // rect [x,y,w,h]
               float x  = (pdata[0] - params[2]) / params[0];    // x
@@ -161,7 +159,6 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
   vector<Mat> maskChannels;
   split(masks, maskChannels);
 
-  std::unique_ptr<image::detect::DetectionResults> output = std::make_unique<image::detect::DetectionResults>();
   Rect holeImgRect(0, 0, inputImage.cols, inputImage.rows);
   for(int i = 0; i < nms_result.size(); ++i) {
     int idx      = nms_result[i];
@@ -180,15 +177,24 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
         idxMax = i;
       }
     }
+    int32_t classId = classIds[idx];
 
-    ROI roi(i, confidences[idx], classIds[idx], box, mask, contours[idxMax], originalImage, channelIndex,
-            getFilterSettings());
-    output->push_back(roi);
+    //
+    // Apply the filter based on the object class
+    //
+    if(mSettings.objectClasses.contains(classId)) {
+      const auto &actClass = mSettings.objectClasses.at(classId);
+      joda::roi::ROI roi(i, confidences[idx], actClass.classId, box, mask, contours[idxMax], context.originalImage,
+                         context.channel,
+                         joda::roi::ChannelSettingsFilter{.maxParticleSize = actClass.filter.maxParticleSize,
+                                                          .minParticleSize = actClass.filter.minParticleSize,
+                                                          .minCircularity  = actClass.filter.minCircularity,
+                                                          .snapAreaSize    = actClass.filter.snapAreaSize});
+      result.push_back(roi);
+    }
   }
 
   DurationCount::stop(id);
-
-  return {.result = std::move(output)};
 }
 
 ///
@@ -202,8 +208,8 @@ auto ObjectSegmentation::forward(const Mat &inputImageOriginal, const cv::Mat &o
 /// \param[in]  inputImageShape Image shape
 /// \param[out] output          Stores the mask to the output
 ///
-auto ObjectSegmentation::getMask(const Mat &maskChannel, const cv::Vec4d &params, const cv::Size &inputImageShape,
-                                 const cv::Rect &box) -> cv::Mat
+auto AiClassifier::getMask(const Mat &maskChannel, const cv::Vec4d &params, const cv::Size &inputImageShape,
+                           const cv::Rect &box) -> cv::Mat
 {
   static const Rect roi(static_cast<int>(params[2] / NET_WIDTH * SEG_WIDTH),
                         static_cast<int>(params[3] / NET_HEIGHT * SEG_HEIGHT),
@@ -222,8 +228,8 @@ auto ObjectSegmentation::getMask(const Mat &maskChannel, const cv::Vec4d &params
 /// \brief      Image preparation
 /// \author     Joachim Danmayr
 ///
-void ObjectSegmentation::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::Vec4d &params, const cv::Size &newShape,
-                                   bool autoShape, bool scaleFill, bool scaleUp, int stride, const cv::Scalar &color)
+void AiClassifier::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::Vec4d &params, const cv::Size &newShape,
+                             bool autoShape, bool scaleFill, bool scaleUp, int stride, const cv::Scalar &color)
 {
   // if(false) {
   //   int maxLen = MAX(image.rows, image.cols);
@@ -281,4 +287,4 @@ void ObjectSegmentation::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::
   cv::copyMakeBorder(outImage, outImage, top, bottom, left, right, cv::BORDER_CONSTANT, color);
 }
 
-}    // namespace joda::image::segment::ai
+}    // namespace joda::cmd::functions

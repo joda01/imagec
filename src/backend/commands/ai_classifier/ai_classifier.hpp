@@ -14,28 +14,26 @@
 #pragma once
 
 #include <iostream>
-#include "../detection.hpp"
-#include "../detection_response.hpp"
+#include "backend/commands/command.hpp"
 #include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include <opencv2/opencv.hpp>
+#include "ai_classifier_settings.hpp"
 
 #define YOLO_P6 false
 
-namespace joda::image::segment::ai {
+namespace joda::cmd::functions {
 
 ///
 /// \class      ObjectSegmentation
 /// \author     Joachim Danmayr
 /// \brief      Object segmentation using ONNX model
 ///
-class ObjectSegmentation : public joda::image::detect::DetectionFunction
+class AiClassifier : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectSegmentation(const joda::settings::ChannelSettingsFilter &filt, const joda::onnx::OnnxParser::Data &model,
-                     float classThreshold);
-  auto forward(const cv::Mat &srcImg, const cv::Mat &originalImage, joda::settings::ChannelIndex channelIndex)
-      -> joda::image::detect::DetectionResponse override;
+  AiClassifier(const AiClassifierSettings &);
+  void execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result) override;
 
 private:
   /////////////////////////////////////////////////////
@@ -97,7 +95,9 @@ private:
   float mNmsScoreThreshold;
 
   // Colors
-  std::vector<std::string> mClassNames;
+  int32_t mNumberOfClasses;
   cv::dnn::Net mNet;
+
+  const AiClassifierSettings &mSettings;
 };
-}    // namespace joda::image::segment::ai
+}    // namespace joda::cmd::functions

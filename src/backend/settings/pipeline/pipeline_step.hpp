@@ -19,6 +19,7 @@
 #include "../pipeline_steps/functions/median_subtract.hpp"
 #include "../pipeline_steps/functions/rolling_ball.hpp"
 #include "../pipeline_steps/reader/load_image.hpp"
+#include "backend/commands/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/classifier/classifier_settings.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/commands/functions/blur/blur_settings.hpp"
@@ -63,6 +64,7 @@ public:
   std::optional<::joda::cmd::functions::WatershedSettings> $watershed           = std::nullopt;
   std::optional<::joda::cmd::functions::ImageFromClassSettings> $imageFromClass = std::nullopt;
   std::optional<::joda::cmd::functions::ClassifierSettings> $classify           = std::nullopt;
+  std::optional<::joda::cmd::functions::AiClassifierSettings> $aiClassify       = std::nullopt;
 
   //
   // Measurement
@@ -74,7 +76,7 @@ public:
   void check() const override;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStep, input, $blur, $saveImage, $threshold, $watershed,
-                                              $imageFromClass, $classify);
+                                              $imageFromClass, $classify, $aiClassify);
 };
 
 }    // namespace joda::settings
