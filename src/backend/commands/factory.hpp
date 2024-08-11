@@ -42,7 +42,7 @@ public:
                cmd::ObjectsListMap &result) override
   {
     CMD func(mSetting);
-    func.execute(context, image, result);
+    func.execute(context, memory, image, result);
   }
 
 private:
