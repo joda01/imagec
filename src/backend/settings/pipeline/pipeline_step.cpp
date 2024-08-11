@@ -16,7 +16,7 @@
 #include "backend/commands/factory.hpp"
 #include "backend/commands/functions/blur/blur.hpp"
 #include "backend/commands/functions/image_saver/image_saver.hpp"
-#include "backend/commands/functions/image_saver/image_saver_settings.hpp"
+#include "backend/commands/functions/threshold/threshold.hpp"
 
 namespace joda::settings {
 
@@ -29,6 +29,11 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
 
   if($saveImage) {
     joda::cmd::Factory<joda::cmd::functions::ImageSaver, cmd::functions::ImageSaverSettings> a($saveImage.value());
+    a.execute(context, image, result);
+  }
+
+  if($threshold) {
+    joda::cmd::Factory<joda::cmd::functions::Threshold, cmd::functions::ThresholdSettings> a($threshold.value());
     a.execute(context, image, result);
   }
 }

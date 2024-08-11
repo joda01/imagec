@@ -20,9 +20,8 @@
 #include <string>
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core/mat.hpp>
-#include "threshold.hpp"
 
-namespace joda::image::func {
+namespace joda::cmd::functions {
 
 ///
 /// \class      ThresholdMinError
@@ -36,13 +35,10 @@ namespace joda::image::func {
 ///
 /// \ref       Ported from https://imagej.net/ij/developer/source/ij/process/AutoThresholder.java.html
 ///
-class ThresholdMinError final : public Threshold
+class ThresholdMinError final
 {
 public:
-  using Threshold::Threshold;
-
-private:
-  [[nodiscard]] uint16_t calcThresholdValue(cv::Mat &histogram) const
+  static uint16_t calcThresholdValue(cv::Mat &histogram)
   {
     auto mean = [](const cv::Mat &data) -> float {
       // C. A. Glasbey, "An analysis of histogram-based thresholding algorithms,"
@@ -135,4 +131,4 @@ private:
     return threshold;
   }
 };
-}    // namespace joda::image::func
+}    // namespace joda::cmd::functions

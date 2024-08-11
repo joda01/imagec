@@ -15,9 +15,9 @@
 
 #include <algorithm>
 #include <cstdint>
-#include "threshold.hpp"
+#include <opencv2/core/mat.hpp>
 
-namespace joda::image::func {
+namespace joda::cmd::functions {
 
 ///
 /// \class      ThresholdTriangle
@@ -29,13 +29,10 @@ namespace joda::image::func {
 ///
 /// \ref        Ported from https://imagej.net/ij/developer/source/ij/process/AutoThresholder.java.html
 ///
-class ThresholdTriangle final : public Threshold
+class ThresholdTriangle final
 {
 public:
-  using Threshold::Threshold;
-
-private:
-  [[nodiscard]] uint16_t calcThresholdValue(cv::Mat &histogram) const override
+  static uint16_t calcThresholdValue(cv::Mat &histogram)
   {
     // find min and max
     int min  = 0;
@@ -141,4 +138,4 @@ private:
   }
 };
 
-}    // namespace joda::image::func
+}    // namespace joda::cmd::functions

@@ -13,57 +13,94 @@
 
 #pragma once
 
+#include <opencv2/core/hal/interface.h>
 #include <algorithm>
 #include <cstdint>
-#include "backend/image_processing/functions/watershed/watershed.hpp"
+#include "backend/commands/command.hpp"
+#include "backend/commands/functions/threshold/threshold_settings.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include "threshold_li.hpp"
+#include "threshold_min_error.hpp"
+#include "threshold_moments.hpp"
+#include "threshold_otsu.hpp"
+#include "threshold_triangel.hpp"
 
-namespace joda::image::func {
+namespace joda::cmd::functions {
 
 ///
 /// \class      Threshold
 /// \author     Joachim Danmayr
 /// \brief      Base class for thershold calculation
 ///
-class Threshold
+class Threshold : public Command
 {
 public:
-  Threshold(uint16_t minThreshold, uint16_t maxThreshold) : mMinThreshold(minThreshold), mMaxThreshold(maxThreshold)
+  explicit Threshold(const ThresholdSettings &settings) : mSettings(settings)
   {
   }
   virtual ~Threshold() = default;
 
-  virtual std::tuple<uint16_t, uint16_t> execute(const cv::Mat &srcImg, cv::Mat &thresholdImg) const
+  void execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result) override
   {
-    auto [thresholdValMin, thresholdValMax] = autoThreshold(srcImg);
-    cv::threshold(srcImg, thresholdImg, thresholdValMin, UINT16_MAX, cv::THRESH_BINARY);
+    auto [thresholdValMin, thresholdValMax] = autoThreshold(image);
+    cv::Mat thresholdImg(image.size(), CV_16UC1);
+    cv::threshold(image, thresholdImg, thresholdValMin, UINT16_MAX, cv::THRESH_BINARY);
     cv::Mat thresholdTmp;
-    cv::threshold(srcImg, thresholdTmp, thresholdValMax, UINT16_MAX, cv::THRESH_BINARY_INV);
+    cv::threshold(image, thresholdTmp, thresholdValMax, UINT16_MAX, cv::THRESH_BINARY_INV);
     cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
-
-    // Watershed watershed;
-    // watershed.execute(thresholdImg);
-    return {thresholdValMin, thresholdValMax};
+    image = std::move(thresholdImg);
+    // return {thresholdValMin, thresholdValMax};
   }
 
 protected:
   /////////////////////////////////////////////////////
   [[nodiscard]] uint16_t getMinThreshold() const
   {
-    return mMinThreshold;
+    return mSettings.thresholdMin;
   }
 
   [[nodiscard]] uint16_t getMaxThreshold() const
   {
-    return mMaxThreshold;
+    return mSettings.thresholdMax;
   }
 
 private:
   /////////////////////////////////////////////////////
-  [[nodiscard]] virtual uint16_t calcThresholdValue(cv::Mat &histogram) const = 0;
+  [[nodiscard]] uint16_t calcThresholdValue(cv::Mat &histogram) const
+  {
+    switch(mSettings.mode) {
+      case ThresholdSettings::Mode::NONE:
+      case ThresholdSettings::Mode::MANUAL:
+        return getMinThreshold();
+      case ThresholdSettings::Mode::LI:
+        return ThresholdLi::calcThresholdValue(histogram);
+      case ThresholdSettings::Mode::MIN_ERROR:
+        return ThresholdMinError::calcThresholdValue(histogram);
+      case ThresholdSettings::Mode::TRIANGLE:
+        return ThresholdTriangle::calcThresholdValue(histogram);
+      case ThresholdSettings::Mode::MOMENTS:
+        return ThresholdMoments::calcThresholdValue(histogram);
+      case ThresholdSettings::Mode::OTSU:
+        return ThresholdOtsu::calcThresholdValue(histogram);
+      case ThresholdSettings::Mode::HUANG:
+      case ThresholdSettings::Mode::INTERMODES:
+      case ThresholdSettings::Mode::ISODATA:
+      case ThresholdSettings::Mode::MAX_ENTROPY:
+      case ThresholdSettings::Mode::MEAN:
+      case ThresholdSettings::Mode::MINIMUM:
+      case ThresholdSettings::Mode::PERCENTILE:
+      case ThresholdSettings::Mode::RENYI_ENTROPY:
+      case ThresholdSettings::Mode::SHANBHAG:
+      case ThresholdSettings::Mode::YEN:
+        joda::log::logWarning("Selected threshold not supported!");
+        break;
+    }
+    return getMinThreshold();
+  }
 
   [[nodiscard]] virtual std::tuple<uint16_t, uint16_t> autoThreshold(const cv::Mat &srcImg) const
   {
@@ -128,8 +165,7 @@ private:
   }
 
   /////////////////////////////////////////////////////
-  uint16_t mMinThreshold = 0;
-  uint16_t mMaxThreshold = 0;
+  const ThresholdSettings &mSettings;
 };
 
-}    // namespace joda::image::func
+}    // namespace joda::cmd::functions

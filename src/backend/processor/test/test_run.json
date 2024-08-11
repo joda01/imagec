@@ -22,6 +22,19 @@
                     "$saveImage": {
                         "compression": 0
                     }
+                },
+                {
+                    "$threshold": {
+                        "node": "Manual",
+                        "thresholdMin": 10,
+                        "thresholdMax": 65535
+                    }
+                },
+                {
+                    "$saveImage": {
+                        "compression": 0,
+                        "namePrefix": "_thresholded"
+                    }
                 }
             ]
         },

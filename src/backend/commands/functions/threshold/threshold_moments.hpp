@@ -15,9 +15,9 @@
 
 #include <algorithm>
 #include <cstdint>
-#include "threshold.hpp"
+#include <opencv2/core/mat.hpp>
 
-namespace joda::image::func {
+namespace joda::cmd::functions {
 
 ///
 /// \class      ThresholdMoments
@@ -32,13 +32,10 @@ namespace joda::image::func {
 ///
 /// \ref    Ported from https://imagej.net/ij/developer/source/ij/process/AutoThresholder.java.html
 ///
-class ThresholdMoments final : public Threshold
+class ThresholdMoments final
 {
 public:
-  using Threshold::Threshold;
-
-private:
-  [[nodiscard]] uint16_t calcThresholdValue(cv::Mat &histogram) const override
+  static uint16_t calcThresholdValue(cv::Mat &histogram)
   {
     double total = 0;
     double m0 = 1.0, m1 = 0.0, m2 = 0.0, m3 = 0.0, sum = 0.0, p0 = 0.0;
@@ -88,4 +85,4 @@ private:
   }
 };
 
-}    // namespace joda::image::func
+}    // namespace joda::cmd::functions

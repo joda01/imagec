@@ -20,9 +20,8 @@
 #include <string>
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core/mat.hpp>
-#include "threshold.hpp"
 
-namespace joda::image::func {
+namespace joda::cmd::functions {
 
 ///
 /// \class      ThresholdOtsu
@@ -33,13 +32,10 @@ namespace joda::image::func {
 ///
 /// \ref       Ported from https://imagej.net/ij/developer/source/ij/process/AutoThresholder.java.html
 ///
-class ThresholdOtsu final : public Threshold
+class ThresholdOtsu final
 {
 public:
-  using Threshold::Threshold;
-
-private:
-  [[nodiscard]] uint16_t calcThresholdValue(cv::Mat &histogram) const
+  static uint16_t calcThresholdValue(cv::Mat &histogram)
   {
     int k         = 0;
     int kStar     = 0;    // k = the current threshold; kStar = optimal threshold
@@ -95,4 +91,4 @@ private:
   }
 };
 
-}    // namespace joda::image::func
+}    // namespace joda::cmd::functions

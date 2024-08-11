@@ -41,7 +41,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  explicit ImageSaver(const ImageSaverSettings &settings)
+  explicit ImageSaver(const ImageSaverSettings &settings) : mSettings(settings)
   {
   }
   void execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result) override
@@ -54,7 +54,8 @@ public:
     std::filesystem::path saveName =
         parentPath / (fileName.string() + "__" + std::to_string(std::get<0>(context.tile)) + "x" +
                       std::to_string(std::get<1>(context.tile)) + "__" + std::to_string((int32_t) context.channel) +
-                      "-" + std::to_string(context.zStack) + "-" + std::to_string((int32_t) context.tStack) + ".png");
+                      "-" + std::to_string(context.zStack) + "-" + std::to_string((int32_t) context.tStack) +
+                      mSettings.namePrefix + ".png");
 
     // Convert to 8-bit grayscale
     cv::Mat img_8bit_gray;
@@ -67,6 +68,7 @@ public:
   }
 
 private:
+  const ImageSaverSettings &mSettings;
 };
 
 }    // namespace joda::cmd::functions

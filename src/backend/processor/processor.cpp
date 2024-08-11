@@ -64,13 +64,14 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
               actStep.executeStep(mMemory, imageLoader);
               for(const auto &step : pipeline.pipelineSteps) {
                 ProcessStep &stepToUseForProcessing = actStep;
-                // if(step.input != joda::settings::Slot::$) {
-                //   mMemory.loadCopy(step.input, actStep);
-                // }
+                if(step.input != joda::settings::Slot::$) {
+                  mMemory.loadCopy(step.input, actStep);
+                }
                 actStep.executeStep(mMemory, step);
               }
             }
             // Image section finished
+            // Do cross channel measurement here
           }
         }
       }
