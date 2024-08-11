@@ -52,9 +52,9 @@ public:
     auto fileName   = context.imagePath.stem();
 
     std::filesystem::path saveName =
-        parentPath / (fileName.string() + "_" + std::to_string(std::get<0>(context.tile)) + "x" +
-                      std::to_string(std::get<1>(context.tile)) + "_" + std::to_string(context.tStack) + "_" +
-                      std::to_string(context.zStack) + ".png");
+        parentPath / (fileName.string() + "__" + std::to_string(std::get<0>(context.tile)) + "x" +
+                      std::to_string(std::get<1>(context.tile)) + "__" + std::to_string((int32_t) context.channel) +
+                      "-" + std::to_string(context.zStack) + "-" + std::to_string((int32_t) context.tStack) + ".png");
 
     // Convert to 8-bit grayscale
     cv::Mat img_8bit_gray;

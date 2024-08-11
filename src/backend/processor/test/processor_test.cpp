@@ -20,7 +20,7 @@ namespace joda::test {
 ///
 SCENARIO("pipeline:test:heatmap", "[pipeline]")
 {
-  std::ifstream file("src/backend/processor/test/test.json");
+  std::ifstream file("src/backend/processor/test/test_run.json");
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(file);
   file.close();
   joda::processor::Processor processor;

@@ -1,0 +1,48 @@
+{
+    "imageLoader": {
+        "zStackHandling": "EachIndividual",
+        "tStackHandling": "ExactOne",
+        "imageInputDirectory": "test/test_data/images",
+        "resultsOutputFolder": "tmp"
+    },
+    "pipelines": [
+        {
+            "channelLoader": {
+                "imageChannelIndex": "CH_03",
+                "zProjection": "MaxIntensity"
+            },
+            "pipelineSteps": [
+                {
+                    "$blur": {
+                        "kernelSize": 6,
+                        "repeat": 5
+                    }
+                },
+                {
+                    "$saveImage": {
+                        "compression": 0
+                    }
+                }
+            ]
+        },
+        {
+            "channelLoader": {
+                "imageChannelIndex": "CH_04",
+                "zProjection": "MaxIntensity"
+            },
+            "pipelineSteps": [
+                {
+                    "$blur": {
+                        "kernelSize": 3,
+                        "repeat": 1
+                    }
+                },
+                {
+                    "$saveImage": {
+                        "compression": 0
+                    }
+                }
+            ]
+        }
+    ]
+}
