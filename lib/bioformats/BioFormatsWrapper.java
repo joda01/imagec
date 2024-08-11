@@ -15,7 +15,7 @@ public class BioFormatsWrapper {
     public class ImageResult {
     }
 
-    public static int[] readImageInfo(String imagePath, int directory, int series, int resolution) {
+    public static int[] readImageInfo(String imagePath, int series, int resolution) {
         try {
             // Create an appropriate reader for the format
             IFormatReader formatReader = new ImageReader();
@@ -46,7 +46,7 @@ public class BioFormatsWrapper {
         return imageBytes;
     }
 
-    public static byte[] readImage(String imagePath, int directory, int series, int resolution) {
+    public static byte[] readImage(String imagePath, int series, int resolution, int z, int c, int t) {
         DebugTools.setRootLevel("OFF");
 
         try {
@@ -63,7 +63,7 @@ public class BioFormatsWrapper {
             formatReader.setResolution(resolution);
 
             // Read the image data for the current channel, timepoint, and slice
-            byte[] imageBytes = formatReader.openBytes(directory);
+            byte[] imageBytes = formatReader.openBytes(formatReader.getIndex(z, c, t));
 
             formatReader.close();
             return imageBytes;
@@ -74,7 +74,7 @@ public class BioFormatsWrapper {
         return imageBytes;
     }
 
-    public static byte[] readImageTile(String imagePath, int directory, int series, int resolution, int x, int y,
+    public static byte[] readImageTile(String imagePath, int series, int resolution, int z, int c, int t, int x, int y,
             int width, int height) {
         DebugTools.setRootLevel("OFF");
 
@@ -92,7 +92,7 @@ public class BioFormatsWrapper {
             formatReader.setResolution(resolution);
 
             // Read the image data for the current channel, timepoint, and slice
-            byte[] imageBytes = formatReader.openBytes(directory, x, y, width, height);
+            byte[] imageBytes = formatReader.openBytes(formatReader.getIndex(z, c, t), x, y, width, height);
             formatReader.close();
             return imageBytes;
         } catch (Exception e) {
@@ -103,7 +103,7 @@ public class BioFormatsWrapper {
     }
 
     /// https://docs.openmicroscopy.org/ome-model/6.2.2/ome-tiff/specification.html
-    public static String getImageProperties(String imagePath, int directory, int series) {
+    public static String getImageProperties(String imagePath, int series) {
         DebugTools.setRootLevel("OFF");
 
         String omeXML = "";

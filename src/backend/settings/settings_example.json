@@ -1,5 +1,23 @@
 {
     "projectSettings": {
+        "imageSorting": {
+            "groupBy": "",
+            "filenameRegex": "",
+            "wellImageOrder": "",
+            "plateSize": {
+                "rows": 0,
+                "cols": 0
+            }
+        },
+        "scientist": {
+            "firstName": "",
+            "lastName": "",
+            "country": "",
+            "organization": "",
+            "streetAddress": "",
+            "postalCode": "",
+            "city": ""
+        },
         "objectClasses": [
             {
                 "classId": "1",

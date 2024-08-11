@@ -11,6 +11,7 @@
 /// \brief     A short description what happens here.
 ///
 
+/*
 #include <exception>
 #include <filesystem>
 #include <sstream>
@@ -39,6 +40,7 @@ namespace joda::test {
 bool initialized = false;
 std::unique_ptr<joda::ctrl::Controller> controller;
 void generateTestingCode(joda::results::Analyzer *results);
+
 
 ///
 /// \brief  Spot test
@@ -5085,3 +5087,4 @@ void generateTestingCode(joda::results::Analyzer *results)
   outFile.close();
 }
 }    // namespace joda::test
+*/

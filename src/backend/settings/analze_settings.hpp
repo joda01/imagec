@@ -22,21 +22,21 @@
 #include <set>
 #include <stdexcept>
 #include <string>
-#include "channel/channel_settings.hpp"
-#include "vchannel/vchannel_settings.hpp"
+#include "backend/commands/functions/image_loader/image_loader_settings.hpp"
+#include "pipeline/pipeline.hpp"
+#include "project_settings/project_settings.hpp"
 #include <catch2/catch_config.hpp>
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
-#include "experiment_settings.hpp"
 
 namespace joda::settings {
 
 class AnalyzeSettings final
 {
 public:
-  ExperimentSettings experimentSettings;
-  std::list<ChannelSettings> channels;
-  std::list<VChannelSettings> vChannels;
+  ProjectSettings projectSettings;
+  cmd::functions::ImageLoaderSettings imageLoader;
+  std::vector<Pipeline> pipelines;
 
   [[nodiscard]] const std::string &schema() const
   {
@@ -46,6 +46,6 @@ public:
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.icproj";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettings, configSchema, experimentSettings, channels, vChannels);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettings, configSchema, projectSettings, pipelines);
 };
 }    // namespace joda::settings
