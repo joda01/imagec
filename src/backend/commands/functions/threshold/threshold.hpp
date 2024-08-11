@@ -18,6 +18,7 @@
 #include <cstdint>
 #include "backend/commands/command.hpp"
 #include "backend/commands/functions/threshold/threshold_settings.hpp"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -46,6 +47,7 @@ public:
 
   void execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result) override
   {
+    auto idStart                            = DurationCount::start("Threshold");
     auto [thresholdValMin, thresholdValMax] = autoThreshold(image);
     cv::Mat thresholdImg(image.size(), CV_16UC1);
     cv::threshold(image, thresholdImg, thresholdValMin, UINT16_MAX, cv::THRESH_BINARY);
@@ -54,6 +56,7 @@ public:
     cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
     image = std::move(thresholdImg);
     // return {thresholdValMin, thresholdValMax};
+    DurationCount::stop(idStart);
   }
 
 protected:

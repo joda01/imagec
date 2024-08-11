@@ -69,7 +69,7 @@ public:
   void operator()(processor::ProcessContext &context, cv::Mat &image, cmd::ObjectsListMap &result) const;
   void check() const override;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStep, input, $blur, $saveImage, $threshold);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStep, input, $blur, $saveImage, $threshold, $watershed);
 };
 
 }    // namespace joda::settings
