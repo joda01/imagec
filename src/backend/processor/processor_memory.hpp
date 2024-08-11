@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "backend/settings/anaylze_settings_enums.hpp"
+#include "backend/global_enums.hpp"
 #include <opencv2/core/mat.hpp>
 
 namespace joda::processor {
@@ -29,13 +29,13 @@ public:
   ProcessorMemory(ProcessorMemory &&) = delete;
 
   /////////////////////////////////////////////////////
-  void store(joda::settings::Slot, const ProcessStep &);
-  auto load(joda::settings::Slot) -> ProcessStep &;
-  void loadCopy(joda::settings::Slot slot, ProcessStep &toLoadIn);
-  void erase(joda::settings::Slot);
+  void store(joda::enums::Slot, const ProcessStep &);
+  auto load(joda::enums::Slot) -> ProcessStep &;
+  void loadCopy(joda::enums::Slot slot, ProcessStep &toLoadIn);
+  void erase(joda::enums::Slot);
 
 private:
   /////////////////////////////////////////////////////
-  std::map<joda::settings::Slot, ProcessStep> mMemory;
+  std::map<joda::enums::Slot, ProcessStep> mMemory;
 };
 }    // namespace joda::processor

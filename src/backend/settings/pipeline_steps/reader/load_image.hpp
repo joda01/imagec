@@ -14,8 +14,8 @@
 #pragma once
 
 #include <string>
+#include "backend/global_enums.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
-#include "backend/settings/anaylze_settings_enums.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {

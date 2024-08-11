@@ -1,6 +1,6 @@
 {
     "imageLoader": {
-        "zStackHandling": "EachIndividual",
+        "zStackHandling": "IntensityProjection",
         "tStackHandling": "ExactOne",
         "imageInputDirectory": "test/test_data/images",
         "resultsOutputFolder": "tmp"
@@ -37,6 +37,35 @@
                     "$saveImage": {
                         "compression": 0,
                         "namePrefix": "_thresholded"
+                    }
+                },
+                {
+                    "$classify": {
+                        "objectClasses": [
+                            {
+                                "classId": "CL_00",
+                                "grayscaleValue": 65535,
+                                "filter": {
+                                    "minParticleSize": 0,
+                                    "maxParticleSize": -1,
+                                    "minCircularity": 0,
+                                    "snapAreaSize": 0
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "$imageFromClass": {
+                        "objectClasses": [
+                            "CL_00"
+                        ]
+                    }
+                },
+                {
+                    "$saveImage": {
+                        "compression": 0,
+                        "namePrefix": "_classified"
                     }
                 }
             ]

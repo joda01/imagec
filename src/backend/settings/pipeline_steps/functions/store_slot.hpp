@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <set>
-#include "backend/settings/anaylze_settings_enums.hpp"
+#include "backend/global_enums.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -14,13 +14,13 @@ public:
   //
   // The ID of the slot the result should be stored in
   //
-  Slot slotId;
+  joda::enums::Slot slotId;
 
   //
   // The class ID which should be assigned to this slot
   // Use "$" to use the class ID of the actual slot
   //
-  ObjectClassId $classId;
+  joda::enums::ObjectClassId $classId;
 
   //
   // An optional human readable name

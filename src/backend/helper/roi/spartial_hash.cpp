@@ -2,12 +2,13 @@
 
 #include "spartial_hash.hpp"
 #include <memory>
+#include "backend/commands/objects_list.hpp"
 
-namespace joda::image {
+namespace joda::roi {
 
 std::unique_ptr<joda::cmd::ObjectsList>
 SpatialHash::calcIntersections(const std::unique_ptr<SpatialHash> &other,
-                               const std::map<joda::settings::ImageChannelIndex, const cv::Mat *> &imageOriginal,
+                               const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
                                float minIntersecion)
 {
   auto potential_collisions = std::make_unique<joda::cmd::ObjectsList>();
@@ -68,4 +69,4 @@ std::unique_ptr<SpatialHash> SpatialHash::clone()
   return clone;
 }
 
-}    // namespace joda::image
+}    // namespace joda::roi

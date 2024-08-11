@@ -18,20 +18,20 @@
 
 namespace joda::processor {
 
-void ProcessorMemory::store(joda::settings::Slot slot, const ProcessStep &element)
+void ProcessorMemory::store(joda::enums::Slot slot, const ProcessStep &element)
 {
   mMemory.try_emplace(slot, element.context());
   mMemory.at(slot).cloneFrom(element);
 }
-auto ProcessorMemory::load(joda::settings::Slot slot) -> ProcessStep &
+auto ProcessorMemory::load(joda::enums::Slot slot) -> ProcessStep &
 {
   return mMemory.at(slot);
 }
-void ProcessorMemory::loadCopy(joda::settings::Slot slot, ProcessStep &toLoadIn)
+void ProcessorMemory::loadCopy(joda::enums::Slot slot, ProcessStep &toLoadIn)
 {
   toLoadIn.cloneFrom(mMemory.at(slot));
 }
-void ProcessorMemory::erase(joda::settings::Slot slot)
+void ProcessorMemory::erase(joda::enums::Slot slot)
 {
   mMemory.erase(slot);
 }

@@ -12,8 +12,8 @@
 /// \brief     A short description what happens here.
 ///
 
+#include "backend/global_enums.hpp"
 #include "backend/settings/analze_settings.hpp"
-#include "backend/settings/anaylze_settings_enums.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include <opencv2/core/mat.hpp>
 #include "process_step.hpp"

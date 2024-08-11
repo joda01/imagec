@@ -16,7 +16,7 @@
 #include <memory>
 #include <stdexcept>
 #include <utility>
-#include "backend/settings/anaylze_settings_enums.hpp"
+#include "backend/global_enums.hpp"
 #include <opencv2/core/mat.hpp>
 
 namespace joda::cmd {

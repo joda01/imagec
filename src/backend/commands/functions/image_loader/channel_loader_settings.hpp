@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <set>
 #include "backend/commands/setting.hpp"
-#include "backend/settings/anaylze_settings_enums.hpp"
+#include "backend/global_enums.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::cmd::functions {
@@ -21,12 +21,12 @@ struct ChannelLoaderSettings : public cmd::Setting
   //
   // The input slot used to to load.
   //
-  settings::Slot input = settings::Slot::$;
+  joda::enums::Slot input = joda::enums::Slot::$;
 
   //
   // Image channel to load
   //
-  joda::settings::ImageChannelIndex imageChannelIndex = settings::ImageChannelIndex::NONE;
+  joda::enums::ImageChannelIndex imageChannelIndex = joda::enums::ImageChannelIndex::NONE;
 
   //
   // Is only used if zStackHandling is set to INTENSITY_PROJECTION

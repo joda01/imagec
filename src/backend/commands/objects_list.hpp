@@ -13,7 +13,8 @@
 
 #pragma once
 
-#include "backend/settings/anaylze_settings_enums.hpp"
+#include "backend/global_enums.hpp"
+#include "backend/helper/roi/spartial_hash.hpp"
 
 namespace joda::cmd {
 
@@ -23,19 +24,14 @@ struct ObjectsList
   ObjectsList(const ObjectsList &)            = delete;
   ObjectsList &operator=(const ObjectsList &) = delete;
 
-  joda::settings::ObjectClassId classId;
+  joda::enums::ObjectClassId classId;
 };
 
-class ObjectsListMap : public std::map<joda::settings::ObjectClassId, ObjectsList>
+class ObjectsListMap : public joda::roi::SpatialHash
 {
 public:
-  ObjectsListMap()                                  = default;
-  ObjectsListMap(const ObjectsListMap &)            = delete;
-  ObjectsListMap &operator=(const ObjectsListMap &) = delete;
-  ObjectsListMap clone()
-  {
-    return {};
-  }
+  using SpatialHash::SpatialHash;
+  void createBinaryImage(cv::Mat &img, const std::set<joda::enums::ObjectClassId> &objectClasses) const;
 };
 
 }    // namespace joda::cmd

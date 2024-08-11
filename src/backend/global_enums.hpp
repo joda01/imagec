@@ -15,7 +15,7 @@
 
 #include <nlohmann/json.hpp>
 
-namespace joda::settings {
+namespace joda::enums {
 
 enum class Slot : int16_t
 {
@@ -59,6 +59,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(Slot, {{Slot::$, "$"},
 enum class ObjectClassId : int16_t
 {
 
+  NONE = -2,
   $    = -1,
   CL00 = 0,
   CL01 = 1,
@@ -73,7 +74,8 @@ enum class ObjectClassId : int16_t
 
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(ObjectClassId, {{ObjectClassId::$, "$"},
+NLOHMANN_JSON_SERIALIZE_ENUM(ObjectClassId, {{ObjectClassId::NONE, "None"},
+                                             {ObjectClassId::$, "$"},
                                              {ObjectClassId::CL00, "CL_00"},
                                              {ObjectClassId::CL01, "CL_01"},
                                              {ObjectClassId::CL02, "CL_02"},
@@ -124,4 +126,4 @@ using tile_t   = std::tuple<int32_t, int32_t>;
 using zStack_t = int32_t;
 using tStack_t = int32_t;
 
-}    // namespace joda::settings
+}    // namespace joda::enums

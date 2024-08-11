@@ -13,7 +13,7 @@
 
 #include <set>
 #include <vector>
-#include "../anaylze_settings_enums.hpp"
+#include "backend/global_enums.hpp"
 #include <nlohmann/json.hpp>
 #include "project_address.hpp"
 #include "project_experiment_setup.hpp"
@@ -42,7 +42,7 @@ public:
   //
   // Object classes used in this project
   //
-  std::map<ObjectClassId, ObjectClass> objectClasses;
+  std::map<joda::enums::ObjectClassId, ObjectClass> objectClasses;
 
   //
   // Working directory

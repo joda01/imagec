@@ -19,13 +19,15 @@
 #include "../pipeline_steps/functions/median_subtract.hpp"
 #include "../pipeline_steps/functions/rolling_ball.hpp"
 #include "../pipeline_steps/reader/load_image.hpp"
+#include "backend/commands/classifier/classifier_settings.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/commands/functions/blur/blur_settings.hpp"
+#include "backend/commands/functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/commands/functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/functions/threshold/threshold_settings.hpp"
 #include "backend/commands/functions/watershed/watershed_settings.hpp"
+#include "backend/global_enums.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
-#include "backend/settings/anaylze_settings_enums.hpp"
 #include "backend/settings/pipeline_steps/functions/calculator.hpp"
 #include "backend/settings/pipeline_steps/functions/store_slot.hpp"
 #include "backend/settings/pipeline_steps/functions/voronoi.hpp"
@@ -42,7 +44,7 @@ public:
   // Use "$" to take the slot(s) from the step before.
   // Use a $store pipeline step to save an interim result.
   //
-  Slot input = Slot::$;
+  joda::enums::Slot input = joda::enums::Slot::$;
 
   //
   // Common
@@ -55,10 +57,12 @@ public:
   // std::optional<MedianSubtraction> $medianSubtract                     = std::nullopt;
   // std::optional<RollingBall> $rollingBall                              = std::nullopt;
 
-  std::optional<::joda::cmd::functions::BlurSettings> $blur            = std::nullopt;
-  std::optional<::joda::cmd::functions::ImageSaverSettings> $saveImage = std::nullopt;
-  std::optional<::joda::cmd::functions::ThresholdSettings> $threshold  = std::nullopt;
-  std::optional<::joda::cmd::functions::WatershedSettings> $watershed  = std::nullopt;
+  std::optional<::joda::cmd::functions::BlurSettings> $blur                     = std::nullopt;
+  std::optional<::joda::cmd::functions::ImageSaverSettings> $saveImage          = std::nullopt;
+  std::optional<::joda::cmd::functions::ThresholdSettings> $threshold           = std::nullopt;
+  std::optional<::joda::cmd::functions::WatershedSettings> $watershed           = std::nullopt;
+  std::optional<::joda::cmd::functions::ImageFromClassSettings> $imageFromClass = std::nullopt;
+  std::optional<::joda::cmd::functions::ClassifierSettings> $classify           = std::nullopt;
 
   //
   // Measurement
@@ -69,7 +73,8 @@ public:
   void operator()(processor::ProcessContext &context, cv::Mat &image, cmd::ObjectsListMap &result) const;
   void check() const override;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStep, input, $blur, $saveImage, $threshold, $watershed);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStep, input, $blur, $saveImage, $threshold, $watershed,
+                                              $imageFromClass, $classify);
 };
 
 }    // namespace joda::settings

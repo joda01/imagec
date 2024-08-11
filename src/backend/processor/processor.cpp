@@ -61,10 +61,14 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                                                  .channel             = pipeline.channelLoader.imageChannelIndex,
                                                  .loader              = pipeline.channelLoader}};
 
+              // Load the image
               actStep.executeStep(mMemory, imageLoader);
+
+              // Store the original image
+              actStep.mutableContext().originalImage = actStep.getImage().clone();
               for(const auto &step : pipeline.pipelineSteps) {
                 ProcessStep &stepToUseForProcessing = actStep;
-                if(step.input != joda::settings::Slot::$) {
+                if(step.input != joda::enums::Slot::$) {
                   mMemory.loadCopy(step.input, actStep);
                 }
                 actStep.executeStep(mMemory, step);

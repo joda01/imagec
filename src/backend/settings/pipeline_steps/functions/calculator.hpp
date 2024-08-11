@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <set>
-#include "backend/settings/anaylze_settings_enums.hpp"
+#include "backend/global_enums.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -22,8 +22,8 @@ public:
     NOT
   };
 
-  Slot slot2          = Slot::$;
-  Operation operation = Operation::ADD;
+  joda::enums::Slot slot2 = joda::enums::Slot::$;
+  Operation operation     = Operation::ADD;
 
 private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Calculator, slot2, operation);

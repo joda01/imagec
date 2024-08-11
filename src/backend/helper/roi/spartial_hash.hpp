@@ -10,14 +10,13 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
-#include "backend/commands/objects_list.hpp"
 #include "roi.hpp"
 
-namespace joda::image::detect {
-class DetectionResults;
+namespace joda::cmd {
+class ObjectsList;
 }
 
-namespace joda::image {
+namespace joda::roi {
 
 using namespace std;
 
@@ -89,7 +88,7 @@ public:
 
   std::unique_ptr<joda::cmd::ObjectsList>
   calcIntersections(const std::unique_ptr<SpatialHash> &other,
-                    const std::map<joda::settings::ImageChannelIndex, const cv::Mat *> &imageOriginal,
+                    const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
                     float minIntersecion);
 
   auto begin() const
@@ -156,4 +155,4 @@ private:
 
   std::mutex mInsertLock;
 };
-}    // namespace joda::image
+}    // namespace joda::roi

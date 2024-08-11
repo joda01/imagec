@@ -43,6 +43,11 @@ public:
     return mContext;
   }
 
+  [[nodiscard]] const cv::Mat &getImage() const
+  {
+    return mImages;
+  }
+
 private:
   // RESULTS /////////////////////////////////
   cv::Mat mImages;

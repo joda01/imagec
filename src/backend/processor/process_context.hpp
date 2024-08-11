@@ -15,8 +15,9 @@
 #pragma once
 
 #include <filesystem>
+#include <memory>
 #include "backend/commands/functions/image_loader/channel_loader_settings.hpp"
-#include "backend/settings/anaylze_settings_enums.hpp"
+#include "backend/global_enums.hpp"
 
 namespace joda::processor {
 
@@ -24,11 +25,14 @@ struct ProcessContext
 {
   std::filesystem::path imagePath;
   std::filesystem::path resultsOutputFolder;
-  joda::settings::tile_t tile     = {0, 0};
-  joda::settings::tStack_t tStack = 0;
-  joda::settings::zStack_t zStack = 0;
-  joda::settings::ImageChannelIndex channel;
+  joda::enums::tile_t tile     = {0, 0};
+  joda::enums::tStack_t tStack = 0;
+  joda::enums::zStack_t zStack = 0;
+  joda::enums::ImageChannelIndex channel;
   joda::cmd::functions::ChannelLoaderSettings loader;
+  cv::Mat originalImage;
+  uint16_t appliedMinThreshold = 0;
+  uint16_t appliedMaxThreshold = 0;
 };
 
 }    // namespace joda::processor

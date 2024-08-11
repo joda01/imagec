@@ -16,6 +16,7 @@
 #include <cmath>
 #include <iterator>
 #include <string>
+#include "backend/global_enums.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -25,7 +26,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-namespace joda::image {
+namespace joda::roi {
 
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour) :
@@ -36,7 +37,7 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
 }
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal,
-         joda::settings::ImageChannelIndex ImageChannelIndex, const ChannelSettingsFilter &filter) :
+         joda::enums::ImageChannelIndex ImageChannelIndex, const ChannelSettingsFilter &filter) :
     index(index),
     confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask), mMaskContours(contour)
 {
@@ -46,7 +47,7 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
 
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal,
-         joda::settings::ImageChannelIndex ImageChannelIndex)
+         joda::enums::ImageChannelIndex ImageChannelIndex)
 {
   calculateSnapAreaAndContours(0, imageOriginal.cols, imageOriginal.rows);
   calculateMetrics({{ImageChannelIndex, &imageOriginal}}, nullptr);
@@ -54,7 +55,7 @@ ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &bo
 
 ROI::ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour,
-         const std::map<joda::settings::ImageChannelIndex, const cv::Mat *> &imageOriginal) :
+         const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal) :
     index(index),
     confidence(confidence), classId(classId), mBoundingBox(boundingBox), mMask(mask), mMaskContours(contour)
 {
@@ -138,7 +139,7 @@ void ROI::calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int
 ///
 /// \author     Joachim Danmayr
 ///
-void ROI::calculateMetrics(const std::map<joda::settings::ImageChannelIndex, const cv::Mat *> &imageOriginal,
+void ROI::calculateMetrics(const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
                            const ChannelSettingsFilter *filter)
 {
   if(!imageOriginal.empty() && !mBoundingBox.empty() && !mMask.empty()) {
@@ -312,10 +313,10 @@ double ROI::calcPerimeter(const std::vector<cv::Point> &points) const
 void ROI::applyParticleFilter(const ChannelSettingsFilter *filter)
 {
   validity = {};
-  if(areaSize > filter->maxParticleSize) {
+  if(filter->maxParticleSize >= 0 && areaSize > filter->maxParticleSize) {
     validity.set(static_cast<size_t>(ParticleValidityEnums::TOO_BIG));
   }
-  if(areaSize < filter->minParticleSize) {
+  if(filter->minParticleSize >= 0 && areaSize < filter->minParticleSize) {
     validity.set(static_cast<size_t>(ParticleValidityEnums::TOO_SMALL));
   }
   if(circularity < filter->minCircularity) {
@@ -344,7 +345,7 @@ void ROI::applyParticleFilter(const ChannelSettingsFilter *filter)
 /// \return     Intersection of the areas in percent
 ///
 [[nodiscard]] std::tuple<ROI, bool>
-ROI::calcIntersection(const ROI &roi, const std::map<joda::settings::ImageChannelIndex, const cv::Mat *> &imageOriginal,
+ROI::calcIntersection(const ROI &roi, const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
                       float minIntersection, bool createRoi) const
 {
   auto intersectingMask = calcIntersectingMask(roi);
@@ -365,22 +366,23 @@ ROI::calcIntersection(const ROI &roi, const std::map<joda::settings::ImageChanne
         }
       }
 
-      ROI intersectionROI(index, intersectingMask.intersectionArea, 0, intersectingMask.intersectedRect,
-                          intersectingMask.intersectedMask, contour, imageOriginal);
+#warning "Which class ID should be taken?"
+      ROI intersectionROI(index, intersectingMask.intersectionArea, joda::enums::ObjectClassId::NONE,
+                          intersectingMask.intersectedRect, intersectingMask.intersectedMask, contour, imageOriginal);
       if(intersectingMask.intersectionArea < minIntersection) {
         intersectionROI.setValidity(ParticleValidityEnums::TOO_LESS_OVERLAPPING);
       }
       return {intersectionROI, true};
     }
     cv::Mat mat{};
-    return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{},
-                {{joda::settings::ImageChannelIndex::NONE, &mat}}),
+    return {ROI(index, 0.0, joda::enums::ObjectClassId::NONE, Boxes{}, cv::Mat{}, std::vector<cv::Point>{},
+                {{joda::enums::ImageChannelIndex::NONE, &mat}}),
             true};
   }
 
   cv::Mat mat{};
-  return {ROI(index, 0.0, 0, Boxes{}, cv::Mat{}, std::vector<cv::Point>{},
-              {{joda::settings::ImageChannelIndex::NONE, &mat}}),
+  return {ROI(index, 0.0, joda::enums::ObjectClassId::NONE, Boxes{}, cv::Mat{}, std::vector<cv::Point>{},
+              {{joda::enums::ImageChannelIndex::NONE, &mat}}),
           false};
 }
 
@@ -449,7 +451,7 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
 /// \param[in]  channelIdx   Channel index of the given image
 /// \param[in]  imageOriginal   Image to measure the intensity in
 ///
-void ROI::measureAndAddIntensity(joda::settings::ImageChannelIndex channelIdx, const cv::Mat &imageOriginal)
+void ROI::measureAndAddIntensity(joda::enums::ImageChannelIndex channelIdx, const cv::Mat &imageOriginal)
 {
   {
     if(!intensity.contains(channelIdx)) {
@@ -471,7 +473,7 @@ void ROI::measureAndAddIntensity(joda::settings::ImageChannelIndex channelIdx, c
 /// \param[in]  channelIdx   Channel index of the given image
 /// \param[in]  roi   ROI to calc the intersection with
 ///
-void ROI::calcIntersectionAndAdd(joda::settings::ImageChannelIndex channelIdx, const ROI *roi)
+void ROI::calcIntersectionAndAdd(joda::enums::ImageChannelIndex channelIdx, const ROI *roi)
 {
   if(!intersectingRois.contains(channelIdx)) {
     intersectingRois.emplace(channelIdx, Intersecting{});
@@ -488,4 +490,4 @@ void ROI::calcIntersectionAndAdd(joda::settings::ImageChannelIndex channelIdx, c
   }
 }
 
-}    // namespace joda::image
+}    // namespace joda::roi
