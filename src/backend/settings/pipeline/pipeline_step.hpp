@@ -23,6 +23,7 @@
 #include "backend/commands/functions/blur/blur_settings.hpp"
 #include "backend/commands/functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/functions/threshold/threshold_settings.hpp"
+#include "backend/commands/functions/watershed/watershed_settings.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/anaylze_settings_enums.hpp"
 #include "backend/settings/pipeline_steps/functions/calculator.hpp"
@@ -57,6 +58,7 @@ public:
   std::optional<::joda::cmd::functions::BlurSettings> $blur            = std::nullopt;
   std::optional<::joda::cmd::functions::ImageSaverSettings> $saveImage = std::nullopt;
   std::optional<::joda::cmd::functions::ThresholdSettings> $threshold  = std::nullopt;
+  std::optional<::joda::cmd::functions::WatershedSettings> $watershed  = std::nullopt;
 
   //
   // Measurement

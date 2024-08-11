@@ -14,14 +14,15 @@
 #pragma once
 
 #include <cstdint>
-#include "../../functions/function.hpp"
+#include "backend/commands/command.hpp"
+#include "backend/commands/functions/watershed/watershed_settings.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 #include "edm.hpp"
 #include "maximum_finder.hpp"
 
-namespace joda::image::func {
+namespace joda::cmd::functions {
 
 ///
 /// \class      Function
@@ -29,20 +30,23 @@ namespace joda::image::func {
 /// \brief      Base class for an image processing function
 /// \ref https://github.com/imagej/ImageJ/blob/master/ij/process/ShortBlitter.java#L14
 ///
-class Watershed : public Function
+class Watershed : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  explicit Watershed() = default;
+  explicit Watershed(const WatershedSettings &settings) : mSettings(settings)
+  {
+  }
   virtual ~Watershed() = default;
-  void execute(cv::Mat &image) const override
+  void execute(processor::ProcessContext &context, cv::Mat &image, ObjectsListMap &result) override
   {
     auto idStart = DurationCount::start("Watershed");
     image.convertTo(image, CV_8UC1, 1.0F / 257.0F);
     auto floatEdm = joda::image::func::Edm::makeFloatEDM(image, 0, false);
     joda::image::func::MaximumFinder find;
-    auto maxIp = find.findMaxima(floatEdm, MAXFINDER_TOLERANCE, joda::image::func::MaximumFinder::NO_THRESHOLD,
-                                 joda::image::func::MaximumFinder::SEGMENTED, false, true);
+    auto maxIp =
+        find.findMaxima(floatEdm, mSettings.maximumFinderTolerance, joda::image::func::MaximumFinder::NO_THRESHOLD,
+                        joda::image::func::MaximumFinder::SEGMENTED, false, true);
     cv::bitwise_and(maxIp, image, image);
     image.convertTo(image, CV_16UC1, (float) UINT16_MAX / (float) UINT8_MAX);
     DurationCount::stop(idStart);
@@ -50,6 +54,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  double MAXFINDER_TOLERANCE = 0.5;    // reasonable v
+  const WatershedSettings &mSettings;
 };
-}    // namespace joda::image::func
+}    // namespace joda::cmd::functions

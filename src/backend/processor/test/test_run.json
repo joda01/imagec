@@ -31,6 +31,9 @@
                     }
                 },
                 {
+                    "$watershed": {}
+                },
+                {
                     "$saveImage": {
                         "compression": 0,
                         "namePrefix": "_thresholded"

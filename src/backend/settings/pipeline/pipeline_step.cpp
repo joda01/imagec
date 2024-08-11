@@ -17,6 +17,7 @@
 #include "backend/commands/functions/blur/blur.hpp"
 #include "backend/commands/functions/image_saver/image_saver.hpp"
 #include "backend/commands/functions/threshold/threshold.hpp"
+#include "backend/commands/functions/watershed/watershed.hpp"
 
 namespace joda::settings {
 
@@ -34,6 +35,11 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
 
   if($threshold) {
     joda::cmd::Factory<joda::cmd::functions::Threshold, cmd::functions::ThresholdSettings> a($threshold.value());
+    a.execute(context, image, result);
+  }
+
+  if($watershed) {
+    joda::cmd::Factory<joda::cmd::functions::Watershed, cmd::functions::WatershedSettings> a($watershed.value());
     a.execute(context, image, result);
   }
 }
