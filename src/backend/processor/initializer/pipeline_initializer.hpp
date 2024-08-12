@@ -8,22 +8,33 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
 
-#include "backend/commands/command.hpp"
-#include "backend/commands/image_functions/image_loader/image_loader_settings.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
+#include "backend/processor/initializer/pipeline_initializer_settings.hpp"
+#include "backend/processor/process_context.hpp"
+#include "backend/processor/process_step.hpp"
+#include "pipeline_input_image_loader_settings.hpp"
 
-namespace joda::cmd::functions {
+namespace joda::processor {
 
-class ImageLoader : public Command
+class PipelineInitializer
 {
 public:
+  struct PartToLoad
+  {
+    joda::enums::tile_t tile;
+    joda::enums::tStack_t tStack;
+    joda::enums::zStack_t zStack;
+  };
+
   /////////////////////////////////////////////////////
-  ImageLoader(const ImageLoaderSettings &settings, const std::filesystem::path &imagePath);
+  PipelineInitializer(const settings::PipelineInitializerSettings &settings, const std::filesystem::path &imagePath,
+                      ImageContext &imageContextOut);
   [[nodiscard]] const std::tuple<int32_t, int32_t> &getNrOfTilesToProcess() const
   {
     return mNrOfTiles;
@@ -37,8 +48,8 @@ public:
     return mZStackToLoad;
   }
 
-  void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
-               ObjectsListMap &result) override;
+  void load(const joda::settings::PipelineInputImageLoaderSettings &settings, const PartToLoad &imagePartToLoad,
+            ProcessStep &processStepOu);
 
 private:
   /////////////////////////////////////////////////////
@@ -53,8 +64,8 @@ private:
   int32_t mZStackToLoad                   = 0;
 
   /////////////////////////////////////////////////////
-  joda::ome::OmeInfo mOmeInfo;
-  const ImageLoaderSettings &mSettings;
+  const settings::PipelineInitializerSettings &mSettings;
+  const processor::ImageContext &mImageContext;
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::processor

@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "classifier.hpp"
@@ -25,7 +25,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \brief
@@ -34,7 +34,7 @@ namespace joda::cmd::functions {
 /// \param[out]
 /// \return
 ///
-Classifier::Classifier(const ClassifierSettings &settings) : mSettings(settings)
+Classifier::Classifier(const settings::ClassifierSettings &settings) : mSettings(settings)
 {
 }
 
@@ -86,8 +86,9 @@ void Classifier::execute(processor::ProcessContext &context, processor::Processo
           cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
           // Remove inner holes from the mask
           cv::bitwise_and(mask, imagePart, mask);
-          joda::roi::ROI detect(idx, context.appliedMinThreshold, objectClass.classId, boundingBox, mask, contour,
-                                context.originalImage, context.channel,
+          joda::roi::ROI detect(idx, context.imageProcessingContext.appliedMinThreshold, objectClass.classId,
+                                boundingBox, mask, contour, context.imagePipelineContext.originalImage,
+                                objectClass.channelId,
                                 joda::roi::ChannelSettingsFilter{.maxParticleSize = objectClass.filter.maxParticleSize,
                                                                  .minParticleSize = objectClass.filter.minParticleSize,
                                                                  .minCircularity  = objectClass.filter.minCircularity,
@@ -103,4 +104,4 @@ void Classifier::execute(processor::ProcessContext &context, processor::Processo
   DurationCount::stop(id);
 }
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

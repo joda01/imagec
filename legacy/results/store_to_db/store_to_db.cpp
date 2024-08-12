@@ -8,13 +8,13 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "store_to_db.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \brief
@@ -113,4 +113,4 @@ void StoreToDb::appendToDetailReport(const DetailReportAdder &appender, processo
   }
 }
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

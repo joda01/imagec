@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -19,7 +19,7 @@
 #include "backend/global_enums.hpp"
 #include <opencv2/core/mat.hpp>
 
-namespace joda::cmd {
+namespace joda::settings {
 
 class Setting
 {
@@ -36,4 +36,4 @@ protected:
   }
 };
 
-}    // namespace joda::cmd
+}    // namespace joda::settings

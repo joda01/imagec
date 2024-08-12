@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <opencv2/core/mat.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \class      ThresholdTriangle
@@ -138,4 +138,4 @@ public:
   }
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

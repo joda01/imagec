@@ -9,11 +9,13 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
 
+#include "backend/enums/enum_memory.hpp"
+#include "backend/enums/enums_channels.hpp"
 #include "backend/global_enums.hpp"
 #include <opencv2/core/mat.hpp>
 
@@ -29,13 +31,19 @@ public:
   ProcessorMemory(ProcessorMemory &&) = delete;
 
   /////////////////////////////////////////////////////
-  void store(joda::enums::Slot, const ProcessStep &);
-  auto load(joda::enums::Slot) -> ProcessStep &;
-  void loadCopy(joda::enums::Slot slot, ProcessStep &toLoadIn);
-  void erase(joda::enums::Slot);
+  void store(joda::enums::MemoryId, const ProcessStep &);
+  auto load(joda::enums::MemoryId) -> ProcessStep &;
+  void loadCopy(joda::enums::MemoryId slot, ProcessStep &toLoadIn);
+  void erase(joda::enums::MemoryId);
+
+  void store(joda::enums::ChannelId, const ProcessStep &);
+  auto load(joda::enums::ChannelId) -> ProcessStep &;
+  void loadCopy(joda::enums::ChannelId slot, ProcessStep &toLoadIn);
+  void erase(joda::enums::ChannelId);
 
 private:
   /////////////////////////////////////////////////////
-  std::map<joda::enums::Slot, ProcessStep> mMemory;
+  std::map<joda::enums::MemoryId, ProcessStep> mMemory;
+  std::map<joda::enums::ChannelId, ProcessStep> mChannels;
 };
 }    // namespace joda::processor

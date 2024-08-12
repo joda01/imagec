@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -20,7 +20,7 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \class      Function
@@ -38,7 +38,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  explicit Blur(const BlurSettings &settings) : mRepeat(settings.repeat), mKernelSize(settings.kernelSize)
+  explicit Blur(const settings::BlurSettings &settings) : mRepeat(settings.repeat), mKernelSize(settings.kernelSize)
   {
   }
   void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
@@ -64,4 +64,4 @@ private:
   int mKernelSize;
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

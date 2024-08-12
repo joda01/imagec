@@ -10,7 +10,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "processor_memory.hpp"
@@ -18,22 +18,40 @@
 
 namespace joda::processor {
 
-void ProcessorMemory::store(joda::enums::Slot slot, const ProcessStep &element)
+void ProcessorMemory::store(joda::enums::MemoryId slot, const ProcessStep &element)
 {
   mMemory.try_emplace(slot, element.context());
   mMemory.at(slot).cloneFrom(element);
 }
-auto ProcessorMemory::load(joda::enums::Slot slot) -> ProcessStep &
+auto ProcessorMemory::load(joda::enums::MemoryId slot) -> ProcessStep &
 {
   return mMemory.at(slot);
 }
-void ProcessorMemory::loadCopy(joda::enums::Slot slot, ProcessStep &toLoadIn)
+void ProcessorMemory::loadCopy(joda::enums::MemoryId slot, ProcessStep &toLoadIn)
 {
   toLoadIn.cloneFrom(mMemory.at(slot));
 }
-void ProcessorMemory::erase(joda::enums::Slot slot)
+void ProcessorMemory::erase(joda::enums::MemoryId slot)
 {
   mMemory.erase(slot);
+}
+
+void ProcessorMemory::store(joda::enums::ChannelId slot, const ProcessStep &element)
+{
+  mChannels.try_emplace(slot, element.context());
+  mChannels.at(slot).cloneFrom(element);
+}
+auto ProcessorMemory::load(joda::enums::ChannelId slot) -> ProcessStep &
+{
+  return mChannels.at(slot);
+}
+void ProcessorMemory::loadCopy(joda::enums::ChannelId slot, ProcessStep &toLoadIn)
+{
+  toLoadIn.cloneFrom(mChannels.at(slot));
+}
+void ProcessorMemory::erase(joda::enums::ChannelId slot)
+{
+  mChannels.erase(slot);
 }
 
 }    // namespace joda::processor

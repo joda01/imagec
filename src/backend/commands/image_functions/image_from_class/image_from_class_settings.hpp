@@ -3,11 +3,11 @@
 #include <cstdint>
 #include <set>
 #include <vector>
-#include "backend/commands/setting.hpp"
 #include "backend/global_enums.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::settings {
 
 struct ImageFromClassSettings : public Setting
 {
@@ -15,7 +15,7 @@ public:
   //
   // Object classes to extract
   //
-  std::set<joda::enums::ObjectClassId> objectClasses;
+  std::set<joda::enums::ClassId> objectClasses;
 
   /////////////////////////////////////////////////////
   void check() const override
@@ -24,4 +24,4 @@ public:
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageFromClassSettings, objectClasses);
 };
-}    // namespace joda::cmd::functions
+}    // namespace joda::settings

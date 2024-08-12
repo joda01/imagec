@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -23,7 +23,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \class      Function
@@ -34,7 +34,7 @@ class ImageFromClass : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  explicit ImageFromClass(const ImageFromClassSettings &settings) : mSettings(settings)
+  explicit ImageFromClass(const settings::ImageFromClassSettings &settings) : mSettings(settings)
   {
   }
   void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
@@ -48,7 +48,7 @@ public:
   }
 
 private:
-  const ImageFromClassSettings &mSettings;
+  const settings::ImageFromClassSettings &mSettings;
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

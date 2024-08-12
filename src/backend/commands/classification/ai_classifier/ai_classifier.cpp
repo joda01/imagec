@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 /// \link      https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
 #include "ai_classifier.hpp"
@@ -19,7 +19,7 @@
 #include <opencv2/core/persistence.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 using namespace std;
 using namespace cv;
@@ -31,7 +31,7 @@ using namespace cv::dnn;
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-AiClassifier::AiClassifier(const AiClassifierSettings &settings) :
+AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
     mSettings(settings), mNumberOfClasses(settings.numberOfClasses), mClassThreshold(settings.classThreshold),
     mNmsScoreThreshold(settings.classThreshold * BOX_THRESHOLD)
 {
@@ -185,8 +185,8 @@ void AiClassifier::execute(processor::ProcessContext &context, processor::Proces
     //
     if(mSettings.objectClasses.contains(classId)) {
       const auto &actClass = mSettings.objectClasses.at(classId);
-      joda::roi::ROI roi(i, confidences[idx], actClass.classId, box, mask, contours[idxMax], context.originalImage,
-                         context.channel,
+      joda::roi::ROI roi(i, confidences[idx], actClass.classId, box, mask, contours[idxMax],
+                         context.imagePipelineContext.originalImage, actClass.channelId,
                          joda::roi::ChannelSettingsFilter{.maxParticleSize = actClass.filter.maxParticleSize,
                                                           .minParticleSize = actClass.filter.minParticleSize,
                                                           .minCircularity  = actClass.filter.minCircularity,
@@ -288,4 +288,4 @@ void AiClassifier::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::Vec4d 
   cv::copyMakeBorder(outImage, outImage, top, bottom, left, right, cv::BORDER_CONSTANT, color);
 }
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

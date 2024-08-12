@@ -2,10 +2,10 @@
 
 #include <cstdint>
 #include <set>
-#include "backend/commands/setting.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::settings {
 
 struct ThresholdSettings : public Setting
 {
@@ -78,4 +78,4 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode:
                                                        {ThresholdSettings::Mode::SHANBHAG, "Shanbhag"},
                                                        {ThresholdSettings::Mode::YEN, "Yen"}})
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::settings

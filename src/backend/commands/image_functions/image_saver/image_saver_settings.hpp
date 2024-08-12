@@ -2,10 +2,10 @@
 
 #include <cstdint>
 #include <set>
-#include "backend/commands/setting.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::settings {
 
 struct ImageSaverSettings : public Setting
 {
@@ -27,4 +27,4 @@ public:
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageSaverSettings, compression, namePrefix);
 };
-}    // namespace joda::cmd::functions
+}    // namespace joda::settings

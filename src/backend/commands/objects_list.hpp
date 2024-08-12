@@ -8,11 +8,12 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
 
+#include "backend/enums/enums_classes.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/roi/spartial_hash.hpp"
 
@@ -33,7 +34,7 @@ class ObjectsListMap : public joda::roi::SpatialHash
 {
 public:
   using SpatialHash::SpatialHash;
-  void createBinaryImage(cv::Mat &img, const std::set<joda::enums::ObjectClassId> &objectClasses) const;
+  void createBinaryImage(cv::Mat &img, const std::set<joda::enums::ClassId> &objectClasses) const;
   ResponseDataValidity valid;
 };
 

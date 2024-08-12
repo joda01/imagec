@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -35,7 +35,7 @@ struct ChannelSettingsFilter
 
 using Boxes      = cv::Rect;
 using Confidence = float;
-using ClassId    = joda::enums::ObjectClassId;
+using ClassId    = joda::enums::ClassId;
 
 enum class ParticleValidityEnums
 {
@@ -88,16 +88,14 @@ public:
       const std::vector<cv::Point> &contour);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal,
-      joda::enums::ImageChannelIndex ImageChannelIndex);
+      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, joda::enums::ChannelId ChannelId);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal,
-      joda::enums::ImageChannelIndex ImageChannelIndex, const ChannelSettingsFilter &filter);
+      const std::vector<cv::Point> &contour, const cv::Mat &imageOriginal, joda::enums::ChannelId ChannelId,
+      const ChannelSettingsFilter &filter);
 
   ROI(uint32_t index, Confidence confidence, ClassId classId, const Boxes &boundingBox, const cv::Mat &mask,
-      const std::vector<cv::Point> &contour,
-      const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal);
+      const std::vector<cv::Point> &contour, const std::map<joda::enums::ChannelId, const cv::Mat *> &imageOriginal);
 
   [[nodiscard]] auto getIndex() const
   {
@@ -163,12 +161,12 @@ public:
     return mHasSnapArea;
   }
 
-  [[nodiscard]] const std::map<joda::enums::ImageChannelIndex, Intensity> &getIntensity(int idx = 0) const
+  [[nodiscard]] const std::map<joda::enums::ChannelId, Intensity> &getIntensity(int idx = 0) const
   {
     return intensity;
   }
 
-  [[nodiscard]] const std::map<joda::enums::ImageChannelIndex, Intersecting> &getIntersectingRois(int idx = 0) const
+  [[nodiscard]] const std::map<joda::enums::ChannelId, Intersecting> &getIntersectingRois(int idx = 0) const
   {
     return intersectingRois;
   }
@@ -204,18 +202,18 @@ public:
   }
 
   [[nodiscard]] std::tuple<ROI, bool>
-  calcIntersection(const ROI &roi, const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
-                   float minIntersection, joda::enums::ObjectClassId objectClassIdOfIntersectingObjects,
+  calcIntersection(const ROI &roi, const std::map<joda::enums::ChannelId, const cv::Mat *> &imageOriginal,
+                   float minIntersection, joda::enums::ClassId objectClassIdOfIntersectingObjects,
                    bool createRoi = true) const;
 
-  void measureAndAddIntensity(joda::enums::ImageChannelIndex channelIdx, const cv::Mat &imageOriginal);
-  void calcIntersectionAndAdd(joda::enums::ImageChannelIndex channelIdx, const ROI *roi);
+  void measureAndAddIntensity(joda::enums::ChannelId channelIdx, const cv::Mat &imageOriginal);
+  void calcIntersectionAndAdd(joda::enums::ChannelId channelIdx, const ROI *roi);
 
   [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;
 
 private:
   /////////////////////////////////////////////////////
-  void calculateMetrics(const std::map<joda::enums::ImageChannelIndex, const cv::Mat *> &imageOriginal,
+  void calculateMetrics(const std::map<joda::enums::ChannelId, const cv::Mat *> &imageOriginal,
                         const ChannelSettingsFilter *filter);
 
   auto calcIntensity(const cv::Mat &imageOriginal) -> Intensity;
@@ -228,9 +226,9 @@ private:
   [[nodiscard]] double getTracedPerimeter(const std::vector<cv::Point> &points) const;
 
   /////////////////////////////////////////////////////
-  uint32_t index;                                        ///< Index in the prediction array
-  Confidence confidence;                                 ///< Probability
-  ClassId classId = joda::enums::ObjectClassId::NONE;    ///< Class id
+  uint32_t index;                                  ///< Index in the prediction array
+  Confidence confidence;                           ///< Probability
+  ClassId classId = joda::enums::ClassId::NONE;    ///< Class id
 
   Boxes mBoundingBox;    ///< Rectangle around the prediction
   cv::Mat mMask;         ///< Segmentation mask
@@ -240,8 +238,8 @@ private:
   cv::Mat mSnapAreaMask;         ///< Segmentation mask with snap area
   std::vector<cv::Point> mSnapAreaMaskContours;
 
-  std::map<joda::enums::ImageChannelIndex, Intensity> intensity;    ///< Key is the channel index
-  std::map<joda::enums::ImageChannelIndex, Intersecting>
+  std::map<joda::enums::ChannelId, Intensity> intensity;    ///< Key is the channel index
+  std::map<joda::enums::ChannelId, Intersecting>
       intersectingRois;    ///< Key is the channel index, value an array of ROIs which intersects with this ROI
 
   uint64_t areaSize = 0;    ///< size of the masking area [px^2 / px^3]

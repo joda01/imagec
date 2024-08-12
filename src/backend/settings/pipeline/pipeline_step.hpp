@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -29,16 +29,9 @@
 
 namespace joda::settings {
 
-struct PipelineStep : public joda::cmd::Setting
+struct PipelineStep : public Setting
 {
 public:
-  //
-  // The input slot used to execute the algorithm.
-  // Use "$" to take the slot(s) from the step before.
-  // Use a $store pipeline step to save an interim result.
-  //
-  joda::enums::Slot input = joda::enums::Slot::$;
-
   //
   // Common
   //
@@ -50,13 +43,13 @@ public:
   // std::optional<MedianSubtraction> $medianSubtract                     = std::nullopt;
   // std::optional<RollingBall> $rollingBall                              = std::nullopt;
 
-  std::optional<::joda::cmd::functions::BlurSettings> $blur                     = std::nullopt;
-  std::optional<::joda::cmd::functions::ImageSaverSettings> $saveImage          = std::nullopt;
-  std::optional<::joda::cmd::functions::ThresholdSettings> $threshold           = std::nullopt;
-  std::optional<::joda::cmd::functions::WatershedSettings> $watershed           = std::nullopt;
-  std::optional<::joda::cmd::functions::ImageFromClassSettings> $imageFromClass = std::nullopt;
-  std::optional<::joda::cmd::functions::ClassifierSettings> $classify           = std::nullopt;
-  std::optional<::joda::cmd::functions::AiClassifierSettings> $aiClassify       = std::nullopt;
+  std::optional<BlurSettings> $blur                     = std::nullopt;
+  std::optional<ImageSaverSettings> $saveImage          = std::nullopt;
+  std::optional<ThresholdSettings> $threshold           = std::nullopt;
+  std::optional<WatershedSettings> $watershed           = std::nullopt;
+  std::optional<ImageFromClassSettings> $imageFromClass = std::nullopt;
+  std::optional<ClassifierSettings> $classify           = std::nullopt;
+  std::optional<AiClassifierSettings> $aiClassify       = std::nullopt;
 
   //
   // Measurement
@@ -68,8 +61,8 @@ public:
                   cmd::ObjectsListMap &result) const;
   void check() const override;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStep, input, $blur, $saveImage, $threshold, $watershed,
-                                              $imageFromClass, $classify, $aiClassify);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass,
+                                              $classify, $aiClassify);
 };
 
 }    // namespace joda::settings

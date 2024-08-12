@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -30,7 +30,7 @@
 #include "threshold_otsu.hpp"
 #include "threshold_triangel.hpp"
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \class      Threshold
@@ -40,7 +40,7 @@ namespace joda::cmd::functions {
 class Threshold : public Command
 {
 public:
-  explicit Threshold(const ThresholdSettings &settings) : mSettings(settings)
+  explicit Threshold(const settings::ThresholdSettings &settings) : mSettings(settings)
   {
   }
   virtual ~Threshold() = default;
@@ -57,8 +57,8 @@ public:
     cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
     image = std::move(thresholdImg);
     DurationCount::stop(idStart);
-    context.appliedMinThreshold = thresholdValMin;
-    context.appliedMaxThreshold = thresholdValMax;
+    context.imageProcessingContext.appliedMinThreshold = thresholdValMin;
+    context.imageProcessingContext.appliedMaxThreshold = thresholdValMax;
   }
 
 protected:
@@ -78,29 +78,29 @@ private:
   [[nodiscard]] uint16_t calcThresholdValue(cv::Mat &histogram) const
   {
     switch(mSettings.mode) {
-      case ThresholdSettings::Mode::NONE:
-      case ThresholdSettings::Mode::MANUAL:
+      case settings::ThresholdSettings::Mode::NONE:
+      case settings::ThresholdSettings::Mode::MANUAL:
         return getMinThreshold();
-      case ThresholdSettings::Mode::LI:
+      case settings::ThresholdSettings::Mode::LI:
         return ThresholdLi::calcThresholdValue(histogram);
-      case ThresholdSettings::Mode::MIN_ERROR:
+      case settings::ThresholdSettings::Mode::MIN_ERROR:
         return ThresholdMinError::calcThresholdValue(histogram);
-      case ThresholdSettings::Mode::TRIANGLE:
+      case settings::ThresholdSettings::Mode::TRIANGLE:
         return ThresholdTriangle::calcThresholdValue(histogram);
-      case ThresholdSettings::Mode::MOMENTS:
+      case settings::ThresholdSettings::Mode::MOMENTS:
         return ThresholdMoments::calcThresholdValue(histogram);
-      case ThresholdSettings::Mode::OTSU:
+      case settings::ThresholdSettings::Mode::OTSU:
         return ThresholdOtsu::calcThresholdValue(histogram);
-      case ThresholdSettings::Mode::HUANG:
-      case ThresholdSettings::Mode::INTERMODES:
-      case ThresholdSettings::Mode::ISODATA:
-      case ThresholdSettings::Mode::MAX_ENTROPY:
-      case ThresholdSettings::Mode::MEAN:
-      case ThresholdSettings::Mode::MINIMUM:
-      case ThresholdSettings::Mode::PERCENTILE:
-      case ThresholdSettings::Mode::RENYI_ENTROPY:
-      case ThresholdSettings::Mode::SHANBHAG:
-      case ThresholdSettings::Mode::YEN:
+      case settings::ThresholdSettings::Mode::HUANG:
+      case settings::ThresholdSettings::Mode::INTERMODES:
+      case settings::ThresholdSettings::Mode::ISODATA:
+      case settings::ThresholdSettings::Mode::MAX_ENTROPY:
+      case settings::ThresholdSettings::Mode::MEAN:
+      case settings::ThresholdSettings::Mode::MINIMUM:
+      case settings::ThresholdSettings::Mode::PERCENTILE:
+      case settings::ThresholdSettings::Mode::RENYI_ENTROPY:
+      case settings::ThresholdSettings::Mode::SHANBHAG:
+      case settings::ThresholdSettings::Mode::YEN:
         joda::log::logWarning("Selected threshold not supported!");
         break;
     }
@@ -170,7 +170,7 @@ private:
   }
 
   /////////////////////////////////////////////////////
-  const ThresholdSettings &mSettings;
+  const settings::ThresholdSettings &mSettings;
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -16,11 +16,12 @@
 #include <cstdint>
 #include <set>
 #include <vector>
-#include "backend/commands/setting.hpp"
+#include "backend/enums/enums_channels.hpp"
 #include "backend/global_enums.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::settings {
 
 struct IntersectionSettings : public Setting
 {
@@ -29,7 +30,7 @@ struct IntersectionSettings : public Setting
     //
     // Calc the intersection only with objects of given classes
     //
-    std::set<joda::enums::ObjectClassId> objectClasses;
+    std::set<joda::enums::ClassId> objectClasses;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectingClasses, objectClasses);
   };
@@ -37,7 +38,7 @@ struct IntersectionSettings : public Setting
   //
   // List of channels to calc the intersection for
   //
-  std::map<joda::enums::Slot, IntersectingClasses> intersectingSlots;
+  std::map<joda::enums::ChannelId, IntersectingClasses> intersectingSlots;
 
   //
   // Minimum intersection in [0-1]
@@ -47,7 +48,7 @@ struct IntersectionSettings : public Setting
   //
   // Resulting object class of the intersecting objects
   //
-  joda::enums::ObjectClassId objectClass = joda::enums::ObjectClassId::NONE;
+  joda::enums::ClassId objectClass = joda::enums::ClassId::NONE;
 
   /////////////////////////////////////////////////////
   void check() const override
@@ -57,4 +58,4 @@ struct IntersectionSettings : public Setting
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectionSettings, intersectingSlots, minIntersection, objectClass);
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::settings

@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "objects_list.hpp"
@@ -20,7 +20,7 @@
 
 namespace joda::cmd {
 
-void ObjectsListMap::createBinaryImage(cv::Mat &img, const std::set<joda::enums::ObjectClassId> &objectClasses) const
+void ObjectsListMap::createBinaryImage(cv::Mat &img, const std::set<joda::enums::ClassId> &objectClasses) const
 {
   for(const auto &roi : *this) {
     if(roi.isValid() && objectClasses.contains(roi.getClassId())) {

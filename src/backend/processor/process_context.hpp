@@ -9,42 +9,55 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
 
 #include <filesystem>
 #include <memory>
-#include "backend/commands/image_functions/image_loader/channel_loader_settings.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
-#include "backend/helper/database/database.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
+#include <opencv2/core/mat.hpp>
 
 namespace joda::processor {
 
-struct ProcessContext
+struct GlobalContext
 {
-  // Global parameters
   std::filesystem::path resultsOutputFolder;
-  std::shared_ptr<joda::db::Database> database;
+  // std::shared_ptr<joda::db::Database> database;
+};
 
-  // Actual processed image part
+struct ImageContext
+{
   std::filesystem::path imagePath;
+  joda::ome::OmeInfo imageMeta;
+};
+
+struct ImagePipelineContext
+{
+  // Actual processed image part
+  cv::Mat originalImage;
   joda::enums::tile_t tile     = {0, 0};
   joda::enums::tStack_t tStack = 0;
   joda::enums::zStack_t zStack = 0;
-  joda::enums::ImageChannelIndex cStack;
-  std::optional<joda::ome::OmeInfo> imageMeta;
+  joda::enums::cStack_t cStack = 0;
+};
 
-  // Image loader settings
-  joda::cmd::functions::ChannelLoaderSettings loader;
-  cv::Mat originalImage;
-
-  // Data modified from commands during pipeline run
+struct ImageProcessingContext
+{
   bool isBinary                = false;
   uint16_t appliedMinThreshold = 0;
   uint16_t appliedMaxThreshold = 0;
+};
+
+struct ProcessContext
+{
+  GlobalContext &globalContext;
+  ImageContext &imageContext;
+  ImagePipelineContext imagePipelineContext;
+  ImageProcessingContext imageProcessingContext;
 };
 
 }    // namespace joda::processor

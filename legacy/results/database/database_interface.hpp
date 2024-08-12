@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -88,7 +88,7 @@ struct ImageMeta
 struct ChannelMeta
 {
   std::string analyzeId;
-  joda::enums::ImageChannelIndex channelId;
+  joda::enums::ChannelId channelId;
   std::string name;
   std::vector<MeasureChannelId> measurements;
 };
@@ -96,10 +96,10 @@ struct ChannelMeta
 struct ImageChannelMeta
 {
   std::string analyzeId;
-  uint64_t imageId                         = 0;
-  joda::enums::ImageChannelIndex channelId = joda::enums::ImageChannelIndex::$;
-  ChannelValidity validity                 = {};
-  bool invalidateAll                       = false;
+  uint64_t imageId                 = 0;
+  joda::enums::ChannelId channelId = joda::enums::ChannelId::$;
+  ChannelValidity validity         = {};
+  bool invalidateAll               = false;
   std::filesystem::path controlImagePath;
 };
 }    // namespace joda::db

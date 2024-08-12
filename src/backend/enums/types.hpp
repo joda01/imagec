@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -20,5 +20,6 @@ namespace joda::enums {
 using tile_t   = std::tuple<int32_t, int32_t>;
 using zStack_t = int32_t;
 using tStack_t = int32_t;
+using cStack_t = int32_t;
 
 }    // namespace joda::enums

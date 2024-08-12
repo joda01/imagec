@@ -13,11 +13,14 @@
 
 #include <set>
 #include <vector>
+#include "backend/enums/enums_channels.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/global_enums.hpp"
 #include <nlohmann/json.hpp>
 #include "project_address.hpp"
+#include "project_channel.hpp"
+#include "project_class.hpp"
 #include "project_experiment_setup.hpp"
-#include "project_object_class.hpp"
 
 namespace joda::settings {
 
@@ -40,16 +43,21 @@ public:
   Address address;
 
   //
+  // Channels used in this project
+  //
+  std::map<joda::enums::ChannelId, Channel> channels;
+
+  //
   // Object classes used in this project
   //
-  std::map<joda::enums::ObjectClassId, ObjectClass> objectClasses;
+  std::map<joda::enums::ClassId, Class> classes;
 
   //
   // Working directory
   //
   std::string workingDirectory;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ProjectSettings, experimentSetup, notes, address, objectClasses,
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ProjectSettings, experimentSetup, notes, address, channels, classes,
                                               workingDirectory);
 };
 

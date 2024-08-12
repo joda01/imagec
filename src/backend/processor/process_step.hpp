@@ -9,8 +9,9 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
 ///
+
+#pragma once
 
 #include "backend/commands/command.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
@@ -60,7 +61,7 @@ public:
 
   void releaseMemoryOfOriginalImage()
   {
-    mContext.originalImage.release();
+    mContext.imagePipelineContext.originalImage.release();
   }
 
 private:

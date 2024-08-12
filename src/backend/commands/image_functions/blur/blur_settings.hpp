@@ -2,10 +2,10 @@
 
 #include <cstdint>
 #include <set>
-#include "backend/commands/setting.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::settings {
 
 struct BlurSettings : public Setting
 {
@@ -23,4 +23,4 @@ public:
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(BlurSettings, repeat, kernelSize);
 };
-}    // namespace joda::cmd::functions
+}    // namespace joda::settings

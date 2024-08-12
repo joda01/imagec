@@ -8,17 +8,18 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
 
 #include <cstdint>
 #include <set>
-#include "backend/commands/setting.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::settings {
 
 struct AiClassifierSettings : public Setting
 {
@@ -41,9 +42,14 @@ struct AiClassifierSettings : public Setting
     Filter filter;
 
     //
+    // Channel the objects should be assigned to
+    //
+    joda::enums::ChannelId channelId;
+
+    //
     // Class id to identify the object with
     //
-    joda::enums::ObjectClassId classId;
+    joda::enums::ClassId classId;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, classId, filter);
   };
@@ -76,4 +82,4 @@ struct AiClassifierSettings : public Setting
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiClassifierSettings, objectClasses);
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::settings

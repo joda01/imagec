@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -19,9 +19,9 @@
 #include <utility>
 #include "backend/global_enums.hpp"
 #include "backend/processor/process_context.hpp"
+#include "backend/settings/setting.hpp"
 #include <opencv2/core/mat.hpp>
 #include "command.hpp"
-#include "setting.hpp"
 
 namespace joda::cmd {
 
@@ -29,7 +29,7 @@ template <class T>
 concept Command_t = ::std::is_base_of<Command, T>::value;
 
 template <class T>
-concept Setting_t = ::std::is_base_of<Setting, T>::value;
+concept Setting_t = ::std::is_base_of<settings::Setting, T>::value;
 
 template <Command_t CMD, Setting_t SETTING>
 class Factory : public joda::cmd::Command

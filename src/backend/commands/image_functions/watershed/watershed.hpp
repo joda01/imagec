@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -22,7 +22,7 @@
 #include "edm.hpp"
 #include "maximum_finder.hpp"
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \class      Function
@@ -34,7 +34,7 @@ class Watershed : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  explicit Watershed(const WatershedSettings &settings) : mSettings(settings)
+  explicit Watershed(const settings::WatershedSettings &settings) : mSettings(settings)
   {
   }
   virtual ~Watershed() = default;
@@ -55,6 +55,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  const WatershedSettings &mSettings;
+  const settings::WatershedSettings &mSettings;
 };
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

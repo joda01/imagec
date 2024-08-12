@@ -8,14 +8,14 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "processor.hpp"
 #include <filesystem>
-#include "backend/commands/image_functions/image_loader/image_loader.hpp"
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/file_info_images.hpp"
+#include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/processor/process_context.hpp"
 #include "backend/processor/processor_memory.hpp"
 
@@ -35,12 +35,14 @@ Processor::Processor()
 void Processor::execute(const joda::settings::AnalyzeSettings &program)
 {
   joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> images({});
-  images.setWorkingDirectory(program.imageLoader.imageInputDirectory);
+  images.setWorkingDirectory(program.images.imageInputDirectory);
   images.waitForFinished();
-  std::cout << "Working dir " << program.imageLoader.imageInputDirectory << std::endl;
+
+  GlobalContext globalContext;
 
   for(const auto &imagePath : images.getFilesList()) {
-    joda::cmd::functions::ImageLoader imageLoader(program.imageLoader, imagePath.getFilePath());
+    ImageContext imageContext;
+    PipelineInitializer imageLoader(program.images, imagePath.getFilePath(), imageContext);
 
     auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
     auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
@@ -52,30 +54,16 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
           for(int zStack = 0; zStack < nrzSTack; zStack++) {
             // Start pipeline
             for(const auto &pipeline : program.pipelines) {
-              // First of all load the image to process
-              ProcessStep actStep{ProcessContext{.imagePath           = imagePath.getFilePath(),
-                                                 .resultsOutputFolder = program.imageLoader.resultsOutputFolder,
-                                                 .tile                = {tileX, tileY},
-                                                 .tStack              = tStack,
-                                                 .zStack              = zStack,
-                                                 .channel             = pipeline.channelLoader.imageChannelIndex,
-                                                 .loader              = pipeline.channelLoader}};
+              ProcessContext context{.globalContext = globalContext, .imageContext = imageContext};
+              ProcessStep processStep(context);
+              imageLoader.load(
+                  pipeline.inputImage,
+                  PipelineInitializer::PartToLoad{.tile = {tilesX, tileY}, .tStack = tStack, .zStack = zStack},
+                  processStep);
 
-              // Load the image
-              actStep.executeStep(mMemory, imageLoader);
-
-              // Store the original image
-              actStep.mutableContext().originalImage = actStep.getImage().clone();
               for(const auto &step : pipeline.pipelineSteps) {
-                ProcessStep &stepToUseForProcessing = actStep;
-                if(step.input != joda::enums::Slot::$) {
-                  mMemory.loadCopy(step.input, actStep);
-                }
-                actStep.executeStep(mMemory, step);
+                processStep.executeStep(mMemory, step);
               }
-
-              // Pipeline finished -> Store the settings so that they can used in a later pipeline
-              mMemory.store(joda::enums::Slot::$1, actStep);
             }
 
             // Image section finished

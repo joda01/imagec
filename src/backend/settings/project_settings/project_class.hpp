@@ -17,7 +17,7 @@
 
 namespace joda::settings {
 
-struct ObjectClass
+struct Class
 {
   //
   //  Display name of the object class
@@ -34,7 +34,7 @@ struct ObjectClass
   //
   std::string color;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, name, notes, color);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Class, name, notes, color);
 };
 
 }    // namespace joda::settings

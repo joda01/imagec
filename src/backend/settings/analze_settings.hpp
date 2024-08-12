@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -22,7 +22,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
-#include "backend/commands/image_functions/image_loader/image_loader_settings.hpp"
+#include "backend/processor/initializer/pipeline_initializer_settings.hpp"
 #include "pipeline/pipeline.hpp"
 #include "project_settings/project_settings.hpp"
 #include <catch2/catch_config.hpp>
@@ -35,7 +35,7 @@ class AnalyzeSettings final
 {
 public:
   ProjectSettings projectSettings;
-  cmd::functions::ImageLoaderSettings imageLoader;
+  PipelineInitializerSettings images;
   std::vector<Pipeline> pipelines;
 
   [[nodiscard]] const std::string &schema() const
@@ -46,6 +46,6 @@ public:
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.icproj";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettings, projectSettings, imageLoader, pipelines);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettings, projectSettings, images, pipelines);
 };
 }    // namespace joda::settings

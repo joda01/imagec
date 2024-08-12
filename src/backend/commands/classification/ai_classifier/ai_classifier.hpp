@@ -21,7 +21,7 @@
 
 #define YOLO_P6 false
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \class      ObjectSegmentation
@@ -32,7 +32,7 @@ class AiClassifier : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  AiClassifier(const AiClassifierSettings &);
+  AiClassifier(const settings::AiClassifierSettings &);
   void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
                ObjectsListMap &result) override;
 
@@ -99,6 +99,6 @@ private:
   int32_t mNumberOfClasses;
   cv::dnn::Net mNet;
 
-  const AiClassifierSettings &mSettings;
+  const settings::AiClassifierSettings &mSettings;
 };
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

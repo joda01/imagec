@@ -8,24 +8,24 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
 
-#include "backend/commands/image_functions/image_loader/channel_loader_settings.hpp"
+#include "backend/processor/initializer/pipeline_input_image_loader_settings.hpp"
 #include "backend/settings/pipeline/pipeline_meta.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 
 namespace joda::settings {
 
-class Pipeline : public joda::cmd::Setting
+class Pipeline : public Setting
 {
 public:
   /////////////////////////////////////////////////////
 
   PipelineMeta meta;
-  cmd::functions::ChannelLoaderSettings channelLoader;
+  PipelineInputImageLoaderSettings inputImage;
   std::vector<PipelineStep> pipelineSteps;
 
   /////////////////////////////////////////////////////
@@ -36,7 +36,7 @@ public:
     }
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Pipeline, meta, channelLoader, pipelineSteps);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Pipeline, meta, inputImage, pipelineSteps);
 };
 
 }    // namespace joda::settings

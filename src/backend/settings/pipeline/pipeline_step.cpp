@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "pipeline_step.hpp"
@@ -28,38 +28,37 @@ void PipelineStep::operator()(processor::ProcessContext &context, processor::Pro
                               cmd::ObjectsListMap &result) const
 {
   if($blur) {
-    joda::cmd::Factory<joda::cmd::functions::Blur, cmd::functions::BlurSettings> a($blur.value());
+    joda::cmd::Factory<joda::cmd::Blur, BlurSettings> a($blur.value());
     a.execute(context, memory, image, result);
   }
 
   if($saveImage) {
-    joda::cmd::Factory<joda::cmd::functions::ImageSaver, cmd::functions::ImageSaverSettings> a($saveImage.value());
+    joda::cmd::Factory<joda::cmd::ImageSaver, ImageSaverSettings> a($saveImage.value());
     a.execute(context, memory, image, result);
   }
 
   if($threshold) {
-    joda::cmd::Factory<joda::cmd::functions::Threshold, cmd::functions::ThresholdSettings> a($threshold.value());
+    joda::cmd::Factory<joda::cmd::Threshold, ThresholdSettings> a($threshold.value());
     a.execute(context, memory, image, result);
   }
 
   if($watershed) {
-    joda::cmd::Factory<joda::cmd::functions::Watershed, cmd::functions::WatershedSettings> a($watershed.value());
+    joda::cmd::Factory<joda::cmd::Watershed, WatershedSettings> a($watershed.value());
     a.execute(context, memory, image, result);
   }
 
   if($imageFromClass) {
-    joda::cmd::Factory<joda::cmd::functions::ImageFromClass, cmd::functions::ImageFromClassSettings> a(
-        $imageFromClass.value());
+    joda::cmd::Factory<joda::cmd::ImageFromClass, ImageFromClassSettings> a($imageFromClass.value());
     a.execute(context, memory, image, result);
   }
 
   if($classify) {
-    joda::cmd::Factory<joda::cmd::functions::Classifier, cmd::functions::ClassifierSettings> a($classify.value());
+    joda::cmd::Factory<joda::cmd::Classifier, ClassifierSettings> a($classify.value());
     a.execute(context, memory, image, result);
   }
 
   if($aiClassify) {
-    joda::cmd::Factory<joda::cmd::functions::AiClassifier, cmd::functions::AiClassifierSettings> a($aiClassify.value());
+    joda::cmd::Factory<joda::cmd::AiClassifier, AiClassifierSettings> a($aiClassify.value());
     a.execute(context, memory, image, result);
   }
 }

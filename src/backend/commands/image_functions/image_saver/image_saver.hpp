@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -23,7 +23,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \class      Function
@@ -41,7 +41,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  explicit ImageSaver(const ImageSaverSettings &settings) : mSettings(settings)
+  explicit ImageSaver(const settings::ImageSaverSettings &settings) : mSettings(settings)
   {
   }
   void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
@@ -49,14 +49,15 @@ public:
   {
     auto id = DurationCount::start("Save");
 
-    auto parentPath = context.resultsOutputFolder;
-    auto fileName   = context.imagePath.stem();
+    auto parentPath = context.globalContext.resultsOutputFolder;
+    auto fileName   = context.imageContext.imagePath.stem();
 
     std::filesystem::path saveName =
-        parentPath / (fileName.string() + "__" + std::to_string(std::get<0>(context.tile)) + "x" +
-                      std::to_string(std::get<1>(context.tile)) + "__" + std::to_string((int32_t) context.channel) +
-                      "-" + std::to_string(context.zStack) + "-" + std::to_string((int32_t) context.tStack) +
-                      mSettings.namePrefix + ".png");
+        parentPath / (fileName.string() + "__" + std::to_string(std::get<0>(context.imagePipelineContext.tile)) + "x" +
+                      std::to_string(std::get<1>(context.imagePipelineContext.tile)) + "__" +
+                      std::to_string((int32_t) context.imagePipelineContext.cStack) + "-" +
+                      std::to_string(context.imagePipelineContext.zStack) + "-" +
+                      std::to_string((int32_t) context.imagePipelineContext.tStack) + mSettings.namePrefix + ".png");
 
     // Convert to 8-bit grayscale
     cv::Mat img_8bit_gray;
@@ -69,7 +70,7 @@ public:
   }
 
 private:
-  const ImageSaverSettings &mSettings;
+  const settings::ImageSaverSettings &mSettings;
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

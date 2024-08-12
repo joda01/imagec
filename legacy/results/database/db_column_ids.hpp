@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -366,31 +366,31 @@ private:
   uint32_t mChannelIndex = 0;
 };
 
-inline ChannelIndex toChannelIndex(joda::enums::ImageChannelIndex idx)
+inline ChannelIndex toChannelIndex(joda::enums::ChannelId idx)
 {
   switch(idx) {
-    case joda::enums::ImageChannelIndex::NONE:
-    case joda::enums::ImageChannelIndex::$:
+    case joda::enums::ChannelId::NONE:
+    case joda::enums::ChannelId::$:
       return ChannelIndex::ME;
-    case joda::enums::ImageChannelIndex::CH0:
+    case joda::enums::ChannelId::CH0:
       return ChannelIndex::CH0;
-    case joda::enums::ImageChannelIndex::CH1:
+    case joda::enums::ChannelId::CH1:
       return ChannelIndex::CH1;
-    case joda::enums::ImageChannelIndex::CH2:
+    case joda::enums::ChannelId::CH2:
       return ChannelIndex::CH2;
-    case joda::enums::ImageChannelIndex::CH3:
+    case joda::enums::ChannelId::CH3:
       return ChannelIndex::CH3;
-    case joda::enums::ImageChannelIndex::CH4:
+    case joda::enums::ChannelId::CH4:
       return ChannelIndex::CH4;
-    case joda::enums::ImageChannelIndex::CH5:
+    case joda::enums::ChannelId::CH5:
       return ChannelIndex::CH5;
-    case joda::enums::ImageChannelIndex::CH6:
+    case joda::enums::ChannelId::CH6:
       return ChannelIndex::CH6;
-    case joda::enums::ImageChannelIndex::CH7:
+    case joda::enums::ChannelId::CH7:
       return ChannelIndex::CH7;
-    case joda::enums::ImageChannelIndex::CH8:
+    case joda::enums::ChannelId::CH8:
       return ChannelIndex::CH8;
-    case joda::enums::ImageChannelIndex::CH9:
+    case joda::enums::ChannelId::CH9:
       return ChannelIndex::CH9;
     default:
       throw std::runtime_error("Unknown channel");

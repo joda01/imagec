@@ -8,12 +8,11 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
 
-#include "enums/enums_image_channel.hpp"
-#include "enums/enums_object_classes.hpp"
-#include "enums/enums_slot_channels.hpp"
+#include "enums/enums_channels.hpp"
+#include "enums/enums_classes.hpp"
 #include "enums/types.hpp"

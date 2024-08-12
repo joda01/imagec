@@ -8,17 +8,17 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
 
 #include <cstdint>
 #include <set>
-#include "backend/commands/setting.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
-namespace joda::cmd::functions {
+namespace joda::settings {
 
 struct WatershedSettings : public Setting
 {
@@ -39,4 +39,4 @@ struct WatershedSettings : public Setting
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WatershedSettings, maximumFinderTolerance);
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::settings

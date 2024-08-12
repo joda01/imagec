@@ -8,20 +8,21 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "intersection.hpp"
 #include <cstddef>
 #include <optional>
+#include "backend/enums/enums_channels.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/processor/process_step.hpp"
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
-Intersection::Intersection(const IntersectionSettings &settings) : mSettings(settings)
+Intersection::Intersection(const settings::IntersectionSettings &settings) : mSettings(settings)
 {
 }
 
@@ -33,10 +34,11 @@ void Intersection::execute(processor::ProcessContext &context, processor::Proces
   const auto &indexesToIntersect = mSettings.intersectingSlots;
   size_t intersectCount          = indexesToIntersect.size();
   try {
-    std::map<joda::enums::ImageChannelIndex, const cv::Mat *> channelsToIntersectImages;
+    std::map<joda::enums::ChannelId, const cv::Mat *> channelsToIntersectImages;
     for(const auto [idxToIntersect, _] : indexesToIntersect) {
       auto channel = memory.load(idxToIntersect).context();
-      channelsToIntersectImages.emplace(channel.channel, &channel.originalImage);
+#warning "Check channel id"
+      channelsToIntersectImages.emplace(joda::enums::ChannelId::NONE, &channel.imagePipelineContext.originalImage);
     }
 
     int idx = 0;
@@ -63,7 +65,7 @@ void Intersection::execute(processor::ProcessContext &context, processor::Proces
       resultTemp = &buffer01;
     }
 
-    std::optional<std::set<joda::enums::ObjectClassId>> objectClassesMe = it->second.objectClasses;
+    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = it->second.objectClasses;
 
     ++it;
     ++idx;
@@ -164,4 +166,4 @@ overlayPainting.push_back({.result          = &ch1->result,
 
 // joda::image::detect::DetectionFunction::paintOverlay(response.controlImage, overlayPainting);
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

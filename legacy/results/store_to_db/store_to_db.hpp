@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -19,7 +19,7 @@
 #include <duckdb/main/appender.hpp>
 #include "store_to_db_settings.hpp"
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \class      Classifier
@@ -55,4 +55,4 @@ private:
   const StoreToDbSettings &mSettings;
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd

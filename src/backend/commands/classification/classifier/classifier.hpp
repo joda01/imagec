@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -18,7 +18,7 @@
 #include "backend/processor/process_context.hpp"
 #include "classifier_settings.hpp"
 
-namespace joda::cmd::functions {
+namespace joda::cmd {
 
 ///
 /// \class      Classifier
@@ -30,13 +30,13 @@ class Classifier : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  Classifier(const ClassifierSettings &);
+  Classifier(const settings::ClassifierSettings &);
   void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
                ObjectsListMap &result) override;
 
 private:
   /////////////////////////////////////////////////////
-  const ClassifierSettings &mSettings;
+  const settings::ClassifierSettings &mSettings;
 };
 
-}    // namespace joda::cmd::functions
+}    // namespace joda::cmd
