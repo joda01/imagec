@@ -20,7 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "backend/commands/functions/resize/resize.hpp"
+#include "backend/commands/image_functions/resize/resize.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>

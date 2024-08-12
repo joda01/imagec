@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "backend/commands/functions/image_loader/channel_loader_settings.hpp"
+#include "backend/commands/image_functions/image_loader/channel_loader_settings.hpp"
 #include "backend/settings/pipeline/pipeline_meta.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 

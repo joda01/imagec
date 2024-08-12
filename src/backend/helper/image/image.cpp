@@ -16,7 +16,7 @@
 #include <iostream>
 #include <mutex>
 #include <string>
-#include "backend/commands/functions/resize/resize.hpp"
+#include "backend/commands/image_functions/resize/resize.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>

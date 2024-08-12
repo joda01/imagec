@@ -15,7 +15,7 @@
 
 #include <cstdint>
 #include "backend/commands/command.hpp"
-#include "backend/commands/functions/watershed/watershed_settings.hpp"
+#include "backend/commands/image_functions/watershed/watershed_settings.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>

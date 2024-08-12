@@ -15,7 +15,7 @@
 
 #include <bits/iterator_concepts.h>
 #include "backend/commands/command.hpp"
-#include "backend/commands/functions/blur/blur_settings.hpp"
+#include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>

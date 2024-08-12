@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include "../../functions/function.hpp"
+#include "../../image_functions/function.hpp"
 #include "backend/helper/duration_count/duration_count.h"
-#include "backend/settings/preprocessing/functions/gaussian_blur.hpp"
+#include "backend/settings/preprocessing/image_functions/gaussian_blur.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 

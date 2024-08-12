@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "../../functions/function.hpp"
+#include "../../image_functions/function.hpp"
 #include "backend/helper/duration_count/duration_count.h"
-#include "backend/image_processing/functions/rank_filter/rank_filter.hpp"
-#include "backend/settings/preprocessing/functions/median_subtract.hpp"
+#include "backend/image_processing/image_functions/rank_filter/rank_filter.hpp"
+#include "backend/settings/preprocessing/image_functions/median_subtract.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 

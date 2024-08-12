@@ -19,7 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
-#include "../../functions/function.hpp"
+#include "../../image_functions/function.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>

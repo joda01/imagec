@@ -1,8 +1,8 @@
 #include <opencv2/core/hal/interface.h>
 #include "backend/helper/duration_count/duration_count.h"
-#include "backend/image_processing/functions/blur/blur.hpp"
-#include "backend/image_processing/functions/threshold/threshold.hpp"
-#include "backend/image_processing/functions/threshold/threshold_manual.hpp"
+#include "backend/image_processing/image_functions/blur/blur.hpp"
+#include "backend/image_processing/image_functions/threshold/threshold.hpp"
+#include "backend/image_processing/image_functions/threshold/threshold_manual.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/settings/channel/channel_settings.hpp"
 #include <catch2/catch_session.hpp>

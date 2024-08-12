@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <cstdint>
 #include "backend/commands/command.hpp"
-#include "backend/commands/functions/threshold/threshold_settings.hpp"
+#include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core.hpp>

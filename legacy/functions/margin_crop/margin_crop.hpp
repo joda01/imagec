@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "../../functions/function.hpp"
+#include "../../image_functions/function.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
 

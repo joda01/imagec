@@ -13,7 +13,7 @@
 
 #include "processor.hpp"
 #include <filesystem>
-#include "backend/commands/functions/image_loader/image_loader.hpp"
+#include "backend/commands/image_functions/image_loader/image_loader.hpp"
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/file_info_images.hpp"
 #include "backend/processor/process_context.hpp"

@@ -12,7 +12,7 @@
             "title": "ImageJ"
         },
         {
-            "href": "https://github.com/joda01/imagec/blob/main/src/backend/image_processing/functions/rolling_ball/rolling_ball.cpp",
+            "href": "https://github.com/joda01/imagec/blob/main/src/backend/image_processing/image_functions/rolling_ball/rolling_ball.cpp",
             "title": "ImageC"
         }
     ]

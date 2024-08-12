@@ -17,8 +17,8 @@
 
 #include <cmath>
 #include <vector>
-#include "../../functions/function.hpp"
-#include "backend/settings/preprocessing/functions/rolling_ball.hpp"
+#include "../../image_functions/function.hpp"
+#include "backend/settings/preprocessing/image_functions/rolling_ball.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>

@@ -14,7 +14,7 @@
 #include "image_loader.hpp"
 #include <filesystem>
 #include <functional>
-#include "backend/commands/functions/image_loader/image_loader_settings.hpp"
+#include "backend/commands/image_functions/image_loader/image_loader_settings.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include <opencv2/opencv.hpp>
 

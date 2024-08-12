@@ -20,7 +20,7 @@
 #include "backend/helper/file_info_images.hpp"
 #include "backend/helper/system_resources.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
-#include "backend/image_processing/functions/resize/resize.hpp"
+#include "backend/image_processing/image_functions/resize/resize.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/analze_settings.hpp"

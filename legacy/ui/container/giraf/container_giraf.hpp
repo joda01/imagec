@@ -24,9 +24,9 @@
 #include "backend/settings/channel/channel_settings.hpp"
 #include "backend/settings/channel/channel_settings_meta.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
-#include "backend/settings/preprocessing/functions/edge_detection.hpp"
-#include "backend/settings/preprocessing/functions/rolling_ball.hpp"
-#include "backend/settings/preprocessing/functions/zstack.hpp"
+#include "backend/settings/preprocessing/image_functions/edge_detection.hpp"
+#include "backend/settings/preprocessing/image_functions/rolling_ball.hpp"
+#include "backend/settings/preprocessing/image_functions/zstack.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "panel_giraf_edit.hpp"
 #include "panel_giraf_overview.hpp"

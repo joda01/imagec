@@ -16,11 +16,11 @@
 #include "backend/commands/classification/ai_classifier/ai_classifier.hpp"
 #include "backend/commands/classification/classifier/classifier.hpp"
 #include "backend/commands/factory.hpp"
-#include "backend/commands/functions/blur/blur.hpp"
-#include "backend/commands/functions/image_from_class/image_from_class.hpp"
-#include "backend/commands/functions/image_saver/image_saver.hpp"
-#include "backend/commands/functions/threshold/threshold.hpp"
-#include "backend/commands/functions/watershed/watershed.hpp"
+#include "backend/commands/image_functions/blur/blur.hpp"
+#include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
+#include "backend/commands/image_functions/image_saver/image_saver.hpp"
+#include "backend/commands/image_functions/threshold/threshold.hpp"
+#include "backend/commands/image_functions/watershed/watershed.hpp"
 
 namespace joda::settings {
 

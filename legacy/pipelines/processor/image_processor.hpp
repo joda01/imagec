@@ -28,7 +28,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/image_processing/detection/detection.hpp"
 #include "backend/image_processing/detection/detection_response.hpp"
-#include "backend/image_processing/functions/watershed/watershed.hpp"
+#include "backend/image_processing/image_functions/watershed/watershed.hpp"
 #include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
 #include "backend/pipelines/pipeline_detection/object_segmentation/object_segmentation.hpp"
 #include "backend/settings/channel/channel_settings.hpp"

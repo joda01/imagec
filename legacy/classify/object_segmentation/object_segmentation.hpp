@@ -17,7 +17,7 @@
 #include <memory>
 #include "../detection.hpp"
 #include "../detection_response.hpp"
-#include "backend/image_processing/functions/threshold/threshold.hpp"
+#include "backend/image_processing/image_functions/threshold/threshold.hpp"
 #include "backend/settings/channel/channel_settings_filter.hpp"
 #include "backend/settings/detection/detection_settings_threshold.hpp"
 #include <opencv2/opencv.hpp>

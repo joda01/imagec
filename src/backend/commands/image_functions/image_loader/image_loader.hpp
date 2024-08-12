@@ -14,7 +14,7 @@
 #pragma once
 
 #include "backend/commands/command.hpp"
-#include "backend/commands/functions/image_loader/image_loader_settings.hpp"
+#include "backend/commands/image_functions/image_loader/image_loader_settings.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 
 namespace joda::cmd::functions {

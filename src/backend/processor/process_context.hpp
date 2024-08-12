@@ -16,7 +16,7 @@
 
 #include <filesystem>
 #include <memory>
-#include "backend/commands/functions/image_loader/channel_loader_settings.hpp"
+#include "backend/commands/image_functions/image_loader/channel_loader_settings.hpp"
 #include "backend/global_enums.hpp"
 
 namespace joda::processor {

@@ -22,7 +22,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
-#include "backend/commands/functions/image_loader/image_loader_settings.hpp"
+#include "backend/commands/image_functions/image_loader/image_loader_settings.hpp"
 #include "pipeline/pipeline.hpp"
 #include "project_settings/project_settings.hpp"
 #include <catch2/catch_config.hpp>
