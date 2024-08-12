@@ -27,9 +27,10 @@ class PipelineInitializer
 public:
   struct PartToLoad
   {
-    joda::enums::tile_t tile;
-    joda::enums::tStack_t tStack;
-    joda::enums::zStack_t zStack;
+    joda::enums::tile_t tile     = {0, 0};
+    joda::enums::tStack_t tStack = 0;
+    joda::enums::zStack_t zStack = 0;
+    joda::enums::cStack_t cStack = 0;
   };
 
   /////////////////////////////////////////////////////
@@ -48,6 +49,11 @@ public:
     return mZStackToLoad;
   }
 
+  [[nodiscard]] int32_t getNrOfCStacksToProcess() const
+  {
+    return mCStackToLoad;
+  }
+
   void load(const joda::settings::PipelineInputImageLoaderSettings &settings, const PartToLoad &imagePartToLoad,
             ProcessStep &processStepOu);
 
@@ -62,6 +68,7 @@ private:
   std::tuple<int32_t, int32_t> mNrOfTiles = {1, 1};
   int32_t mTstackToLoad                   = 0;
   int32_t mZStackToLoad                   = 0;
+  int32_t mCStackToLoad                   = 0;
 
   /////////////////////////////////////////////////////
   const settings::PipelineInitializerSettings &mSettings;

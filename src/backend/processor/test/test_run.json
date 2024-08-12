@@ -1,5 +1,5 @@
 {
-    "imageLoader": {
+    "images": {
         "zStackHandling": "IntensityProjection",
         "tStackHandling": "ExactOne",
         "imageInputDirectory": "test/test_data/images",

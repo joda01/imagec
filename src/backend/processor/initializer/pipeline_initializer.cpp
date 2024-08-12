@@ -40,7 +40,7 @@ PipelineInitializer::PipelineInitializer(const settings::PipelineInitializerSett
     case settings::PipelineInitializerSettings::TStackHandling::EXACT_ONE:
       mTstackToLoad = 1;
       break;
-    case settings::PipelineInitializerSettings::TStackHandling::EACH_INDIVIDUAL:
+    case settings::PipelineInitializerSettings::TStackHandling::EACH_ONE:
       mTstackToLoad = imageContextOut.imageMeta.getNrOfTStack();
       break;
   }
@@ -50,8 +50,17 @@ PipelineInitializer::PipelineInitializer(const settings::PipelineInitializerSett
     case settings::PipelineInitializerSettings::ZStackHandling::INTENSITY_PROJECTION:
       mZStackToLoad = 1;
       break;
-    case settings::PipelineInitializerSettings::ZStackHandling::EACH_INDIVIDUAL:
+    case settings::PipelineInitializerSettings::ZStackHandling::EACH_ONE:
       mZStackToLoad = imageContextOut.imageMeta.getNrOfZStack();
+      break;
+  }
+
+  switch(mSettings.cStackHandling) {
+    case settings::PipelineInitializerSettings::CStackHandling::EXACT_ONE:
+      mCStackToLoad = 1;
+      break;
+    case settings::PipelineInitializerSettings::CStackHandling::EACH_ONE:
+      mCStackToLoad = imageContextOut.imageMeta.getNrOfChannels();
       break;
   }
 
@@ -87,8 +96,17 @@ void PipelineInitializer::load(const joda::settings::PipelineInputImageLoaderSet
     case settings::PipelineInitializerSettings::TStackHandling::EXACT_ONE:
       t = pipelineSettings.tStackIndex;
       break;
-    case settings::PipelineInitializerSettings::TStackHandling::EACH_INDIVIDUAL:
+    case settings::PipelineInitializerSettings::TStackHandling::EACH_ONE:
       t = imagePartToLoad.tStack;
+      break;
+  }
+
+  switch(mSettings.cStackHandling) {
+    case settings::PipelineInitializerSettings::CStackHandling::EXACT_ONE:
+      c = pipelineSettings.cStackIndex;
+      break;
+    case settings::PipelineInitializerSettings::CStackHandling::EACH_ONE:
+      c = imagePartToLoad.cStack;
       break;
   }
 
@@ -100,7 +118,7 @@ void PipelineInitializer::load(const joda::settings::PipelineInputImageLoaderSet
       z             = 0;
       zStacksToLoad = mZStackToLoad;
       break;
-    case settings::PipelineInitializerSettings::ZStackHandling::EACH_INDIVIDUAL:
+    case settings::PipelineInitializerSettings::ZStackHandling::EACH_ONE:
       z = imagePartToLoad.zStack;
       break;
   }

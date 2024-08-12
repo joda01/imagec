@@ -47,33 +47,35 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
     auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
     auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
     auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
+    auto nrcSTack         = imageLoader.getNrOfCStacksToProcess();
 
     for(int tileX = 0; tileX < tilesX; tileX++) {
       for(int tileY = 0; tileY < tilesY; tileY++) {
         for(int tStack = 0; tStack < nrtStack; tStack++) {
           for(int zStack = 0; zStack < nrzSTack; zStack++) {
-            // Start pipeline
-            for(const auto &pipeline : program.pipelines) {
-              ProcessContext context{.globalContext = globalContext, .imageContext = imageContext};
-              ProcessStep processStep(context);
-              imageLoader.load(
-                  pipeline.inputImage,
-                  PipelineInitializer::PartToLoad{.tile = {tilesX, tileY}, .tStack = tStack, .zStack = zStack},
-                  processStep);
+            for(int cStack = 0; cStack < nrcSTack; cStack++) {
+              // Start pipeline
+              for(const auto &pipeline : program.pipelines) {
+                ProcessContext context{.globalContext = globalContext, .imageContext = imageContext};
+                ProcessStep processStep(context);
+                imageLoader.load(pipeline.inputImage,
+                                 PipelineInitializer::PartToLoad{
+                                     .tile = {tilesX, tileY}, .tStack = tStack, .zStack = zStack, .cStack = cStack},
+                                 processStep);
 
-              for(const auto &step : pipeline.pipelineSteps) {
-                processStep.executeStep(mMemory, step);
+                for(const auto &step : pipeline.pipelineSteps) {
+                  processStep.executeStep(mMemory, step);
+                }
               }
-            }
 
-            // Image section finished
-            // Do cross channel measurement here
+              // Image section finished
+              // Do cross channel measurement here
+            }
           }
         }
       }
+      // Image finished
     }
-    // Image finished
   }
 }
-
 }    // namespace joda::processor
