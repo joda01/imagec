@@ -16,11 +16,12 @@
 #include <filesystem>
 #include <string>
 #include <vector>
-#include "backend/results/db_column_ids.hpp"
 #include "nlohmann/json.hpp"
+#include <nlohmann/json_fwd.hpp>
+#include "db_column_ids.hpp"
 #include <duckdb.hpp>
 
-namespace joda::results::db {
+namespace joda::db {
 
 struct AnalyzeMeta
 {
@@ -87,7 +88,7 @@ struct ImageMeta
 struct ChannelMeta
 {
   std::string analyzeId;
-  ChannelIndex channelId;
+  joda::enums::ImageChannelIndex channelId;
   std::string name;
   std::vector<MeasureChannelId> measurements;
 };
@@ -95,10 +96,10 @@ struct ChannelMeta
 struct ImageChannelMeta
 {
   std::string analyzeId;
-  uint64_t imageId         = 0;
-  ChannelIndex channelId   = ChannelIndex::ME;
-  ChannelValidity validity = {};
-  bool invalidateAll       = false;
+  uint64_t imageId                         = 0;
+  joda::enums::ImageChannelIndex channelId = joda::enums::ImageChannelIndex::$;
+  ChannelValidity validity                 = {};
+  bool invalidateAll                       = false;
   std::filesystem::path controlImagePath;
 };
-}    // namespace joda::results::db
+}    // namespace joda::db

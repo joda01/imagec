@@ -20,7 +20,7 @@
 #include <string>
 #include "database_interface.hpp"
 
-namespace joda::results::db {
+namespace joda::db {
 
 class Database
 {
@@ -62,4 +62,4 @@ private:
   std::unique_ptr<duckdb::DuckDB> mDb;
 };
 
-}    // namespace joda::results::db
+}    // namespace joda::db

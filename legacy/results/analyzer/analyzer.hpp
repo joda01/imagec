@@ -55,7 +55,7 @@ public:
   void unMarkImageChannelAsManualInvalid(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
                                          uint64_t imageId);
 
-  auto getDatabase() -> joda::results::db::Database &
+  auto getDatabase() -> joda::db::Database &
   {
     return mDatabase;
   }
@@ -66,7 +66,7 @@ public:
   }
 
 private:
-  joda::results::db::Database mDatabase;
+  joda::db::Database mDatabase;
   std::filesystem::path mParentPathToDb;
 };
 

@@ -19,11 +19,11 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include "backend/image_processing/detection/detection_response.hpp"
-#include "backend/image_processing/roi/roi.hpp"
-#include "backend/settings/channel/channel_index.hpp"
+#include "backend/commands/objects_list.hpp"
+#include "backend/global_enums.hpp"
+#include "backend/helper/roi/roi.hpp"
 
-namespace joda::results {
+namespace joda::db {
 
 enum class Stats
 {
@@ -132,12 +132,6 @@ enum class ChannelIndex : uint16_t
   CH7 = 7,
   CH8 = 8,
   CH9 = 9,
-  A   = 65,
-  B   = 66,
-  C   = 67,
-  D   = 68,
-  E   = 69,
-  F   = 70,
   ME  = 0xFFFF
 };
 
@@ -164,18 +158,6 @@ inline std::string toString(ChannelIndex ch)
       return "CH8";
     case ChannelIndex::CH9:
       return "CH9";
-    case ChannelIndex::A:
-      return "A";
-    case ChannelIndex::B:
-      return "B";
-    case ChannelIndex::C:
-      return "C";
-    case ChannelIndex::D:
-      return "D";
-    case ChannelIndex::E:
-      return "E";
-    case ChannelIndex::F:
-      return "F";
     default:
     case ChannelIndex::ME:
       return "ME";
@@ -376,24 +358,6 @@ public:
       case ChannelIndex::CH9:
         txt += "(9)";
         break;
-      case ChannelIndex::A:
-        txt += "(A)";
-        break;
-      case ChannelIndex::B:
-        txt += "(B)";
-        break;
-      case ChannelIndex::C:
-        txt += "(C)";
-        break;
-      case ChannelIndex::D:
-        txt += "(D)";
-        break;
-      case ChannelIndex::E:
-        txt += "(E)";
-        break;
-      case ChannelIndex::F:
-        txt += "(F)";
-        break;
     }
     return txt;
   }
@@ -402,49 +366,38 @@ private:
   uint32_t mChannelIndex = 0;
 };
 
-inline ChannelIndex toChannelIndex(joda::settings::ChannelIndex idx)
+inline ChannelIndex toChannelIndex(joda::enums::ImageChannelIndex idx)
 {
   switch(idx) {
-    case settings::ChannelIndex::NONE:
+    case joda::enums::ImageChannelIndex::NONE:
+    case joda::enums::ImageChannelIndex::$:
       return ChannelIndex::ME;
-    case settings::ChannelIndex::CH0:
+    case joda::enums::ImageChannelIndex::CH0:
       return ChannelIndex::CH0;
-    case settings::ChannelIndex::CH1:
+    case joda::enums::ImageChannelIndex::CH1:
       return ChannelIndex::CH1;
-    case settings::ChannelIndex::CH2:
+    case joda::enums::ImageChannelIndex::CH2:
       return ChannelIndex::CH2;
-    case settings::ChannelIndex::CH3:
+    case joda::enums::ImageChannelIndex::CH3:
       return ChannelIndex::CH3;
-    case settings::ChannelIndex::CH4:
+    case joda::enums::ImageChannelIndex::CH4:
       return ChannelIndex::CH4;
-    case settings::ChannelIndex::CH5:
+    case joda::enums::ImageChannelIndex::CH5:
       return ChannelIndex::CH5;
-    case settings::ChannelIndex::CH6:
+    case joda::enums::ImageChannelIndex::CH6:
       return ChannelIndex::CH6;
-    case settings::ChannelIndex::CH7:
+    case joda::enums::ImageChannelIndex::CH7:
       return ChannelIndex::CH7;
-    case settings::ChannelIndex::CH8:
+    case joda::enums::ImageChannelIndex::CH8:
       return ChannelIndex::CH8;
-    case settings::ChannelIndex::CH9:
+    case joda::enums::ImageChannelIndex::CH9:
       return ChannelIndex::CH9;
-    case settings::ChannelIndex::A:
-      return ChannelIndex::A;
-    case settings::ChannelIndex::B:
-      return ChannelIndex::B;
-    case settings::ChannelIndex::C:
-      return ChannelIndex::C;
-    case settings::ChannelIndex::D:
-      return ChannelIndex::D;
-    case settings::ChannelIndex::E:
-      return ChannelIndex::E;
-    case settings::ChannelIndex::F:
-      return ChannelIndex::F;
     default:
       throw std::runtime_error("Unknown channel");
   }
 }
 
-inline ObjectValidity toValidity(image::ParticleValidity validity)
+inline ObjectValidity toValidity(roi::ParticleValidity validity)
 {
   ObjectValidity ret{};
   if(validity.test(static_cast<size_t>(ObjectValidityEnum::UNKNOWN))) {
@@ -478,7 +431,7 @@ inline ObjectValidity toValidity(image::ParticleValidity validity)
   return ret;
 }
 
-inline ChannelValidity toChannelValidity(joda::image::detect::ResponseDataValidity validity)
+inline ChannelValidity toChannelValidity(joda::cmd::ResponseDataValidity validity)
 {
   ChannelValidity ret{};
 
@@ -500,4 +453,4 @@ inline ChannelValidity toChannelValidity(joda::image::detect::ResponseDataValidi
   return ret;
 }
 
-}    // namespace joda::results
+}    // namespace joda::db

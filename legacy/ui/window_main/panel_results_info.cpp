@@ -161,7 +161,7 @@ void PanelResultsInfo::addResultsFileToHistory(const std::filesystem::path &dbFi
 ///
 [[nodiscard]] auto PanelResultsInfo::getWellOrder() const -> std::vector<std::vector<int32_t>>
 {
-  return joda::results::db::matrixStringToArrayOrder(mWellOrderMatrix->text().toStdString());
+  return joda::db::matrixStringToArrayOrder(mWellOrderMatrix->text().toStdString());
 }
 
 ///

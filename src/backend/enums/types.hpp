@@ -13,7 +13,12 @@
 
 #pragma once
 
-#include "enums/enums_image_channel.hpp"
-#include "enums/enums_object_classes.hpp"
-#include "enums/enums_slot_channels.hpp"
-#include "enums/types.hpp"
+#include <nlohmann/json.hpp>
+
+namespace joda::enums {
+
+using tile_t   = std::tuple<int32_t, int32_t>;
+using zStack_t = int32_t;
+using tStack_t = int32_t;
+
+}    // namespace joda::enums

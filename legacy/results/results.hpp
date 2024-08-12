@@ -126,7 +126,7 @@ private:
   std::filesystem::path mOutputFolder;
   std::filesystem::path mDatabaseFileName;
   std::filesystem::path mOutputFolderImages;
-  std::shared_ptr<joda::results::db::Database> mDatabase;
+  std::shared_ptr<joda::db::Database> mDatabase;
   std::string mAnalyzeId;
 
   class WellPosGenerator

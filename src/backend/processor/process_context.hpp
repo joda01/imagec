@@ -18,6 +18,7 @@
 #include <memory>
 #include "backend/commands/image_functions/image_loader/channel_loader_settings.hpp"
 #include "backend/global_enums.hpp"
+#include "backend/helper/database/database.hpp"
 
 namespace joda::processor {
 
@@ -25,6 +26,8 @@ struct ProcessContext
 {
   std::filesystem::path imagePath;
   std::filesystem::path resultsOutputFolder;
+  std::shared_ptr<joda::db::Database> database;
+
   joda::enums::tile_t tile     = {0, 0};
   joda::enums::tStack_t tStack = 0;
   joda::enums::zStack_t zStack = 0;

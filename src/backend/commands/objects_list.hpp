@@ -18,20 +18,23 @@
 
 namespace joda::cmd {
 
-struct ObjectsList
+enum class ResponseDataValidityEnum
 {
-  ObjectsList()                               = default;
-  ObjectsList(const ObjectsList &)            = delete;
-  ObjectsList &operator=(const ObjectsList &) = delete;
-
-  joda::enums::ObjectClassId classId;
+  UNKNOWN                  = 1,
+  INVALID                  = 2,
+  MANUAL_OUT_SORTED        = 3,
+  POSSIBLE_NOISE           = 4,
+  POSSIBLE_WRONG_THRESHOLD = 5
 };
+
+using ResponseDataValidity = std::bitset<32>;
 
 class ObjectsListMap : public joda::roi::SpatialHash
 {
 public:
   using SpatialHash::SpatialHash;
   void createBinaryImage(cv::Mat &img, const std::set<joda::enums::ObjectClassId> &objectClasses) const;
+  ResponseDataValidity valid;
 };
 
 }    // namespace joda::cmd

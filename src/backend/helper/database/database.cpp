@@ -25,7 +25,7 @@
 #include "backend/helper/fnv1a.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 
-namespace joda::results::db {
+namespace joda::db {
 
 Database::Database(const std::filesystem::path &dbFile)
 {
@@ -282,7 +282,7 @@ std::string Database::convertPath(const std::filesystem::path &pathIn)
   return path;
 }
 
-}    // namespace joda::results::db
+}    // namespace joda::db
 
 // SELECT SUM(element_at(values, 0)[1]) as val_sum FROM test_with_idx.main."objects" WHERE plate_id=1 AND group_id=1 AND
 // image_id=10585059649949508029 AND channel_id=1
