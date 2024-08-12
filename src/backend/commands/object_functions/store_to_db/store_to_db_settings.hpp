@@ -17,6 +17,7 @@
 #include <set>
 #include <vector>
 #include "backend/commands/setting.hpp"
+#include "backend/enums/enums_slot_channels.hpp"
 #include "backend/global_enums.hpp"
 #include <nlohmann/json.hpp>
 
@@ -24,14 +25,14 @@ namespace joda::cmd::functions {
 
 struct StoreToDbSettings : public Setting
 {
-  std::string filename;
+  joda::enums::Slot slotToStoreDataUnder = joda::enums::Slot::$;
 
   /////////////////////////////////////////////////////
   void check() const override
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(StoreToDbSettings, filename);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(StoreToDbSettings, slotToStoreDataUnder);
 };
 
 }    // namespace joda::cmd::functions

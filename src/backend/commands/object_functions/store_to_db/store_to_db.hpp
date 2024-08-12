@@ -46,6 +46,9 @@ private:
 
   /////////////////////////////////////////////////////
   auto prepareDetailReportAdding(processor::ProcessContext &context) -> DetailReportAdder;
+  void appendToDetailReport(const DetailReportAdder &appender, processor::ProcessContext &context,
+                            ObjectsListMap &result);
+
   void writePredatedData(const DetailReportAdder &adders);
 
   /////////////////////////////////////////////////////

@@ -219,7 +219,7 @@ private:
                         const ChannelSettingsFilter *filter);
 
   auto calcIntensity(const cv::Mat &imageOriginal) -> Intensity;
-  auto calcIntersectingMask(const ROI &roi) const -> IntersectingMask;
+  [[nodiscard]] auto calcIntersectingMask(const ROI &roi) const -> IntersectingMask;
   void calculateSnapAreaAndContours(float snapAreaSize, int32_t maxWidth, int32_t maxHeight);
   void applyParticleFilter(const ChannelSettingsFilter *filter);
   [[nodiscard]] double calcPerimeter(const std::vector<cv::Point> &) const;
