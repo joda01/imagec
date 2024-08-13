@@ -16,9 +16,9 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
-#include "backend/processor/initializer/pipeline_initializer_settings.hpp"
 #include "backend/processor/process_context.hpp"
-#include "pipeline_input_image_loader_settings.hpp"
+#include "backend/settings/project_settings/project_image_setup.hpp"
+#include "pipeline_settings.hpp"
 
 namespace joda::processor {
 
@@ -26,7 +26,7 @@ class PipelineInitializer
 {
 public:
   /////////////////////////////////////////////////////
-  PipelineInitializer(const settings::PipelineInitializerSettings &settings, const std::filesystem::path &imagePath,
+  PipelineInitializer(const settings::ProjectImageSetup &settings, const std::filesystem::path &imagePath,
                       ImageContext &imageContextOut, processor::GlobalContext &globalContextOut);
   [[nodiscard]] const std::tuple<int32_t, int32_t> &getNrOfTilesToProcess() const
   {
@@ -46,7 +46,7 @@ public:
     return mCStackToLoad;
   }
 
-  void initPipeline(const joda::settings::PipelineInputImageLoaderSettings &settings, const enums::tile_t &tile,
+  void initPipeline(const joda::settings::PipelineSettings &settings, const enums::tile_t &tile,
                     const joda::enums::IteratorId &imagePartToLoad, ProcessContext &processStepOu);
 
 private:
@@ -63,7 +63,7 @@ private:
   int32_t mCStackToLoad                   = 0;
 
   /////////////////////////////////////////////////////
-  const settings::PipelineInitializerSettings &mSettings;
+  const settings::ProjectImageSetup &mSettings;
   const processor::ImageContext &mImageContext;
 };
 

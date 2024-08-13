@@ -36,14 +36,15 @@ Processor::Processor()
 void Processor::execute(const joda::settings::AnalyzeSettings &program)
 {
   joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> images({});
-  images.setWorkingDirectory(program.images.imageInputDirectory);
+  images.setWorkingDirectory(program.projectSettings.imageSetup.imageInputDirectory);
   images.waitForFinished();
 
   GlobalContext globalContext;
 
   for(const auto &imagePath : images.getFilesList()) {
     ImageContext imageContext;
-    PipelineInitializer imageLoader(program.images, imagePath.getFilePath(), imageContext, globalContext);
+    PipelineInitializer imageLoader(program.projectSettings.imageSetup, imagePath.getFilePath(), imageContext,
+                                    globalContext);
 
     auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
     auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
@@ -60,7 +61,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
               for(const auto &pipeline : program.pipelines) {
                 ProcessContext context{.globalContext = globalContext, .imageContext = imageContext};
 
-                imageLoader.initPipeline(pipeline.inputImage, {tilesX, tileY},
+                imageLoader.initPipeline(pipeline.pipelineSetup, {tilesX, tileY},
                                          joda::enums::IteratorId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
                                          context);
                 for(const auto &step : pipeline.pipelineSteps) {
@@ -68,7 +69,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                   step(context, context.getActImage().image, context.getActObjects());
                 }
                 // Store output of the pipeline for later
-                context.storeObjectsToCache({pipeline.inputImage.defaultObjectStoreId, context.getActIterator()},
+                context.storeObjectsToCache({pipeline.pipelineSetup.defaultObjectStoreId, context.getActIterator()},
                                             context.getActObjects());
               }
 

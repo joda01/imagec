@@ -22,7 +22,6 @@
 #include <set>
 #include <stdexcept>
 #include <string>
-#include "backend/processor/initializer/pipeline_initializer_settings.hpp"
 #include "pipeline/pipeline.hpp"
 #include "project_settings/project_settings.hpp"
 #include <catch2/catch_config.hpp>
@@ -35,7 +34,6 @@ class AnalyzeSettings final
 {
 public:
   ProjectSettings projectSettings;
-  PipelineInitializerSettings images;
   std::vector<Pipeline> pipelines;
 
   [[nodiscard]] const std::string &schema() const
@@ -46,6 +44,6 @@ public:
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.icproj";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettings, projectSettings, images, pipelines);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettings, projectSettings, pipelines);
 };
 }    // namespace joda::settings

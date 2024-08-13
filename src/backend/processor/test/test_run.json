@@ -1,229 +1,229 @@
 {
-    "projectSettings": {
-        "clusters": [
-            {
-                "clusterId": "A",
-                "name": "CY5"
-            },
-            {
-                "clusterId": "B",
-                "name": "CY7"
-            },
-            {
-                "clusterId": "C",
-                "name": "cell area"
-            },
-            {
-                "clusterId": "D",
-                "name": "coloc cy5-cy7"
-            }
-        ],
-        "classes": [
-            {
-                "classId": "A",
-                "name": "EV"
-            },
-            {
-                "classId": "A",
-                "name": "cell"
-            },
-            {
-                "classId": "A",
-                "name": "background"
-            },
-            {
-                "classId": "A",
-                "name": "ev in cell"
-            },
-            {
-                "classId": "A",
-                "name": "coloc"
-            },
-            {
-                "classId": "A",
-                "name": "Invalid"
-            }
-        ]
-    },
-    "images": {
-        "zStackHandling": "IntensityProjection",
-        "tStackHandling": "ExactOne",
-        "imageInputDirectory": "test/test_data/images",
-        "resultsOutputFolder": "tmp"
-    },
-    "pipelines": [
+  "projectSettings": {
+    "clusters": [
+      {
+        "clusterId": "A",
+        "name": "CY5"
+      },
+      {
+        "clusterId": "B",
+        "name": "CY7"
+      },
+      {
+        "clusterId": "C",
+        "name": "cell area"
+      },
+      {
+        "clusterId": "D",
+        "name": "coloc cy5-cy7"
+      }
+    ],
+    "classes": [
+      {
+        "classId": "A",
+        "name": "EV"
+      },
+      {
+        "classId": "A",
+        "name": "cell"
+      },
+      {
+        "classId": "A",
+        "name": "background"
+      },
+      {
+        "classId": "A",
+        "name": "ev in cell"
+      },
+      {
+        "classId": "A",
+        "name": "coloc"
+      },
+      {
+        "classId": "A",
+        "name": "Invalid"
+      }
+    ],
+    "imageSetup": {
+      "zStackHandling": "IntensityProjection",
+      "tStackHandling": "ExactOne",
+      "imageInputDirectory": "test/test_data/images",
+      "resultsOutputFolder": "tmp"
+    }
+  },
+  "pipelines": [
+    {
+      "pipelineSetup": {
+        "source": "FromFile",
+        "cStackIndex": 3,
+        "zProjection": "MaxIntensity",
+        "defaultClusterId": "A",
+        "defaultObjectStoreId": "M0"
+      },
+      "pipelineSteps": [
         {
-            "inputImage": {
-                "source": "FromFile",
-                "cStackIndex": 3,
-                "zProjection": "MaxIntensity",
-                "defaultClusterId": "A",
-                "defaultObjectStoreId": "M0"
-            },
-            "pipelineSteps": [
-                {
-                    "$blur": {
-                        "kernelSize": 6,
-                        "repeat": 5
-                    }
-                },
-                {
-                    "$threshold": {
-                        "node": "Manual",
-                        "thresholdMin": 10,
-                        "thresholdMax": 65535
-                    }
-                },
-                {
-                    "$watershed": {}
-                },
-                {
-                    "$classify": {
-                        "objectClasses": [
-                            {
-                                "noMatchingClusterId": "$",
-                                "noMatchingClassId": "None",
-                                "modelClassId": 65535,
-                                "grayscaleValue": 65535,
-                                "filters": [
-                                    {
-                                        "clusterId": "$",
-                                        "classId": "0",
-                                        "minParticleSize": -1,
-                                        "maxParticleSize": -1,
-                                        "minCircularity": 0,
-                                        "snapAreaSize": 0
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                },
-                {
-                    "$imageFromClass": {
-                        "objectClasses": [
-                            "0"
-                        ]
-                    }
-                },
-                {
-                    "$saveImage": {
-                        "compression": 0,
-                        "namePrefix": "_classified_A"
-                    }
-                }
-            ]
+          "$blur": {
+            "kernelSize": 6,
+            "repeat": 5
+          }
         },
         {
-            "inputImage": {
-                "source": "FromFile",
-                "cStackIndex": 2,
-                "zProjection": "MaxIntensity",
-                "defaultClusterId": "A",
-                "defaultObjectStoreId": "M1"
-            },
-            "pipelineSteps": [
-                {
-                    "$blur": {
-                        "kernelSize": 6,
-                        "repeat": 5
-                    }
-                },
-                {
-                    "$threshold": {
-                        "node": "Manual",
-                        "thresholdMin": 10,
-                        "thresholdMax": 65535
-                    }
-                },
-                {
-                    "$watershed": {}
-                },
-                {
-                    "$classify": {
-                        "objectClasses": [
-                            {
-                                "noMatchingClusterId": "$",
-                                "noMatchingClassId": "None",
-                                "modelClassId": 65535,
-                                "grayscaleValue": 65535,
-                                "filters": [
-                                    {
-                                        "clusterId": "$",
-                                        "classId": "0",
-                                        "minParticleSize": -1,
-                                        "maxParticleSize": -1,
-                                        "minCircularity": 0,
-                                        "snapAreaSize": 0
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                },
-                {
-                    "$imageFromClass": {
-                        "objectClasses": [
-                            "0"
-                        ]
-                    }
-                },
-                {
-                    "$saveImage": {
-                        "compression": 0,
-                        "namePrefix": "_classified_B"
-                    }
-                }
-            ]
+          "$threshold": {
+            "node": "Manual",
+            "thresholdMin": 10,
+            "thresholdMax": 65535
+          }
         },
         {
-            "channelLoader": {
-                "source": "FromBlank",
-                "cStackIndex": 4,
-                "zProjection": "MaxIntensity",
-                "defaultClusterId": "E",
-                "defaultObjectStoreId": "M3"
-            },
-            "pipelineSteps": [
-                {
-                    "$intersection": {
-                        "minIntersection": 0,
-                        "outputObjectCluster": "$",
-                        "outputObjectClass": "4",
-                        "inputObjectClusters": [
-                            {
-                                "objectStore": {
-                                    "storeIdx": "M0"
-                                },
-                                "inputObjectClasses": [
-                                    "0"
-                                ]
-                            },
-                            {
-                                "objectStore": {
-                                    "storeIdx": "M1"
-                                },
-                                "inputObjectClasses": [
-                                    "0"
-                                ]
-                            }
-                        ]
-                    }
-                },
-                {
-                    "$imageFromClass": {
-                        "objectClasses": [
-                            "4"
-                        ]
-                    }
-                },
-                {
-                    "$saveImage": {
-                        "compression": 0,
-                        "namePrefix": "_intersect"
-                    }
-                }
+          "$watershed": {}
+        },
+        {
+          "$classify": {
+            "objectClasses": [
+              {
+                "noMatchingClusterId": "$",
+                "noMatchingClassId": "None",
+                "modelClassId": 65535,
+                "grayscaleValue": 65535,
+                "filters": [
+                  {
+                    "clusterId": "$",
+                    "classId": "0",
+                    "minParticleSize": -1,
+                    "maxParticleSize": -1,
+                    "minCircularity": 0,
+                    "snapAreaSize": 0
+                  }
+                ]
+              }
             ]
+          }
+        },
+        {
+          "$imageFromClass": {
+            "objectClasses": [
+              "0"
+            ]
+          }
+        },
+        {
+          "$saveImage": {
+            "compression": 0,
+            "namePrefix": "_classified_A"
+          }
         }
-    ]
+      ]
+    },
+    {
+      "pipelineSetup": {
+        "source": "FromFile",
+        "cStackIndex": 2,
+        "zProjection": "MaxIntensity",
+        "defaultClusterId": "A",
+        "defaultObjectStoreId": "M1"
+      },
+      "pipelineSteps": [
+        {
+          "$blur": {
+            "kernelSize": 6,
+            "repeat": 5
+          }
+        },
+        {
+          "$threshold": {
+            "node": "Manual",
+            "thresholdMin": 10,
+            "thresholdMax": 65535
+          }
+        },
+        {
+          "$watershed": {}
+        },
+        {
+          "$classify": {
+            "objectClasses": [
+              {
+                "noMatchingClusterId": "$",
+                "noMatchingClassId": "None",
+                "modelClassId": 65535,
+                "grayscaleValue": 65535,
+                "filters": [
+                  {
+                    "clusterId": "$",
+                    "classId": "0",
+                    "minParticleSize": -1,
+                    "maxParticleSize": -1,
+                    "minCircularity": 0,
+                    "snapAreaSize": 0
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "$imageFromClass": {
+            "objectClasses": [
+              "0"
+            ]
+          }
+        },
+        {
+          "$saveImage": {
+            "compression": 0,
+            "namePrefix": "_classified_B"
+          }
+        }
+      ]
+    },
+    {
+      "pipelineSetup": {
+        "source": "FromBlank",
+        "cStackIndex": 4,
+        "zProjection": "MaxIntensity",
+        "defaultClusterId": "E",
+        "defaultObjectStoreId": "M3"
+      },
+      "pipelineSteps": [
+        {
+          "$intersection": {
+            "minIntersection": 0,
+            "outputObjectCluster": "$",
+            "outputObjectClass": "4",
+            "inputObjectClusters": [
+              {
+                "objectStore": {
+                  "storeIdx": "M0"
+                },
+                "inputObjectClasses": [
+                  "0"
+                ]
+              },
+              {
+                "objectStore": {
+                  "storeIdx": "M1"
+                },
+                "inputObjectClasses": [
+                  "0"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "$imageFromClass": {
+            "objectClasses": [
+              "4"
+            ]
+          }
+        },
+        {
+          "$saveImage": {
+            "compression": 0,
+            "namePrefix": "_intersect"
+          }
+        }
+      ]
+    }
+  ]
 }

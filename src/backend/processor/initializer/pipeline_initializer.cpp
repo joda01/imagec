@@ -31,7 +31,7 @@ namespace joda::processor {
 /// \param[out]
 /// \return
 ///
-PipelineInitializer::PipelineInitializer(const settings::PipelineInitializerSettings &settings,
+PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &settings,
                                          const std::filesystem::path &imagePath,
                                          processor::ImageContext &imageContextOut,
                                          processor::GlobalContext &globalContextOut) :
@@ -43,29 +43,29 @@ PipelineInitializer::PipelineInitializer(const settings::PipelineInitializerSett
   globalContextOut.resultsOutputFolder = std::filesystem::path(settings.resultsOutputFolder);
 
   switch(settings.tStackHandling) {
-    case settings::PipelineInitializerSettings::TStackHandling::EXACT_ONE:
+    case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
       mTstackToLoad = 1;
       break;
-    case settings::PipelineInitializerSettings::TStackHandling::EACH_ONE:
+    case settings::ProjectImageSetup::TStackHandling::EACH_ONE:
       mTstackToLoad = imageContextOut.imageMeta.getNrOfTStack();
       break;
   }
 
   switch(mSettings.zStackHandling) {
-    case settings::PipelineInitializerSettings::ZStackHandling::EXACT_ONE:
-    case settings::PipelineInitializerSettings::ZStackHandling::INTENSITY_PROJECTION:
+    case settings::ProjectImageSetup::ZStackHandling::EXACT_ONE:
+    case settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION:
       mZStackToLoad = 1;
       break;
-    case settings::PipelineInitializerSettings::ZStackHandling::EACH_ONE:
+    case settings::ProjectImageSetup::ZStackHandling::EACH_ONE:
       mZStackToLoad = imageContextOut.imageMeta.getNrOfZStack();
       break;
   }
 
   switch(mSettings.cStackHandling) {
-    case settings::PipelineInitializerSettings::CStackHandling::EXACT_ONE:
+    case settings::ProjectImageSetup::CStackHandling::EXACT_ONE:
       mCStackToLoad = 1;
       break;
-    case settings::PipelineInitializerSettings::CStackHandling::EACH_ONE:
+    case settings::ProjectImageSetup::CStackHandling::EACH_ONE:
       mCStackToLoad = imageContextOut.imageMeta.getNrOfChannels();
       break;
   }
@@ -87,42 +87,42 @@ PipelineInitializer::PipelineInitializer(const settings::PipelineInitializerSett
 /// \param[out]
 /// \return
 ///
-void PipelineInitializer::initPipeline(const joda::settings::PipelineInputImageLoaderSettings &pipelineSettings,
-                                       const enums::tile_t &tile, const joda::enums::IteratorId &imagePartToLoad,
+void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &pipelineSetup, const enums::tile_t &tile,
+                                       const joda::enums::IteratorId &imagePartToLoad,
                                        joda::processor::ProcessContext &processStepOut)
 {
   int32_t zStacksToLoad = 1;
-  int32_t c             = pipelineSettings.cStackIndex;
-  int32_t z             = pipelineSettings.zStackIndex;
-  int32_t t             = pipelineSettings.tStackIndex;
+  int32_t c             = pipelineSetup.cStackIndex;
+  int32_t z             = pipelineSetup.zStackIndex;
+  int32_t t             = pipelineSetup.tStackIndex;
 
   switch(mSettings.tStackHandling) {
-    case settings::PipelineInitializerSettings::TStackHandling::EXACT_ONE:
-      t = pipelineSettings.tStackIndex;
+    case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
+      t = pipelineSetup.tStackIndex;
       break;
-    case settings::PipelineInitializerSettings::TStackHandling::EACH_ONE:
+    case settings::ProjectImageSetup::TStackHandling::EACH_ONE:
       t = imagePartToLoad.tStack;
       break;
   }
 
   switch(mSettings.cStackHandling) {
-    case settings::PipelineInitializerSettings::CStackHandling::EXACT_ONE:
-      c = pipelineSettings.cStackIndex;
+    case settings::ProjectImageSetup::CStackHandling::EXACT_ONE:
+      c = pipelineSetup.cStackIndex;
       break;
-    case settings::PipelineInitializerSettings::CStackHandling::EACH_ONE:
+    case settings::ProjectImageSetup::CStackHandling::EACH_ONE:
       c = imagePartToLoad.cStack;
       break;
   }
 
   switch(mSettings.zStackHandling) {
-    case settings::PipelineInitializerSettings::ZStackHandling::EXACT_ONE:
-      z = pipelineSettings.zStackIndex;
+    case settings::ProjectImageSetup::ZStackHandling::EXACT_ONE:
+      z = pipelineSetup.zStackIndex;
       break;
-    case settings::PipelineInitializerSettings::ZStackHandling::INTENSITY_PROJECTION:
+    case settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION:
       z             = 0;
       zStacksToLoad = mZStackToLoad;
       break;
-    case settings::PipelineInitializerSettings::ZStackHandling::EACH_ONE:
+    case settings::ProjectImageSetup::ZStackHandling::EACH_ONE:
       z = imagePartToLoad.zStack;
       break;
   }
@@ -130,14 +130,14 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineInputImageL
   //
   // Write context
   //
-  processStepOut.pipelineContext.defaultClusterId = pipelineSettings.defaultClusterId;
+  processStepOut.pipelineContext.defaultClusterId = pipelineSetup.defaultClusterId;
   processStepOut.pipelineContext.actImage.setId(
       {.imageIdx = joda::enums::ImageIdx::I0, .iteration{.tStack = t, .zStack = z, .cStack = c}}, tile);
 
   //
   // Load from image file
   //
-  if(joda::settings::PipelineInputImageLoaderSettings::Source::FROM_FILE == pipelineSettings.source) {
+  if(joda::settings::PipelineSettings::Source::FROM_FILE == pipelineSetup.source) {
     auto loadEntireImage = [this, &imagePartToLoad](int32_t z, int32_t c, int32_t t) {
       return joda::image::reader::ImageReader::loadEntireImage(
           mImageContext.imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0);
@@ -164,24 +164,24 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineInputImageL
     //
     // Do z -projection if activated
     //
-    if(pipelineSettings.zProjection != joda::settings::PipelineInputImageLoaderSettings::ZProjection::NONE) {
+    if(pipelineSetup.zProjection != joda::settings::PipelineSettings::ZProjection::NONE) {
       auto max = [&loadImage, &contextImage, c, t](int zIdx) { cv::max(contextImage, loadImage(zIdx, c, t)); };
       auto min = [&loadImage, &contextImage, c, t](int zIdx) { cv::min(contextImage, loadImage(zIdx, c, t)); };
       auto avg = [&loadImage, &contextImage, c, t](int zIdx) { cv::mean(contextImage, loadImage(zIdx, c, t)); };
 
       std::function<void(int)> func;
 
-      switch(pipelineSettings.zProjection) {
-        case joda::settings::PipelineInputImageLoaderSettings::ZProjection::MAX_INTENSITY:
+      switch(pipelineSetup.zProjection) {
+        case joda::settings::PipelineSettings::ZProjection::MAX_INTENSITY:
           func = max;
           break;
-        case joda::settings::PipelineInputImageLoaderSettings::ZProjection::MIN_INTENSITY:
+        case joda::settings::PipelineSettings::ZProjection::MIN_INTENSITY:
           func = min;
           break;
-        case joda::settings::PipelineInputImageLoaderSettings::ZProjection::AVG_INTENSITY:
+        case joda::settings::PipelineSettings::ZProjection::AVG_INTENSITY:
           func = avg;
           break;
-        case joda::settings::PipelineInputImageLoaderSettings::ZProjection::NONE:
+        case joda::settings::PipelineSettings::ZProjection::NONE:
           break;
       }
 
@@ -194,7 +194,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineInputImageL
   //
   // Start with blank image
   //
-  if(joda::settings::PipelineInputImageLoaderSettings::Source::BLANK == pipelineSettings.source) {
+  if(joda::settings::PipelineSettings::Source::BLANK == pipelineSetup.source) {
     auto rows = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageHeight;
     auto cols = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageWidth;
 
@@ -207,7 +207,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineInputImageL
   // Load from memory
   /// \todo Load from memory
   //
-  if(joda::settings::PipelineInputImageLoaderSettings::Source::FROM_MEMORY == pipelineSettings.source) {
+  if(joda::settings::PipelineSettings::Source::FROM_MEMORY == pipelineSetup.source) {
   }
 
   // Store original image to cache

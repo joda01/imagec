@@ -17,7 +17,7 @@ namespace joda::settings {
 /// \author
 /// \brief
 ///
-struct PipelineInputImageLoaderSettings : public Setting
+struct PipelineSettings : public Setting
 {
   enum class ZProjection
   {
@@ -73,24 +73,23 @@ struct PipelineInputImageLoaderSettings : public Setting
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineInputImageLoaderSettings, source, cStackIndex, tStackIndex,
-                                              zStackIndex, zProjection, defaultClusterId, defaultObjectStoreId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineSettings, source, cStackIndex, tStackIndex, zStackIndex,
+                                              zProjection, defaultClusterId, defaultObjectStoreId);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(PipelineInputImageLoaderSettings::Source,
-                             {
-                                 {PipelineInputImageLoaderSettings::Source::FROM_FILE, "FromFile"},
-                                 {PipelineInputImageLoaderSettings::Source::FROM_MEMORY, "FromMemory"},
-                                 {PipelineInputImageLoaderSettings::Source::BLANK, "FromBlank"},
+NLOHMANN_JSON_SERIALIZE_ENUM(PipelineSettings::Source, {
+                                                           {PipelineSettings::Source::FROM_FILE, "FromFile"},
+                                                           {PipelineSettings::Source::FROM_MEMORY, "FromMemory"},
+                                                           {PipelineSettings::Source::BLANK, "FromBlank"},
 
-                             });
+                                                       });
 
-NLOHMANN_JSON_SERIALIZE_ENUM(PipelineInputImageLoaderSettings::ZProjection,
+NLOHMANN_JSON_SERIALIZE_ENUM(PipelineSettings::ZProjection,
                              {
-                                 {PipelineInputImageLoaderSettings::ZProjection::NONE, "None"},
-                                 {PipelineInputImageLoaderSettings::ZProjection::MAX_INTENSITY, "MaxIntensity"},
-                                 {PipelineInputImageLoaderSettings::ZProjection::MIN_INTENSITY, "MinIntensity"},
-                                 {PipelineInputImageLoaderSettings::ZProjection::AVG_INTENSITY, "AvgIntensity"},
+                                 {PipelineSettings::ZProjection::NONE, "None"},
+                                 {PipelineSettings::ZProjection::MAX_INTENSITY, "MaxIntensity"},
+                                 {PipelineSettings::ZProjection::MIN_INTENSITY, "MinIntensity"},
+                                 {PipelineSettings::ZProjection::AVG_INTENSITY, "AvgIntensity"},
                              });
 
 }    // namespace joda::settings

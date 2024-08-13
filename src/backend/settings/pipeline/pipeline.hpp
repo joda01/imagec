@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "backend/processor/initializer/pipeline_input_image_loader_settings.hpp"
+#include "backend/processor/initializer/pipeline_settings.hpp"
 #include "backend/settings/pipeline/pipeline_meta.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 
@@ -25,7 +25,7 @@ public:
   /////////////////////////////////////////////////////
 
   PipelineMeta meta;
-  PipelineInputImageLoaderSettings inputImage;
+  PipelineSettings pipelineSetup;
   std::vector<PipelineStep> pipelineSteps;
 
   /////////////////////////////////////////////////////
@@ -36,7 +36,7 @@ public:
     }
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Pipeline, meta, inputImage, pipelineSteps);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Pipeline, meta, pipelineSetup, pipelineSteps);
 };
 
 }    // namespace joda::settings

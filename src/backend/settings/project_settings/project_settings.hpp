@@ -21,6 +21,7 @@
 #include "project_class.hpp"
 #include "project_cluster.hpp"
 #include "project_experiment_setup.hpp"
+#include "project_image_setup.hpp"
 
 namespace joda::settings {
 
@@ -31,6 +32,11 @@ public:
   // How the experiment is setup
   //
   ExperimentSetup experimentSetup;
+
+  //
+  // How the images are organized
+  //
+  ProjectImageSetup imageSetup;
 
   //
   // Notes to the experiment
