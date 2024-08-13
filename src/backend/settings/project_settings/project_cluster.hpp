@@ -1,5 +1,5 @@
 ///
-/// \file      project_channels.hpp
+/// \file      project_cluster.hpp
 /// \author    Joachim Danmayr
 /// \date      2024-08-12
 ///
@@ -19,7 +19,7 @@
 
 namespace joda::settings {
 
-struct Channel
+struct Cluster
 {
   //
   //  Display name of the object class
@@ -36,7 +36,7 @@ struct Channel
   //
   std::string color;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Channel, name, notes, color);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Cluster, name, notes, color);
 };
 
 }    // namespace joda::settings

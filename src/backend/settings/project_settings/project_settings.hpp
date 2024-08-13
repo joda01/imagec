@@ -18,8 +18,8 @@
 #include "backend/global_enums.hpp"
 #include <nlohmann/json.hpp>
 #include "project_address.hpp"
-#include "project_channel.hpp"
 #include "project_class.hpp"
+#include "project_cluster.hpp"
 #include "project_experiment_setup.hpp"
 
 namespace joda::settings {
@@ -45,7 +45,7 @@ public:
   //
   // Object clusters used in this project
   //
-  std::map<joda::enums::ClusterId, Channel> clusters;
+  std::map<joda::enums::ClusterId, Cluster> clusters;
 
   //
   // Object classes used in this project
