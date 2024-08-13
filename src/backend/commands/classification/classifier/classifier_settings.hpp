@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <set>
+#include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/setting.hpp"
@@ -26,38 +27,23 @@ struct ClassifierSettings : public Setting
 {
   struct ObjectClass
   {
-    struct Filter
-    {
-      int32_t minParticleSize = -1;
-      int32_t maxParticleSize = -1;
-      float minCircularity    = 0;
-      float snapAreaSize      = 0;
-
-      NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Filter, maxParticleSize, minParticleSize, minCircularity,
-                                                  snapAreaSize);
-    };
-
-    //
-    // Filter which should be applied
-    //
-    Filter filter;
-
     //
     // Cluster the objects should be assigned to
     //
     joda::enums::ClusterId clusterId;
 
     //
-    // Class id to identify the object with
+    // Class id to identify the object with based on the filter
+    // If no filter matches the NONE class is applied.
     //
-    joda::enums::ClassId classId;
+    std::map<joda::enums::ClassId, ClassifierFilter> classes;
 
     //
     // The grayscale value which is associated to the class
     //
     uint16_t grayscaleValue = UINT16_MAX;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, classId, grayscaleValue, filter);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, clusterId, classes, grayscaleValue);
   };
 
   std::vector<ObjectClass> objectClasses;
