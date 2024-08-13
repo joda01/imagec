@@ -14,6 +14,8 @@
 #include "ai_classifier.hpp"
 #include <memory>
 #include <string>
+#include "backend/artifacts/roi/roi.hpp"
+#include "backend/enums/enum_objects.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
@@ -66,8 +68,7 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-void AiClassifier::execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &imageNotUse,
-                           ObjectsListMap &result)
+void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
   const cv::Mat &inputImageOriginal = imageNotUse;
   auto id                           = DurationCount::start("AiClassifier");
@@ -184,14 +185,26 @@ void AiClassifier::execute(processor::ProcessContext &context, processor::Proces
     // Apply the filter based on the object class
     //
     if(mSettings.objectClasses.contains(classId)) {
-      const auto &actClass = mSettings.objectClasses.at(classId);
-      joda::roi::ROI roi(i, confidences[idx], actClass.classId, box, mask, contours[idxMax],
-                         context.imagePipelineContext.originalImage, actClass.clusterId,
-                         joda::roi::ChannelSettingsFilter{.maxParticleSize = actClass.filter.maxParticleSize,
-                                                          .minParticleSize = actClass.filter.minParticleSize,
-                                                          .minCircularity  = actClass.filter.minCircularity,
-                                                          .snapAreaSize    = actClass.filter.snapAreaSize});
-      result.push_back(roi);
+      const auto &objectClass = mSettings.objectClasses.at(classId);
+
+      joda::atom::ROI detectedRoi(
+          atom::ROI::RoiObjectId{
+              {
+                  .clusterId = context.getClusterId(objectClass.noMatchingClusterId),
+                  .iteration = context.getActIterator(),
+              },
+              context.acquireNextObjectId(),
+              context.getClassId(objectClass.noMatchingClassId),
+          },
+          context.pipelineContext.actImage.appliedMinThreshold, 0, box, mask, contours[idxMax], context.getImageSize());
+
+      for(const auto &filter : objectClass.filters) {
+        const auto &cachedImage = context.loadImageFromCache(filter.intensity->imageId);
+        // If filter matches assign the new cluster and class to the ROI
+        if(filter.doesFilterMatch(detectedRoi, *cachedImage)) {
+          detectedRoi.setClusterAndClass(context.getClusterId(filter.clusterId), context.getClassId(filter.classId));
+        }
+      }
     }
   }
 

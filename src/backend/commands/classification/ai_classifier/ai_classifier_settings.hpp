@@ -25,39 +25,23 @@ namespace joda::settings {
 
 struct AiClassifierSettings : public Setting
 {
-  struct ObjectClass
-  {
-    //
-    // Cluster the objects should be assigned to
-    //
-    joda::enums::ClusterId clusterId;
-
-    //
-    // Class id to identify the object with based on the filter
-    // If no filter matches the NONE class is applied.
-    //
-    std::map<joda::enums::ClassId, ClassifierFilter> classes;
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, clusterId, classes);
-  };
-
   //
-  // Path to the AI model which should be used
+  // Path to the AI model which should be used for classification
   //
   std::string modelPath;
 
   //
-  //
+  // Default class threshold used to mark an object as object
   //
   float classThreshold = 0.5;
 
   //
   // Number of classes the AI model was trained with
   //
-  int32_t numberOfModelClasses = 1;
+  int32_t numberOfClasses = 1;
 
   //
-  // Key is the class ID used by the AI model
+  // Key is the class ID used by the AI model starting with 0
   //
   std::map<int32_t, ObjectClass> objectClasses;
 
@@ -66,7 +50,7 @@ struct AiClassifierSettings : public Setting
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiClassifierSettings, modelPath, classThreshold, numberOfModelClasses,
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiClassifierSettings, modelPath, classThreshold, numberOfClasses,
                                               objectClasses);
 };
 

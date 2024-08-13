@@ -33,8 +33,7 @@ class AiClassifier : public Command
 public:
   /////////////////////////////////////////////////////
   AiClassifier(const settings::AiClassifierSettings &);
-  void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
-               ObjectsListMap &result) override;
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
 
 private:
   /////////////////////////////////////////////////////

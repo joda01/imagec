@@ -18,7 +18,6 @@
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
-#include "backend/processor/process_step.hpp"
 
 namespace joda::cmd {
 
@@ -26,54 +25,48 @@ Intersection::Intersection(const settings::IntersectionSettings &settings) : mSe
 {
 }
 
-void Intersection::execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
-                           ObjectsListMap &result)
+void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
 {
   auto id = DurationCount::start("Intersection");
 
-  const auto &indexesToIntersect = mSettings.intersectingSlots;
-  size_t intersectCount          = indexesToIntersect.size();
+  const auto &clustersToIntersect = mSettings.inputObjectClusters;
+  size_t intersectCount           = clustersToIntersect.size();
   try {
-    std::map<joda::enums::ClusterId, const cv::Mat *> channelsToIntersectImages;
-    for(const auto [idxToIntersect, _] : indexesToIntersect) {
-      auto channel = memory.load(idxToIntersect).context();
-#warning "Check channel id"
-      channelsToIntersectImages.emplace(joda::enums::ClusterId::NONE, &channel.imagePipelineContext.originalImage);
-    }
-
     int idx = 0;
-    auto it = indexesToIntersect.begin();
-    if(it == indexesToIntersect.end()) {
+    auto it = clustersToIntersect.begin();
+    if(it == clustersToIntersect.end()) {
       return;
     }
 
     if(intersectCount == 1) {
-      result.cloneFromOther(memory.load(it->first).objects());
+      result.cloneFromOther(*context.loadObjectsFromCache(it->first));
       DurationCount::stop(id);
       return;
     }
 
-    const auto *firstDataBuffer     = &memory.load(it->first).objects();
-    const roi::SpatialHash *working = firstDataBuffer;
-    roi::SpatialHash *resultTemp    = nullptr;
+    const auto *firstDataBuffer     = context.loadObjectsFromCache(it->first);
+    const atom::ObjectList *working = firstDataBuffer;
+    atom::ObjectList *resultTemp    = nullptr;
     // Directly write to the output buffer
-    roi::SpatialHash buffer01;
-    roi::SpatialHash buffer02;
+    atom::ObjectList buffer01;
+    atom::ObjectList buffer02;
     if(intersectCount == 2) {
       resultTemp = &result;
     } else {
       resultTemp = &buffer01;
     }
 
-    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = it->second.objectClasses;
+    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = it->second.inputObjectClasses;
 
     ++it;
     ++idx;
 
-    for(; it != indexesToIntersect.end(); ++it) {
-      const auto &objects02 = memory.load(it->first).objects();
-      working->calcIntersections(objects02, *resultTemp, channelsToIntersectImages, objectClassesMe,
-                                 it->second.objectClasses, mSettings.objectClass, mSettings.minIntersection);
+    for(; it != clustersToIntersect.end(); ++it) {
+      const auto &objects02 = context.loadObjectsFromCache(it->first);
+      working->calcIntersections(context.getActIterator(), *objects02, *resultTemp, objectClassesMe,
+                                 it->second.inputObjectClasses, context.getClusterId(mSettings.outputObjectCluster),
+                                 context.getClassId(mSettings.outputObjectClass), context.acquireNextObjectId(), 0,
+                                 mSettings.minIntersection);
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
       objectClassesMe.reset();
       idx++;
@@ -90,7 +83,7 @@ void Intersection::execute(processor::ProcessContext &context, processor::Proces
           resultTemp = &buffer02;
         } else {
           // Swap the buffer. We know what  we do.
-          resultTemp = const_cast<roi::SpatialHash *>(tmpWorking);
+          resultTemp = const_cast<atom::ObjectList *>(tmpWorking);
         }
       }
       resultTemp->clear();
@@ -104,11 +97,11 @@ void Intersection::execute(processor::ProcessContext &context, processor::Proces
 }
 /*
 cv::Mat intersectingMask =
-    cv::Mat(detectionResultsIn.at(*indexesToIntersect.begin()).controlImage.size(), CV_8UC1, cv::Scalar(255));
+    cv::Mat(detectionResultsIn.at(*clustersToIntersect.begin()).controlImage.size(), CV_8UC1, cv::Scalar(255));
 cv::Mat originalImage =
-    cv::Mat::ones(detectionResultsIn.at(*indexesToIntersect.begin()).controlImage.size(), CV_16UC1) * 65535;
+    cv::Mat::ones(detectionResultsIn.at(*clustersToIntersect.begin()).controlImage.size(), CV_16UC1) * 65535;
 
-for(const auto idxToIntersect : indexesToIntersect) {
+for(const auto idxToIntersect : clustersToIntersect) {
   if(detectionResultsIn.contains(idxToIntersect)) {
     cv::Mat binaryImage = cv::Mat::zeros(detectionResultsIn.at(idxToIntersect).originalImage.size(), CV_8UC1);
     detectionResultsIn.at(idxToIntersect).result.createBinaryImage(binaryImage);

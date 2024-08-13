@@ -14,6 +14,9 @@
 #include "pipeline_initializer.hpp"
 #include <filesystem>
 #include <functional>
+#include <memory>
+#include <utility>
+#include "backend/enums/enum_images.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
@@ -81,12 +84,10 @@ PipelineInitializer::PipelineInitializer(const settings::PipelineInitializerSett
 /// \param[out]
 /// \return
 ///
-void PipelineInitializer::load(const joda::settings::PipelineInputImageLoaderSettings &pipelineSettings,
-                               const PartToLoad &imagePartToLoad, joda::processor::ProcessStep &processStepOut)
+void PipelineInitializer::initPipeline(const joda::settings::PipelineInputImageLoaderSettings &pipelineSettings,
+                                       const enums::tile_t &tile, const joda::enums::IteratorId &imagePartToLoad,
+                                       joda::processor::ProcessContext &processStepOut)
 {
-  auto &imagePipelineContextOut = processStepOut.mutableContext().imagePipelineContext;
-  auto &contextImage            = imagePipelineContextOut.originalImage;
-
   int32_t zStacksToLoad = 1;
   int32_t c             = pipelineSettings.cStackIndex;
   int32_t z             = pipelineSettings.zStackIndex;
@@ -124,6 +125,13 @@ void PipelineInitializer::load(const joda::settings::PipelineInputImageLoaderSet
   }
 
   //
+  // Write context
+  //
+  processStepOut.pipelineContext.defaultClusterId = pipelineSettings.defaultClusterId;
+  processStepOut.pipelineContext.actImage.setId(
+      {.imageIdx = joda::enums::ImageIdx::I0, .iteration{.tStack = t, .zStack = z, .cStack = c}}, tile);
+
+  //
   // Load from image file
   //
   if(joda::settings::PipelineInputImageLoaderSettings::Source::FROM_FILE == pipelineSettings.source) {
@@ -132,11 +140,11 @@ void PipelineInitializer::load(const joda::settings::PipelineInputImageLoaderSet
           mImageContext.imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0);
     };
 
-    auto loadImageTile = [this, &imagePartToLoad](int32_t z, int32_t c, int32_t t) {
+    auto loadImageTile = [this, &tile](int32_t z, int32_t c, int32_t t) {
       return joda::image::reader::ImageReader::loadImageTile(
           mImageContext.imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0,
-          joda::ome::TileToLoad{.tileX      = std::get<0>(imagePartToLoad.tile),
-                                .tileY      = std::get<1>(imagePartToLoad.tile),
+          joda::ome::TileToLoad{.tileX      = std::get<0>(tile),
+                                .tileY      = std::get<1>(tile),
                                 .tileWidth  = COMPOSITE_TILE_WIDTH,
                                 .tileHeight = COMPOSITE_TILE_HEIGHT});
     };
@@ -146,7 +154,7 @@ void PipelineInitializer::load(const joda::settings::PipelineInputImageLoaderSet
       loadImage = loadImageTile;
     }
 
-    contextImage = loadImage(z, c, t);
+    cv::Mat &contextImage = processStepOut.getActImage().image;
 
     //
     // Do z -projection if activated
@@ -182,9 +190,12 @@ void PipelineInitializer::load(const joda::settings::PipelineInputImageLoaderSet
   // Start with blank image
   //
   if(joda::settings::PipelineInputImageLoaderSettings::Source::BLANK == pipelineSettings.source) {
-    auto rows    = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageHeight;
-    auto cols    = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageWidth;
-    contextImage = cv::Mat::zeros(rows, cols, CV_16UC1);
+    auto rows = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageHeight;
+    auto cols = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageWidth;
+
+    joda::atom::Image &contextImage = processStepOut.getActImage();
+    contextImage.image.create(rows, cols, CV_16UC1);
+    contextImage.image.setTo(cv::Scalar::all(0));
   }
 
   //
@@ -194,13 +205,9 @@ void PipelineInitializer::load(const joda::settings::PipelineInputImageLoaderSet
   if(joda::settings::PipelineInputImageLoaderSettings::Source::FROM_MEMORY == pipelineSettings.source) {
   }
 
-  //
-  // Write context
-  //
-  imagePipelineContextOut.tile   = imagePartToLoad.tile;
-  imagePipelineContextOut.tStack = t;
-  imagePipelineContextOut.zStack = z;
-  imagePipelineContextOut.cStack = c;
+  // Store original image to cache
+  processStepOut.addImageToCache(processStepOut.getActImage().getId(),
+                                 std::move(std::make_unique<joda::atom::Image>(processStepOut.getActImage())));
 }
 
 }    // namespace joda::processor

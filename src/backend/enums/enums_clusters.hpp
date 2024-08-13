@@ -19,18 +19,19 @@ namespace joda::enums {
 
 enum class ClusterId : uint16_t
 {
-  A    = 0,
-  B    = 1,
-  C    = 2,
-  D    = 3,
-  E    = 4,
-  F    = 5,
-  G    = 6,
-  H    = 7,
-  I    = 8,
-  J    = 9,
-  NONE = 0xFFFE,
-  $    = 0xFFFF
+  A         = 0,
+  B         = 1,
+  C         = 2,
+  D         = 3,
+  E         = 4,
+  F         = 5,
+  G         = 6,
+  H         = 7,
+  I         = 8,
+  J         = 9,
+  UNDEFINED = 0xFFFD,
+  NONE      = 0xFFFE,
+  $         = 0xFFFF
 };
 
 inline int32_t toInt(ClusterId idx)
@@ -40,6 +41,7 @@ inline int32_t toInt(ClusterId idx)
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ClusterId, {
                                             {ClusterId::NONE, "None"},
+                                            {ClusterId::UNDEFINED, "Undefined"},
                                             {ClusterId::$, "$"},
                                             {ClusterId::A, "A"},
                                             {ClusterId::B, "B"},

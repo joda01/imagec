@@ -3,6 +3,7 @@
 #include <qsettings.h>
 #include <cstdint>
 #include <set>
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 

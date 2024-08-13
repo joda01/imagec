@@ -23,8 +23,7 @@ namespace joda::cmd {
 /// \param[out]
 /// \return
 ///
-void StoreToDb::execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
-                        ObjectsListMap &result)
+void StoreToDb::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
 {
 }
 
@@ -68,7 +67,7 @@ void StoreToDb::writePredatedData(const DetailReportAdder &adders)
 /// \return
 ///
 void StoreToDb::appendToDetailReport(const DetailReportAdder &appender, processor::ProcessContext &context,
-                                     ObjectsListMap &result)
+                                     atom::ObjectList &result)
 {
   try {
     auto id          = DurationCount::start("Append to detail report");

@@ -14,7 +14,6 @@
 #pragma once
 
 #include "backend/commands/command.hpp"
-#include "backend/commands/objects_list.hpp"
 #include "backend/processor/process_context.hpp"
 #include "classifier_settings.hpp"
 
@@ -31,8 +30,7 @@ class Classifier : public Command
 public:
   /////////////////////////////////////////////////////
   Classifier(const settings::ClassifierSettings &);
-  void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
-               ObjectsListMap &result) override;
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
 
 private:
   /////////////////////////////////////////////////////

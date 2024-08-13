@@ -12,12 +12,12 @@
 
 ///
 
+#include "backend/enums/enum_images.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include <opencv2/core/mat.hpp>
-#include "process_step.hpp"
-#include "processor_memory.hpp"
 
 namespace joda::processor {
 
@@ -27,9 +27,5 @@ public:
   /////////////////////////////////////////////////////
   Processor();
   void execute(const joda::settings::AnalyzeSettings &program);
-
-private:
-  /////////////////////////////////////////////////////
-  ProcessorMemory mMemory;
 };
 }    // namespace joda::processor

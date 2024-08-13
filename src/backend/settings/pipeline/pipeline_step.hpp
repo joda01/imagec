@@ -57,8 +57,7 @@ public:
   // std::optional<MeasureSingle> $measure = std::nullopt;
 
   /////////////////////////////////////////////////////
-  void operator()(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
-                  cmd::ObjectsListMap &result) const;
+  void operator()(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) const;
   void check() const override;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass,

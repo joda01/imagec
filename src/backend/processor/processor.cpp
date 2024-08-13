@@ -17,7 +17,6 @@
 #include "backend/helper/file_info_images.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/processor/process_context.hpp"
-#include "backend/processor/processor_memory.hpp"
 
 namespace joda::processor {
 
@@ -51,19 +50,19 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
 
     for(int tileX = 0; tileX < tilesX; tileX++) {
       for(int tileY = 0; tileY < tilesY; tileY++) {
+        // Start of the image specific function
         for(int tStack = 0; tStack < nrtStack; tStack++) {
           for(int zStack = 0; zStack < nrzSTack; zStack++) {
             for(int cStack = 0; cStack < nrcSTack; cStack++) {
               // Start pipeline
               for(const auto &pipeline : program.pipelines) {
                 ProcessContext context{.globalContext = globalContext, .imageContext = imageContext};
-                ProcessStep processStep(context);
-                imageLoader.load(pipeline.inputImage,
-                                 PipelineInitializer::PartToLoad{
-                                     .tile = {tilesX, tileY}, .tStack = tStack, .zStack = zStack, .cStack = cStack},
-                                 processStep);
+                imageLoader.initPipeline(pipeline.inputImage, {tilesX, tileY},
+                                         joda::enums::IteratorId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
+                                         context);
                 for(const auto &step : pipeline.pipelineSteps) {
-                  processStep.executeStep(mMemory, step);
+                  // Execute a pipeline step
+                  step(context, context.getActImage().image, context.getActObjects());
                 }
               }
 
@@ -72,6 +71,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
             }
           }
         }
+        // End of the image specific function
       }
       // Image finished
     }

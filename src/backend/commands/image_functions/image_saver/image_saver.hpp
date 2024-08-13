@@ -44,8 +44,7 @@ public:
   explicit ImageSaver(const settings::ImageSaverSettings &settings) : mSettings(settings)
   {
   }
-  void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
-               ObjectsListMap &result) override
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
     auto id = DurationCount::start("Save");
 
@@ -53,11 +52,12 @@ public:
     auto fileName   = context.imageContext.imagePath.stem();
 
     std::filesystem::path saveName =
-        parentPath / (fileName.string() + "__" + std::to_string(std::get<0>(context.imagePipelineContext.tile)) + "x" +
-                      std::to_string(std::get<1>(context.imagePipelineContext.tile)) + "__" +
-                      std::to_string((int32_t) context.imagePipelineContext.cStack) + "-" +
-                      std::to_string(context.imagePipelineContext.zStack) + "-" +
-                      std::to_string((int32_t) context.imagePipelineContext.tStack) + mSettings.namePrefix + ".png");
+        parentPath / (fileName.string() + "__" + std::to_string(std::get<0>(context.pipelineContext.actImage.tile)) +
+                      "x" + std::to_string(std::get<1>(context.pipelineContext.actImage.tile)) + "__" +
+                      std::to_string((int32_t) context.pipelineContext.actImage.getId().iteration.cStack) + "-" +
+                      std::to_string(context.pipelineContext.actImage.getId().iteration.zStack) + "-" +
+                      std::to_string((int32_t) context.pipelineContext.actImage.getId().iteration.tStack) +
+                      mSettings.namePrefix + ".png");
 
     // Convert to 8-bit grayscale
     cv::Mat img_8bit_gray;

@@ -1,4 +1,40 @@
 {
+    "projectSettings": {
+        "clusters": {
+            "A": {
+                "name": "CY5"
+            },
+            "B": {
+                "name": "CY7"
+            },
+            "C": {
+                "name": "cell area"
+            },
+            "D": {
+                "name": "coloc cy5-cy7"
+            }
+        },
+        "classes": {
+            "0": {
+                "name": "EV"
+            },
+            "1": {
+                "name": "cell"
+            },
+            "2": {
+                "name": "background"
+            },
+            "3": {
+                "name": "ev in cell"
+            },
+            "4": {
+                "name": "coloc"
+            },
+            "5": {
+                "name": "Invalid"
+            }
+        }
+    },
     "images": {
         "zStackHandling": "IntensityProjection",
         "tStackHandling": "ExactOne",

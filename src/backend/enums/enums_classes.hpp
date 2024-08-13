@@ -20,22 +20,24 @@ namespace joda::enums {
 enum class ClassId : uint16_t
 {
 
-  C0   = 0,
-  C1   = 1,
-  C2   = 2,
-  C3   = 3,
-  C4   = 4,
-  C5   = 5,
-  C6   = 6,
-  C7   = 7,
-  C8   = 8,
-  C9   = 9,
-  NONE = 0xFFFE,
-  $    = 0xFFFF
+  C0        = 0,
+  C1        = 1,
+  C2        = 2,
+  C3        = 3,
+  C4        = 4,
+  C5        = 5,
+  C6        = 6,
+  C7        = 7,
+  C8        = 8,
+  C9        = 9,
+  UNDEFINED = 0xFFFD,
+  NONE      = 0xFFFE,
+  $         = 0xFFFF
 
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ClassId, {{ClassId::NONE, "None"},
+                                       {ClassId::UNDEFINED, "Undefined"},
                                        {ClassId::$, "$"},
                                        {ClassId::C0, "0"},
                                        {ClassId::C1, "1"},

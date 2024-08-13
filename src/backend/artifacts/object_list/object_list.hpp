@@ -10,15 +10,11 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include "../roi/roi.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
-#include "roi.hpp"
 
-namespace joda::cmd {
-class ObjectsListMap;
-}
-
-namespace joda::roi {
+namespace joda::atom {
 
 using namespace std;
 
@@ -35,13 +31,16 @@ struct PairHash
   }
 };
 
-class SpatialHash
+class ObjectList
 {
 public:
   /////////////////////////////////////////////////////
-  explicit SpatialHash(int cellSize = 100) : mCellSize(cellSize)
+
+  explicit ObjectList(int cellSize = 100) : mCellSize(cellSize)
   {
   }
+
+  void createBinaryImage(cv::Mat &img, const std::set<joda::enums::ClassId> &objectClasses) const;
 
   void emplace(const ROI &box)
   {
@@ -69,11 +68,11 @@ public:
     return mElements.size();
   }
 
-  void cloneFromOther(const SpatialHash &);
+  void cloneFromOther(const ObjectList &);
 
-  std::unique_ptr<SpatialHash> clone();
+  std::unique_ptr<ObjectList> clone();
 
-  vector<pair<ROI *, ROI *>> detect_collisions(const SpatialHash &other)
+  vector<pair<ROI *, ROI *>> detect_collisions(const ObjectList &other)
   {
     vector<pair<ROI *, ROI *>> potential_collisions;
 
@@ -96,11 +95,13 @@ public:
     return potential_collisions;
   }
 
-  void calcIntersections(const SpatialHash &other, SpatialHash &result,
-                         const std::map<joda::enums::ClusterId, const cv::Mat *> &imageOriginal,
+  void calcIntersections(const enums::IteratorId &iterator, const ObjectList &other, ObjectList &result,
                          const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                          const std::set<joda::enums::ClassId> &objectClassesOther,
-                         joda::enums::ClassId objectClasIdOfIntersetingObject, float minIntersecion) const;
+                         joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
+                         joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
+                         uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi,
+                         float minIntersecion) const;
 
   auto begin() const
   {
@@ -166,4 +167,4 @@ private:
 
   std::mutex mInsertLock;
 };
-}    // namespace joda::roi
+}    // namespace joda::atom

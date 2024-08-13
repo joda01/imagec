@@ -32,8 +32,7 @@ class StoreToDb : public Command
 public:
   /////////////////////////////////////////////////////
   StoreToDb(const StoreToDbSettings &);
-  void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
-               ObjectsListMap &result) override;
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
 
 private:
   /////////////////////////////////////////////////////
@@ -47,7 +46,7 @@ private:
   /////////////////////////////////////////////////////
   auto prepareDetailReportAdding(processor::ProcessContext &context) -> DetailReportAdder;
   void appendToDetailReport(const DetailReportAdder &appender, processor::ProcessContext &context,
-                            ObjectsListMap &result);
+                            atom::ObjectList &result);
 
   void writePredatedData(const DetailReportAdder &adders);
 

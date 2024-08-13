@@ -19,10 +19,10 @@
 
 namespace joda::image::detect {
 
-class DetectionResults : public SpatialHash
+class DetectionResults : public ObjectList
 {
 public:
-  using SpatialHash::SpatialHash;
+  using ObjectList::ObjectList;
   void createBinaryImage(cv::Mat &img) const;
   cv::Mat generateControlImage(const std::string &areaColor, const cv::Size &size);
 

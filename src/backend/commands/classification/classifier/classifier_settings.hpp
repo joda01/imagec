@@ -25,28 +25,10 @@ namespace joda::settings {
 
 struct ClassifierSettings : public Setting
 {
-  struct ObjectClass
-  {
-    //
-    // Cluster the objects should be assigned to
-    //
-    joda::enums::ClusterId clusterId;
-
-    //
-    // Class id to identify the object with based on the filter
-    // If no filter matches the NONE class is applied.
-    //
-    std::map<joda::enums::ClassId, ClassifierFilter> classes;
-
-    //
-    // The grayscale value which is associated to the class
-    //
-    uint16_t grayscaleValue = UINT16_MAX;
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, clusterId, classes, grayscaleValue);
-  };
-
-  std::vector<ObjectClass> objectClasses;
+  //
+  // The grayscale value which should be associated to the class (default = 65535)
+  //
+  std::map<int32_t, ObjectClass> objectClasses;
 
   /////////////////////////////////////////////////////
   void check() const override

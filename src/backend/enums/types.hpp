@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::enums {
@@ -21,5 +23,19 @@ using tile_t   = std::tuple<int32_t, int32_t>;
 using zStack_t = int32_t;
 using tStack_t = int32_t;
 using cStack_t = int32_t;
+
+struct IteratorId
+{
+  tStack_t tStack = -1;
+  zStack_t zStack = -1;
+  cStack_t cStack = -1;
+
+  bool operator<(const IteratorId &in) const
+  {
+    return tStack < in.tStack && zStack < in.zStack && cStack < in.cStack;
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IteratorId, tStack, zStack, cStack);
+};
 
 }    // namespace joda::enums

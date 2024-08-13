@@ -13,11 +13,11 @@
 
 #pragma once
 
+#include "backend/enums/enum_images.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/processor/initializer/pipeline_initializer_settings.hpp"
 #include "backend/processor/process_context.hpp"
-#include "backend/processor/process_step.hpp"
 #include "pipeline_input_image_loader_settings.hpp"
 
 namespace joda::processor {
@@ -25,14 +25,6 @@ namespace joda::processor {
 class PipelineInitializer
 {
 public:
-  struct PartToLoad
-  {
-    joda::enums::tile_t tile     = {0, 0};
-    joda::enums::tStack_t tStack = 0;
-    joda::enums::zStack_t zStack = 0;
-    joda::enums::cStack_t cStack = 0;
-  };
-
   /////////////////////////////////////////////////////
   PipelineInitializer(const settings::PipelineInitializerSettings &settings, const std::filesystem::path &imagePath,
                       ImageContext &imageContextOut);
@@ -54,8 +46,8 @@ public:
     return mCStackToLoad;
   }
 
-  void load(const joda::settings::PipelineInputImageLoaderSettings &settings, const PartToLoad &imagePartToLoad,
-            ProcessStep &processStepOu);
+  void initPipeline(const joda::settings::PipelineInputImageLoaderSettings &settings, const enums::tile_t &tile,
+                    const joda::enums::IteratorId &imagePartToLoad, ProcessContext &processStepOu);
 
 private:
   /////////////////////////////////////////////////////

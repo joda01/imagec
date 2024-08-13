@@ -19,7 +19,6 @@
 #include <string>
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
-#include "backend/helper/roi/roi.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -45,16 +44,19 @@ Classifier::Classifier(const settings::ClassifierSettings &settings) : mSettings
 /// \param[out]
 /// \return
 ///
-void Classifier::execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &imageIn,
-                         ObjectsListMap &result)
+void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, atom::ObjectList &result)
 {
   auto id = DurationCount::start("Classifier");
 
   const cv::Mat &image = imageIn;
-  for(const auto &objectClass : mSettings.objectClasses) {
+
+  //
+  // Iterate over each defined grayscale value
+  //
+  for(const auto &[grayscaleValue, objectClass] : mSettings.objectClasses) {
     // Create a mask where pixels with value 1 are set to 255
     cv::Mat binaryImage(image.size(), CV_8UC1);
-    binaryImage = image == objectClass.grayscaleValue;
+    binaryImage = image == grayscaleValue;
 
     // std::unique_ptr<image::detect::DetectionResults> response = std::make_unique<image::detect::DetectionResults>();
 
@@ -67,8 +69,7 @@ void Classifier::execute(processor::ProcessContext &context, processor::Processo
       joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
     } else {
       // Create a mask for each contour and draw bounding boxes
-      size_t idx = 0;
-      size_t i   = 0;
+      size_t i = 0;
       for(auto &contour : contours) {
         // Do not paint a contour for elements inside an element.
         // In other words if there is a particle with a hole, ignore the hole.
@@ -86,15 +87,27 @@ void Classifier::execute(processor::ProcessContext &context, processor::Processo
           cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
           // Remove inner holes from the mask
           cv::bitwise_and(mask, imagePart, mask);
-          joda::roi::ROI detect(idx, context.imageProcessingContext.appliedMinThreshold, objectClass.classId,
-                                boundingBox, mask, contour, context.imagePipelineContext.originalImage,
-                                objectClass.clusterId,
-                                joda::roi::ChannelSettingsFilter{.maxParticleSize = objectClass.filter.maxParticleSize,
-                                                                 .minParticleSize = objectClass.filter.minParticleSize,
-                                                                 .minCircularity  = objectClass.filter.minCircularity,
-                                                                 .snapAreaSize    = objectClass.filter.snapAreaSize});
-          idx++;
-          result.push_back(detect);
+
+          //
+          // Ready to classify -> First create a ROI object to get the measurements
+          //
+          joda::atom::ROI detectedRoi(
+              atom::ROI::RoiObjectId{{.clusterId = context.getClusterId(objectClass.noMatchingClusterId),
+                                      .iteration = context.getActIterator()},
+                                     context.acquireNextObjectId(),
+                                     context.getClassId(objectClass.noMatchingClassId)},
+              context.pipelineContext.actImage.appliedMinThreshold, 0, boundingBox, mask, contour,
+              context.getImageSize());
+
+          for(const auto &filter : objectClass.filters) {
+            const auto &cachedImage = context.loadImageFromCache(filter.intensity->imageId);
+            // If filter matches assign the new cluster and class to the ROI
+            if(filter.doesFilterMatch(detectedRoi, *cachedImage)) {
+              detectedRoi.setClusterAndClass(context.getClusterId(filter.clusterId),
+                                             context.getClassId(filter.classId));
+            }
+          }
+          result.push_back(detectedRoi);
         }
         i++;
       }

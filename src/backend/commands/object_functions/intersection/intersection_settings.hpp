@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <set>
 #include <vector>
+#include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
@@ -28,17 +29,12 @@ struct IntersectionSettings : public Setting
   struct IntersectingClasses
   {
     //
-    // Calc the intersection only with objects of given classes
+    // Calc the intersection only with objects of the given classes
     //
-    std::set<joda::enums::ClassId> objectClasses;
+    std::set<joda::enums::ClassId> inputObjectClasses;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectingClasses, objectClasses);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectingClasses, inputObjectClasses);
   };
-
-  //
-  // List of channels to calc the intersection for
-  //
-  std::map<joda::enums::ClusterId, IntersectingClasses> intersectingSlots;
 
   //
   // Minimum intersection in [0-1]
@@ -48,14 +44,25 @@ struct IntersectionSettings : public Setting
   //
   // Resulting object class of the intersecting objects
   //
-  joda::enums::ClassId objectClass = joda::enums::ClassId::NONE;
+  joda::enums::ClusterId outputObjectCluster = joda::enums::ClusterId::$;
+
+  //
+  // Resulting object class of the intersecting objects
+  //
+  joda::enums::ClassId outputObjectClass = joda::enums::ClassId::UNDEFINED;
+
+  //
+  // List of channels to calc the intersection for
+  //
+  std::map<joda::enums::ObjectId, IntersectingClasses> inputObjectClusters;
 
   /////////////////////////////////////////////////////
   void check() const override
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectionSettings, intersectingSlots, minIntersection, objectClass);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectionSettings, inputObjectClusters, minIntersection,
+                                              outputObjectClass, outputObjectCluster);
 };
 
 }    // namespace joda::settings

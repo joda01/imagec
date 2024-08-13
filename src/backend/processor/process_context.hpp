@@ -14,18 +14,45 @@
 
 #pragma once
 
+#include <atomic>
 #include <filesystem>
+#include <map>
 #include <memory>
+#include "backend/artifacts/image/image.hpp"
+#include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/enums/enum_images.hpp"
+#include "backend/enums/enum_objects.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
 
 namespace joda::processor {
 
+using imageCache_t  = std::map<enums::ImageId, std::unique_ptr<joda::atom::Image>>;
+using objectCache_t = std::map<enums::ObjectId, std::unique_ptr<joda::atom::ObjectList>>;
+
 struct GlobalContext
 {
+  friend class ProcessContext;
+
   std::filesystem::path resultsOutputFolder;
+  uint64_t nextObjectId()
+  {
+    return globalObjectIdCount++;
+  }
+  uint64_t actObjectId()
+  {
+    return globalObjectIdCount;
+  }
+
+private:
+  imageCache_t imageCache;
+  objectCache_t objectCache;
+  std::atomic<uint64_t> globalObjectIdCount;
   // std::shared_ptr<joda::db::Database> database;
 };
 
@@ -35,29 +62,90 @@ struct ImageContext
   joda::ome::OmeInfo imageMeta;
 };
 
-struct ImagePipelineContext
+struct PipelineContext
 {
-  // Actual processed image part
-  cv::Mat originalImage;
-  joda::enums::tile_t tile     = {0, 0};
-  joda::enums::tStack_t tStack = 0;
-  joda::enums::zStack_t zStack = 0;
-  joda::enums::cStack_t cStack = 0;
-};
-
-struct ImageProcessingContext
-{
-  bool isBinary                = false;
-  uint16_t appliedMinThreshold = 0;
-  uint16_t appliedMaxThreshold = 0;
+  joda::atom::Image actImage;
+  joda::atom::ObjectList actObjects{};
+  enums::ClusterId defaultClusterId;
 };
 
 struct ProcessContext
 {
   GlobalContext &globalContext;
   ImageContext &imageContext;
-  ImagePipelineContext imagePipelineContext;
-  ImageProcessingContext imageProcessingContext;
+  PipelineContext pipelineContext;
+  [[nodiscard]] atom::Image &getActImage()
+  {
+    return pipelineContext.actImage;
+  }
+
+  [[nodiscard]] joda::atom::ObjectList &getActObjects()
+  {
+    return pipelineContext.actObjects;
+  }
+
+  [[nodiscard]] const joda::enums::IteratorId &getActIterator() const
+  {
+    return pipelineContext.actImage.getId().iteration;
+  }
+
+#warning "Handle this imageIdx and this object idx"
+  joda::atom::Image *addImageToCache(joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::Image> img)
+  {
+    getCorrectIteration(cacheId.iteration);
+    return globalContext.imageCache.try_emplace(cacheId, std::move(img)).first->second.get();
+  }
+
+  [[nodiscard]] const joda::atom::Image *loadImageFromCache(joda::enums::ImageId cacheId) const
+  {
+    getCorrectIteration(cacheId.iteration);
+    return globalContext.imageCache.at(cacheId).get();
+  }
+
+  [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectId cacheId) const
+  {
+    getCorrectIteration(cacheId.iteration);
+    return globalContext.objectCache.at(cacheId).get();
+  }
+
+  [[nodiscard]] cv::Size getImageSize() const
+  {
+    return pipelineContext.actImage.image.size();
+  }
+
+  [[nodiscard]] uint64_t acquireNextObjectId() const
+  {
+    return globalContext.nextObjectId();
+  }
+
+  [[nodiscard]] enums::ClusterId getClusterId(enums::ClusterId in) const
+  {
+    return in != enums::ClusterId::$ ? in : pipelineContext.defaultClusterId;
+  }
+
+  [[nodiscard]] enums::ClassId getClassId(enums::ClassId in) const
+  {
+    return in != enums::ClassId::$ ? in : enums::ClassId::NONE;
+  }
+
+  ///
+  /// \brief      Returns a corrected iterator. Every value < 0 is interpreted as THIS and
+  ///             is replaced by the actual index of the process step
+  /// \author     Joachim Danmayr
+  ///
+  void getCorrectIteration(joda::enums::IteratorId &iteration) const
+  {
+    const auto &actImageId = getActIterator();
+    if(iteration.cStack < 0) {
+      iteration.cStack = actImageId.cStack;
+    }
+    if(iteration.tStack < 0) {
+      iteration.tStack = actImageId.tStack;
+    }
+    if(iteration.zStack < 0) {
+      iteration.zStack = actImageId.zStack;
+    }
+  }
 };
 
 }    // namespace joda::processor

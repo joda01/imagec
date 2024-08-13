@@ -64,12 +64,17 @@ struct PipelineInputImageLoaderSettings : public Setting
   //
   joda::enums::MemoryId memoryId = joda::enums::MemoryId::M0;
 
+  //
+  // Default cluster ID of this pipeline. Can be accessed with $
+  //
+  enums::ClusterId defaultClusterId = enums::ClusterId::UNDEFINED;
+
   void check() const override
   {
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineInputImageLoaderSettings, source, cStackIndex, tStackIndex,
-                                              zStackIndex, zProjection, memoryId);
+                                              zStackIndex, zProjection, memoryId, defaultClusterId);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PipelineInputImageLoaderSettings::Source,

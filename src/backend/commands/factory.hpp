@@ -38,11 +38,10 @@ public:
   Factory(const SETTING &setting) : mSetting(setting)
   {
   }
-  void execute(processor::ProcessContext &context, processor::ProcessorMemory &memory, cv::Mat &image,
-               cmd::ObjectsListMap &result) override
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
     CMD func(mSetting);
-    func.execute(context, memory, image, result);
+    func.execute(context, image, result);
   }
 
 private:
