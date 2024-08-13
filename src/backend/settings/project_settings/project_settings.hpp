@@ -63,8 +63,8 @@ public:
   //
   std::string workingDirectory;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ProjectSettings, experimentSetup, notes, address, clusters, classes,
-                                              workingDirectory);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ProjectSettings, experimentSetup, imageSetup, notes, address, clusters,
+                                              classes, workingDirectory);
 };
 
 }    // namespace joda::settings
