@@ -88,7 +88,7 @@ void Classifier::execute(processor::ProcessContext &context, processor::Processo
           cv::bitwise_and(mask, imagePart, mask);
           joda::roi::ROI detect(idx, context.imageProcessingContext.appliedMinThreshold, objectClass.classId,
                                 boundingBox, mask, contour, context.imagePipelineContext.originalImage,
-                                objectClass.channelId,
+                                objectClass.clusterId,
                                 joda::roi::ChannelSettingsFilter{.maxParticleSize = objectClass.filter.maxParticleSize,
                                                                  .minParticleSize = objectClass.filter.minParticleSize,
                                                                  .minCircularity  = objectClass.filter.minCircularity,

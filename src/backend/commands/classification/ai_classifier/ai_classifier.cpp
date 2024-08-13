@@ -186,7 +186,7 @@ void AiClassifier::execute(processor::ProcessContext &context, processor::Proces
     if(mSettings.objectClasses.contains(classId)) {
       const auto &actClass = mSettings.objectClasses.at(classId);
       joda::roi::ROI roi(i, confidences[idx], actClass.classId, box, mask, contours[idxMax],
-                         context.imagePipelineContext.originalImage, actClass.channelId,
+                         context.imagePipelineContext.originalImage, actClass.clusterId,
                          joda::roi::ChannelSettingsFilter{.maxParticleSize = actClass.filter.maxParticleSize,
                                                           .minParticleSize = actClass.filter.minParticleSize,
                                                           .minCircularity  = actClass.filter.minCircularity,

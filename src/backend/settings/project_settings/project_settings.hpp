@@ -13,8 +13,8 @@
 
 #include <set>
 #include <vector>
-#include "backend/enums/enums_channels.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include <nlohmann/json.hpp>
 #include "project_address.hpp"
@@ -43,9 +43,9 @@ public:
   Address address;
 
   //
-  // Channels used in this project
+  // Object clusters used in this project
   //
-  std::map<joda::enums::ChannelId, Channel> channels;
+  std::map<joda::enums::ClusterId, Channel> clusters;
 
   //
   // Object classes used in this project
@@ -57,7 +57,7 @@ public:
   //
   std::string workingDirectory;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ProjectSettings, experimentSetup, notes, address, channels, classes,
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ProjectSettings, experimentSetup, notes, address, clusters, classes,
                                               workingDirectory);
 };
 

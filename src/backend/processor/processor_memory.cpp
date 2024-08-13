@@ -36,20 +36,20 @@ void ProcessorMemory::erase(joda::enums::MemoryId slot)
   mMemory.erase(slot);
 }
 
-void ProcessorMemory::store(joda::enums::ChannelId slot, const ProcessStep &element)
+void ProcessorMemory::store(joda::enums::ClusterId slot, const ProcessStep &element)
 {
   mChannels.try_emplace(slot, element.context());
   mChannels.at(slot).cloneFrom(element);
 }
-auto ProcessorMemory::load(joda::enums::ChannelId slot) -> ProcessStep &
+auto ProcessorMemory::load(joda::enums::ClusterId slot) -> ProcessStep &
 {
   return mChannels.at(slot);
 }
-void ProcessorMemory::loadCopy(joda::enums::ChannelId slot, ProcessStep &toLoadIn)
+void ProcessorMemory::loadCopy(joda::enums::ClusterId slot, ProcessStep &toLoadIn)
 {
   toLoadIn.cloneFrom(mChannels.at(slot));
 }
-void ProcessorMemory::erase(joda::enums::ChannelId slot)
+void ProcessorMemory::erase(joda::enums::ClusterId slot)
 {
   mChannels.erase(slot);
 }

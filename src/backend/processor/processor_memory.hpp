@@ -15,7 +15,7 @@
 #pragma once
 
 #include "backend/enums/enum_memory.hpp"
-#include "backend/enums/enums_channels.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include <opencv2/core/mat.hpp>
 
@@ -36,14 +36,14 @@ public:
   void loadCopy(joda::enums::MemoryId slot, ProcessStep &toLoadIn);
   void erase(joda::enums::MemoryId);
 
-  void store(joda::enums::ChannelId, const ProcessStep &);
-  auto load(joda::enums::ChannelId) -> ProcessStep &;
-  void loadCopy(joda::enums::ChannelId slot, ProcessStep &toLoadIn);
-  void erase(joda::enums::ChannelId);
+  void store(joda::enums::ClusterId, const ProcessStep &);
+  auto load(joda::enums::ClusterId) -> ProcessStep &;
+  void loadCopy(joda::enums::ClusterId slot, ProcessStep &toLoadIn);
+  void erase(joda::enums::ClusterId);
 
 private:
   /////////////////////////////////////////////////////
   std::map<joda::enums::MemoryId, ProcessStep> mMemory;
-  std::map<joda::enums::ChannelId, ProcessStep> mChannels;
+  std::map<joda::enums::ClusterId, ProcessStep> mChannels;
 };
 }    // namespace joda::processor

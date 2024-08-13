@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <set>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
@@ -42,9 +43,9 @@ struct AiClassifierSettings : public Setting
     Filter filter;
 
     //
-    // Channel the objects should be assigned to
+    // Cluster the objects should be assigned to
     //
-    joda::enums::ChannelId channelId;
+    joda::enums::ClusterId clusterId;
 
     //
     // Class id to identify the object with

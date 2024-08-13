@@ -20,16 +20,16 @@ namespace joda::enums {
 enum class ClassId : uint16_t
 {
 
-  Cl0  = 0,
-  Cl1  = 1,
-  Cl2  = 2,
-  Cl3  = 3,
-  Cl4  = 4,
-  Cl5  = 5,
-  Cl6  = 6,
-  Cl7  = 7,
-  Cl8  = 8,
-  Cl9  = 9,
+  C0   = 0,
+  C1   = 1,
+  C2   = 2,
+  C3   = 3,
+  C4   = 4,
+  C5   = 5,
+  C6   = 6,
+  C7   = 7,
+  C8   = 8,
+  C9   = 9,
   NONE = 0xFFFE,
   $    = 0xFFFF
 
@@ -37,15 +37,15 @@ enum class ClassId : uint16_t
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ClassId, {{ClassId::NONE, "None"},
                                        {ClassId::$, "$"},
-                                       {ClassId::Cl0, "Cl0"},
-                                       {ClassId::Cl1, "Cl1"},
-                                       {ClassId::Cl2, "Cl2"},
-                                       {ClassId::Cl3, "Cl3"},
-                                       {ClassId::Cl4, "Cl4"},
-                                       {ClassId::Cl5, "Cl5"},
-                                       {ClassId::Cl6, "Cl6"},
-                                       {ClassId::Cl7, "Cl7"},
-                                       {ClassId::Cl8, "Cl8"},
-                                       {ClassId::Cl9, "Cl9"}});
+                                       {ClassId::C0, "0"},
+                                       {ClassId::C1, "1"},
+                                       {ClassId::C2, "2"},
+                                       {ClassId::C3, "3"},
+                                       {ClassId::C4, "4"},
+                                       {ClassId::C5, "5"},
+                                       {ClassId::C6, "6"},
+                                       {ClassId::C7, "7"},
+                                       {ClassId::C8, "8"},
+                                       {ClassId::C9, "9"}});
 
 }    // namespace joda::enums

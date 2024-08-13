@@ -88,7 +88,7 @@ struct ImageMeta
 struct ChannelMeta
 {
   std::string analyzeId;
-  joda::enums::ChannelId channelId;
+  joda::enums::ClusterId channelId;
   std::string name;
   std::vector<MeasureChannelId> measurements;
 };
@@ -97,7 +97,7 @@ struct ImageChannelMeta
 {
   std::string analyzeId;
   uint64_t imageId                 = 0;
-  joda::enums::ChannelId channelId = joda::enums::ChannelId::$;
+  joda::enums::ClusterId channelId = joda::enums::ClusterId::$;
   ChannelValidity validity         = {};
   bool invalidateAll               = false;
   std::filesystem::path controlImagePath;

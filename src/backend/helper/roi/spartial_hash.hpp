@@ -10,6 +10,8 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "roi.hpp"
 
 namespace joda::cmd {
@@ -95,7 +97,7 @@ public:
   }
 
   void calcIntersections(const SpatialHash &other, SpatialHash &result,
-                         const std::map<joda::enums::ChannelId, const cv::Mat *> &imageOriginal,
+                         const std::map<joda::enums::ClusterId, const cv::Mat *> &imageOriginal,
                          const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                          const std::set<joda::enums::ClassId> &objectClassesOther,
                          joda::enums::ClassId objectClasIdOfIntersetingObject, float minIntersecion) const;

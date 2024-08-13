@@ -13,6 +13,6 @@
 
 #pragma once
 
-#include "enums/enums_channels.hpp"
 #include "enums/enums_classes.hpp"
+#include "enums/enums_clusters.hpp"
 #include "enums/types.hpp"

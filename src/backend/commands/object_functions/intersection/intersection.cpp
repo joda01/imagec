@@ -14,7 +14,7 @@
 #include "intersection.hpp"
 #include <cstddef>
 #include <optional>
-#include "backend/enums/enums_channels.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
@@ -34,11 +34,11 @@ void Intersection::execute(processor::ProcessContext &context, processor::Proces
   const auto &indexesToIntersect = mSettings.intersectingSlots;
   size_t intersectCount          = indexesToIntersect.size();
   try {
-    std::map<joda::enums::ChannelId, const cv::Mat *> channelsToIntersectImages;
+    std::map<joda::enums::ClusterId, const cv::Mat *> channelsToIntersectImages;
     for(const auto [idxToIntersect, _] : indexesToIntersect) {
       auto channel = memory.load(idxToIntersect).context();
 #warning "Check channel id"
-      channelsToIntersectImages.emplace(joda::enums::ChannelId::NONE, &channel.imagePipelineContext.originalImage);
+      channelsToIntersectImages.emplace(joda::enums::ClusterId::NONE, &channel.imagePipelineContext.originalImage);
     }
 
     int idx = 0;

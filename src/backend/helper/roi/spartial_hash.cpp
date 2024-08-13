@@ -7,7 +7,7 @@
 namespace joda::roi {
 
 void SpatialHash::calcIntersections(const SpatialHash &other, SpatialHash &result,
-                                    const std::map<joda::enums::ChannelId, const cv::Mat *> &imageOriginal,
+                                    const std::map<joda::enums::ClusterId, const cv::Mat *> &imageOriginal,
                                     const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                                     const std::set<joda::enums::ClassId> &objectClassesOther,
                                     joda::enums::ClassId objectClasIdOfIntersetingObject, float minIntersecion) const

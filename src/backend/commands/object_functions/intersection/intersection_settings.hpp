@@ -16,7 +16,7 @@
 #include <cstdint>
 #include <set>
 #include <vector>
-#include "backend/enums/enums_channels.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
@@ -38,7 +38,7 @@ struct IntersectionSettings : public Setting
   //
   // List of channels to calc the intersection for
   //
-  std::map<joda::enums::ChannelId, IntersectingClasses> intersectingSlots;
+  std::map<joda::enums::ClusterId, IntersectingClasses> intersectingSlots;
 
   //
   // Minimum intersection in [0-1]

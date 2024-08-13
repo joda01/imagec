@@ -62,7 +62,6 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                                  PipelineInitializer::PartToLoad{
                                      .tile = {tilesX, tileY}, .tStack = tStack, .zStack = zStack, .cStack = cStack},
                                  processStep);
-
                 for(const auto &step : pipeline.pipelineSteps) {
                   processStep.executeStep(mMemory, step);
                 }
