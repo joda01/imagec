@@ -39,12 +39,12 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
     }
 
     if(intersectCount == 1) {
-      result.cloneFromOther(*context.loadObjectsFromCache(it->first));
+      joda::log::logWarning("At least two channels must be given to calc intersection!");
       DurationCount::stop(id);
       return;
     }
 
-    const auto *firstDataBuffer     = context.loadObjectsFromCache(it->first);
+    const auto *firstDataBuffer     = context.loadObjectsFromCache(it->objectId);
     const atom::ObjectList *working = firstDataBuffer;
     atom::ObjectList *resultTemp    = nullptr;
     // Directly write to the output buffer
@@ -56,15 +56,16 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
       resultTemp = &buffer01;
     }
 
-    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = it->second.inputObjectClasses;
+    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = it->inputObjectClasses;
 
     ++it;
     ++idx;
 
     for(; it != clustersToIntersect.end(); ++it) {
-      const auto &objects02 = context.loadObjectsFromCache(it->first);
+      std::cout << "Intersection iterations " << std::endl;
+      const auto &objects02 = context.loadObjectsFromCache(it->objectId);
       working->calcIntersections(context.getActIterator(), *objects02, *resultTemp, objectClassesMe,
-                                 it->second.inputObjectClasses, context.getClusterId(mSettings.outputObjectCluster),
+                                 it->inputObjectClasses, context.getClusterId(mSettings.outputObjectCluster),
                                  context.getClassId(mSettings.outputObjectClass), context.acquireNextObjectId(), 0,
                                  mSettings.minIntersection);
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
@@ -89,8 +90,8 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
       resultTemp->clear();
     }
 
-  } catch(const std::exception &) {
-    joda::log::logWarning("Slot does not exist!");
+  } catch(const std::exception &ex) {
+    joda::log::logWarning("Object with ID >< does not exist! What: " + std::string(ex.what()));
   }
 
   DurationCount::stop(id);

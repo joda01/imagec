@@ -57,18 +57,13 @@
                 "source": "FromFile",
                 "cStackIndex": 3,
                 "zProjection": "MaxIntensity",
-                "defaultClusterId": "C"
+                "defaultClusterId": "A"
             },
             "pipelineSteps": [
                 {
                     "$blur": {
                         "kernelSize": 6,
                         "repeat": 5
-                    }
-                },
-                {
-                    "$saveImage": {
-                        "compression": 0
                     }
                 },
                 {
@@ -80,12 +75,6 @@
                 },
                 {
                     "$watershed": {}
-                },
-                {
-                    "$saveImage": {
-                        "compression": 0,
-                        "namePrefix": "_thresholded"
-                    }
                 },
                 {
                     "$classify": {
@@ -119,28 +108,116 @@
                 {
                     "$saveImage": {
                         "compression": 0,
-                        "namePrefix": "_classified"
+                        "namePrefix": "_classified_A"
+                    }
+                }
+            ]
+        },
+        {
+            "inputImage": {
+                "source": "FromFile",
+                "cStackIndex": 3,
+                "zProjection": "MaxIntensity",
+                "defaultClusterId": "A"
+            },
+            "pipelineSteps": [
+                {
+                    "$blur": {
+                        "kernelSize": 6,
+                        "repeat": 5
+                    }
+                },
+                {
+                    "$threshold": {
+                        "node": "Manual",
+                        "thresholdMin": 10,
+                        "thresholdMax": 65535
+                    }
+                },
+                {
+                    "$watershed": {}
+                },
+                {
+                    "$classify": {
+                        "objectClasses": [
+                            {
+                                "noMatchingClusterId": "$",
+                                "noMatchingClassId": "None",
+                                "modelClassId": 65535,
+                                "grayscaleValue": 65535,
+                                "filters": [
+                                    {
+                                        "clusterId": "$",
+                                        "classId": "0",
+                                        "minParticleSize": -1,
+                                        "maxParticleSize": -1,
+                                        "minCircularity": 0,
+                                        "snapAreaSize": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "$imageFromClass": {
+                        "objectClasses": [
+                            "0"
+                        ]
+                    }
+                },
+                {
+                    "$saveImage": {
+                        "compression": 0,
+                        "namePrefix": "_classified_B"
                     }
                 }
             ]
         },
         {
             "channelLoader": {
-                "source": "FromFile",
+                "source": "FromBlank",
                 "cStackIndex": 4,
                 "zProjection": "MaxIntensity",
-                "defaultClusterId": "C"
+                "defaultClusterId": "E"
             },
             "pipelineSteps": [
                 {
-                    "$blur": {
-                        "kernelSize": 3,
-                        "repeat": 1
+                    "$intersection": {
+                        "minIntersection": 0,
+                        "outputObjectCluster": "$",
+                        "outputObjectClass": "4",
+                        "inputObjectClusters": [
+                            {
+                                "objectId": {
+                                    "clusterId": "A"
+                                },
+                                "inputObjectClasses": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "objectId": {
+                                    "clusterId": "B"
+                                },
+                                "inputObjectClasses": [
+                                    "0"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "$imageFromClass": {
+                        "objectClasses": [
+                            "4"
+                        ]
                     }
                 },
                 {
                     "$saveImage": {
-                        "compression": 0
+                        "compression": 0,
+                        "namePrefix": "_intersect"
                     }
                 }
             ]

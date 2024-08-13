@@ -29,11 +29,16 @@ struct IntersectionSettings : public Setting
   struct IntersectingClasses
   {
     //
+    // Input object to intersect with
+    //
+    joda::enums::ObjectId objectId;
+
+    //
     // Calc the intersection only with objects of the given classes
     //
     std::set<joda::enums::ClassId> inputObjectClasses;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectingClasses, inputObjectClasses);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(IntersectingClasses, objectId, inputObjectClasses);
   };
 
   //
@@ -54,15 +59,15 @@ struct IntersectionSettings : public Setting
   //
   // List of channels to calc the intersection for
   //
-  std::map<joda::enums::ObjectId, IntersectingClasses> inputObjectClusters;
+  std::vector<IntersectingClasses> inputObjectClusters;
 
   /////////////////////////////////////////////////////
   void check() const override
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntersectionSettings, inputObjectClusters, minIntersection,
-                                              outputObjectClass, outputObjectCluster);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(IntersectionSettings, inputObjectClusters, minIntersection, outputObjectClass,
+                                 outputObjectCluster);
 };
 
 }    // namespace joda::settings

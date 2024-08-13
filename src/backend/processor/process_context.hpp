@@ -89,7 +89,7 @@ struct ProcessContext
     return pipelineContext.actImage.getId().iteration;
   }
 
-#warning "Handle this imageIdx and this object idx"
+#warning "Handle this imageIdx"
   joda::atom::Image *addImageToCache(joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::Image> img)
   {
     getCorrectIteration(cacheId.iteration);
@@ -104,8 +104,21 @@ struct ProcessContext
 
   [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectId cacheId) const
   {
-    getCorrectIteration(cacheId.iteration);
+    getCorrectObjectId(cacheId);
     return globalContext.objectCache.at(cacheId).get();
+  }
+
+  void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::Image &image) const
+  {
+    getCorrectIteration(cacheId.iteration);
+    globalContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::Image>(image));
+  }
+
+  void storeObjectsToCache(joda::enums::ObjectId cacheId, const joda::atom::ObjectList &object) const
+  {
+    getCorrectObjectId(cacheId);
+    globalContext.objectCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ObjectList>());
+    globalContext.objectCache.at(cacheId)->cloneFromOther(object);
   }
 
   [[nodiscard]] cv::Size getImageSize() const
@@ -126,6 +139,19 @@ struct ProcessContext
   [[nodiscard]] enums::ClassId getClassId(enums::ClassId in) const
   {
     return in != enums::ClassId::$ ? in : enums::ClassId::NONE;
+  }
+
+  ///
+  /// \brief      Returns a corrected iterator. Every value < 0 is interpreted as THIS and
+  ///             is replaced by the actual index of the process step
+  /// \author     Joachim Danmayr
+  ///
+  void getCorrectObjectId(joda::enums::ObjectId &cacheId) const
+  {
+    if(cacheId.clusterId == enums::ClusterId::$) {
+      cacheId.clusterId = pipelineContext.defaultClusterId;
+    }
+    getCorrectIteration(cacheId.iteration);
   }
 
   ///

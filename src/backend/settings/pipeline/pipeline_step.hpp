@@ -22,6 +22,7 @@
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
+#include "backend/commands/object_functions/intersection/intersection_settings.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
@@ -50,6 +51,7 @@ public:
   std::optional<ImageFromClassSettings> $imageFromClass = std::nullopt;
   std::optional<ClassifierSettings> $classify           = std::nullopt;
   std::optional<AiClassifierSettings> $aiClassify       = std::nullopt;
+  std::optional<IntersectionSettings> $intersection     = std::nullopt;
 
   //
   // Measurement
@@ -61,7 +63,7 @@ public:
   void check() const override;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass,
-                                              $classify, $aiClassify);
+                                              $classify, $aiClassify, $intersection);
 };
 
 }    // namespace joda::settings

@@ -13,6 +13,8 @@
 
 #include "processor.hpp"
 #include <filesystem>
+#include "backend/enums/enum_objects.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/file_info_images.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
@@ -54,9 +56,10 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
         for(int tStack = 0; tStack < nrtStack; tStack++) {
           for(int zStack = 0; zStack < nrzSTack; zStack++) {
             for(int cStack = 0; cStack < nrcSTack; cStack++) {
-              // Start pipeline
+              // Start pipelines
               for(const auto &pipeline : program.pipelines) {
                 ProcessContext context{.globalContext = globalContext, .imageContext = imageContext};
+
                 imageLoader.initPipeline(pipeline.inputImage, {tilesX, tileY},
                                          joda::enums::IteratorId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
                                          context);
@@ -64,6 +67,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                   // Execute a pipeline step
                   step(context, context.getActImage().image, context.getActObjects());
                 }
+                // Store output of the pipeline for later
+                context.storeObjectsToCache({enums::ClusterId::$, context.getActIterator()}, context.getActObjects());
               }
 
               // Image section finished
