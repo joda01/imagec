@@ -4,7 +4,7 @@
 #include <optional>
 #include <set>
 #include <stdexcept>
-#include "backend/enums/enum_memory.hpp"
+#include "backend/enums/enum_objects.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
@@ -60,21 +60,21 @@ struct PipelineInputImageLoaderSettings : public Setting
   ZProjection zProjection = ZProjection::NONE;
 
   //
-  // If load from memory is selected, which memory slot should be used to load the image from
-  //
-  joda::enums::MemoryId memoryId = joda::enums::MemoryId::M0;
-
-  //
   // Default cluster ID of this pipeline. Can be accessed with $
   //
   enums::ClusterId defaultClusterId = enums::ClusterId::UNDEFINED;
+
+  //
+  // Default object store ID of this pipeline.
+  //
+  enums::ObjectStoreIdx defaultObjectStoreId;
 
   void check() const override
   {
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineInputImageLoaderSettings, source, cStackIndex, tStackIndex,
-                                              zStackIndex, zProjection, memoryId, defaultClusterId);
+                                              zStackIndex, zProjection, defaultClusterId, defaultObjectStoreId);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PipelineInputImageLoaderSettings::Source,

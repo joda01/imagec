@@ -43,10 +43,12 @@ using ClassId    = joda::enums::ClassId;
 class ROI
 {
 public:
-  struct RoiObjectId : public enums::ObjectId
+  struct RoiObjectId
   {
     uint64_t objectId;
+    joda::enums::ClusterId clusterId;
     joda::enums::ClassId classId;
+    joda::enums::IteratorId iteration;
   };
 
   struct Intensity
@@ -221,6 +223,8 @@ private:
 
   // Measurements ///////////////////////////////////////////////////
   std::map<enums::ImageId, Intensity> intensity;
-  std::map<enums::ObjectId, Intersecting> intersectingRois;
+
+#warning "Think about how to idenitfy intersecting count rois"
+  std::map<enums::ClusterId, Intersecting> intersectingRois;
 };
 }    // namespace joda::atom

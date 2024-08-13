@@ -68,7 +68,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                   step(context, context.getActImage().image, context.getActObjects());
                 }
                 // Store output of the pipeline for later
-                context.storeObjectsToCache({enums::ClusterId::$, context.getActIterator()}, context.getActObjects());
+                context.storeObjectsToCache({pipeline.inputImage.defaultObjectStoreId, context.getActIterator()},
+                                            context.getActObjects());
               }
 
               // Image section finished

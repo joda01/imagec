@@ -330,9 +330,11 @@ ROI::calcIntersection(const enums::IteratorId &iterator, const ROI &roi, uint64_
     }
     if(intersectingMask.intersectionArea >= minIntersection) {
       return {ROI{atom::ROI::RoiObjectId{
-                      {.clusterId = objectClusterIntersectingObjectsShouldBeAssignedTo, .iteration = iterator},
-                      indexOfIntersectingRoi,
-                      objectClassIntersectingObjectsShouldBeAssignedTo},
+                      .objectId  = indexOfIntersectingRoi,
+                      .clusterId = objectClusterIntersectingObjectsShouldBeAssignedTo,
+                      .classId   = objectClassIntersectingObjectsShouldBeAssignedTo,
+                      .iteration = iterator,
+                  },
                   intersectingMask.intersectionArea, snapAreaOfIntersectingRoi, intersectingMask.intersectedRect,
                   intersectingMask.intersectedMask, contour, mImageSize},
               true};
@@ -433,15 +435,15 @@ auto ROI::measureIntensityAndAdd(const joda::atom::Image &image) -> Intensity
 ///
 void ROI::measureOverlappingObjectsAndAdd(const ROI &roiOther)
 {
-  const auto &idOther = roiOther.getId();
-
-  if(!intersectingRois.contains(idOther)) {
-    intersectingRois.try_emplace(idOther, Intersecting{});
-  }
-  auto intersectingMask = calcIntersectingMask(roiOther);
-  if(intersectingMask.nrOfIntersectingPixels > 0) {
-    intersectingRois.at(idOther).roiValid.push_back(idOther);
-  }
+  // const auto &idOther = roiOther.getId();
+  //
+  // if(!intersectingRois.contains(idOther)) {
+  //   intersectingRois.try_emplace(idOther, Intersecting{});
+  // }
+  // auto intersectingMask = calcIntersectingMask(roiOther);
+  // if(intersectingMask.nrOfIntersectingPixels > 0) {
+  //   intersectingRois.at(idOther).roiValid.push_back(idOther);
+  // }
 }
 
 }    // namespace joda::atom

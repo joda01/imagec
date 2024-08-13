@@ -92,10 +92,10 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
           // Ready to classify -> First create a ROI object to get the measurements
           //
           joda::atom::ROI detectedRoi(
-              atom::ROI::RoiObjectId{{.clusterId = context.getClusterId(objectClass.noMatchingClusterId),
-                                      .iteration = context.getActIterator()},
-                                     context.acquireNextObjectId(),
-                                     context.getClassId(objectClass.noMatchingClassId)},
+              atom::ROI::RoiObjectId{.objectId  = context.acquireNextObjectId(),
+                                     .clusterId = context.getClusterId(objectClass.noMatchingClusterId),
+                                     .classId   = context.getClassId(objectClass.noMatchingClassId),
+                                     .iteration = context.getActIterator()},
               context.pipelineContext.actImage.appliedMinThreshold, 0, boundingBox, mask, contour,
               context.getImageSize());
 

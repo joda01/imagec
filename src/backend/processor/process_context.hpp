@@ -9,7 +9,6 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-
 ///
 
 #pragma once
@@ -33,7 +32,7 @@
 namespace joda::processor {
 
 using imageCache_t  = std::map<enums::ImageId, std::unique_ptr<joda::atom::Image>>;
-using objectCache_t = std::map<enums::ObjectId, std::unique_ptr<joda::atom::ObjectList>>;
+using objectCache_t = std::map<enums::ObjectStoreId, std::unique_ptr<joda::atom::ObjectList>>;
 
 struct GlobalContext
 {
@@ -102,7 +101,7 @@ struct ProcessContext
     return globalContext.imageCache.at(cacheId).get();
   }
 
-  [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectId cacheId) const
+  [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
   {
     getCorrectObjectId(cacheId);
     return globalContext.objectCache.at(cacheId).get();
@@ -114,8 +113,9 @@ struct ProcessContext
     globalContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::Image>(image));
   }
 
-  void storeObjectsToCache(joda::enums::ObjectId cacheId, const joda::atom::ObjectList &object) const
+  void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const
   {
+#warning "IF cluster ID still exists. Merge or override!?"
     getCorrectObjectId(cacheId);
     globalContext.objectCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ObjectList>());
     globalContext.objectCache.at(cacheId)->cloneFromOther(object);
@@ -146,11 +146,8 @@ struct ProcessContext
   ///             is replaced by the actual index of the process step
   /// \author     Joachim Danmayr
   ///
-  void getCorrectObjectId(joda::enums::ObjectId &cacheId) const
+  void getCorrectObjectId(joda::enums::ObjectStoreId &cacheId) const
   {
-    if(cacheId.clusterId == enums::ClusterId::$) {
-      cacheId.clusterId = pipelineContext.defaultClusterId;
-    }
     getCorrectIteration(cacheId.iteration);
   }
 

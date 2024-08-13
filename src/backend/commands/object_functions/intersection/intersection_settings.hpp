@@ -31,14 +31,14 @@ struct IntersectionSettings : public Setting
     //
     // Input object to intersect with
     //
-    joda::enums::ObjectId objectId;
+    joda::enums::ObjectStoreId objectStore;
 
     //
     // Calc the intersection only with objects of the given classes
     //
     std::set<joda::enums::ClassId> inputObjectClasses;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(IntersectingClasses, objectId, inputObjectClasses);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(IntersectingClasses, objectStore, inputObjectClasses);
   };
 
   //

@@ -44,7 +44,7 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
       return;
     }
 
-    const auto *firstDataBuffer     = context.loadObjectsFromCache(it->objectId);
+    const auto *firstDataBuffer     = context.loadObjectsFromCache(it->objectStore);
     const atom::ObjectList *working = firstDataBuffer;
     atom::ObjectList *resultTemp    = nullptr;
     // Directly write to the output buffer
@@ -63,7 +63,7 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
 
     for(; it != clustersToIntersect.end(); ++it) {
       std::cout << "Intersection iterations " << std::endl;
-      const auto &objects02 = context.loadObjectsFromCache(it->objectId);
+      const auto &objects02 = context.loadObjectsFromCache(it->objectStore);
       working->calcIntersections(context.getActIterator(), *objects02, *resultTemp, objectClassesMe,
                                  it->inputObjectClasses, context.getClusterId(mSettings.outputObjectCluster),
                                  context.getClassId(mSettings.outputObjectClass), context.acquireNextObjectId(), 0,

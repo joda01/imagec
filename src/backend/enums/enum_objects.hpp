@@ -19,16 +19,44 @@
 
 namespace joda::enums {
 
-struct ObjectId
+enum class ObjectStoreIdx : uint16_t
 {
-  joda::enums::ClusterId clusterId;
-  joda::enums::IteratorId iteration = {-1, -1, -1};
+  M0   = 0,
+  M1   = 1,
+  M2   = 2,
+  M3   = 3,
+  M4   = 4,
+  M5   = 5,
+  M6   = 6,
+  M7   = 7,
+  M8   = 8,
+  M9   = 9,
+  NONE = 0xFFFE,
+};
 
-  bool operator<(const ObjectId &in) const
+NLOHMANN_JSON_SERIALIZE_ENUM(ObjectStoreIdx, {{ObjectStoreIdx::NONE, "None"},
+                                              {ObjectStoreIdx::M0, "M0"},
+                                              {ObjectStoreIdx::M1, "M1"},
+                                              {ObjectStoreIdx::M2, "M2"},
+                                              {ObjectStoreIdx::M3, "M3"},
+                                              {ObjectStoreIdx::M4, "M4"},
+                                              {ObjectStoreIdx::M5, "M5"},
+                                              {ObjectStoreIdx::M6, "M6"},
+                                              {ObjectStoreIdx::M7, "M7"},
+                                              {ObjectStoreIdx::M8, "M8"},
+                                              {ObjectStoreIdx::M9, "M9"}});
+
+struct ObjectStoreId
+{
+  joda::enums::ObjectStoreIdx storeIdx = joda::enums::ObjectStoreIdx::NONE;
+  joda::enums::IteratorId iteration    = {-1, -1, -1};
+
+  bool operator<(const ObjectStoreId &in) const
   {
-    return clusterId < in.clusterId && iteration < in.iteration;
+    return storeIdx < in.storeIdx && iteration < in.iteration;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectId, clusterId, iteration);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectStoreId, storeIdx, iteration);
 };
+
 }    // namespace joda::enums
