@@ -41,9 +41,9 @@ struct AiClassifierSettings : public Setting
   int32_t numberOfClasses = 1;
 
   //
-  // Key is the class ID used by the AI model starting with 0
+  // Vector array index is the class ID used by the AI model starting with 0
   //
-  std::map<int32_t, ObjectClass> objectClasses;
+  std::vector<ObjectClass> objectClasses;
 
   /////////////////////////////////////////////////////
   void check() const override

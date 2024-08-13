@@ -1,39 +1,49 @@
 {
     "projectSettings": {
-        "clusters": {
-            "A": {
+        "clusters": [
+            {
+                "clusterId": "A",
                 "name": "CY5"
             },
-            "B": {
+            {
+                "clusterId": "B",
                 "name": "CY7"
             },
-            "C": {
+            {
+                "clusterId": "C",
                 "name": "cell area"
             },
-            "D": {
+            {
+                "clusterId": "D",
                 "name": "coloc cy5-cy7"
             }
-        },
-        "classes": {
-            "0": {
+        ],
+        "classes": [
+            {
+                "classId": "A",
                 "name": "EV"
             },
-            "1": {
+            {
+                "classId": "A",
                 "name": "cell"
             },
-            "2": {
+            {
+                "classId": "A",
                 "name": "background"
             },
-            "3": {
+            {
+                "classId": "A",
                 "name": "ev in cell"
             },
-            "4": {
+            {
+                "classId": "A",
                 "name": "coloc"
             },
-            "5": {
+            {
+                "classId": "A",
                 "name": "Invalid"
             }
-        }
+        ]
     },
     "images": {
         "zStackHandling": "IntensityProjection",
@@ -43,9 +53,11 @@
     },
     "pipelines": [
         {
-            "channelLoader": {
-                "imageChannelIndex": "CH_03",
-                "zProjection": "MaxIntensity"
+            "inputImage": {
+                "source": "FromFile",
+                "cStackIndex": 3,
+                "zProjection": "MaxIntensity",
+                "defaultClusterId": "C"
             },
             "pipelineSteps": [
                 {
@@ -79,14 +91,20 @@
                     "$classify": {
                         "objectClasses": [
                             {
-                                "classId": "CL_00",
+                                "noMatchingClusterId": "$",
+                                "noMatchingClassId": "None",
+                                "modelClassId": 65535,
                                 "grayscaleValue": 65535,
-                                "filter": {
-                                    "minParticleSize": 0,
-                                    "maxParticleSize": -1,
-                                    "minCircularity": 0,
-                                    "snapAreaSize": 0
-                                }
+                                "filters": [
+                                    {
+                                        "clusterId": "$",
+                                        "classId": "0",
+                                        "minParticleSize": -1,
+                                        "maxParticleSize": -1,
+                                        "minCircularity": 0,
+                                        "snapAreaSize": 0
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -94,7 +112,7 @@
                 {
                     "$imageFromClass": {
                         "objectClasses": [
-                            "CL_00"
+                            "0"
                         ]
                     }
                 },
@@ -108,8 +126,10 @@
         },
         {
             "channelLoader": {
-                "imageChannelIndex": "CH_04",
-                "zProjection": "MaxIntensity"
+                "source": "FromFile",
+                "cStackIndex": 4,
+                "zProjection": "MaxIntensity",
+                "defaultClusterId": "C"
             },
             "pipelineSteps": [
                 {

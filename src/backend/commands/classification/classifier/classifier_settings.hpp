@@ -28,7 +28,7 @@ struct ClassifierSettings : public Setting
   //
   // The grayscale value which should be associated to the class (default = 65535)
   //
-  std::map<int32_t, ObjectClass> objectClasses;
+  std::vector<ObjectClass> objectClasses;
 
   /////////////////////////////////////////////////////
   void check() const override

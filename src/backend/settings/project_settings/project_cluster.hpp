@@ -15,12 +15,15 @@
 
 #include <set>
 #include <vector>
+#include "backend/enums/enums_clusters.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
 
 struct Cluster
 {
+  joda::enums::ClusterId clusterId;
+
   //
   //  Display name of the object class
   //
@@ -36,7 +39,7 @@ struct Cluster
   //
   std::string color;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Cluster, name, notes, color);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Cluster, clusterId, name, notes, color);
 };
 
 }    // namespace joda::settings

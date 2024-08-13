@@ -41,7 +41,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
 
   for(const auto &imagePath : images.getFilesList()) {
     ImageContext imageContext;
-    PipelineInitializer imageLoader(program.images, imagePath.getFilePath(), imageContext);
+    PipelineInitializer imageLoader(program.images, imagePath.getFilePath(), imageContext, globalContext);
 
     auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
     auto nrtStack         = imageLoader.getNrOfTStacksToProcess();

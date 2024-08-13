@@ -18,6 +18,7 @@
 #include <utility>
 #include "backend/enums/enum_images.hpp"
 #include "backend/helper/reader/image_reader.hpp"
+#include "backend/processor/process_context.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
 
@@ -32,12 +33,14 @@ namespace joda::processor {
 ///
 PipelineInitializer::PipelineInitializer(const settings::PipelineInitializerSettings &settings,
                                          const std::filesystem::path &imagePath,
-                                         processor::ImageContext &imageContextOut) :
+                                         processor::ImageContext &imageContextOut,
+                                         processor::GlobalContext &globalContextOut) :
     mSettings(settings),
     mImageContext(imageContextOut)
 {
-  imageContextOut.imageMeta = joda::image::reader::ImageReader::getOmeInformation(imagePath.string());
-  imageContextOut.imagePath = imagePath;
+  imageContextOut.imageMeta            = joda::image::reader::ImageReader::getOmeInformation(imagePath.string());
+  imageContextOut.imagePath            = imagePath;
+  globalContextOut.resultsOutputFolder = std::filesystem::path(settings.resultsOutputFolder);
 
   switch(settings.tStackHandling) {
     case settings::PipelineInitializerSettings::TStackHandling::EXACT_ONE:
@@ -155,6 +158,8 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineInputImageL
     }
 
     cv::Mat &contextImage = processStepOut.getActImage().image;
+
+    contextImage = loadImage(z, c, t);
 
     //
     // Do z -projection if activated

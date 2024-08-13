@@ -13,12 +13,15 @@
 
 #include <set>
 #include <vector>
+#include "backend/enums/enums_classes.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
 
 struct Class
 {
+  joda::enums::ClassId classId;
+
   //
   //  Display name of the object class
   //
@@ -34,7 +37,7 @@ struct Class
   //
   std::string color;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Class, name, notes, color);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Class, classId, name, notes, color);
 };
 
 }    // namespace joda::settings

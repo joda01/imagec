@@ -100,7 +100,12 @@ struct ObjectClass
   //
   joda::enums::ClassId noMatchingClassId = joda::enums::ClassId::NONE;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, filters, noMatchingClassId);
+  //
+  // Grayscale or object class id from moded
+  //
+  int32_t modelClassId;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, filters, noMatchingClassId, modelClassId);
 };
 
 }    // namespace joda::settings

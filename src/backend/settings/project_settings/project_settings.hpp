@@ -45,12 +45,12 @@ public:
   //
   // Object clusters used in this project
   //
-  std::map<joda::enums::ClusterId, Cluster> clusters;
+  std::vector<Cluster> clusters;
 
   //
   // Object classes used in this project
   //
-  std::map<joda::enums::ClassId, Class> classes;
+  std::vector<Class> classes;
 
   //
   // Working directory
