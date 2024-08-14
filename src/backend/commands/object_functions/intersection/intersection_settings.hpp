@@ -37,7 +37,6 @@ struct IntersectionSettings : public Setting
     // Input object to intersect with
     //
     joda::enums::ClusterId inputObjectCluster;
-    ;
 
     //
     // Calc the intersection only with objects of the given classes
@@ -53,7 +52,7 @@ struct IntersectionSettings : public Setting
   float minIntersection = 0.1F;
 
   //
-  // Resulting object class of the intersecting objects
+  // Resulting object cluster of the intersecting objects
   //
   joda::enums::ClusterId outputObjectCluster = joda::enums::ClusterId::$;
 

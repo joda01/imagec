@@ -427,23 +427,4 @@ auto ROI::measureIntensityAndAdd(const joda::atom::Image &image) -> Intensity
   return intensity[image.getId()];
 }
 
-///
-/// \brief      Check if the given ROI is intersecting with this ROI and adds it to the intersecting map
-/// \author     Joachim Danmayr
-/// \param[in]  channelIdx   Channel index of the given image
-/// \param[in]  roi   ROI to calc the intersection with
-///
-void ROI::measureOverlappingObjectsAndAdd(const ROI &roiOther)
-{
-  // const auto &idOther = roiOther.getId();
-  //
-  // if(!intersectingRois.contains(idOther)) {
-  //   intersectingRois.try_emplace(idOther, Intersecting{});
-  // }
-  // auto intersectingMask = calcIntersectingMask(roiOther);
-  // if(intersectingMask.nrOfIntersectingPixels > 0) {
-  //   intersectingRois.at(idOther).roiValid.push_back(idOther);
-  // }
-}
-
 }    // namespace joda::atom

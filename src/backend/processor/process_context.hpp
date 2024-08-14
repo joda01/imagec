@@ -108,7 +108,7 @@ struct ProcessContext
 
   [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
   {
-    if(cacheId.storeIdx == enums::ObjectStoreIdx::$) {
+    if(cacheId.storeIdx == enums::MemoryIdx::$) {
       return &iterationContext.actObjects;
     }
     getCorrectObjectId(cacheId);

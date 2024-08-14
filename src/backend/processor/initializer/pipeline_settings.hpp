@@ -67,7 +67,7 @@ struct PipelineSettings : public Setting
   //
   // Default object store ID of this pipeline.
   //
-  enums::ObjectStoreIdx defaultObjectStoreId;
+  enums::MemoryIdx defaultObjectStoreId;
 
   void check() const override
   {

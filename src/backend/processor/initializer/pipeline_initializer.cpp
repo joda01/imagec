@@ -132,7 +132,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   //
   processStepOut.pipelineContext.defaultClusterId = pipelineSetup.defaultClusterId;
   processStepOut.pipelineContext.actImage.setId(
-      {.imageIdx = joda::enums::ImageIdx::I0, .iteration{.tStack = t, .zStack = z, .cStack = c}}, tile);
+      {.imageIdx = joda::enums::MemoryIdx::M0, .iteration{.tStack = t, .zStack = z, .cStack = c}}, tile);
 
   //
   // Load from image file

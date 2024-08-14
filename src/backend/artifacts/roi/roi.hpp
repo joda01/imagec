@@ -49,6 +49,11 @@ public:
     joda::enums::ClusterId clusterId;
     joda::enums::ClassId classId;
     joda::enums::IteratorId iteration;
+
+    bool operator<(const RoiObjectId &in) const
+    {
+      return objectId < in.objectId;
+    }
   };
 
   struct Intensity
@@ -160,11 +165,6 @@ public:
     return intensity;
   }
 
-  [[nodiscard]] const auto &getIntersectingRois() const
-  {
-    return intersectingRois;
-  }
-
   [[nodiscard]] uint64_t getAreaSize() const
   {
     return mAreaSize;
@@ -188,9 +188,12 @@ public:
 
   auto measureIntensityAndAdd(const joda::atom::Image &image) -> Intensity;
 
-  void measureOverlappingObjectsAndAdd(const ROI &roiOuter);
-
   [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;
+
+  void addIntersectingRoi(const ROI *roi)
+  {
+    mIntersectingRois.emplace(roi->mId);
+  }
 
 private:
   /////////////////////////////////////////////////////
@@ -228,8 +231,6 @@ private:
 
   // Measurements ///////////////////////////////////////////////////
   std::map<enums::ImageId, Intensity> intensity;
-
-#warning "Think about how to idenitfy intersecting count rois"
-  std::map<enums::ClusterId, Intersecting> intersectingRois;
+  std::set<RoiObjectId> mIntersectingRois;
 };
 }    // namespace joda::atom
