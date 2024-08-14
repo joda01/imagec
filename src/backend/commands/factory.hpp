@@ -41,7 +41,7 @@ public:
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
     CMD func(mSetting);
-    func.execute(context, image, result);
+    func(context, image, result);
   }
 
 private:

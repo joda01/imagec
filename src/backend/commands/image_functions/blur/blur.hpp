@@ -43,7 +43,6 @@ public:
   }
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto id = DurationCount::start("Blur");
     int kernel[3]{0};    //= {-1, -1, -1, -1, 12, -1, -1, -1, -1};
     for(int n = 0; n < mRepeat; n++) {
       if(mKernelSize == 3) {
@@ -52,7 +51,6 @@ public:
         cv::blur(image, image, cv::Size(mKernelSize, mKernelSize));
       }
     }
-    DurationCount::stop(id);
   }
 
 private:

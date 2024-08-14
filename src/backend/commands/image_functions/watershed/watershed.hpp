@@ -40,7 +40,6 @@ public:
   virtual ~Watershed() = default;
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto idStart = DurationCount::start("Watershed");
     image.convertTo(image, CV_8UC1, 1.0F / 257.0F);
     auto floatEdm = joda::image::func::Edm::makeFloatEDM(image, 0, false);
     joda::image::func::MaximumFinder find;
@@ -49,7 +48,6 @@ public:
                         joda::image::func::MaximumFinder::SEGMENTED, false, true);
     cv::bitwise_and(maxIp, image, image);
     image.convertTo(image, CV_16UC1, (float) UINT16_MAX / (float) UINT8_MAX);
-    DurationCount::stop(idStart);
   }
 
 private:

@@ -71,7 +71,6 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
   const cv::Mat &inputImageOriginal = imageNotUse;
-  auto id                           = DurationCount::start("AiClassifier");
 
   // Normalize the pixel values to [0, 255] float for detection
   cv::Mat grayImageFloat;
@@ -205,8 +204,6 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
       }
     }
   }
-
-  DurationCount::stop(id);
 }
 
 ///

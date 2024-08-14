@@ -39,11 +39,8 @@ public:
   }
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto id = DurationCount::start("ImageFromClass");
-    image   = 0;
+    image = 0;
     result.at(context.getClusterId(mSettings.objectCluster)).createBinaryImage(image, mSettings.objectClasses);
-
-    DurationCount::stop(id);
   }
 
 private:

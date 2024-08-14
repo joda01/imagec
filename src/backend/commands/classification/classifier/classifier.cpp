@@ -46,8 +46,6 @@ Classifier::Classifier(const settings::ClassifierSettings &settings) : mSettings
 ///
 void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, atom::ObjectList &result)
 {
-  auto id = DurationCount::start("Classifier");
-
   const cv::Mat &image = imageIn;
 
   //
@@ -113,8 +111,6 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
       }
     }
   }
-
-  DurationCount::stop(id);
 }
 
 }    // namespace joda::cmd

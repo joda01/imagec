@@ -47,15 +47,13 @@ public:
 
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto idStart                            = DurationCount::start("Threshold");
     auto [thresholdValMin, thresholdValMax] = autoThreshold(image);
     cv::Mat thresholdImg(image.size(), CV_16UC1);
     cv::threshold(image, thresholdImg, thresholdValMin, UINT16_MAX, cv::THRESH_BINARY);
     cv::Mat thresholdTmp;
     cv::threshold(image, thresholdTmp, thresholdValMax, UINT16_MAX, cv::THRESH_BINARY_INV);
     cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
-    image = std::move(thresholdImg);
-    DurationCount::stop(idStart);
+    image                                                = std::move(thresholdImg);
     context.pipelineContext.actImage.appliedMinThreshold = thresholdValMin;
     context.pipelineContext.actImage.appliedMaxThreshold = thresholdValMax;
   }

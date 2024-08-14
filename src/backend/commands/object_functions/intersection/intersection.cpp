@@ -28,8 +28,6 @@ Intersection::Intersection(const settings::IntersectionSettings &settings) : mSe
 
 void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
-  auto id = DurationCount::start("Intersection");
-
   const auto &clustersToIntersect = mSettings.inputObjectClusters;
   size_t intersectCount           = clustersToIntersect.size();
   try {
@@ -41,7 +39,6 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
 
     if(intersectCount == 1) {
       joda::log::logWarning("At least two channels must be given to calc intersection!");
-      DurationCount::stop(id);
       return;
     }
     atom::SpheralIndex &result = resultIn[context.getClusterId(mSettings.outputObjectCluster)];
@@ -95,8 +92,6 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
   } catch(const std::exception &ex) {
     joda::log::logWarning("Object with ID >< does not exist! What: " + std::string(ex.what()));
   }
-
-  DurationCount::stop(id);
 }
 /*
 cv::Mat intersectingMask =

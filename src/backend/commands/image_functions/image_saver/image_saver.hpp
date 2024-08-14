@@ -46,8 +46,6 @@ public:
   }
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto id = DurationCount::start("Save");
-
     auto parentPath = context.globalContext.resultsOutputFolder;
     auto fileName   = context.imageContext.imagePath.stem();
 
@@ -65,8 +63,6 @@ public:
     cv::Mat img_8bit_color;
     cvtColor(img_8bit_gray, img_8bit_color, cv::COLOR_GRAY2BGR);
     cv::imwrite(saveName.string(), img_8bit_color);
-
-    DurationCount::stop(id);
   }
 
 private:
