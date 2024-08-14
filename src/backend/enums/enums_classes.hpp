@@ -82,4 +82,23 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ClassIdIn, {{ClassIdIn::NONE, "None"},
                                          {ClassIdIn::C15, "C15"},
                                          {ClassIdIn::C16, "C16"}});
 
+NLOHMANN_JSON_SERIALIZE_ENUM(ClassId, {{ClassId::NONE, "None"},
+                                       {ClassId::C0, "C0"},
+                                       {ClassId::C1, "C1"},
+                                       {ClassId::C2, "C2"},
+                                       {ClassId::C3, "C3"},
+                                       {ClassId::C4, "C4"},
+                                       {ClassId::C5, "C5"},
+                                       {ClassId::C6, "C6"},
+                                       {ClassId::C7, "C7"},
+                                       {ClassId::C8, "C8"},
+                                       {ClassId::C9, "C9"},
+                                       {ClassId::C10, "C10"},
+                                       {ClassId::C11, "C11"},
+                                       {ClassId::C12, "C12"},
+                                       {ClassId::C13, "C13"},
+                                       {ClassId::C14, "C14"},
+                                       {ClassId::C15, "C15"},
+                                       {ClassId::C16, "C16"}});
+
 }    // namespace joda::enums

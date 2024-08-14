@@ -77,4 +77,25 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ClusterIdIn, {
                                               {ClusterIdIn::Q, "Q"},
                                           });
 
+NLOHMANN_JSON_SERIALIZE_ENUM(ClusterId, {
+                                            {ClusterId::NONE, "None"},
+                                            {ClusterId::A, "A"},
+                                            {ClusterId::B, "B"},
+                                            {ClusterId::C, "C"},
+                                            {ClusterId::D, "D"},
+                                            {ClusterId::E, "E"},
+                                            {ClusterId::F, "F"},
+                                            {ClusterId::G, "G"},
+                                            {ClusterId::H, "H"},
+                                            {ClusterId::I, "I"},
+                                            {ClusterId::J, "J"},
+                                            {ClusterId::K, "K"},
+                                            {ClusterId::L, "L"},
+                                            {ClusterId::M, "M"},
+                                            {ClusterId::N, "N"},
+                                            {ClusterId::O, "O"},
+                                            {ClusterId::P, "P"},
+                                            {ClusterId::Q, "Q"},
+                                        });
+
 }    // namespace joda::enums

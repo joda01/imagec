@@ -60,4 +60,17 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MemoryIdxIn, {{MemoryIdxIn::M0, "M0"},
                                            {MemoryIdxIn::M9, "M9"},
                                            {MemoryIdxIn::$, "$"}});
 
+NLOHMANN_JSON_SERIALIZE_ENUM(MemoryIdx, {
+                                            {MemoryIdx::M0, "M0"},
+                                            {MemoryIdx::M1, "M1"},
+                                            {MemoryIdx::M2, "M2"},
+                                            {MemoryIdx::M3, "M3"},
+                                            {MemoryIdx::M4, "M4"},
+                                            {MemoryIdx::M5, "M5"},
+                                            {MemoryIdx::M6, "M6"},
+                                            {MemoryIdx::M7, "M7"},
+                                            {MemoryIdx::M8, "M8"},
+                                            {MemoryIdx::M9, "M9"},
+                                        });
+
 }    // namespace joda::enums
