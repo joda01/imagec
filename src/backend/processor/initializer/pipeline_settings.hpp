@@ -62,7 +62,7 @@ struct PipelineSettings : public Setting
   //
   // Default cluster ID of this pipeline. Can be accessed with $
   //
-  enums::ClusterId defaultClusterId = enums::ClusterId::UNDEFINED;
+  enums::ClusterIdIn defaultClusterId = enums::ClusterIdIn::NONE;
 
   //
   // Default object store ID of this pipeline.

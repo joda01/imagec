@@ -108,7 +108,7 @@ struct ProcessContext
 
   [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
   {
-    if(cacheId.storeIdx == enums::MemoryIdx::$) {
+    if(cacheId.storeIdx == enums::MemoryIdxIn::$) {
       return &iterationContext.actObjects;
     }
     getCorrectObjectId(cacheId);
@@ -144,14 +144,14 @@ struct ProcessContext
     return globalContext.nextObjectId();
   }
 
-  [[nodiscard]] enums::ClusterId getClusterId(enums::ClusterId in) const
+  [[nodiscard]] enums::ClusterId getClusterId(enums::ClusterIdIn in) const
   {
-    return in != enums::ClusterId::$ ? in : pipelineContext.defaultClusterId;
+    return in != enums::ClusterIdIn::$ ? static_cast<enums::ClusterId>(in) : pipelineContext.defaultClusterId;
   }
 
-  [[nodiscard]] enums::ClassId getClassId(enums::ClassId in) const
+  [[nodiscard]] enums::ClassId getClassId(enums::ClassIdIn in) const
   {
-    return in != enums::ClassId::$ ? in : enums::ClassId::NONE;
+    return in != enums::ClassIdIn::$ ? static_cast<enums::ClassId>(in) : enums::ClassId::NONE;
   }
 
   ///

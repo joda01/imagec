@@ -22,7 +22,7 @@ namespace joda::enums {
 
 struct ObjectStoreId
 {
-  joda::enums::MemoryIdx storeIdx   = joda::enums::MemoryIdx::NONE;
+  joda::enums::MemoryIdxIn storeIdx = joda::enums::MemoryIdxIn::M0;
   joda::enums::IteratorId iteration = {-1, -1, -1};
 
   bool operator<(const ObjectStoreId &in) const

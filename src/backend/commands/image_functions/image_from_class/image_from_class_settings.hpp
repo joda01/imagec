@@ -15,7 +15,7 @@ public:
   //
   // Object classes to extract
   //
-  joda::enums::ClusterId objectCluster = joda::enums::ClusterId::$;
+  joda::enums::ClusterIdIn objectCluster = joda::enums::ClusterIdIn::$;
 
   //
   // Object classes to extract

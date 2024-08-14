@@ -15,8 +15,10 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <utility>
 #include "backend/enums/enum_images.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/processor/process_context.hpp"
 #include <opencv2/core/mat.hpp>
@@ -130,7 +132,10 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   //
   // Write context
   //
-  processStepOut.pipelineContext.defaultClusterId = pipelineSetup.defaultClusterId;
+  if(pipelineSetup.defaultClusterId == enums::ClusterIdIn::$) {
+    throw std::invalid_argument("Default cluster ID must not be >$<.");
+  }
+  processStepOut.pipelineContext.defaultClusterId = static_cast<enums::ClusterId>(pipelineSetup.defaultClusterId);
   processStepOut.pipelineContext.actImage.setId(
       {.imageIdx = joda::enums::MemoryIdx::M0, .iteration{.tStack = t, .zStack = z, .cStack = c}}, tile);
 

@@ -54,12 +54,12 @@ struct IntersectionSettings : public Setting
   //
   // Resulting object cluster of the intersecting objects
   //
-  joda::enums::ClusterId outputObjectCluster = joda::enums::ClusterId::$;
+  joda::enums::ClusterIdIn outputObjectCluster = joda::enums::ClusterIdIn::$;
 
   //
   // Resulting object class of the intersecting objects
   //
-  joda::enums::ClassId outputObjectClass = joda::enums::ClassId::UNDEFINED;
+  joda::enums::ClassIdIn outputObjectClass = joda::enums::ClassIdIn::NONE;
 
   //
   // List of channels to calc the intersection for

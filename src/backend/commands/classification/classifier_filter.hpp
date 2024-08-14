@@ -46,12 +46,12 @@ struct ClassifierFilter
   //
   // Cluster the objects should be assigned if filter matches
   //
-  joda::enums::ClusterId clusterId = joda::enums::ClusterId::NONE;
+  joda::enums::ClusterIdIn clusterId = joda::enums::ClusterIdIn::NONE;
 
   //
   // Class the objects should be assigned if filter matches
   //
-  joda::enums::ClassId classId = joda::enums::ClassId::NONE;
+  joda::enums::ClassIdIn classId = joda::enums::ClassIdIn::NONE;
 
   int32_t minParticleSize = -1;
   int32_t maxParticleSize = -1;
@@ -93,12 +93,12 @@ struct ObjectClass
   //
   // If no filter matches this class is assigned to the object
   //
-  joda::enums::ClusterId noMatchingClusterId = joda::enums::ClusterId::$;
+  joda::enums::ClusterIdIn noMatchingClusterId = joda::enums::ClusterIdIn::$;
 
   //
   // If no filter matches this class is assigned to the object
   //
-  joda::enums::ClassId noMatchingClassId = joda::enums::ClassId::NONE;
+  joda::enums::ClassIdIn noMatchingClassId = joda::enums::ClassIdIn::NONE;
 
   //
   // Grayscale or object class id from moded
