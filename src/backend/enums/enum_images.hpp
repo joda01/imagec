@@ -21,7 +21,7 @@ namespace joda::enums {
 
 struct ImageId
 {
-  MemoryIdx imageIdx                = MemoryIdx::M0;
+  MemoryIdxIn imageIdx              = MemoryIdxIn::$;
   joda::enums::IteratorId iteration = {-1, -1, -1};
 
   bool operator<(const ImageId &in) const

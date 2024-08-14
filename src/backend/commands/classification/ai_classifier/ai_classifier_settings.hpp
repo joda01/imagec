@@ -31,27 +31,32 @@ struct AiClassifierSettings : public Setting
   std::string modelPath;
 
   //
+  // Number of classes the AI model was trained with
+  //
+  int32_t numberOfModelClasses = 0;
+
+  //
   // Default class threshold used to mark an object as object
   //
   float classThreshold = 0.5;
 
   //
-  // Number of classes the AI model was trained with
-  //
-  int32_t numberOfClasses = 1;
-
-  //
   // Vector array index is the class ID used by the AI model starting with 0
   //
-  std::vector<ObjectClass> objectClasses;
+  std::vector<ObjectClass> classifiers;
 
   /////////////////////////////////////////////////////
   void check() const override
   {
+    CHECK(!modelPath.empty(), "A AI model path must be given!");
+    CHECK(std::filesystem::exists(modelPath), "AI model >" + modelPath + "< cannot be opened!");
+    CHECK(classThreshold >= 0, "Class threshold must be >0.");
+    CHECK(numberOfModelClasses > 0, "Number of model classes be >0.");
+    CHECK(!classifiers.empty(), "At least one classifier must be given!");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiClassifierSettings, modelPath, classThreshold, numberOfClasses,
-                                              objectClasses);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiClassifierSettings, modelPath, classThreshold, numberOfModelClasses,
+                                              classifiers);
 };
 
 }    // namespace joda::settings

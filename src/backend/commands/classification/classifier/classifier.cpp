@@ -51,7 +51,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
   //
   // Iterate over each defined grayscale value
   //
-  for(const auto &objectClass : mSettings.objectClasses) {
+  for(const auto &objectClass : mSettings.classifiers) {
     // Create a mask where pixels with value 1 are set to 255
     cv::Mat binaryImage(image.size(), CV_8UC1);
     binaryImage = image == objectClass.modelClassId;
@@ -91,18 +91,18 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
           //
           joda::atom::ROI detectedRoi(
               atom::ROI::RoiObjectId{.objectId  = context.acquireNextObjectId(),
-                                     .clusterId = context.getClusterId(objectClass.noMatchingClusterId),
-                                     .classId   = context.getClassId(objectClass.noMatchingClassId),
+                                     .clusterId = context.getClusterId(objectClass.clusterOutNoMatch),
+                                     .classId   = context.getClassId(objectClass.classOutNoMatch),
                                      .iteration = context.getActIterator()},
               context.pipelineContext.actImage.appliedMinThreshold, 0, boundingBox, mask, contour,
               context.getImageSize());
 
           for(const auto &filter : objectClass.filters) {
-            const auto &cachedImage = context.loadImageFromCache(filter.intensity->imageId);
+            const auto &cachedImage = context.loadImageFromCache(filter.intensity->imageIn);
             // If filter matches assign the new cluster and class to the ROI
             if(filter.doesFilterMatch(detectedRoi, *cachedImage)) {
-              detectedRoi.setClusterAndClass(context.getClusterId(filter.clusterId),
-                                             context.getClassId(filter.classId));
+              detectedRoi.setClusterAndClass(context.getClusterId(filter.clusterOut),
+                                             context.getClassId(filter.classOut));
             }
           }
           result.push_back(detectedRoi);

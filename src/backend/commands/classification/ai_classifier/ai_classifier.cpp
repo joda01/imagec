@@ -34,7 +34,7 @@ using namespace cv::dnn;
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
 AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
-    mSettings(settings), mNumberOfClasses(settings.numberOfClasses), mClassThreshold(settings.classThreshold),
+    mSettings(settings), mNumberOfClasses(settings.numberOfModelClasses), mClassThreshold(settings.classThreshold),
     mNmsScoreThreshold(settings.classThreshold * BOX_THRESHOLD)
 {
   mNet        = cv::dnn::readNet(settings.modelPath);
@@ -183,23 +183,23 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     //
     // Apply the filter based on the object class
     //
-    if(mSettings.objectClasses.size() > classId) {
-      const auto &objectClass = mSettings.objectClasses.at(classId);
+    if(mSettings.classifiers.size() > classId) {
+      const auto &objectClass = mSettings.classifiers.at(classId);
 
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{
               .objectId  = context.acquireNextObjectId(),
-              .clusterId = context.getClusterId(objectClass.noMatchingClusterId),
-              .classId   = context.getClassId(objectClass.noMatchingClassId),
+              .clusterId = context.getClusterId(objectClass.clusterOutNoMatch),
+              .classId   = context.getClassId(objectClass.classOutNoMatch),
               .iteration = context.getActIterator(),
           },
           context.pipelineContext.actImage.appliedMinThreshold, 0, box, mask, contours[idxMax], context.getImageSize());
 
       for(const auto &filter : objectClass.filters) {
-        const auto &cachedImage = context.loadImageFromCache(filter.intensity->imageId);
+        const auto &cachedImage = context.loadImageFromCache(filter.intensity->imageIn);
         // If filter matches assign the new cluster and class to the ROI
         if(filter.doesFilterMatch(detectedRoi, *cachedImage)) {
-          detectedRoi.setClusterAndClass(context.getClusterId(filter.clusterId), context.getClassId(filter.classId));
+          detectedRoi.setClusterAndClass(context.getClusterId(filter.clusterOut), context.getClassId(filter.classOut));
         }
       }
     }

@@ -16,19 +16,20 @@
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
 
-struct ClassifierFilter
+struct ClassifierFilter : public Setting
 {
-  struct IntensityFilter
+  struct IntensityFilter : public Setting
   {
     //
     // Which image should be used for measure the intensity value.
     // If not specified the initial image of the actual pipeline step is used.
     //
-    enums::ImageId imageId;
+    enums::ImageId imageIn;
 
     //
     // Min intensity
@@ -40,28 +41,55 @@ struct ClassifierFilter
     //
     uint16_t maxIntensity = UINT16_MAX;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntensityFilter, minIntensity, maxIntensity);
+    void check() const override
+    {
+      CHECK(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntensityFilter, imageIn, minIntensity, maxIntensity);
   };
 
   //
   // Cluster the objects should be assigned if filter matches
   //
-  joda::enums::ClusterIdIn clusterId = joda::enums::ClusterIdIn::NONE;
+  joda::enums::ClusterIdIn clusterOut = joda::enums::ClusterIdIn::$;
 
   //
   // Class the objects should be assigned if filter matches
   //
-  joda::enums::ClassIdIn classId = joda::enums::ClassIdIn::NONE;
+  joda::enums::ClassIdIn classOut = joda::enums::ClassIdIn::NONE;
 
+  //
+  //
+  //
   int32_t minParticleSize = -1;
+
+  //
+  //
+  //
   int32_t maxParticleSize = -1;
-  float minCircularity    = 0;
-  float snapAreaSize      = 0;
+
+  //
+  //
+  //
+  float minCircularity = 0;
+
+  //
+  //
+  //
+  float snapAreaSize = 0;
 
   //
   // Use an intensity filter for classification
   //
   std::optional<IntensityFilter> intensity;
+
+  void check() const override
+  {
+    CHECK(maxParticleSize > minParticleSize, "Max particle size must be bigger than min particle size!");
+    CHECK(minCircularity >= 0 && minCircularity <= 1, "Min circularity must be in range [0-1].");
+    CHECK(snapAreaSize >= 0, "Snap area size must be > 0.");
+  }
 
   bool doesFilterMatch(atom::ROI &roi, const joda::atom::Image &image) const
   {
@@ -80,32 +108,38 @@ struct ClassifierFilter
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClassifierFilter, minParticleSize, maxParticleSize, minCircularity,
-                                              snapAreaSize, intensity, clusterId, classId);
+                                              snapAreaSize, intensity, clusterOut, classOut);
 };
 
-struct ObjectClass
+struct ObjectClass : public Setting
 {
   //
-  // Classification filters
+  // Classifies objects based on object properties
   //
   std::vector<ClassifierFilter> filters;
 
   //
   // If no filter matches this class is assigned to the object
   //
-  joda::enums::ClusterIdIn noMatchingClusterId = joda::enums::ClusterIdIn::$;
+  joda::enums::ClusterIdIn clusterOutNoMatch = joda::enums::ClusterIdIn::$;
 
   //
   // If no filter matches this class is assigned to the object
   //
-  joda::enums::ClassIdIn noMatchingClassId = joda::enums::ClassIdIn::NONE;
+  joda::enums::ClassIdIn classOutNoMatch = joda::enums::ClassIdIn::NONE;
 
   //
-  // Grayscale or object class id from moded
+  // Grayscale or object class id from model
   //
-  int32_t modelClassId;
+  int32_t modelClassId = -1;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, filters, noMatchingClassId, modelClassId);
+  void check() const override
+  {
+    CHECK(!filters.empty(), "At least one classification filter must be given!");
+    CHECK(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, filters, clusterOutNoMatch, classOutNoMatch, modelClassId);
 };
 
 }    // namespace joda::settings

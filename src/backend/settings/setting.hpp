@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -24,16 +25,30 @@ namespace joda::settings {
 class Setting
 {
 public:
+  Setting()
+  {
+    settings.emplace_back(this);
+  }
   /////////////////////////////////////////////////////
   virtual void check() const = 0;
 
 protected:
+  void CHECK(bool okay, const std::string &what) const
+  {
+    if(!okay) {
+      throwError(what);
+    }
+  }
+
   /////////////////////////////////////////////////////
   void throwError(const std::string &what) const
   {
     const auto name = std::string(typeid(*this).name());
     throw std::invalid_argument(static_cast<std::string>(name + "::" + what));
   }
+
+private:
+  static inline std::vector<Setting *> settings;
 };
 
 }    // namespace joda::settings
