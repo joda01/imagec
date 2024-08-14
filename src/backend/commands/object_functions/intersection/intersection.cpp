@@ -14,6 +14,7 @@
 #include "intersection.hpp"
 #include <cstddef>
 #include <optional>
+#include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -25,7 +26,7 @@ Intersection::Intersection(const settings::IntersectionSettings &settings) : mSe
 {
 }
 
-void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
+void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
   auto id = DurationCount::start("Intersection");
 
@@ -43,13 +44,14 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
       DurationCount::stop(id);
       return;
     }
+    atom::SpheralIndex &result = resultIn[context.getClusterId(mSettings.outputObjectCluster)];
 
-    const auto *firstDataBuffer     = context.loadObjectsFromCache(it->objectStore);
-    const atom::ObjectList *working = firstDataBuffer;
-    atom::ObjectList *resultTemp    = nullptr;
+    const auto &firstDataBuffer    = context.loadObjectsFromCache(it->objectStore)->at(it->inputObjectCluster);
+    const auto *working            = &firstDataBuffer;
+    atom::SpheralIndex *resultTemp = nullptr;
     // Directly write to the output buffer
-    atom::ObjectList buffer01;
-    atom::ObjectList buffer02;
+    atom::SpheralIndex buffer01;
+    atom::SpheralIndex buffer02;
     if(intersectCount == 2) {
       resultTemp = &result;
     } else {
@@ -63,8 +65,8 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
 
     for(; it != clustersToIntersect.end(); ++it) {
       std::cout << "Intersection iterations " << std::endl;
-      const auto &objects02 = context.loadObjectsFromCache(it->objectStore);
-      working->calcIntersections(context.getActIterator(), *objects02, *resultTemp, objectClassesMe,
+      const auto &objects02 = context.loadObjectsFromCache(it->objectStore)->at(it->inputObjectCluster);
+      working->calcIntersections(context.getActIterator(), objects02, *resultTemp, objectClassesMe,
                                  it->inputObjectClasses, context.getClusterId(mSettings.outputObjectCluster),
                                  context.getClassId(mSettings.outputObjectClass), context.acquireNextObjectId(), 0,
                                  mSettings.minIntersection);
@@ -79,12 +81,12 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
       if(idx + 1 >= intersectCount) {
         resultTemp = &result;
       } else {
-        if(tmpWorking == firstDataBuffer) {
+        if(tmpWorking == &firstDataBuffer) {
           // In the first run the working pointer was the loaded data we must change to buffer
           resultTemp = &buffer02;
         } else {
           // Swap the buffer. We know what  we do.
-          resultTemp = const_cast<atom::ObjectList *>(tmpWorking);
+          resultTemp = const_cast<atom::SpheralIndex *>(tmpWorking);
         }
       }
       resultTemp->clear();

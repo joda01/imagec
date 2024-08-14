@@ -32,9 +32,11 @@ enum class ObjectStoreIdx : uint16_t
   M8   = 8,
   M9   = 9,
   NONE = 0xFFFE,
+  $    = 0xFFFF,
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ObjectStoreIdx, {{ObjectStoreIdx::NONE, "None"},
+                                              {ObjectStoreIdx::$, "$"},
                                               {ObjectStoreIdx::M0, "M0"},
                                               {ObjectStoreIdx::M1, "M1"},
                                               {ObjectStoreIdx::M2, "M2"},

@@ -5,13 +5,13 @@
 
 namespace joda::atom {
 
-void ObjectList::calcIntersections(const enums::IteratorId &iterator, const ObjectList &other, ObjectList &result,
-                                   const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
-                                   const std::set<joda::enums::ClassId> &objectClassesOther,
-                                   joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                                   joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
-                                   uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi,
-                                   float minIntersecion) const
+void SpheralIndex::calcIntersections(const enums::IteratorId &iterator, const SpheralIndex &other, SpheralIndex &result,
+                                     const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
+                                     const std::set<joda::enums::ClassId> &objectClassesOther,
+                                     joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
+                                     joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
+                                     uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi,
+                                     float minIntersecion) const
 {
   std::set<ROI *> intersecting;
 
@@ -47,7 +47,7 @@ void ObjectList::calcIntersections(const enums::IteratorId &iterator, const Obje
   }
 }
 
-void ObjectList::createBinaryImage(cv::Mat &img, const std::set<joda::enums::ClassId> &objectClasses) const
+void SpheralIndex::createBinaryImage(cv::Mat &img, const std::set<joda::enums::ClassId> &objectClasses) const
 {
   for(const auto &roi : *this) {
     if(objectClasses.contains(roi.getClassId())) {
@@ -70,9 +70,9 @@ void ObjectList::createBinaryImage(cv::Mat &img, const std::set<joda::enums::Cla
   }
 }
 
-std::unique_ptr<ObjectList> ObjectList::clone()
+std::unique_ptr<SpheralIndex> SpheralIndex::clone()
 {
-  std::unique_ptr<ObjectList> clone = std::make_unique<ObjectList>();
+  std::unique_ptr<SpheralIndex> clone = std::make_unique<SpheralIndex>();
 
   std::map<const ROI *, ROI *> oldNewPtrMap;
 
@@ -93,7 +93,7 @@ std::unique_ptr<ObjectList> ObjectList::clone()
   return clone;
 }
 
-void ObjectList::cloneFromOther(const ObjectList &other)
+void SpheralIndex::cloneFromOther(const SpheralIndex &other)
 {
   mElements.clear();
   grid.clear();

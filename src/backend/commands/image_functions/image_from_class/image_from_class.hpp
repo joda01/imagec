@@ -41,7 +41,7 @@ public:
   {
     auto id = DurationCount::start("ImageFromClass");
     image   = 0;
-    result.createBinaryImage(image, mSettings.objectClasses);
+    result.at(context.getClusterId(mSettings.objectCluster)).createBinaryImage(image, mSettings.objectClasses);
 
     DurationCount::stop(id);
   }

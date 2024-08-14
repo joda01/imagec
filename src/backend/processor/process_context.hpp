@@ -61,10 +61,14 @@ struct ImageContext
   joda::ome::OmeInfo imageMeta;
 };
 
+struct IterationContext
+{
+  joda::atom::ObjectList actObjects{};
+};
+
 struct PipelineContext
 {
   joda::atom::Image actImage;
-  joda::atom::ObjectList actObjects{};
   enums::ClusterId defaultClusterId;
 };
 
@@ -72,6 +76,7 @@ struct ProcessContext
 {
   GlobalContext &globalContext;
   ImageContext &imageContext;
+  IterationContext &iterationContext;
   PipelineContext pipelineContext;
   [[nodiscard]] atom::Image &getActImage()
   {
@@ -80,7 +85,7 @@ struct ProcessContext
 
   [[nodiscard]] joda::atom::ObjectList &getActObjects()
   {
-    return pipelineContext.actObjects;
+    return iterationContext.actObjects;
   }
 
   [[nodiscard]] const joda::enums::IteratorId &getActIterator() const
@@ -103,6 +108,9 @@ struct ProcessContext
 
   [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
   {
+    if(cacheId.storeIdx == enums::ObjectStoreIdx::$) {
+      return &iterationContext.actObjects;
+    }
     getCorrectObjectId(cacheId);
     return globalContext.objectCache.at(cacheId).get();
   }
@@ -117,8 +125,13 @@ struct ProcessContext
   {
 #warning "IF cluster ID still exists. Merge or override!?"
     getCorrectObjectId(cacheId);
-    globalContext.objectCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ObjectList>());
-    globalContext.objectCache.at(cacheId)->cloneFromOther(object);
+
+    auto oby = ::std::make_unique<joda::atom::ObjectList>();
+    for(const auto &[key, element] : object) {
+      oby->operator[](key).cloneFromOther(element);
+    }
+
+    globalContext.objectCache.try_emplace(cacheId, std::move(oby));
   }
 
   [[nodiscard]] cv::Size getImageSize() const

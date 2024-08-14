@@ -109,7 +109,8 @@
         {
           "$saveImage": {
             "compression": 0,
-            "namePrefix": "_classified_A"
+            "namePrefix": "_classified_A",
+            "objectCluster": "$"
           }
         }
       ]
@@ -119,7 +120,7 @@
         "source": "FromFile",
         "cStackIndex": 2,
         "zProjection": "MaxIntensity",
-        "defaultClusterId": "A",
+        "defaultClusterId": "B",
         "defaultObjectStoreId": "M1"
       },
       "pipelineSteps": [
@@ -193,16 +194,18 @@
             "inputObjectClusters": [
               {
                 "objectStore": {
-                  "storeIdx": "M0"
+                  "storeIdx": "$"
                 },
+                "inputObjectCluster": "A",
                 "inputObjectClasses": [
                   "0"
                 ]
               },
               {
                 "objectStore": {
-                  "storeIdx": "M1"
+                  "storeIdx": "$"
                 },
+                "inputObjectCluster": "B",
                 "inputObjectClasses": [
                   "0"
                 ]

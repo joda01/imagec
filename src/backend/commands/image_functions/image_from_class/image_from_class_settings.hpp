@@ -15,6 +15,11 @@ public:
   //
   // Object classes to extract
   //
+  joda::enums::ClusterId objectCluster = joda::enums::ClusterId::$;
+
+  //
+  // Object classes to extract
+  //
   std::set<joda::enums::ClassId> objectClasses;
 
   /////////////////////////////////////////////////////
@@ -22,6 +27,6 @@ public:
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageFromClassSettings, objectClasses);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageFromClassSettings, objectCluster, objectClasses);
 };
 }    // namespace joda::settings

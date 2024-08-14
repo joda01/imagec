@@ -57,9 +57,11 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
         for(int tStack = 0; tStack < nrtStack; tStack++) {
           for(int zStack = 0; zStack < nrzSTack; zStack++) {
             for(int cStack = 0; cStack < nrcSTack; cStack++) {
+              IterationContext iterationContext;
               // Start pipelines
               for(const auto &pipeline : program.pipelines) {
-                ProcessContext context{.globalContext = globalContext, .imageContext = imageContext};
+                ProcessContext context{
+                    .globalContext = globalContext, .imageContext = imageContext, .iterationContext = iterationContext};
 
                 imageLoader.initPipeline(pipeline.pipelineSetup, {tilesX, tileY},
                                          joda::enums::IteratorId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
@@ -68,9 +70,6 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                   // Execute a pipeline step
                   step(context, context.getActImage().image, context.getActObjects());
                 }
-                // Store output of the pipeline for later
-                context.storeObjectsToCache({pipeline.pipelineSetup.defaultObjectStoreId, context.getActIterator()},
-                                            context.getActObjects());
               }
 
               // Image section finished

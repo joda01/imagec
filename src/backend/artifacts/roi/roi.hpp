@@ -91,6 +91,11 @@ public:
     return mId;
   }
 
+  [[nodiscard]] auto getClusterId() const
+  {
+    return mId.clusterId;
+  }
+
   [[nodiscard]] auto getClassId() const
   {
     return mId.classId;

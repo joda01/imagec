@@ -31,12 +31,12 @@ struct PairHash
   }
 };
 
-class ObjectList
+class SpheralIndex
 {
 public:
   /////////////////////////////////////////////////////
 
-  explicit ObjectList(int cellSize = 100) : mCellSize(cellSize)
+  explicit SpheralIndex(int cellSize = 100) : mCellSize(cellSize)
   {
   }
 
@@ -68,11 +68,11 @@ public:
     return mElements.size();
   }
 
-  void cloneFromOther(const ObjectList &);
+  void cloneFromOther(const SpheralIndex &);
 
-  std::unique_ptr<ObjectList> clone();
+  std::unique_ptr<SpheralIndex> clone();
 
-  vector<pair<ROI *, ROI *>> detect_collisions(const ObjectList &other)
+  vector<pair<ROI *, ROI *>> detect_collisions(const SpheralIndex &other)
   {
     vector<pair<ROI *, ROI *>> potential_collisions;
 
@@ -95,7 +95,7 @@ public:
     return potential_collisions;
   }
 
-  void calcIntersections(const enums::IteratorId &iterator, const ObjectList &other, ObjectList &result,
+  void calcIntersections(const enums::IteratorId &iterator, const SpheralIndex &other, SpheralIndex &result,
                          const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                          const std::set<joda::enums::ClassId> &objectClassesOther,
                          joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
@@ -167,4 +167,18 @@ private:
 
   std::mutex mInsertLock;
 };
+
+class ObjectList : public std::map<enums::ClusterId, SpheralIndex>
+{
+public:
+  void push_back(const ROI &roi)
+  {
+    if(!contains(roi.getClusterId())) {
+      SpheralIndex idx{};
+      operator[](roi.getClusterId()).cloneFromOther(idx);
+    }
+    at(roi.getClusterId()).emplace(roi);
+  }
+};
+
 }    // namespace joda::atom
