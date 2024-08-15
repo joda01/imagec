@@ -137,7 +137,8 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   }
   processStepOut.pipelineContext.defaultClusterId = static_cast<enums::ClusterId>(pipelineSetup.defaultClusterId);
   processStepOut.pipelineContext.actImage.setId(
-      {.imageIdx = joda::enums::MemoryIdx::M0, .iteration{.tStack = t, .zStack = z, .cStack = c}}, tile);
+      joda::enums::ImageId{.imageIdx = joda::enums::MemoryIdxIn::M0, .iteration{.tStack = t, .zStack = z, .cStack = c}},
+      tile);
 
   //
   // Load from image file

@@ -28,10 +28,7 @@ namespace joda::cmd {
 template <class T>
 concept Command_t = ::std::is_base_of<Command, T>::value;
 
-template <class T>
-concept Setting_t = ::std::is_base_of<settings::Setting, T>::value;
-
-template <Command_t CMD, Setting_t SETTING>
+template <Command_t CMD, class SETTING>
 class Factory : public joda::cmd::Command
 {
 public:

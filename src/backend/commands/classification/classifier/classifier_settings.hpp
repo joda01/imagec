@@ -23,7 +23,7 @@
 
 namespace joda::settings {
 
-struct ClassifierSettings : public Setting
+struct ClassifierSettings
 {
   //
   // Object classification based on gray scale value (default: modelClassId = 65535)
@@ -31,12 +31,12 @@ struct ClassifierSettings : public Setting
   std::vector<ObjectClass> classifiers;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
     CHECK(!classifiers.empty(), "At least one classifier must be given!");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClassifierSettings, classifiers);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierSettings, classifiers);
 };
 
 }    // namespace joda::settings

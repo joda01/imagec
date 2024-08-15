@@ -21,9 +21,9 @@
 
 namespace joda::settings {
 
-struct ClassifierFilter : public Setting
+struct ClassifierFilter
 {
-  struct IntensityFilter : public Setting
+  struct IntensityFilter
   {
     //
     // Which image should be used for measure the intensity value.
@@ -41,12 +41,12 @@ struct ClassifierFilter : public Setting
     //
     uint16_t maxIntensity = UINT16_MAX;
 
-    void check() const override
+    void check() const
     {
       CHECK(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IntensityFilter, imageIn, minIntensity, maxIntensity);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntensityFilter, imageIn, minIntensity, maxIntensity);
   };
 
   //
@@ -84,7 +84,7 @@ struct ClassifierFilter : public Setting
   //
   std::optional<IntensityFilter> intensity;
 
-  void check() const override
+  void check() const
   {
     CHECK(maxParticleSize > minParticleSize, "Max particle size must be bigger than min particle size!");
     CHECK(minCircularity >= 0 && minCircularity <= 1, "Min circularity must be in range [0-1].");
@@ -107,11 +107,11 @@ struct ClassifierFilter : public Setting
     return false;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClassifierFilter, minParticleSize, maxParticleSize, minCircularity,
-                                              snapAreaSize, intensity, clusterOut, classOut);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, minParticleSize, maxParticleSize,
+                                                       minCircularity, snapAreaSize, intensity, clusterOut, classOut);
 };
 
-struct ObjectClass : public Setting
+struct ObjectClass
 {
   //
   // Classifies objects based on object properties
@@ -133,13 +133,14 @@ struct ObjectClass : public Setting
   //
   int32_t modelClassId = -1;
 
-  void check() const override
+  void check() const
   {
     CHECK(!filters.empty(), "At least one classification filter must be given!");
     CHECK(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectClass, filters, clusterOutNoMatch, classOutNoMatch, modelClassId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, clusterOutNoMatch, classOutNoMatch,
+                                                       modelClassId);
 };
 
 }    // namespace joda::settings

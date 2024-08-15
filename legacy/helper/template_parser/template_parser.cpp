@@ -34,7 +34,7 @@ struct MetaFinder
   settings::ChannelSettingsMeta meta;
   std::string configSchema;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(MetaFinder, meta, configSchema);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MetaFinder, meta, configSchema);
 };
 
 auto TemplateParser::findTemplates(const std::map<std::string, bool> &directories) -> std::map<std::string, Data>
@@ -75,7 +75,7 @@ struct SchemaFinder
 {
   std::string configSchema;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(SchemaFinder, configSchema);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SchemaFinder, configSchema);
 };
 auto TemplateParser::loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> LoadedChannel
 {

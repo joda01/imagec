@@ -28,7 +28,7 @@ Intersection::Intersection(const settings::IntersectionSettings &settings) : mSe
 
 void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
-  const auto &clustersToIntersect = mSettings.inputObjectClusters;
+  const auto &clustersToIntersect = mSettings.objectsIn;
   size_t intersectCount           = clustersToIntersect.size();
   try {
     int idx = 0;
@@ -41,9 +41,9 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
       joda::log::logWarning("At least two channels must be given to calc intersection!");
       return;
     }
-    atom::SpheralIndex &result = resultIn[context.getClusterId(mSettings.outputObjectCluster)];
+    atom::SpheralIndex &result = resultIn[context.getClusterId(mSettings.clusterOut)];
 
-    const auto &firstDataBuffer    = context.loadObjectsFromCache(it->objectStore)->at(it->inputObjectCluster);
+    const auto &firstDataBuffer    = context.loadObjectsFromCache(it->objectIn)->at(it->clusterIn);
     const auto *working            = &firstDataBuffer;
     atom::SpheralIndex *resultTemp = nullptr;
     // Directly write to the output buffer
@@ -55,18 +55,17 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
       resultTemp = &buffer01;
     }
 
-    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = it->inputObjectClasses;
+    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = it->classesIn;
 
     ++it;
     ++idx;
 
     for(; it != clustersToIntersect.end(); ++it) {
       std::cout << "Intersection iterations " << std::endl;
-      const auto &objects02 = context.loadObjectsFromCache(it->objectStore)->at(it->inputObjectCluster);
-      working->calcIntersections(context.getActIterator(), objects02, *resultTemp, objectClassesMe,
-                                 it->inputObjectClasses, context.getClusterId(mSettings.outputObjectCluster),
-                                 context.getClassId(mSettings.outputObjectClass), context.acquireNextObjectId(), 0,
-                                 mSettings.minIntersection);
+      const auto &objects02 = context.loadObjectsFromCache(it->objectIn)->at(it->clusterIn);
+      working->calcIntersections(context.getActIterator(), objects02, *resultTemp, objectClassesMe, it->classesIn,
+                                 context.getClusterId(mSettings.clusterOut), context.getClassId(mSettings.classOut),
+                                 context.acquireNextObjectId(), 0, mSettings.minIntersection);
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
       objectClassesMe.reset();
       idx++;

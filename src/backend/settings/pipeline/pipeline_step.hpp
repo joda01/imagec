@@ -30,7 +30,7 @@
 
 namespace joda::settings {
 
-struct PipelineStep : public Setting
+struct PipelineStep
 {
 public:
   //
@@ -60,10 +60,12 @@ public:
 
   /////////////////////////////////////////////////////
   void operator()(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) const;
-  void check() const override;
+  void check() const
+  {
+  }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass,
-                                              $classify, $aiClassify, $intersection);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed,
+                                                       $imageFromClass, $classify, $aiClassify, $intersection);
 };
 
 }    // namespace joda::settings

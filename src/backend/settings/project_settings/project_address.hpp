@@ -28,8 +28,12 @@ struct Address
   std::string postalCode;
   std::string city;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Address, firstName, lastName, country, organization, streetAddress,
-                                              postalCode, city);
+  void check() const
+  {
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Address, firstName, lastName, country, organization,
+                                                       streetAddress, postalCode, city);
 };
 
 }    // namespace joda::settings

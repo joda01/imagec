@@ -9,7 +9,7 @@
 
 namespace joda::settings {
 
-struct ProjectImageSetup : public Setting
+struct ProjectImageSetup
 {
   enum class ZStackHandling
   {
@@ -55,10 +55,11 @@ struct ProjectImageSetup : public Setting
   //
   std::string filenameRegex = "_((.)([0-9]+))_([0-9]+)";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ProjectImageSetup, imageInputDirectory, resultsOutputFolder,
-                                              zStackHandling, tStackHandling, cStackHandling, groupBy, filenameRegex);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, imageInputDirectory, resultsOutputFolder,
+                                                       zStackHandling, tStackHandling, cStackHandling, groupBy,
+                                                       filenameRegex);
 
-  void check() const override
+  void check() const
   {
   }
 };

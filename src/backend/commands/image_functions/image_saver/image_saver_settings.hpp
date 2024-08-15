@@ -7,7 +7,7 @@
 
 namespace joda::settings {
 
-struct ImageSaverSettings : public Setting
+struct ImageSaverSettings
 {
 public:
   //
@@ -21,10 +21,10 @@ public:
   std::string namePrefix;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageSaverSettings, compression, namePrefix);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageSaverSettings, compression, namePrefix);
 };
 }    // namespace joda::settings

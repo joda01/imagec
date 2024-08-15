@@ -19,7 +19,7 @@
 
 namespace joda::settings {
 
-class Pipeline : public Setting
+class Pipeline
 {
 public:
   /////////////////////////////////////////////////////
@@ -29,14 +29,11 @@ public:
   std::vector<PipelineStep> pipelineSteps;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
-    for(const auto &element : pipelineSteps) {
-      element.check();
-    }
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Pipeline, meta, pipelineSetup, pipelineSteps);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps);
 };
 
 }    // namespace joda::settings

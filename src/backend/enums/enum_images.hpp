@@ -15,21 +15,26 @@
 
 #include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/types.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::enums {
 
 struct ImageId
 {
-  MemoryIdxIn imageIdx              = MemoryIdxIn::$;
-  joda::enums::IteratorId iteration = {-1, -1, -1};
+  MemoryIdxIn imageIdx = MemoryIdxIn::$;
+  joda::enums::IteratorId iteration;
 
   bool operator<(const ImageId &in) const
   {
     return imageIdx < in.imageIdx && iteration < in.iteration;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageId, imageIdx, iteration);
+  void check() const
+  {
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageId, imageIdx, iteration);
 };
 
 }    // namespace joda::enums

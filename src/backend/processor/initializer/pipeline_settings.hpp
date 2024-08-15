@@ -17,7 +17,7 @@ namespace joda::settings {
 /// \author
 /// \brief
 ///
-struct PipelineSettings : public Setting
+struct PipelineSettings
 {
   enum class ZProjection
   {
@@ -69,12 +69,12 @@ struct PipelineSettings : public Setting
   //
   enums::MemoryIdx defaultObjectStoreId;
 
-  void check() const override
+  void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineSettings, source, cStackIndex, tStackIndex, zStackIndex,
-                                              zProjection, defaultClusterId, defaultObjectStoreId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineSettings, source, cStackIndex, tStackIndex, zStackIndex,
+                                                       zProjection, defaultClusterId, defaultObjectStoreId);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PipelineSettings::Source, {

@@ -7,20 +7,18 @@
 
 namespace joda::settings {
 
-struct BlurSettings : public Setting
+struct BlurSettings
 {
 public:
   int32_t kernelSize = 3;
   int32_t repeat     = 0;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
-    if(kernelSize % 2 == 0) {
-      throwError("Kernel must be an od number!");
-    }
+    CHECK(kernelSize % 2 == 1, "Kernel size must be an odd number.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(BlurSettings, repeat, kernelSize);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(BlurSettings, repeat, kernelSize);
 };
 }    // namespace joda::settings

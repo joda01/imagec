@@ -15,6 +15,7 @@
 
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::enums {
@@ -35,7 +36,12 @@ struct IteratorId
     return tStack < in.tStack && zStack < in.zStack && cStack < in.cStack;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IteratorId, tStack, zStack, cStack);
+  void check() const
+  {
+  }
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IteratorId, tStack);
+
+  // NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IteratorId, tStack, zStack, cStack);
 };
 
 }    // namespace joda::enums

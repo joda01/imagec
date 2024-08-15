@@ -24,7 +24,12 @@ struct ExperimentSetup
   {
     uint32_t rows = 0;
     uint32_t cols = 0;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Plate, rows, cols);
+
+    void check() const
+    {
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Plate, rows, cols);
   };
 
   //
@@ -38,7 +43,11 @@ struct ExperimentSetup
   //
   std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ExperimentSetup, wellImageOrder, plateSize);
+  void check() const
+  {
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ExperimentSetup, wellImageOrder, plateSize);
 };
 
 }    // namespace joda::settings

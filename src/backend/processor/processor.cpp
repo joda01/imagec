@@ -19,6 +19,7 @@
 #include "backend/helper/file_info_images.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/processor/process_context.hpp"
+#include "backend/settings/setting.hpp"
 
 namespace joda::processor {
 

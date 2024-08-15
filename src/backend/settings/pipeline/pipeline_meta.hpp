@@ -36,7 +36,11 @@ struct PipelineMeta
   //
   std::string icon;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineMeta, name, color, icon);
+  void check() const
+  {
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineMeta, name, color, icon);
 };
 
 };    // namespace joda::settings

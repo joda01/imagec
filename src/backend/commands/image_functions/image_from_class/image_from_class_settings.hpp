@@ -9,24 +9,24 @@
 
 namespace joda::settings {
 
-struct ImageFromClassSettings : public Setting
+struct ImageFromClassSettings
 {
 public:
   //
-  // Object classes to extract
+  // Cluster to extract
   //
-  joda::enums::ClusterIdIn objectCluster = joda::enums::ClusterIdIn::$;
+  joda::enums::ClusterIdIn clusterIn = joda::enums::ClusterIdIn::$;
 
   //
   // Object classes to extract
   //
-  std::set<joda::enums::ClassId> objectClasses;
+  std::set<joda::enums::ClassId> classesIn;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ImageFromClassSettings, objectCluster, objectClasses);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageFromClassSettings, clusterIn, classesIn);
 };
 }    // namespace joda::settings

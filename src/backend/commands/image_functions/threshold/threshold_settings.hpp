@@ -7,7 +7,7 @@
 
 namespace joda::settings {
 
-struct ThresholdSettings : public Setting
+struct ThresholdSettings
 {
 public:
   enum class Mode
@@ -50,14 +50,12 @@ public:
   uint16_t thresholdMax = 0;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
-    if(thresholdMin > thresholdMax) {
-      throwError("Min threshold must be lower or equal to MAx threshold!");
-    }
+    CHECK(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ThresholdSettings, mode, thresholdMin, thresholdMax);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdSettings, mode, thresholdMin, thresholdMax);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode::NONE, ""},

@@ -20,7 +20,7 @@ namespace joda::ui::qt {
 struct Temp
 {
   std::vector<std::vector<int32_t>> order;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Temp, order);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Temp, order);
 };
 
 ///

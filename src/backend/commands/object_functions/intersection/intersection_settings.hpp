@@ -24,26 +24,32 @@
 
 namespace joda::settings {
 
-struct IntersectionSettings : public Setting
+struct IntersectionSettings
 {
   struct IntersectingClasses
   {
     //
-    // Input object to intersect with
+    // Input object to intersect with. Leaf empty to use iteration context store
     //
-    joda::enums::ObjectStoreId objectStore;
+    joda::enums::ObjectStoreId objectIn;
 
     //
-    // Input object to intersect with
+    // Cluster to calculate the intersection with
     //
-    joda::enums::ClusterId inputObjectCluster;
+    joda::enums::ClusterId clusterIn = joda::enums::ClusterId::NONE;
 
     //
-    // Calc the intersection only with objects of the given classes
+    // Classes within the cluster to calc the calculation with
     //
-    std::set<joda::enums::ClassId> inputObjectClasses;
+    std::set<joda::enums::ClassId> classesIn;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(IntersectingClasses, objectStore, inputObjectCluster, inputObjectClasses);
+    void check() const
+    {
+      CHECK(!classesIn.empty(), "At least one class id must be given.");
+      // CHECK(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(IntersectingClasses, objectIn, clusterIn, classesIn);
   };
 
   //
@@ -54,25 +60,26 @@ struct IntersectionSettings : public Setting
   //
   // Resulting object cluster of the intersecting objects
   //
-  joda::enums::ClusterIdIn outputObjectCluster = joda::enums::ClusterIdIn::$;
+  joda::enums::ClusterIdIn clusterOut = joda::enums::ClusterIdIn::$;
 
   //
   // Resulting object class of the intersecting objects
   //
-  joda::enums::ClassIdIn outputObjectClass = joda::enums::ClassIdIn::NONE;
+  joda::enums::ClassIdIn classOut = joda::enums::ClassIdIn::NONE;
 
   //
   // List of channels to calc the intersection for
   //
-  std::vector<IntersectingClasses> inputObjectClusters;
+  std::vector<IntersectingClasses> objectsIn;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
+    CHECK(objectsIn.size() > 1, "At least two input objects must be given!");
+    CHECK(minIntersection >= 0, "Min intersection must be >=0.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(IntersectionSettings, inputObjectClusters, minIntersection, outputObjectClass,
-                                 outputObjectCluster);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(IntersectionSettings, objectsIn, minIntersection, classOut, clusterOut);
 };
 
 }    // namespace joda::settings

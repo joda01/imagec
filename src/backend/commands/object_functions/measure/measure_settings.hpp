@@ -24,7 +24,7 @@
 
 namespace joda::settings {
 
-struct MeasureSettings : public Setting
+struct MeasureSettings
 {
   struct Input
   {
@@ -54,11 +54,11 @@ struct MeasureSettings : public Setting
   int a;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(MeasureSettings, a);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, a);
 };
 
 }    // namespace joda::settings

@@ -16,21 +16,26 @@
 #include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::enums {
 
 struct ObjectStoreId
 {
-  joda::enums::MemoryIdxIn storeIdx = joda::enums::MemoryIdxIn::M0;
-  joda::enums::IteratorId iteration = {-1, -1, -1};
+  joda::enums::MemoryIdxIn storeIdx = joda::enums::MemoryIdxIn::$;
+  joda::enums::IteratorId iteration;
 
   bool operator<(const ObjectStoreId &in) const
   {
     return storeIdx < in.storeIdx && iteration < in.iteration;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectStoreId, storeIdx, iteration);
+  void check() const
+  {
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectStoreId, storeIdx, iteration);
 };
 
 }    // namespace joda::enums

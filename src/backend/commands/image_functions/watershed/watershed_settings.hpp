@@ -20,7 +20,7 @@
 
 namespace joda::settings {
 
-struct WatershedSettings : public Setting
+struct WatershedSettings
 {
   //
   // Which threshold algorithm should be used
@@ -29,14 +29,12 @@ struct WatershedSettings : public Setting
   float maximumFinderTolerance = 0.5f;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
-    if(maximumFinderTolerance < 0 || maximumFinderTolerance > 1) {
-      throwError("Maximum finder tolerance mut be in range [0-1]");
-    }
+    CHECK(maximumFinderTolerance > 0 && maximumFinderTolerance <= 1, "Maximum finder tolerance mut be in range [0-1]");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WatershedSettings, maximumFinderTolerance);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(WatershedSettings, maximumFinderTolerance);
 };
 
 }    // namespace joda::settings

@@ -23,7 +23,7 @@
 
 namespace joda::settings {
 
-struct AiClassifierSettings : public Setting
+struct AiClassifierSettings
 {
   //
   // Path to the AI model which should be used for classification
@@ -46,7 +46,7 @@ struct AiClassifierSettings : public Setting
   std::vector<ObjectClass> classifiers;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
     CHECK(!modelPath.empty(), "A AI model path must be given!");
     CHECK(std::filesystem::exists(modelPath), "AI model >" + modelPath + "< cannot be opened!");
@@ -55,8 +55,8 @@ struct AiClassifierSettings : public Setting
     CHECK(!classifiers.empty(), "At least one classifier must be given!");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AiClassifierSettings, modelPath, classThreshold, numberOfModelClasses,
-                                              classifiers);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AiClassifierSettings, modelPath, classThreshold,
+                                                       numberOfModelClasses, classifiers);
 };
 
 }    // namespace joda::settings

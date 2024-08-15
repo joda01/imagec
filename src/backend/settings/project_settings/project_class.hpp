@@ -37,7 +37,11 @@ struct Class
   //
   std::string color;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Class, classId, name, notes, color);
+  void check() const
+  {
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Class, classId, name, notes, color);
 };
 
 }    // namespace joda::settings

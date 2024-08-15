@@ -38,7 +38,7 @@ struct AnalyzeMeta
 struct Temp
 {
   std::vector<std::vector<int32_t>> order;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Temp, order);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Temp, order);
 };
 inline auto matrixStringToArrayOrder(const std::string &stringMatrix) -> std::vector<std::vector<int32_t>>
 {

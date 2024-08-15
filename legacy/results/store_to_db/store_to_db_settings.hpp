@@ -23,16 +23,16 @@
 
 namespace joda::cmd {
 
-struct StoreToDbSettings : public Setting
+struct StoreToDbSettings
 {
   joda::enums::Slot slotToStoreDataUnder = joda::enums::Slot::$;
 
   /////////////////////////////////////////////////////
-  void check() const override
+  void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(StoreToDbSettings, slotToStoreDataUnder);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(StoreToDbSettings, slotToStoreDataUnder);
 };
 
 }    // namespace joda::cmd
