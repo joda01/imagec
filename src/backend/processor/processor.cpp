@@ -17,8 +17,8 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/file_info_images.hpp"
+#include "backend/processor/context/process_context.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
-#include "backend/processor/process_context.hpp"
 #include "backend/settings/setting.hpp"
 
 namespace joda::processor {

@@ -15,7 +15,7 @@
 
 #include <memory>
 #include "backend/artifacts/object_list/object_list.hpp"
-#include "backend/processor/process_context.hpp"
+#include "backend/processor/context/process_context.hpp"
 #include <opencv2/core/mat.hpp>
 
 namespace joda::cmd {

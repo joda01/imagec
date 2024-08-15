@@ -16,7 +16,6 @@
 #include <memory>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/classification/classifier/classifier_settings.hpp"
-#include "backend/commands/command.hpp"
 #include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
@@ -27,6 +26,14 @@
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
+
+namespace joda::processor {
+class ProcessContext;
+}
+
+namespace joda::atom {
+class ObjectList;
+}
 
 namespace joda::settings {
 
@@ -59,7 +66,7 @@ public:
   // std::optional<MeasureSingle> $measure = std::nullopt;
 
   /////////////////////////////////////////////////////
-  void operator()(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) const;
+  void operator()(processor::ProcessContext &context, cv::Mat &image, joda::atom::ObjectList &result) const;
   void check() const
   {
   }

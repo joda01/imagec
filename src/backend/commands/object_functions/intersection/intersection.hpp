@@ -14,7 +14,7 @@
 #pragma once
 
 #include "backend/commands/command.hpp"
-#include "backend/processor/process_context.hpp"
+#include "backend/processor/context/process_context.hpp"
 #include "intersection_settings.hpp"
 
 namespace joda::cmd {

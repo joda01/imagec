@@ -15,7 +15,7 @@
 
 #include "backend/commands/command.hpp"
 #include "backend/commands/objects_list.hpp"
-#include "backend/processor/process_context.hpp"
+#include "backend/processor/context/process_context.hpp"
 #include <duckdb/main/appender.hpp>
 #include "store_to_db_settings.hpp"
 

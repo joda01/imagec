@@ -21,7 +21,7 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/fnv1a.hpp"
 #include "backend/helper/reader/image_reader.hpp"
-#include "backend/processor/process_context.hpp"
+#include "backend/processor/context/process_context.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
 

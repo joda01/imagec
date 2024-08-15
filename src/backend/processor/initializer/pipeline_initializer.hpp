@@ -16,7 +16,7 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
-#include "backend/processor/process_context.hpp"
+#include "backend/processor/context/process_context.hpp"
 #include "backend/settings/project_settings/project_image_setup.hpp"
 #include "pipeline_settings.hpp"
 

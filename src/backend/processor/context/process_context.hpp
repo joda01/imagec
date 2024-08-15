@@ -25,9 +25,13 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
+#include "backend/helper/database/database.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
+#include "image_context.hpp"
+#include "iteration_context.hpp"
+#include "pipeline_context.hpp"
 
 namespace joda::processor {
 
@@ -48,29 +52,12 @@ struct GlobalContext
     return globalObjectIdCount;
   }
 
+  db::Database database;
+
 private:
   imageCache_t imageCache;
   objectCache_t objectCache;
   std::atomic<uint64_t> globalObjectIdCount;
-  // std::shared_ptr<joda::db::Database> database;
-};
-
-struct ImageContext
-{
-  std::filesystem::path imagePath;
-  joda::ome::OmeInfo imageMeta;
-  uint64_t imageId;
-};
-
-struct IterationContext
-{
-  joda::atom::ObjectList actObjects{};
-};
-
-struct PipelineContext
-{
-  joda::atom::Image actImage;
-  enums::ClusterId defaultClusterId;
 };
 
 struct ProcessContext
