@@ -276,14 +276,14 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       for(const auto &intersectingRoi : roi.getIntersections()) {
         object_intersections.BeginRow();
         // Primary key
-        object_intersections.Append<uint64_t>(imgContext.imageId);                     //       "	image_id UBIGINT,"
-        object_intersections.Append<uint32_t>(roi.getObjectId());                      //       " object_id UINTEGER,"
-        object_intersections.Append<uint16_t>((uint16_t) roi.getClusterId());          //       " cluster_id USMALLINT,"
-        object_intersections.Append<uint16_t>((uint16_t) roi.getClassId());            //       " class_id USMALLINT,"
-        object_intersections.Append<uint32_t>(roi.getC());                             //       " stack_c UINTEGER,"
-        object_intersections.Append<uint32_t>(roi.getZ());                             //       " stack_z UINTEGER,"
-        object_intersections.Append<uint32_t>(roi.getT());                             //       " stack_t UINTEGER,"
-                                                                                       // Data
+        object_intersections.Append<uint64_t>(imgContext.imageId);               //       "	image_id UBIGINT,"
+        object_intersections.Append<uint32_t>(roi.getObjectId());                //       " object_id UINTEGER,"
+        object_intersections.Append<uint16_t>((uint16_t) roi.getClusterId());    //       " cluster_id USMALLINT,"
+        object_intersections.Append<uint16_t>((uint16_t) roi.getClassId());      //       " class_id USMALLINT,"
+        object_intersections.Append<uint32_t>(roi.getC());                       //       " stack_c UINTEGER,"
+        object_intersections.Append<uint32_t>(roi.getZ());                       //       " stack_z UINTEGER,"
+        object_intersections.Append<uint32_t>(roi.getT());                       //       " stack_t UINTEGER,"
+        // Data
         object_measurements.Append<uint32_t>(intersectingRoi.imagePlane.cStack);       //
         object_measurements.Append<uint32_t>(intersectingRoi.imagePlane.zStack);       //
         object_measurements.Append<uint32_t>(intersectingRoi.imagePlane.tStack);       //
