@@ -61,14 +61,14 @@ public:
   //
   // Working directory
   //
-  std::string workingDirectory;
+  std::string outputDirectory;
 
   void check() const
   {
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectSettings, experimentSetup, imageSetup, notes, address,
-                                                       clusters, classes, workingDirectory);
+                                                       clusters, classes, outputDirectory);
 };
 
 }    // namespace joda::settings

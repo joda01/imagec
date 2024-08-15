@@ -42,7 +42,6 @@ struct ProjectImageSetup
   CStackHandling cStackHandling = CStackHandling::EXACT_ONE;
 
   std::string imageInputDirectory;
-  std::string resultsOutputFolder;
 
   //
   // Image grouping option [NONE, FOLDER, FILENAME]
@@ -55,9 +54,8 @@ struct ProjectImageSetup
   //
   std::string filenameRegex = "_((.)([0-9]+))_([0-9]+)";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, imageInputDirectory, resultsOutputFolder,
-                                                       zStackHandling, tStackHandling, cStackHandling, groupBy,
-                                                       filenameRegex);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, imageInputDirectory, zStackHandling,
+                                                       tStackHandling, cStackHandling, groupBy, filenameRegex);
 
   void check() const
   {

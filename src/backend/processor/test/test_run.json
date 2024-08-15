@@ -47,9 +47,9 @@
     "imageSetup": {
       "zStackHandling": "IntensityProjection",
       "tStackHandling": "ExactOne",
-      "imageInputDirectory": "test/test_data/images",
-      "resultsOutputFolder": "tmp"
-    }
+      "imageInputDirectory": "test/test_data/images"
+    },
+    "outputDirectory": "tmp"
   },
   "pipelines": [
     {

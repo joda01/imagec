@@ -14,6 +14,7 @@
 
 #include <duckdb.h>
 #include <filesystem>
+#include <vector>
 #include "backend/enums/types.hpp"
 #include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -21,6 +22,7 @@
 #include <duckdb/main/config.hpp>
 #include <duckdb/main/connection.hpp>
 #include <duckdb/main/database.hpp>
+#include <opencv2/core/types.hpp>
 
 namespace joda::db {
 
@@ -49,6 +51,7 @@ private:
   void insertClusters(const joda::settings::ProjectSettings &);
   void insertClasses(const joda::settings::ProjectSettings &);
   void insertGroup();
+  void flatten(const std::vector<cv::Point> &, duckdb::vector<duckdb::Value> &);
 
   /////////////////////////////////////////////////////
   duckdb::DBConfig mDbCfg;

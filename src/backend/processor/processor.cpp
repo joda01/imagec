@@ -16,6 +16,7 @@
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/directory_iterator.hpp"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_info_images.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
@@ -42,13 +43,12 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
 
   GlobalContext globalContext;
   auto &db = globalContext.database;
-  db.openDatabase("");
+  db.openDatabase(std::filesystem::path(program.projectSettings.outputDirectory) / "results.imcdb");
   db.insertProjectSettings(program);
 
   for(const auto &imagePath : images.getFilesList()) {
     ImageContext imageContext;
-    PipelineInitializer imageLoader(program.projectSettings.imageSetup, imagePath.getFilePath(), imageContext,
-                                    globalContext);
+    PipelineInitializer imageLoader(program.projectSettings, imagePath.getFilePath(), imageContext, globalContext);
     db.insertImage(imageContext);
 
     auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
@@ -88,7 +88,9 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
           }
 
           // Iteration for all tiles finished
+          auto id = DurationCount::start("Insert");
           db.insertObjects(imageContext, iterationContext.getObjects());
+          DurationCount::stop(id);
         }
         // End of the image specific function
       }

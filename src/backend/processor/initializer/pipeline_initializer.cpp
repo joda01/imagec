@@ -34,19 +34,19 @@ namespace joda::processor {
 /// \param[out]
 /// \return
 ///
-PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &settings,
+PipelineInitializer::PipelineInitializer(const settings::ProjectSettings &settings,
                                          const std::filesystem::path &imagePath,
                                          processor::ImageContext &imageContextOut,
                                          processor::GlobalContext &globalContextOut) :
-    mSettings(settings),
+    mSettings(settings.imageSetup),
     mImageContext(imageContextOut)
 {
   imageContextOut.imageMeta            = joda::image::reader::ImageReader::getOmeInformation(imagePath.string());
   imageContextOut.imagePath            = imagePath;
   imageContextOut.imageId              = joda::helper::fnv1a(imagePath.string());
-  globalContextOut.resultsOutputFolder = std::filesystem::path(settings.resultsOutputFolder);
+  globalContextOut.resultsOutputFolder = std::filesystem::path(settings.outputDirectory);
 
-  switch(settings.tStackHandling) {
+  switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
       mTstackToLoad = 1;
       break;

@@ -12,7 +12,10 @@
 
 #include "database.hpp"
 #include <duckdb.h>
+#include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
+#include <duckdb/common/types/value.hpp>
+#include <duckdb/common/types/vector.hpp>
 #include <duckdb/main/appender.hpp>
 
 namespace joda::db {
@@ -20,14 +23,11 @@ namespace joda::db {
 /////////////////////////////////////////////////////
 void Database::openDatabase(const std::filesystem::path &pathToDb)
 {
+  mDbCfg.SetOption("temp_directory", pathToDb.parent_path().string());
+  mDb = std::make_unique<duckdb::DuckDB>(pathToDb.string(), &mDbCfg);
+  createTables();
 }
 void Database::closeDatabase()
-{
-}
-void Database::insertProjectSettings(const joda::settings::AnalyzeSettings &)
-{
-}
-void Database::insertImage(const joda::processor::ImageContext &)
 {
 }
 
@@ -53,7 +53,8 @@ void Database::createTables()
       " meas_box_width UINTEGER,"
       " meas_box_height UINTEGER,"
       " meas_box_depth UINTEGER,"
-      " meas_mask BOOLEAN[]"
+      " meas_mask BOOLEAN[],"
+      " meas_contour UINTEGER[]"
       ");"
 
       "CREATE TABLE IF NOT EXISTS object_measurements ("
@@ -233,9 +234,16 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       objects.Append<uint32_t>(roi.getBoundingBoxReal().width);     // " meas_box_width UINTEGER,"
       objects.Append<uint32_t>(roi.getBoundingBoxReal().height);    // " meas_box_height UINTEGER,"
       objects.Append<uint32_t>(0);                                  // " meas_box_depth UINTEGER,"
-      auto mask = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
-                                      {roi.getMask().datastart, roi.getMask().dataend});
+
+      /*auto mask = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
+                                      {roi.getMask().datastart, roi.getMask().dataend});*/
+      auto mask = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::BOOLEAN), {});
       objects.Append<duckdb::Value>(mask);    // " meas_mask BOOLEAN[]"
+
+      duckdb::vector<duckdb::Value> flattenPoints;
+      flatten(roi.getContour(), flattenPoints);
+      auto contour = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), flattenPoints);
+      objects.Append<duckdb::Value>(contour);    // " meas_contour UINTEGER[]"
       objects.EndRow();
 
       //
@@ -299,6 +307,13 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
   // statistic_measurements.Close();
 }
 
+void Database::insertProjectSettings(const joda::settings::AnalyzeSettings &)
+{
+}
+void Database::insertImage(const joda::processor::ImageContext &)
+{
+}
+
 void Database::insertPlates()
 {
 }
@@ -314,6 +329,15 @@ void Database::insertGroup()
 
 void Database::insertImagePlane()
 {
+}
+
+void Database::flatten(const std::vector<cv::Point> &contour, duckdb::vector<duckdb::Value> &flattenPointsOut)
+{
+  flattenPointsOut.reserve(contour.size() * 2);
+  for(const auto &point : contour) {
+    flattenPointsOut.push_back(duckdb::Value::UINTEGER(point.x));
+    flattenPointsOut.push_back(duckdb::Value::UINTEGER(point.y));
+  }
 }
 
 }    // namespace joda::db
