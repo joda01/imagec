@@ -63,7 +63,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
           for(int zStack = 0; zStack < nrzSTack; zStack++) {
             for(int cStack = 0; cStack < nrcSTack; cStack++) {
               IterationContext iterationContext;
-              // Start pipelines
+              // Execute pipelines of this iteration
               for(const auto &pipeline : program.pipelines) {
                 //
                 // Load the image imagePlane
@@ -73,6 +73,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                 imageLoader.initPipeline(pipeline.pipelineSetup, {tilesX, tileY},
                                          joda::enums::PlaneId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
                                          context);
+                db.insertImagePlane();
 
                 //
                 // Execute the pipeline
@@ -82,9 +83,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                   step(context, context.getActImage().image, context.getActObjects());
                 }
               }
-
-              // Image section finished
-              // Do cross channel measurement here
+              // Iteration finished
+              db.insertObjects(imageContext, iterationContext.getObjects());
             }
           }
         }

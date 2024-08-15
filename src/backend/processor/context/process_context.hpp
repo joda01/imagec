@@ -94,6 +94,12 @@ struct ProcessContext
     return globalContext.imageCache.at(cacheId).get();
   }
 
+  void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::ImagePlane &image) const
+  {
+    getCorrectIteration(cacheId.imagePlane);
+    globalContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
+  }
+
   [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
   {
     if(cacheId.storeIdx == enums::MemoryIdxIn::$) {
@@ -103,24 +109,18 @@ struct ProcessContext
     return globalContext.objectCache.at(cacheId).get();
   }
 
-  void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::ImagePlane &image) const
-  {
-    getCorrectIteration(cacheId.imagePlane);
-    globalContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
-  }
-
-  void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const
-  {
-#warning "IF cluster ID still exists. Merge or override!?"
-    getCorrectObjectId(cacheId);
-
-    auto oby = ::std::make_unique<joda::atom::ObjectList>();
-    for(const auto &[key, element] : object) {
-      oby->operator[](key).cloneFromOther(element);
-    }
-
-    globalContext.objectCache.try_emplace(cacheId, std::move(oby));
-  }
+  // void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const
+  //{
+  // #warning "IF cluster ID still exists. Merge or override!?"
+  //   getCorrectObjectId(cacheId);
+  //
+  //  auto oby = ::std::make_unique<joda::atom::ObjectList>();
+  //  for(const auto &[key, element] : object) {
+  //    oby->operator[](key).cloneFromOther(element);
+  //  }
+  //
+  //  globalContext.objectCache.try_emplace(cacheId, std::move(oby));
+  //}
 
   [[nodiscard]] cv::Size getImageSize() const
   {

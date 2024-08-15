@@ -47,4 +47,8 @@ void Database::insertGroup()
 {
 }
 
+void Database::insertImagePlane()
+{
+}
+
 }    // namespace joda::db

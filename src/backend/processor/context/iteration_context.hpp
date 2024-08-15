@@ -17,8 +17,17 @@
 
 namespace joda::processor {
 
-struct IterationContext
+class IterationContext
 {
+  friend class ProcessContext;
+
+public:
+  joda::atom::ObjectList &getObjects()
+  {
+    return actObjects;
+  }
+
+private:
   joda::atom::ObjectList actObjects{};
 };
 
