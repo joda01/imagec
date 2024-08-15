@@ -412,7 +412,7 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
 /// \param[in]  channelIdx   Channel index of the given image
 /// \param[in]  imageOriginal   Image to measure the intensity in
 ///
-auto ROI::measureIntensityAndAdd(const joda::atom::Image &image) -> Intensity
+auto ROI::measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensity
 {
   if(!intensity.contains(image.getId())) {
     // Just add an empty entry

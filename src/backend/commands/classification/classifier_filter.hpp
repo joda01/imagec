@@ -92,7 +92,7 @@ struct ClassifierFilter
     CHECK(snapAreaSize >= 0, "Snap area size must be > 0.");
   }
 
-  bool doesFilterMatch(atom::ROI &roi, const joda::atom::Image &image) const
+  bool doesFilterMatch(atom::ROI &roi, const joda::atom::ImagePlane &image) const
   {
     if(intensity.has_value()) {
       auto intensity = roi.measureIntensityAndAdd(image);

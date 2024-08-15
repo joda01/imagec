@@ -186,7 +186,7 @@ public:
                    joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                    joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
 
-  auto measureIntensityAndAdd(const joda::atom::Image &image) -> Intensity;
+  auto measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensity;
 
   [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;
 

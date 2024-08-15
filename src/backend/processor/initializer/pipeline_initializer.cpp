@@ -138,7 +138,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
     throw std::invalid_argument("Default cluster ID must not be >$<.");
   }
   processStepOut.pipelineContext.defaultClusterId = static_cast<enums::ClusterId>(pipelineSetup.defaultClusterId);
-  processStepOut.pipelineContext.actImage.setId(
+  processStepOut.pipelineContext.actImagePlane.setId(
       joda::enums::ImageId{.imageIdx = joda::enums::MemoryIdxIn::M0, .iteration{.tStack = t, .zStack = z, .cStack = c}},
       tile);
 
@@ -206,7 +206,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
     auto rows = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageHeight;
     auto cols = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageWidth;
 
-    joda::atom::Image &contextImage = processStepOut.getActImage();
+    joda::atom::ImagePlane &contextImage = processStepOut.getActImage();
     contextImage.image.create(rows, cols, CV_16UC1);
     contextImage.image.setTo(cv::Scalar::all(0));
   }
@@ -220,7 +220,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
 
   // Store original image to cache
   processStepOut.addImageToCache(processStepOut.getActImage().getId(),
-                                 std::move(std::make_unique<joda::atom::Image>(processStepOut.getActImage())));
+                                 std::move(std::make_unique<joda::atom::ImagePlane>(processStepOut.getActImage())));
 }
 
 }    // namespace joda::processor

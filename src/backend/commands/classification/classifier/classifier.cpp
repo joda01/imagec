@@ -94,7 +94,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
                                      .clusterId = context.getClusterId(objectClass.clusterOutNoMatch),
                                      .classId   = context.getClassId(objectClass.classOutNoMatch),
                                      .iteration = context.getActIterator()},
-              context.pipelineContext.actImage.appliedMinThreshold, 0, boundingBox, mask, contour,
+              context.pipelineContext.actImagePlane.appliedMinThreshold, 0, boundingBox, mask, contour,
               context.getImageSize());
 
           for(const auto &filter : objectClass.filters) {

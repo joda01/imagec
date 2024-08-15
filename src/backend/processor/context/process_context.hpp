@@ -35,7 +35,7 @@
 
 namespace joda::processor {
 
-using imageCache_t  = std::map<enums::ImageId, std::unique_ptr<joda::atom::Image>>;
+using imageCache_t  = std::map<enums::ImageId, std::unique_ptr<joda::atom::ImagePlane>>;
 using objectCache_t = std::map<enums::ObjectStoreId, std::unique_ptr<joda::atom::ObjectList>>;
 
 struct GlobalContext
@@ -66,9 +66,9 @@ struct ProcessContext
   ImageContext &imageContext;
   IterationContext &iterationContext;
   PipelineContext pipelineContext;
-  [[nodiscard]] atom::Image &getActImage()
+  [[nodiscard]] joda::atom::ImagePlane &getActImage()
   {
-    return pipelineContext.actImage;
+    return pipelineContext.actImagePlane;
   }
 
   [[nodiscard]] joda::atom::ObjectList &getActObjects()
@@ -78,17 +78,17 @@ struct ProcessContext
 
   [[nodiscard]] const joda::enums::IteratorId &getActIterator() const
   {
-    return pipelineContext.actImage.getId().iteration;
+    return pipelineContext.actImagePlane.getId().iteration;
   }
 
 #warning "Handle this imageIdx"
-  joda::atom::Image *addImageToCache(joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::Image> img)
+  joda::atom::ImagePlane *addImageToCache(joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::ImagePlane> img)
   {
     getCorrectIteration(cacheId.iteration);
     return globalContext.imageCache.try_emplace(cacheId, std::move(img)).first->second.get();
   }
 
-  [[nodiscard]] const joda::atom::Image *loadImageFromCache(joda::enums::ImageId cacheId) const
+  [[nodiscard]] const joda::atom::ImagePlane *loadImageFromCache(joda::enums::ImageId cacheId) const
   {
     getCorrectIteration(cacheId.iteration);
     return globalContext.imageCache.at(cacheId).get();
@@ -103,10 +103,10 @@ struct ProcessContext
     return globalContext.objectCache.at(cacheId).get();
   }
 
-  void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::Image &image) const
+  void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::ImagePlane &image) const
   {
     getCorrectIteration(cacheId.iteration);
-    globalContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::Image>(image));
+    globalContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
   }
 
   void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const
@@ -124,7 +124,7 @@ struct ProcessContext
 
   [[nodiscard]] cv::Size getImageSize() const
   {
-    return pipelineContext.actImage.image.size();
+    return pipelineContext.actImagePlane.image.size();
   }
 
   [[nodiscard]] uint64_t acquireNextObjectId() const

@@ -50,12 +50,13 @@ public:
     auto fileName   = context.imageContext.imagePath.stem();
 
     std::filesystem::path saveName =
-        parentPath / (fileName.string() + "__" + std::to_string(std::get<0>(context.pipelineContext.actImage.tile)) +
-                      "x" + std::to_string(std::get<1>(context.pipelineContext.actImage.tile)) + "__" +
-                      std::to_string((int32_t) context.pipelineContext.actImage.getId().iteration.cStack) + "-" +
-                      std::to_string(context.pipelineContext.actImage.getId().iteration.zStack) + "-" +
-                      std::to_string((int32_t) context.pipelineContext.actImage.getId().iteration.tStack) +
-                      mSettings.namePrefix + ".png");
+        parentPath /
+        (fileName.string() + "__" + std::to_string(std::get<0>(context.pipelineContext.actImagePlane.tile)) + "x" +
+         std::to_string(std::get<1>(context.pipelineContext.actImagePlane.tile)) + "__" +
+         std::to_string((int32_t) context.pipelineContext.actImagePlane.getId().iteration.cStack) + "-" +
+         std::to_string(context.pipelineContext.actImagePlane.getId().iteration.zStack) + "-" +
+         std::to_string((int32_t) context.pipelineContext.actImagePlane.getId().iteration.tStack) +
+         mSettings.namePrefix + ".png");
 
     // Convert to 8-bit grayscale
     cv::Mat img_8bit_gray;

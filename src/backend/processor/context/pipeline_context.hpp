@@ -20,7 +20,7 @@ namespace joda::processor {
 
 struct PipelineContext
 {
-  joda::atom::Image actImage;
+  joda::atom::ImagePlane actImagePlane;
   enums::ClusterId defaultClusterId;
 };
 

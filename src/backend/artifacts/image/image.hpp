@@ -17,7 +17,7 @@
 
 namespace joda::atom {
 
-class Image
+class ImagePlane
 {
 public:
   void setId(const enums::ImageId &id, const enums::tile_t &tile)
