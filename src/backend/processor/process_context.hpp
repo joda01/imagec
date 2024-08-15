@@ -59,6 +59,7 @@ struct ImageContext
 {
   std::filesystem::path imagePath;
   joda::ome::OmeInfo imageMeta;
+  uint64_t imageId;
 };
 
 struct IterationContext

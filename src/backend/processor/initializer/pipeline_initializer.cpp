@@ -19,6 +19,7 @@
 #include <utility>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/helper/fnv1a.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/processor/process_context.hpp"
 #include <opencv2/core/mat.hpp>
@@ -42,6 +43,7 @@ PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &sett
 {
   imageContextOut.imageMeta            = joda::image::reader::ImageReader::getOmeInformation(imagePath.string());
   imageContextOut.imagePath            = imagePath;
+  imageContextOut.imageId              = joda::helper::fnv1a(imagePath.string());
   globalContextOut.resultsOutputFolder = std::filesystem::path(settings.resultsOutputFolder);
 
   switch(settings.tStackHandling) {
