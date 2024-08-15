@@ -29,6 +29,7 @@ public:
   void closeDatabase();
   void insertProjectSettings(const joda::settings::AnalyzeSettings &);
   void insertImage(const joda::processor::ImageContext &);
+  void insertImagePlane();
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
 
 private:

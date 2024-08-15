@@ -41,11 +41,15 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
   images.waitForFinished();
 
   GlobalContext globalContext;
+  auto &db = globalContext.database;
+  db.openDatabase("");
+  db.insertProjectSettings(program);
 
   for(const auto &imagePath : images.getFilesList()) {
     ImageContext imageContext;
     PipelineInitializer imageLoader(program.projectSettings.imageSetup, imagePath.getFilePath(), imageContext,
                                     globalContext);
+    db.insertImage(imageContext);
 
     auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
     auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
@@ -61,12 +65,18 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
               IterationContext iterationContext;
               // Start pipelines
               for(const auto &pipeline : program.pipelines) {
+                //
+                // Load the image plane
+                //
                 ProcessContext context{
                     .globalContext = globalContext, .imageContext = imageContext, .iterationContext = iterationContext};
-
                 imageLoader.initPipeline(pipeline.pipelineSetup, {tilesX, tileY},
                                          joda::enums::IteratorId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
                                          context);
+
+                //
+                // Execute the pipeline
+                //
                 for(const auto &step : pipeline.pipelineSteps) {
                   // Execute a pipeline step
                   step(context, context.getActImage().image, context.getActObjects());
