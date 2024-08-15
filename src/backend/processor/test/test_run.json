@@ -63,7 +63,7 @@
       "pipelineSteps": [
         {
           "$blur": {
-            "kernelSize": 6,
+            "kernelSize": 7,
             "repeat": 5
           }
         },
@@ -79,16 +79,15 @@
         },
         {
           "$classify": {
-            "objectClasses": [
+            "classifiers": [
               {
-                "noMatchingClusterId": "$",
-                "noMatchingClassId": "None",
+                "clusterOutNoMatch": "$",
+                "classOutNoMatch": "None",
                 "modelClassId": 65535,
-                "grayscaleValue": 65535,
                 "filters": [
                   {
-                    "clusterId": "$",
-                    "classId": "0",
+                    "clusterOut": "$",
+                    "classOut": "0",
                     "minParticleSize": -1,
                     "maxParticleSize": -1,
                     "minCircularity": 0,
@@ -101,7 +100,7 @@
         },
         {
           "$imageFromClass": {
-            "objectClasses": [
+            "classesIn": [
               "0"
             ]
           }
@@ -126,7 +125,7 @@
       "pipelineSteps": [
         {
           "$blur": {
-            "kernelSize": 6,
+            "kernelSize": 7,
             "repeat": 5
           }
         },
@@ -142,16 +141,15 @@
         },
         {
           "$classify": {
-            "objectClasses": [
+            "classifiers": [
               {
-                "noMatchingClusterId": "$",
-                "noMatchingClassId": "None",
+                "clusterOutNoMatch": "$",
+                "classOutNoMatch": "None",
                 "modelClassId": 65535,
-                "grayscaleValue": 65535,
                 "filters": [
                   {
-                    "clusterId": "$",
-                    "classId": "0",
+                    "clusterOut": "$",
+                    "classOut": "0",
                     "minParticleSize": -1,
                     "maxParticleSize": -1,
                     "minCircularity": 0,
@@ -164,7 +162,7 @@
         },
         {
           "$imageFromClass": {
-            "objectClasses": [
+            "classesIn": [
               "0"
             ]
           }
@@ -189,24 +187,24 @@
         {
           "$intersection": {
             "minIntersection": 0,
-            "outputObjectCluster": "$",
-            "outputObjectClass": "4",
-            "inputObjectClusters": [
+            "clusterOut": "$",
+            "classOut": "4",
+            "objectsIn": [
               {
-                "objectStore": {
+                "objectIn": {
                   "storeIdx": "$"
                 },
-                "inputObjectCluster": "A",
-                "inputObjectClasses": [
+                "clusterIn": "A",
+                "classesIn": [
                   "0"
                 ]
               },
               {
-                "objectStore": {
+                "objectIn": {
                   "storeIdx": "$"
                 },
-                "inputObjectCluster": "B",
-                "inputObjectClasses": [
+                "clusterIn": "B",
+                "classesIn": [
                   "0"
                 ]
               }
@@ -215,7 +213,7 @@
         },
         {
           "$imageFromClass": {
-            "objectClasses": [
+            "classesIn": [
               "4"
             ]
           }

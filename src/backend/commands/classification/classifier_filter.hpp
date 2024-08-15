@@ -86,7 +86,8 @@ struct ClassifierFilter
 
   void check() const
   {
-    CHECK(maxParticleSize > minParticleSize, "Max particle size must be bigger than min particle size!");
+    CHECK(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
+          "Max particle size must be bigger than min particle size!");
     CHECK(minCircularity >= 0 && minCircularity <= 1, "Min circularity must be in range [0-1].");
     CHECK(snapAreaSize >= 0, "Snap area size must be > 0.");
   }

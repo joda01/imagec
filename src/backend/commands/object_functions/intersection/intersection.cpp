@@ -61,7 +61,6 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
     ++idx;
 
     for(; it != clustersToIntersect.end(); ++it) {
-      std::cout << "Intersection iterations " << std::endl;
       const auto &objects02 = context.loadObjectsFromCache(it->objectIn)->at(it->clusterIn);
       working->calcIntersections(context.getActIterator(), objects02, *resultTemp, objectClassesMe, it->classesIn,
                                  context.getClusterId(mSettings.clusterOut), context.getClassId(mSettings.classOut),
