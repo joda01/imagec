@@ -19,6 +19,10 @@
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
+namespace joda::processor {
+class ProcessContext;
+}
+
 namespace joda::settings {
 
 struct ClassifierFilter
@@ -92,21 +96,8 @@ struct ClassifierFilter
     CHECK(snapAreaSize >= 0, "Snap area size must be > 0.");
   }
 
-  bool doesFilterMatch(atom::ROI &roi, const joda::atom::ImagePlane &image) const
-  {
-    if(intensity.has_value()) {
-      auto intensity = roi.measureIntensityAndAdd(image);
-      if(intensity.intensityAvg < intensity.intensityMin || intensity.intensityAvg > intensity.intensityMax) {
-        // Intensity filter does not match
-        return false;
-      }
-    }
-    if((minParticleSize < 0 || roi.getAreaSize() >= minParticleSize) &&
-       (maxParticleSize < 0 || roi.getAreaSize() <= maxParticleSize) && roi.getCircularity() >= minCircularity) {
-      return true;
-    }
-    return false;
-  }
+  bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi,
+                       const std::optional<IntensityFilter> &intensity) const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, minParticleSize, maxParticleSize,
                                                        minCircularity, snapAreaSize, intensity, clusterOut, classOut);

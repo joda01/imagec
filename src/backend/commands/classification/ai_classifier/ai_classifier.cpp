@@ -198,9 +198,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
           context.getImageSize(), context.pipelineContext.actImagePlane.tile, context.imageContext.tileSize);
 
       for(const auto &filter : objectClass.filters) {
-        const auto &cachedImage = context.loadImageFromCache(filter.intensity->imageIn);
-        // If filter matches assign the new cluster and class to the ROI
-        if(filter.doesFilterMatch(detectedRoi, *cachedImage)) {
+        if(filter.doesFilterMatch(context, detectedRoi, filter.intensity)) {
           detectedRoi.setClusterAndClass(context.getClusterId(filter.clusterOut), context.getClassId(filter.classOut));
         }
       }
