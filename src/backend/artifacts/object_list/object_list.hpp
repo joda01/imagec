@@ -69,7 +69,6 @@ public:
   }
 
   void cloneFromOther(const SpheralIndex &);
-  void mergeFromOther(const SpheralIndex &);
 
   std::unique_ptr<SpheralIndex> clone();
 

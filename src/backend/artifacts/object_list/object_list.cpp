@@ -93,13 +93,6 @@ std::unique_ptr<SpheralIndex> SpheralIndex::clone()
   return clone;
 }
 
-void SpheralIndex::mergeFromOther(const SpheralIndex &other)
-{
-  for(const auto &in : other) {
-    emplace(in);
-  }
-}
-
 void SpheralIndex::cloneFromOther(const SpheralIndex &other)
 {
   mElements.clear();

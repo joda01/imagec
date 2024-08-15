@@ -28,7 +28,7 @@ void Database::insertProjectSettings(const joda::settings::AnalyzeSettings &)
 void Database::insertImage(const joda::processor::ImageContext &)
 {
 }
-void Database::insertObjects(const joda::processor::IterationContext &)
+void Database::insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &)
 {
 }
 void Database::createTables()

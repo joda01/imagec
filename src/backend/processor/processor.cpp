@@ -73,7 +73,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                 imageLoader.initPipeline(pipeline.pipelineSetup, {tilesX, tileY},
                                          joda::enums::PlaneId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
                                          context);
-                db.insertImagePlane();
+
                 //
                 // Execute the pipeline
                 //
@@ -83,8 +83,6 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                 }
               }
 
-              // Store the data from this iteration to the database
-              db.insertObjects(iterationContext);
               // Image section finished
               // Do cross channel measurement here
             }

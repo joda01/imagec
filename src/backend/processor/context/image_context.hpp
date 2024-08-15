@@ -13,14 +13,12 @@
 #pragma once
 
 #include <filesystem>
-#include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 
 namespace joda::processor {
 
 struct ImageContext
 {
-  joda::atom::ObjectList actObjects{};
   std::filesystem::path imagePath;
   joda::ome::OmeInfo imageMeta;
   uint64_t imageId;

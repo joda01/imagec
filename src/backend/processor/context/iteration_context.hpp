@@ -19,6 +19,7 @@ namespace joda::processor {
 
 struct IterationContext
 {
+  joda::atom::ObjectList actObjects{};
 };
 
 }    // namespace joda::processor
