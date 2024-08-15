@@ -263,10 +263,10 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
         object_measurements.Append<uint32_t>(plane.imagePlane.cStack);    //       " meas_stack_c UINTEGER,"
         object_measurements.Append<uint32_t>(plane.imagePlane.zStack);    //       " meas_stack_z UINTEGER,"
         object_measurements.Append<uint32_t>(plane.imagePlane.tStack);    //       " meas_stack_t UINTEGER,"
-        object_measurements.Append<uint64_t>(roi.getT());                 //       " meas_intensity_sum UBIGINT,"
-        object_measurements.Append<float>(roi.getT());                    //       " meas_intensity_avg float,"
-        object_measurements.Append<uint32_t>(roi.getT());                 //       " meas_intensity_min UINTEGER,"
-        object_measurements.Append<uint32_t>(roi.getT());                 //       " meas_intensity_max UINTEGER"
+        object_measurements.Append<uint64_t>(intensity.intensitySum);     //       " meas_intensity_sum UBIGINT,"
+        object_measurements.Append<float>(intensity.intensityAvg);        //       " meas_intensity_avg float,"
+        object_measurements.Append<uint32_t>(intensity.intensityMin);     //       " meas_intensity_min UINTEGER,"
+        object_measurements.Append<uint32_t>(intensity.intensityMax);     //       " meas_intensity_max UINTEGER"
         object_measurements.EndRow();
       }
 

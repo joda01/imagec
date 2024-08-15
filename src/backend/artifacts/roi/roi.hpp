@@ -58,10 +58,10 @@ public:
 
   struct Intensity
   {
-    double intensitySum = 0;    ///< Sum intensity of the masking area
-    double intensityAvg = 0;    ///< Avg intensity of the masking area
-    double intensityMin = 0;    ///< Min intensity of the masking area
-    double intensityMax = 0;    ///< Max intensity of the masking area
+    uint64_t intensitySum = 0;    ///< Sum intensity of the masking area
+    float intensityAvg    = 0;    ///< Avg intensity of the masking area
+    double intensityMin   = 0;    ///< Min intensity of the masking area
+    double intensityMax   = 0;    ///< Max intensity of the masking area
   };
 
   struct Intersecting

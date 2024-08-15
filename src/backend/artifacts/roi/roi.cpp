@@ -443,6 +443,7 @@ auto ROI::measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensi
     if(!image.image.empty() && !mBoundingBoxTile.empty() && !mMask.empty()) {
       intensity[image.getId()] = calcIntensity(image.image);
     }
+  } else {
   }
   return intensity[image.getId()];
 }

@@ -57,8 +57,7 @@
         "source": "FromFile",
         "cStackIndex": 3,
         "zProjection": "MaxIntensity",
-        "defaultClusterId": "A",
-        "defaultObjectStoreId": "M0"
+        "defaultClusterId": "A"
       },
       "pipelineSteps": [
         {
@@ -87,7 +86,7 @@
                 "filters": [
                   {
                     "clusterOut": "$",
-                    "classOut": "0",
+                    "classOut": "C0",
                     "minParticleSize": -1,
                     "maxParticleSize": -1,
                     "minCircularity": 0,
@@ -104,7 +103,7 @@
               "$"
             ],
             "classesIn": [
-              "0"
+              "C0"
             ],
             "planesIn": [
               {
@@ -119,7 +118,7 @@
         {
           "$imageFromClass": {
             "classesIn": [
-              "0"
+              "C0"
             ]
           }
         },
@@ -137,8 +136,7 @@
         "source": "FromFile",
         "cStackIndex": 2,
         "zProjection": "MaxIntensity",
-        "defaultClusterId": "B",
-        "defaultObjectStoreId": "M1"
+        "defaultClusterId": "B"
       },
       "pipelineSteps": [
         {
@@ -167,7 +165,7 @@
                 "filters": [
                   {
                     "clusterOut": "$",
-                    "classOut": "0",
+                    "classOut": "C0",
                     "minParticleSize": -1,
                     "maxParticleSize": -1,
                     "minCircularity": 0,
@@ -205,7 +203,7 @@
           "$intersection": {
             "minIntersection": 0,
             "clusterOut": "$",
-            "classOut": "4",
+            "classOut": "C4",
             "objectsIn": [
               {
                 "objectIn": {
@@ -213,7 +211,7 @@
                 },
                 "clusterIn": "A",
                 "classesIn": [
-                  "0"
+                  "C0"
                 ]
               },
               {
@@ -222,7 +220,7 @@
                 },
                 "clusterIn": "B",
                 "classesIn": [
-                  "0"
+                  "C0"
                 ]
               }
             ]
@@ -231,7 +229,7 @@
         {
           "$imageFromClass": {
             "classesIn": [
-              "4"
+              "C4"
             ]
           }
         },
