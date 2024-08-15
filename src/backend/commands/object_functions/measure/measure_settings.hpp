@@ -56,7 +56,7 @@ struct MeasureSettings
     CHECK(!planesIn.empty(), "At least one image plane must be given for measurement.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, objectIn, planesIn);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, objectIn, clustersIn, classesIn, planesIn);
 };
 
 }    // namespace joda::settings

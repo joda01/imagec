@@ -25,7 +25,7 @@ public:
   {
   }
 
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &result) override
   {
     auto &store = *context.loadObjectsFromCache(mSettings.objectIn);
     for(auto imageId : mSettings.planesIn) {
@@ -44,5 +44,4 @@ public:
 private:
   const settings::MeasureSettings &mSettings;
 };
-
 }    // namespace joda::cmd
