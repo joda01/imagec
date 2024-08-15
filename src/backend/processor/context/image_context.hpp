@@ -13,9 +13,13 @@
 #pragma once
 
 #include <filesystem>
+#include "backend/artifacts/image/image.hpp"
+#include "backend/enums/enum_images.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 
 namespace joda::processor {
+
+using imageCache_t = std::map<enums::ImageId, std::unique_ptr<joda::atom::ImagePlane>>;
 
 struct ImageContext
 {
@@ -23,6 +27,7 @@ struct ImageContext
   joda::ome::OmeInfo imageMeta;
   cv::Size tileSize;
   uint64_t imageId;
+  imageCache_t imageCache;
 };
 
 }    // namespace joda::processor

@@ -17,15 +17,23 @@
 
 namespace joda::processor {
 
+class PipelineInitializer;
+
 class IterationContext
 {
   friend class ProcessContext;
 
 public:
+  IterationContext(PipelineInitializer &imageLoader) : imageLoader(imageLoader)
+  {
+  }
+
   joda::atom::ObjectList &getObjects()
   {
     return actObjects;
   }
+
+  PipelineInitializer &imageLoader;
 
 private:
   joda::atom::ObjectList actObjects{};

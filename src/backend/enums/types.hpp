@@ -33,7 +33,7 @@ struct PlaneId
 
   bool operator<(const PlaneId &in) const
   {
-    return tStack < in.tStack && zStack < in.zStack && cStack < in.cStack;
+    return tStack < in.tStack || zStack < in.zStack || cStack < in.cStack;
   }
 
   void check() const

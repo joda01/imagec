@@ -67,7 +67,7 @@ struct IntersectionSettings
   //
   // Resulting object class of the intersecting objects
   //
-  joda::enums::ClassIdIn classOut = joda::enums::ClassIdIn::NONE;
+  joda::enums::ClassId classOut = joda::enums::ClassId::NONE;
 
   //
   // List of channels to calc the intersection for

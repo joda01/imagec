@@ -19,14 +19,6 @@ namespace joda::settings {
 ///
 struct PipelineSettings
 {
-  enum class ZProjection
-  {
-    NONE,
-    MAX_INTENSITY,
-    MIN_INTENSITY,
-    AVG_INTENSITY
-  };
-
   enum class Source
   {
     FROM_FILE,
@@ -57,24 +49,20 @@ struct PipelineSettings
   //
   // Is only used if zStackHandling is set to INTENSITY_PROJECTION
   //
-  ZProjection zProjection = ZProjection::NONE;
+  enums::ZProjection zProjection = enums::ZProjection::UNDEFINED;
 
   //
   // Default cluster ID of this pipeline. Can be accessed with $
   //
   enums::ClusterIdIn defaultClusterId = enums::ClusterIdIn::NONE;
 
-  //
-  // Default object store ID of this pipeline.
-  //
-  enums::MemoryIdx defaultObjectStoreId;
-
   void check() const
   {
+    CHECK(zProjection != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading in pipeline!");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineSettings, source, cStackIndex, tStackIndex, zStackIndex,
-                                                       zProjection, defaultClusterId, defaultObjectStoreId);
+                                                       zProjection, defaultClusterId);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PipelineSettings::Source, {
@@ -83,13 +71,5 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PipelineSettings::Source, {
                                                            {PipelineSettings::Source::BLANK, "FromBlank"},
 
                                                        });
-
-NLOHMANN_JSON_SERIALIZE_ENUM(PipelineSettings::ZProjection,
-                             {
-                                 {PipelineSettings::ZProjection::NONE, "None"},
-                                 {PipelineSettings::ZProjection::MAX_INTENSITY, "MaxIntensity"},
-                                 {PipelineSettings::ZProjection::MIN_INTENSITY, "MinIntensity"},
-                                 {PipelineSettings::ZProjection::AVG_INTENSITY, "AvgIntensity"},
-                             });
 
 }    // namespace joda::settings

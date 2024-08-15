@@ -99,6 +99,24 @@
           }
         },
         {
+          "$measure": {
+            "clustersIn": [
+              "$"
+            ],
+            "classesIn": [
+              "0"
+            ],
+            "planesIn": [
+              {
+                "imageIdx": "MaxIntensity",
+                "imagePlane": {
+                  "cStack": 3
+                }
+              }
+            ]
+          }
+        },
+        {
           "$imageFromClass": {
             "classesIn": [
               "0"
@@ -180,8 +198,7 @@
         "source": "FromBlank",
         "cStackIndex": 4,
         "zProjection": "MaxIntensity",
-        "defaultClusterId": "E",
-        "defaultObjectStoreId": "M3"
+        "defaultClusterId": "E"
       },
       "pipelineSteps": [
         {

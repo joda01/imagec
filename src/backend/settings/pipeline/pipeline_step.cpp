@@ -22,6 +22,7 @@
 #include "backend/commands/image_functions/threshold/threshold.hpp"
 #include "backend/commands/image_functions/watershed/watershed.hpp"
 #include "backend/commands/object_functions/intersection/intersection.hpp"
+#include "backend/commands/object_functions/measure/measure.hpp"
 
 namespace joda::settings {
 
@@ -64,6 +65,11 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
 
   if($intersection) {
     joda::cmd::Factory<joda::cmd::Intersection, IntersectionSettings> a($intersection.value());
+    a.execute(context, image, result);
+  }
+
+  if($measure) {
+    joda::cmd::Factory<joda::cmd::Measure, MeasureSettings> a($measure.value());
     a.execute(context, image, result);
   }
 }

@@ -57,7 +57,7 @@ struct ClassifierFilter
   //
   // Class the objects should be assigned if filter matches
   //
-  joda::enums::ClassIdIn classOut = joda::enums::ClassIdIn::NONE;
+  joda::enums::ClassId classOut = joda::enums::ClassId::NONE;
 
   //
   //
@@ -127,7 +127,7 @@ struct ObjectClass
   //
   // If no filter matches this class is assigned to the object
   //
-  joda::enums::ClassIdIn classOutNoMatch = joda::enums::ClassIdIn::NONE;
+  joda::enums::ClassId classOutNoMatch = joda::enums::ClassId::NONE;
 
   //
   // Grayscale or object class id from model

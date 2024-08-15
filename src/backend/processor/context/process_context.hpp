@@ -35,7 +35,6 @@
 
 namespace joda::processor {
 
-using imageCache_t  = std::map<enums::ImageId, std::unique_ptr<joda::atom::ImagePlane>>;
 using objectCache_t = std::map<enums::ObjectStoreId, std::unique_ptr<joda::atom::ObjectList>>;
 
 struct GlobalContext
@@ -55,7 +54,6 @@ struct GlobalContext
   db::Database database;
 
 private:
-  imageCache_t imageCache;
   objectCache_t objectCache;
   std::atomic<uint64_t> globalObjectIdCount;
 };
@@ -71,6 +69,11 @@ struct ProcessContext
     return pipelineContext.actImagePlane;
   }
 
+  void setActImage(const joda::atom::ImagePlane *image)
+  {
+    pipelineContext.actImagePlane = *image;
+  }
+
   [[nodiscard]] joda::atom::ObjectList &getActObjects()
   {
     return iterationContext.actObjects;
@@ -81,25 +84,26 @@ struct ProcessContext
     return pipelineContext.actImagePlane.getId().imagePlane;
   }
 
+  bool doesImageInCacheExist(joda::enums::ImageId cacheId) const
+  {
+    getCorrectIteration(cacheId.imagePlane);
+    return imageContext.imageCache.contains(cacheId);
+  }
+
   joda::atom::ImagePlane *addImageToCache(joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::ImagePlane> img)
   {
     getCorrectIteration(cacheId.imagePlane);
-    return globalContext.imageCache.try_emplace(cacheId, std::move(img)).first->second.get();
+    return imageContext.imageCache.try_emplace(cacheId, std::move(img)).first->second.get();
   }
 
-  [[nodiscard]] const joda::atom::ImagePlane *loadImageFromCache(joda::enums::ImageId cacheId) const
-  {
-    getCorrectIteration(cacheId.imagePlane);
-    return globalContext.imageCache.at(cacheId).get();
-  }
-
+  [[nodiscard]] const joda::atom::ImagePlane *loadImageFromCache(joda::enums::ImageId cacheId);
   void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::ImagePlane &image) const
   {
     getCorrectIteration(cacheId.imagePlane);
-    globalContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
+    imageContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
   }
 
-  [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
+  [[nodiscard]] joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
   {
     if(cacheId.storeIdx == enums::MemoryIdx::M0) {
       return &iterationContext.actObjects;
@@ -136,9 +140,9 @@ struct ProcessContext
     return in != enums::ClusterIdIn::$ ? static_cast<enums::ClusterId>(in) : pipelineContext.defaultClusterId;
   }
 
-  [[nodiscard]] enums::ClassId getClassId(enums::ClassIdIn in) const
+  [[nodiscard]] enums::ClassId getClassId(enums::ClassId in) const
   {
-    return in != enums::ClassIdIn::$ ? static_cast<enums::ClassId>(in) : enums::ClassId::NONE;
+    return static_cast<enums::ClassId>(in);
   }
 
   ///

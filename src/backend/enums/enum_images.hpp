@@ -13,28 +13,46 @@
 
 #pragma once
 
-#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::enums {
 
+enum class ZProjection
+{
+  $             = -2,
+  UNDEFINED     = -1,
+  NONE          = 0,
+  MAX_INTENSITY = 1,
+  MIN_INTENSITY = 2,
+  AVG_INTENSITY = 3
+};
+
 struct ImageId
 {
-  MemoryIdx imageIdx = MemoryIdx::M0;
+  ZProjection imageIdx = ZProjection::UNDEFINED;
   joda::enums::PlaneId imagePlane;
 
   bool operator<(const ImageId &in) const
   {
-    return imageIdx < in.imageIdx && imagePlane < in.imagePlane;
+    return imageIdx < in.imageIdx || imagePlane < in.imagePlane;
   }
 
   void check() const
   {
+    CHECK(imageIdx != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading!");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageId, imageIdx, imagePlane);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ZProjection, {
+                                              {ZProjection::$, "$"},
+                                              {ZProjection::NONE, "None"},
+                                              {ZProjection::MAX_INTENSITY, "MaxIntensity"},
+                                              {ZProjection::MIN_INTENSITY, "MinIntensity"},
+                                              {ZProjection::AVG_INTENSITY, "AvgIntensity"},
+                                          });
 
 }    // namespace joda::enums

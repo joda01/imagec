@@ -46,6 +46,9 @@ public:
     return mCStackToLoad;
   }
 
+  enums::ImageId loadImageToCache(const enums::PlaneId &planeToLoad, enums::ZProjection zProjection,
+                                  const enums::tile_t &tile, joda::processor::ProcessContext &processContext);
+
   void initPipeline(const joda::settings::PipelineSettings &settings, const enums::tile_t &tile,
                     const joda::enums::PlaneId &imagePartToLoad, ProcessContext &processStepOu);
 

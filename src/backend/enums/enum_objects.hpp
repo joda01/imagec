@@ -28,7 +28,7 @@ struct ObjectStoreId
 
   bool operator<(const ObjectStoreId &in) const
   {
-    return storeIdx < in.storeIdx && imagePlane < in.imagePlane;
+    return storeIdx < in.storeIdx || imagePlane < in.imagePlane;
   }
 
   void check() const

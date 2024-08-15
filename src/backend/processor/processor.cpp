@@ -60,7 +60,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
     for(int tStack = 0; tStack < nrtStack; tStack++) {
       for(int zStack = 0; zStack < nrzSTack; zStack++) {
         for(int cStack = 0; cStack < nrcSTack; cStack++) {
-          IterationContext iterationContext;
+          IterationContext iterationContext(imageLoader);
 
           for(int tileX = 0; tileX < tilesX; tileX++) {
             for(int tileY = 0; tileY < tilesY; tileY++) {

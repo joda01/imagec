@@ -1,5 +1,5 @@
 ///
-/// \file      classifier_settings.hpp
+/// \file      measure_settings.hpp
 /// \author    Joachim Danmayr
 /// \date      2024-08-11
 ///
@@ -17,8 +17,12 @@
 #include <set>
 #include <vector>
 #include "backend/enums/enum_images.hpp"
+#include "backend/enums/enum_objects.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
+#include "backend/processor/initializer/pipeline_settings.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
@@ -26,39 +30,33 @@ namespace joda::settings {
 
 struct MeasureSettings
 {
-  struct Input
-  {
-    //
-    // From which imagePlane the image should be taken (use -1 to take the stack from the actual imagePlane)
-    //
-    joda::enums::PlaneId iteratorId;
+  //
+  // Optional input object for which a measurement should be applied
+  //
+  joda::enums::ObjectStoreId objectIn;
 
-    //
-    // Which image from this imagePlane should be taken (use I0 to take the initial unedited original image)
-    //
-    joda::enums::ImageId imageId = joda::enums::ImageId::I0;
-  };
+  //
+  // Clusters to calculate to measure for
+  //
+  std::vector<joda::enums::ClusterIdIn> clustersIn;
 
-  struct Output
-  {
-    //
-    // Resulting object class of the intersecting objects
-    //
-    joda::enums::ClassId objectClass = joda::enums::ClassId::NONE;
+  //
+  // Classes to calculate to measure for
+  //
+  std::set<joda::enums::ClassId> classesIn;
 
-    //
-    // Resulting object class of the intersecting objects
-    //
-    joda::enums::ClusterId clusterId = joda::enums::ClusterId::NONE;
-  };
-  int a;
+  //
+  // Image planes on which a measurement should be applied
+  //
+  std::vector<enums::ImageId> planesIn;
 
   /////////////////////////////////////////////////////
   void check() const
   {
+    CHECK(!planesIn.empty(), "At least one image plane must be given for measurement.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, a);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, objectIn, planesIn);
 };
 
 }    // namespace joda::settings
