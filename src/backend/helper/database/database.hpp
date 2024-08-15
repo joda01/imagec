@@ -12,11 +12,15 @@
 
 #pragma once
 
+#include <duckdb.h>
 #include <filesystem>
 #include "backend/enums/types.hpp"
 #include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
+#include <duckdb/main/config.hpp>
+#include <duckdb/main/connection.hpp>
+#include <duckdb/main/database.hpp>
 
 namespace joda::db {
 
@@ -34,11 +38,21 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  std::shared_ptr<duckdb::Connection> acquire() const
+  {
+    std::shared_ptr<duckdb::Connection> connection = std::make_shared<duckdb::Connection>(*mDb);
+    return connection;
+  }
+
   void createTables();
   void insertPlates();
   void insertClusters(const joda::settings::ProjectSettings &);
   void insertClasses(const joda::settings::ProjectSettings &);
   void insertGroup();
+
+  /////////////////////////////////////////////////////
+  duckdb::DBConfig mDbCfg;
+  std::unique_ptr<duckdb::DuckDB> mDb;
 };
 
 }    // namespace joda::db

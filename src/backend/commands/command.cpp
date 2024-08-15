@@ -12,7 +12,7 @@
 
 #include "command.hpp"
 #include <exception>
-#include "backend/helper/duration_count/duration_count.h";
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 
 namespace joda::cmd {

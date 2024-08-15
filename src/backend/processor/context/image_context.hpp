@@ -21,6 +21,7 @@ struct ImageContext
 {
   std::filesystem::path imagePath;
   joda::ome::OmeInfo imageMeta;
+  cv::Size tileSize;
   uint64_t imageId;
 };
 

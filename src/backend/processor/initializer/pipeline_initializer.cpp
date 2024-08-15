@@ -77,10 +77,14 @@ PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &sett
   // Load image in tiles if too big
   const auto &imageInfo = imageContextOut.imageMeta.getImageInfo().resolutions.at(0);
   if(imageInfo.imageMemoryUsage > MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
-    mNrOfTiles        = imageInfo.getNrOfTiles(COMPOSITE_TILE_WIDTH, COMPOSITE_TILE_HEIGHT);
+    mNrOfTiles               = imageInfo.getNrOfTiles(COMPOSITE_TILE_WIDTH, COMPOSITE_TILE_HEIGHT);
+    imageContextOut.tileSize = {COMPOSITE_TILE_WIDTH, COMPOSITE_TILE_HEIGHT};
+
     mLoadImageInTiles = true;
   } else {
-    mNrOfTiles = {1, 1};
+    mNrOfTiles               = {1, 1};
+    auto size                = mImageContext.imageMeta.getSize();
+    imageContextOut.tileSize = {static_cast<int32_t>(std::get<0>(size)), static_cast<int32_t>(std::get<1>(size))};
   }
 }
 
@@ -99,6 +103,9 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   int32_t c             = pipelineSetup.cStackIndex;
   int32_t z             = pipelineSetup.zStackIndex;
   int32_t t             = pipelineSetup.tStackIndex;
+
+  joda::atom::ImagePlane &contextImage = processStepOut.getActImage();
+  contextImage.tile                    = tile;
 
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
@@ -139,8 +146,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   }
   processStepOut.pipelineContext.defaultClusterId = static_cast<enums::ClusterId>(pipelineSetup.defaultClusterId);
   processStepOut.pipelineContext.actImagePlane.setId(
-      joda::enums::ImageId{.imageIdx = joda::enums::MemoryIdxIn::M0,
-                           .imagePlane{.tStack = t, .zStack = z, .cStack = c}},
+      joda::enums::ImageId{.imageIdx = joda::enums::MemoryIdx::M0, .imagePlane{.tStack = t, .zStack = z, .cStack = c}},
       tile);
 
   //
@@ -166,17 +172,16 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
       loadImage = loadImageTile;
     }
 
-    cv::Mat &contextImage = processStepOut.getActImage().image;
-
-    contextImage = loadImage(z, c, t);
+    auto &image = contextImage.image;
+    image       = loadImage(z, c, t);
 
     //
     // Do z -projection if activated
     //
     if(pipelineSetup.zProjection != joda::settings::PipelineSettings::ZProjection::NONE) {
-      auto max = [&loadImage, &contextImage, c, t](int zIdx) { cv::max(contextImage, loadImage(zIdx, c, t)); };
-      auto min = [&loadImage, &contextImage, c, t](int zIdx) { cv::min(contextImage, loadImage(zIdx, c, t)); };
-      auto avg = [&loadImage, &contextImage, c, t](int zIdx) { cv::mean(contextImage, loadImage(zIdx, c, t)); };
+      auto max = [&loadImage, &image, c, t](int zIdx) { cv::max(image, loadImage(zIdx, c, t)); };
+      auto min = [&loadImage, &image, c, t](int zIdx) { cv::min(image, loadImage(zIdx, c, t)); };
+      auto avg = [&loadImage, &image, c, t](int zIdx) { cv::mean(image, loadImage(zIdx, c, t)); };
 
       std::function<void(int)> func;
 
@@ -207,7 +212,6 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
     auto rows = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageHeight;
     auto cols = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageWidth;
 
-    joda::atom::ImagePlane &contextImage = processStepOut.getActImage();
     contextImage.image.create(rows, cols, CV_16UC1);
     contextImage.image.setTo(cv::Scalar::all(0));
   }

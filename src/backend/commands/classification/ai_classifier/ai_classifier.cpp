@@ -194,7 +194,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
               .imagePlane = context.getActIterator(),
           },
           context.pipelineContext.actImagePlane.appliedMinThreshold, 0, box, mask, contours[idxMax],
-          context.getImageSize());
+          context.getImageSize(), context.pipelineContext.actImagePlane.tile, context.imageContext.tileSize);
 
       for(const auto &filter : objectClass.filters) {
         const auto &cachedImage = context.loadImageFromCache(filter.intensity->imageIn);

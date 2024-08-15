@@ -11,7 +11,7 @@ void SpheralIndex::calcIntersections(const enums::PlaneId &iterator, const Spher
                                      joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
                                      uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi,
-                                     float minIntersecion) const
+                                     float minIntersecion, const enums::tile_t &tile, const cv::Size &tileSize) const
 {
   std::set<ROI *> intersecting;
 
@@ -28,10 +28,10 @@ void SpheralIndex::calcIntersections(const enums::PlaneId &iterator, const Spher
               // Each intersecting particle is only allowed to be counted once
               if(!intersecting.contains(box1) && !intersecting.contains(box2)) {
                 if(isCollision(box1, box2)) {
-                  auto [colocROI, ok] =
-                      box1->calcIntersection(iterator, *box2, indexOfIntersectingRoi, snapAreaOfIntersectingRoi,
-                                             minIntersecion, objectClusterIntersectingObjectsShouldBeAssignedTo,
-                                             objectClassIntersectingObjectsShouldBeAssignedTo);
+                  auto [colocROI, ok] = box1->calcIntersection(
+                      iterator, *box2, indexOfIntersectingRoi, snapAreaOfIntersectingRoi, minIntersecion, tile,
+                      tileSize, objectClusterIntersectingObjectsShouldBeAssignedTo,
+                      objectClassIntersectingObjectsShouldBeAssignedTo);
                   if(ok) {
                     result.push_back(colocROI);
                     intersecting.emplace(box1);

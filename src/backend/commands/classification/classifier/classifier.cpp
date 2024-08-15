@@ -95,7 +95,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
                                      .classId    = context.getClassId(objectClass.classOutNoMatch),
                                      .imagePlane = context.getActIterator()},
               context.pipelineContext.actImagePlane.appliedMinThreshold, 0, boundingBox, mask, contour,
-              context.getImageSize());
+              context.getImageSize(), context.pipelineContext.actImagePlane.tile, context.imageContext.tileSize);
 
           for(const auto &filter : objectClass.filters) {
             const auto &cachedImage = context.loadImageFromCache(filter.intensity->imageIn);

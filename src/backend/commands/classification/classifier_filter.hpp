@@ -96,7 +96,7 @@ struct ClassifierFilter
   {
     if(intensity.has_value()) {
       auto intensity = roi.measureIntensityAndAdd(image);
-      if(intensity.intensity < intensity.intensityMin || intensity.intensity > intensity.intensityMax) {
+      if(intensity.intensityAvg < intensity.intensityMin || intensity.intensityAvg > intensity.intensityMax) {
         // Intensity filter does not match
         return false;
       }

@@ -32,26 +32,43 @@
 namespace joda::atom {
 
 ROI::ROI() :
-    mId({}), confidence(confidence), mBoundingBox({}), mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}),
-    mImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0), mCircularity(0),
+    mId({}), confidence(confidence), mBoundingBoxTile({}), mBoundingBoxReal({}), mMask(cv::Mat(0, 0, CV_16UC1)),
+    mMaskContours({}), mImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0), mCircularity(0),
     mSnapAreaBoundingBox(calcSnapAreaBoundingBox(0, cv::Size{0, 0})), mSnapAreaMask(calculateSnapAreaMask(0)),
     mSnapAreaMaskContours(calculateSnapContours(0))
 {
 }
 
 ROI::ROI(RoiObjectId index, Confidence confidence, uint32_t snapAreaSize, const Boxes &boundingBox, const cv::Mat &mask,
-         const std::vector<cv::Point> &contour, const cv::Size &imageSize) :
+         const std::vector<cv::Point> &contour, const cv::Size &imageSize, const enums::tile_t &tile,
+         const cv::Size &tileSize) :
     mId(index),
-    confidence(confidence), mBoundingBox(boundingBox), mMask(mask), mMaskContours(contour), mImageSize(imageSize),
-    mAreaSize(calcAreaSize()), mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
+    confidence(confidence), mBoundingBoxTile(boundingBox), mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)),
+    mMask(mask), mMaskContours(contour), mImageSize(imageSize), mAreaSize(calcAreaSize()),
+    mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
     mSnapAreaBoundingBox(calcSnapAreaBoundingBox(snapAreaSize, imageSize)),
     mSnapAreaMask(calculateSnapAreaMask(snapAreaSize)), mSnapAreaMaskContours(calculateSnapContours(snapAreaSize))
 {
 }
 
+///
+/// \brief      Calculates a the bounding box in the overall image if it is a tiled image
+/// \author     Joachim Danmayr
+///
+Boxes ROI::calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize)
+{
+  Boxes box;
+  box.width  = mBoundingBoxTile.width;
+  box.height = mBoundingBoxTile.width;
+  box.x      = mBoundingBoxTile.x + std::get<0>(tile) * tileSize.width;
+  box.y      = mBoundingBoxTile.y + std::get<1>(tile) * tileSize.height;
+
+  return box;
+}
+
 std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> ROI::calcCircleRadius(int32_t snapAreaSize) const
 {
-  int32_t x = mBoundingBox.x + (mBoundingBox.width - snapAreaSize) / 2.0F;
+  int32_t x = mBoundingBoxTile.x + (mBoundingBoxTile.width - snapAreaSize) / 2.0F;
 
   int32_t boundingBoxWith   = snapAreaSize;
   int32_t boundingBoxHeight = snapAreaSize;
@@ -65,7 +82,7 @@ std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> ROI::calcCircleRadius(in
     circleX += x;
     x = 0;
   }
-  int32_t y = mBoundingBox.y + (mBoundingBox.height - snapAreaSize) / 2.0F;
+  int32_t y = mBoundingBoxTile.y + (mBoundingBoxTile.height - snapAreaSize) / 2.0F;
   if(y < 0) {
     boundingBoxHeight += y;
     circleY += y;
@@ -81,7 +98,7 @@ std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> ROI::calcCircleRadius(in
 [[nodiscard]] Boxes ROI::calcSnapAreaBoundingBox(int32_t snapAreaSize, const cv::Size &imageSize) const
 {
   if(snapAreaSize > 1) {
-    if(snapAreaSize > mBoundingBox.width && snapAreaSize > mBoundingBox.height) {
+    if(snapAreaSize > mBoundingBoxTile.width && snapAreaSize > mBoundingBoxTile.height) {
       int32_t boundingBoxWith          = snapAreaSize;
       int32_t boundingBoxHeight        = snapAreaSize;
       auto [x, y, circleX, circleY, _] = calcCircleRadius(snapAreaSize);
@@ -105,7 +122,7 @@ std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> ROI::calcCircleRadius(in
 cv::Mat ROI::calculateSnapAreaMask(int32_t snapAreaSize) const
 {
   if(snapAreaSize > 1) {
-    if(snapAreaSize > mBoundingBox.width && snapAreaSize > mBoundingBox.height) {
+    if(snapAreaSize > mBoundingBoxTile.width && snapAreaSize > mBoundingBoxTile.height) {
       return cv::Mat::zeros(mSnapAreaBoundingBox.height, mSnapAreaBoundingBox.width, CV_8UC1);
     }
   }
@@ -119,7 +136,7 @@ cv::Mat ROI::calculateSnapAreaMask(int32_t snapAreaSize) const
 std::vector<cv::Point> ROI::calculateSnapContours(int32_t snapAreaSize) const
 {
   if(snapAreaSize > 1) {
-    if(snapAreaSize > mBoundingBox.width && snapAreaSize > mBoundingBox.height) {
+    if(snapAreaSize > mBoundingBoxTile.width && snapAreaSize > mBoundingBoxTile.height) {
       auto [x, y, circleX, circleY, circleRadius] = calcCircleRadius(snapAreaSize);
       circle(mSnapAreaMask, cv::Point(circleX, circleY), circleRadius, cv::Scalar(255), -1);
       std::vector<std::vector<cv::Point>> contours;
@@ -163,7 +180,7 @@ auto ROI::calcIntensity(const cv::Mat &image) -> Intensity
 {
   // \todo make more efficient
   Intensity intensityRet;
-  cv::Mat maskImg = image(mBoundingBox).clone();
+  cv::Mat maskImg = image(mBoundingBoxTile).clone();
   for(int x = 0; x < maskImg.cols; x++) {
     for(int y = 0; y < maskImg.rows; y++) {
       if(mMask.at<uint8_t>(y, x) <= 0) {
@@ -171,7 +188,8 @@ auto ROI::calcIntensity(const cv::Mat &image) -> Intensity
       }
     }
   }
-  intensityRet.intensity = cv::mean(maskImg, mMask)[0];
+  intensityRet.intensityAvg = cv::mean(maskImg, mMask)[0];
+  intensityRet.intensitySum = cv::sum(maskImg)[0];
   cv::minMaxLoc(maskImg, &intensityRet.intensityMin, &intensityRet.intensityMax, nullptr, nullptr, mMask);
   return intensityRet;
 }
@@ -308,7 +326,8 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 ///
 [[nodiscard]] std::tuple<ROI, bool>
 ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint64_t indexOfIntersectingRoi,
-                      uint32_t snapAreaOfIntersectingRoi, float minIntersection,
+                      uint32_t snapAreaOfIntersectingRoi, float minIntersection, const enums::tile_t &tile,
+                      const cv::Size &tileSize,
                       joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                       joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
 {
@@ -336,7 +355,7 @@ ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint64_t i
                       .imagePlane = iterator,
                   },
                   intersectingMask.intersectionArea, snapAreaOfIntersectingRoi, intersectingMask.intersectedRect,
-                  intersectingMask.intersectedMask, contour, mImageSize},
+                  intersectingMask.intersectedMask, contour, mImageSize, tile, tileSize},
               true};
     }
   }
@@ -416,11 +435,12 @@ auto ROI::measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensi
 {
   if(!intensity.contains(image.getId())) {
     // Just add an empty entry
-    intensity[image.getId()].intensity    = 0;
+    intensity[image.getId()].intensitySum = 0;
+    intensity[image.getId()].intensityAvg = 0;
     intensity[image.getId()].intensityMax = 0;
     intensity[image.getId()].intensityMin = 0;
 
-    if(!image.image.empty() && !mBoundingBox.empty() && !mMask.empty()) {
+    if(!image.image.empty() && !mBoundingBoxTile.empty() && !mMask.empty()) {
       intensity[image.getId()] = calcIntensity(image.image);
     }
   }

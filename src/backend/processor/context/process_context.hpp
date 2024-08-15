@@ -81,7 +81,6 @@ struct ProcessContext
     return pipelineContext.actImagePlane.getId().imagePlane;
   }
 
-#warning "Handle this imageIdx"
   joda::atom::ImagePlane *addImageToCache(joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::ImagePlane> img)
   {
     getCorrectIteration(cacheId.imagePlane);
@@ -102,7 +101,7 @@ struct ProcessContext
 
   [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
   {
-    if(cacheId.storeIdx == enums::MemoryIdxIn::$) {
+    if(cacheId.storeIdx == enums::MemoryIdx::M0) {
       return &iterationContext.actObjects;
     }
     getCorrectObjectId(cacheId);

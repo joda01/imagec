@@ -22,7 +22,7 @@ namespace joda::enums {
 
 struct ImageId
 {
-  MemoryIdxIn imageIdx = MemoryIdxIn::$;
+  MemoryIdx imageIdx = MemoryIdx::M0;
   joda::enums::PlaneId imagePlane;
 
   bool operator<(const ImageId &in) const

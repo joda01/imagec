@@ -100,8 +100,8 @@ public:
                          const std::set<joda::enums::ClassId> &objectClassesOther,
                          joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
-                         uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi,
-                         float minIntersecion) const;
+                         uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi, float minIntersecion,
+                         const enums::tile_t &tile, const cv::Size &tileSize) const;
 
   auto begin() const
   {
