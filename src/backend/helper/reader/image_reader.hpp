@@ -34,9 +34,9 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  static cv::Mat loadImageTile(const std::string &filename, const Plane &plane, uint16_t series, uint16_t resolutionIdx,
-                               const joda::ome::TileToLoad &tile);
-  static cv::Mat loadEntireImage(const std::string &filename, const Plane &plane, uint16_t series,
+  static cv::Mat loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series,
+                               uint16_t resolutionIdx, const joda::ome::TileToLoad &tile);
+  static cv::Mat loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series,
                                  uint16_t resolutionIdx);
 
   static cv::Mat loadThumbnail(const std::string &filename, const Plane &directory, uint16_t series);

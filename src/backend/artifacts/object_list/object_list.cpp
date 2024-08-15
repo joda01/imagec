@@ -5,7 +5,7 @@
 
 namespace joda::atom {
 
-void SpheralIndex::calcIntersections(const enums::IteratorId &iterator, const SpheralIndex &other, SpheralIndex &result,
+void SpheralIndex::calcIntersections(const enums::PlaneId &iterator, const SpheralIndex &other, SpheralIndex &result,
                                      const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                                      const std::set<joda::enums::ClassId> &objectClassesOther,
                                      joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,

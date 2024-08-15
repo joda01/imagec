@@ -92,7 +92,7 @@ PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &sett
 /// \return
 ///
 void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &pipelineSetup, const enums::tile_t &tile,
-                                       const joda::enums::IteratorId &imagePartToLoad,
+                                       const joda::enums::PlaneId &imagePartToLoad,
                                        joda::processor::ProcessContext &processStepOut)
 {
   int32_t zStacksToLoad = 1;
@@ -139,7 +139,8 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   }
   processStepOut.pipelineContext.defaultClusterId = static_cast<enums::ClusterId>(pipelineSetup.defaultClusterId);
   processStepOut.pipelineContext.actImagePlane.setId(
-      joda::enums::ImageId{.imageIdx = joda::enums::MemoryIdxIn::M0, .iteration{.tStack = t, .zStack = z, .cStack = c}},
+      joda::enums::ImageId{.imageIdx = joda::enums::MemoryIdxIn::M0,
+                           .imagePlane{.tStack = t, .zStack = z, .cStack = c}},
       tile);
 
   //

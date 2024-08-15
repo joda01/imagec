@@ -29,12 +29,12 @@ struct MeasureSettings
   struct Input
   {
     //
-    // From which iteration the image should be taken (use -1 to take the stack from the actual iteration)
+    // From which imagePlane the image should be taken (use -1 to take the stack from the actual imagePlane)
     //
-    joda::enums::IteratorId iteratorId;
+    joda::enums::PlaneId iteratorId;
 
     //
-    // Which image from this iteration should be taken (use I0 to take the initial unedited original image)
+    // Which image from this imagePlane should be taken (use I0 to take the initial unedited original image)
     //
     joda::enums::ImageId imageId = joda::enums::ImageId::I0;
   };

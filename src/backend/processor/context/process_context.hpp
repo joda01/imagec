@@ -76,21 +76,21 @@ struct ProcessContext
     return iterationContext.actObjects;
   }
 
-  [[nodiscard]] const joda::enums::IteratorId &getActIterator() const
+  [[nodiscard]] const joda::enums::PlaneId &getActIterator() const
   {
-    return pipelineContext.actImagePlane.getId().iteration;
+    return pipelineContext.actImagePlane.getId().imagePlane;
   }
 
 #warning "Handle this imageIdx"
   joda::atom::ImagePlane *addImageToCache(joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::ImagePlane> img)
   {
-    getCorrectIteration(cacheId.iteration);
+    getCorrectIteration(cacheId.imagePlane);
     return globalContext.imageCache.try_emplace(cacheId, std::move(img)).first->second.get();
   }
 
   [[nodiscard]] const joda::atom::ImagePlane *loadImageFromCache(joda::enums::ImageId cacheId) const
   {
-    getCorrectIteration(cacheId.iteration);
+    getCorrectIteration(cacheId.imagePlane);
     return globalContext.imageCache.at(cacheId).get();
   }
 
@@ -105,7 +105,7 @@ struct ProcessContext
 
   void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::ImagePlane &image) const
   {
-    getCorrectIteration(cacheId.iteration);
+    getCorrectIteration(cacheId.imagePlane);
     globalContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
   }
 
@@ -149,7 +149,7 @@ struct ProcessContext
   ///
   void getCorrectObjectId(joda::enums::ObjectStoreId &cacheId) const
   {
-    getCorrectIteration(cacheId.iteration);
+    getCorrectIteration(cacheId.imagePlane);
   }
 
   ///
@@ -157,17 +157,17 @@ struct ProcessContext
   ///             is replaced by the actual index of the process step
   /// \author     Joachim Danmayr
   ///
-  void getCorrectIteration(joda::enums::IteratorId &iteration) const
+  void getCorrectIteration(joda::enums::PlaneId &imagePlane) const
   {
     const auto &actImageId = getActIterator();
-    if(iteration.cStack < 0) {
-      iteration.cStack = actImageId.cStack;
+    if(imagePlane.cStack < 0) {
+      imagePlane.cStack = actImageId.cStack;
     }
-    if(iteration.tStack < 0) {
-      iteration.tStack = actImageId.tStack;
+    if(imagePlane.tStack < 0) {
+      imagePlane.tStack = actImageId.tStack;
     }
-    if(iteration.zStack < 0) {
-      iteration.zStack = actImageId.zStack;
+    if(imagePlane.zStack < 0) {
+      imagePlane.zStack = actImageId.zStack;
     }
   }
 };

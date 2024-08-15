@@ -207,7 +207,7 @@ std::string ImageReader::getJavaVersion()
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &plane, uint16_t series,
+cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series,
                                      uint16_t resolutionIdx)
 {
   // Takes 150 ms
@@ -222,9 +222,9 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &p
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
     myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
-    jbyteArray readImg =
-        (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
-                                                   static_cast<int>(resolutionIdx), plane.z, plane.c, plane.t);
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
+        mBioformatsClass, mReadImage, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx), imagePlane.z,
+        imagePlane.c, imagePlane.t);
     jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     // This is the image information
@@ -247,7 +247,7 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &p
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &plane, uint16_t series)
+cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &imagePlane, uint16_t series)
 {
   // Takes 150 ms
   if(mJVMInitialised) {
@@ -270,9 +270,9 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &pla
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
     myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
-    jbyteArray readImg =
-        (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
-                                                   static_cast<int>(resolutionIdx), plane.z, plane.c, plane.t);
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
+        mBioformatsClass, mReadImage, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx), imagePlane.z,
+        imagePlane.c, imagePlane.t);
     jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     // This is the image information
@@ -335,7 +335,7 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &pla
 /// \param[in]  nrOfTilesToRead Nr of tiles which should form one composite image
 /// \return Loaded composite image
 ///
-cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &plane, uint16_t series,
+cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series,
                                    uint16_t resolutionIdx, const joda::ome::TileToLoad &tile)
 {
   if(mJVMInitialised) {
@@ -375,8 +375,8 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &pla
     // Load image
     //
     auto *readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx), plane.z,
-        plane.c, plane.t, offsetX, offsetY, tileWidthToLoad, tileHeightToLoad);
+        mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx),
+        imagePlane.z, imagePlane.c, imagePlane.t, offsetX, offsetY, tileWidthToLoad, tileHeightToLoad);
     jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     //

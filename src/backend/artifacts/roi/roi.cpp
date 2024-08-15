@@ -307,7 +307,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 /// \return     Intersection of the areas in percent
 ///
 [[nodiscard]] std::tuple<ROI, bool>
-ROI::calcIntersection(const enums::IteratorId &iterator, const ROI &roi, uint64_t indexOfIntersectingRoi,
+ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint64_t indexOfIntersectingRoi,
                       uint32_t snapAreaOfIntersectingRoi, float minIntersection,
                       joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                       joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
@@ -330,10 +330,10 @@ ROI::calcIntersection(const enums::IteratorId &iterator, const ROI &roi, uint64_
     }
     if(intersectingMask.intersectionArea >= minIntersection) {
       return {ROI{atom::ROI::RoiObjectId{
-                      .objectId  = indexOfIntersectingRoi,
-                      .clusterId = objectClusterIntersectingObjectsShouldBeAssignedTo,
-                      .classId   = objectClassIntersectingObjectsShouldBeAssignedTo,
-                      .iteration = iterator,
+                      .objectId   = indexOfIntersectingRoi,
+                      .clusterId  = objectClusterIntersectingObjectsShouldBeAssignedTo,
+                      .classId    = objectClassIntersectingObjectsShouldBeAssignedTo,
+                      .imagePlane = iterator,
                   },
                   intersectingMask.intersectionArea, snapAreaOfIntersectingRoi, intersectingMask.intersectedRect,
                   intersectingMask.intersectedMask, contour, mImageSize},

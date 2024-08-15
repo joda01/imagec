@@ -23,18 +23,18 @@ namespace joda::enums {
 struct ImageId
 {
   MemoryIdxIn imageIdx = MemoryIdxIn::$;
-  joda::enums::IteratorId iteration;
+  joda::enums::PlaneId imagePlane;
 
   bool operator<(const ImageId &in) const
   {
-    return imageIdx < in.imageIdx && iteration < in.iteration;
+    return imageIdx < in.imageIdx && imagePlane < in.imagePlane;
   }
 
   void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageId, imageIdx, iteration);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageId, imageIdx, imagePlane);
 };
 
 }    // namespace joda::enums

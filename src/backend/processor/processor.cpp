@@ -66,12 +66,12 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
               // Start pipelines
               for(const auto &pipeline : program.pipelines) {
                 //
-                // Load the image plane
+                // Load the image imagePlane
                 //
                 ProcessContext context{
                     .globalContext = globalContext, .imageContext = imageContext, .iterationContext = iterationContext};
                 imageLoader.initPipeline(pipeline.pipelineSetup, {tilesX, tileY},
-                                         joda::enums::IteratorId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
+                                         joda::enums::PlaneId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
                                          context);
 
                 //

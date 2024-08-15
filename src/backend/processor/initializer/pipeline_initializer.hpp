@@ -47,7 +47,7 @@ public:
   }
 
   void initPipeline(const joda::settings::PipelineSettings &settings, const enums::tile_t &tile,
-                    const joda::enums::IteratorId &imagePartToLoad, ProcessContext &processStepOu);
+                    const joda::enums::PlaneId &imagePartToLoad, ProcessContext &processStepOu);
 
 private:
   /////////////////////////////////////////////////////

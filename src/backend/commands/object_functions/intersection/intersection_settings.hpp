@@ -29,7 +29,7 @@ struct IntersectionSettings
   struct IntersectingClasses
   {
     //
-    // Input object to intersect with. Leaf empty to use iteration context store
+    // Input object to intersect with. Leaf empty to use imagePlane context store
     //
     joda::enums::ObjectStoreId objectIn;
 

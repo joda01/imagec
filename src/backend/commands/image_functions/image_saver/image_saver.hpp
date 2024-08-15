@@ -53,9 +53,9 @@ public:
         parentPath /
         (fileName.string() + "__" + std::to_string(std::get<0>(context.pipelineContext.actImagePlane.tile)) + "x" +
          std::to_string(std::get<1>(context.pipelineContext.actImagePlane.tile)) + "__" +
-         std::to_string((int32_t) context.pipelineContext.actImagePlane.getId().iteration.cStack) + "-" +
-         std::to_string(context.pipelineContext.actImagePlane.getId().iteration.zStack) + "-" +
-         std::to_string((int32_t) context.pipelineContext.actImagePlane.getId().iteration.tStack) +
+         std::to_string((int32_t) context.pipelineContext.actImagePlane.getId().imagePlane.cStack) + "-" +
+         std::to_string(context.pipelineContext.actImagePlane.getId().imagePlane.zStack) + "-" +
+         std::to_string((int32_t) context.pipelineContext.actImagePlane.getId().imagePlane.tStack) +
          mSettings.namePrefix + ".png");
 
     // Convert to 8-bit grayscale

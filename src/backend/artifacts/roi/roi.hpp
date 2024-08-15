@@ -48,7 +48,7 @@ public:
     uint64_t objectId;
     joda::enums::ClusterId clusterId;
     joda::enums::ClassId classId;
-    joda::enums::IteratorId iteration;
+    joda::enums::PlaneId imagePlane;
 
     bool operator<(const RoiObjectId &in) const
     {
@@ -181,7 +181,7 @@ public:
   }
 
   [[nodiscard]] std::tuple<ROI, bool>
-  calcIntersection(const enums::IteratorId &iterator, const ROI &roi, uint64_t indexOfIntersectingRoi,
+  calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint64_t indexOfIntersectingRoi,
                    uint32_t snapAreaOfIntersectingRoi, float minIntersection,
                    joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                    joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;

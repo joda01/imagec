@@ -188,10 +188,10 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{
-              .objectId  = context.acquireNextObjectId(),
-              .clusterId = context.getClusterId(objectClass.clusterOutNoMatch),
-              .classId   = context.getClassId(objectClass.classOutNoMatch),
-              .iteration = context.getActIterator(),
+              .objectId   = context.acquireNextObjectId(),
+              .clusterId  = context.getClusterId(objectClass.clusterOutNoMatch),
+              .classId    = context.getClassId(objectClass.classOutNoMatch),
+              .imagePlane = context.getActIterator(),
           },
           context.pipelineContext.actImagePlane.appliedMinThreshold, 0, box, mask, contours[idxMax],
           context.getImageSize());

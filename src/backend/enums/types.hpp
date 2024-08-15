@@ -25,13 +25,13 @@ using zStack_t = int32_t;
 using tStack_t = int32_t;
 using cStack_t = int32_t;
 
-struct IteratorId
+struct PlaneId
 {
   tStack_t tStack = -1;
   zStack_t zStack = -1;
   cStack_t cStack = -1;
 
-  bool operator<(const IteratorId &in) const
+  bool operator<(const PlaneId &in) const
   {
     return tStack < in.tStack && zStack < in.zStack && cStack < in.cStack;
   }
@@ -39,9 +39,8 @@ struct IteratorId
   void check() const
   {
   }
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(IteratorId, tStack);
 
-  // NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IteratorId, tStack, zStack, cStack);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PlaneId, tStack, zStack, cStack);
 };
 
 }    // namespace joda::enums
