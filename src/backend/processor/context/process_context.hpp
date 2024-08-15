@@ -35,8 +35,7 @@
 
 namespace joda::processor {
 
-using imageCache_t  = std::map<enums::ImageId, std::unique_ptr<joda::atom::ImagePlane>>;
-using objectCache_t = std::map<enums::ObjectStoreId, std::unique_ptr<joda::atom::ObjectList>>;
+using imageCache_t = std::map<enums::ImageId, std::unique_ptr<joda::atom::ImagePlane>>;
 
 struct GlobalContext
 {
@@ -56,7 +55,6 @@ struct GlobalContext
 
 private:
   imageCache_t imageCache;
-  objectCache_t objectCache;
   std::atomic<uint64_t> globalObjectIdCount;
 };
 
@@ -73,7 +71,7 @@ struct ProcessContext
 
   [[nodiscard]] joda::atom::ObjectList &getActObjects()
   {
-    return iterationContext.actObjects;
+    return imageContext.actObjects;
   }
 
   [[nodiscard]] const joda::enums::PlaneId &getActIterator() const
@@ -94,32 +92,38 @@ struct ProcessContext
     return globalContext.imageCache.at(cacheId).get();
   }
 
-  [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
-  {
-    if(cacheId.storeIdx == enums::MemoryIdxIn::$) {
-      return &iterationContext.actObjects;
-    }
-    getCorrectObjectId(cacheId);
-    return globalContext.objectCache.at(cacheId).get();
-  }
-
   void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::ImagePlane &image) const
   {
     getCorrectIteration(cacheId.imagePlane);
     globalContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
   }
 
-  void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const
+  [[nodiscard]] const joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
   {
-#warning "IF cluster ID still exists. Merge or override!?"
-    getCorrectObjectId(cacheId);
-
-    auto oby = ::std::make_unique<joda::atom::ObjectList>();
-    for(const auto &[key, element] : object) {
-      oby->operator[](key).cloneFromOther(element);
+    if(cacheId.storeIdx == enums::MemoryIdxIn::$) {
+      return &imageContext.actObjects;
     }
+    getCorrectObjectId(cacheId);
+    return globalContext.objectCache.at(cacheId).get();
+  }
 
-    globalContext.objectCache.try_emplace(cacheId, std::move(oby));
+  void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const
+  { /*
+     auto &cacheToWrite = imageContext.actObjects;
+     if(cacheId.storeIdx != enums::MemoryIdxIn::$) {
+       getCorrectObjectId(cacheId);
+       cacheToWrite = *globalContext.objectCache[cacheId];
+     }
+
+     for(const auto &[clusterId, objects] : object) {
+       if(cacheToWrite.contains(clusterId)) {
+         // Cluster still exists, merge elements
+         cacheToWrite.at(clusterId).mergeFromOther(objects);
+       } else {
+         // Create new element -
+         cacheToWrite[clusterId].cloneFromOther(objects);
+       }
+     }*/
   }
 
   [[nodiscard]] cv::Size getImageSize() const

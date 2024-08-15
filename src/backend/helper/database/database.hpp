@@ -15,6 +15,7 @@
 #include <filesystem>
 #include "backend/enums/types.hpp"
 #include "backend/processor/context/image_context.hpp"
+#include "backend/processor/context/iteration_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 
@@ -30,7 +31,7 @@ public:
   void insertProjectSettings(const joda::settings::AnalyzeSettings &);
   void insertImage(const joda::processor::ImageContext &);
   void insertImagePlane();
-  void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
+  void insertObjects(const joda::processor::IterationContext &);
 
 private:
   /////////////////////////////////////////////////////
