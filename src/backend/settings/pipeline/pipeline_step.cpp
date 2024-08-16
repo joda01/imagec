@@ -33,6 +33,8 @@
 #include "backend/commands/object_functions/intersection/intersection.hpp"
 #include "backend/commands/object_functions/intersection/intersection_settings.hpp"
 #include "backend/commands/object_functions/measure/measure.hpp"
+#include "backend/commands/object_functions/voronoi_grid/voronoi_grid.hpp"
+#include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings.hpp"
 
 namespace joda::settings {
 
@@ -105,6 +107,11 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
 
   if($crop) {
     joda::cmd::Factory<joda::cmd::MarginCrop, MarginCropSettings> a($crop.value());
+    a.execute(context, image, result);
+  }
+
+  if($voronoi) {
+    joda::cmd::Factory<joda::cmd::VoronoiGrid, VoronoiGridSettings> a($voronoi.value());
     a.execute(context, image, result);
   }
 }

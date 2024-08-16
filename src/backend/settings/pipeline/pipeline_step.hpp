@@ -28,6 +28,7 @@
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
 #include "backend/commands/object_functions/intersection/intersection_settings.hpp"
 #include "backend/commands/object_functions/measure/measure_settings.hpp"
+#include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
@@ -46,12 +47,6 @@ namespace joda::settings {
 struct PipelineStep
 {
 public:
-  //
-  // Common
-  //
-  // std::optional<Voronoi> $voronoi = std::nullopt;    // Input of a voronoi is a set of points
-  //
-
   std::optional<BlurSettings> $blur                     = std::nullopt;
   std::optional<ImageSaverSettings> $saveImage          = std::nullopt;
   std::optional<ThresholdSettings> $threshold           = std::nullopt;
@@ -66,6 +61,7 @@ public:
   std::optional<MedianSubtractSettings> $medianSubtract = std::nullopt;
   std::optional<EdgeDetectionSettings> $edgeDetection   = std::nullopt;
   std::optional<MarginCropSettings> $crop               = std::nullopt;
+  std::optional<VoronoiGridSettings> $voronoi           = std::nullopt;
 
   /////////////////////////////////////////////////////
   void operator()(processor::ProcessContext &context, cv::Mat &image, joda::atom::ObjectList &result) const;
@@ -76,7 +72,7 @@ public:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed,
                                                        $imageFromClass, $classify, $aiClassify, $colocalization,
                                                        $intersection, $measure, $rollingBall, $medianSubtract,
-                                                       $edgeDetection, $crop);
+                                                       $edgeDetection, $crop, $voronoi);
 };
 
 }    // namespace joda::settings

@@ -44,14 +44,14 @@ public:
 
   void createBinaryImage(cv::Mat &img, const std::set<joda::enums::ClassId> &objectClasses) const;
 
-  void emplace(const ROI &box)
+  ROI &emplace(const ROI &box)
   {
-    insertIntoGrid(box);
+    return insertIntoGrid(box);
   }
 
-  void push_back(const ROI &box)
+  ROI &push_back(const ROI &box)
   {
-    insertIntoGrid(box);
+    return insertIntoGrid(box);
   }
 
   bool empty() const
@@ -136,23 +136,24 @@ private:
   unordered_map<pair<int, int>, std::vector<ROI *>, PairHash> grid;
   int mCellSize;
 
-  void insertIntoGrid(const ROI &box)
+  ROI &insertIntoGrid(const ROI &box)
   {
-    auto &rect = box.getBoundingBox();
-    int min_x  = rect.x;
-    int min_y  = rect.y;
-    int max_x  = rect.x + rect.width;
-    int max_y  = rect.y + rect.height;
+    const auto &rect = box.getBoundingBox();
+    int min_x        = rect.x;
+    int min_y        = rect.y;
+    int max_x        = rect.x + rect.width;
+    int max_y        = rect.y + rect.height;
 
     std::lock_guard<std::mutex> lock(mInsertLock);
-    mElements.emplace_back(box);
-    ROI *boxPtr = &mElements.back();
+    auto &inserted = mElements.emplace_back(box);
+    ROI *boxPtr    = &mElements.back();
 
     for(int x = min_x / mCellSize; x <= max_x / mCellSize; ++x) {
       for(int y = min_y / mCellSize; y <= max_y / mCellSize; ++y) {
         grid[{x, y}].emplace_back(boxPtr);
       }
     }
+    return inserted;
   }
 
   static bool isCollision(const ROI *box1, const ROI *box2)

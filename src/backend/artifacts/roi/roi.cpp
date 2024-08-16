@@ -47,7 +47,8 @@ ROI::ROI(RoiObjectId index, Confidence confidence, uint32_t snapAreaSize, const 
     mMask(mask), mMaskContours(contour), mImageSize(imageSize), mAreaSize(calcAreaSize()),
     mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
     mSnapAreaBoundingBox(calcSnapAreaBoundingBox(snapAreaSize, imageSize)),
-    mSnapAreaMask(calculateSnapAreaMask(snapAreaSize)), mSnapAreaMaskContours(calculateSnapContours(snapAreaSize))
+    mSnapAreaMask(calculateSnapAreaMask(snapAreaSize)), mSnapAreaMaskContours(calculateSnapContours(snapAreaSize)),
+    mSnapAreaRadius(snapAreaSize)
 {
 }
 

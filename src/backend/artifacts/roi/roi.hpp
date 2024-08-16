@@ -208,6 +208,11 @@ public:
     return mAreaSize;
   }
 
+  [[nodiscard]] uint32_t getSnapAreaRadius() const
+  {
+    return mSnapAreaRadius;
+  }
+
   [[nodiscard]] float getCircularity() const
   {
     return mCircularity;
@@ -268,6 +273,7 @@ private:
   const Boxes mSnapAreaBoundingBox;    ///< Rectangle around the prediction with snap area
   const cv::Mat mSnapAreaMask;         ///< Segmentation mask with snap area
   const std::vector<cv::Point> mSnapAreaMaskContours;
+  const uint32_t mSnapAreaRadius = 0;
 
   const double mAreaSize   = 0;    ///< size of the masking area [px^2 / px^3]
   const float mPerimeter   = 0;    ///< Perimeter (boundary size) [px]
