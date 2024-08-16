@@ -143,18 +143,34 @@
           }
         },
         {
-          "$imageFromClass": {
-            "clusterIn": "G",
-            "classesIn": [
-              "C8"
-            ]
-          }
-        },
-        {
           "$saveImage": {
             "compression": 0,
             "namePrefix": "_voronoi_A",
-            "objectCluster": "G"
+            "canvas": "White",
+            "clustersIn": [
+              {
+                "clusterIn": "G",
+                "classesIn": [
+                  {
+                    "classIn": "C8",
+                    "color": "#FF0000",
+                    "style": "Outlined",
+                    "paintBoundingBox": false
+                  }
+                ]
+              },
+              {
+                "clusterIn": "A",
+                "classesIn": [
+                  {
+                    "classIn": "C0",
+                    "color": "#00FF00",
+                    "style": "Outlined",
+                    "paintBoundingBox": false
+                  }
+                ]
+              }
+            ]
           }
         }
       ]
