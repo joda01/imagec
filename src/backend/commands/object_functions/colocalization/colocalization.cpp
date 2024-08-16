@@ -1,5 +1,5 @@
 ///
-/// \file      intersection.cpp
+/// \file      Colocalization.cpp
 /// \author    Joachim Danmayr
 /// \date      2024-08-11
 ///
@@ -11,7 +11,7 @@
 
 ///
 
-#include "intersection.hpp"
+#include "colocalization.hpp"
 #include <cstddef>
 #include <optional>
 #include "backend/artifacts/object_list/object_list.hpp"
@@ -22,11 +22,11 @@
 
 namespace joda::cmd {
 
-Intersection::Intersection(const settings::IntersectionSettings &settings) : mSettings(settings)
+Colocalization::Colocalization(const settings::ColocalizationSettings &settings) : mSettings(settings)
 {
 }
 
-void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
+void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
   const auto &clustersToIntersect = mSettings.objectsIn;
   size_t intersectCount           = clustersToIntersect.size();
@@ -38,7 +38,7 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
     }
 
     if(intersectCount == 1) {
-      joda::log::logWarning("At least two channels must be given to calc intersection!");
+      joda::log::logWarning("At least two channels must be given to calc Colocalization!");
       return;
     }
     atom::SpheralIndex &result = resultIn[context.getClusterId(mSettings.clusterOut)];
@@ -103,14 +103,14 @@ for(const auto idxToIntersect : clustersToIntersect) {
     cv::Mat binaryImage = cv::Mat::zeros(detectionResultsIn.at(idxToIntersect).originalImage.size(), CV_8UC1);
     detectionResultsIn.at(idxToIntersect).result.createBinaryImage(binaryImage);
     cv::bitwise_and(intersectingMask, binaryImage, intersectingMask);
-    // Calculate the intersection of the original images
+    // Calculate the Colocalization of the original images
     originalImage = cv::min(detectionResultsIn.at(idxToIntersect).originalImage, originalImage);
   }
 }
 
 joda::settings::ChannelSettingsFilter filter;
 filter.maxParticleSize = INT64_MAX;
-filter.minParticleSize = mMinIntersection;    ///\todo Add filtering
+filter.minParticleSize = mMinColocalization;    ///\todo Add filtering
 filter.snapAreaSize    = 0;
 filter.minCircularity  = 0;
 joda::image::segment::ObjectSegmentation seg(filter, 200, joda::settings::ThresholdSettings::Mode::MANUAL, false);
@@ -125,7 +125,7 @@ return response;
 }
 
 //
-// Calculate the intersection
+// Calculate the Colocalization
 //
 /*
 std::vector<image::detect::DetectionFunction::OverlaySettings> overlayPainting;

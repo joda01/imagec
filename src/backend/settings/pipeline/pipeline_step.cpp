@@ -21,7 +21,7 @@
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/threshold/threshold.hpp"
 #include "backend/commands/image_functions/watershed/watershed.hpp"
-#include "backend/commands/object_functions/intersection/intersection.hpp"
+#include "backend/commands/object_functions/colocalization/colocalization.hpp"
 #include "backend/commands/object_functions/measure/measure.hpp"
 
 namespace joda::settings {
@@ -63,8 +63,8 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
     a.execute(context, image, result);
   }
 
-  if($intersection) {
-    joda::cmd::Factory<joda::cmd::Intersection, IntersectionSettings> a($intersection.value());
+  if($colocalization) {
+    joda::cmd::Factory<joda::cmd::Colocalization, ColocalizationSettings> a($colocalization.value());
     a.execute(context, image, result);
   }
 

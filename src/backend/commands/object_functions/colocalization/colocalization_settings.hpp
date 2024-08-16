@@ -26,7 +26,7 @@
 
 namespace joda::settings {
 
-struct IntersectionSettings
+struct ColocalizationSettings
 {
   struct IntersectingClasses
   {
@@ -81,7 +81,7 @@ struct IntersectionSettings
     CHECK(minIntersection >= 0, "Min intersection must be >=0.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(IntersectionSettings, objectsIn, minIntersection, classOut, clusterOut);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, objectsIn, minIntersection, classOut, clusterOut);
 };
 
 }    // namespace joda::settings
