@@ -28,6 +28,13 @@ namespace joda::settings {
 
 struct IntersectionSettings
 {
+  enum class Function
+  {
+    UNKNOWN,
+    COUNT,
+    RECLASSIFY,
+  };
+
   struct IntersectingClasses
   {
     //
@@ -55,6 +62,11 @@ struct IntersectionSettings
   };
 
   //
+  // What should happen when an intersection was found
+  //
+  Function function = Function::UNKNOWN;
+
+  //
   // Minimum intersection in [0-1]
   //
   float minIntersection = 0.1F;
@@ -69,13 +81,30 @@ struct IntersectionSettings
   //
   IntersectingClasses objectsInWith;
 
+  //
+  // In case of reclassification this is the new class ID for intersecting elements
+  //
+  joda::enums::ClassId newClassId = joda::enums::ClassId::UNDEFINED;
+
   /////////////////////////////////////////////////////
   void check() const
   {
+    CHECK(function != Function::UNKNOWN, "Define a intersection function!");
     CHECK(minIntersection >= 0, "Min intersection must be >=0.");
+    if(function == Function::RECLASSIFY) {
+      CHECK(newClassId != joda::enums::ClassId::UNDEFINED,
+            "Define a class the elements should be assigned for reclassification.");
+    }
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(IntersectionSettings, objectsIn, objectsInWith);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionSettings, function, minIntersection, objectsIn,
+                                                       objectsInWith, newClassId);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(IntersectionSettings::Function,
+                             {
+                                 {IntersectionSettings::Function::COUNT, "Count"},
+                                 {IntersectionSettings::Function::RECLASSIFY, "Reclassify"},
+                             });
 
 }    // namespace joda::settings

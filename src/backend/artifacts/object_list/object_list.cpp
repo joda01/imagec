@@ -1,6 +1,7 @@
 
 
 #include "object_list.hpp"
+#include <list>
 #include <memory>
 
 namespace joda::atom {
@@ -47,8 +48,10 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
   }
 }
 
-void SpheralIndex::calcIntersections(const SpheralIndex &other, const std::set<joda::enums::ClassId> objectClassesMe,
-                                     const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion)
+void SpheralIndex::calcIntersections(joda::settings::IntersectionSettings::Function func, const SpheralIndex &other,
+                                     const std::set<joda::enums::ClassId> objectClassesMe,
+                                     const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion,
+                                     joda::enums::ClassId newClassOFIntersectingObject)
 {
   std::set<ROI *> intersecting;
   // Check for collisions between objects in grid1 and grid2
@@ -64,8 +67,17 @@ void SpheralIndex::calcIntersections(const SpheralIndex &other, const std::set<j
               // Each intersecting particle is only allowed to be counted once
               if(!intersecting.contains(box2)) {
                 if(box1->isIntersecting(*box2, minIntersecion)) {
-                  box1->addIntersectingRoi(box2);
                   intersecting.emplace(box2);
+                  switch(func) {
+                    case settings::IntersectionSettings::Function::COUNT:
+                      box1->addIntersectingRoi(box2);
+                      break;
+                    case settings::IntersectionSettings::Function::RECLASSIFY:
+                      box1->setClass(newClassOFIntersectingObject);
+                      break;
+                    case settings::IntersectionSettings::Function::UNKNOWN:
+                      break;
+                  }
                 }
               }
             }

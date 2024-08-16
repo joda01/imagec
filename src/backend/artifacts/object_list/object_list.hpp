@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <iostream>
@@ -11,6 +12,7 @@
 #include <unordered_map>
 #include <vector>
 #include "../roi/roi.hpp"
+#include "backend/commands/object_functions/intersection/intersection_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 
@@ -103,8 +105,10 @@ public:
                           uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi, float minIntersecion,
                           const enums::tile_t &tile, const cv::Size &tileSize) const;
 
-  void calcIntersections(const SpheralIndex &other, const std::set<joda::enums::ClassId> objectClassesMe,
-                         const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion);
+  void calcIntersections(joda::settings::IntersectionSettings::Function func, const SpheralIndex &other,
+                         const std::set<joda::enums::ClassId> objectClassesMe,
+                         const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion,
+                         joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
 
   auto begin() const
   {

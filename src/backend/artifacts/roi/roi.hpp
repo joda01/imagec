@@ -93,6 +93,12 @@ public:
     oId.classId   = classId;
   }
 
+  void setClass(enums::ClassId classId)
+  {
+    auto &oId   = const_cast<RoiObjectId &>(mId);
+    oId.classId = classId;
+  }
+
   [[nodiscard]] const RoiObjectId &getId() const
   {
     return mId;

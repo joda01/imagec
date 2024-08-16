@@ -228,6 +228,7 @@
         },
         {
           "$intersection": {
+            "function": "Count",
             "objectsIn": {
               "clusterIn": "A",
               "classesIn": [

@@ -32,8 +32,8 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
   const auto &intersectWith =
       context.loadObjectsFromCache(mSettings.objectsInWith.objectIn)->at(mSettings.objectsInWith.clusterIn);
 
-  objectsInOut.calcIntersections(intersectWith, mSettings.objectsIn.classesIn, mSettings.objectsInWith.classesIn,
-                                 mSettings.minIntersection);
+  objectsInOut.calcIntersections(mSettings.function, intersectWith, mSettings.objectsIn.classesIn,
+                                 mSettings.objectsInWith.classesIn, mSettings.minIntersection, mSettings.newClassId);
 }
 /*
 cv::Mat intersectingMask =
