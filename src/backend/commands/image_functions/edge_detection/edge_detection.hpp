@@ -13,35 +13,33 @@
 
 #pragma once
 
-#include "../../image_functions/function.hpp"
-#include "backend/helper/duration_count/duration_count.h"
-#include "backend/settings/preprocessing/image_functions/edge_detection.hpp"
+#include "backend/commands/command.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
+#include "edge_detection_settings.hpp"
 
-namespace joda::image::func {
+namespace joda::cmd {
 
 ///
 /// \class      Function
 /// \author     Joachim Danmayr
 /// \brief      Base class for an image processing function
 ///
-class EdgeDetection : public Function
+class EdgeDetection : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  explicit EdgeDetection(const joda::settings::EdgeDetection &settings) : mSetting(settings)
+  explicit EdgeDetection(const joda::settings::EdgeDetectionSettings &settings) : mSetting(settings)
   {
   }
-  void execute(cv::Mat &image) const override
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto id = DurationCount::start("EdgeDetection");
     switch(mSetting.mode) {
-      case joda::settings::EdgeDetection::Mode::CANNY:
+      case joda::settings::EdgeDetectionSettings::Mode::CANNY:
         cv::Canny(image, image, 100, 200, 3, false);
         break;
-      case joda::settings::EdgeDetection::Mode::SOBEL:
+      case joda::settings::EdgeDetectionSettings::Mode::SOBEL:
         // cv::Sobel(image, image, CV_16UC1, 1, 1, K_SIZE);
         filter3x3(image);
         break;
@@ -49,7 +47,6 @@ public:
       default:
         break;
     }
-    DurationCount::stop(id);
   }
 
 private:
@@ -58,7 +55,7 @@ private:
   void filter3x3(cv::Mat &image) const;
 
   /////////////////////////////////////////////////////
-  const joda::settings::EdgeDetection &mSetting;
+  const joda::settings::EdgeDetectionSettings &mSetting;
 };
 
-}    // namespace joda::image::func
+}    // namespace joda::cmd

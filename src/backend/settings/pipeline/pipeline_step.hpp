@@ -17,6 +17,7 @@
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/classification/classifier/classifier_settings.hpp"
 #include "backend/commands/image_functions/blur/blur_settings.hpp"
+#include "backend/commands/image_functions/edge_detection/edge_detection_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
@@ -50,7 +51,7 @@ public:
   // std::optional<StoreSlot> $store       = std::nullopt;
   // std::optional<Calculator> $calculator = std::nullopt;
   // std::optional<Voronoi> $voronoi = std::nullopt;    // Input of a voronoi is a set of points
-  // std::optional<EdgeDetection> $edgeDetection                          = std::nullopt;
+  //
   // std::optional<GaussianBlur> $gaussianBlur                            = std::nullopt;
   // std::optional<MedianSubtraction> $medianSubtract                     = std::nullopt;
   // std::optional<RollingBall> $rollingBall                              = std::nullopt;
@@ -67,6 +68,7 @@ public:
   std::optional<MeasureSettings> $measure               = std::nullopt;
   std::optional<RollingBallSettings> $rollingBall       = std::nullopt;
   std::optional<MedianSubtractSettings> $medianSubtract = std::nullopt;
+  std::optional<EdgeDetectionSettings> $edgeDetection   = std::nullopt;
 
   //
   // Measurement
@@ -81,7 +83,8 @@ public:
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed,
                                                        $imageFromClass, $classify, $aiClassify, $colocalization,
-                                                       $intersection, $measure, $rollingBall, $medianSubtract);
+                                                       $intersection, $measure, $rollingBall, $medianSubtract,
+                                                       $edgeDetection);
 };
 
 }    // namespace joda::settings

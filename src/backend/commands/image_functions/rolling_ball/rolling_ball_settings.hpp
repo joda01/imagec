@@ -27,4 +27,11 @@ public:
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(RollingBallSettings, ballType, ballSize);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(RollingBallSettings::BallType,
+                             {
+                                 {RollingBallSettings::BallType::BALL, "Ball"},
+                                 {RollingBallSettings::BallType::PARABOLOID, "Paraboloid"},
+                             });
+
 }    // namespace joda::settings

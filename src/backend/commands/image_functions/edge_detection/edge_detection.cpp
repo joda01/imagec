@@ -17,7 +17,7 @@
 #include "edge_detection.hpp"
 #include <opencv2/core/mat.hpp>
 
-namespace joda::image::func {
+namespace joda::cmd {
 
 void EdgeDetection::filter3x3(cv::Mat &image) const
 {
@@ -93,4 +93,4 @@ void EdgeDetection::filter3x3(cv::Mat &image) const
   }
 }
 
-}    // namespace joda::image::func
+}    // namespace joda::cmd

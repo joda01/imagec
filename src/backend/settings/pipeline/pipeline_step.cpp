@@ -17,6 +17,8 @@
 #include "backend/commands/classification/classifier/classifier.hpp"
 #include "backend/commands/factory.hpp"
 #include "backend/commands/image_functions/blur/blur.hpp"
+#include "backend/commands/image_functions/edge_detection/edge_detection.hpp"
+#include "backend/commands/image_functions/edge_detection/edge_detection_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction.hpp"
@@ -91,6 +93,11 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
 
   if($medianSubtract) {
     joda::cmd::Factory<joda::cmd::MedianSubtraction, MedianSubtractSettings> a($medianSubtract.value());
+    a.execute(context, image, result);
+  }
+
+  if($edgeDetection) {
+    joda::cmd::Factory<joda::cmd::EdgeDetection, EdgeDetectionSettings> a($edgeDetection.value());
     a.execute(context, image, result);
   }
 }
