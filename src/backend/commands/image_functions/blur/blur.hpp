@@ -30,35 +30,30 @@ namespace joda::cmd {
 class Blur : public Command
 {
 public:
-  enum Type
-  {
-    CONVOLVE,
-    BLUR_MORE,
-    FIND_EDGES
-  };
-
   /////////////////////////////////////////////////////
-  explicit Blur(const settings::BlurSettings &settings) : mRepeat(settings.repeat), mKernelSize(settings.kernelSize)
+  explicit Blur(const settings::BlurSettings &settings) : mSettings(settings)
   {
   }
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
     int kernel[3]{0};    //= {-1, -1, -1, -1, 12, -1, -1, -1, -1};
-    for(int n = 0; n < mRepeat; n++) {
-      if(mKernelSize == 3) {
-        filter3x3(image, BLUR_MORE, kernel, 3);
+    for(int n = 0; n < mSettings.repeat; n++) {
+      if(mSettings.mode == settings::BlurSettings::Mode::GAUSSIAN) {
+        cv::GaussianBlur(image, image, cv::Size(mSettings.kernelSize, mSettings.kernelSize), 0);
+      } else if(mSettings.kernelSize == 3) {
+        filter3x3(image, mSettings.mode, kernel, 3);
       } else {
-        cv::blur(image, image, cv::Size(mKernelSize, mKernelSize));
+        cv::blur(image, image, cv::Size(mSettings.kernelSize, mSettings.kernelSize));
       }
     }
   }
 
 private:
   /////////////////////////////////////////////////////
-  void filter3x3(cv::Mat &imageIn, int type, int *kernel, int kernelArraySize) const;
+  void filter3x3(cv::Mat &imageIn, joda::settings::BlurSettings::Mode type, int *kernel, int kernelArraySize) const;
+
   /////////////////////////////////////////////////////
-  int mRepeat;
-  int mKernelSize;
+  const settings::BlurSettings &mSettings;
 };
 
 }    // namespace joda::cmd

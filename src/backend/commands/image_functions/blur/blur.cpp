@@ -15,11 +15,12 @@
 ///
 
 #include "blur.hpp"
+#include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include <opencv2/core/mat.hpp>
 
 namespace joda::cmd {
 
-void Blur::filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize) const
+void Blur::filter3x3(cv::Mat &image, joda::settings::BlurSettings::Mode type, int *kernel, int kernelArraySize) const
 {
   int v1    = 0;
   int v2    = 0;
@@ -40,7 +41,7 @@ void Blur::filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize)
   int k8    = 0;
   int k9    = 0;
   int scale = 0;
-  if(type == CONVOLVE) {
+  if(type == joda::settings::BlurSettings::Mode::CONVOLVE) {
     k1 = kernel[0];
     k2 = kernel[1];
     k3 = kernel[2];
@@ -83,7 +84,7 @@ void Blur::filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize)
     v9 = imageCopy.at<unsigned short>(p9) & 0xffff;
 
     switch(type) {
-      case BLUR_MORE:
+      case joda::settings::BlurSettings::Mode::BLUR_MORE:
         for(int x = roiX; x < xEnd; x++, p++) {
           if(x < width - 1) {
             p3++;
@@ -102,7 +103,7 @@ void Blur::filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize)
           image.at<unsigned short>(p) = (unsigned short) ((v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + v9 + 4) / 9);
         }
         break;
-      case FIND_EDGES:
+      case joda::settings::BlurSettings::Mode::FIND_EDGES:
         for(int x = roiX; x < xEnd; x++, p++) {
           if(x < width - 1) {
             p3++;
@@ -126,7 +127,7 @@ void Blur::filter3x3(cv::Mat &image, int type, int *kernel, int kernelArraySize)
           image.at<unsigned short>(p) = (short) result;
         }
         break;
-      case CONVOLVE:
+      case joda::settings::BlurSettings::Mode::CONVOLVE:
         for(int x = roiX; x < xEnd; x++, p++) {
           if(x < width - 1) {
             p3++;
