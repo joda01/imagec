@@ -30,32 +30,12 @@ struct ProjectImageSetup
     EACH_ONE
   };
 
-  enum class GroupBy
-  {
-    OFF,
-    DIRECTORY,
-    FILENAME
-  };
-
   ZStackHandling zStackHandling = ZStackHandling::INTENSITY_PROJECTION;
   TStackHandling tStackHandling = TStackHandling::EACH_ONE;
   CStackHandling cStackHandling = CStackHandling::EXACT_ONE;
 
-  std::string imageInputDirectory;
-
-  //
-  // Image grouping option [NONE, FOLDER, FILENAME]
-  //
-  GroupBy groupBy = GroupBy::OFF;
-
-  //
-  // Used to extract coordinates of a well form the image name
-  // Regex with 3 groupings: _((.)([0-9]+))_
-  //
-  std::string filenameRegex = "_((.)([0-9]+))_([0-9]+)";
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, imageInputDirectory, zStackHandling,
-                                                       tStackHandling, cStackHandling, groupBy, filenameRegex);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling,
+                                                       cStackHandling);
 
   void check() const
   {
@@ -78,12 +58,5 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ProjectImageSetup::CStackHandling,
                                  {ProjectImageSetup::CStackHandling::EXACT_ONE, "ExactOne"},
                                  {ProjectImageSetup::CStackHandling::EACH_ONE, "EachOne"},
                              });
-
-// map TaskState values to JSON as strings
-NLOHMANN_JSON_SERIALIZE_ENUM(ProjectImageSetup::GroupBy, {
-                                                             {ProjectImageSetup::GroupBy::OFF, "Off"},
-                                                             {ProjectImageSetup::GroupBy::DIRECTORY, "Directory"},
-                                                             {ProjectImageSetup::GroupBy::FILENAME, "Filename"},
-                                                         })
 
 }    // namespace joda::settings

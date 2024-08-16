@@ -14,6 +14,7 @@
 
 #include <set>
 #include <vector>
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -27,13 +28,14 @@ struct Address
   std::string streetAddress;
   std::string postalCode;
   std::string city;
+  std::string email;
 
   void check() const
   {
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Address, firstName, lastName, country, organization,
-                                                       streetAddress, postalCode, city);
+                                                       streetAddress, postalCode, city, email);
 };
 
 }    // namespace joda::settings

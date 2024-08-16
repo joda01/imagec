@@ -1,50 +1,48 @@
 ///
-/// \file      project_cluster.hpp
+/// \file      experiment_settings.hpp
 /// \author    Joachim Danmayr
-/// \date      2024-08-12
+/// \date      2024-08-16
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
 ///            All rights reserved! This file is subject
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-
 ///
 
 #pragma once
 
 #include <set>
 #include <vector>
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
 
-struct Cluster
+struct ExperimentSettings
 {
-  joda::enums::ClusterId clusterId = joda::enums::ClusterId::UNDEFINED;
+  //
+  // Global unique ID of the job
+  //
+  std::string experimentId;
 
   //
-  //  Display name of the object class
+  // Unique name of the job
   //
-  std::string name;
+  std::string experimentName;
 
   //
-  //  Further notes to the object class
+  // Notes on the job
   //
   std::string notes;
 
-  //
-  //  Display color of the object class
-  //
-  std::string color;
-
   void check() const
   {
+    CHECK(!experimentId.empty(), "Experiment ID is empty.");
+    CHECK(!experimentName.empty(), "Experiment name is empty.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Cluster, clusterId, name, notes, color);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ExperimentSettings, experimentId, experimentName, notes);
 };
 
 }    // namespace joda::settings

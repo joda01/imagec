@@ -43,7 +43,8 @@ template <FileInfo_t FILEINFO>
 class DirectoryWatcher
 {
 public:
-  DirectoryWatcher(const std::set<std::string> &supportedFileFormats) : mSupportedFormats(supportedFileFormats)
+  explicit DirectoryWatcher(const std::set<std::string> &supportedFileFormats = {}) :
+      mSupportedFormats(supportedFileFormats)
   {
   }
 
@@ -64,7 +65,7 @@ public:
         mListOfImagePaths.clear();
       } else {
         stop();
-        mWorkerThread = std::make_shared<std::thread>(&DirectoryWatcher::lookForImagesInFolderAndSubfolder, this);
+        mWorkerThread = std::make_unique<std::thread>(&DirectoryWatcher::lookForImagesInFolderAndSubfolder, this);
       }
     }
   }
@@ -181,6 +182,8 @@ private:
     for(const auto &callback : mCallbacks) {
       callback(joda::helper::fs::State::FINISHED);
     }
+
+    (void) mWorkerThread.release();
   }
 
   /////////////////////////////////////////////////////
@@ -190,7 +193,7 @@ private:
   std::vector<FILEINFO> mListOfImagePaths;
   bool mIsStopped = false;
   bool mIsRunning = false;
-  std::shared_ptr<std::thread> mWorkerThread;
+  std::unique_ptr<std::thread> mWorkerThread;
 };
 
 }    // namespace joda::helper::fs

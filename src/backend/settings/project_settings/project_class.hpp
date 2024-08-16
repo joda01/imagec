@@ -14,13 +14,14 @@
 #include <set>
 #include <vector>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
 
 struct Class
 {
-  joda::enums::ClassId classId;
+  joda::enums::ClassId classId = joda::enums::ClassId::UNDEFINED;
 
   //
   //  Display name of the object class

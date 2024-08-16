@@ -13,11 +13,13 @@
 
 #include "processor.hpp"
 #include <filesystem>
+#include <memory>
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_info_images.hpp"
+#include "backend/processor/context/plate_context.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/setting.hpp"
@@ -37,65 +39,89 @@ Processor::Processor()
 
 void Processor::execute(const joda::settings::AnalyzeSettings &program)
 {
-  joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> images({});
-  images.setWorkingDirectory(program.projectSettings.imageSetup.imageInputDirectory);
-  images.waitForFinished();
-
   GlobalContext globalContext;
   auto &db = globalContext.database;
-  db.openDatabase(std::filesystem::path(program.projectSettings.outputDirectory) / "results.imcdb");
-  db.insertProjectSettings(program);
+  db.openDatabase(std::filesystem::path(program.projectSettings.workingDirectory) / "results.imcdb");
+  auto jobId = db.startJob(program);
 
-  for(const auto &imagePath : images.getFilesList()) {
-    ImageContext imageContext;
-    PipelineInitializer imageLoader(program.projectSettings, imagePath.getFilePath(), imageContext, globalContext);
-    db.insertImage(imageContext);
+  //
+  // Looking for images in all folders
+  //
+  std::map<uint8_t, std::unique_ptr<joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages>>> allImages;
+  for(const auto &plate : program.projectSettings.plates) {
+    auto watcher = std::make_unique<joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages>>();
+    allImages.emplace(plate.plateId, std::move(watcher));
+    allImages.at(plate.plateId)->setWorkingDirectory(plate.imageFolder);
+    allImages.at(plate.plateId)->waitForFinished();
+  }
 
-    auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
-    auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
-    auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
-    auto nrcSTack         = imageLoader.getNrOfCStacksToProcess();
+  //
+  // Iterate over each plate and analyze the images
+  //
+  for(const auto &plate : program.projectSettings.plates) {
+    PlateContext plateContext;
+    const auto &images = allImages.at(plate.plateId);
 
-    // Start of the image specific function
-    for(int tStack = 0; tStack < nrtStack; tStack++) {
-      for(int zStack = 0; zStack < nrzSTack; zStack++) {
-        for(int cStack = 0; cStack < nrcSTack; cStack++) {
-          IterationContext iterationContext(imageLoader);
+    //
+    // Iterate over each image
+    //
+    const auto &fileList = images->getFilesList();
+    for(const auto &imagePath : fileList) {
+      ImageContext imageContext;
+      PipelineInitializer imageLoader(program.projectSettings, imagePath.getFilePath(), imageContext, globalContext);
+      db.insertImage(imageContext);
 
-          for(int tileX = 0; tileX < tilesX; tileX++) {
-            for(int tileY = 0; tileY < tilesY; tileY++) {
-              // Execute pipelines of this iteration
-              for(const auto &pipeline : program.pipelines) {
-                //
-                // Load the image imagePlane
-                //
-                ProcessContext context{
-                    .globalContext = globalContext, .imageContext = imageContext, .iterationContext = iterationContext};
-                imageLoader.initPipeline(pipeline.pipelineSetup, {tilesX, tileY},
-                                         joda::enums::PlaneId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
-                                         context);
-                db.insertImagePlane();
+      auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
+      auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
+      auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
+      auto nrcSTack         = imageLoader.getNrOfCStacksToProcess();
 
-                //
-                // Execute the pipeline
-                //
-                for(const auto &step : pipeline.pipelineSteps) {
-                  // Execute a pipeline step
-                  step(context, context.getActImage().image, context.getActObjects());
+      // Start of the image specific function
+      for(int tStack = 0; tStack < nrtStack; tStack++) {
+        for(int zStack = 0; zStack < nrzSTack; zStack++) {
+          for(int cStack = 0; cStack < nrcSTack; cStack++) {
+            IterationContext iterationContext(imageLoader);
+
+            for(int tileX = 0; tileX < tilesX; tileX++) {
+              for(int tileY = 0; tileY < tilesY; tileY++) {
+                // Execute pipelines of this iteration
+                for(const auto &pipeline : program.pipelines) {
+                  //
+                  // Load the image imagePlane
+                  //
+                  ProcessContext context{.globalContext    = globalContext,
+                                         .plateContext     = plateContext,
+                                         .imageContext     = imageContext,
+                                         .iterationContext = iterationContext};
+                  imageLoader.initPipeline(pipeline.pipelineSetup, {tilesX, tileY},
+                                           joda::enums::PlaneId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
+                                           context);
+                  db.insertImagePlane();
+
+                  //
+                  // Execute the pipeline
+                  //
+                  for(const auto &step : pipeline.pipelineSteps) {
+                    // Execute a pipeline step
+                    step(context, context.getActImage().image, context.getActObjects());
+                  }
                 }
               }
             }
-          }
 
-          // Iteration for all tiles finished
-          auto id = DurationCount::start("Insert");
-          db.insertObjects(imageContext, iterationContext.getObjects());
-          DurationCount::stop(id);
+            // Iteration for all tiles finished
+            auto id = DurationCount::start("Insert");
+            db.insertObjects(imageContext, iterationContext.getObjects());
+            DurationCount::stop(id);
+          }
+          // End of the image specific function
         }
-        // End of the image specific function
+        // Image finished
       }
-      // Image finished
     }
   }
+
+  // Done
+  db.finishJob(jobId);
 }
 }    // namespace joda::processor

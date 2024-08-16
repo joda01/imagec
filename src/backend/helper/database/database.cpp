@@ -12,12 +12,20 @@
 
 #include "database.hpp"
 #include <duckdb.h>
+#include <exception>
+#include <stdexcept>
 #include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/rle/rle.hpp"
+#include "backend/helper/uuid.hpp"
+#include "backend/settings/analze_settings.hpp"
+#include "backend/settings/project_settings/project_plates.hpp"
+#include <duckdb/common/types/string_type.hpp>
 #include <duckdb/common/types/value.hpp>
 #include <duckdb/common/types/vector.hpp>
 #include <duckdb/main/appender.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::db {
 
@@ -27,9 +35,6 @@ void Database::openDatabase(const std::filesystem::path &pathToDb)
   mDbCfg.SetOption("temp_directory", pathToDb.parent_path().string());
   mDb = std::make_unique<duckdb::DuckDB>(pathToDb.string(), &mDbCfg);
   createTables();
-}
-void Database::closeDatabase()
-{
 }
 
 void Database::createTables()
@@ -74,6 +79,52 @@ void Database::createTables()
       "	image_id UBIGINT,"
       " object_id UBIGINT,"
       " meas_object_id UBIGINT"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS experiment ("
+      "	experiment_id UUID,"
+      " name STRING,"
+      " notes STRING"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS jobs ("
+      "	experiment_id UUID,"
+      " job_id UUID,"
+      " time_started TIMESTAMP,"
+      " time_finished TIMESTAMP,"
+      " settings TEXT"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS plates ("
+      " job_id UUID,"
+      " plate_id USMALLINT,"
+      " name STRING,"
+      " notes STRING,"
+      " rows USMALLINT,"
+      " cols USMALLINT,"
+      " image_folder STRING,"
+      " well_image_order STRING,"
+      " group_by STRING,"
+      " filename_regex STRING,"
+      " PRIMARY KEY (plate_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS classes ("
+      "	class_id USMALLINT,"
+      " short_name STRING,"
+      " name STRING,"
+      " notes STRING,"
+      " color STRING,"
+      " PRIMARY KEY (class_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS clusters ("
+      "	cluster_id USMALLINT,"
+      " short_name STRING,"
+      " name STRING,"
+      " notes STRING,"
+      " color STRING,"
+      " PRIMARY KEY (cluster_id)"
       ");"
 
       "CREATE TABLE IF NOT EXISTS statistics ("
@@ -279,22 +330,241 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
   // statistic_measurements.Close();
 }
 
-void Database::insertProjectSettings(const joda::settings::AnalyzeSettings &)
-{
-}
 void Database::insertImage(const joda::processor::ImageContext &)
 {
 }
 
-void Database::insertPlates()
+///
+/// \brief     Should be called at the very beginning of an analysis
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::string Database::startJob(const joda::settings::AnalyzeSettings &exp)
 {
+  if(insertExperiment(exp.projectSettings.experimentSettings)) {
+    insertClusters(exp.projectSettings.clusters);
+    insertClasses(exp.projectSettings.classes);
+  }
+  return insertJobAndPlates(exp);
 }
-void Database::insertClusters(const joda::settings::ProjectSettings &)
+
+///
+/// \brief     Finish job
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::finishJob(const std::string &jobId)
 {
+  auto timestampFinished = duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(
+                                                   std::chrono::high_resolution_clock::now().time_since_epoch())
+                                                   .count());
+  std::unique_ptr<duckdb::QueryResult> result =
+      select("UPDATE jobs SET time_finished = ? WHERE job_id = ?", duckdb::Value::TIMESTAMP(timestampFinished),
+             duckdb::Value::UUID(jobId));
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
 }
-void Database::insertClasses(const joda::settings::ProjectSettings &)
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool Database::insertExperiment(const joda::settings::ExperimentSettings &exp)
 {
+  auto expIn = selectExperiment();
+  if(exp.experimentId == expIn.experimentId) {
+    joda::log::logInfo("Appending to existing experiment!");
+    return false;
+  }
+  if(expIn.experimentId.empty()) {
+    auto connection     = acquire();
+    auto prepare        = connection->Prepare("INSERT INTO experiment (experiment_id, name, notes) VALUES (?, ?, ?)");
+    nlohmann::json json = exp;
+    prepare->Execute(duckdb::Value::UUID(exp.experimentId), exp.experimentName, exp.notes);
+  } else {
+    throw std::runtime_error(
+        "It is not allowed to store more than one different experiment in the same database. Choose either a new "
+        "database file or select as experiment id >" +
+        expIn.experimentId + "<.");
+  }
+  return true;
 }
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectExperiment() -> joda::settings::ExperimentSettings
+{
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT experiment_id,name,notes FROM experiment");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  joda::settings::ExperimentSettings exp;
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  if(materializedResult->RowCount() > 0) {
+    exp.experimentId   = materializedResult->GetValue(0, 0).GetValue<std::string>();
+    exp.experimentName = materializedResult->GetValue(1, 0).GetValue<std::string>();
+    exp.experimentName = materializedResult->GetValue(1, 0).GetValue<std::string>();
+  }
+
+  return exp;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &exp)
+{
+  auto connection = acquire();
+  connection->BeginTransaction();
+  std::string jobIdStr = joda::helper::generate_uuid();
+  auto jobId           = duckdb::Value::UUID(jobIdStr);
+
+  //
+  // If this was successful, insert the job
+  //
+  try {
+    auto timestampStart     = duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(
+                                                  std::chrono::high_resolution_clock::now().time_since_epoch())
+                                                      .count());
+    duckdb::timestamp_t nil = {};
+    auto prepare            = connection->Prepare(
+        "INSERT INTO jobs (experiment_id, job_id, time_started, time_finished, settings) VALUES (?, ?, ?, ?, ?)");
+
+    nlohmann::json json = exp;
+    prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId,
+                     duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil),
+                     static_cast<std::string>(json.dump()));
+  } catch(const std::exception &ex) {
+    connection->Rollback();
+    std::cout << "Abrted" << std::endl;
+    throw std::runtime_error(ex.what());
+  }
+
+  // First try to insert plates
+  try {
+    auto platesDb = duckdb::Appender(*connection, "plates");
+    for(const auto &plate : exp.projectSettings.plates) {
+      nlohmann::json groupBy = plate.groupBy;
+      platesDb.BeginRow();
+      platesDb.Append(jobId);                                  //       " job_id UUID,"
+      platesDb.Append<uint16_t>(plate.plateId);                //       " plate_id USMALLINT,"
+      platesDb.Append<duckdb::string_t>(plate.name);           //       " name STRING,"
+      platesDb.Append<duckdb::string_t>(plate.notes);          //       " notes STRING,"
+      platesDb.Append<uint16_t>(plate.rows);                   //       " rows USMALLINT,"
+      platesDb.Append<uint16_t>(plate.cols);                   //       " cols USMALLINT,"
+      platesDb.Append<duckdb::string_t>(plate.imageFolder);    //       " image_folder STRING,"
+      platesDb.Append<duckdb::string_t>(
+          settings::vectorToString(plate.wellImageOrder));        //       " well_image_order STRING,"
+      platesDb.Append<duckdb::string_t>(std::string(groupBy));    //       " group_by STRING,"
+      platesDb.Append<duckdb::string_t>(plate.filenameRegex);     //       " filename_regex STRING,"
+      platesDb.EndRow();
+    }
+    platesDb.Close();
+  } catch(const std::exception &ex) {
+    connection->Rollback();
+    throw std::runtime_error("A plate with same ID still exists in this experiment! What: " + std::string(ex.what()));
+  }
+
+  connection->Commit();
+  return jobIdStr;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectPlates() -> std::map<uint16_t, joda::settings::Plate>
+{
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT plate_id, name, notes, rows, cols,image_folder,well_image_order,group_by,filename_regex FROM plates");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  std::map<uint16_t, joda::settings::Plate> results;
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    joda::settings::Plate plate;
+    plate.plateId          = materializedResult->GetValue(0, n).GetValue<uint16_t>();
+    plate.name             = materializedResult->GetValue(1, n).GetValue<std::string>();
+    plate.notes            = materializedResult->GetValue(2, n).GetValue<std::string>();
+    plate.rows             = materializedResult->GetValue(3, n).GetValue<uint16_t>();
+    plate.cols             = materializedResult->GetValue(4, n).GetValue<uint16_t>();
+    plate.imageFolder      = materializedResult->GetValue(5, n).GetValue<std::string>();
+    plate.wellImageOrder   = joda::settings::stringToVector(materializedResult->GetValue(6, n).GetValue<std::string>());
+    nlohmann::json groupBy = materializedResult->GetValue(7, n).GetValue<std::string>();
+    plate.groupBy          = groupBy.template get<joda::settings::Plate::GroupBy>();
+    plate.filenameRegex    = materializedResult->GetValue(8, n).GetValue<std::string>();
+    results.try_emplace(plate.plateId, plate);
+  }
+
+  return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::insertClusters(const std::vector<settings::Cluster> &clustersIn)
+{
+  auto connection = acquire();
+  auto clusters   = duckdb::Appender(*connection, "clusters");
+  for(const auto &cluster : clustersIn) {
+    nlohmann::json j = cluster.clusterId;
+    std::string cid  = j;
+    clusters.BeginRow();
+    clusters.Append<uint16_t>(static_cast<uint16_t>(cluster.clusterId));    //        "	class_id USMALLINT,"
+    clusters.Append<duckdb::string_t>(cid);                                 //         " short_name STRING,"
+    clusters.Append<duckdb::string_t>(cluster.name);                        //         " name STRING,"
+    clusters.Append<duckdb::string_t>(cluster.notes);                       //         " notes STRING"
+    clusters.Append<duckdb::string_t>(cluster.color);                       //         " color STRING"
+    clusters.EndRow();
+  }
+  clusters.Close();
+}
+void Database::insertClasses(const std::vector<settings::Class> &classesIn)
+{
+  auto connection = acquire();
+  auto clusters   = duckdb::Appender(*connection, "classes");
+  for(const auto &classs : classesIn) {
+    nlohmann::json j = classs.classId;
+    clusters.BeginRow();
+    clusters.Append<uint16_t>(static_cast<uint16_t>(classs.classId));    //        "	class_id USMALLINT,"
+    clusters.Append<duckdb::string_t>(std::string(j));                   //         " short_name STRING,"
+    clusters.Append<duckdb::string_t>(classs.name);                      //         " name STRING,"
+    clusters.Append<duckdb::string_t>(classs.notes);                     //         " notes STRING"
+    clusters.Append<duckdb::string_t>(classs.color);                     //         " color STRING"
+    clusters.EndRow();
+  }
+  clusters.Close();
+}
+
 void Database::insertGroup()
 {
 }

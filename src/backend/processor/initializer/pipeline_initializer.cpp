@@ -47,7 +47,7 @@ PipelineInitializer::PipelineInitializer(const settings::ProjectSettings &settin
   imageContextOut.imageMeta            = joda::image::reader::ImageReader::getOmeInformation(imagePath.string());
   imageContextOut.imagePath            = imagePath;
   imageContextOut.imageId              = joda::helper::fnv1a(imagePath.string());
-  globalContextOut.resultsOutputFolder = std::filesystem::path(settings.outputDirectory);
+  globalContextOut.resultsOutputFolder = std::filesystem::path(settings.workingDirectory);
 
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:

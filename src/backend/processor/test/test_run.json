@@ -20,36 +20,51 @@
     ],
     "classes": [
       {
-        "classId": "A",
+        "classId": "C0",
         "name": "EV"
       },
       {
-        "classId": "A",
+        "classId": "C1",
         "name": "cell"
       },
       {
-        "classId": "A",
+        "classId": "C2",
         "name": "background"
       },
       {
-        "classId": "A",
+        "classId": "C3",
         "name": "ev in cell"
       },
       {
-        "classId": "A",
+        "classId": "C4",
         "name": "coloc"
       },
       {
-        "classId": "A",
+        "classId": "C5",
         "name": "Invalid"
       }
     ],
     "imageSetup": {
       "zStackHandling": "IntensityProjection",
-      "tStackHandling": "ExactOne",
-      "imageInputDirectory": "test/test_data/images"
+      "tStackHandling": "ExactOne"
     },
-    "outputDirectory": "tmp"
+    "experimentSettings": {
+      "experimentId": "bb61e310-e876-4aad-85ef-40e3db2eadf4",
+      "experimentName": "My experiment",
+      "notes": "Notes"
+    },
+    "plates": [
+      {
+        "plateId": 1,
+        "name": "Huhu",
+        "notes": "Not",
+        "rows": 28,
+        "cols": 28,
+        "imageFolder": "test/test_data/images",
+        "groupBy": "Filename"
+      }
+    ],
+    "workingDirectory": "tmp"
   },
   "pipelines": [
     {
@@ -139,7 +154,7 @@
             "pointsClassOut": "C8",
             "excludeAreasWithoutPoint": true,
             "excludeAreasAtTheEdge": false,
-            "maxRadius": 100
+            "maxRadius": 8000
           }
         },
         {

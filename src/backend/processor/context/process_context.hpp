@@ -27,6 +27,7 @@
 #include "backend/global_enums.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
+#include "backend/processor/context/plate_context.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 #include "image_context.hpp"
@@ -61,6 +62,7 @@ private:
 struct ProcessContext
 {
   GlobalContext &globalContext;
+  PlateContext &plateContext;
   ImageContext &imageContext;
   IterationContext &iterationContext;
   PipelineContext pipelineContext;

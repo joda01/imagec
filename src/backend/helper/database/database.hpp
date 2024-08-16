@@ -18,6 +18,8 @@
 #include "backend/enums/types.hpp"
 #include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
+#include "backend/settings/project_settings/experiment_settings.hpp"
+#include "backend/settings/project_settings/project_plates.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include <duckdb/main/config.hpp>
 #include <duckdb/main/connection.hpp>
@@ -32,11 +34,15 @@ public:
   Database() = default;
   /////////////////////////////////////////////////////
   void openDatabase(const std::filesystem::path &pathToDb);
-  void closeDatabase();
-  void insertProjectSettings(const joda::settings::AnalyzeSettings &);
+  std::string startJob(const joda::settings::AnalyzeSettings &);
+  void finishJob(const std::string &jobId);
+
   void insertImage(const joda::processor::ImageContext &);
   void insertImagePlane();
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
+
+  auto selectExperiment() -> joda::settings::ExperimentSettings;
+  auto selectPlates() -> std::map<uint16_t, joda::settings::Plate>;
 
 private:
   /////////////////////////////////////////////////////
@@ -46,10 +52,19 @@ private:
     return connection;
   }
 
+  template <typename... ARGS>
+  std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)
+  {
+    auto connection = acquire();
+    auto prep       = connection->Prepare(query);
+    return prep->Execute(std::forward<ARGS>(args)...);
+  }
+
   void createTables();
-  void insertPlates();
-  void insertClusters(const joda::settings::ProjectSettings &);
-  void insertClasses(const joda::settings::ProjectSettings &);
+  bool insertExperiment(const joda::settings::ExperimentSettings &);
+  std::string insertJobAndPlates(const joda::settings::AnalyzeSettings &exp);
+  void insertClusters(const std::vector<settings::Cluster> &);
+  void insertClasses(const std::vector<settings::Class> &);
   void insertGroup();
   void flatten(const std::vector<cv::Point> &, duckdb::vector<duckdb::Value> &);
 

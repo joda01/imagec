@@ -50,4 +50,11 @@
     const auto name = std::string(typeid(*this).name());                       \
     throw std::invalid_argument(static_cast<std::string>(name + "::" + what)); \
   }
+
+#define THROW(what)                                                            \
+  {                                                                            \
+    const auto name = std::string(typeid(*this).name());                       \
+    throw std::invalid_argument(static_cast<std::string>(name + "::" + what)); \
+  }
+
 // namespace joda::settings
