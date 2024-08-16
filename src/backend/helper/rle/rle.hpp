@@ -57,6 +57,3 @@ inline std::vector<bool> rle_decode(const std::vector<std::pair<int, bool>> &enc
 }
 
 }    // namespace joda::rle
-
-// 43ms 240ms
-// 20ms 70 ms
