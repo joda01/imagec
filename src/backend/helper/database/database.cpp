@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/rle/rle.hpp"
@@ -329,6 +330,10 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
   // auto statistic_measurements = duckdb::Appender(*connection, "statistic_measurements");
   // statistics.Close();
   // statistic_measurements.Close();
+}
+
+void Database::insertGroup(const joda::grp::GroupInformation &groupInfo)
+{
 }
 
 void Database::insertImage(const joda::processor::ImageContext &, const joda::grp::GroupInformation &groupInfo)

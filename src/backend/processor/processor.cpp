@@ -75,6 +75,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
       // Assign image to group here!!
       //
       auto groupInfo = grouper.getGroupForFilename(imagePath.getFilePath());
+      db.insertGroup(groupInfo);
       db.insertImage(imageContext, groupInfo);
 
       //

@@ -38,6 +38,7 @@ public:
   std::string startJob(const joda::settings::AnalyzeSettings &);
   void finishJob(const std::string &jobId);
 
+  void insertGroup(const joda::grp::GroupInformation &groupInfo);
   void insertImage(const joda::processor::ImageContext &, const joda::grp::GroupInformation &groupInfo);
   void insertImagePlane();
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
