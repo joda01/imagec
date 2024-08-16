@@ -13,28 +13,26 @@
 
 #pragma once
 
-#include "../../image_functions/function.hpp"
-#include "backend/helper/duration_count/duration_count.h"
+#include "backend/commands/command.hpp"
 #include <opencv2/core/mat.hpp>
+#include "margin_crop_settings.hpp"
 
-namespace joda::image::func {
+namespace joda::cmd {
 
 ///
 /// \class      Function
 /// \author     Joachim Danmayr
 /// \brief      Base class for an image processing function
 ///
-class MarginCrop : public Function
+class MarginCrop : public cmd::Command
 {
 public:
   /////////////////////////////////////////////////////
-  explicit MarginCrop(int marginSize) : mMarginSize(marginSize)
+  explicit MarginCrop(const settings::MarginCropSettings &setting) : mMarginSize(setting.marginSize)
   {
   }
-  void execute(cv::Mat &image) const override
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto id = DurationCount::start("MarginCrop");
-
     // Calculate the new dimensions for the cropped image
     int newWidth  = image.cols - mMarginSize * 2;    // x pixels from each side
     int newHeight = image.rows - mMarginSize * 2;    // x pixels from each side
@@ -44,7 +42,6 @@ public:
 
     // Crop the image using the ROI
     image = image(roi);
-    DurationCount::stop(id);
   }
 
 private:
@@ -52,4 +49,4 @@ private:
   int mMarginSize;
 };
 
-}    // namespace joda::image::func
+}    // namespace joda::cmd

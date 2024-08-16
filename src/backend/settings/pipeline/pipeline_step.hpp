@@ -20,6 +20,7 @@
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
+#include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
@@ -48,13 +49,8 @@ public:
   //
   // Common
   //
-  // std::optional<StoreSlot> $store       = std::nullopt;
-  // std::optional<Calculator> $calculator = std::nullopt;
   // std::optional<Voronoi> $voronoi = std::nullopt;    // Input of a voronoi is a set of points
   //
-  // std::optional<GaussianBlur> $gaussianBlur                            = std::nullopt;
-  // std::optional<MedianSubtraction> $medianSubtract                     = std::nullopt;
-  // std::optional<RollingBall> $rollingBall                              = std::nullopt;
 
   std::optional<BlurSettings> $blur                     = std::nullopt;
   std::optional<ImageSaverSettings> $saveImage          = std::nullopt;
@@ -69,11 +65,7 @@ public:
   std::optional<RollingBallSettings> $rollingBall       = std::nullopt;
   std::optional<MedianSubtractSettings> $medianSubtract = std::nullopt;
   std::optional<EdgeDetectionSettings> $edgeDetection   = std::nullopt;
-
-  //
-  // Measurement
-  //
-  // std::optional<MeasureSingle> $measure = std::nullopt;
+  std::optional<MarginCropSettings> $crop               = std::nullopt;
 
   /////////////////////////////////////////////////////
   void operator()(processor::ProcessContext &context, cv::Mat &image, joda::atom::ObjectList &result) const;
@@ -84,7 +76,7 @@ public:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed,
                                                        $imageFromClass, $classify, $aiClassify, $colocalization,
                                                        $intersection, $measure, $rollingBall, $medianSubtract,
-                                                       $edgeDetection);
+                                                       $edgeDetection, $crop);
 };
 
 }    // namespace joda::settings

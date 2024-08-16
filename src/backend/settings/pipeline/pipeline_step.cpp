@@ -21,6 +21,8 @@
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
+#include "backend/commands/image_functions/margin_crop/margin_crop.hpp"
+#include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball.hpp"
@@ -98,6 +100,11 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
 
   if($edgeDetection) {
     joda::cmd::Factory<joda::cmd::EdgeDetection, EdgeDetectionSettings> a($edgeDetection.value());
+    a.execute(context, image, result);
+  }
+
+  if($crop) {
+    joda::cmd::Factory<joda::cmd::MarginCrop, MarginCropSettings> a($crop.value());
     a.execute(context, image, result);
   }
 }
