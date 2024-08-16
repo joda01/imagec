@@ -14,6 +14,7 @@
 #include <duckdb.h>
 #include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/helper/rle/rle.hpp"
 #include <duckdb/common/types/value.hpp>
 #include <duckdb/common/types/vector.hpp>
 #include <duckdb/main/appender.hpp>
@@ -53,7 +54,7 @@ void Database::createTables()
       " meas_box_width UINTEGER,"
       " meas_box_height UINTEGER,"
       " meas_box_depth UINTEGER,"
-      " meas_mask BOOLEAN[],"
+      " meas_mask MAP(UINTEGER,BOOLEAN),"
       " meas_contour UINTEGER[]"
       ");"
 
@@ -235,10 +236,11 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       objects.Append<uint32_t>(roi.getBoundingBoxReal().height);    // " meas_box_height UINTEGER,"
       objects.Append<uint32_t>(0);                                  // " meas_box_depth UINTEGER,"
 
-      /*auto mask = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
-                                      {roi.getMask().datastart, roi.getMask().dataend});*/
-      auto mask = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::BOOLEAN), {});
-      objects.Append<duckdb::Value>(mask);    // " meas_mask BOOLEAN[]"
+      auto mask = duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
+                                     duckdb::LogicalType(duckdb::LogicalTypeId::BOOLEAN), {}, {});
+      objects.Append<duckdb::Value>(mask);
+      /* objects.Append<duckdb::Value>(
+           joda::rle::rle_encode({roi.getMask().datastart, roi.getMask().dataend}));    // " meas_mask BOOLEAN[]"*/
 
       duckdb::vector<duckdb::Value> flattenPoints;
       flatten(roi.getContour(), flattenPoints);
