@@ -8,7 +8,6 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-
 ///
 
 #pragma once
@@ -24,9 +23,8 @@
 #include <type_traits>
 #include <vector>
 #include "file_info.hpp"
-#include "helper.hpp"
 
-namespace joda::helper::fs {
+namespace joda::filesystem {
 
 using namespace std::filesystem;
 
@@ -36,44 +34,17 @@ enum class State
   FINISHED
 };
 
-template <class T>
-concept FileInfo_t = std::is_base_of<FileInfo, T>::value;
-
-template <FileInfo_t FILEINFO>
 class DirectoryWatcher
 {
 public:
-  explicit DirectoryWatcher(const std::set<std::string> &supportedFileFormats = {}) :
-      mSupportedFormats(supportedFileFormats)
-  {
-  }
-
+  explicit DirectoryWatcher(const std::set<std::string> &supportedFileFormats = {
+                                ".tif", ".tiff", ".btif", ".btiff", ".btf", ".jpg", ".jpeg", ".vsi", ".ics", ".czi"});
   ~DirectoryWatcher()
   {
     stop();
   }
 
-  ///
-  /// \brief      Find all images in the given infolder and its subfolder.
-  /// \author     Joachim Danmayr
-  ///
-  inline void setWorkingDirectory(const std::filesystem::path &inputFolder)
-  {
-    if(mWorkingDirectory != inputFolder) {
-      mWorkingDirectory = inputFolder;
-      if(inputFolder.empty()) {
-        mListOfImagePaths.clear();
-      } else {
-        stop();
-        mWorkerThread = std::make_unique<std::thread>(&DirectoryWatcher::lookForImagesInFolderAndSubfolder, this);
-      }
-    }
-  }
-
-  ///
-  /// \brief      Returns the selected working directory
-  /// \author     Joachim Danmayr
-  ///
+  void setWorkingDirectory(const std::filesystem::path &inputFolder);
   inline std::string getWorkingDirectory()
   {
     return mWorkingDirectory.string();
@@ -113,7 +84,7 @@ public:
   /// \brief      Returns list of found files
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFilesList() const -> const std::vector<FILEINFO> &
+  [[nodiscard]] auto getFilesList() const -> const std::vector<FileInfo> &
   {
     return mListOfImagePaths;
   }
@@ -122,7 +93,7 @@ public:
   /// \brief      Returns a file on a specific index
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFileAt(uint32_t idx) const -> FILEINFO
+  [[nodiscard]] auto getFileAt(uint32_t idx) const -> FileInfo
   {
     if(idx < mListOfImagePaths.size()) {
       return mListOfImagePaths.at(idx);
@@ -143,57 +114,22 @@ public:
   /// \brief     Add a file listener
   /// \author    Joachim Danmayr
   ///
-  void addListener(const std::function<void(joda::helper::fs::State)> &lookingForFilesFinished)
+  void addListener(const std::function<void(State)> &lookingForFilesFinished)
   {
     mCallbacks.emplace_back(lookingForFilesFinished);
   }
 
 private:
-  ///
-  /// \brief      Find all images in the given infolder and its subfolder.
-  /// \author     Joachim Danmayr
-  ///
-  void lookForImagesInFolderAndSubfolder()
-  {
-    mIsRunning = true;
-    mIsStopped = false;
-    mListOfImagePaths.clear();
-    for(const auto &callback : mCallbacks) {
-      callback(joda::helper::fs::State::RUNNING);
-    }
-
-    for(recursive_directory_iterator i(mWorkingDirectory), end; i != end; ++i) {
-      try {
-        if(!is_directory(i->path())) {
-          FILEINFO fi;
-          auto supported = fi.parseFile(*i, mSupportedFormats);
-          if(supported) {
-            mListOfImagePaths.push_back(fi);
-          }
-        }
-      } catch(const std::exception &ex) {
-        std::cout << ex.what() << std::endl;
-      }
-      if(mIsStopped) {
-        break;
-      }
-    }
-    mIsRunning = false;
-    for(const auto &callback : mCallbacks) {
-      callback(joda::helper::fs::State::FINISHED);
-    }
-
-    (void) mWorkerThread.release();
-  }
+  void lookForImagesInFolderAndSubfolder();
 
   /////////////////////////////////////////////////////
   std::vector<std::function<void(State)>> mCallbacks;
   std::set<std::string> mSupportedFormats;
   std::filesystem::path mWorkingDirectory;
-  std::vector<FILEINFO> mListOfImagePaths;
+  std::vector<FileInfo> mListOfImagePaths;
   bool mIsStopped = false;
   bool mIsRunning = false;
   std::unique_ptr<std::thread> mWorkerThread;
 };
 
-}    // namespace joda::helper::fs
+}    // namespace joda::filesystem

@@ -15,6 +15,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include "backend/enums/enums_grouping.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
@@ -53,12 +54,6 @@ inline auto stringToVector(const std::string &wellOrder) -> std::vector<std::vec
 
 struct Plate
 {
-  enum class GroupBy
-  {
-    OFF,
-    DIRECTORY,
-    FILENAME
-  };
   //
   // Plate ID
   //
@@ -98,7 +93,7 @@ struct Plate
   //
   // Image grouping option [NONE, FOLDER, FILENAME]
   //
-  GroupBy groupBy = GroupBy::OFF;
+  joda::enums::GroupBy groupBy = enums::GroupBy::OFF;
 
   //
   // Used to extract coordinates of a well form the image name
@@ -114,12 +109,5 @@ struct Plate
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Plate, plateId, name, notes, rows, cols, imageFolder, groupBy,
                                                        filenameRegex, wellImageOrder);
 };
-
-// map TaskState values to JSON as strings
-NLOHMANN_JSON_SERIALIZE_ENUM(Plate::GroupBy, {
-                                                 {Plate::GroupBy::OFF, "Off"},
-                                                 {Plate::GroupBy::DIRECTORY, "Directory"},
-                                                 {Plate::GroupBy::FILENAME, "Filename"},
-                                             })
 
 }    // namespace joda::settings

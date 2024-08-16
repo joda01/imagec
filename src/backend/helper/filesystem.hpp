@@ -3,7 +3,7 @@
 
 #include <filesystem>
 
-namespace joda::helper::fs {
+namespace joda::filesystem {
 
 namespace fs = std::filesystem;
 
@@ -20,4 +20,4 @@ inline void removeDirectory(const fs::path &path)
     fs::remove(path);
   }
 }
-}    // namespace joda::helper::fs
+}    // namespace joda::filesystem

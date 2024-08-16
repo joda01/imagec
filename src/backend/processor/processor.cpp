@@ -16,9 +16,9 @@
 #include <memory>
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_clusters.hpp"
-#include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/duration_count/duration_count.h"
-#include "backend/helper/file_info_images.hpp"
+#include "backend/helper/file_grouper/file_grouper.hpp"
+#include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/processor/context/plate_context.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
@@ -47,9 +47,9 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
   //
   // Looking for images in all folders
   //
-  std::map<uint8_t, std::unique_ptr<joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages>>> allImages;
+  std::map<uint8_t, std::unique_ptr<joda::filesystem::DirectoryWatcher>> allImages;
   for(const auto &plate : program.projectSettings.plates) {
-    auto watcher = std::make_unique<joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages>>();
+    auto watcher = std::make_unique<joda::filesystem::DirectoryWatcher>();
     allImages.emplace(plate.plateId, std::move(watcher));
     allImages.at(plate.plateId)->setWorkingDirectory(plate.imageFolder);
     allImages.at(plate.plateId)->waitForFinished();
@@ -60,6 +60,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
   //
   for(const auto &plate : program.projectSettings.plates) {
     PlateContext plateContext;
+    joda::grp::FileGrouper grouper(plate.groupBy, plate.filenameRegex);
     const auto &images = allImages.at(plate.plateId);
 
     //
@@ -69,8 +70,16 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
     for(const auto &imagePath : fileList) {
       ImageContext imageContext;
       PipelineInitializer imageLoader(program.projectSettings, imagePath.getFilePath(), imageContext, globalContext);
-      db.insertImage(imageContext);
 
+      //
+      // Assign image to group here!!
+      //
+      auto groupInfo = grouper.getGroupForFilename(imagePath.getFilePath());
+      db.insertImage(imageContext, groupInfo);
+
+      //
+      // Start the iteration over planes
+      //
       auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
       auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
       auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();

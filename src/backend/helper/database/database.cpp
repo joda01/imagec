@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/rle/rle.hpp"
 #include "backend/helper/uuid.hpp"
@@ -330,7 +331,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
   // statistic_measurements.Close();
 }
 
-void Database::insertImage(const joda::processor::ImageContext &)
+void Database::insertImage(const joda::processor::ImageContext &, const joda::grp::GroupInformation &groupInfo)
 {
 }
 

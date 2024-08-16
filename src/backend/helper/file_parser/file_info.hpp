@@ -18,7 +18,7 @@
 #include <set>
 #include <string>
 
-namespace joda::helper::fs {
+namespace joda::filesystem {
 
 ///
 /// \class      FileInfo
@@ -50,13 +50,8 @@ public:
     return filename;
   }
 
-  // operator const std::filesystem::path &() const
-  //{
-  //   return mPath;
-  // }
-
 protected:
   /////////////////////////////////////////////////////
   std::filesystem::path mPath;
 };
-}    // namespace joda::helper::fs
+}    // namespace joda::filesystem

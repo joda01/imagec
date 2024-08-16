@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <vector>
 #include "backend/enums/types.hpp"
+#include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/experiment_settings.hpp"
@@ -37,7 +38,7 @@ public:
   std::string startJob(const joda::settings::AnalyzeSettings &);
   void finishJob(const std::string &jobId);
 
-  void insertImage(const joda::processor::ImageContext &);
+  void insertImage(const joda::processor::ImageContext &, const joda::grp::GroupInformation &groupInfo);
   void insertImagePlane();
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
 
