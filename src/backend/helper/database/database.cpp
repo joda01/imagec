@@ -38,7 +38,7 @@ void Database::createTables()
   const char *create_table_sql =
       "CREATE TABLE IF NOT EXISTS objects ("
       "	image_id UBIGINT,"
-      " object_id UINTEGER,"
+      " object_id UBIGINT,"
       " cluster_id USMALLINT,"
       " class_id USMALLINT,"
       " stack_c UINTEGER,"
@@ -60,12 +60,7 @@ void Database::createTables()
 
       "CREATE TABLE IF NOT EXISTS object_measurements ("
       "	image_id UBIGINT,"
-      " object_id UINTEGER,"
-      //" cluster_id USMALLINT,"
-      //" class_id USMALLINT,"
-      //" stack_c UINTEGER,"
-      //" stack_z UINTEGER,"
-      //" stack_t UINTEGER,"
+      " object_id UBIGINT,"
       " meas_stack_c UINTEGER,"
       " meas_stack_z UINTEGER,"
       " meas_stack_t UINTEGER,"
@@ -77,18 +72,8 @@ void Database::createTables()
 
       "CREATE TABLE IF NOT EXISTS object_intersections ("
       "	image_id UBIGINT,"
-      " object_id UINTEGER,"
-      //" cluster_id USMALLINT,"
-      //" class_id USMALLINT,"
-      //" stack_c UINTEGER,"
-      //" stack_z UINTEGER,"
-      //" stack_t UINTEGER,"
-      //" meas_stack_c UINTEGER,"
-      //" meas_stack_z UINTEGER,"
-      //" meas_stack_t UINTEGER,"
-      //" meas_cluster_id USMALLINT,"
-      //" meas_class_id USMALLINT,"
-      " meas_object_id UINTEGER"
+      " object_id UBIGINT,"
+      " meas_object_id UBIGINT"
       ");"
 
       "CREATE TABLE IF NOT EXISTS statistics ("
@@ -218,7 +203,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       objects.BeginRow();
       // Primary key
       objects.Append<uint64_t>(imgContext.imageId);               // "	image_id UBIGINT,"
-      objects.Append<uint32_t>(roi.getObjectId());                // " object_id UINTEGER,"
+      objects.Append<uint64_t>(roi.getObjectId());                // " object_id UBIGINT,"
       objects.Append<uint16_t>((uint16_t) roi.getClusterId());    // " cluster_id USMALLINT,"
       objects.Append<uint16_t>((uint16_t) roi.getClassId());      // " class_id USMALLINT,"
       objects.Append<uint32_t>(roi.getC());                       // " stack_c UINTEGER,"
@@ -255,12 +240,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
         object_measurements.BeginRow();
         // Primary key
         object_measurements.Append<uint64_t>(imgContext.imageId);    //       "	image_id UBIGINT,"
-        object_measurements.Append<uint32_t>(roi.getObjectId());     //       " object_id UINTEGER,"
-        // object_measurements.Append<uint16_t>((uint16_t) roi.getClusterId());    //       " cluster_id USMALLINT,"
-        // object_measurements.Append<uint16_t>((uint16_t) roi.getClassId());      //       " class_id USMALLINT,"
-        // object_measurements.Append<uint32_t>(roi.getC());                       //       " stack_c UINTEGER,"
-        // object_measurements.Append<uint32_t>(roi.getZ());                       //       " stack_z UINTEGER,"
-        // object_measurements.Append<uint32_t>(roi.getT());                       //       " stack_t UINTEGER,"
+        object_measurements.Append<uint64_t>(roi.getObjectId());     //       " object_id UBIGINT,"
         //  Data
         object_measurements.Append<uint32_t>(plane.imagePlane.cStack);    //       " meas_stack_c UINTEGER,"
         object_measurements.Append<uint32_t>(plane.imagePlane.zStack);    //       " meas_stack_z UINTEGER,"
@@ -279,19 +259,9 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
         object_intersections.BeginRow();
         // Primary key
         object_intersections.Append<uint64_t>(imgContext.imageId);    //       "	image_id UBIGINT,"
-        object_intersections.Append<uint32_t>(roi.getObjectId());     //       " object_id UINTEGER,"
-        // object_intersections.Append<uint16_t>((uint16_t) roi.getClusterId());    //       " cluster_id USMALLINT,"
-        // object_intersections.Append<uint16_t>((uint16_t) roi.getClassId());      //       " class_id USMALLINT,"
-        // object_intersections.Append<uint32_t>(roi.getC());                       //       " stack_c UINTEGER,"
-        // object_intersections.Append<uint32_t>(roi.getZ());                       //       " stack_z UINTEGER,"
-        // object_intersections.Append<uint32_t>(roi.getT());                       //       " stack_t UINTEGER,"
+        object_intersections.Append<uint64_t>(roi.getObjectId());     //       " object_id UBIGINT,"
         //  Data
-        // object_intersections.Append<uint32_t>(intersectingRoi.imagePlane.cStack);       //
-        // object_intersections.Append<uint32_t>(intersectingRoi.imagePlane.zStack);       //
-        // object_intersections.Append<uint32_t>(intersectingRoi.imagePlane.tStack);       //
-        // object_intersections.Append<uint16_t>((uint16_t) intersectingRoi.clusterId);    //
-        // object_intersections.Append<uint16_t>((uint16_t) intersectingRoi.classId);      //
-        object_intersections.Append<uint32_t>(intersectingRoi.objectId);    //
+        object_intersections.Append<uint64_t>(intersectingRoi.objectId);    // meas_object_id UBIGINT
         object_intersections.EndRow();
       }
     }
