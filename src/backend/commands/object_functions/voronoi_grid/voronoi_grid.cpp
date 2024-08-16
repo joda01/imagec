@@ -15,18 +15,17 @@
 namespace joda::cmd {
 
 void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::SpheralIndex &voronoiGrid,
-                              const atom::SpheralIndex &voronoiPoints, const atom::SpheralIndex &mask,
-                              atom::SpheralIndex &response)
+                              const atom::SpheralIndex &voronoiPoints, atom::SpheralIndex &response,
+                              atom::ObjectList &objects)
 {
-  auto filterVoronoiAreas = [this, &context, &response, &voronoiPoints, &voronoiGrid,
-                             &mask](std::optional<const atom::ROI> toIntersect) {
+  auto filterVoronoiAreas = [this, &context, &response, &voronoiPoints,
+                             &voronoiGrid](std::optional<const atom::ROI> toIntersect) {
     for(const atom::ROI &voronoiArea : voronoiGrid) {
       if(voronoiArea.getClassId() == mSettings.pointsClassOut) {
         //
         // Apply filter
         //
-        auto applyFilter = [this, &context, &response, &voronoiPoints, &voronoiGrid,
-                            &mask](atom::ROI &cutedVoronoiArea) {
+        auto applyFilter = [this, &context, &response, &voronoiPoints, &voronoiGrid](atom::ROI &cutedVoronoiArea) {
           //
           // Areas without point are filtered out
           //
@@ -77,10 +76,15 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
     }
   };
 
-  for(const auto &toIntersect : mask) {
-    if(mSettings.maskClasses.contains(toIntersect.getClassId())) {
-      filterVoronoiAreas(toIntersect);
+  if(mSettings.maskCluster.has_value() && mSettings.maskClasses.has_value()) {
+    const auto &mask = objects.at(context.getClusterId(mSettings.maskCluster.value()));
+    for(const auto &toIntersect : mask) {
+      if(mSettings.maskClasses->contains(toIntersect.getClassId())) {
+        filterVoronoiAreas(toIntersect);
+      }
     }
+  } else {
+    filterVoronoiAreas(std::nullopt);
   }
 }
 }    // namespace joda::cmd

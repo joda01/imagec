@@ -128,6 +128,34 @@
             "namePrefix": "_classified_A",
             "objectCluster": "$"
           }
+        },
+        {
+          "$voronoi": {
+            "pointsClusterIn": "A",
+            "pointsClassIn": [
+              "C0"
+            ],
+            "pointsClusterOut": "G",
+            "pointsClassOut": "C8",
+            "excludeAreasWithoutPoint": true,
+            "excludeAreasAtTheEdge": false,
+            "maxRadius": 100
+          }
+        },
+        {
+          "$imageFromClass": {
+            "clusterIn": "G",
+            "classesIn": [
+              "C8"
+            ]
+          }
+        },
+        {
+          "$saveImage": {
+            "compression": 0,
+            "namePrefix": "_voronoi_A",
+            "objectCluster": "G"
+          }
         }
       ]
     },

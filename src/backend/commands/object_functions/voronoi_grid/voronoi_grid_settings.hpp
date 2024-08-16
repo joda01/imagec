@@ -1,10 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <set>
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
@@ -38,12 +40,12 @@ public:
   //
   // Cluster where the points which should be used to generate the voronoi grid are stored in
   //
-  enums::ClusterIdIn maskCluster;
+  std::optional<enums::ClusterIdIn> maskCluster = std::nullopt;
 
   //
   // Class which should be used for the points
   //
-  std::set<enums::ClassId> maskClasses;
+  std::optional<std::set<enums::ClassId>> maskClasses = std::nullopt;
 
   //
   // Exclude voronoi areas with now points after a cut
@@ -73,9 +75,10 @@ public:
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(maxRadius < -1, "Max radius must be >=0.");
-    CHECK(minAreaSize < -1, "Min area size must be >=0.");
-    CHECK(maxAreaSize < -1, "Max area size must be >=0.");
+    if(maskCluster.has_value()) {
+      CHECK(maskClasses.has_value(), "A input class for the voronoi mask must be given!");
+      CHECK(!maskClasses->empty(), "Input class must be bigger than zero.");
+    }
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, objectStoreIn, pointsClusterIn,

@@ -75,12 +75,11 @@ public:
      cv::imwrite("test.jpg", image);
      */
 
-    const auto &mask             = objects.at(context.getClusterId(mSettings.maskCluster));
-    atom::SpheralIndex &response = objects.at(context.getClusterId(mSettings.pointsClusterOut));
+    atom::SpheralIndex &response = objects[context.getClusterId(mSettings.pointsClusterOut)];
 
     atom::SpheralIndex voronoiGrid;
     drawVoronoi(context, size, subdiv, mSettings.maxRadius, voronoiGrid);
-    applyFilter(context, voronoiGrid, voronoiPoints, mask, response);
+    applyFilter(context, voronoiGrid, voronoiPoints, response, objects);
   }
 
   ///
@@ -151,8 +150,7 @@ public:
   }
 
   void applyFilter(processor::ProcessContext &context, const atom::SpheralIndex &voronoiGrid,
-                   const atom::SpheralIndex &voronoiPoints, const atom::SpheralIndex &mask,
-                   atom::SpheralIndex &response);
+                   const atom::SpheralIndex &voronoiPoints, atom::SpheralIndex &response, atom::ObjectList &objects);
 
   static bool doesAreaContainsPoint(const atom::ROI &voronoiArea, const atom::SpheralIndex &voronoiPoints,
                                     std::set<enums::ClassId> pointsClassIn)
