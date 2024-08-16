@@ -22,6 +22,7 @@
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
+#include "backend/commands/object_functions/intersection/intersection_settings.hpp"
 #include "backend/commands/object_functions/measure/measure_settings.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
@@ -60,6 +61,7 @@ public:
   std::optional<ClassifierSettings> $classify           = std::nullopt;
   std::optional<AiClassifierSettings> $aiClassify       = std::nullopt;
   std::optional<ColocalizationSettings> $colocalization = std::nullopt;
+  std::optional<IntersectionSettings> $intersection     = std::nullopt;
   std::optional<MeasureSettings> $measure               = std::nullopt;
 
   //
@@ -75,7 +77,7 @@ public:
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed,
                                                        $imageFromClass, $classify, $aiClassify, $colocalization,
-                                                       $measure);
+                                                       $intersection, $measure);
 };
 
 }    // namespace joda::settings

@@ -95,13 +95,16 @@ public:
     return potential_collisions;
   }
 
-  void calcIntersections(const enums::PlaneId &iterator, const SpheralIndex &other, SpheralIndex &result,
-                         const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
-                         const std::set<joda::enums::ClassId> &objectClassesOther,
-                         joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                         joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
-                         uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi, float minIntersecion,
-                         const enums::tile_t &tile, const cv::Size &tileSize) const;
+  void calcColocalization(const enums::PlaneId &iterator, const SpheralIndex &other, SpheralIndex &result,
+                          const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
+                          const std::set<joda::enums::ClassId> &objectClassesOther,
+                          joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
+                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
+                          uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi, float minIntersecion,
+                          const enums::tile_t &tile, const cv::Size &tileSize) const;
+
+  void calcIntersections(const SpheralIndex &other, const std::set<joda::enums::ClassId> objectClassesMe,
+                         const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion);
 
   auto begin() const
   {

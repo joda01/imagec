@@ -200,7 +200,7 @@
       },
       "pipelineSteps": [
         {
-          "$intersection": {
+          "$colocalization": {
             "minIntersection": 0,
             "clusterOut": "$",
             "classOut": "C4",
@@ -224,6 +224,22 @@
                 ]
               }
             ]
+          }
+        },
+        {
+          "$intersection": {
+            "objectsIn": {
+              "clusterIn": "A",
+              "classesIn": [
+                "C0"
+              ]
+            },
+            "objectsInWith": {
+              "clusterIn": "B",
+              "classesIn": [
+                "C0"
+              ]
+            }
           }
         },
         {

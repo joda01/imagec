@@ -62,10 +62,10 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
 
     for(; it != clustersToIntersect.end(); ++it) {
       const auto &objects02 = context.loadObjectsFromCache(it->objectIn)->at(it->clusterIn);
-      working->calcIntersections(context.getActIterator(), objects02, *resultTemp, objectClassesMe, it->classesIn,
-                                 context.getClusterId(mSettings.clusterOut), context.getClassId(mSettings.classOut),
-                                 context.acquireNextObjectId(), 0, mSettings.minIntersection,
-                                 context.pipelineContext.actImagePlane.tile, context.imageContext.tileSize);
+      working->calcColocalization(context.getActIterator(), objects02, *resultTemp, objectClassesMe, it->classesIn,
+                                  context.getClusterId(mSettings.clusterOut), context.getClassId(mSettings.classOut),
+                                  context.acquireNextObjectId(), 0, mSettings.minIntersection,
+                                  context.pipelineContext.actImagePlane.tile, context.imageContext.tileSize);
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
       objectClassesMe.reset();
       idx++;

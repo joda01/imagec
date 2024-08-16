@@ -284,12 +284,12 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
         object_intersections.Append<uint32_t>(roi.getZ());                       //       " stack_z UINTEGER,"
         object_intersections.Append<uint32_t>(roi.getT());                       //       " stack_t UINTEGER,"
         // Data
-        object_measurements.Append<uint32_t>(intersectingRoi.imagePlane.cStack);       //
-        object_measurements.Append<uint32_t>(intersectingRoi.imagePlane.zStack);       //
-        object_measurements.Append<uint32_t>(intersectingRoi.imagePlane.tStack);       //
-        object_measurements.Append<uint16_t>((uint16_t) intersectingRoi.clusterId);    //
-        object_measurements.Append<uint16_t>((uint16_t) intersectingRoi.classId);      //
-        object_measurements.Append<uint32_t>(intersectingRoi.objectId);                //
+        object_intersections.Append<uint32_t>(intersectingRoi.imagePlane.cStack);       //
+        object_intersections.Append<uint32_t>(intersectingRoi.imagePlane.zStack);       //
+        object_intersections.Append<uint32_t>(intersectingRoi.imagePlane.tStack);       //
+        object_intersections.Append<uint16_t>((uint16_t) intersectingRoi.clusterId);    //
+        object_intersections.Append<uint16_t>((uint16_t) intersectingRoi.classId);      //
+        object_intersections.Append<uint32_t>(intersectingRoi.objectId);                //
         object_intersections.EndRow();
       }
     }

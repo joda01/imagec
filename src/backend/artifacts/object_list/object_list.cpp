@@ -5,13 +5,13 @@
 
 namespace joda::atom {
 
-void SpheralIndex::calcIntersections(const enums::PlaneId &iterator, const SpheralIndex &other, SpheralIndex &result,
-                                     const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
-                                     const std::set<joda::enums::ClassId> &objectClassesOther,
-                                     joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                                     joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
-                                     uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi,
-                                     float minIntersecion, const enums::tile_t &tile, const cv::Size &tileSize) const
+void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const SpheralIndex &other, SpheralIndex &result,
+                                      const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
+                                      const std::set<joda::enums::ClassId> &objectClassesOther,
+                                      joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
+                                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
+                                      uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi,
+                                      float minIntersecion, const enums::tile_t &tile, const cv::Size &tileSize) const
 {
   std::set<ROI *> intersecting;
 
@@ -37,6 +37,35 @@ void SpheralIndex::calcIntersections(const enums::PlaneId &iterator, const Spher
                     intersecting.emplace(box1);
                     intersecting.emplace(box2);
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+void SpheralIndex::calcIntersections(const SpheralIndex &other, const std::set<joda::enums::ClassId> objectClassesMe,
+                                     const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion)
+{
+  std::set<ROI *> intersecting;
+  // Check for collisions between objects in grid1 and grid2
+  for(const auto &cell : grid) {
+    const auto &boxes1 = cell.second;
+    auto it            = other.grid.find(cell.first);
+    if(it != other.grid.end()) {
+      const auto &boxes2 = it->second;
+      for(const auto &box1 : boxes1) {
+        if((objectClassesMe.contains(box1->getClassId()))) {
+          for(const auto &box2 : boxes2) {
+            if(objectClassesOther.contains(box2->getClassId())) {
+              // Each intersecting particle is only allowed to be counted once
+              if(!intersecting.contains(box2)) {
+                if(box1->isIntersecting(*box2, minIntersecion)) {
+                  box1->addIntersectingRoi(box2);
+                  intersecting.emplace(box2);
                 }
               }
             }
