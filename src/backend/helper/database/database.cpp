@@ -517,7 +517,7 @@ auto Database::selectPlates() -> std::map<uint16_t, joda::settings::Plate>
     plate.imageFolder      = materializedResult->GetValue(5, n).GetValue<std::string>();
     plate.wellImageOrder   = joda::settings::stringToVector(materializedResult->GetValue(6, n).GetValue<std::string>());
     nlohmann::json groupBy = materializedResult->GetValue(7, n).GetValue<std::string>();
-    plate.groupBy          = groupBy.template get<joda::settings::Plate::GroupBy>();
+    plate.groupBy          = groupBy.template get<enums::GroupBy>();
     plate.filenameRegex    = materializedResult->GetValue(8, n).GetValue<std::string>();
     results.try_emplace(plate.plateId, plate);
   }
