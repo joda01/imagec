@@ -19,7 +19,7 @@
 #include <cstddef>
 #include <opencv2/core/types.hpp>
 
-namespace joda::image::func {
+namespace joda::cmd {
 
 /** OPEN, CLOSE, TOPHAT need more than one run of the underlying filter */
 
@@ -675,4 +675,4 @@ std::shared_ptr<int> RankFilter::makeCachePointers(int *lineRadii, size_t lineRa
   return cachePointers;
 }
 
-}    // namespace joda::image::func
+}    // namespace joda::cmd

@@ -186,13 +186,13 @@ ContainerChannel::ContainerChannel(WindowMain *windowMain, joda::settings::Chann
                                        {23, "23x23"}},
                                       windowMain, "median_background_subtraction.json"));
 
-  mRollingBall = std::shared_ptr<ContainerFunction<int, joda::settings::RollingBall::BallType>>(
-      new ContainerFunction<int, joda::settings::RollingBall::BallType>(
+  mRollingBall = std::shared_ptr<ContainerFunction<int, settings::RollingBallSettings::BallType>>(
+      new ContainerFunction<int, settings::RollingBallSettings::BallType>(
           "icons8-bubble-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Rolling ball", "px", std::nullopt, 0,
           INT32_MAX,
-          {{joda::settings::RollingBall::BallType::BALL, "Ball"},
-           {joda::settings::RollingBall::BallType::PARABOLOID, "Paraboloid"}},
-          joda::settings::RollingBall::BallType::BALL, windowMain, "rolling_ball.json"));
+          {{settings::RollingBallSettings::BallType::BALL, "Ball"},
+           {settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}},
+          settings::RollingBallSettings::BallType::BALL, windowMain, "rolling_ball.json"));
 
   mGaussianBlur = std::shared_ptr<ContainerFunction<int, int>>(
       new ContainerFunction<int, int>("icons8-blur-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Gaussian blur",

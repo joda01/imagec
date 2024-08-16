@@ -1,5 +1,5 @@
 ///
-/// \file      margin_crop.hpp
+/// \file      median_substraction.hpp
 /// \author    Joachim Danmayr
 /// \date      2023-07-02
 ///
@@ -13,14 +13,14 @@
 
 #pragma once
 
-#include "../../image_functions/function.hpp"
-#include "backend/helper/duration_count/duration_count.h"
-#include "backend/image_processing/image_functions/rank_filter/rank_filter.hpp"
-#include "backend/settings/preprocessing/image_functions/median_subtract.hpp"
+#include "backend/commands/command.hpp"
+#include "backend/commands/factory.hpp"
+#include "backend/commands/image_functions/rank_filter/rank_filter.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
+#include "median_substraction_settings.hpp"
 
-namespace joda::image::func {
+namespace joda::cmd {
 
 ///
 /// \class      Function
@@ -28,28 +28,26 @@ namespace joda::image::func {
 /// \brief      Base class for an image processing function
 /// \ref https://github.com/imagej/ImageJ/blob/master/ij/process/ShortBlitter.java#L14
 ///
-class MedianSubtraction : public Function
+class MedianSubtraction : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  explicit MedianSubtraction(const joda::settings::MedianSubtraction &settings) : mSettings(settings)
+  explicit MedianSubtraction(const joda::settings::MedianSubtractSettings &settings) : mSettings(settings)
   {
   }
   virtual ~MedianSubtraction() = default;
 
-  void execute(cv::Mat &image) const override
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto idStart               = DurationCount::start("MedianSubtraction");
     auto medianBlurredImageOut = image.clone();
-    joda::image::func::RankFilter rank;
-    rank.rank(medianBlurredImageOut, mSettings.kernelSize, joda::image::func::RankFilter::MEDIAN);
+    RankFilter rank;
+    rank.rank(medianBlurredImageOut, mSettings.kernelSize, RankFilter::MEDIAN);
     image = image - medianBlurredImageOut;
-    DurationCount::stop(idStart);
   }
 
 private:
   /////////////////////////////////////////////////////
-  const joda::settings::MedianSubtraction &mSettings;
+  const joda::settings::MedianSubtractSettings &mSettings;
 };
 
-}    // namespace joda::image::func
+}    // namespace joda::cmd

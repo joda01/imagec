@@ -33,13 +33,12 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/utility.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::image::func {
+namespace joda::cmd {
 
 ///
 /// \class      RollingBall
@@ -121,10 +120,8 @@ public:
 /// \param[in,out]  ip  Image the rolling ball algorithm should be applied on
 ///                     Result is written back to the same variable.
 ///
-void RollingBallBackground::execute(cv::Mat &ip) const
+void RollingBallBackground::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
 {
-  auto id = DurationCount::start("RollingBall");
-
   // Settings
   bool createBackground = false;
   bool doPresmooth      = true;
@@ -138,7 +135,7 @@ void RollingBallBackground::execute(cv::Mat &ip) const
   }
 
   cv::Mat fp;
-  ip.convertTo(fp, CV_32FC1);
+  image.convertTo(fp, CV_32FC1);
   if(mUseSlidingParaboloid) {
     slidingParaboloidFloatBackground(fp, (float) radius, invert, doPresmooth, correctCorners);
   } else {
@@ -151,7 +148,7 @@ void RollingBallBackground::execute(cv::Mat &ip) const
     // subtract the background now
     float offset = invert ? 65535.5f : 0.5f;    // includes 0.5 for rounding when converting float to short
     for(int p = 0; p < fp.total(); p++) {
-      float value = (ip.at<unsigned short>(p) & 0xffff) - fp.at<float>(p) + offset;
+      float value = (image.at<unsigned short>(p) & 0xffff) - fp.at<float>(p) + offset;
       if(value < 0.0f) {
         value = 0.0f;
       }
@@ -159,10 +156,9 @@ void RollingBallBackground::execute(cv::Mat &ip) const
       if(value > 65535.0F) {
         value = 65535.0f;
       }
-      ip.at<uint16_t>(p) = static_cast<uint16_t>(value);
+      image.at<uint16_t>(p) = static_cast<uint16_t>(value);
     }
   }
-  DurationCount::stop(id);
 }
 
 /** Create background for a float image by rolling a ball over
@@ -378,4 +374,4 @@ double RollingBallBackground::filter3(cv::Mat &ip, int length, int pixel0, int i
   return shiftBy;
 }
 
-}    // namespace joda::image::func
+}    // namespace joda::cmd

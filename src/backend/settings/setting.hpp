@@ -18,9 +18,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
-#include "backend/global_enums.hpp"
 #include <nlohmann/json.hpp>
-#include <opencv2/core/mat.hpp>
 
 #define NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Type, ...)                     \
   friend void to_json(nlohmann::json &nlohmann_json_j, const Type &nlohmann_json_t)         \

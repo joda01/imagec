@@ -17,13 +17,13 @@
 
 #include <cmath>
 #include <vector>
-#include "../../image_functions/function.hpp"
-#include "backend/settings/preprocessing/image_functions/rolling_ball.hpp"
+#include "backend/commands/command.hpp"
+#include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace joda::image::func {
+namespace joda::cmd {
 
 class RollingBall;
 
@@ -32,24 +32,18 @@ class RollingBall;
 /// \author   Joachim Danmayr
 /// \brief    Rolling ball background substraction
 ///
-class RollingBallBackground : public Function
+class RollingBallBackground : public Command
 {
 public:
-  enum class Configuration
-  {
-    BALL,
-    PARABOLOID
-  };
-
   /////////////////////////////////////////////////////
-  explicit RollingBallBackground(const joda::settings::RollingBall &settings) :
-      mUseSlidingParaboloid(settings.ballType == joda::settings::RollingBall::BallType::PARABOLOID),
+  explicit RollingBallBackground(const settings::RollingBallSettings &settings) :
+      mUseSlidingParaboloid(settings.ballType == settings::RollingBallSettings::BallType::PARABOLOID),
       radius(settings.ballSize)
   {
   }
 
   virtual ~RollingBallBackground() = default;
-  void execute(cv::Mat & /*image*/) const override;
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
 
 private:
   /////////////////////////////////////////////////////
@@ -85,4 +79,4 @@ private:
   const int nPasses          = 1;
   const int flags = 0;    //= DOES_8G | DOES_16 | DOES_RGB | FINAL_PROCESSING | KEEP_PREVIEW | PARALLELIZE_STACKS;
 };
-}    // namespace joda::image::func
+}    // namespace joda::cmd

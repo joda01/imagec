@@ -19,6 +19,8 @@
 #include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
+#include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
+#include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
@@ -63,6 +65,8 @@ public:
   std::optional<ColocalizationSettings> $colocalization = std::nullopt;
   std::optional<IntersectionSettings> $intersection     = std::nullopt;
   std::optional<MeasureSettings> $measure               = std::nullopt;
+  std::optional<RollingBallSettings> $rollingBall       = std::nullopt;
+  std::optional<MedianSubtractSettings> $medianSubtract = std::nullopt;
 
   //
   // Measurement
@@ -77,7 +81,7 @@ public:
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed,
                                                        $imageFromClass, $classify, $aiClassify, $colocalization,
-                                                       $intersection, $measure);
+                                                       $intersection, $measure, $rollingBall, $medianSubtract);
 };
 
 }    // namespace joda::settings

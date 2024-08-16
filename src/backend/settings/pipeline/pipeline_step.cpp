@@ -19,6 +19,10 @@
 #include "backend/commands/image_functions/blur/blur.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
+#include "backend/commands/image_functions/median_substraction/median_substraction.hpp"
+#include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
+#include "backend/commands/image_functions/rolling_ball/rolling_ball.hpp"
+#include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold.hpp"
 #include "backend/commands/image_functions/watershed/watershed.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization.hpp"
@@ -77,6 +81,16 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
 
   if($intersection) {
     joda::cmd::Factory<joda::cmd::Intersection, IntersectionSettings> a($intersection.value());
+    a.execute(context, image, result);
+  }
+
+  if($rollingBall) {
+    joda::cmd::Factory<joda::cmd::RollingBallBackground, RollingBallSettings> a($rollingBall.value());
+    a.execute(context, image, result);
+  }
+
+  if($medianSubtract) {
+    joda::cmd::Factory<joda::cmd::MedianSubtraction, MedianSubtractSettings> a($medianSubtract.value());
     a.execute(context, image, result);
   }
 }

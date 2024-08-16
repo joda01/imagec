@@ -93,7 +93,7 @@ private:
   std::shared_ptr<ContainerFunction<int, int>> mMarginCrop;
   std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>> mSubtractChannel;
   std::shared_ptr<ContainerFunction<int, int>> mMedianBackgroundSubtraction;
-  std::shared_ptr<ContainerFunction<int, joda::settings::RollingBall::BallType>> mRollingBall;
+  std::shared_ptr<ContainerFunction<int, settings::RollingBallSettings::BallType>> mRollingBall;
   std::shared_ptr<ContainerFunction<int, int>> mGaussianBlur;
   std::shared_ptr<ContainerFunction<int, int>> mSmoothing;
   std::shared_ptr<ContainerFunction<joda::settings::EdgeDetection::Mode, joda::settings::EdgeDetection::Direction>>
