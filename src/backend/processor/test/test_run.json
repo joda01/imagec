@@ -244,6 +244,24 @@
           }
         },
         {
+          "$intersection": {
+            "function": "Reclassify",
+            "objectsIn": {
+              "clusterIn": "A",
+              "classesIn": [
+                "C0"
+              ]
+            },
+            "objectsInWith": {
+              "clusterIn": "B",
+              "classesIn": [
+                "C0"
+              ]
+            },
+            "newClassId": "C7"
+          }
+        },
+        {
           "$imageFromClass": {
             "classesIn": [
               "C4"
