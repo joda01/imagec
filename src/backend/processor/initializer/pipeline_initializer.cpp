@@ -68,15 +68,6 @@ void PipelineInitializer::init(const std::filesystem::path &imagePath, ImageCont
       break;
   }
 
-  switch(mSettings.cStackHandling) {
-    case settings::ProjectImageSetup::CStackHandling::EXACT_ONE:
-      mCStackToLoad = 1;
-      break;
-    case settings::ProjectImageSetup::CStackHandling::EACH_ONE:
-      mCStackToLoad = imageContextOut.imageMeta.getNrOfChannels();
-      break;
-  }
-
   // Load image in tiles if too big
   const auto &imageInfo = imageContextOut.imageMeta.getImageInfo().resolutions.at(0);
   if(imageInfo.imageMemoryUsage > MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
@@ -116,15 +107,6 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
       break;
     case settings::ProjectImageSetup::TStackHandling::EACH_ONE:
       t = imagePartToLoad.tStack;
-      break;
-  }
-
-  switch(mSettings.cStackHandling) {
-    case settings::ProjectImageSetup::CStackHandling::EXACT_ONE:
-      c = pipelineSetup.cStackIndex;
-      break;
-    case settings::ProjectImageSetup::CStackHandling::EACH_ONE:
-      c = imagePartToLoad.cStack;
       break;
   }
 
@@ -212,7 +194,6 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
 
   if(processContext.doesImageInCacheExist(imagePlaneOut.getId())) {
     // Image still exist. No need to load -> Just use the cache cache
-    std::cout << "Exist" << std::endl;
     return imagePlaneOut.getId();
   }
 

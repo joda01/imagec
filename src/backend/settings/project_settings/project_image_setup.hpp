@@ -24,18 +24,10 @@ struct ProjectImageSetup
     EACH_ONE
   };
 
-  enum class CStackHandling
-  {
-    EXACT_ONE,
-    EACH_ONE
-  };
-
   ZStackHandling zStackHandling = ZStackHandling::INTENSITY_PROJECTION;
   TStackHandling tStackHandling = TStackHandling::EACH_ONE;
-  CStackHandling cStackHandling = CStackHandling::EXACT_ONE;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling,
-                                                       cStackHandling);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling);
 
   void check() const
   {
@@ -51,12 +43,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ProjectImageSetup::TStackHandling,
                              {
                                  {ProjectImageSetup::TStackHandling::EXACT_ONE, "ExactOne"},
                                  {ProjectImageSetup::TStackHandling::EACH_ONE, "EachOne"},
-                             });
-
-NLOHMANN_JSON_SERIALIZE_ENUM(ProjectImageSetup::CStackHandling,
-                             {
-                                 {ProjectImageSetup::CStackHandling::EXACT_ONE, "ExactOne"},
-                                 {ProjectImageSetup::CStackHandling::EACH_ONE, "EachOne"},
                              });
 
 }    // namespace joda::settings

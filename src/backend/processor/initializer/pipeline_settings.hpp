@@ -34,17 +34,17 @@ struct PipelineSettings
   //
   // Image channel to load
   //
-  enums::cStack_t cStackIndex = 0;
+  enums::cStack_t cStackIndex = -1;
 
   //
   // Image Time-Stack to load (Is only used if tStackHandling is set to EXACT_ONE)
   //
-  enums::tStack_t tStackIndex = 0;
+  enums::tStack_t tStackIndex = -1;
 
   //
   // Image Z-Stack to load (Is only used if zStackIndex is set to EXACT_ONE)
   //
-  enums::zStack_t zStackIndex = 0;
+  enums::zStack_t zStackIndex = -1;
 
   //
   // Is only used if zStackHandling is set to INTENSITY_PROJECTION
@@ -58,6 +58,7 @@ struct PipelineSettings
 
   void check() const
   {
+    CHECK(cStackIndex >= 0, "Define which image channel >cStackIndex< should be loaded.");
     CHECK(zProjection != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading in pipeline!");
   }
 

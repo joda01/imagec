@@ -425,7 +425,7 @@ void Database::insertImage(const joda::processor::ImageContext &image, const jod
 
   auto [width, heigh] = image.imageMeta.getSize();
   prepare->Execute(image.imageId, image.imagePath.filename().string(), image.imagePath.string(),
-                   image.imageLoader.getNrOfCStacksToProcess(), image.imageLoader.getNrOfZStacksToProcess(),
+                   image.imageMeta.getNrOfChannels(), image.imageLoader.getNrOfZStacksToProcess(),
                    image.imageLoader.getNrOfTStacksToProcess(), width, heigh, 0);
 }
 

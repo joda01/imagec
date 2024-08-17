@@ -43,6 +43,17 @@ public:
 
   void check() const
   {
+    if(projectSettings.imageSetup.tStackHandling == ProjectImageSetup::TStackHandling::EXACT_ONE) {
+      for(const auto &pip : pipelines) {
+        CHECK(pip.pipelineSetup.tStackIndex >= 0, "When processing exact one t stack image, define which one!");
+      }
+    }
+
+    if(projectSettings.imageSetup.zStackHandling == ProjectImageSetup::ZStackHandling::EXACT_ONE) {
+      for(const auto &pip : pipelines) {
+        CHECK(pip.pipelineSetup.zStackIndex >= 0, "When processing exact one z stack image, define which one!");
+      }
+    }
   }
 
 private:

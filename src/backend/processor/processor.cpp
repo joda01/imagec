@@ -89,48 +89,49 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
       auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
       auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
       auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
-      auto nrcSTack         = imageLoader.getNrOfCStacksToProcess();
 
       // Start of the image specific function
       for(int tStack = 0; tStack < nrtStack; tStack++) {
         for(int zStack = 0; zStack < nrzSTack; zStack++) {
-          for(int cStack = 0; cStack < nrcSTack; cStack++) {
-            IterationContext iterationContext;
+          IterationContext iterationContext;
 
-            for(int tileX = 0; tileX < tilesX; tileX++) {
-              for(int tileY = 0; tileY < tilesY; tileY++) {
-                // Execute pipelines of this iteration
-                for(const auto &pipeline : program.pipelines) {
-                  //
-                  // Load the image imagePlane
-                  //
-                  ProcessContext context{.globalContext    = globalContext,
-                                         .plateContext     = plateContext,
-                                         .imageContext     = imageContext,
-                                         .iterationContext = iterationContext};
-                  imageLoader.initPipeline(pipeline.pipelineSetup, {tilesX, tileY},
-                                           {.tStack = tStack, .zStack = zStack, .cStack = cStack}, context);
-                  auto planeId = context.getActImage().getId().imagePlane;
-                  db.insertImagePlane(
-                      imageContext.imageId, planeId,
-                      imageContext.imageMeta.getChannelInfos().at(cStack).planes.at(planeId.tStack).at(planeId.zStack));
+          for(int tileX = 0; tileX < tilesX; tileX++) {
+            for(int tileY = 0; tileY < tilesY; tileY++) {
+              // Execute pipelines of this iteration
+              for(const auto &pipeline : program.pipelines) {
+                //
+                // Load the image imagePlane
+                //
+                ProcessContext context{.globalContext    = globalContext,
+                                       .plateContext     = plateContext,
+                                       .imageContext     = imageContext,
+                                       .iterationContext = iterationContext};
+                imageLoader.initPipeline(
+                    pipeline.pipelineSetup, {tilesX, tileY},
+                    {.tStack = tStack, .zStack = zStack, .cStack = pipeline.pipelineSetup.cStackIndex}, context);
+                auto planeId = context.getActImage().getId().imagePlane;
+                db.insertImagePlane(imageContext.imageId, planeId,
+                                    imageContext.imageMeta.getChannelInfos()
+                                        .at(pipeline.pipelineSetup.cStackIndex)
+                                        .planes.at(planeId.tStack)
+                                        .at(planeId.zStack));
 
-                  //
-                  // Execute the pipeline
-                  //
-                  for(const auto &step : pipeline.pipelineSteps) {
-                    // Execute a pipeline step
-                    step(context, context.getActImage().image, context.getActObjects());
-                  }
+                //
+                // Execute the pipeline
+                //
+                for(const auto &step : pipeline.pipelineSteps) {
+                  // Execute a pipeline step
+                  step(context, context.getActImage().image, context.getActObjects());
                 }
               }
             }
-
-            // Iteration for all tiles finished
-            auto id = DurationCount::start("Insert");
-            db.insertObjects(imageContext, iterationContext.getObjects());
-            DurationCount::stop(id);
           }
+
+          // Iteration for all tiles finished
+          auto id = DurationCount::start("Insert");
+          db.insertObjects(imageContext, iterationContext.getObjects());
+          DurationCount::stop(id);
+
           // End of the image specific function
         }
         // Image finished
