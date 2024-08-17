@@ -18,11 +18,16 @@
 #include "backend/helper/ome_parser/ome_info.hpp"
 
 namespace joda::processor {
+class PipelineInitializer;
+}
+
+namespace joda::processor {
 
 using imageCache_t = std::map<enums::ImageId, std::unique_ptr<joda::atom::ImagePlane>>;
 
 struct ImageContext
 {
+  PipelineInitializer &imageLoader;
   std::filesystem::path imagePath;
   joda::ome::OmeInfo imageMeta;
   cv::Size tileSize;

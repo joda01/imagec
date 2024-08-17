@@ -16,11 +16,13 @@
 #include <stdexcept>
 #include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/rle/rle.hpp"
 #include "backend/helper/uuid.hpp"
+#include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include <duckdb/common/types/string_type.hpp>
@@ -43,6 +45,118 @@ void Database::createTables()
 {
   // Command to create a table
   const char *create_table_sql =
+      "CREATE TABLE IF NOT EXISTS experiment ("
+      "	experiment_id UUID,"
+      " name STRING,"
+      " notes STRING,"
+      " PRIMARY KEY (experiment_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS jobs ("
+      "	experiment_id UUID,"
+      " job_id UUID,"
+      " time_started TIMESTAMP,"
+      " time_finished TIMESTAMP,"
+      " settings TEXT,"
+      " PRIMARY KEY (job_id),"
+      " FOREIGN KEY(experiment_id) REFERENCES experiment(experiment_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS plates ("
+      " job_id UUID,"
+      " plate_id USMALLINT,"
+      " name STRING,"
+      " notes STRING,"
+      " rows USMALLINT,"
+      " cols USMALLINT,"
+      " image_folder STRING,"
+      " well_image_order STRING,"
+      " group_by STRING,"
+      " filename_regex STRING,"
+      " PRIMARY KEY (plate_id),"
+      " FOREIGN KEY(job_id) REFERENCES jobs(job_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS classes ("
+      "	class_id USMALLINT,"
+      " short_name STRING,"
+      " name STRING,"
+      " notes STRING,"
+      " color STRING,"
+      " PRIMARY KEY (class_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS clusters ("
+      "	cluster_id USMALLINT,"
+      " short_name STRING,"
+      " name STRING,"
+      " notes STRING,"
+      " color STRING,"
+      " PRIMARY KEY (cluster_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS groups ("
+      " plate_id USMALLINT,"
+      " group_id USMALLINT,"
+      " name STRING,"
+      " notes STRING,"
+      " pos_on_plate_x UINTEGER,"
+      " pos_on_plate_y UINTEGER,"
+      " PRIMARY KEY (plate_id, group_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS images ("
+      " image_id UBIGINT,"
+      " file_name TEXT,"
+      " original_file_path TEXT,"
+      " nr_of_c_stacks UINTEGER,"
+      " nr_of_z_stacks UINTEGER,"
+      " nr_of_t_stacks UINTEGER,"
+      " width UINTEGER,"
+      " height UINTEGER,"
+      " validity UINTEGER,"
+      " PRIMARY KEY (image_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS images_groups ("
+      " plate_id USMALLINT,"
+      " group_id USMALLINT,"
+      " image_id UBIGINT,"
+      " image_group_idx UINTEGER, "
+      " PRIMARY KEY (plate_id, group_id),"
+      " FOREIGN KEY(plate_id, group_id) REFERENCES groups(plate_id, group_id),"
+      " FOREIGN KEY(image_id) REFERENCES images(image_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS images_channels ("
+      " image_id UBIGINT,"
+      " stack_c UINTEGER, "
+      " channel_id TEXT,"
+      " name TEXT,"
+      " PRIMARY KEY (image_id, stack_c),"
+      " FOREIGN KEY(image_id) REFERENCES images(image_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS images_planes ("
+      " image_id UBIGINT,"
+      " stack_c UINTEGER, "
+      " stack_z UINTEGER, "
+      " stack_t UINTEGER, "
+      " PRIMARY KEY (image_id, stack_c, stack_z, stack_t),"
+      " FOREIGN KEY(image_id) REFERENCES images(image_id)"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS clusters_planes ("
+      " image_id UBIGINT,"
+      "	cluster_id USMALLINT,"
+      " stack_c UINTEGER, "
+      " stack_z UINTEGER, "
+      " stack_t UINTEGER, "
+      " validity UINTEGER,"
+      " PRIMARY KEY (image_id, stack_c, stack_z, stack_t),"
+      " FOREIGN KEY(image_id) REFERENCES images(image_id)"
+      ");"
+
       "CREATE TABLE IF NOT EXISTS objects ("
       "	image_id UBIGINT,"
       " object_id UBIGINT,"
@@ -81,52 +195,6 @@ void Database::createTables()
       "	image_id UBIGINT,"
       " object_id UBIGINT,"
       " meas_object_id UBIGINT"
-      ");"
-
-      "CREATE TABLE IF NOT EXISTS experiment ("
-      "	experiment_id UUID,"
-      " name STRING,"
-      " notes STRING"
-      ");"
-
-      "CREATE TABLE IF NOT EXISTS jobs ("
-      "	experiment_id UUID,"
-      " job_id UUID,"
-      " time_started TIMESTAMP,"
-      " time_finished TIMESTAMP,"
-      " settings TEXT"
-      ");"
-
-      "CREATE TABLE IF NOT EXISTS plates ("
-      " job_id UUID,"
-      " plate_id USMALLINT,"
-      " name STRING,"
-      " notes STRING,"
-      " rows USMALLINT,"
-      " cols USMALLINT,"
-      " image_folder STRING,"
-      " well_image_order STRING,"
-      " group_by STRING,"
-      " filename_regex STRING,"
-      " PRIMARY KEY (plate_id)"
-      ");"
-
-      "CREATE TABLE IF NOT EXISTS classes ("
-      "	class_id USMALLINT,"
-      " short_name STRING,"
-      " name STRING,"
-      " notes STRING,"
-      " color STRING,"
-      " PRIMARY KEY (class_id)"
-      ");"
-
-      "CREATE TABLE IF NOT EXISTS clusters ("
-      "	cluster_id USMALLINT,"
-      " short_name STRING,"
-      " name STRING,"
-      " notes STRING,"
-      " color STRING,"
-      " PRIMARY KEY (cluster_id)"
       ");"
 
       "CREATE TABLE IF NOT EXISTS statistics ("
@@ -332,12 +400,104 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
   // statistic_measurements.Close();
 }
 
-void Database::insertGroup(const joda::grp::GroupInformation &groupInfo)
+void Database::insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo)
 {
+  auto connection = acquire();
+  auto prepare    = connection->Prepare(
+      "INSERT INTO groups (plate_id, group_id, name, notes, pos_on_plate_x, pos_on_plate_y) VALUES (?, ?, ?, ?, ?, ?)");
+  prepare->Execute(plateId, groupInfo.groupId, groupInfo.groupName, "", groupInfo.wellPosX, groupInfo.wellPosY);
 }
 
-void Database::insertImage(const joda::processor::ImageContext &, const joda::grp::GroupInformation &groupInfo)
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::insertImage(const joda::processor::ImageContext &image, const joda::grp::GroupInformation &groupInfo)
 {
+  auto connection = acquire();
+  auto prepare    = connection->Prepare(
+      "INSERT INTO images (image_id, file_name, original_file_path, nr_of_c_stacks, nr_of_z_stacks, "
+         "nr_of_t_stacks,width,height,validity) "
+         "VALUES (?, ?, ?, ?, ?, ?, ?, ? ,? )");
+
+  auto [width, heigh] = image.imageMeta.getSize();
+  prepare->Execute(image.imageId, image.imagePath.filename().string(), image.imagePath.string(),
+                   image.imageLoader.getNrOfCStacksToProcess(), image.imageLoader.getNrOfZStacksToProcess(),
+                   image.imageLoader.getNrOfTStacksToProcess(), width, heigh, 0);
+}
+
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::insertImageChannels(uint64_t imageId, const joda::ome::OmeInfo &ome)
+{
+  auto connection = acquire();
+  auto channelsDb = duckdb::Appender(*connection, "images_channels");
+  for(const auto &[channelId, channel] : ome.getChannelInfos()) {
+    channelsDb.BeginRow();
+    channelsDb.Append<uint64_t>(imageId);                      // " image_id UBIGINT,"
+    channelsDb.Append<uint32_t>(channelId);                    // " stack_c UINTEGER, "
+    channelsDb.Append<duckdb::string_t>(channel.channelId);    // " channel_id TEXT,"
+    channelsDb.Append<duckdb::string_t>(channel.name);         // " name TEXT,"
+    channelsDb.EndRow();
+  }
+  channelsDb.Close();
+}
+
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId,
+                                const ome::OmeInfo::ImagePlane &planeInfo)
+{
+  auto connection = acquire();
+  auto prepare =
+      connection->Prepare("INSERT INTO images_planes (image_id, stack_c, stack_z, stack_t) VALUES (?, ?, ?, ?)");
+  prepare->Execute(imageId, planeId.cStack, planeId.zStack, planeId.tStack);
+}
+
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::setClusterPlaneValidity(uint64_t imageId, enums::ClusterId clusterId, const enums::PlaneId &planeId,
+                                       uint32_t validity)
+{
+  auto connection = acquire();
+  auto prepare    = connection->Prepare(
+      "INSERT INTO clusters_planes (image_id, cluster_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ? "
+         ",?)");
+  prepare->Execute(imageId, (uint16_t) clusterId, planeId.cStack, planeId.zStack, planeId.tStack, validity);
+}
+
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t imageIdx,
+                                 const joda::grp::GroupInformation &groupInfo)
+{
+  auto connection = acquire();
+  auto prepare    = connection->Prepare(
+      "INSERT INTO images_groups (plate_id, group_id, image_id, image_group_idx) VALUES (?, ?, ?, ?)");
+  prepare->Execute(plateId, groupInfo.groupId, imageId, imageIdx);
 }
 
 ///
@@ -461,7 +621,6 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
                      static_cast<std::string>(json.dump()));
   } catch(const std::exception &ex) {
     connection->Rollback();
-    std::cout << "Abrted" << std::endl;
     throw std::runtime_error(ex.what());
   }
 
@@ -572,10 +731,6 @@ void Database::insertClasses(const std::vector<settings::Class> &classesIn)
 }
 
 void Database::insertGroup()
-{
-}
-
-void Database::insertImagePlane()
 {
 }
 

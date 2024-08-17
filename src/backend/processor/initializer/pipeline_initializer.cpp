@@ -37,17 +37,17 @@ namespace joda::processor {
 /// \param[out]
 /// \return
 ///
-PipelineInitializer::PipelineInitializer(const settings::ProjectSettings &settings,
-                                         const std::filesystem::path &imagePath,
-                                         processor::ImageContext &imageContextOut,
-                                         processor::GlobalContext &globalContextOut) :
-    mSettings(settings.imageSetup),
-    mImageContext(imageContextOut)
+PipelineInitializer::PipelineInitializer(const settings::ProjectSettings &settings) : mSettings(settings.imageSetup)
 {
-  imageContextOut.imageMeta            = joda::image::reader::ImageReader::getOmeInformation(imagePath.string());
-  imageContextOut.imagePath            = imagePath;
-  imageContextOut.imageId              = joda::helper::fnv1a(imagePath.string());
-  globalContextOut.resultsOutputFolder = std::filesystem::path(settings.workingDirectory);
+}
+
+void PipelineInitializer::init(const std::filesystem::path &imagePath, ImageContext &imageContextOut,
+                               processor::GlobalContext &globalContextOut)
+{
+  mImageContext             = &imageContextOut;
+  imageContextOut.imageMeta = joda::image::reader::ImageReader::getOmeInformation(imagePath.string());
+  imageContextOut.imagePath = imagePath;
+  imageContextOut.imageId   = joda::helper::fnv1a(imagePath.string());
 
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
@@ -86,7 +86,7 @@ PipelineInitializer::PipelineInitializer(const settings::ProjectSettings &settin
     mLoadImageInTiles = true;
   } else {
     mNrOfTiles               = {1, 1};
-    auto size                = mImageContext.imageMeta.getSize();
+    auto size                = imageContextOut.imageMeta.getSize();
     imageContextOut.tileSize = {static_cast<int32_t>(std::get<0>(size)), static_cast<int32_t>(std::get<1>(size))};
   }
 }
@@ -147,8 +147,8 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   // Start with blank image
   //
   if(joda::settings::PipelineSettings::Source::BLANK == pipelineSetup.source) {
-    auto rows = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageHeight;
-    auto cols = mImageContext.imageMeta.getImageInfo().resolutions.at(0).imageWidth;
+    auto rows = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageHeight;
+    auto cols = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageWidth;
 
     imagePlaneOut.setId(joda::enums::ImageId{mSettings.zStackHandling ==
                                                      settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION
@@ -227,12 +227,12 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
 
   auto loadEntireImage = [this, &planeToLoad](int32_t z, int32_t c, int32_t t) {
     return joda::image::reader::ImageReader::loadEntireImage(
-        mImageContext.imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0);
+        mImageContext->imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0);
   };
 
   auto loadImageTile = [this, &tile](int32_t z, int32_t c, int32_t t) {
     return joda::image::reader::ImageReader::loadImageTile(
-        mImageContext.imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0,
+        mImageContext->imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0,
         joda::ome::TileToLoad{.tileX      = std::get<0>(tile),
                               .tileY      = std::get<1>(tile),
                               .tileWidth  = COMPOSITE_TILE_WIDTH,

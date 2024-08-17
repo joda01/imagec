@@ -20,6 +20,7 @@ namespace joda::processor {
 
 struct PlateContext
 {
+  uint16_t plateId;
 };
 
 }    // namespace joda::processor

@@ -30,8 +30,8 @@ namespace joda::processor {
       cacheId.imageIdx = pipelineContext.actImagePlane.getId().imageIdx;
     }
 
-    iterationContext.imageLoader.loadImageToCache(cacheId.imagePlane, cacheId.imageIdx,
-                                                  pipelineContext.actImagePlane.tile, *this);
+    imageContext.imageLoader.loadImageToCache(cacheId.imagePlane, cacheId.imageIdx, pipelineContext.actImagePlane.tile,
+                                              *this);
   }
 
   return imageContext.imageCache.at(cacheId).get();

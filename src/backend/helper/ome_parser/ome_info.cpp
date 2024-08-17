@@ -156,12 +156,13 @@ TRY_AGAIN:
 
       actImageInfo.nrOfChannels++;
 
-      actImageInfo.channels.emplace(channelNr, ChannelInfo{.channelId              = channelId,
-                                                           .name                   = channelName,
-                                                           .emissionWaveLength     = emissionWaveLength,
-                                                           .emissionWaveLengthUnit = emissionWaveLengthUnit,
-                                                           .contrastMethos         = contrastMethod,
-                                                           .exposuerTime           = -1});
+      actImageInfo.channels.emplace(channelNr, ChannelInfo{
+                                                   .channelId              = channelId,
+                                                   .name                   = channelName,
+                                                   .emissionWaveLength     = emissionWaveLength,
+                                                   .emissionWaveLengthUnit = emissionWaveLengthUnit,
+                                                   .contrastMethod         = contrastMethod,
+                                               });
 
       idx++;
     }
@@ -174,12 +175,14 @@ TRY_AGAIN:
     //
     for(pugi::xml_node plane = pixels.child((keyPrefix + "Plane").data()); plane != nullptr;
         plane                = plane.next_sibling((keyPrefix + "Plane").data())) {
-      auto theZ               = plane.attribute("TheZ").as_int();
-      auto theT               = plane.attribute("TheT").as_int();
-      auto theC               = plane.attribute("TheC").as_int();
-      ChannelInfo &chInfo     = actImageInfo.channels.at(theC);
-      chInfo.exposuerTime     = plane.attribute("ExposureTime").as_float();
-      chInfo.exposuerTimeUnit = std::string(plane.attribute("ExposureTimeUnit").as_string());
+      int32_t theZ        = plane.attribute("TheZ").as_int();
+      int32_t theT        = plane.attribute("TheT").as_int();
+      int32_t theC        = plane.attribute("TheC").as_int();
+      ChannelInfo &chInfo = actImageInfo.channels.at(theC);
+      auto &planeInfo     = chInfo.planes[theT][theZ];
+
+      planeInfo.exposureTime     = plane.attribute("ExposureTime").as_float();
+      planeInfo.exposureTimeUnit = std::string(plane.attribute("ExposureTimeUnit").as_string());
     }
 
     int64_t resolutionCount = doc.child("JODA").attribute("ResolutionCount").as_int();

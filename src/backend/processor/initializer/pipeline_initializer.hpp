@@ -26,22 +26,24 @@ class PipelineInitializer
 {
 public:
   /////////////////////////////////////////////////////
-  PipelineInitializer(const settings::ProjectSettings &settings, const std::filesystem::path &imagePath,
-                      ImageContext &imageContextOut, processor::GlobalContext &globalContextOut);
+  PipelineInitializer(const settings::ProjectSettings &settings);
+  void init(const std::filesystem::path &imagePath, ImageContext &imageContextOut,
+            processor::GlobalContext &globalContextOut);
+
   [[nodiscard]] const std::tuple<int32_t, int32_t> &getNrOfTilesToProcess() const
   {
     return mNrOfTiles;
   }
-  [[nodiscard]] int32_t getNrOfTStacksToProcess() const
+  [[nodiscard]] uint32_t getNrOfTStacksToProcess() const
   {
     return mTstackToLoad;
   }
-  [[nodiscard]] int32_t getNrOfZStacksToProcess() const
+  [[nodiscard]] uint32_t getNrOfZStacksToProcess() const
   {
     return mZStackToLoad;
   }
 
-  [[nodiscard]] int32_t getNrOfCStacksToProcess() const
+  [[nodiscard]] uint32_t getNrOfCStacksToProcess() const
   {
     return mCStackToLoad;
   }
@@ -61,13 +63,13 @@ private:
   /////////////////////////////////////////////////////
   bool mLoadImageInTiles                  = false;
   std::tuple<int32_t, int32_t> mNrOfTiles = {1, 1};
-  int32_t mTstackToLoad                   = 0;
-  int32_t mZStackToLoad                   = 0;
-  int32_t mCStackToLoad                   = 0;
+  uint32_t mTstackToLoad                  = 0;
+  uint32_t mZStackToLoad                  = 0;
+  uint32_t mCStackToLoad                  = 0;
 
   /////////////////////////////////////////////////////
   const settings::ProjectImageSetup &mSettings;
-  const processor::ImageContext &mImageContext;
+  processor::ImageContext *mImageContext = nullptr;
 };
 
 }    // namespace joda::processor

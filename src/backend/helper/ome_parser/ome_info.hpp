@@ -26,6 +26,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include "backend/enums/types.hpp"
 #include <opencv2/core/types.hpp>
 
 namespace joda::ome {
@@ -50,15 +51,20 @@ public:
   using TimeFrame = std::set<uint32_t>;
 
   /////////////////////////////////////////////////////
+  struct ImagePlane
+  {
+    float exposureTime = 0.0;
+    std::string exposureTimeUnit;
+  };
+
   struct ChannelInfo
   {
     std::string channelId;
     std::string name;
     float emissionWaveLength = 0;
     std::string emissionWaveLengthUnit;
-    std::string contrastMethos;
-    float exposuerTime = 0.0;
-    std::string exposuerTimeUnit;
+    std::string contrastMethod;
+    std::map<enums::tStack_t, std::map<enums::zStack_t, ImagePlane>> planes;
   };
 
   struct ObjectiveInfo

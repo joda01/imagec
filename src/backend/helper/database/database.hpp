@@ -15,8 +15,10 @@
 #include <duckdb.h>
 #include <filesystem>
 #include <vector>
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
+#include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/experiment_settings.hpp"
@@ -38,9 +40,15 @@ public:
   std::string startJob(const joda::settings::AnalyzeSettings &);
   void finishJob(const std::string &jobId);
 
-  void insertGroup(const joda::grp::GroupInformation &groupInfo);
+  void insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo);
   void insertImage(const joda::processor::ImageContext &, const joda::grp::GroupInformation &groupInfo);
-  void insertImagePlane();
+  void insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t imageIdx,
+                         const joda::grp::GroupInformation &groupInfo);
+
+  void insertImageChannels(uint64_t imageId, const joda::ome::OmeInfo &ome);
+  void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &);
+  void setClusterPlaneValidity(uint64_t imageId, enums::ClusterId clusterId, const enums::PlaneId &, uint32_t validity);
+
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
 
   auto selectExperiment() -> joda::settings::ExperimentSettings;

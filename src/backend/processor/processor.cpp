@@ -40,6 +40,8 @@ Processor::Processor()
 void Processor::execute(const joda::settings::AnalyzeSettings &program)
 {
   GlobalContext globalContext;
+  globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory);
+
   auto &db = globalContext.database;
   db.openDatabase(std::filesystem::path(program.projectSettings.workingDirectory) / "results.imcdb");
   auto jobId = db.startJob(program);
@@ -59,7 +61,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
   // Iterate over each plate and analyze the images
   //
   for(const auto &plate : program.projectSettings.plates) {
-    PlateContext plateContext;
+    PlateContext plateContext{.plateId = plate.plateId};
     joda::grp::FileGrouper grouper(plate.groupBy, plate.filenameRegex);
     const auto &images = allImages.at(plate.plateId);
 
@@ -68,15 +70,18 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
     //
     const auto &fileList = images->getFilesList();
     for(const auto &imagePath : fileList) {
-      ImageContext imageContext;
-      PipelineInitializer imageLoader(program.projectSettings, imagePath.getFilePath(), imageContext, globalContext);
+      PipelineInitializer imageLoader(program.projectSettings);
+      ImageContext imageContext{.imageLoader = imageLoader};
+      imageLoader.init(imagePath.getFilePath(), imageContext, globalContext);
 
       //
       // Assign image to group here!!
       //
       auto groupInfo = grouper.getGroupForFilename(imagePath.getFilePath());
-      db.insertGroup(groupInfo);
+      db.insertGroup(plateContext.plateId, groupInfo);
       db.insertImage(imageContext, groupInfo);
+      db.insertImageChannels(imageContext.imageId, imageContext.imageMeta);
+      db.insetImageToGroup(plateContext.plateId, imageContext.imageId, groupInfo.imageIdx, groupInfo);
 
       //
       // Start the iteration over planes
@@ -90,7 +95,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
       for(int tStack = 0; tStack < nrtStack; tStack++) {
         for(int zStack = 0; zStack < nrzSTack; zStack++) {
           for(int cStack = 0; cStack < nrcSTack; cStack++) {
-            IterationContext iterationContext(imageLoader);
+            IterationContext iterationContext;
 
             for(int tileX = 0; tileX < tilesX; tileX++) {
               for(int tileY = 0; tileY < tilesY; tileY++) {
@@ -104,9 +109,11 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                                          .imageContext     = imageContext,
                                          .iterationContext = iterationContext};
                   imageLoader.initPipeline(pipeline.pipelineSetup, {tilesX, tileY},
-                                           joda::enums::PlaneId{.tStack = tStack, .zStack = zStack, .cStack = cStack},
-                                           context);
-                  db.insertImagePlane();
+                                           {.tStack = tStack, .zStack = zStack, .cStack = cStack}, context);
+                  auto planeId = context.getActImage().getId().imagePlane;
+                  db.insertImagePlane(
+                      imageContext.imageId, planeId,
+                      imageContext.imageMeta.getChannelInfos().at(cStack).planes.at(planeId.tStack).at(planeId.zStack));
 
                   //
                   // Execute the pipeline
@@ -122,7 +129,6 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
             // Iteration for all tiles finished
             auto id = DurationCount::start("Insert");
             db.insertObjects(imageContext, iterationContext.getObjects());
-            DurationCount::stop(id);
           }
           // End of the image specific function
         }
