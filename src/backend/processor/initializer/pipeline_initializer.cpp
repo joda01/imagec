@@ -173,8 +173,6 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   }
 
   if(joda::settings::PipelineSettings::Source::FROM_FILE == pipelineSetup.source) {
-    std::cout << "Load image In: " << std::to_string(planeToLoad.cStack) << " " << std::to_string(planeToLoad.tStack)
-              << " " << std::to_string(planeToLoad.zStack) << std::endl;
     processContext.setActImage(processContext.loadImageFromCache(
         loadImageToCache(planeToLoad,
                          mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION
@@ -211,9 +209,6 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
   int32_t t = planeToLoad.tStack;
 
   imagePlaneOut.setId(joda::enums::ImageId{zProjection, planeToLoad}, tile);
-
-  std::cout << "Load image " << std::to_string(planeToLoad.cStack) << " " << std::to_string(planeToLoad.tStack) << " "
-            << std::to_string(planeToLoad.zStack) << std::endl;
 
   if(processContext.doesImageInCacheExist(imagePlaneOut.getId())) {
     // Image still exist. No need to load -> Just use the cache cache

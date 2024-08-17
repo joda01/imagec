@@ -129,6 +129,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
             // Iteration for all tiles finished
             auto id = DurationCount::start("Insert");
             db.insertObjects(imageContext, iterationContext.getObjects());
+            DurationCount::stop(id);
           }
           // End of the image specific function
         }
