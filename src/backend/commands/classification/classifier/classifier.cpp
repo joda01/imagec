@@ -64,7 +64,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
     cv::findContours(binaryImage, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
 
     if(contours.size() > 50000) {
-      joda::log::logWarning("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
+      WARN("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
     } else {
       // Create a mask for each contour and draw bounding boxes
       size_t i = 0;

@@ -15,6 +15,7 @@
 #include <duckdb.h>
 #include <filesystem>
 #include <vector>
+#include "backend/enums/enum_validity.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
@@ -47,7 +48,11 @@ public:
 
   void insertImageChannels(uint64_t imageId, const joda::ome::OmeInfo &ome);
   void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &);
-  void setClusterPlaneValidity(uint64_t imageId, enums::ClusterId clusterId, const enums::PlaneId &, uint32_t validity);
+
+  void setImageValidity(uint64_t imageId, enums::ChannelValidity validity);
+  void setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &, enums::ChannelValidity validity);
+  void setImagePlaneClusterClusterValidity(uint64_t imageId, const enums::PlaneId &, enums::ClusterId clusterId,
+                                           enums::ChannelValidity validity);
 
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
 

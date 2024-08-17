@@ -125,6 +125,9 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
 
   enums::PlaneId planeToLoad{.tStack = t, .zStack = z, .cStack = c};
 
+  auto zProjection = mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION
+                         ? pipelineSetup.zProjection
+                         : enums::ZProjection::NONE;
   //
   // Start with blank image
   //
@@ -132,12 +135,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
     auto rows = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageHeight;
     auto cols = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageWidth;
 
-    imagePlaneOut.setId(joda::enums::ImageId{mSettings.zStackHandling ==
-                                                     settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION
-                                                 ? pipelineSetup.zProjection
-                                                 : enums::ZProjection::NONE,
-                                             planeToLoad},
-                        tile);
+    imagePlaneOut.setId(joda::enums::ImageId{zProjection, planeToLoad}, tile);
 
     imagePlaneOut.image.create(rows, cols, CV_16UC1);
     imagePlaneOut.image.setTo(cv::Scalar::all(0));
@@ -169,7 +167,8 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   if(pipelineSetup.defaultClusterId == enums::ClusterIdIn::$) {
     throw std::invalid_argument("Default cluster ID must not be >$<.");
   }
-  processContext.pipelineContext.defaultClusterId = static_cast<enums::ClusterId>(pipelineSetup.defaultClusterId);
+  processContext.pipelineContext.defaultClusterId   = static_cast<enums::ClusterId>(pipelineSetup.defaultClusterId);
+  processContext.pipelineContext.defaultZProjection = zProjection;
 }
 
 ///

@@ -114,7 +114,7 @@ void Database::createTables()
       " nr_of_t_stacks UINTEGER,"
       " width UINTEGER,"
       " height UINTEGER,"
-      " validity UINTEGER,"
+      " validity UBIGINT,"
       " PRIMARY KEY (image_id)"
       ");"
 
@@ -142,6 +142,7 @@ void Database::createTables()
       " stack_c UINTEGER, "
       " stack_z UINTEGER, "
       " stack_t UINTEGER, "
+      " validity UBIGINT"
       " PRIMARY KEY (image_id, stack_c, stack_z, stack_t),"
       " FOREIGN KEY(image_id) REFERENCES images(image_id)"
       ");"
@@ -152,8 +153,8 @@ void Database::createTables()
       " stack_c UINTEGER, "
       " stack_z UINTEGER, "
       " stack_t UINTEGER, "
-      " validity UINTEGER,"
-      " PRIMARY KEY (image_id, stack_c, stack_z, stack_t),"
+      " validity UBIGINT,"
+      " PRIMARY KEY (image_id,cluster_id, stack_c, stack_z, stack_t),"
       " FOREIGN KEY(image_id) REFERENCES images(image_id)"
       ");"
 
@@ -451,6 +452,38 @@ void Database::insertImageChannels(uint64_t imageId, const joda::ome::OmeInfo &o
   channelsDb.Close();
 }
 
+/*
+
+///
+/// \brief      Create control image
+/// \author     Joachim Danmayr
+///
+void Analyzer::markImageChannelAsManualInvalid(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
+                                               uint64_t imageId)
+{
+  std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
+      "UPDATE channels_images SET validity = validity | ? WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      static_cast<uint64_t>((1 << static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED))),
+      duckdb::Value::UUID(analyzeId), static_cast<uint8_t>(channel), imageId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+}
+
+void Analyzer::unMarkImageChannelAsManualInvalid(const std::string &analyzeId, uint8_t plateId, ChannelIndex channel,
+                                                 uint64_t imageId)
+{
+  std::unique_ptr<duckdb::QueryResult> result = mDatabase.select(
+      "UPDATE channels_images SET validity = validity & ? WHERE analyze_id=? AND channel_id=? AND image_id=?",
+      ~static_cast<uint64_t>((1 << static_cast<uint32_t>(ObjectValidityEnum::MANUAL_OUT_SORTED))),
+      duckdb::Value::UUID(analyzeId), static_cast<uint8_t>(channel), imageId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+}
+
+*/
+
 ///
 /// \brief
 /// \author    Joachim Danmayr
@@ -462,9 +495,9 @@ void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId,
                                 const ome::OmeInfo::ImagePlane &planeInfo)
 {
   auto connection = acquire();
-  auto prepare =
-      connection->Prepare("INSERT INTO images_planes (image_id, stack_c, stack_z, stack_t) VALUES (?, ?, ?, ?)");
-  prepare->Execute(imageId, planeId.cStack, planeId.zStack, planeId.tStack);
+  auto prepare    = connection->Prepare(
+      "INSERT INTO images_planes (image_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?)");
+  prepare->Execute(imageId, planeId.cStack, planeId.zStack, planeId.tStack, 0);
 }
 
 ///
@@ -474,14 +507,50 @@ void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId,
 /// \param[out]
 /// \return
 ///
-void Database::setClusterPlaneValidity(uint64_t imageId, enums::ClusterId clusterId, const enums::PlaneId &planeId,
-                                       uint32_t validity)
+void Database::setImageValidity(uint64_t imageId, enums::ChannelValidity validity)
 {
-  auto connection = acquire();
-  auto prepare    = connection->Prepare(
-      "INSERT INTO clusters_planes (image_id, cluster_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ? "
-         ",?)");
-  prepare->Execute(imageId, (uint16_t) clusterId, planeId.cStack, planeId.zStack, planeId.tStack, validity);
+  std::unique_ptr<duckdb::QueryResult> result =
+      select("UPDATE images SET validity = validity | ? WHERE image_id=?", validity.to_ulong(), imageId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+}
+
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &planeId, enums::ChannelValidity validity)
+{
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "UPDATE images_planes SET validity = validity | ? WHERE image_id=? AND stack_c=? AND stack_z=? AND stack_t=?",
+      validity.to_ulong(), imageId, planeId.cStack, planeId.zStack, planeId.tStack);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+}
+
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::setImagePlaneClusterClusterValidity(uint64_t imageId, const enums::PlaneId &planeId,
+                                                   enums::ClusterId clusterId, enums::ChannelValidity validity)
+{
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "INSERT INTO clusters_planes (image_id, cluster_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?) "
+      "ON CONFLICT DO UPDATE SET validity = validity | ?",
+      imageId, static_cast<uint16_t>(clusterId), planeId.cStack, planeId.zStack, planeId.tStack, validity.to_ulong(),
+      validity.to_ulong());
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
 }
 
 ///

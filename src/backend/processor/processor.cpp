@@ -90,13 +90,13 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
       auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
       auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
 
-      // Start of the image specific function
-      for(int tStack = 0; tStack < nrtStack; tStack++) {
-        for(int zStack = 0; zStack < nrzSTack; zStack++) {
-          IterationContext iterationContext;
+      for(int tileX = 0; tileX < tilesX; tileX++) {
+        for(int tileY = 0; tileY < tilesY; tileY++) {
+          // Start of the image specific function
+          for(int tStack = 0; tStack < nrtStack; tStack++) {
+            for(int zStack = 0; zStack < nrzSTack; zStack++) {
+              IterationContext iterationContext;
 
-          for(int tileX = 0; tileX < tilesX; tileX++) {
-            for(int tileY = 0; tileY < tilesY; tileY++) {
               // Execute pipelines of this iteration
               for(const auto &pipeline : program.pipelines) {
                 //
@@ -124,15 +124,13 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                   step(context, context.getActImage().image, context.getActObjects());
                 }
               }
+
+              // Iteration for all tiles finished
+              auto id = DurationCount::start("Insert");
+              db.insertObjects(imageContext, iterationContext.getObjects());
+              DurationCount::stop(id);
             }
           }
-
-          // Iteration for all tiles finished
-          auto id = DurationCount::start("Insert");
-          db.insertObjects(imageContext, iterationContext.getObjects());
-          DurationCount::stop(id);
-
-          // End of the image specific function
         }
         // Image finished
       }
