@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <cmath>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -402,7 +403,7 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
 /// \param[out]
 /// \return
 ///
-auto ImageReader::getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo
+auto ImageReader::getOmeInformation(const std::filesystem::path &filename) -> joda::ome::OmeInfo
 {
   const int32_t series = 0;
   if(mJVMInitialised) {

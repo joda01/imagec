@@ -15,6 +15,7 @@
 
 #include <jni.h>
 #include <cstdint>
+#include <filesystem>
 #include <iostream>
 #include <mutex>
 #include <string>
@@ -41,7 +42,7 @@ public:
 
   static cv::Mat loadThumbnail(const std::string &filename, const Plane &directory, uint16_t series);
 
-  static auto getOmeInformation(const std::string &filename) -> joda::ome::OmeInfo;
+  static auto getOmeInformation(const std::filesystem::path &filename) -> joda::ome::OmeInfo;
   static void init();
   static void destroy();
 

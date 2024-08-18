@@ -11,6 +11,7 @@
 ///
 
 #include "directory_iterator.hpp"
+#include <iostream>
 
 namespace joda::filesystem {
 
@@ -23,10 +24,10 @@ DirectoryWatcher::DirectoryWatcher(const std::set<std::string> &supportedFileFor
 /// \brief      Find all images in the given infolder and its subfolder.
 /// \author     Joachim Danmayr
 ///
-void DirectoryWatcher::setWorkingDirectory(const std::filesystem::path &inputFolder)
+void DirectoryWatcher::setWorkingDirectory(uint8_t group, const std::filesystem::path &inputFolder)
 {
-  if(mWorkingDirectory != inputFolder) {
-    mWorkingDirectory = inputFolder;
+  if(mWorkingDirectory[group] != inputFolder) {
+    mWorkingDirectory[group] = inputFolder;
     if(inputFolder.empty()) {
       mListOfImagePaths.clear();
     } else {
@@ -49,20 +50,21 @@ void DirectoryWatcher::lookForImagesInFolderAndSubfolder()
     callback(State::RUNNING);
   }
 
-  for(recursive_directory_iterator i(mWorkingDirectory), end; i != end; ++i) {
-    try {
-      if(!is_directory(i->path())) {
-        FileInfo fi;
-        auto supported = fi.parseFile(*i, mSupportedFormats);
-        if(supported) {
-          mListOfImagePaths.push_back(fi);
+  for(const auto &[group, workingDir] : mWorkingDirectory) {
+    for(recursive_directory_iterator i(workingDir), end; i != end; ++i) {
+      try {
+        if(!is_directory(i->path())) {
+          auto supported = parseFile(*i);
+          if(supported) {
+            mListOfImagePaths[group].push_back(*i);
+          }
         }
+      } catch(const std::exception &ex) {
+        std::cout << ex.what() << std::endl;
       }
-    } catch(const std::exception &ex) {
-      std::cout << ex.what() << std::endl;
-    }
-    if(mIsStopped) {
-      break;
+      if(mIsStopped) {
+        break;
+      }
     }
   }
   mIsRunning = false;

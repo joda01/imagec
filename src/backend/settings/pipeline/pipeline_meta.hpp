@@ -14,6 +14,7 @@
 #pragma once
 
 #include <string>
+#include "../setting.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {

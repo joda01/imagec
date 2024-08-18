@@ -16,13 +16,13 @@
 #include <exception>
 #include <filesystem>
 #include <functional>
+#include <map>
 #include <memory>
 #include <set>
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
 #include <vector>
-#include "file_info.hpp"
 
 namespace joda::filesystem {
 
@@ -44,10 +44,10 @@ public:
     stop();
   }
 
-  void setWorkingDirectory(const std::filesystem::path &inputFolder);
-  inline std::string getWorkingDirectory()
+  void setWorkingDirectory(uint8_t group, const std::filesystem::path &inputFolder);
+  inline std::string getWorkingDirectory(uint8_t group)
   {
-    return mWorkingDirectory.string();
+    return mWorkingDirectory[group].string();
   }
 
   ///
@@ -84,21 +84,18 @@ public:
   /// \brief      Returns list of found files
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFilesList() const -> const std::vector<FileInfo> &
+  [[nodiscard]] auto getFilesList() const -> const std::map<uint8_t, std::vector<std::filesystem::path>> &
   {
     return mListOfImagePaths;
   }
 
   ///
-  /// \brief      Returns a file on a specific index
+  /// \brief      Returns list of found files
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFileAt(uint32_t idx) const -> FileInfo
+  [[nodiscard]] auto getFilesListAt(uint8_t group) const -> const std::vector<std::filesystem::path> &
   {
-    if(idx < mListOfImagePaths.size()) {
-      return mListOfImagePaths.at(idx);
-    }
-    throw std::runtime_error("File with index idx does not exist!");
+    return mListOfImagePaths.at(group);
   }
 
   ///
@@ -107,7 +104,11 @@ public:
   ///
   [[nodiscard]] auto getNrOfFiles() const -> uint32_t
   {
-    return mListOfImagePaths.size();
+    uint32_t size = 0;
+    for(const auto [_, list] : mListOfImagePaths) {
+      size += list.size();
+    }
+    return size;
   }
 
   ///
@@ -120,13 +121,19 @@ public:
   }
 
 private:
+  /////////////////////////////////////////////////////
   void lookForImagesInFolderAndSubfolder();
+  bool parseFile(const std::filesystem::directory_entry &path)
+  {
+    auto ext = path.path().extension().string();
+    return mSupportedFormats.contains(ext);
+  }
 
   /////////////////////////////////////////////////////
   std::vector<std::function<void(State)>> mCallbacks;
   std::set<std::string> mSupportedFormats;
-  std::filesystem::path mWorkingDirectory;
-  std::vector<FileInfo> mListOfImagePaths;
+  std::map<uint8_t, std::filesystem::path> mWorkingDirectory;
+  std::map<uint8_t, std::vector<std::filesystem::path>> mListOfImagePaths;
   bool mIsStopped = false;
   bool mIsRunning = false;
   std::unique_ptr<std::thread> mWorkerThread;

@@ -19,7 +19,6 @@
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
-#include "backend/helper/file_parser/file_info.hpp"
 #include "backend/processor/context/plate_context.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
@@ -38,13 +37,12 @@ Processor::Processor()
 {
 }
 
-void Processor::execute(const joda::settings::AnalyzeSettings &program)
+void Processor::execute(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages)
 {
   GlobalContext globalContext;
   auto jobId = initializeGlobalContext(program, globalContext);
 
   // Looking for images in all folders
-  std::map<uint8_t, std::unique_ptr<joda::filesystem::DirectoryWatcher>> allImages;
   listImages(program, allImages);
 
   //
@@ -54,14 +52,13 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
   for(const auto &plate : program.projectSettings.plates) {
     PlateContext plateContext{.plateId = plate.plateId};
     joda::grp::FileGrouper grouper(plate.groupBy, plate.filenameRegex);
-    const auto &images = allImages.at(plate.plateId);
+    const auto &images = allImages.getFilesListAt(plate.plateId);
 
     //
     // Iterate over each image
     //
-    const auto &fileList = images->getFilesList();
-    for(const auto &imagePath : fileList) {
-      PipelineInitializer imageLoader(program.projectSettings);
+    for(const auto &imagePath : images) {
+      PipelineInitializer imageLoader(program.imageSetup);
       ImageContext imageContext{.imageLoader = imageLoader};
       initializePipelineContext(program, globalContext, plateContext, grouper, imagePath, imageLoader, imageContext);
 
@@ -110,19 +107,24 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
               DurationCount::stop(id);
             }
           }
+          // Tile finished
+          mProgress.incProcessedTiles();
         }
         // Image finished
+        mProgress.incProcessedImages();
       }
     }
   }
 
   // Done
   db.finishJob(jobId);
+  mProgress.setStateFinished();
 }
 
 std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSettings &program,
                                                GlobalContext &globalContext)
 {
+  mProgress.reset();
   globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory);
 
   auto &db = globalContext.database;
@@ -132,26 +134,27 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
 
 void Processor::listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages)
 {
+  mProgress.setStateLookingForImages();
   for(const auto &plate : program.projectSettings.plates) {
-    auto watcher = std::make_unique<joda::filesystem::DirectoryWatcher>();
-    allImages.emplace(plate.plateId, std::move(watcher));
-    allImages.at(plate.plateId)->setWorkingDirectory(plate.imageFolder);
-    allImages.at(plate.plateId)->waitForFinished();
+    allImages.setWorkingDirectory(plate.plateId, plate.imageFolder);
   }
+  allImages.waitForFinished();
+  mProgress.setTotalNrOfImages(allImages.getNrOfFiles());
+  mProgress.setStateRunning();
 }
 
 void Processor::initializePipelineContext(const joda::settings::AnalyzeSettings &program,
                                           const GlobalContext &globalContext, const PlateContext &plateContext,
-                                          joda::grp::FileGrouper &grouper, const joda::filesystem::FileInfo &imagePath,
+                                          joda::grp::FileGrouper &grouper, const joda::filesystem::path &imagePath,
                                           PipelineInitializer &imageLoader, ImageContext &imageContext)
 {
   auto &db = const_cast<joda::db::Database &>(globalContext.database);
-  imageLoader.init(imagePath.getFilePath(), imageContext, globalContext);
+  imageLoader.init(imagePath, imageContext, globalContext);
 
   //
   // Assign image to group here!!
   //
-  auto groupInfo = grouper.getGroupForFilename(imagePath.getFilePath());
+  auto groupInfo = grouper.getGroupForFilename(imagePath);
   db.insertGroup(plateContext.plateId, groupInfo);
   db.insertImage(imageContext, groupInfo);
   db.insertImageChannels(imageContext.imageId, imageContext.imageMeta);

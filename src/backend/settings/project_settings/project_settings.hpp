@@ -40,11 +40,6 @@ public:
   std::vector<Plate> plates;
 
   //
-  // How the images shoule be loaded
-  //
-  ProjectImageSetup imageSetup;
-
-  //
   // The address of the experiment
   //
   Address address;
@@ -105,8 +100,8 @@ public:
     }
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectSettings, experimentSettings, plates, imageSetup, address,
-                                                       clusters, classes, workingDirectory);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectSettings, experimentSettings, plates, address, clusters,
+                                                       classes, workingDirectory);
 };
 
 }    // namespace joda::settings

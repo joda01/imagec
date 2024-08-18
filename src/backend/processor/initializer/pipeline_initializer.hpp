@@ -26,7 +26,12 @@ class PipelineInitializer
 {
 public:
   /////////////////////////////////////////////////////
-  PipelineInitializer(const settings::ProjectSettings &settings);
+  inline static constexpr int64_t MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE = 100000000;
+  inline static constexpr int32_t COMPOSITE_TILE_WIDTH                 = 4096;
+  inline static constexpr int32_t COMPOSITE_TILE_HEIGHT                = 4096;
+
+  /////////////////////////////////////////////////////
+  PipelineInitializer(const settings::ProjectImageSetup &settings);
   void init(const std::filesystem::path &imagePath, ImageContext &imageContextOut,
             const processor::GlobalContext &globalContextOut);
 
@@ -50,11 +55,6 @@ public:
                     const joda::enums::PlaneId &imagePartToLoad, ProcessContext &processStepOu);
 
 private:
-  /////////////////////////////////////////////////////
-  inline static constexpr int64_t MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE = 100000000;
-  inline static constexpr int32_t COMPOSITE_TILE_WIDTH                 = 4096;
-  inline static constexpr int32_t COMPOSITE_TILE_HEIGHT                = 4096;
-
   /////////////////////////////////////////////////////
   bool mLoadImageInTiles                  = false;
   std::tuple<int32_t, int32_t> mNrOfTiles = {1, 1};

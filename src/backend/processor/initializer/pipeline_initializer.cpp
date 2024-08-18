@@ -25,6 +25,7 @@
 #include "backend/helper/fnv1a.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/processor/context/process_context.hpp"
+#include "backend/settings/project_settings/project_image_setup.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
 
@@ -37,7 +38,7 @@ namespace joda::processor {
 /// \param[out]
 /// \return
 ///
-PipelineInitializer::PipelineInitializer(const settings::ProjectSettings &settings) : mSettings(settings.imageSetup)
+PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &settings) : mSettings(settings)
 {
 }
 
@@ -45,7 +46,7 @@ void PipelineInitializer::init(const std::filesystem::path &imagePath, ImageCont
                                const processor::GlobalContext &globalContextOut)
 {
   mImageContext             = &imageContextOut;
-  imageContextOut.imageMeta = joda::image::reader::ImageReader::getOmeInformation(imagePath.string());
+  imageContextOut.imageMeta = joda::image::reader::ImageReader::getOmeInformation(imagePath);
   imageContextOut.imagePath = imagePath;
   imageContextOut.imageId   = joda::helper::fnv1a(imagePath.string());
 

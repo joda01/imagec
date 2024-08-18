@@ -34,6 +34,7 @@ class AnalyzeSettings final
 {
 public:
   ProjectSettings projectSettings;
+  ProjectImageSetup imageSetup;
   std::vector<Pipeline> pipelines;
 
   [[nodiscard]] const std::string &schema() const
@@ -43,13 +44,13 @@ public:
 
   void check() const
   {
-    if(projectSettings.imageSetup.tStackHandling == ProjectImageSetup::TStackHandling::EXACT_ONE) {
+    if(imageSetup.tStackHandling == ProjectImageSetup::TStackHandling::EXACT_ONE) {
       for(const auto &pip : pipelines) {
         CHECK(pip.pipelineSetup.tStackIndex >= 0, "When processing exact one t stack image, define which one!");
       }
     }
 
-    if(projectSettings.imageSetup.zStackHandling == ProjectImageSetup::ZStackHandling::EXACT_ONE) {
+    if(imageSetup.zStackHandling == ProjectImageSetup::ZStackHandling::EXACT_ONE) {
       for(const auto &pip : pipelines) {
         CHECK(pip.pipelineSetup.zStackIndex >= 0, "When processing exact one z stack image, define which one!");
       }
@@ -59,6 +60,6 @@ public:
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.icproj";
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, projectSettings, pipelines);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, projectSettings, imageSetup, pipelines);
 };
 }    // namespace joda::settings

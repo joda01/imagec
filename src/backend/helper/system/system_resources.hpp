@@ -84,7 +84,6 @@ inline uint64_t getAvailableSystemMemory()
 
 #else
 
-
 inline uint64_t getTotalSystemMemory()
 {
   MEMORYSTATUSEX status;
@@ -107,4 +106,21 @@ inline unsigned int getNrOfCPUs()
 {
   return std::thread::hardware_concurrency();
 }
+
+struct SystemResources
+{
+  uint64_t ramTotal;    // RAM in bytes
+  uint64_t ramAvailable;
+  uint32_t cpus;    // Nr. of CPUs
+};
+
+inline SystemResources acquire()
+{
+  SystemResources ret;
+  ret.ramTotal     = getTotalSystemMemory();
+  ret.ramAvailable = getAvailableSystemMemory();
+  ret.cpus         = getNrOfCPUs();
+  return ret;
+}
+
 }    // namespace joda::system
