@@ -66,8 +66,8 @@ public:
     layout->addWidget(&mEditView);
     mEditDialog.setModal(false);
     mEditDialog.setLayout(layout);
-    mEditDialog.setMinimumWidth(250);
-    mEditDialog.setMaximumWidth(250);
+    mEditDialog.setMinimumWidth(300);
+    mEditDialog.setMaximumWidth(400);
     mEditDialog.setWindowTitle(title);
   }
 
