@@ -46,7 +46,7 @@
     ],
     "imageSetup": {
       "zStackHandling": "IntensityProjection",
-      "tStackHandling": "ExactOne"
+      "tStackHandling": "EachOne"
     },
     "experimentSettings": {
       "experimentId": "bb61e310-e876-4aad-85ef-40e3db2eadf4",

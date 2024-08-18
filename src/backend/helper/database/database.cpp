@@ -142,7 +142,7 @@ void Database::createTables()
       " stack_c UINTEGER, "
       " stack_z UINTEGER, "
       " stack_t UINTEGER, "
-      " validity UBIGINT"
+      " validity UBIGINT, "
       " PRIMARY KEY (image_id, stack_c, stack_z, stack_t),"
       " FOREIGN KEY(image_id) REFERENCES images(image_id)"
       ");"
