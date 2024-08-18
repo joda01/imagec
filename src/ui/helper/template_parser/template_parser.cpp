@@ -16,11 +16,10 @@
 #include <QDir>
 #include <filesystem>
 #include "backend/helper/logger/console_logger.hpp"
-#include "backend/settings/vchannel/vchannel_intersection.hpp"
-#include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
+#include "backend/settings/pipeline/pipeline.hpp"
 #include <nlohmann/json_fwd.hpp>
 
-namespace joda::ui::helper {
+namespace joda::templates {
 
 ///
 /// \brief
@@ -31,10 +30,10 @@ namespace joda::ui::helper {
 ///
 struct MetaFinder
 {
-  settings::ChannelSettingsMeta meta;
+  settings::PipelineMeta meta;
   std::string configSchema;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MetaFinder, meta, configSchema);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(MetaFinder, meta, configSchema);
 };
 
 auto TemplateParser::findTemplates(const std::map<std::string, bool> &directories) -> std::map<std::string, Data>
@@ -75,39 +74,14 @@ struct SchemaFinder
 {
   std::string configSchema;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SchemaFinder, configSchema);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(SchemaFinder, configSchema);
 };
-auto TemplateParser::loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> LoadedChannel
+auto TemplateParser::loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> settings::Pipeline
 {
   std::ifstream ifs(pathToTemplate.string());
   nlohmann::json json = nlohmann::json::parse(ifs);
   ifs.close();
   return loadChannelFromTemplate(json);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto TemplateParser::loadChannelFromTemplate(const nlohmann::json &templateJson) -> LoadedChannel
-{
-  SchemaFinder schema = templateJson;
-
-  LoadedChannel loaded;
-  if(schema.configSchema == "https://imagec.org/schemas/v1/channel-settings.json") {
-    settings::ChannelSettings settings = templateJson;
-    loaded.channel                     = settings;
-  } else if(schema.configSchema == "https://imagec.org/schemas/v1/voronoi-settings.json") {
-    settings::VChannelVoronoi settings = templateJson;
-    loaded.voronoi                     = settings;
-  } else if(schema.configSchema == "https://imagec.org/schemas/v1/intersectrion-settings.json") {
-    settings::VChannelIntersection settings = templateJson;
-    loaded.intersection                     = settings;
-  }
-  return loaded;
 }
 
 ///
@@ -137,20 +111,12 @@ auto TemplateParser::getUsersTemplateDirectory() -> std::filesystem::path
 /// \param[out]
 /// \return
 ///
-void TemplateParser::saveTemplate(const LoadedChannel &data, const std::filesystem::path &pathToStoreTemplateIn)
+void TemplateParser::saveTemplate(const settings::Pipeline &data, const std::filesystem::path &pathToStoreTemplateIn)
 {
   std::string name;
   nlohmann::json json;
-  if(data.channel.has_value()) {
-    json = data.channel.value();
-    name = data.channel->meta.name;
-  } else if(data.intersection.has_value()) {
-    json = data.intersection.value();
-    name = data.intersection->meta.name;
-  } else if(data.voronoi.has_value()) {
-    json = data.voronoi.value();
-    name = data.voronoi->meta.name;
-  }
+  json = data;
+  name = data.meta.name;
   saveTemplate(json, pathToStoreTemplateIn);
 }
 
@@ -191,4 +157,4 @@ QPixmap TemplateParser::base64ToQPixmap(const std::string &base64String)
   return QPixmap::fromImage(image);
 }
 
-}    // namespace joda::ui::helper
+}    // namespace joda::templates

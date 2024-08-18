@@ -17,17 +17,18 @@
 
 namespace joda::ui::qt {
 
-class ContainerFunctionBase : public QWidget
+class SettingBase : public QWidget
 {
   Q_OBJECT
 
 public:
-  ContainerFunctionBase();
-  ~ContainerFunctionBase()
+  SettingBase();
+  ~SettingBase()
   {
   }
 
   virtual QWidget *getEditableWidget() = 0;
+  virtual QWidget *getLabelWidget()    = 0;
 
   static QWidget *createDisplayAbleWidgetPlaceholder()
   {

@@ -29,7 +29,7 @@
 #include <string>
 #include <type_traits>
 #include "ui/container/dialog_tooltip.hpp"
-#include "container_function_base.hpp"
+#include "setting_base.hpp"
 
 namespace joda::ui::qt {
 
@@ -44,7 +44,7 @@ concept IntFloatConcept = std::same_as<T, int> || std::same_as<T, uint32_t> || s
                           std::same_as<T, bool> || std::same_as<T, QString> || std::is_enum<T>::value;
 
 template <IntFloatConcept VALUE_T, IntFloatConcept VALUE2_T>
-class ContainerFunction : public ContainerFunctionBase
+class Setting : public SettingBase
 {
 private:
   static constexpr int32_t TXT_ICON_SIZE  = 16;
@@ -65,9 +65,9 @@ public:
     QString label;
   };
 
-  ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
-                    std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal, QWidget *parent,
-                    const QString &pathToHelpFile = "")
+  Setting(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
+          std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal, QWidget *parent,
+          const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float> ||
                  std::is_enum<VALUE_T>::value
       : mUnit(unit), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
@@ -77,10 +77,10 @@ public:
     comboxEditingFinished();
   }
 
-  ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
-                    std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal,
-                    const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault, QWidget *parent,
-                    const QString &pathToHelpFile = "")
+  Setting(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
+          std::optional<VALUE_T> defaultVal, VALUE_T minVal, VALUE_T maxVal,
+          const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault, QWidget *parent,
+          const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float> ||
                  std::is_enum<VALUE_T>::value
       :
@@ -92,8 +92,8 @@ public:
     comboxEditingFinished();
   }
 
-  ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText,
-                    std::optional<VALUE_T> defaultVal, QWidget *parent, const QString &pathToHelpFile = "")
+  Setting(const QString &icon, const QString &placeHolderText, const QString &helpText,
+          std::optional<VALUE_T> defaultVal, QWidget *parent, const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, QString>
       : mUnit(""), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
@@ -102,9 +102,9 @@ public:
     comboxEditingFinished();
   }
 
-  ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
-                    std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options, QWidget *parent,
-                    const QString &pathToHelpFile = "")
+  Setting(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
+          std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options, QWidget *parent,
+          const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
                  std::is_enum<VALUE_T>::value
       : mUnit(unit), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
@@ -114,10 +114,10 @@ public:
     comboxEditingFinished();
   }
 
-  ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
-                    std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
-                    const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault, QWidget *parent,
-                    const QString &pathToHelpFile = "")
+  Setting(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
+          std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
+          const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault, QWidget *parent,
+          const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
                  std::is_enum<VALUE_T>::value
       :
@@ -129,8 +129,8 @@ public:
     comboxEditingFinished();
   }
 
-  ContainerFunction(const QString &icon, const QString &placeHolderText, const QString &helpText, bool defaultVal,
-                    QWidget *parent, const QString &pathToHelpFile = "")
+  Setting(const QString &icon, const QString &placeHolderText, const QString &helpText, bool defaultVal,
+          QWidget *parent, const QString &pathToHelpFile = "")
     requires std::same_as<VALUE_T, bool>
       : mUnit(""), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
@@ -139,7 +139,7 @@ public:
     comboxEditingFinished();
   }
 
-  QWidget *getLabelWidget()
+  QWidget *getLabelWidget() override
   {
     return mDisplayable;
   }
@@ -587,10 +587,10 @@ private:
     mLineEdit->addAction(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), QLineEdit::LeadingPosition);
     mLineEdit->setPlaceholderText(placeHolderText);
     layout->addWidget(mLineEdit);
-    // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);
-    connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingChanged);
-    connect(mLineEdit, &QLineEdit::returnPressed, this, &ContainerFunction::lineEditingChanged);
-    connect(mLineEdit, &QLineEdit::textChanged, this, &ContainerFunction::textChanged);
+    // connect(mLineEdit, &QLineEdit::editingFinished, this, &Setting::lineEditingFinished);
+    connect(mLineEdit, &QLineEdit::editingFinished, this, &Setting::lineEditingChanged);
+    connect(mLineEdit, &QLineEdit::returnPressed, this, &Setting::lineEditingChanged);
+    connect(mLineEdit, &QLineEdit::textChanged, this, &Setting::textChanged);
 
     if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float>) {
       QValidator *validator;
@@ -643,10 +643,10 @@ private:
     mLineEdit->addAction(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), QLineEdit::LeadingPosition);
     mLineEdit->setPlaceholderText(placeHolderText);
     layoutHorizontal->addWidget(mLineEdit);
-    // connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingFinished);
-    connect(mLineEdit, &QLineEdit::editingFinished, this, &ContainerFunction::lineEditingChanged);
-    connect(mLineEdit, &QLineEdit::returnPressed, this, &ContainerFunction::lineEditingChanged);
-    connect(mLineEdit, &QLineEdit::textChanged, this, &ContainerFunction::textChanged);
+    // connect(mLineEdit, &QLineEdit::editingFinished, this, &Setting::lineEditingFinished);
+    connect(mLineEdit, &QLineEdit::editingFinished, this, &Setting::lineEditingChanged);
+    connect(mLineEdit, &QLineEdit::returnPressed, this, &Setting::lineEditingChanged);
+    connect(mLineEdit, &QLineEdit::textChanged, this, &Setting::textChanged);
 
     if constexpr(std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float>) {
       QValidator *validator;
@@ -720,7 +720,7 @@ private:
     }
     mComboBox->setPlaceholderText(placeHolderText);
     layoutHorizontal->addWidget(mComboBox);
-    connect(mComboBox, &QComboBox::currentIndexChanged, this, &ContainerFunction::comboxEditingFinished);
+    connect(mComboBox, &QComboBox::currentIndexChanged, this, &Setting::comboxEditingFinished);
     int32_t idx = 0;
     if(defaultVal.has_value()) {
       if constexpr(std::is_enum<VALUE_T>::value) {
@@ -782,7 +782,7 @@ private:
       help->setCursor(Qt::PointingHandCursor);
       help->setIconSize({HELP_ICON_SIZE, HELP_ICON_SIZE});
       help->setIcon(QIcon(":/icons/outlined/icons8-info-48-fill.png"));
-      connect(help, &QPushButton::clicked, this, &ContainerFunction::onHelpButtonClicked);
+      connect(help, &QPushButton::clicked, this, &Setting::onHelpButtonClicked);
       hLayout->addWidget(help);
     }
 
@@ -816,7 +816,7 @@ private:
     if(idx >= 0) {
       mComboBoxSecond->setCurrentIndex(idx);
     }
-    connect(mComboBoxSecond, &QComboBox::currentIndexChanged, this, &ContainerFunction::comboxEditingFinished);
+    connect(mComboBoxSecond, &QComboBox::currentIndexChanged, this, &Setting::comboxEditingFinished);
 
     return mComboBoxSecond;
   }
@@ -871,7 +871,7 @@ private slots:
       }
 
       updateDisplayText();
-      ContainerFunction<VALUE_T, VALUE2_T>::triggerValueChanged();
+      Setting<VALUE_T, VALUE2_T>::triggerValueChanged();
     }
   }
 
@@ -913,7 +913,7 @@ private slots:
     }
 
     updateDisplayText();
-    ContainerFunction<VALUE_T, VALUE2_T>::triggerValueChanged();
+    Setting<VALUE_T, VALUE2_T>::triggerValueChanged();
   }
 };
 

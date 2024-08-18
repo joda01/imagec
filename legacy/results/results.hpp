@@ -40,7 +40,7 @@ struct ExperimentSetting
   std::string runId;
   std::string analyzeName;
   std::string imageFileNameRegex;
-  joda::settings::ExperimentSettings::GroupBy groupBy;
+  joda::enums::GroupBy groupBy;
   uint8_t plateIdx    = 0;
   uint16_t plateRowNr = 0;
   uint16_t plateColNr = 0;

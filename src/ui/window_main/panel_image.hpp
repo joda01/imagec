@@ -18,12 +18,6 @@
 #include <qwidget.h>
 #include <QtWidgets>
 #include <utility>
-#include "backend/settings/analze_settings.hpp"
-#include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
-#include "ui/container/channel/container_channel.hpp"
-#include "ui/container/container_base.hpp"
-#include "ui/container/intersection/container_intersection.hpp"
-#include "ui/container/voronoi/container_voronoi.hpp"
 #include "ui/helper/table_widget.hpp"
 
 namespace joda::ui::qt {
@@ -42,7 +36,7 @@ class PanelImages : public QWidget
 public:
   /////////////////////////////////////////////////////
   explicit PanelImages(WindowMain *windowMain);
-  [[nodiscard]] auto getSelectedImage() const -> std::tuple<int32_t, int32_t>;
+  [[nodiscard]] auto getSelectedImage() const -> std::tuple<std::filesystem::path, uint32_t>;
 
 signals:
   void imageSelectionChanged(int32_t newImgIdex, int32_t selectedSeries);

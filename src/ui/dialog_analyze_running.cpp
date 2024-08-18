@@ -110,14 +110,14 @@ void DialogAnalyzeRunning::onCloseClicked()
 
 void DialogAnalyzeRunning::onOpenResultsFolderClicked()
 {
-  QString folderPath = mWindowMain->getController()->getOutputFolder().data();
+  QString folderPath = mWindowMain->getController()->getJobInformation().resultsFilePath.string().data();
   QDesktopServices::openUrl(QUrl("file:///" + folderPath));
 }
 
 void DialogAnalyzeRunning::refreshThread()
 {
-  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings, 0);
-  mWindowMain->getController()->reset();
+  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings);
+  // mWindowMain->getController()->reset();
   mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName().toStdString());
   mStartedTime = std::chrono::high_resolution_clock::now();
 
@@ -128,8 +128,8 @@ void DialogAnalyzeRunning::refreshThread()
 
   // Wait unit finished
   while(true) {
-    auto [progress, state, errorMsg] = mWindowMain->getController()->getState();
-    if(state == joda::pipeline::Pipeline::State::FINISHED) {
+    const auto &state = mWindowMain->getController()->getState();
+    if(state.getState() == joda::processor::ProcessState::FINISHED) {
       break;
     }
     std::this_thread::sleep_for(500ms);
@@ -140,21 +140,21 @@ void DialogAnalyzeRunning::refreshThread()
 
 void DialogAnalyzeRunning::onRefreshData()
 {
-  QString newTextAllOver                   = "Processing Image 0/0";
-  QString newTextImage                     = "Processing Tile 0/0";
-  joda::pipeline::Pipeline::State actState = joda::pipeline::Pipeline::State::STOPPED;
+  QString newTextAllOver = "Processing Image 0/0";
+  QString newTextImage   = "Processing Tile 0/0";
+  auto actState          = joda::processor::ProcessState::FINISHED;
   try {
-    auto [progress, state, errorMsg] = mWindowMain->getController()->getState();
-    if(state == joda::pipeline::Pipeline::State::ERROR_) {
-      mLastErrorMsg = errorMsg;
+    const auto &state = mWindowMain->getController()->getState();
+    if(state.getState() == joda::processor::ProcessState::ERROR) {
+      mLastErrorMsg = "Error message";
     }
-    if(state == joda::pipeline::Pipeline::State::RUNNING) {
+    if(state.getState() == joda::processor::ProcessState::RUNNING) {
       mEndedTime = std::chrono::high_resolution_clock::now();
     }
-    actState = state;
+    actState = state.getState();
 
-    newTextAllOver = QString("Processing Image %1/%2").arg(progress.total.finished).arg(progress.total.total);
-    newTextImage   = QString("Processing Tile %1/%2").arg(progress.image.finished).arg(progress.image.total);
+    newTextAllOver = QString("Processing Image %1/%2").arg(state.finishedImages()).arg(state.totalImages());
+    newTextImage   = QString("Processing Tile %1/%2").arg(state.totalTiles()).arg(state.finishedTiles());
 
     // progressBar->setMaximum(progress.total.total);
     // if(progress.total.finished <= progress.total.total) {
@@ -170,12 +170,12 @@ void DialogAnalyzeRunning::onRefreshData()
   stream << std::fixed << std::setprecision(2) << timeDiff << " " << exp;
   std::string timeDiffStr = stream.str();
 
-  if(!mStopped && actState == joda::pipeline::Pipeline::State::ERROR_) {
+  if(!mStopped && actState == joda::processor::ProcessState::ERROR) {
     mStopped = true;
     // showErrorDialog(mLastErrorMsg);
   }
   QString progressText;
-  if(actState != joda::pipeline::Pipeline::State::RUNNING || actState == joda::pipeline::Pipeline::State::STOPPED) {
+  if(actState != joda::processor::ProcessState::RUNNING || actState == joda::processor::ProcessState::STOPPING) {
     stopButton->setEnabled(false);
     mStopped = true;
     progressBar->setRange(0, 100);
@@ -188,7 +188,7 @@ void DialogAnalyzeRunning::onRefreshData()
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage;
   }
 
-  if(actState == joda::pipeline::Pipeline::State::FINISHED || actState == joda::pipeline::Pipeline::State::ERROR_) {
+  if(actState == joda::processor::ProcessState::FINISHED || actState == joda::processor::ProcessState::ERROR) {
     closeButton->setEnabled(true);
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
   }

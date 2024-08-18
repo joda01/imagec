@@ -15,13 +15,12 @@
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
-#include "../container_function.hpp"
+#include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/window_main/window_main.hpp"
-#include "container_channel.hpp"
 
 namespace joda::ui::qt {
 
-PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *parent) :
+PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings *parent) :
     mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
@@ -36,15 +35,15 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
 
   layout->addWidget(parent->mColorAndChannelIndex->getLabelWidget(), 0, 0);
   layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 1);
-  layout->addWidget(parent->mChannelType->getLabelWidget(), 0, 2);
+  layout->addWidget(new QLabel(), 0, 2);
 
-  layout->addWidget(parent->mUsedDetectionMode->getLabelWidget(), 1, 0);
-  layout->addWidget(parent->mThresholdAlgorithm->getLabelWidget(), 1, 1);
-  layout->addWidget(parent->mThresholdValueMin->getLabelWidget(), 1, 2);
+  layout->addWidget(new QLabel(), 1, 0);
+  layout->addWidget(new QLabel(), 1, 1);
+  layout->addWidget(new QLabel(), 1, 2);
 
-  layout->addWidget(parent->mMinParticleSize->getLabelWidget(), 2, 0);
-  layout->addWidget(parent->mMaxParticleSize->getLabelWidget(), 2, 1);
-  layout->addWidget(parent->mTetraspeckRemoval->getLabelWidget(), 2, 2);
+  layout->addWidget(new QLabel(), 2, 0);
+  layout->addWidget(new QLabel(), 2, 1);
+  layout->addWidget(new QLabel(), 2, 2);
 
   /*
     layout->addWidget(parent->mSubtractChannel->getLabelWidget(), 4, 0);
@@ -69,7 +68,7 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, ContainerChannel *par
 void PanelChannelOverview::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-    mWindowMain->showPanelChannelEdit(mParentContainer);
+    mWindowMain->showPanelPipelineSettingsEdit(mParentContainer);
   }
 }
 

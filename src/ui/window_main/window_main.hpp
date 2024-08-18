@@ -22,10 +22,9 @@
 #include <set>
 #include <string>
 #include "backend/settings/analze_settings.hpp"
-#include "backend/settings/experiment_settings.hpp"
-#include "backend/settings/vchannel/vchannel_intersection.hpp"
 #include "controller/controller.hpp"
 #include "ui/container/container_base.hpp"
+#include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/helper/clickablelabel.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/window_main/panel_image.hpp"
@@ -54,7 +53,7 @@ public:
   {
   }
   bool showPanelStartPage();
-  void showPanelChannelEdit(ContainerBase *);
+  void showPanelPipelineSettingsEdit(PanelPipelineSettings *);
   void showPanelResults();
 
   joda::ctrl::Controller *getController()
@@ -65,11 +64,6 @@ public:
   [[nodiscard]] auto getJobName() const -> QString
   {
     return mPanelProjectSettings->getJobName();
-  }
-
-  [[nodiscard]] auto getExperimentSettings() const -> const joda::settings::ExperimentSettings &
-  {
-    return mAnalyzeSettings.experimentSettings;
   }
 
   [[nodiscard]] const PanelImages *getImagePanel() const
@@ -142,9 +136,9 @@ private:
 
   ////Stacked widget/////////////////////////////////////////////////
   QStackedWidget *mStackedWidget;
-  Navigation mNavigation          = Navigation::START_PAGE;
-  ContainerBase *mSelectedChannel = nullptr;
-  PanelResults *mPanelReporting   = nullptr;
+  Navigation mNavigation                  = Navigation::START_PAGE;
+  PanelPipelineSettings *mSelectedChannel = nullptr;
+  PanelResults *mPanelReporting           = nullptr;
 
   ////Sidebar panels/////////////////////////////////////////////////
   QComboBox *mTemplateSelection;

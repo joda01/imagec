@@ -190,6 +190,12 @@ auto Controller::getImageProperties(const std::filesystem::path &image, int seri
   return joda::image::reader::ImageReader::getOmeInformation(image);
 }
 
+cv::Size Controller::getCompositeTileSize() const
+{
+  return {joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH,
+          joda::processor::PipelineInitializer::COMPOSITE_TILE_HEIGHT};
+}
+
 // FLOW CONTROL ///////////////////////////////////////////////////
 
 ///

@@ -21,11 +21,7 @@
 #include <optional>
 #include <utility>
 #include "backend/settings/analze_settings.hpp"
-#include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
-#include "ui/container/channel/container_channel.hpp"
 #include "ui/container/container_base.hpp"
-#include "ui/container/intersection/container_intersection.hpp"
-#include "ui/container/voronoi/container_voronoi.hpp"
 #include "ui/helper/table_widget.hpp"
 
 namespace joda::ui::qt {
@@ -44,12 +40,12 @@ class PanelResultsInfo : public QWidget
 public:
   struct DataSet
   {
-    std::optional<results::db::AnalyzeMeta> analyzeMeta;
-    std::optional<results::db::PlateMeta> plateMeta;
-    std::optional<results::db::GroupMeta> groupMeta;
-    std::optional<results::db::ImageMeta> imageMeta;
-    std::optional<results::db::ChannelMeta> channelMeta;
-    std::optional<results::db::ImageChannelMeta> imageChannelMeta;
+    // std::optional<results::db::AnalyzeMeta> analyzeMeta;
+    // std::optional<results::db::PlateMeta> plateMeta;
+    // std::optional<results::db::GroupMeta> groupMeta;
+    // std::optional<results::db::ImageMeta> imageMeta;
+    // std::optional<results::db::ChannelMeta> channelMeta;
+    // std::optional<results::db::ImageChannelMeta> imageChannelMeta;
   };
 
   /////////////////////////////////////////////////////

@@ -72,16 +72,16 @@ private:
   joda::settings::VChannelIntersection &mSettings;
 
   /////////////////////////////////////////////////////
-  std::shared_ptr<ContainerFunction<QString, QString>> mChannelName;
-  std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>> mChannelType;
-  std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>> mColorAndChannelIndex;
+  std::shared_ptr<Setting<QString, QString>> mChannelName;
+  std::shared_ptr<Setting<joda::settings::ChannelSettingsMeta::Type, QString>> mChannelType;
+  std::shared_ptr<Setting<QString, joda::settings::ChannelIndex>> mColorAndChannelIndex;
 
-  std::shared_ptr<ContainerFunction<float, int>> mMinIntersection;
+  std::shared_ptr<Setting<float, int>> mMinIntersection;
 
   // Cross-Channel//////////////////////////////////
-  std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntersection;
-  std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelIntensity;
-  std::shared_ptr<ContainerFunction<QString, int>> mCrossChannelCount;
+  std::shared_ptr<Setting<QString, int>> mCrossChannelIntersection;
+  std::shared_ptr<Setting<QString, int>> mCrossChannelIntensity;
+  std::shared_ptr<Setting<QString, int>> mCrossChannelCount;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

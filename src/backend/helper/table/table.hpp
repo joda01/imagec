@@ -21,7 +21,7 @@
 #include <vector>
 #include "backend/helper/helper.hpp"
 
-namespace joda::results {
+namespace joda::table {
 
 class TableCell
 {
@@ -202,4 +202,4 @@ private:
   uint32_t mNrOfCols = 0;
 };
 
-}    // namespace joda::results
+}    // namespace joda::table

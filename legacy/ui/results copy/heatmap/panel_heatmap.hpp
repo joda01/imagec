@@ -18,9 +18,7 @@
 #include <qmainwindow.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
-#include "backend/results/analyzer/analyzer.hpp"
-#include "backend/results/db_column_ids.hpp"
-#include "backend/results/table/table.hpp"
+#include "backend/helper/table/table.hpp"
 #include "heatmap_color_generator.hpp"
 
 namespace joda::ui::qt {
@@ -63,16 +61,16 @@ public:
 
   /////////////////////////////////////////////////////
   ChartHeatMap(PanelResults *parent);
-  void setData(const joda::results::Table &, MatrixForm form, PaintControlImage paint, int32_t newHierarchy);
+  void setData(const joda::table::Table &, MatrixForm form, PaintControlImage paint, int32_t newHierarchy);
 
-  [[nodiscard]] const results::Table &getData() const
+  [[nodiscard]] const table::Table &getData() const
   {
     return mData;
   }
 
 signals:
-  void onElementClick(int cellX, int cellY, results::TableCell value);
-  void onDoubleClicked(int cellX, int cellY, results::TableCell value);
+  void onElementClick(int cellX, int cellY, table::TableCell value);
+  void onDoubleClicked(int cellX, int cellY, table::TableCell value);
 
 private:
   /////////////////////////////////////////////////////
@@ -88,7 +86,7 @@ private:
   static std::pair<float, QColor> findNearest(std::map<float, QColor> &myMap, double target);
   std::tuple<int32_t, Point> getWellUnderMouse(QMouseEvent *event);
 
-  joda::results::Table mData;
+  joda::table::Table mData;
   /*std::map<float, QColor> mColorMap{{0.1, QColor{32, 102, 168}},  {0.2, QColor{142, 193, 218}},
                                     {0.3, QColor{205, 225, 236}}, {0.4, QColor{237, 237, 237}},
                                     {0.5, QColor{246, 214, 194}}, {0.6, QColor{246, 214, 194}},

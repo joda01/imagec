@@ -22,15 +22,13 @@
 #include <optional>
 #include <regex>
 #include <string>
-#include "backend/settings/channel/channel_settings.hpp"
-#include "backend/settings/vchannel/vchannel_intersection.hpp"
-#include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
+#include "backend/settings/pipeline/pipeline.hpp"
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/gapi/infer/onnx.hpp>
 #include <opencv2/opencv.hpp>
 
-namespace joda::helper::templates {
+namespace joda::templates {
 
 namespace fs = std::filesystem;
 // using namespace ::onnx;
@@ -50,25 +48,17 @@ public:
     bool userTemplate = false;
   };
 
-  struct LoadedChannel
-  {
-    std::optional<settings::ChannelSettings> channel;
-    std::optional<settings::VChannelIntersection> intersection;
-    std::optional<settings::VChannelVoronoi> voronoi;
-  };
-
-  static void saveTemplate(const LoadedChannel &data, const std::filesystem::path &pathToStoreTemplateIn);
+  static void saveTemplate(const joda::settings::Pipeline &data, const std::filesystem::path &pathToStoreTemplateIn);
   static void saveTemplate(nlohmann::json &, const std::filesystem::path &pathToStoreTemplateIn);
 
   static auto findTemplates(const std::map<std::string, bool> &directories = {
                                 {"templates", false},
                                 {getUsersTemplateDirectory().string(), true}}) -> std::map<std::string, Data>;
-  static auto loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> LoadedChannel;
-  static auto loadChannelFromTemplate(const nlohmann::json &templateJson) -> LoadedChannel;
+  static auto loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> joda::settings::Pipeline;
   static auto getUsersTemplateDirectory() -> std::filesystem::path;
 
 private:
   /////////////////////////////////////////////////////
   static QPixmap base64ToQPixmap(const std::string &base64String);
 };
-}    // namespace joda::helper::templates
+}    // namespace joda::templates

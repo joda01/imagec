@@ -13,7 +13,9 @@
 
 #include "panel_pipeline.hpp"
 #include <filesystem>
-#include "backend/helper/template_parser/template_parser.hpp"
+#include "backend/settings/pipeline/pipeline.hpp"
+#include "ui/container/pipeline/panel_pipeline_settings.hpp"
+#include "ui/helper/template_parser/template_parser.hpp"
 
 namespace joda::ui::qt {
 
@@ -55,7 +57,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::addElement(ContainerBase *baseContainer, void *pointerToSettings)
+void PanelPipeline::addElement(PanelPipelineSettings *baseContainer, void *pointerToSettings)
 {
   mVerticalLayout->addWidget(baseContainer->getOverviewPanel());
   mChannels.emplace(baseContainer, pointerToSettings);
@@ -68,18 +70,15 @@ void PanelPipeline::addElement(ContainerBase *baseContainer, void *pointerToSett
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::erase(ContainerBase *toRemove)
+void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 {
   if(toRemove != nullptr) {
     toRemove->setActive(false);
     void *elementInSettings = mChannels.at(toRemove);
     mChannels.erase(toRemove);
 
-    mAnalyzeSettings.channels.remove_if(
-        [&elementInSettings](const joda::settings::ChannelSettings &item) { return &item == elementInSettings; });
-
-    mAnalyzeSettings.vChannels.remove_if(
-        [&elementInSettings](const joda::settings::VChannelSettings &item) { return &item == elementInSettings; });
+    mAnalyzeSettings.pipelines.remove_if(
+        [&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
 
     mVerticalLayout->removeWidget(toRemove->getOverviewPanel());
     toRemove->getOverviewPanel()->setParent(nullptr);
@@ -115,47 +114,11 @@ void PanelPipeline::clear()
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::addChannel(const joda::settings::ChannelSettings &settings)
+void PanelPipeline::addChannel(const joda::settings::Pipeline &settings)
 {
-  mAnalyzeSettings.channels.push_back(settings);
-  auto &newlyAdded = mAnalyzeSettings.channels.back();
-  auto *panel1     = new ContainerChannel(mWindowMain, newlyAdded);
-  panel1->fromSettings(settings);
-  panel1->toSettings();
-  addElement(panel1, &newlyAdded);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipeline::addChannel(const joda::settings::VChannelIntersection &settings)
-{
-  mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$intersection = settings});
-  auto &newlyAdded = mAnalyzeSettings.vChannels.back();
-  auto *panel1     = new ContainerIntersection(mWindowMain, newlyAdded.$intersection.value());
-
-  panel1->fromSettings(settings);
-  panel1->toSettings();
-  addElement(panel1, &newlyAdded);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipeline::addChannel(const joda::settings::VChannelVoronoi &settings)
-{
-  mAnalyzeSettings.vChannels.push_back(joda::settings::VChannelSettings{.$voronoi = settings});
-  auto &newlyAdded = mAnalyzeSettings.vChannels.back();
-  auto *panel1     = new ContainerVoronoi(mWindowMain, newlyAdded.$voronoi.value());
-
+  mAnalyzeSettings.pipelines.push_back(settings);
+  auto &newlyAdded = mAnalyzeSettings.pipelines.back();
+  auto *panel1     = new PanelPipelineSettings(mWindowMain, newlyAdded);
   panel1->fromSettings(settings);
   panel1->toSettings();
   addElement(panel1, &newlyAdded);
@@ -171,8 +134,8 @@ void PanelPipeline::addChannel(const joda::settings::VChannelVoronoi &settings)
 void PanelPipeline::addChannel(const QString &pathToSettings)
 {
   try {
-    addChannel(joda::helper::templates::TemplateParser::loadChannelFromTemplate(
-        std::filesystem::path(pathToSettings.toStdString())));
+    addChannel(
+        joda::templates::TemplateParser::loadChannelFromTemplate(std::filesystem::path(pathToSettings.toStdString())));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
@@ -194,7 +157,7 @@ void PanelPipeline::addChannel(const QString &pathToSettings)
 void PanelPipeline::addChannel(const nlohmann::json &json)
 {
   try {
-    addChannel(joda::helper::templates::TemplateParser::loadChannelFromTemplate(json));
+    addChannel(joda::templates::TemplateParser::loadChannelFromTemplate(json));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
@@ -203,24 +166,6 @@ void PanelPipeline::addChannel(const nlohmann::json &json)
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipeline::addChannel(const joda::helper::templates::TemplateParser::LoadedChannel &loaded)
-{
-  if(loaded.channel.has_value()) {
-    addChannel(loaded.channel.value());
-  } else if(loaded.intersection.has_value()) {
-    addChannel(loaded.intersection.value());
-  } else if(loaded.voronoi.has_value()) {
-    addChannel(loaded.voronoi.value());
   }
 }
 

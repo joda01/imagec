@@ -22,8 +22,6 @@
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
-#warning "Allow multi intersection"
-
 namespace joda::settings {
 
 struct IntersectionSettings

@@ -36,30 +36,30 @@ PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIn
 
   layout->addWidget(parent->mColorAndChannelIndex->getLabelWidget(), 0, 0);
   layout->addWidget(parent->mCrossChannelIntersection->getLabelWidget(), 0, 1);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 0, 2);
+  layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 0, 2);
 
   layout->addWidget(parent->mCrossChannelIntensity->getLabelWidget(), 1, 0);
   layout->addWidget(parent->mCrossChannelCount->getLabelWidget(), 1, 1);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 1, 2);
+  layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 1, 2);
 
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 2, 0);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 2, 1);
-  layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 2, 2);
+  layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 2, 0);
+  layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 2, 1);
+  layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 2, 2);
 
   /*
-    layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 0);
-    layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 1);
-    layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 4, 2);
+    layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 4, 0);
+    layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 4, 1);
+    layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 4, 2);
 
-    layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 0);
-    layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 1);
-    layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 5, 2);
+    layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 5, 0);
+    layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 5, 1);
+    layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 5, 2);
 
-    layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 0);
-    layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 1);
-    layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 2);
+    layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 6, 0);
+    layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 6, 1);
+    layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 6, 2);
 
-    layout->addWidget(ContainerFunctionBase::createDisplayAbleWidgetPlaceholder(), 6, 3);
+    layout->addWidget(SettingBase::createDisplayAbleWidgetPlaceholder(), 6, 3);
   */
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
@@ -71,7 +71,7 @@ PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIn
 void PanelIntersectionOverview::mousePressEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-    mWindowMain->showPanelChannelEdit(mParentContainer);
+    mWindowMain->showPanelPipelineSettingsEdit(mParentContainer);
   }
 }
 

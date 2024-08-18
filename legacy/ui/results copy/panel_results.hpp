@@ -21,6 +21,7 @@
 #include <qwidget.h>
 #include <memory>
 #include "backend/helper/table/table.hpp"
+#include "heatmap/panel_heatmap.hpp"
 #include "ui/container/panel_edit_base.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
@@ -84,8 +85,7 @@ public:
 
   [[nodiscard]] const table::Table &getData() const
   {
-    return {};
-    // return mHeatmap01->getData();
+    return mHeatmap01->getData();
   }
 
 private:
@@ -110,6 +110,8 @@ private:
   uint32_t mDenesityMapSize = 200;
 
   /////////////////////////////////////////////////////
+  ChartHeatMap *mHeatmap01;
+  SelectedFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
   QComboBox *mMarkAsInvalid;
   PanelResultsInfo::DataSet mSelectedDataSet;
@@ -124,7 +126,7 @@ private:
   uint32_t mSelectedWellId;
   uint64_t mSelectedImageId;
   uint32_t mSelectedTileId;
-  // Point mSelectedAreaPos;
+  Point mSelectedAreaPos;
 
   bool mIsLoading = false;
 
@@ -137,7 +139,7 @@ public slots:
   void repaintHeatmap();
   void paintPlate();
   void paintWell();
-  // void paintImage();
+  void paintImage();
   void onExportImageClicked();
   void onChannelChanged();
   void onMeasurementChanged();

@@ -16,17 +16,13 @@
 #include <qcombobox.h>
 #include <qwidget.h>
 #include <QtWidgets>
-#include "backend/helper/template_parser/template_parser.hpp"
 #include "backend/settings/analze_settings.hpp"
-#include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
-#include "ui/container/channel/container_channel.hpp"
-#include "ui/container/container_base.hpp"
-#include "ui/container/intersection/container_intersection.hpp"
-#include "ui/container/voronoi/container_voronoi.hpp"
+#include "backend/settings/pipeline/pipeline.hpp"
 
 namespace joda::ui::qt {
 
 class WindowMain;
+class PanelPipelineSettings;
 
 ///
 /// \class
@@ -38,23 +34,18 @@ class PanelPipeline : public QScrollArea
 public:
   /////////////////////////////////////////////////////
   explicit PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings);
-  void addElement(ContainerBase *baseContainer, void *pointerToSettings);
-  void erase(ContainerBase *toRemove);
+  void addElement(PanelPipelineSettings *baseContainer, void *pointerToSettings);
+  void erase(PanelPipelineSettings *toRemove);
   void clear();
 
-  void addChannel(const joda::settings::ChannelSettings &settings);
-  void addChannel(const joda::settings::VChannelIntersection &settings);
-  void addChannel(const joda::settings::VChannelVoronoi &settings);
+  void addChannel(const joda::settings::Pipeline &settings);
   void addChannel(const QString &pathToSettings);
   void addChannel(const nlohmann::json &json);
 
 private:
   /////////////////////////////////////////////////////
-  void addChannel(const joda::helper::templates::TemplateParser::LoadedChannel &loaded);
-
-  /////////////////////////////////////////////////////
   QVBoxLayout *mVerticalLayout;
-  std::map<ContainerBase *, void *>
+  std::map<PanelPipelineSettings *, void *>
       mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;
   joda::settings::AnalyzeSettings &mAnalyzeSettings;

@@ -35,12 +35,12 @@ namespace joda::ui::qt {
 ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChannelVoronoi &settings) :
     mWindowMain(windowMain), mSettings(settings)
 {
-  mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(
-      new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name", windowMain));
+  mChannelName = std::shared_ptr<Setting<QString, QString>>(
+      new Setting<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name", windowMain));
   mChannelName->setMaxLength(15);
 
-  mChannelType = std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>>(
-      new ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>(
+  mChannelType = std::shared_ptr<Setting<joda::settings::ChannelSettingsMeta::Type, QString>>(
+      new Setting<joda::settings::ChannelSettingsMeta::Type, QString>(
           "icons8-unknown-status-50.png", "Type", "Channel type", "", joda::settings::ChannelSettingsMeta::Type::SPOT,
           {{joda::settings::ChannelSettingsMeta::Type::SPOT, "Spot"},
            {joda::settings::ChannelSettingsMeta::Type::SPOT_REFERENCE, "Reference Spot"},
@@ -49,29 +49,29 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
            {joda::settings::ChannelSettingsMeta::Type::BACKGROUND, "Background"}},
           windowMain));
 
-  mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>>(
-      new ContainerFunction<QString, joda::settings::ChannelIndex>(
-          "icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
-          {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
-           {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
-           {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
-           {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
-           {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
-           {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
-           /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
-          {{joda::settings::ChannelIndex::A, "Slot A"},
-           {joda::settings::ChannelIndex::B, "Slot B"},
-           {joda::settings::ChannelIndex::C, "Slot C"},
-           {joda::settings::ChannelIndex::D, "Slot D"},
-           {joda::settings::ChannelIndex::E, "Slot E"},
-           {joda::settings::ChannelIndex::F, "Slot F"}},
-          joda::settings::ChannelIndex::A, windowMain));
+  mColorAndChannelIndex = std::shared_ptr<Setting<QString, joda::settings::ChannelIndex>>(
+      new Setting<QString, joda::settings::ChannelIndex>("icons8-unknown-status-50.png", "Type", "Channel index", "",
+                                                         "#B91717",
+                                                         {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
+                                                          {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
+                                                          {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
+                                                          {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
+                                                          {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
+                                                          {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
+                                                          /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
+                                                         {{joda::settings::ChannelIndex::A, "Slot A"},
+                                                          {joda::settings::ChannelIndex::B, "Slot B"},
+                                                          {joda::settings::ChannelIndex::C, "Slot C"},
+                                                          {joda::settings::ChannelIndex::D, "Slot D"},
+                                                          {joda::settings::ChannelIndex::E, "Slot E"},
+                                                          {joda::settings::ChannelIndex::F, "Slot F"}},
+                                                         joda::settings::ChannelIndex::A, windowMain));
 
   //
   // Cell approximation
   //
-  mVoronoiPoints = std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>>(
-      new ContainerFunction<joda::settings::ChannelIndex, int>(
+  mVoronoiPoints =
+      std::shared_ptr<Setting<joda::settings::ChannelIndex, int>>(new Setting<joda::settings::ChannelIndex, int>(
           "dom-voronoi-50.png", "Indexes", "Voronoi points channel", "", joda::settings::ChannelIndex::NONE,
           {{joda::settings::ChannelIndex::NONE, "Off"},
            {joda::settings::ChannelIndex::CH0, "Channel 0"},
@@ -86,12 +86,12 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
            {joda::settings::ChannelIndex::CH9, "Channel 9"}},
           windowMain));
 
-  mMaxVoronoiAreaSize = std::shared_ptr<ContainerFunction<int, int>>(
-      new ContainerFunction<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
-                                      "Max. voronoi area radius", "px", 100, 0, INT32_MAX, windowMain));
+  mMaxVoronoiAreaSize = std::shared_ptr<Setting<int, int>>(
+      new Setting<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]",
+                            "Max. voronoi area radius", "px", 100, 0, INT32_MAX, windowMain));
 
-  mOverlayMaskChannelIndex = std::shared_ptr<ContainerFunction<joda::settings::ChannelIndex, int>>(
-      new ContainerFunction<joda::settings::ChannelIndex, int>(
+  mOverlayMaskChannelIndex =
+      std::shared_ptr<Setting<joda::settings::ChannelIndex, int>>(new Setting<joda::settings::ChannelIndex, int>(
           "icons8-query-outer-join-50.png", "Indexes", "Overlay mask channel", "", joda::settings::ChannelIndex::NONE,
           {{joda::settings::ChannelIndex::NONE, "Off"},
            {joda::settings::ChannelIndex::CH0, "Channel 0"},
@@ -109,29 +109,29 @@ ContainerVoronoi::ContainerVoronoi(WindowMain *windowMain, joda::settings::VChan
   //
   // Filtering
   //
-  mMinParticleSize = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
-      "icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Min. particle size", "px", 1, 0, INT32_MAX,
-      windowMain, "min_particle_size.json"));
-  mMaxParticleSize = std::shared_ptr<ContainerFunction<int, int>>(new ContainerFunction<int, int>(
-      "icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Max. particle size", "px", std::nullopt, 0,
-      INT32_MAX, windowMain, "max_particle_size.json"));
+  mMinParticleSize = std::shared_ptr<Setting<int, int>>(
+      new Setting<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Min. particle size",
+                            "px", 1, 0, INT32_MAX, windowMain, "min_particle_size.json"));
+  mMaxParticleSize = std::shared_ptr<Setting<int, int>>(
+      new Setting<int, int>("icons8-all-out-50.png", "[0 - " + QString::number(INT32_MAX) + "]", "Max. particle size",
+                            "px", std::nullopt, 0, INT32_MAX, windowMain, "max_particle_size.json"));
 
-  mExcludeAreasWithoutCenterOfMass = std::shared_ptr<ContainerFunction<bool, bool>>(new ContainerFunction<bool, bool>(
+  mExcludeAreasWithoutCenterOfMass = std::shared_ptr<Setting<bool, bool>>(new Setting<bool, bool>(
       "icons8-body-cells-50.png", "Exclude areas without center of mass", "Exclude areas without center of mass", true,
       windowMain, "voronoi_exclude_areas_without_center_of_mass.json"));
 
-  mExcludeAreasAtTheEdges = std::shared_ptr<ContainerFunction<bool, bool>>(new ContainerFunction<bool, bool>(
-      "icons8-coupon-50.png", "Exclude areas at the edges", "Exclude areas at the edges", false, windowMain,
-      "voronoi_exclude_areas_at_edges.json"));
+  mExcludeAreasAtTheEdges = std::shared_ptr<Setting<bool, bool>>(
+      new Setting<bool, bool>("icons8-coupon-50.png", "Exclude areas at the edges", "Exclude areas at the edges", false,
+                              windowMain, "voronoi_exclude_areas_at_edges.json"));
 
   //
   // Cross channel Intensity
   //
-  mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
+  mCrossChannelIntensity = std::shared_ptr<Setting<QString, int>>(new Setting<QString, int>(
       "icons8-light-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel intensity", "", windowMain));
 
-  mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", windowMain));
+  mCrossChannelCount = std::shared_ptr<Setting<QString, int>>(
+      new Setting<QString, int>("icons8-3-50.png", "[A,B,C,0,1,2,3,..]", "Cross channel count", "", windowMain));
 
   //
   // Create panels -> Must be after creating the functions

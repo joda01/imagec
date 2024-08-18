@@ -12,12 +12,10 @@
 ///
 
 #include "layout_generator.hpp"
-#include "ui/container/panel_edit_base.hpp"
-#include "ui/window_main/window_main.hpp"
 
 namespace joda::ui::qt::helper {
 
-LayoutGenerator::LayoutGenerator(PanelEdit *parent, bool withDeleteButton) : mParent(parent)
+LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton) : mParent(parent)
 {
   auto *scrollArea = new QScrollArea();
   scrollArea->setObjectName("scrollArea");
@@ -48,7 +46,6 @@ LayoutGenerator::LayoutGenerator(PanelEdit *parent, bool withDeleteButton) : mPa
     spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     mSpaceTopToolbar = mToolbarTop->addWidget(spacerTop);
     auto *backButton = new QAction(QIcon(":/icons/outlined/icons8-close-50.png"), "Close", mToolbarTop);
-    WindowMain::connect(backButton, &QAction::triggered, mParent->getWindowMain(), &WindowMain::onBackClicked);
     mToolbarTop->addAction(backButton);
   }
 
@@ -59,8 +56,6 @@ LayoutGenerator::LayoutGenerator(PanelEdit *parent, bool withDeleteButton) : mPa
     mToolbarBottom->addWidget(spacerBottom);
     auto *deleteChannel = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png"), "Remove channel", mToolbarBottom);
     deleteChannel->setToolTip("Delete channel!");
-    WindowMain::connect(deleteChannel, &QAction::triggered, mParent->getWindowMain(),
-                        &WindowMain::onRemoveChannelClicked);
     mToolbarBottom->addAction(deleteChannel);
   }
 
@@ -110,14 +105,14 @@ void LayoutGenerator::addItemToTopToolbar(QAction *widget)
 }
 
 void LayoutGenerator::VerticalPane::addGroup(const QString &title,
-                                             const std::vector<std::shared_ptr<ContainerFunctionBase>> &elements)
+                                             const std::vector<std::shared_ptr<SettingBase>> &elements)
 {
   auto *group = new QGroupBox(title);
   group->setMaximumWidth(220);
   auto *layout = new QVBoxLayout;
   for(const auto &element : elements) {
     layout->addWidget(element->getEditableWidget());
-    connect(element.get(), &ContainerFunctionBase::valueChanged, mParent, &PanelEdit::onValueChanged);
+    connect(element.get(), &SettingBase::valueChanged, layoutGenerator, &LayoutGenerator::onSettingChanged);
   }
 
   group->setLayout(layout);

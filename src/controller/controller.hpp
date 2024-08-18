@@ -49,7 +49,7 @@ struct Preview
 class Controller
 {
 public:
-  Controller();
+  Controller() = default;
 
   // SYSTEM ///////////////////////////////////////////////////
   static auto getSystemResources() -> joda::system::SystemResources;
@@ -68,6 +68,7 @@ public:
                Preview &previewOut);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series = 0)
       -> joda::ome::OmeInfo;
+  cv::Size getCompositeTileSize() const;
 
   // FLOW CONTROL ///////////////////////////////////////////////////
   void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,

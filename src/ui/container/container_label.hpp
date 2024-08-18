@@ -14,32 +14,32 @@
 
 #pragma once
 
+#include <qlabel.h>
 #include <qpushbutton.h>
 #include "ui/container/container_function_base.hpp"
 
 namespace joda::ui::qt {
 
-class ContainerButton : public ContainerFunctionBase
+class ContainerLabel : public SettingBase
 {
 public:
-  ContainerButton(const QString &text, const QString &iconName, QWidget *parent)
+  ContainerLabel(const QString &text, const QString &iconName, QWidget *parent)
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
     QVBoxLayout *layout = new QVBoxLayout();
     //     layout->setContentsMargins(8, 8, 8, 0);
 
-    mButton = new QPushButton(text, mEditable);
+    mLabel = new QLabel(text, mEditable);
 
-    if(!iconName.isEmpty()) {
-      const QIcon icon(":/icons/outlined/" + iconName);
-      mButton->setIconSize({16, 16});
-      mButton->setIcon(icon);
-    }
+    // if(!iconName.isEmpty()) {
+    //   const QIcon icon(":/icons/outlined/" + iconName);
+    //   mLabel->setIconSize({16, 16});
+    //   mLabel->setIcon(icon);
+    // }
 
-    layout->addWidget(mButton);
+    layout->addWidget(mLabel);
 
-    connect(mButton, &QPushButton::pressed, this, &ContainerButton::onButtonPressed);
     mEditable->setLayout(layout);
   }
 
@@ -48,17 +48,15 @@ public:
     return mEditable;
   }
 
-private slots:
-  void onButtonPressed()
+  void setText(const QString &txt)
   {
-    /////////////////////////////////////////////////////
-    triggerValueChanged();
+    mLabel->setText(txt);
   }
 
 private:
   /////////////////////////////////////////////////////
   QWidget *mEditable;
-  QPushButton *mButton;
+  QLabel *mLabel;
 };
 
 }    // namespace joda::ui::qt

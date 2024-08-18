@@ -15,7 +15,8 @@
 #include <qboxlayout.h>
 #include <qlineedit.h>
 #include <string>
-#include "backend/helper/directory_iterator.hpp"
+#include "backend/helper/file_parser/directory_iterator.hpp"
+#include "backend/settings/project_settings/project_plates.hpp"
 #include "ui/results/panel_results.hpp"
 #include "ui/window_main/window_main.hpp"
 
@@ -161,7 +162,7 @@ void PanelResultsInfo::addResultsFileToHistory(const std::filesystem::path &dbFi
 ///
 [[nodiscard]] auto PanelResultsInfo::getWellOrder() const -> std::vector<std::vector<int32_t>>
 {
-  return joda::db::matrixStringToArrayOrder(mWellOrderMatrix->text().toStdString());
+  return joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
 }
 
 ///
@@ -223,47 +224,47 @@ void PanelResultsInfo::setData(const DataSet &data)
     mResultsProperties->setItem(row, 1, new QTableWidgetItem(""));
     row++;
   };
+  /*
+    if(data.analyzeMeta.has_value()) {
+      addTitle("Experiment");
+      addStringItem("Name", data.analyzeMeta->name);
+      addStringItem("Scientist", data.analyzeMeta->scientists[0]);
+      addStringItem("Organization", data.analyzeMeta->addressOrganization);
+      addStringItem("Notes", data.analyzeMeta->notes);
+    }
 
-  if(data.analyzeMeta.has_value()) {
-    addTitle("Experiment");
-    addStringItem("Name", data.analyzeMeta->name);
-    addStringItem("Scientist", data.analyzeMeta->scientists[0]);
-    addStringItem("Organization", data.analyzeMeta->addressOrganization);
-    addStringItem("Notes", data.analyzeMeta->notes);
-  }
+    if(data.plateMeta.has_value()) {
+      addTitle("Plate");
+      addItem("Id", data.plateMeta->plateId, "");
+      addStringItem("Notes", data.plateMeta->notes);
+    }
 
-  if(data.plateMeta.has_value()) {
-    addTitle("Plate");
-    addItem("Id", data.plateMeta->plateId, "");
-    addStringItem("Notes", data.plateMeta->notes);
-  }
+    if(data.groupMeta.has_value()) {
+      addTitle("Group/Well");
+      addItem("Id", data.groupMeta->groupId, "");
+      addStringItem("Name", data.groupMeta->name);
+      addItem("Well pos. x", data.groupMeta->wellPosX, "");
+      addItem("Well pos. y", data.groupMeta->wellPosY, "");
+    }
 
-  if(data.groupMeta.has_value()) {
-    addTitle("Group/Well");
-    addItem("Id", data.groupMeta->groupId, "");
-    addStringItem("Name", data.groupMeta->name);
-    addItem("Well pos. x", data.groupMeta->wellPosX, "");
-    addItem("Well pos. y", data.groupMeta->wellPosY, "");
-  }
+    if(data.channelMeta.has_value()) {
+      addTitle("Channel");
+      addStringItem("Id", toString(data.channelMeta->channelId));
+      addStringItem("Name", data.channelMeta->name);
+    }
 
-  if(data.channelMeta.has_value()) {
-    addTitle("Channel");
-    addStringItem("Id", toString(data.channelMeta->channelId));
-    addStringItem("Name", data.channelMeta->name);
-  }
-
-  if(data.imageMeta.has_value()) {
-    addTitle("Image");
-    addItem("Id", data.imageMeta->groupId, "");
-    addStringItem("Name", data.imageMeta->originalImagePath.filename().string());
-    addItem("Width", data.imageMeta->width, "px");
-    addItem("Height", data.imageMeta->height, "px");
-  }
-  if(data.imageChannelMeta.has_value()) {
-    addStringItem("Control image", data.imageChannelMeta->controlImagePath.filename().string());
-    addStringItem("Valid", toString(data.imageChannelMeta->validity));
-  }
-
+    if(data.imageMeta.has_value()) {
+      addTitle("Image");
+      addItem("Id", data.imageMeta->groupId, "");
+      addStringItem("Name", data.imageMeta->originalImagePath.filename().string());
+      addItem("Width", data.imageMeta->width, "px");
+      addItem("Height", data.imageMeta->height, "px");
+    }
+    if(data.imageChannelMeta.has_value()) {
+      addStringItem("Control image", data.imageChannelMeta->controlImagePath.filename().string());
+      addStringItem("Valid", toString(data.imageChannelMeta->validity));
+    }
+  */
   mResultsProperties->setRowCount(row);
 }
 

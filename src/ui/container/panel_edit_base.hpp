@@ -17,10 +17,7 @@
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
-#include "controller/controller.hpp"
 #include "ui/helper/layout_generator.hpp"
-#include "ui/helper/waitingspinnerwidget.hpp"
-#include "ui/panel_preview.hpp"
 
 namespace joda::ui::qt {
 

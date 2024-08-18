@@ -12,16 +12,13 @@
 ///
 
 #include "panel_project_settings.hpp"
+#include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/username.hpp"
+#include "backend/settings/project_settings/project_plates.hpp"
+#include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui::qt {
-
-struct Temp
-{
-  std::vector<std::vector<int32_t>> order;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Temp, order);
-};
 
 ///
 /// \brief      Constructor
@@ -30,7 +27,7 @@ struct Temp
 /// \param[out]
 /// \return
 ///
-PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &settings, WindowMain *parentWindow) :
+PanelProjectSettings::PanelProjectSettings(joda::settings::ProjectSettings &settings, WindowMain *parentWindow) :
     mSettings(settings), mParentWindow(parentWindow)
 {
   auto *layout            = new QVBoxLayout(this);
@@ -59,13 +56,10 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
 
   addSeparator();
 
-  for(int i = 0; i < NR_OF_SCIENTISTS; ++i) {
-    mScientists[i] = new QLineEdit;
-    formLayout->addRow(new QLabel(tr("Scientist:")), mScientists[i]);
-    connect(mScientists[i], &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
-  }
-
-  mScientists[0]->setPlaceholderText(joda::helper::getLoggedInUserName());
+  mScientistsFirstName = new QLineEdit;
+  formLayout->addRow(new QLabel(tr("Scientist:")), mScientistsFirstName);
+  connect(mScientistsFirstName, &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
+  mScientistsFirstName->setPlaceholderText(joda::helper::getLoggedInUserName());
 
   mAddressOrganisation = new QLineEdit;
   mAddressOrganisation->setPlaceholderText("University of Salzburg");
@@ -81,11 +75,9 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
   // Group by
   //
   mGroupByComboBox = new QComboBox();
-  mGroupByComboBox->addItem("Ungrouped", static_cast<int>(joda::settings::ExperimentSettings::GroupBy::OFF));
-  mGroupByComboBox->addItem("Group based on foldername",
-                            static_cast<int>(joda::settings::ExperimentSettings::GroupBy::DIRECTORY));
-  mGroupByComboBox->addItem("Group based on filename",
-                            static_cast<int>(joda::settings::ExperimentSettings::GroupBy::FILENAME));
+  mGroupByComboBox->addItem("Ungrouped", static_cast<int>(joda::enums::GroupBy::OFF));
+  mGroupByComboBox->addItem("Group based on foldername", static_cast<int>(joda::enums::GroupBy::DIRECTORY));
+  mGroupByComboBox->addItem("Group based on filename", static_cast<int>(joda::enums::GroupBy::FILENAME));
   formLayout->addRow(new QLabel(tr("Group by:")), mGroupByComboBox);
 
   //
@@ -164,10 +156,10 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ExperimentSettings &s
 /// \param[out]
 /// \return
 ///
-void PanelProjectSettings::fromSettings(const joda::settings::ExperimentSettings &settings)
+void PanelProjectSettings::fromSettings(const joda::settings::ProjectSettings &settings)
 {
   {
-    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.groupBy));
+    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.plates[0].groupBy));
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
     } else {
@@ -176,7 +168,7 @@ void PanelProjectSettings::fromSettings(const joda::settings::ExperimentSettings
   }
 
   {
-    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.groupBy));
+    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.plates[0].groupBy));
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
     } else {
@@ -185,17 +177,10 @@ void PanelProjectSettings::fromSettings(const joda::settings::ExperimentSettings
   }
 
   {
-    try {
-      Temp tm{.order = settings.wellImageOrder};
-      nlohmann::json j = tm;
-      j                = j["order"];
-      mWellOrderMatrix->setText(j.dump().data());
-    } catch(...) {
-      mWellOrderMatrix->setText("[[1,2,3,4],[5,6,7,8]]");
-    }
+    mWellOrderMatrix->setText(joda::settings::vectorToString(settings.plates[0].wellImageOrder).data());
   }
   {
-    auto val = settings.plateSize.rows * 100 + settings.plateSize.cols;
+    auto val = settings.plates[0].rows * 100 + settings.plates[0].cols;
     auto idx = mPlateSize->findData(val);
     if(idx >= 0) {
       mPlateSize->setCurrentIndex(idx);
@@ -203,22 +188,10 @@ void PanelProjectSettings::fromSettings(const joda::settings::ExperimentSettings
   }
 
   mWorkingDir->setText(settings.workingDirectory.data());
-  mRegexToFindTheWellPosition->setCurrentText(settings.filenameRegex.data());
-  mNotes->setText(settings.notes.data());
+  mRegexToFindTheWellPosition->setCurrentText(settings.plates[0].filenameRegex.data());
+  mNotes->setText(settings.experimentSettings.notes.data());
   mAddressOrganisation->setText(settings.address.organization.data());
-  int idx = 0;
-  for(auto &scientists : mScientists) {
-    scientists->clear();
-  }
-
-  for(const auto &scientist : settings.scientistsNames) {
-    if(idx >= mScientists.size()) {
-      mScientists.push_back(new QLineEdit());
-      /// \todo Add Qline edit of other scientst to layout
-    }
-    mScientists[idx]->setText(scientist.data());
-    idx++;
-  }
+  mScientistsFirstName->setText(settings.address.firstName.data());
 
   mJobName->clear();
   applyRegex();
@@ -233,34 +206,19 @@ void PanelProjectSettings::fromSettings(const joda::settings::ExperimentSettings
 ///
 void PanelProjectSettings::toSettings()
 {
-  mSettings.workingDirectory     = mWorkingDir->text().toStdString();
-  mSettings.address.organization = mAddressOrganisation->text().trimmed().toStdString();
-  mSettings.notes                = mNotes->toPlainText().toStdString();
-  mSettings.scientistsNames.clear();
-  for(const auto *textLabel : mScientists) {
-    if(!textLabel->text().trimmed().isEmpty()) {
-      mSettings.scientistsNames.push_back(textLabel->text().trimmed().toStdString());
-    }
-  }
+  mSettings.workingDirectory         = mWorkingDir->text().toStdString();
+  mSettings.address.organization     = mAddressOrganisation->text().trimmed().toStdString();
+  mSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
+  mSettings.address.firstName        = mScientistsFirstName->text().toStdString();
 
-  mSettings.groupBy = static_cast<joda::settings::ExperimentSettings::GroupBy>(mGroupByComboBox->currentData().toInt());
-  mSettings.filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
+  mSettings.plates[0].groupBy       = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mSettings.plates[0].filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
 
-  try {
-    nlohmann::json wellImageOrderJson = nlohmann::json::parse(mWellOrderMatrix->text().toStdString());
-    nlohmann::json obj;
-    obj["order"]             = wellImageOrderJson;
-    Temp tm                  = nlohmann::json::parse(obj.dump());
-    mSettings.wellImageOrder = tm.order;
-  } catch(...) {
-    mSettings.wellImageOrder.clear();
-    QMessageBox::warning(this, "Warning",
-                         "The well matrix format is not well defined. Please correct it in the settings dialog!");
-  }
+  mSettings.plates[0].wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
 
   auto value               = mPlateSize->currentData().toUInt();
-  mSettings.plateSize.rows = value / 100;
-  mSettings.plateSize.cols = value % 100;
+  mSettings.plates[0].rows = value / 100;
+  mSettings.plates[0].cols = value % 100;
 
   mParentWindow->checkForSettingsChanged();
 }
@@ -281,7 +239,7 @@ void PanelProjectSettings::onOpenWorkingDirectoryClicked()
   mWorkingDir->update();
   mWorkingDir->repaint();
   mSettings.workingDirectory = mWorkingDir->text().toStdString();
-  mParentWindow->getController()->setWorkingDirectory(mSettings.workingDirectory);
+  mParentWindow->getController()->setWorkingDirectory(0, mSettings.workingDirectory);
   onSettingChanged();
 }
 
@@ -307,7 +265,7 @@ void PanelProjectSettings::onSettingChanged()
 void PanelProjectSettings::applyRegex()
 {
   try {
-    auto regexResult = joda::results::Results::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
+    auto regexResult = joda::grp::FileGrouper::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
                                                           mTestFileName->text().toStdString());
 
     if(regexResult.groupName.length() > 20) {
@@ -317,14 +275,14 @@ void PanelProjectSettings::applyRegex()
     }
     std::string matching = "<html><b>Group:</b> " + regexResult.groupName;
     std::string row;
-    if(regexResult.well.wellPosX != UINT16_MAX) {
-      row = "| <b>Row:</b> " + std::to_string(regexResult.well.wellPosX);
+    if(regexResult.wellPosX != UINT16_MAX) {
+      row = "| <b>Row:</b> " + std::to_string(regexResult.wellPosX);
     }
     std::string column;
-    if(regexResult.well.wellPosY != UINT16_MAX) {
-      column = "| <b>Col:</b> " + std::to_string(regexResult.well.wellPosY);
+    if(regexResult.wellPosY != UINT16_MAX) {
+      column = "| <b>Col:</b> " + std::to_string(regexResult.wellPosY);
     }
-    std::string img    = "| <b>Img:</b> " + std::to_string(regexResult.well.imageIdx);
+    std::string img    = "| <b>Img:</b> " + std::to_string(regexResult.imageIdx);
     std::string toText = matching + row + column + img + "</html>";
     mTestFileResult->setText(QString(toText.data()));
   } catch(const std::exception &ex) {

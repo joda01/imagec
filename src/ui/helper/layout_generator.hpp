@@ -15,6 +15,7 @@
 
 #include <qboxlayout.h>
 #include <qcombobox.h>
+#include <qformlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qnamespace.h>
@@ -24,39 +25,39 @@
 #include <qscrollbar.h>
 #include <qtableview.h>
 #include <qtablewidget.h>
+#include <qtmetamacros.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
-#include "ui/container/container_function.hpp"
-
-namespace joda::ui::qt {
-class PanelEdit;
-}
+#include "ui/container/setting/setting_base.hpp"
 
 namespace joda::ui::qt::helper {
 
-class LayoutGenerator
+class LayoutGenerator : public QObject
 {
+  Q_OBJECT
+
   static constexpr int32_t SPACING = 16;
 
 public:
-  explicit LayoutGenerator(PanelEdit *parent, bool withDeleteButton = true);
+  explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true);
 
   class VerticalPane : public QVBoxLayout
   {
   public:
-    explicit VerticalPane(PanelEdit *parent) : mParent(parent)
+    explicit VerticalPane(QWidget *parent, LayoutGenerator *generator) : layoutGenerator(generator), mParent(parent)
     {
     }
 
-    void addGroup(const QString &title, const std::vector<std::shared_ptr<ContainerFunctionBase>> &elements);
+    void addGroup(const QString &title, const std::vector<std::shared_ptr<SettingBase>> &elements);
 
   private:
-    PanelEdit *mParent;
+    LayoutGenerator *layoutGenerator;
+    QWidget *mParent;
   };
 
   VerticalPane *addVerticalPanel()
   {
-    auto *vboxLayout = new VerticalPane(mParent);
+    auto *vboxLayout = new VerticalPane(mParent, this);
     vboxLayout->setAlignment(Qt::AlignTop);
     mMainLayout->addLayout(vboxLayout, 1);
     return vboxLayout;
@@ -86,12 +87,15 @@ public:
   QAction *addItemToTopToolbar(QWidget *);
   void addItemToTopToolbar(QAction *widget);
 
+signals:
+  void onSettingChanged();
+
 private:
   /////////////////////////////////////////////////////
   QToolBar *mToolbarTop;
   QToolBar *mToolbarBottom;
   QHBoxLayout *mMainLayout;
-  PanelEdit *mParent;
+  QWidget *mParent;
 
   QAction *mSpaceTopToolbar;
 };

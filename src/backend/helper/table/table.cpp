@@ -17,7 +17,7 @@
 #include <limits>
 #include <map>
 
-namespace joda::results {
+namespace joda::table {
 
 Table::Table()
 {
@@ -73,4 +73,4 @@ void Table::setRowHeader(const std::map<uint32_t, std::string> &data)
   mRowHeader = data;
 }
 
-}    // namespace joda::results
+}    // namespace joda::table

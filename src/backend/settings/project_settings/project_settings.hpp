@@ -37,7 +37,7 @@ public:
   //
   // Plates analyzed by this run
   //
-  std::vector<Plate> plates;
+  std::vector<Plate> plates = {{}};
 
   //
   // The address of the experiment

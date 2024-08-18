@@ -14,8 +14,9 @@
 #include "panel_image.hpp"
 #include <qboxlayout.h>
 #include <qlineedit.h>
+#include <filesystem>
+#include <regex>
 #include <string>
-#include "backend/helper/directory_iterator.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui::qt {
@@ -60,11 +61,11 @@ PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
 
   setLayout(layout);
 
-  windowMain->getController()->registerWorkingDirectoryCallback([this](joda::helper::fs::State state) {
-    if(state == joda::helper::fs::State::FINISHED) {
+  windowMain->getController()->registerImageLookupCallback([this](joda::filesystem ::State state) {
+    if(state == joda::filesystem::State::FINISHED) {
       mImages->setPlaceholderText("No images found");
       updateImagesList();
-    } else if(state == joda::helper::fs::State::RUNNING) {
+    } else if(state == joda::filesystem::State::RUNNING) {
       mImages->setPlaceholderText("Looking for images...");
       mImages->setRowCount(0);
       mImageMeta->setRowCount(0);
@@ -91,17 +92,17 @@ void PanelImages::filterImages()
 /// \param[out]
 /// \return
 ///
-auto PanelImages::getSelectedImage() const -> std::tuple<int32_t, int32_t>
+auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, uint32_t>
 {
   int selectedRow = mImages->currentRow();
   if(selectedRow >= 0) {
     QTableWidgetItem *item = mImages->item(selectedRow, 0);
     if(item != nullptr) {
-      return {item->text().toInt(), 0};
+      return {std::filesystem::path(item->text().toStdString()), 0};
     }
   }
 
-  return {-1, 0};
+  return {std::filesystem::path{}, 0};
 }
 
 ///
@@ -127,20 +128,21 @@ void PanelImages::updateImagesList()
   mImages->setRowCount(foundImages.size());
   int row = 0;
   int idx = 0;
-  for(const auto &image : foundImages) {
-    std::string filename = image.getFilename();
-    if(contains(filename.data())) {
-      auto *index = new QTableWidgetItem(QString(std::to_string(idx).data()));
-      index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-      mImages->setItem(row, 0, index);
+  for(const auto &[plateId, images] : foundImages) {
+    for(const auto &filename : images) {
+      if(contains(filename.string().data())) {
+        auto *index = new QTableWidgetItem(filename.string().data());
+        index->setFlags(index->flags() & ~Qt::ItemIsEditable);
+        mImages->setItem(row, 0, index);
 
-      auto *item = new QTableWidgetItem(filename.data());
-      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-      mImages->setItem(row, 1, item);
-      row++;
+        auto *item = new QTableWidgetItem(filename.filename().string().data());
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        mImages->setItem(row, 1, item);
+        row++;
+      }
+
+      idx++;
     }
-
-    idx++;
   }
   mImages->setRowCount(row);
   mSearchField->setPlaceholderText("Search (" + QString::number(row) + ") ...");
@@ -157,10 +159,11 @@ void PanelImages::updateImageMeta()
 {
   QList<QTableWidgetItem *> selectedItems = mImages->selectedItems();
   if(!selectedItems.isEmpty()) {
-    auto [rowIdx, series] = getSelectedImage();
+    auto [imagePath, series] = getSelectedImage();
 
-    auto [ome, imagePath] = mWindowMain->getController()->getImageProperties(rowIdx, series);
-    const auto &imgInfo   = ome.getImageInfo();
+    auto ome            = mWindowMain->getController()->getImageProperties(imagePath, series);
+    auto tileSize       = mWindowMain->getController()->getCompositeTileSize();
+    const auto &imgInfo = ome.getImageInfo();
 
     mImageMeta->setRowCount(20 + ome.getChannelInfos().size() * 7);
 
@@ -208,12 +211,9 @@ void PanelImages::updateImageMeta()
     addItem("Tile height", imgInfo.resolutions.at(0).optimalTileHeight, "px");
     addItem("Tile count", imgInfo.resolutions.at(0).getTileCount(), "");
 
-    addItem("Composite tile width", joda::pipeline::COMPOSITE_TILE_WIDTH, "px");
-    addItem("Composite tile height", joda::pipeline::COMPOSITE_TILE_HEIGHT, "px");
-    addItem("Composite tile count",
-            imgInfo.resolutions.at(0).getTileCount(joda::pipeline::COMPOSITE_TILE_WIDTH,
-                                                   joda::pipeline::COMPOSITE_TILE_HEIGHT),
-            "");
+    addItem("Composite tile width", tileSize.width, "px");
+    addItem("Composite tile height", tileSize.height, "px");
+    addItem("Composite tile count", imgInfo.resolutions.at(0).getTileCount(tileSize.width, tileSize.height), "");
     addItem("Series", ome.getNrOfSeries(), "");
     addItem("Pyramids", ome.getResolutionCount().size(), "");
 
@@ -226,17 +226,19 @@ void PanelImages::updateImageMeta()
 
     QString channelInfoStr;
     for(const auto &[idx, channelInfo] : ome.getChannelInfos()) {
-      int32_t zStack = 1;
-      if(!channelInfo.zStackForTimeFrame.empty()) {
-        zStack = channelInfo.zStackForTimeFrame.begin()->second.size();
-      }
       addTitle("Channel " + std::to_string(idx));
       addStringItem("ID", channelInfo.channelId);
       addStringItem("Name", channelInfo.name);
       addItem("Emission wave length", channelInfo.emissionWaveLength, channelInfo.emissionWaveLengthUnit);
-      addStringItem("Contrast method", channelInfo.contrastMethos);
-      addItem("Exposure time", channelInfo.exposuerTime, channelInfo.exposuerTimeUnit);
-      addItem("Z-Stack", zStack, "");
+      addStringItem("Contrast method", channelInfo.contrastMethod);
+
+      for(const auto &[tStack, tdata] : channelInfo.planes) {
+        for(const auto &[zStack, zData] : tdata) {
+          addItem("Exposure time", zData.exposureTime, zData.exposureTimeUnit);
+          addItem("Z-Stack", zStack, "");
+          addItem("T-Stack", tStack, "");
+        }
+      }
     }
   } else {
     mImageMeta->setRowCount(0);

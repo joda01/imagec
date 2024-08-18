@@ -34,7 +34,8 @@ enum class ProcessState
   LOOKING_FOR_IMAGES,
   RUNNING,
   STOPPING,
-  FINISHED
+  FINISHED,
+  ERROR
 };
 
 struct ProcessInformation
@@ -84,6 +85,31 @@ public:
   void setTotalNrOfImages(uint32_t images)
   {
     totalNrOfImages = images;
+  }
+
+  [[nodiscard]] ProcessState getState() const
+  {
+    return state;
+  }
+
+  uint32_t totalImages() const
+  {
+    return totalNrOfImages;
+  }
+
+  uint32_t finishedImages() const
+  {
+    return processedNrOfImages;
+  }
+
+  uint32_t totalTiles() const
+  {
+    return totalNrOfTiles;
+  }
+
+  uint32_t finishedTiles() const
+  {
+    return processedNrOfTiles;
   }
 
 private:

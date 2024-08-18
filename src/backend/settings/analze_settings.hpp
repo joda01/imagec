@@ -35,7 +35,7 @@ class AnalyzeSettings final
 public:
   ProjectSettings projectSettings;
   ProjectImageSetup imageSetup;
-  std::vector<Pipeline> pipelines;
+  std::list<Pipeline> pipelines;
 
   [[nodiscard]] const std::string &schema() const
   {

@@ -14,7 +14,8 @@
 #include "panel_edit_base.hpp"
 #include <qaction.h>
 #include <qpushbutton.h>
-#include "backend/helper/template_parser/template_parser.hpp"
+#include "backend/helper/logger/console_logger.hpp"
+#include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "container_base.hpp"
@@ -52,10 +53,10 @@ PanelEdit::PanelEdit(WindowMain *wm, ContainerBase *containerBase, bool withExtr
 void PanelEdit::onSaveAsTemplate()
 {
   if(mContainerBase != nullptr) {
-    QString templatePath      = joda::helper::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+    QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
     QString pathToStoreFileIn = QFileDialog::getSaveFileName(
         this, "Save File", templatePath,
-        "ImageC template files (*" + QString(joda::helper::templates::TemplateParser::TEMPLATE_ENDIAN.data()) + ")");
+        "ImageC template files (*" + QString(joda::templates::TemplateParser::TEMPLATE_ENDIAN.data()) + ")");
 
     if(pathToStoreFileIn.isEmpty()) {
       return;
@@ -72,7 +73,7 @@ void PanelEdit::onSaveAsTemplate()
       return;
     }
     auto json = mContainerBase->toJson("");
-    joda::helper::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()));
+    joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()));
   }
 }
 

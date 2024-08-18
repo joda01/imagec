@@ -39,22 +39,14 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
-#include "backend/helper/template_parser/template_parser.hpp"
 #include "backend/helper/username.hpp"
-#include "backend/pipelines/processor/image_processor.hpp"
-#include "backend/results/results.hpp"
 #include "backend/settings/analze_settings.hpp"
-#include "backend/settings/channel/channel_settings.hpp"
+#include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/settings.hpp"
-#include "backend/settings/vchannel/vchannel_intersection.hpp"
-#include "backend/settings/vchannel/vchannel_settings.hpp"
-#include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
-#include "ui/container/channel/container_channel.hpp"
-#include "ui/container/giraf/container_giraf.hpp"
-#include "ui/container/intersection/container_intersection.hpp"
-#include "ui/container/voronoi/container_voronoi.hpp"
+#include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
+#include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/results/panel_results.hpp"
 #include "ui/window_main/panel_image.hpp"
 #include "ui/window_main/panel_pipeline.hpp"
@@ -82,14 +74,14 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   //
   // Watch for working directory changes
   //
-  getController()->registerWorkingDirectoryCallback([this](joda::helper::fs::State state) {
-    if(state == joda::helper::fs::State::FINISHED) {
+  getController()->registerImageLookupCallback([this](joda::filesystem::State state) {
+    if(state == joda::filesystem::State::FINISHED) {
       if(getController()->getNrOfFoundImages() > 0) {
         mStartAnalysis->setEnabled(true);
       } else {
         mStartAnalysis->setEnabled(false);
       }
-    } else if(state == joda::helper::fs::State::RUNNING) {
+    } else if(state == joda::filesystem::State::RUNNING) {
       mStartAnalysis->setEnabled(false);
     }
   });
@@ -98,7 +90,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   // Watch for new templates added
   //
 
-  mTemplateDirWatcher.addPath(joda::helper::templates::TemplateParser::getUsersTemplateDirectory()
+  mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory()
                                   .string()
                                   .data());    // Replace with your desired path
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged,
@@ -167,7 +159,7 @@ void WindowMain::createLeftToolbar()
 
   // Experiment Settings
   {
-    mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings.experimentSettings, this);
+    mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings.projectSettings, this);
     tabs->addTab(mPanelProjectSettings, "Experiment");
   }
 
@@ -366,8 +358,8 @@ void WindowMain::onNewProjectClicked()
 void WindowMain::onOpenClicked()
 {
   QString folderToOpen = QDir::homePath();
-  if(!mAnalyzeSettings.experimentSettings.workingDirectory.empty()) {
-    folderToOpen = mAnalyzeSettings.experimentSettings.workingDirectory.data();
+  if(!mAnalyzeSettings.projectSettings.workingDirectory.empty()) {
+    folderToOpen = mAnalyzeSettings.projectSettings.workingDirectory.data();
   }
   if(!mSelectedProjectSettingsFilePath.empty()) {
     folderToOpen = mSelectedProjectSettingsFilePath.string().data();
@@ -416,23 +408,14 @@ void WindowMain::openProjectSettings(const QString &filePath)
     ifs.close();
     mPanelPipeline->clear();
 
-    for(const auto &channel : analyzeSettings.channels) {
+    for(const auto &channel : analyzeSettings.pipelines) {
       mPanelPipeline->addChannel(channel);
     }
 
-    for(const auto &channel : analyzeSettings.vChannels) {
-      if(channel.$voronoi.has_value()) {
-        mPanelPipeline->addChannel(channel.$voronoi.value());
-      }
+    mPanelProjectSettings->fromSettings(analyzeSettings.projectSettings);
 
-      if(channel.$intersection.has_value()) {
-        mPanelPipeline->addChannel(channel.$intersection.value());
-      }
-    }
-    mPanelProjectSettings->fromSettings(analyzeSettings.experimentSettings);
-
-    mAnalyzeSettings.experimentSettings = analyzeSettings.experimentSettings;
-    mAnalyzeSettingsOld                 = mAnalyzeSettings;
+    mAnalyzeSettings.projectSettings = analyzeSettings.projectSettings;
+    mAnalyzeSettingsOld              = mAnalyzeSettings;
 
     mSelectedProjectSettingsFilePath = filePath.toStdString();
     checkForSettingsChanged();
@@ -490,7 +473,7 @@ void WindowMain::onSaveProject()
 {
   try {
     if(mSelectedProjectSettingsFilePath.empty()) {
-      std::filesystem::path filePath(mAnalyzeSettings.experimentSettings.workingDirectory);
+      std::filesystem::path filePath(mAnalyzeSettings.projectSettings.workingDirectory);
       filePath = filePath / "imagec";
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
@@ -529,7 +512,7 @@ void WindowMain::onSaveProject()
 ///
 void WindowMain::loadTemplates()
 {
-  auto foundTemplates = joda::helper::templates::TemplateParser::findTemplates();
+  auto foundTemplates = joda::templates::TemplateParser::findTemplates();
 
   mTemplateSelection->clear();
   mTemplateSelection->addItem("Add channel ...", "");
@@ -565,7 +548,6 @@ void WindowMain::loadTemplates()
 void WindowMain::onStartClicked()
 {
   try {
-    joda::settings::Settings::checkSettings(mAnalyzeSettings);
     DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
     dialg.exec();
     auto jobIinfo = getController()->getJobInformation();
@@ -632,7 +614,7 @@ bool WindowMain::showPanelStartPage()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::showPanelChannelEdit(ContainerBase *selectedChannel)
+void WindowMain::showPanelPipelineSettingsEdit(PanelPipelineSettings *selectedChannel)
 {
   if(mNavigation == Navigation::REPORTING) {
     QMessageBox messageBox(this);
@@ -695,11 +677,7 @@ void WindowMain::onAddChannel()
   auto selection = mTemplateSelection->currentData().toString();
   if(selection == "") {
   } else if(selection == "emptyChannel") {
-    mPanelPipeline->addChannel(joda::settings::ChannelSettings{});
-  } else if(selection == "voronoiChannel") {
-    mPanelPipeline->addChannel(joda::settings::VChannelVoronoi{});
-  } else if(selection == "intersectionChannel") {
-    mPanelPipeline->addChannel(joda::settings::VChannelIntersection{});
+    mPanelPipeline->addChannel(joda::settings::Pipeline{});
   } else {
     mPanelPipeline->addChannel(mTemplateSelection->currentData().toString());
   }

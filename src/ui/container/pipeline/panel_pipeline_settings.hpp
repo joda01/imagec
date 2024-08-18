@@ -17,29 +17,33 @@
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
+#include "backend/settings/pipeline/pipeline.hpp"
 #include "controller/controller.hpp"
-#include "ui/container/panel_edit_base.hpp"
-#include "ui/helper/waitingspinnerwidget.hpp"
+#include "ui/container/container_base.hpp"
+#include "ui/container/pipeline/panel_channel_overview.hpp"
+#include "ui/container/setting/setting.hpp"
+#include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
 
 namespace joda::ui::qt {
 
 class WindowMain;
-class ContainerChannel;
 
-class PanelChannelEdit : public PanelEdit
+class PanelPipelineSettings : public QWidget, public ContainerBase
 {
   Q_OBJECT
+
+  friend class PanelChannelOverview;
 
 signals:
   void updatePreviewStarted();
   void updatePreviewFinished();
 
 public:
-  PanelChannelEdit(WindowMain *wm, ContainerChannel *);
-  ~PanelChannelEdit();
+  PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings);
+  ~PanelPipelineSettings();
 
-  void setActive(bool setActive)
+  void setActive(bool setActive) override
   {
     if(!mIsActiveShown && setActive) {
       mIsActiveShown = true;
@@ -53,22 +57,61 @@ public:
     }
   }
 
+  const joda::settings::Pipeline &getPipeline()
+  {
+    return mSettings;
+  }
+
+  QWidget *getOverviewPanel() override
+  {
+    return mOverview;
+  }
+
+  QWidget *getEditPanel() override
+  {
+    return this;
+  }
+
+  nlohmann::json toJson(const std::string &titlePrefix) override
+  {
+    return {};
+  }
+
+  void toSettings() override
+  {
+  }
+
+  void fromSettings(const joda::settings::Pipeline &settings)
+  {
+  }
+
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
   /////////////////////////////////////////////////////
-  ContainerChannel *mParentContainer;
+  void createSettings(WindowMain *windowMain);
+
+  /////////////////////////////////////////////////////
+  helper::LayoutGenerator mLayout;
+  std::shared_ptr<Setting<QString, QString>> mChannelName;
+  std::shared_ptr<Setting<QString, int32_t>> mColorAndChannelIndex;
+
+  /////////////////////////////////////////////////////
   PanelPreview *mPreviewImage = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter                         = 0;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
+  WindowMain *mWindowMain;
+
   /////////////////////////////////////////////////////
   int32_t mSelectedTileX = 0;
   int32_t mSelectedTileY = 0;
 
-  void valueChangedEvent() override;
+  joda::ctrl::Preview mPreviewObject;
+  PanelChannelOverview *mOverview;
+  joda::settings::Pipeline &mSettings;
 
 private slots:
   /////////////////////////////////////////////////////
@@ -76,6 +119,7 @@ private slots:
   void onTileClicked(int32_t tileX, int32_t tileY);
   void onPreviewStarted();
   void onPreviewFinished();
+  void valueChangedEvent();
 };
 
 }    // namespace joda::ui::qt

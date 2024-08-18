@@ -35,12 +35,12 @@ namespace joda::ui::qt {
 ContainerIntersection::ContainerIntersection(WindowMain *windowMain, joda::settings::VChannelIntersection &settings) :
     mWindowMain(windowMain), mSettings(settings)
 {
-  mChannelName = std::shared_ptr<ContainerFunction<QString, QString>>(
-      new ContainerFunction<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name", windowMain));
+  mChannelName = std::shared_ptr<Setting<QString, QString>>(
+      new Setting<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name", windowMain));
   mChannelName->setMaxLength(15);
 
-  mChannelType = std::shared_ptr<ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>>(
-      new ContainerFunction<joda::settings::ChannelSettingsMeta::Type, QString>(
+  mChannelType = std::shared_ptr<Setting<joda::settings::ChannelSettingsMeta::Type, QString>>(
+      new Setting<joda::settings::ChannelSettingsMeta::Type, QString>(
           "icons8-unknown-status-50.png", "Type", "Channel type", "", joda::settings::ChannelSettingsMeta::Type::SPOT,
           {{joda::settings::ChannelSettingsMeta::Type::SPOT, "Spot"},
            {joda::settings::ChannelSettingsMeta::Type::SPOT_REFERENCE, "Reference Spot"},
@@ -49,39 +49,39 @@ ContainerIntersection::ContainerIntersection(WindowMain *windowMain, joda::setti
            {joda::settings::ChannelSettingsMeta::Type::BACKGROUND, "Background"}},
           windowMain));
 
-  mColorAndChannelIndex = std::shared_ptr<ContainerFunction<QString, joda::settings::ChannelIndex>>(
-      new ContainerFunction<QString, joda::settings::ChannelIndex>(
-          "icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
-          {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
-           {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
-           {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
-           {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
-           {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
-           {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
-           /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
-          {{joda::settings::ChannelIndex::A, "Slot A"},
-           {joda::settings::ChannelIndex::B, "Slot B"},
-           {joda::settings::ChannelIndex::C, "Slot C"},
-           {joda::settings::ChannelIndex::D, "Slot D"},
-           {joda::settings::ChannelIndex::E, "Slot E"},
-           {joda::settings::ChannelIndex::F, "Slot F"}},
-          joda::settings::ChannelIndex::A, windowMain));
+  mColorAndChannelIndex = std::shared_ptr<Setting<QString, joda::settings::ChannelIndex>>(
+      new Setting<QString, joda::settings::ChannelIndex>("icons8-unknown-status-50.png", "Type", "Channel index", "",
+                                                         "#B91717",
+                                                         {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
+                                                          {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
+                                                          {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
+                                                          {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
+                                                          {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
+                                                          {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
+                                                          /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
+                                                         {{joda::settings::ChannelIndex::A, "Slot A"},
+                                                          {joda::settings::ChannelIndex::B, "Slot B"},
+                                                          {joda::settings::ChannelIndex::C, "Slot C"},
+                                                          {joda::settings::ChannelIndex::D, "Slot D"},
+                                                          {joda::settings::ChannelIndex::E, "Slot E"},
+                                                          {joda::settings::ChannelIndex::F, "Slot F"}},
+                                                         joda::settings::ChannelIndex::A, windowMain));
 
-  mMinIntersection = std::shared_ptr<ContainerFunction<float, int>>(new ContainerFunction<float, int>(
-      "icons8-all-out-50.png", "[0 -1]", "Min. intersection area", "%", 1, 0.8, 1, windowMain));
+  mMinIntersection = std::shared_ptr<Setting<float, int>>(
+      new Setting<float, int>("icons8-all-out-50.png", "[0 -1]", "Min. intersection area", "%", 1, 0.8, 1, windowMain));
 
-  mCrossChannelIntersection = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
+  mCrossChannelIntersection = std::shared_ptr<Setting<QString, int>>(new Setting<QString, int>(
       "icons8-query-inner-join-50.png", "[0,1,2,3,..]", "Cross channel intersection", "", windowMain));
 
   //
   // Cross channel Intensity
   //
 
-  mCrossChannelIntensity = std::shared_ptr<ContainerFunction<QString, int>>(new ContainerFunction<QString, int>(
-      "icons8-light-50.png", "[0,1,2,3,..]", "Cross channel intensity", "", windowMain));
+  mCrossChannelIntensity = std::shared_ptr<Setting<QString, int>>(
+      new Setting<QString, int>("icons8-light-50.png", "[0,1,2,3,..]", "Cross channel intensity", "", windowMain));
 
-  mCrossChannelCount = std::shared_ptr<ContainerFunction<QString, int>>(
-      new ContainerFunction<QString, int>("icons8-3-50.png", "[0,1,2,3,..]", "Cross channel count", "", windowMain));
+  mCrossChannelCount = std::shared_ptr<Setting<QString, int>>(
+      new Setting<QString, int>("icons8-3-50.png", "[0,1,2,3,..]", "Cross channel count", "", windowMain));
 
   //
   // Create panels -> Must be after creating the functions

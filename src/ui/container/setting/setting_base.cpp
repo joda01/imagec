@@ -11,15 +11,15 @@
 
 ///
 
-#include "container_function.hpp"
+#include "setting_base.hpp"
 
 namespace joda::ui::qt {
 
-ContainerFunctionBase::ContainerFunctionBase()
+SettingBase::SettingBase()
 {
 }
 
-void ContainerFunctionBase::triggerValueChanged()
+void SettingBase::triggerValueChanged()
 {
   emit valueChanged();
 }
