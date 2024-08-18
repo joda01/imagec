@@ -22,7 +22,7 @@
 #include <cstdint>
 #include <string>
 #include <thread>
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 
 namespace joda::ui::qt {
 

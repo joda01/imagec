@@ -20,7 +20,7 @@
 #include "backend/settings/vchannel/vchannel_voronoi_settings.hpp"
 #include <nlohmann/json_fwd.hpp>
 
-namespace joda::helper::templates {
+namespace joda::ui::helper {
 
 ///
 /// \brief
@@ -191,4 +191,4 @@ QPixmap TemplateParser::base64ToQPixmap(const std::string &base64String)
   return QPixmap::fromImage(image);
 }
 
-}    // namespace joda::helper::templates
+}    // namespace joda::ui::helper

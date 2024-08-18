@@ -20,7 +20,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
 #include "ui/dialog_image_view/dialog_image_view.hpp"
 #include "ui/dialog_image_view/panel_image_view.hpp"
@@ -50,7 +50,7 @@ public:
     mPreviewLabel.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
     mImageViewer.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
   }
-  joda::ctrl::Controller::Preview &getPreviewObject()
+  joda::ctrl::Preview &getPreviewObject()
   {
     return mImageViewer.getPreviewObject();
   }

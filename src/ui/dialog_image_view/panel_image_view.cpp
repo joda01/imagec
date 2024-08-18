@@ -18,7 +18,7 @@
 #include <cstdint>
 #include <ranges>
 #include <string>
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 #include <opencv2/imgproc.hpp>
 
 namespace joda::ui::qt {

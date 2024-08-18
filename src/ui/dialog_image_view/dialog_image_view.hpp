@@ -16,7 +16,7 @@
 #include <qdialog.h>
 #include <qtmetamacros.h>
 #include <qwindow.h>
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
 #include "panel_image_view.hpp"
 
@@ -38,7 +38,7 @@ public:
   void imageUpdated();
   void fitImageToScreenSize();
   void createHistogramDialog();
-  joda::ctrl::Controller::Preview &getPreviewObject()
+  joda::ctrl::Preview &getPreviewObject()
   {
     return mPreviewImages;
   }
@@ -52,7 +52,7 @@ public:
     mPreviewImages.previewImage.clear();
     mPreviewImages.originalImage.clear();
     mPreviewImages.thumbnail.clear();
-    mPreviewImages.detectionResult.reset();
+    //    mPreviewImages.detectionResult.reset();
     mImageViewLeft.resetImage();
     mImageViewRight.resetImage();
   }
@@ -74,7 +74,7 @@ private:
   QScrollBar *mSliderScaling;
   QScrollBar *mSliderHistogramOffset;
 
-  joda::ctrl::Controller::Preview mPreviewImages;
+  joda::ctrl::Preview mPreviewImages;
   PanelImageView mImageViewLeft;
   PanelImageView mImageViewRight;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;

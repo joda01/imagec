@@ -19,7 +19,7 @@
 #include <QtWidgets>
 #include <iostream>
 #include <string>
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 #include <opencv2/core/types.hpp>
 
 namespace joda::ui::qt {

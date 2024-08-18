@@ -25,7 +25,6 @@
 #include <string>
 #include <thread>
 #include "../container_function.hpp"
-#include "backend/pipelines/processor/image_processor.hpp"
 #include "backend/settings/detection/detection_settings.hpp"
 #include "ui/container/panel_edit_base.hpp"
 #include "ui/window_main/window_main.hpp"

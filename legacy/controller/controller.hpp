@@ -16,7 +16,7 @@
 #include <cstdint>
 #include "backend/helper/directory_iterator.hpp"
 #include "backend/helper/file_info_images.hpp"
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 #include "backend/pipelines/pipeline_factory.hpp"
 
 namespace joda::ctrl {
