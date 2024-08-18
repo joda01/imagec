@@ -94,8 +94,8 @@ private:
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
-  std::shared_ptr<Setting<QString, QString>> mChannelName;
-  std::shared_ptr<Setting<QString, int32_t>> mColorAndChannelIndex;
+  std::shared_ptr<Setting<std::string, std::string>> mPipelineName;
+  std::shared_ptr<Setting<std::string, int32_t>> mColorAndChannelIndex;
 
   /////////////////////////////////////////////////////
   PanelPreview *mPreviewImage = nullptr;

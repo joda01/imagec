@@ -34,7 +34,7 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings
   // layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
 
   layout->addWidget(parent->mColorAndChannelIndex->getLabelWidget(), 0, 0);
-  layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 1);
+  layout->addWidget(parent->mPipelineName->getLabelWidget(), 0, 1);
   layout->addWidget(new QLabel(), 0, 2);
 
   layout->addWidget(new QLabel(), 1, 0);

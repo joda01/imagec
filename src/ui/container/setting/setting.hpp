@@ -41,7 +41,7 @@ struct is_enum
 
 template <typename T>
 concept IntFloatConcept = std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, float> ||
-                          std::same_as<T, bool> || std::same_as<T, QString> || std::is_enum<T>::value;
+                          std::same_as<T, bool> || std::same_as<T, std::string> || std::is_enum<T>::value;
 
 template <IntFloatConcept VALUE_T, IntFloatConcept VALUE2_T>
 class Setting : public SettingBase
@@ -94,7 +94,7 @@ public:
 
   Setting(const QString &icon, const QString &placeHolderText, const QString &helpText,
           std::optional<VALUE_T> defaultVal, QWidget *parent, const QString &pathToHelpFile = "")
-    requires std::same_as<VALUE_T, QString>
+    requires std::same_as<VALUE_T, std::string>
       : mUnit(""), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
@@ -105,7 +105,7 @@ public:
   Setting(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
           std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options, QWidget *parent,
           const QString &pathToHelpFile = "")
-    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
+    requires std::same_as<VALUE_T, std::string> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
                  std::is_enum<VALUE_T>::value
       : mUnit(unit), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
@@ -118,7 +118,7 @@ public:
           std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
           const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault, QWidget *parent,
           const QString &pathToHelpFile = "")
-    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
+    requires std::same_as<VALUE_T, std::string> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
                  std::is_enum<VALUE_T>::value
       :
       mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault), mParent(parent),
@@ -137,6 +137,12 @@ public:
     createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, "", {{0, "Off"}, {1, "On"}}, {}, defaultVal);
     comboxEditingFinished();
+  }
+
+  void connectWithSetting(VALUE_T *setting, VALUE2_T *setting2)
+  {
+    mValue1InSetting = setting;
+    mValue2InSetting = setting2;
   }
 
   QWidget *getLabelWidget() override
@@ -161,7 +167,7 @@ public:
       if constexpr(std::same_as<VALUE_T, uint32_t>) {
         return mComboBox->currentData().toUInt() >= 0;
       }
-      if constexpr(std::same_as<VALUE_T, QString>) {
+      if constexpr(std::same_as<VALUE_T, std::string>) {
         return mComboBox->currentData().toString() != "NONE" && mComboBox->currentData().toString() != "OFF";
       }
     }
@@ -208,10 +214,10 @@ public:
   ///
   void setValue(VALUE_T newValue)
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float> ||
-             std::same_as<VALUE_T, QString> || std::is_enum<VALUE_T>::value
+             std::same_as<VALUE_T, std::string> || std::is_enum<VALUE_T>::value
   {
     if(mLineEdit != nullptr) {
-      if constexpr(std::same_as<VALUE_T, QString>) {
+      if constexpr(std::same_as<VALUE_T, std::string>) {
         mLineEdit->setText(newValue.trimmed());
       } else if constexpr(std::is_enum<VALUE_T>::value) {
         mLineEdit->setText(QString::number(static_cast<int>(newValue)));
@@ -243,7 +249,7 @@ public:
   ///
   void setValueSecond(VALUE2_T newValue)
     requires std::same_as<VALUE2_T, int> || std::same_as<VALUE2_T, uint32_t> || std::same_as<VALUE2_T, float> ||
-             std::same_as<VALUE2_T, QString> || std::is_enum<VALUE2_T>::value
+             std::same_as<VALUE2_T, std::string> || std::is_enum<VALUE2_T>::value
   {
     if(mComboBoxSecond != nullptr) {
       int idx = -1;
@@ -381,14 +387,14 @@ public:
   /// \author     Joachim Danmayr
   /// \return
   ///
-  QString getValue()
-    requires std::same_as<VALUE_T, QString>
+  std::string getValue()
+    requires std::same_as<VALUE_T, std::string>
   {
     try {
       if(mLineEdit != nullptr) {
-        return mLineEdit->text();
+        return mLineEdit->text().toStdString();
       } else if(mComboBox != nullptr) {
-        return mComboBox->currentData().toString();
+        return mComboBox->currentData().toString().toStdString();
       } else {
         return "";
       }
@@ -473,12 +479,12 @@ public:
   /// \author     Joachim Danmayr
   /// \return
   ///
-  QString getValueSecond()
-    requires std::same_as<VALUE2_T, QString>
+  std::string getValueSecond()
+    requires std::same_as<VALUE2_T, std::string>
   {
     try {
       if(mComboBoxSecond != nullptr) {
-        return mComboBoxSecond->currentData().toString();
+        return mComboBoxSecond->currentData().toString().toStdString();
       } else {
         return "";
       }
@@ -570,7 +576,7 @@ private:
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
                             std::optional<VALUE_T> defaultVal, VALUE_T min = 0, VALUE_T max = 0)
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float> ||
-             std::same_as<VALUE_T, QString> || std::is_enum<VALUE_T>::value
+             std::same_as<VALUE_T, std::string> || std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
     mEditable->setContentsMargins(0, 0, 0, 0);
@@ -610,7 +616,7 @@ private:
       }
     } else {
       if(defaultVal.has_value()) {
-        mLineEdit->setText(defaultVal.value());
+        mLineEdit->setText(defaultVal.value().data());
       }
     }
     lineEditingChanged();
@@ -622,7 +628,7 @@ private:
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
                             std::optional<VALUE_T> defaultVal, VALUE_T min, VALUE_T max, const QString &unit,
                             const std::vector<ComboEntry2> &optionsSecond)
-    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
+    requires std::same_as<VALUE_T, std::string> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
              std::same_as<VALUE_T, bool> || std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
@@ -684,7 +690,7 @@ private:
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
                             const QString &unit, const std::vector<ComboEntry> &options,
                             const std::vector<ComboEntry2> &optionsSecond, const std::optional<VALUE_T> &defaultVal)
-    requires std::same_as<VALUE_T, QString> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
+    requires std::same_as<VALUE_T, std::string> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
              std::same_as<VALUE_T, bool> || std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
@@ -709,7 +715,7 @@ private:
       if constexpr(std::is_enum<VALUE_T>::value) {
         variant = QVariant(static_cast<int>(data.key));
       } else {
-        variant = QVariant(data.key);
+        variant = QVariant(data.key.data());
       }
       if(data.icon.isEmpty()) {
         mComboBox->addItem(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
@@ -726,7 +732,7 @@ private:
       if constexpr(std::is_enum<VALUE_T>::value) {
         idx = mComboBox->findData(static_cast<int>(defaultVal.value()));
       } else {
-        idx = mComboBox->findData(defaultVal.value());
+        idx = mComboBox->findData(defaultVal.value().data());
       }
     }
     if(idx >= 0) {
@@ -845,6 +851,9 @@ private:
   QWidget *mDisplayable = nullptr;
   QWidget *mEditable    = nullptr;
 
+  VALUE_T *mValue1InSetting  = nullptr;
+  VALUE2_T *mValue2InSetting = nullptr;
+
 private slots:
 
   void onHelpButtonClicked()
@@ -868,6 +877,13 @@ private slots:
         } else {
           mComboBoxSecond->setEnabled(true);
         }
+      }
+
+      if(nullptr != mValue1InSetting) {
+        *mValue1InSetting = getValue();
+      }
+      if(nullptr != mValue2InSetting) {
+        *mValue2InSetting = getValue();
       }
 
       updateDisplayText();

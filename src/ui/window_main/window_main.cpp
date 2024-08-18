@@ -160,7 +160,7 @@ void WindowMain::createLeftToolbar()
   // Experiment Settings
   {
     mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings.projectSettings, this);
-    tabs->addTab(mPanelProjectSettings, "Experiment");
+    tabs->addTab(mPanelProjectSettings, "Project");
   }
 
   // Pipeline Tab
@@ -188,7 +188,7 @@ void WindowMain::createLeftToolbar()
     layout->addWidget(mPanelPipeline);
 
     pipelineTab->setLayout(layout);
-    tabs->addTab(pipelineTab, "Pipeline");
+    tabs->addTab(pipelineTab, "Pipelines");
 
     connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
     connect(mStartAnalysis, &QPushButton::clicked, this, &WindowMain::onStartClicked);
@@ -515,10 +515,10 @@ void WindowMain::loadTemplates()
   auto foundTemplates = joda::templates::TemplateParser::findTemplates();
 
   mTemplateSelection->clear();
-  mTemplateSelection->addItem("Add channel ...", "");
+  mTemplateSelection->addItem("Add pipeline ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
 
-  mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-select-none-50.png").pixmap(28, 28), "Empty channel",
+  mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-select-none-50.png").pixmap(28, 28), "Empty pipeline",
                               "emptyChannel");
   mTemplateSelection->addItem(QIcon(":/icons/outlined/dom-voronoi-50.png").pixmap(28, 28), "Voronoi", "voronoiChannel");
   mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-query-inner-join-50.png").pixmap(28, 28), "Intersection",

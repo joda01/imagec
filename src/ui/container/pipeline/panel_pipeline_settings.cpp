@@ -43,10 +43,11 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     QWidget(wm), mLayout(this, true), mWindowMain(wm), mSettings(settings)
 {
   setObjectName("PanelPipelineSettings");
+  createSettings(wm);
 
   {
     auto *col1 = mLayout.addVerticalPanel();
-    col1->addGroup("Meta", {mChannelName, mColorAndChannelIndex});
+    col1->addGroup("Meta", {mPipelineName, mColorAndChannelIndex});
   }
 
   {
@@ -77,11 +78,12 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 ///
 void PanelPipelineSettings::createSettings(WindowMain *windowMain)
 {
-  mChannelName = std::shared_ptr<Setting<QString, QString>>(
-      new Setting<QString, QString>("icons8-text-50.png", "Name", "Channel Name", "Name", windowMain));
-  mChannelName->setMaxLength(15);
+  mPipelineName = std::shared_ptr<Setting<std::string, std::string>>(
+      new Setting<std::string, std::string>("icons8-text-50.png", "Name", "Channel Name", "Name", windowMain));
+  mPipelineName->setMaxLength(15);
+  mPipelineName->connectWithSetting(&mSettings.meta.name, nullptr);
 
-  mColorAndChannelIndex = std::shared_ptr<Setting<QString, int32_t>>(new Setting<QString, int32_t>(
+  mColorAndChannelIndex = std::shared_ptr<Setting<std::string, int32_t>>(new Setting<std::string, int32_t>(
       "icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
       {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
        {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
