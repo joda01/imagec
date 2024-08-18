@@ -24,7 +24,8 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(file);
   file.close();
   joda::processor::Processor processor;
-  processor.execute(settings);
+  processor::imagesList_t workingdirs;
+  processor.execute(settings, workingdirs);
 }
 
 }    // namespace joda::test
