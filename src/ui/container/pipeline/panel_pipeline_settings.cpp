@@ -26,6 +26,7 @@
 #include <string>
 #include <thread>
 #include "ui/container/command/command_rolling_ball.hpp"
+#include "ui/container/command/median_substraction.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/window_main/window_main.hpp"
 
@@ -100,8 +101,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelPipelineSettings::onTileClicked);
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
 
-  auto cmd = std::make_shared<CommandRollingBall>(wm);
-  addPipelineStep(cmd);
+  addPipelineStep(std::make_shared<CommandRollingBall>(wm));
+  addPipelineStep(std::make_shared<CommandMedianSubtract>(wm));
 }
 
 ///

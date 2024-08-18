@@ -717,8 +717,10 @@ private:
       QVariant variant;
       if constexpr(std::is_enum<VALUE_T>::value) {
         variant = QVariant(static_cast<int>(data.key));
-      } else {
+      } else if constexpr(std::same_as<VALUE_T, std::string>) {
         variant = QVariant(data.key.data());
+      } else {
+        variant = QVariant(data.key);
       }
       if(data.icon.isEmpty()) {
         mComboBox->addItem(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
@@ -734,8 +736,10 @@ private:
     if(defaultVal.has_value()) {
       if constexpr(std::is_enum<VALUE_T>::value) {
         idx = mComboBox->findData(static_cast<int>(defaultVal.value()));
-      } else {
+      } else if constexpr(std::same_as<VALUE_T, std::string>) {
         idx = mComboBox->findData(defaultVal.value().data());
+      } else {
+        idx = mComboBox->findData(defaultVal.value());
       }
     }
     if(idx >= 0) {
