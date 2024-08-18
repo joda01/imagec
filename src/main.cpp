@@ -1,6 +1,8 @@
 #include <QtWidgets>
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/reader/image_reader.hpp"
+#include "controller/controller.hpp"
+#include "ui/window_main/window_main.hpp"
 #include "version.h"
 
 int main(int argc, char *argv[])
@@ -325,12 +327,11 @@ int main(int argc, char *argv[])
 
   //  freopen("output.txt", "w", stdout);
 
-  /*
-    auto *controller = new joda::ctrl::Controller();
-    joda::ui::qt::WindowMain mainWindow(controller);
+  auto *controller = new joda::ctrl::Controller();
+  joda::ui::qt::WindowMain mainWindow(controller);
 
-    mainWindow.show();
-  */
+  mainWindow.show();
+
   auto ret = app.exec();
   joda::image::reader::ImageReader::destroy();
   return ret;
