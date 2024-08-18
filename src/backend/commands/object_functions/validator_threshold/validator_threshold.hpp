@@ -73,16 +73,14 @@ private:
         switch(mSettings.mode) {
           case settings::ThresholdValidatorSettings::FilterMode::UNKNOWN:
           case settings::ThresholdValidatorSettings::FilterMode::INVALIDATE_IMAGE:
-            context.globalContext.database.setImageValidity(context.imageContext.imageId, validity);
+            context.setImageValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
           case settings::ThresholdValidatorSettings::FilterMode::INVALIDATE_IMAGE_PLANE:
-            context.globalContext.database.setImagePlaneValidity(context.imageContext.imageId, context.getActIterator(),
-                                                                 validity);
+            context.setImagePlaneValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
           case settings::ThresholdValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER:
-            context.globalContext.database.setImagePlaneClusterClusterValidity(
-                context.imageContext.imageId, context.getActIterator(), context.getClusterId(mSettings.clusterIn),
-                validity);
+            context.setImagePlaneClusterClusterValidity(mSettings.clusterIn,
+                                                        joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
         }
       }

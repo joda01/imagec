@@ -167,8 +167,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   if(pipelineSetup.defaultClusterId == enums::ClusterIdIn::$) {
     throw std::invalid_argument("Default cluster ID must not be >$<.");
   }
-  processContext.pipelineContext.defaultClusterId   = static_cast<enums::ClusterId>(pipelineSetup.defaultClusterId);
-  processContext.pipelineContext.defaultZProjection = zProjection;
+  processContext.initDefaultSettings(pipelineSetup.defaultClusterId, zProjection);
 }
 
 ///

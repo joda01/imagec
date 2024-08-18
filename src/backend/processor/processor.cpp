@@ -84,10 +84,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
                 //
                 // Load the image imagePlane
                 //
-                ProcessContext context{.globalContext    = globalContext,
-                                       .plateContext     = plateContext,
-                                       .imageContext     = imageContext,
-                                       .iterationContext = iterationContext};
+                ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
                 imageLoader.initPipeline(
                     pipeline.pipelineSetup, {tilesX, tileY},
                     {.tStack = tStack, .zStack = zStack, .cStack = pipeline.pipelineSetup.cStackIndex}, context);

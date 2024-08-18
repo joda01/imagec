@@ -47,17 +47,15 @@ public:
   }
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto parentPath = context.globalContext.resultsOutputFolder;
-    auto fileName   = context.imageContext.imagePath.stem();
+    auto parentPath = context.getOutputFolder();
+    auto fileName   = context.getActImagePath().stem();
 
     std::filesystem::path saveName =
-        parentPath /
-        (fileName.string() + "__" + std::to_string(std::get<0>(context.pipelineContext.actImagePlane.tile)) + "x" +
-         std::to_string(std::get<1>(context.pipelineContext.actImagePlane.tile)) + "__" +
-         std::to_string((int32_t) context.pipelineContext.actImagePlane.getId().imagePlane.cStack) + "-" +
-         std::to_string(context.pipelineContext.actImagePlane.getId().imagePlane.zStack) + "-" +
-         std::to_string((int32_t) context.pipelineContext.actImagePlane.getId().imagePlane.tStack) +
-         mSettings.namePrefix + ".png");
+        parentPath / (fileName.string() + "__" + std::to_string(std::get<0>(context.getActTile())) + "x" +
+                      std::to_string(std::get<1>(context.getActTile())) + "__" +
+                      std::to_string((int32_t) context.getActImagePlaneId().cStack) + "-" +
+                      std::to_string(context.getActImagePlaneId().zStack) + "-" +
+                      std::to_string((int32_t) context.getActImagePlaneId().tStack) + mSettings.namePrefix + ".png");
 
     // Convert to 8-bit grayscale
     cv::Mat img_8bit_color;

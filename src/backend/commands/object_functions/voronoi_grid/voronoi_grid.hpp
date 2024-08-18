@@ -143,8 +143,7 @@ public:
                                            .clusterId  = context.getClusterId(mSettings.pointsClusterOut),
                                            .classId    = mSettings.pointsClassOut,
                                            .imagePlane = context.getActIterator()},
-                    1, 0, box, boxMask, contours[idxMax], imgSize, context.pipelineContext.actImagePlane.tile,
-                    context.imageContext.tileSize);
+                    1, 0, box, boxMask, contours[idxMax], imgSize, context.getActTile(), context.getTileSize());
       result.push_back(roi);
     }
   }

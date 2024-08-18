@@ -194,8 +194,8 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
               .imagePlane = context.getActIterator(),
           },
 #warning "Check if the contour is in the area of the bounding box"
-          context.pipelineContext.actImagePlane.appliedMinThreshold, 0, box, mask, contours[idxMax],
-          context.getImageSize(), context.pipelineContext.actImagePlane.tile, context.imageContext.tileSize);
+          context.getAppliedMinThreshold(), 0, box, mask, contours[idxMax], context.getImageSize(),
+          context.getActTile(), context.getTileSize());
 
       for(const auto &filter : objectClass.filters) {
         if(filter.doesFilterMatch(context, detectedRoi, filter.intensity)) {

@@ -64,8 +64,8 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       const auto &objects02 = context.loadObjectsFromCache(it->objectIn)->at(it->clusterIn);
       working->calcColocalization(context.getActIterator(), objects02, *resultTemp, objectClassesMe, it->classesIn,
                                   context.getClusterId(mSettings.clusterOut), context.getClassId(mSettings.classOut),
-                                  context.acquireNextObjectId(), 0, mSettings.minIntersection,
-                                  context.pipelineContext.actImagePlane.tile, context.imageContext.tileSize);
+                                  context.acquireNextObjectId(), 0, mSettings.minIntersection, context.getActTile(),
+                                  context.getTileSize());
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
       objectClassesMe.reset();
       idx++;

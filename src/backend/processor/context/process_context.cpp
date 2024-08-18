@@ -17,6 +17,13 @@
 
 namespace joda::processor {
 
+ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext,
+                               IterationContext &iterationContext) :
+    globalContext(globalContext),
+    plateContext(plateContext), imageContext(imageContext), iterationContext(iterationContext)
+{
+}
+
 [[nodiscard]] const joda::atom::ImagePlane *ProcessContext::loadImageFromCache(joda::enums::ImageId cacheId)
 {
   getCorrectIteration(cacheId.imagePlane);

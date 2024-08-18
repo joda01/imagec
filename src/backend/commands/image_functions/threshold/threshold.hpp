@@ -53,9 +53,8 @@ public:
     cv::Mat thresholdTmp;
     cv::threshold(image, thresholdTmp, thresholdValMax, UINT16_MAX, cv::THRESH_BINARY_INV);
     cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
-    image                                                     = std::move(thresholdImg);
-    context.pipelineContext.actImagePlane.appliedMinThreshold = thresholdValMin;
-    context.pipelineContext.actImagePlane.appliedMaxThreshold = thresholdValMax;
+    image = std::move(thresholdImg);
+    context.setBinaryImage(thresholdValMin, thresholdValMax);
   }
 
 protected:

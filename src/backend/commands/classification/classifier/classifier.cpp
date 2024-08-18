@@ -94,8 +94,8 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
                                      .clusterId  = context.getClusterId(objectClass.clusterOutNoMatch),
                                      .classId    = context.getClassId(objectClass.classOutNoMatch),
                                      .imagePlane = context.getActIterator()},
-              context.pipelineContext.actImagePlane.appliedMinThreshold, 0, boundingBox, mask, contour,
-              context.getImageSize(), context.pipelineContext.actImagePlane.tile, context.imageContext.tileSize);
+              context.getAppliedMinThreshold(), 0, boundingBox, mask, contour, context.getImageSize(),
+              context.getActTile(), context.getTileSize());
 
           for(const auto &filter : objectClass.filters) {
             // If filter matches assign the new cluster and class to the ROI

@@ -21,6 +21,7 @@
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
+#include "backend/enums/enum_validity.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
@@ -59,16 +60,52 @@ private:
   std::atomic<uint64_t> globalObjectIdCount;
 };
 
-struct ProcessContext
+class ProcessContext
 {
-  GlobalContext &globalContext;
-  PlateContext &plateContext;
-  ImageContext &imageContext;
-  IterationContext &iterationContext;
-  PipelineContext pipelineContext;
+public:
+  ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext,
+                 IterationContext &iterationContext);
+
+  void initDefaultSettings(enums::ClusterIdIn cluster, enums::ZProjection zProjection)
+  {
+    pipelineContext.defaultClusterId   = static_cast<enums::ClusterId>(cluster);
+    pipelineContext.defaultZProjection = zProjection;
+  }
+
+  void setBinaryImage(uint16_t thresholdMin, uint16_t thresholdMax)
+  {
+    pipelineContext.actImagePlane.isBinary            = true;
+    pipelineContext.actImagePlane.appliedMinThreshold = thresholdMin;
+    pipelineContext.actImagePlane.appliedMaxThreshold = thresholdMax;
+  }
+
   [[nodiscard]] joda::atom::ImagePlane &getActImage()
   {
     return pipelineContext.actImagePlane;
+  }
+
+  [[nodiscard]] enums::PlaneId getActImagePlaneId() const
+  {
+    return pipelineContext.actImagePlane.getId().imagePlane;
+  }
+  [[nodiscard]] const std::filesystem::path &getActImagePath() const
+  {
+    return imageContext.imagePath;
+  }
+
+  [[nodiscard]] const std::filesystem::path &getOutputFolder() const
+  {
+    return globalContext.resultsOutputFolder;
+  }
+
+  [[nodiscard]] enums::tile_t getActTile() const
+  {
+    return pipelineContext.actImagePlane.tile;
+  }
+
+  [[nodiscard]] cv::Size getTileSize() const
+  {
+    return imageContext.tileSize;
   }
 
   void setActImage(const joda::atom::ImagePlane *image)
@@ -86,7 +123,7 @@ struct ProcessContext
     return pipelineContext.actImagePlane.getId().imagePlane;
   }
 
-  bool doesImageInCacheExist(joda::enums::ImageId cacheId) const
+  [[nodiscard]] bool doesImageInCacheExist(joda::enums::ImageId cacheId) const
   {
     getCorrectIteration(cacheId.imagePlane);
     return imageContext.imageCache.contains(cacheId);
@@ -112,6 +149,33 @@ struct ProcessContext
     }
     getCorrectObjectId(cacheId);
     return globalContext.objectCache.at(cacheId).get();
+  }
+
+  [[nodiscard]] uint16_t getAppliedMinThreshold() const
+  {
+    return pipelineContext.actImagePlane.appliedMinThreshold;
+  }
+
+  void setImageValidity(enums::ChannelValidityEnum validityIn)
+  {
+    enums::ChannelValidity validity;
+    validity.set(validityIn);
+    globalContext.database.setImageValidity(imageContext.imageId, validity);
+  }
+
+  void setImagePlaneValidity(enums::ChannelValidityEnum validityIn)
+  {
+    enums::ChannelValidity validity;
+    validity.set(validityIn);
+    globalContext.database.setImagePlaneValidity(imageContext.imageId, getActIterator(), validity);
+  }
+
+  void setImagePlaneClusterClusterValidity(enums::ClusterIdIn clusterIn, enums::ChannelValidityEnum validityIn)
+  {
+    enums::ChannelValidity validity;
+    validity.set(validityIn);
+    globalContext.database.setImagePlaneClusterClusterValidity(imageContext.imageId, getActIterator(),
+                                                               getClusterId(clusterIn), validity);
   }
 
   // void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const
@@ -142,7 +206,7 @@ struct ProcessContext
     return in != enums::ClusterIdIn::$ ? static_cast<enums::ClusterId>(in) : pipelineContext.defaultClusterId;
   }
 
-  [[nodiscard]] enums::ClassId getClassId(enums::ClassId in) const
+  [[nodiscard]] static enums::ClassId getClassId(enums::ClassId in)
   {
     return static_cast<enums::ClassId>(in);
   }
@@ -175,6 +239,14 @@ struct ProcessContext
       imagePlane.zStack = actImageId.zStack;
     }
   }
+
+private:
+  /////////////////////////////////////////////////////
+  GlobalContext &globalContext;
+  PlateContext &plateContext;
+  ImageContext &imageContext;
+  IterationContext &iterationContext;
+  PipelineContext pipelineContext;
 };
 
 }    // namespace joda::processor
