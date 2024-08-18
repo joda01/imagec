@@ -556,19 +556,22 @@ private:
     mDisplayLabel->setToolTip(helpText);
 
     // Create a QPixmap for the icon (you may need to adjust the path)
-    QIcon bmp(":/icons/outlined/" + icon);
-
-    // Set the icon for the label
-    mDisplayLabelIcon->setPixmap(
-        bmp.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
-    mDisplayLabelIcon->setToolTip(helpText);
+    if(!icon.isEmpty()) {
+      QIcon bmp(":/icons/outlined/" + icon);
+      // Set the icon for the label
+      mDisplayLabelIcon->setPixmap(
+          bmp.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
+      mDisplayLabelIcon->setToolTip(helpText);
+    }
 
     // Create a QHBoxLayout to arrange the text and icon horizontally
     QHBoxLayout *layout = new QHBoxLayout;
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(4);
     mDisplayable->setLayout(layout);
-    layout->addWidget(mDisplayLabelIcon);
+    if(!icon.isEmpty()) {
+      layout->addWidget(mDisplayLabelIcon);
+    }
     layout->addWidget(mDisplayLabel);
     layout->addStretch();
   }
@@ -883,7 +886,7 @@ private slots:
         *mValue1InSetting = getValue();
       }
       if(nullptr != mValue2InSetting) {
-        *mValue2InSetting = getValue();
+        *mValue2InSetting = getValueSecond();
       }
 
       updateDisplayText();
@@ -923,8 +926,10 @@ private slots:
       if(itemData.isValid() && itemData.canConvert<QIcon>()) {
         QIcon selectedIcon = qvariant_cast<QIcon>(itemData);
         // Set the icon for the label
-        mDisplayLabelIcon->setPixmap(
-            selectedIcon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
+        if(!selectedIcon.isNull()) {
+          mDisplayLabelIcon->setPixmap(
+              selectedIcon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
+        }
       }
     }
 

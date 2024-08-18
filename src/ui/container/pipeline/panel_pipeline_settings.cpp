@@ -25,6 +25,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include "ui/container/command/command_rolling_ball.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/window_main/window_main.hpp"
 
@@ -52,6 +53,37 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   {
     auto *col2 = mLayout.addVerticalPanel();
+
+    QScrollArea *scrollArea = new QScrollArea();
+    scrollArea->setFrameStyle(0);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->viewport()->setStyleSheet("background-color: transparent;");
+    scrollArea->setObjectName("scrollAreaOverview");
+    // setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    // Create a widget to hold the panels
+    auto *contentWidget = new QWidget(scrollArea);
+    contentWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    contentWidget->setObjectName("contentOverview");
+    scrollArea->setWidget(contentWidget);
+    scrollArea->setWidgetResizable(true);
+
+    // Create a horizontal layout for the pipeline steps
+    mPipelineSteps = new QVBoxLayout(contentWidget);
+    mPipelineSteps->setContentsMargins(0, 0, 0, 0);
+    mPipelineSteps->setSpacing(8);    // Adjust this value as needed
+    mPipelineSteps->setAlignment(Qt::AlignTop);
+    contentWidget->setLayout(mPipelineSteps);
+    scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    col2->addGroup("Pipeline steps", {scrollArea});
+  }
+
+  {
+    auto *col3 = mLayout.addVerticalPanel();
+
+    // col3->addGroup("Commands", {mPipelineSteps});
   }
 
   {
@@ -67,6 +99,22 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelPipelineSettings::onTileClicked);
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
+
+  auto cmd = std::make_shared<CommandRollingBall>(wm);
+  addPipelineStep(cmd);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::addPipelineStep(std::shared_ptr<joda::ui::qt::Command> command)
+{
+  mCommands.push_back(command);
+  mPipelineSteps->addWidget(command.get());
 }
 
 ///

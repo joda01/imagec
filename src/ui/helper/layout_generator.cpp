@@ -119,4 +119,17 @@ void LayoutGenerator::VerticalPane::addGroup(const QString &title,
   addWidget(group);
 }
 
+void LayoutGenerator::VerticalPane ::addGroup(const QString &title, const std::vector<QWidget *> &elements)
+{
+  auto *group = new QGroupBox(title);
+  group->setMaximumWidth(220);
+  auto *layout = new QVBoxLayout;
+  for(const auto &element : elements) {
+    element->setParent(group);
+    layout->addWidget(element);
+  }
+  group->setLayout(layout);
+  addWidget(group);
+}
+
 }    // namespace joda::ui::qt::helper

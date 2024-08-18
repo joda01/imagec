@@ -17,6 +17,7 @@
 #include <qcombobox.h>
 #include <qformlayout.h>
 #include <qlabel.h>
+#include <qlayout.h>
 #include <qlineedit.h>
 #include <qnamespace.h>
 #include <qprogressbar.h>
@@ -49,6 +50,7 @@ public:
     }
 
     void addGroup(const QString &title, const std::vector<std::shared_ptr<SettingBase>> &elements);
+    void addGroup(const QString &title, const std::vector<QWidget *> &elements);
 
   private:
     LayoutGenerator *layoutGenerator;

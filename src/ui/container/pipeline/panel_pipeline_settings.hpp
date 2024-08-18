@@ -21,6 +21,7 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "controller/controller.hpp"
+#include "ui/container/command/command.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/container/pipeline/panel_channel_overview.hpp"
 #include "ui/container/setting/setting.hpp"
@@ -93,6 +94,7 @@ private:
 
   /////////////////////////////////////////////////////
   void createSettings(WindowMain *windowMain);
+  void addPipelineStep(std::shared_ptr<joda::ui::qt::Command> command);
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
@@ -108,6 +110,10 @@ private:
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
   WindowMain *mWindowMain;
+
+  // PIPELINE STEPS //////////////////////////////////////////////////
+  QVBoxLayout *mPipelineSteps;
+  std::vector<std::shared_ptr<Command>> mCommands;
 
   /////////////////////////////////////////////////////
   int32_t mSelectedTileX = 0;
