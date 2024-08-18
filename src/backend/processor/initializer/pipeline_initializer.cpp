@@ -42,7 +42,7 @@ PipelineInitializer::PipelineInitializer(const settings::ProjectSettings &settin
 }
 
 void PipelineInitializer::init(const std::filesystem::path &imagePath, ImageContext &imageContextOut,
-                               processor::GlobalContext &globalContextOut)
+                               const processor::GlobalContext &globalContextOut)
 {
   mImageContext             = &imageContextOut;
   imageContextOut.imageMeta = joda::image::reader::ImageReader::getOmeInformation(imagePath.string());

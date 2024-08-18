@@ -16,9 +16,10 @@
 #include <memory>
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/helper/database/database.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
-#include "backend/helper/file_parser/directory_iterator.hpp"
+#include "backend/helper/file_parser/file_info.hpp"
 #include "backend/processor/context/plate_context.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
@@ -40,26 +41,16 @@ Processor::Processor()
 void Processor::execute(const joda::settings::AnalyzeSettings &program)
 {
   GlobalContext globalContext;
-  globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory);
+  auto jobId = initializeGlobalContext(program, globalContext);
 
-  auto &db = globalContext.database;
-  db.openDatabase(std::filesystem::path(program.projectSettings.workingDirectory) / "results.imcdb");
-  auto jobId = db.startJob(program);
-
-  //
   // Looking for images in all folders
-  //
   std::map<uint8_t, std::unique_ptr<joda::filesystem::DirectoryWatcher>> allImages;
-  for(const auto &plate : program.projectSettings.plates) {
-    auto watcher = std::make_unique<joda::filesystem::DirectoryWatcher>();
-    allImages.emplace(plate.plateId, std::move(watcher));
-    allImages.at(plate.plateId)->setWorkingDirectory(plate.imageFolder);
-    allImages.at(plate.plateId)->waitForFinished();
-  }
+  listImages(program, allImages);
 
   //
   // Iterate over each plate and analyze the images
   //
+  auto &db = globalContext.database;
   for(const auto &plate : program.projectSettings.plates) {
     PlateContext plateContext{.plateId = plate.plateId};
     joda::grp::FileGrouper grouper(plate.groupBy, plate.filenameRegex);
@@ -72,16 +63,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
     for(const auto &imagePath : fileList) {
       PipelineInitializer imageLoader(program.projectSettings);
       ImageContext imageContext{.imageLoader = imageLoader};
-      imageLoader.init(imagePath.getFilePath(), imageContext, globalContext);
-
-      //
-      // Assign image to group here!!
-      //
-      auto groupInfo = grouper.getGroupForFilename(imagePath.getFilePath());
-      db.insertGroup(plateContext.plateId, groupInfo);
-      db.insertImage(imageContext, groupInfo);
-      db.insertImageChannels(imageContext.imageId, imageContext.imageMeta);
-      db.insetImageToGroup(plateContext.plateId, imageContext.imageId, groupInfo.imageIdx, groupInfo);
+      initializePipelineContext(program, globalContext, plateContext, grouper, imagePath, imageLoader, imageContext);
 
       //
       // Start the iteration over planes
@@ -140,4 +122,43 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program)
   // Done
   db.finishJob(jobId);
 }
+
+std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSettings &program,
+                                               GlobalContext &globalContext)
+{
+  globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory);
+
+  auto &db = globalContext.database;
+  db.openDatabase(std::filesystem::path(program.projectSettings.workingDirectory) / "results.imcdb");
+  return db.startJob(program);
+}
+
+void Processor::listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages)
+{
+  for(const auto &plate : program.projectSettings.plates) {
+    auto watcher = std::make_unique<joda::filesystem::DirectoryWatcher>();
+    allImages.emplace(plate.plateId, std::move(watcher));
+    allImages.at(plate.plateId)->setWorkingDirectory(plate.imageFolder);
+    allImages.at(plate.plateId)->waitForFinished();
+  }
+}
+
+void Processor::initializePipelineContext(const joda::settings::AnalyzeSettings &program,
+                                          const GlobalContext &globalContext, const PlateContext &plateContext,
+                                          joda::grp::FileGrouper &grouper, const joda::filesystem::FileInfo &imagePath,
+                                          PipelineInitializer &imageLoader, ImageContext &imageContext)
+{
+  auto &db = const_cast<joda::db::Database &>(globalContext.database);
+  imageLoader.init(imagePath.getFilePath(), imageContext, globalContext);
+
+  //
+  // Assign image to group here!!
+  //
+  auto groupInfo = grouper.getGroupForFilename(imagePath.getFilePath());
+  db.insertGroup(plateContext.plateId, groupInfo);
+  db.insertImage(imageContext, groupInfo);
+  db.insertImageChannels(imageContext.imageId, imageContext.imageMeta);
+  db.insetImageToGroup(plateContext.plateId, imageContext.imageId, groupInfo.imageIdx, groupInfo);
+}
+
 }    // namespace joda::processor

@@ -28,7 +28,7 @@ public:
   /////////////////////////////////////////////////////
   PipelineInitializer(const settings::ProjectSettings &settings);
   void init(const std::filesystem::path &imagePath, ImageContext &imageContextOut,
-            processor::GlobalContext &globalContextOut);
+            const processor::GlobalContext &globalContextOut);
 
   [[nodiscard]] const std::tuple<int32_t, int32_t> &getNrOfTilesToProcess() const
   {

@@ -43,7 +43,7 @@ private:
 
   /////////////////////////////////////////////////////
   WellPosGenerator mWellPosGenerator;
-  std::mutex mWellGeneratorLock;
+  mutable std::mutex mWellGeneratorLock;
 };
 
 }    // namespace joda::grp
