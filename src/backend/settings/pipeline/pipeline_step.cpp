@@ -18,13 +18,11 @@
 #include "backend/commands/factory.hpp"
 #include "backend/commands/image_functions/blur/blur.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection.hpp"
-#include "backend/commands/image_functions/edge_detection/edge_detection_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction.hpp"
-#include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold.hpp"
@@ -33,8 +31,9 @@
 #include "backend/commands/object_functions/intersection/intersection.hpp"
 #include "backend/commands/object_functions/intersection/intersection_settings.hpp"
 #include "backend/commands/object_functions/measure/measure.hpp"
+#include "backend/commands/object_functions/validator_noise/validator_noise.hpp"
+#include "backend/commands/object_functions/validator_threshold/validator_threshold.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid.hpp"
-#include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings.hpp"
 
 namespace joda::settings {
 
@@ -112,6 +111,16 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
 
   if($voronoi) {
     joda::cmd::Factory<joda::cmd::VoronoiGrid, VoronoiGridSettings> a($voronoi.value());
+    a.execute(context, image, result);
+  }
+
+  if($thresholdValidator) {
+    joda::cmd::Factory<joda::cmd::ThresholdValidator, ThresholdValidatorSettings> a($thresholdValidator.value());
+    a.execute(context, image, result);
+  }
+
+  if($noiseValidator) {
+    joda::cmd::Factory<joda::cmd::NoiseValidator, NoiseValidatorSettings> a($noiseValidator.value());
     a.execute(context, image, result);
   }
 }
