@@ -40,7 +40,7 @@ class LayoutGenerator : public QObject
   static constexpr int32_t SPACING = 16;
 
 public:
-  explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true);
+  explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withPanel = true);
 
   class VerticalPane : public QVBoxLayout
   {
@@ -49,8 +49,9 @@ public:
     {
     }
 
-    void addGroup(const QString &title, const std::vector<std::shared_ptr<SettingBase>> &elements);
-    void addGroup(const QString &title, const std::vector<QWidget *> &elements);
+    void addGroup(const std::vector<std::shared_ptr<SettingBase>> &elements, int maxWidth = 220);
+    void addGroup(const QString &title, const std::vector<std::shared_ptr<SettingBase>> &elements, int maxWidth = 220);
+    void addGroup(const QString &title, const std::vector<QWidget *> &elements, int maxWidth = 220);
 
   private:
     LayoutGenerator *layoutGenerator;

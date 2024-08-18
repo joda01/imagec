@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <qboxlayout.h>
 #include <qwidget.h>
 #include "../setting/setting_base.hpp"
 #include "backend/commands/command.hpp"
@@ -23,7 +24,8 @@ class Command : public QWidget
 {
 public:
   /////////////////////////////////////////////////////
-  Command(QWidget *parent) : mLayout(&mEditView, false), mDisplayViewLayout(this)
+  Command(QWidget *parent) :
+      mParent(parent), mLayout(&mEditView, false, false), mDisplayViewLayout(this), mEditDialog(parent)
   {
     setContentsMargins(0, 4, 4, 4);
     mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);
@@ -35,7 +37,7 @@ public:
   void addSetting(const QString &title, const std::vector<std::shared_ptr<SettingBase>> &settings)
   {
     auto *col1 = mLayout.addVerticalPanel();
-    col1->addGroup("Settings", settings);
+    col1->addGroup(settings, 800);
 
     int cnt = 2;
     for(const auto &setting : settings) {
@@ -58,6 +60,15 @@ public:
     mDisplayViewLayout.addWidget(label, cnt, 0, 1, 2);
 
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    // Prepare edit dialog
+    auto *layout = new QVBoxLayout();
+    layout->addWidget(&mEditView);
+    mEditDialog.setModal(false);
+    mEditDialog.setLayout(layout);
+    mEditDialog.setMinimumWidth(250);
+    mEditDialog.setMaximumWidth(250);
+    mEditDialog.setWindowTitle(title);
   }
 
   auto getDisplayWidget() const -> const QWidget *
@@ -70,11 +81,29 @@ public:
     return &mEditView;
   }
 
+  void openEditView()
+  {
+    mEditDialog.show();
+  }
+
 private:
   /////////////////////////////////////////////////////
+  QWidget *mParent;
   QWidget mEditView;
   helper::LayoutGenerator mLayout;
   QGridLayout mDisplayViewLayout;
+  QDialog mEditDialog;
+
+  ///
+  /// \brief      Constructor
+  /// \author     Joachim Danmayr
+  ///
+  void mousePressEvent(QMouseEvent *event) override
+  {
+    if(event->button() == Qt::LeftButton) {
+      openEditView();
+    }
+  }
 };
 
 }    // namespace joda::ui::qt

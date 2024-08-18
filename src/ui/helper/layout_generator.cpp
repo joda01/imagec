@@ -12,10 +12,11 @@
 ///
 
 #include "layout_generator.hpp"
+#include <qwidget.h>
 
 namespace joda::ui::qt::helper {
 
-LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton) : mParent(parent)
+LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool withPanel) : mParent(parent)
 {
   auto *scrollArea = new QScrollArea();
   scrollArea->setObjectName("scrollArea");
@@ -32,14 +33,18 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton) : mPare
 
   // Create a horizontal layout for the panels
   mMainLayout = new QHBoxLayout(contentWidget);
-  mMainLayout->setContentsMargins(SPACING, SPACING, 0, 0);
+  if(withPanel) {
+    mMainLayout->setContentsMargins(SPACING, SPACING, 0, 0);
+  } else {
+    mMainLayout->setContentsMargins(0, 0, 0, 0);
+  }
   mMainLayout->setSpacing(SPACING);    // Adjust this value as needed
   mMainLayout->setAlignment(Qt::AlignLeft);
   contentWidget->setLayout(mMainLayout);
 
   auto *container = new QVBoxLayout(parent);
 
-  {
+  if(withPanel) {
     mToolbarTop = new QToolBar();
     mToolbarTop->setStyleSheet("QToolBar { border-bottom: 1px solid rgb(170, 170, 170); }");
     auto *spacerTop = new QWidget();
@@ -59,7 +64,9 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton) : mPare
     mToolbarBottom->addAction(deleteChannel);
   }
 
-  container->addWidget(mToolbarTop);
+  if(withPanel) {
+    container->addWidget(mToolbarTop);
+  }
   container->addWidget(scrollArea);
   if(withDeleteButton) {
     container->addWidget(mToolbarBottom);
@@ -105,10 +112,10 @@ void LayoutGenerator::addItemToTopToolbar(QAction *widget)
 }
 
 void LayoutGenerator::VerticalPane::addGroup(const QString &title,
-                                             const std::vector<std::shared_ptr<SettingBase>> &elements)
+                                             const std::vector<std::shared_ptr<SettingBase>> &elements, int maxWidth)
 {
   auto *group = new QGroupBox(title);
-  group->setMaximumWidth(220);
+  group->setMaximumWidth(maxWidth);
   auto *layout = new QVBoxLayout;
   for(const auto &element : elements) {
     layout->addWidget(element->getEditableWidget());
@@ -119,10 +126,26 @@ void LayoutGenerator::VerticalPane::addGroup(const QString &title,
   addWidget(group);
 }
 
-void LayoutGenerator::VerticalPane ::addGroup(const QString &title, const std::vector<QWidget *> &elements)
+void LayoutGenerator::VerticalPane::addGroup(const std::vector<std::shared_ptr<SettingBase>> &elements, int maxWidth)
+{
+  auto *group = new QWidget();
+  group->setContentsMargins(0, 0, 0, 0);
+  group->setMaximumWidth(maxWidth);
+  auto *layout = new QVBoxLayout;
+  for(const auto &element : elements) {
+    layout->addWidget(element->getEditableWidget());
+    connect(element.get(), &SettingBase::valueChanged, layoutGenerator, &LayoutGenerator::onSettingChanged);
+  }
+
+  group->setLayout(layout);
+  addWidget(group);
+}
+
+void LayoutGenerator::VerticalPane ::addGroup(const QString &title, const std::vector<QWidget *> &elements,
+                                              int maxWidth)
 {
   auto *group = new QGroupBox(title);
-  group->setMaximumWidth(220);
+  group->setMaximumWidth(maxWidth);
   auto *layout = new QVBoxLayout;
   for(const auto &element : elements) {
     element->setParent(group);

@@ -588,12 +588,15 @@ private:
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    const QIcon myIcon(":/icons/outlined/" + icon);
-
     mLineEdit = new QLineEdit();
     mLineEdit->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     // mLineEdit->setClearButtonEnabled(true);
-    mLineEdit->addAction(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), QLineEdit::LeadingPosition);
+
+    if(!icon.isEmpty()) {
+      const QIcon myIcon(":/icons/outlined/" + icon);
+      mLineEdit->addAction(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), QLineEdit::LeadingPosition);
+    }
+
     mLineEdit->setPlaceholderText(placeHolderText);
     layout->addWidget(mLineEdit);
     // connect(mLineEdit, &QLineEdit::editingFinished, this, &Setting::lineEditingFinished);
@@ -646,10 +649,12 @@ private:
     layoutHorizontal->setContentsMargins(0, 0, 0, 0);
     layoutHorizontal->setSpacing(4);
 
-    const QIcon myIcon(":/icons/outlined/" + icon);
     mLineEdit = new QLineEdit();
     // mLineEdit->setClearButtonEnabled(true);
-    mLineEdit->addAction(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), QLineEdit::LeadingPosition);
+    if(!icon.isEmpty()) {
+      const QIcon myIcon(":/icons/outlined/" + icon);
+      mLineEdit->addAction(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), QLineEdit::LeadingPosition);
+    }
     mLineEdit->setPlaceholderText(placeHolderText);
     layoutHorizontal->addWidget(mLineEdit);
     // connect(mLineEdit, &QLineEdit::editingFinished, this, &Setting::lineEditingFinished);
