@@ -47,7 +47,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   {
     auto *col1 = mLayout.addVerticalPanel();
-    col1->addGroup("Meta", {mPipelineName, mColorAndChannelIndex});
+    col1->addGroup("Pipeline setup", {mPipelineName, mDefaultClusterId, mCStackIndex, mZProjection});
   }
 
   {
@@ -79,21 +79,58 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 void PanelPipelineSettings::createSettings(WindowMain *windowMain)
 {
   mPipelineName = std::shared_ptr<Setting<std::string, std::string>>(
-      new Setting<std::string, std::string>("icons8-text-50.png", "Name", "Channel Name", "Name", windowMain));
+      new Setting<std::string, std::string>("icons8-text-50.png", "Name", "Pipeline name", "Name", windowMain));
   mPipelineName->setMaxLength(15);
   mPipelineName->connectWithSetting(&mSettings.meta.name, nullptr);
 
-  mColorAndChannelIndex = std::shared_ptr<Setting<std::string, int32_t>>(new Setting<std::string, int32_t>(
-      "icons8-unknown-status-50.png", "Type", "Channel index", "", "#B91717",
-      {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
-       {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
-       {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
-       {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
-       {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
-       {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
-       /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
-      {{0, "Channel 0"}, {1, "Channel 1"}, {2, "Channel 2"}, {3, "Channel 3"}, {4, "Channel 4"}, {5, "Channel 5"}}, 0,
-      windowMain));
+  mCStackIndex = std::shared_ptr<Setting<std::string, int32_t>>(
+      new Setting<std::string, int32_t>("icons8-unknown-status-50.png", "Type", "Image channel", "", "#B91717",
+                                        {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
+                                         {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
+                                         {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
+                                         {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
+                                         {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
+                                         {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
+                                         /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
+                                        {{0, "Channel 0"},
+                                         {1, "Channel 1"},
+                                         {2, "Channel 2"},
+                                         {3, "Channel 3"},
+                                         {4, "Channel 4"},
+                                         {5, "Channel 5"},
+                                         {6, "Channel 6"},
+                                         {7, "Channel 7"},
+                                         {8, "Channel 8"},
+                                         {9, "Channel 9"},
+                                         {10, "Channel 10"}},
+                                        0, windowMain));
+  mCStackIndex->connectWithSetting(&mSettings.meta.color, &mSettings.pipelineSetup.cStackIndex);
+
+  mZProjection = std::shared_ptr<Setting<enums::ZProjection, int32_t>>(new Setting<enums::ZProjection, int32_t>(
+      "icons8-layers-50.png", "Z-Projection", "Z-Projection", "", enums::ZProjection::NONE,
+      {{enums::ZProjection::NONE, "Off"},
+       {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
+       {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
+       {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}},
+      windowMain, "z_projection.json"));
+  mZProjection->connectWithSetting(&mSettings.pipelineSetup.zProjection, nullptr);
+
+  mDefaultClusterId = std::shared_ptr<Setting<enums::ClusterIdIn, int32_t>>(new Setting<enums::ClusterIdIn, int32_t>(
+      "icons8-connection-50.png", "Cluster", "Cluster", "", enums::ClusterIdIn::A,
+      {
+          {enums::ClusterIdIn::A, "Cluster A"},
+          {enums::ClusterIdIn::B, "Cluster B"},
+          {enums::ClusterIdIn::C, "Cluster C"},
+          {enums::ClusterIdIn::D, "Cluster D"},
+          {enums::ClusterIdIn::E, "Cluster E"},
+          {enums::ClusterIdIn::F, "Cluster F"},
+          {enums::ClusterIdIn::G, "Cluster G"},
+          {enums::ClusterIdIn::H, "Cluster H"},
+          {enums::ClusterIdIn::I, "Cluster I"},
+          {enums::ClusterIdIn::J, "Cluster J"},
+      },
+      windowMain, "z_projection.json"));
+  mDefaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId, nullptr);
 
   mOverview = new PanelChannelOverview(windowMain, this);
 }

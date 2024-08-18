@@ -574,7 +574,7 @@ private:
   }
 
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
-                            std::optional<VALUE_T> defaultVal, VALUE_T min = 0, VALUE_T max = 0)
+                            std::optional<VALUE_T> defaultVal, VALUE_T min = {}, VALUE_T max = {})
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, float> ||
              std::same_as<VALUE_T, std::string> || std::is_enum<VALUE_T>::value
   {

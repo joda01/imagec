@@ -17,6 +17,8 @@
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
+#include "backend/enums/enum_images.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "controller/controller.hpp"
 #include "ui/container/container_base.hpp"
@@ -95,7 +97,9 @@ private:
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
   std::shared_ptr<Setting<std::string, std::string>> mPipelineName;
-  std::shared_ptr<Setting<std::string, int32_t>> mColorAndChannelIndex;
+  std::shared_ptr<Setting<std::string, int32_t>> mCStackIndex;
+  std::shared_ptr<Setting<enums::ZProjection, int32_t>> mZProjection;
+  std::shared_ptr<Setting<enums::ClusterIdIn, int32_t>> mDefaultClusterId;
 
   /////////////////////////////////////////////////////
   PanelPreview *mPreviewImage = nullptr;
