@@ -107,6 +107,7 @@ private:
   void createTopToolbar();
   void createLeftToolbar();
   void loadTemplates();
+  void clearSettings();
 
   void openProjectSettings(const QString &filePath);
   void openResultsSettings(const QString &filePath);

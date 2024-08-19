@@ -47,12 +47,20 @@ public:
   //
   // Object clusters used in this project
   //
-  std::vector<Cluster> clusters;
+  std::vector<Cluster> clusters{{.clusterId = joda::enums::ClusterId::A, .name = "CY3"},
+                                {.clusterId = joda::enums::ClusterId::B, .name = "CY5"},
+                                {.clusterId = joda::enums::ClusterId::C, .name = "CY7"},
+                                {.clusterId = joda::enums::ClusterId::D, .name = ""},
+                                {.clusterId = joda::enums::ClusterId::E, .name = ""}};
 
   //
   // Object classes used in this project
   //
-  std::vector<Class> classes;
+  std::vector<Class> classes{{.classId = joda::enums::ClassId::C0, .name = "Spot"},
+                             {.classId = joda::enums::ClassId::C1, .name = "Tetraspeck"},
+                             {.classId = joda::enums::ClassId::C2, .name = "Cell"},
+                             {.classId = joda::enums::ClassId::C3, .name = "Nucleus"},
+                             {.classId = joda::enums::ClassId::C4, .name = "Background"}};
 
   //
   // Directory where outputs will be stored

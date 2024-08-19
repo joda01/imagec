@@ -70,6 +70,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setObjectName("windowMain");
   setCentralWidget(createStackedWidget());
   showPanelStartPage();
+  clearSettings();
 
   //
   // Watch for working directory changes
@@ -347,6 +348,17 @@ void WindowMain::onNewProjectClicked()
   }
 
   showPanelStartPage();
+  clearSettings();
+  checkForSettingsChanged();
+  onSaveProject();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::clearSettings()
+{
   mPanelResultsInfo->clearHistory();
   mSelectedProjectSettingsFilePath.clear();
   mAnalyzeSettings    = {};
@@ -354,8 +366,6 @@ void WindowMain::onNewProjectClicked()
   mPanelPipeline->clear();
   mPanelProjectSettings->fromSettings({});
   mPanelClassification->fromSettings({});
-  checkForSettingsChanged();
-  onSaveProject();
 }
 
 ///

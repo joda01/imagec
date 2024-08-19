@@ -39,23 +39,29 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
   {
     mClusters = new PlaceholderTableWidget(NR_OF_CLUSTERS, 4);
     mClusters->setPlaceholderText("Add a cluster");
-    mClusters->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mClusters->verticalHeader()->setVisible(false);
-    mClusters->setHorizontalHeaderLabels({"Id", "Name", "Color", "Notes"});
+    mClusters->setHorizontalHeaderLabels({"Id", "Cluster", "Color", "Notes"});
     mClusters->setAlternatingRowColors(true);
     mClusters->setSelectionBehavior(QAbstractItemView::SelectRows);
-    // mClusters->setColumnHidden(0, true);
+    mClusters->setColumnWidth(0, 10);
+    mClusters->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    mClusters->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    mClusters->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+
     layout->addWidget(mClusters);
   }
 
   {
     mClasses = new PlaceholderTableWidget(NR_OF_CLASSES, 4);
     mClasses->setPlaceholderText("Add a class");
-    mClasses->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mClasses->verticalHeader()->setVisible(false);
-    mClasses->setHorizontalHeaderLabels({"Id", "Name", "Color", "Notes"});
+    mClasses->setHorizontalHeaderLabels({"Id", "Class", "Color", "Notes"});
     mClasses->setAlternatingRowColors(true);
     mClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
+    mClasses->setColumnWidth(0, 10);
+    mClasses->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    mClasses->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    mClasses->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
     layout->addWidget(mClasses);
   }
   addSeparator();
@@ -144,20 +150,20 @@ void PanelClassification::fromSettings(const joda::settings::ProjectSettings &se
   //
   // Load classes
   //
-  for(const auto &cluster : settings.classes) {
-    auto clusterId = static_cast<int32_t>(cluster.classId);
-    auto *index    = new QTableWidgetItem(QString::number(clusterId));
+  for(const auto &classs : settings.classes) {
+    auto classId = static_cast<int32_t>(classs.classId);
+    auto *index  = new QTableWidgetItem(QString::number(classId));
     index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-    mClasses->setItem(clusterId, 0, index);
+    mClasses->setItem(classId, 0, index);
 
-    auto *item = new QTableWidgetItem(cluster.name.data());
-    mClasses->setItem(clusterId, 1, item);
+    auto *item = new QTableWidgetItem(classs.name.data());
+    mClasses->setItem(classId, 1, item);
 
-    auto *itemColor = new QTableWidgetItem(cluster.color.data());
-    mClasses->setItem(clusterId, 2, itemColor);
+    auto *itemColor = new QTableWidgetItem(classs.color.data());
+    mClasses->setItem(classId, 2, itemColor);
 
-    auto *itemNotes = new QTableWidgetItem(cluster.notes.data());
-    mClasses->setItem(clusterId, 3, itemNotes);
+    auto *itemNotes = new QTableWidgetItem(classs.notes.data());
+    mClasses->setItem(classId, 3, itemNotes);
   }
 }
 
