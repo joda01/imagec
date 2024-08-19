@@ -42,6 +42,9 @@ public:
     mBallSize = std::shared_ptr<Setting<int32_t, int32_t>>(new Setting<int, int32_t>(
         "", "[0 - " + QString::number(INT32_MAX) + "]", "Ball size", "px", std::nullopt, 0, INT32_MAX, parent, ""));
 
+    mBallType->setValue(settings.$rollingBall->ballType);
+    mBallSize->setValue(settings.$rollingBall->ballSize);
+
     mBallType->connectWithSetting(&settings.$rollingBall->ballType, nullptr);
     mBallSize->connectWithSetting(&settings.$rollingBall->ballSize, nullptr);
 

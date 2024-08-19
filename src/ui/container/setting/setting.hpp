@@ -218,7 +218,7 @@ public:
   {
     if(mLineEdit != nullptr) {
       if constexpr(std::same_as<VALUE_T, std::string>) {
-        mLineEdit->setText(newValue.trimmed());
+        mLineEdit->setText(QString(newValue.data()).trimmed());
       } else if constexpr(std::is_enum<VALUE_T>::value) {
         mLineEdit->setText(QString::number(static_cast<int>(newValue)));
       } else {
@@ -230,6 +230,8 @@ public:
       int idx = -1;
       if constexpr(std::is_enum<VALUE_T>::value) {
         idx = mComboBox->findData(static_cast<int>(newValue));
+      } else if constexpr(std::same_as<VALUE_T, std::string>) {
+        idx = mComboBox->findData(newValue.data());
       } else {
         idx = mComboBox->findData(newValue);
       }
@@ -940,6 +942,13 @@ private slots:
               selectedIcon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
         }
       }
+    }
+
+    if(nullptr != mValue1InSetting) {
+      *mValue1InSetting = getValue();
+    }
+    if(nullptr != mValue2InSetting) {
+      *mValue2InSetting = getValueSecond();
     }
 
     updateDisplayText();

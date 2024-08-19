@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
+#include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
 
 #define NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Type, ...)                     \
@@ -45,11 +46,13 @@
     nlohmann_json_t.check();                                                          \
   }
 
-#define CHECK(okay, what)                                                      \
-  if(!(okay)) {                                                                \
-    const auto name = std::string(typeid(*this).name());                       \
-    throw std::invalid_argument(static_cast<std::string>(name + "::" + what)); \
+#define CHECK(okay, what)                                              \
+  if(!(okay)) {                                                        \
+    const auto name = std::string(typeid(*this).name());               \
+    joda::log::logError(static_cast<std::string>(name + "::" + what)); \
   }
+
+// throw std::invalid_argument(static_cast<std::string>(name + "::" + what));
 
 #define THROW(what)                                                            \
   {                                                                            \

@@ -25,6 +25,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/container/command/command_rolling_ball.hpp"
@@ -87,10 +88,13 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   {
     auto *col3 = mLayout.addVerticalPanel();
 
-    ;
     auto *ball = new AddCommandButton<joda::ui::qt::CommandRollingBall>(
         wm, *this, mSettings, settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}});
-    col3->addGroup("Commands", {ball});
+
+    auto *median = new AddCommandButton<joda::ui::qt::CommandMedianSubtract>(
+        wm, *this, mSettings, settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}});
+
+    col3->addGroup("Commands", {ball, median});
   }
 
   {
@@ -118,6 +122,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 void PanelPipelineSettings::addPipelineStep(std::shared_ptr<joda::ui::qt::Command> command)
 {
   mCommands.push_back(command);
+  connect(command.get(), &joda::ui::qt::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
 }
 
@@ -184,6 +189,15 @@ void PanelPipelineSettings::createSettings(WindowMain *windowMain)
       windowMain, "z_projection.json"));
   mDefaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId, nullptr);
 
+  connect(mPipelineName.get(), &joda::ui::qt::SettingBase::valueChanged, this,
+          &PanelPipelineSettings::metaChangedEvent);
+  connect(mCStackIndex.get(), &joda::ui::qt::SettingBase::valueChanged, this,
+          &PanelPipelineSettings::valueChangedEvent);
+  connect(mZProjection.get(), &joda::ui::qt::SettingBase::valueChanged, this,
+          &PanelPipelineSettings::valueChangedEvent);
+  connect(mDefaultClusterId.get(), &joda::ui::qt::SettingBase::valueChanged, this,
+          &PanelPipelineSettings::valueChangedEvent);
+
   mOverview = new PanelChannelOverview(windowMain, this);
 }
 
@@ -227,6 +241,19 @@ void PanelPipelineSettings::valueChangedEvent()
 /// \param[out]
 /// \return
 ///
+void PanelPipelineSettings::metaChangedEvent()
+{
+  toSettings();
+  mWindowMain->checkForSettingsChanged();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelPipelineSettings::updatePreview(int32_t /**/, int32_t /**/)
 {
   auto [newImgIdex, selectedSeries] = mWindowMain->getImagePanel()->getSelectedImage();
@@ -247,6 +274,8 @@ void PanelPipelineSettings::updatePreview(int32_t /**/, int32_t /**/)
         int previewCounter = 0;
         std::this_thread::sleep_for(500ms);
         do {
+          toSettings();
+          mWindowMain->checkForSettingsChanged();
           if(nullptr != mPreviewImage) {
             std::filesystem::path imgIndex = newImgIdex;
             if(!imgIndex.empty()) {
@@ -346,6 +375,55 @@ void PanelPipelineSettings::onPreviewFinished()
   if(nullptr != mPreviewImage) {
     mPreviewImage->setWaiting(false);
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &settings)
+{
+  mSettings.meta          = settings.meta;
+  mSettings.pipelineSetup = settings.pipelineSetup;
+
+  mPipelineName->setValue(mSettings.meta.name);
+  mCStackIndex->setValueSecond(mSettings.pipelineSetup.cStackIndex);
+  mZProjection->setValue(mSettings.pipelineSetup.zProjection);
+  mDefaultClusterId->setValue(mSettings.pipelineSetup.defaultClusterId);
+
+  mSettings.pipelineSteps.clear();
+  for(auto &step : settings.pipelineSteps) {
+    mSettings.pipelineSteps.push_back(step);
+    auto &cmdSetting = mSettings.pipelineSteps.back();
+
+    if(step.$rollingBall.has_value()) {
+      auto cmd = std::make_shared<joda::ui::qt::CommandRollingBall>(cmdSetting, mWindowMain);
+      addPipelineStep(cmd);
+    }
+
+    if(step.$medianSubtract.has_value()) {
+      auto cmd = std::make_shared<joda::ui::qt::CommandMedianSubtract>(cmdSetting, mWindowMain);
+      addPipelineStep(cmd);
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::toSettings()
+{
+  mSettings.meta.name                      = mPipelineName->getValue();
+  mSettings.pipelineSetup.cStackIndex      = mCStackIndex->getValueSecond();
+  mSettings.pipelineSetup.zProjection      = mZProjection->getValue();
+  mSettings.pipelineSetup.defaultClusterId = mDefaultClusterId->getValue();
 }
 
 }    // namespace joda::ui::qt

@@ -13,6 +13,7 @@
 #pragma once
 
 #include <qboxlayout.h>
+#include <qtmetamacros.h>
 #include <qwidget.h>
 #include "../setting/setting_base.hpp"
 #include "backend/commands/command.hpp"
@@ -22,55 +23,12 @@ namespace joda::ui::qt {
 
 class Command : public QWidget
 {
+  Q_OBJECT
 public:
   /////////////////////////////////////////////////////
-  Command(QWidget *parent) :
-      mParent(parent), mLayout(&mEditView, false, false), mDisplayViewLayout(this), mEditDialog(parent)
-  {
-    setContentsMargins(0, 4, 4, 4);
-    mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);
-    setLayout(&mDisplayViewLayout);
-    mDisplayViewLayout.setSpacing(4);
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  }
+  Command(QWidget *parent);
 
-  void addSetting(const QString &title, const QString &icon, const std::vector<std::shared_ptr<SettingBase>> &settings)
-  {
-    auto *col1 = mLayout.addVerticalPanel();
-    col1->addGroup(settings, 800);
-
-    int cnt = 2;
-    for(const auto &setting : settings) {
-      mDisplayViewLayout.addWidget(setting->getLabelWidget(), cnt / 2, cnt % 2);
-      cnt++;
-    }
-    // It must be in a separate line
-    if(cnt % 2 == 0) {
-      cnt++;
-    }
-    QFont font;
-    font.setPixelSize(12);
-    font.setItalic(true);
-    font.setBold(false);
-    font.setWeight(QFont::Light);
-    auto *label = new QLabel(title);
-    label->setObjectName("functionHelperText");
-    label->setFont(font);
-    label->setStyleSheet("QLabel#functionHelperText { color : #808080; }");
-    mDisplayViewLayout.addWidget(label, cnt, 0, 1, 2);
-
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-    // Prepare edit dialog
-    auto *layout = new QVBoxLayout();
-    layout->addWidget(&mEditView);
-    mEditDialog.setModal(false);
-    mEditDialog.setLayout(layout);
-    mEditDialog.setMinimumWidth(300);
-    mEditDialog.setMaximumWidth(400);
-    mEditDialog.setWindowTitle(title);
-  }
-
+  void addSetting(const QString &title, const QString &icon, const std::vector<std::shared_ptr<SettingBase>> &settings);
   auto getDisplayWidget() const -> const QWidget *
   {
     return this;
@@ -85,6 +43,9 @@ public:
   {
     mEditDialog.show();
   }
+
+signals:
+  void valueChanged();
 
 private:
   /////////////////////////////////////////////////////

@@ -82,13 +82,8 @@ public:
     return {};
   }
 
-  void toSettings() override
-  {
-  }
-
-  void fromSettings(const joda::settings::Pipeline &settings)
-  {
-  }
+  void toSettings() override;
+  void fromSettings(const joda::settings::Pipeline &settings);
 
 private:
   /////////////////////////////////////////////////////
@@ -131,6 +126,7 @@ private slots:
   void onPreviewStarted();
   void onPreviewFinished();
   void valueChangedEvent();
+  void metaChangedEvent();
 };
 
 }    // namespace joda::ui::qt

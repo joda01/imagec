@@ -25,8 +25,8 @@ void Settings::storeSettings(std::string path, const joda::settings::AnalyzeSett
     nlohmann::json json = settings;
     removeNullValues(json);
 
-    if(!path.ends_with(".json")) {
-      path += ".json";
+    if(!path.ends_with(".icproj")) {
+      path += ".icproj";
     }
     std::ofstream out(path);
     out << json.dump(2);

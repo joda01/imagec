@@ -44,8 +44,9 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     mClusters->setHorizontalHeaderLabels({"IdNr", "Id", "Cluster", "Color", "Notes"});
     mClusters->setAlternatingRowColors(true);
     mClusters->setSelectionBehavior(QAbstractItemView::SelectRows);
-    mClusters->setColumnHidden(0, true);
-    mClusters->setColumnWidth(1, 10);
+    mClusters->setColumnHidden(COL_ID, true);
+    mClusters->setColumnHidden(COL_COLOR, true);
+    mClusters->setColumnWidth(COL_ID_ENUM, 10);
     mClusters->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     mClusters->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
     mClusters->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
@@ -60,8 +61,9 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Class", "Color", "Notes"});
     mClasses->setAlternatingRowColors(true);
     mClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
-    mClasses->setColumnHidden(0, true);
-    mClasses->setColumnWidth(1, 10);
+    mClasses->setColumnHidden(COL_ID, true);
+    mClasses->setColumnHidden(COL_COLOR, true);
+    mClasses->setColumnWidth(COL_ID_ENUM, 10);
     mClasses->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     mClasses->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
     mClasses->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
