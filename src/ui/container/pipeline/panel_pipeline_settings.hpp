@@ -46,6 +46,8 @@ public:
   PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings);
   ~PanelPipelineSettings();
 
+  void addPipelineStep(std::shared_ptr<joda::ui::qt::Command> command);
+
   void setActive(bool setActive) override
   {
     if(!mIsActiveShown && setActive) {
@@ -94,7 +96,6 @@ private:
 
   /////////////////////////////////////////////////////
   void createSettings(WindowMain *windowMain);
-  void addPipelineStep(std::shared_ptr<joda::ui::qt::Command> command);
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;

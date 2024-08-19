@@ -25,10 +25,13 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
+#include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/container/command/command_rolling_ball.hpp"
 #include "ui/container/command/median_substraction.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/window_main/window_main.hpp"
+#include "add_command_button.hpp"
 
 namespace joda::ui::qt {
 
@@ -65,7 +68,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
     // Create a widget to hold the panels
     auto *contentWidget = new QWidget(scrollArea);
-    contentWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    contentWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     contentWidget->setObjectName("contentOverview");
     scrollArea->setWidget(contentWidget);
     scrollArea->setWidgetResizable(true);
@@ -76,7 +79,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     mPipelineSteps->setSpacing(8);    // Adjust this value as needed
     mPipelineSteps->setAlignment(Qt::AlignTop);
     contentWidget->setLayout(mPipelineSteps);
-    scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     col2->addGroup("Pipeline steps", {scrollArea});
   }
@@ -84,7 +87,10 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   {
     auto *col3 = mLayout.addVerticalPanel();
 
-    // col3->addGroup("Commands", {mPipelineSteps});
+    ;
+    auto *ball = new AddCommandButton<joda::ui::qt::CommandRollingBall>(
+        wm, *this, mSettings, settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}});
+    col3->addGroup("Commands", {ball});
   }
 
   {
@@ -100,9 +106,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelPipelineSettings::onTileClicked);
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
-
-  addPipelineStep(std::make_shared<CommandRollingBall>(wm));
-  addPipelineStep(std::make_shared<CommandMedianSubtract>(wm));
 }
 
 ///

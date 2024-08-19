@@ -14,6 +14,8 @@
 
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
+#include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
+#include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/container/setting/setting.hpp"
 #include "ui/helper/layout_generator.hpp"
 
@@ -24,7 +26,11 @@ namespace joda::ui::qt {
 class CommandRollingBall : public Command
 {
 public:
-  CommandRollingBall(QWidget *parent) : Command(parent)
+  /////////////////////////////////////////////////////
+  inline static std::string TITLE = "Rolling ball";
+  inline static std::string ICON  = "icons8-bubble-50.png";
+
+  CommandRollingBall(settings::PipelineStep &settings, QWidget *parent) : Command(parent)
   {
     mBallType = std::shared_ptr<Setting<joda::settings::RollingBallSettings::BallType, int32_t>>(
         new Setting<joda::settings::RollingBallSettings::BallType, int32_t>(
@@ -36,7 +42,10 @@ public:
     mBallSize = std::shared_ptr<Setting<int32_t, int32_t>>(new Setting<int, int32_t>(
         "", "[0 - " + QString::number(INT32_MAX) + "]", "Ball size", "px", std::nullopt, 0, INT32_MAX, parent, ""));
 
-    addSetting("Rolling ball", "icons8-bubble-50.png", {mBallType, mBallSize});
+    mBallType->connectWithSetting(&settings.$rollingBall->ballType, nullptr);
+    mBallSize->connectWithSetting(&settings.$rollingBall->ballSize, nullptr);
+
+    addSetting(TITLE.data(), ICON.data(), {mBallType, mBallSize});
   }
 
 private:
