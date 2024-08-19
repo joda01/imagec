@@ -16,6 +16,7 @@
 #include <qlineedit.h>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
@@ -37,31 +38,33 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
   };
 
   {
-    mClusters = new PlaceholderTableWidget(NR_OF_CLUSTERS, 4);
+    mClusters = new PlaceholderTableWidget(NR_OF_CLUSTERS, 5);
     mClusters->setPlaceholderText("Add a cluster");
     mClusters->verticalHeader()->setVisible(false);
-    mClusters->setHorizontalHeaderLabels({"Id", "Cluster", "Color", "Notes"});
+    mClusters->setHorizontalHeaderLabels({"IdNr", "Id", "Cluster", "Color", "Notes"});
     mClusters->setAlternatingRowColors(true);
     mClusters->setSelectionBehavior(QAbstractItemView::SelectRows);
-    mClusters->setColumnWidth(0, 10);
-    mClusters->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    mClusters->setColumnHidden(0, true);
+    mClusters->setColumnWidth(1, 10);
     mClusters->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     mClusters->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+    mClusters->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
 
     layout->addWidget(mClusters);
   }
 
   {
-    mClasses = new PlaceholderTableWidget(NR_OF_CLASSES, 4);
+    mClasses = new PlaceholderTableWidget(NR_OF_CLASSES, 5);
     mClasses->setPlaceholderText("Add a class");
     mClasses->verticalHeader()->setVisible(false);
-    mClasses->setHorizontalHeaderLabels({"Id", "Class", "Color", "Notes"});
+    mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Class", "Color", "Notes"});
     mClasses->setAlternatingRowColors(true);
     mClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
-    mClasses->setColumnWidth(0, 10);
-    mClasses->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    mClasses->setColumnHidden(0, true);
+    mClasses->setColumnWidth(1, 10);
     mClasses->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     mClasses->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+    mClasses->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
     layout->addWidget(mClasses);
   }
   addSeparator();
@@ -88,16 +91,20 @@ void PanelClassification::initTable()
   for(int32_t clusterId = 0; clusterId < NR_OF_CLUSTERS; clusterId++) {
     auto *index = new QTableWidgetItem(QString::number(clusterId));
     index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-    mClusters->setItem(clusterId, 0, index);
+    mClusters->setItem(clusterId, COL_ID, index);
+
+    nlohmann::json classIdStr = static_cast<enums::ClusterId>(clusterId);
+    auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
+    mClusters->setItem(clusterId, COL_ID_ENUM, itemEnum);
 
     auto *item = new QTableWidgetItem(QString(""));
-    mClusters->setItem(clusterId, 1, item);
+    mClusters->setItem(clusterId, COL_NAME, item);
 
     auto *itemColor = new QTableWidgetItem(QString(""));
-    mClusters->setItem(clusterId, 2, itemColor);
+    mClusters->setItem(clusterId, COL_COLOR, itemColor);
 
     auto *itemNotes = new QTableWidgetItem(QString(""));
-    mClusters->setItem(clusterId, 3, itemNotes);
+    mClusters->setItem(clusterId, COL_NOTES, itemNotes);
   }
 
   //
@@ -106,16 +113,20 @@ void PanelClassification::initTable()
   for(int32_t classId = 0; classId < NR_OF_CLASSES; classId++) {
     auto *index = new QTableWidgetItem(QString::number(classId));
     index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-    mClasses->setItem(classId, 0, index);
+    mClasses->setItem(classId, COL_ID, index);
+
+    nlohmann::json classIdStr = static_cast<enums::ClassId>(classId);
+    auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
+    mClasses->setItem(classId, COL_ID_ENUM, itemEnum);
 
     auto *item = new QTableWidgetItem(QString(""));
-    mClasses->setItem(classId, 1, item);
+    mClasses->setItem(classId, COL_NAME, item);
 
     auto *itemColor = new QTableWidgetItem(QString(""));
-    mClasses->setItem(classId, 2, itemColor);
+    mClasses->setItem(classId, COL_COLOR, itemColor);
 
     auto *itemNotes = new QTableWidgetItem(QString(""));
-    mClasses->setItem(classId, 3, itemNotes);
+    mClasses->setItem(classId, COL_NOTES, itemNotes);
   }
 }
 
@@ -135,16 +146,20 @@ void PanelClassification::fromSettings(const joda::settings::ProjectSettings &se
     auto clusterId = static_cast<int32_t>(cluster.clusterId);
     auto *index    = new QTableWidgetItem(QString::number(clusterId));
     index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-    mClusters->setItem(clusterId, 0, index);
+    mClusters->setItem(clusterId, COL_ID, index);
+
+    nlohmann::json classIdStr = cluster.clusterId;
+    auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
+    mClusters->setItem(clusterId, COL_ID_ENUM, itemEnum);
 
     auto *item = new QTableWidgetItem(cluster.name.data());
-    mClusters->setItem(clusterId, 1, item);
+    mClusters->setItem(clusterId, COL_NAME, item);
 
     auto *itemColor = new QTableWidgetItem(cluster.color.data());
-    mClusters->setItem(clusterId, 2, itemColor);
+    mClusters->setItem(clusterId, COL_COLOR, itemColor);
 
     auto *itemNotes = new QTableWidgetItem(cluster.notes.data());
-    mClusters->setItem(clusterId, 3, itemNotes);
+    mClusters->setItem(clusterId, COL_NOTES, itemNotes);
   }
 
   //
@@ -154,16 +169,20 @@ void PanelClassification::fromSettings(const joda::settings::ProjectSettings &se
     auto classId = static_cast<int32_t>(classs.classId);
     auto *index  = new QTableWidgetItem(QString::number(classId));
     index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-    mClasses->setItem(classId, 0, index);
+    mClasses->setItem(classId, COL_ID, index);
+
+    nlohmann::json classIdStr = classs.classId;
+    auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
+    mClasses->setItem(classId, COL_ID_ENUM, itemEnum);
 
     auto *item = new QTableWidgetItem(classs.name.data());
-    mClasses->setItem(classId, 1, item);
+    mClasses->setItem(classId, COL_NAME, item);
 
     auto *itemColor = new QTableWidgetItem(classs.color.data());
-    mClasses->setItem(classId, 2, itemColor);
+    mClasses->setItem(classId, COL_COLOR, itemColor);
 
     auto *itemNotes = new QTableWidgetItem(classs.notes.data());
-    mClasses->setItem(classId, 3, itemNotes);
+    mClasses->setItem(classId, COL_NOTES, itemNotes);
   }
 }
 
@@ -181,25 +200,25 @@ void PanelClassification::toSettings()
   //
   mSettings.clusters.clear();
   for(int row = 0; row < mClusters->rowCount(); row++) {
-    QTableWidgetItem *item = mClusters->item(row, 0);
+    QTableWidgetItem *item = mClusters->item(row, COL_ID);
     if(item == nullptr) {
       continue;
     }
     auto clusterId = static_cast<joda::enums::ClusterId>(item->text().toInt());
 
-    QTableWidgetItem *itemName = mClusters->item(row, 1);
+    QTableWidgetItem *itemName = mClusters->item(row, COL_NAME);
     if(itemName == nullptr || itemName->text().isEmpty()) {
       continue;
     }
     auto clusterName = itemName->text();
 
-    QTableWidgetItem *itemColor = mClusters->item(row, 2);
+    QTableWidgetItem *itemColor = mClusters->item(row, COL_COLOR);
     QString clusterColor;
     if(itemColor != nullptr && !itemColor->text().isEmpty()) {
       clusterColor = itemColor->text();
     }
 
-    QTableWidgetItem *itemNotes = mClusters->item(row, 3);
+    QTableWidgetItem *itemNotes = mClusters->item(row, COL_NOTES);
     QString clusterNotes;
     if(itemNotes != nullptr && !itemNotes->text().isEmpty()) {
       clusterNotes = itemNotes->text();
@@ -216,25 +235,25 @@ void PanelClassification::toSettings()
   //
   mSettings.classes.clear();
   for(int row = 0; row < mClasses->rowCount(); row++) {
-    QTableWidgetItem *item = mClasses->item(row, 0);
+    QTableWidgetItem *item = mClasses->item(row, COL_ID);
     if(item == nullptr) {
       continue;
     }
     auto classId = static_cast<joda::enums::ClassId>(item->text().toInt());
 
-    QTableWidgetItem *itemName = mClasses->item(row, 1);
+    QTableWidgetItem *itemName = mClasses->item(row, COL_NAME);
     if(itemName == nullptr || itemName->text().isEmpty()) {
       continue;
     }
     auto className = itemName->text();
 
-    QTableWidgetItem *itemColor = mClasses->item(row, 2);
+    QTableWidgetItem *itemColor = mClasses->item(row, COL_COLOR);
     QString classColor;
     if(itemColor != nullptr && !itemColor->text().isEmpty()) {
       classColor = itemColor->text();
     }
 
-    QTableWidgetItem *itemNotes = mClasses->item(row, 3);
+    QTableWidgetItem *itemNotes = mClasses->item(row, COL_NOTES);
     QString classNotes;
     if(itemNotes != nullptr && !itemNotes->text().isEmpty()) {
       classNotes = itemNotes->text();
@@ -257,6 +276,7 @@ void PanelClassification::toSettings()
 void PanelClassification::onSettingChanged()
 {
   toSettings();
+  emit settingsChanged();
 }
 
 }    // namespace joda::ui::qt

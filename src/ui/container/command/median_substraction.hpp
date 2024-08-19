@@ -43,7 +43,7 @@ public:
                                {23, "23x23"}},
                               parent, "median_background_subtraction.json"));
 
-    addSetting("Median subtraction", {mMedianBackgroundSubtraction});
+    addSetting("Median subtraction", "icons8-baseline-50.png", {mMedianBackgroundSubtraction});
   }
 
 private:

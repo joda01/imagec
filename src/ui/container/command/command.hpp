@@ -34,7 +34,7 @@ public:
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   }
 
-  void addSetting(const QString &title, const std::vector<std::shared_ptr<SettingBase>> &settings)
+  void addSetting(const QString &title, const QString &icon, const std::vector<std::shared_ptr<SettingBase>> &settings)
   {
     auto *col1 = mLayout.addVerticalPanel();
     col1->addGroup(settings, 800);

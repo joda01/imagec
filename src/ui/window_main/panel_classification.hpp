@@ -47,6 +47,12 @@ signals:
 
 private:
   /////////////////////////////////////////////////////
+  static constexpr int COL_ID      = 0;
+  static constexpr int COL_ID_ENUM = 1;
+  static constexpr int COL_NAME    = 2;
+  static constexpr int COL_COLOR   = 3;
+  static constexpr int COL_NOTES   = 4;
+
   static constexpr int NR_OF_CLUSTERS = 10;
   static constexpr int NR_OF_CLASSES  = 10;
   /////////////////////////////////////////////////////

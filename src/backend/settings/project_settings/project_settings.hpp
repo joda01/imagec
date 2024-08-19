@@ -47,11 +47,11 @@ public:
   //
   // Object clusters used in this project
   //
-  std::vector<Cluster> clusters{{.clusterId = joda::enums::ClusterId::A, .name = "CY3"},
-                                {.clusterId = joda::enums::ClusterId::B, .name = "CY5"},
-                                {.clusterId = joda::enums::ClusterId::C, .name = "CY7"},
-                                {.clusterId = joda::enums::ClusterId::D, .name = ""},
-                                {.clusterId = joda::enums::ClusterId::E, .name = ""}};
+  std::vector<Cluster> clusters{{.clusterId = joda::enums::ClusterId::A, .name = "CH0"},
+                                {.clusterId = joda::enums::ClusterId::B, .name = "CH1"},
+                                {.clusterId = joda::enums::ClusterId::C, .name = "CH2"},
+                                {.clusterId = joda::enums::ClusterId::D, .name = "CH3"},
+                                {.clusterId = joda::enums::ClusterId::E, .name = "CH4"}};
 
   //
   // Object classes used in this project
