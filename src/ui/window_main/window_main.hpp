@@ -96,6 +96,9 @@ public slots:
 
 private:
   /////////////////////////////////////////////////////
+  static constexpr int32_t LEFT_TOOLBAR_WIDTH = 400;    // 365
+
+  /////////////////////////////////////////////////////
   enum class Navigation
   {
     START_PAGE   = 0,

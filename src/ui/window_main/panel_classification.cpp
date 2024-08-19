@@ -278,6 +278,7 @@ void PanelClassification::toSettings()
 void PanelClassification::onSettingChanged()
 {
   toSettings();
+  mWindowMain->checkForSettingsChanged();
   emit settingsChanged();
 }
 

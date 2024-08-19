@@ -155,7 +155,7 @@ void WindowMain::createTopToolbar()
 void WindowMain::createLeftToolbar()
 {
   mSidebar = new QToolBar(this);
-  mSidebar->setMovable(true);
+  mSidebar->setMovable(false);
   auto *tabs = new QTabWidget(mSidebar);
 
   // Experiment Settings
@@ -215,7 +215,7 @@ void WindowMain::createLeftToolbar()
   }
 
   mSidebar->addWidget(tabs);
-  mSidebar->setMinimumWidth(365);
+  mSidebar->setMinimumWidth(LEFT_TOOLBAR_WIDTH);
   addToolBar(Qt::ToolBarArea::LeftToolBarArea, mSidebar);
 }
 
