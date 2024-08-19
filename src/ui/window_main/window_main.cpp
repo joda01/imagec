@@ -163,6 +163,12 @@ void WindowMain::createLeftToolbar()
     tabs->addTab(mPanelProjectSettings, "Project");
   }
 
+  // Classification tab
+  {
+    mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings, this);
+    tabs->addTab(mPanelClassification, "Classification");
+  }
+
   // Pipeline Tab
   {
     auto *pipelineTab = new QWidget();
@@ -347,6 +353,7 @@ void WindowMain::onNewProjectClicked()
   mAnalyzeSettingsOld = {};
   mPanelPipeline->clear();
   mPanelProjectSettings->fromSettings({});
+  mPanelClassification->fromSettings({});
   checkForSettingsChanged();
   onSaveProject();
 }
@@ -413,6 +420,7 @@ void WindowMain::openProjectSettings(const QString &filePath)
     }
 
     mPanelProjectSettings->fromSettings(analyzeSettings.projectSettings);
+    mPanelClassification->fromSettings(analyzeSettings.projectSettings);
 
     mAnalyzeSettings.projectSettings = analyzeSettings.projectSettings;
     mAnalyzeSettingsOld              = mAnalyzeSettings;

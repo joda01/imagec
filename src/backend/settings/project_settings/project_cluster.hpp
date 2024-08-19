@@ -31,14 +31,14 @@ struct Cluster
   std::string name;
 
   //
-  //  Further notes to the object class
-  //
-  std::string notes;
-
-  //
   //  Display color of the object class
   //
   std::string color;
+
+  //
+  //  Further notes to the object class
+  //
+  std::string notes;
 
   void check() const
   {

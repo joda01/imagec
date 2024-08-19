@@ -27,6 +27,7 @@
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/helper/clickablelabel.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
+#include "ui/window_main/panel_classification.hpp"
 #include "ui/window_main/panel_image.hpp"
 #include "ui/window_main/panel_pipeline.hpp"
 #include "ui/window_main/panel_project_settings.hpp"
@@ -129,6 +130,7 @@ private:
   ////Left Toolbar/////////////////////////////////////////////////
   QToolBar *mSidebar;
   PanelProjectSettings *mPanelProjectSettings;
+  PanelClassification *mPanelClassification;
   PanelPipeline *mPanelPipeline;
   PanelImages *mPanelImages;
   PanelResultsInfo *mPanelResultsInfo;
