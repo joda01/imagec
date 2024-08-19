@@ -27,7 +27,7 @@
 #include "ui/window_main/window_main.hpp"
 #include "container_giraf.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 using namespace std::chrono_literals;
 
@@ -68,4 +68,4 @@ QLabel *PanelGirafEdit::createTitle(const QString &title)
   return label;
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

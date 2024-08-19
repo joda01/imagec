@@ -25,7 +25,7 @@
 #include "ui/dialog_image_view/dialog_image_view.hpp"
 #include "ui/dialog_image_view/panel_image_view.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class PanelPreview : public QWidget
 {
@@ -80,4 +80,4 @@ private:
   DialogImageViewer mImageViewer;
   PanelImageView mPreviewLabel;
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

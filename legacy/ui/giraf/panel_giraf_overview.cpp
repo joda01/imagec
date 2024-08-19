@@ -20,7 +20,7 @@
 #include "ui/window_main/window_main.hpp"
 #include "container_giraf.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 PanelGirafOverview::PanelGirafOverview(WindowMain *wm, ContainerGiraf *parent) :
     mWindowMain(wm), mParentContainer(parent)
@@ -67,4 +67,4 @@ void PanelGirafOverview::mousePressEvent(QMouseEvent *event)
   }
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

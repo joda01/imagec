@@ -20,7 +20,7 @@
 #include "controller/controller.hpp"
 #include "panel_image_view.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \class      DialogImageViewer
@@ -101,4 +101,4 @@ private slots:
   void onTileClicked(int32_t tileX, int32_t tileY);
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

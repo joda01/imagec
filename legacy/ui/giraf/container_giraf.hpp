@@ -31,7 +31,7 @@
 #include "panel_giraf_edit.hpp"
 #include "panel_giraf_overview.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \class      ContainerGiraf
@@ -77,4 +77,4 @@ private:
   PanelGirafEdit *mPanelEdit;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

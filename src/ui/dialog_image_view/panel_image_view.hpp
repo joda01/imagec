@@ -22,7 +22,7 @@
 #include "backend/helper/image/image.hpp"
 #include <opencv2/core/types.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \class      PanelImageView
@@ -121,4 +121,4 @@ private:
 private slots:
   void onUpdateImage();
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

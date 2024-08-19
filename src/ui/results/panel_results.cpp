@@ -33,7 +33,7 @@
 #include <utility>
 #include "backend/helper/table/table.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief      Constructor
@@ -59,7 +59,7 @@ void PanelResults::setActive(bool active)
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *toolbar)
+void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 {
 }
 
@@ -184,4 +184,4 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
 {
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

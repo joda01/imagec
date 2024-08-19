@@ -31,7 +31,7 @@
 #include "ui/container/dialog_tooltip.hpp"
 #include "setting_base.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 template <typename T>
 struct is_enum
@@ -956,4 +956,4 @@ private slots:
   }
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

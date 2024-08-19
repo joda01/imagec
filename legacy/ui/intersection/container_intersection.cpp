@@ -26,7 +26,7 @@
 #include "panel_intersection_edit.hpp"
 #include "panel_intersection_overview.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief      Constructor
@@ -254,4 +254,4 @@ void ContainerIntersection::toSettings()
   }
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

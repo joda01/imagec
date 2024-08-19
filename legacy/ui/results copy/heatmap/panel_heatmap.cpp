@@ -43,7 +43,7 @@
 #include "ui/results/dialog_export_data.hpp"
 #include "ui/window_main/window_main.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief      Constructor
@@ -548,4 +548,4 @@ QString ChartHeatMap::formatDoubleScientific(double value, int precision)
   return formattedString;
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

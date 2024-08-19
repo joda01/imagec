@@ -14,7 +14,7 @@
 #include "layout_generator.hpp"
 #include <qwidget.h>
 
-namespace joda::ui::qt::helper {
+namespace joda::ui::helper {
 
 LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool withPanel) : mParent(parent)
 {
@@ -155,4 +155,4 @@ void LayoutGenerator::VerticalPane ::addGroup(const QString &title, const std::v
   addWidget(group);
 }
 
-}    // namespace joda::ui::qt::helper
+}    // namespace joda::ui::helper

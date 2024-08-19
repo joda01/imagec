@@ -27,7 +27,7 @@
 #include "ui/window_main/window_main.hpp"
 #include "container_voronoi.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 using namespace std::chrono_literals;
 
@@ -79,4 +79,4 @@ void PanelVoronoiEdit::valueChangedEvent()
   mParentContainer->toSettings();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

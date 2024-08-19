@@ -35,7 +35,7 @@
 #include "panel_giraf_edit.hpp"
 #include "panel_giraf_overview.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief      Constructor
@@ -78,4 +78,4 @@ void ContainerGiraf::toSettings()
 {
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

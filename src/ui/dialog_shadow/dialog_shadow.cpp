@@ -20,7 +20,7 @@
 #include <qwidget.h>
 #include <QtGui>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 DialogShadow::DialogShadow(QWidget *parent, bool showClose, const QString &closeButtonText) :
     QDialog(parent), mShowCloseButton(showClose), mCloseButtonString(closeButtonText)
@@ -52,4 +52,4 @@ void DialogShadow::onCloseWindow()
   close();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

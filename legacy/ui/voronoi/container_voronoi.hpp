@@ -27,7 +27,7 @@
 #include "panel_voronoi_edit.hpp"
 #include "panel_voronoi_overview.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \class      ContainerVoronoi
@@ -97,4 +97,4 @@ private:
   PanelVoronoiEdit *mPanelEdit;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

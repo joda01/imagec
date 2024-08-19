@@ -17,7 +17,7 @@
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief
@@ -169,4 +169,4 @@ void PanelPipeline::addChannel(const nlohmann::json &json)
   }
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

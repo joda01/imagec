@@ -22,7 +22,7 @@
 #include "ui/panel_preview.hpp"
 #include "panel_voronoi_overview.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class WindowMain;
 class ContainerVoronoi;
@@ -62,4 +62,4 @@ private:
   void valueChangedEvent() override;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

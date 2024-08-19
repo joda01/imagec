@@ -40,7 +40,7 @@
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json_fwd.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 struct Temp
 {
@@ -171,4 +171,4 @@ void DialogExportData::onCancelClicked()
   close();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

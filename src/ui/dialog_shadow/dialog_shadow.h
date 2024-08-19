@@ -24,7 +24,7 @@
 #include <thread>
 #include <nlohmann/json_fwd.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class DialogShadow : public QDialog
 {
@@ -59,4 +59,4 @@ private:
 private slots:
   void onCloseWindow();
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

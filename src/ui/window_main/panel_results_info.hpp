@@ -24,7 +24,7 @@
 #include "ui/container/container_base.hpp"
 #include "ui/helper/table_widget.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class WindowMain;
 
@@ -74,4 +74,4 @@ private:
 private slots:
   void filterResults();
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

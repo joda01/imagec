@@ -11,7 +11,7 @@
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include <nlohmann/json_fwd.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class DialogToolTip : public DialogShadow
 {
@@ -24,4 +24,4 @@ public:
 private slots:
   void onCloseClicked();
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

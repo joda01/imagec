@@ -18,7 +18,7 @@
 #include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/window_main/window_main.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief      Constructor
@@ -291,4 +291,4 @@ void PanelProjectSettings::applyRegex()
   onSettingChanged();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

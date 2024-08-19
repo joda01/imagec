@@ -20,7 +20,7 @@
 #include <nlohmann/json_fwd.hpp>
 #include "container_base.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief
@@ -101,4 +101,4 @@ void PanelEdit::onValueChanged()
 {
   valueChangedEvent();
 }
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

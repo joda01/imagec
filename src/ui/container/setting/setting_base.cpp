@@ -13,7 +13,7 @@
 
 #include "setting_base.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 SettingBase::SettingBase()
 {
@@ -24,4 +24,4 @@ void SettingBase::triggerValueChanged()
   emit valueChanged();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

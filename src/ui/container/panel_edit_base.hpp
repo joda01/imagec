@@ -19,7 +19,7 @@
 #include <mutex>
 #include "ui/helper/layout_generator.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class WindowMain;
 class ContainerBase;
@@ -60,4 +60,4 @@ public slots:
   void onCopyChannel();
   void onValueChanged();
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

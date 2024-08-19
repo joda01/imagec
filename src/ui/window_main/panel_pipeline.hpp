@@ -19,7 +19,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class WindowMain;
 class PanelPipelineSettings;
@@ -51,4 +51,4 @@ private:
   joda::settings::AnalyzeSettings &mAnalyzeSettings;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

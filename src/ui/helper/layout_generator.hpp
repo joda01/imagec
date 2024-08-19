@@ -31,7 +31,7 @@
 #include <qwidget.h>
 #include "ui/container/setting/setting_base.hpp"
 
-namespace joda::ui::qt::helper {
+namespace joda::ui::helper {
 
 class LayoutGenerator : public QObject
 {
@@ -103,4 +103,4 @@ private:
   QAction *mSpaceTopToolbar;
 };
 
-}    // namespace joda::ui::qt::helper
+}    // namespace joda::ui::helper

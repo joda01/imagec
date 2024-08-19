@@ -27,11 +27,11 @@
 #include "ui/panel_preview.hpp"
 #include "ui/window_main/panel_results_info.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 class WindowMain;
 }
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \class      PanelResults
@@ -99,7 +99,7 @@ private:
   // std::unique_ptr<joda::results::Analyzer> mAnalyzer;
 
   // Breadcrumb///////////////////////////////////////////////////
-  void createBreadCrump(joda::ui::qt::helper::LayoutGenerator *);
+  void createBreadCrump(joda::ui::helper::LayoutGenerator *);
   QPushButton *mBackButton;
   PanelPreview *mPreviewImage;
   QComboBox *mChannelSelector;
@@ -145,4 +145,4 @@ public slots:
   void onMeasurementChanged();
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

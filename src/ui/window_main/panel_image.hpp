@@ -20,7 +20,7 @@
 #include <utility>
 #include "ui/helper/table_widget.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class WindowMain;
 
@@ -55,4 +55,4 @@ private:
 private slots:
   void filterImages();
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

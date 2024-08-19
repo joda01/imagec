@@ -28,7 +28,7 @@
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class WindowMain;
 
@@ -46,7 +46,7 @@ public:
   PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings);
   ~PanelPipelineSettings();
 
-  void addPipelineStep(std::shared_ptr<joda::ui::qt::Command> command);
+  void addPipelineStep(std::shared_ptr<joda::ui::Command> command);
 
   void setActive(bool setActive) override
   {
@@ -129,4 +129,4 @@ private slots:
   void metaChangedEvent();
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

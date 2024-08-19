@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
   //  freopen("output.txt", "w", stdout);
 
   auto *controller = new joda::ctrl::Controller();
-  joda::ui::qt::WindowMain mainWindow(controller);
+  joda::ui::WindowMain mainWindow(controller);
 
   mainWindow.show();
 

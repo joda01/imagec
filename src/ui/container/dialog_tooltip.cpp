@@ -31,7 +31,7 @@
 #include <thread>
 #include <nlohmann/json.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QString &pathToHelpText) :
     DialogShadow(windowMain)
@@ -106,4 +106,4 @@ void DialogToolTip::onCloseClicked()
   close();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

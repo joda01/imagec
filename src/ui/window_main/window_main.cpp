@@ -55,7 +55,7 @@
 #include "build_info.h"
 #include "version.h"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 using namespace std::chrono_literals;
 
@@ -776,4 +776,4 @@ QString WindowMain::bytesToString(int64_t bytes)
   return QString::number(static_cast<double>(bytes) / 1.0, 'f', 2) + "  Byte";
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

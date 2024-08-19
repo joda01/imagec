@@ -45,7 +45,7 @@
 #include "ui/window_main/panel_results_info.hpp"
 #include "ui/window_main/window_main.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief      Constructor
@@ -87,7 +87,7 @@ void PanelResults::setActive(bool active)
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *toolbar)
+void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 {
   // Back button
   mBackButton = new QPushButton(QIcon(":/icons/outlined/icons8-left-50.png"), "");
@@ -141,7 +141,7 @@ void PanelResults::createBreadCrump(joda::ui::qt::helper::LayoutGenerator *toolb
   connect(exportData, &QPushButton::pressed, this, &PanelResults::onExportClicked);
   toolbar->addItemToTopToolbar(exportData);
 
-  connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::qt::PanelResultsInfo::settingsChanged, this,
+  connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::PanelResultsInfo::settingsChanged, this,
           &PanelResults::onMeasurementChanged);
 }
 
@@ -612,4 +612,4 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   }
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

@@ -16,7 +16,7 @@
 #include <QtWidgets>
 #include <memory>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class WindowMain;
 class PanelPipelineSettings;
@@ -34,4 +34,4 @@ private:
   WindowMain *mWindowMain;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

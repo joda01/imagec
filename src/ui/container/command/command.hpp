@@ -19,7 +19,7 @@
 #include "backend/commands/command.hpp"
 #include "ui/helper/layout_generator.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class Command : public QWidget
 {
@@ -67,4 +67,4 @@ private:
   }
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

@@ -26,7 +26,7 @@
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include <nlohmann/json_fwd.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class DialogExportData : public DialogShadow
 {
@@ -56,4 +56,4 @@ private slots:
   void onCancelClicked();
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

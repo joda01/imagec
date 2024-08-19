@@ -26,7 +26,7 @@
 #include <memory>
 #include <string>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief      Constructor
@@ -134,4 +134,4 @@ void PanelPreview::onTileClicked(int32_t tileX, int32_t tileY)
   emit tileClicked(tileX, tileY);
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

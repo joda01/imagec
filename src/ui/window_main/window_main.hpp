@@ -34,7 +34,7 @@
 #include "ui/window_main/panel_results_info.hpp"
 #include <nlohmann/json_fwd.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class ContainerChannel;
 class PanelResults;
@@ -166,4 +166,4 @@ private slots:
   void onOpenClicked();
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

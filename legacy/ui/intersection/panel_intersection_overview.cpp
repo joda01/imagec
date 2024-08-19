@@ -19,7 +19,7 @@
 #include "ui/window_main/window_main.hpp"
 #include "container_intersection.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 PanelIntersectionOverview::PanelIntersectionOverview(WindowMain *wm, ContainerIntersection *parent) :
     mWindowMain(wm), mParentContainer(parent)
@@ -75,4 +75,4 @@ void PanelIntersectionOverview::mousePressEvent(QMouseEvent *event)
   }
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

@@ -19,7 +19,7 @@
 #include "backend/helper/random_name_generator.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class WindowMain;
 
@@ -77,4 +77,4 @@ private slots:
   void onSettingChanged();
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

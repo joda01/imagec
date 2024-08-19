@@ -20,7 +20,7 @@
 #include "ui/helper/waitingspinnerwidget.hpp"
 #include "ui/panel_preview.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class WindowMain;
 class ContainerGiraf;
@@ -66,4 +66,4 @@ private:
   bool mIsActiveShown                         = false;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

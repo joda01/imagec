@@ -15,7 +15,7 @@
 
 #include <QtWidgets>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class SettingBase : public QWidget
 {
@@ -70,4 +70,4 @@ protected:
   void triggerValueChanged();
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

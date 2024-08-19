@@ -27,7 +27,7 @@
 #include "ui/window_main/window_main.hpp"
 #include "container_intersection.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 using namespace std::chrono_literals;
 
@@ -75,4 +75,4 @@ void PanelIntersectionEdit::valueChangedEvent()
   mParentContainer->toSettings();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

@@ -28,7 +28,7 @@
 #include "panel_intersection_edit.hpp"
 #include "panel_intersection_overview.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \class      ContainerIntersection
@@ -89,4 +89,4 @@ private:
   PanelIntersectionEdit *mPanelEdit;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

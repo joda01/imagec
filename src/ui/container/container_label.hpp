@@ -18,7 +18,7 @@
 #include <qpushbutton.h>
 #include "ui/container/container_function_base.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class ContainerLabel : public SettingBase
 {
@@ -59,4 +59,4 @@ private:
   QLabel *mLabel;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

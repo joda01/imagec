@@ -21,7 +21,7 @@
 #include <thread>
 #include "ui/dialog_shadow/dialog_shadow.h"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 using namespace std::chrono_literals;
 
@@ -213,4 +213,4 @@ std::tuple<double, std::string> DialogAnalyzeRunning::exponentForTime(double tim
   return {timeMs, " ms"};
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

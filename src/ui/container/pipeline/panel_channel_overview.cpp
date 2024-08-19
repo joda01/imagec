@@ -18,7 +18,7 @@
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/window_main/window_main.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings *parent) :
     mWindowMain(wm), mParentContainer(parent)
@@ -72,4 +72,4 @@ void PanelChannelOverview::mousePressEvent(QMouseEvent *event)
   }
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

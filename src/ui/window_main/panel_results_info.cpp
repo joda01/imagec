@@ -20,7 +20,7 @@
 #include "ui/results/panel_results.hpp"
 #include "ui/window_main/window_main.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowMain)
 {
@@ -268,4 +268,4 @@ void PanelResultsInfo::setData(const DataSet &data)
   mResultsProperties->setRowCount(row);
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

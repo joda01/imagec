@@ -24,7 +24,7 @@
 #include <thread>
 #include "backend/helper/image/image.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 using namespace std::chrono_literals;
 
@@ -462,4 +462,4 @@ void DialogImageViewer::onTileClicked(int32_t tileX, int32_t tileY)
   emit tileClicked(tileX, tileY);
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

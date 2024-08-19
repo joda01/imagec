@@ -21,7 +21,7 @@
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include "ui/window_main/window_main.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class DialogAnalyzeRunning : public DialogShadow
 {
@@ -63,4 +63,4 @@ private slots:
   void onOpenResultsFolderClicked();
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

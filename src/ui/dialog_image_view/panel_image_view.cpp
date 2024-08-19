@@ -21,7 +21,7 @@
 #include "backend/helper/image/image.hpp"
 #include <opencv2/imgproc.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ////////////////////////////////////////////////////////////////
 // Image view section
@@ -573,4 +573,4 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
   update();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

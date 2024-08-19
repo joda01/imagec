@@ -23,7 +23,7 @@
 #include "ui/results/panel_results.hpp"
 #include "ui/window_main/window_main.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 PanelClassification::PanelClassification(joda::settings::ProjectSettings &settings, WindowMain *windowMain) :
     mWindowMain(windowMain), mSettings(settings)
@@ -282,4 +282,4 @@ void PanelClassification::onSettingChanged()
   emit settingsChanged();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

@@ -17,7 +17,7 @@
 #include <qpushbutton.h>
 #include "ui/container/container_function_base.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class ContainerButton : public SettingBase
 {
@@ -61,4 +61,4 @@ private:
   QPushButton *mButton;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

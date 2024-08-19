@@ -19,7 +19,7 @@
 #include "ui/window_main/window_main.hpp"
 #include "container_voronoi.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 PanelVoronoiOverview::PanelVoronoiOverview(WindowMain *wm, ContainerVoronoi *parent) :
     mWindowMain(wm), mParentContainer(parent)
@@ -74,4 +74,4 @@ void PanelVoronoiOverview::mousePressEvent(QMouseEvent *event)
   }
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

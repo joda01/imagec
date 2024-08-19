@@ -19,7 +19,7 @@
 #include <string>
 #include "ui/window_main/window_main.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
 {
@@ -246,4 +246,4 @@ void PanelImages::updateImageMeta()
   emit imageSelectionChanged(-1, 0);
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

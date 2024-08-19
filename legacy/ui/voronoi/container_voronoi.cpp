@@ -26,7 +26,7 @@
 #include "panel_voronoi_edit.hpp"
 #include "panel_voronoi_overview.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief      Constructor
@@ -303,4 +303,4 @@ void ContainerVoronoi::toSettings()
   }
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

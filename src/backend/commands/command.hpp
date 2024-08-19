@@ -25,6 +25,7 @@ class Command
 {
 public:
   void operator()(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result);
+  virtual void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) = 0;
 
 protected:
   void TRACE(const std::string &what)
@@ -53,7 +54,6 @@ protected:
 
 private:
   void preCommandStep(const processor::ProcessContext &context);
-  virtual void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) = 0;
   void postCommandStep(const processor::ProcessContext &context);
 };
 

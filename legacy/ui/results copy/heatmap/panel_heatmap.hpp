@@ -21,7 +21,7 @@
 #include "backend/helper/table/table.hpp"
 #include "heatmap_color_generator.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class PanelResults;
 
@@ -134,4 +134,4 @@ private:
   QImage mActControlImage;
   bool mIsHovering = false;
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

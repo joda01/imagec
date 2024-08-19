@@ -14,21 +14,21 @@
 
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
+#include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting.hpp"
 #include "ui/helper/layout_generator.hpp"
+#include "median_substraction_settings.hpp"
 
-#include "command.hpp"
+namespace joda::ui {
 
-namespace joda::ui::qt {
-
-class CommandMedianSubtract : public Command
+class MedianSubtract : public Command
 {
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Median subtraction";
   inline static std::string ICON  = "icons8-baseline-50.png";
 
-  CommandMedianSubtract(settings::PipelineStep &settings, QWidget *parent) : Command(parent)
+  MedianSubtract(settings::MedianSubtractSettings &settings, QWidget *parent) : Command(parent)
   {
     mMedianBackgroundSubtraction = std::shared_ptr<Setting<int, int>>(
         new Setting<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,
@@ -46,8 +46,8 @@ public:
                                {21, "21x21"},
                                {23, "23x23"}},
                               parent, "median_background_subtraction.json"));
-    mMedianBackgroundSubtraction->setValue(settings.$medianSubtract->kernelSize);
-    mMedianBackgroundSubtraction->connectWithSetting(&settings.$medianSubtract->kernelSize, nullptr);
+    mMedianBackgroundSubtraction->setValue(settings.kernelSize);
+    mMedianBackgroundSubtraction->connectWithSetting(&settings.kernelSize, nullptr);
 
     addSetting(TITLE.data(), ICON.data(), {mMedianBackgroundSubtraction});
   }
@@ -57,4 +57,4 @@ private:
   std::shared_ptr<Setting<int, int>> mMedianBackgroundSubtraction;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

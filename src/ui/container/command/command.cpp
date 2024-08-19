@@ -12,7 +12,7 @@
 
 #include "command.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 Command::Command(QWidget *parent) :
     mParent(parent), mLayout(&mEditView, false, false), mDisplayViewLayout(this), mEditDialog(parent)
@@ -63,4 +63,4 @@ void Command::addSetting(const QString &title, const QString &icon,
   mEditDialog.setWindowTitle(title);
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

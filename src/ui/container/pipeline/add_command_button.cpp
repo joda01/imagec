@@ -12,7 +12,7 @@
 
 #include "add_command_button.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 AddCommandButtonBase::AddCommandButtonBase()
 {
@@ -23,4 +23,4 @@ void AddCommandButtonBase::onAddCommandClicked()
 {
   addCommandClicked();
 }
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

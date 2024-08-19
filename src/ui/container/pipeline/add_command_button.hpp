@@ -17,10 +17,10 @@
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "panel_pipeline_settings.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 template <class T>
-concept command_t = ::std::is_base_of<joda::ui::qt::Command, T>::value;
+concept command_t = ::std::is_base_of<joda::ui::Command, T>::value;
 
 template <class T>
 concept pipelinestep_t = ::std::is_base_of<joda::settings::PipelineStep, T>::value;
@@ -64,9 +64,10 @@ public:
 
   std::shared_ptr<CMD> createCommand()
   {
-    mSettings.pipelineSteps.push_back(mStepTemplate);
-    auto &cmdSetting = mSettings.pipelineSteps.back();
-    return std::make_shared<CMD>(cmdSetting, mParent);
+    // mSettings.pipelineSteps.push_back(mStepTemplate);
+    // auto &cmdSetting = mSettings.pipelineSteps.back();
+    // return std::make_shared<CMD>(cmdSetting, mParent);
+    return nullptr;
   }
 
 private:
@@ -82,4 +83,4 @@ private:
   settings::PipelineStep mStepTemplate;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui
