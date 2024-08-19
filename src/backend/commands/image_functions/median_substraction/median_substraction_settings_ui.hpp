@@ -21,14 +21,14 @@
 
 namespace joda::ui {
 
-class MedianSubtract : public Command
+class MedianSubtraction : public Command
 {
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Median subtraction";
   inline static std::string ICON  = "icons8-baseline-50.png";
 
-  MedianSubtract(settings::MedianSubtractSettings &settings, QWidget *parent) : Command(parent)
+  MedianSubtraction(settings::MedianSubtractSettings &settings, QWidget *parent) : Command(parent)
   {
     mMedianBackgroundSubtraction = std::shared_ptr<Setting<int, int>>(
         new Setting<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,

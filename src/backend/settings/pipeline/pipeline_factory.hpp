@@ -25,6 +25,7 @@
 #include "backend/commands/image_functions/margin_crop/margin_crop.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction.hpp"
+#include "backend/commands/image_functions/median_substraction/median_substraction_settings_ui.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings_ui.hpp"
@@ -146,6 +147,8 @@ public:
         return std::make_shared<joda::cmd::Factory<joda::cmd::MedianSubtraction, MedianSubtractSettings>>(
             step.$medianSubtract.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::make_shared<joda::ui::Factory<joda::ui::MedianSubtraction, MedianSubtractSettings>>(
+            const_cast<MedianSubtractSettings &>(step.$medianSubtract.value()), parent);
       }
     }
 
