@@ -33,9 +33,8 @@ public:
              {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}},
             parent, "rolling_ball.json"));
 
-    mBallSize = std::shared_ptr<Setting<int32_t, int32_t>>(
-        new Setting<int, int32_t>("", "[0 - " + QString::number(INT32_MAX) + "]", "Ball size", "px", std::nullopt, 0,
-                                  INT32_MAX, parent, "rolling_ball.json"));
+    mBallSize = std::shared_ptr<Setting<int32_t, int32_t>>(new Setting<int, int32_t>(
+        "", "[0 - " + QString::number(INT32_MAX) + "]", "Ball size", "px", std::nullopt, 0, INT32_MAX, parent, ""));
 
     addSetting("Rolling ball", {mBallType, mBallSize});
   }
