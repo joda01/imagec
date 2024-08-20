@@ -26,7 +26,7 @@ Command::Command(QWidget *parent) :
 }
 
 void Command::addSetting(const QString &title, const QString &icon,
-                         const std::map<std::shared_ptr<SettingBase>, bool> &settings)
+                         const std::vector<std::pair<std::shared_ptr<SettingBase>, bool>> &settings)
 {
   auto convert = [&]() {
     std::vector<std::shared_ptr<SettingBase>> vec;

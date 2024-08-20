@@ -50,16 +50,16 @@ public:
     //
     //
     //
-    mThresholdValueMin = std::shared_ptr<Setting<uint16_t, uint16_t>>(new Setting<uint16_t, uint16_t>(
-        "icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "px", 1000, 0, 65535, parent, ""));
+    mThresholdValueMin = std::shared_ptr<Setting<uint16_t, uint16_t>>(
+        new Setting<uint16_t, uint16_t>("", "[0 - 65535]", "Min. threshold", "min.", 1000, 0, 65535, parent, ""));
     mThresholdValueMin->setValue(settings.thresholdMin);
     mThresholdValueMin->connectWithSetting(&settings.thresholdMin, nullptr);
 
     //
     //
     //
-    mThresholdValueMax = std::shared_ptr<Setting<uint16_t, uint16_t>>(new Setting<uint16_t, uint16_t>(
-        "icons8-grayscale-50.png", "[0 - 65535]", "Min. threshold", "px", 65535, 0, 65535, parent, ""));
+    mThresholdValueMax = std::shared_ptr<Setting<uint16_t, uint16_t>>(
+        new Setting<uint16_t, uint16_t>("", "[0 - 65535]", "Max. threshold", "max.", 65535, 0, 65535, parent, ""));
     mThresholdValueMax->setValue(settings.thresholdMax);
     mThresholdValueMax->connectWithSetting(&settings.thresholdMax, nullptr);
 

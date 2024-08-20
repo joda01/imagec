@@ -29,7 +29,7 @@ public:
   Command(QWidget *parent);
 
   void addSetting(const QString &title, const QString &icon,
-                  const std::map<std::shared_ptr<SettingBase>, bool> &settings);
+                  const std::vector<std::pair<std::shared_ptr<SettingBase>, bool>> &settings);
   auto getDisplayWidget() const -> const QWidget *
   {
     return this;
