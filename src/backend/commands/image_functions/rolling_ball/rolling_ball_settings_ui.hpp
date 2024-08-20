@@ -44,7 +44,7 @@ public:
     mBallType->connectWithSetting(&settings.ballType, nullptr);
     mBallSize->connectWithSetting(&settings.ballSize, nullptr);
 
-    addSetting(TITLE.data(), ICON.data(), {mBallType, mBallSize});
+    addSetting(TITLE.data(), ICON.data(), {{mBallType, true}, {mBallSize, true}});
   }
 
 private:

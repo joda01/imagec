@@ -19,6 +19,7 @@
 #include "backend/commands/command.hpp"
 #include "backend/commands/factory.hpp"
 #include "backend/commands/image_functions/blur/blur.hpp"
+#include "backend/commands/image_functions/blur/blur_settings_ui.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
@@ -30,6 +31,7 @@
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings_ui.hpp"
 #include "backend/commands/image_functions/threshold/threshold.hpp"
+#include "backend/commands/image_functions/threshold/threshold_settings_ui.hpp"
 #include "backend/commands/image_functions/watershed/watershed.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization.hpp"
 #include "backend/commands/object_functions/intersection/intersection.hpp"
@@ -62,6 +64,8 @@ public:
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_shared<joda::cmd::Factory<joda::cmd::Blur, BlurSettings>>(step.$blur.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::make_shared<joda::ui::Factory<joda::ui::Blur, BlurSettings>>(
+            const_cast<BlurSettings &>(step.$blur.value()), parent);
       }
     }
 
@@ -76,6 +80,8 @@ public:
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_shared<joda::cmd::Factory<joda::cmd::Threshold, ThresholdSettings>>(step.$threshold.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::make_shared<joda::ui::Factory<joda::ui::Threshold, ThresholdSettings>>(
+            const_cast<ThresholdSettings &>(step.$threshold.value()), parent);
       }
     }
 

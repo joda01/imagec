@@ -11,6 +11,7 @@
 ///
 
 #include "command.hpp"
+#include <algorithm>
 
 namespace joda::ui {
 
@@ -25,14 +26,22 @@ Command::Command(QWidget *parent) :
 }
 
 void Command::addSetting(const QString &title, const QString &icon,
-                         const std::vector<std::shared_ptr<SettingBase>> &settings)
+                         const std::map<std::shared_ptr<SettingBase>, bool> &settings)
 {
+  auto convert = [&]() {
+    std::vector<std::shared_ptr<SettingBase>> vec;
+    std::transform(settings.begin(), settings.end(), std::back_inserter(vec), [](auto &kv) { return kv.first; });
+    return vec;
+  };
+
   auto *col1 = mLayout.addVerticalPanel();
-  col1->addGroup(settings, 800);
+  col1->addGroup(convert(), 800);
 
   int cnt = 2;
-  for(const auto &setting : settings) {
-    mDisplayViewLayout.addWidget(setting->getLabelWidget(), cnt / 2, cnt % 2);
+  for(const auto &[setting, show] : settings) {
+    if(show) {
+      mDisplayViewLayout.addWidget(setting->getLabelWidget(), cnt / 2, cnt % 2);
+    }
     connect(setting.get(), &SettingBase::valueChanged, this, &Command::valueChanged);
     cnt++;
   }

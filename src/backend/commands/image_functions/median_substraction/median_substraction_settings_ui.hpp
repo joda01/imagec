@@ -49,7 +49,7 @@ public:
     mMedianBackgroundSubtraction->setValue(settings.kernelSize);
     mMedianBackgroundSubtraction->connectWithSetting(&settings.kernelSize, nullptr);
 
-    addSetting(TITLE.data(), ICON.data(), {mMedianBackgroundSubtraction});
+    addSetting(TITLE.data(), ICON.data(), {{mMedianBackgroundSubtraction, true}});
   }
 
 private:
