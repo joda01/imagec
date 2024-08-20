@@ -33,6 +33,7 @@
 #include "backend/commands/image_functions/threshold/threshold.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings_ui.hpp"
 #include "backend/commands/image_functions/watershed/watershed.hpp"
+#include "backend/commands/image_functions/watershed/watershed_settings_ui.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization.hpp"
 #include "backend/commands/object_functions/intersection/intersection.hpp"
 #include "backend/commands/object_functions/intersection/intersection_settings.hpp"
@@ -89,6 +90,8 @@ public:
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_shared<joda::cmd::Factory<joda::cmd::Watershed, WatershedSettings>>(step.$watershed.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::make_shared<joda::ui::Factory<joda::ui::Watershed, WatershedSettings>>(
+            const_cast<WatershedSettings &>(step.$watershed.value()), parent);
       }
     }
 

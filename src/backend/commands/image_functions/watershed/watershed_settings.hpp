@@ -23,15 +23,14 @@ namespace joda::settings {
 struct WatershedSettings
 {
   //
-  // Which threshold algorithm should be used
-  // [MANUAL, LI, MIN_ERROR, TRIANGLE]
+  //
   //
   float maximumFinderTolerance = 0.5f;
 
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(maximumFinderTolerance > 0 && maximumFinderTolerance <= 1, "Maximum finder tolerance mut be in range [0-1]");
+    CHECK(maximumFinderTolerance >= 0 && maximumFinderTolerance <= 1, "Maximum finder tolerance mut be in range [0-1]");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(WatershedSettings, maximumFinderTolerance);

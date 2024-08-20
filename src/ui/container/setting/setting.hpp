@@ -106,8 +106,8 @@ public:
   Setting(const QString &icon, const QString &placeHolderText, const QString &helpText, const QString &unit,
           std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options, QWidget *parent,
           const QString &pathToHelpFile = "")
-    requires std::same_as<VALUE_T, std::string> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
-                 std::same_as<VALUE_T, uint16_t> || std::is_enum<VALUE_T>::value
+    requires std::same_as<VALUE_T, std::string> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, float> ||
+                 std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, uint16_t> || std::is_enum<VALUE_T>::value
       : mUnit(unit), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
     createDisplayAbleWidget(icon, placeHolderText, helpText);
@@ -119,8 +119,8 @@ public:
           std::optional<VALUE_T> defaultVal, const std::vector<ComboEntry> &options,
           const std::vector<ComboEntry2> &optionsSecond, const VALUE2_T &comboSecondDefault, QWidget *parent,
           const QString &pathToHelpFile = "")
-    requires std::same_as<VALUE_T, std::string> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
-                 std::same_as<VALUE_T, uint16_t> || std::is_enum<VALUE_T>::value
+    requires std::same_as<VALUE_T, std::string> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint16_t> ||
+                 std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, uint16_t> || std::is_enum<VALUE_T>::value
       :
       mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault), mParent(parent),
       mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
@@ -685,7 +685,8 @@ private:
                             std::optional<VALUE_T> defaultVal, VALUE_T min, VALUE_T max, const QString &unit,
                             const std::vector<ComboEntry2> &optionsSecond)
     requires std::same_as<VALUE_T, std::string> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
-             std::same_as<VALUE_T, uint16_t> || std::same_as<VALUE_T, bool> || std::is_enum<VALUE_T>::value
+             std::same_as<VALUE_T, float> || std::same_as<VALUE_T, uint16_t> || std::same_as<VALUE_T, bool> ||
+             std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
     mEditable->setContentsMargins(0, 0, 0, 0);
@@ -753,7 +754,8 @@ private:
                             const QString &unit, const std::vector<ComboEntry> &options,
                             const std::vector<ComboEntry2> &optionsSecond, const std::optional<VALUE_T> &defaultVal)
     requires std::same_as<VALUE_T, std::string> || std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> ||
-             std::same_as<VALUE_T, uint16_t> || std::same_as<VALUE_T, bool> || std::is_enum<VALUE_T>::value
+             std::same_as<VALUE_T, float> || std::same_as<VALUE_T, uint16_t> || std::same_as<VALUE_T, bool> ||
+             std::is_enum<VALUE_T>::value
   {
     mEditable = new QWidget();
     mEditable->setContentsMargins(0, 0, 0, 0);

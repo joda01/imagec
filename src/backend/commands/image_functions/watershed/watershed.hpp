@@ -40,6 +40,9 @@ public:
   virtual ~Watershed() = default;
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
+    if(mSettings.maximumFinderTolerance <= 0) {
+      return;
+    }
     image.convertTo(image, CV_8UC1, 1.0F / 257.0F);
     auto floatEdm = joda::image::func::Edm::makeFloatEDM(image, 0, false);
     joda::image::func::MaximumFinder find;
