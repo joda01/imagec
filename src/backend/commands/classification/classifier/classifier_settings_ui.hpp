@@ -35,13 +35,13 @@ public:
   inline static std::string ICON  = "icons8-genealogy-50.png";
 
   Classifier(settings::ClassifierSettings &settings, QWidget *parent) :
-      Command(parent), mSettings(settings), mParent(parent)
+      Command(TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
   {
     for(auto &classifierSetting : settings.classifiers) {
-      classifiers.emplace_back(classifierSetting, *this, parent);
+      auto *tab = addTab("Class", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
+      classifiers.emplace_back(classifierSetting, *this, tab, parent);
     }
 
-    addFooter(TITLE.data(), ICON.data());
     auto *addClassifier = addActionButton("Add class", "icons8-genealogy-50.png");
     connect(addClassifier, &QAction::triggered, this, &Classifier::addClassifier);
   }
@@ -50,7 +50,8 @@ private:
   /////////////////////////////////////////////////////
   struct ClassifierFilter
   {
-    ClassifierFilter(settings::ClassifierFilter &settings, Classifier &outer, QWidget *parent) : outer(outer)
+    ClassifierFilter(settings::ClassifierFilter &settings, Classifier &outer, helper::TabWidget *tab, QWidget *parent) :
+        outer(outer), tab(tab)
     {
       //
       //
@@ -67,7 +68,7 @@ private:
 
       //
       //
-      mMinParticleSize = std::shared_ptr<Setting<int32_t, int32_t>>(
+      mMinParticleSize = std::unique_ptr<Setting<int32_t, int32_t>>(
           new Setting<int, int32_t>("", "[0 - " + QString::number(INT32_MAX) + "]", "Min particle size", "px",
                                     std::nullopt, 0, INT32_MAX, parent, ""));
       mMinParticleSize->setValue(settings.minParticleSize);
@@ -75,7 +76,7 @@ private:
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
-      mMaxParticleSize = std::shared_ptr<Setting<int32_t, int32_t>>(
+      mMaxParticleSize = std::unique_ptr<Setting<int32_t, int32_t>>(
           new Setting<int, int32_t>("", "[0 - " + QString::number(INT32_MAX) + "]", "Max particle size", "px",
                                     std::nullopt, 0, INT32_MAX, parent, ""));
       mMaxParticleSize->setValue(settings.maxParticleSize);
@@ -84,33 +85,42 @@ private:
 
       //
       //
-      mMinCircularity = std::shared_ptr<Setting<float, int32_t>>(
+      mMinCircularity = std::unique_ptr<Setting<float, int32_t>>(
           new Setting<float, int32_t>("", "[0 - 1]", "Min circularity", "%", std::nullopt, 0, 1, parent, ""));
       mMinCircularity->setValue(settings.minCircularity);
       mMinCircularity->connectWithSetting(&settings.minCircularity, nullptr);
       mMinCircularity->setShortDescription("Circ. ");
 
-      outer.addSetting("Filter", {{mClusterOut, false},
-                                  {mClassOut, true},
-                                  {mMinCircularity, true},
-                                  {mMinParticleSize, true},
-                                  {mMaxParticleSize, true}});
+      outer.addSetting(tab, "Filter",
+                       {{mClusterOut.get(), false},
+                        {mClassOut.get(), true},
+                        {mMinCircularity.get(), true},
+                        {mMinParticleSize.get(), true},
+                        {mMaxParticleSize.get(), true}});
     }
 
-    std::shared_ptr<Setting<enums::ClusterIdIn, int>> mClusterOut;
-    std::shared_ptr<Setting<enums::ClassId, int>> mClassOut;
+    ~ClassifierFilter()
+    {
+      outer.removeSetting({mClusterOut.get(), mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
+                           mMinCircularity.get(), mSnapAreaSize.get()});
+    }
 
-    std::shared_ptr<Setting<int, int>> mMinParticleSize;
-    std::shared_ptr<Setting<int, int>> mMaxParticleSize;
-    std::shared_ptr<Setting<float, int>> mMinCircularity;
-    std::shared_ptr<Setting<float, int>> mSnapAreaSize;
+    std::unique_ptr<Setting<enums::ClusterIdIn, int>> mClusterOut;
+    std::unique_ptr<Setting<enums::ClassId, int>> mClassOut;
+
+    std::unique_ptr<Setting<int, int>> mMinParticleSize;
+    std::unique_ptr<Setting<int, int>> mMaxParticleSize;
+    std::unique_ptr<Setting<float, int>> mMinCircularity;
+    std::unique_ptr<Setting<float, int>> mSnapAreaSize;
 
     Classifier &outer;
+    helper::TabWidget *tab;
   };
 
   struct ObjectClass
   {
-    ObjectClass(settings::ObjectClass &settings, Classifier &outer, QWidget *parent) : outer(outer)
+    ObjectClass(settings::ObjectClass &settings, Classifier &outer, helper::TabWidget *tab, QWidget *parent) :
+        outer(outer), tab(tab), mSettings(settings)
     {
       //
       //
@@ -126,32 +136,64 @@ private:
 
       //
       //
-      mGrayScaleValue = std::shared_ptr<Setting<int32_t, int32_t>>(
+      mGrayScaleValue = std::unique_ptr<Setting<int32_t, int32_t>>(
           new Setting<int, int32_t>("icons8-genealogy-50.png", "[1 - " + QString::number(UINT16_MAX) + "]",
                                     "Grayscale value", "", std::nullopt, 1, UINT16_MAX, parent, ""));
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId, nullptr);
       mGrayScaleValue->setShortDescription("Cls.");
 
-      auto *col = outer.addSetting("Classification", {{mGrayScaleValue, false}});
-      outer.addSetting("No match handling", {{mClusterOutNoMatch, false}, {mClassOutNoMatch, false}}, col);
+      auto *col = outer.addSetting(tab, "Classification", {{mGrayScaleValue.get(), false}});
+      outer.addSetting(tab, "No match handling", {{mClusterOutNoMatch.get(), false}, {mClassOutNoMatch.get(), false}},
+                       col);
 
       for(auto &filter : settings.filters) {
-        mClassifyFilter.emplace_back(filter, outer, parent);
+        mClassifyFilter.emplace_back(filter, outer, tab, parent);
       }
     }
 
-    std::shared_ptr<Setting<enums::ClusterIdIn, int>> mClusterOutNoMatch;
-    std::shared_ptr<Setting<enums::ClassId, int>> mClassOutNoMatch;
-    std::shared_ptr<Setting<int, int>> mGrayScaleValue;
+    ~ObjectClass()
+    {
+      outer.removeSetting({mClusterOutNoMatch.get(), mClassOutNoMatch.get()});
+    }
+
+    std::unique_ptr<Setting<enums::ClusterIdIn, int>> mClusterOutNoMatch;
+    std::unique_ptr<Setting<enums::ClassId, int>> mClassOutNoMatch;
+    std::unique_ptr<Setting<int, int>> mGrayScaleValue;
 
     std::list<ClassifierFilter> mClassifyFilter;
     Classifier &outer;
+    helper::TabWidget *tab;
+    settings::ObjectClass &mSettings;
   };
 
   std::list<ObjectClass> classifiers;
   settings::ClassifierSettings &mSettings;
   QWidget *mParent;
+
+  void removeObjectClass(settings::ObjectClass *obj)
+  {
+    {
+      auto it = mSettings.classifiers.begin();
+      for(; it != mSettings.classifiers.end(); it++) {
+        if(&(*it) == obj) {
+          mSettings.classifiers.erase(it);
+          break;
+        }
+      }
+    }
+
+    {
+      auto it = classifiers.begin();
+      for(; it != classifiers.end(); it++) {
+        if(&(it->mSettings) == obj) {
+          classifiers.erase(it);
+          break;
+        }
+      }
+    }
+    updateDisplayText();
+  }
 
   /////////////////////////////////////////////////////
 private slots:
@@ -160,7 +202,8 @@ private slots:
     settings::ObjectClass objClass;
     objClass.modelClassId = 65535;
     auto &ret             = mSettings.classifiers.emplace_back(objClass);
-    classifiers.emplace_back(ret, *this, mParent);
+    auto *tab             = addTab("Class", [this, &ret] { removeObjectClass(&ret); });
+    classifiers.emplace_back(ret, *this, tab, mParent);
     updateDisplayText();
   }
 };

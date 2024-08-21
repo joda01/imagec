@@ -28,7 +28,7 @@ public:
   inline static std::string TITLE = "Threshold";
   inline static std::string ICON  = "icons8-grayscale-50.png";
 
-  Threshold(settings::ThresholdSettings &settings, QWidget *parent) : Command(parent)
+  Threshold(settings::ThresholdSettings &settings, QWidget *parent) : Command(TITLE.data(), ICON.data(), parent)
   {
     //
     //
@@ -65,8 +65,7 @@ public:
     mThresholdValueMax->setShortDescription("Max.: ");
     mThresholdValueMax->connectWithSetting(&settings.thresholdMax, nullptr);
 
-    addSetting(TITLE.data(), ICON.data(),
-               {{mThresholdAlgorithm, true}, {mThresholdValueMin, true}, {mThresholdValueMax, true}});
+    addSetting({{mThresholdAlgorithm.get(), true}, {mThresholdValueMin.get(), true}, {mThresholdValueMax.get(), true}});
   }
 
 private:

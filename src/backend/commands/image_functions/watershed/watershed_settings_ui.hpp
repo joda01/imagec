@@ -28,7 +28,7 @@ public:
   inline static std::string TITLE = "Watershed";
   inline static std::string ICON  = "icons8-split-50";
 
-  Watershed(settings::WatershedSettings &settings, QWidget *parent) : Command(parent)
+  Watershed(settings::WatershedSettings &settings, QWidget *parent) : Command(TITLE.data(), ICON.data(), parent)
   {
     mFindTolerance = std::shared_ptr<Setting<float, int>>(new Setting<float, int>("icons8-split-50", "Find tolerance",
                                                                                   "Find tolerance", "%", 0.5,
@@ -44,9 +44,7 @@ public:
 
     mFindTolerance->setValue(settings.maximumFinderTolerance);
     mFindTolerance->connectWithSetting(&settings.maximumFinderTolerance, nullptr);
-    std::cout << "W-->" << std::endl;
-    addSetting(TITLE.data(), ICON.data(), {{mFindTolerance, true}});
-    std::cout << "W--<" << std::endl;
+    addSetting({{mFindTolerance.get(), true}});
   }
 
 private:

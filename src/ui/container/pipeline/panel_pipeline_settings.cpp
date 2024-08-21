@@ -50,14 +50,15 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 {
   setObjectName("PanelPipelineSettings");
   createSettings(wm);
-
+  auto *tab = mLayout.addTab("", [] {});
   {
-    auto *col1 = mLayout.addVerticalPanel();
-    col1->addGroup("Pipeline setup", {mPipelineName, mDefaultClusterId, mCStackIndex, mZProjection});
+    auto *col1 = tab->addVerticalPanel();
+    col1->addGroup("Pipeline setup",
+                   {mPipelineName.get(), mDefaultClusterId.get(), mCStackIndex.get(), mZProjection.get()});
   }
 
   {
-    auto *col2 = mLayout.addVerticalPanel();
+    auto *col2 = tab->addVerticalPanel();
 
     QScrollArea *scrollArea = new QScrollArea();
     scrollArea->setFrameStyle(0);
@@ -82,15 +83,15 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     contentWidget->setLayout(mPipelineSteps);
     scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    col2->addGroup("Pipeline steps", {scrollArea});
+    col2->addWidgetGroup("Pipeline steps", {scrollArea});
   }
 
   {
-    auto *col3 = mLayout.addVerticalPanel();
+    auto *col3 = tab->addVerticalPanel();
   }
 
   {
-    auto *col4    = mLayout.addVerticalPanel();
+    auto *col4    = tab->addVerticalPanel();
     mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
     mPreviewImage->setContentsMargins(0, 0, 0, 0);
     mPreviewImage->resetImage("");

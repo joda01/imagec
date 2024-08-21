@@ -16,29 +16,46 @@
 #include <qboxlayout.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
+#include <memory>
+#include <thread>
 #include "../setting/setting_base.hpp"
 #include "backend/commands/command.hpp"
 #include "ui/helper/layout_generator.hpp"
 
 namespace joda::ui {
 
+using namespace std::chrono_literals;
+
 class Command : public QWidget
 {
   Q_OBJECT
 public:
   /////////////////////////////////////////////////////
-  Command(QWidget *parent);
+  Command(const QString &title, const QString &icon, QWidget *parent);
 
-  void addSetting(const QString &description, const QString &icon,
-                  const std::vector<std::pair<std::shared_ptr<SettingBase>, bool>> &settings)
+  helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
+
+  void addSetting(const std::vector<std::pair<SettingBase *, bool>> &settings)
   {
-    addSetting("", settings);
-    addFooter(description, icon);
+    addSetting(addTab("", [] {}), "", settings);
   }
-  helper::LayoutGenerator::VerticalPane *
-  addSetting(const QString &boxTitle, const std::vector<std::pair<std::shared_ptr<SettingBase>, bool>> &settings,
-             helper::LayoutGenerator::VerticalPane *col = nullptr);
-  void addFooter(const QString &title, const QString &icon);
+
+  void addSetting(helper::TabWidget *tab, const std::vector<std::pair<SettingBase *, bool>> &settings)
+  {
+    addSetting(tab, "", settings);
+  }
+  helper::VerticalPane *addSetting(helper::TabWidget *tab, const QString &boxTitle,
+                                   const std::vector<std::pair<SettingBase *, bool>> &settings,
+                                   helper::VerticalPane *col = nullptr);
+
+  void removeSetting(const std::set<SettingBase *> &toRemove)
+  {
+    for(int m = mSettings.size() - 1; m >= 0; m--) {
+      if(toRemove.contains(mSettings[m].first)) {
+        mSettings.erase(mSettings.begin() + m);
+      }
+    }
+  }
 
   auto getDisplayWidget() const -> const QWidget *
   {
@@ -53,6 +70,11 @@ public:
   void openEditView()
   {
     mEditDialog.show();
+  }
+
+  void adjustDialogSize()
+  {
+    mEditDialog.adjustSize();
   }
 
   void addSeparatorToTopToolbar()
@@ -92,7 +114,7 @@ private:
   QGridLayout mDisplayViewLayout;
   QDialog mEditDialog;
   QLabel mDisplayableText;
-  std::vector<std::pair<std::shared_ptr<SettingBase>, bool>> mSettings;
+  std::vector<std::pair<SettingBase *, bool>> mSettings;
 
 protected slots:
   void updateDisplayText();

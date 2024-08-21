@@ -26,7 +26,8 @@ public:
   inline static std::string TITLE = "Rolling ball";
   inline static std::string ICON  = "icons8-bubble-50.png";
 
-  RollingBallBackground(settings::RollingBallSettings &settings, QWidget *parent) : Command(parent)
+  RollingBallBackground(settings::RollingBallSettings &settings, QWidget *parent) :
+      Command(TITLE.data(), ICON.data(), parent)
   {
     //
     //
@@ -46,7 +47,7 @@ public:
     mBallSize->setValue(settings.ballSize);
     mBallSize->connectWithSetting(&settings.ballSize, nullptr);
 
-    addSetting(TITLE.data(), ICON.data(), {{mBallType, true}, {mBallSize, true}});
+    addSetting({{mBallType.get(), true}, {mBallSize.get(), true}});
   }
 
 private:

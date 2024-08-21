@@ -17,7 +17,7 @@
 
 namespace joda::ui {
 
-Command::Command(QWidget *parent) :
+Command::Command(const QString &title, const QString &icon, QWidget *parent) :
     mParent(parent), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this), mEditDialog(parent)
 {
   setContentsMargins(0, 4, 4, 4);
@@ -25,70 +25,7 @@ Command::Command(QWidget *parent) :
   setLayout(&mDisplayViewLayout);
   mDisplayViewLayout.setSpacing(4);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-}
 
-helper::LayoutGenerator::VerticalPane *
-Command::addSetting(const QString &boxTitle, const std::vector<std::pair<std::shared_ptr<SettingBase>, bool>> &settings,
-                    helper::LayoutGenerator::VerticalPane *col)
-{
-  auto containsPtr = [&](std::shared_ptr<SettingBase> toCheck) {
-    for(const auto &[ptr, _] : mSettings) {
-      if(ptr.get() == toCheck.get()) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  for(const auto &data : settings) {
-    if(!containsPtr(data.first)) {
-      mSettings.emplace_back(data);
-    }
-  }
-  auto convert = [&]() {
-    std::vector<std::shared_ptr<SettingBase>> vec;
-    std::transform(settings.begin(), settings.end(), std::back_inserter(vec), [](auto &kv) { return kv.first; });
-    return vec;
-  };
-
-  if(nullptr == col) {
-    col = mLayout.addVerticalPanel();
-  }
-  if(boxTitle.isEmpty()) {
-    col->addGroup(convert(), 800);
-  } else {
-    col->addGroup(boxTitle, convert(), 800);
-  }
-  QString txt;
-  for(const auto &[setting, show] : settings) {
-    if(show) {
-      txt = txt + setting->getLabelText() + ", ";
-      setting->setDisplayIconVisible(false);
-    }
-    connect(setting.get(), &SettingBase::valueChanged, this, &Command::valueChanged);
-  }
-  txt.chop(2);
-  mDisplayableText.setText(txt);
-
-  connect(this, &Command::valueChanged, this, &Command::updateDisplayText);
-  return col;
-}
-
-void Command::updateDisplayText()
-{
-  QString txt;
-  for(const auto &[setting, show] : mSettings) {
-    if(show) {
-      txt = txt + setting->getLabelText() + ", ";
-      setting->setDisplayIconVisible(false);
-    }
-  }
-  txt.chop(2);
-  mDisplayableText.setText(txt);
-}
-
-void Command::addFooter(const QString &title, const QString &icon)
-{
   // Header
   {
     // Create a QHBoxLayout to arrange the text and icon horizontally
@@ -140,8 +77,84 @@ void Command::addFooter(const QString &title, const QString &icon)
   mEditDialog.setModal(false);
   mEditDialog.setLayout(layout);
   mEditDialog.setMinimumWidth(300);
+  mEditDialog.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   // mEditDialog.setMaximumWidth(400);
   mEditDialog.setWindowTitle(title);
+}
+
+helper::TabWidget *Command::addTab(const QString &title, std::function<void()> beforeTabClose)
+{
+  auto *tab = mLayout.addTab(title, beforeTabClose);
+  if(mEditDialog.isVisible()) {
+    std::thread([this] {
+      std::this_thread::sleep_for(100ms);
+      mEditDialog.adjustSize();
+    }).detach();
+  }
+  return tab;
+}
+
+helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString &boxTitle,
+                                          const std::vector<std::pair<SettingBase *, bool>> &settings,
+                                          helper::VerticalPane *col)
+{
+  auto containsPtr = [&](SettingBase *toCheck) {
+    for(const auto &[ptr, _] : mSettings) {
+      if(ptr == toCheck) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  for(auto &[data, bo] : settings) {
+    if(!containsPtr(data)) {
+      mSettings.emplace_back(data, bo);
+    }
+  }
+  auto convert = [&]() {
+    std::vector<SettingBase *> vec;
+    std::transform(settings.begin(), settings.end(), std::back_inserter(vec), [](auto &kv) { return kv.first; });
+    return vec;
+  };
+
+  if(nullptr == col) {
+    col = tab->addVerticalPanel();
+  }
+  if(boxTitle.isEmpty()) {
+    col->addGroup(convert(), 220, 300);
+  } else {
+    col->addGroup(boxTitle, convert(), 220, 300);
+  }
+  QString txt;
+  for(const auto &[setting, show] : settings) {
+    if(show) {
+      txt = txt + setting->getLabelText() + ", ";
+      setting->setDisplayIconVisible(false);
+    }
+    connect(setting, &SettingBase::valueChanged, this, &Command::valueChanged);
+  }
+  txt.chop(2);
+  mDisplayableText.setText(txt);
+
+  connect(this, &Command::valueChanged, this, &Command::updateDisplayText);
+  return col;
+}
+
+void Command::updateDisplayText()
+{
+  QString txt;
+  for(const auto &[setting, show] : mSettings) {
+    if(show) {
+      if(setting == nullptr) {
+        continue;
+      }
+      txt = txt + setting->getLabelText() + ", ";
+      setting->setDisplayIconVisible(false);
+    }
+  }
+  txt.chop(2);
+  mDisplayableText.setText(txt);
 }
 
 }    // namespace joda::ui

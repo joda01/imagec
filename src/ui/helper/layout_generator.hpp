@@ -30,53 +30,36 @@
 #include <qtmetamacros.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
+#include <future>
+#include <utility>
 #include "ui/container/setting/setting_base.hpp"
 
 namespace joda::ui::helper {
 
+class TabWidget;
+
+static constexpr int32_t SPACING   = 16;
+static constexpr int32_t ICON_SIZE = 16;
+
+///
+/// \class      LayoutGenerator
+/// \author     Joachim Danmayr
+/// \brief
+///
 class LayoutGenerator : public QObject
 {
   Q_OBJECT
-
-  static constexpr int32_t SPACING   = 16;
-  static constexpr int32_t ICON_SIZE = 16;
 
 public:
   /////////////////////////////////////////////////////
   explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withTopToolbar = true,
                            bool withBackButton = true);
 
-  class VerticalPane : public QVBoxLayout
+  TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
+
+  void removeTab(int idx)
   {
-  public:
-    explicit VerticalPane(QWidget *parent, LayoutGenerator *generator) : layoutGenerator(generator), mParent(parent)
-    {
-    }
-
-    void addGroup(const std::vector<std::shared_ptr<SettingBase>> &elements, int maxWidth = 220);
-    void addGroup(const QString &title, const std::vector<std::shared_ptr<SettingBase>> &elements, int maxWidth = 220);
-    void addGroup(const QString &title, const std::vector<QWidget *> &elements, int maxWidth = 220);
-
-  private:
-    LayoutGenerator *layoutGenerator;
-    QWidget *mParent;
-  };
-
-  class TabWidget
-  {
-  public:
-  };
-
-  TabWidget *addTab()
-  {
-  }
-
-  VerticalPane *addVerticalPanel()
-  {
-    auto *vboxLayout = new VerticalPane(mParent, this);
-    vboxLayout->setAlignment(Qt::AlignTop);
-    mMainLayout->addLayout(vboxLayout, 1);
-    return vboxLayout;
+    mTabWidget->removeTab(idx);
   }
 
   static void addSeparator(QFormLayout *formLayout)
@@ -116,15 +99,67 @@ public:
 signals:
   void onSettingChanged();
 
+private slots:
+  void onTabClosed(int);
+
 private:
   /////////////////////////////////////////////////////
   QToolBar *mToolbarTop     = nullptr;
   QToolBar *mToolbarBottom  = nullptr;
-  QHBoxLayout *mMainLayout  = nullptr;
   QWidget *mParent          = nullptr;
   QAction *mSpaceTopToolbar = nullptr;
   QAction *mBackButton      = nullptr;
   QAction *mDeleteButton    = nullptr;
+  QTabWidget *mTabWidget;
+};
+
+///
+/// \class      Vertical pane
+/// \author     Joachim Danmayr
+/// \brief
+///
+class VerticalPane : public QVBoxLayout
+{
+public:
+  explicit VerticalPane(QWidget *parent, LayoutGenerator *generator) : layoutGenerator(generator), mParent(parent)
+  {
+  }
+
+  void addGroup(const std::vector<SettingBase *> &elements, int minWidth = 220, int maxWidth = 220);
+  void addGroup(const QString &title, const std::vector<SettingBase *> &elements, int minWidth = 220,
+                int maxWidth = 220);
+  void addWidgetGroup(const QString &title, const std::vector<QWidget *> &elements, int minWidth = 220,
+                      int maxWidth = 220);
+
+private:
+  LayoutGenerator *layoutGenerator;
+  QWidget *mParent;
+};
+
+///
+/// \class      Tab Pane
+/// \author     Joachim Danmayr
+/// \brief
+///
+class TabWidget : public QScrollArea
+{
+  Q_OBJECT
+
+public:
+  TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator,
+            QWidget *parent);
+  VerticalPane *addVerticalPanel();
+  void beforeClose()
+  {
+    beforeTabClose();
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  QHBoxLayout *mainLayout;
+  LayoutGenerator *mLayoutGenerator;
+  QWidget *mParent;
+  std::function<void()> beforeTabClose;
 };
 
 }    // namespace joda::ui::helper

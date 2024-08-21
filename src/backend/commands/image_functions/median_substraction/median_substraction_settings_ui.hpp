@@ -28,7 +28,8 @@ public:
   inline static std::string TITLE = "Median subtraction";
   inline static std::string ICON  = "icons8-baseline-50.png";
 
-  MedianSubtraction(settings::MedianSubtractSettings &settings, QWidget *parent) : Command(parent)
+  MedianSubtraction(settings::MedianSubtractSettings &settings, QWidget *parent) :
+      Command(TITLE.data(), ICON.data(), parent)
   {
     mMedianBackgroundSubtraction = std::shared_ptr<Setting<int, int>>(
         new Setting<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,
@@ -49,7 +50,7 @@ public:
     mMedianBackgroundSubtraction->setValue(settings.kernelSize);
     mMedianBackgroundSubtraction->connectWithSetting(&settings.kernelSize, nullptr);
 
-    addSetting(TITLE.data(), ICON.data(), {{mMedianBackgroundSubtraction, true}});
+    addSetting({{mMedianBackgroundSubtraction.get(), true}});
   }
 
 private:

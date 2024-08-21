@@ -28,7 +28,7 @@ public:
   inline static std::string TITLE = "Blur";
   inline static std::string ICON  = "icons8-blur-50.png";
 
-  Blur(settings::BlurSettings &settings, QWidget *parent) : Command(parent)
+  Blur(settings::BlurSettings &settings, QWidget *parent) : Command(TITLE.data(), ICON.data(), parent)
   {
     mBlurMode = std::shared_ptr<Setting<settings::BlurSettings::Mode, int32_t>>(
         new Setting<settings::BlurSettings::Mode, int32_t>("icons8-blur-50.png", "", "Blur mode", "",
@@ -76,7 +76,7 @@ public:
     mRepeat->setValue(settings.kernelSize);
     mRepeat->connectWithSetting(&settings.repeat, nullptr);
 
-    addSetting(TITLE.data(), ICON.data(), {{mBlurMode, true}, {mKernelSize, true}, {mRepeat, false}});
+    addSetting({{mBlurMode.get(), true}, {mKernelSize.get(), true}, {mRepeat.get(), false}});
   }
 
 private:

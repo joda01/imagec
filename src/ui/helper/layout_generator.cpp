@@ -15,39 +15,20 @@
 #include <qtabwidget.h>
 #include <qwidget.h>
 
+#include <utility>
+
 namespace joda::ui::helper {
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool withTopToolbar, bool withBackButton) :
     mParent(parent)
 {
-  auto *scrollArea = new QScrollArea();
-  scrollArea->setObjectName("scrollArea");
-  scrollArea->setFrameStyle(0);
-  scrollArea->setContentsMargins(0, 0, 0, 0);
-  scrollArea->verticalScrollBar()->setObjectName("scrollAreaV");
-
-  // Create a widget to hold the panels
-  auto *contentWidget = new QWidget;
-  contentWidget->setContentsMargins(0, SPACING, 0, 0);
-  contentWidget->setObjectName("contentOverview");
-
-  scrollArea->setWidget(contentWidget);
-  scrollArea->setWidgetResizable(true);
-
-  QTabWidget *tabWidget = new QTabWidget();
-
-  // Create a horizontal layout for the panels
-  mMainLayout = new QHBoxLayout(contentWidget);
-  if(withDeleteButton) {
-    mMainLayout->setContentsMargins(SPACING, 0, SPACING, 0);
-  } else {
-    mMainLayout->setContentsMargins(SPACING, 0, SPACING, SPACING);
-  }
-  mMainLayout->setSpacing(SPACING);    // Adjust this value as needed
-  mMainLayout->setAlignment(Qt::AlignLeft);
-
-  contentWidget->setLayout(mMainLayout);
-
   auto *container = new QVBoxLayout(parent);
   container->setContentsMargins(0, 0, 0, 0);
   container->setSpacing(0);
@@ -80,12 +61,31 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
   if(withTopToolbar) {
     container->addWidget(mToolbarTop);
   }
-  container->addWidget(scrollArea);
+  mTabWidget = new QTabWidget();
+  mTabWidget->setTabsClosable(true);
+  mTabWidget->setTabPosition(QTabWidget::East);
+  mTabWidget->setTabBarAutoHide(true);
+  mTabWidget->setStyleSheet("QTabWidget::pane { border: none; }");
+  container->addWidget(mTabWidget);
   if(withDeleteButton) {
     container->addWidget(mToolbarBottom);
   }
 
   parent->setLayout(container);
+  connect(mTabWidget, &QTabWidget::tabCloseRequested, this, &LayoutGenerator::onTabClosed);
+}
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+TabWidget *LayoutGenerator::addTab(const QString &title, std::function<void()> beforeTabClose)
+{
+  auto *tab = new TabWidget(mDeleteButton != nullptr, std::move(beforeTabClose), this, mParent);
+  mTabWidget->addTab(tab, title);
+  return tab;
 }
 
 ///
@@ -139,41 +139,57 @@ QAction *LayoutGenerator::addActionButton(const QString &text, const QString &ic
   return action;
 }
 
-void LayoutGenerator::VerticalPane::addGroup(const QString &title,
-                                             const std::vector<std::shared_ptr<SettingBase>> &elements, int maxWidth)
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void VerticalPane::addGroup(const QString &title, const std::vector<SettingBase *> &elements, int minWidth,
+                            int maxWidth)
 {
   auto *group = new QGroupBox(title);
   group->setMaximumWidth(maxWidth);
+  group->setMinimumWidth(minWidth);
   auto *layout = new QVBoxLayout;
   for(const auto &element : elements) {
     layout->addWidget(element->getEditableWidget());
-    connect(element.get(), &SettingBase::valueChanged, layoutGenerator, &LayoutGenerator::onSettingChanged);
+    connect(element, &SettingBase::valueChanged, layoutGenerator, &LayoutGenerator::onSettingChanged);
   }
 
   group->setLayout(layout);
   addWidget(group);
 }
 
-void LayoutGenerator::VerticalPane::addGroup(const std::vector<std::shared_ptr<SettingBase>> &elements, int maxWidth)
+void VerticalPane::addGroup(const std::vector<SettingBase *> &elements, int minWidth, int maxWidth)
 {
   auto *group = new QWidget();
-  // group->setContentsMargins(0, 0, 0, 0);
   group->setMaximumWidth(maxWidth);
+  group->setMinimumWidth(minWidth);
   auto *layout = new QVBoxLayout;
   for(const auto &element : elements) {
     layout->addWidget(element->getEditableWidget());
-    connect(element.get(), &SettingBase::valueChanged, layoutGenerator, &LayoutGenerator::onSettingChanged);
+    connect(element, &SettingBase::valueChanged, layoutGenerator, &LayoutGenerator::onSettingChanged);
   }
 
   group->setLayout(layout);
   addWidget(group);
 }
 
-void LayoutGenerator::VerticalPane ::addGroup(const QString &title, const std::vector<QWidget *> &elements,
-                                              int maxWidth)
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void VerticalPane ::addWidgetGroup(const QString &title, const std::vector<QWidget *> &elements, int minWidth,
+                                   int maxWidth)
 {
   auto *group = new QGroupBox(title);
   group->setMaximumWidth(maxWidth);
+  group->setMinimumWidth(minWidth);
   auto *layout = new QVBoxLayout;
   for(const auto &element : elements) {
     element->setParent(group);
@@ -181,6 +197,74 @@ void LayoutGenerator::VerticalPane ::addGroup(const QString &title, const std::v
   }
   group->setLayout(layout);
   addWidget(group);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+TabWidget::TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator,
+                     QWidget *parent) :
+    beforeTabClose(std::move(beforeTabClose)),
+    mLayoutGenerator(layoutGenerator), mParent(parent)
+{
+  setObjectName("scrollArea");
+  setFrameStyle(0);
+  setContentsMargins(0, 0, 0, 0);
+  verticalScrollBar()->setObjectName("scrollAreaV");
+
+  // Create a widget to hold the panels
+  auto *contentWidget = new QWidget;
+  contentWidget->setContentsMargins(0, SPACING, 0, 0);
+  contentWidget->setObjectName("contentOverview");
+
+  // Create a horizontal layout for the panels
+  mainLayout = new QHBoxLayout(contentWidget);
+  mainLayout->setContentsMargins(0, 0, 0, 0);
+  mainLayout->setSpacing(SPACING);    // Adjust this value as needed
+  mainLayout->setAlignment(Qt::AlignLeft);
+  contentWidget->setLayout(mainLayout);
+
+  if(hasBottomToolbar) {
+    mainLayout->setContentsMargins(SPACING, 0, SPACING, 0);
+  } else {
+    mainLayout->setContentsMargins(SPACING, 0, SPACING, SPACING);
+  }
+  contentWidget->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
+  setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
+  setWidget(contentWidget);
+  setWidgetResizable(true);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void LayoutGenerator::onTabClosed(int idx)
+{
+  ((TabWidget *) mTabWidget->widget(idx))->beforeClose();
+  removeTab(idx);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+VerticalPane *TabWidget::addVerticalPanel()
+{
+  auto *vboxLayout = new VerticalPane(mParent, mLayoutGenerator);
+  vboxLayout->setAlignment(Qt::AlignTop);
+  mainLayout->addLayout(vboxLayout, 1);
+  return vboxLayout;
 }
 
 }    // namespace joda::ui::helper

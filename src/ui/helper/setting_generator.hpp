@@ -21,7 +21,7 @@ namespace joda::ui {
 
 inline auto generateClusterDropDown(const QString &helpText, QWidget *parent)
 {
-  return std::shared_ptr<Setting<enums::ClusterIdIn, int32_t>>(new Setting<enums::ClusterIdIn, int32_t>(
+  return std::unique_ptr<Setting<enums::ClusterIdIn, int32_t>>(new Setting<enums::ClusterIdIn, int32_t>(
       "icons8-connection-50.png", "Cluster", helpText, "", enums::ClusterIdIn::$,
       {
           {enums::ClusterIdIn::$, "THIS"},
@@ -41,7 +41,7 @@ inline auto generateClusterDropDown(const QString &helpText, QWidget *parent)
 
 inline auto generateClassDropDown(const QString &helpText, QWidget *parent)
 {
-  return std::shared_ptr<Setting<enums::ClassId, int32_t>>(
+  return std::unique_ptr<Setting<enums::ClassId, int32_t>>(
       new Setting<enums::ClassId, int32_t>("icons8-connection-50.png", "Class", helpText, "", enums::ClassId::NONE,
                                            {
                                                {enums::ClassId::NONE, "None"},
