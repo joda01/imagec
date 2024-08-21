@@ -27,8 +27,11 @@ public:
   {
   }
 
-  virtual QWidget *getEditableWidget() = 0;
-  virtual QWidget *getLabelWidget()    = 0;
+  virtual QWidget *getEditableWidget()                  = 0;
+  virtual QWidget *getLabelWidget()                     = 0;
+  virtual QString getLabelText() const                  = 0;
+  virtual void setShortDescription(const QString &desc) = 0;
+  virtual void setDisplayIconVisible(bool visible)      = 0;
 
   static QWidget *createDisplayAbleWidgetPlaceholder()
   {

@@ -28,20 +28,22 @@ public:
 
   RollingBallBackground(settings::RollingBallSettings &settings, QWidget *parent) : Command(parent)
   {
+    //
+    //
     mBallType = std::shared_ptr<Setting<joda::settings::RollingBallSettings::BallType, int32_t>>(
         new Setting<joda::settings::RollingBallSettings::BallType, int32_t>(
             "icons8-bubble-50.png", "", "Ball type", "", joda::settings::RollingBallSettings::BallType::BALL,
             {{joda::settings::RollingBallSettings::BallType::BALL, "Ball"},
              {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}},
             parent, "rolling_ball.json"));
+    mBallType->setValue(settings.ballType);
+    mBallType->connectWithSetting(&settings.ballType, nullptr);
 
+    //
+    //
     mBallSize = std::shared_ptr<Setting<int32_t, int32_t>>(new Setting<int, int32_t>(
         "", "[0 - " + QString::number(INT32_MAX) + "]", "Ball size", "px", std::nullopt, 0, INT32_MAX, parent, ""));
-
-    mBallType->setValue(settings.ballType);
     mBallSize->setValue(settings.ballSize);
-
-    mBallType->connectWithSetting(&settings.ballType, nullptr);
     mBallSize->connectWithSetting(&settings.ballSize, nullptr);
 
     addSetting(TITLE.data(), ICON.data(), {{mBallType, true}, {mBallSize, true}});

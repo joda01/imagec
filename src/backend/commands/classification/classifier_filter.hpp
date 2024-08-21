@@ -108,7 +108,7 @@ struct ObjectClass
   //
   // Classifies objects based on object properties
   //
-  std::vector<ClassifierFilter> filters;
+  std::list<ClassifierFilter> filters = {{}};
 
   //
   // If no filter matches this class is assigned to the object

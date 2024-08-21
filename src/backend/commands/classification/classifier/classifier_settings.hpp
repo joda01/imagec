@@ -28,7 +28,7 @@ struct ClassifierSettings
   //
   // Object classification based on gray scale value (default: modelClassId = 65535)
   //
-  std::vector<ObjectClass> classifiers;
+  std::list<ObjectClass> classifiers;
 
   /////////////////////////////////////////////////////
   void check() const

@@ -51,20 +51,22 @@ public:
     //
     //
     mThresholdValueMin = std::shared_ptr<Setting<uint16_t, uint16_t>>(
-        new Setting<uint16_t, uint16_t>("", "[0 - 65535]", "Min. threshold", "min.", 1000, 0, 65535, parent, ""));
+        new Setting<uint16_t, uint16_t>("", "[0 - 65535]", "Min. threshold", "", 1000, 0, 65535, parent, ""));
     mThresholdValueMin->setValue(settings.thresholdMin);
+    mThresholdValueMin->setShortDescription("Min.: ");
     mThresholdValueMin->connectWithSetting(&settings.thresholdMin, nullptr);
 
     //
     //
     //
     mThresholdValueMax = std::shared_ptr<Setting<uint16_t, uint16_t>>(
-        new Setting<uint16_t, uint16_t>("", "[0 - 65535]", "Max. threshold", "max.", 65535, 0, 65535, parent, ""));
+        new Setting<uint16_t, uint16_t>("", "[0 - 65535]", "Max. threshold", "", 65535, 0, 65535, parent, ""));
     mThresholdValueMax->setValue(settings.thresholdMax);
+    mThresholdValueMax->setShortDescription("Max.: ");
     mThresholdValueMax->connectWithSetting(&settings.thresholdMax, nullptr);
 
     addSetting(TITLE.data(), ICON.data(),
-               {{mThresholdAlgorithm, true}, {mThresholdValueMin, true}, {mThresholdValueMax, false}});
+               {{mThresholdAlgorithm, true}, {mThresholdValueMin, true}, {mThresholdValueMax, true}});
   }
 
 private:

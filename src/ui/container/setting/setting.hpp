@@ -146,9 +146,27 @@ public:
     mValue2InSetting = setting2;
   }
 
+  void setShortDescription(const QString &desc) override
+  {
+    mDisableDisplayableIcon = !desc.isEmpty();
+    mDisplayLabelIcon->setVisible(!mDisableDisplayableIcon);
+    mShortDesc = desc;
+    updateDisplayText();
+  }
+
+  void setDisplayIconVisible(bool visible) override
+  {
+    mDisplayLabelIcon->setVisible(visible);
+  }
+
   QWidget *getLabelWidget() override
   {
     return mDisplayable;
+  }
+
+  QString getLabelText() const override
+  {
+    return mDisplayLabel->text();
   }
 
   QWidget *getEditableWidget() override
@@ -226,7 +244,11 @@ public:
       } else if constexpr(std::is_enum<VALUE_T>::value) {
         mLineEdit->setText(QString::number(static_cast<int>(newValue)));
       } else {
-        mLineEdit->setText(QString::number(newValue));
+        if(newValue >= 0) {
+          mLineEdit->setText(QString::number(newValue));
+        } else {
+          clearValue();
+        }
       }
       lineEditingChanged();
     }
@@ -590,15 +612,15 @@ private:
   {
     mDisplayable = new QWidget();
     mDisplayable->setContentsMargins(0, 0, 0, 0);
-    mDisplayable->setMinimumWidth(110);
-    mDisplayable->setMaximumWidth(110);
-
+    // mDisplayable->setMinimumWidth(110);
+    // mDisplayable->setMaximumWidth(110);
+    mDisplayable->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
     // Create a QLabel
     mDisplayLabelIcon = new QLabel();
     mDisplayLabel     = new QLabel();
 
     // Set text for the label
-    mDisplayLabel->setText(mDisplayText);
+    mDisplayLabel->setText(mShortDesc + mDisplayText);
     mDisplayLabel->setToolTip(helpText);
 
     // Create a QPixmap for the icon (you may need to adjust the path)
@@ -897,7 +919,7 @@ private:
 
   void updateDisplayText()
   {
-    mDisplayLabel->setText(mDisplayText);
+    mDisplayLabel->setText(mShortDesc + mDisplayText);
   }
 
   /////////////////////////////////////////////////////
@@ -912,6 +934,8 @@ private:
   QLabel *mDisplayLabel      = nullptr;
   QLabel *mDisplayLabelIcon  = nullptr;
   QString mUnit;
+  QString mShortDesc;
+  bool mDisableDisplayableIcon = false;
   QString mHelpText;
   QString mPathToHelpFile;
 
@@ -934,9 +958,9 @@ private slots:
   {
     if(mLineEdit != nullptr) {
       if(!mLineEdit->text().isNull() && !mLineEdit->text().isEmpty()) {
-        mDisplayText = mLineEdit->text() + " " + mUnit;
+        mDisplayText = (mLineEdit->text() + " " + mUnit).trimmed();
       } else {
-        mDisplayText = "- " + mUnit;
+        mDisplayText = ("- " + mUnit).trimmed();
       }
 
       if(mComboBoxSecond != nullptr) {

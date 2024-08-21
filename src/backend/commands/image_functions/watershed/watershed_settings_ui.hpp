@@ -44,8 +44,9 @@ public:
 
     mFindTolerance->setValue(settings.maximumFinderTolerance);
     mFindTolerance->connectWithSetting(&settings.maximumFinderTolerance, nullptr);
-
+    std::cout << "W-->" << std::endl;
     addSetting(TITLE.data(), ICON.data(), {{mFindTolerance, true}});
+    std::cout << "W--<" << std::endl;
   }
 
 private:

@@ -36,15 +36,15 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings
   layout->addWidget(parent->mPipelineName->getLabelWidget(), 0, 0);
   layout->addWidget(parent->mDefaultClusterId->getLabelWidget(), 0, 1);
   layout->addWidget(parent->mCStackIndex->getLabelWidget(), 0, 2);
+  /*
+    layout->addWidget(new QLabel(), 1, 0);
+    layout->addWidget(new QLabel(), 1, 1);
+    layout->addWidget(new QLabel(), 1, 2);
 
-  layout->addWidget(parent->mZProjection->getLabelWidget(), 1, 0);
-  layout->addWidget(new QLabel(), 1, 1);
-  layout->addWidget(new QLabel(), 1, 2);
-
-  layout->addWidget(new QLabel(), 2, 0);
-  layout->addWidget(new QLabel(), 2, 1);
-  layout->addWidget(new QLabel(), 2, 2);
-
+    layout->addWidget(new QLabel(), 2, 0);
+    layout->addWidget(new QLabel(), 2, 1);
+    layout->addWidget(new QLabel(), 2, 2);
+  */
   /*
     layout->addWidget(parent->mSubtractChannel->getLabelWidget(), 4, 0);
     layout->addWidget(parent->mMedianBackgroundSubtraction->getLabelWidget(), 4, 1);

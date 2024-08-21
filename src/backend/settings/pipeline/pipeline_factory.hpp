@@ -16,6 +16,7 @@
 #include <type_traits>
 #include "backend/commands/classification/ai_classifier/ai_classifier.hpp"
 #include "backend/commands/classification/classifier/classifier.hpp"
+#include "backend/commands/classification/classifier/classifier_settings_ui.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/commands/factory.hpp"
 #include "backend/commands/image_functions/blur/blur.hpp"
@@ -107,6 +108,8 @@ public:
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_shared<joda::cmd::Factory<joda::cmd::Classifier, ClassifierSettings>>(step.$classify.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::make_shared<joda::ui::Factory<joda::ui::Classifier, ClassifierSettings>>(
+            const_cast<ClassifierSettings &>(step.$classify.value()), parent);
       }
     }
 

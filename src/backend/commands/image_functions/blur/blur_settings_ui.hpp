@@ -56,6 +56,7 @@ public:
                                                                            parent, ""));
     mKernelSize->setValue(settings.kernelSize);
     mKernelSize->connectWithSetting(&settings.kernelSize, nullptr);
+    mKernelSize->setShortDescription("Kernel: ");
 
     mRepeat = std::shared_ptr<Setting<int, int>>(new Setting<int, int>("", "Repeat", "Repeat", "", -1,
                                                                        {{1, "1x"},

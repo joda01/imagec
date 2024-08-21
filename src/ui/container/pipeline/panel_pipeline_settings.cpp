@@ -178,7 +178,7 @@ void PanelPipelineSettings::createSettings(WindowMain *windowMain)
           {enums::ClusterIdIn::I, "Cluster I"},
           {enums::ClusterIdIn::J, "Cluster J"},
       },
-      windowMain, "z_projection.json"));
+      windowMain, ""));
   mDefaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId, nullptr);
 
   connect(mPipelineName.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);

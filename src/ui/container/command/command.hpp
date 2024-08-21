@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <qaction.h>
 #include <qboxlayout.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
@@ -28,8 +29,17 @@ public:
   /////////////////////////////////////////////////////
   Command(QWidget *parent);
 
-  void addSetting(const QString &title, const QString &icon,
-                  const std::vector<std::pair<std::shared_ptr<SettingBase>, bool>> &settings);
+  void addSetting(const QString &description, const QString &icon,
+                  const std::vector<std::pair<std::shared_ptr<SettingBase>, bool>> &settings)
+  {
+    addSetting("", settings);
+    addFooter(description, icon);
+  }
+  helper::LayoutGenerator::VerticalPane *
+  addSetting(const QString &boxTitle, const std::vector<std::pair<std::shared_ptr<SettingBase>, bool>> &settings,
+             helper::LayoutGenerator::VerticalPane *col = nullptr);
+  void addFooter(const QString &title, const QString &icon);
+
   auto getDisplayWidget() const -> const QWidget *
   {
     return this;
@@ -45,16 +55,24 @@ public:
     mEditDialog.show();
   }
 
+  void addSeparatorToTopToolbar()
+  {
+    mLayout.addSeparatorToTopToolbar();
+  }
+  QAction *addItemToTopToolbar(QWidget *widget)
+  {
+    return mLayout.addItemToTopToolbar(widget);
+  }
+  QAction *addActionButton(const QString &text, const QString &icon)
+  {
+    return mLayout.addActionButton(text, icon);
+  }
+
 signals:
   void valueChanged();
 
 private:
   /////////////////////////////////////////////////////
-  QWidget *mParent;
-  QWidget mEditView;
-  helper::LayoutGenerator mLayout;
-  QGridLayout mDisplayViewLayout;
-  QDialog mEditDialog;
 
   ///
   /// \brief      Constructor
@@ -66,6 +84,18 @@ private:
       openEditView();
     }
   }
+
+  /////////////////////////////////////////////////////
+  QWidget *mParent;
+  QWidget mEditView;
+  helper::LayoutGenerator mLayout;
+  QGridLayout mDisplayViewLayout;
+  QDialog mEditDialog;
+  QLabel mDisplayableText;
+  std::vector<std::pair<std::shared_ptr<SettingBase>, bool>> mSettings;
+
+protected slots:
+  void updateDisplayText();
 };
 
 }    // namespace joda::ui

@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <qaction.h>
 #include <qboxlayout.h>
 #include <qcombobox.h>
 #include <qformlayout.h>
@@ -37,10 +38,13 @@ class LayoutGenerator : public QObject
 {
   Q_OBJECT
 
-  static constexpr int32_t SPACING = 16;
+  static constexpr int32_t SPACING   = 16;
+  static constexpr int32_t ICON_SIZE = 16;
 
 public:
-  explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withPanel = true);
+  /////////////////////////////////////////////////////
+  explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withTopToolbar = true,
+                           bool withBackButton = true);
 
   class VerticalPane : public QVBoxLayout
   {
@@ -58,6 +62,15 @@ public:
     QWidget *mParent;
   };
 
+  class TabWidget
+  {
+  public:
+  };
+
+  TabWidget *addTab()
+  {
+  }
+
   VerticalPane *addVerticalPanel()
   {
     auto *vboxLayout = new VerticalPane(mParent, this);
@@ -66,7 +79,7 @@ public:
     return vboxLayout;
   }
 
-  void addSeparator(QFormLayout *formLayout)
+  static void addSeparator(QFormLayout *formLayout)
   {
     auto *separator = new QFrame;
     separator->setFrameShape(QFrame::HLine);
@@ -74,7 +87,7 @@ public:
     formLayout->addRow(separator);
   }
 
-  QLabel *createTitle(const QString &title)
+  static QLabel *createTitle(const QString &title)
   {
     auto *label = new QLabel();
     QFont font;
@@ -82,25 +95,36 @@ public:
     font.setBold(true);
     label->setFont(font);
     label->setText(title);
-
     return label;
+  }
+
+  QAction *getDeleteButton()
+  {
+    return mDeleteButton;
+  }
+
+  QAction *getBackButton()
+  {
+    return mBackButton;
   }
 
   void addSeparatorToTopToolbar();
   QAction *addItemToTopToolbar(QWidget *);
   void addItemToTopToolbar(QAction *widget);
+  QAction *addActionButton(const QString &text, const QString &icon);
 
 signals:
   void onSettingChanged();
 
 private:
   /////////////////////////////////////////////////////
-  QToolBar *mToolbarTop;
-  QToolBar *mToolbarBottom;
-  QHBoxLayout *mMainLayout;
-  QWidget *mParent;
-
-  QAction *mSpaceTopToolbar;
+  QToolBar *mToolbarTop     = nullptr;
+  QToolBar *mToolbarBottom  = nullptr;
+  QHBoxLayout *mMainLayout  = nullptr;
+  QWidget *mParent          = nullptr;
+  QAction *mSpaceTopToolbar = nullptr;
+  QAction *mBackButton      = nullptr;
+  QAction *mDeleteButton    = nullptr;
 };
 
 }    // namespace joda::ui::helper
