@@ -14,6 +14,7 @@
 #pragma once
 
 #include <cstdint>
+#include <list>
 #include <set>
 #include <vector>
 #include "backend/enums/enum_images.hpp"
@@ -38,7 +39,7 @@ struct MeasureSettings
   //
   // Clusters to calculate to measure for
   //
-  std::vector<joda::enums::ClusterIdIn> clustersIn;
+  std::set<joda::enums::ClusterIdIn> clustersIn;
 
   //
   // Classes to calculate to measure for
@@ -48,7 +49,7 @@ struct MeasureSettings
   //
   // Image planes on which a measurement should be applied
   //
-  std::vector<enums::ImageId> planesIn;
+  std::list<enums::ImageId> planesIn;
 
   /////////////////////////////////////////////////////
   void check() const
