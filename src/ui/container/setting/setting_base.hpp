@@ -17,60 +17,70 @@
 
 namespace joda::ui {
 
+template <typename T>
+struct is_enum
+{
+  static constexpr bool value = std::is_enum<T>::value;
+};
+
+template <typename T>
+concept NumberOrString = std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> ||
+                         std::same_as<T, float> || std::same_as<T, bool> || std::same_as<T, std::string>;
+
+template <typename T>
+concept IntFloatEnumConcept =
+    std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> || std::same_as<T, float> ||
+    std::same_as<T, bool> || std::same_as<T, std::string> || std::is_enum<T>::value;
+
+///
+/// \class      SettingBase
+/// \author     Joachim Danmayr
+/// \brief
+///
 class SettingBase : public QWidget
 {
   Q_OBJECT
 
 public:
-  SettingBase();
-  ~SettingBase()
-  {
-  }
+  /////////////////////////////////////////////////////
+  SettingBase(const QString &icon, const QString &description);
+  ~SettingBase() = default;
 
-  virtual QWidget *getEditableWidget()                  = 0;
-  virtual QWidget *getLabelWidget()                     = 0;
-  virtual QString getLabelText() const                  = 0;
-  virtual void setShortDescription(const QString &desc) = 0;
-  virtual void setDisplayIconVisible(bool visible)      = 0;
+  virtual QWidget *getEditableWidget() = 0;
+  static QWidget *createDisplayAbleWidgetPlaceholder();
 
-  static QWidget *createDisplayAbleWidgetPlaceholder()
-  {
-    QWidget *displayable = new QWidget();
-    displayable->setContentsMargins(0, 0, 0, 0);
-    displayable->setMinimumWidth(110);
-    displayable->setMaximumWidth(110);
+  void setUnit(const QString &unit);
+  void setDisplayIconVisible(bool visible);
+  void setShortDescription(const QString &description);
 
-    // Create a QLabel
-    QLabel *displayLabelIcon = new QLabel();
-    QLabel *displayLabel     = new QLabel();
-
-    // Set text for the label
-    displayLabel->setText("");
-    displayLabel->setToolTip("");
-
-    // Create a QPixmap for the icon (you may need to adjust the path)
-    QIcon bmp(":/icons/outlined/");
-
-    // Set the icon for the label
-    displayLabelIcon->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
-    displayLabelIcon->setToolTip("");
-
-    // Create a QHBoxLayout to arrange the text and icon horizontally
-    QHBoxLayout *layout = new QHBoxLayout;
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(4);
-    displayable->setLayout(layout);
-    layout->addWidget(displayLabelIcon);
-    layout->addWidget(displayLabel);
-    layout->addStretch();
-    return displayable;
-  }
+  QWidget *getDisplayLabelWidget();
+  [[nodiscard]] QString getDisplayLabelText() const;
 
 signals:
+  /////////////////////////////////////////////////////
   void valueChanged();
 
 protected:
-  void triggerValueChanged();
+  /////////////////////////////////////////////////////
+  static constexpr int32_t TXT_ICON_SIZE  = 16;
+  static constexpr int32_t DISP_ICON_SIZE = 16;
+  static constexpr int32_t HELP_ICON_SIZE = 8;
+
+  /////////////////////////////////////////////////////
+  void triggerValueChanged(const QString &newValue);
+
+private:
+  /////////////////////////////////////////////////////
+  void updateDisplayLabel();
+  void createDisplayAbleWidget(const QString &icon, const QString &tooltip);
+
+  /////////////////////////////////////////////////////
+  QWidget *mDisplayable     = nullptr;
+  QLabel *mDisplayLabel     = nullptr;
+  QLabel *mDisplayLabelIcon = nullptr;
+  QString mShortDescription;
+  QString mDisplayValue;
+  QString mUnit;
 };
 
 }    // namespace joda::ui

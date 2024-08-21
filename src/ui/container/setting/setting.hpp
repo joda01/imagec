@@ -33,25 +33,10 @@
 
 namespace joda::ui {
 
-template <typename T>
-struct is_enum
-{
-  static constexpr bool value = std::is_enum<T>::value;
-};
-
-template <typename T>
-concept IntFloatConcept =
-    std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> || std::same_as<T, float> ||
-    std::same_as<T, bool> || std::same_as<T, std::string> || std::is_enum<T>::value;
-
-template <IntFloatConcept VALUE_T, IntFloatConcept VALUE2_T>
+template <NumberOrString VALUE_T, NumberOrString VALUE2_T>
 class Setting : public SettingBase
 {
 private:
-  static constexpr int32_t TXT_ICON_SIZE  = 16;
-  static constexpr int32_t DISP_ICON_SIZE = 16;
-  static constexpr int32_t HELP_ICON_SIZE = 8;
-
 public:
   struct ComboEntry
   {
@@ -73,7 +58,6 @@ public:
                  std::same_as<VALUE_T, float> || std::is_enum<VALUE_T>::value
       : mUnit(unit), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
-    createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, defaultVal, minVal, maxVal);
     comboxEditingFinished();
   }
@@ -88,7 +72,6 @@ public:
       mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault), mParent(parent),
       mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
-    createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, defaultVal, minVal, maxVal, unit, optionsSecond);
     comboxEditingFinished();
   }
@@ -98,7 +81,6 @@ public:
     requires std::same_as<VALUE_T, std::string>
       : mUnit(""), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
-    createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, defaultVal);
     comboxEditingFinished();
   }
@@ -110,7 +92,6 @@ public:
                  std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, uint16_t> || std::is_enum<VALUE_T>::value
       : mUnit(unit), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
-    createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, unit, options, {}, defaultVal);
     comboxEditingFinished();
   }
@@ -125,7 +106,6 @@ public:
       mUnit(unit), mDefaultValue(defaultVal), mComboSecondDefaultValue(comboSecondDefault), mParent(parent),
       mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
-    createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, unit, options, optionsSecond, defaultVal);
     comboxEditingFinished();
   }
@@ -135,7 +115,6 @@ public:
     requires std::same_as<VALUE_T, bool>
       : mUnit(""), mDefaultValue(defaultVal), mParent(parent), mHelpText(helpText), mPathToHelpFile(pathToHelpFile)
   {
-    createDisplayAbleWidget(icon, placeHolderText, helpText);
     createEditableWidget(icon, placeHolderText, helpText, "", {{0, "Off"}, {1, "On"}}, {}, defaultVal);
     comboxEditingFinished();
   }
@@ -144,29 +123,6 @@ public:
   {
     mValue1InSetting = setting;
     mValue2InSetting = setting2;
-  }
-
-  void setShortDescription(const QString &desc) override
-  {
-    mDisableDisplayableIcon = !desc.isEmpty();
-    mDisplayLabelIcon->setVisible(!mDisableDisplayableIcon);
-    mShortDesc = desc;
-    updateDisplayText();
-  }
-
-  void setDisplayIconVisible(bool visible) override
-  {
-    mDisplayLabelIcon->setVisible(visible);
-  }
-
-  QWidget *getLabelWidget() override
-  {
-    return mDisplayable;
-  }
-
-  QString getLabelText() const override
-  {
-    return mDisplayLabel->text();
   }
 
   QWidget *getEditableWidget() override
@@ -607,43 +563,6 @@ public:
   }
 
 private:
-  /////////////////////////////////////////////////////
-  void createDisplayAbleWidget(const QString &icon, const QString &placeHolderText, const QString &helpText)
-  {
-    mDisplayable = new QWidget();
-    mDisplayable->setContentsMargins(0, 0, 0, 0);
-    // mDisplayable->setMinimumWidth(110);
-    // mDisplayable->setMaximumWidth(110);
-    mDisplayable->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
-    // Create a QLabel
-    mDisplayLabelIcon = new QLabel();
-    mDisplayLabel     = new QLabel();
-
-    // Set text for the label
-    mDisplayLabel->setText(mShortDesc + mDisplayText);
-    mDisplayLabel->setToolTip(helpText);
-
-    // Create a QPixmap for the icon (you may need to adjust the path)
-    if(!icon.isEmpty()) {
-      QIcon bmp(":/icons/outlined/" + icon);
-      // Set the icon for the label
-      mDisplayLabelIcon->setPixmap(
-          bmp.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
-      mDisplayLabelIcon->setToolTip(helpText);
-    }
-
-    // Create a QHBoxLayout to arrange the text and icon horizontally
-    QHBoxLayout *layout = new QHBoxLayout;
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(4);
-    mDisplayable->setLayout(layout);
-    if(!icon.isEmpty()) {
-      layout->addWidget(mDisplayLabelIcon);
-    }
-    layout->addWidget(mDisplayLabel);
-    layout->addStretch();
-  }
-
   void createEditableWidget(const QString &icon, const QString &placeHolderText, const QString &helpText,
                             std::optional<VALUE_T> defaultVal, VALUE_T min = {}, VALUE_T max = {})
     requires std::same_as<VALUE_T, int> || std::same_as<VALUE_T, uint32_t> || std::same_as<VALUE_T, uint16_t> ||
@@ -917,31 +836,20 @@ private:
     return mComboBoxSecond;
   }
 
-  void updateDisplayText()
-  {
-    mDisplayLabel->setText(mShortDesc + mDisplayText);
-  }
-
   /////////////////////////////////////////////////////
-  QString mDisplayText = "";
   std::optional<VALUE_T> mDefaultValue;
   VALUE2_T mComboSecondDefaultValue;
 
   /////////////////////////////////////////////////////
-  QLineEdit *mLineEdit       = nullptr;
-  QComboBox *mComboBox       = nullptr;
-  QComboBox *mComboBoxSecond = nullptr;
-  QLabel *mDisplayLabel      = nullptr;
-  QLabel *mDisplayLabelIcon  = nullptr;
-  QString mUnit;
-  QString mShortDesc;
+  QLineEdit *mLineEdit         = nullptr;
+  QComboBox *mComboBox         = nullptr;
+  QComboBox *mComboBoxSecond   = nullptr;
   bool mDisableDisplayableIcon = false;
   QString mHelpText;
   QString mPathToHelpFile;
 
-  QWidget *mParent      = nullptr;
-  QWidget *mDisplayable = nullptr;
-  QWidget *mEditable    = nullptr;
+  QWidget *mParent   = nullptr;
+  QWidget *mEditable = nullptr;
 
   VALUE_T *mValue1InSetting  = nullptr;
   VALUE2_T *mValue2InSetting = nullptr;
