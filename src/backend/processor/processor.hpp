@@ -34,8 +34,7 @@ enum class ProcessState
   LOOKING_FOR_IMAGES,
   RUNNING,
   STOPPING,
-  FINISHED,
-  ERROR
+  FINISHED
 };
 
 struct ProcessInformation
@@ -70,6 +69,11 @@ public:
   void setStateFinished()
   {
     state = ProcessState::FINISHED;
+  }
+
+  void setStateStopping()
+  {
+    state = ProcessState::STOPPING;
   }
 
   void setStateLookingForImages()
@@ -112,8 +116,18 @@ public:
     return processedNrOfTiles;
   }
 
+  bool isStopping() const
+  {
+    return state == ProcessState::STOPPING;
+  }
+
+  bool isFinished() const
+  {
+    return state == ProcessState::FINISHED;
+  }
+
 private:
-  ProcessState state                        = ProcessState::INITIALIZING;
+  std::atomic<ProcessState> state           = ProcessState::INITIALIZING;
   std::atomic<uint32_t> totalNrOfImages     = 0;
   std::atomic<uint32_t> processedNrOfImages = 0;
   std::atomic<uint32_t> totalNrOfTiles      = 0;
@@ -126,7 +140,7 @@ public:
   /////////////////////////////////////////////////////
   Processor();
   void execute(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages);
-
+  void stop();
   std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, GlobalContext &globalContext);
   void initializePipelineContext(const joda::settings::AnalyzeSettings &program, const GlobalContext &globalContext,
                                  const PlateContext &plateContext, joda::grp::FileGrouper &grouper,
@@ -134,7 +148,15 @@ public:
                                  ImageContext &imageContext);
 
   void listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &);
-  ProcessProgress getProgress();
+  const ProcessProgress &getProgress() const
+  {
+    return mProgress;
+  }
+
+  const ProcessInformation &getJobInformation() const
+  {
+    return mJobInformation;
+  }
 
 private:
   /////////////////////////////////////////////////////

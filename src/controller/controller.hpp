@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <memory>
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/helper/image/image.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
@@ -50,6 +51,7 @@ class Controller
 {
 public:
   Controller() = default;
+  ~Controller();
 
   // SYSTEM ///////////////////////////////////////////////////
   static auto getSystemResources() -> joda::system::SystemResources;
@@ -75,11 +77,13 @@ public:
              const std::string &jobName);
   void stop();
   [[nodiscard]] auto getState() const -> const joda::processor::ProcessProgress &;
-  [[nodiscard]] processor::ProcessInformation getJobInformation() const;
+  [[nodiscard]] const processor::ProcessInformation &getJobInformation() const;
 
 private:
   /////////////////////////////////////////////////////
   processor::imagesList_t mWorkingDirectory;
+  std::unique_ptr<processor::Processor> mActProcessor;
+  std::thread mActThread;
 };
 
 }    // namespace joda::ctrl

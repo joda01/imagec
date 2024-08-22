@@ -37,6 +37,11 @@ Processor::Processor()
 {
 }
 
+void Processor::stop()
+{
+  mProgress.setStateStopping();
+}
+
 void Processor::execute(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages)
 {
   GlobalContext globalContext;
@@ -70,14 +75,29 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, imagesLi
       auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
 
       for(int tileX = 0; tileX < tilesX; tileX++) {
+        if(mProgress.isStopping()) {
+          break;
+        }
         for(int tileY = 0; tileY < tilesY; tileY++) {
+          if(mProgress.isStopping()) {
+            break;
+          }
           // Start of the image specific function
           for(int tStack = 0; tStack < nrtStack; tStack++) {
+            if(mProgress.isStopping()) {
+              break;
+            }
             for(int zStack = 0; zStack < nrzSTack; zStack++) {
+              if(mProgress.isStopping()) {
+                break;
+              }
               IterationContext iterationContext;
 
               // Execute pipelines of this iteration
               for(const auto &pipeline : program.pipelines) {
+                if(mProgress.isStopping()) {
+                  break;
+                }
                 //
                 // Load the image imagePlane
                 //
@@ -96,6 +116,9 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, imagesLi
                 // Execute the pipeline
                 //
                 for(const auto &step : pipeline.pipelineSteps) {
+                  if(mProgress.isStopping()) {
+                    break;
+                  }
                   // Execute a pipeline step
                   step(context, context.getActImage().image, context.getActObjects());
                 }

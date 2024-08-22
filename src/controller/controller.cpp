@@ -11,6 +11,8 @@
 ///
 
 #include "controller.hpp"
+#include <memory>
+#include <stdexcept>
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
@@ -25,6 +27,21 @@ namespace joda::ctrl {
 auto Controller::getSystemResources() -> joda::system::SystemResources
 {
   return joda::system::acquire();
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+Controller::~Controller()
+{
+  if(mActThread.joinable()) {
+    if(mActProcessor) {
+      mActProcessor->stop();
+    }
+    mActThread.join();
+  }
 }
 
 ///
@@ -206,6 +223,14 @@ cv::Size Controller::getCompositeTileSize() const
 void Controller::start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                        const std::string &jobName)
 {
+  if(!mActThread.joinable()) {
+    mActThread = std::thread([this, settings] {
+      mActProcessor = std::make_unique<processor::Processor>();
+      mActProcessor->execute(settings, mWorkingDirectory);
+    });
+  } else {
+    throw std::runtime_error("There is still a job running. Stop this job first!");
+  }
 }
 
 ///
@@ -215,6 +240,10 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
 ///
 void Controller::stop()
 {
+  if(mActProcessor) {
+    return mActProcessor->stop();
+  }
+  throw std::runtime_error("No job running!");
 }
 
 ///
@@ -224,6 +253,10 @@ void Controller::stop()
 ///
 [[nodiscard]] auto Controller::getState() const -> const joda::processor::ProcessProgress &
 {
+  if(mActProcessor) {
+    return mActProcessor->getProgress();
+  }
+  throw std::runtime_error("No job running!");
 }
 
 ///
@@ -231,8 +264,12 @@ void Controller::stop()
 /// \author
 /// \return
 ///
-[[nodiscard]] processor::ProcessInformation Controller::getJobInformation() const
+[[nodiscard]] const processor::ProcessInformation &Controller::getJobInformation() const
 {
+  if(mActProcessor) {
+    return mActProcessor->getJobInformation();
+  }
+  throw std::runtime_error("No job executed!");
 }
 
 }    // namespace joda::ctrl
