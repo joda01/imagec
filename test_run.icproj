@@ -388,7 +388,7 @@
       "city": "",
       "country": "",
       "email": "",
-      "firstName": "",
+      "firstName": "d",
       "lastName": "",
       "organization": "",
       "postalCode": "",
@@ -396,39 +396,33 @@
     },
     "classes": [
       {
-        "classId": "None",
+        "classId": "0",
         "color": "",
-        "name": "EV",
+        "name": "Spot",
         "notes": ""
       },
       {
-        "classId": "None",
+        "classId": "1",
         "color": "",
-        "name": "cell",
+        "name": "Tetraspeck",
         "notes": ""
       },
       {
-        "classId": "None",
+        "classId": "2",
         "color": "",
-        "name": "background",
+        "name": "Cell",
         "notes": ""
       },
       {
-        "classId": "None",
+        "classId": "3",
         "color": "",
-        "name": "ev in cell",
+        "name": "Nucleus",
         "notes": ""
       },
       {
-        "classId": "None",
+        "classId": "4",
         "color": "",
-        "name": "coloc",
-        "notes": ""
-      },
-      {
-        "classId": "None",
-        "color": "",
-        "name": "Invalid",
+        "name": "Background",
         "notes": ""
       }
     ],
@@ -437,7 +431,7 @@
         "clusterId": "A",
         "color": "",
         "name": "CY5",
-        "notes": ""
+        "notes": "a"
       },
       {
         "clusterId": "B",
@@ -456,6 +450,12 @@
         "color": "",
         "name": "coloc cy5-cy7",
         "notes": ""
+      },
+      {
+        "clusterId": "E",
+        "color": "",
+        "name": "CH4",
+        "notes": ""
       }
     ],
     "experimentSettings": {
@@ -465,14 +465,14 @@
     },
     "plates": [
       {
-        "cols": 28,
+        "cols": 24,
         "filenameRegex": "_((.)([0-9]+))_([0-9]+)",
         "groupBy": "Filename",
-        "imageFolder": "test/test_data/images",
+        "imageFolder": "/home/danmayr.joachim/Documents/privat/github/imagec/imagec/test/test_data/images",
         "name": "Huhu",
         "notes": "Not",
         "plateId": 1,
-        "rows": 28,
+        "rows": 16,
         "wellImageOrder": [
           [
             1,
@@ -501,6 +501,6 @@
         ]
       }
     ],
-    "workingDirectory": "tmp"
+    "workingDirectory": "/home/danmayr.joachim/Documents/privat/github/imagec/imagec/test/test_data/images"
   }
 }

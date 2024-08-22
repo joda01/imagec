@@ -145,9 +145,6 @@ void DialogAnalyzeRunning::onRefreshData()
   auto actState          = joda::processor::ProcessState::FINISHED;
   try {
     const auto &state = mWindowMain->getController()->getState();
-    if(state.getState() == joda::processor::ProcessState::ERROR) {
-      mLastErrorMsg = "Error message";
-    }
     if(state.getState() == joda::processor::ProcessState::RUNNING) {
       mEndedTime = std::chrono::high_resolution_clock::now();
     }
@@ -170,10 +167,6 @@ void DialogAnalyzeRunning::onRefreshData()
   stream << std::fixed << std::setprecision(2) << timeDiff << " " << exp;
   std::string timeDiffStr = stream.str();
 
-  if(!mStopped && actState == joda::processor::ProcessState::ERROR) {
-    mStopped = true;
-    // showErrorDialog(mLastErrorMsg);
-  }
   QString progressText;
   if(actState != joda::processor::ProcessState::RUNNING || actState == joda::processor::ProcessState::STOPPING) {
     stopButton->setEnabled(false);
@@ -188,7 +181,7 @@ void DialogAnalyzeRunning::onRefreshData()
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage;
   }
 
-  if(actState == joda::processor::ProcessState::FINISHED || actState == joda::processor::ProcessState::ERROR) {
+  if(actState == joda::processor::ProcessState::FINISHED) {
     closeButton->setEnabled(true);
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
   }

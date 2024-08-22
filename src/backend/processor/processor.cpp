@@ -12,6 +12,7 @@
 ///
 
 #include "processor.hpp"
+#include <exception>
 #include <filesystem>
 #include <memory>
 #include "backend/enums/enum_objects.hpp"
@@ -106,11 +107,15 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, imagesLi
                     pipeline.pipelineSetup, {tilesX, tileY},
                     {.tStack = tStack, .zStack = zStack, .cStack = pipeline.pipelineSetup.cStackIndex}, context);
                 auto planeId = context.getActImage().getId().imagePlane;
-                db.insertImagePlane(imageContext.imageId, planeId,
-                                    imageContext.imageMeta.getChannelInfos()
-                                        .at(pipeline.pipelineSetup.cStackIndex)
-                                        .planes.at(planeId.tStack)
-                                        .at(planeId.zStack));
+                try {
+                  db.insertImagePlane(imageContext.imageId, planeId,
+                                      imageContext.imageMeta.getChannelInfos()
+                                          .at(pipeline.pipelineSetup.cStackIndex)
+                                          .planes.at(planeId.tStack)
+                                          .at(planeId.zStack));
+                } catch(const std::exception &ex) {
+                  std::cout << "Insert Plane: " << ex.what() << std::endl;
+                }
 
                 //
                 // Execute the pipeline
@@ -126,7 +131,11 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, imagesLi
 
               // Iteration for all tiles finished
               auto id = DurationCount::start("Insert");
-              db.insertObjects(imageContext, iterationContext.getObjects());
+              try {
+                db.insertObjects(imageContext, iterationContext.getObjects());
+              } catch(const std::exception &ex) {
+                std::cout << "Insert Obj: " << ex.what() << std::endl;
+              }
               DurationCount::stop(id);
             }
           }
@@ -178,10 +187,26 @@ void Processor::initializePipelineContext(const joda::settings::AnalyzeSettings 
   // Assign image to group here!!
   //
   auto groupInfo = grouper.getGroupForFilename(imagePath);
-  db.insertGroup(plateContext.plateId, groupInfo);
-  db.insertImage(imageContext, groupInfo);
-  db.insertImageChannels(imageContext.imageId, imageContext.imageMeta);
-  db.insetImageToGroup(plateContext.plateId, imageContext.imageId, groupInfo.imageIdx, groupInfo);
+  try {
+    db.insertGroup(plateContext.plateId, groupInfo);
+  } catch(const std::exception &ex) {
+    std::cout << "GR: " << ex.what() << std::endl;
+  }
+  try {
+    db.insertImage(imageContext, groupInfo);
+  } catch(const std::exception &ex) {
+    std::cout << "Im: " << ex.what() << std::endl;
+  }
+  try {
+    db.insertImageChannels(imageContext.imageId, imageContext.imageMeta);
+  } catch(const std::exception &ex) {
+    std::cout << "Ch: " << ex.what() << std::endl;
+  }
+  try {
+    db.insetImageToGroup(plateContext.plateId, imageContext.imageId, groupInfo.imageIdx, groupInfo);
+  } catch(const std::exception &ex) {
+    std::cout << "IM GR: " << ex.what() << std::endl;
+  }
 }
 
 }    // namespace joda::processor

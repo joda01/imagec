@@ -3,3 +3,6 @@
 - [ ] Support for reference spot removal in preview.
 - [ ] Describe file extensions
 - [ ] Describe templates
+
+- [ ] Catch exception when starting run
+- [ ] Handle non ASCII chars when inserting to DB

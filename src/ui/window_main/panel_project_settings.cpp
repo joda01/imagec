@@ -195,6 +195,7 @@ void PanelProjectSettings::fromSettings(const joda::settings::ProjectSettings &s
 
   mJobName->clear();
   applyRegex();
+  mParentWindow->getController()->setWorkingDirectory(0, mSettings.workingDirectory);
 }
 
 ///
@@ -211,9 +212,9 @@ void PanelProjectSettings::toSettings()
   mSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
   mSettings.address.firstName        = mScientistsFirstName->text().toStdString();
 
-  mSettings.plates[0].groupBy       = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
-  mSettings.plates[0].filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
-
+  mSettings.plates[0].groupBy        = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mSettings.plates[0].filenameRegex  = mRegexToFindTheWellPosition->currentText().toStdString();
+  mSettings.plates[0].imageFolder    = mSettings.workingDirectory;
   mSettings.plates[0].wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
 
   auto value               = mPlateSize->currentData().toUInt();
@@ -240,6 +241,7 @@ void PanelProjectSettings::onOpenWorkingDirectoryClicked()
   mWorkingDir->repaint();
   mSettings.workingDirectory = mWorkingDir->text().toStdString();
   mParentWindow->getController()->setWorkingDirectory(0, mSettings.workingDirectory);
+  mSettings.plates[0].imageFolder = mSettings.workingDirectory;
   onSettingChanged();
 }
 
