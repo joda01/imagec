@@ -181,6 +181,17 @@ void PanelImages::updateImageMeta()
       row++;
     };
 
+    auto addItemFloat = [this, &row](const std::string name, float value, const std::string &prefix) {
+      auto *title = new QTableWidgetItem(name.data());
+      title->setFlags(title->flags() & ~Qt::ItemIsEditable);
+      mImageMeta->setItem(row, 0, title);
+
+      auto *valueItem = new QTableWidgetItem(QString::number(value) + " " + QString(prefix.data()));
+      valueItem->setFlags(valueItem->flags() & ~Qt::ItemIsEditable);
+      mImageMeta->setItem(row, 1, valueItem);
+      row++;
+    };
+
     auto addStringItem = [this, &row](const std::string name, const std::string &value) {
       auto *title = new QTableWidgetItem(name.data());
       title->setFlags(title->flags() & ~Qt::ItemIsEditable);
@@ -230,12 +241,12 @@ void PanelImages::updateImageMeta()
       addTitle("Channel " + std::to_string(idx));
       addStringItem("ID", channelInfo.channelId);
       addStringItem("Name", channelInfo.name);
-      addItem("Emission wave length", channelInfo.emissionWaveLength, channelInfo.emissionWaveLengthUnit);
+      addItemFloat("Emission wave length", channelInfo.emissionWaveLength, channelInfo.emissionWaveLengthUnit);
       addStringItem("Contrast method", channelInfo.contrastMethod);
 
       for(const auto &[tStack, tdata] : channelInfo.planes) {
         for(const auto &[zStack, zData] : tdata) {
-          addItem("Exposure time", zData.exposureTime, zData.exposureTimeUnit);
+          addItemFloat("Exposure time", zData.exposureTime, zData.exposureTimeUnit);
           addItem("Z-Stack", zStack, "");
           addItem("T-Stack", tStack, "");
         }
