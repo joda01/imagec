@@ -100,9 +100,10 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
-
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelPipelineSettings::onTileClicked);
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
+  connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
+  connect(mLayout.getDeleteButton(), &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
 }
 
 ///
@@ -414,6 +415,31 @@ void PanelPipelineSettings::toSettings()
   mSettings.pipelineSetup.cStackIndex      = cStackIndex->getValue();
   mSettings.pipelineSetup.zProjection      = zProjection->getValue();
   mSettings.pipelineSetup.defaultClusterId = defaultClusterId->getValue();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::closeWindow()
+{
+  mWindowMain->showPanelStartPage();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::deletePipeline()
+{
+  mWindowMain->showPanelStartPage();
+  mWindowMain->getPanelPipeline()->erase(this);
 }
 
 }    // namespace joda::ui

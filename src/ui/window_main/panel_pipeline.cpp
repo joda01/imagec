@@ -16,6 +16,7 @@
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
+#include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
 
@@ -82,7 +83,8 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 
     mVerticalLayout->removeWidget(toRemove->getOverviewPanel());
     toRemove->getOverviewPanel()->setParent(nullptr);
-    delete toRemove;
+    // delete toRemove;
+    mWindowMain->checkForSettingsChanged();
   }
 }
 

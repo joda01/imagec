@@ -128,6 +128,8 @@ private slots:
   void onPreviewFinished();
   void valueChangedEvent();
   void metaChangedEvent();
+  void closeWindow();
+  void deletePipeline();
 };
 
 }    // namespace joda::ui
