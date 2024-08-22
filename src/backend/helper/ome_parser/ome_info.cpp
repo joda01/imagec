@@ -173,6 +173,7 @@ TRY_AGAIN:
     //
     // Load planes
     //
+    setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
     for(pugi::xml_node plane = pixels.child((keyPrefix + "Plane").data()); plane != nullptr;
         plane                = plane.next_sibling((keyPrefix + "Plane").data())) {
       int32_t theZ        = plane.attribute("TheZ").as_int();

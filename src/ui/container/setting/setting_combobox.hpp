@@ -178,6 +178,9 @@ public:
     if constexpr(std::same_as<VALUE_T, bool>) {
       idx = mComboBox->findData(static_cast<int>(value));
     }
+    if constexpr(std::is_enum<VALUE_T>::value) {
+      idx = mComboBox->findData(static_cast<int>(value));
+    }
 
     if(idx >= 0) {
       mComboBox->setCurrentIndex(idx);

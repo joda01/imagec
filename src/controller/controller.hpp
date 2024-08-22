@@ -80,7 +80,6 @@ public:
 private:
   /////////////////////////////////////////////////////
   processor::imagesList_t mWorkingDirectory;
-  std::string mActProcessId;
 };
 
 }    // namespace joda::ctrl

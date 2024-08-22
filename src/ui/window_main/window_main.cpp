@@ -364,6 +364,8 @@ void WindowMain::clearSettings()
   mAnalyzeSettings    = {};
   mAnalyzeSettingsOld = {};
   mPanelPipeline->clear();
+  mAnalyzeSettings.pipelines.clear();
+  mAnalyzeSettingsOld.pipelines.clear();
   mPanelProjectSettings->fromSettings({});
   mPanelClassification->fromSettings({});
 }

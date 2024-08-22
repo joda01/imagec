@@ -125,10 +125,12 @@ void PanelImages::updateImagesList()
   };
 
   const auto &foundImages = mWindowMain->getController()->getListOfFoundImages();
-  mImages->setRowCount(foundImages.size());
+
   int row = 0;
   int idx = 0;
   for(const auto &[plateId, images] : foundImages) {
+    auto rowCount = row + images.size();
+    mImages->setRowCount(rowCount);
     for(const auto &filename : images) {
       if(contains(filename.string().data())) {
         auto *index = new QTableWidgetItem(filename.string().data());
@@ -140,7 +142,6 @@ void PanelImages::updateImagesList()
         mImages->setItem(row, 1, item);
         row++;
       }
-
       idx++;
     }
   }

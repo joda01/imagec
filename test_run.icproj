@@ -22,7 +22,7 @@
         {
           "$blur": {
             "kernelSize": 7,
-            "mode": "Blur",
+            "mode": "GaussianBlur",
             "repeat": 5
           }
         },
@@ -62,8 +62,8 @@
         {
           "$measure": {
             "classesIn": [
-              "0",
-              "1"
+              "1",
+              "2"
             ],
             "clustersIn": [
               "A",

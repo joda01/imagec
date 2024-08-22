@@ -53,7 +53,7 @@ public:
   void setCheckedItems(const QVariantList &items)
   {
     for(int i = 0; i < items.count(); i++) {
-      int index = findData(items.at(i));
+      int index = findData(items.at(i), Qt::UserRole + 1);
 
       if(index != -1) {
         model->item(index)->setData(Qt::Checked, Qt::CheckStateRole);

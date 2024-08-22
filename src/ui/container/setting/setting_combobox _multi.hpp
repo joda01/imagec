@@ -190,6 +190,9 @@ public:
       if constexpr(std::same_as<VALUE_T, bool>) {
         toCheck.append(static_cast<int>(value));
       }
+      if constexpr(std::is_enum<VALUE_T>::value) {
+        toCheck.append(static_cast<int>(value));
+      }
     }
     mComboBox->setCheckedItems(toCheck);
   }
