@@ -15,7 +15,7 @@
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
 #include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting.hpp"
+#include "ui/container/setting/setting_combobox.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "median_substraction_settings.hpp"
 
@@ -31,31 +31,31 @@ public:
   MedianSubtraction(settings::MedianSubtractSettings &settings, QWidget *parent) :
       Command(TITLE.data(), ICON.data(), parent)
   {
-    mMedianBackgroundSubtraction = std::shared_ptr<Setting<int, int>>(
-        new Setting<int, int>("icons8-baseline-50.png", "Kernel size", "Median background subtraction", "", -1,
-                              {{-1, "Off"},
-                               {3, "3x3"},
-                               {4, "4x4"},
-                               {5, "5x5"},
-                               {7, "7x7"},
-                               {9, "9x9"},
-                               {11, "11x11"},
-                               {13, "13x13"},
-                               {15, "15x15"},
-                               {17, "17x17"},
-                               {19, "19x19"},
-                               {21, "21x21"},
-                               {23, "23x23"}},
-                              parent, "median_background_subtraction.json"));
+    mMedianBackgroundSubtraction = SettingBase::create<SettingComboBox<int32_t>>(parent, "icons8-baseline-50.png",
+                                                                                 "Median background subtraction");
+    mMedianBackgroundSubtraction->addOptions({{-1, "Off"},
+                                              {3, "3x3"},
+                                              {4, "4x4"},
+                                              {5, "5x5"},
+                                              {7, "7x7"},
+                                              {9, "9x9"},
+                                              {11, "11x11"},
+                                              {13, "13x13"},
+                                              {15, "15x15"},
+                                              {17, "17x17"},
+                                              {19, "19x19"},
+                                              {21, "21x21"},
+                                              {23, "23x23"}});
+
     mMedianBackgroundSubtraction->setValue(settings.kernelSize);
-    mMedianBackgroundSubtraction->connectWithSetting(&settings.kernelSize, nullptr);
+    mMedianBackgroundSubtraction->connectWithSetting(&settings.kernelSize);
 
     addSetting({{mMedianBackgroundSubtraction.get(), true}});
   }
 
 private:
   /////////////////////////////////////////////////////
-  std::shared_ptr<Setting<int, int>> mMedianBackgroundSubtraction;
+  std::shared_ptr<SettingComboBox<int>> mMedianBackgroundSubtraction;
 };
 
 }    // namespace joda::ui

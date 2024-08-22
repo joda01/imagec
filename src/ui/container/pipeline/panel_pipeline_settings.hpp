@@ -24,7 +24,8 @@
 #include "ui/container/command/command.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/container/pipeline/panel_channel_overview.hpp"
-#include "ui/container/setting/setting.hpp"
+#include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
 
@@ -90,14 +91,14 @@ private:
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
   /////////////////////////////////////////////////////
-  void createSettings(WindowMain *windowMain);
+  void createSettings(helper::TabWidget *, WindowMain *windowMain);
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
-  std::shared_ptr<Setting<std::string, std::string>> mPipelineName;
-  std::shared_ptr<Setting<std::string, int32_t>> mCStackIndex;
-  std::shared_ptr<Setting<enums::ZProjection, int32_t>> mZProjection;
-  std::shared_ptr<Setting<enums::ClusterIdIn, int32_t>> mDefaultClusterId;
+  std::unique_ptr<SettingLineEdit<std::string>> pipelineName;
+  std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
+  std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
+  std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> defaultClusterId;
 
   /////////////////////////////////////////////////////
   PanelPreview *mPreviewImage = nullptr;

@@ -15,7 +15,7 @@
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
 #include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting.hpp"
+#include "ui/container/setting/setting_combobox.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "watershed_settings.hpp"
 
@@ -30,26 +30,25 @@ public:
 
   Watershed(settings::WatershedSettings &settings, QWidget *parent) : Command(TITLE.data(), ICON.data(), parent)
   {
-    mFindTolerance = std::shared_ptr<Setting<float, int>>(new Setting<float, int>("icons8-split-50", "Find tolerance",
-                                                                                  "Find tolerance", "%", 0.5,
-                                                                                  {
-                                                                                      {0, "Off"},
-                                                                                      {0.5, "Default (0.5)"},
-                                                                                      {0.6, "0.6"},
-                                                                                      {0.7, "0.7"},
-                                                                                      {0.8, "0.8"},
-                                                                                      {0.9, "0.9"},
-                                                                                  },
-                                                                                  parent, ""));
-
+    mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, "icons8-split-50", "Find tolerance");
+    mFindTolerance->addOptions({
+        {0, "Off"},
+        {0.5, "Default (0.5)"},
+        {0.6, "0.6"},
+        {0.7, "0.7"},
+        {0.8, "0.8"},
+        {0.9, "0.9"},
+    });
     mFindTolerance->setValue(settings.maximumFinderTolerance);
-    mFindTolerance->connectWithSetting(&settings.maximumFinderTolerance, nullptr);
+    mFindTolerance->connectWithSetting(&settings.maximumFinderTolerance);
+    mFindTolerance->setUnit("%");
+
     addSetting({{mFindTolerance.get(), true}});
   }
 
 private:
   /////////////////////////////////////////////////////
-  std::shared_ptr<Setting<float, int>> mFindTolerance;
+  std::unique_ptr<SettingComboBox<float>> mFindTolerance;
 };
 
 }    // namespace joda::ui

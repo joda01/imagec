@@ -20,7 +20,8 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting.hpp"
+#include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
 #include "classifier_settings.hpp"
@@ -57,38 +58,42 @@ private:
       //
       mClusterOut = generateClusterDropDown("Match cluster", parent);
       mClusterOut->setValue(settings.clusterOut);
-      mClusterOut->connectWithSetting(&settings.clusterOut, nullptr);
+      mClusterOut->connectWithSetting(&settings.clusterOut);
 
       //
       //
       mClassOut = generateClassDropDown("Match class", parent);
       mClassOut->setValue(settings.classOut);
-      mClassOut->connectWithSetting(&settings.classOut, nullptr);
+      mClassOut->connectWithSetting(&settings.classOut);
       mClassOut->setDisplayIconVisible(false);
 
       //
       //
-      mMinParticleSize = std::unique_ptr<Setting<int32_t, int32_t>>(
-          new Setting<int, int32_t>("", "[0 - " + QString::number(INT32_MAX) + "]", "Min particle size", "px",
-                                    std::nullopt, 0, INT32_MAX, parent, ""));
+      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Min particle size");
+      mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
+      mMinParticleSize->setUnit("px");
+      mMinParticleSize->setMinMax(0, INT32_MAX);
       mMinParticleSize->setValue(settings.minParticleSize);
-      mMinParticleSize->connectWithSetting(&settings.minParticleSize, nullptr);
+      mMinParticleSize->connectWithSetting(&settings.minParticleSize);
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
-      mMaxParticleSize = std::unique_ptr<Setting<int32_t, int32_t>>(
-          new Setting<int, int32_t>("", "[0 - " + QString::number(INT32_MAX) + "]", "Max particle size", "px",
-                                    std::nullopt, 0, INT32_MAX, parent, ""));
-      mMaxParticleSize->setValue(settings.maxParticleSize);
-      mMaxParticleSize->connectWithSetting(&settings.maxParticleSize, nullptr);
+      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max particle size");
+      mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
+      mMaxParticleSize->setUnit("px");
+      mMaxParticleSize->setMinMax(0, INT32_MAX);
+      mMaxParticleSize->setValue(settings.minParticleSize);
+      mMaxParticleSize->connectWithSetting(&settings.minParticleSize);
       mMaxParticleSize->setShortDescription("Max. ");
 
       //
       //
-      mMinCircularity = std::unique_ptr<Setting<float, int32_t>>(
-          new Setting<float, int32_t>("", "[0 - 1]", "Min circularity", "%", std::nullopt, 0, 1, parent, ""));
+      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, "", "Circularity [0-1]");
+      mMinCircularity->setPlaceholderText("[0 - 1]");
+      mMinCircularity->setUnit("%");
+      mMinCircularity->setMinMax(0, 1);
       mMinCircularity->setValue(settings.minCircularity);
-      mMinCircularity->connectWithSetting(&settings.minCircularity, nullptr);
+      mMinCircularity->connectWithSetting(&settings.minCircularity);
       mMinCircularity->setShortDescription("Circ. ");
 
       outer.addSetting(tab, "Filter",
@@ -105,13 +110,12 @@ private:
                            mMinCircularity.get(), mSnapAreaSize.get()});
     }
 
-    std::unique_ptr<Setting<enums::ClusterIdIn, int>> mClusterOut;
-    std::unique_ptr<Setting<enums::ClassId, int>> mClassOut;
-
-    std::unique_ptr<Setting<int, int>> mMinParticleSize;
-    std::unique_ptr<Setting<int, int>> mMaxParticleSize;
-    std::unique_ptr<Setting<float, int>> mMinCircularity;
-    std::unique_ptr<Setting<float, int>> mSnapAreaSize;
+    std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
+    std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOut;
+    std::unique_ptr<SettingLineEdit<int>> mMinParticleSize;
+    std::unique_ptr<SettingLineEdit<int>> mMaxParticleSize;
+    std::unique_ptr<SettingLineEdit<float>> mMinCircularity;
+    std::unique_ptr<SettingLineEdit<float>> mSnapAreaSize;
 
     Classifier &outer;
     helper::TabWidget *tab;
@@ -126,22 +130,24 @@ private:
       //
       mClusterOutNoMatch = generateClusterDropDown("No match cluster", parent);
       mClusterOutNoMatch->setValue(settings.clusterOutNoMatch);
-      mClusterOutNoMatch->connectWithSetting(&settings.clusterOutNoMatch, nullptr);
+      mClusterOutNoMatch->connectWithSetting(&settings.clusterOutNoMatch);
 
       //
       //
       mClassOutNoMatch = generateClassDropDown("No match class", parent);
       mClassOutNoMatch->setValue(settings.classOutNoMatch);
-      mClassOutNoMatch->connectWithSetting(&settings.classOutNoMatch, nullptr);
+      mClassOutNoMatch->connectWithSetting(&settings.classOutNoMatch);
 
       //
       //
-      mGrayScaleValue = std::unique_ptr<Setting<int32_t, int32_t>>(
-          new Setting<int, int32_t>("icons8-genealogy-50.png", "[1 - " + QString::number(UINT16_MAX) + "]",
-                                    "Grayscale value", "", std::nullopt, 1, UINT16_MAX, parent, ""));
+      mGrayScaleValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Grayscale");
+      mGrayScaleValue->setDefaultValue(65535);
+      mGrayScaleValue->setPlaceholderText("[0 - 65535]");
+      mGrayScaleValue->setUnit("%");
+      mGrayScaleValue->setMinMax(0, 65535);
       mGrayScaleValue->setValue(settings.modelClassId);
-      mGrayScaleValue->connectWithSetting(&settings.modelClassId, nullptr);
-      mGrayScaleValue->setShortDescription("Cls.");
+      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
+      mGrayScaleValue->setShortDescription("Cls. ");
 
       auto *col = outer.addSetting(tab, "Classification", {{mGrayScaleValue.get(), false}});
       outer.addSetting(tab, "No match handling", {{mClusterOutNoMatch.get(), false}, {mClassOutNoMatch.get(), false}},
@@ -157,9 +163,9 @@ private:
       outer.removeSetting({mClusterOutNoMatch.get(), mClassOutNoMatch.get()});
     }
 
-    std::unique_ptr<Setting<enums::ClusterIdIn, int>> mClusterOutNoMatch;
-    std::unique_ptr<Setting<enums::ClassId, int>> mClassOutNoMatch;
-    std::unique_ptr<Setting<int, int>> mGrayScaleValue;
+    std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOutNoMatch;
+    std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOutNoMatch;
+    std::unique_ptr<SettingLineEdit<int32_t>> mGrayScaleValue;
 
     std::list<ClassifierFilter> mClassifyFilter;
     Classifier &outer;

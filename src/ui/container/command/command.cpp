@@ -129,7 +129,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   QString txt;
   for(const auto &[setting, show] : settings) {
     if(show) {
-      txt = txt + setting->getLabelText() + ", ";
+      txt = txt + setting->getDisplayLabelText() + ", ";
       setting->setDisplayIconVisible(false);
     }
     connect(setting, &SettingBase::valueChanged, this, &Command::valueChanged);
@@ -149,7 +149,7 @@ void Command::updateDisplayText()
       if(setting == nullptr) {
         continue;
       }
-      txt = txt + setting->getLabelText() + ", ";
+      txt = txt + setting->getDisplayLabelText() + ", ";
       setting->setDisplayIconVisible(false);
     }
   }

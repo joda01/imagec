@@ -14,7 +14,8 @@
 
 #include <qwidget.h>
 #include "ui/container//command/command.hpp"
-#include "ui/container/setting/setting.hpp"
+#include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_line_edit.hpp"
 #include "rolling_ball_settings.hpp"
 
 namespace joda::ui {
@@ -31,29 +32,30 @@ public:
   {
     //
     //
-    mBallType = std::shared_ptr<Setting<joda::settings::RollingBallSettings::BallType, int32_t>>(
-        new Setting<joda::settings::RollingBallSettings::BallType, int32_t>(
-            "icons8-bubble-50.png", "", "Ball type", "", joda::settings::RollingBallSettings::BallType::BALL,
-            {{joda::settings::RollingBallSettings::BallType::BALL, "Ball"},
-             {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}},
-            parent, "rolling_ball.json"));
+    mBallType = SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(
+        parent, "icons8-bubble-50.png", "Ball type");
+    mBallType->addOptions({{joda::settings::RollingBallSettings::BallType::BALL, "Ball"},
+                           {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}});
     mBallType->setValue(settings.ballType);
-    mBallType->connectWithSetting(&settings.ballType, nullptr);
+    mBallType->connectWithSetting(&settings.ballType);
 
     //
     //
-    mBallSize = std::shared_ptr<Setting<int32_t, int32_t>>(new Setting<int, int32_t>(
-        "", "[0 - " + QString::number(INT32_MAX) + "]", "Ball size", "px", std::nullopt, 0, INT32_MAX, parent, ""));
+    mBallSize = SettingBase::create<SettingLineEdit<int>>(parent, "", "Ball size [0-256]");
+    mBallSize->setPlaceholderText("[0 - 256]");
+    mBallSize->setUnit("px");
+    mBallSize->setMinMax(0, 256);
     mBallSize->setValue(settings.ballSize);
-    mBallSize->connectWithSetting(&settings.ballSize, nullptr);
+    mBallSize->connectWithSetting(&settings.ballSize);
+    mBallSize->setShortDescription("Size. ");
 
     addSetting({{mBallType.get(), true}, {mBallSize.get(), true}});
   }
 
 private:
   /////////////////////////////////////////////////////
-  std::shared_ptr<Setting<joda::settings::RollingBallSettings::BallType, int32_t>> mBallType;
-  std::shared_ptr<Setting<int32_t, int32_t>> mBallSize;
+  std::unique_ptr<SettingComboBox<joda::settings::RollingBallSettings::BallType>> mBallType;
+  std::shared_ptr<SettingLineEdit<int>> mBallSize;
 };
 
 }    // namespace joda::ui

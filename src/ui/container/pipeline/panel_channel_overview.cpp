@@ -33,9 +33,9 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings
   // Add the functions
   // layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
 
-  layout->addWidget(parent->mPipelineName->getLabelWidget(), 0, 0);
-  layout->addWidget(parent->mDefaultClusterId->getLabelWidget(), 0, 1);
-  layout->addWidget(parent->mCStackIndex->getLabelWidget(), 0, 2);
+  layout->addWidget(parent->pipelineName->getDisplayLabelWidget(), 0, 0);
+  layout->addWidget(parent->defaultClusterId->getDisplayLabelWidget(), 0, 1);
+  layout->addWidget(parent->cStackIndex->getDisplayLabelWidget(), 0, 2);
   /*
     layout->addWidget(new QLabel(), 1, 0);
     layout->addWidget(new QLabel(), 1, 1);

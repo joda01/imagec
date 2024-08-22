@@ -27,10 +27,15 @@
 #include <thread>
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/container/command/factory.hpp"
 #include "ui/container/container_base.hpp"
+#include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/layout_generator.hpp"
 #include "ui/window_main/window_main.hpp"
 #include "add_command_button.hpp"
 
@@ -49,13 +54,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     QWidget(wm), mLayout(this, true), mWindowMain(wm), mSettings(settings)
 {
   setObjectName("PanelPipelineSettings");
-  createSettings(wm);
   auto *tab = mLayout.addTab("", [] {});
-  {
-    auto *col1 = tab->addVerticalPanel();
-    col1->addGroup("Pipeline setup",
-                   {mPipelineName.get(), mDefaultClusterId.get(), mCStackIndex.get(), mZProjection.get()});
-  }
+  createSettings(tab, wm);
 
   {
     auto *col2 = tab->addVerticalPanel();
@@ -126,67 +126,69 @@ void PanelPipelineSettings::addPipelineStep(std::shared_ptr<joda::ui::Command> c
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::createSettings(WindowMain *windowMain)
+void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *windowMain)
 {
-  mPipelineName = std::shared_ptr<Setting<std::string, std::string>>(
-      new Setting<std::string, std::string>("icons8-text-50.png", "Name", "Pipeline name", "Name", windowMain));
-  mPipelineName->setMaxLength(15);
-  mPipelineName->connectWithSetting(&mSettings.meta.name, nullptr);
+  //
+  //
+  pipelineName = SettingBase::create<SettingLineEdit<std::string>>(windowMain, "icons8-text-50.png", "Pipeline name");
+  pipelineName->setPlaceholderText("Name");
+  pipelineName->setMaxLength(15);
+  pipelineName->connectWithSetting(&mSettings.meta.name);
 
-  mCStackIndex = std::shared_ptr<Setting<std::string, int32_t>>(
-      new Setting<std::string, int32_t>("icons8-unknown-status-50.png", "Type", "Image channel", "", "#B91717",
-                                        {{"#B91717", "", "icons8-bubble-50red-#B91717.png"},
-                                         {"#06880C", "", "icons8-bubble-50 -green-#06880C.png"},
-                                         {"#1771B9", "", "icons8-bubble-blue-#1771B9-50.png"},
-                                         {"#FBEA25", "", "icons8-bubble-50-yellow-#FBEA25.png"},
-                                         {"#6F03A6", "", "icons8-bubble-50-violet-#6F03A6.png"},
-                                         {"#818181", "", "icons8-bubble-50-gray-#818181.png"},
-                                         /*{"#000000", "", "icons8-bubble-50-black-#000000.png"}*/},
-                                        {{0, "Channel 0"},
-                                         {1, "Channel 1"},
-                                         {2, "Channel 2"},
-                                         {3, "Channel 3"},
-                                         {4, "Channel 4"},
-                                         {5, "Channel 5"},
-                                         {6, "Channel 6"},
-                                         {7, "Channel 7"},
-                                         {8, "Channel 8"},
-                                         {9, "Channel 9"},
-                                         {10, "Channel 10"}},
-                                        0, windowMain));
-  mCStackIndex->connectWithSetting(&mSettings.meta.color, &mSettings.pipelineSetup.cStackIndex);
+  //
+  //
+  cStackIndex =
+      SettingBase::create<SettingComboBox<int32_t>>(windowMain, "icons8-unknown-status-50.png", "Image channel");
+  cStackIndex->addOptions({{0, "Channel 0"},
+                           {1, "Channel 1"},
+                           {2, "Channel 2"},
+                           {3, "Channel 3"},
+                           {4, "Channel 4"},
+                           {5, "Channel 5"},
+                           {6, "Channel 6"},
+                           {7, "Channel 7"},
+                           {8, "Channel 8"},
+                           {9, "Channel 9"},
+                           {10, "Channel 10"}});
+  cStackIndex->connectWithSetting(&mSettings.pipelineSetup.cStackIndex);
 
-  mZProjection = std::shared_ptr<Setting<enums::ZProjection, int32_t>>(new Setting<enums::ZProjection, int32_t>(
-      "icons8-layers-50.png", "Z-Projection", "Z-Projection", "", enums::ZProjection::NONE,
-      {{enums::ZProjection::NONE, "Off"},
-       {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
-       {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
-       {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}},
-      windowMain, "z_projection.json"));
-  mZProjection->connectWithSetting(&mSettings.pipelineSetup.zProjection, nullptr);
+  //
+  //
+  zProjection =
+      SettingBase::create<SettingComboBox<enums::ZProjection>>(windowMain, "icons8-layers-50.png", "Z-Projection");
+  zProjection->addOptions({{enums::ZProjection::NONE, "Off"},
+                           {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
+                           {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
+                           {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
+  zProjection->connectWithSetting(&mSettings.pipelineSetup.zProjection);
 
-  mDefaultClusterId = std::shared_ptr<Setting<enums::ClusterIdIn, int32_t>>(new Setting<enums::ClusterIdIn, int32_t>(
-      "icons8-connection-50.png", "Cluster", "Cluster", "", enums::ClusterIdIn::A,
-      {
-          {enums::ClusterIdIn::A, "Cluster A"},
-          {enums::ClusterIdIn::B, "Cluster B"},
-          {enums::ClusterIdIn::C, "Cluster C"},
-          {enums::ClusterIdIn::D, "Cluster D"},
-          {enums::ClusterIdIn::E, "Cluster E"},
-          {enums::ClusterIdIn::F, "Cluster F"},
-          {enums::ClusterIdIn::G, "Cluster G"},
-          {enums::ClusterIdIn::H, "Cluster H"},
-          {enums::ClusterIdIn::I, "Cluster I"},
-          {enums::ClusterIdIn::J, "Cluster J"},
-      },
-      windowMain, ""));
-  mDefaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId, nullptr);
+  //
+  //
+  defaultClusterId =
+      SettingBase::create<SettingComboBox<enums::ClusterIdIn>>(windowMain, "icons8-connection-50.png", "Cluster");
+  defaultClusterId->addOptions({{enums::ClusterIdIn::A, "Cluster A"},
+                                {enums::ClusterIdIn::B, "Cluster B"},
+                                {enums::ClusterIdIn::C, "Cluster C"},
+                                {enums::ClusterIdIn::D, "Cluster D"},
+                                {enums::ClusterIdIn::E, "Cluster E"},
+                                {enums::ClusterIdIn::F, "Cluster F"},
+                                {enums::ClusterIdIn::G, "Cluster G"},
+                                {enums::ClusterIdIn::H, "Cluster H"},
+                                {enums::ClusterIdIn::I, "Cluster I"},
+                                {enums::ClusterIdIn::J, "Cluster J"}});
+  defaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId);
 
-  connect(mPipelineName.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
-  connect(mCStackIndex.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  connect(mZProjection.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  connect(mDefaultClusterId.get(), &joda::ui::SettingBase::valueChanged, this,
+  connect(pipelineName.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
+  connect(cStackIndex.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  connect(zProjection.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  connect(defaultClusterId.get(), &joda::ui::SettingBase::valueChanged, this,
           &PanelPipelineSettings::valueChangedEvent);
+
+  {
+    auto *col1 = tab->addVerticalPanel();
+    col1->addGroup("Pipeline setup",
+                   {pipelineName.get(), cStackIndex.get(), zProjection.get(), defaultClusterId.get()});
+  }
 
   mOverview = new PanelChannelOverview(windowMain, this);
 }
@@ -379,10 +381,10 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.meta          = settings.meta;
   mSettings.pipelineSetup = settings.pipelineSetup;
 
-  mPipelineName->setValue(mSettings.meta.name);
-  mCStackIndex->setValueSecond(mSettings.pipelineSetup.cStackIndex);
-  mZProjection->setValue(mSettings.pipelineSetup.zProjection);
-  mDefaultClusterId->setValue(mSettings.pipelineSetup.defaultClusterId);
+  pipelineName->setValue(mSettings.meta.name);
+  cStackIndex->setValue(mSettings.pipelineSetup.cStackIndex);
+  zProjection->setValue(mSettings.pipelineSetup.zProjection);
+  defaultClusterId->setValue(mSettings.pipelineSetup.defaultClusterId);
 
   //
   // Pipelinesteps
@@ -408,10 +410,10 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 ///
 void PanelPipelineSettings::toSettings()
 {
-  mSettings.meta.name                      = mPipelineName->getValue();
-  mSettings.pipelineSetup.cStackIndex      = mCStackIndex->getValueSecond();
-  mSettings.pipelineSetup.zProjection      = mZProjection->getValue();
-  mSettings.pipelineSetup.defaultClusterId = mDefaultClusterId->getValue();
+  mSettings.meta.name                      = pipelineName->getValue();
+  mSettings.pipelineSetup.cStackIndex      = cStackIndex->getValue();
+  mSettings.pipelineSetup.zProjection      = zProjection->getValue();
+  mSettings.pipelineSetup.defaultClusterId = defaultClusterId->getValue();
 }
 
 }    // namespace joda::ui

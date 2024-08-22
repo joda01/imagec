@@ -15,7 +15,8 @@
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
 #include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting.hpp"
+#include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "threshold_settings.hpp"
 
@@ -33,46 +34,49 @@ public:
     //
     //
     //
-    mThresholdAlgorithm = std::shared_ptr<Setting<joda::settings::ThresholdSettings::Mode, int>>(
-        new Setting<joda::settings::ThresholdSettings::Mode, int>(
-            "icons8-grayscale-50.png", "Threshold", "Threshold algorithm", "",
-            joda::settings::ThresholdSettings::Mode::MANUAL,
-            {{joda::settings::ThresholdSettings::Mode::MANUAL, "Manual"},
-             {joda::settings::ThresholdSettings::Mode::LI, "Li"},
-             {joda::settings::ThresholdSettings::Mode::MIN_ERROR, "Min. error"},
-             {joda::settings::ThresholdSettings::Mode::TRIANGLE, "Triangle"},
-             {joda::settings::ThresholdSettings::Mode::MOMENTS, "Moments"},
-             {joda::settings::ThresholdSettings::Mode::OTSU, "Otsu"}},
-            parent, "threshold_algorithm.json"));
+    mThresholdAlgorithm = SettingBase::create<SettingComboBox<joda::settings::ThresholdSettings::Mode>>(
+        parent, "icons8-grayscale-50.png", "Threshold algorithm");
+    mThresholdAlgorithm->addOptions({{joda::settings::ThresholdSettings::Mode::MANUAL, "Manual"},
+                                     {joda::settings::ThresholdSettings::Mode::LI, "Li"},
+                                     {joda::settings::ThresholdSettings::Mode::MIN_ERROR, "Min. error"},
+                                     {joda::settings::ThresholdSettings::Mode::TRIANGLE, "Triangle"},
+                                     {joda::settings::ThresholdSettings::Mode::MOMENTS, "Moments"},
+                                     {joda::settings::ThresholdSettings::Mode::OTSU, "Otsu"}});
     mThresholdAlgorithm->setValue(settings.mode);
-    mThresholdAlgorithm->connectWithSetting(&settings.mode, nullptr);
+    mThresholdAlgorithm->connectWithSetting(&settings.mode);
 
     //
     //
     //
-    mThresholdValueMin = std::shared_ptr<Setting<uint16_t, uint16_t>>(
-        new Setting<uint16_t, uint16_t>("", "[0 - 65535]", "Min. threshold", "", 1000, 0, 65535, parent, ""));
+    mThresholdValueMin = SettingBase::create<SettingLineEdit<uint16_t>>(parent, "", "Min. threshold");
+    mThresholdValueMin->setPlaceholderText("[0 - 65535]");
+    mThresholdValueMin->setUnit("");
+    mThresholdValueMin->setMinMax(0, 65535);
     mThresholdValueMin->setValue(settings.thresholdMin);
-    mThresholdValueMin->setShortDescription("Min.: ");
-    mThresholdValueMin->connectWithSetting(&settings.thresholdMin, nullptr);
+    mThresholdValueMin->connectWithSetting(&settings.thresholdMin);
+    mThresholdValueMin->setShortDescription("Min. ");
+    mThresholdValueMin->connectWithSetting(&settings.thresholdMin);
 
     //
     //
     //
-    mThresholdValueMax = std::shared_ptr<Setting<uint16_t, uint16_t>>(
-        new Setting<uint16_t, uint16_t>("", "[0 - 65535]", "Max. threshold", "", 65535, 0, 65535, parent, ""));
+    mThresholdValueMax = SettingBase::create<SettingLineEdit<uint16_t>>(parent, "", "Min. threshold");
+    mThresholdValueMax->setPlaceholderText("[0 - 65535]");
+    mThresholdValueMax->setUnit("");
+    mThresholdValueMax->setMinMax(0, 65535);
     mThresholdValueMax->setValue(settings.thresholdMax);
-    mThresholdValueMax->setShortDescription("Max.: ");
-    mThresholdValueMax->connectWithSetting(&settings.thresholdMax, nullptr);
+    mThresholdValueMax->connectWithSetting(&settings.thresholdMax);
+    mThresholdValueMax->setShortDescription("Min. ");
+    mThresholdValueMax->connectWithSetting(&settings.thresholdMax);
 
     addSetting({{mThresholdAlgorithm.get(), true}, {mThresholdValueMin.get(), true}, {mThresholdValueMax.get(), true}});
   }
 
 private:
   /////////////////////////////////////////////////////
-  std::shared_ptr<Setting<joda::settings::ThresholdSettings::Mode, int>> mThresholdAlgorithm;
-  std::shared_ptr<Setting<uint16_t, uint16_t>> mThresholdValueMin;
-  std::shared_ptr<Setting<uint16_t, uint16_t>> mThresholdValueMax;
+  std::unique_ptr<SettingComboBox<joda::settings::ThresholdSettings::Mode>> mThresholdAlgorithm;
+  std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMin;
+  std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMax;
 };
 
 }    // namespace joda::ui

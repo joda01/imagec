@@ -12,6 +12,7 @@
 ///
 
 #include "setting_base.hpp"
+#include "ui/container/dialog_tooltip.hpp"
 
 namespace joda::ui {
 
@@ -22,8 +23,12 @@ namespace joda::ui {
 /// \param[out]
 /// \return
 ///
-SettingBase::SettingBase(const QString &icon, const QString &description)
+SettingBase::SettingBase(QWidget *parent, const QString &icon, const QString &description) :
+    mParent(parent), mDescription(description)
 {
+  if(!icon.isEmpty()) {
+    mIcon = QIcon(":/icons/outlined/" + icon);
+  }
   createDisplayAbleWidget(icon, description);
 }
 
@@ -84,6 +89,18 @@ QString SettingBase::getDisplayLabelText() const
 /// \param[out]
 /// \return
 ///
+auto SettingBase::getIcon() -> const QIcon &
+{
+  return mIcon;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 QWidget *SettingBase::getDisplayLabelWidget()
 {
   return mDisplayable;
@@ -96,9 +113,25 @@ QWidget *SettingBase::getDisplayLabelWidget()
 /// \param[out]
 /// \return
 ///
-void SettingBase::triggerValueChanged(const QString &newValue)
+QWidget *SettingBase::getEditableWidget()
+{
+  return mEditable;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void SettingBase::triggerValueChanged(const QString &newValue, const QIcon &icon)
 {
   mDisplayValue = newValue;
+  if(!icon.isNull()) {
+    mDisplayLabelIcon->setPixmap(
+        icon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
+  }
   updateDisplayLabel();
   emit valueChanged();
 }
@@ -125,11 +158,8 @@ QWidget *SettingBase::createDisplayAbleWidgetPlaceholder()
   displayLabel->setText("");
   displayLabel->setToolTip("");
 
-  // Create a QPixmap for the icon (you may need to adjust the path)
-  QIcon bmp(":/icons/outlined/");
-
   // Set the icon for the label
-  displayLabelIcon->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
+  displayLabelIcon->setPixmap(mIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
   displayLabelIcon->setToolTip("");
 
   // Create a QHBoxLayout to arrange the text and icon horizontally
@@ -170,8 +200,7 @@ void SettingBase::createDisplayAbleWidget(const QString &icon, const QString &to
 
   // Create a QPixmap for the icon (you may need to adjust the path)
   if(!icon.isEmpty()) {
-    QIcon bmp(":/icons/outlined/" + icon);
-    mDisplayLabelIcon->setPixmap(bmp.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));
+    mDisplayLabelIcon->setPixmap(mIcon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));
     mDisplayLabelIcon->setToolTip(tooltip);
   }
 
@@ -185,6 +214,109 @@ void SettingBase::createDisplayAbleWidget(const QString &icon, const QString &to
   }
   layout->addWidget(mDisplayLabel);
   layout->addStretch();
+}
+
+///
+/// \brief    Create editable widget
+/// \author   Joachim Danmayr
+///
+void SettingBase::createEditableWidget()
+{
+  mEditable = new QWidget();
+  mEditable->setContentsMargins(0, 0, 0, 0);
+  auto *inputObject = createInputObject();
+  inputObject->setObjectName("panelFunction");
+  QVBoxLayout *layoutVertical = new QVBoxLayout();
+  layoutVertical->setContentsMargins(0, 0, 0, 0);
+  layoutVertical->setSpacing(0);
+
+  QWidget *horizontaContainer   = new QWidget();
+  QHBoxLayout *layoutHorizontal = new QHBoxLayout();
+  layoutHorizontal->setContentsMargins(0, 0, 0, 0);
+  layoutHorizontal->setSpacing(4);
+  layoutHorizontal->addWidget(inputObject);
+
+  // if(!optionsSecond.empty()) {
+  //   layoutHorizontal->addWidget(createSecondCombo(optionsSecond));
+  // }
+  horizontaContainer->setLayout(layoutHorizontal);
+  layoutVertical->addWidget(horizontaContainer);
+
+  createHelperText(layoutVertical, mDescription);
+  mEditable->setLayout(layoutVertical);
+}
+
+///
+/// \brief    Helper text
+/// \author   Joachim Danmayr
+///
+void SettingBase::createHelperText(QVBoxLayout *layout, const QString &helpText)
+{
+  QHBoxLayout *hLayout = new QHBoxLayout();
+  hLayout->setContentsMargins(0, 0, 0, 0);
+  auto *helperText = new QLabel();
+  helperText->setObjectName("functionHelperText");
+  helperText->setText(helpText);
+  helperText->setContentsMargins(12, 0, 0, 0);
+  // Create a QFont instance
+  QFont font;
+  font.setPixelSize(12);
+  font.setItalic(true);
+  font.setBold(false);
+  font.setWeight(QFont::Light);
+  helperText->setFont(font);
+  helperText->setStyleSheet("QLabel#functionHelperText { color : #808080; }");
+  hLayout->addWidget(helperText);
+
+  // Info icon
+  mHelpButton = new QPushButton();
+  mHelpButton->setObjectName("helpButton");
+  mHelpButton->setStyleSheet(
+      "QPushButton#helpButton {"
+      "   background-color: rgba(0, 0, 0, 0);"
+      "   border: 0px solid rgb(111, 121, 123);"
+      "   color: rgb(0, 104, 117);"
+      "   padding: 2px 2px 0px 0px;"
+      "   margin: 0px 0px 0px 0px;"
+      "   border-radius: 4px;"
+      "   font-size: 8px;"
+      "   font-weight: normal;"
+      "   text-align: center;"
+      "   text-decoration: none;"
+      "   min-height: 0px;"
+      "}");
+  mHelpButton->setCursor(Qt::PointingHandCursor);
+  mHelpButton->setIconSize({HELP_ICON_SIZE, HELP_ICON_SIZE});
+  mHelpButton->setIcon(QIcon(":/icons/outlined/icons8-info-48-fill.png"));
+  mHelpButton->setVisible(false);
+  connect(mHelpButton, &QPushButton::clicked, this, &SettingBase::onHelpButtonClicked);
+  hLayout->addWidget(mHelpButton);
+
+  hLayout->addStretch(0);
+  layout->addLayout(hLayout);
+}
+
+///
+/// \brief    Path to the help file
+/// \author   Joachim Danmayr
+///
+void SettingBase::setPathToHelpFile(const QString &helpFilePath)
+{
+  mHelpFilePath = helpFilePath;
+  if(!helpFilePath.isEmpty()) {
+    mHelpButton->setVisible(true);
+  } else {
+    mHelpButton->setVisible(false);
+  }
+}
+///
+/// \brief    Open help dialog
+/// \author   Joachim Danmayr
+///
+void SettingBase::onHelpButtonClicked()
+{
+  DialogToolTip tool(mParent, mDescription, mHelpFilePath);
+  tool.exec();
 }
 
 }    // namespace joda::ui
