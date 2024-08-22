@@ -56,6 +56,7 @@ public:
         {enums::ClusterIdIn::J, "J"},
     });
     clustersIn->setValue(settings.clustersIn);
+    clustersIn->connectWithSetting(&settings.clustersIn);
 
     //
     //
@@ -73,6 +74,7 @@ public:
         {enums::ClassId::C9, "9"},
     });
     classesIn->setValue(settings.classesIn);
+    classesIn->connectWithSetting(&settings.classesIn);
 
     //
     //
@@ -107,7 +109,7 @@ public:
                              {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
                              {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
     zProjection->setValue(zProject);
-    connect(cStackIndex.get(), &SettingBase::valueChanged, this, &Measure::onCStackChanged);
+    connect(zProjection.get(), &SettingBase::valueChanged, this, &Measure::onCStackChanged);
 
     //
     //
@@ -132,12 +134,14 @@ private slots:
 
   void onCStackChanged()
   {
+    std::cout << "Val changhed" << std::endl;
     auto cStacks = cStackIndex->getValue();
     mSettings.planesIn.clear();
     for(const auto &cStack : cStacks) {
       enums::ImageId id;
       id.imagePlane.cStack = cStack;
       id.imageIdx          = zProjection->getValue();
+      mSettings.planesIn.emplace_back(id);
     }
   }
 };

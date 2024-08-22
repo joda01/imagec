@@ -194,7 +194,7 @@ public:
     mComboBox->setCheckedItems(toCheck);
   }
 
-  void connectWithSetting(VALUE_T *setting)
+  void connectWithSetting(std::set<VALUE_T> *setting)
   {
     mSetting = setting;
   }

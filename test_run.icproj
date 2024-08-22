@@ -1,130 +1,97 @@
 {
-  "projectSettings": {
-    "clusters": [
-      {
-        "clusterId": "A",
-        "name": "CY5"
-      },
-      {
-        "clusterId": "B",
-        "name": "CY7"
-      },
-      {
-        "clusterId": "C",
-        "name": "cell area"
-      },
-      {
-        "clusterId": "D",
-        "name": "coloc cy5-cy7"
-      }
-    ],
-    "classes": [
-      {
-        "classId": "C0",
-        "name": "EV"
-      },
-      {
-        "classId": "C1",
-        "name": "cell"
-      },
-      {
-        "classId": "C2",
-        "name": "background"
-      },
-      {
-        "classId": "C3",
-        "name": "ev in cell"
-      },
-      {
-        "classId": "C4",
-        "name": "coloc"
-      },
-      {
-        "classId": "C5",
-        "name": "Invalid"
-      }
-    ],
-    "imageSetup": {
-      "zStackHandling": "IntensityProjection",
-      "tStackHandling": "EachOne"
-    },
-    "experimentSettings": {
-      "experimentId": "bb61e310-e876-4aad-85ef-40e3db2eadf4",
-      "experimentName": "My experiment",
-      "notes": "Notes"
-    },
-    "plates": [
-      {
-        "plateId": 1,
-        "name": "Huhu",
-        "notes": "Not",
-        "rows": 28,
-        "cols": 28,
-        "imageFolder": "test/test_data/images",
-        "groupBy": "Filename"
-      }
-    ],
-    "workingDirectory": "tmp"
+  "imageSetup": {
+    "tStackHandling": "EachOne",
+    "zStackHandling": "IntensityProjection"
   },
   "pipelines": [
     {
+      "meta": {
+        "color": "#B91717",
+        "icon": "",
+        "name": "www"
+      },
       "pipelineSetup": {
+        "cStackIndex": 0,
+        "defaultClusterId": "A",
         "source": "FromFile",
-        "cStackIndex": 3,
-        "zProjection": "MaxIntensity",
-        "defaultClusterId": "A"
+        "tStackIndex": -1,
+        "zProjection": "None",
+        "zStackIndex": -1
       },
       "pipelineSteps": [
         {
           "$blur": {
             "kernelSize": 7,
+            "mode": "Blur",
             "repeat": 5
           }
         },
         {
           "$threshold": {
-            "node": "Manual",
-            "thresholdMin": 10,
-            "thresholdMax": 65535
+            "mode": "",
+            "thresholdMax": 65535,
+            "thresholdMin": 10
           }
         },
         {
-          "$watershed": {}
+          "$watershed": {
+            "maximumFinderTolerance": 0.5
+          }
         },
         {
           "$classify": {
             "classifiers": [
               {
-                "clusterOutNoMatch": "$",
                 "classOutNoMatch": "None",
-                "modelClassId": 65535,
+                "clusterOutNoMatch": "$",
                 "filters": [
                   {
-                    "clusterOut": "$",
-                    "classOut": "C0",
-                    "minParticleSize": -1,
+                    "classOut": "None",
+                    "clusterOut": "A",
                     "maxParticleSize": -1,
-                    "minCircularity": 0,
-                    "snapAreaSize": 0
+                    "minCircularity": 0.0,
+                    "minParticleSize": -1,
+                    "snapAreaSize": 0.0
                   }
-                ]
+                ],
+                "modelClassId": 65535
               }
             ]
           }
         },
         {
           "$measure": {
-            "clustersIn": [
-              "$"
-            ],
             "classesIn": [
-              "C0"
+              "0",
+              "1"
             ],
+            "clustersIn": [
+              "A",
+              "B"
+            ],
+            "objectIn": {
+              "imagePlane": {
+                "cStack": -1,
+                "tStack": -1,
+                "zStack": -1
+              },
+              "storeIdx": "M0"
+            },
             "planesIn": [
               {
-                "imageIdx": "MaxIntensity",
+                "imageIdx": "None",
                 "imagePlane": {
-                  "cStack": 3
+                  "cStack": 0,
+                  "tStack": -1,
+                  "zStack": -1
+                }
+              },
+              {
+                "imageIdx": "None",
+                "imagePlane": {
+                  "cStack": 1,
+                  "tStack": -1,
+                  "zStack": -1
                 }
               }
             ]
@@ -133,104 +100,126 @@
         {
           "$imageFromClass": {
             "classesIn": [
-              "C0"
-            ]
+              "None"
+            ],
+            "clusterIn": "$"
           }
         },
         {
           "$saveImage": {
+            "canvas": "$",
+            "clustersIn": [],
             "compression": 0,
-            "namePrefix": "_classified_A",
-            "objectCluster": "$"
+            "namePrefix": "_classified_A"
           }
         },
         {
           "$voronoi": {
-            "pointsClusterIn": "A",
-            "pointsClassIn": [
-              "C0"
-            ],
-            "pointsClusterOut": "G",
-            "pointsClassOut": "C8",
-            "excludeAreasWithoutPoint": true,
             "excludeAreasAtTheEdge": false,
-            "maxRadius": 8000
+            "excludeAreasWithoutPoint": true,
+            "maxAreaSize": -1,
+            "maxRadius": 8000,
+            "minAreaSize": -1,
+            "objectStoreIn": {
+              "imagePlane": {
+                "cStack": -1,
+                "tStack": -1,
+                "zStack": -1
+              },
+              "storeIdx": "M0"
+            },
+            "pointsClassIn": [
+              "None"
+            ],
+            "pointsClassOut": "None",
+            "pointsClusterIn": "A",
+            "pointsClusterOut": "G"
           }
         },
         {
           "$saveImage": {
-            "compression": 0,
-            "namePrefix": "_voronoi_A",
             "canvas": "White",
             "clustersIn": [
               {
-                "clusterIn": "G",
                 "classesIn": [
                   {
-                    "classIn": "C8",
+                    "classIn": "None",
                     "color": "#FF0000",
-                    "style": "Outlined",
-                    "paintBoundingBox": false
+                    "paintBoundingBox": false,
+                    "style": "Outlined"
                   }
-                ]
+                ],
+                "clusterIn": "G"
               },
               {
-                "clusterIn": "A",
                 "classesIn": [
                   {
-                    "classIn": "C0",
+                    "classIn": "None",
                     "color": "#00FF00",
-                    "style": "Outlined",
-                    "paintBoundingBox": false
+                    "paintBoundingBox": false,
+                    "style": "Outlined"
                   }
-                ]
+                ],
+                "clusterIn": "A"
               }
-            ]
+            ],
+            "compression": 0,
+            "namePrefix": "_voronoi_A"
           }
         }
       ]
     },
     {
+      "meta": {
+        "color": "#B91717",
+        "icon": "",
+        "name": "qqq"
+      },
       "pipelineSetup": {
+        "cStackIndex": 0,
+        "defaultClusterId": "A",
         "source": "FromFile",
-        "cStackIndex": 2,
-        "zProjection": "MaxIntensity",
-        "defaultClusterId": "B"
+        "tStackIndex": -1,
+        "zProjection": "None",
+        "zStackIndex": -1
       },
       "pipelineSteps": [
         {
           "$blur": {
             "kernelSize": 7,
+            "mode": "Blur",
             "repeat": 5
           }
         },
         {
           "$threshold": {
-            "node": "Manual",
-            "thresholdMin": 10,
-            "thresholdMax": 65535
+            "mode": "",
+            "thresholdMax": 65535,
+            "thresholdMin": 10
           }
         },
         {
-          "$watershed": {}
+          "$watershed": {
+            "maximumFinderTolerance": 0.5
+          }
         },
         {
           "$classify": {
             "classifiers": [
               {
-                "clusterOutNoMatch": "$",
                 "classOutNoMatch": "None",
-                "modelClassId": 65535,
+                "clusterOutNoMatch": "$",
                 "filters": [
                   {
+                    "classOut": "None",
                     "clusterOut": "$",
-                    "classOut": "C0",
-                    "minParticleSize": -1,
                     "maxParticleSize": -1,
-                    "minCircularity": 0,
-                    "snapAreaSize": 0
+                    "minCircularity": 0.0,
+                    "minParticleSize": -1,
+                    "snapAreaSize": 0.0
                   }
-                ]
+                ],
+                "modelClassId": 65535
               }
             ]
           }
@@ -239,11 +228,14 @@
           "$imageFromClass": {
             "classesIn": [
               "0"
-            ]
+            ],
+            "clusterIn": "$"
           }
         },
         {
           "$saveImage": {
+            "canvas": "$",
+            "clustersIn": [],
             "compression": 0,
             "namePrefix": "_classified_B"
           }
@@ -251,36 +243,53 @@
       ]
     },
     {
+      "meta": {
+        "color": "#B91717",
+        "icon": "",
+        "name": "uu"
+      },
       "pipelineSetup": {
+        "cStackIndex": 0,
+        "defaultClusterId": "A",
         "source": "FromBlank",
-        "cStackIndex": 4,
-        "zProjection": "MaxIntensity",
-        "defaultClusterId": "E"
+        "tStackIndex": -1,
+        "zProjection": "None",
+        "zStackIndex": -1
       },
       "pipelineSteps": [
         {
           "$colocalization": {
-            "minIntersection": 0,
+            "classOut": "None",
             "clusterOut": "$",
-            "classOut": "C4",
+            "minIntersection": 0.0,
             "objectsIn": [
               {
-                "objectIn": {
-                  "storeIdx": "$"
-                },
-                "clusterIn": "A",
                 "classesIn": [
-                  "C0"
-                ]
+                  "None"
+                ],
+                "clusterIn": "A",
+                "objectIn": {
+                  "imagePlane": {
+                    "cStack": -1,
+                    "tStack": -1,
+                    "zStack": -1
+                  },
+                  "storeIdx": "M0"
+                }
               },
               {
-                "objectIn": {
-                  "storeIdx": "$"
-                },
-                "clusterIn": "B",
                 "classesIn": [
-                  "C0"
-                ]
+                  "None"
+                ],
+                "clusterIn": "B",
+                "objectIn": {
+                  "imagePlane": {
+                    "cStack": -1,
+                    "tStack": -1,
+                    "zStack": -1
+                  },
+                  "storeIdx": "M0"
+                }
               }
             ]
           }
@@ -288,52 +297,210 @@
         {
           "$intersection": {
             "function": "Count",
+            "minIntersection": 0.10000000149011612,
+            "newClassId": "None",
             "objectsIn": {
-              "clusterIn": "A",
               "classesIn": [
-                "C0"
-              ]
+                "None"
+              ],
+              "clusterIn": "A",
+              "objectIn": {
+                "imagePlane": {
+                  "cStack": -1,
+                  "tStack": -1,
+                  "zStack": -1
+                },
+                "storeIdx": "M0"
+              }
             },
             "objectsInWith": {
-              "clusterIn": "B",
               "classesIn": [
-                "C0"
-              ]
+                "None"
+              ],
+              "clusterIn": "B",
+              "objectIn": {
+                "imagePlane": {
+                  "cStack": -1,
+                  "tStack": -1,
+                  "zStack": -1
+                },
+                "storeIdx": "M0"
+              }
             }
           }
         },
         {
           "$intersection": {
             "function": "Reclassify",
+            "minIntersection": 0.10000000149011612,
+            "newClassId": "None",
             "objectsIn": {
-              "clusterIn": "A",
               "classesIn": [
-                "C0"
-              ]
+                "None"
+              ],
+              "clusterIn": "A",
+              "objectIn": {
+                "imagePlane": {
+                  "cStack": -1,
+                  "tStack": -1,
+                  "zStack": -1
+                },
+                "storeIdx": "M0"
+              }
             },
             "objectsInWith": {
-              "clusterIn": "B",
               "classesIn": [
-                "C0"
-              ]
-            },
-            "newClassId": "C7"
+                "None"
+              ],
+              "clusterIn": "B",
+              "objectIn": {
+                "imagePlane": {
+                  "cStack": -1,
+                  "tStack": -1,
+                  "zStack": -1
+                },
+                "storeIdx": "M0"
+              }
+            }
           }
         },
         {
           "$imageFromClass": {
             "classesIn": [
-              "C4"
-            ]
+              "None"
+            ],
+            "clusterIn": "$"
           }
         },
         {
           "$saveImage": {
+            "canvas": "$",
+            "clustersIn": [],
             "compression": 0,
             "namePrefix": "_intersect"
           }
         }
       ]
     }
-  ]
+  ],
+  "projectSettings": {
+    "address": {
+      "city": "",
+      "country": "",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "organization": "",
+      "postalCode": "",
+      "streetAddress": ""
+    },
+    "classes": [
+      {
+        "classId": "None",
+        "color": "",
+        "name": "EV",
+        "notes": ""
+      },
+      {
+        "classId": "None",
+        "color": "",
+        "name": "cell",
+        "notes": ""
+      },
+      {
+        "classId": "None",
+        "color": "",
+        "name": "background",
+        "notes": ""
+      },
+      {
+        "classId": "None",
+        "color": "",
+        "name": "ev in cell",
+        "notes": ""
+      },
+      {
+        "classId": "None",
+        "color": "",
+        "name": "coloc",
+        "notes": ""
+      },
+      {
+        "classId": "None",
+        "color": "",
+        "name": "Invalid",
+        "notes": ""
+      }
+    ],
+    "clusters": [
+      {
+        "clusterId": "A",
+        "color": "",
+        "name": "CY5",
+        "notes": ""
+      },
+      {
+        "clusterId": "B",
+        "color": "",
+        "name": "CY7",
+        "notes": ""
+      },
+      {
+        "clusterId": "C",
+        "color": "",
+        "name": "cell area",
+        "notes": ""
+      },
+      {
+        "clusterId": "D",
+        "color": "",
+        "name": "coloc cy5-cy7",
+        "notes": ""
+      }
+    ],
+    "experimentSettings": {
+      "experimentId": "bb61e310-e876-4aad-85ef-40e3db2eadf4",
+      "experimentName": "My experiment",
+      "notes": "Notes"
+    },
+    "plates": [
+      {
+        "cols": 28,
+        "filenameRegex": "_((.)([0-9]+))_([0-9]+)",
+        "groupBy": "Filename",
+        "imageFolder": "test/test_data/images",
+        "name": "Huhu",
+        "notes": "Not",
+        "plateId": 1,
+        "rows": 28,
+        "wellImageOrder": [
+          [
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7,
+            8
+          ],
+          [
+            9,
+            10,
+            11,
+            12
+          ],
+          [
+            13,
+            14,
+            15,
+            16
+          ]
+        ]
+      }
+    ],
+    "workingDirectory": "tmp"
+  }
 }

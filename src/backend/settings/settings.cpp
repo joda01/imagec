@@ -28,9 +28,17 @@ void Settings::storeSettings(std::string path, const joda::settings::AnalyzeSett
     if(!path.ends_with(".icproj")) {
       path += ".icproj";
     }
+    std::cout << "Store settings to >" + path + "<" << std::endl;
     std::ofstream out(path);
+    if(!out.is_open()) {
+      throw std::runtime_error("Cannot open file for writing! Do you have write permissions?");
+    }
     out << json.dump(2);
+    if(out.bad()) {
+      throw std::runtime_error("Cannot write data! Do you have write permissions and enough space left on your disk?");
+    }
     out.close();
+    std::cout << json.dump(2) << std::endl;
   }
 }
 

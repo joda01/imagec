@@ -39,7 +39,7 @@ struct MeasureSettings
   //
   // Clusters to calculate to measure for
   //
-  std::set<joda::enums::ClusterIdIn> clustersIn;
+  std::set<joda::enums::ClusterIdIn> clustersIn = {joda::enums::ClusterIdIn::$};
 
   //
   // Classes to calculate to measure for
