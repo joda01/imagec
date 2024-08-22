@@ -98,15 +98,27 @@ public:
   VALUE_T getValue()
   {
     if constexpr(std::same_as<VALUE_T, int>) {
+      if(mLineEdit->text().isEmpty()) {
+        return -1;
+      }
       return mLineEdit->text().toInt();
     }
     if constexpr(std::same_as<VALUE_T, uint32_t>) {
+      if(mLineEdit->text().isEmpty()) {
+        return 0;
+      }
       return mLineEdit->text().toUInt();
     }
     if constexpr(std::same_as<VALUE_T, uint16_t>) {
+      if(mLineEdit->text().isEmpty()) {
+        return 0;
+      }
       return mLineEdit->text().toUShort();
     }
     if constexpr(std::same_as<VALUE_T, float>) {
+      if(mLineEdit->text().isEmpty()) {
+        return -1;
+      }
       return mLineEdit->text().toFloat();
     }
     if constexpr(std::same_as<VALUE_T, std::string>) {
@@ -117,16 +129,32 @@ public:
   void setValue(VALUE_T value)
   {
     if constexpr(std::same_as<VALUE_T, int>) {
-      mLineEdit->setText(QString::number(value));
+      if(value >= 0) {
+        mLineEdit->setText(QString::number(value));
+      } else {
+        clear();
+      }
     }
     if constexpr(std::same_as<VALUE_T, uint32_t>) {
-      mLineEdit->setText(QString::number(value));
+      if(value >= 0) {
+        mLineEdit->setText(QString::number(value));
+      } else {
+        clear();
+      }
     }
     if constexpr(std::same_as<VALUE_T, uint16_t>) {
-      mLineEdit->setText(QString::number(value));
+      if(value >= 0) {
+        mLineEdit->setText(QString::number(value));
+      } else {
+        clear();
+      }
     }
     if constexpr(std::same_as<VALUE_T, float>) {
-      mLineEdit->setText(QString::number(value));
+      if(value >= 0) {
+        mLineEdit->setText(QString::number(value));
+      } else {
+        clear();
+      }
     }
     if constexpr(std::same_as<VALUE_T, std::string>) {
       mLineEdit->setText(value.data());

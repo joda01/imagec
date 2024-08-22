@@ -39,6 +39,7 @@
 #include "backend/commands/object_functions/intersection/intersection.hpp"
 #include "backend/commands/object_functions/intersection/intersection_settings.hpp"
 #include "backend/commands/object_functions/measure/measure.hpp"
+#include "backend/commands/object_functions/measure/measure_settings_ui.hpp"
 #include "backend/commands/object_functions/validator_noise/validator_noise.hpp"
 #include "backend/commands/object_functions/validator_threshold/validator_threshold.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid.hpp"
@@ -133,6 +134,8 @@ public:
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_shared<joda::cmd::Factory<joda::cmd::Measure, MeasureSettings>>(step.$measure.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::make_shared<joda::ui::Factory<joda::ui::Measure, MeasureSettings>>(
+            const_cast<MeasureSettings &>(step.$measure.value()), parent);
       }
     }
 

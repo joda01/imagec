@@ -48,7 +48,7 @@ Command::Command(const QString &title, const QString &icon, QWidget *parent) :
   }
   // Content
   {
-    mDisplayableText.setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
+    mDisplayableText.setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
     mDisplayableText.setWordWrap(true);
     mDisplayViewLayout.addWidget(&mDisplayableText, 0, 1);
   }
@@ -126,17 +126,11 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   } else {
     col->addGroup(boxTitle, convert(), 220, 300);
   }
-  QString txt;
   for(const auto &[setting, show] : settings) {
-    if(show) {
-      txt = txt + setting->getDisplayLabelText() + ", ";
-      setting->setDisplayIconVisible(false);
-    }
+    setting->setDisplayIconVisible(false);
     connect(setting, &SettingBase::valueChanged, this, &Command::valueChanged);
   }
-  txt.chop(2);
-  mDisplayableText.setText(txt);
-
+  updateDisplayText();
   connect(this, &Command::valueChanged, this, &Command::updateDisplayText);
   return col;
 }
@@ -149,8 +143,9 @@ void Command::updateDisplayText()
       if(setting == nullptr) {
         continue;
       }
-      txt = txt + setting->getDisplayLabelText() + ", ";
-      setting->setDisplayIconVisible(false);
+      if(!setting->getDisplayLabelText().isEmpty()) {
+        txt = txt + setting->getDisplayLabelText() + ", ";
+      }
     }
   }
   txt.chop(2);
