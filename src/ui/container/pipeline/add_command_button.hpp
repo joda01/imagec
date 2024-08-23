@@ -19,68 +19,20 @@
 
 namespace joda::ui {
 
-template <class T>
-concept command_t = ::std::is_base_of<joda::ui::Command, T>::value;
-
-template <class T>
-concept pipelinestep_t = ::std::is_base_of<joda::settings::PipelineStep, T>::value;
-
 ///
 /// \class
 /// \author
 /// \brief
 ///
-class AddCommandButtonBase : public QPushButton
+class AddCommandButtonBase : public QWidget
 {
 public:
   AddCommandButtonBase();
 
+  void paintEvent(QPaintEvent *event) override;
+
 public slots:
   void onAddCommandClicked();
-
-private:
-  virtual void addCommandClicked() = 0;
-};
-
-///
-/// \class
-/// \author
-/// \brief
-///
-template <command_t CMD>
-class AddCommandButton : public AddCommandButtonBase
-{
-public:
-  /////////////////////////////////////////////////////
-  AddCommandButton(QWidget *parent, PanelPipelineSettings &pipelinePanel, joda::settings::Pipeline &settings,
-                   const settings::PipelineStep &step) :
-      AddCommandButtonBase(),
-      mParent(parent), mPipelineSettings(pipelinePanel), mSettings(settings), mStepTemplate(step)
-  {
-    const QIcon myIcon(":/icons/outlined/" + QString(CMD::ICON.data()));
-    setIcon(myIcon);
-    setText(CMD::TITLE.data());
-  }
-
-  std::shared_ptr<CMD> createCommand()
-  {
-    // mSettings.pipelineSteps.push_back(mStepTemplate);
-    // auto &cmdSetting = mSettings.pipelineSteps.back();
-    // return std::make_shared<CMD>(cmdSetting, mParent);
-    return nullptr;
-  }
-
-private:
-  void addCommandClicked() override
-  {
-    mPipelineSettings.addPipelineStep(createCommand());
-  }
-
-  /////////////////////////////////////////////////////
-  QWidget *mParent;
-  PanelPipelineSettings &mPipelineSettings;
-  joda::settings::Pipeline &mSettings;
-  settings::PipelineStep mStepTemplate;
 };
 
 }    // namespace joda::ui

@@ -22,7 +22,7 @@ namespace joda::ui {
 Command::Command(const QString &title, const QString &icon, QWidget *parent) :
     mParent(parent), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this), mEditDialog(parent)
 {
-  setContentsMargins(0, 4, 4, 4);
+  setContentsMargins(0, 0, 4, 0);
   mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);
   setLayout(&mDisplayViewLayout);
   mDisplayViewLayout.setSpacing(4);
@@ -66,6 +66,8 @@ Command::Command(const QString &title, const QString &icon, QWidget *parent) :
     label->setObjectName("functionHelperText");
     label->setFont(font);
     label->setStyleSheet("QLabel#functionHelperText { color : #808080; }");
+    label->setContentsMargins(0, 0, 0, 0);
+    label->setMaximumHeight(10);
     mDisplayViewLayout.addWidget(label, 1, 0, 1, 2);
   }
 

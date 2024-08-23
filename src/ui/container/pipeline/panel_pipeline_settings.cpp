@@ -62,6 +62,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     auto *col2 = tab->addVerticalPanel();
 
     QScrollArea *scrollArea = new QScrollArea();
+    scrollArea->setContentsMargins(0, 0, 0, 0);
     scrollArea->setFrameStyle(0);
     scrollArea->setFrameShape(QFrame::NoFrame);
     scrollArea->viewport()->setStyleSheet("background-color: transparent;");
@@ -72,6 +73,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     // Create a widget to hold the panels
     auto *contentWidget = new QWidget(scrollArea);
     contentWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    contentWidget->setContentsMargins(0, 0, 0, 0);
     contentWidget->setObjectName("contentOverview");
     scrollArea->setWidget(contentWidget);
     scrollArea->setWidgetResizable(true);
@@ -79,12 +81,14 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     // Create a horizontal layout for the pipeline steps
     mPipelineSteps = new QVBoxLayout(contentWidget);
     mPipelineSteps->setContentsMargins(0, 0, 0, 0);
-    mPipelineSteps->setSpacing(8);    // Adjust this value as needed
+    mPipelineSteps->setSpacing(4);    // Adjust this value as needed
     mPipelineSteps->setAlignment(Qt::AlignTop);
     contentWidget->setLayout(mPipelineSteps);
     scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     col2->addWidgetGroup("Pipeline steps", {scrollArea});
+
+    mPipelineSteps->addWidget(new AddCommandButtonBase());
   }
 
   {
@@ -107,6 +111,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   connect(mLayout.getDeleteButton(), &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
   connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this,
           &PanelPipelineSettings::onClassificationNameChanged);
+  onClassificationNameChanged();
 }
 
 ///
@@ -121,6 +126,7 @@ void PanelPipelineSettings::addPipelineStep(std::shared_ptr<joda::ui::Command> c
   mCommands.push_back(command);
   connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
+  mPipelineSteps->addWidget(new AddCommandButtonBase());
 }
 
 ///
