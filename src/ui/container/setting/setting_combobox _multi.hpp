@@ -18,6 +18,7 @@
 #include <set>
 #include "ui/helper/multicombobox.hpp"
 #include "setting_base.hpp"
+#include "setting_combobox.hpp"
 
 namespace joda::ui {
 
@@ -50,10 +51,10 @@ public:
   {
     mComboBox = new QComboBoxMulti();
     mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    mComboBox->addAction(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE), "");
+    mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
-    connect(mComboBox, &QComboBox::currentIndexChanged, this, &SettingComboBoxMulti::onValueChanged);
-    connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxMulti::onValueChanged);
+    SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this, &SettingComboBoxMulti::onValueChanged);
+    SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this, &SettingComboBoxMulti::onValueChanged);
 
     return mComboBox;
   }
@@ -86,66 +87,75 @@ public:
         variant = QVariant(data.key);
       }
       if(data.icon.isEmpty()) {
-        mComboBox->addItem(QIcon(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
+                           data.label, variant);
       } else {
         const QIcon myIcon(":/icons/outlined/" + data.icon);
-        mComboBox->addItem(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
+        mComboBox->addItem(QIcon(myIcon.pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.label,
+                           variant);
       }
     }
   }
 
-  void changeOptionText(const std::vector<ComboEntryText> &options)
+  void changeOptionText(const std::map<VALUE_T, QString> &options)
   {
     auto findItem = [this](VALUE_T key) -> int {
       int count = mComboBox->count();
       for(int i = 0; i < count; ++i) {
-        auto item = mComboBox->itemData(i);
+        auto item = mComboBox->itemData(i, Qt::UserRole + 1);
         if constexpr(std::same_as<VALUE_T, int32_t>) {
-          if(key == mComboBox->currentData().toInt()) {
+          if(key == item.toInt()) {
             return i;
           }
         }
         if constexpr(std::same_as<VALUE_T, uint32_t>) {
-          if(key == mComboBox->currentData().toUInt()) {
+          if(key == item.toUInt()) {
             return i;
           }
         }
         if constexpr(std::same_as<VALUE_T, uint16_t>) {
-          if(key == mComboBox->currentData().toUInt()) {
+          if(key == item.toUInt()) {
             return i;
           }
         }
         if constexpr(std::same_as<VALUE_T, float>) {
-          if(key == mComboBox->currentData().toFloat()) {
+          if(key == item.toFloat()) {
             return i;
           }
         }
         if constexpr(std::same_as<VALUE_T, bool>) {
-          if(key == mComboBox->currentData().toBool()) {
+          if(key == item.toBool()) {
             return i;
           }
         }
         if constexpr(std::is_enum<VALUE_T>::value) {
-          if(key == (VALUE_T) mComboBox->currentData().toInt()) {
-            return 1;
+          if(key == (VALUE_T) item.toInt()) {
+            return i;
           }
         }
       }
       return -1;
     };
 
-    for(const auto &option : options) {
-      auto idx = findItem(option.key);
-      if(idx >= 0) {
-        mComboBox->setItemText(idx, option.label);
+    auto act = getValue();
+    mComboBox->clear();
+    for(const auto &[key, label] : options) {
+      QVariant variant;
+      if constexpr(std::is_enum<VALUE_T>::value) {
+        variant = QVariant(static_cast<int>(key));
+      } else {
+        variant = QVariant(key);
       }
+      mComboBox->addItem(QIcon(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), label, variant);
     }
+    setValue(act);
+    onValueChanged();
   }
 
   std::set<VALUE_T> getValue()
   {
     std::set<VALUE_T> toReturn;
-    auto checked = mComboBox->getCheckedItems();
+    auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
 
     for(const auto &data : checked) {
       if constexpr(std::same_as<VALUE_T, int32_t>) {
@@ -194,7 +204,7 @@ public:
         toCheck.append(static_cast<int>(value));
       }
     }
-    mComboBox->setCheckedItems(toCheck);
+    ((QComboBoxMulti *) mComboBox)->setCheckedItems(toCheck);
   }
 
   void connectWithSetting(std::set<VALUE_T> *setting)
@@ -204,8 +214,8 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  QComboBoxMulti *mComboBox = nullptr;
   std::optional<VALUE_T> mDefaultValue;
+  QComboBoxMulti *mComboBox;
   std::set<VALUE_T> *mSetting = nullptr;
 
 private slots:
@@ -217,9 +227,9 @@ private slots:
     QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
     if(itemData.isValid() && itemData.canConvert<QIcon>()) {
       auto selectedIcon = qvariant_cast<QIcon>(itemData);
-      triggerValueChanged(mComboBox->getDisplayText(), selectedIcon);
+      SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), selectedIcon);
     } else {
-      triggerValueChanged(mComboBox->getDisplayText());
+      SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText());
     }
   }
 };

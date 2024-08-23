@@ -275,6 +275,33 @@ void PanelClassification::toSettings()
 /// \param[out]
 /// \return
 ///
+[[nodiscard]] auto PanelClassification::getClustersAndClasses() const
+    -> std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassId, QString>>
+{
+  std::map<enums::ClusterIdIn, QString> clusters;
+  std::map<enums::ClassId, QString> classes;
+
+  clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::$), QString("This"));
+  classes.emplace(static_cast<enums::ClassId>(enums::ClassId::NONE), QString("None"));
+
+  for(const auto &cluster : mSettings.clusters) {
+    clusters.emplace(static_cast<enums::ClusterIdIn>(cluster.clusterId), QString(cluster.name.data()));
+  }
+
+  for(const auto &classs : mSettings.classes) {
+    classes.emplace(classs.classId, QString(classs.name.data()));
+  }
+
+  return {clusters, classes};
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelClassification::onSettingChanged()
 {
   toSettings();

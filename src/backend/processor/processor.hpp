@@ -91,6 +91,11 @@ public:
     totalNrOfImages = images;
   }
 
+  void setTotalNrOfTiles(uint32_t tiles)
+  {
+    totalNrOfTiles = tiles;
+  }
+
   [[nodiscard]] ProcessState getState() const
   {
     return state;

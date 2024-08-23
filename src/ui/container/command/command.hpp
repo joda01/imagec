@@ -20,6 +20,10 @@
 #include <thread>
 #include "../setting/setting_base.hpp"
 #include "backend/commands/command.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
+#include "ui/container/setting/setting_combobox _multi.hpp"
+#include "ui/container/setting/setting_combobox.hpp"
 #include "ui/helper/layout_generator.hpp"
 
 namespace joda::ui {
@@ -53,6 +57,30 @@ public:
     for(int m = mSettings.size() - 1; m >= 0; m--) {
       if(toRemove.contains(mSettings[m].first)) {
         mSettings.erase(mSettings.begin() + m);
+      }
+    }
+
+    for(int m = mClusters.size() - 1; m >= 0; m--) {
+      if(toRemove.contains(mClusters[m])) {
+        mClusters.erase(mClusters.begin() + m);
+      }
+    }
+
+    for(int m = mClasses.size() - 1; m >= 0; m--) {
+      if(toRemove.contains(mClasses[m])) {
+        mClasses.erase(mClasses.begin() + m);
+      }
+    }
+
+    for(int m = mClustersMulti.size() - 1; m >= 0; m--) {
+      if(toRemove.contains(mClustersMulti[m])) {
+        mClustersMulti.erase(mClustersMulti.begin() + m);
+      }
+    }
+
+    for(int m = mClassesMulti.size() - 1; m >= 0; m--) {
+      if(toRemove.contains(mClassesMulti[m])) {
+        mClassesMulti.erase(mClassesMulti.begin() + m);
       }
     }
   }
@@ -90,8 +118,14 @@ public:
     return mLayout.addActionButton(text, icon);
   }
 
+  void updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames,
+                                    const std::map<enums::ClassId, QString> &classNames);
+
 signals:
   void valueChanged();
+
+protected:
+  void updateClassesAndClusters();
 
 private:
   /////////////////////////////////////////////////////
@@ -115,6 +149,11 @@ private:
   QDialog mEditDialog;
   QLabel mDisplayableText;
   std::vector<std::pair<SettingBase *, bool>> mSettings;
+  std::vector<SettingComboBox<enums::ClusterIdIn> *> mClusters;
+  std::vector<SettingComboBox<enums::ClassId> *> mClasses;
+
+  std::vector<SettingComboBoxMulti<enums::ClusterIdIn> *> mClustersMulti;
+  std::vector<SettingComboBoxMulti<enums::ClassId> *> mClassesMulti;
 
 protected slots:
   void updateDisplayText();

@@ -56,13 +56,13 @@ private:
     {
       //
       //
-      mClusterOut = generateClusterDropDown("Match cluster", parent);
+      mClusterOut = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Match cluster", parent);
       mClusterOut->setValue(settings.clusterOut);
       mClusterOut->connectWithSetting(&settings.clusterOut);
 
       //
       //
-      mClassOut = generateClassDropDown("Match class", parent);
+      mClassOut = generateClassDropDown<SettingComboBox<enums::ClassId>>("Match class", parent);
       mClassOut->setValue(settings.classOut);
       mClassOut->connectWithSetting(&settings.classOut);
       mClassOut->setDisplayIconVisible(false);
@@ -128,13 +128,13 @@ private:
     {
       //
       //
-      mClusterOutNoMatch = generateClusterDropDown("No match cluster", parent);
+      mClusterOutNoMatch = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("No match cluster", parent);
       mClusterOutNoMatch->setValue(settings.clusterOutNoMatch);
       mClusterOutNoMatch->connectWithSetting(&settings.clusterOutNoMatch);
 
       //
       //
-      mClassOutNoMatch = generateClassDropDown("No match class", parent);
+      mClassOutNoMatch = generateClassDropDown<SettingComboBox<enums::ClassId>>("No match class", parent);
       mClassOutNoMatch->setValue(settings.classOutNoMatch);
       mClassOutNoMatch->connectWithSetting(&settings.classOutNoMatch);
 

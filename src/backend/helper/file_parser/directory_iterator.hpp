@@ -90,6 +90,20 @@ public:
   }
 
   ///
+  /// \brief      Get first file of list
+  /// \author     Joachim Danmayr
+  ///
+  [[nodiscard]] auto gitFirstFile() const -> std::filesystem::path
+  {
+    for(const auto &[_, list] : mListOfImagePaths) {
+      for(const auto &path : list) {
+        return path;
+      }
+    }
+    return {};
+  }
+
+  ///
   /// \brief      Returns list of found files
   /// \author     Joachim Danmayr
   ///

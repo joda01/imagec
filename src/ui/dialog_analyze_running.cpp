@@ -19,6 +19,7 @@
 #include <qtmetamacros.h>
 #include <memory>
 #include <thread>
+#include "backend/helper/logger/console_logger.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 
 namespace joda::ui {
@@ -142,24 +143,18 @@ void DialogAnalyzeRunning::onRefreshData()
 {
   QString newTextAllOver = "Processing Image 0/0";
   QString newTextImage   = "Processing Tile 0/0";
-  auto actState          = joda::processor::ProcessState::FINISHED;
+  auto actState          = joda::processor::ProcessState::INITIALIZING;
   try {
     const auto &state = mWindowMain->getController()->getState();
     if(state.getState() == joda::processor::ProcessState::RUNNING) {
       mEndedTime = std::chrono::high_resolution_clock::now();
     }
-    actState = state.getState();
-
+    actState       = state.getState();
     newTextAllOver = QString("Processing Image %1/%2").arg(state.finishedImages()).arg(state.totalImages());
-    newTextImage   = QString("Processing Tile %1/%2").arg(state.totalTiles()).arg(state.finishedTiles());
-
-    // progressBar->setMaximum(progress.total.total);
-    // if(progress.total.finished <= progress.total.total) {
-    //   progressBar->setValue(progress.total.finished);
-    // }
+    newTextImage   = QString("Processing Tile %1/%2").arg(state.finishedTiles()).arg(state.totalTiles());
 
   } catch(const std::exception &ex) {
-    onStopClicked();
+    joda::log::logWarning("Pipeline error: " + std::string(ex.what()));
   }
   double elapsedTimeMs = std::chrono::duration<double, std::milli>(mEndedTime - mStartedTime).count();
   auto [timeDiff, exp] = exponentForTime(elapsedTimeMs);
@@ -168,7 +163,7 @@ void DialogAnalyzeRunning::onRefreshData()
   std::string timeDiffStr = stream.str();
 
   QString progressText;
-  if(actState != joda::processor::ProcessState::RUNNING || actState == joda::processor::ProcessState::STOPPING) {
+  if(actState == joda::processor::ProcessState::STOPPING) {
     stopButton->setEnabled(false);
     mStopped = true;
     progressBar->setRange(0, 100);
@@ -177,14 +172,18 @@ void DialogAnalyzeRunning::onRefreshData()
     progressBar->setValue(100);
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Stopping ...";
 
+  } else if(actState == joda::processor::ProcessState::FINISHED) {
+    closeButton->setEnabled(false);
+    mStopped = true;
+    progressBar->setRange(0, 100);
+    progressBar->setMaximum(100);
+    progressBar->setMinimum(0);
+    progressBar->setValue(100);
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
   } else {
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage;
   }
 
-  if(actState == joda::processor::ProcessState::FINISHED) {
-    closeButton->setEnabled(true);
-    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
-  }
   mProgressText->setText(progressText);
 
   // mLabelReporting->SetLabel(timeDiffStr);

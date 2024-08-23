@@ -15,6 +15,7 @@
 #include <exception>
 #include <filesystem>
 #include <memory>
+#include <string>
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/database/database.hpp"
@@ -74,6 +75,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, imagesLi
       auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
       auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
       auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
+
+      mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY);
 
       for(int tileX = 0; tileX < tilesX; tileX++) {
         if(mProgress.isStopping()) {

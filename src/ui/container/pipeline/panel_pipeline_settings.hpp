@@ -130,6 +130,7 @@ private slots:
   void metaChangedEvent();
   void closeWindow();
   void deletePipeline();
+  void onClassificationNameChanged();
 };
 
 }    // namespace joda::ui

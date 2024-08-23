@@ -13,7 +13,9 @@
 #pragma once
 
 #include <qcombobox.h>
+#include <iostream>
 #include <optional>
+#include <string>
 #include "setting_base.hpp"
 
 namespace joda::ui {
@@ -90,52 +92,59 @@ public:
     }
   }
 
-  void changeOptionText(const std::vector<ComboEntryText> &options)
+  void changeOptionText(const std::map<VALUE_T, QString> &options)
   {
     auto findItem = [this](VALUE_T key) -> int {
       int count = mComboBox->count();
       for(int i = 0; i < count; ++i) {
         auto item = mComboBox->itemData(i);
         if constexpr(std::same_as<VALUE_T, int32_t>) {
-          if(key == mComboBox->currentData().toInt()) {
+          if(key == item.toInt()) {
             return i;
           }
         }
         if constexpr(std::same_as<VALUE_T, uint32_t>) {
-          if(key == mComboBox->currentData().toUInt()) {
+          if(key == item.toUInt()) {
             return i;
           }
         }
         if constexpr(std::same_as<VALUE_T, uint16_t>) {
-          if(key == mComboBox->currentData().toUInt()) {
+          if(key == item.toUInt()) {
             return i;
           }
         }
         if constexpr(std::same_as<VALUE_T, float>) {
-          if(key == mComboBox->currentData().toFloat()) {
+          if(key == item.toFloat()) {
             return i;
           }
         }
         if constexpr(std::same_as<VALUE_T, bool>) {
-          if(key == mComboBox->currentData().toBool()) {
+          if(key == item.toBool()) {
             return i;
           }
         }
         if constexpr(std::is_enum<VALUE_T>::value) {
-          if(key == (VALUE_T) mComboBox->currentData().toInt()) {
-            return 1;
+          if(key == (VALUE_T) item.toInt()) {
+            return i;
           }
         }
       }
       return -1;
     };
 
-    for(const auto &option : options) {
-      auto idx = findItem(option.key);
-      if(idx >= 0) {
-        mComboBox->setItemText(idx, option.label);
+    auto act = getValue();
+    mComboBox->clear();
+    for(const auto &[key, label] : options) {
+      QVariant variant;
+      if constexpr(std::is_enum<VALUE_T>::value) {
+        variant = QVariant(static_cast<int>(key));
+      } else {
+        variant = QVariant(key);
       }
+      mComboBox->addItem(QIcon(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), label, variant);
     }
+    setValue(act);
+    onValueChanged();
   }
 
   VALUE_T getValue()
@@ -196,9 +205,9 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  QComboBox *mComboBox = nullptr;
   std::optional<VALUE_T> mDefaultValue;
-  VALUE_T *mSetting = nullptr;
+  QComboBox *mComboBox = nullptr;
+  VALUE_T *mSetting    = nullptr;
 
 private slots:
   void onValueChanged()

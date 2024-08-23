@@ -82,6 +82,11 @@ public:
     return mPanelPipeline;
   }
 
+  [[nodiscard]] PanelClassification *getPanelClassification()
+  {
+    return mPanelClassification;
+  }
+
   [[nodiscard]] PanelResults *getPanelResults()
   {
     return mPanelReporting;

@@ -53,7 +53,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 {
   joda::thread::ThreadingSettings threads;
 
-  auto ome             = getImageProperties(*mWorkingDirectory.getFilesList().begin()->second.begin());
+  auto ome             = getImageProperties(mWorkingDirectory.gitFirstFile());
   int64_t imgNr        = mWorkingDirectory.getNrOfFiles();
   int64_t tileNr       = 1;
   int64_t pipelineNr   = settings.pipelines.size();

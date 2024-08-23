@@ -36,6 +36,7 @@
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
+#include "ui/window_main/panel_classification.hpp"
 #include "ui/window_main/window_main.hpp"
 #include "add_command_button.hpp"
 
@@ -104,6 +105,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
   connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
   connect(mLayout.getDeleteButton(), &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
+  connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this,
+          &PanelPipelineSettings::onClassificationNameChanged);
 }
 
 ///
@@ -440,6 +443,23 @@ void PanelPipelineSettings::deletePipeline()
 {
   mWindowMain->showPanelStartPage();
   mWindowMain->getPanelPipeline()->erase(this);
+}
+
+///
+/// \brief        Names in the classification has been changed, update all commands using
+///               Class or Cluster with the new name
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::onClassificationNameChanged()
+{
+  const auto [clusters, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
+  for(auto &command : mCommands) {
+    command->updateClassesAndClusterNames(clusters, classes);
+  }
+  defaultClusterId->changeOptionText(clusters);
 }
 
 }    // namespace joda::ui

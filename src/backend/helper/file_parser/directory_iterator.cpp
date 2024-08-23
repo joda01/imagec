@@ -13,6 +13,7 @@
 #include "directory_iterator.hpp"
 #include <exception>
 #include <iostream>
+#include <string>
 #include "backend/helper/logger/console_logger.hpp"
 
 namespace joda::filesystem {
@@ -28,6 +29,8 @@ DirectoryWatcher::DirectoryWatcher(const std::set<std::string> &supportedFileFor
 ///
 void DirectoryWatcher::setWorkingDirectory(uint8_t group, const std::filesystem::path &inputFolder)
 {
+  std::cout << "Set working dir " << std::to_string(group) << ": " << inputFolder.string() << std::endl;
+
   if(mWorkingDirectory[group] != inputFolder) {
     mWorkingDirectory[group] = inputFolder;
     if(inputFolder.empty()) {
@@ -47,13 +50,13 @@ void DirectoryWatcher::lookForImagesInFolderAndSubfolder()
 {
   mIsRunning = true;
   mIsStopped = false;
-  mListOfImagePaths.clear();
   for(const auto &callback : mCallbacks) {
     callback(State::RUNNING);
   }
 
-  try {
-    for(const auto &[group, workingDir] : mWorkingDirectory) {
+  for(const auto &[group, workingDir] : mWorkingDirectory) {
+    mListOfImagePaths[group].clear();
+    try {
       for(recursive_directory_iterator i(workingDir), end; i != end; ++i) {
         try {
           if(!is_directory(i->path())) {
@@ -69,10 +72,11 @@ void DirectoryWatcher::lookForImagesInFolderAndSubfolder()
           break;
         }
       }
+    } catch(const std::exception &ex) {
+      joda::log::logError("File iterator: " + std::string(ex.what()));
     }
-  } catch(const std::exception &ex) {
-    joda::log::logError("File iterator: " + std::string(ex.what()));
   }
+
   mIsRunning = false;
   for(const auto &callback : mCallbacks) {
     callback(State::FINISHED);

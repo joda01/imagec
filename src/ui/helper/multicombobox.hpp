@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <qcombobox.h>
 #include <qvariant.h>
 #include <QtWidgets>
 
@@ -35,6 +36,12 @@ public:
     item->setData(auserData);
     model->setItem(row, 0, item);
     this->setModel(model);
+  }
+
+  void clear()
+  {
+    model->clear();
+    QComboBox::clear();
   }
 
   QVariantList getCheckedItems() const

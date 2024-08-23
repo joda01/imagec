@@ -14,6 +14,8 @@
 #include <qlabel.h>
 #include <algorithm>
 #include <string>
+#include <type_traits>
+#include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
 
@@ -110,6 +112,34 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   for(auto &[data, bo] : settings) {
     if(!containsPtr(data)) {
       mSettings.emplace_back(data, bo);
+
+      {
+        auto *casted = dynamic_cast<SettingComboBox<enums::ClusterIdIn> *>(data);
+        if(casted) {
+          mClusters.emplace_back(casted);
+        }
+      }
+
+      {
+        auto *casted = dynamic_cast<SettingComboBox<enums::ClassId> *>(data);
+        if(casted) {
+          mClasses.emplace_back(casted);
+        }
+      }
+
+      {
+        auto *casted = dynamic_cast<SettingComboBoxMulti<enums::ClusterIdIn> *>(data);
+        if(casted) {
+          mClustersMulti.emplace_back(casted);
+        }
+      }
+
+      {
+        auto *casted = dynamic_cast<SettingComboBoxMulti<enums::ClassId> *>(data);
+        if(casted) {
+          mClassesMulti.emplace_back(casted);
+        }
+      }
     }
   }
   auto convert = [&]() {
@@ -131,6 +161,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
     connect(setting, &SettingBase::valueChanged, this, &Command::valueChanged);
   }
   updateDisplayText();
+  updateClassesAndClusters();
   connect(this, &Command::valueChanged, this, &Command::updateDisplayText);
   return col;
 }
@@ -150,6 +181,46 @@ void Command::updateDisplayText()
   }
   txt.chop(2);
   mDisplayableText.setText(txt);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::updateClassesAndClusters()
+{
+  auto [clusterNames, classNames] = ((WindowMain *) mParent)->getPanelClassification()->getClustersAndClasses();
+  updateClassesAndClusterNames(clusterNames, classNames);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames,
+                                           const std::map<enums::ClassId, QString> &classNames)
+{
+  for(auto &cluster : mClusters) {
+    cluster->changeOptionText(clusterNames);
+  }
+
+  for(auto &classs : mClasses) {
+    classs->changeOptionText(classNames);
+  }
+
+  for(auto &cluster : mClustersMulti) {
+    cluster->changeOptionText(clusterNames);
+  }
+
+  for(auto &classs : mClassesMulti) {
+    classs->changeOptionText(classNames);
+  }
 }
 
 }    // namespace joda::ui
