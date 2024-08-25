@@ -14,6 +14,7 @@
 
 #include <qaction.h>
 #include <qboxlayout.h>
+#include <qdialog.h>
 #include <qicon.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
@@ -98,12 +99,12 @@ public:
 
   void openEditView()
   {
-    mEditDialog.show();
+    mEditDialog->show();
   }
 
   void adjustDialogSize()
   {
-    mEditDialog.adjustSize();
+    mEditDialog->adjustSize();
   }
 
   void addSeparatorToTopToolbar()
@@ -159,7 +160,7 @@ private:
   QWidget mEditView;
   helper::LayoutGenerator mLayout;
   QGridLayout mDisplayViewLayout;
-  QDialog mEditDialog;
+  QDialog *mEditDialog;
   QLabel mDisplayableText;
   std::vector<std::pair<SettingBase *, bool>> mSettings;
   std::vector<SettingComboBox<enums::ClusterIdIn> *> mClusters;

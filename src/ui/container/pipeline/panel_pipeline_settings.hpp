@@ -47,7 +47,7 @@ public:
   PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings);
   ~PanelPipelineSettings();
 
-  void addPipelineStep(std::shared_ptr<joda::ui::Command> command);
+  void addPipelineStep(std::unique_ptr<joda::ui::Command> command);
 
   void setActive(bool setActive) override
   {
@@ -110,7 +110,7 @@ private:
 
   // PIPELINE STEPS //////////////////////////////////////////////////
   QVBoxLayout *mPipelineSteps;
-  std::vector<std::shared_ptr<Command>> mCommands;
+  std::vector<std::unique_ptr<Command>> mCommands;
 
   /////////////////////////////////////////////////////
   int32_t mSelectedTileX = 0;

@@ -121,12 +121,12 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::addPipelineStep(std::shared_ptr<joda::ui::Command> command)
+void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::Command> command)
 {
-  mCommands.push_back(command);
   connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
   mPipelineSteps->addWidget(new AddCommandButtonBase(mWindowMain));
+  mCommands.push_back(std::move(command));
 }
 
 ///
@@ -406,7 +406,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 
     auto cmd = joda::settings::PipelineFactory<joda::ui::Command>::generate(cmdSetting, mWindowMain);
     if(cmd != nullptr) {
-      addPipelineStep(cmd);
+      addPipelineStep(std::move(cmd));
     }
   }
 }

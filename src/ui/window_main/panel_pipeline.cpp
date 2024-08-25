@@ -13,6 +13,7 @@
 
 #include "panel_pipeline.hpp"
 #include <filesystem>
+#include <memory>
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
@@ -58,10 +59,11 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::addElement(PanelPipelineSettings *baseContainer, void *pointerToSettings)
+
+void PanelPipeline::addElement(std::unique_ptr<PanelPipelineSettings> baseContainer, void *pointerToSettings)
 {
   mVerticalLayout->addWidget(baseContainer->getOverviewPanel());
-  mChannels.emplace(baseContainer, pointerToSettings);
+  mChannels.emplace(std::move(baseContainer), pointerToSettings);
 }
 
 ///
@@ -75,16 +77,23 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 {
   if(toRemove != nullptr) {
     toRemove->setActive(false);
-    void *elementInSettings = mChannels.at(toRemove);
-    mChannels.erase(toRemove);
+    // Find the iterator to the element using the pointer
+    auto it = std::find_if(mChannels.begin(), mChannels.end(),
+                           [&toRemove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
+                             return entry.first.get() == toRemove;
+                           });
 
-    mAnalyzeSettings.pipelines.remove_if(
-        [&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
+    if(it != mChannels.end()) {
+      void *elementInSettings = it->second;
 
-    mVerticalLayout->removeWidget(toRemove->getOverviewPanel());
-    toRemove->getOverviewPanel()->setParent(nullptr);
-    // delete toRemove;
-    mWindowMain->checkForSettingsChanged();
+      mAnalyzeSettings.pipelines.remove_if(
+          [&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
+
+      mVerticalLayout->removeWidget(toRemove->getOverviewPanel());
+      toRemove->getOverviewPanel()->setParent(nullptr);
+      mChannels.erase(it);
+      mWindowMain->checkForSettingsChanged();
+    }
   }
 }
 
@@ -107,6 +116,7 @@ void PanelPipeline::clear()
     }
     delete item;    // Delete the layout item
   }
+  mChannels.clear();
 }
 
 ///
@@ -120,10 +130,10 @@ void PanelPipeline::addChannel(const joda::settings::Pipeline &settings)
 {
   mAnalyzeSettings.pipelines.push_back(settings);
   auto &newlyAdded = mAnalyzeSettings.pipelines.back();
-  auto *panel1     = new PanelPipelineSettings(mWindowMain, newlyAdded);
+  auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, newlyAdded);
   panel1->fromSettings(settings);
   panel1->toSettings();
-  addElement(panel1, &newlyAdded);
+  addElement(std::move(panel1), &newlyAdded);
 }
 
 ///

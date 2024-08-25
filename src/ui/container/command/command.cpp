@@ -20,8 +20,7 @@
 namespace joda::ui {
 
 Command::Command(const QString &title, const QString &icon, QWidget *parent) :
-    mParent(parent), mTitle(title), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this),
-    mEditDialog(parent)
+    mParent(parent), mTitle(title), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this)
 {
   setContentsMargins(0, 0, 4, 0);
   mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);
@@ -79,21 +78,22 @@ Command::Command(const QString &title, const QString &icon, QWidget *parent) :
   auto *layout = new QVBoxLayout();
   layout->addWidget(&mEditView);
   layout->setContentsMargins(0, 0, 0, 0);
-  mEditDialog.setModal(false);
-  mEditDialog.setLayout(layout);
-  mEditDialog.setMinimumWidth(300);
-  mEditDialog.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  mEditDialog = new QDialog(mParent);
+  mEditDialog->setModal(false);
+  mEditDialog->setLayout(layout);
+  mEditDialog->setMinimumWidth(300);
+  mEditDialog->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   // mEditDialog.setMaximumWidth(400);
-  mEditDialog.setWindowTitle(title);
+  mEditDialog->setWindowTitle(title);
 }
 
 helper::TabWidget *Command::addTab(const QString &title, std::function<void()> beforeTabClose)
 {
   auto *tab = mLayout.addTab(title, beforeTabClose);
-  if(mEditDialog.isVisible()) {
+  if(mEditDialog->isVisible()) {
     std::thread([this] {
       std::this_thread::sleep_for(100ms);
-      mEditDialog.adjustSize();
+      mEditDialog->adjustSize();
     }).detach();
   }
   return tab;
@@ -195,8 +195,10 @@ void Command::updateDisplayText()
 ///
 void Command::updateClassesAndClusters()
 {
-  auto [clusterNames, classNames] = ((WindowMain *) mParent)->getPanelClassification()->getClustersAndClasses();
-  updateClassesAndClusterNames(clusterNames, classNames);
+  if(mParent != nullptr) {
+    auto [clusterNames, classNames] = ((WindowMain *) mParent)->getPanelClassification()->getClustersAndClasses();
+    updateClassesAndClusterNames(clusterNames, classNames);
+  }
 }
 
 ///

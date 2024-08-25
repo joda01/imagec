@@ -12,6 +12,7 @@
 ///
 
 #include "setting_base.hpp"
+#include <iostream>
 #include "ui/container/dialog_tooltip.hpp"
 
 namespace joda::ui {

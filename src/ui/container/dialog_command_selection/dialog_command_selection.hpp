@@ -40,7 +40,7 @@ private:
   /////////////////////////////////////////////////////
   void addCommandsToTable();
   void addCommandToTable(const settings::PipelineStep &step);
-  std::shared_ptr<joda::ui::Command> generateCommand(const settings::PipelineStep &step);
+  std::unique_ptr<joda::ui::Command> generateCommand(const settings::PipelineStep &step);
 
   /////////////////////////////////////////////////////
   QTableWidget *mCommands;

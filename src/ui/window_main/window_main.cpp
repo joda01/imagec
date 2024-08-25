@@ -361,9 +361,9 @@ void WindowMain::clearSettings()
 {
   mPanelResultsInfo->clearHistory();
   mSelectedProjectSettingsFilePath.clear();
+  mPanelPipeline->clear();
   mAnalyzeSettings    = {};
   mAnalyzeSettingsOld = {};
-  mPanelPipeline->clear();
   mAnalyzeSettings.pipelines.clear();
   mAnalyzeSettingsOld.pipelines.clear();
   mPanelProjectSettings->fromSettings({});
@@ -425,7 +425,9 @@ void WindowMain::openProjectSettings(const QString &filePath)
     std::ifstream ifs(filePath.toStdString());
     joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(ifs);
     ifs.close();
-    mPanelPipeline->clear();
+
+    showPanelStartPage();
+    clearSettings();
 
     for(const auto &channel : analyzeSettings.pipelines) {
       mPanelPipeline->addChannel(channel);

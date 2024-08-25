@@ -16,6 +16,7 @@
 #include <qcombobox.h>
 #include <qwidget.h>
 #include <QtWidgets>
+#include <memory>
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 
@@ -34,7 +35,7 @@ class PanelPipeline : public QScrollArea
 public:
   /////////////////////////////////////////////////////
   explicit PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings);
-  void addElement(PanelPipelineSettings *baseContainer, void *pointerToSettings);
+  void addElement(std::unique_ptr<PanelPipelineSettings> baseContainer, void *pointerToSettings);
   void erase(PanelPipelineSettings *toRemove);
   void clear();
 
@@ -45,7 +46,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   QVBoxLayout *mVerticalLayout;
-  std::map<PanelPipelineSettings *, void *>
+  std::map<std::unique_ptr<PanelPipelineSettings>, void *>
       mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;
   joda::settings::AnalyzeSettings &mAnalyzeSettings;

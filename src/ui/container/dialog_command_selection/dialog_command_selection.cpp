@@ -14,6 +14,14 @@
 #include <qboxlayout.h>
 #include <qdialog.h>
 #include <qtablewidget.h>
+#include <memory>
+#include "backend/commands/image_functions/blur/blur_settings.hpp"
+#include "backend/commands/image_functions/blur/blur_settings_ui.hpp"
+#include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
+#include "backend/commands/image_functions/threshold/threshold_settings.hpp"
+#include "backend/commands/image_functions/watershed/watershed_settings.hpp"
+#include "backend/commands/object_functions/validator_threshold/validator_threshold_settings.hpp"
+#include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/window_main/window_main.hpp"
@@ -32,8 +40,10 @@ DialogCommandSelection::DialogCommandSelection(WindowMain *parent) : QDialog(par
   auto *layout = new QVBoxLayout();
 
   mCommands = new QTableWidget();
-  mCommands->setColumnCount(2);
-  mCommands->setHorizontalHeaderLabels({"", "Command"});
+  mCommands->setColumnCount(1);
+  mCommands->setHorizontalHeaderLabels({"Command"});
+  mCommands->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  mCommands->verticalHeader()->setVisible(false);
 
   connect(mCommands, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
     // Open results
@@ -44,6 +54,7 @@ DialogCommandSelection::DialogCommandSelection(WindowMain *parent) : QDialog(par
   layout->addWidget(mCommands);
   addCommandsToTable();
   setLayout(layout);
+  setMinimumHeight(350);
 }
 
 ///
@@ -53,9 +64,9 @@ DialogCommandSelection::DialogCommandSelection(WindowMain *parent) : QDialog(par
 /// \param[out]
 /// \return
 ///
-std::shared_ptr<joda::ui::Command> DialogCommandSelection::generateCommand(const settings::PipelineStep &step)
+std::unique_ptr<joda::ui::Command> DialogCommandSelection::generateCommand(const settings::PipelineStep &step)
 {
-  return joda::settings::PipelineFactory<joda::ui::Command>::generate(step, mParent);
+  return std::move(joda::settings::PipelineFactory<joda::ui::Command>::generate(step, mParent));
 }
 
 ///
@@ -67,40 +78,40 @@ std::shared_ptr<joda::ui::Command> DialogCommandSelection::generateCommand(const
 ///
 void DialogCommandSelection::addCommandsToTable()
 {
-  addCommandToTable(settings::PipelineStep{.$blur = {}});
-  addCommandToTable(settings::PipelineStep{.$saveImage = {}});
-  addCommandToTable(settings::PipelineStep{.$threshold = {}});
-  addCommandToTable(settings::PipelineStep{.$watershed = {}});
-  addCommandToTable(settings::PipelineStep{.$imageFromClass = {}});
-  addCommandToTable(settings::PipelineStep{.$classify = {}});
-  addCommandToTable(settings::PipelineStep{.$aiClassify = {}});
-  addCommandToTable(settings::PipelineStep{.$colocalization = {}});
-  addCommandToTable(settings::PipelineStep{.$intersection = {}});
-  addCommandToTable(settings::PipelineStep{.$measure = {}});
-  addCommandToTable(settings::PipelineStep{.$rollingBall = {}});
-  addCommandToTable(settings::PipelineStep{.$medianSubtract = {}});
-  addCommandToTable(settings::PipelineStep{.$crop = {}});
-  addCommandToTable(settings::PipelineStep{.$edgeDetection = {}});
-  addCommandToTable(settings::PipelineStep{.$voronoi = {}});
-  addCommandToTable(settings::PipelineStep{.$thresholdValidator = {}});
-  addCommandToTable(settings::PipelineStep{.$noiseValidator = {}});
+  addCommandToTable(settings::PipelineStep{.$blur = settings::BlurSettings{}});
+  addCommandToTable(settings::PipelineStep{.$saveImage = settings::ImageSaverSettings{}});
+  addCommandToTable(settings::PipelineStep{.$threshold = settings::ThresholdSettings{}});
+  addCommandToTable(settings::PipelineStep{.$watershed = settings::WatershedSettings{}});
+  addCommandToTable(settings::PipelineStep{.$imageFromClass = settings::ImageFromClassSettings{}});
+  addCommandToTable(settings::PipelineStep{.$classify = settings::ClassifierSettings{}});
+  addCommandToTable(settings::PipelineStep{.$aiClassify = settings::AiClassifierSettings{}});
+  addCommandToTable(settings::PipelineStep{.$colocalization = settings::ColocalizationSettings{}});
+  addCommandToTable(settings::PipelineStep{.$intersection = settings::IntersectionSettings{}});
+  addCommandToTable(settings::PipelineStep{.$measure = settings::MeasureSettings{}});
+  addCommandToTable(settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}});
+  addCommandToTable(settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}});
+  addCommandToTable(settings::PipelineStep{.$edgeDetection = settings::EdgeDetectionSettings{}});
+  addCommandToTable(settings::PipelineStep{.$crop = settings::MarginCropSettings{}});
+  addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}});
+  addCommandToTable(settings::PipelineStep{.$thresholdValidator = settings::ThresholdValidatorSettings{}});
+  addCommandToTable(settings::PipelineStep{.$noiseValidator = settings::NoiseValidatorSettings{}});
 }
 
 void DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step)
 {
-  auto cmd = generateCommand(step);
-  mCommandList.emplace_back(step);
-
-  int newRow = mCommands->rowCount();
-  mCommands->insertRow(newRow);
-  // Set the icon in the first column
-  QTableWidgetItem *iconItem = new QTableWidgetItem();
-  iconItem->setIcon(cmd->getIcon());
-  mCommands->setItem(newRow, 0, iconItem);
-
-  // Set text in the second column (optional)
-  QTableWidgetItem *textItem = new QTableWidgetItem(cmd->getTitle());
-  mCommands->setItem(newRow, 1, textItem);
+  std::unique_ptr<joda::ui::Command> cmd = joda::settings::PipelineFactory<joda::ui::Command>::generate(step, nullptr);
+  if(cmd != nullptr) {
+    mCommandList.emplace_back(step);
+    int newRow = mCommands->rowCount();
+    mCommands->insertRow(newRow);
+    // Set the icon in the first column
+    auto *iconItem = new QTableWidgetItem();
+    iconItem->setIcon(cmd->getIcon());
+    iconItem->setText(cmd->getTitle());
+    iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
+    mCommands->setItem(newRow, 0, iconItem);
+  }
+  cmd.reset();
 }
 
 }    // namespace joda::ui
