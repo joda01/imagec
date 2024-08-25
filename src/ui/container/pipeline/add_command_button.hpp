@@ -19,6 +19,8 @@
 
 namespace joda::ui {
 
+class WindowMain;
+
 ///
 /// \class
 /// \author
@@ -27,12 +29,20 @@ namespace joda::ui {
 class AddCommandButtonBase : public QWidget
 {
 public:
-  AddCommandButtonBase();
+  AddCommandButtonBase(WindowMain *parent);
 
   void paintEvent(QPaintEvent *event) override;
+  void mousePressEvent(QMouseEvent *event) override;
+  void enterEvent(QEnterEvent *event) override;
+  void leaveEvent(QEvent *event) override;
 
 public slots:
   void onAddCommandClicked();
+
+private:
+  /////////////////////////////////////////////////////
+  WindowMain *mParent;
+  bool mMouseEntered = false;
 };
 
 }    // namespace joda::ui

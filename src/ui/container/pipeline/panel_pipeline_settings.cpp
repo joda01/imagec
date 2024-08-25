@@ -88,7 +88,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
     col2->addWidgetGroup("Pipeline steps", {scrollArea});
 
-    mPipelineSteps->addWidget(new AddCommandButtonBase());
+    mPipelineSteps->addWidget(new AddCommandButtonBase(mWindowMain));
   }
 
   {
@@ -126,7 +126,7 @@ void PanelPipelineSettings::addPipelineStep(std::shared_ptr<joda::ui::Command> c
   mCommands.push_back(command);
   connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
-  mPipelineSteps->addWidget(new AddCommandButtonBase());
+  mPipelineSteps->addWidget(new AddCommandButtonBase(mWindowMain));
 }
 
 ///

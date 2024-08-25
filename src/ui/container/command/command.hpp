@@ -14,6 +14,7 @@
 
 #include <qaction.h>
 #include <qboxlayout.h>
+#include <qicon.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
 #include <memory>
@@ -121,6 +122,16 @@ public:
   void updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames,
                                     const std::map<enums::ClassId, QString> &classNames);
 
+  const QString &getTitle()
+  {
+    return mTitle;
+  }
+
+  const QIcon &getIcon()
+  {
+    return mIcon;
+  }
+
 signals:
   void valueChanged();
 
@@ -143,6 +154,8 @@ private:
 
   /////////////////////////////////////////////////////
   QWidget *mParent;
+  QString mTitle;
+  QIcon mIcon;
   QWidget mEditView;
   helper::LayoutGenerator mLayout;
   QGridLayout mDisplayViewLayout;

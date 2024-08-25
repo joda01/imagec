@@ -12,10 +12,13 @@
 
 #include "add_command_button.hpp"
 #include <qnamespace.h>
+#include <qwidget.h>
+#include "ui/container/dialog_command_selection/dialog_command_selection.hpp"
+#include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
 
-AddCommandButtonBase::AddCommandButtonBase()
+AddCommandButtonBase::AddCommandButtonBase(WindowMain *parent) : mParent(parent)
 {
   setObjectName("addCommandButton");
   // const QIcon myIcon(":/icons/outlined/icons8-plus-math-50.png");
@@ -28,7 +31,11 @@ AddCommandButtonBase::AddCommandButtonBase()
 void AddCommandButtonBase::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
-  painter.setPen(QPen(Qt::lightGray, 1, Qt::DotLine));
+  if(!mMouseEntered) {
+    painter.setPen(QPen(Qt::lightGray, 1, Qt::DotLine));
+  } else {
+    painter.setPen(QPen(Qt::black, 1, Qt::DotLine));
+  }
 
   // Calculate the center point of the line
   int centerX = width() / 2;
@@ -38,8 +45,29 @@ void AddCommandButtonBase::paintEvent(QPaintEvent *event)
   painter.drawLine(0, centerY, width(), centerY);
 
   // Draw the plus symbol
-  painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
   painter.drawText(centerX - 5, centerY - 5, 10, 10, Qt::AlignCenter, "+");
+}
+
+void AddCommandButtonBase::mousePressEvent(QMouseEvent *event)
+{
+  DialogCommandSelection selectionDialog(mParent);
+  selectionDialog.exec();
+}
+
+void AddCommandButtonBase::enterEvent(QEnterEvent *event)
+{
+  QWidget::enterEvent(event);
+  mMouseEntered = true;
+  setCursor(Qt::PointingHandCursor);
+  repaint();
+}
+void AddCommandButtonBase::leaveEvent(QEvent *event)
+{
+  QWidget::leaveEvent(event);
+  mMouseEntered = false;
+  setCursor(Qt::ArrowCursor);
+
+  repaint();
 }
 
 void AddCommandButtonBase::onAddCommandClicked()

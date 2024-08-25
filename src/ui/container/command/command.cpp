@@ -20,7 +20,8 @@
 namespace joda::ui {
 
 Command::Command(const QString &title, const QString &icon, QWidget *parent) :
-    mParent(parent), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this), mEditDialog(parent)
+    mParent(parent), mTitle(title), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this),
+    mEditDialog(parent)
 {
   setContentsMargins(0, 0, 4, 0);
   mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);
@@ -39,8 +40,8 @@ Command::Command(const QString &title, const QString &icon, QWidget *parent) :
     headerWidget->setLayout(layout);
     auto *mDisplayLabelIcon = new QLabel();
     if(!icon.isEmpty()) {
-      QIcon bmp(":/icons/outlined/" + icon);
-      mDisplayLabelIcon->setPixmap(bmp.pixmap(16, 16));    // You can adjust the size of the icon as needed
+      mIcon = QIcon(":/icons/outlined/" + icon);
+      mDisplayLabelIcon->setPixmap(mIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
       layout->addWidget(mDisplayLabelIcon);
     }
     // layout->addWidget(new QLabel(title));
