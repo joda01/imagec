@@ -12,6 +12,7 @@ struct EdgeDetectionSettings
 public:
   enum class Mode
   {
+    OFF,
     CANNY,
     SOBEL
   };
@@ -27,6 +28,7 @@ public:
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(EdgeDetectionSettings::Mode, {
+                                                              {EdgeDetectionSettings::Mode::OFF, "Off"},
                                                               {EdgeDetectionSettings::Mode::CANNY, "Canny"},
                                                               {EdgeDetectionSettings::Mode::SOBEL, "Sobel"},
                                                           });

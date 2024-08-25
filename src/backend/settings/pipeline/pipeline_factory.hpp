@@ -15,6 +15,7 @@
 #include <memory>
 #include <type_traits>
 #include "backend/commands/classification/ai_classifier/ai_classifier.hpp"
+#include "backend/commands/classification/ai_classifier/ai_classifier_settings_ui.hpp"
 #include "backend/commands/classification/classifier/classifier.hpp"
 #include "backend/commands/classification/classifier/classifier_settings_ui.hpp"
 #include "backend/commands/command.hpp"
@@ -22,6 +23,7 @@
 #include "backend/commands/image_functions/blur/blur.hpp"
 #include "backend/commands/image_functions/blur/blur_settings_ui.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection.hpp"
+#include "backend/commands/image_functions/edge_detection/edge_detection_settings_ui.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop.hpp"
@@ -119,6 +121,8 @@ public:
         return std::make_unique<joda::cmd::Factory<joda::cmd::AiClassifier, AiClassifierSettings>>(
             step.$aiClassify.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::make_unique<joda::ui::Factory<joda::ui::AiClassifier, AiClassifierSettings>>(
+            const_cast<AiClassifierSettings &>(step.$aiClassify.value()), parent);
       }
     }
 
@@ -172,6 +176,8 @@ public:
         return std::make_unique<joda::cmd::Factory<joda::cmd::EdgeDetection, EdgeDetectionSettings>>(
             step.$edgeDetection.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::Factory<joda::ui::EdgeDetection, EdgeDetectionSettings>>(
+            const_cast<EdgeDetectionSettings &>(step.$edgeDetection.value()), parent));
       }
     }
 

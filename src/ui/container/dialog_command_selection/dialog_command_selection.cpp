@@ -91,7 +91,8 @@ void DialogCommandSelection::addCommandsToTable()
   addCommandToTable(settings::PipelineStep{.$threshold = settings::ThresholdSettings{}});
   addCommandToTable(settings::PipelineStep{.$watershed = settings::WatershedSettings{}});
   addCommandToTable(settings::PipelineStep{.$imageFromClass = settings::ImageFromClassSettings{}});
-  addCommandToTable(settings::PipelineStep{.$classify = settings::ClassifierSettings{}});
+  addCommandToTable(
+      settings::PipelineStep{.$classify = settings::ClassifierSettings{.classifiers = {{.modelClassId = 65535}}}});
   addCommandToTable(settings::PipelineStep{.$aiClassify = settings::AiClassifierSettings{}});
   addCommandToTable(settings::PipelineStep{.$colocalization = settings::ColocalizationSettings{}});
   addCommandToTable(settings::PipelineStep{.$intersection = settings::IntersectionSettings{}});

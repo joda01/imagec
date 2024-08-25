@@ -33,7 +33,7 @@ struct AiClassifierSettings
   //
   // Number of classes the AI model was trained with
   //
-  int32_t numberOfModelClasses = 0;
+  int32_t numberOfModelClasses = 1;
 
   //
   // Default class threshold used to mark an object as object
