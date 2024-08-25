@@ -104,8 +104,8 @@ private:
       mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMaxParticleSize->setUnit("px");
       mMaxParticleSize->setMinMax(0, INT32_MAX);
-      mMaxParticleSize->setValue(settings.minParticleSize);
-      mMaxParticleSize->connectWithSetting(&settings.minParticleSize);
+      mMaxParticleSize->setValue(settings.maxParticleSize);
+      mMaxParticleSize->connectWithSetting(&settings.maxParticleSize);
       mMaxParticleSize->setShortDescription("Max. ");
 
       //
