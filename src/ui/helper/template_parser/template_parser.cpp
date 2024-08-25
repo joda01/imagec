@@ -81,7 +81,7 @@ auto TemplateParser::loadChannelFromTemplate(const std::filesystem::path &pathTo
   std::ifstream ifs(pathToTemplate.string());
   nlohmann::json json = nlohmann::json::parse(ifs);
   ifs.close();
-  return loadChannelFromTemplate(json);
+  return json;
 }
 
 ///

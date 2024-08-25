@@ -85,6 +85,10 @@ TabWidget *LayoutGenerator::addTab(const QString &title, std::function<void()> b
 {
   auto *tab = new TabWidget(mDeleteButton != nullptr, std::move(beforeTabClose), this, mParent);
   mTabWidget->addTab(tab, title);
+
+  mTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->deleteLater();
+  mTabWidget->tabBar()->setTabButton(0, QTabBar::RightSide, 0);
+
   return tab;
 }
 

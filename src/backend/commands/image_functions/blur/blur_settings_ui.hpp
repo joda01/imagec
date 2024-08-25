@@ -78,7 +78,7 @@ public:
                          {11, "11x"},
                          {12, "12x"},
                          {13, "13x"}});
-    mRepeat->setValue(settings.kernelSize);
+    mRepeat->setValue(settings.repeat);
     mRepeat->connectWithSetting(&settings.repeat);
 
     addSetting({{mBlurMode.get(), true}, {mKernelSize.get(), true}, {mRepeat.get(), false}});

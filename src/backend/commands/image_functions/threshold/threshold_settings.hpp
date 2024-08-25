@@ -47,7 +47,7 @@ public:
   // Maximum threshold value (default 65535)
   // [0-65535]
   //
-  uint16_t thresholdMax = 0;
+  uint16_t thresholdMax = UINT16_MAX;
 
   /////////////////////////////////////////////////////
   void check() const

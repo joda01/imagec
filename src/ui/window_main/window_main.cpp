@@ -542,9 +542,6 @@ void WindowMain::loadTemplates()
 
   mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-select-none-50.png").pixmap(28, 28), "Empty pipeline",
                               "emptyChannel");
-  mTemplateSelection->addItem(QIcon(":/icons/outlined/dom-voronoi-50.png").pixmap(28, 28), "Voronoi", "voronoiChannel");
-  mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-query-inner-join-50.png").pixmap(28, 28), "Intersection",
-                              "intersectionChannel");
 
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
   bool userReached = false;

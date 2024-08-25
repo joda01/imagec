@@ -12,6 +12,7 @@
 ///
 
 #include "panel_pipeline_settings.hpp"
+#include <qaction.h>
 #include <qboxlayout.h>
 #include <qcombobox.h>
 #include <qgroupbox.h>
@@ -36,6 +37,7 @@
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
+#include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/window_main/panel_classification.hpp"
 #include "ui/window_main/window_main.hpp"
 #include "add_command_button.hpp"
@@ -102,6 +104,11 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     mPreviewImage->resetImage("");
     col4->addWidget(mPreviewImage);
   }
+
+  // Tool button
+
+  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", "icons8-add-to-favorites-50.png");
+  connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
@@ -386,7 +393,11 @@ void PanelPipelineSettings::updatePreview(int32_t /**/, int32_t /**/)
       });
     } else {
       std::lock_guard<std::mutex> lock(mPreviewMutex);
+
       mPreviewCounter++;
+      if(mPreviewCounter > 1) {
+        mPreviewCounter = 1;
+      }
     }
   } else {
     if(nullptr != mPreviewImage) {
@@ -537,6 +548,39 @@ void PanelPipelineSettings::onClassificationNameChanged()
     command->updateClassesAndClusterNames(clusters, classes);
   }
   defaultClusterId->changeOptionText(clusters);
+}
+
+///
+/// \brief      Save as template
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::saveAsTemplate()
+{
+  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(
+      this, "Save template", folderToOpen,
+      "ImageC template files (*" + QString(joda::templates::TemplateParser::TEMPLATE_ENDIAN.data()) + ")");
+  if(filePathOfSettingsFile.isEmpty()) {
+    return;
+  }
+
+  try {
+    nlohmann::json templateJson = mSettings;
+    joda::templates::TemplateParser::saveTemplate(templateJson,
+                                                  std::filesystem::path(filePathOfSettingsFile.toStdString()));
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(mWindowMain);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not save template!");
+    messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
 }
 
 }    // namespace joda::ui

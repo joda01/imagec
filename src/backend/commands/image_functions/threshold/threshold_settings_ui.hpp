@@ -66,7 +66,7 @@ public:
     mThresholdValueMax->setMinMax(0, 65535);
     mThresholdValueMax->setValue(settings.thresholdMax);
     mThresholdValueMax->connectWithSetting(&settings.thresholdMax);
-    mThresholdValueMax->setShortDescription("Min. ");
+    mThresholdValueMax->setShortDescription("Max. ");
     mThresholdValueMax->connectWithSetting(&settings.thresholdMax);
 
     addSetting({{mThresholdAlgorithm.get(), true}, {mThresholdValueMin.get(), true}, {mThresholdValueMax.get(), true}});

@@ -97,6 +97,7 @@ private:
 
   /////////////////////////////////////////////////////
   void createSettings(helper::TabWidget *, WindowMain *windowMain);
+  void saveAsTemplate();
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
