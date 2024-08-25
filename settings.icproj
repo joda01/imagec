@@ -1,0 +1,142 @@
+{
+  "imageSetup": {
+    "tStackHandling": "EachOne",
+    "zStackHandling": "IntensityProjection"
+  },
+  "pipelines": [
+    {
+      "meta": {
+        "color": "#B91717",
+        "icon": "",
+        "name": ""
+      },
+      "pipelineSetup": {
+        "cStackIndex": 0,
+        "defaultClusterId": "$",
+        "source": "FromFile",
+        "tStackIndex": -1,
+        "zProjection": "None",
+        "zStackIndex": -1
+      },
+      "pipelineSteps": [
+        {
+          "$blur": {
+            "kernelSize": 3,
+            "mode": "Blur",
+            "repeat": 0
+          }
+        },
+        {
+          "$threshold": {
+            "mode": "",
+            "thresholdMax": 0,
+            "thresholdMin": 0
+          }
+        },
+        {
+          "$threshold": {
+            "mode": "",
+            "thresholdMax": 0,
+            "thresholdMin": 0
+          }
+        },
+        {
+          "$threshold": {
+            "mode": "",
+            "thresholdMax": 0,
+            "thresholdMin": 0
+          }
+        }
+      ]
+    }
+  ],
+  "projectSettings": {
+    "address": {
+      "city": "",
+      "country": "",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "organization": "",
+      "postalCode": "",
+      "streetAddress": ""
+    },
+    "classes": [
+      {
+        "classId": "0",
+        "color": "",
+        "name": "Spot",
+        "notes": ""
+      },
+      {
+        "classId": "1",
+        "color": "",
+        "name": "Tetraspeck",
+        "notes": ""
+      },
+      {
+        "classId": "2",
+        "color": "",
+        "name": "Cell",
+        "notes": ""
+      },
+      {
+        "classId": "3",
+        "color": "",
+        "name": "Nucleus",
+        "notes": ""
+      },
+      {
+        "classId": "4",
+        "color": "",
+        "name": "Background",
+        "notes": ""
+      }
+    ],
+    "clusters": [],
+    "experimentSettings": {
+      "experimentId": "",
+      "experimentName": "",
+      "notes": ""
+    },
+    "plates": [
+      {
+        "cols": 24,
+        "filenameRegex": "_((.)([0-9]+))_([0-9]+)",
+        "groupBy": "Off",
+        "imageFolder": "",
+        "name": "",
+        "notes": "",
+        "plateId": 1,
+        "rows": 16,
+        "wellImageOrder": [
+          [
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7,
+            8
+          ],
+          [
+            9,
+            10,
+            11,
+            12
+          ],
+          [
+            13,
+            14,
+            15,
+            16
+          ]
+        ]
+      }
+    ],
+    "workingDirectory": ""
+  }
+}

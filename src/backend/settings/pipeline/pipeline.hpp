@@ -26,7 +26,7 @@ public:
 
   PipelineMeta meta;
   PipelineSettings pipelineSetup;
-  std::vector<PipelineStep> pipelineSteps;
+  std::list<PipelineStep> pipelineSteps;
 
   /////////////////////////////////////////////////////
   void check() const

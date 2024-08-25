@@ -20,6 +20,7 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "backend/settings/pipeline/pipeline_step.hpp"
 #include "controller/controller.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/container_base.hpp"
@@ -47,7 +48,11 @@ public:
   PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings);
   ~PanelPipelineSettings();
 
-  void addPipelineStep(std::unique_ptr<joda::ui::Command> command);
+  void addPipelineStep(std::unique_ptr<joda::ui::Command> command, const settings::PipelineStep *);
+  void insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::Command> command,
+                             const settings::PipelineStep *pipelineStepBefore);
+
+  void erasePipelineStep(const Command *);
 
   void setActive(bool setActive) override
   {

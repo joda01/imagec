@@ -159,7 +159,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ProjectSettings &sett
 void PanelProjectSettings::fromSettings(const joda::settings::ProjectSettings &settings)
 {
   {
-    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.plates[0].groupBy));
+    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.plates.begin()->groupBy));
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
     } else {
@@ -168,7 +168,7 @@ void PanelProjectSettings::fromSettings(const joda::settings::ProjectSettings &s
   }
 
   {
-    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.plates[0].groupBy));
+    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.plates.begin()->groupBy));
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
     } else {
@@ -177,10 +177,10 @@ void PanelProjectSettings::fromSettings(const joda::settings::ProjectSettings &s
   }
 
   {
-    mWellOrderMatrix->setText(joda::settings::vectorToString(settings.plates[0].wellImageOrder).data());
+    mWellOrderMatrix->setText(joda::settings::vectorToString(settings.plates.begin()->wellImageOrder).data());
   }
   {
-    auto val = settings.plates[0].rows * 100 + settings.plates[0].cols;
+    auto val = settings.plates.begin()->rows * 100 + settings.plates.begin()->cols;
     auto idx = mPlateSize->findData(val);
     if(idx >= 0) {
       mPlateSize->setCurrentIndex(idx);
@@ -188,14 +188,15 @@ void PanelProjectSettings::fromSettings(const joda::settings::ProjectSettings &s
   }
 
   mWorkingDir->setText(settings.workingDirectory.data());
-  mRegexToFindTheWellPosition->setCurrentText(settings.plates[0].filenameRegex.data());
+  mRegexToFindTheWellPosition->setCurrentText(settings.plates.begin()->filenameRegex.data());
   mNotes->setText(settings.experimentSettings.notes.data());
   mAddressOrganisation->setText(settings.address.organization.data());
   mScientistsFirstName->setText(settings.address.firstName.data());
 
   mJobName->clear();
   applyRegex();
-  mParentWindow->getController()->setWorkingDirectory(settings.plates[0].plateId, settings.plates[0].imageFolder);
+  mParentWindow->getController()->setWorkingDirectory(settings.plates.begin()->plateId,
+                                                      settings.plates.begin()->imageFolder);
 }
 
 ///
@@ -212,15 +213,15 @@ void PanelProjectSettings::toSettings()
   mSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
   mSettings.address.firstName        = mScientistsFirstName->text().toStdString();
 
-  mSettings.plates[0].groupBy        = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
-  mSettings.plates[0].filenameRegex  = mRegexToFindTheWellPosition->currentText().toStdString();
-  mSettings.plates[0].imageFolder    = mWorkingDir->text().toStdString();
-  mSettings.plates[0].wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
+  mSettings.plates.begin()->groupBy        = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mSettings.plates.begin()->filenameRegex  = mRegexToFindTheWellPosition->currentText().toStdString();
+  mSettings.plates.begin()->imageFolder    = mWorkingDir->text().toStdString();
+  mSettings.plates.begin()->wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
 
-  auto value                  = mPlateSize->currentData().toUInt();
-  mSettings.plates[0].rows    = value / 100;
-  mSettings.plates[0].cols    = value % 100;
-  mSettings.plates[0].plateId = 1;
+  auto value                        = mPlateSize->currentData().toUInt();
+  mSettings.plates.begin()->rows    = value / 100;
+  mSettings.plates.begin()->cols    = value % 100;
+  mSettings.plates.begin()->plateId = 1;
 
   mParentWindow->checkForSettingsChanged();
 }
@@ -241,8 +242,9 @@ void PanelProjectSettings::onOpenWorkingDirectoryClicked()
   mWorkingDir->update();
   mWorkingDir->repaint();
   mSettings.workingDirectory = mWorkingDir->text().toStdString();
-  mParentWindow->getController()->setWorkingDirectory(mSettings.plates[0].plateId, selectedDirectory.toStdString());
-  mSettings.plates[0].imageFolder = mSettings.workingDirectory;
+  mParentWindow->getController()->setWorkingDirectory(mSettings.plates.begin()->plateId,
+                                                      selectedDirectory.toStdString());
+  mSettings.plates.begin()->imageFolder = mSettings.workingDirectory;
   onSettingChanged();
 }
 

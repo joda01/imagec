@@ -15,6 +15,7 @@
 #include <qdialog.h>
 #include <qtablewidget.h>
 #include <memory>
+#include "backend/settings/pipeline/pipeline.hpp"
 
 namespace joda::settings {
 class PipelineStep;
@@ -24,6 +25,7 @@ namespace joda::ui {
 
 class WindowMain;
 class Command;
+class PanelPipelineSettings;
 
 ///
 /// \class      DialogCommandSelection
@@ -34,10 +36,12 @@ class DialogCommandSelection : public QDialog
 {
 public:
   /////////////////////////////////////////////////////
-  DialogCommandSelection(WindowMain *parent);
+  DialogCommandSelection(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineStepSettingsUi,
+                         const settings::PipelineStep *pipelineStepBefore, WindowMain *parent);
 
 private:
   /////////////////////////////////////////////////////
+  void addNewCommand(int commandListIdx);
   void addCommandsToTable();
   void addCommandToTable(const settings::PipelineStep &step);
   std::unique_ptr<joda::ui::Command> generateCommand(const settings::PipelineStep &step);
@@ -46,6 +50,9 @@ private:
   QTableWidget *mCommands;
   WindowMain *mParent;
   std::vector<settings::PipelineStep> mCommandList;
+  const settings::PipelineStep *mPipelineStepBefore = nullptr;
+  joda::settings::Pipeline &mSettings;
+  PanelPipelineSettings *pipelineStepSettingsUi;
 };
 
 }    // namespace joda::ui

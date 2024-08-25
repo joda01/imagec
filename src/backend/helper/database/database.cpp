@@ -765,7 +765,7 @@ auto Database::selectPlates() -> std::map<uint16_t, joda::settings::Plate>
 /// \param[out]
 /// \return
 ///
-void Database::insertClusters(const std::vector<settings::Cluster> &clustersIn)
+void Database::insertClusters(const std::list<settings::Cluster> &clustersIn)
 {
   auto connection = acquire();
   auto clusters   = duckdb::Appender(*connection, "clusters");
@@ -782,7 +782,7 @@ void Database::insertClusters(const std::vector<settings::Cluster> &clustersIn)
   }
   clusters.Close();
 }
-void Database::insertClasses(const std::vector<settings::Class> &classesIn)
+void Database::insertClasses(const std::list<settings::Class> &classesIn)
 {
   auto connection = acquire();
   auto clusters   = duckdb::Appender(*connection, "classes");

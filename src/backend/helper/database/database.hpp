@@ -78,8 +78,8 @@ private:
   void createTables();
   bool insertExperiment(const joda::settings::ExperimentSettings &);
   std::string insertJobAndPlates(const joda::settings::AnalyzeSettings &exp);
-  void insertClusters(const std::vector<settings::Cluster> &);
-  void insertClasses(const std::vector<settings::Class> &);
+  void insertClusters(const std::list<settings::Cluster> &);
+  void insertClasses(const std::list<settings::Class> &);
   void insertGroup();
   void flatten(const std::vector<cv::Point> &, duckdb::vector<duckdb::Value> &);
 

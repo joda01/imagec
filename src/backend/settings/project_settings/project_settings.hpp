@@ -37,7 +37,7 @@ public:
   //
   // Plates analyzed by this run
   //
-  std::vector<Plate> plates = {{}};
+  std::list<Plate> plates = {{}};
 
   //
   // The address of the experiment
@@ -47,16 +47,16 @@ public:
   //
   // Object clusters used in this project
   //
-  std::vector<Cluster> clusters{};
+  std::list<Cluster> clusters{};
 
   //
   // Object classes used in this project
   //
-  std::vector<Class> classes{{.classId = joda::enums::ClassId::C0, .name = "Spot"},
-                             {.classId = joda::enums::ClassId::C1, .name = "Tetraspeck"},
-                             {.classId = joda::enums::ClassId::C2, .name = "Cell"},
-                             {.classId = joda::enums::ClassId::C3, .name = "Nucleus"},
-                             {.classId = joda::enums::ClassId::C4, .name = "Background"}};
+  std::list<Class> classes{{.classId = joda::enums::ClassId::C0, .name = "Spot"},
+                           {.classId = joda::enums::ClassId::C1, .name = "Tetraspeck"},
+                           {.classId = joda::enums::ClassId::C2, .name = "Cell"},
+                           {.classId = joda::enums::ClassId::C3, .name = "Nucleus"},
+                           {.classId = joda::enums::ClassId::C4, .name = "Background"}};
 
   //
   // Directory where outputs will be stored

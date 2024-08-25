@@ -88,7 +88,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
     col2->addWidgetGroup("Pipeline steps", {scrollArea});
 
-    mPipelineSteps->addWidget(new AddCommandButtonBase(mWindowMain));
+    mPipelineSteps->addWidget(new AddCommandButtonBase(mSettings, this, nullptr, mWindowMain));
   }
 
   {
@@ -121,12 +121,70 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::Command> command)
+void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::Command> command,
+                                            const settings::PipelineStep *pipelineStepBefore)
 {
+  command->registerDeleteButton(this);
   connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
-  mPipelineSteps->addWidget(new AddCommandButtonBase(mWindowMain));
+  mPipelineSteps->addWidget(new AddCommandButtonBase(mSettings, this, pipelineStepBefore, mWindowMain));
   mCommands.push_back(std::move(command));
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::Command> command,
+                                                  const settings::PipelineStep *pipelineStepBefore)
+{
+  command->registerDeleteButton(this);
+  connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  int widgetPos = (posToInsert * 2) + 1;    // Each second is a button
+  mPipelineSteps->insertWidget(widgetPos, command.get());
+  mPipelineSteps->insertWidget(widgetPos + 1,
+                               new AddCommandButtonBase(mSettings, this, pipelineStepBefore, mWindowMain));
+  mCommands.insert(mCommands.begin() + posToInsert, std::move(command));
+  mWindowMain->checkForSettingsChanged();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
+{
+  for(int index = 0; index < mPipelineSteps->count(); index++) {
+    if(toDelete == mPipelineSteps->itemAt(index)->widget()) {
+      // Delete settings
+      {
+        int toDeleteIndex = index / 2;    // Each second is a add button
+        const auto &it    = std::next(mSettings.pipelineSteps.begin(), toDeleteIndex);
+        mSettings.pipelineSteps.erase(it);
+      }
+
+      // Delete add button
+      {
+        QWidget *widget = mPipelineSteps->itemAt(index + 1)->widget();
+        mPipelineSteps->removeWidget(widget);
+        widget->setParent(nullptr);
+      }
+
+      // Delete command widget
+      {
+        QWidget *widget = mPipelineSteps->itemAt(index)->widget();
+        mPipelineSteps->removeWidget(widget);
+        widget->setParent(nullptr);
+      }
+      return;
+    }
+  }
 }
 
 ///
@@ -400,13 +458,13 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   // Pipelinesteps
   //
   mSettings.pipelineSteps.clear();
-  for(auto &step : settings.pipelineSteps) {
+  for(const joda::settings::PipelineStep &step : settings.pipelineSteps) {
     mSettings.pipelineSteps.push_back(step);
     auto &cmdSetting = mSettings.pipelineSteps.back();
 
     auto cmd = joda::settings::PipelineFactory<joda::ui::Command>::generate(cmdSetting, mWindowMain);
     if(cmd != nullptr) {
-      addPipelineStep(std::move(cmd));
+      addPipelineStep(std::move(cmd), &cmdSetting);
     }
   }
 }
@@ -447,6 +505,19 @@ void PanelPipelineSettings::closeWindow()
 ///
 void PanelPipelineSettings::deletePipeline()
 {
+  QMessageBox messageBox(mWindowMain);
+  auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+  messageBox.setIconPixmap(icon->pixmap(42, 42));
+  messageBox.setWindowTitle("Delete pipeline?");
+  messageBox.setText("Delete pipeline?");
+  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  messageBox.setDefaultButton(noButton);
+  auto reply = messageBox.exec();
+  if(messageBox.clickedButton() == noButton) {
+    return;
+  }
+
   mWindowMain->showPanelStartPage();
   mWindowMain->getPanelPipeline()->erase(this);
 }

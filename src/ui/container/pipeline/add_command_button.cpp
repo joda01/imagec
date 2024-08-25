@@ -18,7 +18,11 @@
 
 namespace joda::ui {
 
-AddCommandButtonBase::AddCommandButtonBase(WindowMain *parent) : mParent(parent)
+AddCommandButtonBase::AddCommandButtonBase(joda::settings::Pipeline &settings,
+                                           PanelPipelineSettings *pipelineStepSettingsUi,
+                                           const settings::PipelineStep *pipelineStepBefore, WindowMain *parent) :
+    mParent(parent),
+    mPipelineStepBefore(pipelineStepBefore), mSettings(settings), pipelineStepSettingsUi(pipelineStepSettingsUi)
 {
   setObjectName("addCommandButton");
   // const QIcon myIcon(":/icons/outlined/icons8-plus-math-50.png");
@@ -50,7 +54,7 @@ void AddCommandButtonBase::paintEvent(QPaintEvent *event)
 
 void AddCommandButtonBase::mousePressEvent(QMouseEvent *event)
 {
-  DialogCommandSelection selectionDialog(mParent);
+  DialogCommandSelection selectionDialog(mSettings, pipelineStepSettingsUi, mPipelineStepBefore, mParent);
   selectionDialog.exec();
 }
 

@@ -20,6 +20,7 @@
 namespace joda::ui {
 
 class WindowMain;
+class PanelPipelineSettings;
 
 ///
 /// \class
@@ -29,7 +30,8 @@ class WindowMain;
 class AddCommandButtonBase : public QWidget
 {
 public:
-  AddCommandButtonBase(WindowMain *parent);
+  AddCommandButtonBase(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineStepSettingsUi,
+                       const settings::PipelineStep *pipelineStepBefore, WindowMain *parent);
 
   void paintEvent(QPaintEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
@@ -42,7 +44,10 @@ public slots:
 private:
   /////////////////////////////////////////////////////
   WindowMain *mParent;
-  bool mMouseEntered = false;
+  bool mMouseEntered                                = false;
+  const settings::PipelineStep *mPipelineStepBefore = nullptr;
+  joda::settings::Pipeline &mSettings;
+  PanelPipelineSettings *pipelineStepSettingsUi;
 };
 
 }    // namespace joda::ui

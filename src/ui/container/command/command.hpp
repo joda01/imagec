@@ -30,6 +30,8 @@
 
 namespace joda::ui {
 
+class PanelPipelineSettings;
+
 using namespace std::chrono_literals;
 
 class Command : public QWidget
@@ -40,6 +42,8 @@ public:
   Command(const QString &title, const QString &icon, QWidget *parent);
 
   helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
+
+  void registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi);
 
   void addSetting(const std::vector<std::pair<SettingBase *, bool>> &settings)
   {
@@ -165,7 +169,6 @@ private:
   std::vector<std::pair<SettingBase *, bool>> mSettings;
   std::vector<SettingComboBox<enums::ClusterIdIn> *> mClusters;
   std::vector<SettingComboBox<enums::ClassId> *> mClasses;
-
   std::vector<SettingComboBoxMulti<enums::ClusterIdIn> *> mClustersMulti;
   std::vector<SettingComboBoxMulti<enums::ClassId> *> mClassesMulti;
 

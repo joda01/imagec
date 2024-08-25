@@ -12,6 +12,7 @@
 
 #include "command.hpp"
 #include <qlabel.h>
+#include <qpushbutton.h>
 #include <algorithm>
 #include <string>
 #include <type_traits>
@@ -87,6 +88,41 @@ Command::Command(const QString &title, const QString &icon, QWidget *parent) :
   mEditDialog->setWindowTitle(title);
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
+{
+  connect(mLayout.getDeleteButton(), &QAction::triggered, [this, pipelineSettingsUi]() {
+    QMessageBox messageBox(mParent);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Delete command?");
+    messageBox.setText("Delete command from pipeline?");
+    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    messageBox.setDefaultButton(noButton);
+    auto reply = messageBox.exec();
+    if(messageBox.clickedButton() == noButton) {
+      return;
+    }
+
+    mEditDialog->close();
+    pipelineSettingsUi->erasePipelineStep(this);
+  });
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 helper::TabWidget *Command::addTab(const QString &title, std::function<void()> beforeTabClose)
 {
   auto *tab = mLayout.addTab(title, beforeTabClose);
