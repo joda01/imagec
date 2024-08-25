@@ -122,7 +122,7 @@ private:
   int32_t mSelectedTileX = 0;
   int32_t mSelectedTileY = 0;
 
-  joda::ctrl::Preview mPreviewObject;
+  // joda::ctrl::Preview mPreviewObject;
   PanelChannelOverview *mOverview;
   joda::settings::Pipeline &mSettings;
 

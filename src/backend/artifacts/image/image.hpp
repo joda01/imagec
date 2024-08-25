@@ -35,8 +35,6 @@ public:
   bool isBinary                = false;
   uint16_t appliedMinThreshold = 0;
   uint16_t appliedMaxThreshold = 0;
-
-private:
   enums::ImageId mId;
 };
 

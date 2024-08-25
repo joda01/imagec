@@ -192,9 +192,13 @@ void Controller::registerImageLookupCallback(
 
 // PREVIEW ///////////////////////////////////////////////////
 
-void Controller::preview(const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX,
-                         int32_t tileY, Preview &previewOut)
+void Controller::preview(const settings::ProjectImageSetup &imageSetup, const settings::Pipeline &pipeline,
+                         const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, Preview &previewOut)
 {
+  processor::Processor process;
+  auto [originalImg, previewImage] = process.generatePreview(imageSetup, pipeline, imagePath, 0, 0, tileX, tileY);
+  previewOut.originalImage.setImage(std::move(originalImg));
+  previewOut.previewImage.setImage(std::move(previewImage));
 }
 
 ///

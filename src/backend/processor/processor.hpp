@@ -147,10 +147,9 @@ public:
   void execute(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages);
   void stop();
   std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, GlobalContext &globalContext);
-  void initializePipelineContext(const joda::settings::AnalyzeSettings &program, const GlobalContext &globalContext,
-                                 const PlateContext &plateContext, joda::grp::FileGrouper &grouper,
-                                 const joda::filesystem::path &imagePath, PipelineInitializer &imageLoader,
-                                 ImageContext &imageContext);
+  void initializePipelineContext(const GlobalContext &globalContext, const PlateContext &plateContext,
+                                 joda::grp::FileGrouper &grouper, const joda::filesystem::path &imagePath,
+                                 PipelineInitializer &imageLoader, ImageContext &imageContext);
 
   void listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &);
   const ProcessProgress &getProgress() const
@@ -162,6 +161,10 @@ public:
   {
     return mJobInformation;
   }
+
+  auto generatePreview(const settings::ProjectImageSetup &imageSetup, const settings::Pipeline &pipeline,
+                       const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
+                       int32_t tileY) -> std::tuple<cv::Mat, cv::Mat>;
 
 private:
   /////////////////////////////////////////////////////

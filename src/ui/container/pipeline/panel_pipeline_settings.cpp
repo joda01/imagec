@@ -30,6 +30,7 @@
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/container/command/factory.hpp"
@@ -355,8 +356,10 @@ void PanelPipelineSettings::updatePreview(int32_t /**/, int32_t /**/)
                 auto [tileNrX, tileNrY] =
                     imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.width, tileSize.height);
 
-                controller->preview(getPipeline(), imgIndex, mSelectedTileX, mSelectedTileY, mPreviewObject);
                 auto &previewResult = mPreviewImage->getPreviewObject();
+
+                controller->preview(mWindowMain->getSettings().imageSetup, getPipeline(), imgIndex, mSelectedTileX,
+                                    mSelectedTileY, previewResult);
                 // Create a QByteArray from the char array
                 int valid   = 0;
                 int invalid = 0;
@@ -378,6 +381,7 @@ void PanelPipelineSettings::updatePreview(int32_t /**/, int32_t /**/)
 
               } catch(const std::exception &error) {
                 // mPreviewImage->resetImage(error.what());
+                joda::log::logError("Preview error: " + std::string(error.what()));
               }
             }
           }

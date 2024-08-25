@@ -110,7 +110,9 @@ public:
 
   void setActImage(const joda::atom::ImagePlane *image)
   {
-    pipelineContext.actImagePlane = *image;
+    pipelineContext.actImagePlane.image = image->image.clone();
+    pipelineContext.actImagePlane.tile  = image->tile;
+    pipelineContext.actImagePlane.mId   = image->mId;
   }
 
   [[nodiscard]] joda::atom::ObjectList &getActObjects()

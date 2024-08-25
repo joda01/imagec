@@ -16,14 +16,19 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include "backend/commands/image_functions/image_saver/image_saver.hpp"
+#include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
+#include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/processor/context/plate_context.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
+#include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/setting.hpp"
 
 namespace joda::processor {
@@ -67,7 +72,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, imagesLi
     for(const auto &imagePath : images) {
       PipelineInitializer imageLoader(program.imageSetup);
       ImageContext imageContext{.imageLoader = imageLoader};
-      initializePipelineContext(program, globalContext, plateContext, grouper, imagePath, imageLoader, imageContext);
+      initializePipelineContext(globalContext, plateContext, grouper, imagePath, imageLoader, imageContext);
 
       //
       // Start the iteration over planes
@@ -178,8 +183,7 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
   mProgress.setStateRunning();
 }
 
-void Processor::initializePipelineContext(const joda::settings::AnalyzeSettings &program,
-                                          const GlobalContext &globalContext, const PlateContext &plateContext,
+void Processor::initializePipelineContext(const GlobalContext &globalContext, const PlateContext &plateContext,
                                           joda::grp::FileGrouper &grouper, const joda::filesystem::path &imagePath,
                                           PipelineInitializer &imageLoader, ImageContext &imageContext)
 {
@@ -210,6 +214,64 @@ void Processor::initializePipelineContext(const joda::settings::AnalyzeSettings 
   } catch(const std::exception &ex) {
     std::cout << "IM GR: " << ex.what() << std::endl;
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, const settings::Pipeline &pipeline,
+                                const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
+                                int32_t tileY) -> std::tuple<cv::Mat, cv::Mat>
+{
+  GlobalContext globalContext;
+  PlateContext plateContext{.plateId = 0};
+  joda::grp::FileGrouper grouper(enums::GroupBy::OFF, "");
+  PipelineInitializer imageLoader(imageSetup);
+  ImageContext imageContext{.imageLoader = imageLoader};
+  imageLoader.init(imagePath, imageContext, globalContext);
+
+  IterationContext iterationContext;
+
+  //
+  // Load the image imagePlane
+  //
+  ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
+  imageLoader.initPipeline(pipeline.pipelineSetup, {tileX, tileY},
+                           {.tStack = tStack, .zStack = zStack, .cStack = pipeline.pipelineSetup.cStackIndex}, context);
+  auto planeId = context.getActImage().getId().imagePlane;
+
+  //
+  // Execute the pipeline
+  //
+  for(const auto &step : pipeline.pipelineSteps) {
+    step(context, context.getActImage().image, context.getActObjects());
+  }
+
+  // Prepare preview image
+  settings::ImageSaverSettings saverSettings{
+      .clustersIn   = {settings::ImageSaverSettings::Cluster{
+            .classesIn = {settings::ImageSaverSettings::Cluster::Class{
+                              .classIn = enums::ClassId::NONE,
+                              .color   = "#808080",
+                              .style   = settings::ImageSaverSettings::Cluster::Class::Style::OUTLINED},
+                          settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C0},
+                          settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C1},
+                          settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C2},
+                          settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C3},
+                          settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C4}}}},
+      .canvas       = settings::ImageSaverSettings::Canvas::IMAGE_PLANE,
+      .planesIn     = enums::ImageId{.imageIdx = enums::ZProjection::$},
+      .outputCanvas = settings::ImageSaverSettings::OutputCanvas::IMAGE_$,
+  };
+  joda::cmd::ImageSaver saver(saverSettings);
+  saver.execute(context, context.getActImage().image, context.getActObjects());
+
+  return {context.loadImageFromCache(joda::enums::ImageId{.imageIdx = enums::ZProjection::$, .imagePlane = {}})->image,
+          context.getActImage().image};
 }
 
 }    // namespace joda::processor

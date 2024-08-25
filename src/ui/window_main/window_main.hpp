@@ -92,6 +92,11 @@ public:
     return mPanelReporting;
   }
 
+  const settings::AnalyzeSettings &getSettings()
+  {
+    return mAnalyzeSettings;
+  }
+
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <list>
 #include <optional>
 #include <set>
 #include "backend/enums/enum_images.hpp"
@@ -21,6 +22,12 @@ public:
     BLACK,
     IMAGE_$,
     IMAGE_PLANE
+  };
+
+  enum class OutputCanvas
+  {
+    FILE,
+    IMAGE_$,
   };
 
   struct Cluster
@@ -55,7 +62,7 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Cluster, clusterIn, classesIn);
   };
 
-  std::vector<Cluster> clustersIn;
+  std::list<Cluster> clustersIn;
 
   //
   // PNG compression level (0 = no compression)
@@ -76,6 +83,11 @@ public:
   // On which image it should be painter
   //
   std::optional<enums::ImageId> planesIn = std::nullopt;
+
+  //
+  // Where the output should be printed to
+  //
+  OutputCanvas outputCanvas = OutputCanvas::FILE;
 
   /////////////////////////////////////////////////////
   void check() const

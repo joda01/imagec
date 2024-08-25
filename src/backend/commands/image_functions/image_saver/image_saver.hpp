@@ -93,7 +93,13 @@ public:
     std::vector<int> compression_params;
     compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
     compression_params.push_back(mSettings.compression);
-    cv::imwrite(saveName.string(), img_8bit_color, compression_params);
+
+    if(settings::ImageSaverSettings::OutputCanvas::FILE == mSettings.outputCanvas) {
+      cv::imwrite(saveName.string(), img_8bit_color, compression_params);
+    } else {
+      // Write image to output
+      image = img_8bit_color;
+    }
   }
 
 private:
