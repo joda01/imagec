@@ -258,9 +258,18 @@ auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, c
                               .classIn = enums::ClassId::NONE,
                               .color   = "#808080",
                               .style   = settings::ImageSaverSettings::Cluster::Class::Style::OUTLINED},
-                          settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C0},
-                          settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C1},
-                          settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C2},
+                          settings::ImageSaverSettings::Cluster::Class{
+                              .classIn = enums::ClassId::C0,
+                              .color   = "#FF0000",
+                        },
+                          settings::ImageSaverSettings::Cluster::Class{
+                              .classIn = enums::ClassId::C1,
+                              .color   = "#00FF00",
+                        },
+                          settings::ImageSaverSettings::Cluster::Class{
+                              .classIn = enums::ClassId::C2,
+                              .color   = "#0000FF",
+                        },
                           settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C3},
                           settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C4}}}},
       .canvas       = settings::ImageSaverSettings::Canvas::IMAGE_PLANE,
