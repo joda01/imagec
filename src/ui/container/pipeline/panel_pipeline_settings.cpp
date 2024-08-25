@@ -107,7 +107,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   // Tool button
 
-  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", "icons8-add-to-favorites-50.png");
+  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", "icons8-mark-as-favorite-50.png");
   connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
