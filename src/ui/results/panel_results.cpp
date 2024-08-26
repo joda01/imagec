@@ -66,6 +66,8 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
   connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
+  connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
+
   col->addWidget(mHeatmap01);
 
   repaintHeatmap();
@@ -195,7 +197,8 @@ void PanelResults::setAnalyzer()
     auto imageChannels = mAnalyzer->selectImageChannels();
     mImageChannelSelector->clear();
     for(const auto &[channelId, channel] : imageChannels) {
-      mImageChannelSelector->addItem(channel.name.data(), channelId);
+      mImageChannelSelector->addItem(QString(channel.name.data()) + (" ( CH" + QString::number(channelId) + ")"),
+                                     channelId);
     }
   }
 
