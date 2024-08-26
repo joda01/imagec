@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <vector>
 #include "backend/enums/enum_validity.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
@@ -23,6 +24,7 @@
 #include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/experiment_settings.hpp"
+#include "backend/settings/project_settings/project_cluster.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include <duckdb/main/config.hpp>
@@ -31,6 +33,12 @@
 #include <opencv2/core/types.hpp>
 
 namespace joda::db {
+
+struct AnalyzeMeta
+{
+  std::string name;
+  std::chrono::system_clock::time_point timestamp;
+};
 
 class Database
 {
@@ -59,13 +67,9 @@ public:
   auto selectExperiment() -> joda::settings::ExperimentSettings;
   auto selectPlates() -> std::map<uint16_t, joda::settings::Plate>;
 
-private:
-  /////////////////////////////////////////////////////
-  std::shared_ptr<duckdb::Connection> acquire() const
-  {
-    std::shared_ptr<duckdb::Connection> connection = std::make_shared<duckdb::Connection>(*mDb);
-    return connection;
-  }
+  auto selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo>;
+  auto selectClusters() -> std::map<enums::ClusterId, joda::settings::Cluster>;
+  auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;
 
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)
@@ -73,6 +77,14 @@ private:
     auto connection = acquire();
     auto prep       = connection->Prepare(query);
     return prep->Execute(std::forward<ARGS>(args)...);
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  std::shared_ptr<duckdb::Connection> acquire() const
+  {
+    std::shared_ptr<duckdb::Connection> connection = std::make_shared<duckdb::Connection>(*mDb);
+    return connection;
   }
 
   void createTables();

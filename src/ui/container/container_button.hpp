@@ -15,14 +15,14 @@
 #pragma once
 
 #include <qpushbutton.h>
-#include "ui/container/container_function_base.hpp"
+#include "ui/container/setting/setting_base.hpp"
 
 namespace joda::ui {
 
 class ContainerButton : public SettingBase
 {
 public:
-  ContainerButton(const QString &text, const QString &iconName, QWidget *parent)
+  ContainerButton(const QString &text, const QString &iconName, QWidget *parent) : SettingBase(parent, iconName, text)
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
@@ -52,7 +52,7 @@ private slots:
   void onButtonPressed()
   {
     /////////////////////////////////////////////////////
-    triggerValueChanged();
+    triggerValueChanged("");
   }
 
 private:

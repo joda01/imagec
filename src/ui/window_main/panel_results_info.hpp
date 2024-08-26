@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <optional>
 #include <utility>
+#include "backend/helper/database/database.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/helper/table_widget.hpp"
@@ -40,12 +41,12 @@ class PanelResultsInfo : public QWidget
 public:
   struct DataSet
   {
-    // std::optional<results::db::AnalyzeMeta> analyzeMeta;
-    // std::optional<results::db::PlateMeta> plateMeta;
-    // std::optional<results::db::GroupMeta> groupMeta;
-    // std::optional<results::db::ImageMeta> imageMeta;
-    // std::optional<results::db::ChannelMeta> channelMeta;
-    // std::optional<results::db::ImageChannelMeta> imageChannelMeta;
+    std::optional<db::AnalyzeMeta> analyzeMeta;
+    //  std::optional<results::db::PlateMeta> plateMeta;
+    //  std::optional<results::db::GroupMeta> groupMeta;
+    //  std::optional<results::db::ImageMeta> imageMeta;
+    //  std::optional<results::db::ChannelMeta> channelMeta;
+    //  std::optional<results::db::ImageChannelMeta> imageChannelMeta;
   };
 
   /////////////////////////////////////////////////////

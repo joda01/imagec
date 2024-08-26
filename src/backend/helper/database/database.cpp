@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
@@ -24,6 +25,7 @@
 #include "backend/helper/uuid.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
+#include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include <duckdb/common/types/string_type.hpp>
 #include <duckdb/common/types/value.hpp>
@@ -810,6 +812,87 @@ void Database::flatten(const std::vector<cv::Point> &contour, duckdb::vector<duc
     flattenPointsOut.push_back(duckdb::Value::UINTEGER(point.x));
     flattenPointsOut.push_back(duckdb::Value::UINTEGER(point.y));
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo>
+{
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT image_id, stack_c, name FROM images_channels");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo> results;
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    joda::ome::OmeInfo::ChannelInfo tmp;
+    uint32_t cidx = materializedResult->GetValue(1, n).GetValue<uint32_t>();
+    tmp.name      = materializedResult->GetValue(2, n).GetValue<std::string>();
+    results.try_emplace(cidx, tmp);
+  }
+
+  return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectClusters() -> std::map<enums::ClusterId, joda::settings::Cluster>
+{
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT cluster_id, name FROM clusters");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  std::map<enums::ClusterId, joda::settings::Cluster> results;
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    joda::settings::Cluster tmp;
+    tmp.clusterId = static_cast<enums::ClusterId>(materializedResult->GetValue(0, n).GetValue<uint16_t>());
+    tmp.name      = materializedResult->GetValue(1, n).GetValue<std::string>();
+    results.try_emplace(tmp.clusterId, tmp);
+  }
+
+  return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectClasses() -> std::map<enums::ClassId, joda::settings::Class>
+{
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT class_id, name FROM classes");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  std::map<enums::ClassId, joda::settings::Class> results;
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    joda::settings::Class tmp;
+    tmp.classId = static_cast<enums::ClassId>(materializedResult->GetValue(0, n).GetValue<uint16_t>());
+    tmp.name    = materializedResult->GetValue(1, n).GetValue<std::string>();
+    results.try_emplace(tmp.classId, tmp);
+  }
+
+  return results;
 }
 
 }    // namespace joda::db

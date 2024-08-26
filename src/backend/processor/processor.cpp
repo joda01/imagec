@@ -168,7 +168,7 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
   globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory);
 
   auto &db = globalContext.database;
-  db.openDatabase(std::filesystem::path(program.projectSettings.workingDirectory) / "results.imcdb");
+  db.openDatabase(std::filesystem::path(program.projectSettings.workingDirectory) / "results.icdb");
   return db.startJob(program);
 }
 

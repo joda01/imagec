@@ -389,8 +389,8 @@ void WindowMain::onOpenClicked()
 
   QString filePath =
       QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
-                                   "ImageC project or results files (*.icproj *.icresult);;ImageC project files "
-                                   "(*.icproj);;ImageC results files (*.icresult)",
+                                   "ImageC project or results files (*.icproj *.icdb);;ImageC project files "
+                                   "(*.icdb);;ImageC results files (*.icdb)",
                                    nullptr, opt);
 
   if(filePath.isEmpty()) {
@@ -400,7 +400,7 @@ void WindowMain::onOpenClicked()
   if(filePath.endsWith(".icproj")) {
     openProjectSettings(filePath);
   }
-  if(filePath.endsWith(".icresult")) {
+  if(filePath.endsWith(".icdb")) {
     openResultsSettings(filePath);
   }
 }
@@ -567,6 +567,8 @@ void WindowMain::loadTemplates()
 void WindowMain::onStartClicked()
 {
   try {
+    mAnalyzeSettings.projectSettings.experimentSettings.experimentId   = "6fc87cc8-686e-4806-a78a-3f623c849cb7";
+    mAnalyzeSettings.projectSettings.experimentSettings.experimentName = "Experiment";
     DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
     dialg.exec();
     auto jobIinfo = getController()->getJobInformation();

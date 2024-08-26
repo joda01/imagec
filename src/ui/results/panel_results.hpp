@@ -20,7 +20,12 @@
 #include <qtmetamacros.h>
 #include <qwidget.h>
 #include <memory>
+#include "backend/enums/enum_measurements.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
+#include "backend/helper/database/database.hpp"
 #include "backend/helper/table/table.hpp"
+#include "heatmap/panel_heatmap.hpp"
 #include "ui/container/panel_edit_base.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
@@ -51,14 +56,15 @@ public:
 
   struct SelectedFilter
   {
-    std::string analyzeId;
     uint32_t plateRows = 0;
     uint32_t plateCols = 0;
-    uint32_t plateId   = 1;
-    // joda::results::ChannelIndex channelIdx;
-    // joda::results::MeasureChannelId measureChannel;
+    uint32_t plateId   = 0;
+    joda::enums::ClusterId clusterId;
+    joda::enums::ClassId classId;
+    joda::enums::Measurement measurementChannel;
+    joda::enums::Stats stats;
+    int32_t imageChannel;
     std::vector<std::vector<int32_t>> wellImageOrder;
-    // joda::results::Stats stats;
     uint32_t densityMapAreaSize = 200;
   };
 
@@ -84,8 +90,7 @@ public:
 
   [[nodiscard]] const table::Table &getData() const
   {
-    return {};
-    // return mHeatmap01->getData();
+    return mHeatmap01->getData();
   }
 
 private:
@@ -96,20 +101,23 @@ private:
   void setAnalyzer();
 
   WindowMain *mWindowMain;
-  // std::unique_ptr<joda::results::Analyzer> mAnalyzer;
+  std::unique_ptr<joda::db::Database> mAnalyzer;
 
   // Breadcrumb///////////////////////////////////////////////////
   void createBreadCrump(joda::ui::helper::LayoutGenerator *);
   QPushButton *mBackButton;
   PanelPreview *mPreviewImage;
-  QComboBox *mChannelSelector;
+  uint32_t mDensityMapSize = 200;
+
+  QComboBox *mClusterSelector;
+  QComboBox *mClassSelector;
   QComboBox *mMeasurementSelector;
+  QComboBox *mImageChannelSelector;
   QComboBox *mStatsSelector;
-  // std::vector<results::db::ChannelMeta> mChannelInfos;
-  std::string mAnalyzeId;
-  uint32_t mDenesityMapSize = 200;
 
   /////////////////////////////////////////////////////
+  ChartHeatMap *mHeatmap01;
+  SelectedFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
   QComboBox *mMarkAsInvalid;
   PanelResultsInfo::DataSet mSelectedDataSet;
@@ -124,7 +132,7 @@ private:
   uint32_t mSelectedWellId;
   uint64_t mSelectedImageId;
   uint32_t mSelectedTileId;
-  // Point mSelectedAreaPos;
+  Point mSelectedAreaPos;
 
   bool mIsLoading = false;
 
@@ -137,7 +145,7 @@ public slots:
   void repaintHeatmap();
   void paintPlate();
   void paintWell();
-  // void paintImage();
+  void paintImage();
   void onExportImageClicked();
   void onChannelChanged();
   void onMeasurementChanged();

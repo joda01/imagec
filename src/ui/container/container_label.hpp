@@ -16,14 +16,14 @@
 
 #include <qlabel.h>
 #include <qpushbutton.h>
-#include "ui/container/container_function_base.hpp"
+#include "ui/container/setting/setting_base.hpp"
 
 namespace joda::ui {
 
 class ContainerLabel : public SettingBase
 {
 public:
-  ContainerLabel(const QString &text, const QString &iconName, QWidget *parent)
+  ContainerLabel(const QString &text, const QString &iconName, QWidget *parent) : SettingBase(parent, iconName, text)
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
