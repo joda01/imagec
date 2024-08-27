@@ -503,9 +503,9 @@ void PanelResults::paintWell()
   mBackButton->setEnabled(true);
   if(mAnalyzer) {
     mNavigation = Navigation::WELL;
-    auto result =
-        joda::db::HeatmapForWell::getData(*mAnalyzer, mFilter.plateId, mActGroupId, mFilter.clusterId, mFilter.classId,
-                                          mFilter.measurementChannel, mFilter.wellImageOrder);
+    auto result = joda::db::HeatmapForWell::getData(
+        *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.clusterId, mFilter.classId,
+        mFilter.measurementChannel, mFilter.imageChannel, mFilter.stats, mActGroupId, mFilter.wellImageOrder);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
   }

@@ -171,6 +171,11 @@ public:
     return mImageInfo.at(series).channels;
   }
 
+  std::map<int32_t, ImageInfo> &getImageInfoSeries()
+  {
+    return mImageInfo;
+  }
+
 private:
   /////////////////////////////////////////////////////
   std::map<int32_t, ImageInfo> mImageInfo;

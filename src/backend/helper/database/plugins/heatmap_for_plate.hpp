@@ -25,25 +25,66 @@ public:
   {
     auto buildStats = [&]() { return getStatsString(stats) + "(" + getMeasurement(measurement) + ") as val"; };
 
-    std::unique_ptr<duckdb::QueryResult> result = analyzer.select(
-        "SELECT"
-        " subquery.group_id as groupid,"
-        " ANY_VALUE(pos_on_plate_x) as pos_x,"
-        " ANY_VALUE(pos_on_plate_y) as pos_y,"
-        " AVG(val) AS avg_val"
-        " FROM ("
-        "     SELECT"
-        "         objects.image_id,"
-        "         images_groups.group_id as group_id," +
-            buildStats() +
-            "     FROM objects "
-            "     JOIN images_groups ON objects.image_id = images_groups.image_id "
-            "     WHERE cluster_id = $1 AND class_id = $2"
-            "     GROUP BY objects.image_id, images_groups.group_id"
-            " ) AS subquery"
-            " JOIN groups ON subquery.group_id = groups.group_id "
-            " GROUP BY groupid",
-        static_cast<uint16_t>(clusterId), static_cast<uint16_t>(classId));
+    auto queryMeasure = [&]() {
+      std::unique_ptr<duckdb::QueryResult> result = analyzer.select(
+          "SELECT"
+          " subquery.group_id as groupid,"
+          " ANY_VALUE(pos_on_plate_x) as pos_x,"
+          " ANY_VALUE(pos_on_plate_y) as pos_y,"
+          " AVG(val) AS avg_val"
+          " FROM ("
+          "     SELECT"
+          "         objects.image_id,"
+          "         images_groups.group_id as group_id," +
+              buildStats() +
+              "     FROM objects "
+              "     JOIN images_groups ON objects.image_id = images_groups.image_id "
+              "     WHERE cluster_id = $1 AND class_id = $2"
+              "     GROUP BY objects.image_id, images_groups.group_id"
+              " ) AS subquery"
+              " JOIN groups ON subquery.group_id = groups.group_id "
+              " GROUP BY groupid",
+          static_cast<uint16_t>(clusterId), static_cast<uint16_t>(classId));
+      return result;
+    };
+
+    auto queryIntensityMeasure = [&]() {
+      std::unique_ptr<duckdb::QueryResult> result = analyzer.select(
+          "SELECT"
+          " subquery.group_id as groupid,"
+          " ANY_VALUE(pos_on_plate_x) as pos_x,"
+          " ANY_VALUE(pos_on_plate_y) as pos_y,"
+          " AVG(val) AS avg_val"
+          " FROM ("
+          "     SELECT"
+          "         objects.image_id,"
+          "         images_groups.group_id as group_id," +
+              buildStats() +
+              "     FROM objects "
+              "     JOIN images_groups ON objects.image_id = images_groups.image_id "
+              "     JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
+              "                                  objects.image_id = object_measurements.image_id)"
+              "     WHERE cluster_id = $1 AND class_id = $2 AND object_measurements.meas_stack_c = $3"
+              "     GROUP BY objects.image_id, images_groups.group_id"
+              " ) AS subquery"
+              " JOIN groups ON subquery.group_id = groups.group_id "
+              " GROUP BY groupid",
+          static_cast<uint16_t>(clusterId), static_cast<uint16_t>(classId), static_cast<uint32_t>(imageChannelId));
+      return result;
+    };
+
+    auto query = [&]() {
+      switch(getType(measurement)) {
+        case OBJECT:
+          return queryMeasure();
+        case INTENSITY:
+          return queryIntensityMeasure();
+        case COUNT:
+          return queryMeasure();
+      }
+    };
+
+    auto result = query();
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());

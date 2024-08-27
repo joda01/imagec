@@ -18,9 +18,39 @@
 
 namespace joda::db {
 
+enum MeasureType
+{
+  OBJECT,
+  INTENSITY,
+  COUNT
+};
+
+inline MeasureType getType(enums::Measurement measure)
+{
+  switch(measure) {
+    case enums::Measurement::CENTER_OF_MASS_X:
+    case enums::Measurement::CENTER_OF_MASS_Y:
+    case enums::Measurement::CONFIDENCE:
+    case enums::Measurement::AREA_SIZE:
+    case enums::Measurement::PERIMETER:
+    case enums::Measurement::CIRCULARITY:
+      return MeasureType::OBJECT;
+    case enums::Measurement::INTENSITY_SUM:
+    case enums::Measurement::INTENSITY_AVG:
+    case enums::Measurement::INTENSITY_MIN:
+    case enums::Measurement::INTENSITY_MAX:
+      return MeasureType::INTENSITY;
+  }
+  return MeasureType::COUNT;
+}
+
 inline std::string getMeasurement(enums::Measurement measure)
 {
   switch(measure) {
+    case enums::Measurement::CENTER_OF_MASS_X:
+      return "meas_center_x";
+    case enums::Measurement::CENTER_OF_MASS_Y:
+      return "meas_center_y";
     case enums::Measurement::CONFIDENCE:
       return "meas_confidence";
     case enums::Measurement::AREA_SIZE:
@@ -38,6 +68,7 @@ inline std::string getMeasurement(enums::Measurement measure)
     case enums::Measurement::INTENSITY_MAX:
       return "meas_intensity_max";
   }
+  return "";
 }
 
 inline std::string getStatsString(enums::Stats stats)

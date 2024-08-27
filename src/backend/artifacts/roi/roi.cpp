@@ -233,6 +233,9 @@ double ROI::getSmoothedLineLength(const std::vector<cv::Point> &points)
 ///
 float ROI::getTracedPerimeter(const std::vector<cv::Point> &points)
 {
+  if(points.empty()) {
+    return 0.0;
+  }
   size_t nPoints = points.size();
 
   if(nPoints == 1) {

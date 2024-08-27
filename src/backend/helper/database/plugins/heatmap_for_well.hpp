@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include "../database.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -33,35 +34,75 @@ public:
   /// \author     Joachim Danmayr
   /// \param[in]  wellImageOrder  First dimension of the vector are the rows, second the columns
   ///
-  static auto getData(Database &analyzer, uint8_t plateId, uint16_t groupId, enums::ClusterId channelId,
-                      enums::ClassId classId, enums::Measurement stats,
+  static auto getData(Database &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plateCols,
+                      enums::ClusterId clusterId, enums::ClassId classId, enums::Measurement measurement,
+                      int32_t imageChannelId, enums::Stats stats, uint16_t groupId,
                       const std::vector<std::vector<int32_t>> &wellImageOrder = {{1, 2, 3, 4},
                                                                                  {5, 6, 7, 8},
                                                                                  {9, 10, 11, 12},
                                                                                  {13, 14, 15, 16}}) -> table::Table
   {
-    return {};
-    /*
-    std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
-        "SELECT"
-        "  image_stats.image_id as image_id,"
-        "  images.image_idx as image_idx,"
-        "  any_value(channels_images.control_image_path) as control_image_path, "
-        "  any_value(image_stats.tile_id) as tile_id, "
-        "  ANY_VALUE(channels_images.validity) as validity,"
-        "  images.file_name as file_name," +
-            getAvgStatsFromStats(stats) +
-            "FROM image_stats "
-            "INNER JOIN images_groups ON image_stats.image_id=images_groups.image_id "
-            "INNER JOIN images ON image_stats.image_id=images.image_id "
-            "INNER JOIN channels_images ON (image_stats.image_id=channels_images.image_id AND "
-            "image_stats.channel_id=channels_images.channel_id)"
-            "WHERE"
-            " images_groups.group_id=$2 AND image_stats.channel_id=$3 "
-            "GROUP BY"
-            "  (image_stats.image_id, images.file_name, images.image_idx) "
-            "ORDER BY images.file_name",
-        measurement.getKey(), groupId, static_cast<uint8_t>(channelId));
+    auto buildStats = [&]() { return getStatsString(stats) + "(" + getMeasurement(measurement) + ") as val"; };
+
+    std::cout << "Group: " << std::to_string(groupId) << std::endl;
+
+    auto queryMeasure = [&]() {
+      std::unique_ptr<duckdb::QueryResult> result = analyzer.select(
+          " SELECT"
+          " objects.image_id,"
+          " ANY_VALUE(images_groups.image_group_idx),"
+          " ANY_VALUE(images.file_name),"
+          " ANY_VALUE(images_planes.validity),"
+          " images_groups.group_id as group_id," +
+              buildStats() +
+              " FROM objects "
+              " JOIN images_groups ON objects.image_id = images_groups.image_id "
+              " JOIN images ON objects.image_id = images.image_id "
+              " JOIN images_planes ON objects.image_id = images_planes.image_id "
+              "                    AND images_planes.stack_c = $4"
+              " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
+              " GROUP BY objects.image_id, images_groups.group_id",
+          static_cast<uint16_t>(clusterId), static_cast<uint16_t>(classId), static_cast<uint16_t>(groupId),
+          static_cast<uint32_t>(imageChannelId));
+      return result;
+    };
+
+    auto queryIntensityMeasure = [&]() {
+      std::unique_ptr<duckdb::QueryResult> result = analyzer.select(
+          " SELECT"
+          " objects.image_id,"
+          " ANY_VALUE(images_groups.image_group_idx),"
+          " ANY_VALUE(images.file_name),"
+          " ANY_VALUE(images_planes.validity),"
+          " images_groups.group_id as group_id," +
+              buildStats() +
+              " FROM objects "
+              " JOIN images_groups ON objects.image_id = images_groups.image_id "
+              " JOIN images ON objects.image_id = images.image_id "
+              " JOIN images_planes ON objects.image_id = images_planes.image_id "
+              "                    AND images_planes.stack_c = $4"
+              "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
+              "                                  objects.image_id = object_measurements.image_id "
+              "                             AND object_measurements.meas_stack_c = $4)"
+              " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
+              " GROUP BY objects.image_id, images_groups.group_id",
+          static_cast<uint16_t>(clusterId), static_cast<uint16_t>(classId), static_cast<uint16_t>(groupId),
+          static_cast<uint32_t>(imageChannelId));
+      return result;
+    };
+
+    auto query = [&]() {
+      switch(getType(measurement)) {
+        case OBJECT:
+          return queryMeasure();
+        case INTENSITY:
+          return queryIntensityMeasure();
+        case COUNT:
+          return queryMeasure();
+      }
+    };
+
+    auto result = query();
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -72,7 +113,7 @@ public:
     auto wellPos  = transformMatrix(wellImageOrder, sizeX, sizeY);
 
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-    Table results;
+    table::Table results;
 
     for(uint8_t row = 0; row < sizeY; row++) {
       char toWrt[2];
@@ -81,7 +122,7 @@ public:
       results.getMutableRowHeader()[row] = std::string(toWrt);
       for(uint8_t col = 0; col < sizeX; col++) {
         results.getMutableColHeader()[col] = std::to_string(col + 1);
-        results.setData(row, col, TableCell{std::numeric_limits<double>::quiet_NaN(), 0, true, ""});
+        results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, true, ""});
       }
     }
 
@@ -90,20 +131,19 @@ public:
         uint64_t imageId             = materializedResult->GetValue(0, n).GetValue<uint64_t>();
         uint32_t imgIdx              = materializedResult->GetValue(1, n).GetValue<uint32_t>();
         std::string controlImagePath = materializedResult->GetValue(2, n).GetValue<std::string>();
-        uint16_t tileId              = materializedResult->GetValue(3, n).GetValue<uint16_t>();
-        ChannelValidity validity{materializedResult->GetValue(4, n).GetValue<uint64_t>()};
+        enums::ChannelValidity validity{materializedResult->GetValue(3, n).GetValue<uint64_t>()};
 
         auto pos     = wellPos[imgIdx];
-        double value = materializedResult->GetValue(6, n).GetValue<double>();
+        double value = materializedResult->GetValue(5, n).GetValue<double>();
 
-        helper::stringReplace(controlImagePath, "${tile_id}", std::to_string(tileId));
-        results.setData(pos.y, pos.x, TableCell{value, imageId, !validity.any(), controlImagePath});
-      } catch(const duckdb::InternalException &) {
+        results.setData(pos.y, pos.x, table::TableCell{value, imageId, !validity.any(), controlImagePath});
+      } catch(const duckdb::InternalException &ex) {
+        std::cout << "E: " << ex.what() << std::endl;
       }
     }
 
     results.print();
-    return results;*/
+    return results;
   }
 
   ///
