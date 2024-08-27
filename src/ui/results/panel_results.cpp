@@ -142,6 +142,8 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   connect(mStatsSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mStatsSelector);
 
+  toolbar->addSeparatorToTopToolbar();
+
   //
   //
   //
@@ -151,8 +153,6 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   mMarkAsInvalidAction = toolbar->addItemToTopToolbar(mMarkAsInvalid);
   mMarkAsInvalidAction->setVisible(false);
   connect(mMarkAsInvalid, &QComboBox::currentIndexChanged, this, &PanelResults::onMarkAsInvalidClicked);
-
-  toolbar->addSeparatorToTopToolbar();
 
   //
   //
@@ -203,43 +203,12 @@ void PanelResults::setAnalyzer()
     }
   }
 
+  // Analyze meta
+  {
+    mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
+  }
+
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::onChannelChanged()
-{
-  /*
-  for(const auto &[clusterId, cluster] : mClusters) {
-    if(static_cast<uint32_t>(clusterId) == mChannelSelector->currentData().toUInt()) {
-      auto lastSelected = mMeasurementSelector->currentData().toUInt();
-      disconnect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-      mMeasurementSelector->clear();
-      int32_t lastSelectedKeyIdx = -1;
-      uint32_t idx               = 0;
-      for(const auto &measure : channel.measurements) {
-        mMeasurementSelector->addItem(measure.toString().data(), measure.getKey());
-        if(lastSelected == measure.getKey()) {
-          lastSelectedKeyIdx = idx;
-        }
-        idx++;
-      }
-      if(lastSelectedKeyIdx < 0) {
-        lastSelectedKeyIdx = 0;
-      }
-
-      mMeasurementSelector->setCurrentIndex(lastSelectedKeyIdx);
-      connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-      onMeasurementChanged();
-      break;
-    }
-  }*/
 }
 
 ///
@@ -534,92 +503,91 @@ void PanelResults::paintImage()
 ///
 void PanelResults::onExportClicked()
 {
-  /*
   DialogExportData exportData(mWindowMain);
   auto measureChannelsToExport = exportData.execute();
+  /*
+    if(measureChannelsToExport.ret != 0) {
+      return;
+    }
+    QString filePath = QFileDialog::getSaveFileName(mWindowMain, "Save File", mAnalyzer->getBasePath().string().data(),
+                                                    "XLSX Files (*.xlsx)");
+    if(filePath.isEmpty()) {
+      return;
+    }
 
-  if(measureChannelsToExport.ret != 0) {
-    return;
-  }
-  QString filePath = QFileDialog::getSaveFileName(mWindowMain, "Save File", mAnalyzer->getBasePath().string().data(),
-                                                  "XLSX Files (*.xlsx)");
-  if(filePath.isEmpty()) {
-    return;
-  }
+    std::thread([this, measureChannelsToExport = measureChannelsToExport, filePath = filePath] {
+      const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
+      const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-  std::thread([this, measureChannelsToExport = measureChannelsToExport, filePath = filePath] {
-    const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
-    const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
+      uint16_t rows = size.height();
+      uint16_t cols = size.width();
 
-    uint16_t rows = size.height();
-    uint16_t cols = size.width();
+      std::map<joda::results::ChannelIndex, joda::results::exporter::BatchExporter::Settings::Channel> imageChannels;
 
-    std::map<joda::results::ChannelIndex, joda::results::exporter::BatchExporter::Settings::Channel> imageChannels;
+      for(const auto &channel : mChannelInfos) {
+        joda::results::exporter::BatchExporter::Settings::Channel channelData;
+        channelData.name = channel.name;
 
-    for(const auto &channel : mChannelInfos) {
-      joda::results::exporter::BatchExporter::Settings::Channel channelData;
-      channelData.name = channel.name;
-
-      for(const auto &measureChannel : channel.measurements) {
-        if(measureChannelsToExport.channelsToExport.contains(measureChannel.getMeasureChannel())) {
-          channelData.measureChannels.emplace(
-              measureChannel, measureChannelsToExport.channelsToExport.at(measureChannel.getMeasureChannel()));
+        for(const auto &measureChannel : channel.measurements) {
+          if(measureChannelsToExport.channelsToExport.contains(measureChannel.getMeasureChannel())) {
+            channelData.measureChannels.emplace(
+                measureChannel, measureChannelsToExport.channelsToExport.at(measureChannel.getMeasureChannel()));
+          }
         }
+        imageChannels.emplace(channel.channelId, channelData);
       }
-      imageChannels.emplace(channel.channelId, channelData);
-    }
 
-    joda::results::exporter::BatchExporter::Settings::ExportDetail exp;
-    switch(getActualNavigation()) {
-      case Navigation::PLATE:
-        exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::PLATE;
-        break;
-      case Navigation::WELL:
-        exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::WELL;
-        break;
-      case Navigation::IMAGE:
-        exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::IMAGE;
-        break;
-    }
+      joda::results::exporter::BatchExporter::Settings::ExportDetail exp;
+      switch(getActualNavigation()) {
+        case Navigation::PLATE:
+          exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::PLATE;
+          break;
+        case Navigation::WELL:
+          exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::WELL;
+          break;
+        case Navigation::IMAGE:
+          exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::IMAGE;
+          break;
+      }
 
-    if(measureChannelsToExport.exportHeatmap) {
-      joda::results::exporter::BatchExporter::Settings settings{
-          .imageChannels   = imageChannels,
-          .analyzer        = *mAnalyzer,
-          .plateId         = 1,
-          .groupId         = getSelectedGroup(),
-          .imageId         = getSelectedImage(),
-          .plateRows       = rows,
-          .plarteCols      = cols,
-          .heatmapAreaSize = mDenesityMapSize,
-          .wellImageOrder  = wellOrder,
-          .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::HEATMAP,
-          .exportDetail    = exp};
-      joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
-    }
+      if(measureChannelsToExport.exportHeatmap) {
+        joda::results::exporter::BatchExporter::Settings settings{
+            .imageChannels   = imageChannels,
+            .analyzer        = *mAnalyzer,
+            .plateId         = 1,
+            .groupId         = getSelectedGroup(),
+            .imageId         = getSelectedImage(),
+            .plateRows       = rows,
+            .plarteCols      = cols,
+            .heatmapAreaSize = mDenesityMapSize,
+            .wellImageOrder  = wellOrder,
+            .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::HEATMAP,
+            .exportDetail    = exp};
+        joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
+      }
 
-    if(measureChannelsToExport.exportList) {
-      joda::results::exporter::BatchExporter::Settings settings{
-          .imageChannels   = imageChannels,
-          .analyzer        = *mAnalyzer,
-          .plateId         = 1,
-          .groupId         = getSelectedGroup(),
-          .imageId         = getSelectedImage(),
-          .plateRows       = rows,
-          .plarteCols      = cols,
-          .heatmapAreaSize = mDenesityMapSize,
-          .wellImageOrder  = wellOrder,
-          .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::LIST,
-          .exportDetail    = exp};
-      joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
-    }
+      if(measureChannelsToExport.exportList) {
+        joda::results::exporter::BatchExporter::Settings settings{
+            .imageChannels   = imageChannels,
+            .analyzer        = *mAnalyzer,
+            .plateId         = 1,
+            .groupId         = getSelectedGroup(),
+            .imageId         = getSelectedImage(),
+            .plateRows       = rows,
+            .plarteCols      = cols,
+            .heatmapAreaSize = mDenesityMapSize,
+            .wellImageOrder  = wellOrder,
+            .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::LIST,
+            .exportDetail    = exp};
+        joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
+      }
 
-    QDesktopServices::openUrl(QUrl("file:///" + filePath));
+      QDesktopServices::openUrl(QUrl("file:///" + filePath));
 
-    // emit exportFinished();
-    //  joda::results::exporter::ExporterXlsx::exportAsHeatmap(mHeatmap->getData(), filePath.toStdString());
-  }).detach();
-  */
+      // emit exportFinished();
+      //  joda::results::exporter::ExporterXlsx::exportAsHeatmap(mHeatmap->getData(), filePath.toStdString());
+    }).detach();
+    */
 }
 
 ///
@@ -636,9 +604,9 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
     mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
     setAnalyzer();
     if(mSelectedDataSet.analyzeMeta.has_value()) {
-      getWindowMain()->getPanelResultsInfo()->addResultsFileToHistory(std::filesystem::path(pathToDbFile.toStdString()),
-                                                                      mSelectedDataSet.analyzeMeta->name,
-                                                                      mSelectedDataSet.analyzeMeta->timestamp);
+      getWindowMain()->getPanelResultsInfo()->addResultsFileToHistory(
+          std::filesystem::path(pathToDbFile.toStdString()), mSelectedDataSet.analyzeMeta->experiment.experimentName,
+          mSelectedDataSet.analyzeMeta->timestamp);
     }
 
   } catch(const std::exception &ex) {

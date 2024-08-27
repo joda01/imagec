@@ -12,6 +12,7 @@
 
 #include "database.hpp"
 #include <duckdb.h>
+#include <chrono>
 #include <exception>
 #include <stdexcept>
 #include <string>
@@ -632,7 +633,7 @@ void Database::finishJob(const std::string &jobId)
 ///
 bool Database::insertExperiment(const joda::settings::ExperimentSettings &exp)
 {
-  auto expIn = selectExperiment();
+  auto expIn = selectExperiment().experiment;
   if(exp.experimentId == expIn.experimentId) {
     joda::log::logInfo("Appending to existing experiment!");
     return false;
@@ -658,23 +659,38 @@ bool Database::insertExperiment(const joda::settings::ExperimentSettings &exp)
 /// \param[out]
 /// \return
 ///
-auto Database::selectExperiment() -> joda::settings::ExperimentSettings
+auto Database::selectExperiment() -> AnalyzeMeta
 {
-  std::unique_ptr<duckdb::QueryResult> result = select("SELECT experiment_id,name,notes FROM experiment");
-  if(result->HasError()) {
-    throw std::invalid_argument(result->GetError());
-  }
-
   joda::settings::ExperimentSettings exp;
-  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  std::chrono::system_clock::time_point timestamp;
+  {
+    std::unique_ptr<duckdb::QueryResult> result = select("SELECT experiment_id,name,notes FROM experiment");
+    if(result->HasError()) {
+      throw std::invalid_argument(result->GetError());
+    }
 
-  if(materializedResult->RowCount() > 0) {
-    exp.experimentId   = materializedResult->GetValue(0, 0).GetValue<std::string>();
-    exp.experimentName = materializedResult->GetValue(1, 0).GetValue<std::string>();
-    exp.experimentName = materializedResult->GetValue(1, 0).GetValue<std::string>();
+    auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+    if(materializedResult->RowCount() > 0) {
+      exp.experimentId   = materializedResult->GetValue(0, 0).GetValue<std::string>();
+      exp.experimentName = materializedResult->GetValue(1, 0).GetValue<std::string>();
+      exp.experimentName = materializedResult->GetValue(1, 0).GetValue<std::string>();
+    }
   }
 
-  return exp;
+  {
+    std::unique_ptr<duckdb::QueryResult> resultJobs = select("SELECT time_started FROM jobs ORDER BY time_started");
+    if(resultJobs->HasError()) {
+      throw std::invalid_argument(resultJobs->GetError());
+    }
+    auto materializedResult = resultJobs->Cast<duckdb::StreamQueryResult>().Materialize();
+    if(materializedResult->RowCount() > 0) {
+      auto timestampDb = materializedResult->GetValue(0, 0).GetValue<duckdb::timestamp_t>();
+      std::chrono::microseconds duration(timestampDb.value);
+      timestamp = std::chrono::system_clock::from_time_t(duration.count());
+    }
+  }
+
+  return {.experiment = exp, .timestamp = timestamp};
 }
 
 ///

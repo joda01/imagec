@@ -36,7 +36,7 @@ namespace joda::db {
 
 struct AnalyzeMeta
 {
-  std::string name;
+  joda::settings::ExperimentSettings experiment;
   std::chrono::system_clock::time_point timestamp;
 };
 
@@ -71,9 +71,8 @@ public:
 
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
 
-  auto selectExperiment() -> joda::settings::ExperimentSettings;
+  auto selectExperiment() -> AnalyzeMeta;
   auto selectPlates() -> std::map<uint16_t, joda::settings::Plate>;
-
   auto selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo>;
   auto selectClusters() -> std::map<enums::ClusterId, joda::settings::Cluster>;
   auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;

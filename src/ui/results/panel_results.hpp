@@ -147,7 +147,6 @@ public slots:
   void paintWell();
   void paintImage();
   void onExportImageClicked();
-  void onChannelChanged();
   void onMeasurementChanged();
 };
 
