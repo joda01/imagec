@@ -138,7 +138,6 @@ public:
 
         results.setData(pos.y, pos.x, table::TableCell{value, imageId, !validity.any(), controlImagePath});
       } catch(const duckdb::InternalException &ex) {
-        std::cout << "E: " << ex.what() << std::endl;
       }
     }
 

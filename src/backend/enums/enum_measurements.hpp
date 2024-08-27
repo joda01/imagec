@@ -20,6 +20,7 @@ namespace joda::enums {
 
 enum class Measurement
 {
+  COUNT,
   CONFIDENCE,
   AREA_SIZE,
   PERIMETER,

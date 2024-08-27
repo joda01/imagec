@@ -47,6 +47,8 @@ inline MeasureType getType(enums::Measurement measure)
 inline std::string getMeasurement(enums::Measurement measure)
 {
   switch(measure) {
+    case enums::Measurement::COUNT:
+      return "1";
     case enums::Measurement::CENTER_OF_MASS_X:
       return "meas_center_x";
     case enums::Measurement::CENTER_OF_MASS_Y:

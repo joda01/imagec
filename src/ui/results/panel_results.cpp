@@ -112,6 +112,7 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   toolbar->addItemToTopToolbar(mClassSelector);
 
   mMeasurementSelector = new QComboBox();
+  mMeasurementSelector->addItem("Count", (int32_t) joda::enums::Measurement::COUNT);
   mMeasurementSelector->addItem("Confidence", (int32_t) joda::enums::Measurement::CONFIDENCE);
   mMeasurementSelector->addItem("Area size", (int32_t) joda::enums::Measurement::AREA_SIZE);
   mMeasurementSelector->addItem("Perimeter", (int32_t) joda::enums::Measurement::PERIMETER);
