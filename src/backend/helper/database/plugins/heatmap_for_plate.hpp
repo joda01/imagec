@@ -23,7 +23,10 @@ public:
                       enums::ClusterId clusterId, enums::ClassId classId, enums::Measurement measurement,
                       int32_t imageChannelId, enums::Stats stats) -> table::Table
   {
-    auto buildStats = [&]() { return getStatsString(stats) + "(" + getMeasurement(measurement) + ") as val"; };
+    auto buildStats = [&]() {
+      return getStatsString(stats) + "(" + getMeasurement(measurement) + ") FILTER (images.validity = 0) as valid, " +
+             getStatsString(stats) + "(" + getMeasurement(measurement) + ") FILTER (images.validity != 0) as invalid ";
+    };
 
     auto queryMeasure = [&]() {
       std::unique_ptr<duckdb::QueryResult> result = analyzer.select(
@@ -31,13 +34,15 @@ public:
           " subquery.group_id as groupid,"
           " ANY_VALUE(pos_on_plate_x) as pos_x,"
           " ANY_VALUE(pos_on_plate_y) as pos_y,"
-          " AVG(val) AS avg_val"
+          " AVG(valid) AS avg_valid,"
+          " AVG(invalid) AS avg_invalid"
           " FROM ("
           "     SELECT"
           "         objects.image_id,"
           "         images_groups.group_id as group_id," +
               buildStats() +
               "     FROM objects "
+              "     JOIN images ON objects.image_id = images.image_id "
               "     JOIN images_groups ON objects.image_id = images_groups.image_id "
               "     WHERE cluster_id = $1 AND class_id = $2"
               "     GROUP BY objects.image_id, images_groups.group_id"
@@ -54,13 +59,15 @@ public:
           " subquery.group_id as groupid,"
           " ANY_VALUE(pos_on_plate_x) as pos_x,"
           " ANY_VALUE(pos_on_plate_y) as pos_y,"
-          " AVG(val) AS avg_val"
+          " AVG(valid) AS avg_valid,"
+          " AVG(invalid) AS avg_invalid"
           " FROM ("
           "     SELECT"
           "         objects.image_id,"
           "         images_groups.group_id as group_id," +
               buildStats() +
               "     FROM objects "
+              "     JOIN images ON objects.image_id = images.image_id "
               "     JOIN images_groups ON objects.image_id = images_groups.image_id "
               "     JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
               "                                  objects.image_id = object_measurements.image_id)"
@@ -116,8 +123,16 @@ public:
         }
 
         if(row < plateRows && col < plateCols) {
-          double val = materializedResult->GetValue(3, n).GetValue<double>();
-          results.setData(row, col, table::TableCell{val, groupId, true, ""});
+          double val = 0;
+          bool valid = true;
+          if(!materializedResult->GetValue(3, n).IsNull()) {
+            val = materializedResult->GetValue(3, n).GetValue<double>();
+          }
+          // At least one image in this well is invalid!
+          if(!materializedResult->GetValue(4, n).IsNull()) {
+            valid = false;
+          }
+          results.setData(row, col, table::TableCell{val, groupId, valid, ""});
         }
       } catch(const duckdb::InternalException &ex) {
       }

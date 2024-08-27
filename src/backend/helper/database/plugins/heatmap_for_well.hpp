@@ -42,7 +42,11 @@ public:
                                                                                  {9, 10, 11, 12},
                                                                                  {13, 14, 15, 16}}) -> table::Table
   {
-    auto buildStats = [&]() { return getStatsString(stats) + "(" + getMeasurement(measurement) + ") as val"; };
+    auto buildStats = [&]() {
+      return getStatsString(stats) + "(" + getMeasurement(measurement) +
+             ") FILTER (images_planes.validity = 0 AND images.validity = 0) as valid, " + getStatsString(stats) + "(" +
+             getMeasurement(measurement) + ") FILTER (images_planes.validity != 0 OR images.validity != 0) as invalid ";
+    };
 
     std::cout << "Group: " << std::to_string(groupId) << std::endl;
 
@@ -52,7 +56,7 @@ public:
           " objects.image_id,"
           " ANY_VALUE(images_groups.image_group_idx),"
           " ANY_VALUE(images.file_name),"
-          " ANY_VALUE(images_planes.validity),"
+          " ANY_VALUE(images.validity) as validity,"
           " images_groups.group_id as group_id," +
               buildStats() +
               " FROM objects "
@@ -73,7 +77,7 @@ public:
           " objects.image_id,"
           " ANY_VALUE(images_groups.image_group_idx),"
           " ANY_VALUE(images.file_name),"
-          " ANY_VALUE(images_planes.validity),"
+          " ANY_VALUE(images.validity),"
           " images_groups.group_id as group_id," +
               buildStats() +
               " FROM objects "
@@ -132,9 +136,17 @@ public:
         uint32_t imgIdx              = materializedResult->GetValue(1, n).GetValue<uint32_t>();
         std::string controlImagePath = materializedResult->GetValue(2, n).GetValue<std::string>();
         enums::ChannelValidity validity{materializedResult->GetValue(3, n).GetValue<uint64_t>()};
+        auto pos = wellPos[imgIdx];
 
-        auto pos     = wellPos[imgIdx];
-        double value = materializedResult->GetValue(5, n).GetValue<double>();
+        double value = 0;
+        // Valid
+        if(!materializedResult->GetValue(5, n).IsNull()) {
+          value = materializedResult->GetValue(5, n).GetValue<double>();
+        }
+        // Invalid
+        if(!materializedResult->GetValue(6, n).IsNull()) {
+          value = materializedResult->GetValue(6, n).GetValue<double>();
+        }
 
         results.setData(pos.y, pos.x, table::TableCell{value, imageId, !validity.any(), controlImagePath});
       } catch(const duckdb::InternalException &ex) {

@@ -525,6 +525,22 @@ void Database::setImageValidity(uint64_t imageId, enums::ChannelValidity validit
 /// \param[out]
 /// \return
 ///
+void Database::unsetImageValidity(uint64_t imageId, enums::ChannelValidity validity)
+{
+  std::unique_ptr<duckdb::QueryResult> result =
+      select("UPDATE images SET validity = validity & ~(?) WHERE image_id=?", validity.to_ulong(), imageId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+}
+
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Database::setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &planeId, enums::ChannelValidity validity)
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
@@ -837,6 +853,30 @@ auto Database::selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::C
     tmp.name      = materializedResult->GetValue(2, n).GetValue<std::string>();
     results.try_emplace(cidx, tmp);
   }
+
+  return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
+{
+  std::unique_ptr<duckdb::QueryResult> result =
+      select("SELECT file_name, validity FROM images WHERE image_id = ?", imageId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  ImageInfo results;
+  results.filename = materializedResult->GetValue(0, 0).GetValue<std::string>();
+  results.validity = materializedResult->GetValue(1, 0).GetValue<uint64_t>();
 
   return results;
 }

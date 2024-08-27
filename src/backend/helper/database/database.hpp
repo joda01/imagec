@@ -40,6 +40,12 @@ struct AnalyzeMeta
   std::chrono::system_clock::time_point timestamp;
 };
 
+struct ImageInfo
+{
+  std::string filename;
+  enums::ChannelValidity validity;
+};
+
 class Database
 {
 public:
@@ -58,6 +64,7 @@ public:
   void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &);
 
   void setImageValidity(uint64_t imageId, enums::ChannelValidity validity);
+  void unsetImageValidity(uint64_t imageId, enums::ChannelValidity validity);
   void setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &, enums::ChannelValidity validity);
   void setImagePlaneClusterClusterValidity(uint64_t imageId, const enums::PlaneId &, enums::ClusterId clusterId,
                                            enums::ChannelValidity validity);
@@ -70,6 +77,8 @@ public:
   auto selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo>;
   auto selectClusters() -> std::map<enums::ClusterId, joda::settings::Cluster>;
   auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;
+
+  auto selectImageInfo(uint64_t imageId) -> ImageInfo;
 
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)

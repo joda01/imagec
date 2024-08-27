@@ -6,3 +6,4 @@
 
 - [ ] Catch exception when starting run
 - [ ] Handle non ASCII chars when inserting to DB
+- [ ] Support the filtering (validity) for image plane and cluster

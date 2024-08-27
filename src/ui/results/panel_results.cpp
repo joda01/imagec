@@ -304,16 +304,16 @@ void PanelResults::onExportImageClicked()
 ///
 void PanelResults::onMarkAsInvalidClicked()
 {
-  /*
-    if(mMarkAsInvalid->currentData().toBool()) {
-    mAnalyzer->markImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
-                                               mSelectedImageId);
+  if(mMarkAsInvalid->currentData().toBool()) {
+    enums::ChannelValidity val;
+    val.set(enums::ChannelValidityEnum::MANUAL_OUT_SORTED);
+    mAnalyzer->setImageValidity(mSelectedImageId, val);
   } else {
-    mAnalyzer->unMarkImageChannelAsManualInvalid(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx,
-                                                 mSelectedImageId);
+    enums::ChannelValidity val;
+    val.set(enums::ChannelValidityEnum::MANUAL_OUT_SORTED);
+    mAnalyzer->unsetImageValidity(mSelectedImageId, val);
   }
   repaintHeatmap();
-  */
 }
 
 ///
@@ -332,32 +332,32 @@ void PanelResults::setData(const SelectedFilter &filter)
 ///
 void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell value)
 {
-  /*
   switch(mNavigation) {
     case Navigation::PLATE: {
-      auto groupId = value.getId();
-      auto [result, channel] =
-          mAnalyzer->getGroupInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, groupId);
-      mSelectedDataSet.groupMeta   = result;
-      mSelectedDataSet.channelMeta = channel;
-      mSelectedWellId              = value.getId();
-      mSelectedDataSet.imageMeta.reset();
-      mSelectedDataSet.channelMeta.reset();
-      mSelectedDataSet.imageChannelMeta.reset();
+      mSelectedWellId = value.getId();
+
+      //  auto groupId = value.getId();
+      //  auto [result, channel] =
+      //      mAnalyzer->getGroupInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, groupId);
+      //  mSelectedDataSet.groupMeta   = result;
+      //  mSelectedDataSet.channelMeta = channel;
+      //  mSelectedDataSet.imageMeta.reset();
+      //  mSelectedDataSet.channelMeta.reset();
+      //  mSelectedDataSet.imageChannelMeta.reset();
       mMarkAsInvalidAction->setVisible(false);
     } break;
     case Navigation::WELL: {
-      auto [image, channel, imageChannelMeta] =
-          mAnalyzer->getImageInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, value.getId());
+      mSelectedImageId = value.getId();
 
-      mSelectedDataSet.imageMeta        = image;
-      mSelectedDataSet.channelMeta      = channel;
-      mSelectedDataSet.imageChannelMeta = imageChannelMeta;
-      mSelectedImageId                  = value.getId();
+      auto imageInfo = mAnalyzer->selectImageInfo(value.getId());
+
+      // mSelectedDataSet.imageMeta        = image;
+      // mSelectedDataSet.channelMeta      = channel;
+      // mSelectedDataSet.imageChannelMeta = imageChannelMeta;
 
       mMarkAsInvalid->blockSignals(true);
 
-      if(imageChannelMeta.validity.test(results::ChannelValidityEnum::MANUAL_OUT_SORTED)) {
+      if(imageInfo.validity.test(enums::ChannelValidityEnum::MANUAL_OUT_SORTED)) {
         mMarkAsInvalid->setCurrentIndex(1);
       } else {
         mMarkAsInvalid->setCurrentIndex(0);
@@ -375,7 +375,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       break;
   }
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
-  */
 }
 
 ///
