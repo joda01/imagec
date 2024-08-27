@@ -39,6 +39,36 @@ inline std::string getMeasurement(enums::Measurement measure)
       return "meas_intensity_max";
   }
 }
+
+inline std::string getStatsString(enums::Stats stats)
+{
+  std::string statsStr;
+  switch(stats) {
+    case enums::Stats::AVG:
+      statsStr = "  AVG";
+      break;
+    case enums::Stats::MEDIAN:
+      statsStr = "  MEDIAN";
+      break;
+    case enums::Stats::SUM:
+      statsStr = "  SUM";
+      break;
+    case enums::Stats::MIN:
+      statsStr = "  MIN";
+      break;
+    case enums::Stats::MAX:
+      statsStr = "  MAX";
+      break;
+    case enums::Stats::STDDEV:
+      statsStr = "  STDDEV";
+      break;
+    case enums::Stats::CNT:
+      statsStr = "  COUNT";
+      break;
+  };
+  return statsStr;
+}
+
 /*
 inline std::string getStatsString(Stats stats)
 {

@@ -104,11 +104,11 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   //
   //
   mClusterSelector = new QComboBox();
-  connect(mClusterSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onChannelChanged);
+  connect(mClusterSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mClusterSelector);
 
   mClassSelector = new QComboBox();
-  connect(mClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onChannelChanged);
+  connect(mClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mClassSelector);
 
   mMeasurementSelector = new QComboBox();
@@ -121,11 +121,11 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   mMeasurementSelector->addItem("Intensity min.", (int32_t) joda::enums::Measurement::INTENSITY_MIN);
   mMeasurementSelector->addItem("Intensity max.", (int32_t) joda::enums::Measurement::INTENSITY_MAX);
 
-  connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onChannelChanged);
+  connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mMeasurementSelector);
 
   mImageChannelSelector = new QComboBox();
-  connect(mImageChannelSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onChannelChanged);
+  connect(mImageChannelSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mImageChannelSelector);
 
   //
@@ -470,7 +470,8 @@ void PanelResults::paintPlate()
   if(mAnalyzer) {
     mNavigation = Navigation::PLATE;
     auto result = joda::db::HeatmapPerPlate::getData(*mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols,
-                                                     mFilter.clusterId, mFilter.classId, mFilter.measurementChannel);
+                                                     mFilter.clusterId, mFilter.classId, mFilter.measurementChannel,
+                                                     mFilter.imageChannel, mFilter.stats);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
   } else {

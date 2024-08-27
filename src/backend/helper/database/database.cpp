@@ -125,7 +125,7 @@ void Database::createTables()
       " group_id USMALLINT,"
       " image_id UBIGINT,"
       " image_group_idx UINTEGER, "
-      " PRIMARY KEY (plate_id, group_id),"
+      " PRIMARY KEY (plate_id, group_id, image_id),"
       " FOREIGN KEY(plate_id, group_id) REFERENCES groups(plate_id, group_id),"
       " FOREIGN KEY(image_id) REFERENCES images(image_id)"
       ");"
