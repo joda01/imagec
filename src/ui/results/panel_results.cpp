@@ -521,8 +521,9 @@ void PanelResults::paintImage()
   mBackButton->setEnabled(true);
   if(mAnalyzer) {
     mNavigation = Navigation::IMAGE;
-    auto result = joda::db::HeatmapForImage::getData(*mAnalyzer, mActImageId, mFilter.clusterId, mFilter.classId,
-                                                     mFilter.measurementChannel, mFilter.densityMapAreaSize);
+    auto result = joda::db::HeatmapForImage::getData(
+        *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.clusterId, mFilter.classId,
+        mFilter.measurementChannel, mFilter.imageChannel, mFilter.stats, mActImageId, mFilter.densityMapAreaSize);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES,
                         static_cast<int32_t>(mNavigation));
   }
