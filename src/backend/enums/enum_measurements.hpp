@@ -30,7 +30,8 @@ enum class Measurement
   INTENSITY_MIN,
   INTENSITY_MAX,
   CENTER_OF_MASS_X,
-  CENTER_OF_MASS_Y
+  CENTER_OF_MASS_Y,
+  INTERSECTING_CNT
 };
 
 enum class Stats

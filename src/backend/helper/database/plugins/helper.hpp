@@ -28,6 +28,14 @@ enum MeasureType
 inline MeasureType getType(enums::Measurement measure)
 {
   switch(measure) {
+    case enums::Measurement::INTENSITY_SUM:
+    case enums::Measurement::INTENSITY_AVG:
+    case enums::Measurement::INTENSITY_MIN:
+    case enums::Measurement::INTENSITY_MAX:
+      return MeasureType::INTENSITY;
+    case enums::Measurement::INTERSECTING_CNT:
+      return MeasureType::COUNT;
+    default:
     case enums::Measurement::CENTER_OF_MASS_X:
     case enums::Measurement::CENTER_OF_MASS_Y:
     case enums::Measurement::CONFIDENCE:
@@ -35,13 +43,7 @@ inline MeasureType getType(enums::Measurement measure)
     case enums::Measurement::PERIMETER:
     case enums::Measurement::CIRCULARITY:
       return MeasureType::OBJECT;
-    case enums::Measurement::INTENSITY_SUM:
-    case enums::Measurement::INTENSITY_AVG:
-    case enums::Measurement::INTENSITY_MIN:
-    case enums::Measurement::INTENSITY_MAX:
-      return MeasureType::INTENSITY;
   }
-  return MeasureType::COUNT;
 }
 
 inline std::string getMeasurement(enums::Measurement measure)

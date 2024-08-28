@@ -80,6 +80,41 @@ public:
       return result;
     };
 
+    auto queryIntersectingMeasure = [&]() {
+      std::unique_ptr<duckdb::QueryResult> result = analyzer.select(
+          "SELECT"
+          " subquery.group_id as groupid,"
+          " ANY_VALUE(pos_on_plate_x) as pos_x,"
+          " ANY_VALUE(pos_on_plate_y) as pos_y,"
+          " AVG(valid) AS avg_valid,"
+          " AVG(invalid) AS avg_invalid"
+          " FROM ("
+          "     SELECT"
+          "       object_intersections.image_id,"
+          "     	objects.object_id,"
+          "       images_groups.group_id as group_id,"
+          "     	COUNT(object_intersections.meas_object_id) FILTER (images.validity = 0) as valid,"
+          "     	COUNT(object_intersections.meas_object_id) FILTER (images.validity = 1) as invalid"
+          "     FROM"
+          "     	object_intersections"
+          "   	JOIN images ON object_intersections.image_id = images.image_id"
+          "     JOIN images_groups ON object_intersections.image_id = images_groups.image_id "
+          "     JOIN objects ON"
+          "     	objects.object_id = object_intersections.meas_object_id"
+          "     	AND objects.image_id = object_intersections.image_id   "
+          "     	AND objects.cluster_id = $1                            "
+          "     	AND objects.class_id = $2                              "
+          "     WHERE objects.cluster_id = $1 AND objects.class_id = $2  "
+          "     GROUP BY                                                 "
+          "     	(objects.object_id, object_intersections.image_id, images_groups.group_id)     "
+          "  ) AS subquery"
+          " JOIN groups ON subquery.group_id = groups.group_id "
+          " GROUP BY groupid",
+          static_cast<uint16_t>(clusterId), static_cast<uint16_t>(classId));
+
+      return result;
+    };
+
     auto query = [&]() {
       switch(getType(measurement)) {
         case OBJECT:
@@ -87,7 +122,7 @@ public:
         case INTENSITY:
           return queryIntensityMeasure();
         case COUNT:
-          return queryMeasure();
+          return queryIntersectingMeasure();
       }
     };
 
@@ -130,7 +165,9 @@ public:
           }
           // At least one image in this well is invalid!
           if(!materializedResult->GetValue(4, n).IsNull()) {
-            valid = false;
+            if(materializedResult->GetValue(3, n).GetValue<double>() > 0) {
+              valid = false;
+            }
           }
           results.setData(row, col, table::TableCell{val, groupId, valid, ""});
         }
