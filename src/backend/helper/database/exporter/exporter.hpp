@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/table/table.hpp"
@@ -35,15 +36,17 @@ public:
     struct Channel
     {
       std::string name;
-      std::map<enums::Measurement, enums::Stats> measureChannels;
+      std::map<enums::ClassId, std::string> classes;
+      std::set<int32_t> imageChannelId;
+      std::map<enums::Measurement, std::set<enums::Stats>> measureChannels;
     };
-    std::map<enums::ClusterId, Channel> imageChannels;
+    std::map<enums::ClusterId, Channel> clustersToExport;
     db::Database &analyzer;
     uint8_t plateId;
     uint16_t groupId;
     uint64_t imageId;
     uint16_t plateRows;
-    uint16_t plarteCols;
+    uint16_t plateCols;
     uint32_t heatmapAreaSize;
     std::vector<std::vector<int32_t>> wellImageOrder;
     ExportType exportType;

@@ -3,10 +3,12 @@
 #include "exporter.hpp"
 #include <cstddef>
 #include <string>
+#include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
 #include "backend/helper/database/plugins/heatmap_for_image.hpp"
 #include "backend/helper/database/plugins/heatmap_for_plate.hpp"
 #include "backend/helper/database/plugins/heatmap_for_well.hpp"
+#include "backend/helper/database/plugins/helper.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
 #include "backend/helper/database/plugins/stats_for_plate.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
@@ -46,9 +48,9 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
 {
   const size_t MAX_WORKSHETT_NAME_LENGTH = 30;
 
-  for(const auto &[imageChannelId, imageChannel] : settings.imageChannels) {
+  for(const auto &[clusterId, imageChannel] : settings.clustersToExport) {
     std::string worksheetName       = imageChannel.name;
-    std::string worksheetNameSuffix = "(" + std::to_string(static_cast<int32_t>(imageChannelId)) + ")";
+    std::string worksheetNameSuffix = "(" + std::to_string(static_cast<uint16_t>(clusterId)) + ")";
     // Excel only allows 31 Chars as worksheet name -> we have to limit this
     size_t leftChars = MAX_WORKSHETT_NAME_LENGTH - worksheetNameSuffix.size();
     if(worksheetName.size() > leftChars) {
@@ -59,27 +61,46 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
         workbookSettings.workbook, static_cast<std ::string>(worksheetName + worksheetNameSuffix).data());
 
     Pos offsets;
-    for(const auto &[measureChannelId, stats] : imageChannel.measureChannels) {
-      table::Table table;
-      switch(settings.exportDetail) {
-        case Settings::ExportDetail::PLATE:
-          table = joda::db::HeatmapPerPlate::getData(settings.analyzer, settings.plateId, settings.plateRows,
-                                                     settings.plarteCols, imageChannelId, measureChannelId, stats);
-          break;
-        case Settings::ExportDetail::WELL:
-          table = joda::db::HeatmapForWell::getData(settings.analyzer, settings.plateId, settings.groupId,
-                                                    imageChannelId, measureChannelId, stats, settings.wellImageOrder);
-          break;
-        case Settings::ExportDetail::IMAGE:
-          table = joda::db::HeatmapForImage::getData(settings.analyzer, settings.imageId, imageChannelId,
-                                                     measureChannelId, stats, settings.heatmapAreaSize);
-          break;
-      }
+    for(const auto &[classId, className] : imageChannel.classes) {
+      for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
+        for(const auto stats : statsIn) {
+          auto generate = [&, clusterId = clusterId, classId = classId, className = className,
+                           measureChannelId = measureChannelId](int32_t cStack, const std::string &channelName) {
+            table::Table table;
+            switch(settings.exportDetail) {
+              case Settings::ExportDetail::PLATE:
+                table = joda::db::HeatmapPerPlate::getData(settings.analyzer, settings.plateId, settings.plateRows,
+                                                           settings.plateCols, clusterId, classId, measureChannelId,
+                                                           cStack, stats);
+                break;
+              case Settings::ExportDetail::WELL:
+                table = joda::db::HeatmapForWell::getData(settings.analyzer, settings.plateId, settings.plateRows,
+                                                          settings.plateCols, clusterId, classId, measureChannelId,
+                                                          cStack, stats, settings.groupId, settings.wellImageOrder);
+                break;
+              case Settings::ExportDetail::IMAGE:
+                table = joda::db::HeatmapForImage::getData(settings.analyzer, settings.plateId, settings.plateRows,
+                                                           settings.plateCols, clusterId, classId, measureChannelId,
+                                                           cStack, stats, settings.imageId, settings.heatmapAreaSize);
+                break;
+            }
 
-      paintPlateBorder(worksheet, table.getRows(), table.getCols(), offsets.row, workbookSettings.header,
-                       workbookSettings.merge_format, workbookSettings.numberFormat, measureChannelId.toString());
-      offsets = paintHeatmap(workbookSettings, worksheet, table, offsets.row);
-      offsets.row += 4;
+            paintPlateBorder(worksheet, table.getRows(), table.getCols(), offsets.row, workbookSettings.header,
+                             workbookSettings.merge_format, workbookSettings.numberFormat,
+                             toString(measureChannelId) + "(" + toString(stats) + ")" + channelName);
+            offsets = paintHeatmap(workbookSettings, worksheet, table, offsets.row);
+            offsets.row += 4;
+          };
+
+          if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
+            for(const auto cStack : imageChannel.imageChannelId) {
+              generate(cStack, " CH" + std::to_string(cStack));
+            }
+          } else {
+            generate(0, "");
+          }
+        }
+      }
     }
   }
 }
@@ -98,50 +119,66 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
 
   lxw_worksheet *worksheet = workbook_add_worksheet(workbookSettings.workbook, "overview");
   int colOffset            = 0;
-  for(const auto &[imageChannelId, imageChannel] : settings.imageChannels) {
-    worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET, 0,
-                          colOffset + COL_OFFSET + imageChannel.measureChannels.size() - 1, "-",
-                          workbookSettings.merge_format);
-    worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET, imageChannel.name.data(), workbookSettings.header);
+  for(const auto &[clusterId, imageChannel] : settings.clustersToExport) {
+    int tmpCols = 0;
+    for(const auto &[classId, className] : imageChannel.classes) {
+      for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
+        for(const auto stats : statsIn) {
+          auto generate = [&, clusterId = clusterId, classId = classId, className = className,
+                           measureChannelId = measureChannelId](int32_t cStack, const std::string &channelName) {
+            table::Table table;
+            switch(settings.exportDetail) {
+              case Settings::ExportDetail::PLATE:
+                table = joda::db::StatsPerPlate::getData(settings.analyzer, settings.plateId, settings.plateRows,
+                                                         settings.plateCols, clusterId, classId, className,
+                                                         measureChannelId, cStack, stats);
+                break;
+              case Settings::ExportDetail::WELL:
+                table = joda::db::StatsPerGroup::getData(settings.analyzer, settings.plateId, settings.groupId,
+                                                         clusterId, classId);
+                break;
+              case Settings::ExportDetail::IMAGE:
+                table = joda::db::StatsPerImage::getData(settings.analyzer, settings.plateId, settings.imageId,
+                                                         clusterId, classId, measureChannelId);
+                break;
+            }
 
-    for(const auto &[measureChannelId, stats] : imageChannel.measureChannels) {
-      table::Table table;
+            for(int col = 0; col < table.getCols(); col++) {
+              worksheet_write_string(worksheet, 1, colOffset + COL_OFFSET, table.getMutableColHeader()[col].data(),
+                                     workbookSettings.header);
 
-      switch(settings.exportDetail) {
-        case Settings::ExportDetail::PLATE:
-          table = joda::db::StatsPerPlate::getData(settings.analyzer, settings.plateId, settings.plateRows,
-                                                   settings.plarteCols, imageChannelId, measureChannelId, stats);
-          break;
-        case Settings::ExportDetail::WELL:
-          table = joda::db::StatsPerGroup::getData(settings.analyzer, settings.plateId, settings.groupId,
-                                                   imageChannelId, measureChannelId);
-          break;
-        case Settings::ExportDetail::IMAGE:
-          table = joda::db::StatsPerImage::getData(settings.analyzer, settings.plateId, settings.imageId,
-                                                   imageChannelId, measureChannelId);
-          break;
-      }
+              for(int row = 0; row < table.getRows(); row++) {
+                // Row header
+                worksheet_write_string(worksheet, 1 + ROW_OFFSET + row, 0, table.getRowHeader(row).data(),
+                                       workbookSettings.header);
 
-      for(int col = 0; col < table.getCols(); col++) {
-        worksheet_write_string(worksheet, 1, colOffset + COL_OFFSET, table.getMutableColHeader()[col].data(),
-                               workbookSettings.header);
+                auto *format = workbookSettings.numberFormat;
+                if(!table.data(row, col).isValid()) {
+                  format = workbookSettings.numberFormatInvalid;
+                }
+                // Offset 2 because of title and plate numbering
+                double val = table.data(row, col).getVal();
+                worksheet_write_number(worksheet, 1 + ROW_OFFSET + row, colOffset + COL_OFFSET, val, format);
+              }
+              colOffset++;
+              tmpCols++;
+            }
+          };
 
-        for(int row = 0; row < table.getRows(); row++) {
-          // Row header
-          worksheet_write_string(worksheet, 1 + ROW_OFFSET + row, 0, table.getRowHeader(row).data(),
-                                 workbookSettings.header);
-
-          auto *format = workbookSettings.numberFormat;
-          if(!table.data(row, col).isValid()) {
-            format = workbookSettings.numberFormatInvalid;
+          if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
+            for(const auto cStack : imageChannel.imageChannelId) {
+              generate(cStack, " CH" + std::to_string(cStack));
+            }
+          } else {
+            generate(0, "");
           }
-          // Offset 2 because of title and plate numbering
-          double val = table.data(row, col).getVal();
-          worksheet_write_number(worksheet, 1 + ROW_OFFSET + row, colOffset + COL_OFFSET, val, format);
         }
-        colOffset++;
       }
     }
+    worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET - tmpCols, 0, colOffset + COL_OFFSET - 1, "-",
+                          workbookSettings.merge_format);
+    worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET - tmpCols, imageChannel.name.data(),
+                           workbookSettings.header);
     colOffset++;
   }
 }

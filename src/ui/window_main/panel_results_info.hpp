@@ -54,6 +54,8 @@ public:
   void setData(const DataSet &);
   [[nodiscard]] auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
   [[nodiscard]] auto getPlateSize() const -> QSize;
+  [[nodiscard]] auto getDensityMapSize() const -> uint32_t;
+
   void addResultsFileToHistory(const std::filesystem::path &dbFile, const std::string &jobName,
                                const std::chrono::system_clock::time_point &time);
   void clearHistory();
@@ -71,6 +73,7 @@ private:
   /////////////////////////////////////////////////////
   QComboBox *mPlateSize;
   QLineEdit *mWellOrderMatrix;
+  QComboBox *mDensityMapSize;
 
 private slots:
   void filterResults();

@@ -39,9 +39,11 @@ namespace joda::ui {
 
 struct SelectedFilter
 {
-  uint32_t plateRows = 0;
-  uint32_t plateCols = 0;
-  uint32_t plateId   = 0;
+  uint16_t plateRows = 0;
+  uint16_t plateCols = 0;
+  uint8_t plateId    = 0;
+  uint16_t actGroupId;
+  uint64_t actImageId;
   joda::enums::ClusterId clusterId;
   joda::enums::ClassId classId;
   joda::enums::Measurement measurementChannel;
@@ -107,7 +109,7 @@ private:
   void createBreadCrump(joda::ui::helper::LayoutGenerator *);
   QPushButton *mBackButton;
   PanelPreview *mPreviewImage;
-  uint32_t mDensityMapSize = 200;
+  // uint32_t mDensityMapSize = 200;
 
   QComboBox *mClusterSelector;
   QComboBox *mClassSelector;

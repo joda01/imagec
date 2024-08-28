@@ -13,6 +13,7 @@
 #pragma once
 
 #include <qcombobox.h>
+#include <qnamespace.h>
 #include <iostream>
 #include <optional>
 #include <set>
@@ -152,12 +153,21 @@ public:
     onValueChanged();
   }
 
+  QString getName(VALUE_T key) const
+  {
+    auto idx = mComboBox->findData(static_cast<int>(key), Qt::UserRole + 1);
+    if(idx >= 0) {
+      return mComboBox->itemText(idx);
+    }
+    return "";
+  }
+
   std::set<VALUE_T> getValue()
   {
     std::set<VALUE_T> toReturn;
     auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
 
-    for(const auto &data : checked) {
+    for(const auto &[data, _] : checked) {
       if constexpr(std::same_as<VALUE_T, int32_t>) {
         toReturn.emplace(data.toInt());
       }
@@ -175,6 +185,35 @@ public:
       }
       if constexpr(std::is_enum<VALUE_T>::value) {
         toReturn.emplace((VALUE_T) data.toInt());
+      }
+    }
+
+    return toReturn;
+  }
+
+  std::map<VALUE_T, std::string> getValueAndNames()
+  {
+    std::map<VALUE_T, std::string> toReturn;
+    auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
+
+    for(const auto &[data, txt] : checked) {
+      if constexpr(std::same_as<VALUE_T, int32_t>) {
+        toReturn.emplace(data.toInt(), txt.toStdString());
+      }
+      if constexpr(std::same_as<VALUE_T, uint32_t>) {
+        toReturn.emplace(data.toUInt(), txt.toStdString());
+      }
+      if constexpr(std::same_as<VALUE_T, uint16_t>) {
+        toReturn.emplace(data.toUInt(), txt.toStdString());
+      }
+      if constexpr(std::same_as<VALUE_T, float>) {
+        toReturn.emplace(data.toFloat(), txt.toStdString());
+      }
+      if constexpr(std::same_as<VALUE_T, bool>) {
+        toReturn.emplace(data.toBool(), txt.toStdString());
+      }
+      if constexpr(std::is_enum<VALUE_T>::value) {
+        toReturn.emplace((VALUE_T) data.toInt(), txt.toStdString());
       }
     }
 

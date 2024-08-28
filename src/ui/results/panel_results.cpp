@@ -223,17 +223,19 @@ void PanelResults::onMeasurementChanged()
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-  mFilter = SelectedFilter{.plateRows = static_cast<uint32_t>(size.height()),
-                           .plateCols = static_cast<uint32_t>(size.width()),
-                           .plateId   = 0,
-                           .clusterId = static_cast<joda::enums::ClusterId>(mClusterSelector->currentData().toInt()),
-                           .classId   = static_cast<joda::enums::ClassId>(mClassSelector->currentData().toInt()),
+  mFilter = SelectedFilter{.plateRows  = static_cast<uint16_t>(size.height()),
+                           .plateCols  = static_cast<uint16_t>(size.width()),
+                           .plateId    = 0,
+                           .actGroupId = mActGroupId,
+                           .actImageId = mActImageId,
+                           .clusterId  = static_cast<joda::enums::ClusterId>(mClusterSelector->currentData().toInt()),
+                           .classId    = static_cast<joda::enums::ClassId>(mClassSelector->currentData().toInt()),
                            .measurementChannel =
                                static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
                            .stats              = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
                            .imageChannel       = static_cast<int32_t>(mImageChannelSelector->currentData().toInt()),
                            .wellImageOrder     = wellOrder,
-                           .densityMapAreaSize = mDensityMapSize};
+                           .densityMapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize()};
   setData(mFilter);
 }
 
@@ -558,7 +560,7 @@ void PanelResults::onExportClicked()
             .groupId         = getSelectedGroup(),
             .imageId         = getSelectedImage(),
             .plateRows       = rows,
-            .plarteCols      = cols,
+            .plateCols      = cols,
             .heatmapAreaSize = mDenesityMapSize,
             .wellImageOrder  = wellOrder,
             .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::HEATMAP,
@@ -574,7 +576,7 @@ void PanelResults::onExportClicked()
             .groupId         = getSelectedGroup(),
             .imageId         = getSelectedImage(),
             .plateRows       = rows,
-            .plarteCols      = cols,
+            .plateCols      = cols,
             .heatmapAreaSize = mDenesityMapSize,
             .wellImageOrder  = wellOrder,
             .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::LIST,

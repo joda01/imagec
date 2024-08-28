@@ -16,6 +16,7 @@
 #include <qboxlayout.h>
 #include <qcheckbox.h>
 #include <qcombobox.h>
+#include <qdialog.h>
 #include <qgroupbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
@@ -37,11 +38,13 @@
 #include <utility>
 #include <vector>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/helper/database/exporter/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
 #include "backend/helper/database/plugins/heatmap_for_image.hpp"
 #include "backend/helper/database/plugins/heatmap_for_plate.hpp"
 #include "backend/helper/database/plugins/heatmap_for_well.hpp"
 #include "ui/container/setting/setting_base.hpp"
+#include "ui/helper/setting_generator.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include "panel_results.hpp"
@@ -66,8 +69,8 @@ using Stat = enums::Stats;
 ///
 DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const SelectedFilter &filter,
                                    QWidget *windowMain) :
-    mAnalyzer(analyzer),
-    mFilter(filter), mLayout(this, false, true, false)
+    QDialog(windowMain),
+    mAnalyzer(analyzer), mFilter(filter), mLayout(this, false, true, false)
 {
   setWindowTitle("Export data");
   setMinimumHeight(700);
@@ -89,35 +92,152 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
     mChannelsToExport.emplace(measurement, std::move(element));
   };
 
-  createCheckBoxes(Base::COUNT, {{Stat::AVG, "Avg", ""}}, "", "Count");
-  createCheckBoxes(Base::CONFIDENCE, {{Stat::AVG, "Avg", ""}}, "", "Confidence");
-  createCheckBoxes(Base::AREA_SIZE, {{Stat::AVG, "Avg", ""}}, "", "Area size");
-  createCheckBoxes(Base::PERIMETER, {{Stat::AVG, "Avg", ""}}, "", "Perimeter");
-  createCheckBoxes(Base::CIRCULARITY, {{Stat::AVG, "Avg", ""}}, "icons8-polygon-50-2.png", "Circularity");
-  createCheckBoxes(Base::CENTER_OF_MASS_X, {{Stat::AVG, "Avg", ""}}, "", "Center of mass X");
-  createCheckBoxes(Base::CENTER_OF_MASS_Y, {{Stat::AVG, "Avg", ""}}, "", "Center of mass Y");
-  createCheckBoxes(Base::INTENSITY_AVG, {{Stat::AVG, "Avg", ""}}, "icons8-light-50.png", "Intensity AVG");
-  createCheckBoxes(Base::INTENSITY_MIN, {{Stat::AVG, "Avg", ""}}, "icons8-light-50.png", "Intensity MIN");
-  createCheckBoxes(Base::INTENSITY_MAX, {{Stat::AVG, "Avg", ""}}, "icons8-light-50.png", "Intensity MAX");
+  createCheckBoxes(Base::COUNT,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "", "Count");
+  createCheckBoxes(Base::CONFIDENCE,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "", "Confidence");
+  createCheckBoxes(Base::AREA_SIZE,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "", "Area size");
+  createCheckBoxes(Base::PERIMETER,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "", "Perimeter");
+  createCheckBoxes(Base::CIRCULARITY,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "icons8-polygon-50-2.png", "Circularity");
+  createCheckBoxes(Base::CENTER_OF_MASS_X,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "", "Center of mass X");
+  createCheckBoxes(Base::CENTER_OF_MASS_Y,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "", "Center of mass Y");
+  createCheckBoxes(Base::INTENSITY_AVG,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "icons8-light-50.png", "Intensity AVG");
+  createCheckBoxes(Base::INTENSITY_MIN,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "icons8-light-50.png", "Intensity MIN");
+  createCheckBoxes(Base::INTENSITY_MAX,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "icons8-light-50.png", "Intensity MAX");
 
   col1->addGroup("Measurements", settings);
 
+  //
+  // Details
   mReportingDetails =
       SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>>(windowMain, "", "Details");
-  mReportingDetails->addOptions({{joda::db::BatchExporter::Settings::ExportDetail::PLATE, "Plate", ""},
-                                 {joda::db::BatchExporter::Settings::ExportDetail::WELL, "Well", ""},
-                                 {joda::db::BatchExporter::Settings::ExportDetail::IMAGE, "Image", ""}});
+  mReportingDetails->addOptions({{joda::db::BatchExporter::Settings::ExportDetail::PLATE, "Overview of all images", ""},
+                                 {joda::db::BatchExporter::Settings::ExportDetail::WELL, "Selected well", ""},
+                                 {joda::db::BatchExporter::Settings::ExportDetail::IMAGE, "Selected image", ""}});
   mReportingDetails->setDefaultValue(joda::db::BatchExporter::Settings::ExportDetail::PLATE);
 
+  //
+  // Type
   mReportingType =
       SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>>(windowMain, "", "Type");
   mReportingType->addOptions(
-      {{joda::db::BatchExporter::Settings::ExportType::LIST, "List", ""},
-       {joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", "icons8-heat-map-50.png"}});
-  mReportingType->setDefaultValue(joda::db::BatchExporter::Settings::ExportType::LIST);
+      {{joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", "icons8-heat-map-50.png"},
+       {joda::db::BatchExporter::Settings::ExportType::LIST, "Table", "icons8-table-50.png"}});
+  mReportingType->setDefaultValue(joda::db::BatchExporter::Settings::ExportType::HEATMAP);
+
+  //
+  // Clusters
+  {
+    mClustersToExport = SettingBase::create<SettingComboBoxMulti<enums::ClusterId>>(windowMain, "", "Clusters");
+    std::vector<SettingComboBoxMulti<enums::ClusterId>::ComboEntry> clustersCombo;
+    auto clusters = mAnalyzer->selectClusters();
+    clustersCombo.reserve(clusters.size());
+    for(const auto &[clusterId, cluster] : clusters) {
+      clustersCombo.push_back(SettingComboBoxMulti<enums::ClusterId>::ComboEntry{
+          .key = clusterId, .label = cluster.name.data(), .icon = ""});
+    }
+    mClustersToExport->addOptions(clustersCombo);
+  }
+
+  //
+  // Classes
+  {
+    mClassesToExport = SettingBase::create<SettingComboBoxMulti<enums::ClassId>>(windowMain, "", "Classes");
+    std::vector<SettingComboBoxMulti<enums::ClassId>::ComboEntry> classCombo;
+    auto classes = mAnalyzer->selectClasses();
+    classCombo.reserve(classes.size());
+    for(const auto &[classId, cluster] : classes) {
+      classCombo.push_back(
+          SettingComboBoxMulti<enums::ClassId>::ComboEntry{.key = classId, .label = cluster.name.data(), .icon = ""});
+    }
+    mClassesToExport->addOptions(classCombo);
+  }
+
+  //
+  // Image channels
+  mImageChannels = joda::ui::generateCStackCombo<SettingComboBoxMulti<int32_t>>("Image channels", windowMain);
 
   auto *col2 = tab->addVerticalPanel();
-  col2->addGroup("Exports", {mReportingDetails.get(), mReportingType.get()});
+  col2->addGroup("Exports", {mReportingType.get(), mReportingDetails.get(), mClustersToExport.get(),
+                             mClassesToExport.get(), mImageChannels.get()});
 }
 
 ///
@@ -129,20 +249,38 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
 ///
 void DialogExportData::onExportClicked()
 {
-}
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", "", "Spreadsheet (*.xlsx)");
 
-///
-/// \brief      Export data
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogExportData::exportHeatmap()
-{
-  auto table = joda::db::HeatmapPerPlate::getData(*mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols,
-                                                  mFilter.clusterId, mFilter.classId, mFilter.measurementChannel,
-                                                  mFilter.imageChannel, mFilter.stats);
+  if(filePathOfSettingsFile.isEmpty()) {
+    return;
+  }
+  std::map<enums::ClusterId, joda::db::BatchExporter::BatchExporter::Settings::Channel> clustersToExport;
+  std::map<enums::Measurement, std::set<enums::Stats>> measureChannels;
+
+  for(const auto &[ch, stat] : mChannelsToExport) {
+    measureChannels.emplace(ch, stat->getValue());
+  }
+
+  for(const auto &clusterId : mClustersToExport->getValue()) {
+    clustersToExport.emplace(clusterId, joda::db::BatchExporter::BatchExporter::Settings::Channel{
+                                            .name            = mClustersToExport->getName(clusterId).toStdString(),
+                                            .classes         = mClassesToExport->getValueAndNames(),
+                                            .imageChannelId  = mImageChannels->getValue(),
+                                            .measureChannels = measureChannels});
+  }
+
+  joda::db::BatchExporter::Settings settings{.clustersToExport = clustersToExport,
+                                             .analyzer         = *mAnalyzer,
+                                             .plateId          = mFilter.plateId,
+                                             .groupId          = mFilter.actGroupId,
+                                             .imageId          = mFilter.actImageId,
+                                             .plateRows        = mFilter.plateRows,
+                                             .plateCols        = mFilter.plateCols,
+                                             .heatmapAreaSize  = mFilter.densityMapAreaSize,
+                                             .wellImageOrder   = mFilter.wellImageOrder,
+                                             .exportType       = mReportingType->getValue(),
+                                             .exportDetail     = mReportingDetails->getValue()};
+  joda::db::BatchExporter::startExport(settings, filePathOfSettingsFile.toStdString());
 }
 
 void DialogExportData::onCancelClicked()

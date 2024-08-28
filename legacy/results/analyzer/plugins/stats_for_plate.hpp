@@ -16,8 +16,8 @@ public:
   /// \brief      Get data for plates
   /// \author     Joachim Danmayr
   ///
-  static auto getData(Analyzer &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plarteCols,
-                      ChannelIndex channelId, const MeasureChannelId &measurement, Stats stats) -> Table
+  static auto getData(Analyzer &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plateCols, ChannelIndex channelId,
+                      const MeasureChannelId &measurement, Stats stats) -> Table
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
         "SELECT"

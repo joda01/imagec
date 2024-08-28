@@ -62,7 +62,7 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
       switch(settings.exportDetail) {
         case Settings::ExportDetail::PLATE:
           table = joda::results::analyze::plugins::HeatmapPerPlate::getData(settings.analyzer, settings.plateId,
-                                                                            settings.plateRows, settings.plarteCols,
+                                                                            settings.plateRows, settings.plateCols,
                                                                             imageChannelId, measureChannelId, stats);
           break;
         case Settings::ExportDetail::WELL:
@@ -110,7 +110,7 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
       switch(settings.exportDetail) {
         case Settings::ExportDetail::PLATE:
           table = joda::results::analyze::plugins::StatsPerPlate::getData(settings.analyzer, settings.plateId,
-                                                                          settings.plateRows, settings.plarteCols,
+                                                                          settings.plateRows, settings.plateCols,
                                                                           imageChannelId, measureChannelId, stats);
           break;
         case Settings::ExportDetail::WELL:

@@ -63,6 +63,37 @@ inline std::string toString(const Stats &enumIn)
     case Stats::STDDEV:
       return "stddev";
   }
+  return "";
+}
+
+inline std::string toString(const Measurement &enumIn)
+{
+  switch(enumIn) {
+    case Measurement::COUNT:
+      return "Count";
+    case Measurement::CONFIDENCE:
+      return "Confidence";
+    case Measurement::AREA_SIZE:
+      return "Area size";
+    case Measurement::PERIMETER:
+      return "Perimeter";
+    case Measurement::CIRCULARITY:
+      return "Circularity";
+    case Measurement::INTENSITY_SUM:
+      return "Intensity sum";
+    case Measurement::INTENSITY_AVG:
+      return "Intensity avg";
+    case Measurement::INTENSITY_MIN:
+      return "Intensity min";
+    case Measurement::INTENSITY_MAX:
+      return "Intensity max";
+    case Measurement::CENTER_OF_MASS_X:
+      return "x";
+    case Measurement::CENTER_OF_MASS_Y:
+      return "y";
+      break;
+  }
+  return "";
 }
 
 }    // namespace joda::enums

@@ -16,8 +16,8 @@ public:
   /// \brief      Get data for plates
   /// \author     Joachim Danmayr
   ///
-  static auto getData(Analyzer &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plarteCols,
-                      ChannelIndex channelId, const MeasureChannelId &measurement, Stats stats) -> Table
+  static auto getData(Analyzer &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plateCols, ChannelIndex channelId,
+                      const MeasureChannelId &measurement, Stats stats) -> Table
   {
     std::unique_ptr<duckdb::QueryResult> result = analyzer.getDatabase().select(
         "SELECT"
@@ -55,7 +55,7 @@ public:
       toWrt[0]                           = row + 'A';
       toWrt[1]                           = 0;
       results.getMutableRowHeader()[row] = std::string(toWrt);
-      for(uint8_t col = 0; col < plarteCols; col++) {
+      for(uint8_t col = 0; col < plateCols; col++) {
         results.getMutableColHeader()[col] = std::to_string(col + 1);
         results.setData(row, col, TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, ""});
       }
@@ -73,7 +73,7 @@ public:
           row--;
         }
 
-        if(row < plateRows && col < plarteCols) {
+        if(row < plateRows && col < plateCols) {
           double val = materializedResult->GetValue(3, n).GetValue<double>();
           results.setData(row, col, TableCell{val, groupId, true, ""});
         }

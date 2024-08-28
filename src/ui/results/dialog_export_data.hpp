@@ -23,6 +23,8 @@
 #include <thread>
 #include <tuple>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/exporter/exporter.hpp"
 #include "ui/container/setting/setting_combobox _multi.hpp"
@@ -47,11 +49,13 @@ private:
   void onExportClicked();
   void onCancelClicked();
 
-  void exportHeatmap();
-
   /////////////////////////////////////////////////////
   std::unique_ptr<joda::db::Database> &mAnalyzer;
   const SelectedFilter &mFilter;
+  std::unique_ptr<SettingComboBoxMulti<enums::ClusterId>> mClustersToExport;
+  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mClassesToExport;
+  std::unique_ptr<SettingComboBoxMulti<int32_t>> mImageChannels;
+
   std::map<enums::Measurement, std::unique_ptr<SettingComboBoxMulti<enums::Stats>>> mChannelsToExport;
   std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>> mReportingDetails;
   std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>> mReportingType;

@@ -40,7 +40,7 @@ public:
     uint16_t groupId;
     uint64_t imageId;
     uint16_t plateRows;
-    uint16_t plarteCols;
+    uint16_t plateCols;
     uint32_t heatmapAreaSize;
     std::vector<std::vector<int32_t>> wellImageOrder;
     ExportType exportType;

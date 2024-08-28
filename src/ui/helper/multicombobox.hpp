@@ -15,6 +15,7 @@
 #include <qcombobox.h>
 #include <qvariant.h>
 #include <QtWidgets>
+#include <set>
 
 class QComboBoxMulti : public QComboBox
 {
@@ -44,13 +45,14 @@ public:
     QComboBox::clear();
   }
 
-  QVariantList getCheckedItems() const
+  std::vector<std::pair<QVariant, QString>> getCheckedItems() const
   {
-    QVariantList checkedItems;
+    std::vector<std::pair<QVariant, QString>> checkedItems;
 
     for(int i = 0; i < model->rowCount(); i++) {
       if(model->item(i, 0)->checkState() == Qt::Checked) {
-        checkedItems << model->item(i, 0)->data();
+        QStandardItem *item = model->item(i, 0);
+        checkedItems.emplace_back(item->data(), item->text());
       }
     }
 

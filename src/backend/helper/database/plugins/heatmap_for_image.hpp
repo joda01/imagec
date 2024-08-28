@@ -23,7 +23,7 @@ public:
   ///
   static auto getData(Database &analyzer, uint8_t plateId, uint8_t plateRows, uint8_t plateCols,
                       enums::ClusterId clusterId, enums::ClassId classId, enums::Measurement measurement,
-                      int32_t imageChannelId, enums::Stats stats, uint64_t imageId, uint32_t areaSize) -> table::Table
+                      uint32_t imageChannelId, enums::Stats stats, uint64_t imageId, uint32_t areaSize) -> table::Table
   {
     table::Table results;
     std::string controlImgPath;

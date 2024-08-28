@@ -94,11 +94,30 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
     // Well order matrix
     //
     mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+
+    //
+    // Densitymap size
+    //
+    mDensityMapSize = new QComboBox();
+    mDensityMapSize->addItem("50", 50);
+    mDensityMapSize->addItem("100", 100);
+    mDensityMapSize->addItem("150", 150);
+    mDensityMapSize->addItem("200", 200);
+    mDensityMapSize->addItem("250", 250);
+    mDensityMapSize->addItem("300", 300);
+    mDensityMapSize->addItem("350", 350);
+    mDensityMapSize->addItem("400", 400);
+    mDensityMapSize->addItem("450", 450);
+    mDensityMapSize->setCurrentIndex(3);
+
     formLayout->addRow(new QLabel(tr("Well order:")), mWellOrderMatrix);
     formLayout->addRow(new QLabel(tr("Plate size:")), mPlateSize);
+    formLayout->addRow(new QLabel(tr("Density map size:")), mDensityMapSize);
+
     layout->addLayout(formLayout);
 
     connect(mPlateSize, &QComboBox::currentIndexChanged, this, &PanelResultsInfo::settingsChanged);
+    connect(mDensityMapSize, &QComboBox::currentIndexChanged, this, &PanelResultsInfo::settingsChanged);
     connect(mWellOrderMatrix, &QLineEdit::editingFinished, this, &PanelResultsInfo::settingsChanged);
   }
 
@@ -179,6 +198,18 @@ void PanelResultsInfo::addResultsFileToHistory(const std::filesystem::path &dbFi
   size.setWidth(value % 100);
   size.setHeight(value / 100);
   return size;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] auto PanelResultsInfo::getDensityMapSize() const -> uint32_t
+{
+  return mDensityMapSize->currentData().toUInt();
 }
 
 ///
