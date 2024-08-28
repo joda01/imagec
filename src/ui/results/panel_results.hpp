@@ -37,6 +37,20 @@ class WindowMain;
 
 namespace joda::ui {
 
+struct SelectedFilter
+{
+  uint32_t plateRows = 0;
+  uint32_t plateCols = 0;
+  uint32_t plateId   = 0;
+  joda::enums::ClusterId clusterId;
+  joda::enums::ClassId classId;
+  joda::enums::Measurement measurementChannel;
+  joda::enums::Stats stats;
+  int32_t imageChannel;
+  std::vector<std::vector<int32_t>> wellImageOrder;
+  uint32_t densityMapAreaSize = 200;
+};
+
 ///
 /// \class      PanelResults
 /// \author     Joachim Danmayr
@@ -52,20 +66,6 @@ public:
     PLATE = 0,
     WELL  = 1,
     IMAGE = 2
-  };
-
-  struct SelectedFilter
-  {
-    uint32_t plateRows = 0;
-    uint32_t plateCols = 0;
-    uint32_t plateId   = 0;
-    joda::enums::ClusterId clusterId;
-    joda::enums::ClassId classId;
-    joda::enums::Measurement measurementChannel;
-    joda::enums::Stats stats;
-    int32_t imageChannel;
-    std::vector<std::vector<int32_t>> wellImageOrder;
-    uint32_t densityMapAreaSize = 200;
   };
 
   /////////////////////////////////////////////////////

@@ -35,6 +35,7 @@ enum class Measurement
 
 enum class Stats
 {
+  OFF,
   CNT,
   AVG,
   MAX,

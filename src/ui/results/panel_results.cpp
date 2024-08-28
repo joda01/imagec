@@ -223,17 +223,17 @@ void PanelResults::onMeasurementChanged()
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-  mFilter = PanelResults::SelectedFilter{
-      .plateRows          = static_cast<uint32_t>(size.height()),
-      .plateCols          = static_cast<uint32_t>(size.width()),
-      .plateId            = 0,
-      .clusterId          = static_cast<joda::enums::ClusterId>(mClusterSelector->currentData().toInt()),
-      .classId            = static_cast<joda::enums::ClassId>(mClassSelector->currentData().toInt()),
-      .measurementChannel = static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
-      .stats              = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
-      .imageChannel       = static_cast<int32_t>(mImageChannelSelector->currentData().toInt()),
-      .wellImageOrder     = wellOrder,
-      .densityMapAreaSize = mDensityMapSize};
+  mFilter = SelectedFilter{.plateRows = static_cast<uint32_t>(size.height()),
+                           .plateCols = static_cast<uint32_t>(size.width()),
+                           .plateId   = 0,
+                           .clusterId = static_cast<joda::enums::ClusterId>(mClusterSelector->currentData().toInt()),
+                           .classId   = static_cast<joda::enums::ClassId>(mClassSelector->currentData().toInt()),
+                           .measurementChannel =
+                               static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
+                           .stats              = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
+                           .imageChannel       = static_cast<int32_t>(mImageChannelSelector->currentData().toInt()),
+                           .wellImageOrder     = wellOrder,
+                           .densityMapAreaSize = mDensityMapSize};
   setData(mFilter);
 }
 
@@ -503,8 +503,8 @@ void PanelResults::paintImage()
 ///
 void PanelResults::onExportClicked()
 {
-  DialogExportData exportData(mWindowMain);
-  auto measureChannelsToExport = exportData.execute();
+  DialogExportData exportData(mAnalyzer, mFilter, mWindowMain);
+  exportData.exec();
   /*
     if(measureChannelsToExport.ret != 0) {
       return;

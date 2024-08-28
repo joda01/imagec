@@ -23,37 +23,39 @@
 #include <thread>
 #include <tuple>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/helper/database/database.hpp"
+#include "backend/helper/database/exporter/exporter.hpp"
+#include "ui/container/setting/setting_combobox _multi.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
+#include "ui/helper/layout_generator.hpp"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui {
 
-class DialogExportData : public DialogShadow
+class SelectedFilter;
+
+class DialogExportData : public QDialog
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogExportData(QWidget *windowMain);
-  struct Ret
-  {
-    int ret = -1;
-    std::map<enums::Measurement, enums::Stats> channelsToExport;
-    bool exportHeatmap = false;
-    bool exportList    = false;
-  };
-  Ret execute();
+  DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const SelectedFilter &filter, QWidget *windowMain);
 
 private:
-  std::map<std::tuple<enums::Measurement, enums::Stats>, QCheckBox *> mChannelsToExport;
-  int retVal          = 0;
-  bool mExportHeatmap = false;
-  bool mExportList    = false;
-
-private slots:
-  void onExportListClicked();
-  void onExportHeatmapClicked();
+  /////////////////////////////////////////////////////
+  void onExportClicked();
   void onCancelClicked();
+
+  void exportHeatmap();
+
+  /////////////////////////////////////////////////////
+  std::unique_ptr<joda::db::Database> &mAnalyzer;
+  const SelectedFilter &mFilter;
+  std::map<enums::Measurement, std::unique_ptr<SettingComboBoxMulti<enums::Stats>>> mChannelsToExport;
+  std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>> mReportingDetails;
+  std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>> mReportingType;
+  helper::LayoutGenerator mLayout;
 };
 
 }    // namespace joda::ui
