@@ -92,6 +92,8 @@ inline std::string toString(const Measurement &enumIn)
       return "x";
     case Measurement::CENTER_OF_MASS_Y:
       return "y";
+    case Measurement::INTERSECTING_CNT:
+      return "Intersection count";
       break;
   }
   return "";

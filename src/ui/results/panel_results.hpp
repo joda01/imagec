@@ -24,6 +24,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/database/database.hpp"
+#include "backend/helper/database/plugins/helper.hpp"
 #include "backend/helper/table/table.hpp"
 #include "heatmap/panel_heatmap.hpp"
 #include "ui/container/panel_edit_base.hpp"
@@ -36,22 +37,6 @@ class WindowMain;
 }
 
 namespace joda::ui {
-
-struct SelectedFilter
-{
-  uint16_t plateRows = 0;
-  uint16_t plateCols = 0;
-  uint8_t plateId    = 0;
-  uint16_t actGroupId;
-  uint64_t actImageId;
-  joda::enums::ClusterId clusterId;
-  joda::enums::ClassId classId;
-  joda::enums::Measurement measurementChannel;
-  joda::enums::Stats stats;
-  int32_t imageChannel;
-  std::vector<std::vector<int32_t>> wellImageOrder;
-  uint32_t densityMapAreaSize = 200;
-};
 
 ///
 /// \class      PanelResults
@@ -73,7 +58,6 @@ public:
   /////////////////////////////////////////////////////
   PanelResults(WindowMain *win);
   void openFromFile(const QString &pathToDbFile);
-  void setData(const SelectedFilter &);
   void setActive(bool);
   [[nodiscard]] Navigation getActualNavigation() const
   {
@@ -119,7 +103,7 @@ private:
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;
-  SelectedFilter mFilter;
+  db::QueryFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
   QComboBox *mMarkAsInvalid;
   PanelResultsInfo::DataSet mSelectedDataSet;
@@ -128,8 +112,8 @@ private:
   QAction *mMarkAsInvalidAction;
 
   /////////////////////////////////////////////////////
-  uint16_t mActGroupId;
-  uint64_t mActImageId;
+  uint16_t mActGroupId = 0;
+  uint64_t mActImageId = 0;
 
   uint32_t mSelectedWellId;
   uint64_t mSelectedImageId;

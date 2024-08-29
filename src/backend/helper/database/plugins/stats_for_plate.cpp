@@ -14,25 +14,27 @@
 
 namespace joda::db {
 
-auto StatsPerPlate::getData(const Filter &filter) -> std::unique_ptr<duckdb::QueryResult>
+auto StatsPerPlate::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb::QueryResult>
 {
   auto buildStats = [&]() {
-    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurement) +
+    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) +
            ") FILTER (images.validity = 0) as valid, " + getStatsString(filter.stats) + "(" +
-           getMeasurement(filter.measurement) + ") FILTER (images.validity != 0) as invalid ";
+           getMeasurement(filter.measurementChannel) + ") FILTER (images.validity != 0) as invalid ";
   };
 
   auto queryMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer.select(
+    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
         "SELECT"
         " subquery.group_id as groupid,"
         " ANY_VALUE(pos_on_plate_x) as pos_x,"
         " ANY_VALUE(pos_on_plate_y) as pos_y,"
         " AVG(valid) AS avg_valid,"
-        " AVG(invalid) AS avg_invalid"
+        " AVG(invalid) AS avg_invalid,"
+        " ANY_VALUE(file_name) AS file_name"
         " FROM ("
         "     SELECT"
         "         objects.image_id,"
+        "         ANY_VALUE(images.file_name) AS file_name,"
         "         images_groups.group_id as group_id," +
             buildStats() +
             "     FROM objects "
@@ -48,16 +50,18 @@ auto StatsPerPlate::getData(const Filter &filter) -> std::unique_ptr<duckdb::Que
   };
 
   auto queryIntensityMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer.select(
+    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
         "SELECT"
         " subquery.group_id as groupid,"
         " ANY_VALUE(pos_on_plate_x) as pos_x,"
         " ANY_VALUE(pos_on_plate_y) as pos_y,"
         " AVG(valid) AS avg_valid,"
-        " AVG(invalid) AS avg_invalid"
+        " AVG(invalid) AS avg_invalid,"
+        " ANY_VALUE(file_name) AS file_name"
         " FROM ("
         "     SELECT"
         "         objects.image_id,"
+        "         ANY_VALUE(images.file_name) AS file_name,"
         "         images_groups.group_id as group_id," +
             buildStats() +
             "     FROM objects "
@@ -71,22 +75,24 @@ auto StatsPerPlate::getData(const Filter &filter) -> std::unique_ptr<duckdb::Que
             " JOIN groups ON subquery.group_id = groups.group_id "
             " GROUP BY groupid",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint32_t>(filter.imageChannelId));
+        static_cast<uint32_t>(filter.stack_c));
     return result;
   };
 
   auto queryIntersectingMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer.select(
+    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
         "SELECT"
         " subquery.group_id as groupid,"
         " ANY_VALUE(pos_on_plate_x) as pos_x,"
         " ANY_VALUE(pos_on_plate_y) as pos_y,"
         " AVG(valid) AS avg_valid,"
-        " AVG(invalid) AS avg_invalid"
+        " AVG(invalid) AS avg_invalid,"
+        " ANY_VALUE(file_name) AS file_name"
         " FROM ("
         "     SELECT"
         "       object_intersections.image_id,"
         "     	objects.object_id,"
+        "       ANY_VALUE(images.file_name) AS file_name,"
         "       images_groups.group_id as group_id,"
         "     	COUNT(object_intersections.meas_object_id) FILTER (images.validity = 0) as valid,"
         "     	COUNT(object_intersections.meas_object_id) FILTER (images.validity != 0) as invalid"
@@ -111,7 +117,7 @@ auto StatsPerPlate::getData(const Filter &filter) -> std::unique_ptr<duckdb::Que
   };
 
   auto query = [&]() {
-    switch(getType(filter.measurement)) {
+    switch(getType(filter.measurementChannel)) {
       case OBJECT:
         return queryMeasure();
       case INTENSITY:
@@ -124,7 +130,7 @@ auto StatsPerPlate::getData(const Filter &filter) -> std::unique_ptr<duckdb::Que
   return query();
 }
 
-auto StatsPerPlate::toTable(const Filter &filter) -> joda::table::Table
+auto StatsPerPlate::toTable(const QueryFilter &filter) -> joda::table::Table
 {
   auto queryResult = getData(filter);
   if(queryResult->HasError()) {
@@ -132,18 +138,25 @@ auto StatsPerPlate::toTable(const Filter &filter) -> joda::table::Table
   }
   auto materializedResult = queryResult->Cast<duckdb::StreamQueryResult>().Materialize();
   table::Table results;
-  results.getMutableColHeader()[0] = toString(filter.measurement) + "(" + filter.className + ")";
+  results.getMutableColHeader()[0] = toString(filter.measurementChannel) + "(" + filter.className + ")";
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
     try {
       uint16_t groupId      = materializedResult->GetValue(0, n).GetValue<uint16_t>();
       uint16_t col          = materializedResult->GetValue(1, n).GetValue<uint16_t>();
       uint16_t row          = materializedResult->GetValue(2, n).GetValue<uint16_t>();
-      std::string groupName = materializedResult->GetValue(3, n).GetValue<std::string>();
+      std::string imageName = materializedResult->GetValue(5, n).GetValue<std::string>();
       double valValid       = 0;
-      if(!materializedResult->GetValue(4, n).IsNull()) {
-        valValid = materializedResult->GetValue(4, n).GetValue<double>();
+      bool valid;
+      if(!materializedResult->GetValue(3, n).IsNull()) {
+        valValid = materializedResult->GetValue(3, n).GetValue<double>();
       }
-      results.getMutableRowHeader()[n] = groupName;
+      // At least one image in this well is invalid!
+      if(!materializedResult->GetValue(4, n).IsNull()) {
+        if(materializedResult->GetValue(4, n).GetValue<double>() > 0) {
+          valid = false;
+        }
+      }
+      results.getMutableRowHeader()[n] = imageName;
       results.setData(n, 0, table::TableCell{valValid, groupId, true, ""});
 
     } catch(const duckdb::InternalException &ups) {
@@ -154,7 +167,7 @@ auto StatsPerPlate::toTable(const Filter &filter) -> joda::table::Table
   return results;
 }
 
-auto StatsPerPlate::toHeatmap(const Filter &filter) -> joda::table::Table
+auto StatsPerPlate::toHeatmap(const QueryFilter &filter) -> joda::table::Table
 {
   auto queryResult = getData(filter);
   if(queryResult->HasError()) {

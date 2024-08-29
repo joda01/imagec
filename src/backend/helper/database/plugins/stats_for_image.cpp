@@ -11,6 +11,8 @@
 ///
 
 #include "stats_for_image.hpp"
+#include <string>
+#include "backend/enums/enum_measurements.hpp"
 
 namespace joda::db {
 
@@ -23,43 +25,84 @@ namespace joda::db {
 ///
 auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
 {
-  table::Table results;
-
-  std::unique_ptr<duckdb::QueryResult> stats = filter.analyzer.select(
-      "SELECT"
-      "  SUM(element_at(values, $1)[1]) as val_sum,"
-      "  MIN(element_at(values, $1)[1]) as val_min,"
-      "  MAX(element_at(values, $1)[1]) as val_max,"
-      "  AVG(element_at(values, $1)[1]) as val_avg,"
-      "  STDDEV(element_at(values, $1)[1]) as val_stddev "
-      "FROM objects "
-      "WHERE"
-      " objects.image_id=$2 AND objects.validity=0 AND objects.channel_id=$3 ",
-      (uint16_t) filter.measurement, filter.imageId, static_cast<uint8_t>(filter.clusterId));
-
-  if(stats->HasError()) {
-    throw std::invalid_argument(stats->GetError());
+  if(filter.measurementChannel == enums::Measurement::COUNT) {
+    return {};
   }
+  auto buildStats = [&]() { return getMeasurement(filter.measurementChannel) + " as val"; };
 
-  auto materializedResult = stats->Cast<duckdb::StreamQueryResult>().Materialize();
-  results.setColHeader({{0, toString(filter.measurement)}});
+  auto queryMeasure = [&]() {
+    std::unique_ptr<duckdb::QueryResult> stats = filter.analyzer->select(
+        "SELECT " + buildStats() +
+            " FROM objects "
+            "WHERE"
+            " objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 ",
+        filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId));
+    return stats;
+  };
 
-  results.getMutableRowHeader()[0] = "sum";
-  results.getMutableRowHeader()[1] = "min";
-  results.getMutableRowHeader()[2] = "max";
-  results.getMutableRowHeader()[3] = "avg";
-  results.getMutableRowHeader()[4] = "stddev";
+  auto queryIntensityMeasure = [&]() {
+    std::unique_ptr<duckdb::QueryResult> stats = filter.analyzer->select(
+        "SELECT " + buildStats() +
+            " FROM objects "
+            "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
+            "                             objects.image_id = object_measurements.image_id AND  "
+            "                             object_measurements.meas_stack_c = $4 )"
+            " WHERE"
+            "  objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 AND "
+            "object_measurements.meas_stack_c = $4",
+        filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
+        filter.stack_c);
+    return stats;
+  };
+
+  auto queryIntersectingMeasure = [&]() {
+    std::unique_ptr<duckdb::QueryResult> stats = filter.analyzer->select(
+        "SELECT "
+        "  	COUNT(object_intersections.meas_object_id) as valid"
+        "  FROM"
+        "  	object_intersections"
+        "  JOIN objects ON"
+        "  	objects.object_id = object_intersections.meas_object_id"
+        "  	AND objects.image_id = object_intersections.image_id   "
+        "  	AND objects.cluster_id = $1                            "
+        "  	AND objects.class_id = $2                              "
+        "  WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3"
+        "  GROUP BY objects.object_id  ",
+        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.actImageId);
+    return stats;
+  };
+
+  std::string prefix;
+  auto query = [&]() -> std::unique_ptr<duckdb::QueryResult> {
+    switch(getType(filter.measurementChannel)) {
+      case OBJECT:
+        return queryMeasure();
+      case INTENSITY:
+        prefix = " (CH" + std::to_string(filter.stack_c) + ")";
+        return queryIntensityMeasure();
+      case COUNT:
+        prefix = " (" + filter.className + ")";
+        return queryIntersectingMeasure();
+    }
+  };
+
+  auto result = query();
+
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  table::Table results;
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  results.setColHeader({{0, filter.className + " - " + toString(filter.measurementChannel) + prefix}});
+
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    results.getMutableRowHeader()[n] = std::to_string(n);
     try {
-      results.setData(0, n, table::TableCell{materializedResult->GetValue(0, 0).GetValue<double>(), 0, true, ""});
-      results.setData(1, n, table::TableCell{materializedResult->GetValue(1, 0).GetValue<double>(), 0, true, ""});
-      results.setData(2, n, table::TableCell{materializedResult->GetValue(2, 0).GetValue<double>(), 0, true, ""});
-      results.setData(3, n, table::TableCell{materializedResult->GetValue(3, 0).GetValue<double>(), 0, true, ""});
-      results.setData(4, n, table::TableCell{materializedResult->GetValue(4, 0).GetValue<double>(), 0, true, ""});
-
+      results.setData(n, 0, table::TableCell{materializedResult->GetValue(0, n).GetValue<double>(), 0, true, ""});
     } catch(const duckdb::InternalException &) {
     }
   }
+  return results;
 }
 
 ///
@@ -75,7 +118,7 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
   std::string controlImgPath;
 
   {
-    std::unique_ptr<duckdb::QueryResult> images = filter.analyzer.select(
+    std::unique_ptr<duckdb::QueryResult> images = filter.analyzer->select(
         "SELECT"
         "  images.image_id as image_id,"
         "  images.width as width,"
@@ -84,7 +127,7 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
         "FROM images "
         "WHERE"
         " image_id=$1",
-        static_cast<uint64_t>(filter.imageId));
+        static_cast<uint64_t>(filter.actImageId));
     if(images->HasError()) {
       throw std::invalid_argument("S:" + images->GetError());
     }
@@ -109,21 +152,82 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
     }
   }
   auto buildStats = [&]() {
-    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurement) + ") as val";
+    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") as val";
   };
 
   {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer.select(
-        "SELECT "
-        "floor(meas_center_x / $3) * $3 AS rectangle_x,"
-        "floor(meas_center_y / $3) * $3 AS rectangle_y," +
-            buildStats() +
-            " FROM objects "
-            " WHERE"
-            "  image_id=$1 AND cluster_id=$2 AND class_id=$4 "
-            "GROUP BY floor(meas_center_x / $3), floor(meas_center_y / $3)",
-        filter.imageId, static_cast<uint16_t>(filter.clusterId), duckdb::Value::DOUBLE(filter.densityMapAreaSize),
-        static_cast<uint16_t>(filter.classId));
+    auto queryMeasure = [&]() {
+      std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
+          "SELECT "
+          "floor(meas_center_x / $4) * $4 AS rectangle_x,"
+          "floor(meas_center_y / $4) * $4 AS rectangle_y," +
+              buildStats() +
+              " FROM objects "
+              " WHERE"
+              "  image_id=$1 AND cluster_id=$2 AND class_id=$3 "
+              "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)",
+          filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
+          duckdb::Value::DOUBLE(filter.densityMapAreaSize));
+
+      return result;
+    };
+
+    auto queryIntensityMeasure = [&]() {
+      std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
+          "SELECT "
+          "floor(meas_center_x / $4) * $4 AS rectangle_x,"
+          "floor(meas_center_y / $4) * $4 AS rectangle_y," +
+              buildStats() +
+              " FROM objects "
+              "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
+              "                                  objects.image_id = object_measurements.image_id "
+              "                             AND object_measurements.meas_stack_c = $5)"
+              " WHERE"
+              "  objects.image_id=$1 AND cluster_id=$2 AND class_id=$3 "
+              "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)",
+          filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
+          duckdb::Value::DOUBLE(filter.densityMapAreaSize), filter.stack_c);
+
+      return result;
+    };
+
+    auto queryIntersectingMeasure = [&]() {
+      std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
+          "SELECT "
+          "floor(meas_center_x / $5) * $5 AS rectangle_x,"
+          "floor(meas_center_y / $5) * $5 AS rectangle_y,"
+          "  	COUNT(object_intersections.meas_object_id) FILTER (images.validity = 0) as valid,"
+          "  	COUNT(object_intersections.meas_object_id) FILTER (images.validity != 0) as invalid"
+          "  FROM"
+          "  	object_intersections"
+          " JOIN images ON object_intersections.image_id = images.image_id"
+          "  JOIN images_groups ON object_intersections.image_id = images_groups.image_id "
+          "  JOIN objects ON"
+          "  	objects.object_id = object_intersections.meas_object_id"
+          "  	AND objects.image_id = object_intersections.image_id   "
+          "  	AND objects.cluster_id = $1                            "
+          "  	AND objects.class_id = $2                              "
+          "  WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3 AND "
+          "        objects.stack_c = $4"
+          "GROUP BY objects.object_id, floor(meas_center_x / $5), floor(meas_center_y / $5)",
+          static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.actImageId,
+          filter.stack_c, duckdb::Value::DOUBLE(filter.densityMapAreaSize));
+
+      return result;
+    };
+
+    auto query = [&]() {
+      switch(getType(filter.measurementChannel)) {
+        case OBJECT:
+          return queryMeasure();
+        case INTENSITY:
+          return queryIntensityMeasure();
+        case COUNT:
+          return queryIntersectingMeasure();
+      }
+    };
+
+    auto result = query();
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());

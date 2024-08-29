@@ -36,9 +36,10 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
-#include "backend/helper/database/plugins/heatmap_for_image.hpp"
-#include "backend/helper/database/plugins/heatmap_for_plate.hpp"
-#include "backend/helper/database/plugins/heatmap_for_well.hpp"
+#include "backend/helper/database/plugins/helper.hpp"
+#include "backend/helper/database/plugins/stats_for_image.hpp"
+#include "backend/helper/database/plugins/stats_for_plate.hpp"
+#include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_label.hpp"
 #include "ui/container/panel_edit_base.hpp"
@@ -224,20 +225,22 @@ void PanelResults::onMeasurementChanged()
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-  mFilter = SelectedFilter{.plateRows  = static_cast<uint16_t>(size.height()),
-                           .plateCols  = static_cast<uint16_t>(size.width()),
-                           .plateId    = 0,
-                           .actGroupId = mActGroupId,
-                           .actImageId = mActImageId,
-                           .clusterId  = static_cast<joda::enums::ClusterId>(mClusterSelector->currentData().toInt()),
-                           .classId    = static_cast<joda::enums::ClassId>(mClassSelector->currentData().toInt()),
-                           .measurementChannel =
-                               static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
-                           .stats              = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
-                           .imageChannel       = static_cast<int32_t>(mImageChannelSelector->currentData().toInt()),
-                           .wellImageOrder     = wellOrder,
-                           .densityMapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize()};
-  setData(mFilter);
+  mFilter = db::QueryFilter{.analyzer   = mAnalyzer.get(),
+                            .plateRows  = static_cast<uint16_t>(size.height()),
+                            .plateCols  = static_cast<uint16_t>(size.width()),
+                            .plateId    = 0,
+                            .actGroupId = mActGroupId,
+                            .actImageId = mActImageId,
+                            .clusterId  = static_cast<joda::enums::ClusterId>(mClusterSelector->currentData().toInt()),
+                            .classId    = static_cast<joda::enums::ClassId>(mClassSelector->currentData().toInt()),
+                            .className  = mClassSelector->currentText().toStdString(),
+                            .measurementChannel =
+                                static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
+                            .stats          = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
+                            .stack_c        = static_cast<uint32_t>(mImageChannelSelector->currentData().toInt()),
+                            .wellImageOrder = wellOrder,
+                            .densityMapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize()};
+  repaintHeatmap();
 }
 
 ///
@@ -285,17 +288,7 @@ void PanelResults::onMarkAsInvalidClicked()
     val.set(enums::ChannelValidityEnum::MANUAL_OUT_SORTED);
     mAnalyzer->unsetImageValidity(mSelectedImageId, val);
   }
-  repaintHeatmap();
-}
-
-///
-/// \brief      Constructor
-/// \author     Joachim Danmayr
-///
-void PanelResults::setData(const SelectedFilter &filter)
-{
-  mFilter = filter;
-  repaintHeatmap();
+  onMeasurementChanged();
 }
 
 ///
@@ -374,7 +367,7 @@ void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
       mActImageId = value.getId();
       break;
   }
-  repaintHeatmap();
+  onMeasurementChanged();
 }
 
 ///
@@ -400,7 +393,7 @@ void PanelResults::onBackClicked()
       break;
   }
 
-  repaintHeatmap();
+  onMeasurementChanged();
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 
@@ -441,9 +434,7 @@ void PanelResults::paintPlate()
   mBackButton->setEnabled(false);
   if(mAnalyzer) {
     mNavigation = Navigation::PLATE;
-    auto result = joda::db::HeatmapPerPlate::getData(*mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols,
-                                                     mFilter.clusterId, mFilter.classId, mFilter.measurementChannel,
-                                                     mFilter.imageChannel, mFilter.stats);
+    auto result = joda::db::StatsPerPlate::toHeatmap(mFilter);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
   } else {
@@ -475,9 +466,7 @@ void PanelResults::paintWell()
   mBackButton->setEnabled(true);
   if(mAnalyzer) {
     mNavigation = Navigation::WELL;
-    auto result = joda::db::HeatmapForWell::getData(
-        *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.clusterId, mFilter.classId,
-        mFilter.measurementChannel, mFilter.imageChannel, mFilter.stats, mActGroupId, mFilter.wellImageOrder);
+    auto result = joda::db::StatsPerGroup::toHeatmap(mFilter);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO,
                         static_cast<int32_t>(mNavigation));
   }
@@ -492,9 +481,7 @@ void PanelResults::paintImage()
   mBackButton->setEnabled(true);
   if(mAnalyzer) {
     mNavigation = Navigation::IMAGE;
-    auto result = joda::db::HeatmapForImage::getData(
-        *mAnalyzer, mFilter.plateId, mFilter.plateRows, mFilter.plateCols, mFilter.clusterId, mFilter.classId,
-        mFilter.measurementChannel, mFilter.imageChannel, mFilter.stats, mActImageId, mFilter.densityMapAreaSize);
+    auto result = joda::db::StatsPerImage::toHeatmap(mFilter);
     mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES,
                         static_cast<int32_t>(mNavigation));
   }

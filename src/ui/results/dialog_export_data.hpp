@@ -32,9 +32,11 @@
 #include "ui/helper/layout_generator.hpp"
 #include <nlohmann/json_fwd.hpp>
 
-namespace joda::ui {
+namespace joda::db {
+class QueryFilter;
+}
 
-class SelectedFilter;
+namespace joda::ui {
 
 class DialogExportData : public QDialog
 {
@@ -42,7 +44,7 @@ class DialogExportData : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const SelectedFilter &filter, QWidget *windowMain);
+  DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const db::QueryFilter &filter, QWidget *windowMain);
 
 private:
   /////////////////////////////////////////////////////
@@ -51,7 +53,7 @@ private:
 
   /////////////////////////////////////////////////////
   std::unique_ptr<joda::db::Database> &mAnalyzer;
-  const SelectedFilter &mFilter;
+  const db::QueryFilter &mFilter;
   std::unique_ptr<SettingComboBoxMulti<enums::ClusterId>> mClustersToExport;
   std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mClassesToExport;
   std::unique_ptr<SettingComboBoxMulti<int32_t>> mImageChannels;

@@ -31,13 +31,10 @@ auto StatsPerGroup::toTable(const QueryFilter &filter) -> joda::table::Table
 {
   auto materializedResult = getData(filter)->Cast<duckdb::StreamQueryResult>().Materialize();
   table::Table results;
+  results.setColHeader({{0, toString(filter.measurementChannel) + "(" + toString(filter.stats) + ")"}});
 
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
     try {
-      if(0 == n) {
-        results.setColHeader({{0, toString(filter.measurement) + "(" + toString(filter.stats) + ")"}});
-      }
-
       uint64_t id = materializedResult->GetValue(0, n).GetValue<uint64_t>();
 
       results.getMutableRowHeader()[n] = materializedResult->GetValue(2, n).GetValue<std::string>();
@@ -50,7 +47,10 @@ auto StatsPerGroup::toTable(const QueryFilter &filter) -> joda::table::Table
       }
       // Invalid
       if(!materializedResult->GetValue(6, n).IsNull()) {
-        value = materializedResult->GetValue(6, n).GetValue<double>();
+        auto valueTmp = materializedResult->GetValue(6, n).GetValue<double>();
+        if(valueTmp > 0) {
+          value = valueTmp;
+        }
       }
       results.setData(n, 0, table::TableCell{value, id, true, ""});
 
@@ -101,7 +101,10 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter) -> joda::table::Table
       }
       // Invalid
       if(!materializedResult->GetValue(6, n).IsNull()) {
-        value = materializedResult->GetValue(6, n).GetValue<double>();
+        auto valueTmp = materializedResult->GetValue(6, n).GetValue<double>();
+        if(valueTmp > 0) {
+          value = valueTmp;
+        }
       }
 
       results.setData(pos.y, pos.x, table::TableCell{value, imageId, !validity.any(), imgFilename});
@@ -123,14 +126,14 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter) -> joda::table::Table
 auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb::QueryResult>
 {
   auto buildStats = [&]() {
-    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurement) +
+    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) +
            ") FILTER (images_planes.validity = 0 AND images.validity = 0) as valid, " + getStatsString(filter.stats) +
-           "(" + getMeasurement(filter.measurement) +
+           "(" + getMeasurement(filter.measurementChannel) +
            ") FILTER (images_planes.validity != 0 OR images.validity != 0) as invalid ";
   };
 
   auto queryMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer.select(
+    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
         " SELECT"
         " objects.image_id,"
         " ANY_VALUE(images_groups.image_group_idx),"
@@ -146,12 +149,12 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
             " GROUP BY objects.image_id, images_groups.group_id",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint16_t>(filter.groupId), static_cast<uint32_t>(filter.imageChannelId));
+        static_cast<uint16_t>(filter.actGroupId), static_cast<uint32_t>(filter.stack_c));
     return result;
   };
 
   auto queryIntensityMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer.select(
+    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
         " SELECT"
         " objects.image_id,"
         " ANY_VALUE(images_groups.image_group_idx),"
@@ -170,40 +173,52 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
             " GROUP BY objects.image_id, images_groups.group_id",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint16_t>(filter.groupId), static_cast<uint32_t>(filter.imageChannelId));
+        static_cast<uint16_t>(filter.actGroupId), static_cast<uint32_t>(filter.stack_c));
     return result;
   };
 
   auto queryIntersectingMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer.select(
-        "  SELECT"
-        "   object_intersections.image_id,"
-        "   ANY_VALUE(images_groups.image_group_idx),"
-        "   ANY_VALUE(images.file_name),"
-        "   ANY_VALUE(images.validity),"
-        "   images_groups.group_id as group_id,"
-        "  	COUNT(object_intersections.meas_object_id) FILTER (images.validity = 0) as valid,"
-        "  	COUNT(object_intersections.meas_object_id) FILTER (images.validity != 0) as invalid"
-        "  FROM"
-        "  	object_intersections"
-        " JOIN images ON object_intersections.image_id = images.image_id"
-        "  JOIN images_groups ON object_intersections.image_id = images_groups.image_id "
-        "  JOIN objects ON"
-        "  	objects.object_id = object_intersections.meas_object_id"
-        "  	AND objects.image_id = object_intersections.image_id   "
-        "  	AND objects.cluster_id = $1                            "
-        "  	AND objects.class_id = $2                              "
-        "  WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND images_groups.group_id = $3 AND "
-        "        object_measurements.meas_stack_c = $4"
-        "  GROUP BY                                                 "
-        "  	(objects.object_id, object_intersections.image_id, images_groups.group_id)  ",
+    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
+        "   SELECT "
+        "   subquery.image_id,"
+        "     ANY_VALUE(subquery.image_group_idx),"
+        "     ANY_VALUE(subquery.file_name),"
+        "     ANY_VALUE(subquery.validity),"
+        "     ANY_VALUE(subquery.group_id) as group_id,"
+        "    	AVG(subquery.valid)  as valid,"
+        "    	AVG(subquery.invalid)  as invalid"
+        "   FROM"
+        "   ("
+        "    SELECT"
+        "     object_intersections.image_id,"
+        "     ANY_VALUE(images_groups.image_group_idx) as image_group_idx,"
+        "     ANY_VALUE(images.file_name) as file_name,"
+        "     ANY_VALUE(images.validity) as validity,"
+        "     ANY_VALUE(images_groups.group_id) as group_id,"
+        "    	COUNT(object_intersections.meas_object_id) FILTER (images.validity = 0) as valid,"
+        "    	COUNT(object_intersections.meas_object_id) FILTER (images.validity != 0) as invalid"
+        "    FROM"
+        "    	object_intersections"
+        "    JOIN images ON object_intersections.image_id = images.image_id"
+        "    JOIN images_groups ON object_intersections.image_id = images_groups.image_id "
+        "    JOIN objects ON"
+        "    	objects.object_id = object_intersections.meas_object_id"
+        "    	AND objects.image_id = object_intersections.image_id   "
+        "    	AND objects.cluster_id = $1                            "
+        "    	AND objects.class_id = $2                            "
+        "     AND images_groups.group_id = $3"
+        "    WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND images_groups.group_id = $3"
+        "    GROUP BY                                                 "
+        "    	(objects.object_id, object_intersections.image_id)  "
+        "    	) AS subquery"
+        "    	GROUP BY image_id",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint16_t>(filter.groupId), static_cast<uint32_t>(filter.imageChannelId));
+        static_cast<uint16_t>(filter.actGroupId));
     return result;
   };
 
   auto query = [&]() {
-    switch(getType(filter.measurement)) {
+    switch(getType(filter.measurementChannel)) {
       case OBJECT:
         return queryMeasure();
       case INTENSITY:

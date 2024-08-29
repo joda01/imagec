@@ -40,9 +40,9 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/database/exporter/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
-#include "backend/helper/database/plugins/heatmap_for_image.hpp"
-#include "backend/helper/database/plugins/heatmap_for_plate.hpp"
-#include "backend/helper/database/plugins/heatmap_for_well.hpp"
+#include "backend/helper/database/plugins/stats_for_image.hpp"
+#include "backend/helper/database/plugins/stats_for_plate.hpp"
+#include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/helper/setting_generator.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
@@ -67,7 +67,7 @@ using Stat = enums::Stats;
 /// \param[out]
 /// \return
 ///
-DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const SelectedFilter &filter,
+DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const db::QueryFilter &filter,
                                    QWidget *windowMain) :
     QDialog(windowMain),
     mAnalyzer(analyzer), mFilter(filter), mLayout(this, false, true, false)
@@ -137,6 +137,15 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
                     {Stat::MEDIAN, "Median", ""},
                     {Stat::STDDEV, "Stddev", ""}},
                    "icons8-polygon-50-2.png", "Circularity");
+  createCheckBoxes(Base::INTERSECTING_CNT,
+                   {{Stat::AVG, "Avg", ""},
+                    {Stat::CNT, "Cnt", ""},
+                    {Stat::SUM, "Sum", ""},
+                    {Stat::MIN, "Min", ""},
+                    {Stat::MAX, "Max", ""},
+                    {Stat::MEDIAN, "Median", ""},
+                    {Stat::STDDEV, "Stddev", ""}},
+                   "", "Intersecting count");
   createCheckBoxes(Base::CENTER_OF_MASS_X,
                    {{Stat::AVG, "Avg", ""},
                     {Stat::CNT, "Cnt", ""},

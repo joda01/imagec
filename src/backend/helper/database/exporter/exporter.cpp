@@ -4,10 +4,6 @@
 #include <cstddef>
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
-#include "backend/helper/database/plugins/control_image.hpp"
-#include "backend/helper/database/plugins/heatmap_for_image.hpp"
-#include "backend/helper/database/plugins/heatmap_for_plate.hpp"
-#include "backend/helper/database/plugins/heatmap_for_well.hpp"
 #include "backend/helper/database/plugins/helper.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
 #include "backend/helper/database/plugins/stats_for_plate.hpp"
@@ -65,23 +61,32 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
       for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
         for(const auto stats : statsIn) {
           auto generate = [&, clusterId = clusterId, classId = classId, className = className,
-                           measureChannelId = measureChannelId](int32_t cStack, const std::string &channelName) {
+                           measureChannelId = measureChannelId](uint32_t cStack, const std::string &channelName) {
             table::Table table;
+            auto filter = joda::db::QueryFilter{.analyzer           = &settings.analyzer,
+                                                .plateRows          = settings.plateRows,
+                                                .plateCols          = settings.plateCols,
+                                                .plateId            = settings.plateId,
+                                                .actGroupId         = settings.groupId,
+                                                .actImageId         = settings.imageId,
+                                                .classId            = classId,
+                                                .className          = className,
+                                                .measurementChannel = measureChannelId,
+                                                .stats              = stats,
+                                                .stack_c            = cStack,
+                                                .wellImageOrder     = settings.wellImageOrder,
+                                                .densityMapAreaSize = settings.heatmapAreaSize};
+
             switch(settings.exportDetail) {
               case Settings::ExportDetail::PLATE:
-                table = joda::db::HeatmapPerPlate::getData(settings.analyzer, settings.plateId, settings.plateRows,
-                                                           settings.plateCols, clusterId, classId, measureChannelId,
-                                                           cStack, stats);
+                table = joda::db::StatsPerPlate::toHeatmap(filter);
+
                 break;
               case Settings::ExportDetail::WELL:
-                table = joda::db::HeatmapForWell::getData(settings.analyzer, settings.plateId, settings.plateRows,
-                                                          settings.plateCols, clusterId, classId, measureChannelId,
-                                                          cStack, stats, settings.groupId, settings.wellImageOrder);
+                table = joda::db::StatsPerGroup::toHeatmap(filter);
                 break;
               case Settings::ExportDetail::IMAGE:
-                table = joda::db::HeatmapForImage::getData(settings.analyzer, settings.plateId, settings.plateRows,
-                                                           settings.plateCols, clusterId, classId, measureChannelId,
-                                                           cStack, stats, settings.imageId, settings.heatmapAreaSize);
+                table = joda::db::StatsPerImage::toHeatmap(filter);
                 break;
             }
 
@@ -125,21 +130,31 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
       for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
         for(const auto stats : statsIn) {
           auto generate = [&, clusterId = clusterId, classId = classId, className = className,
-                           measureChannelId = measureChannelId](int32_t cStack, const std::string &channelName) {
+                           measureChannelId = measureChannelId](uint32_t cStack, const std::string &channelName) {
+            auto filter = joda::db::QueryFilter{.analyzer           = &settings.analyzer,
+                                                .plateRows          = settings.plateRows,
+                                                .plateCols          = settings.plateCols,
+                                                .plateId            = settings.plateId,
+                                                .actGroupId         = settings.groupId,
+                                                .actImageId         = settings.imageId,
+                                                .classId            = classId,
+                                                .className          = className,
+                                                .measurementChannel = measureChannelId,
+                                                .stats              = stats,
+                                                .stack_c            = cStack,
+                                                .wellImageOrder     = settings.wellImageOrder,
+                                                .densityMapAreaSize = settings.heatmapAreaSize};
+
             table::Table table;
             switch(settings.exportDetail) {
               case Settings::ExportDetail::PLATE:
-                table = joda::db::StatsPerPlate::getData(settings.analyzer, settings.plateId, settings.plateRows,
-                                                         settings.plateCols, clusterId, classId, className,
-                                                         measureChannelId, cStack, stats);
+                table = joda::db::StatsPerPlate::toTable(filter);
                 break;
               case Settings::ExportDetail::WELL:
-                table = joda::db::StatsPerGroup::getData(settings.analyzer, settings.plateId, settings.groupId,
-                                                         clusterId, classId);
+                table = joda::db::StatsPerGroup::toTable(filter);
                 break;
               case Settings::ExportDetail::IMAGE:
-                table = joda::db::StatsPerImage::getData(settings.analyzer, settings.plateId, settings.imageId,
-                                                         clusterId, classId, measureChannelId);
+                table = joda::db::StatsPerImage::toTable(filter);
                 break;
             }
 

@@ -32,9 +32,9 @@
 #include <utility>
 #include "../panel_results.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
-#include "backend/helper/database/plugins/heatmap_for_image.hpp"
-#include "backend/helper/database/plugins/heatmap_for_plate.hpp"
-#include "backend/helper/database/plugins/heatmap_for_well.hpp"
+#include "backend/helper/database/plugins/stats_for_image.hpp"
+#include "backend/helper/database/plugins/stats_for_plate.hpp"
+#include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_label.hpp"
 #include "ui/helper/layout_generator.hpp"
