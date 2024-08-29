@@ -46,10 +46,26 @@ public:
   /////////////////////////////////////////////////////
   DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const db::QueryFilter &filter, QWidget *windowMain);
 
+signals:
+  void exportFinished();
+
 private:
   /////////////////////////////////////////////////////
   void onExportClicked();
   void onCancelClicked();
+  void selectAvgOfAllMeasureChannels();
+  void unselectAllMeasureChannels();
+  void selectAllExports();
+
+  /////////////////////////////////////////////////////
+  QProgressBar *progressBar;
+  QAction *mActionProgressBar = nullptr;
+  QAction *mExportButton;
+
+  QAction *mSelectAllMeasurements;
+  QAction *mUnselectAllMeasurements;
+
+  QAction *mSelectAllClustersAndClasses;
 
   /////////////////////////////////////////////////////
   std::unique_ptr<joda::db::Database> &mAnalyzer;
@@ -66,6 +82,9 @@ private:
   std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>> mReportingDetails;
   std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>> mReportingType;
   helper::LayoutGenerator mLayout;
+
+private slots:
+  void onExportFinished();
 };
 
 }    // namespace joda::ui

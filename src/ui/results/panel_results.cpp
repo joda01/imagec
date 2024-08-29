@@ -219,7 +219,7 @@ void PanelResults::setAnalyzer()
     auto imageChannels = mAnalyzer->selectImageChannels();
     mCrossChannelStackC->clear();
     for(const auto &[channelId, channel] : imageChannels) {
-      mCrossChannelStackC->addItem(QString(channel.name.data()) + (" ( CH" + QString::number(channelId) + ")"),
+      mCrossChannelStackC->addItem("CH" + QString::number(channelId) + " (" + QString(channel.name.data()) + ")",
                                    channelId);
     }
   }

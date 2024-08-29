@@ -32,6 +32,7 @@
 #include "ui/window_main/panel_pipeline.hpp"
 #include "ui/window_main/panel_project_settings.hpp"
 #include "ui/window_main/panel_results_info.hpp"
+#include <duckdb/function/table_function.hpp>
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui {
@@ -116,6 +117,15 @@ private:
     REPORTING    = 2
   };
 
+  enum class Tabs
+  {
+    PROJECT_SETTINGS = 0,
+    CLASSIFICATION   = 1,
+    PIPELINES        = 2,
+    IMAGES           = 3,
+    RESULTS          = 4
+  };
+
   /////////////////////////////////////////////////////
   void createTopToolbar();
   void createLeftToolbar();
@@ -143,6 +153,7 @@ private:
 
   ////Left Toolbar/////////////////////////////////////////////////
   QToolBar *mSidebar;
+  QTabWidget *mTabWidget;
   PanelProjectSettings *mPanelProjectSettings;
   PanelClassification *mPanelClassification;
   PanelPipeline *mPanelPipeline;

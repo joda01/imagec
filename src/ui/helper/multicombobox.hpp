@@ -72,6 +72,14 @@ public:
     slotUpdate();
   }
 
+  void checkAll()
+  {
+    for(int i = 0; i < count(); i++) {
+      model->item(i)->setData(Qt::Checked, Qt::CheckStateRole);
+    }
+    slotUpdate();
+  }
+
   const QString &getDisplayText()
   {
     return displayText;

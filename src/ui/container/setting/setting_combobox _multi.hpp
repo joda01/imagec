@@ -220,6 +220,11 @@ public:
     return toReturn;
   }
 
+  void selectAll()
+  {
+    mComboBox->checkAll();
+  }
+
   void setValue(const std::set<VALUE_T> &valueIn)
   {
     QVariantList toCheck;

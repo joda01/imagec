@@ -70,13 +70,24 @@ using Stat = enums::Stats;
 DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const db::QueryFilter &filter,
                                    QWidget *windowMain) :
     QDialog(windowMain),
-    mAnalyzer(analyzer), mFilter(filter), mLayout(this, false, true, false)
+    mAnalyzer(analyzer), mFilter(filter), mLayout(this, false, true, false, true)
 {
   setWindowTitle("Export data");
   setMinimumHeight(700);
 
-  auto *exportToExcel = mLayout.addActionButton("Excel export", "icons8-export-excel-50.png");
-  connect(exportToExcel, &QAction::triggered, [this] { onExportClicked(); });
+  mExportButton = mLayout.addActionButton("Excel export", "icons8-export-excel-50.png");
+  connect(mExportButton, &QAction::triggered, [this] { onExportClicked(); });
+
+  mLayout.addSeparatorToTopToolbar();
+
+  mSelectAllMeasurements = mLayout.addActionButton("Select all measurements", "icons8-select-column-50.png");
+  connect(mSelectAllMeasurements, &QAction::triggered, [this] { selectAvgOfAllMeasureChannels(); });
+
+  mUnselectAllMeasurements = mLayout.addActionButton("Unselect all measurements", "icons8-select-none-50.png");
+  connect(mUnselectAllMeasurements, &QAction::triggered, [this] { unselectAllMeasureChannels(); });
+
+  mSelectAllClustersAndClasses = mLayout.addActionButton("Select all clusters", "icons8-select-50-all.png");
+  connect(mSelectAllClustersAndClasses, &QAction::triggered, [this] { selectAllExports(); });
 
   auto *tab  = mLayout.addTab("Measurement", [] {});
   auto *col1 = tab->addVerticalPanel();
@@ -145,7 +156,7 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
                     {Stat::MAX, "Max", ""},
                     {Stat::MEDIAN, "Median", ""},
                     {Stat::STDDEV, "Stddev", ""}},
-                   "", "Intersecting count");
+                   "", "Cross channel count");
   createCheckBoxes(Base::CENTER_OF_MASS_X,
                    {{Stat::AVG, "Avg", ""},
                     {Stat::CNT, "Cnt", ""},
@@ -256,8 +267,8 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
     items.reserve(imageChannels.size());
     for(const auto &[channelId, channel] : imageChannels) {
       items.emplace_back(SettingComboBoxMulti<int32_t>::ComboEntry{.key   = (int32_t) channelId,
-                                                                   .label = QString(channel.name.data()) + " ( CH" +
-                                                                            QString::number(channelId) + ")",
+                                                                   .label = "CH" + QString::number(channelId) + " (" +
+                                                                            QString(channel.name.data()) + ")",
                                                                    .icon = ""});
     }
     mCrossChannelStackC->addOptions(items);
@@ -279,6 +290,15 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
 
   col2->addGroup("Cross channel measurement",
                  {mCrossChannelStackC.get(), mCrossChannelClusterId.get(), mCrossChannelClassId.get()});
+
+  // Progress bar
+  progressBar = new QProgressBar(this);
+  progressBar->setRange(0, 0);
+  progressBar->setMaximum(0);
+  progressBar->setMinimum(0);
+  mActionProgressBar = mLayout.addItemToBottomToolbar(progressBar);
+  mActionProgressBar->setVisible(false);
+  connect(this, &DialogExportData::exportFinished, this, &DialogExportData::onExportFinished);
 }
 
 ///
@@ -295,41 +315,96 @@ void DialogExportData::onExportClicked()
   if(filePathOfSettingsFile.isEmpty()) {
     return;
   }
-  std::map<enums::ClusterId, joda::db::BatchExporter::BatchExporter::Settings::Channel> clustersToExport;
-  std::map<enums::Measurement, std::set<enums::Stats>> measureChannels;
+  mActionProgressBar->setVisible(true);
+  mExportButton->setEnabled(false);
 
-  for(const auto &[ch, stat] : mChannelsToExport) {
-    measureChannels.emplace(ch, stat->getValue());
-  }
+  std::thread([this, filePathOfSettingsFile] {
+    std::map<enums::ClusterId, joda::db::BatchExporter::BatchExporter::Settings::Channel> clustersToExport;
+    std::map<enums::Measurement, std::set<enums::Stats>> measureChannels;
 
-  for(const auto &clusterId : mClustersToExport->getValue()) {
-    clustersToExport.emplace(clusterId, joda::db::BatchExporter::BatchExporter::Settings::Channel{
-                                            .name            = mClustersToExport->getName(clusterId).toStdString(),
-                                            .classes         = mClassesToExport->getValueAndNames(),
-                                            .measureChannels = measureChannels});
-  }
+    for(const auto &[ch, stat] : mChannelsToExport) {
+      measureChannels.emplace(ch, stat->getValue());
+    }
 
-  joda::db::BatchExporter::Settings settings{.clustersToExport       = clustersToExport,
-                                             .analyzer               = *mAnalyzer,
-                                             .plateId                = mFilter.plateId,
-                                             .groupId                = mFilter.actGroupId,
-                                             .imageId                = mFilter.actImageId,
-                                             .plateRows              = mFilter.plateRows,
-                                             .plateCols              = mFilter.plateCols,
-                                             .heatmapAreaSize        = mFilter.densityMapAreaSize,
-                                             .wellImageOrder         = mFilter.wellImageOrder,
-                                             .exportType             = mReportingType->getValue(),
-                                             .exportDetail           = mReportingDetails->getValue(),
-                                             .crossChannelStacksC    = mCrossChannelStackC->getValueAndNames(),
-                                             .crossChannelClusterIds = mCrossChannelClusterId->getValueAndNames(),
-                                             .crossChannelClassIds   = mCrossChannelClassId->getValueAndNames()
+    for(const auto &clusterId : mClustersToExport->getValue()) {
+      clustersToExport.emplace(clusterId, joda::db::BatchExporter::BatchExporter::Settings::Channel{
+                                              .name            = mClustersToExport->getName(clusterId).toStdString(),
+                                              .classes         = mClassesToExport->getValueAndNames(),
+                                              .measureChannels = measureChannels});
+    }
 
-  };
-  joda::db::BatchExporter::startExport(settings, filePathOfSettingsFile.toStdString());
+    joda::db::BatchExporter::Settings settings{.clustersToExport       = clustersToExport,
+                                               .analyzer               = *mAnalyzer,
+                                               .plateId                = mFilter.plateId,
+                                               .groupId                = mFilter.actGroupId,
+                                               .imageId                = mFilter.actImageId,
+                                               .plateRows              = mFilter.plateRows,
+                                               .plateCols              = mFilter.plateCols,
+                                               .heatmapAreaSize        = mFilter.densityMapAreaSize,
+                                               .wellImageOrder         = mFilter.wellImageOrder,
+                                               .exportType             = mReportingType->getValue(),
+                                               .exportDetail           = mReportingDetails->getValue(),
+                                               .crossChannelStacksC    = mCrossChannelStackC->getValueAndNames(),
+                                               .crossChannelClusterIds = mCrossChannelClusterId->getValueAndNames(),
+                                               .crossChannelClassIds   = mCrossChannelClassId->getValueAndNames()
+
+    };
+    joda::db::BatchExporter::startExport(settings, filePathOfSettingsFile.toStdString());
+    emit exportFinished();
+  }).detach();
 }
 
 void DialogExportData::onCancelClicked()
 {
+}
+
+void DialogExportData::onExportFinished()
+{
+  if(mActionProgressBar != nullptr) {
+    mActionProgressBar->setVisible(false);
+    mExportButton->setEnabled(true);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::selectAvgOfAllMeasureChannels()
+{
+  for(const auto &[measure, ch] : mChannelsToExport) {
+    ch->setValue({enums::Stats::AVG});
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::unselectAllMeasureChannels()
+{
+  for(const auto &[measure, ch] : mChannelsToExport) {
+    ch->setValue({});
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::selectAllExports()
+{
+  mClustersToExport->selectAll();
+  mClassesToExport->selectAll();
 }
 
 }    // namespace joda::ui

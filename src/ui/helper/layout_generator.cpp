@@ -26,7 +26,8 @@ namespace joda::ui::helper {
 /// \param[out]
 /// \return
 ///
-LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool withTopToolbar, bool withBackButton) :
+LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool withTopToolbar, bool withBackButton,
+                                 bool withBottomToolbar) :
     mParent(parent)
 {
   auto *container = new QVBoxLayout(parent);
@@ -46,16 +47,19 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
     }
   }
 
-  if(withDeleteButton) {
+  if(withBottomToolbar || withDeleteButton) {
     mToolbarBottom = new QToolBar();
     mToolbarBottom->setContentsMargins(0, 0, 0, 0);
-    auto *spacerBottom = new QWidget();
-    spacerBottom->setContentsMargins(0, 0, 0, 0);
-    spacerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    mToolbarBottom->addWidget(spacerBottom);
-    mDeleteButton = new QAction(QIcon(":/icons/outlined/icons8-trash-50.png").pixmap(16, 16), "Delete", mToolbarBottom);
-    mDeleteButton->setToolTip("Delete");
-    mToolbarBottom->addAction(mDeleteButton);
+    if(withDeleteButton) {
+      auto *spacerBottom = new QWidget();
+      spacerBottom->setContentsMargins(0, 0, 0, 0);
+      spacerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+      mSpaceBottomToolbar = mToolbarBottom->addWidget(spacerBottom);
+      mDeleteButton =
+          new QAction(QIcon(":/icons/outlined/icons8-trash-50.png").pixmap(16, 16), "Delete", mToolbarBottom);
+      mDeleteButton->setToolTip("Delete");
+      mToolbarBottom->addAction(mDeleteButton);
+    }
   }
 
   if(withTopToolbar) {
@@ -67,7 +71,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
   mTabWidget->setTabBarAutoHide(true);
   mTabWidget->setStyleSheet("QTabWidget::pane { border: none; }");
   container->addWidget(mTabWidget);
-  if(withDeleteButton) {
+  if(withBottomToolbar || withDeleteButton) {
     container->addWidget(mToolbarBottom);
   }
 
@@ -114,6 +118,17 @@ void LayoutGenerator::addSeparatorToTopToolbar()
 QAction *LayoutGenerator::addItemToTopToolbar(QWidget *widget)
 {
   return mToolbarTop->insertWidget(mSpaceTopToolbar, widget);
+}
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+QAction *LayoutGenerator::addItemToBottomToolbar(QWidget *widget)
+{
+  return mToolbarBottom->insertWidget(mSpaceBottomToolbar, widget);
 }
 
 ///

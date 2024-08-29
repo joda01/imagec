@@ -156,18 +156,18 @@ void WindowMain::createLeftToolbar()
 {
   mSidebar = new QToolBar(this);
   mSidebar->setMovable(false);
-  auto *tabs = new QTabWidget(mSidebar);
+  mTabWidget = new QTabWidget(mSidebar);
 
   // Experiment Settings
   {
     mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings.projectSettings, this);
-    tabs->addTab(mPanelProjectSettings, "Project");
+    mTabWidget->addTab(mPanelProjectSettings, "Project");
   }
 
   // Classification tab
   {
     mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings, this);
-    tabs->addTab(mPanelClassification, "Classification");
+    mTabWidget->addTab(mPanelClassification, "Classification");
   }
 
   // Pipeline Tab
@@ -195,7 +195,7 @@ void WindowMain::createLeftToolbar()
     layout->addWidget(mPanelPipeline);
 
     pipelineTab->setLayout(layout);
-    tabs->addTab(pipelineTab, "Pipelines");
+    mTabWidget->addTab(pipelineTab, "Pipelines");
 
     connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
     connect(mStartAnalysis, &QPushButton::clicked, this, &WindowMain::onStartClicked);
@@ -205,16 +205,16 @@ void WindowMain::createLeftToolbar()
   // Images Tab
   {
     mPanelImages = new PanelImages(this);
-    tabs->addTab(mPanelImages, "Images");
+    mTabWidget->addTab(mPanelImages, "Images");
   }
 
   // Reportings tab
   {
     mPanelResultsInfo = new PanelResultsInfo(this);
-    tabs->addTab(mPanelResultsInfo, "Results");
+    mTabWidget->addTab(mPanelResultsInfo, "Results");
   }
 
-  mSidebar->addWidget(tabs);
+  mSidebar->addWidget(mTabWidget);
   mSidebar->setMinimumWidth(LEFT_TOOLBAR_WIDTH);
   addToolBar(Qt::ToolBarArea::LeftToolBarArea, mSidebar);
 }
@@ -413,6 +413,7 @@ void WindowMain::openResultsSettings(const QString &filePath)
 {
   showPanelResults();
   mPanelReporting->openFromFile(filePath);
+  mTabWidget->setCurrentIndex((int) Tabs::RESULTS);
 }
 
 ///

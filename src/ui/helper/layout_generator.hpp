@@ -53,7 +53,7 @@ class LayoutGenerator : public QObject
 public:
   /////////////////////////////////////////////////////
   explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withTopToolbar = true,
-                           bool withBackButton = true);
+                           bool withBackButton = true, bool withBottomToolbar = false);
 
   TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
 
@@ -96,6 +96,8 @@ public:
   void addItemToTopToolbar(QAction *widget);
   QAction *addActionButton(const QString &text, const QString &icon);
 
+  QAction *addItemToBottomToolbar(QWidget *);
+
 signals:
   void onSettingChanged();
 
@@ -104,12 +106,13 @@ private slots:
 
 private:
   /////////////////////////////////////////////////////
-  QToolBar *mToolbarTop     = nullptr;
-  QToolBar *mToolbarBottom  = nullptr;
-  QWidget *mParent          = nullptr;
-  QAction *mSpaceTopToolbar = nullptr;
-  QAction *mBackButton      = nullptr;
-  QAction *mDeleteButton    = nullptr;
+  QToolBar *mToolbarTop        = nullptr;
+  QToolBar *mToolbarBottom     = nullptr;
+  QWidget *mParent             = nullptr;
+  QAction *mSpaceTopToolbar    = nullptr;
+  QAction *mSpaceBottomToolbar = nullptr;
+  QAction *mBackButton         = nullptr;
+  QAction *mDeleteButton       = nullptr;
   QTabWidget *mTabWidget;
 };
 
