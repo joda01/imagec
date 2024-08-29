@@ -13,6 +13,7 @@
 #pragma once
 
 #include <qcombobox.h>
+#include <qnamespace.h>
 #include <qvariant.h>
 #include <QtWidgets>
 #include <set>
@@ -61,6 +62,10 @@ public:
 
   void setCheckedItems(const QVariantList &items)
   {
+    for(int i = 0; i < count(); i++) {
+      model->item(i)->setData(Qt::Unchecked, Qt::CheckStateRole);
+    }
+
     for(int i = 0; i < items.count(); i++) {
       int index = findData(items.at(i), Qt::UserRole + 1);
 
