@@ -93,7 +93,7 @@ inline std::string toString(const Measurement &enumIn)
     case Measurement::CENTER_OF_MASS_Y:
       return "y";
     case Measurement::INTERSECTING_CNT:
-      return "Intersection count";
+      return "Cross channel count";
       break;
   }
   return "";

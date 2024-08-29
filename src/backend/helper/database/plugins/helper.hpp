@@ -137,8 +137,10 @@ inline std::string createHeader(const QueryFilter &filter)
     case OBJECT:
     case INTENSITY:
       prefix = " (CH" + std::to_string(filter.crossChanelStack_c) + ")";
+      break;
     case COUNT:
       prefix = " (" + filter.crossChannelClusterName + "/" + filter.crossChannelClassName + ")";
+      break;
   }
 
   return filter.className + " - " + toString(filter.measurementChannel) + " [" + enums::toString(filter.stats) + "]" +
