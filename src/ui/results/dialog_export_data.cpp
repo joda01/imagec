@@ -253,9 +253,12 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
     // Image channels
     auto imageChannels = mAnalyzer->selectImageChannels();
     std::vector<SettingComboBoxMulti<int32_t>::ComboEntry> items;
+    items.reserve(imageChannels.size());
     for(const auto &[channelId, channel] : imageChannels) {
-      items.emplace_back(SettingComboBoxMulti<int32_t>::ComboEntry{
-          .key = (int32_t) channelId, .label = " ( CH" + QString::number(channelId) + ")", .icon = ""});
+      items.emplace_back(SettingComboBoxMulti<int32_t>::ComboEntry{.key   = (int32_t) channelId,
+                                                                   .label = QString(channel.name.data()) + " ( CH" +
+                                                                            QString::number(channelId) + ")",
+                                                                   .icon = ""});
     }
     mCrossChannelStackC->addOptions(items);
   }
