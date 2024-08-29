@@ -18,6 +18,29 @@
 
 namespace joda::db {
 
+class Database;
+
+struct QueryFilter
+{
+  Database &analyzer;
+  uint8_t plateId;
+  uint8_t plateRows;
+  uint8_t plateCols;
+  enums::ClusterId clusterId;
+  enums::ClassId classId;
+  const std::string &className;
+  enums::Measurement measurement;
+  uint32_t imageChannelId;
+  enums::Stats stats;
+  uint16_t groupId;
+  const std::vector<std::vector<int32_t>> &wellImageOrder = {{1, 2, 3, 4},
+                                                             {5, 6, 7, 8},
+                                                             {9, 10, 11, 12},
+                                                             {13, 14, 15, 16}};
+  uint32_t densityMapAreaSize                             = 400;
+  uint64_t imageId                                        = 0;
+};
+
 enum MeasureType
 {
   OBJECT,
