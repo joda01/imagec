@@ -75,7 +75,7 @@ auto StatsPerPlate::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             " JOIN groups ON subquery.group_id = groups.group_id "
             " GROUP BY groupid",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint32_t>(filter.stack_c));
+        static_cast<uint32_t>(filter.crossChanelStack_c));
     return result;
   };
 
@@ -103,15 +103,16 @@ auto StatsPerPlate::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
         "     JOIN objects ON"
         "     	objects.object_id = object_intersections.meas_object_id"
         "     	AND objects.image_id = object_intersections.image_id   "
-        "     	AND objects.cluster_id = $1                            "
-        "     	AND objects.class_id = $2                              "
+        "     	AND objects.cluster_id = $3                            "
+        "     	AND objects.class_id = $4                              "
         "     WHERE objects.cluster_id = $1 AND objects.class_id = $2  "
         "     GROUP BY                                                 "
         "     	(objects.object_id, object_intersections.image_id, images_groups.group_id)     "
         "  ) AS subquery"
         " JOIN groups ON subquery.group_id = groups.group_id "
         " GROUP BY groupid",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId));
+        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
+        static_cast<uint16_t>(filter.crossChannelClusterId), static_cast<uint16_t>(filter.crossChannelClassId));
 
     return result;
   };
@@ -136,9 +137,10 @@ auto StatsPerPlate::toTable(const QueryFilter &filter) -> joda::table::Table
   if(queryResult->HasError()) {
     throw std::invalid_argument(queryResult->GetError());
   }
+
   auto materializedResult = queryResult->Cast<duckdb::StreamQueryResult>().Materialize();
   table::Table results;
-  results.getMutableColHeader()[0] = toString(filter.measurementChannel) + "(" + filter.className + ")";
+  results.getMutableColHeader()[0] = createHeader(filter);
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
     try {
       uint16_t groupId      = materializedResult->GetValue(0, n).GetValue<uint16_t>();

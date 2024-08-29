@@ -51,7 +51,7 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
             "  objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 AND "
             "object_measurements.meas_stack_c = $4",
         filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        filter.stack_c);
+        filter.crossChanelStack_c);
     return stats;
   };
 
@@ -64,24 +64,22 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
         "  JOIN objects ON"
         "  	objects.object_id = object_intersections.meas_object_id"
         "  	AND objects.image_id = object_intersections.image_id   "
-        "  	AND objects.cluster_id = $1                            "
-        "  	AND objects.class_id = $2                              "
+        "  	AND objects.cluster_id = $4                            "
+        "  	AND objects.class_id = $5                              "
         "  WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3"
         "  GROUP BY objects.object_id  ",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.actImageId);
+        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.actImageId,
+        static_cast<uint16_t>(filter.crossChannelClusterId), static_cast<uint16_t>(filter.crossChannelClassId));
     return stats;
   };
 
-  std::string prefix;
   auto query = [&]() -> std::unique_ptr<duckdb::QueryResult> {
     switch(getType(filter.measurementChannel)) {
       case OBJECT:
         return queryMeasure();
       case INTENSITY:
-        prefix = " (CH" + std::to_string(filter.stack_c) + ")";
         return queryIntensityMeasure();
       case COUNT:
-        prefix = " (" + filter.className + ")";
         return queryIntersectingMeasure();
     }
   };
@@ -93,7 +91,8 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
   }
   table::Table results;
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-  results.setColHeader({{0, filter.className + " - " + toString(filter.measurementChannel) + prefix}});
+  results.setColHeader({{0, createHeader(filter)}}    // namespace joda::db
+  );
 
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
     results.getMutableRowHeader()[n] = std::to_string(n);
@@ -186,7 +185,7 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
               "  objects.image_id=$1 AND cluster_id=$2 AND class_id=$3 "
               "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)",
           filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-          duckdb::Value::DOUBLE(filter.densityMapAreaSize), filter.stack_c);
+          duckdb::Value::DOUBLE(filter.densityMapAreaSize), filter.crossChanelStack_c);
 
       return result;
     };
@@ -205,13 +204,13 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
           "  JOIN objects ON"
           "  	objects.object_id = object_intersections.meas_object_id"
           "  	AND objects.image_id = object_intersections.image_id   "
-          "  	AND objects.cluster_id = $1                            "
-          "  	AND objects.class_id = $2                              "
-          "  WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3 AND "
-          "        objects.stack_c = $4"
+          "  	AND objects.cluster_id = $6                            "
+          "  	AND objects.class_id = $7                              "
+          "  WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3 "
           "GROUP BY objects.object_id, floor(meas_center_x / $5), floor(meas_center_y / $5)",
           static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.actImageId,
-          filter.stack_c, duckdb::Value::DOUBLE(filter.densityMapAreaSize));
+          duckdb::Value::DOUBLE(filter.densityMapAreaSize), static_cast<uint16_t>(filter.crossChannelClusterId),
+          static_cast<uint16_t>(filter.crossChannelClassId));
 
       return result;
     };

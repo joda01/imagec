@@ -37,7 +37,6 @@ public:
     {
       std::string name;
       std::map<enums::ClassId, std::string> classes;
-      std::set<int32_t> imageChannelId;
       std::map<enums::Measurement, std::set<enums::Stats>> measureChannels;
     };
     std::map<enums::ClusterId, Channel> clustersToExport;
@@ -51,6 +50,10 @@ public:
     std::vector<std::vector<int32_t>> wellImageOrder;
     ExportType exportType;
     ExportDetail exportDetail;
+
+    std::map<int32_t, std::string> crossChannelStacksC;
+    std::map<enums::ClusterId, std::string> crossChannelClusterIds;
+    std::map<enums::ClassId, std::string> crossChannelClassIds;
   };
 
   static void startExport(const Settings &settings, const std::string &outputFileName);

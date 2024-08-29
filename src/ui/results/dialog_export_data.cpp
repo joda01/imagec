@@ -212,17 +212,26 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
        {joda::db::BatchExporter::Settings::ExportType::LIST, "Table", "icons8-table-50.png"}});
   mReportingType->setDefaultValue(joda::db::BatchExporter::Settings::ExportType::HEATMAP);
 
+  std::vector<SettingComboBoxMulti<enums::ClusterId>::ComboEntry> clustersCombo;
+  auto clusters = mAnalyzer->selectClusters();
+  clustersCombo.reserve(clusters.size());
+  for(const auto &[clusterId, cluster] : clusters) {
+    clustersCombo.push_back(
+        SettingComboBoxMulti<enums::ClusterId>::ComboEntry{.key = clusterId, .label = cluster.name.data(), .icon = ""});
+  }
+
+  std::vector<SettingComboBoxMulti<enums::ClassId>::ComboEntry> classCombo;
+  auto classes = mAnalyzer->selectClasses();
+  classCombo.reserve(classes.size());
+  for(const auto &[classId, cluster] : classes) {
+    classCombo.push_back(
+        SettingComboBoxMulti<enums::ClassId>::ComboEntry{.key = classId, .label = cluster.name.data(), .icon = ""});
+  }
+
   //
   // Clusters
   {
     mClustersToExport = SettingBase::create<SettingComboBoxMulti<enums::ClusterId>>(windowMain, "", "Clusters");
-    std::vector<SettingComboBoxMulti<enums::ClusterId>::ComboEntry> clustersCombo;
-    auto clusters = mAnalyzer->selectClusters();
-    clustersCombo.reserve(clusters.size());
-    for(const auto &[clusterId, cluster] : clusters) {
-      clustersCombo.push_back(SettingComboBoxMulti<enums::ClusterId>::ComboEntry{
-          .key = clusterId, .label = cluster.name.data(), .icon = ""});
-    }
     mClustersToExport->addOptions(clustersCombo);
   }
 
@@ -230,23 +239,43 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
   // Classes
   {
     mClassesToExport = SettingBase::create<SettingComboBoxMulti<enums::ClassId>>(windowMain, "", "Classes");
-    std::vector<SettingComboBoxMulti<enums::ClassId>::ComboEntry> classCombo;
-    auto classes = mAnalyzer->selectClasses();
-    classCombo.reserve(classes.size());
-    for(const auto &[classId, cluster] : classes) {
-      classCombo.push_back(
-          SettingComboBoxMulti<enums::ClassId>::ComboEntry{.key = classId, .label = cluster.name.data(), .icon = ""});
-    }
     mClassesToExport->addOptions(classCombo);
   }
 
+  auto *col2 = tab->addVerticalPanel();
+  col2->addGroup("Exports",
+                 {mReportingType.get(), mReportingDetails.get(), mClustersToExport.get(), mClassesToExport.get()});
+
   //
   // Image channels
-  mImageChannels = joda::ui::generateCStackCombo<SettingComboBoxMulti<int32_t>>("Image channels", windowMain);
+  mCrossChannelStackC = SettingBase::create<SettingComboBoxMulti<int32_t>>(windowMain, "", "Image channels");
+  {
+    // Image channels
+    auto imageChannels = mAnalyzer->selectImageChannels();
+    std::vector<SettingComboBoxMulti<int32_t>::ComboEntry> items;
+    for(const auto &[channelId, channel] : imageChannels) {
+      items.emplace_back(SettingComboBoxMulti<int32_t>::ComboEntry{
+          .key = (int32_t) channelId, .label = " ( CH" + QString::number(channelId) + ")", .icon = ""});
+    }
+    mCrossChannelStackC->addOptions(items);
+  }
 
-  auto *col2 = tab->addVerticalPanel();
-  col2->addGroup("Exports", {mReportingType.get(), mReportingDetails.get(), mClustersToExport.get(),
-                             mClassesToExport.get(), mImageChannels.get()});
+  //
+  // Clusters
+  {
+    mCrossChannelClusterId = SettingBase::create<SettingComboBoxMulti<enums::ClusterId>>(windowMain, "", "Clusters");
+    mCrossChannelClusterId->addOptions(clustersCombo);
+  }
+
+  //
+  // Classes
+  {
+    mCrossChannelClassId = SettingBase::create<SettingComboBoxMulti<enums::ClassId>>(windowMain, "", "Classes");
+    mCrossChannelClassId->addOptions(classCombo);
+  }
+
+  col2->addGroup("Cross channel measurement",
+                 {mCrossChannelStackC.get(), mCrossChannelClusterId.get(), mCrossChannelClassId.get()});
 }
 
 ///
@@ -274,21 +303,25 @@ void DialogExportData::onExportClicked()
     clustersToExport.emplace(clusterId, joda::db::BatchExporter::BatchExporter::Settings::Channel{
                                             .name            = mClustersToExport->getName(clusterId).toStdString(),
                                             .classes         = mClassesToExport->getValueAndNames(),
-                                            .imageChannelId  = mImageChannels->getValue(),
                                             .measureChannels = measureChannels});
   }
 
-  joda::db::BatchExporter::Settings settings{.clustersToExport = clustersToExport,
-                                             .analyzer         = *mAnalyzer,
-                                             .plateId          = mFilter.plateId,
-                                             .groupId          = mFilter.actGroupId,
-                                             .imageId          = mFilter.actImageId,
-                                             .plateRows        = mFilter.plateRows,
-                                             .plateCols        = mFilter.plateCols,
-                                             .heatmapAreaSize  = mFilter.densityMapAreaSize,
-                                             .wellImageOrder   = mFilter.wellImageOrder,
-                                             .exportType       = mReportingType->getValue(),
-                                             .exportDetail     = mReportingDetails->getValue()};
+  joda::db::BatchExporter::Settings settings{.clustersToExport       = clustersToExport,
+                                             .analyzer               = *mAnalyzer,
+                                             .plateId                = mFilter.plateId,
+                                             .groupId                = mFilter.actGroupId,
+                                             .imageId                = mFilter.actImageId,
+                                             .plateRows              = mFilter.plateRows,
+                                             .plateCols              = mFilter.plateCols,
+                                             .heatmapAreaSize        = mFilter.densityMapAreaSize,
+                                             .wellImageOrder         = mFilter.wellImageOrder,
+                                             .exportType             = mReportingType->getValue(),
+                                             .exportDetail           = mReportingDetails->getValue(),
+                                             .crossChannelStacksC    = mCrossChannelStackC->getValueAndNames(),
+                                             .crossChannelClusterIds = mCrossChannelClusterId->getValueAndNames(),
+                                             .crossChannelClassIds   = mCrossChannelClassId->getValueAndNames()
+
+  };
   joda::db::BatchExporter::startExport(settings, filePathOfSettingsFile.toStdString());
 }
 

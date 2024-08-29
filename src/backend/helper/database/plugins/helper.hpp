@@ -33,9 +33,15 @@ struct QueryFilter
   std::string className;
   joda::enums::Measurement measurementChannel;
   joda::enums::Stats stats;
-  uint32_t stack_c;
   std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
   uint32_t densityMapAreaSize                      = 200;
+
+  uint32_t crossChanelStack_c;
+  std::string crossChannelStack_cName;
+  joda::enums::ClusterId crossChannelClusterId;
+  std::string crossChannelClusterName;
+  joda::enums::ClassId crossChannelClassId;
+  std::string crossChannelClassName;
 };
 
 enum MeasureType
@@ -124,63 +130,19 @@ inline std::string getStatsString(enums::Stats stats)
   return statsStr;
 }
 
-/*
-inline std::string getStatsString(Stats stats)
+inline std::string createHeader(const QueryFilter &filter)
 {
-  std::string statsStr;
-  switch(stats) {
-    case Stats::AVG:
-      statsStr = "  AVG(element_at(values, $1)[1]) as val_img ";
-      break;
-    case Stats::MEDIAN:
-      statsStr = "  MEDIAN(element_at(values, $1)[1]) as val_img ";
-      break;
-    case Stats::SUM:
-      statsStr = "  SUM(element_at(values, $1)[1]) as val_img ";
-      break;
-    case Stats::MIN:
-      statsStr = "  MIN(element_at(values, $1)[1]) as val_img ";
-      break;
-    case Stats::MAX:
-      statsStr = "  MAX(element_at(values, $1)[1]) as val_img ";
-      break;
-    case Stats::STDDEV:
-      statsStr = "  STDDEV(element_at(values, $1)[1]) as val_img ";
-      break;
-    case Stats::CNT:
-      statsStr = "  COUNT(element_at(values, $1)[1]) as val_img ";
-      break;
-  };
-  return statsStr;
-}
+  std::string prefix;
+  switch(getType(filter.measurementChannel)) {
+    case OBJECT:
+    case INTENSITY:
+      prefix = " (CH" + std::to_string(filter.crossChanelStack_c) + ")";
+    case COUNT:
+      prefix = " (" + filter.crossChannelClusterName + "/" + filter.crossChannelClassName + ")";
+  }
 
-inline std::string getAvgStatsFromStats(Stats stats)
-{
-  std::string statsStr;
-  switch(stats) {
-    case Stats::AVG:
-      statsStr = "  AVG(element_at(avg, $1)[1]) as avg_of_avgs_per_group ";
-      break;
-    case Stats::MEDIAN:
-      statsStr = "  AVG(element_at(median, $1)[1]) as avg_of_avgs_per_group ";
-      break;
-    case Stats::SUM:
-      statsStr = "  AVG(element_at(sum, $1)[1]) as avg_of_avgs_per_group ";
-      break;
-    case Stats::MIN:
-      statsStr = "  AVG(element_at(min, $1)[1]) as avg_of_avgs_per_group ";
-      break;
-    case Stats::MAX:
-      statsStr = "  AVG(element_at(max, $1)[1]) as avg_of_avgs_per_group ";
-      break;
-    case Stats::STDDEV:
-      statsStr = "  AVG(element_at(stddev, $1)[1]) as avg_of_avgs_per_group ";
-      break;
-    case Stats::CNT:
-      statsStr = "  AVG(element_at(cnt, $1)[1]) as avg_of_avgs_per_group ";
-      break;
-  };
-  return statsStr;
-}*/
+  return filter.className + " - " + toString(filter.measurementChannel) + " [" + enums::toString(filter.stats) + "]" +
+         prefix;
+}
 
 }    // namespace joda::db

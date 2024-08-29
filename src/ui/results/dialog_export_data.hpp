@@ -56,7 +56,11 @@ private:
   const db::QueryFilter &mFilter;
   std::unique_ptr<SettingComboBoxMulti<enums::ClusterId>> mClustersToExport;
   std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mClassesToExport;
-  std::unique_ptr<SettingComboBoxMulti<int32_t>> mImageChannels;
+
+  // Cross channel
+  std::unique_ptr<SettingComboBoxMulti<int32_t>> mCrossChannelStackC;
+  std::unique_ptr<SettingComboBoxMulti<enums::ClusterId>> mCrossChannelClusterId;
+  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mCrossChannelClassId;
 
   std::map<enums::Measurement, std::unique_ptr<SettingComboBoxMulti<enums::Stats>>> mChannelsToExport;
   std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>> mReportingDetails;

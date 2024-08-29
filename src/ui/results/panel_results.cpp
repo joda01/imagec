@@ -104,6 +104,16 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 
   //
   //
+  //
+  auto *exportData = new QPushButton(QIcon(":/icons/outlined/icons8-export-excel-50.png"), "Export");
+  exportData->setToolTip("Export data");
+  connect(exportData, &QPushButton::pressed, this, &PanelResults::onExportClicked);
+  toolbar->addItemToTopToolbar(exportData);
+
+  toolbar->addSeparatorToTopToolbar();
+
+  //
+  //
   mClusterSelector = new QComboBox();
   connect(mClusterSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mClusterSelector);
@@ -127,10 +137,6 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mMeasurementSelector);
 
-  mImageChannelSelector = new QComboBox();
-  connect(mImageChannelSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  toolbar->addItemToTopToolbar(mImageChannelSelector);
-
   //
   //
   mStatsSelector = new QComboBox();
@@ -146,6 +152,22 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 
   toolbar->addSeparatorToTopToolbar();
 
+  toolbar->addItemToTopToolbar(new QLabel("Cross channel: "));
+
+  mCrossChannelStackC = new QComboBox();
+  connect(mCrossChannelStackC, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
+  toolbar->addItemToTopToolbar(mCrossChannelStackC);
+
+  mCrossChannelClusterSelector = new QComboBox();
+  connect(mCrossChannelClusterSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
+  toolbar->addItemToTopToolbar(mCrossChannelClusterSelector);
+
+  mCrossChannelClassSelector = new QComboBox();
+  connect(mCrossChannelClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
+  toolbar->addItemToTopToolbar(mCrossChannelClassSelector);
+
+  toolbar->addSeparatorToTopToolbar();
+
   //
   //
   //
@@ -155,14 +177,6 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   mMarkAsInvalidAction = toolbar->addItemToTopToolbar(mMarkAsInvalid);
   mMarkAsInvalidAction->setVisible(false);
   connect(mMarkAsInvalid, &QComboBox::currentIndexChanged, this, &PanelResults::onMarkAsInvalidClicked);
-
-  //
-  //
-  //
-  auto *exportData = new QPushButton(QIcon(":/icons/outlined/icons8-export-excel-50.png"), "Export");
-  exportData->setToolTip("Export data");
-  connect(exportData, &QPushButton::pressed, this, &PanelResults::onExportClicked);
-  toolbar->addItemToTopToolbar(exportData);
 
   connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::PanelResultsInfo::settingsChanged, this,
           &PanelResults::onMeasurementChanged);
@@ -183,6 +197,7 @@ void PanelResults::setAnalyzer()
     mClusterSelector->clear();
     for(const auto &[clusterId, cluster] : clusters) {
       mClusterSelector->addItem(cluster.name.data(), static_cast<uint32_t>(clusterId));
+      mCrossChannelClusterSelector->addItem(cluster.name.data(), static_cast<uint32_t>(clusterId));
     }
   }
 
@@ -192,16 +207,17 @@ void PanelResults::setAnalyzer()
     mClassSelector->clear();
     for(const auto &[classId, classs] : classes) {
       mClassSelector->addItem(classs.name.data(), static_cast<uint32_t>(classId));
+      mCrossChannelClassSelector->addItem(classs.name.data(), static_cast<uint32_t>(classId));
     }
   }
 
   {
     // Image channels
     auto imageChannels = mAnalyzer->selectImageChannels();
-    mImageChannelSelector->clear();
+    mCrossChannelStackC->clear();
     for(const auto &[channelId, channel] : imageChannels) {
-      mImageChannelSelector->addItem(QString(channel.name.data()) + (" ( CH" + QString::number(channelId) + ")"),
-                                     channelId);
+      mCrossChannelStackC->addItem(QString(channel.name.data()) + (" ( CH" + QString::number(channelId) + ")"),
+                                   channelId);
     }
   }
 
@@ -225,21 +241,26 @@ void PanelResults::onMeasurementChanged()
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-  mFilter = db::QueryFilter{.analyzer   = mAnalyzer.get(),
-                            .plateRows  = static_cast<uint16_t>(size.height()),
-                            .plateCols  = static_cast<uint16_t>(size.width()),
-                            .plateId    = 0,
-                            .actGroupId = mActGroupId,
-                            .actImageId = mActImageId,
-                            .clusterId  = static_cast<joda::enums::ClusterId>(mClusterSelector->currentData().toInt()),
-                            .classId    = static_cast<joda::enums::ClassId>(mClassSelector->currentData().toInt()),
-                            .className  = mClassSelector->currentText().toStdString(),
-                            .measurementChannel =
-                                static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
-                            .stats          = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
-                            .stack_c        = static_cast<uint32_t>(mImageChannelSelector->currentData().toInt()),
-                            .wellImageOrder = wellOrder,
-                            .densityMapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize()};
+  mFilter = db::QueryFilter{
+      .analyzer                = mAnalyzer.get(),
+      .plateRows               = static_cast<uint16_t>(size.height()),
+      .plateCols               = static_cast<uint16_t>(size.width()),
+      .plateId                 = 0,
+      .actGroupId              = mActGroupId,
+      .actImageId              = mActImageId,
+      .clusterId               = static_cast<joda::enums::ClusterId>(mClusterSelector->currentData().toInt()),
+      .classId                 = static_cast<joda::enums::ClassId>(mClassSelector->currentData().toInt()),
+      .className               = mClassSelector->currentText().toStdString(),
+      .measurementChannel      = static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
+      .stats                   = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
+      .wellImageOrder          = wellOrder,
+      .densityMapAreaSize      = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
+      .crossChanelStack_c      = static_cast<uint32_t>(mCrossChannelStackC->currentData().toInt()),
+      .crossChannelStack_cName = mCrossChannelStackC->currentText().toStdString(),
+      .crossChannelClusterId = static_cast<joda::enums::ClusterId>(mCrossChannelClusterSelector->currentData().toInt()),
+      .crossChannelClusterName = mCrossChannelClusterSelector->currentText().toStdString(),
+      .crossChannelClassId     = static_cast<joda::enums::ClassId>(mCrossChannelClassSelector->currentData().toInt()),
+      .crossChannelClassName   = mCrossChannelClassSelector->currentText().toStdString()};
   repaintHeatmap();
 }
 

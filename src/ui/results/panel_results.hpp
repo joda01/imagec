@@ -98,8 +98,11 @@ private:
   QComboBox *mClusterSelector;
   QComboBox *mClassSelector;
   QComboBox *mMeasurementSelector;
-  QComboBox *mImageChannelSelector;
   QComboBox *mStatsSelector;
+
+  QComboBox *mCrossChannelStackC;
+  QComboBox *mCrossChannelClusterSelector;
+  QComboBox *mCrossChannelClassSelector;
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;
