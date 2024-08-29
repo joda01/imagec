@@ -14,6 +14,7 @@
 #include "panel_results.hpp"
 #include <qaction.h>
 #include <qboxlayout.h>
+#include <qbuttongroup.h>
 #include <qcombobox.h>
 #include <qevent.h>
 #include <qgridlayout.h>
@@ -21,6 +22,7 @@
 #include <qnamespace.h>
 #include <qpushbutton.h>
 #include <qsize.h>
+#include <qtablewidget.h>
 #include <qwidget.h>
 #include <QPainter>
 #include <QPainterPath>
@@ -60,6 +62,12 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   // Drop downs
   createBreadCrump(&layout());
 
+  //
+  // Create Table
+  //
+  mTable = new QTableWidget();
+  mTable->setVisible(false);
+
   // Middle layout
   auto *tab  = layout().addTab("", [] {});
   auto *col  = tab->addVerticalPanel();
@@ -70,6 +78,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
 
   col->addWidget(mHeatmap01);
+  col->addWidget(mTable);
 
   repaintHeatmap();
 }
@@ -102,12 +111,38 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   connect(mBackButton, &QPushButton::pressed, this, &PanelResults::onBackClicked);
   toolbar->addItemToTopToolbar(mBackButton);
 
+  QButtonGroup *grp = new QButtonGroup();
+  mHeatmapButton    = new QPushButton(QIcon(":/icons/outlined/icons8-heat-map-50.png"), "");
+  mHeatmapButton->setCheckable(true);
+  mHeatmapButton->setChecked(true);
+  grp->addButton(mHeatmapButton);
+  toolbar->addItemToTopToolbar(mHeatmapButton);
+
+  mTableButton = new QPushButton(QIcon(":/icons/outlined/icons8-table-50.png"), "");
+  mTableButton->setCheckable(true);
+  grp->addButton(mTableButton);
+  toolbar->addItemToTopToolbar(mTableButton);
+
+  connect(mHeatmapButton, &QPushButton::clicked, [this](bool checked) {
+    if(checked) {
+      onShowHeatmap();
+    }
+  });
+  connect(mTableButton, &QPushButton::clicked, [this](bool checked) {
+    if(checked) {
+      onShowTable();
+    }
+  });
+
   //
   //
   //
   auto *exportData = new QPushButton(QIcon(":/icons/outlined/icons8-export-excel-50.png"), "Export");
   exportData->setToolTip("Export data");
-  connect(exportData, &QPushButton::pressed, this, &PanelResults::onExportClicked);
+  connect(exportData, &QPushButton::pressed, [this]() {
+    DialogExportData exportData(mAnalyzer, mFilter, mWindowMain);
+    exportData.exec();
+  });
   toolbar->addItemToTopToolbar(exportData);
 
   toolbar->addSeparatorToTopToolbar();
@@ -451,12 +486,21 @@ void PanelResults::repaintHeatmap()
       switch(mNavigation) {
         case Navigation::PLATE:
           paintPlate();
+          if(mTableButton != nullptr && mTableButton->isChecked()) {
+            tableToQWidgetTable(joda::db::StatsPerPlate::toTable(mFilter));
+          }
           break;
         case Navigation::WELL:
           paintWell();
+          if(mTableButton != nullptr && mTableButton->isChecked()) {
+            tableToQWidgetTable(joda::db::StatsPerGroup::toTable(mFilter));
+          }
           break;
         case Navigation::IMAGE:
           paintImage();
+          if(mTableButton != nullptr && mTableButton->isChecked()) {
+            tableToQWidgetTable(joda::db::StatsPerImage::toTable(mFilter));
+          }
           break;
       }
       update();
@@ -529,97 +573,6 @@ void PanelResults::paintImage()
 }
 
 ///
-/// \brief      Export to xlsx
-/// \author     Joachim Danmayr
-///
-void PanelResults::onExportClicked()
-{
-  DialogExportData exportData(mAnalyzer, mFilter, mWindowMain);
-  exportData.exec();
-  /*
-    if(measureChannelsToExport.ret != 0) {
-      return;
-    }
-    QString filePath = QFileDialog::getSaveFileName(mWindowMain, "Save File",
-    mAnalyzer->getBasePath().string().data(), "XLSX Files (*.xlsx)"); if(filePath.isEmpty()) { return;
-    }
-
-    std::thread([this, measureChannelsToExport = measureChannelsToExport, filePath = filePath] {
-      const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
-      const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
-
-      uint16_t rows = size.height();
-      uint16_t cols = size.width();
-
-      std::map<joda::results::ChannelIndex, joda::results::exporter::BatchExporter::Settings::Channel> imageChannels;
-
-      for(const auto &channel : mChannelInfos) {
-        joda::results::exporter::BatchExporter::Settings::Channel channelData;
-        channelData.name = channel.name;
-
-        for(const auto &measureChannel : channel.measurements) {
-          if(measureChannelsToExport.channelsToExport.contains(measureChannel.getMeasureChannel())) {
-            channelData.measureChannels.emplace(
-                measureChannel, measureChannelsToExport.channelsToExport.at(measureChannel.getMeasureChannel()));
-          }
-        }
-        imageChannels.emplace(channel.channelId, channelData);
-      }
-
-      joda::results::exporter::BatchExporter::Settings::ExportDetail exp;
-      switch(getActualNavigation()) {
-        case Navigation::PLATE:
-          exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::PLATE;
-          break;
-        case Navigation::WELL:
-          exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::WELL;
-          break;
-        case Navigation::IMAGE:
-          exp = joda::results::exporter::BatchExporter::Settings::ExportDetail::IMAGE;
-          break;
-      }
-
-      if(measureChannelsToExport.exportHeatmap) {
-        joda::results::exporter::BatchExporter::Settings settings{
-            .imageChannels   = imageChannels,
-            .analyzer        = *mAnalyzer,
-            .plateId         = 1,
-            .groupId         = getSelectedGroup(),
-            .imageId         = getSelectedImage(),
-            .plateRows       = rows,
-            .plateCols      = cols,
-            .heatmapAreaSize = mDenesityMapSize,
-            .wellImageOrder  = wellOrder,
-            .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::HEATMAP,
-            .exportDetail    = exp};
-        joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
-      }
-
-      if(measureChannelsToExport.exportList) {
-        joda::results::exporter::BatchExporter::Settings settings{
-            .imageChannels   = imageChannels,
-            .analyzer        = *mAnalyzer,
-            .plateId         = 1,
-            .groupId         = getSelectedGroup(),
-            .imageId         = getSelectedImage(),
-            .plateRows       = rows,
-            .plateCols      = cols,
-            .heatmapAreaSize = mDenesityMapSize,
-            .wellImageOrder  = wellOrder,
-            .exportType      = joda::results::exporter::BatchExporter::Settings::ExportType::LIST,
-            .exportDetail    = exp};
-        joda::results::exporter::BatchExporter::startExport(settings, filePath.toStdString());
-      }
-
-      QDesktopServices::openUrl(QUrl("file:///" + filePath));
-
-      // emit exportFinished();
-      //  joda::results::exporter::ExporterXlsx::exportAsHeatmap(mHeatmap->getData(), filePath.toStdString());
-    }).detach();
-    */
-}
-
-///
 /// \brief
 /// \author     Joachim Danmayr
 ///
@@ -647,6 +600,55 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::onShowTable()
+{
+  mTable->setVisible(true);
+  mHeatmap01->setVisible(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::onShowHeatmap()
+{
+  mTable->setVisible(false);
+  mHeatmap01->setVisible(true);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::tableToQWidgetTable(const table::Table &table)
+{
+  mTable->setRowCount(table.getRows());
+  mTable->setColumnCount(table.getCols());
+
+  for(int n = 0; n < table.getColHeaderSize(); n++) {
+    mTable->setHorizontalHeaderItem(n, new QTableWidgetItem(table.getColHeader(n).data()));
+  }
+
+  for(int col = 0; col < table.getCols(); col++) {
+    for(int row = 0; row < table.getRows(); row++) {
+      mTable->setItem(row, col, new QTableWidgetItem(QString::number((double) table.data(row, col).getVal())));
+    }
   }
 }
 

@@ -85,6 +85,7 @@ private:
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
   void setAnalyzer();
+  void tableToQWidgetTable(const table::Table &table);
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
@@ -92,6 +93,9 @@ private:
   // Breadcrumb///////////////////////////////////////////////////
   void createBreadCrump(joda::ui::helper::LayoutGenerator *);
   QPushButton *mBackButton;
+  QPushButton *mHeatmapButton;
+  QPushButton *mTableButton;
+
   PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;
 
@@ -103,6 +107,9 @@ private:
   QComboBox *mCrossChannelStackC;
   QComboBox *mCrossChannelClusterSelector;
   QComboBox *mCrossChannelClassSelector;
+
+  /////////////////////////////////////////////////////
+  QTableWidget *mTable;
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;
@@ -129,7 +136,6 @@ private:
   bool mIsLoading = false;
 
 public slots:
-  void onExportClicked();
   void onMarkAsInvalidClicked();
   void onElementSelected(int cellX, int cellY, table::TableCell value);
   void onOpenNextLevel(int cellX, int cellY, table::TableCell value);
@@ -140,6 +146,8 @@ public slots:
   void paintImage();
   void onExportImageClicked();
   void onMeasurementChanged();
+  void onShowTable();
+  void onShowHeatmap();
 };
 
 }    // namespace joda::ui
