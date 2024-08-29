@@ -128,7 +128,7 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   mMeasurementSelector->addItem("Area size", (int32_t) joda::enums::Measurement::AREA_SIZE);
   mMeasurementSelector->addItem("Perimeter", (int32_t) joda::enums::Measurement::PERIMETER);
   mMeasurementSelector->addItem("Circularity", (int32_t) joda::enums::Measurement::CIRCULARITY);
-  mMeasurementSelector->addItem("Intersecting", (int32_t) joda::enums::Measurement::INTERSECTING_CNT);
+  mMeasurementSelector->addItem("Cross channel count", (int32_t) joda::enums::Measurement::INTERSECTING_CNT);
   mMeasurementSelector->addItem("Intensity sum.", (int32_t) joda::enums::Measurement::INTENSITY_SUM);
   mMeasurementSelector->addItem("Intensity avg.", (int32_t) joda::enums::Measurement::INTENSITY_AVG);
   mMeasurementSelector->addItem("Intensity min.", (int32_t) joda::enums::Measurement::INTENSITY_MIN);
@@ -156,15 +156,18 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 
   mCrossChannelStackC = new QComboBox();
   connect(mCrossChannelStackC, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  toolbar->addItemToTopToolbar(mCrossChannelStackC);
+  mActionCrossChannelCStack = toolbar->addItemToTopToolbar(mCrossChannelStackC);
+  mActionCrossChannelCStack->setEnabled(false);
 
   mCrossChannelClusterSelector = new QComboBox();
   connect(mCrossChannelClusterSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  toolbar->addItemToTopToolbar(mCrossChannelClusterSelector);
+  mActionCrossChannelCluster = toolbar->addItemToTopToolbar(mCrossChannelClusterSelector);
+  mActionCrossChannelCluster->setEnabled(false);
 
   mCrossChannelClassSelector = new QComboBox();
   connect(mCrossChannelClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  toolbar->addItemToTopToolbar(mCrossChannelClassSelector);
+  mActionCrossChannelClass = toolbar->addItemToTopToolbar(mCrossChannelClassSelector);
+  mActionCrossChannelClass->setEnabled(false);
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -261,6 +264,23 @@ void PanelResults::onMeasurementChanged()
       .crossChannelClusterName = mCrossChannelClusterSelector->currentText().toStdString(),
       .crossChannelClassId     = static_cast<joda::enums::ClassId>(mCrossChannelClassSelector->currentData().toInt()),
       .crossChannelClassName   = mCrossChannelClassSelector->currentText().toStdString()};
+
+  if(mActionCrossChannelCStack != nullptr && mActionCrossChannelCluster != nullptr &&
+     mActionCrossChannelClass != nullptr) {
+    if(db::getType(mFilter.measurementChannel) == db::MeasureType::INTENSITY) {
+      mActionCrossChannelCStack->setEnabled(true);
+      mActionCrossChannelCluster->setEnabled(false);
+      mActionCrossChannelClass->setEnabled(false);
+    } else if(db::getType(mFilter.measurementChannel) == db::MeasureType::COUNT) {
+      mActionCrossChannelCStack->setEnabled(false);
+      mActionCrossChannelCluster->setEnabled(true);
+      mActionCrossChannelClass->setEnabled(true);
+    } else {
+      mActionCrossChannelCStack->setEnabled(false);
+      mActionCrossChannelCluster->setEnabled(false);
+      mActionCrossChannelClass->setEnabled(false);
+    }
+  }
   repaintHeatmap();
 }
 
@@ -520,10 +540,8 @@ void PanelResults::onExportClicked()
     if(measureChannelsToExport.ret != 0) {
       return;
     }
-    QString filePath = QFileDialog::getSaveFileName(mWindowMain, "Save File", mAnalyzer->getBasePath().string().data(),
-                                                    "XLSX Files (*.xlsx)");
-    if(filePath.isEmpty()) {
-      return;
+    QString filePath = QFileDialog::getSaveFileName(mWindowMain, "Save File",
+    mAnalyzer->getBasePath().string().data(), "XLSX Files (*.xlsx)"); if(filePath.isEmpty()) { return;
     }
 
     std::thread([this, measureChannelsToExport = measureChannelsToExport, filePath = filePath] {

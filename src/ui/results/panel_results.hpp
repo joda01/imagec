@@ -112,7 +112,10 @@ private:
   PanelResultsInfo::DataSet mSelectedDataSet;
 
   /////////////////////////////////////////////////////
-  QAction *mMarkAsInvalidAction;
+  QAction *mMarkAsInvalidAction       = nullptr;
+  QAction *mActionCrossChannelCStack  = nullptr;
+  QAction *mActionCrossChannelCluster = nullptr;
+  QAction *mActionCrossChannelClass   = nullptr;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;
