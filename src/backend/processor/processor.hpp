@@ -9,8 +9,8 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-
 ///
+#pragma once
 
 #include <filesystem>
 #include <mutex>
@@ -19,6 +19,7 @@
 #include "backend/global_enums.hpp"
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
+#include "backend/helper/threading/threading.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
@@ -144,12 +145,13 @@ class Processor
 public:
   /////////////////////////////////////////////////////
   Processor();
-  void execute(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages);
+  void execute(const joda::settings::AnalyzeSettings &program, const joda::thread::ThreadingSettings &threadingSettings,
+               imagesList_t &allImages);
   void stop();
   std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, GlobalContext &globalContext);
   void initializePipelineContext(const GlobalContext &globalContext, const PlateContext &plateContext,
                                  joda::grp::FileGrouper &grouper, const joda::filesystem::path &imagePath,
-                                 PipelineInitializer &imageLoader, ImageContext &imageContext);
+                                 PipelineInitializer &imageLoader, ImageContext &imageContext) const;
 
   void listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &);
   const ProcessProgress &getProgress() const

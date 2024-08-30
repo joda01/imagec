@@ -55,8 +55,9 @@ public:
 
   // SYSTEM ///////////////////////////////////////////////////
   static auto getSystemResources() -> joda::system::SystemResources;
+  static auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file,
+                                      int nrOfFiles) -> joda::thread::ThreadingSettings;
   auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings) -> joda::thread::ThreadingSettings;
-
   // FILES ///////////////////////////////////////////////////
   auto getNrOfFoundImages() -> uint32_t;
   auto getListOfFoundImages() -> const std::map<uint8_t, std::vector<std::filesystem::path>> &;

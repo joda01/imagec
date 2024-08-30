@@ -173,7 +173,8 @@ void DialogAnalyzeRunning::onRefreshData()
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Stopping ...";
 
   } else if(actState == joda::processor::ProcessState::FINISHED) {
-    closeButton->setEnabled(false);
+    closeButton->setEnabled(true);
+    stopButton->setEnabled(false);
     mStopped = true;
     progressBar->setRange(0, 100);
     progressBar->setMaximum(100);

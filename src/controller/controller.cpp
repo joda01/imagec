@@ -11,6 +11,7 @@
 ///
 
 #include "controller.hpp"
+#include <filesystem>
 #include <memory>
 #include <stdexcept>
 #include "backend/helper/reader/image_reader.hpp"
@@ -51,10 +52,21 @@ Controller::~Controller()
 ///
 auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings) -> joda::thread::ThreadingSettings
 {
+  return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles());
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file,
+                                         int nrOfFiles) -> joda::thread::ThreadingSettings
+{
   joda::thread::ThreadingSettings threads;
 
-  auto ome             = getImageProperties(mWorkingDirectory.gitFirstFile());
-  int64_t imgNr        = mWorkingDirectory.getNrOfFiles();
+  auto ome             = getImageProperties(file);
+  int64_t imgNr        = nrOfFiles;
   int64_t tileNr       = 1;
   int64_t pipelineNr   = settings.pipelines.size();
   const auto &props    = ome.getImageInfo();
@@ -230,7 +242,10 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
   if(!mActThread.joinable()) {
     mActThread = std::thread([this, settings] {
       mActProcessor = std::make_unique<processor::Processor>();
-      mActProcessor->execute(settings, mWorkingDirectory);
+      mActProcessor->execute(
+          settings,
+          calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
+          mWorkingDirectory);
     });
   } else {
     throw std::runtime_error("There is still a job running. Stop this job first!");

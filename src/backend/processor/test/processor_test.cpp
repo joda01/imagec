@@ -13,6 +13,7 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/settings/analze_settings.hpp"
+#include "controller/controller.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -32,7 +33,12 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
   file.close();
   joda::processor::Processor processor;
   processor::imagesList_t workingdirs;
-  processor.execute(settings, workingdirs);
+  workingdirs.setWorkingDirectory(0, settings.projectSettings.plates.begin()->imageFolder);
+  workingdirs.waitForFinished();
+  processor.execute(
+      settings,
+      joda::ctrl::Controller::calcOptimalThreadNumber(settings, workingdirs.gitFirstFile(), workingdirs.getNrOfFiles()),
+      workingdirs);
 }
 
 SCENARIO("pipeline:test:bigdata", "[bigdata]")
