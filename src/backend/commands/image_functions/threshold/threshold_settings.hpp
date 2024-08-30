@@ -7,7 +7,7 @@
 
 namespace joda::settings {
 
-struct ThresholdSettings
+struct ThresholdSettings : public SettingBase
 {
 public:
   enum class Mode

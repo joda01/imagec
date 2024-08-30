@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <set>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
@@ -19,7 +20,7 @@
 
 namespace joda::settings {
 
-struct NoiseValidatorSettings
+struct NoiseValidatorSettings : public SettingBase
 {
   enum class FilterMode
   {
@@ -63,6 +64,11 @@ struct NoiseValidatorSettings
     if(mode == FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER) {
       CHECK(clusterIn != enums::ClusterIdIn::NONE, "Cluster must not be >NONE<!");
     }
+  }
+
+  std::set<enums::ClusterIdIn> getInputClusters() const override
+  {
+    return {clusterIn};
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(NoiseValidatorSettings, mode, imageIn, clusterIn, maxObjects);

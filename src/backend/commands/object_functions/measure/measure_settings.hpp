@@ -29,7 +29,7 @@
 
 namespace joda::settings {
 
-struct MeasureSettings
+struct MeasureSettings : public SettingBase
 {
   //
   // Optional input object for which a measurement should be applied
@@ -55,6 +55,11 @@ struct MeasureSettings
   void check() const
   {
     CHECK(!planesIn.empty(), "At least one image plane must be given for measurement.");
+  }
+
+  std::set<enums::ClusterIdIn> getInputClusters() const override
+  {
+    return clustersIn;
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, objectIn, clustersIn, classesIn, planesIn);

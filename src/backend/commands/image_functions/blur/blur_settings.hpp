@@ -7,7 +7,7 @@
 
 namespace joda::settings {
 
-struct BlurSettings
+struct BlurSettings : public SettingBase
 {
 public:
   enum class Mode

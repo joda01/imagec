@@ -7,7 +7,7 @@
 
 namespace joda::settings {
 
-struct RollingBallSettings
+struct RollingBallSettings : public SettingBase
 {
 public:
   enum class BallType

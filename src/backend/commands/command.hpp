@@ -15,8 +15,10 @@
 
 #include <memory>
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/processor/context/process_context.hpp"
+#include "backend/settings/setting.hpp"
 #include <opencv2/core/mat.hpp>
 
 namespace joda::cmd {

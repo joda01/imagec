@@ -104,7 +104,7 @@ private:
   std::unique_ptr<SettingLineEdit<std::string>> pipelineName;
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
-  std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> defaultClusterId;
+  std::unique_ptr<SettingComboBox<enums::ClusterId>> defaultClusterId;
 
   /////////////////////////////////////////////////////
   PanelPreview *mPreviewImage = nullptr;

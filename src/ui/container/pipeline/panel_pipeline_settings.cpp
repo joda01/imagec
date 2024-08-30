@@ -241,17 +241,17 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   //
   //
   defaultClusterId =
-      SettingBase::create<SettingComboBox<enums::ClusterIdIn>>(windowMain, "icons8-connection-50.png", "Cluster");
-  defaultClusterId->addOptions({{enums::ClusterIdIn::A, "Cluster A"},
-                                {enums::ClusterIdIn::B, "Cluster B"},
-                                {enums::ClusterIdIn::C, "Cluster C"},
-                                {enums::ClusterIdIn::D, "Cluster D"},
-                                {enums::ClusterIdIn::E, "Cluster E"},
-                                {enums::ClusterIdIn::F, "Cluster F"},
-                                {enums::ClusterIdIn::G, "Cluster G"},
-                                {enums::ClusterIdIn::H, "Cluster H"},
-                                {enums::ClusterIdIn::I, "Cluster I"},
-                                {enums::ClusterIdIn::J, "Cluster J"}});
+      SettingBase::create<SettingComboBox<enums::ClusterId>>(windowMain, "icons8-connection-50.png", "Cluster");
+  defaultClusterId->addOptions({{enums::ClusterId::A, "Cluster A"},
+                                {enums::ClusterId::B, "Cluster B"},
+                                {enums::ClusterId::C, "Cluster C"},
+                                {enums::ClusterId::D, "Cluster D"},
+                                {enums::ClusterId::E, "Cluster E"},
+                                {enums::ClusterId::F, "Cluster F"},
+                                {enums::ClusterId::G, "Cluster G"},
+                                {enums::ClusterId::H, "Cluster H"},
+                                {enums::ClusterId::I, "Cluster I"},
+                                {enums::ClusterId::J, "Cluster J"}});
   defaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId);
 
   connect(pipelineName.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
@@ -551,7 +551,14 @@ void PanelPipelineSettings::onClassificationNameChanged()
   for(auto &command : mCommands) {
     command->updateClassesAndClusterNames(clusters, classes);
   }
-  defaultClusterId->changeOptionText(clusters);
+
+  std::map<enums::ClusterId, QString> clustersN;
+  for(const auto &[id, name] : clusters) {
+    if(id != enums::ClusterIdIn::$) {
+      clustersN.emplace(static_cast<enums::ClusterId>(id), name);
+    }
+  }
+  defaultClusterId->changeOptionText(clustersN);
 }
 
 ///

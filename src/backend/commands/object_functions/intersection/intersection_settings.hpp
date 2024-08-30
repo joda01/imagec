@@ -24,7 +24,7 @@
 
 namespace joda::settings {
 
-struct IntersectionSettings
+struct IntersectionSettings : public SettingBase
 {
   enum class Function
   {
@@ -43,7 +43,7 @@ struct IntersectionSettings
     //
     // Cluster to calculate the intersection with
     //
-    joda::enums::ClusterId clusterIn = joda::enums::ClusterId::NONE;
+    joda::enums::ClusterIdIn clusterIn = joda::enums::ClusterIdIn::NONE;
 
     //
     // Classes within the cluster to calc the calculation with
@@ -93,6 +93,14 @@ struct IntersectionSettings
       CHECK(newClassId != joda::enums::ClassId::UNDEFINED,
             "Define a class the elements should be assigned for reclassification.");
     }
+  }
+
+  std::set<enums::ClusterIdIn> getInputClusters() const override
+  {
+    std::set<enums::ClusterIdIn> clusters;
+    clusters.emplace(objectsIn.clusterIn);
+    clusters.emplace(objectsInWith.clusterIn);
+    return clusters;
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionSettings, function, minIntersection, objectsIn,

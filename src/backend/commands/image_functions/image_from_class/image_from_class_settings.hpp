@@ -9,7 +9,7 @@
 
 namespace joda::settings {
 
-struct ImageFromClassSettings
+struct ImageFromClassSettings : public SettingBase
 {
 public:
   //

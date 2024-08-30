@@ -20,7 +20,7 @@
 
 namespace joda::settings {
 
-struct WatershedSettings
+struct WatershedSettings : public SettingBase
 {
   //
   //

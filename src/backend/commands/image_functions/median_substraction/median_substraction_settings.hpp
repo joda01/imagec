@@ -7,7 +7,7 @@
 
 namespace joda::settings {
 
-struct MedianSubtractSettings
+struct MedianSubtractSettings : public SettingBase
 {
 public:
 public:

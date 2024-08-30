@@ -64,6 +64,22 @@ class PipelineFactory
 {
 public:
   static std::unique_ptr<RET> generate(const settings::PipelineStep &step, QWidget *parent = nullptr)
+    requires std::is_base_of<joda::ui::Command, RET>::value
+  {
+    return generateIntern<RET>(step, parent);
+  }
+
+  static std::unique_ptr<joda::cmd::CommandFactory> generate(const settings::PipelineStep &step,
+                                                             QWidget *parent = nullptr)
+    requires std::is_base_of<joda::cmd::Command, RET>::value
+  {
+    return generateIntern<joda::cmd::CommandFactory>(step, parent);
+  }
+
+private:
+  template <class FUNRET>
+  static std::unique_ptr<FUNRET> generateIntern(const settings::PipelineStep &step, QWidget *parent = nullptr)
+
   {
     if(step.$blur) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {

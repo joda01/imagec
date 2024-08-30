@@ -5,6 +5,7 @@
 #include <set>
 #include <stdexcept>
 #include "backend/enums/enum_objects.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
@@ -54,7 +55,7 @@ struct PipelineSettings
   //
   // Default cluster ID of this pipeline. Can be accessed with $
   //
-  enums::ClusterIdIn defaultClusterId = enums::ClusterIdIn::NONE;
+  enums::ClusterId defaultClusterId = enums::ClusterId::NONE;
 
   void check() const
   {

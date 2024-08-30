@@ -7,7 +7,7 @@
 
 namespace joda::settings {
 
-struct EdgeDetectionSettings
+struct EdgeDetectionSettings : public SettingBase
 {
 public:
   enum class Mode

@@ -7,7 +7,7 @@
 
 namespace joda::settings {
 
-struct MarginCropSettings
+struct MarginCropSettings : public SettingBase
 {
 public:
   int32_t marginSize = 0;

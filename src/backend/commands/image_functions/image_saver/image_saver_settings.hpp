@@ -13,7 +13,7 @@
 
 namespace joda::settings {
 
-struct ImageSaverSettings
+struct ImageSaverSettings : public SettingBase
 {
 public:
   enum class Canvas

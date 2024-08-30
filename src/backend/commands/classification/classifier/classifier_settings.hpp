@@ -23,7 +23,7 @@
 
 namespace joda::settings {
 
-struct ClassifierSettings
+struct ClassifierSettings : public SettingBase
 {
   //
   // Object classification based on gray scale value (default: modelClassId = 65535)

@@ -27,8 +27,10 @@
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/processor/context/plate_context.hpp"
 #include "backend/processor/context/process_context.hpp"
+#include "backend/processor/dependency_graph.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/setting.hpp"
 
 namespace joda::processor {
@@ -51,6 +53,10 @@ void Processor::stop()
 
 void Processor::execute(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages)
 {
+  // Resolve dependencies
+  auto pipelineOrder = joda::processor::DependencyGraph::calcGraph(program);
+
+  // Prepare the context
   GlobalContext globalContext;
   auto jobId = initializeGlobalContext(program, globalContext);
 
@@ -101,39 +107,43 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, imagesLi
                 break;
               }
               IterationContext iterationContext;
-
               // Execute pipelines of this iteration
-              for(const auto &pipeline : program.pipelines) {
-                if(mProgress.isStopping()) {
-                  break;
-                }
-                //
-                // Load the image imagePlane
-                //
-                ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
-                imageLoader.initPipeline(
-                    pipeline.pipelineSetup, {tilesX, tileY},
-                    {.tStack = tStack, .zStack = zStack, .cStack = pipeline.pipelineSetup.cStackIndex}, context);
-                auto planeId = context.getActImage().getId().imagePlane;
-                try {
-                  db.insertImagePlane(imageContext.imageId, planeId,
-                                      imageContext.imageMeta.getChannelInfos()
-                                          .at(pipeline.pipelineSetup.cStackIndex)
-                                          .planes.at(planeId.tStack)
-                                          .at(planeId.zStack));
-                } catch(const std::exception &ex) {
-                  std::cout << "Insert Plane: " << ex.what() << std::endl;
-                }
 
-                //
-                // Execute the pipeline
-                //
-                for(const auto &step : pipeline.pipelineSteps) {
+              // Start with the highest prio pipelines down to the lowest prio
+              for(const auto &[order, pipelines] : pipelineOrder) {
+                // These are pipelines in onw prio step -> Can be parallelized
+                for(const auto &pipeline : pipelines) {
                   if(mProgress.isStopping()) {
                     break;
                   }
-                  // Execute a pipeline step
-                  step(context, context.getActImage().image, context.getActObjects());
+                  //
+                  // Load the image imagePlane
+                  //
+                  ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
+                  imageLoader.initPipeline(
+                      pipeline->pipelineSetup, {tilesX, tileY},
+                      {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context);
+                  auto planeId = context.getActImage().getId().imagePlane;
+                  try {
+                    db.insertImagePlane(imageContext.imageId, planeId,
+                                        imageContext.imageMeta.getChannelInfos()
+                                            .at(pipeline->pipelineSetup.cStackIndex)
+                                            .planes.at(planeId.tStack)
+                                            .at(planeId.zStack));
+                  } catch(const std::exception &ex) {
+                    std::cout << "Insert Plane: " << ex.what() << std::endl;
+                  }
+
+                  //
+                  // Execute the pipeline
+                  //
+                  for(const auto &step : pipeline->pipelineSteps) {
+                    if(mProgress.isStopping()) {
+                      break;
+                    }
+                    // Execute a pipeline step
+                    step(context, context.getActImage().image, context.getActObjects());
+                  }
                 }
               }
 
@@ -251,33 +261,32 @@ auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, c
     step(context, context.getActImage().image, context.getActObjects());
   }
 
-  // Prepare preview image
-  settings::ImageSaverSettings saverSettings{
-      .clustersIn   = {settings::ImageSaverSettings::Cluster{
-            .classesIn = {settings::ImageSaverSettings::Cluster::Class{
-                              .classIn = enums::ClassId::NONE,
-                              .color   = "#808080",
-                              .style   = settings::ImageSaverSettings::Cluster::Class::Style::OUTLINED},
-                          settings::ImageSaverSettings::Cluster::Class{
-                              .classIn = enums::ClassId::C0,
-                              .color   = "#FF0000",
-                        },
-                          settings::ImageSaverSettings::Cluster::Class{
-                              .classIn = enums::ClassId::C1,
-                              .color   = "#00FF00",
-                        },
-                          settings::ImageSaverSettings::Cluster::Class{
-                              .classIn = enums::ClassId::C2,
-                              .color   = "#0000FF",
-                        },
-                          settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C3},
-                          settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C4}}}},
-      .canvas       = settings::ImageSaverSettings::Canvas::IMAGE_PLANE,
-      .planesIn     = enums::ImageId{.imageIdx = enums::ZProjection::$},
-      .outputCanvas = settings::ImageSaverSettings::OutputCanvas::IMAGE_$,
-  };
-  joda::cmd::ImageSaver saver(saverSettings);
-  saver.execute(context, context.getActImage().image, context.getActObjects());
+  joda::settings::ImageSaverSettings saverSettings;
+  saverSettings.clustersIn   = {settings::ImageSaverSettings::Cluster{
+        .classesIn = {settings::ImageSaverSettings::Cluster::Class{
+                          .classIn = enums::ClassId::NONE,
+                          .color   = "#808080",
+                          .style   = settings::ImageSaverSettings::Cluster::Class::Style::OUTLINED},
+                      settings::ImageSaverSettings::Cluster::Class{
+                          .classIn = enums::ClassId::C0,
+                          .color   = "#FF0000",
+                    },
+                      settings::ImageSaverSettings::Cluster::Class{
+                          .classIn = enums::ClassId::C1,
+                          .color   = "#00FF00",
+                    },
+                      settings::ImageSaverSettings::Cluster::Class{
+                          .classIn = enums::ClassId::C2,
+                          .color   = "#0000FF",
+                    },
+                      settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C3},
+                      settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C4}}}};
+  saverSettings.canvas       = settings::ImageSaverSettings::Canvas::IMAGE_PLANE;
+  saverSettings.planesIn     = enums::ImageId{.imageIdx = enums::ZProjection::$};
+  saverSettings.outputCanvas = settings::ImageSaverSettings::OutputCanvas::IMAGE_$;
+  auto step                  = settings::PipelineStep{.$saveImage = saverSettings};
+  auto saver                 = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
+  saver->execute(context, context.getActImage().image, context.getActObjects());
 
   return {context.loadImageFromCache(joda::enums::ImageId{.imageIdx = enums::ZProjection::$, .imagePlane = {}})->image,
           context.getActImage().image};

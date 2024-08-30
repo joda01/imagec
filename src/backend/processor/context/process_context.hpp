@@ -66,9 +66,9 @@ public:
   ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext,
                  IterationContext &iterationContext);
 
-  void initDefaultSettings(enums::ClusterIdIn cluster, enums::ZProjection zProjection)
+  void initDefaultSettings(enums::ClusterId cluster, enums::ZProjection zProjection)
   {
-    pipelineContext.defaultClusterId   = static_cast<enums::ClusterId>(cluster);
+    pipelineContext.defaultClusterId   = cluster;
     pipelineContext.defaultZProjection = zProjection;
   }
 

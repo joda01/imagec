@@ -28,9 +28,10 @@ Intersection::Intersection(const settings::IntersectionSettings &settings) : mSe
 
 void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
-  auto &objectsInOut = context.loadObjectsFromCache(mSettings.objectsIn.objectIn)->at(mSettings.objectsIn.clusterIn);
-  const auto &intersectWith =
-      context.loadObjectsFromCache(mSettings.objectsInWith.objectIn)->at(mSettings.objectsInWith.clusterIn);
+  auto &objectsInOut = context.loadObjectsFromCache(mSettings.objectsIn.objectIn)
+                           ->at(context.getClusterId(mSettings.objectsIn.clusterIn));
+  const auto &intersectWith = context.loadObjectsFromCache(mSettings.objectsInWith.objectIn)
+                                  ->at(context.getClusterId(mSettings.objectsInWith.clusterIn));
 
   objectsInOut.calcIntersections(mSettings.function, intersectWith, mSettings.objectsIn.classesIn,
                                  mSettings.objectsInWith.classesIn, mSettings.minIntersection, mSettings.newClassId);

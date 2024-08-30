@@ -12,13 +12,14 @@
 
 #pragma once
 
+#include <set>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
 
 namespace joda::settings {
 
-struct ThresholdValidatorSettings
+struct ThresholdValidatorSettings : public SettingBase
 {
   enum class FilterMode
   {
@@ -57,6 +58,11 @@ struct ThresholdValidatorSettings
     if(mode == FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER) {
       CHECK(clusterIn != enums::ClusterIdIn::NONE, "Cluster must not be >NONE<!");
     }
+  }
+
+  std::set<enums::ClusterIdIn> getInputClusters() const override
+  {
+    return {clusterIn};
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdValidatorSettings, mode, imageIn, clusterIn,

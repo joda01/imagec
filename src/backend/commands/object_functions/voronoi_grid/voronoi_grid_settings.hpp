@@ -12,7 +12,7 @@
 
 namespace joda::settings {
 
-struct VoronoiGridSettings
+struct VoronoiGridSettings : public SettingBase
 {
 public:
   enums::ObjectStoreId objectStoreIn;
@@ -30,7 +30,7 @@ public:
   //
   // To which cluster the result should be assigned to
   //
-  enums::ClusterIdIn pointsClusterOut;
+  enums::ClusterIdIn pointsClusterOut = enums::ClusterIdIn::$;
 
   //
   // To which class the result should be assigned to
@@ -79,6 +79,16 @@ public:
       CHECK(maskClasses.has_value(), "A input class for the voronoi mask must be given!");
       CHECK(!maskClasses->empty(), "Input class must be bigger than zero.");
     }
+  }
+
+  std::set<enums::ClusterIdIn> getInputClusters() const override
+  {
+    std::set<enums::ClusterIdIn> clusters;
+    if(maskCluster.has_value()) {
+      clusters.emplace(maskCluster.value());
+    }
+    clusters.emplace(pointsClusterIn);
+    return clusters;
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, objectStoreIn, pointsClusterIn,

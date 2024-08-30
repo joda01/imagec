@@ -26,7 +26,7 @@
 
 namespace joda::settings {
 
-struct ColocalizationSettings
+struct ColocalizationSettings : public SettingBase
 {
   struct IntersectingClasses
   {
@@ -38,7 +38,7 @@ struct ColocalizationSettings
     //
     // Cluster to calculate the intersection with
     //
-    joda::enums::ClusterId clusterIn = joda::enums::ClusterId::NONE;
+    joda::enums::ClusterIdIn clusterIn = joda::enums::ClusterIdIn::NONE;
 
     //
     // Classes within the cluster to calc the calculation with
@@ -79,6 +79,15 @@ struct ColocalizationSettings
   {
     CHECK(objectsIn.size() > 1, "At least two input objects must be given!");
     CHECK(minIntersection >= 0, "Min intersection must be >=0.");
+  }
+
+  std::set<enums::ClusterIdIn> getInputClusters() const override
+  {
+    std::set<enums::ClusterIdIn> clusters;
+    for(const auto &obj : objectsIn) {
+      clusters.emplace(obj.clusterIn);
+    }
+    return clusters;
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, objectsIn, minIntersection, classOut, clusterOut);

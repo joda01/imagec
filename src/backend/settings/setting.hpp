@@ -15,9 +15,11 @@
 
 #include <functional>
 #include <memory>
+#include <set>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
 
@@ -59,5 +61,19 @@
     const auto name = std::string(typeid(*this).name());                       \
     throw std::invalid_argument(static_cast<std::string>(name + "::" + what)); \
   }
+
+namespace joda::settings {
+
+class SettingBase
+{
+public:
+  SettingBase() = default;
+  [[nodiscard]] virtual std::set<enums::ClusterIdIn> getInputClusters() const
+  {
+    return {};
+  }
+};
+
+}    // namespace joda::settings
 
 // namespace joda::settings

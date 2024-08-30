@@ -23,7 +23,7 @@
 
 namespace joda::settings {
 
-struct AiClassifierSettings
+struct AiClassifierSettings : public SettingBase
 {
   //
   // Path to the AI model which should be used for classification
