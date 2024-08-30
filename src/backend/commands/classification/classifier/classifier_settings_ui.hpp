@@ -56,9 +56,9 @@ private:
     {
       //
       //
-      mClusterOut = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Match cluster", parent);
-      mClusterOut->setValue(settings.clusterOut);
-      mClusterOut->connectWithSetting(&settings.clusterOut);
+      // mClusterOut = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Match cluster", parent);
+      // mClusterOut->setValue(settings.clusterOut);
+      // mClusterOut->connectWithSetting(&settings.clusterOut);
 
       //
       //
@@ -97,7 +97,7 @@ private:
       mMinCircularity->setShortDescription("Circ. ");
 
       outer.addSetting(tab, "Filter",
-                       {{mClusterOut.get(), false},
+                       {/*{mClusterOut.get(), false},*/
                         {mClassOut.get(), true},
                         {mMinCircularity.get(), true},
                         {mMinParticleSize.get(), true},
@@ -106,11 +106,11 @@ private:
 
     ~ClassifierFilter()
     {
-      outer.removeSetting({mClusterOut.get(), mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
+      outer.removeSetting({/*mClusterOut.get(),*/ mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
                            mMinCircularity.get(), mSnapAreaSize.get()});
     }
 
-    std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
+    // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
     std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOut;
     std::unique_ptr<SettingLineEdit<int>> mMinParticleSize;
     std::unique_ptr<SettingLineEdit<int>> mMaxParticleSize;
@@ -128,9 +128,9 @@ private:
     {
       //
       //
-      mClusterOutNoMatch = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("No match cluster", parent);
-      mClusterOutNoMatch->setValue(settings.clusterOutNoMatch);
-      mClusterOutNoMatch->connectWithSetting(&settings.clusterOutNoMatch);
+      // mClusterOutNoMatch = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("No match cluster", parent);
+      // mClusterOutNoMatch->setValue(settings.clusterOutNoMatch);
+      // mClusterOutNoMatch->connectWithSetting(&settings.clusterOutNoMatch);
 
       //
       //
@@ -150,8 +150,8 @@ private:
       mGrayScaleValue->setShortDescription("Cls. ");
 
       auto *col = outer.addSetting(tab, "Classification", {{mGrayScaleValue.get(), false}});
-      outer.addSetting(tab, "No match handling", {{mClusterOutNoMatch.get(), false}, {mClassOutNoMatch.get(), false}},
-                       col);
+      outer.addSetting(tab, "No match handling",
+                       {/*{mClusterOutNoMatch.get(), false},*/ {mClassOutNoMatch.get(), false}}, col);
 
       for(auto &filter : settings.filters) {
         mClassifyFilter.emplace_back(filter, outer, tab, parent);
@@ -160,10 +160,10 @@ private:
 
     ~ObjectClass()
     {
-      outer.removeSetting({mClusterOutNoMatch.get(), mClassOutNoMatch.get()});
+      outer.removeSetting({/*mClusterOutNoMatch.get(),*/ mClassOutNoMatch.get()});
     }
 
-    std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOutNoMatch;
+    // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOutNoMatch;
     std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOutNoMatch;
     std::unique_ptr<SettingLineEdit<int32_t>> mGrayScaleValue;
 

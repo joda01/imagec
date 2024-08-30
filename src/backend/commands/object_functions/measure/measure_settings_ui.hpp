@@ -41,7 +41,6 @@ public:
     //
     //
     clustersIn = generateClusterDropDown<SettingComboBoxMulti<enums::ClusterIdIn>>("Cluster in", parent);
-
     clustersIn->setValue(settings.clustersIn);
     clustersIn->connectWithSetting(&settings.clustersIn);
 
