@@ -17,6 +17,7 @@
 #include <qwidget.h>
 #include <QtWidgets>
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 
 namespace joda::ui {
@@ -34,8 +35,8 @@ class PanelProjectSettings : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  PanelProjectSettings(joda::settings::ProjectSettings &settings, WindowMain *parentWindow);
-  void fromSettings(const joda::settings::ProjectSettings &settings);
+  PanelProjectSettings(joda::settings::AnalyzeSettings &settings, WindowMain *parentWindow);
+  void fromSettings(const joda::settings::AnalyzeSettings &settings);
   void toSettings();
   [[nodiscard]] QString getJobName() const
   {
@@ -51,7 +52,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  joda::settings::ProjectSettings &mSettings;
+  joda::settings::AnalyzeSettings &mSettings;
   WindowMain *mParentWindow;
 
   /////////////////////////////////////////////////////
@@ -61,6 +62,10 @@ private:
 
   QComboBox *mGroupByComboBox;
   QComboBox *mPlateSize;
+
+  QComboBox *mStackHandlingZ;
+  QComboBox *mStackHandlingT;
+
   QLineEdit *mWorkingDir;
   QLabel *mWellOrderMatrixLabel;
   QLineEdit *mWellOrderMatrix;

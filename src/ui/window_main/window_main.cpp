@@ -160,7 +160,7 @@ void WindowMain::createLeftToolbar()
 
   // Experiment Settings
   {
-    mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings.projectSettings, this);
+    mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings, this);
     mTabWidget->addTab(mPanelProjectSettings, "Project");
   }
 
@@ -434,7 +434,7 @@ void WindowMain::openProjectSettings(const QString &filePath)
       mPanelPipeline->addChannel(channel);
     }
 
-    mPanelProjectSettings->fromSettings(analyzeSettings.projectSettings);
+    mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings);
 
     mAnalyzeSettings.projectSettings = analyzeSettings.projectSettings;

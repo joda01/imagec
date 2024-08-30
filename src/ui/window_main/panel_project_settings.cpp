@@ -12,8 +12,10 @@
 ///
 
 #include "panel_project_settings.hpp"
+#include <qcombobox.h>
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/username.hpp"
+#include "backend/settings/project_settings/project_image_setup.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/window_main/window_main.hpp"
@@ -27,7 +29,7 @@ namespace joda::ui {
 /// \param[out]
 /// \return
 ///
-PanelProjectSettings::PanelProjectSettings(joda::settings::ProjectSettings &settings, WindowMain *parentWindow) :
+PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &settings, WindowMain *parentWindow) :
     mSettings(settings), mParentWindow(parentWindow)
 {
   auto *layout            = new QVBoxLayout(this);
@@ -102,6 +104,36 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ProjectSettings &sett
   addSeparator();
 
   //
+  // Stack handling
+  //
+  mStackHandlingZ = new QComboBox();
+  mStackHandlingZ->addItem(
+      "Intensity projection",
+      static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION));
+  mStackHandlingZ->addItem("Each one",
+                           static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EACH_ONE));
+  mStackHandlingZ->addItem("Exact one",
+                           static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
+  formLayout->addRow(new QLabel(tr("Z-Stack:")), mStackHandlingZ);
+
+  //
+  mStackHandlingT = new QComboBox();
+  mStackHandlingT->addItem("Each one",
+                           static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
+  mStackHandlingT->addItem("Exact one",
+                           static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
+  formLayout->addRow(new QLabel(tr("T-Stack:")), mStackHandlingT);
+
+  addSeparator();
+
+  //
+  // Well order matrix
+  //
+  mWellOrderMatrix      = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+  mWellOrderMatrixLabel = new QLabel(tr("Well order:"));
+  formLayout->addRow(mWellOrderMatrixLabel, mWellOrderMatrix);
+
+  //
   // Plate size
   //
   mPlateSize = new QComboBox();
@@ -114,14 +146,6 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ProjectSettings &sett
   mPlateSize->addItem("16 x 24", 1624);
   mPlateSize->addItem("32 x 48", 3248);
   mPlateSize->addItem("48 x 72", 4872);
-
-  //
-  // Well order matrix
-  //
-  mWellOrderMatrix      = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
-  mWellOrderMatrixLabel = new QLabel(tr("Well order:"));
-  formLayout->addRow(mWellOrderMatrixLabel, mWellOrderMatrix);
-
   formLayout->addRow(new QLabel(tr("Plate size:")), mPlateSize);
 
   addSeparator();
@@ -156,10 +180,10 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::ProjectSettings &sett
 /// \param[out]
 /// \return
 ///
-void PanelProjectSettings::fromSettings(const joda::settings::ProjectSettings &settings)
+void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &settings)
 {
   {
-    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.plates.begin()->groupBy));
+    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.projectSettings.plates.begin()->groupBy));
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
     } else {
@@ -168,7 +192,7 @@ void PanelProjectSettings::fromSettings(const joda::settings::ProjectSettings &s
   }
 
   {
-    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.plates.begin()->groupBy));
+    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.projectSettings.plates.begin()->groupBy));
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
     } else {
@@ -177,26 +201,43 @@ void PanelProjectSettings::fromSettings(const joda::settings::ProjectSettings &s
   }
 
   {
-    mWellOrderMatrix->setText(joda::settings::vectorToString(settings.plates.begin()->wellImageOrder).data());
+    mWellOrderMatrix->setText(
+        joda::settings::vectorToString(settings.projectSettings.plates.begin()->wellImageOrder).data());
   }
   {
-    auto val = settings.plates.begin()->rows * 100 + settings.plates.begin()->cols;
+    auto val = settings.projectSettings.plates.begin()->rows * 100 + settings.projectSettings.plates.begin()->cols;
     auto idx = mPlateSize->findData(val);
     if(idx >= 0) {
       mPlateSize->setCurrentIndex(idx);
     }
   }
+  {
+    auto idx = mStackHandlingZ->findData(static_cast<int>(settings.imageSetup.zStackHandling));
+    if(idx >= 0) {
+      mStackHandlingZ->setCurrentIndex(idx);
+    } else {
+      mStackHandlingZ->setCurrentIndex(0);
+    }
+  }
+  {
+    auto idx = mStackHandlingT->findData(static_cast<int>(settings.imageSetup.tStackHandling));
+    if(idx >= 0) {
+      mStackHandlingT->setCurrentIndex(idx);
+    } else {
+      mStackHandlingT->setCurrentIndex(0);
+    }
+  }
 
-  mWorkingDir->setText(settings.workingDirectory.data());
-  mRegexToFindTheWellPosition->setCurrentText(settings.plates.begin()->filenameRegex.data());
-  mNotes->setText(settings.experimentSettings.notes.data());
-  mAddressOrganisation->setText(settings.address.organization.data());
-  mScientistsFirstName->setText(settings.address.firstName.data());
+  mWorkingDir->setText(settings.projectSettings.workingDirectory.data());
+  mRegexToFindTheWellPosition->setCurrentText(settings.projectSettings.plates.begin()->filenameRegex.data());
+  mNotes->setText(settings.projectSettings.experimentSettings.notes.data());
+  mAddressOrganisation->setText(settings.projectSettings.address.organization.data());
+  mScientistsFirstName->setText(settings.projectSettings.address.firstName.data());
 
   mJobName->clear();
   applyRegex();
-  mParentWindow->getController()->setWorkingDirectory(settings.plates.begin()->plateId,
-                                                      settings.plates.begin()->imageFolder);
+  mParentWindow->getController()->setWorkingDirectory(settings.projectSettings.plates.begin()->plateId,
+                                                      settings.projectSettings.plates.begin()->imageFolder);
 }
 
 ///
@@ -208,20 +249,27 @@ void PanelProjectSettings::fromSettings(const joda::settings::ProjectSettings &s
 ///
 void PanelProjectSettings::toSettings()
 {
-  mSettings.workingDirectory         = mWorkingDir->text().toStdString();
-  mSettings.address.organization     = mAddressOrganisation->text().trimmed().toStdString();
-  mSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
-  mSettings.address.firstName        = mScientistsFirstName->text().toStdString();
+  mSettings.projectSettings.workingDirectory         = mWorkingDir->text().toStdString();
+  mSettings.projectSettings.address.organization     = mAddressOrganisation->text().trimmed().toStdString();
+  mSettings.projectSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
+  mSettings.projectSettings.address.firstName        = mScientistsFirstName->text().toStdString();
 
-  mSettings.plates.begin()->groupBy        = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
-  mSettings.plates.begin()->filenameRegex  = mRegexToFindTheWellPosition->currentText().toStdString();
-  mSettings.plates.begin()->imageFolder    = mWorkingDir->text().toStdString();
-  mSettings.plates.begin()->wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
+  mSettings.projectSettings.plates.begin()->groupBy =
+      static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mSettings.projectSettings.plates.begin()->filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
+  mSettings.projectSettings.plates.begin()->imageFolder   = mWorkingDir->text().toStdString();
+  mSettings.projectSettings.plates.begin()->wellImageOrder =
+      joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
 
-  auto value                        = mPlateSize->currentData().toUInt();
-  mSettings.plates.begin()->rows    = value / 100;
-  mSettings.plates.begin()->cols    = value % 100;
-  mSettings.plates.begin()->plateId = 1;
+  auto value                                        = mPlateSize->currentData().toUInt();
+  mSettings.projectSettings.plates.begin()->rows    = value / 100;
+  mSettings.projectSettings.plates.begin()->cols    = value % 100;
+  mSettings.projectSettings.plates.begin()->plateId = 1;
+
+  mSettings.imageSetup.zStackHandling =
+      static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
+  mSettings.imageSetup.tStackHandling =
+      static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
 
   mParentWindow->checkForSettingsChanged();
 }
@@ -241,10 +289,10 @@ void PanelProjectSettings::onOpenWorkingDirectoryClicked()
   mWorkingDir->setText(selectedDirectory);
   mWorkingDir->update();
   mWorkingDir->repaint();
-  mSettings.workingDirectory = mWorkingDir->text().toStdString();
-  mParentWindow->getController()->setWorkingDirectory(mSettings.plates.begin()->plateId,
+  mSettings.projectSettings.workingDirectory = mWorkingDir->text().toStdString();
+  mParentWindow->getController()->setWorkingDirectory(mSettings.projectSettings.plates.begin()->plateId,
                                                       selectedDirectory.toStdString());
-  mSettings.plates.begin()->imageFolder = mSettings.workingDirectory;
+  mSettings.projectSettings.plates.begin()->imageFolder = mSettings.projectSettings.workingDirectory;
   onSettingChanged();
 }
 
