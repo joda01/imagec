@@ -240,10 +240,10 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
                        const std::string &jobName)
 {
   if(!mActThread.joinable()) {
-    mActThread = std::thread([this, settings] {
+    mActThread = std::thread([this, settings, jobName] {
       mActProcessor = std::make_unique<processor::Processor>();
       mActProcessor->execute(
-          settings,
+          settings, jobName,
           calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
           mWorkingDirectory);
     });

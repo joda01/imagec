@@ -25,6 +25,7 @@
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
+#include "backend/helper/helper.hpp"
 #include "backend/helper/threading/threading.hpp"
 #include "backend/helper/threadpool/thread_pool.hpp"
 #include "backend/helper/threadpool/thread_pool_utils.hpp"
@@ -56,7 +57,7 @@ void Processor::stop()
   mProgress.setStateStopping();
 }
 
-void Processor::execute(const joda::settings::AnalyzeSettings &program,
+void Processor::execute(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
                         const joda::thread::ThreadingSettings &threadingSettings, imagesList_t &allImages)
 {
   // Prepare thread pool
@@ -70,7 +71,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program,
 
   // Prepare the context
   GlobalContext globalContext;
-  auto jobId = initializeGlobalContext(program, globalContext);
+  auto jobId = initializeGlobalContext(program, jobName, globalContext);
 
   // Looking for images in all folders
   listImages(program, allImages);
@@ -221,14 +222,21 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program,
 }
 
 std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSettings &program,
-                                               GlobalContext &globalContext)
+                                               const std::string &jobName, GlobalContext &globalContext)
 {
+  auto now = std::chrono::high_resolution_clock::now();
+  std::cout << "Job name " << jobName << std::endl;
   mProgress.reset();
-  globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory);
-
-  auto &db = globalContext.database;
-  db.openDatabase(std::filesystem::path(program.projectSettings.workingDirectory) / "results.icdb");
-  return db.startJob(program);
+  globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory) / "imagec" /
+                                      (joda::helper::timepointToIsoString(now) + "_" + jobName);
+  std::filesystem::create_directories(globalContext.resultsOutputFolder);
+  mJobInformation.resultsFilePath  = globalContext.resultsOutputFolder / "results.icdb";
+  mJobInformation.ouputFolder      = globalContext.resultsOutputFolder;
+  mJobInformation.jobName          = jobName;
+  mJobInformation.timestampStarted = now;
+  auto &db                         = globalContext.database;
+  db.openDatabase(globalContext.resultsOutputFolder / "results.icdb");
+  return db.startJob(program, jobName);
 }
 
 void Processor::listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages)

@@ -36,7 +36,7 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
   workingdirs.setWorkingDirectory(0, settings.projectSettings.plates.begin()->imageFolder);
   workingdirs.waitForFinished();
   processor.execute(
-      settings,
+      settings, "test",
       joda::ctrl::Controller::calcOptimalThreadNumber(settings, workingdirs.gitFirstFile(), workingdirs.getNrOfFiles()),
       workingdirs);
 }
@@ -47,7 +47,7 @@ SCENARIO("pipeline:test:bigdata", "[bigdata]")
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(file);
   db::Database db;
   db.openDatabase(std::filesystem::path("results_bigdata.icdb"));
-  auto jobId = db.startJob(settings);
+  auto jobId = db.startJob(settings, "test");
 
   processor::PipelineInitializer initializer(settings.imageSetup);
 

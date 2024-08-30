@@ -573,7 +573,7 @@ void WindowMain::onStartClicked()
     DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
     dialg.exec();
     auto jobIinfo = getController()->getJobInformation();
-    mPanelResultsInfo->addResultsFileToHistory(jobIinfo.resultsFilePath, jobIinfo.jobName, jobIinfo.timestamp);
+    mPanelResultsInfo->addResultsFileToHistory(jobIinfo.resultsFilePath, jobIinfo.jobName, jobIinfo.timestampStarted);
     // Analysis finished -> generate new name
     mPanelProjectSettings->generateNewJobName();
   } catch(const std::exception &ex) {

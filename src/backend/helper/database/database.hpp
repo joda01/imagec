@@ -52,7 +52,7 @@ public:
   Database() = default;
   /////////////////////////////////////////////////////
   void openDatabase(const std::filesystem::path &pathToDb);
-  std::string startJob(const joda::settings::AnalyzeSettings &);
+  std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName);
   void finishJob(const std::string &jobId);
 
   void insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo);
@@ -97,7 +97,7 @@ private:
 
   void createTables();
   bool insertExperiment(const joda::settings::ExperimentSettings &);
-  std::string insertJobAndPlates(const joda::settings::AnalyzeSettings &exp);
+  std::string insertJobAndPlates(const joda::settings::AnalyzeSettings &exp, const std::string &jobName);
   void insertClusters(const std::list<settings::Cluster> &);
   void insertClasses(const std::list<settings::Class> &);
   void insertGroup();

@@ -58,6 +58,7 @@ void Database::createTables()
       "CREATE TABLE IF NOT EXISTS jobs ("
       "	experiment_id UUID,"
       " job_id UUID,"
+      " job_name TEXT, "
       " time_started TIMESTAMP,"
       " time_finished TIMESTAMP,"
       " settings TEXT,"
@@ -595,13 +596,13 @@ void Database::insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t im
 /// \param[out]
 /// \return
 ///
-std::string Database::startJob(const joda::settings::AnalyzeSettings &exp)
+std::string Database::startJob(const joda::settings::AnalyzeSettings &exp, const std::string &jobName)
 {
   if(insertExperiment(exp.projectSettings.experimentSettings)) {
     insertClusters(exp.projectSettings.clusters);
     insertClasses(exp.projectSettings.classes);
   }
-  return insertJobAndPlates(exp);
+  return insertJobAndPlates(exp, jobName);
 }
 
 ///
@@ -700,7 +701,7 @@ auto Database::selectExperiment() -> AnalyzeMeta
 /// \param[out]
 /// \return
 ///
-std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &exp)
+std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &exp, const std::string &jobName)
 {
   auto connection = acquire();
   connection->BeginTransaction();
@@ -716,10 +717,12 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
                                                       .count());
     duckdb::timestamp_t nil = {};
     auto prepare            = connection->Prepare(
-        "INSERT INTO jobs (experiment_id, job_id, time_started, time_finished, settings) VALUES (?, ?, ?, ?, ?)");
+        "INSERT INTO jobs (experiment_id, job_id,job_name, time_started, time_finished, settings) VALUES (?, ?, ?, ?, "
+                   "?, "
+                   "?)");
 
     nlohmann::json json = exp;
-    prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId,
+    prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName,
                      duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil),
                      static_cast<std::string>(json.dump()));
   } catch(const std::exception &ex) {

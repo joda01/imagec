@@ -43,7 +43,7 @@ struct ProcessInformation
   std::filesystem::path ouputFolder;
   std::filesystem::path resultsFilePath;
   std::string jobName;
-  std::chrono::system_clock::time_point timestamp;
+  std::chrono::system_clock::time_point timestampStarted;
 };
 
 class ProcessProgress
@@ -145,10 +145,11 @@ class Processor
 public:
   /////////////////////////////////////////////////////
   Processor();
-  void execute(const joda::settings::AnalyzeSettings &program, const joda::thread::ThreadingSettings &threadingSettings,
-               imagesList_t &allImages);
+  void execute(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
+               const joda::thread::ThreadingSettings &threadingSettings, imagesList_t &allImages);
   void stop();
-  std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, GlobalContext &globalContext);
+  std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
+                                      GlobalContext &globalContext);
   void initializePipelineContext(const GlobalContext &globalContext, const PlateContext &plateContext,
                                  joda::grp::FileGrouper &grouper, const joda::filesystem::path &imagePath,
                                  PipelineInitializer &imageLoader, ImageContext &imageContext) const;

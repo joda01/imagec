@@ -101,7 +101,7 @@ inline std::string timepointToIsoString(const std::chrono::system_clock::time_po
   std::time_t t = std::chrono::system_clock::to_time_t(tp);
   std::tm tm    = *std::gmtime(&t);    // Get UTC time
   char buffer[80];
-  std::strftime(buffer, 80, "%Y-%m-%dT%H:%M:%S", &tm);
+  std::strftime(buffer, 80, "%Y-%m-%dT%H-%M-%S", &tm);
   auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()) % 1000;
   std::sprintf(buffer + 80, ".%03lldZ", static_cast<long long>(milliseconds.count()));
   return std::string(buffer);

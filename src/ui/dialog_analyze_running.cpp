@@ -111,7 +111,7 @@ void DialogAnalyzeRunning::onCloseClicked()
 
 void DialogAnalyzeRunning::onOpenResultsFolderClicked()
 {
-  QString folderPath = mWindowMain->getController()->getJobInformation().resultsFilePath.string().data();
+  QString folderPath = mWindowMain->getController()->getJobInformation().ouputFolder.string().data();
   QDesktopServices::openUrl(QUrl("file:///" + folderPath));
 }
 
