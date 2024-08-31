@@ -84,7 +84,6 @@ Command::Command(const QString &title, const QString &icon, QWidget *parent) :
   mEditDialog->setLayout(layout);
   mEditDialog->setMinimumWidth(300);
   mEditDialog->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  // mEditDialog.setMaximumWidth(400);
   mEditDialog->setWindowTitle(title);
 }
 
