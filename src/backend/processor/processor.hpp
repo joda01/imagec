@@ -167,7 +167,7 @@ public:
 
   auto generatePreview(const settings::ProjectImageSetup &imageSetup, const settings::Pipeline &pipeline,
                        const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
-                       int32_t tileY) -> std::tuple<cv::Mat, cv::Mat>;
+                       int32_t tileY) -> std::tuple<cv::Mat, cv::Mat, cv::Mat>;
 
 private:
   /////////////////////////////////////////////////////

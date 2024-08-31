@@ -49,6 +49,7 @@ void PipelineInitializer::init(const std::filesystem::path &imagePath, ImageCont
   imageContextOut.imageMeta = joda::image::reader::ImageReader::getOmeInformation(imagePath);
   imageContextOut.imagePath = imagePath;
   imageContextOut.imageId   = joda::helper::fnv1a(imagePath.string());
+  mNrOfZStacks              = imageContextOut.imageMeta.getNrOfZStack();
 
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
@@ -94,10 +95,9 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
                                        const joda::enums::PlaneId &imagePartToLoad,
                                        joda::processor::ProcessContext &processContext)
 {
-  int32_t zStacksToLoad = 1;
-  int32_t c             = pipelineSetup.cStackIndex;
-  int32_t z             = pipelineSetup.zStackIndex;
-  int32_t t             = pipelineSetup.tStackIndex;
+  int32_t c = pipelineSetup.cStackIndex;
+  int32_t z = pipelineSetup.zStackIndex;
+  int32_t t = pipelineSetup.tStackIndex;
 
   joda::atom::ImagePlane &imagePlaneOut = processContext.getActImage();
   imagePlaneOut.tile                    = tile;
@@ -116,8 +116,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
       z = pipelineSetup.zStackIndex;
       break;
     case settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION:
-      z             = 0;
-      zStacksToLoad = mZStackToLoad;
+      z = 0;
       break;
     case settings::ProjectImageSetup::ZStackHandling::EACH_ONE:
       z = imagePartToLoad.zStack;
@@ -223,11 +222,9 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
   // Do z -projection if activated
   //
   if(zProjection != enums::ZProjection::NONE) {
-    int32_t zStacksToLoad = mZStackToLoad;
-
-    auto max = [&loadImage, &image, c, t](int zIdx) { cv::max(image, loadImage(zIdx, c, t)); };
-    auto min = [&loadImage, &image, c, t](int zIdx) { cv::min(image, loadImage(zIdx, c, t)); };
-    auto avg = [&loadImage, &image, c, t](int zIdx) { cv::mean(image, loadImage(zIdx, c, t)); };
+    auto max = [&loadImage, &image, c, t](int zIdx) { image = cv::max(image, loadImage(zIdx, c, t)); };
+    auto min = [&loadImage, &image, c, t](int zIdx) { image = cv::min(image, loadImage(zIdx, c, t)); };
+    auto avg = [&loadImage, &image, c, t](int zIdx) { image = cv::mean(image, loadImage(zIdx, c, t)); };
 
     std::function<void(int)> func;
 
@@ -245,7 +242,7 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
         break;
     }
 
-    for(int zIdx = 1; zIdx < zStacksToLoad; zIdx++) {
+    for(uint32_t zIdx = 1; zIdx < mNrOfZStacks; zIdx++) {
       func(zIdx);
     }
   }

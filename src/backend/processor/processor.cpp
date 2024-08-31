@@ -26,6 +26,7 @@
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/helper/helper.hpp"
+#include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/threading/threading.hpp"
 #include "backend/helper/threadpool/thread_pool.hpp"
 #include "backend/helper/threadpool/thread_pool_utils.hpp"
@@ -36,6 +37,7 @@
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/settings.hpp"
 
 namespace joda::processor {
 
@@ -225,10 +227,12 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
                                                const std::string &jobName, GlobalContext &globalContext)
 {
   auto now = std::chrono::high_resolution_clock::now();
-  std::cout << "Job name " << jobName << std::endl;
   mProgress.reset();
   globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory) / "imagec" /
                                       (joda::helper::timepointToIsoString(now) + "_" + jobName);
+
+  settings::Settings::storeSettings((globalContext.resultsOutputFolder / "settings.icproj"), program);
+
   std::filesystem::create_directories(globalContext.resultsOutputFolder);
   mJobInformation.resultsFilePath  = globalContext.resultsOutputFolder / "results.icdb";
   mJobInformation.ouputFolder      = globalContext.resultsOutputFolder;
@@ -292,7 +296,7 @@ void Processor::initializePipelineContext(const GlobalContext &globalContext, co
 ///
 auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, const settings::Pipeline &pipeline,
                                 const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
-                                int32_t tileY) -> std::tuple<cv::Mat, cv::Mat>
+                                int32_t tileY) -> std::tuple<cv::Mat, cv::Mat, cv::Mat>
 {
   GlobalContext globalContext;
   PlateContext plateContext{.plateId = 0};
@@ -377,8 +381,12 @@ auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, c
   auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
   saver->execute(context, context.getActImage().image, context.getActObjects());
 
+  auto thumb = joda::image::reader::ImageReader::loadThumbnail(
+      imagePath.string(),
+      joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipeline.pipelineSetup.cStackIndex, .t = tStack}, 0);
+
   return {context.loadImageFromCache(joda::enums::ImageId{.imageIdx = enums::ZProjection::$, .imagePlane = {}})->image,
-          context.getActImage().image};
+          context.getActImage().image, thumb};
 }
 
 }    // namespace joda::processor

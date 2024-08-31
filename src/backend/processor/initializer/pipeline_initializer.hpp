@@ -60,6 +60,7 @@ private:
   std::tuple<int32_t, int32_t> mNrOfTiles = {1, 1};
   uint32_t mTstackToLoad                  = 0;
   uint32_t mZStackToLoad                  = 0;
+  uint32_t mNrOfZStacks                   = 0;
 
   /////////////////////////////////////////////////////
   const settings::ProjectImageSetup &mSettings;

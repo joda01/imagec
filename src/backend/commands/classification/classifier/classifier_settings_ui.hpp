@@ -117,6 +117,9 @@ private:
     std::unique_ptr<SettingLineEdit<float>> mMinCircularity;
     std::unique_ptr<SettingLineEdit<float>> mSnapAreaSize;
 
+    // std::unique_ptr<SettingLineEdit<int>> mMinParticleSize;
+    // std::unique_ptr<SettingLineEdit<int>> mMaxParticleSize;
+
     Classifier &outer;
     helper::TabWidget *tab;
   };

@@ -208,9 +208,11 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const se
                          const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, Preview &previewOut)
 {
   processor::Processor process;
-  auto [originalImg, previewImage] = process.generatePreview(imageSetup, pipeline, imagePath, 0, 0, tileX, tileY);
+  auto [originalImg, previewImage, thumb] =
+      process.generatePreview(imageSetup, pipeline, imagePath, 0, 0, tileX, tileY);
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.previewImage.setImage(std::move(previewImage));
+  previewOut.thumbnail.setImage(std::move(thumb));
 }
 
 ///

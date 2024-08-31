@@ -115,6 +115,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mStackHandlingZ->addItem("Exact one",
                            static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
   formLayout->addRow(new QLabel(tr("Z-Stack:")), mStackHandlingZ);
+  connect(mStackHandlingZ, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
 
   //
   mStackHandlingT = new QComboBox();
@@ -122,6 +123,8 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
                            static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
   mStackHandlingT->addItem("Exact one",
                            static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
+  connect(mStackHandlingT, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
+
   formLayout->addRow(new QLabel(tr("T-Stack:")), mStackHandlingT);
 
   addSeparator();
