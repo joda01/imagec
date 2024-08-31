@@ -15,6 +15,7 @@
 
 #include <bits/iterator_concepts.h>
 #include <filesystem>
+#include <regex>
 #include <string>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/command.hpp"
@@ -45,10 +46,21 @@ public:
   explicit ImageSaver(const settings::ImageSaverSettings &settings) : mSettings(settings)
   {
   }
+  std::string replaceImageName(const std::string &input, const std::string &replacement)
+  {
+    std::regex pattern("\\$\\{imageName\\}");
+    return std::regex_replace(input, pattern, replacement);
+  }
+
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto parentPath = context.getOutputFolder();
-    auto fileName   = context.getActImagePath().stem();
+    auto replacePlaceHolder = [this, &context](const std::string &inString) -> std::string {
+      return replaceImageName(inString, context.getActImagePath().stem().string());
+    };
+
+    auto parentPath = context.getOutputFolder() / replacePlaceHolder(mSettings.subFolder);
+    std::filesystem::create_directories(parentPath);
+    auto fileName = context.getActImagePath().stem();
 
     std::filesystem::path saveName =
         parentPath / (fileName.string() + "__" + std::to_string(std::get<0>(context.getActTile())) + "x" +
@@ -94,7 +106,7 @@ public:
     compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
     compression_params.push_back(mSettings.compression);
 
-    if(settings::ImageSaverSettings::OutputCanvas::FILE == mSettings.outputCanvas) {
+    if(settings::ImageSaverSettings::Output::FILE == mSettings.outputSlot) {
       cv::imwrite(saveName.string(), img_8bit_color, compression_params);
     } else {
       // Write image to output

@@ -24,7 +24,7 @@ public:
     IMAGE_PLANE
   };
 
-  enum class OutputCanvas
+  enum class Output
   {
     FILE,
     IMAGE_$,
@@ -53,7 +53,7 @@ public:
     };
 
     enums::ClusterIdIn clusterIn = enums::ClusterIdIn::$;
-    std::vector<Class> classesIn;
+    std::list<Class> classesIn;
 
     void check() const
     {
@@ -87,7 +87,12 @@ public:
   //
   // Where the output should be printed to
   //
-  OutputCanvas outputCanvas = OutputCanvas::FILE;
+  Output outputSlot = Output::FILE;
+
+  //
+  // Place to subfolder
+  //
+  std::string subFolder = "images/${imageName}";
 
   /////////////////////////////////////////////////////
   void check() const
@@ -98,8 +103,8 @@ public:
     CHECK(compression >= 0 && compression <= 6, "Image compression must be in between [0-6].");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageSaverSettings, canvas, planesIn, compression, namePrefix,
-                                                       clustersIn);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageSaverSettings, subFolder, canvas, planesIn, compression,
+                                                       namePrefix, clustersIn);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::Cluster::Class::Style,

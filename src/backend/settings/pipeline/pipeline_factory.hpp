@@ -26,6 +26,7 @@
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings_ui.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
+#include "backend/commands/image_functions/image_saver/image_saver_settings_ui.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction.hpp"
@@ -99,6 +100,8 @@ private:
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::ImageSaver, ImageSaverSettings>>(step.$saveImage.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ImageSaver, ImageSaverSettings>>(
+            const_cast<ImageSaverSettings &>(step.$saveImage.value()), parent));
       }
     }
 

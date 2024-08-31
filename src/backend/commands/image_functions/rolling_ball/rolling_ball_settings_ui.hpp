@@ -13,7 +13,7 @@
 #pragma once
 
 #include <qwidget.h>
-#include "ui/container//command/command.hpp"
+#include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "rolling_ball_settings.hpp"

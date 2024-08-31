@@ -319,30 +319,62 @@ auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, c
   }
 
   joda::settings::ImageSaverSettings saverSettings;
-  saverSettings.clustersIn   = {settings::ImageSaverSettings::Cluster{
-        .classesIn = {settings::ImageSaverSettings::Cluster::Class{
-                          .classIn = enums::ClassId::NONE,
-                          .color   = "#808080",
-                          .style   = settings::ImageSaverSettings::Cluster::Class::Style::OUTLINED},
-                      settings::ImageSaverSettings::Cluster::Class{
-                          .classIn = enums::ClassId::C0,
-                          .color   = "#FF0000",
-                    },
-                      settings::ImageSaverSettings::Cluster::Class{
-                          .classIn = enums::ClassId::C1,
-                          .color   = "#00FF00",
-                    },
-                      settings::ImageSaverSettings::Cluster::Class{
-                          .classIn = enums::ClassId::C2,
-                          .color   = "#0000FF",
-                    },
-                      settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C3},
-                      settings::ImageSaverSettings::Cluster::Class{.classIn = enums::ClassId::C4}}}};
-  saverSettings.canvas       = settings::ImageSaverSettings::Canvas::IMAGE_PLANE;
-  saverSettings.planesIn     = enums::ImageId{.imageIdx = enums::ZProjection::$};
-  saverSettings.outputCanvas = settings::ImageSaverSettings::OutputCanvas::IMAGE_$;
-  auto step                  = settings::PipelineStep{.$saveImage = saverSettings};
-  auto saver                 = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
+  saverSettings.clustersIn = {settings::ImageSaverSettings::Cluster{
+      .classesIn = {
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::NONE,
+              .color   = "#808080",
+              .style   = settings::ImageSaverSettings::Cluster::Class::Style::OUTLINED},
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C0,
+              .color   = "#FF0000",
+          },
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C1,
+              .color   = "#00FF00",
+          },
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C2,
+              .color   = "#0000FF",
+          },
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C3,
+              .color   = "#0000FF",
+          },
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C4,
+              .color   = "#0000FF",
+          },
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C5,
+              .color   = "#0000FF",
+          },
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C6,
+              .color   = "#0000FF",
+          },
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C7,
+              .color   = "#0000FF",
+          },
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C8,
+              .color   = "#0000FF",
+          },
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C9,
+              .color   = "#0000FF",
+          },
+          settings::ImageSaverSettings::Cluster::Class{
+              .classIn = enums::ClassId::C10,
+              .color   = "#0000FF",
+          },
+      }}};
+  saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_PLANE;
+  saverSettings.planesIn   = enums::ImageId{.imageIdx = enums::ZProjection::$};
+  saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
+  auto step                = settings::PipelineStep{.$saveImage = saverSettings};
+  auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
   saver->execute(context, context.getActImage().image, context.getActObjects());
 
   return {context.loadImageFromCache(joda::enums::ImageId{.imageIdx = enums::ZProjection::$, .imagePlane = {}})->image,
