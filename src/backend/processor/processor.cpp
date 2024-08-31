@@ -176,10 +176,12 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
 
                     if(poolSizeChannels > 1) {
                       clustersFuture.push_back(mGlobThreadPool.submit_task(executePipeline));
-                      clustersFuture.wait();
                     } else {
                       executePipeline();
                     }
+                  }
+                  if(poolSizeChannels > 1) {
+                    clustersFuture.wait();
                   }
 
                   // Iteration for all tiles finished
@@ -192,21 +194,23 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                   DurationCount::stop(id);
                 }
               }
+              // Tile finished
+              mProgress.incProcessedTiles();
             };
 
             if(poolSizeTiles > 1) {
               tilesFutures.push_back(mGlobThreadPool.submit_task(analyzeTile));
-              tilesFutures.wait();
             } else {
               analyzeTile();
             }
-
-            // Tile finished
-            mProgress.incProcessedTiles();
           }
-          // Image finished
-          mProgress.incProcessedImages();
         }
+        if(poolSizeTiles > 1) {
+          tilesFutures.wait();
+        }
+
+        // Image finished
+        mProgress.incProcessedImages();
       };
 
       if(poolSizeImages > 1) {
@@ -215,7 +219,9 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
         analyzeImage();
       }
     }
-    imageFutures.wait();
+    if(poolSizeImages > 1) {
+      imageFutures.wait();
+    }
   }
 
   // Done
@@ -231,9 +237,10 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
   globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory) / "imagec" /
                                       (joda::helper::timepointToIsoString(now) + "_" + jobName);
 
+  std::filesystem::create_directories(globalContext.resultsOutputFolder);
+
   settings::Settings::storeSettings((globalContext.resultsOutputFolder / "settings.icproj"), program);
 
-  std::filesystem::create_directories(globalContext.resultsOutputFolder);
   mJobInformation.resultsFilePath  = globalContext.resultsOutputFolder / "results.icdb";
   mJobInformation.ouputFolder      = globalContext.resultsOutputFolder;
   mJobInformation.jobName          = jobName;

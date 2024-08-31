@@ -464,10 +464,10 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.meta          = settings.meta;
   mSettings.pipelineSetup = settings.pipelineSetup;
 
-  pipelineName->setValue(mSettings.meta.name);
-  cStackIndex->setValue(mSettings.pipelineSetup.cStackIndex);
-  zProjection->setValue(mSettings.pipelineSetup.zProjection);
-  defaultClusterId->setValue(mSettings.pipelineSetup.defaultClusterId);
+  pipelineName->setValue(settings.meta.name);
+  cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
+  zProjection->setValue(settings.pipelineSetup.zProjection);
+  defaultClusterId->setValue(settings.pipelineSetup.defaultClusterId);
 
   //
   // Pipelinesteps

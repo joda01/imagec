@@ -17,11 +17,15 @@
 
 namespace joda::processor {
 
+using imageCache_t = std::map<enums::ImageId, std::unique_ptr<joda::atom::ImagePlane>>;
+
 class PipelineInitializer;
 
-class IterationContext
+struct IterationContext
 {
   friend class ProcessContext;
+
+  imageCache_t imageCache;
 
 public:
   joda::atom::ObjectList &getObjects()

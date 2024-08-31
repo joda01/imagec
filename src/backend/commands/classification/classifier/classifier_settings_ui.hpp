@@ -96,12 +96,19 @@ private:
       mMinCircularity->connectWithSetting(&settings.minCircularity);
       mMinCircularity->setShortDescription("Circ. ");
 
-      outer.addSetting(tab, "Filter",
+      outer.addSetting(tab, "Size filter",
                        {/*{mClusterOut.get(), false},*/
                         {mClassOut.get(), true},
                         {mMinCircularity.get(), true},
                         {mMinParticleSize.get(), true},
                         {mMaxParticleSize.get(), true}});
+
+      /* outer.addSetting(tab, "Intensity filter",
+                        {
+                         {mClassOut.get(), true},
+                         {mMinCircularity.get(), true},
+                         {mMinParticleSize.get(), true},
+                         {mMaxParticleSize.get(), true}});*/
     }
 
     ~ClassifierFilter()
@@ -117,8 +124,10 @@ private:
     std::unique_ptr<SettingLineEdit<float>> mMinCircularity;
     std::unique_ptr<SettingLineEdit<float>> mSnapAreaSize;
 
-    // std::unique_ptr<SettingLineEdit<int>> mMinParticleSize;
-    // std::unique_ptr<SettingLineEdit<int>> mMaxParticleSize;
+    std::unique_ptr<SettingComboBoxMulti<int32_t>> cStackForIntensityFilter;
+    std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;
+    std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
+    std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
 
     Classifier &outer;
     helper::TabWidget *tab;

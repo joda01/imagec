@@ -57,7 +57,7 @@ public:
     mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max. radius");
     mMaxRadius->setPlaceholderText("[0 - ]");
     mMaxRadius->setUnit("px");
-    mMaxRadius->setMinMax(0, UINT32_MAX);
+    mMaxRadius->setMinMax(0, INT32_MAX);
     mMaxRadius->setValue(settings.maxRadius);
     mMaxRadius->connectWithSetting(&settings.maxRadius);
     mMaxRadius->setShortDescription("Rad. ");
@@ -100,7 +100,7 @@ public:
     mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Min. area size");
     mMinAreaSize->setPlaceholderText("[0 - ]");
     mMinAreaSize->setUnit("px");
-    mMinAreaSize->setMinMax(0, UINT32_MAX);
+    mMinAreaSize->setMinMax(0, INT32_MAX);
     mMinAreaSize->setValue(settings.minAreaSize);
     mMinAreaSize->connectWithSetting(&settings.minAreaSize);
     mMinAreaSize->setShortDescription("Min. ");
@@ -110,7 +110,7 @@ public:
     mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max. area size");
     mMaxAreaSize->setPlaceholderText("[0 - ]");
     mMaxAreaSize->setUnit("px");
-    mMaxAreaSize->setMinMax(0, UINT32_MAX);
+    mMaxAreaSize->setMinMax(0, INT32_MAX);
     mMaxAreaSize->setValue(settings.maxAreaSize);
     mMaxAreaSize->connectWithSetting(&settings.maxAreaSize);
     mMaxAreaSize->setShortDescription("Max. ");

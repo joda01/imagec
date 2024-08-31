@@ -23,8 +23,6 @@ class PipelineInitializer;
 
 namespace joda::processor {
 
-using imageCache_t = std::map<enums::ImageId, std::unique_ptr<joda::atom::ImagePlane>>;
-
 struct ImageContext
 {
   PipelineInitializer &imageLoader;
@@ -32,7 +30,6 @@ struct ImageContext
   joda::ome::OmeInfo imageMeta;
   cv::Size tileSize;
   uint64_t imageId;
-  imageCache_t imageCache;
 };
 
 }    // namespace joda::processor

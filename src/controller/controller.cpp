@@ -241,17 +241,16 @@ cv::Size Controller::getCompositeTileSize() const
 void Controller::start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                        const std::string &jobName)
 {
-  if(!mActThread.joinable()) {
-    mActThread = std::thread([this, settings, jobName] {
-      mActProcessor = std::make_unique<processor::Processor>();
-      mActProcessor->execute(
-          settings, jobName,
-          calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
-          mWorkingDirectory);
-    });
-  } else {
-    throw std::runtime_error("There is still a job running. Stop this job first!");
+  if(mActThread.joinable()) {
+    mActThread.join();
   }
+  mActThread = std::thread([this, settings, jobName] {
+    mActProcessor = std::make_unique<processor::Processor>();
+    mActProcessor->execute(
+        settings, jobName,
+        calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
+        mWorkingDirectory);
+  });
 }
 
 ///

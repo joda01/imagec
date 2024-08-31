@@ -30,7 +30,7 @@ void Settings::storeSettings(std::string path, const joda::settings::AnalyzeSett
     }
     std::ofstream out(path);
     if(!out.is_open()) {
-      throw std::runtime_error("Cannot open file for writing! Do you have write permissions?");
+      throw std::runtime_error("Cannot open file >" + path + "< for writing! Do you have write permissions?");
     }
     out << json.dump(2);
     if(out.bad()) {

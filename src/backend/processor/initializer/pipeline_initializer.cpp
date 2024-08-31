@@ -93,7 +93,7 @@ void PipelineInitializer::init(const std::filesystem::path &imagePath, ImageCont
 ///
 void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &pipelineSetup, const enums::tile_t &tile,
                                        const joda::enums::PlaneId &imagePartToLoad,
-                                       joda::processor::ProcessContext &processContext)
+                                       joda::processor::ProcessContext &processContext) const
 {
   int32_t c = pipelineSetup.cStackIndex;
   int32_t z = pipelineSetup.zStackIndex;
@@ -176,7 +176,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
 ///
 enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &planeToLoad, enums::ZProjection zProjection,
                                                      const enums::tile_t &tile,
-                                                     joda::processor::ProcessContext &processContext)
+                                                     joda::processor::ProcessContext &processContext) const
 {
   joda::atom::ImagePlane imagePlaneOut;
   imagePlaneOut.tile = tile;

@@ -67,6 +67,9 @@ public:
       }
     }
 
+    clustersIn->setValue(clustersToSet);
+    classesIn->setValue(classesToSet);
+
     addSetting(tab, "Input classes", {{clustersIn.get(), true}, {classesIn.get(), true}});
     addSetting(tab, "Image name", {{mImageNamePrefix.get(), true}});
   }
@@ -120,6 +123,7 @@ private:
             .color            = colors[colorIdx % 20],
             .style            = settings::ImageSaverSettings::Cluster::Class::Style::OUTLINED,
             .paintBoundingBox = false});
+        colorIdx++;
       }
       mSettings.clustersIn.emplace_back(clusterObj);
     }

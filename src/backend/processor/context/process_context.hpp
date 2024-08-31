@@ -128,20 +128,20 @@ public:
   [[nodiscard]] bool doesImageInCacheExist(joda::enums::ImageId cacheId) const
   {
     getCorrectIteration(cacheId.imagePlane);
-    return imageContext.imageCache.contains(cacheId);
+    return iterationContext.imageCache.contains(cacheId);
   }
 
   joda::atom::ImagePlane *addImageToCache(joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::ImagePlane> img)
   {
     getCorrectIteration(cacheId.imagePlane);
-    return imageContext.imageCache.try_emplace(cacheId, std::move(img)).first->second.get();
+    return iterationContext.imageCache.try_emplace(cacheId, std::move(img)).first->second.get();
   }
 
   [[nodiscard]] const joda::atom::ImagePlane *loadImageFromCache(joda::enums::ImageId cacheId);
   void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::ImagePlane &image) const
   {
     getCorrectIteration(cacheId.imagePlane);
-    imageContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
+    iterationContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
   }
 
   [[nodiscard]] joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const

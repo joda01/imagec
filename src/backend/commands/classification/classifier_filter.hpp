@@ -38,12 +38,12 @@ struct ClassifierFilter
     //
     // Min intensity
     //
-    uint16_t minIntensity = 0;
+    int32_t minIntensity = -1;
 
     //
     // Max intensity
     //
-    uint16_t maxIntensity = UINT16_MAX;
+    int32_t maxIntensity = -1;
 
     void check() const
     {
@@ -86,7 +86,7 @@ struct ClassifierFilter
   //
   // Use an intensity filter for classification
   //
-  std::optional<IntensityFilter> intensity;
+  IntensityFilter intensity;
 
   void check() const
   {
@@ -97,7 +97,7 @@ struct ClassifierFilter
   }
 
   bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi,
-                       const std::optional<IntensityFilter> &intensity) const;
+                       const IntensityFilter &intensity) const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, minParticleSize, maxParticleSize,
                                                        minCircularity, snapAreaSize, intensity, clusterOut, classOut);

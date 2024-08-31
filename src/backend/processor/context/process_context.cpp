@@ -41,7 +41,7 @@ ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plate
                                               *this);
   }
 
-  return imageContext.imageCache.at(cacheId).get();
+  return iterationContext.imageCache.at(cacheId).get();
 }
 
 }    // namespace joda::processor
