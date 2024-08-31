@@ -63,9 +63,10 @@ public:
     auto fileName = context.getActImagePath().stem();
 
     auto actTile = context.getActTile();
+
     std::filesystem::path saveName =
         parentPath /
-        (fileName.string() + "__" + std::to_string(std::get<0>(actTile)) + "x" + std::to_string(std::get<1>(actTile)) +
+        (fileName.string() + "__" + std::to_string(std::get<1>(actTile)) + "x" + std::to_string(std::get<0>(actTile)) +
          "__" + std::to_string((int32_t) context.getActImagePlaneId().cStack) + "-" +
          std::to_string(context.getActImagePlaneId().zStack) + "-" +
          std::to_string((int32_t) context.getActImagePlaneId().tStack) + mSettings.namePrefix + ".png");
