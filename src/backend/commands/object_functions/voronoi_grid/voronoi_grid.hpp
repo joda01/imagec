@@ -141,7 +141,7 @@ public:
 
       atom::ROI roi(atom::ROI::RoiObjectId{.objectId   = context.acquireNextObjectId(),
                                            .clusterId  = context.getClusterId(mSettings.pointsClusterOut),
-                                           .classId    = mSettings.pointsClassOut,
+                                           .classId    = mSettings.voronoiClassOut,
                                            .imagePlane = context.getActIterator()},
                     1, 0, box, boxMask, contours[idxMax], imgSize, context.getActTile(), context.getTileSize());
       result.push_back(roi);

@@ -11,6 +11,7 @@
 ///
 
 #include "voronoi_grid.hpp"
+#include "backend/enums/enums_clusters.hpp"
 
 namespace joda::cmd {
 
@@ -21,7 +22,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
   auto filterVoronoiAreas = [this, &context, &response, &voronoiPoints,
                              &voronoiGrid](std::optional<const atom::ROI> toIntersect) {
     for(const atom::ROI &voronoiArea : voronoiGrid) {
-      if(voronoiArea.getClassId() == mSettings.pointsClassOut) {
+      if(voronoiArea.getClassId() == mSettings.voronoiClassOut) {
         //
         // Apply filter
         //
@@ -76,10 +77,10 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
     }
   };
 
-  if(mSettings.maskCluster.has_value() && mSettings.maskClasses.has_value()) {
-    const auto &mask = objects.at(context.getClusterId(mSettings.maskCluster.value()));
+  if(mSettings.maskCluster != enums::ClusterIdIn::NONE && !mSettings.maskClasses.empty()) {
+    const auto &mask = objects.at(context.getClusterId(mSettings.maskCluster));
     for(const auto &toIntersect : mask) {
-      if(mSettings.maskClasses->contains(toIntersect.getClassId())) {
+      if(mSettings.maskClasses.contains(toIntersect.getClassId())) {
         filterVoronoiAreas(toIntersect);
       }
     }

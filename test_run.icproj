@@ -131,7 +131,7 @@
             "pointsClassIn": [
               "None"
             ],
-            "pointsClassOut": "None",
+            "voronoiClassOut": "None",
             "pointsClusterIn": "A",
             "pointsClusterOut": "G"
           }

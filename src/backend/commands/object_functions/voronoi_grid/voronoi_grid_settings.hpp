@@ -35,17 +35,17 @@ public:
   //
   // To which class the result should be assigned to
   //
-  enums::ClassId pointsClassOut;
+  enums::ClassId voronoiClassOut;
 
   //
-  // Cluster where the points which should be used to generate the voronoi grid are stored in
+  // Cluster which contains the masking classes
   //
-  std::optional<enums::ClusterIdIn> maskCluster = std::nullopt;
+  enums::ClusterIdIn maskCluster = enums::ClusterIdIn::NONE;
 
   //
-  // Class which should be used for the points
+  // Masking classes
   //
-  std::optional<std::set<enums::ClassId>> maskClasses = std::nullopt;
+  std::set<enums::ClassId> maskClasses = {};
 
   //
   // Exclude voronoi areas with now points after a cut
@@ -75,24 +75,23 @@ public:
   /////////////////////////////////////////////////////
   void check() const
   {
-    if(maskCluster.has_value()) {
-      CHECK(maskClasses.has_value(), "A input class for the voronoi mask must be given!");
-      CHECK(!maskClasses->empty(), "Input class must be bigger than zero.");
+    if(maskCluster != enums::ClusterIdIn::NONE) {
+      CHECK(!maskClasses.empty(), "Input class must be bigger than zero.");
     }
   }
 
   std::set<enums::ClusterIdIn> getInputClusters() const override
   {
     std::set<enums::ClusterIdIn> clusters;
-    if(maskCluster.has_value()) {
-      clusters.emplace(maskCluster.value());
+    if(maskCluster != enums::ClusterIdIn::NONE) {
+      clusters.emplace(maskCluster);
     }
     clusters.emplace(pointsClusterIn);
     return clusters;
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, objectStoreIn, pointsClusterIn,
-                                                       pointsClassIn, pointsClusterOut, pointsClassOut, maskCluster,
+                                                       pointsClassIn, pointsClusterOut, voronoiClassOut, maskCluster,
                                                        maskClasses, excludeAreasWithoutPoint, excludeAreasAtTheEdge,
                                                        maxRadius, minAreaSize, maxAreaSize);
 };

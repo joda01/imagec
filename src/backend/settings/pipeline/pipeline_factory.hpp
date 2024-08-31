@@ -49,6 +49,7 @@
 #include "backend/commands/object_functions/validator_threshold/validator_threshold.hpp"
 #include "backend/commands/object_functions/validator_threshold/validator_threshold_settings_ui.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid.hpp"
+#include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings_ui.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/command/factory.hpp"
 #include "pipeline_step.hpp"
@@ -216,6 +217,8 @@ private:
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::VoronoiGrid, VoronoiGridSettings>>(step.$voronoi.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::Factory<joda::ui::VoronoiGrid, VoronoiGridSettings>>(
+            const_cast<VoronoiGridSettings &>(step.$voronoi.value()), parent));
       }
     }
 
