@@ -234,7 +234,8 @@ TabWidget::TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose
   setFrameStyle(0);
   setContentsMargins(0, 0, 0, 0);
   verticalScrollBar()->setObjectName("scrollAreaV");
-  setVerticalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
+  // setVerticalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
 
   // Create a widget to hold the panels
   auto *contentWidget = new QWidget;
