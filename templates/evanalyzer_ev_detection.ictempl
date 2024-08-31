@@ -53,6 +53,27 @@
           }
         ]
       }
+    },
+        {
+      "$saveImage": {
+        "canvas": "$",
+        "clustersIn": [
+          {
+            "classesIn": [
+              {
+                "classIn": "2",
+                "color": "#FF0000",
+                "paintBoundingBox": false,
+                "style": "Outlined"
+              }
+            ],
+            "clusterIn": "$"
+          }
+        ],
+        "compression": 1,
+        "namePrefix": "ev",
+        "subFolder": "images/${imageName}"
+      }
     }
   ]
 }

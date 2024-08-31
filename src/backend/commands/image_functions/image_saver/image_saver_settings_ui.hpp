@@ -52,6 +52,7 @@ public:
     mImageNamePrefix->setDefaultValue("control");
     mImageNamePrefix->setPlaceholderText("Name ...");
     mImageNamePrefix->setUnit("");
+    mImageNamePrefix->setValue(settings.namePrefix);
     mImageNamePrefix->connectWithSetting(&settings.namePrefix);
 
     //
