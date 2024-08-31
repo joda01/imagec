@@ -32,6 +32,7 @@ inline auto generateClusterDropDown(const QString &helpText, QWidget *parent)
   auto dropBox = SettingBase::create<T>(parent, "icons8-connection-50.png", helpText);
   dropBox->addOptions({
       {enums::ClusterIdIn::$, "THIS"},
+      {enums::ClusterIdIn::NONE, "None"},
       {enums::ClusterIdIn::A, "A"},
       {enums::ClusterIdIn::B, "B"},
       {enums::ClusterIdIn::C, "C"},

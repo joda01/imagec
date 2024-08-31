@@ -65,6 +65,7 @@ public:
     //
     //
     maskingCluster = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Masking cluster (optional)", parent);
+    maskingCluster->setDefaultValue(enums::ClusterIdIn::NONE);
     maskingCluster->setValue(settings.maskCluster);
     maskingCluster->connectWithSetting(&settings.maskCluster);
 
