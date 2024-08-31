@@ -55,7 +55,6 @@ public:
     mThresholdValueMin->setValue(settings.thresholdMin);
     mThresholdValueMin->connectWithSetting(&settings.thresholdMin);
     mThresholdValueMin->setShortDescription("Min. ");
-    mThresholdValueMin->connectWithSetting(&settings.thresholdMin);
 
     //
     //
@@ -67,7 +66,6 @@ public:
     mThresholdValueMax->setValue(settings.thresholdMax);
     mThresholdValueMax->connectWithSetting(&settings.thresholdMax);
     mThresholdValueMax->setShortDescription("Max. ");
-    mThresholdValueMax->connectWithSetting(&settings.thresholdMax);
 
     addSetting({{mThresholdAlgorithm.get(), true}, {mThresholdValueMin.get(), true}, {mThresholdValueMax.get(), true}});
   }

@@ -108,7 +108,12 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
     mDensityMapSize->addItem("350", 350);
     mDensityMapSize->addItem("400", 400);
     mDensityMapSize->addItem("450", 450);
-    mDensityMapSize->setCurrentIndex(3);
+    mDensityMapSize->addItem("450", 450);
+    mDensityMapSize->addItem("1000", 1000);
+    mDensityMapSize->addItem("2000", 2000);
+    mDensityMapSize->addItem("3000", 3000);
+    mDensityMapSize->addItem("4000", 4000);
+    mDensityMapSize->setCurrentIndex(13);
 
     formLayout->addRow(new QLabel(tr("Well order:")), mWellOrderMatrix);
     formLayout->addRow(new QLabel(tr("Plate size:")), mPlateSize);
