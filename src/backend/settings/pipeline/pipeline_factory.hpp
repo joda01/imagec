@@ -41,6 +41,7 @@
 #include "backend/commands/object_functions/colocalization/colocalization_settings_ui.hpp"
 #include "backend/commands/object_functions/intersection/intersection.hpp"
 #include "backend/commands/object_functions/intersection/intersection_settings.hpp"
+#include "backend/commands/object_functions/intersection/intersection_settings_ui.hpp"
 #include "backend/commands/object_functions/measure/measure.hpp"
 #include "backend/commands/object_functions/measure/measure_settings_ui.hpp"
 #include "backend/commands/object_functions/validator_noise/validator_noise.hpp"
@@ -167,6 +168,8 @@ private:
         return std::make_unique<joda::cmd::Factory<joda::cmd::Intersection, IntersectionSettings>>(
             step.$intersection.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::Factory<joda::ui::Intersection, IntersectionSettings>>(
+            const_cast<IntersectionSettings &>(step.$intersection.value()), parent));
       }
     }
 

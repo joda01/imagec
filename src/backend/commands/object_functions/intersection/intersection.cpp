@@ -33,7 +33,7 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
   const auto &intersectWith = context.loadObjectsFromCache(mSettings.objectsInWith.objectIn)
                                   ->at(context.getClusterId(mSettings.objectsInWith.clusterIn));
 
-  objectsInOut.calcIntersections(mSettings.function, intersectWith, mSettings.objectsIn.classesIn,
+  objectsInOut.calcIntersections(mSettings.mode, intersectWith, mSettings.objectsIn.classesIn,
                                  mSettings.objectsInWith.classesIn, mSettings.minIntersection, mSettings.newClassId);
 }
 /*

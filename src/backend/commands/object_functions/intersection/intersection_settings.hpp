@@ -62,7 +62,7 @@ struct IntersectionSettings : public SettingBase
   //
   // What should happen when an intersection was found
   //
-  Function function = Function::UNKNOWN;
+  Function mode = Function::UNKNOWN;
 
   //
   // Minimum intersection in [0-1]
@@ -87,9 +87,9 @@ struct IntersectionSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(function != Function::UNKNOWN, "Define a intersection function!");
+    CHECK(mode != Function::UNKNOWN, "Define a intersection function!");
     CHECK(minIntersection >= 0, "Min intersection must be >=0.");
-    if(function == Function::RECLASSIFY) {
+    if(mode == Function::RECLASSIFY) {
       CHECK(newClassId != joda::enums::ClassId::UNDEFINED,
             "Define a class the elements should be assigned for reclassification.");
     }
@@ -103,7 +103,7 @@ struct IntersectionSettings : public SettingBase
     return clusters;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionSettings, function, minIntersection, objectsIn,
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionSettings, mode, minIntersection, objectsIn,
                                                        objectsInWith, newClassId);
 };
 
