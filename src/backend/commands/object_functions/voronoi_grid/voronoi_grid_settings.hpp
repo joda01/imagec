@@ -20,7 +20,7 @@ public:
   //
   // Cluster where the points which should be used to generate the voronoi grid are stored in
   //
-  enums::ClusterIdIn pointsClusterIn;
+  enums::ClusterIdIn pointsClusterIn = enums::ClusterIdIn::$;
 
   //
   // Class which should be used for the points

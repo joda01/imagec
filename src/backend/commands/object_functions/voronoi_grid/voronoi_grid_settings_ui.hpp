@@ -48,6 +48,10 @@ public:
     pointsClass->setValue(settings.pointsClassIn);
     pointsClass->connectWithSetting(&settings.pointsClassIn);
 
+    voronoiClassOut = generateClassDropDown<SettingComboBox<enums::ClassId>>("Output class", parent);
+    voronoiClassOut->setValue(settings.voronoiClassOut);
+    voronoiClassOut->connectWithSetting(&settings.voronoiClassOut);
+
     //
     //
     mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max. radius");
@@ -70,7 +74,8 @@ public:
     maskingClass->setValue(settings.maskClasses);
     maskingClass->connectWithSetting(&settings.maskClasses);
 
-    auto *col1 = addSetting(tab, "Voronoi input", {{pointsCluster.get(), true}, {pointsClass.get(), false}});
+    auto *col1 = addSetting(tab, "Voronoi input/output",
+                            {{pointsCluster.get(), true}, {pointsClass.get(), false}, {voronoiClassOut.get(), false}});
     addSetting(tab, "Voronoi masking",
                {{mMaxRadius.get(), true}, {maskingCluster.get(), false}, {maskingClass.get(), false}}, col1);
 
