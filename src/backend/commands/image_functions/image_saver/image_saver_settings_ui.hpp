@@ -29,7 +29,7 @@ class ImageSaver : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Save image";
+  inline static std::string TITLE = "Save control image";
   inline static std::string ICON  = "icons8-image-50.png";
 
   ImageSaver(settings::ImageSaverSettings &settings, QWidget *parent) :
