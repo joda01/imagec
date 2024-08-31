@@ -50,6 +50,16 @@ public:
 
     //
     //
+    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max. radius");
+    mMaxRadius->setPlaceholderText("[0 - ]");
+    mMaxRadius->setUnit("px");
+    mMaxRadius->setMinMax(0, UINT32_MAX);
+    mMaxRadius->setValue(settings.maxRadius);
+    mMaxRadius->connectWithSetting(&settings.maxRadius);
+    mMaxRadius->setShortDescription("Rad. ");
+
+    //
+    //
     maskingCluster = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Masking cluster (optional)", parent);
     maskingCluster->setValue(settings.maskCluster);
     maskingCluster->connectWithSetting(&settings.maskCluster);
@@ -61,30 +71,23 @@ public:
     maskingClass->connectWithSetting(&settings.maskClasses);
 
     auto *col1 = addSetting(tab, "Voronoi input", {{pointsCluster.get(), true}, {pointsClass.get(), false}});
-    addSetting(tab, "Voronoi masking", {{maskingCluster.get(), false}, {maskingClass.get(), false}}, col1);
+    addSetting(tab, "Voronoi masking",
+               {{mMaxRadius.get(), true}, {maskingCluster.get(), false}, {maskingClass.get(), false}}, col1);
 
-    excludeAreasWithoutPoints = SettingBase::create<SettingComboBox<bool>>(parent, "", "Max. radius");
+    excludeAreasWithoutPoints = SettingBase::create<SettingComboBox<bool>>(parent, "", "Exclude areas without points");
+    excludeAreasWithoutPoints->addOptions({{false, "Off"}, {true, "On"}});
     excludeAreasWithoutPoints->setDefaultValue(true);
     excludeAreasWithoutPoints->setValue(settings.excludeAreasWithoutPoint);
     excludeAreasWithoutPoints->connectWithSetting(&settings.excludeAreasWithoutPoint);
 
-    excludeAreasAtTheEdge = SettingBase::create<SettingComboBox<bool>>(parent, "", "Max. radius");
+    excludeAreasAtTheEdge = SettingBase::create<SettingComboBox<bool>>(parent, "", "Exclude areas at the edges");
+    excludeAreasAtTheEdge->addOptions({{false, "Off"}, {true, "On"}});
     excludeAreasAtTheEdge->setDefaultValue(true);
     excludeAreasAtTheEdge->setValue(settings.excludeAreasAtTheEdge);
     excludeAreasAtTheEdge->connectWithSetting(&settings.excludeAreasAtTheEdge);
 
     auto *col2 =
-        addSetting(tab, "Filter", {{excludeAreasWithoutPoints.get(), true}, {excludeAreasAtTheEdge.get(), false}});
-
-    //
-    //
-    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max. radius");
-    mMaxRadius->setPlaceholderText("[0 - ]");
-    mMaxRadius->setUnit("px");
-    mMaxRadius->setMinMax(0, UINT32_MAX);
-    mMaxRadius->setValue(settings.maxRadius);
-    mMaxRadius->connectWithSetting(&settings.maxRadius);
-    mMaxRadius->setShortDescription("Rad. ");
+        addSetting(tab, "Area filter", {{excludeAreasWithoutPoints.get(), true}, {excludeAreasAtTheEdge.get(), false}});
 
     //
     //
@@ -106,8 +109,7 @@ public:
     mMaxAreaSize->connectWithSetting(&settings.maxAreaSize);
     mMaxAreaSize->setShortDescription("Max. ");
 
-    addSetting(tab, "Filter", {{mMaxRadius.get(), true}, {mMinAreaSize.get(), false}, {mMaxAreaSize.get(), false}},
-               col2);
+    addSetting(tab, "Size filter", {{mMinAreaSize.get(), false}, {mMaxAreaSize.get(), false}}, col2);
   }
 
 private:

@@ -282,6 +282,8 @@ void PanelClassification::toSettings()
   std::map<enums::ClassId, QString> classes;
 
   clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::$), QString("This"));
+  clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::NONE), QString("None"));
+
   classes.emplace(static_cast<enums::ClassId>(enums::ClassId::NONE), QString("None"));
 
   for(const auto &cluster : mSettings.clusters) {
