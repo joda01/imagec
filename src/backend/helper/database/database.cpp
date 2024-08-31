@@ -354,7 +354,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
            joda::rle::rle_encode({roi.getMask().datastart, roi.getMask().dataend}));    // " meas_mask BOOLEAN[]"*/
 
       duckdb::vector<duckdb::Value> flattenPoints;
-      flatten(roi.getContour(), flattenPoints);
+      // flatten(roi.getContour(), flattenPoints);
       auto contour = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), flattenPoints);
       objects.Append<duckdb::Value>(contour);    // " meas_contour UINTEGER[]"
       objects.EndRow();
