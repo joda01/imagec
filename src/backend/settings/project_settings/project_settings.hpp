@@ -47,7 +47,11 @@ public:
   //
   // Object clusters used in this project
   //
-  std::list<Cluster> clusters{};
+  std::list<Cluster> clusters{
+      {.clusterId = joda::enums::ClusterId::A, .name = "A"}, {.clusterId = joda::enums::ClusterId::B, .name = "B"},
+      {.clusterId = joda::enums::ClusterId::C, .name = "C"}, {.clusterId = joda::enums::ClusterId::D, .name = "D"},
+      {.clusterId = joda::enums::ClusterId::E, .name = "E"}, {.clusterId = joda::enums::ClusterId::F, .name = "F"},
+      {.clusterId = joda::enums::ClusterId::G, .name = "G"}};
 
   //
   // Object classes used in this project
