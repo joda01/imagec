@@ -33,7 +33,7 @@ struct NoiseValidatorSettings : public SettingBase
   //
   // On which part the filter should be applied
   //
-  FilterMode mode = FilterMode::UNKNOWN;
+  FilterMode mode = FilterMode::INVALIDATE_IMAGE;
 
   //
   // Image which should be used for the validation
@@ -53,7 +53,7 @@ struct NoiseValidatorSettings : public SettingBase
   //
   // If this number of objects is exceeded the filter will be applied
   //
-  uint64_t maxObjects = 0;
+  uint32_t maxObjects = 100000;
 
   /////////////////////////////////////////////////////
   void check() const

@@ -45,7 +45,9 @@
 #include "backend/commands/object_functions/measure/measure.hpp"
 #include "backend/commands/object_functions/measure/measure_settings_ui.hpp"
 #include "backend/commands/object_functions/validator_noise/validator_noise.hpp"
+#include "backend/commands/object_functions/validator_noise/validator_noise_settings_ui.hpp"
 #include "backend/commands/object_functions/validator_threshold/validator_threshold.hpp"
+#include "backend/commands/object_functions/validator_threshold/validator_threshold_settings_ui.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/command/factory.hpp"
@@ -222,6 +224,8 @@ private:
         return std::make_unique<joda::cmd::Factory<joda::cmd::ThresholdValidator, ThresholdValidatorSettings>>(
             step.$thresholdValidator.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ThresholdValidator, ThresholdValidatorSettings>>(
+            const_cast<ThresholdValidatorSettings &>(step.$thresholdValidator.value()), parent));
       }
     }
 
@@ -230,6 +234,8 @@ private:
         return std::make_unique<joda::cmd::Factory<joda::cmd::NoiseValidator, NoiseValidatorSettings>>(
             step.$noiseValidator.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::Factory<joda::ui::NoiseValidator, NoiseValidatorSettings>>(
+            const_cast<NoiseValidatorSettings &>(step.$noiseValidator.value()), parent));
       }
     }
 

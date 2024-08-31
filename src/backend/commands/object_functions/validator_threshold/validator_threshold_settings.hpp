@@ -32,7 +32,7 @@ struct ThresholdValidatorSettings : public SettingBase
   //
   // On which part the filter should be applied
   //
-  FilterMode mode = FilterMode::UNKNOWN;
+  FilterMode mode = FilterMode::INVALIDATE_IMAGE;
 
   //
   // Image which should be used for the validation
@@ -48,7 +48,7 @@ struct ThresholdValidatorSettings : public SettingBase
   // If the min threshold is lower than the value at the maximum
   // of the histogram multiplied with this factor the filter
   //
-  float histMinThresholdFilterFactor = 0;
+  float histMinThresholdFilterFactor = 0.8;
 
   /////////////////////////////////////////////////////
   void check() const
