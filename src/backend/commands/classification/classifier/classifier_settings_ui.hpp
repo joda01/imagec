@@ -43,7 +43,7 @@ public:
       classifiers.emplace_back(classifierSetting, *this, tab, parent);
     }
 
-    auto *addClassifier = addActionButton("Add class", "icons8-genealogy-50.png");
+    auto *addClassifier = addActionButton("Add class", "icons8-add-new-50.png");
     connect(addClassifier, &QAction::triggered, this, &Classifier::addClassifier);
   }
 

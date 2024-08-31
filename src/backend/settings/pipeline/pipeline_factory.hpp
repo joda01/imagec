@@ -38,6 +38,7 @@
 #include "backend/commands/image_functions/watershed/watershed.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings_ui.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization.hpp"
+#include "backend/commands/object_functions/colocalization/colocalization_settings_ui.hpp"
 #include "backend/commands/object_functions/intersection/intersection.hpp"
 #include "backend/commands/object_functions/intersection/intersection_settings.hpp"
 #include "backend/commands/object_functions/measure/measure.hpp"
@@ -147,6 +148,8 @@ private:
         return std::make_unique<joda::cmd::Factory<joda::cmd::Colocalization, ColocalizationSettings>>(
             step.$colocalization.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::Factory<joda::ui::Colocalization, ColocalizationSettings>>(
+            const_cast<ColocalizationSettings &>(step.$colocalization.value()), parent));
       }
     }
 

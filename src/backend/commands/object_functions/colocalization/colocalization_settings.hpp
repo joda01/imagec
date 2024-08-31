@@ -14,6 +14,7 @@
 #pragma once
 
 #include <cstdint>
+#include <list>
 #include <set>
 #include <vector>
 #include "backend/enums/enum_objects.hpp"
@@ -72,7 +73,7 @@ struct ColocalizationSettings : public SettingBase
   //
   // List of channels to calc the intersection for
   //
-  std::vector<IntersectingClasses> objectsIn;
+  std::list<IntersectingClasses> objectsIn;
 
   /////////////////////////////////////////////////////
   void check() const

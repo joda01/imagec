@@ -61,7 +61,7 @@ public:
       auto *tab = addTab("Class", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
       classifiers.emplace_back(classifierSetting, *this, tab, parent);
     }
-    auto *addClassifier = addActionButton("Add class", "icons8-magic-50.png");
+    auto *addClassifier = addActionButton("Add class", "icons8-add-new-50.png");
     connect(addClassifier, &QAction::triggered, this, &AiClassifier::addClassifier);
   }
 
