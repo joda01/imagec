@@ -523,8 +523,8 @@ void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId,
 ///
 void Database::setImageValidity(uint64_t imageId, enums::ChannelValidity validity)
 {
-  std::unique_ptr<duckdb::QueryResult> result =
-      select("UPDATE images SET validity = validity | ? WHERE image_id=?", validity.to_ulong(), imageId);
+  std::unique_ptr<duckdb::QueryResult> result = select("UPDATE images SET validity = validity | ? WHERE image_id=?",
+                                                       static_cast<uint64_t>(validity.to_ullong()), imageId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -539,8 +539,8 @@ void Database::setImageValidity(uint64_t imageId, enums::ChannelValidity validit
 ///
 void Database::unsetImageValidity(uint64_t imageId, enums::ChannelValidity validity)
 {
-  std::unique_ptr<duckdb::QueryResult> result =
-      select("UPDATE images SET validity = validity & ~(?) WHERE image_id=?", validity.to_ulong(), imageId);
+  std::unique_ptr<duckdb::QueryResult> result = select("UPDATE images SET validity = validity & ~(?) WHERE image_id=?",
+                                                       static_cast<uint64_t>(validity.to_ullong()), imageId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -557,7 +557,7 @@ void Database::setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &pla
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
       "UPDATE images_planes SET validity = validity | ? WHERE image_id=? AND stack_c=? AND stack_z=? AND stack_t=?",
-      validity.to_ulong(), imageId, planeId.cStack, planeId.zStack, planeId.tStack);
+      static_cast<uint64_t>(validity.to_ullong()), imageId, planeId.cStack, planeId.zStack, planeId.tStack);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -576,8 +576,8 @@ void Database::setImagePlaneClusterClusterValidity(uint64_t imageId, const enums
   std::unique_ptr<duckdb::QueryResult> result = select(
       "INSERT INTO clusters_planes (image_id, cluster_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?) "
       "ON CONFLICT DO UPDATE SET validity = validity | ?",
-      imageId, static_cast<uint16_t>(clusterId), planeId.cStack, planeId.zStack, planeId.tStack, validity.to_ulong(),
-      validity.to_ulong());
+      imageId, static_cast<uint16_t>(clusterId), planeId.cStack, planeId.zStack, planeId.tStack,
+      static_cast<uint64_t>(validity.to_ullong()), static_cast<uint64_t>(validity.to_ullong()));
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
