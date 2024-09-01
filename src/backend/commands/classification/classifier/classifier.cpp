@@ -101,7 +101,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
             // If filter matches assign the new cluster and class to the ROI
             if(filter.doesFilterMatch(context, detectedRoi, filter.intensity)) {
               detectedRoi.setClusterAndClass(context.getClusterId(filter.clusterOut),
-                                             context.getClassId(filter.classOut));
+                                             joda::processor::ProcessContext::getClassId(filter.classOut));
             }
           }
           result.push_back(detectedRoi);

@@ -12,4 +12,4 @@
 
 (gdb) handle SIGSEGV nostop noprint pass
 
-handle SIGSEGV nostop noprint pass
+handle SIGSEGV nostop print pass
