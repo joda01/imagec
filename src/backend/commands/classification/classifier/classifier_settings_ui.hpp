@@ -40,31 +40,10 @@ public:
       Command(TITLE.data(), ICON.data(), parent), mSettings(settingsIn), mParent(parent)
   {
     if(settingsIn.classifiers.empty()) {
-      settingsIn.classifiers.emplace_back(settings::ObjectClass{});
+      addFilter();
     }
-    auto &settings = *settingsIn.classifiers.begin();
 
-    auto *tab = addTab("Class", [] {});
-    //
-    //
-    mClassOutNoMatch = generateClassDropDown<SettingComboBox<enums::ClassId>>("No match class", parent);
-    mClassOutNoMatch->setValue(settings.classOutNoMatch);
-    mClassOutNoMatch->connectWithSetting(&settings.classOutNoMatch);
-
-    //
-    //
-    mGrayScaleValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Grayscale");
-    mGrayScaleValue->setDefaultValue(65535);
-    mGrayScaleValue->setPlaceholderText("[0 - 65535]");
-    mGrayScaleValue->setUnit("%");
-    mGrayScaleValue->setMinMax(0, 65535);
-    mGrayScaleValue->setValue(settings.modelClassId);
-    mGrayScaleValue->connectWithSetting(&settings.modelClassId);
-    mGrayScaleValue->setShortDescription("Cls. ");
-
-    addSetting(tab, {{mClassOutNoMatch.get(), false}, {mGrayScaleValue.get(), false}});
-
-    for(auto &classifierSetting : settings.filters) {
+    for(auto &classifierSetting : settingsIn.classifiers) {
       auto *tab = addTab("Filter", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
       mClassifyFilter.emplace_back(classifierSetting, *this, tab, parent);
     }
@@ -77,20 +56,41 @@ private:
   /////////////////////////////////////////////////////
   struct ClassifierFilter
   {
-    ClassifierFilter(settings::ClassifierFilter &settings, Classifier &outer, helper::TabWidget *tab, QWidget *parent) :
+    ClassifierFilter(settings::ObjectClass &settings, Classifier &outer, helper::TabWidget *tab, QWidget *parent) :
         outer(outer), tab(tab), settings(settings)
     {
+      if(settings.filters.empty()) {
+        settings.filters.emplace_back(settings::ClassifierFilter{});
+      }
+      auto &classifyFilter = *settings.filters.begin();
+
       //
       //
-      // mClusterOut = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Match cluster", parent);
-      // mClusterOut->setValue(settings.clusterOut);
-      // mClusterOut->connectWithSetting(&settings.clusterOut);
+      mClassOutNoMatch = generateClassDropDown<SettingComboBox<enums::ClassId>>("No match class", parent);
+      mClassOutNoMatch->setValue(settings.classOutNoMatch);
+      mClassOutNoMatch->connectWithSetting(&settings.classOutNoMatch);
+
+      //
+      //
+      mGrayScaleValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Grayscale");
+      mGrayScaleValue->setDefaultValue(65535);
+      mGrayScaleValue->setPlaceholderText("[0 - 65535]");
+      mGrayScaleValue->setUnit("%");
+      mGrayScaleValue->setMinMax(0, 65535);
+      mGrayScaleValue->setValue(settings.modelClassId);
+      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
+      mGrayScaleValue->setShortDescription("Cls. ");
+
+      outer.addSetting(tab, "Match",
+                       {/*{mClusterOut.get(), false},*/
+                        {mClassOutNoMatch.get(), true},
+                        {mGrayScaleValue.get(), true}});
 
       //
       //
       mClassOut = generateClassDropDown<SettingComboBox<enums::ClassId>>("Match class", parent);
-      mClassOut->setValue(settings.classOut);
-      mClassOut->connectWithSetting(&settings.classOut);
+      mClassOut->setValue(classifyFilter.classOut);
+      mClassOut->connectWithSetting(&classifyFilter.classOut);
       mClassOut->setDisplayIconVisible(false);
 
       //
@@ -99,8 +99,8 @@ private:
       mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMinParticleSize->setUnit("px");
       mMinParticleSize->setMinMax(0, INT32_MAX);
-      mMinParticleSize->setValue(settings.minParticleSize);
-      mMinParticleSize->connectWithSetting(&settings.minParticleSize);
+      mMinParticleSize->setValue(classifyFilter.minParticleSize);
+      mMinParticleSize->connectWithSetting(&classifyFilter.minParticleSize);
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
@@ -108,8 +108,8 @@ private:
       mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMaxParticleSize->setUnit("px");
       mMaxParticleSize->setMinMax(0, INT32_MAX);
-      mMaxParticleSize->setValue(settings.maxParticleSize);
-      mMaxParticleSize->connectWithSetting(&settings.maxParticleSize);
+      mMaxParticleSize->setValue(classifyFilter.maxParticleSize);
+      mMaxParticleSize->connectWithSetting(&classifyFilter.maxParticleSize);
       mMaxParticleSize->setShortDescription("Max. ");
 
       //
@@ -118,16 +118,16 @@ private:
       mMinCircularity->setPlaceholderText("[0 - 1]");
       mMinCircularity->setUnit("%");
       mMinCircularity->setMinMax(0, 1);
-      mMinCircularity->setValue(settings.minCircularity);
-      mMinCircularity->connectWithSetting(&settings.minCircularity);
+      mMinCircularity->setValue(classifyFilter.minCircularity);
+      mMinCircularity->connectWithSetting(&classifyFilter.minCircularity);
       mMinCircularity->setShortDescription("Circ. ");
 
-      outer.addSetting(tab, "Size filter",
-                       {/*{mClusterOut.get(), false},*/
-                        {mClassOut.get(), true},
-                        {mMinCircularity.get(), true},
-                        {mMinParticleSize.get(), true},
-                        {mMaxParticleSize.get(), true}});
+      auto *col = outer.addSetting(tab, "Size filter",
+                                   {/*{mClusterOut.get(), false},*/
+                                    {mClassOut.get(), true},
+                                    {mMinCircularity.get(), true},
+                                    {mMinParticleSize.get(), true},
+                                    {mMaxParticleSize.get(), true}});
 
       // Intensity filter
 
@@ -137,8 +137,8 @@ private:
       mMinIntensity->setPlaceholderText("[0 - 65535]");
       mMinIntensity->setUnit("");
       mMinIntensity->setMinMax(0, INT32_MAX);
-      mMinIntensity->setValue(settings.intensity.minIntensity);
-      mMinIntensity->connectWithSetting(&settings.intensity.minIntensity);
+      mMinIntensity->setValue(classifyFilter.intensity.minIntensity);
+      mMinIntensity->connectWithSetting(&classifyFilter.intensity.minIntensity);
       mMinIntensity->setShortDescription("Min. ");
       //
       //
@@ -146,15 +146,15 @@ private:
       mMaxIntensity->setPlaceholderText("[0 - 65535]");
       mMaxIntensity->setUnit("");
       mMaxIntensity->setMinMax(0, INT32_MAX);
-      mMaxIntensity->setValue(settings.intensity.maxIntensity);
-      mMaxIntensity->connectWithSetting(&settings.intensity.maxIntensity);
+      mMaxIntensity->setValue(classifyFilter.intensity.maxIntensity);
+      mMaxIntensity->connectWithSetting(&classifyFilter.intensity.maxIntensity);
       mMaxIntensity->setShortDescription("Max. ");
 
       //
       //
       cStackForIntensityFilter = generateCStackCombo<SettingComboBox<int32_t>>("Image channel", parent);
-      cStackForIntensityFilter->setValue(settings.intensity.imageIn.imagePlane.cStack);
-      cStackForIntensityFilter->connectWithSetting(&settings.intensity.imageIn.imagePlane.cStack);
+      cStackForIntensityFilter->setValue(classifyFilter.intensity.imageIn.imagePlane.cStack);
+      cStackForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.imagePlane.cStack);
 
       //
       //
@@ -164,14 +164,15 @@ private:
                                                  {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                                                  {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
                                                  {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
-      zProjectionForIntensityFilter->setValue(settings.intensity.imageIn.imageIdx);
-      zProjectionForIntensityFilter->connectWithSetting(&settings.intensity.imageIn.imageIdx);
+      zProjectionForIntensityFilter->setValue(classifyFilter.intensity.imageIn.imageIdx);
+      zProjectionForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.imageIdx);
 
       outer.addSetting(tab, "Intensity filter",
                        {{cStackForIntensityFilter.get(), true},
                         {zProjectionForIntensityFilter.get(), true},
                         {mMinIntensity.get(), true},
-                        {mMaxIntensity.get(), true}});
+                        {mMaxIntensity.get(), true}},
+                       col);
     }
 
     ~ClassifierFilter()
@@ -182,6 +183,10 @@ private:
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
+    std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOutNoMatch;
+    std::unique_ptr<SettingLineEdit<int32_t>> mGrayScaleValue;
+    QWidget *mParent;
+
     std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOut;
     std::unique_ptr<SettingLineEdit<int>> mMinParticleSize;
     std::unique_ptr<SettingLineEdit<int>> mMaxParticleSize;
@@ -193,26 +198,22 @@ private:
     std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
     std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
 
-    settings::ClassifierFilter &settings;
+    settings::ObjectClass &settings;
     Classifier &outer;
     helper::TabWidget *tab;
   };
 
   std::list<ClassifierFilter> mClassifyFilter;
   settings::ClassifierSettings &mSettings;
-  std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOutNoMatch;
-  std::unique_ptr<SettingLineEdit<int32_t>> mGrayScaleValue;
   QWidget *mParent;
 
-  void removeObjectClass(settings::ClassifierFilter *obj)
+  void removeObjectClass(settings::ObjectClass *obj)
   {
-    auto &filtersSettings = mSettings.classifiers.begin()->filters;
-
     {
-      auto it = filtersSettings.begin();
-      for(; it != filtersSettings.end(); it++) {
+      auto it = mSettings.classifiers.begin();
+      for(; it != mSettings.classifiers.end(); it++) {
         if(&(*it) == obj) {
-          filtersSettings.erase(it);
+          mSettings.classifiers.erase(it);
           break;
         }
       }
@@ -234,8 +235,8 @@ private:
 private slots:
   void addFilter()
   {
-    settings::ClassifierFilter objClass;
-    auto &ret = mSettings.classifiers.begin()->filters.emplace_back(objClass);
+    settings::ObjectClass objClass;
+    auto &ret = mSettings.classifiers.emplace_back(objClass);
     auto *tab = addTab("Filter", [this, &ret] { removeObjectClass(&ret); });
     mClassifyFilter.emplace_back(ret, *this, tab, mParent);
     updateDisplayText();

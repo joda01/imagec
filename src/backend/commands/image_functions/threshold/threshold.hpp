@@ -47,36 +47,33 @@ public:
 
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto [thresholdValMin, thresholdValMax] = autoThreshold(image);
-    cv::Mat thresholdImg(image.size(), CV_16UC1);
-    cv::threshold(image, thresholdImg, thresholdValMin, UINT16_MAX, cv::THRESH_BINARY);
-    cv::Mat thresholdTmp;
-    cv::threshold(image, thresholdTmp, thresholdValMax, UINT16_MAX, cv::THRESH_BINARY_INV);
-    cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
-    image = std::move(thresholdImg);
-    context.setBinaryImage(thresholdValMin, thresholdValMax);
-  }
+    cv::Mat outputImage = cv::Mat::zeros(image.size(), CV_16UC1);
 
-protected:
-  /////////////////////////////////////////////////////
-  [[nodiscard]] uint16_t getMinThreshold() const
-  {
-    return mSettings.thresholdMin;
-  }
+    for(const auto &threshold : mSettings.thresholds) {
+      auto [thresholdValMin, thresholdValMax] = autoThreshold(threshold, image);
+      cv::Mat thresholdImg(image.size(), CV_16UC1);
+      cv::threshold(image, thresholdImg, thresholdValMin, UINT16_MAX, cv::THRESH_BINARY);
+      cv::Mat thresholdTmp;
+      cv::threshold(image, thresholdTmp, thresholdValMax, UINT16_MAX, cv::THRESH_BINARY_INV);
+      cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
+      thresholdImg.setTo(threshold.grayscaleAssignment, thresholdImg > 0);
+      context.setBinaryImage(thresholdValMin, thresholdValMax);
 
-  [[nodiscard]] uint16_t getMaxThreshold() const
-  {
-    return mSettings.thresholdMax;
+      outputImage = cv::max(outputImage, thresholdImg);
+    }
+
+    image = std::move(outputImage);
   }
 
 private:
   /////////////////////////////////////////////////////
-  [[nodiscard]] uint16_t calcThresholdValue(cv::Mat &histogram) const
+  [[nodiscard]] uint16_t calcThresholdValue(const settings::ThresholdSettings::Threshold &settings,
+                                            cv::Mat &histogram) const
   {
-    switch(mSettings.mode) {
+    switch(settings.mode) {
       case settings::ThresholdSettings::Mode::NONE:
       case settings::ThresholdSettings::Mode::MANUAL:
-        return getMinThreshold();
+        return settings.thresholdMin;
       case settings::ThresholdSettings::Mode::LI:
         return ThresholdLi::calcThresholdValue(histogram);
       case settings::ThresholdSettings::Mode::MIN_ERROR:
@@ -100,10 +97,11 @@ private:
         joda::log::logWarning("Selected threshold not supported!");
         break;
     }
-    return getMinThreshold();
+    return settings.thresholdMin;
   }
 
-  [[nodiscard]] virtual std::tuple<uint16_t, uint16_t> autoThreshold(const cv::Mat &srcImg) const
+  [[nodiscard]] virtual std::tuple<uint16_t, uint16_t>
+  autoThreshold(const settings::ThresholdSettings::Threshold &settings, const cv::Mat &srcImg) const
   {
     //
     // Scale image
@@ -137,9 +135,12 @@ private:
     cv::calcHist(&charImg, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange);
     // histogram.at<float>(0) = 0;
 
-    auto thresholdTempMin = scaleAndSetThreshold(0, calcThresholdValue(histogram) + 1, min, max);
+    uint16_t thresholdTempMin = settings.thresholdMin;
+    if(settings.mode != settings::ThresholdSettings::Mode::MANUAL) {
+      thresholdTempMin = scaleAndSetThreshold(0, calcThresholdValue(settings, histogram) + 1, min, max);
+    }
 
-    return {std::min(std::max(getMinThreshold(), thresholdTempMin), getMaxThreshold()), getMaxThreshold()};
+    return {std::min(std::max(settings.thresholdMin, thresholdTempMin), settings.thresholdMax), settings.thresholdMax};
   }
 
   /////////////////////////////////////////////////////

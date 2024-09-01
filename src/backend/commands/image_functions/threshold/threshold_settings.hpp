@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <list>
 #include <set>
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
@@ -31,31 +32,48 @@ public:
     YEN
   };
 
-  //
-  // Which threshold algorithm should be used
-  // [MANUAL, LI, MIN_ERROR, TRIANGLE]
-  //
-  Mode mode = Mode::NONE;
+  struct Threshold
+  {
+    //
+    // Which threshold algorithm should be used
+    // [MANUAL, LI, MIN_ERROR, TRIANGLE]
+    //
+    Mode mode = Mode::NONE;
 
-  //
-  // Minimum threshold value.
-  // [0-65535]
-  //
-  uint16_t thresholdMin = 0;
+    //
+    // Minimum threshold value.
+    // [0-65535]
+    //
+    uint16_t thresholdMin = 0;
 
-  //
-  // Maximum threshold value (default 65535)
-  // [0-65535]
-  //
-  uint16_t thresholdMax = UINT16_MAX;
+    //
+    // Maximum threshold value (default 65535)
+    // [0-65535]
+    //
+    uint16_t thresholdMax = UINT16_MAX;
 
-  /////////////////////////////////////////////////////
+    //
+    // Grayscale to assign to
+    //
+    uint16_t grayscaleAssignment = UINT16_MAX;
+
+    /////////////////////////////////////////////////////
+    void check() const
+    {
+      CHECK(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, mode, thresholdMin, thresholdMax,
+                                                         grayscaleAssignment);
+  };
+
+  std::list<Threshold> thresholds;
+
   void check() const
   {
-    CHECK(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdSettings, mode, thresholdMin, thresholdMax);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdSettings, thresholds);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode::NONE, ""},
