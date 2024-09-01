@@ -407,10 +407,20 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
 
 void Database::insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo)
 {
-  auto connection = acquire();
-  auto prepare    = connection->Prepare(
-      "INSERT INTO groups (plate_id, group_id, name, notes, pos_on_plate_x, pos_on_plate_y) VALUES (?, ?, ?, ?, ?, ?)");
-  prepare->Execute(plateId, groupInfo.groupId, groupInfo.groupName, "", groupInfo.wellPosX, groupInfo.wellPosY);
+  try {
+    auto connection = acquire();
+    auto prepare    = connection->Prepare(
+        "INSERT OR IGNORE INTO groups (plate_id, group_id, name, notes, pos_on_plate_x, pos_on_plate_y) VALUES (?, ?, "
+           "?, ?, ?, "
+           "?)");
+    prepare->Execute(plateId, groupInfo.groupId, groupInfo.groupName, "", groupInfo.wellPosX, groupInfo.wellPosY);
+  } catch(duckdb::ConstraintException &e) {
+    // Handle the constraint violation
+    std::cerr << "Constraint Error: " << e.what() << std::endl;
+    // Optionally, log the error or take other actions
+  } catch(const std::exception &ex) {
+    std::cout << "GR: " << ex.what() << std::endl;
+  }
 }
 
 ///
@@ -424,7 +434,7 @@ void Database::insertImage(const joda::processor::ImageContext &image, const jod
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare(
-      "INSERT INTO images (image_id, file_name, original_file_path, nr_of_c_stacks, nr_of_z_stacks, "
+      "INSERT OR IGNORE INTO images (image_id, file_name, original_file_path, nr_of_c_stacks, nr_of_z_stacks, "
          "nr_of_t_stacks,width,height,validity) "
          "VALUES (?, ?, ?, ?, ?, ?, ?, ? ,? )");
 
@@ -500,7 +510,7 @@ void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId,
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare(
-      "INSERT INTO images_planes (image_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?)");
+      "INSERT OR IGNORE INTO images_planes (image_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?)");
   prepare->Execute(imageId, planeId.cStack, planeId.zStack, planeId.tStack, 0);
 }
 
@@ -585,7 +595,7 @@ void Database::insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t im
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare(
-      "INSERT INTO images_groups (plate_id, group_id, image_id, image_group_idx) VALUES (?, ?, ?, ?)");
+      "INSERT OR IGNORE INTO images_groups (plate_id, group_id, image_id, image_group_idx) VALUES (?, ?, ?, ?)");
   prepare->Execute(plateId, groupInfo.groupId, imageId, imageIdx);
 }
 

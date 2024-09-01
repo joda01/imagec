@@ -17,6 +17,7 @@
 #include <qlabel.h>
 #include <qnamespace.h>
 #include <qtmetamacros.h>
+#include <exception>
 #include <memory>
 #include <thread>
 #include "backend/helper/logger/console_logger.hpp"
@@ -129,9 +130,12 @@ void DialogAnalyzeRunning::refreshThread()
 
   // Wait unit finished
   while(true) {
-    const auto &state = mWindowMain->getController()->getState();
-    if(state.getState() == joda::processor::ProcessState::FINISHED) {
-      break;
+    try {
+      const auto &state = mWindowMain->getController()->getState();
+      if(state.getState() == joda::processor::ProcessState::FINISHED) {
+        break;
+      }
+    } catch(const std::exception &ex) {
     }
     std::this_thread::sleep_for(500ms);
   }

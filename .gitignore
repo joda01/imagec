@@ -57,3 +57,4 @@ heaptrack.imagec.183820.gz
 *.log
 *.icdb
 *.icdb.wal
+*.gz

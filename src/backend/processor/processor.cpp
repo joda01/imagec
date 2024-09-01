@@ -57,6 +57,7 @@ Processor::Processor()
 void Processor::stop()
 {
   mProgress.setStateStopping();
+  mGlobThreadPool.purge();
 }
 
 void Processor::execute(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
@@ -272,11 +273,8 @@ void Processor::initializePipelineContext(const GlobalContext &globalContext, co
   // Assign image to group here!!
   //
   auto groupInfo = grouper.getGroupForFilename(imagePath);
-  try {
-    db.insertGroup(plateContext.plateId, groupInfo);
-  } catch(const std::exception &ex) {
-    std::cout << "GR: " << ex.what() << std::endl;
-  }
+  db.insertGroup(plateContext.plateId, groupInfo);
+
   try {
     db.insertImage(imageContext, groupInfo);
   } catch(const std::exception &ex) {
