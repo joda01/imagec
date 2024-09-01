@@ -177,9 +177,10 @@ private:
 
     ~ClassifierFilter()
     {
-      outer.removeSetting({/*mClusterOut.get(),*/ mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
-                           mMinCircularity.get(), mSnapAreaSize.get(), cStackForIntensityFilter.get(),
-                           zProjectionForIntensityFilter.get(), mMinIntensity.get(), mMaxIntensity.get()});
+      outer.removeSetting({mClassOutNoMatch.get(), mGrayScaleValue.get(), mClassOut.get(), mMinParticleSize.get(),
+                           mMaxParticleSize.get(), mMinCircularity.get(), mSnapAreaSize.get(),
+                           cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), mMinIntensity.get(),
+                           mMaxIntensity.get()});
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;

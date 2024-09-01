@@ -67,7 +67,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
   }
   mTabWidget = new QTabWidget();
   mTabWidget->setTabsClosable(true);
-  mTabWidget->setTabPosition(QTabWidget::East);
+  mTabWidget->setTabPosition(QTabWidget::North);
   mTabWidget->setTabBarAutoHide(true);
   mTabWidget->setStyleSheet("QTabWidget::pane { border: none; }");
   container->addWidget(mTabWidget);
