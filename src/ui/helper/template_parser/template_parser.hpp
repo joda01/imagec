@@ -45,15 +45,23 @@ public:
     std::string description;
     std::string path;
     QPixmap icon;
-    bool userTemplate = false;
+  };
+
+  enum class Category
+  {
+    BASIC = 0,
+    EVA   = 1,
+    USER  = 2
   };
 
   static void saveTemplate(const joda::settings::Pipeline &data, const std::filesystem::path &pathToStoreTemplateIn);
   static void saveTemplate(nlohmann::json &, const std::filesystem::path &pathToStoreTemplateIn);
 
-  static auto findTemplates(const std::map<std::string, bool> &directories = {
-                                {"templates", false},
-                                {getUsersTemplateDirectory().string(), true}}) -> std::map<std::string, Data>;
+  static auto findTemplates(const std::map<std::string, Category> &directories = {{"templates/basic", Category::BASIC},
+                                                                                  {"templates/eva", Category::EVA},
+                                                                                  {getUsersTemplateDirectory().string(),
+                                                                                   Category::USER}})
+      -> std::map<Category, std::map<std::string, Data>>;
   static auto loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> joda::settings::Pipeline;
   static auto getUsersTemplateDirectory() -> std::filesystem::path;
 

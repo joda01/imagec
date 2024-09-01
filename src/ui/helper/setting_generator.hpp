@@ -80,7 +80,8 @@ template <ImageCStackCombo_t T>
 inline auto generateCStackCombo(const QString &helpText, QWidget *parent)
 {
   auto dropBox = SettingBase::create<T>(parent, "icons8-unknown-status-50.png", helpText);
-  dropBox->addOptions({{0, "CH0"},
+  dropBox->addOptions({{-1, "None"},
+                       {0, "CH0"},
                        {1, "CH1"},
                        {2, "CH2"},
                        {3, "CH3"},

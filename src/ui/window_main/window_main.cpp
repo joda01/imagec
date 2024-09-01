@@ -545,18 +545,20 @@ void WindowMain::loadTemplates()
                               "emptyChannel");
 
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
-  bool userReached = false;
-  for(const auto &[_, data] : foundTemplates) {
-    // Now the user templates start, add an addition separator
-    if(data.userTemplate && !userReached) {
-      userReached = true;
-      mTemplateSelection->insertSeparator(mTemplateSelection->count());
-    }
-    if(!data.icon.isNull()) {
-      mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
-    } else {
-      mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-favorite-50.png").pixmap(28, 28), data.title.data(),
-                                  data.path.data());
+  joda::templates::TemplateParser::Category actCategory = joda::templates::TemplateParser::Category::BASIC;
+  for(const auto &[category, dataInCategory] : foundTemplates) {
+    for(const auto &[_, data] : dataInCategory) {
+      // Now the user templates start, add an addition separator
+      if(category != actCategory) {
+        actCategory = category;
+        mTemplateSelection->insertSeparator(mTemplateSelection->count());
+      }
+      if(!data.icon.isNull()) {
+        mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
+      } else {
+        mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-favorite-50.png").pixmap(28, 28), data.title.data(),
+                                    data.path.data());
+      }
     }
   }
 }

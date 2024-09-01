@@ -36,26 +36,25 @@ struct MetaFinder
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(MetaFinder, meta, configSchema);
 };
 
-auto TemplateParser::findTemplates(const std::map<std::string, bool> &directories) -> std::map<std::string, Data>
+auto TemplateParser::findTemplates(const std::map<std::string, Category> &directories)
+    -> std::map<Category, std::map<std::string, Data>>
 {
-  std::map<std::string, Data> templates;
-  for(const auto &[directory, userTemplate] : directories) {
+  std::map<Category, std::map<std::string, Data>> templates;
+  for(const auto &[directory, category] : directories) {
     if(fs::exists(directory) && fs::is_directory(directory)) {
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
         if(entry.is_regular_file() && entry.path().extension().string() == TEMPLATE_ENDIAN) {
           std::ifstream ifs(entry.path().string());
           MetaFinder settings = nlohmann::json::parse(ifs);
-          std::string order   = userTemplate ? "B" : "A";
-          order += settings.meta.name + entry.path().filename().string();
-          std::string title = settings.meta.name;
-          if(userTemplate) {
+          std::string name    = settings.meta.name + entry.path().filename().string();
+          std::string title   = settings.meta.name;
+          if(category == Category::USER) {
             title += " (" + entry.path().filename().string() + ")";
           }
-          templates.emplace(order, Data{.title        = title,
-                                        .description  = "",
-                                        .path         = entry.path().string(),
-                                        .icon         = base64ToQPixmap(settings.meta.icon),
-                                        .userTemplate = userTemplate});
+          templates[category].emplace(name, Data{.title       = title,
+                                                 .description = "",
+                                                 .path        = entry.path().string(),
+                                                 .icon        = base64ToQPixmap(settings.meta.icon)});
         }
       }
     }
