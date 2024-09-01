@@ -12,6 +12,7 @@
 
 #include "settings.hpp"
 #include <exception>
+#include <filesystem>
 #include <stdexcept>
 #include <string>
 #include "backend/helper/logger/console_logger.hpp"
@@ -19,8 +20,9 @@
 
 namespace joda::settings {
 
-void Settings::storeSettings(std::string path, const joda::settings::AnalyzeSettings &settings)
+void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::settings::AnalyzeSettings &settings)
 {
+  std::string path = pathIn.string();
   if(!path.empty()) {
     nlohmann::json json = settings;
     removeNullValues(json);

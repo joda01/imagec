@@ -411,7 +411,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename) -> jo
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
 
-    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+    jstring filePath = myEnv->NewStringUTF(filename.string().c_str());
     jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath,
                                                                static_cast<int>(series));
     myEnv->DeleteLocalRef(filePath);

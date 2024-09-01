@@ -484,7 +484,7 @@ void WindowMain::onSaveProjectAsClicked()
   QString filePath = QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(),
                                                   "ImageC project files (*.icproj)");
   if(!filePath.isEmpty()) {
-    joda::settings::Settings::storeSettings(filePath.toStdString(), mAnalyzeSettings);
+    joda::settings::Settings::storeSettings(std::filesystem::path(filePath.toStdString()), mAnalyzeSettings);
   }
 }
 
@@ -509,7 +509,7 @@ void WindowMain::onSaveProject()
 
     if(!mSelectedProjectSettingsFilePath.empty()) {
       if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
-        joda::settings::Settings::storeSettings(mSelectedProjectSettingsFilePath.string(), mAnalyzeSettings);
+        joda::settings::Settings::storeSettings(mSelectedProjectSettingsFilePath, mAnalyzeSettings);
       }
       mAnalyzeSettingsOld = mAnalyzeSettings;
       checkForSettingsChanged();
