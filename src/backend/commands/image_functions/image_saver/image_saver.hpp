@@ -95,8 +95,10 @@ public:
     // Paint the objects
     //
     for(const auto &cluster : mSettings.clustersIn) {
+      if(!result.contains(context.getClusterId(cluster.clusterIn))) {
+        continue;
+      }
       const auto &clusterObjects = result.at(context.getClusterId(cluster.clusterIn));
-
       for(const auto &roi : clusterObjects) {
         for(const auto &classIn : cluster.classesIn) {
           drawObject(classIn, roi, img_8bit_color);

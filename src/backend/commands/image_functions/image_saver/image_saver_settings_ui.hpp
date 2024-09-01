@@ -94,16 +94,15 @@ private:
   settings::ImageSaverSettings &mSettings;
 
   static inline const std::vector<std::string> colors = {
-      "#FF0000",    // Red
-      "#00FF00",    // Green
       "#0000FF",    // Blue
+      "#00FF00",    // Green
+      "#FF0000",    // Red
       "#FFFF00",    // Yellow
       "#00FFFF",    // Cyan
       "#FF00FF",    // Magenta
       "#808080",    // Gray
       "#C0C0C0",    // Silver
       "#000000",    // Black
-      "#FFFFFF",    // White
       "#FF8C00",    // Orange
       "#9ACD32",    // YellowGreen
       "#008000",    // DarkGreen
@@ -128,8 +127,11 @@ private:
 
       clusterObj.classesIn.clear();
       for(const auto &classs : classess) {
-        clusterObj.classesIn.emplace_back(settings::ImageSaverSettings::Cluster::Class{
-            .classIn = classs, .color = colors[colorIdx % 20], .style = style->getValue(), .paintBoundingBox = false});
+        clusterObj.classesIn.emplace_back(
+            settings::ImageSaverSettings::Cluster::Class{.classIn          = classs,
+                                                         .color            = colors[colorIdx % colors.size()],
+                                                         .style            = style->getValue(),
+                                                         .paintBoundingBox = false});
         colorIdx++;
       }
       mSettings.clustersIn.emplace_back(clusterObj);

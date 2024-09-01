@@ -8,6 +8,7 @@
 - [ ] Handle non ASCII chars when inserting to DB
 - [ ] Support the filtering (validity) for image plane and cluster
 - [ ] Display class in/out in pipeline view
+- [ ] Rethink control image naming to keep the order and store the ref to a control image in the database
 
 (gdb) handle SIGSEGV nostop noprint pass
 
