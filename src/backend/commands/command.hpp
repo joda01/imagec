@@ -30,25 +30,25 @@ public:
   virtual void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) = 0;
 
 protected:
-  void TRACE(const std::string &what)
+  void TRACE(const std::string &what) const
   {
     const auto name = std::string(typeid(*this).name());
     joda::log::logTrace(static_cast<std::string>(name + "::" + what));
   }
 
-  void INFO(const std::string &what)
+  void INFO(const std::string &what) const
   {
     const auto name = std::string(typeid(*this).name());
     joda::log::logInfo(static_cast<std::string>(name + "::" + what));
   }
 
-  void WARN(const std::string &what)
+  void WARN(const std::string &what) const
   {
     const auto name = std::string(typeid(*this).name());
     joda::log::logWarning(static_cast<std::string>(name + "::" + what));
   }
 
-  void ERROR(const std::string &what)
+  void THROW_ERROR(const std::string &what) const
   {
     const auto name = std::string(typeid(*this).name());
     throw std::invalid_argument(static_cast<std::string>(name + "::" + what));
