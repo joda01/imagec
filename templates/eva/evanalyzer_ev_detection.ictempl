@@ -28,9 +28,13 @@
     },
     {
       "$threshold": {
-        "mode": "Li",
-        "thresholdMax": 65535,
-        "thresholdMin": 0
+        "thresholds": [
+          {
+            "mode": "Li",
+            "thresholdMax": 65535,
+            "thresholdMin": 0
+          }
+        ]
       }
     },
     {
@@ -54,7 +58,7 @@
         ]
       }
     },
-        {
+    {
       "$saveImage": {
         "canvas": "$",
         "clustersIn": [
