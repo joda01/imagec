@@ -26,6 +26,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -33,6 +34,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
+#include "backend/settings/project_settings/project_cluster.hpp"
 #include "ui/container/command/factory.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
@@ -474,9 +476,8 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   //
   mSettings.pipelineSteps.clear();
   for(const joda::settings::PipelineStep &step : settings.pipelineSteps) {
-    mSettings.pipelineSteps.emplace_back(joda::settings::PipelineStep{});
+    mSettings.pipelineSteps.emplace_back(step);
     auto &cmdSetting = mSettings.pipelineSteps.back();
-    cmdSetting       = step;
     std::unique_ptr<joda::ui::Command> cmd =
         joda::settings::PipelineFactory<joda::ui::Command>::generate(cmdSetting, mWindowMain);
     if(cmd != nullptr) {

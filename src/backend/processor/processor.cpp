@@ -329,7 +329,7 @@ auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, c
 
   joda::settings::ImageSaverSettings saverSettings;
 
-  settings::ImageSaverSettings::Cluster cluster;
+  settings::ImageSaverSettings::SaveCluster cluster;
   cluster.classesIn = {
       settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::NONE,
                                               .color   = "#808080",

@@ -50,19 +50,19 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveClass, classIn, color, style, paintBoundingBox);
   };
 
-  struct Cluster
+  struct SaveCluster
   {
-    enums::ClusterIdIn clusterIn = enums::ClusterIdIn::$;
-    std::list<SaveClass> classesIn;
+    enums::ClusterIdIn clusterIn   = enums::ClusterIdIn::$;
+    std::list<SaveClass> classesIn = {};
 
     void check() const
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Cluster, clusterIn, classesIn);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveCluster, clusterIn, classesIn);
   };
 
-  std::list<Cluster> clustersIn;
+  std::list<SaveCluster> clustersIn = {};
 
   //
   // PNG compression level (0 = no compression)

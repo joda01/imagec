@@ -36,51 +36,55 @@ public:
       Command(TITLE.data(), ICON.data(), parent), mSettings(settings)
   {
     auto *tab = addTab("", [] {});
-    //
-    //
-    clustersIn = generateClusterDropDown<SettingComboBoxMulti<enums::ClusterIdIn>>("Clusters to paint", parent);
-    connect(clustersIn.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
+    {
+      //
+      //
+      clustersIn = generateClusterDropDown<SettingComboBoxMulti<enums::ClusterIdIn>>("Clusters to paint", parent);
 
-    //
-    //
-    classesIn = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Classes to paint", parent);
-    connect(classesIn.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
+      //
+      //
+      classesIn = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Classes to paint", parent);
 
-    //
-    //
-    style = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::SaveClass::Style>>(parent, "", "Style");
-    style->setDefaultValue(settings::ImageSaverSettings::SaveClass::Style::OUTLINED);
-    style->addOptions({{.key = settings::ImageSaverSettings::SaveClass::Style::OUTLINED, .label = "Outlined"},
-                       {.key = settings::ImageSaverSettings::SaveClass::Style::FILLED, .label = "Filled"}});
-    connect(style.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
+      //
+      //
+      style = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::SaveClass::Style>>(parent, "", "Style");
+      style->setDefaultValue(settings::ImageSaverSettings::SaveClass::Style::OUTLINED);
+      style->addOptions({{.key = settings::ImageSaverSettings::SaveClass::Style::OUTLINED, .label = "Outlined"},
+                         {.key = settings::ImageSaverSettings::SaveClass::Style::FILLED, .label = "Filled"}});
 
-    //
-    //
-    mImageNamePrefix = SettingBase::create<SettingLineEdit<std::string>>(parent, "", "Image name prefix");
-    mImageNamePrefix->setDefaultValue("control");
-    mImageNamePrefix->setPlaceholderText("Name ...");
-    mImageNamePrefix->setUnit("");
-    mImageNamePrefix->setValue(settings.namePrefix);
-    mImageNamePrefix->connectWithSetting(&settings.namePrefix);
-
+      //
+      //
+      mImageNamePrefix = SettingBase::create<SettingLineEdit<std::string>>(parent, "", "Image name prefix");
+      mImageNamePrefix->setDefaultValue("control");
+      mImageNamePrefix->setPlaceholderText("Name ...");
+      mImageNamePrefix->setUnit("");
+      mImageNamePrefix->setValue(settings.namePrefix);
+      mImageNamePrefix->connectWithSetting(&settings.namePrefix);
+    }
     //
     // Load from settings
     //
-    std::set<enums::ClusterIdIn> clustersToSet;
-    std::set<enums::ClassId> classesToSet;
-    for(const auto &cluster : settings.clustersIn) {
-      clustersToSet.emplace(cluster.clusterIn);
-      for(const auto &classs : cluster.classesIn) {
-        classesToSet.emplace(classs.classIn);
-        style->setValue(classs.style);
+    {
+      std::set<enums::ClusterIdIn> clustersToSet;
+      std::set<enums::ClassId> classesToSet;
+      for(const auto &cluster : settings.clustersIn) {
+        clustersToSet.emplace(cluster.clusterIn);
+        for(const auto &classs : cluster.classesIn) {
+          classesToSet.emplace(classs.classIn);
+          style->setValue(classs.style);
+        }
       }
-    }
 
-    clustersIn->setValue(clustersToSet);
-    classesIn->setValue(classesToSet);
+      clustersIn->setValue(clustersToSet);
+      classesIn->setValue(classesToSet);
+    }
 
     addSetting(tab, "Input classes", {{clustersIn.get(), true}, {classesIn.get(), true}});
     addSetting(tab, "Image name", {{mImageNamePrefix.get(), true}, {style.get(), false}});
+
+    connect(style.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
+    connect(classesIn.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
+    connect(clustersIn.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
   }
 
 private:
@@ -121,7 +125,7 @@ private:
     int colorIdx  = 0;
     mSettings.clustersIn.clear();
     for(const auto &cluster : clusters) {
-      settings::ImageSaverSettings::Cluster clusterObj;
+      settings::ImageSaverSettings::SaveCluster clusterObj;
       clusterObj.clusterIn = cluster;
 
       clusterObj.classesIn.clear();
