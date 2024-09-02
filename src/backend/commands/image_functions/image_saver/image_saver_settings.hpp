@@ -30,28 +30,28 @@ public:
     IMAGE_$,
   };
 
-  struct Cluster
+  struct Class
   {
-    struct Class
+    enum class Style
     {
-      enum class Style
-      {
-        OUTLINED,
-        FILLED
-      };
-
-      enums::ClassId classIn = enums::ClassId::UNDEFINED;
-      std::string color      = "#FF0000";
-      Style style            = Style::OUTLINED;
-      bool paintBoundingBox  = false;
-
-      void check() const
-      {
-      }
-
-      NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Class, classIn, color, style, paintBoundingBox);
+      OUTLINED,
+      FILLED
     };
 
+    enums::ClassId classIn = enums::ClassId::UNDEFINED;
+    std::string color      = "#FF0000";
+    Style style            = Style::OUTLINED;
+    bool paintBoundingBox  = false;
+
+    void check() const
+    {
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Class, classIn, color, style, paintBoundingBox);
+  };
+
+  struct Cluster
+  {
     enums::ClusterIdIn clusterIn = enums::ClusterIdIn::$;
     std::list<Class> classesIn;
 
@@ -107,10 +107,10 @@ public:
                                                        namePrefix, clustersIn);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::Cluster::Class::Style,
+NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::Class::Style,
                              {
-                                 {ImageSaverSettings::Cluster::Class::Style::OUTLINED, "Outlined"},
-                                 {ImageSaverSettings::Cluster::Class::Style::FILLED, "Filled"},
+                                 {ImageSaverSettings::Class::Style::OUTLINED, "Outlined"},
+                                 {ImageSaverSettings::Class::Style::FILLED, "Filled"},
                              });
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::Canvas, {

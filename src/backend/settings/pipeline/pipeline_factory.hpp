@@ -100,8 +100,8 @@ private:
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::ImageSaver, ImageSaverSettings>>(step.$saveImage.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ImageSaver, ImageSaverSettings>>(
-            const_cast<ImageSaverSettings &>(step.$saveImage.value()), parent));
+        return std::make_unique<joda::ui::Factory<joda::ui::ImageSaver, ImageSaverSettings>>(
+            const_cast<ImageSaverSettings &>(step.$saveImage.value()), parent);
       }
     }
 

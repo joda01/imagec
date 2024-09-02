@@ -128,7 +128,7 @@ private:
   static inline cv::Scalar GREEN  = cv::Scalar(0, 255, 0);
 
   /////////////////////////////////////////////////////
-  void drawObject(const settings::ImageSaverSettings::Cluster::Class &settings, const atom::ROI &roi, cv::Mat &imageOut)
+  void drawObject(const settings::ImageSaverSettings::Class &settings, const atom::ROI &roi, cv::Mat &imageOut)
   {
     if(settings.classIn == roi.getClassId()) {
       int left   = roi.getBoundingBox().x;
@@ -145,7 +145,7 @@ private:
         }
 
         // Fill area
-        if(settings.style == settings::ImageSaverSettings::Cluster::Class::Style::FILLED) {
+        if(settings.style == settings::ImageSaverSettings::Class::Style::FILLED) {
           imageOut(roi.getBoundingBox()).setTo(areaColor, roi.getMask());
         }
 

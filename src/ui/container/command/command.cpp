@@ -12,6 +12,7 @@
 
 #include "command.hpp"
 #include <qlabel.h>
+#include <qnamespace.h>
 #include <qpushbutton.h>
 #include <algorithm>
 #include <string>
@@ -51,9 +52,11 @@ Command::Command(const QString &title, const QString &icon, QWidget *parent) :
   }
   // Content
   {
-    mDisplayableText.setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
-    mDisplayableText.setWordWrap(true);
-    mDisplayViewLayout.addWidget(&mDisplayableText, 0, 1);
+    mDisplayableText = new WrapLabel();
+    mDisplayableText->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
+    mDisplayableText->setWordWrap(true);
+    mDisplayableText->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    mDisplayViewLayout.addWidget(mDisplayableText, 0, 1);
   }
 
   // Footer
@@ -218,7 +221,8 @@ void Command::updateDisplayText()
     }
   }
   txt.chop(2);
-  mDisplayableText.setText(txt);
+  mDisplayableText->setText(txt);
+  mDisplayableText->adjustSize();
 }
 
 ///

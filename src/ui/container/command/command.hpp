@@ -30,6 +30,18 @@
 
 namespace joda::ui {
 
+class WrapLabel : public QLabel
+{
+  void resizeEvent(QResizeEvent *event) override
+  {
+    QLabel::resizeEvent(event);
+
+    //    QFontMetrics fontMetrics(font());
+    //    int textWidth = fontMetrics.width(text());
+    //    int numLines  = textWidth / width() + 1;
+  }
+};
+
 class PanelPipelineSettings;
 
 using namespace std::chrono_literals;
@@ -165,7 +177,7 @@ private:
   helper::LayoutGenerator mLayout;
   QGridLayout mDisplayViewLayout;
   QDialog *mEditDialog;
-  QLabel mDisplayableText;
+  WrapLabel *mDisplayableText;
   std::vector<std::pair<SettingBase *, bool>> mSettings;
   std::vector<SettingComboBox<enums::ClusterIdIn> *> mClusters;
   std::vector<SettingComboBox<enums::ClassId> *> mClasses;
