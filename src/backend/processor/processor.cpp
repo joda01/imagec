@@ -328,45 +328,47 @@ auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, c
   }
 
   joda::settings::ImageSaverSettings saverSettings;
-  saverSettings.clustersIn = {settings::ImageSaverSettings::Cluster{
-      .classesIn = {
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::NONE,
+
+  settings::ImageSaverSettings::Cluster cluster;
+  cluster.classesIn = {
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::NONE,
                                               .color   = "#808080",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C0,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C0,
                                               .color   = "#FF0000",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C1,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C1,
                                               .color   = "#00FF00",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C2,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C2,
                                               .color   = "#0000FF",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C3,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C3,
                                               .color   = "#0000FF",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C4,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C4,
                                               .color   = "#0000FF",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C5,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C5,
                                               .color   = "#0000FF",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C6,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C6,
                                               .color   = "#0000FF",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C7,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C7,
                                               .color   = "#0000FF",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C8,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C8,
                                               .color   = "#0000FF",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C9,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C9,
                                               .color   = "#0000FF",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-          settings::ImageSaverSettings::Class{.classIn = enums::ClassId::C10,
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+      settings::ImageSaverSettings::SaveClass{.classIn = enums::ClassId::C10,
                                               .color   = "#0000FF",
-                                              .style   = settings::ImageSaverSettings::Class::Style::FILLED},
-      }}};
+                                              .style   = settings::ImageSaverSettings::SaveClass::Style::FILLED},
+  };
+  saverSettings.clustersIn.emplace_back(cluster);
   saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_PLANE;
   saverSettings.planesIn   = enums::ImageId{.imageIdx = enums::ZProjection::$};
   saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;

@@ -48,10 +48,10 @@ public:
 
     //
     //
-    style = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::Class::Style>>(parent, "", "Style");
-    style->setDefaultValue(settings::ImageSaverSettings::Class::Style::OUTLINED);
-    style->addOptions({{.key = settings::ImageSaverSettings::Class::Style::OUTLINED, .label = "Outlined"},
-                       {.key = settings::ImageSaverSettings::Class::Style::FILLED, .label = "Filled"}});
+    style = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::SaveClass::Style>>(parent, "", "Style");
+    style->setDefaultValue(settings::ImageSaverSettings::SaveClass::Style::OUTLINED);
+    style->addOptions({{.key = settings::ImageSaverSettings::SaveClass::Style::OUTLINED, .label = "Outlined"},
+                       {.key = settings::ImageSaverSettings::SaveClass::Style::FILLED, .label = "Filled"}});
     connect(style.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
 
     //
@@ -88,7 +88,7 @@ private:
   std::unique_ptr<SettingLineEdit<std::string>> mImageNamePrefix;
   std::unique_ptr<SettingComboBoxMulti<enums::ClusterIdIn>> clustersIn;
   std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> classesIn;
-  std::unique_ptr<SettingComboBox<settings::ImageSaverSettings::Class::Style>> style;
+  std::unique_ptr<SettingComboBox<settings::ImageSaverSettings::SaveClass::Style>> style;
 
   settings::ImageSaverSettings &mSettings;
 
@@ -126,10 +126,11 @@ private:
 
       clusterObj.classesIn.clear();
       for(const auto &classs : classess) {
-        clusterObj.classesIn.emplace_back(settings::ImageSaverSettings::Class{.classIn = classs,
-                                                                              .color = colors[colorIdx % colors.size()],
-                                                                              .style = style->getValue(),
-                                                                              .paintBoundingBox = false});
+        clusterObj.classesIn.emplace_back(
+            settings::ImageSaverSettings::SaveClass{.classIn          = classs,
+                                                    .color            = colors[colorIdx % colors.size()],
+                                                    .style            = style->getValue(),
+                                                    .paintBoundingBox = false});
         colorIdx++;
       }
       mSettings.clustersIn.emplace_back(clusterObj);

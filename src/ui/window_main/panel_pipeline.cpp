@@ -128,7 +128,7 @@ void PanelPipeline::clear()
 ///
 void PanelPipeline::addChannel(const joda::settings::Pipeline &settings)
 {
-  mAnalyzeSettings.pipelines.push_back(settings);
+  mAnalyzeSettings.pipelines.push_back(joda::settings::Pipeline{});
   auto &newlyAdded = mAnalyzeSettings.pipelines.back();
   auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, newlyAdded);
   panel1->fromSettings(settings);

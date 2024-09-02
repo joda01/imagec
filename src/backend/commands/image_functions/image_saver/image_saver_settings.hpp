@@ -30,7 +30,7 @@ public:
     IMAGE_$,
   };
 
-  struct Class
+  struct SaveClass
   {
     enum class Style
     {
@@ -47,13 +47,13 @@ public:
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Class, classIn, color, style, paintBoundingBox);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveClass, classIn, color, style, paintBoundingBox);
   };
 
   struct Cluster
   {
     enums::ClusterIdIn clusterIn = enums::ClusterIdIn::$;
-    std::list<Class> classesIn;
+    std::list<SaveClass> classesIn;
 
     void check() const
     {
@@ -107,10 +107,10 @@ public:
                                                        namePrefix, clustersIn);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::Class::Style,
+NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::SaveClass::Style,
                              {
-                                 {ImageSaverSettings::Class::Style::OUTLINED, "Outlined"},
-                                 {ImageSaverSettings::Class::Style::FILLED, "Filled"},
+                                 {ImageSaverSettings::SaveClass::Style::OUTLINED, "Outlined"},
+                                 {ImageSaverSettings::SaveClass::Style::FILLED, "Filled"},
                              });
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::Canvas, {
