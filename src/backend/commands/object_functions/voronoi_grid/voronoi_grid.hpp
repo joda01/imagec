@@ -45,24 +45,29 @@ public:
 
   void execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &objects) override
   {
-    const auto &voronoiPoints =
-        context.loadObjectsFromCache(mSettings.objectStoreIn)->at(context.getClusterId(mSettings.pointsClusterIn));
     //
     // Prepare points
     //
     cv::Size size = context.getImageSize();
     cv::Rect rect(0, 0, size.width, size.height);
-
-    // Create an instance of Subdiv2D
     cv::Subdiv2D subdiv(rect);
+    atom::SpheralIndex voronoiPoints;
 
-    for(const auto &res : voronoiPoints) {
-      if(mSettings.pointsClassIn.contains(res.getClassId())) {
-        int x = static_cast<int>(static_cast<float>(res.getBoundingBox().x) +
-                                 static_cast<float>(res.getBoundingBox().width) / 2.0F);
-        int y = static_cast<int>(static_cast<float>(res.getBoundingBox().y) +
-                                 static_cast<float>(res.getBoundingBox().height) / 2.0F);
-        subdiv.insert(cv::Point2f(x, y));
+    for(const auto &inputPoints : mSettings.inputClustersPoints) {
+      const auto &voronoiPointsTmp =
+          context.loadObjectsFromCache(mSettings.objectStoreIn)->at(context.getClusterId(inputPoints.clusterId));
+
+      // Create an instance of Subdiv2D
+
+      for(const auto &res : voronoiPoints) {
+        if(inputPoints.classId == res.getClassId()) {
+          voronoiPoints.emplace(res);
+          int x = static_cast<int>(static_cast<float>(res.getBoundingBox().x) +
+                                   static_cast<float>(res.getBoundingBox().width) / 2.0F);
+          int y = static_cast<int>(static_cast<float>(res.getBoundingBox().y) +
+                                   static_cast<float>(res.getBoundingBox().height) / 2.0F);
+          subdiv.insert(cv::Point2f(x, y));
+        }
       }
     }
 
@@ -75,7 +80,7 @@ public:
      cv::imwrite("test.jpg", image);
      */
 
-    atom::SpheralIndex &response = objects[context.getClusterId(mSettings.pointsClusterOut)];
+    atom::SpheralIndex &response = objects[context.getClusterId(mSettings.outputClustersVoronoi.clusterId)];
 
     atom::SpheralIndex voronoiGrid;
     drawVoronoi(context, size, subdiv, mSettings.maxRadius, voronoiGrid);
@@ -139,9 +144,9 @@ public:
         }
       }
 
-      atom::ROI roi(atom::ROI::RoiObjectId{.objectId   = context.acquireNextObjectId(),
-                                           .clusterId  = context.getClusterId(mSettings.pointsClusterOut),
-                                           .classId    = mSettings.voronoiClassOut,
+      atom::ROI roi(atom::ROI::RoiObjectId{.objectId  = context.acquireNextObjectId(),
+                                           .clusterId = context.getClusterId(mSettings.outputClustersVoronoi.clusterId),
+                                           .classId   = mSettings.outputClustersVoronoi.classId,
                                            .imagePlane = context.getActIterator()},
                     1, 0, box, boxMask, contours[idxMax], imgSize, context.getActTile(), context.getTileSize());
       result.push_back(roi);

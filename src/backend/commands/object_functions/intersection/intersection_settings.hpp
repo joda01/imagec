@@ -43,46 +43,15 @@ struct IntersectionSettings : public SettingBase
     //
     // Cluster to calculate the intersection with
     //
-    joda::enums::ClusterIdIn clusterIn = joda::enums::ClusterIdIn::$;
-
-    //
-    // Classes within the cluster to calc the calculation with
-    //
-    std::set<joda::enums::ClassId> classesIn;
+    ObjectInputClusters inputClusters;
 
     void check() const
     {
-      CHECK(!classesIn.empty(), "At least one class id must be given.");
+      CHECK(!inputClusters.empty(), "At least one class id must be given.");
       // CHECK(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectingClasses, objectIn, clusterIn, classesIn);
-  };
-
-  struct IntersectWithClasses
-  {
-    //
-    // Input object to intersect with. Leaf empty to use imagePlane context store
-    //
-    joda::enums::ObjectStoreId objectIn;
-
-    //
-    // Cluster to calculate the intersection with
-    //
-    std::set<joda::enums::ClusterIdIn> clusterIn;
-
-    //
-    // Classes within the cluster to calc the calculation with
-    //
-    std::set<joda::enums::ClassId> classesIn;
-
-    void check() const
-    {
-      CHECK(!classesIn.empty(), "At least one class id must be given.");
-      // CHECK(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
-    }
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectWithClasses, objectIn, clusterIn, classesIn);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectingClasses, objectIn, inputClusters);
   };
 
   //
@@ -98,12 +67,12 @@ struct IntersectionSettings : public SettingBase
   //
   // Objects to use for intersection calculation
   //
-  IntersectingClasses objectsIn;
+  IntersectingClasses inputObjects;
 
   //
   // Objects to calc the intersection with
   //
-  IntersectWithClasses objectsInWith;
+  IntersectingClasses inputObjectsIntersectWith;
 
   //
   // In case of reclassification this is the new class ID for intersecting elements
@@ -124,13 +93,23 @@ struct IntersectionSettings : public SettingBase
   std::set<enums::ClusterIdIn> getInputClusters() const override
   {
     std::set<enums::ClusterIdIn> clusters;
-    clusters.emplace(objectsIn.clusterIn);
-    clusters.insert(objectsInWith.clusterIn.begin(), objectsInWith.clusterIn.end());
+    for(const auto &in : inputObjects.inputClusters) {
+      clusters.emplace(in.clusterId);
+    }
+
+    for(const auto &in : inputObjectsIntersectWith.inputClusters) {
+      clusters.emplace(in.clusterId);
+    }
     return clusters;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionSettings, mode, minIntersection, objectsIn,
-                                                       objectsInWith, newClassId);
+  [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
+  {
+    return {{enums::ClusterIdIn::$, newClassId}};
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionSettings, mode, minIntersection, inputObjects,
+                                                       inputObjectsIntersectWith, newClassId);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(IntersectionSettings::Function,

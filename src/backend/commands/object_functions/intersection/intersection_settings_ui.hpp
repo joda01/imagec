@@ -20,6 +20,8 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_classes_out.hpp"
+#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
@@ -46,7 +48,7 @@ public:
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
 
-    mClassOutput = generateClassDropDown<SettingComboBox<enums::ClassId>>("Reclassified class", parent);
+    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Output class");
     mClassOutput->setValue(settings.newClassId);
     mClassOutput->connectWithSetting(&settings.newClassId);
 
@@ -64,21 +66,16 @@ public:
     auto *col = addSetting(modelTab, "Base settings",
                            {{mMode.get(), true}, {mClassOutput.get(), true}, {mMinIntersection.get(), false}});
 
-    mClustersIn = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Input cluster", parent);
-    mClustersIn->setValue(settings.objectsIn.clusterIn);
-    mClustersIn->connectWithSetting(&settings.objectsIn.clusterIn);
+    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input");
+    mClustersIn->setValue(settings.inputObjects.inputClusters);
+    mClustersIn->connectWithSetting(&settings.inputObjects.inputClusters);
 
-    mClassesIn = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Input classes", parent);
-    mClassesIn->setValue(settings.objectsIn.classesIn);
-    mClassesIn->connectWithSetting(&settings.objectsIn.classesIn);
+    mClustersIntersectWith = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Intersect with");
+    mClustersIntersectWith->setValue(settings.inputObjectsIntersectWith.inputClusters);
+    mClustersIntersectWith->connectWithSetting(&settings.inputObjectsIntersectWith.inputClusters);
 
-    mClustersIntersectWith =
-        generateClusterDropDown<SettingComboBoxMulti<enums::ClusterIdIn>>("Intersecting cluster", parent);
-    mClassesIntersectWith = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Intersecting classes", parent);
-
-    auto *col2 = addSetting(modelTab, "Input classes", {{mClustersIn.get(), true}, {mClassesIn.get(), false}});
-    addSetting(modelTab, "Intersect with", {{mClustersIntersectWith.get(), true}, {mClassesIntersectWith.get(), false}},
-               col2);
+    auto *col2 = addSetting(modelTab, "Input classes", {{mClustersIn.get(), true}});
+    addSetting(modelTab, "Intersect with", {{mClustersIntersectWith.get(), true}}, col2);
   }
 
 private:
@@ -89,13 +86,10 @@ private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBox<joda::settings::IntersectionSettings::Function>> mMode;
   std::unique_ptr<SettingLineEdit<float>> mMinIntersection;
-  std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOutput;
+  std::unique_ptr<SettingComboBoxClassesOut> mClassOutput;
 
-  std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClustersIn;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mClassesIn;
-
-  std::unique_ptr<SettingComboBoxMulti<enums::ClusterIdIn>> mClustersIntersectWith;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mClassesIntersectWith;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClustersIn;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClustersIntersectWith;
 
   /////////////////////////////////////////////////////
 

@@ -79,7 +79,7 @@ private:
             context.setImagePlaneValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
           case settings::ThresholdValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER:
-            context.setImagePlaneClusterClusterValidity(mSettings.clusterIn,
+            context.setImagePlaneClusterClusterValidity(mSettings.inputCluster,
                                                         joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
         }

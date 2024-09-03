@@ -65,6 +65,35 @@
 
 namespace joda::settings {
 
+struct ObjectOutputClass
+{
+  //
+  // Cluster the objects should be assigned if filter matches
+  //
+  joda::enums::ClusterIdIn clusterId = joda::enums::ClusterIdIn::$;
+
+  //
+  // Class the objects should be assigned if filter matches
+  //
+  joda::enums::ClassId classId = joda::enums::ClassId::NONE;
+
+  void check() const
+  {
+  }
+
+  bool operator<(const ObjectOutputClass &input) const
+  {
+    return (uint16_t) clusterId < (uint16_t) input.clusterId || (uint16_t) classId < (uint16_t) input.classId;
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectOutputClass, clusterId, classId);
+};
+
+using ObjectOutputClusters = std::set<ObjectOutputClass>;
+using ObjectInputClusters  = std::set<ObjectOutputClass>;
+using ObjectInputCluster   = ObjectOutputClass;
+using ObjectOutputCluster  = ObjectOutputClass;
+
 class SettingBase
 {
 public:
@@ -73,19 +102,11 @@ public:
   {
     return {};
   }
-};
 
-class ObjectOutput
-{
-  //
-  // Cluster the objects should be assigned if filter matches
-  //
-  joda::enums::ClusterIdIn clusterOut = joda::enums::ClusterIdIn::$;
-
-  //
-  // Class the objects should be assigned if filter matches
-  //
-  joda::enums::ClassId classOut = joda::enums::ClassId::NONE;
+  [[nodiscard]] virtual ObjectOutputClusters getOutputClasses() const
+  {
+    return {};
+  }
 };
 
 }    // namespace joda::settings

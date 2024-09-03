@@ -22,6 +22,8 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_classes_out.hpp"
+#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
@@ -41,9 +43,9 @@ public:
   {
     auto *modelTab = addTab("Base", [] {});
 
-    mClassOutput = generateClassDropDown<SettingComboBox<enums::ClassId>>("Output class", parent);
-    mClassOutput->setValue(settings.classOut);
-    mClassOutput->connectWithSetting(&settings.classOut);
+    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Output class");
+    mClassOutput->setValue(settings.outputCluster.classId);
+    mClassOutput->connectWithSetting(&settings.outputCluster.classId);
 
     //
     //
@@ -58,22 +60,11 @@ public:
 
     auto *col = addSetting(modelTab, "Base settings.", {{mClassOutput.get(), true}, {mMinIntersection.get(), false}});
 
-    mClustersIn = generateClusterDropDown<SettingComboBoxMulti<enums::ClusterIdIn>>("Coloc clusters", parent);
-    connect(mClustersIn.get(), &SettingBase::valueChanged, this, &Colocalization::onChange);
+    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input");
+    mClustersIn->setValue(settings.inputClusters);
+    mClustersIn->connectWithSetting(&settings.inputClusters);
 
-    mClassesIn = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Coloc classes", parent);
-    connect(mClustersIn.get(), &SettingBase::valueChanged, this, &Colocalization::onChange);
-
-    addSetting(modelTab, "Coloc with.", {{mClustersIn.get(), true}, {mClassesIn.get(), false}});
-
-    std::set<enums::ClusterIdIn> clustersToSet;
-    std::set<enums::ClassId> classesToSet;
-    for(auto &objSet : settings.objectsIn) {
-      clustersToSet.emplace(objSet.clusterIn);
-      classesToSet.insert(objSet.classesIn.begin(), objSet.classesIn.end());
-    }
-    mClustersIn->setValue(clustersToSet);
-    mClassesIn->setValue(classesToSet);
+    addSetting(modelTab, "Coloc with.", {{mClustersIn.get(), true}});
   }
 
 private:
@@ -82,26 +73,11 @@ private:
   QWidget *mParent;
 
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOutput;
+  std::unique_ptr<SettingComboBoxClassesOut> mClassOutput;
   std::unique_ptr<SettingLineEdit<float>> mMinIntersection;
-
-  std::unique_ptr<SettingComboBoxMulti<enums::ClusterIdIn>> mClustersIn;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mClassesIn;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClustersIn;
 
   /////////////////////////////////////////////////////
-
-private slots:
-  void onChange()
-  {
-    auto clusters = mClustersIn->getValue();
-    mSettings.objectsIn.clear();
-    for(const auto &cluster : clusters) {
-      settings::ColocalizationSettings::IntersectingClasses classs;
-      classs.clusterIn = cluster;
-      classs.classesIn = mClassesIn->getValue();
-      mSettings.objectsIn.emplace_back(classs);
-    }
-  }
 };
 
 }    // namespace joda::ui

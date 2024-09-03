@@ -18,6 +18,7 @@
 #include "backend/commands/command.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
@@ -35,9 +36,9 @@ public:
   NoiseValidator(settings::NoiseValidatorSettings &settings, QWidget *parent) :
       Command(TITLE.data(), ICON.data(), parent)
   {
-    mClassesIn = generateClassDropDown<SettingComboBox<enums::ClassId>>("Input class", parent);
-    mClassesIn->setValue(settings.classIn);
-    mClassesIn->connectWithSetting(&settings.classIn);
+    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input class");
+    mClassesIn->setValue(settings.inputClusters);
+    mClassesIn->connectWithSetting(&settings.inputClusters);
 
     //
     //
@@ -55,7 +56,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBox<enums::ClassId>> mClassesIn;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesIn;
   std::unique_ptr<SettingLineEdit<uint32_t>> mMaxNrOfObjects;
 };
 

@@ -28,32 +28,35 @@ public:
 
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    auto markAsInvalid = [this, &context]() {
-      switch(mSettings.mode) {
-        case settings::NoiseValidatorSettings::FilterMode::UNKNOWN:
-        case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IMAGE:
-          context.setImageValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
-          break;
-        case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IMAGE_PLANE:
-          context.setImagePlaneValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
-          break;
-        case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER:
-          context.setImagePlaneClusterClusterValidity(mSettings.clusterIn,
-                                                      joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
-          break;
-      }
-    };
+    uint64_t count = mSettings.maxObjects;
 
-    const auto &cluster = result.at(context.getClusterId(mSettings.clusterIn));
-    uint64_t count      = mSettings.maxObjects;
-    for(const auto &roi : cluster) {
-      if(roi.getClassId() == mSettings.classIn) {
-        if(count > 0) {
-          count--;
-        } else {
-          // Too many objects
-          markAsInvalid();
-          break;
+    for(const auto &classes : mSettings.inputClusters) {
+      auto markAsInvalid = [this, &context, classes]() {
+        switch(mSettings.mode) {
+          case settings::NoiseValidatorSettings::FilterMode::UNKNOWN:
+          case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IMAGE:
+            context.setImageValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+            break;
+          case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IMAGE_PLANE:
+            context.setImagePlaneValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+            break;
+          case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER:
+            context.setImagePlaneClusterClusterValidity(classes.clusterId,
+                                                        joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+            break;
+        }
+      };
+
+      const auto &cluster = result.at(context.getClusterId(classes.clusterId));
+      for(const auto &roi : cluster) {
+        if(roi.getClassId() == classes.classId) {
+          if(count > 0) {
+            count--;
+          } else {
+            // Too many objects
+            markAsInvalid();
+            break;
+          }
         }
       }
     }

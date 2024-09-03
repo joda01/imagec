@@ -21,7 +21,8 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_base.hpp"
-#include "ui/container/setting/setting_combobox _multi.hpp"
+#include "ui/container/setting/setting_combobox_multi.hpp"
+#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
 #include "measure_settings.hpp"
@@ -40,15 +41,9 @@ public:
   {
     //
     //
-    clustersIn = generateClusterDropDown<SettingComboBoxMulti<enums::ClusterIdIn>>("Cluster in", parent);
-    clustersIn->setValue(settings.clustersIn);
-    clustersIn->connectWithSetting(&settings.clustersIn);
-
-    //
-    //
-    classesIn = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Class in", parent);
-    classesIn->setValue(settings.classesIn);
-    classesIn->connectWithSetting(&settings.classesIn);
+    clustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Cluster in");
+    clustersIn->setValue(settings.inputClusters);
+    clustersIn->connectWithSetting(&settings.inputClusters);
 
     //
     //
@@ -76,7 +71,7 @@ public:
     //
     //
     auto *tab = addTab("Input class", [] {});
-    addSetting(tab, "Input classes", {{clustersIn.get(), true}, {classesIn.get(), true}});
+    addSetting(tab, "Input classes", {{clustersIn.get(), true}});
     addSetting(tab, "Input image channels", {{cStackIndex.get(), true}, {zProjection.get(), true}});
 
     // auto *addClassifier = addActionButton("Add class", "icons8-genealogy-50.png");
@@ -85,8 +80,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBoxMulti<enums::ClusterIdIn>> clustersIn;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> classesIn;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> clustersIn;
   std::unique_ptr<SettingComboBoxMulti<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
 

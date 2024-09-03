@@ -30,10 +30,10 @@ public:
     auto &store = *context.loadObjectsFromCache(mSettings.objectIn);
     for(auto imageId : mSettings.planesIn) {
       auto const &image = *context.loadImageFromCache(imageId);
-      for(const auto &clusterIdIn : mSettings.clustersIn) {
-        auto &clusterObjects = store.at(context.getClusterId(clusterIdIn));
+      for(const auto &clusterIdIn : mSettings.inputClusters) {
+        auto &clusterObjects = store.at(context.getClusterId(clusterIdIn.clusterId));
         for(auto &object : clusterObjects) {
-          if(mSettings.classesIn.contains(object.getClassId())) {
+          if(clusterIdIn.classId == object.getClassId()) {
             object.measureIntensityAndAdd(image);
           }
         }

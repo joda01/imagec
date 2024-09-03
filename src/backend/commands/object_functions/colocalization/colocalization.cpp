@@ -28,7 +28,7 @@ Colocalization::Colocalization(const settings::ColocalizationSettings &settings)
 
 void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
-  const auto &clustersToIntersect = mSettings.objectsIn;
+  const auto &clustersToIntersect = mSettings.inputClusters;
   size_t intersectCount           = clustersToIntersect.size();
   try {
     int idx = 0;
@@ -41,10 +41,11 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       joda::log::logWarning("At least two channels must be given to calc Colocalization!");
       return;
     }
-    atom::SpheralIndex &result = resultIn[context.getClusterId(mSettings.clusterOut)];
+    atom::SpheralIndex &result = resultIn[context.getClusterId(mSettings.outputCluster.clusterId)];
 
-    const auto &firstDataBuffer = context.loadObjectsFromCache(it->objectIn)->at(context.getClusterId(it->clusterIn));
-    const auto *working         = &firstDataBuffer;
+    const auto &firstDataBuffer =
+        context.loadObjectsFromCache(mSettings.objectIn)->at(context.getClusterId(it->clusterId));
+    const auto *working            = &firstDataBuffer;
     atom::SpheralIndex *resultTemp = nullptr;
     // Directly write to the output buffer
     atom::SpheralIndex buffer01;
@@ -55,17 +56,17 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       resultTemp = &buffer01;
     }
 
-    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = it->classesIn;
+    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = std::set<joda::enums::ClassId>{it->classId};
 
     ++it;
     ++idx;
 
     for(; it != clustersToIntersect.end(); ++it) {
-      const auto &objects02 = context.loadObjectsFromCache(it->objectIn)->at(context.getClusterId(it->clusterIn));
-      working->calcColocalization(context.getActIterator(), objects02, *resultTemp, objectClassesMe, it->classesIn,
-                                  context.getClusterId(mSettings.clusterOut), context.getClassId(mSettings.classOut),
-                                  context.acquireNextObjectId(), 0, mSettings.minIntersection, context.getActTile(),
-                                  context.getTileSize());
+      const auto &objects02 = context.loadObjectsFromCache(mSettings.objectIn)->at(context.getClusterId(it->clusterId));
+      working->calcColocalization(context.getActIterator(), objects02, *resultTemp, objectClassesMe, {it->classId},
+                                  context.getClusterId(mSettings.outputCluster.clusterId),
+                                  context.getClassId(mSettings.outputCluster.classId), context.acquireNextObjectId(), 0,
+                                  mSettings.minIntersection, context.getActTile(), context.getTileSize());
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
       objectClassesMe.reset();
       idx++;

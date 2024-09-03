@@ -15,8 +15,13 @@
 
 #include <qwidget.h>
 #include <QtWidgets>
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
+#include "backend/settings/setting.hpp"
 
 namespace joda::ui {
+
+class WindowMain;
 
 template <typename T>
 struct is_enum
@@ -85,6 +90,11 @@ protected:
   void triggerValueChanged(const QString &newValue, const QIcon &icon = {});
   auto getIcon() -> const QIcon &;
 
+  WindowMain *getParent()
+  {
+    return mParent;
+  }
+
 private:
   /////////////////////////////////////////////////////
   void updateDisplayLabel();
@@ -94,8 +104,16 @@ private:
   void createHelperText(QVBoxLayout *layout, const QString &helpText);
   virtual QWidget *createInputObject() = 0;
 
+  virtual void clusterNamesChanged()
+  {
+  }
+
+  virtual void outputClustersChanges()
+  {
+  }
+
   /////////////////////////////////////////////////////
-  QWidget *mParent = nullptr;
+  WindowMain *mParent = nullptr;
   QIcon mIcon;
   QWidget *mEditable        = nullptr;
   QWidget *mDisplayable     = nullptr;
@@ -110,6 +128,7 @@ private:
 
 private slots:
   void onHelpButtonClicked();
+  void onClassificationNameChanged();
 };
 
 }    // namespace joda::ui

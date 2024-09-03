@@ -20,32 +20,17 @@ public:
   //
   // Cluster where the points which should be used to generate the voronoi grid are stored in
   //
-  enums::ClusterIdIn pointsClusterIn = enums::ClusterIdIn::$;
-
-  //
-  // Class which should be used for the points
-  //
-  std::set<enums::ClassId> pointsClassIn;
+  ObjectInputClusters inputClustersPoints;
 
   //
   // To which cluster the result should be assigned to
   //
-  enums::ClusterIdIn pointsClusterOut = enums::ClusterIdIn::$;
-
-  //
-  // To which class the result should be assigned to
-  //
-  enums::ClassId voronoiClassOut;
+  ObjectOutputClass outputClustersVoronoi;
 
   //
   // Cluster which contains the masking classes
   //
-  enums::ClusterIdIn maskCluster = enums::ClusterIdIn::NONE;
-
-  //
-  // Masking classes
-  //
-  std::set<enums::ClassId> maskClasses = {};
+  ObjectInputClusters inputClustersMask;
 
   //
   // Exclude voronoi areas with now points after a cut
@@ -75,25 +60,30 @@ public:
   /////////////////////////////////////////////////////
   void check() const
   {
-    if(maskCluster != enums::ClusterIdIn::NONE) {
-      CHECK(!maskClasses.empty(), "Input class must be bigger than zero.");
-    }
   }
 
   std::set<enums::ClusterIdIn> getInputClusters() const override
   {
     std::set<enums::ClusterIdIn> clusters;
-    if(maskCluster != enums::ClusterIdIn::NONE) {
-      clusters.emplace(maskCluster);
+    for(const auto &in : inputClustersPoints) {
+      clusters.emplace(in.clusterId);
     }
-    clusters.emplace(pointsClusterIn);
+
+    for(const auto &in : inputClustersMask) {
+      clusters.emplace(in.clusterId);
+    }
     return clusters;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, objectStoreIn, pointsClusterIn,
-                                                       pointsClassIn, pointsClusterOut, voronoiClassOut, maskCluster,
-                                                       maskClasses, excludeAreasWithoutPoint, excludeAreasAtTheEdge,
-                                                       maxRadius, minAreaSize, maxAreaSize);
+  [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
+  {
+    return {outputClustersVoronoi};
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, objectStoreIn, inputClustersPoints,
+                                                       outputClustersVoronoi, inputClustersMask,
+                                                       excludeAreasWithoutPoint, excludeAreasAtTheEdge, maxRadius,
+                                                       minAreaSize, maxAreaSize);
 };
 
 }    // namespace joda::settings

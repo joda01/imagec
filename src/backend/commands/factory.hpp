@@ -36,6 +36,7 @@ class CommandFactory
 public:
   virtual void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) = 0;
   virtual std::set<enums::ClusterIdIn> getInputClusters() const                                      = 0;
+  virtual settings::ObjectOutputClusters getOutputClasses() const                                    = 0;
 };
 
 template <Command_t CMD, Setting_t SETTING>
@@ -53,6 +54,11 @@ public:
   [[nodiscard]] std::set<enums::ClusterIdIn> getInputClusters() const override
   {
     return mSetting.getInputClusters();
+  }
+
+  [[nodiscard]] settings::ObjectOutputClusters getOutputClasses() const override
+  {
+    return mSetting.getOutputClasses();
   }
 
 private:

@@ -19,6 +19,8 @@
 #include "backend/enums/enums_classes.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_classes_out.hpp"
+#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
@@ -38,19 +40,13 @@ public:
     auto *tab = addTab("", [] {});
     //
     //
-    pointsCluster = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Cluster containing centers", parent);
-    pointsCluster->setValue(settings.pointsClusterIn);
-    pointsCluster->connectWithSetting(&settings.pointsClusterIn);
+    pointsCluster = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Centers");
+    pointsCluster->setValue(settings.inputClustersPoints);
+    pointsCluster->connectWithSetting(&settings.inputClustersPoints);
 
-    //
-    //
-    pointsClass = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Classes containing centers", parent);
-    pointsClass->setValue(settings.pointsClassIn);
-    pointsClass->connectWithSetting(&settings.pointsClassIn);
-
-    voronoiClassOut = generateClassDropDown<SettingComboBox<enums::ClassId>>("Output class", parent);
-    voronoiClassOut->setValue(settings.voronoiClassOut);
-    voronoiClassOut->connectWithSetting(&settings.voronoiClassOut);
+    voronoiClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Output class");
+    voronoiClassOut->setValue(settings.outputClustersVoronoi.classId);
+    voronoiClassOut->connectWithSetting(&settings.outputClustersVoronoi.classId);
 
     //
     //
@@ -64,21 +60,13 @@ public:
 
     //
     //
-    maskingCluster = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Masking cluster (optional)", parent);
-    maskingCluster->setDefaultValue(enums::ClusterIdIn::NONE);
-    maskingCluster->setValue(settings.maskCluster);
-    maskingCluster->connectWithSetting(&settings.maskCluster);
+    maskingCluster =
+        SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Masking cluster (optional)");
+    maskingCluster->setValue(settings.inputClustersMask);
+    maskingCluster->connectWithSetting(&settings.inputClustersMask);
 
-    //
-    //
-    maskingClass = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Masking classes (optional)", parent);
-    maskingClass->setValue(settings.maskClasses);
-    maskingClass->connectWithSetting(&settings.maskClasses);
-
-    auto *col1 = addSetting(tab, "Voronoi input/output",
-                            {{pointsCluster.get(), true}, {pointsClass.get(), false}, {voronoiClassOut.get(), false}});
-    addSetting(tab, "Voronoi masking",
-               {{mMaxRadius.get(), true}, {maskingCluster.get(), false}, {maskingClass.get(), false}}, col1);
+    auto *col1 = addSetting(tab, "Voronoi input/output", {{pointsCluster.get(), true}, {voronoiClassOut.get(), false}});
+    addSetting(tab, "Voronoi masking", {{mMaxRadius.get(), true}, {maskingCluster.get(), false}}, col1);
 
     excludeAreasWithoutPoints = SettingBase::create<SettingComboBox<bool>>(parent, "", "Exclude areas without points");
     excludeAreasWithoutPoints->addOptions({{false, "Off"}, {true, "On"}});
@@ -120,13 +108,9 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBox<enums::ClassId>> voronoiClassOut;
-
-  std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> pointsCluster;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> pointsClass;
-
-  std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> maskingCluster;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> maskingClass;
+  std::unique_ptr<SettingComboBoxClassesOut> voronoiClassOut;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> pointsCluster;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> maskingCluster;
 
   std::unique_ptr<SettingComboBox<bool>> excludeAreasWithoutPoints;
   std::unique_ptr<SettingComboBox<bool>> excludeAreasAtTheEdge;

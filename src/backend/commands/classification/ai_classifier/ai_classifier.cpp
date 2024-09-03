@@ -189,8 +189,8 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{
               .objectId   = context.acquireNextObjectId(),
-              .clusterId  = context.getClusterId(objectClass.clusterOutNoMatch),
-              .classId    = context.getClassId(objectClass.classOutNoMatch),
+              .clusterId  = context.getClusterId(objectClass.outputClusterNoMatch.clusterId),
+              .classId    = context.getClassId(objectClass.outputClusterNoMatch.classId),
               .imagePlane = context.getActIterator(),
           },
 #warning "Check if the contour is in the area of the bounding box"
@@ -199,7 +199,8 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
       for(const auto &filter : objectClass.filters) {
         if(filter.doesFilterMatch(context, detectedRoi, filter.intensity)) {
-          detectedRoi.setClusterAndClass(context.getClusterId(filter.clusterOut), context.getClassId(filter.classOut));
+          detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId),
+                                         context.getClassId(filter.outputCluster.classId));
         }
       }
     }

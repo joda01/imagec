@@ -22,7 +22,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
   auto filterVoronoiAreas = [this, &context, &response, &voronoiPoints,
                              &voronoiGrid](std::optional<const atom::ROI> toIntersect) {
     for(const atom::ROI &voronoiArea : voronoiGrid) {
-      if(voronoiArea.getClassId() == mSettings.voronoiClassOut) {
+      if(voronoiArea.getClassId() == mSettings.outputClustersVoronoi.classId) {
         //
         // Apply filter
         //
@@ -31,8 +31,10 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
           // Areas without point are filtered out
           //
           if(mSettings.excludeAreasWithoutPoint) {
-            if(!doesAreaContainsPoint(cutedVoronoiArea, voronoiPoints, mSettings.pointsClassIn)) {
-              return;
+            for(const auto &points : mSettings.inputClustersPoints) {
+              if(!doesAreaContainsPoint(cutedVoronoiArea, voronoiPoints, {points.classId})) {
+                return;
+              }
             }
           }
 
@@ -77,11 +79,13 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
     }
   };
 
-  if(mSettings.maskCluster != enums::ClusterIdIn::NONE && !mSettings.maskClasses.empty()) {
-    const auto &mask = objects.at(context.getClusterId(mSettings.maskCluster));
-    for(const auto &toIntersect : mask) {
-      if(mSettings.maskClasses.contains(toIntersect.getClassId())) {
-        filterVoronoiAreas(toIntersect);
+  if(!mSettings.inputClustersMask.empty()) {
+    for(const auto &maskIn : mSettings.inputClustersMask) {
+      const auto &mask = objects.at(context.getClusterId(maskIn.clusterId));
+      for(const auto &toIntersect : mask) {
+        if(maskIn.classId == toIntersect.getClassId()) {
+          filterVoronoiAreas(toIntersect);
+        }
       }
     }
   } else {

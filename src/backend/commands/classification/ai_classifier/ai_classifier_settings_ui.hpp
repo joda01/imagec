@@ -21,6 +21,7 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
@@ -82,9 +83,9 @@ private:
 
       //
       //
-      mClassOut = generateClassDropDown<SettingComboBox<enums::ClassId>>("Match class", parent);
-      mClassOut->setValue(settings.classOut);
-      mClassOut->connectWithSetting(&settings.classOut);
+      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Match class");
+      mClassOut->setValue(settings.outputCluster.classId);
+      mClassOut->connectWithSetting(&settings.outputCluster.classId);
       mClassOut->setDisplayIconVisible(false);
 
       //
@@ -131,7 +132,7 @@ private:
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
-    std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOut;
+    std::unique_ptr<SettingComboBoxClassesOut> mClassOut;
     std::unique_ptr<SettingLineEdit<int>> mMinParticleSize;
     std::unique_ptr<SettingLineEdit<int>> mMaxParticleSize;
     std::unique_ptr<SettingLineEdit<float>> mMinCircularity;
@@ -154,9 +155,9 @@ private:
 
       //
       //
-      mClassOutNoMatch = generateClassDropDown<SettingComboBox<enums::ClassId>>("No match class", parent);
-      mClassOutNoMatch->setValue(settings.classOutNoMatch);
-      mClassOutNoMatch->connectWithSetting(&settings.classOutNoMatch);
+      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "No match class");
+      mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
+      mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
 
       //
       //
@@ -184,7 +185,7 @@ private:
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOutNoMatch;
-    std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOutNoMatch;
+    std::unique_ptr<SettingComboBoxClassesOut> mClassOutNoMatch;
     std::unique_ptr<SettingLineEdit<int32_t>> mGrayScaleValue;
 
     std::list<ClassifierFilter> mClassifyFilter;

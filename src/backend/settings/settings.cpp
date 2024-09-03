@@ -62,4 +62,14 @@ int32_t Settings::getNrOfAllPipelines(const joda::settings::AnalyzeSettings &set
   return settings.pipelines.size();
 }
 
+ObjectOutputClusters Settings::getOutputClasses(const joda::settings::AnalyzeSettings &settings)
+{
+  ObjectOutputClusters out;
+  for(const auto &pipeline : settings.pipelines) {
+    auto cluster = pipeline.getOutputClasses();
+    out.insert(cluster.begin(), cluster.end());
+  }
+  return out;
+}
+
 }    // namespace joda::settings

@@ -14,6 +14,7 @@
 #include "setting_base.hpp"
 #include <iostream>
 #include "ui/container/dialog_tooltip.hpp"
+#include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
 
@@ -25,12 +26,15 @@ namespace joda::ui {
 /// \return
 ///
 SettingBase::SettingBase(QWidget *parent, const QString &icon, const QString &description) :
-    mParent(parent), mDescription(description)
+    mParent((WindowMain *) parent), mDescription(description)
 {
   if(!icon.isEmpty()) {
     mIcon = QIcon(":/icons/outlined/" + icon);
   }
   createDisplayAbleWidget(icon, description);
+
+  connect(mParent->getPanelClassification(), &PanelClassification::settingsChanged, this,
+          &SettingBase::onClassificationNameChanged);
 }
 
 ///
@@ -318,6 +322,15 @@ void SettingBase::onHelpButtonClicked()
 {
   DialogToolTip tool(mParent, mDescription, mHelpFilePath);
   tool.exec();
+}
+
+///
+/// \brief    Name of cluster or class changed
+/// \author   Joachim Danmayr
+///
+void SettingBase::onClassificationNameChanged()
+{
+  clusterNamesChanged();
 }
 
 }    // namespace joda::ui

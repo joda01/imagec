@@ -56,12 +56,7 @@ struct ClassifierFilter
   //
   // Cluster the objects should be assigned if filter matches
   //
-  joda::enums::ClusterIdIn clusterOut = joda::enums::ClusterIdIn::$;
-
-  //
-  // Class the objects should be assigned if filter matches
-  //
-  joda::enums::ClassId classOut = joda::enums::ClassId::NONE;
+  ObjectOutputClass outputCluster;
 
   //
   //
@@ -100,7 +95,7 @@ struct ClassifierFilter
                        const IntensityFilter &intensity) const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, minParticleSize, maxParticleSize,
-                                                       minCircularity, snapAreaSize, intensity, clusterOut, classOut);
+                                                       minCircularity, snapAreaSize, intensity, outputCluster);
 };
 
 struct ObjectClass
@@ -113,12 +108,7 @@ struct ObjectClass
   //
   // If no filter matches this class is assigned to the object
   //
-  joda::enums::ClusterIdIn clusterOutNoMatch = joda::enums::ClusterIdIn::$;
-
-  //
-  // If no filter matches this class is assigned to the object
-  //
-  joda::enums::ClassId classOutNoMatch = joda::enums::ClassId::NONE;
+  ObjectOutputClass outputClusterNoMatch;
 
   //
   // Grayscale or object class id from model
@@ -131,8 +121,7 @@ struct ObjectClass
     CHECK(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, clusterOutNoMatch, classOutNoMatch,
-                                                       modelClassId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, outputClusterNoMatch, modelClassId);
 };
 
 }    // namespace joda::settings

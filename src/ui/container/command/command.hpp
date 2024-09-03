@@ -24,8 +24,8 @@
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
-#include "ui/container/setting/setting_combobox _multi.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_multi.hpp"
 #include "ui/helper/layout_generator.hpp"
 
 namespace joda::ui {

@@ -29,31 +29,15 @@ namespace joda::settings {
 
 struct ColocalizationSettings : public SettingBase
 {
-  struct IntersectingClasses
-  {
-    //
-    // Input object to intersect with. Leaf empty to use imagePlane context store
-    //
-    joda::enums::ObjectStoreId objectIn;
+  //
+  // Input object to intersect with. Leaf empty to use imagePlane context store
+  //
+  joda::enums::ObjectStoreId objectIn;
 
-    //
-    // Cluster to calculate the intersection with
-    //
-    joda::enums::ClusterIdIn clusterIn = joda::enums::ClusterIdIn::NONE;
-
-    //
-    // Classes within the cluster to calc the calculation with
-    //
-    std::set<joda::enums::ClassId> classesIn;
-
-    void check() const
-    {
-      CHECK(!classesIn.empty(), "At least one class id must be given.");
-      // CHECK(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
-    }
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(IntersectingClasses, objectIn, clusterIn, classesIn);
-  };
+  //
+  // Clusters to calculate the intersection with
+  //
+  ObjectInputClusters inputClusters;
 
   //
   // Minimum intersection in [0-1]
@@ -63,35 +47,32 @@ struct ColocalizationSettings : public SettingBase
   //
   // Resulting object cluster of the intersecting objects
   //
-  joda::enums::ClusterIdIn clusterOut = joda::enums::ClusterIdIn::$;
-
-  //
-  // Resulting object class of the intersecting objects
-  //
-  joda::enums::ClassId classOut = joda::enums::ClassId::NONE;
-
-  //
-  // List of channels to calc the intersection for
-  //
-  std::list<IntersectingClasses> objectsIn;
+  ObjectOutputClass outputCluster;
 
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(objectsIn.size() > 1, "At least two input objects must be given!");
+    CHECK(inputClusters.size() > 1, "At least two input objects must be given!");
     CHECK(minIntersection >= 0, "Min intersection must be >=0.");
   }
 
   std::set<enums::ClusterIdIn> getInputClusters() const override
   {
     std::set<enums::ClusterIdIn> clusters;
-    for(const auto &obj : objectsIn) {
-      clusters.emplace(obj.clusterIn);
+    for(const auto cluster : inputClusters) {
+      clusters.emplace(cluster.clusterId);
     }
+
     return clusters;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, objectsIn, minIntersection, classOut, clusterOut);
+  [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
+  {
+    return {{outputCluster}};
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, objectIn, inputClusters, minIntersection,
+                                          outputCluster);
 };
 
 }    // namespace joda::settings

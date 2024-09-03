@@ -36,6 +36,18 @@ struct ClassifierSettings : public SettingBase
     CHECK(!classifiers.empty(), "At least one classifier must be given!");
   }
 
+  [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
+  {
+    ObjectOutputClusters out;
+    for(const auto &clas : classifiers) {
+      out.emplace(clas.outputClusterNoMatch);
+      for(const auto &clasInner : clas.filters) {
+        out.emplace(clasInner.outputCluster);
+      }
+    }
+    return out;
+  }
+
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierSettings, classifiers);
 };
 

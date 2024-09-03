@@ -42,7 +42,7 @@ struct ThresholdValidatorSettings : public SettingBase
   //
   // Cluster on which the result should be applied to
   //
-  enums::ClusterIdIn clusterIn = enums::ClusterIdIn::$;
+  enums::ClusterIdIn inputCluster = enums::ClusterIdIn::$;
 
   //
   // If the min threshold is lower than the value at the maximum
@@ -55,17 +55,14 @@ struct ThresholdValidatorSettings : public SettingBase
   {
     CHECK(mode != FilterMode::UNKNOWN, "Define a filter mode!");
     CHECK(histMinThresholdFilterFactor >= 0, "Thresholdfactor must be >=0!");
-    if(mode == FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER) {
-      CHECK(clusterIn != enums::ClusterIdIn::NONE, "Cluster must not be >NONE<!");
-    }
   }
 
   std::set<enums::ClusterIdIn> getInputClusters() const override
   {
-    return {clusterIn};
+    return {inputCluster};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdValidatorSettings, mode, imageIn, clusterIn,
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdValidatorSettings, mode, imageIn, inputCluster,
                                                        histMinThresholdFilterFactor);
 };
 

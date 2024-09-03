@@ -75,6 +75,7 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
 
   auto query = [&]() -> std::unique_ptr<duckdb::QueryResult> {
     switch(getType(filter.measurementChannel)) {
+      default:
       case OBJECT:
         return queryMeasure();
       case INTENSITY:
@@ -217,6 +218,7 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
 
     auto query = [&]() {
       switch(getType(filter.measurementChannel)) {
+        default:
         case OBJECT:
           return queryMeasure();
         case INTENSITY:

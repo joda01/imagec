@@ -17,60 +17,10 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "ui/container/setting/setting_base.hpp"
-#include "ui/container/setting/setting_combobox _multi.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_multi.hpp"
 
 namespace joda::ui {
-
-template <class T>
-concept ClusterCombo_t = std::is_base_of<SettingComboBoxMulti<enums::ClusterIdIn>, T>::value ||
-                         std::is_base_of<SettingComboBox<enums::ClusterIdIn>, T>::value;
-
-template <ClusterCombo_t T>
-inline auto generateClusterDropDown(const QString &helpText, QWidget *parent)
-{
-  auto dropBox = SettingBase::create<T>(parent, "icons8-connection-50.png", helpText);
-  dropBox->addOptions({
-      {enums::ClusterIdIn::$, "THIS"},
-      {enums::ClusterIdIn::NONE, "None"},
-      {enums::ClusterIdIn::A, "A"},
-      {enums::ClusterIdIn::B, "B"},
-      {enums::ClusterIdIn::C, "C"},
-      {enums::ClusterIdIn::D, "D"},
-      {enums::ClusterIdIn::E, "E"},
-      {enums::ClusterIdIn::F, "F"},
-      {enums::ClusterIdIn::G, "G"},
-      {enums::ClusterIdIn::H, "H"},
-      {enums::ClusterIdIn::I, "I"},
-      {enums::ClusterIdIn::J, "J"},
-  });
-  return dropBox;
-}
-
-template <class T>
-concept ClassCombo_t = std::is_base_of<SettingComboBoxMulti<enums::ClassId>, T>::value ||
-                       std::is_base_of<SettingComboBox<enums::ClassId>, T>::value;
-
-template <ClassCombo_t T>
-inline auto generateClassDropDown(const QString &helpText, QWidget *parent)
-{
-  auto dropBox = SettingBase::create<T>(parent, "icons8-connection-50.png", helpText);
-  dropBox->addOptions({
-      {enums::ClassId::NONE, "None"},
-      {enums::ClassId::C0, "0"},
-      {enums::ClassId::C1, "1"},
-      {enums::ClassId::C2, "2"},
-      {enums::ClassId::C3, "3"},
-      {enums::ClassId::C4, "4"},
-      {enums::ClassId::C5, "5"},
-      {enums::ClassId::C6, "6"},
-      {enums::ClassId::C7, "7"},
-      {enums::ClassId::C8, "8"},
-      {enums::ClassId::C8, "9"},
-      {enums::ClassId::C10, "10"},
-  });
-  return dropBox;
-}
 
 template <class T>
 concept ImageCStackCombo_t =

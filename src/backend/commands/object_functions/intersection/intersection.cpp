@@ -28,15 +28,17 @@ Intersection::Intersection(const settings::IntersectionSettings &settings) : mSe
 
 void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
-  auto &objectsInOut = context.loadObjectsFromCache(mSettings.objectsIn.objectIn)
-                           ->at(context.getClusterId(mSettings.objectsIn.clusterIn));
+  for(const auto &inputClassification : mSettings.inputObjects.inputClusters) {
+    auto &objectsInOut = context.loadObjectsFromCache(mSettings.inputObjects.objectIn)
+                             ->at(context.getClusterId(inputClassification.clusterId));
 
-  for(const auto &intersectWithClusterId : mSettings.objectsInWith.clusterIn) {
-    const auto &intersectWith = context.loadObjectsFromCache(mSettings.objectsInWith.objectIn)
-                                    ->at(context.getClusterId(intersectWithClusterId));
+    for(const auto &intersectWithClusterId : mSettings.inputObjectsIntersectWith.inputClusters) {
+      const auto &intersectWith = context.loadObjectsFromCache(mSettings.inputObjectsIntersectWith.objectIn)
+                                      ->at(context.getClusterId(intersectWithClusterId.clusterId));
 
-    objectsInOut.calcIntersections(mSettings.mode, intersectWith, mSettings.objectsIn.classesIn,
-                                   mSettings.objectsInWith.classesIn, mSettings.minIntersection, mSettings.newClassId);
+      objectsInOut.calcIntersections(mSettings.mode, intersectWith, {inputClassification.classId},
+                                     {intersectWithClusterId.classId}, mSettings.minIntersection, mSettings.newClassId);
+    }
   }
 }
 /*

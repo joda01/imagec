@@ -22,6 +22,7 @@
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
@@ -66,9 +67,9 @@ private:
 
       //
       //
-      mClassOutNoMatch = generateClassDropDown<SettingComboBox<enums::ClassId>>("No match class", parent);
-      mClassOutNoMatch->setValue(settings.classOutNoMatch);
-      mClassOutNoMatch->connectWithSetting(&settings.classOutNoMatch);
+      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "No match class");
+      mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
+      mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
 
       //
       //
@@ -88,9 +89,9 @@ private:
 
       //
       //
-      mClassOut = generateClassDropDown<SettingComboBox<enums::ClassId>>("Match class", parent);
-      mClassOut->setValue(classifyFilter.classOut);
-      mClassOut->connectWithSetting(&classifyFilter.classOut);
+      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Match class");
+      mClassOut->setValue(classifyFilter.outputCluster.classId);
+      mClassOut->connectWithSetting(&classifyFilter.outputCluster.classId);
       mClassOut->setDisplayIconVisible(false);
 
       //
@@ -184,11 +185,11 @@ private:
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
-    std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOutNoMatch;
+    std::unique_ptr<SettingComboBoxClassesOut> mClassOutNoMatch;
     std::unique_ptr<SettingLineEdit<int32_t>> mGrayScaleValue;
     QWidget *mParent;
 
-    std::unique_ptr<SettingComboBox<enums::ClassId>> mClassOut;
+    std::unique_ptr<SettingComboBoxClassesOut> mClassOut;
     std::unique_ptr<SettingLineEdit<int>> mMinParticleSize;
     std::unique_ptr<SettingLineEdit<int>> mMaxParticleSize;
     std::unique_ptr<SettingLineEdit<float>> mMinCircularity;

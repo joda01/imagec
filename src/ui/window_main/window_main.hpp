@@ -22,6 +22,7 @@
 #include <set>
 #include <string>
 #include "backend/settings/analze_settings.hpp"
+#include "backend/settings/setting.hpp"
 #include "controller/controller.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
@@ -100,6 +101,7 @@ public:
 
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
+  auto getOutputClasses() -> settings::ObjectOutputClusters;
 
 public slots:
   void onBackClicked();

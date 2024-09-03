@@ -42,6 +42,29 @@ std::set<enums::ClusterId> Pipeline::getInputClusters() const
 /// \brief      Returns the cluster ID this pipeline is storing the results in
 /// \author     Joachim Danmayr
 ///
+ObjectOutputClusters Pipeline::getOutputClasses() const
+{
+  ObjectOutputClusters clusters;
+  for(const auto &pipelineStep : pipelineSteps) {
+    auto command            = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
+    const auto &clustersCmd = command->getOutputClasses();
+    for(const auto &cluster : clustersCmd) {
+      if(cluster.clusterId == enums::ClusterIdIn::$) {
+        clusters.emplace(
+            ObjectOutputClass{.clusterId = static_cast<joda::enums::ClusterIdIn>(pipelineSetup.defaultClusterId),
+                              .classId   = cluster.classId});
+      } else {
+        clusters.emplace(ObjectOutputClass{.clusterId = cluster.clusterId, .classId = cluster.classId});
+      }
+    }
+  }
+  return clusters;
+}
+
+///
+/// \brief      Returns the cluster ID this pipeline is storing the results in
+/// \author     Joachim Danmayr
+///
 enums::ClusterId Pipeline::getOutputCluster() const
 {
   return pipelineSetup.defaultClusterId;

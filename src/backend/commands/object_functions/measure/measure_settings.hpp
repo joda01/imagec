@@ -39,12 +39,7 @@ struct MeasureSettings : public SettingBase
   //
   // Clusters to calculate to measure for
   //
-  std::set<joda::enums::ClusterIdIn> clustersIn = {joda::enums::ClusterIdIn::$};
-
-  //
-  // Classes to calculate to measure for
-  //
-  std::set<joda::enums::ClassId> classesIn;
+  ObjectInputClusters inputClusters;
 
   //
   // Image planes on which a measurement should be applied
@@ -59,10 +54,14 @@ struct MeasureSettings : public SettingBase
 
   std::set<enums::ClusterIdIn> getInputClusters() const override
   {
-    return clustersIn;
+    std::set<enums::ClusterIdIn> clusters;
+    for(const auto &in : inputClusters) {
+      clusters.emplace(in.clusterId);
+    }
+    return clusters;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, objectIn, clustersIn, classesIn, planesIn);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, objectIn, inputClusters, planesIn);
 };
 
 }    // namespace joda::settings

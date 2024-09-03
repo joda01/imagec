@@ -95,14 +95,12 @@ public:
     // Paint the objects
     //
     for(const auto &cluster : mSettings.clustersIn) {
-      if(!result.contains(context.getClusterId(cluster.clusterIn))) {
+      if(!result.contains(context.getClusterId(cluster.inputCluster.clusterId))) {
         continue;
       }
-      const auto &clusterObjects = result.at(context.getClusterId(cluster.clusterIn));
+      const auto &clusterObjects = result.at(context.getClusterId(cluster.inputCluster.clusterId));
       for(const auto &roi : clusterObjects) {
-        for(const auto &classIn : cluster.classesIn) {
-          drawObject(classIn, roi, img_8bit_color);
-        }
+        drawObject(cluster, roi, img_8bit_color);
       }
     }
 
@@ -128,9 +126,9 @@ private:
   static inline cv::Scalar GREEN  = cv::Scalar(0, 255, 0);
 
   /////////////////////////////////////////////////////
-  void drawObject(const settings::ImageSaverSettings::SaveClass &settings, const atom::ROI &roi, cv::Mat &imageOut)
+  void drawObject(const settings::ImageSaverSettings::SaveCluster &settings, const atom::ROI &roi, cv::Mat &imageOut)
   {
-    if(settings.classIn == roi.getClassId()) {
+    if(settings.inputCluster.classId == roi.getClassId()) {
       int left   = roi.getBoundingBox().x;
       int top    = roi.getBoundingBox().y;
       int width  = roi.getBoundingBox().width;
@@ -145,7 +143,7 @@ private:
         }
 
         // Fill area
-        if(settings.style == settings::ImageSaverSettings::SaveClass::Style::FILLED) {
+        if(settings.style == settings::ImageSaverSettings::Style::FILLED) {
           imageOut(roi.getBoundingBox()).setTo(areaColor, roi.getMask());
         }
 

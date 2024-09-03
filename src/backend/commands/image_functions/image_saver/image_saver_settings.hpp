@@ -30,36 +30,24 @@ public:
     IMAGE_$,
   };
 
-  struct SaveClass
+  enum class Style
   {
-    enum class Style
-    {
-      OUTLINED,
-      FILLED
-    };
-
-    enums::ClassId classIn = enums::ClassId::UNDEFINED;
-    std::string color      = "#FF0000";
-    Style style            = Style::OUTLINED;
-    bool paintBoundingBox  = false;
-
-    void check() const
-    {
-    }
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveClass, classIn, color, style, paintBoundingBox);
+    OUTLINED,
+    FILLED
   };
 
   struct SaveCluster
   {
-    enums::ClusterIdIn clusterIn   = enums::ClusterIdIn::$;
-    std::list<SaveClass> classesIn = {};
+    ObjectOutputClass inputCluster;
+    std::string color     = "#FF0000";
+    Style style           = Style::OUTLINED;
+    bool paintBoundingBox = false;
 
     void check() const
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveCluster, clusterIn, classesIn);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveCluster, inputCluster, color, style, paintBoundingBox);
   };
 
   std::list<SaveCluster> clustersIn = {};
@@ -107,11 +95,10 @@ public:
                                                        namePrefix, clustersIn);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::SaveClass::Style,
-                             {
-                                 {ImageSaverSettings::SaveClass::Style::OUTLINED, "Outlined"},
-                                 {ImageSaverSettings::SaveClass::Style::FILLED, "Filled"},
-                             });
+NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::Style, {
+                                                            {ImageSaverSettings::Style::OUTLINED, "Outlined"},
+                                                            {ImageSaverSettings::Style::FILLED, "Filled"},
+                                                        });
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::Canvas, {
                                                              {ImageSaverSettings::Canvas::BLACK, "Black"},

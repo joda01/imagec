@@ -18,6 +18,8 @@
 #include "backend/commands/command.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_classes_out.hpp"
+#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
@@ -39,18 +41,14 @@ public:
     {
       //
       //
-      clustersIn = generateClusterDropDown<SettingComboBoxMulti<enums::ClusterIdIn>>("Clusters to paint", parent);
+      clustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Classes to paint");
 
       //
       //
-      classesIn = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Classes to paint", parent);
-
-      //
-      //
-      style = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::SaveClass::Style>>(parent, "", "Style");
-      style->setDefaultValue(settings::ImageSaverSettings::SaveClass::Style::OUTLINED);
-      style->addOptions({{.key = settings::ImageSaverSettings::SaveClass::Style::OUTLINED, .label = "Outlined"},
-                         {.key = settings::ImageSaverSettings::SaveClass::Style::FILLED, .label = "Filled"}});
+      style = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::Style>>(parent, "", "Style");
+      style->setDefaultValue(settings::ImageSaverSettings::Style::OUTLINED);
+      style->addOptions({{.key = settings::ImageSaverSettings::Style::OUTLINED, .label = "Outlined"},
+                         {.key = settings::ImageSaverSettings::Style::FILLED, .label = "Filled"}});
 
       //
       //
@@ -65,34 +63,27 @@ public:
     // Load from settings
     //
     {
-      std::set<enums::ClusterIdIn> clustersToSet;
-      std::set<enums::ClassId> classesToSet;
+      std::set<settings::ObjectOutputClass> clustersToSet;
       for(const auto &cluster : settings.clustersIn) {
-        clustersToSet.emplace(cluster.clusterIn);
-        for(const auto &classs : cluster.classesIn) {
-          classesToSet.emplace(classs.classIn);
-          style->setValue(classs.style);
-        }
+        clustersToSet.emplace(cluster.inputCluster);
+        style->setValue(cluster.style);
       }
 
       clustersIn->setValue(clustersToSet);
-      classesIn->setValue(classesToSet);
     }
 
-    addSetting(tab, "Input classes", {{clustersIn.get(), true}, {classesIn.get(), true}});
+    addSetting(tab, "Input classes", {{clustersIn.get(), true}});
     addSetting(tab, "Image name", {{mImageNamePrefix.get(), true}, {style.get(), false}});
 
     connect(style.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
-    connect(classesIn.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
     connect(clustersIn.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
   }
 
 private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingLineEdit<std::string>> mImageNamePrefix;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClusterIdIn>> clustersIn;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> classesIn;
-  std::unique_ptr<SettingComboBox<settings::ImageSaverSettings::SaveClass::Style>> style;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> clustersIn;
+  std::unique_ptr<SettingComboBox<settings::ImageSaverSettings::Style>> style;
 
   settings::ImageSaverSettings &mSettings;
 
@@ -121,23 +112,16 @@ private:
   void onChange()
   {
     auto clusters = clustersIn->getValue();
-    auto classess = classesIn->getValue();
     int colorIdx  = 0;
     mSettings.clustersIn.clear();
     for(const auto &cluster : clusters) {
       settings::ImageSaverSettings::SaveCluster clusterObj;
-      clusterObj.clusterIn = cluster;
-
-      clusterObj.classesIn.clear();
-      for(const auto &classs : classess) {
-        clusterObj.classesIn.emplace_back(
-            settings::ImageSaverSettings::SaveClass{.classIn          = classs,
-                                                    .color            = colors[colorIdx % colors.size()],
-                                                    .style            = style->getValue(),
-                                                    .paintBoundingBox = false});
-        colorIdx++;
-      }
+      clusterObj.inputCluster     = cluster;
+      clusterObj.color            = colors[colorIdx % colors.size()];
+      clusterObj.style            = style->getValue();
+      clusterObj.paintBoundingBox = false;
       mSettings.clustersIn.emplace_back(clusterObj);
+      colorIdx++;
     }
   }
 };

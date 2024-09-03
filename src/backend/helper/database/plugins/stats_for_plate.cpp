@@ -119,6 +119,7 @@ auto StatsPerPlate::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
 
   auto query = [&]() {
     switch(getType(filter.measurementChannel)) {
+      default:
       case OBJECT:
         return queryMeasure();
       case INTENSITY:

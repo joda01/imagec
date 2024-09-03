@@ -43,12 +43,7 @@ struct NoiseValidatorSettings : public SettingBase
   //
   // Cluster on which the result should be applied to
   //
-  enums::ClusterIdIn clusterIn = enums::ClusterIdIn::$;
-
-  //
-  // Cluster on which the result should be applied to
-  //
-  enums::ClassId classIn = enums::ClassId::UNDEFINED;
+  ObjectInputClusters inputClusters;
 
   //
   // If this number of objects is exceeded the filter will be applied
@@ -59,19 +54,20 @@ struct NoiseValidatorSettings : public SettingBase
   void check() const
   {
     CHECK(mode != FilterMode::UNKNOWN, "Define a filter mode!");
-    CHECK(classIn != enums::ClassId::UNDEFINED, "Define a class ID!");
     CHECK(maxObjects > 0, "Max objects must be > 0!");
-    if(mode == FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER) {
-      CHECK(clusterIn != enums::ClusterIdIn::NONE, "Cluster must not be >NONE<!");
-    }
   }
 
   std::set<enums::ClusterIdIn> getInputClusters() const override
   {
-    return {clusterIn};
+    std::set<enums::ClusterIdIn> clusters;
+    for(const auto &in : inputClusters) {
+      clusters.emplace(in.clusterId);
+    }
+    return clusters;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(NoiseValidatorSettings, mode, imageIn, clusterIn, maxObjects);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(NoiseValidatorSettings, mode, imageIn, inputClusters,
+                                                       maxObjects);
 };
 
 }    // namespace joda::settings

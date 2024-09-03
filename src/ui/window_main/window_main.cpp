@@ -782,4 +782,14 @@ QString WindowMain::bytesToString(int64_t bytes)
   return QString::number(static_cast<double>(bytes) / 1.0, 'f', 2) + "  Byte";
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \return
+///
+auto WindowMain::getOutputClasses() -> settings::ObjectOutputClusters
+{
+  return settings::Settings::getOutputClasses(mAnalyzeSettings);
+}
+
 }    // namespace joda::ui
