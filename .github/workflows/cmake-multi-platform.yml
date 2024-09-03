@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - design-rework
     tags:
       - '*'
   pull_request:

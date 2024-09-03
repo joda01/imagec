@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
@@ -72,6 +73,19 @@ public:
   {
     return {};
   }
+};
+
+class ObjectOutput
+{
+  //
+  // Cluster the objects should be assigned if filter matches
+  //
+  joda::enums::ClusterIdIn clusterOut = joda::enums::ClusterIdIn::$;
+
+  //
+  // Class the objects should be assigned if filter matches
+  //
+  joda::enums::ClassId classOut = joda::enums::ClassId::NONE;
 };
 
 }    // namespace joda::settings
