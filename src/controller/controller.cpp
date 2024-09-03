@@ -11,6 +11,7 @@
 ///
 
 #include "controller.hpp"
+#include <exception>
 #include <filesystem>
 #include <memory>
 #include <stdexcept>

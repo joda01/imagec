@@ -63,171 +63,176 @@ void Processor::stop()
 void Processor::execute(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
                         const joda::thread::ThreadingSettings &threadingSettings, imagesList_t &allImages)
 {
-  // Prepare thread pool
-  mGlobThreadPool.reset(threadingSettings.coresUsed);
-  int poolSizeImages   = threadingSettings.cores.at(joda::thread::ThreadingSettings::IMAGES);
-  int poolSizeChannels = threadingSettings.cores.at(joda::thread::ThreadingSettings::CHANNELS);
-  int poolSizeTiles    = threadingSettings.cores.at(joda::thread::ThreadingSettings::TILES);
+  try {
+    // Prepare thread pool
+    mGlobThreadPool.reset(threadingSettings.coresUsed);
+    int poolSizeImages   = threadingSettings.cores.at(joda::thread::ThreadingSettings::IMAGES);
+    int poolSizeChannels = threadingSettings.cores.at(joda::thread::ThreadingSettings::CHANNELS);
+    int poolSizeTiles    = threadingSettings.cores.at(joda::thread::ThreadingSettings::TILES);
 
-  // Resolve dependencies
-  auto pipelineOrder = joda::processor::DependencyGraph::calcGraph(program);
+    // Resolve dependencies
+    auto pipelineOrder = joda::processor::DependencyGraph::calcGraph(program);
 
-  // Prepare the context
-  GlobalContext globalContext;
-  auto jobId = initializeGlobalContext(program, jobName, globalContext);
+    // Prepare the context
+    GlobalContext globalContext;
+    auto jobId = initializeGlobalContext(program, jobName, globalContext);
 
-  // Looking for images in all folders
-  listImages(program, allImages);
-
-  //
-  // Iterate over each plate and analyze the images
-  //
-  auto &db = globalContext.database;
-  for(const auto &plate : program.projectSettings.plates) {
-    BS::multi_future<void> imageFutures;
-    PlateContext plateContext{.plateId = plate.plateId};
-    joda::grp::FileGrouper grouper(plate.groupBy, plate.filenameRegex);
-    const auto &images = allImages.getFilesListAt(plate.plateId);
+    // Looking for images in all folders
+    listImages(program, allImages);
 
     //
-    // Iterate over each image
+    // Iterate over each plate and analyze the images
     //
-    for(const auto &imagePath : images) {
-      auto analyzeImage = [this, &program, &globalContext, &plateContext, &grouper, &pipelineOrder, &db, &poolSizeTiles,
-                           &poolSizeChannels, imagePath]() {
-        PipelineInitializer imageLoader(program.imageSetup);
-        ImageContext imageContext{.imageLoader = imageLoader};
-        initializePipelineContext(globalContext, plateContext, grouper, imagePath, imageLoader, imageContext);
+    auto &db = globalContext.database;
+    for(const auto &plate : program.projectSettings.plates) {
+      BS::multi_future<void> imageFutures;
+      PlateContext plateContext{.plateId = plate.plateId};
+      joda::grp::FileGrouper grouper(plate.groupBy, plate.filenameRegex);
+      const auto &images = allImages.getFilesListAt(plate.plateId);
 
-        //
-        // Start the iteration over planes
-        //
-        auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
-        auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
-        auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
+      //
+      // Iterate over each image
+      //
+      for(const auto &imagePath : images) {
+        auto analyzeImage = [this, &program, &globalContext, &plateContext, &grouper, &pipelineOrder, &db,
+                             &poolSizeTiles, &poolSizeChannels, imagePath]() {
+          PipelineInitializer imageLoader(program.imageSetup);
+          ImageContext imageContext{.imageLoader = imageLoader};
+          initializePipelineContext(globalContext, plateContext, grouper, imagePath, imageLoader, imageContext);
 
-        mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY);
-        BS::multi_future<void> tilesFutures;
+          //
+          // Start the iteration over planes
+          //
+          auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
+          auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
+          auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
 
-        for(int tileX = 0; tileX < tilesX; tileX++) {
-          if(mProgress.isStopping()) {
-            break;
-          }
-          for(int tileY = 0; tileY < tilesY; tileY++) {
+          mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY);
+          BS::multi_future<void> tilesFutures;
+
+          for(int tileX = 0; tileX < tilesX; tileX++) {
             if(mProgress.isStopping()) {
               break;
             }
+            for(int tileY = 0; tileY < tilesY; tileY++) {
+              if(mProgress.isStopping()) {
+                break;
+              }
 
-            auto analyzeTile = [this, &program, &globalContext, &plateContext, &grouper, &pipelineOrder, &db, imagePath,
-                                nrtStack, nrzSTack, &imageContext, &imageLoader, tileX, tileY, &poolSizeChannels]() {
-              // Start of the image specific function
-              for(int tStack = 0; tStack < nrtStack; tStack++) {
-                if(mProgress.isStopping()) {
-                  break;
-                }
-                for(int zStack = 0; zStack < nrzSTack; zStack++) {
+              auto analyzeTile = [this, &program, &globalContext, &plateContext, &grouper, &pipelineOrder, &db,
+                                  imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX, tileY,
+                                  &poolSizeChannels]() {
+                // Start of the image specific function
+                for(int tStack = 0; tStack < nrtStack; tStack++) {
                   if(mProgress.isStopping()) {
                     break;
                   }
-                  IterationContext iterationContext;
-                  // Execute pipelines of this iteration
+                  for(int zStack = 0; zStack < nrzSTack; zStack++) {
+                    if(mProgress.isStopping()) {
+                      break;
+                    }
+                    IterationContext iterationContext;
+                    // Execute pipelines of this iteration
 
-                  // Start with the highest prio pipelines down to the lowest prio
-                  BS::multi_future<void> clustersFuture;
-                  for(const auto &[order, pipelines] : pipelineOrder) {
-                    auto executePipeline = [this, &program, &globalContext, &plateContext, &grouper, &pipelineOrder,
-                                            &db, imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX,
-                                            tileY, pipelines = pipelines, &iterationContext, tStack, zStack]() {
-                      // These are pipelines in onw prio step -> Can be parallelized
-                      for(const auto &pipeline : pipelines) {
-                        if(mProgress.isStopping()) {
-                          break;
-                        }
-                        //
-                        // Load the image imagePlane
-                        //
-                        ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
-                        imageLoader.initPipeline(
-                            pipeline->pipelineSetup, {tileX, tileY},
-                            {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex},
-                            context);
-                        auto planeId = context.getActImage().getId().imagePlane;
-                        try {
-                          db.insertImagePlane(imageContext.imageId, planeId,
-                                              imageContext.imageMeta.getChannelInfos()
-                                                  .at(pipeline->pipelineSetup.cStackIndex)
-                                                  .planes.at(planeId.tStack)
-                                                  .at(planeId.zStack));
-                        } catch(const std::exception &ex) {
-                          std::cout << "Insert Plane: " << ex.what() << std::endl;
-                        }
-
-                        //
-                        // Execute the pipeline
-                        //
-                        for(const auto &step : pipeline->pipelineSteps) {
+                    // Start with the highest prio pipelines down to the lowest prio
+                    BS::multi_future<void> clustersFuture;
+                    for(const auto &[order, pipelines] : pipelineOrder) {
+                      auto executePipeline = [this, &program, &globalContext, &plateContext, &grouper, &pipelineOrder,
+                                              &db, imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX,
+                                              tileY, pipelines = pipelines, &iterationContext, tStack, zStack]() {
+                        // These are pipelines in onw prio step -> Can be parallelized
+                        for(const auto &pipeline : pipelines) {
                           if(mProgress.isStopping()) {
                             break;
                           }
-                          // Execute a pipeline step
-                          step(context, context.getActImage().image, context.getActObjects());
+                          //
+                          // Load the image imagePlane
+                          //
+                          ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
+                          imageLoader.initPipeline(
+                              pipeline->pipelineSetup, {tileX, tileY},
+                              {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex},
+                              context);
+                          auto planeId = context.getActImage().getId().imagePlane;
+                          try {
+                            db.insertImagePlane(imageContext.imageId, planeId,
+                                                imageContext.imageMeta.getChannelInfos()
+                                                    .at(pipeline->pipelineSetup.cStackIndex)
+                                                    .planes.at(planeId.tStack)
+                                                    .at(planeId.zStack));
+                          } catch(const std::exception &ex) {
+                            std::cout << "Insert Plane: " << ex.what() << std::endl;
+                          }
+
+                          //
+                          // Execute the pipeline
+                          //
+                          for(const auto &step : pipeline->pipelineSteps) {
+                            if(mProgress.isStopping()) {
+                              break;
+                            }
+                            // Execute a pipeline step
+                            step(context, context.getActImage().image, context.getActObjects());
+                          }
                         }
+                      };
+
+                      if(poolSizeChannels > 1) {
+                        clustersFuture.push_back(mGlobThreadPool.submit_task(executePipeline));
+                      } else {
+                        executePipeline();
                       }
-                    };
-
-                    if(poolSizeChannels > 1) {
-                      clustersFuture.push_back(mGlobThreadPool.submit_task(executePipeline));
-                    } else {
-                      executePipeline();
                     }
-                  }
-                  if(poolSizeChannels > 1) {
-                    clustersFuture.wait();
-                  }
+                    if(poolSizeChannels > 1) {
+                      clustersFuture.wait();
+                    }
 
-                  // Iteration for all tiles finished
-                  auto id = DurationCount::start("Insert");
-                  try {
-                    db.insertObjects(imageContext, iterationContext.getObjects());
-                  } catch(const std::exception &ex) {
-                    std::cout << "Insert Obj: " << ex.what() << std::endl;
+                    // Iteration for all tiles finished
+                    auto id = DurationCount::start("Insert");
+                    try {
+                      db.insertObjects(imageContext, iterationContext.getObjects());
+                    } catch(const std::exception &ex) {
+                      std::cout << "Insert Obj: " << ex.what() << std::endl;
+                    }
+                    DurationCount::stop(id);
                   }
-                  DurationCount::stop(id);
                 }
-              }
-              // Tile finished
-              mProgress.incProcessedTiles();
-            };
+                // Tile finished
+                mProgress.incProcessedTiles();
+              };
 
-            if(poolSizeTiles > 1) {
-              tilesFutures.push_back(mGlobThreadPool.submit_task(analyzeTile));
-            } else {
-              analyzeTile();
+              if(poolSizeTiles > 1) {
+                tilesFutures.push_back(mGlobThreadPool.submit_task(analyzeTile));
+              } else {
+                analyzeTile();
+              }
             }
           }
-        }
-        if(poolSizeTiles > 1) {
-          tilesFutures.wait();
-        }
+          if(poolSizeTiles > 1) {
+            tilesFutures.wait();
+          }
 
-        // Image finished
-        mProgress.incProcessedImages();
-      };
+          // Image finished
+          mProgress.incProcessedImages();
+        };
 
+        if(poolSizeImages > 1) {
+          imageFutures.push_back(mGlobThreadPool.submit_task(analyzeImage));
+        } else {
+          analyzeImage();
+        }
+      }
       if(poolSizeImages > 1) {
-        imageFutures.push_back(mGlobThreadPool.submit_task(analyzeImage));
-      } else {
-        analyzeImage();
+        imageFutures.wait();
       }
     }
-    if(poolSizeImages > 1) {
-      imageFutures.wait();
-    }
-  }
 
-  // Done
-  db.finishJob(jobId);
-  mProgress.setStateFinished();
+    // Done
+    db.finishJob(jobId);
+    mProgress.setStateFinished();
+  } catch(const std::exception &ex) {
+    mProgress.setStateError(mJobInformation, ex.what());
+  }
 }
 
 std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSettings &program,

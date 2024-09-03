@@ -217,7 +217,8 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   //
   cStackIndex =
       SettingBase::create<SettingComboBox<int32_t>>(windowMain, "icons8-unknown-status-50.png", "Image channel");
-  cStackIndex->addOptions({{0, "Channel 0"},
+  cStackIndex->addOptions({{-1, "Empty"},
+                           {0, "Channel 0"},
                            {1, "Channel 1"},
                            {2, "Channel 2"},
                            {3, "Channel 3"},
@@ -228,6 +229,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
                            {8, "Channel 8"},
                            {9, "Channel 9"},
                            {10, "Channel 10"}});
+  cStackIndex->setDefaultValue(-1);
   cStackIndex->connectWithSetting(&mSettings.pipelineSetup.cStackIndex);
 
   //
@@ -301,6 +303,11 @@ PanelPipelineSettings::~PanelPipelineSettings()
 ///
 void PanelPipelineSettings::valueChangedEvent()
 {
+  // if(cStackIndex < 0) {
+  //   zProjection->getDisplayLabelWidget()->setVisible(false);
+  // } else {
+  //   zProjection->getDisplayLabelWidget()->setVisible(true);
+  // }
   updatePreview(-1, -1);
 }
 

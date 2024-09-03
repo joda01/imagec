@@ -65,10 +65,15 @@ public:
                            {{mMode.get(), true}, {mClassOutput.get(), true}, {mMinIntersection.get(), false}});
 
     mClustersIn = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Input cluster", parent);
-    mClassesIn  = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Input classes", parent);
+    mClustersIn->setValue(settings.objectsIn.clusterIn);
+    mClustersIn->connectWithSetting(&settings.objectsIn.clusterIn);
+
+    mClassesIn = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Input classes", parent);
+    mClassesIn->setValue(settings.objectsIn.classesIn);
+    mClassesIn->connectWithSetting(&settings.objectsIn.classesIn);
 
     mClustersIntersectWith =
-        generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Intersecting cluster", parent);
+        generateClusterDropDown<SettingComboBoxMulti<enums::ClusterIdIn>>("Intersecting cluster", parent);
     mClassesIntersectWith = generateClassDropDown<SettingComboBoxMulti<enums::ClassId>>("Intersecting classes", parent);
 
     auto *col2 = addSetting(modelTab, "Input classes", {{mClustersIn.get(), true}, {mClassesIn.get(), false}});
@@ -89,7 +94,7 @@ private:
   std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClustersIn;
   std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mClassesIn;
 
-  std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClustersIntersectWith;
+  std::unique_ptr<SettingComboBoxMulti<enums::ClusterIdIn>> mClustersIntersectWith;
   std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mClassesIntersectWith;
 
   /////////////////////////////////////////////////////

@@ -32,7 +32,6 @@ public:
   {
     mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, "icons8-split-50", "Find tolerance");
     mFindTolerance->addOptions({
-        {0, "Off"},
         {0.5, "Default (0.5)"},
         {0.6, "0.6"},
         {0.7, "0.7"},

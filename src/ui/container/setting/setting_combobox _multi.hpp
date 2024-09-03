@@ -239,7 +239,7 @@ public:
         toCheck.append(static_cast<int>(value));
       }
       if constexpr(std::same_as<VALUE_T, float>) {
-        toCheck.append(static_cast<int>(value));
+        toCheck.append(static_cast<float>(value));
       }
       if constexpr(std::same_as<VALUE_T, bool>) {
         toCheck.append(static_cast<int>(value));

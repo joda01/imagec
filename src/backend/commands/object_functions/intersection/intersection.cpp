@@ -30,11 +30,14 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
 {
   auto &objectsInOut = context.loadObjectsFromCache(mSettings.objectsIn.objectIn)
                            ->at(context.getClusterId(mSettings.objectsIn.clusterIn));
-  const auto &intersectWith = context.loadObjectsFromCache(mSettings.objectsInWith.objectIn)
-                                  ->at(context.getClusterId(mSettings.objectsInWith.clusterIn));
 
-  objectsInOut.calcIntersections(mSettings.mode, intersectWith, mSettings.objectsIn.classesIn,
-                                 mSettings.objectsInWith.classesIn, mSettings.minIntersection, mSettings.newClassId);
+  for(const auto &intersectWithClusterId : mSettings.objectsInWith.clusterIn) {
+    const auto &intersectWith = context.loadObjectsFromCache(mSettings.objectsInWith.objectIn)
+                                    ->at(context.getClusterId(intersectWithClusterId));
+
+    objectsInOut.calcIntersections(mSettings.mode, intersectWith, mSettings.objectsIn.classesIn,
+                                   mSettings.objectsInWith.classesIn, mSettings.minIntersection, mSettings.newClassId);
+  }
 }
 /*
 cv::Mat intersectingMask =

@@ -132,7 +132,8 @@ void DialogAnalyzeRunning::refreshThread()
   while(true) {
     try {
       const auto &state = mWindowMain->getController()->getState();
-      if(state.getState() == joda::processor::ProcessState::FINISHED) {
+      if(state.getState() == joda::processor::ProcessState::FINISHED ||
+         state.getState() == joda::processor::ProcessState::ERROR) {
         break;
       }
     } catch(const std::exception &ex) {
@@ -184,6 +185,26 @@ void DialogAnalyzeRunning::onRefreshData()
     progressBar->setMaximum(100);
     progressBar->setMinimum(0);
     progressBar->setValue(100);
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
+  } else if(actState == joda::processor::ProcessState::ERROR) {
+    closeButton->setEnabled(true);
+    stopButton->setEnabled(false);
+    progressBar->setRange(0, 100);
+    progressBar->setMaximum(100);
+    progressBar->setMinimum(0);
+    progressBar->setValue(100);
+    if(!mStopped) {
+      QMessageBox messageBox(this);
+      auto *icon = new QIcon(":/icons/outlined/icons8-error-50.png");
+      messageBox.setIconPixmap(icon->pixmap(42, 42));
+      messageBox.setWindowTitle("Error...");
+      messageBox.setText("Error in execution got >" +
+                         QString(mWindowMain->getController()->getJobInformation().errorLog.data()) + "<.");
+      messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+      auto reply = messageBox.exec();
+    }
+    mStopped = true;
+
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
   } else {
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage;

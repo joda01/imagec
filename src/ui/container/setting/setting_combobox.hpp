@@ -182,7 +182,7 @@ public:
       idx = mComboBox->findData(static_cast<int>(value));
     }
     if constexpr(std::same_as<VALUE_T, float>) {
-      idx = mComboBox->findData(static_cast<int>(value));
+      idx = mComboBox->findData(static_cast<float>(value));
     }
     if constexpr(std::same_as<VALUE_T, bool>) {
       idx = mComboBox->findData(static_cast<int>(value));

@@ -35,7 +35,8 @@ enum class ProcessState
   LOOKING_FOR_IMAGES,
   RUNNING,
   STOPPING,
-  FINISHED
+  FINISHED,
+  ERROR
 };
 
 struct ProcessInformation
@@ -44,6 +45,7 @@ struct ProcessInformation
   std::filesystem::path resultsFilePath;
   std::string jobName;
   std::chrono::system_clock::time_point timestampStarted;
+  std::string errorLog;
 };
 
 class ProcessProgress
@@ -85,6 +87,12 @@ public:
   void setStateRunning()
   {
     state = ProcessState::RUNNING;
+  }
+
+  void setStateError(ProcessInformation &info, const std::string &errorMsg)
+  {
+    state         = ProcessState::ERROR;
+    info.errorLog = errorMsg;
   }
 
   void setTotalNrOfImages(uint32_t images)

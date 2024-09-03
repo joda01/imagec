@@ -43,7 +43,7 @@ struct IntersectionSettings : public SettingBase
     //
     // Cluster to calculate the intersection with
     //
-    joda::enums::ClusterIdIn clusterIn = joda::enums::ClusterIdIn::NONE;
+    joda::enums::ClusterIdIn clusterIn = joda::enums::ClusterIdIn::$;
 
     //
     // Classes within the cluster to calc the calculation with
@@ -57,6 +57,32 @@ struct IntersectionSettings : public SettingBase
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectingClasses, objectIn, clusterIn, classesIn);
+  };
+
+  struct IntersectWithClasses
+  {
+    //
+    // Input object to intersect with. Leaf empty to use imagePlane context store
+    //
+    joda::enums::ObjectStoreId objectIn;
+
+    //
+    // Cluster to calculate the intersection with
+    //
+    std::set<joda::enums::ClusterIdIn> clusterIn;
+
+    //
+    // Classes within the cluster to calc the calculation with
+    //
+    std::set<joda::enums::ClassId> classesIn;
+
+    void check() const
+    {
+      CHECK(!classesIn.empty(), "At least one class id must be given.");
+      // CHECK(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectWithClasses, objectIn, clusterIn, classesIn);
   };
 
   //
@@ -77,7 +103,7 @@ struct IntersectionSettings : public SettingBase
   //
   // Objects to calc the intersection with
   //
-  IntersectingClasses objectsInWith;
+  IntersectWithClasses objectsInWith;
 
   //
   // In case of reclassification this is the new class ID for intersecting elements
@@ -99,7 +125,7 @@ struct IntersectionSettings : public SettingBase
   {
     std::set<enums::ClusterIdIn> clusters;
     clusters.emplace(objectsIn.clusterIn);
-    clusters.emplace(objectsInWith.clusterIn);
+    clusters.insert(objectsInWith.clusterIn.begin(), objectsInWith.clusterIn.end());
     return clusters;
   }
 
