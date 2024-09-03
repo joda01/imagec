@@ -466,7 +466,9 @@ void WindowMain::checkForSettingsChanged()
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
     // mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50-red.png"));
+
     mSaveProject->setEnabled(true);
+    emit onOutputClassifierChanges();
   } else {
     // Equal
     // mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50.png"));

@@ -11,6 +11,8 @@
 ///
 
 #include "setting_combobox_multi_classification_in.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -56,19 +58,24 @@ void SettingComboBoxMultiClassificationIn::clusterNamesChanged()
 
 void SettingComboBoxMultiClassificationIn::outputClustersChanges()
 {
-  auto outputClusters = getParent()->getOutputClasses();
-  mComboBox->blockSignals(true);
-  auto actSelected = getValue();
-  mComboBox->clear();
-  auto [clusteres, classes] = getParent()->getPanelClassification()->getClustersAndClasses();
-  for(const auto &data : outputClusters) {
-    QVariant variant;
-    variant = QVariant(toInt(data));
-    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                       clusteres[data.clusterId] + "/" + classes[data.classId], variant);
+  auto *parent = getParent();
+  if(parent != nullptr) {
+    auto outputClusters = parent->getOutputClasses();
+    mComboBox->blockSignals(true);
+    auto actSelected = getValue();
+    mComboBox->clear();
+    auto [clusteres, classes] = parent->getPanelClassification()->getClustersAndClasses();
+    for(const auto &data : outputClusters) {
+      if(data.classId != enums::ClassId::UNDEFINED) {
+        QVariant variant;
+        variant = QVariant(toInt(data));
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
+                           clusteres[data.clusterId] + "/" + classes[data.classId], variant);
+      }
+    }
+    setValue(actSelected);
+    mComboBox->blockSignals(false);
   }
-  setValue(actSelected);
-  mComboBox->blockSignals(false);
 }
 
 QString SettingComboBoxMultiClassificationIn::getName(settings::ObjectOutputClass key) const

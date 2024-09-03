@@ -107,6 +107,9 @@ public slots:
   void onBackClicked();
   void onRemoveChannelClicked();
 
+signals:
+  void onOutputClassifierChanges();
+
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t LEFT_TOOLBAR_WIDTH = 400;    // 365

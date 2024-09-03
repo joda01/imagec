@@ -51,18 +51,21 @@ void SettingComboBoxClassesOut::clear()
 
 void SettingComboBoxClassesOut::clusterNamesChanged()
 {
-  mComboBox->blockSignals(true);
-  auto actSelected = getValue();
-  mComboBox->clear();
-  auto [_, classes] = getParent()->getPanelClassification()->getClustersAndClasses();
-  for(const auto &data : classes) {
-    QVariant variant;
-    variant = QVariant(toInt(data.first));
-    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                       data.second, variant);
+  auto *parent = getParent();
+  if(parent != nullptr) {
+    mComboBox->blockSignals(true);
+    auto actSelected = getValue();
+    mComboBox->clear();
+    auto [_, classes] = parent->getPanelClassification()->getClustersAndClasses();
+    for(const auto &data : classes) {
+      QVariant variant;
+      variant = QVariant(toInt(data.first));
+      mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
+                         data.second, variant);
+    }
+    setValue(actSelected);
+    mComboBox->blockSignals(false);
   }
-  setValue(actSelected);
-  mComboBox->blockSignals(false);
 }
 
 QString SettingComboBoxClassesOut::getName(enums::ClassId key) const

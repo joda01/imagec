@@ -32,9 +32,12 @@ SettingBase::SettingBase(QWidget *parent, const QString &icon, const QString &de
     mIcon = QIcon(":/icons/outlined/" + icon);
   }
   createDisplayAbleWidget(icon, description);
+  if(parent != nullptr) {
+    connect(mParent->getPanelClassification(), &PanelClassification::settingsChanged, this,
+            &SettingBase::onClassificationNameChanged);
 
-  connect(mParent->getPanelClassification(), &PanelClassification::settingsChanged, this,
-          &SettingBase::onClassificationNameChanged);
+    connect(mParent, &WindowMain::onOutputClassifierChanges, this, &SettingBase::onOutputClassifierChanges);
+  }
 }
 
 ///
@@ -331,6 +334,15 @@ void SettingBase::onHelpButtonClicked()
 void SettingBase::onClassificationNameChanged()
 {
   clusterNamesChanged();
+}
+
+///
+/// \brief    Name of cluster or class changed
+/// \author   Joachim Danmayr
+///
+void SettingBase::onOutputClassifierChanges()
+{
+  outputClustersChanges();
 }
 
 }    // namespace joda::ui

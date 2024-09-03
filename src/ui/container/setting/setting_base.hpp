@@ -129,6 +129,7 @@ private:
 private slots:
   void onHelpButtonClicked();
   void onClassificationNameChanged();
+  void onOutputClassifierChanges();
 };
 
 }    // namespace joda::ui
