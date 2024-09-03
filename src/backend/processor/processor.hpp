@@ -36,7 +36,7 @@ enum class ProcessState
   RUNNING,
   STOPPING,
   FINISHED,
-  ERROR
+  FINISHED_WITH_ERROR
 };
 
 struct ProcessInformation
@@ -91,7 +91,7 @@ public:
 
   void setStateError(ProcessInformation &info, const std::string &errorMsg)
   {
-    state         = ProcessState::ERROR;
+    state         = ProcessState::FINISHED_WITH_ERROR;
     info.errorLog = errorMsg;
   }
 

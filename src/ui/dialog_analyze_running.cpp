@@ -133,7 +133,7 @@ void DialogAnalyzeRunning::refreshThread()
     try {
       const auto &state = mWindowMain->getController()->getState();
       if(state.getState() == joda::processor::ProcessState::FINISHED ||
-         state.getState() == joda::processor::ProcessState::ERROR) {
+         state.getState() == joda::processor::ProcessState::FINISHED_WITH_ERROR) {
         break;
       }
     } catch(const std::exception &ex) {
@@ -186,7 +186,7 @@ void DialogAnalyzeRunning::onRefreshData()
     progressBar->setMinimum(0);
     progressBar->setValue(100);
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
-  } else if(actState == joda::processor::ProcessState::ERROR) {
+  } else if(actState == joda::processor::ProcessState::FINISHED_WITH_ERROR) {
     closeButton->setEnabled(true);
     stopButton->setEnabled(false);
     progressBar->setRange(0, 100);

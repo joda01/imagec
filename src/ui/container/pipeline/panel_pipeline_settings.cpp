@@ -26,9 +26,6 @@
 #include <mutex>
 #include <string>
 #include <thread>
-#include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
-#include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
-#include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/logger/console_logger.hpp"

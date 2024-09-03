@@ -19,9 +19,6 @@
 #include <mutex>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_clusters.hpp"
-#include "backend/settings/pipeline/pipeline.hpp"
-#include "backend/settings/pipeline/pipeline_step.hpp"
-#include "controller/controller.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/container/pipeline/panel_channel_overview.hpp"
