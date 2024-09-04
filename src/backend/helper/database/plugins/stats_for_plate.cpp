@@ -103,7 +103,7 @@ auto StatsPerPlate::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             "     ("
             "     	SELECT intersect_in.object_id, intersect_in.meas_object_id FROM objects "
             "     	JOIN object_intersections AS intersect_in ON objects.object_id = intersect_in.meas_object_id "
-            "     	WHERE cluster_id = $5 AND class_id = $6"
+            "     	WHERE cluster_id = $3 AND class_id = $4"
             "     ) as inners "
             "     on objects.object_id = inners.object_id "
             "     JOIN images on objects.image_id = images.image_id "
