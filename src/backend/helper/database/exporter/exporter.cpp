@@ -74,6 +74,7 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
                                                 .plateId                 = settings.plateId,
                                                 .actGroupId              = settings.groupId,
                                                 .actImageId              = settings.imageId,
+                                                .clusterId               = clusterId,
                                                 .classId                 = classId,
                                                 .className               = className,
                                                 .measurementChannel      = measureChannelId,
@@ -90,7 +91,6 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
             switch(settings.exportDetail) {
               case Settings::ExportDetail::PLATE:
                 table = joda::db::StatsPerPlate::toHeatmap(filter);
-
                 break;
               case Settings::ExportDetail::WELL:
                 table = joda::db::StatsPerGroup::toHeatmap(filter);
@@ -99,7 +99,6 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
                 table = joda::db::StatsPerImage::toHeatmap(filter);
                 break;
             }
-
             paintPlateBorder(worksheet, table.getRows(), table.getCols(), offsets.row, workbookSettings.header,
                              workbookSettings.merge_format, workbookSettings.numberFormat, createHeader(filter));
             offsets = paintHeatmap(workbookSettings, worksheet, table, offsets.row);

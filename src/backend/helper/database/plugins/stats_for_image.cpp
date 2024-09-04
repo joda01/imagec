@@ -250,7 +250,8 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
 
         std::string linkToImage = controlImgPath;
         results.setData(y, x, table::TableCell{value, 0, true, linkToImage});
-      } catch(const duckdb::InternalException &) {
+      } catch(const duckdb::InternalException &ex) {
+        std::cout << "EX " << ex.what() << std::endl;
       }
     }
   }
