@@ -218,6 +218,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
           }
 
           // Image finished
+          db.setImageProcessed(imageContext.imageId);
           mProgress.incProcessedImages();
         };
 
