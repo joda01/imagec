@@ -75,7 +75,7 @@ struct ObjectOutputClass
   //
   // Class the objects should be assigned if filter matches
   //
-  joda::enums::ClassId classId = joda::enums::ClassId::UNDEFINED;
+  joda::enums::ClassId classId = joda::enums::ClassId::NONE;
 
   void check() const
   {

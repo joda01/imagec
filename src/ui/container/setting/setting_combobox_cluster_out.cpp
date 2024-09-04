@@ -11,6 +11,7 @@
 ///
 
 #include "setting_combobox_cluster_out.hpp"
+#include <string>
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {

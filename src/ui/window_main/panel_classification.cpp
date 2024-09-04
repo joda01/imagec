@@ -285,6 +285,7 @@ void PanelClassification::toSettings()
   clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::NONE), QString("None"));
 
   classes.emplace(static_cast<enums::ClassId>(enums::ClassId::NONE), QString("None"));
+  classes.emplace(static_cast<enums::ClassId>(enums::ClassId::UNDEFINED), QString("Undefined"));
 
   for(const auto &cluster : mSettings.clusters) {
     clusters.emplace(static_cast<enums::ClusterIdIn>(cluster.clusterId), QString(cluster.name.data()));

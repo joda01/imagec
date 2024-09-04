@@ -133,6 +133,7 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::Command> c
   mPipelineSteps->addWidget(command.get());
   mPipelineSteps->addWidget(new AddCommandButtonBase(mSettings, this, pipelineStepBefore, mWindowMain));
   mCommands.push_back(std::move(command));
+  mWindowMain->checkForSettingsChanged();
 }
 
 ///
@@ -189,6 +190,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
       return;
     }
   }
+  mWindowMain->checkForSettingsChanged();
 }
 
 ///
