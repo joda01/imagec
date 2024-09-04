@@ -42,14 +42,10 @@ PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &sett
 {
 }
 
-void PipelineInitializer::init(const std::filesystem::path &imagePath, ImageContext &imageContextOut,
-                               const processor::GlobalContext &globalContextOut)
+void PipelineInitializer::init(ImageContext &imageContextOut)
 {
-  mImageContext             = &imageContextOut;
-  imageContextOut.imageMeta = joda::image::reader::ImageReader::getOmeInformation(imagePath);
-  imageContextOut.imagePath = imagePath;
-  imageContextOut.imageId   = joda::helper::fnv1a(imagePath.string());
-  mNrOfZStacks              = imageContextOut.imageMeta.getNrOfZStack();
+  mImageContext = &imageContextOut;
+  mNrOfZStacks  = imageContextOut.imageMeta.getNrOfZStack();
 
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:

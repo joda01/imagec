@@ -19,9 +19,13 @@
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/duration_count/duration_count.h"
+#include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
+#include "backend/helper/fnv1a.hpp"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/rle/rle.hpp"
 #include "backend/helper/uuid.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
@@ -119,6 +123,7 @@ void Database::createTables()
       " width UINTEGER,"
       " height UINTEGER,"
       " validity UBIGINT,"
+      " processed BOOLEAN,"
       " PRIMARY KEY (image_id)"
       ");"
 
@@ -405,6 +410,91 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
   // statistic_measurements.Close();
 }
 
+auto Database::prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std::string &filenameRegex,
+                             const std::vector<std::filesystem::path> &imagePaths)
+    -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
+{
+  std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> imagesToProcess;
+  joda::grp::FileGrouper grouper(groupBy, filenameRegex);
+
+  auto connection      = acquire();
+  auto groups          = duckdb::Appender(*connection, "groups");
+  auto images          = duckdb::Appender(*connection, "images");
+  auto images_groups   = duckdb::Appender(*connection, "images_groups");
+  auto images_channels = duckdb::Appender(*connection, "images_channels");
+  std::set<uint16_t> addedGroups;
+
+  //
+  // Preparing -> Insert all images to database
+  //
+  for(const auto &imagePath : imagePaths) {
+    auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath);
+    uint64_t imageId = joda::helper::fnv1a(imagePath.string());
+
+    imagesToProcess.emplace_back(imagePath, ome, imageId);
+    auto groupInfo = grouper.getGroupForFilename(imagePath);
+    // Group
+    {
+      if(!addedGroups.contains(groupInfo.groupId)) {
+        groups.BeginRow();
+        groups.Append<uint16_t>(plateId);                   //       " plate_id USMALLINT,"
+        groups.Append<uint16_t>(groupInfo.groupId);         //       " group_id USMALLINT,"
+        groups.Append<std::string>(groupInfo.groupName);    //       " name STRING,"
+        groups.Append<std::string>("");                     //       " notes STRING,"
+        groups.Append<uint32_t>(groupInfo.wellPosX);        //       " pos_on_plate_x UINTEGER,"
+        groups.Append<uint32_t>(groupInfo.wellPosX);        //       " pos_on_plate_y UINTEGER,"
+        groups.EndRow();
+        addedGroups.emplace(groupInfo.groupId);
+      }
+    }
+
+    // Image
+    {
+      images.BeginRow();
+      images.Append<uint64_t>(imageId);                             //       " image_id UBIGINT,"
+      images.Append<std::string>(imagePath.filename().string());    //       " file_name TEXT,"
+      images.Append<std::string>(imagePath.string());               //       " original_file_path TEXT
+      images.Append<uint32_t>(ome.getNrOfChannels());               //       " nr_of_c_stacks UINTEGER
+      images.Append<uint32_t>(ome.getNrOfZStack());                 //       " nr_of_z_stacks UINTEGER
+      images.Append<uint32_t>(ome.getNrOfTStack());                 //       " nr_of_t_stacks UINTEGER
+      images.Append<uint32_t>(std::get<0>(ome.getSize()));          //       " width UINTEGER,"
+      images.Append<uint32_t>(std::get<1>(ome.getSize()));          //       " height UINTEGER,"
+      images.Append<uint64_t>(0);                                   //       " validity UBIGINT,"
+      images.Append<bool>(false);                                   //       " processed BOOL,"
+      images.EndRow();
+    }
+
+    // Image Group
+    {
+      images_groups.BeginRow();
+      images_groups.Append<uint16_t>(plateId);               //       " plate_id USMALLINT,"
+      images_groups.Append<uint16_t>(groupInfo.groupId);     //       " group_id USMALLINT,"
+      images_groups.Append<uint64_t>(imageId);               //       " image_id UBIGINT,"
+      images_groups.Append<uint32_t>(groupInfo.imageIdx);    //       " image_group_idx UINTEGER, "
+      images_groups.EndRow();
+    }
+
+    // Image channel
+    {
+      for(const auto &[channelId, channel] : ome.getChannelInfos()) {
+        images_channels.BeginRow();
+        images_channels.Append<uint64_t>(imageId);                      // " image_id UBIGINT,"
+        images_channels.Append<uint32_t>(channelId);                    // " stack_c UINTEGER, "
+        images_channels.Append<duckdb::string_t>(channel.channelId);    // " channel_id TEXT,"
+        images_channels.Append<duckdb::string_t>(channel.name);         // " name TEXT,"
+        images_channels.EndRow();
+      }
+    }
+  }
+
+  groups.Close();
+  images.Close();
+  images_groups.Close();
+  images_channels.Close();
+
+  return imagesToProcess;
+}
+
 void Database::insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo)
 {
   try {
@@ -525,6 +615,21 @@ void Database::setImageValidity(uint64_t imageId, enums::ChannelValidity validit
 {
   std::unique_ptr<duckdb::QueryResult> result = select("UPDATE images SET validity = validity | ? WHERE image_id=?",
                                                        static_cast<uint64_t>(validity.to_ullong()), imageId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+}
+
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::setImageProcessed(uint64_t imageId)
+{
+  std::unique_ptr<duckdb::QueryResult> result = select("UPDATE images SET processed = true  WHERE image_id=?", imageId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }

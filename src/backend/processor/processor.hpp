@@ -33,6 +33,7 @@ enum class ProcessState
 {
   INITIALIZING,
   LOOKING_FOR_IMAGES,
+  RUNNING_PREPARING_PIPELINE,
   RUNNING,
   STOPPING,
   FINISHED,
@@ -87,6 +88,11 @@ public:
   void setStateRunning()
   {
     state = ProcessState::RUNNING;
+  }
+
+  void setRunningPreparingPipeline()
+  {
+    state = ProcessState::RUNNING_PREPARING_PIPELINE;
   }
 
   void setStateError(ProcessInformation &info, const std::string &errorMsg)
@@ -158,9 +164,6 @@ public:
   void stop();
   std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
                                       GlobalContext &globalContext);
-  void initializePipelineContext(const GlobalContext &globalContext, const PlateContext &plateContext,
-                                 joda::grp::FileGrouper &grouper, const joda::filesystem::path &imagePath,
-                                 PipelineInitializer &imageLoader, ImageContext &imageContext) const;
 
   void listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &);
   const ProcessProgress &getProgress() const

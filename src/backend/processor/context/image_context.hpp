@@ -27,9 +27,9 @@ struct ImageContext
 {
   PipelineInitializer &imageLoader;
   std::filesystem::path imagePath;
-  joda::ome::OmeInfo imageMeta;
-  cv::Size tileSize;
+  const joda::ome::OmeInfo &imageMeta;
   uint64_t imageId;
+  cv::Size tileSize;
 };
 
 }    // namespace joda::processor

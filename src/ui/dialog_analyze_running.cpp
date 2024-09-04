@@ -151,7 +151,8 @@ void DialogAnalyzeRunning::onRefreshData()
   auto actState          = joda::processor::ProcessState::INITIALIZING;
   try {
     const auto &state = mWindowMain->getController()->getState();
-    if(state.getState() == joda::processor::ProcessState::RUNNING) {
+    if(state.getState() == joda::processor::ProcessState::RUNNING ||
+       state.getState() == joda::processor::ProcessState::RUNNING_PREPARING_PIPELINE) {
       mEndedTime = std::chrono::high_resolution_clock::now();
     }
     actState       = state.getState();
@@ -203,11 +204,12 @@ void DialogAnalyzeRunning::onRefreshData()
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
       auto reply = messageBox.exec();
     }
-    mStopped = true;
-
+    mStopped     = true;
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
+  } else if(actState == joda::processor::ProcessState::RUNNING_PREPARING_PIPELINE) {
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Preparing images ...";
   } else {
-    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage;
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Processing pipelines ...";
   }
 
   mProgressText->setText(progressText);

@@ -87,18 +87,23 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     for(const auto &plate : program.projectSettings.plates) {
       BS::multi_future<void> imageFutures;
       PlateContext plateContext{.plateId = plate.plateId};
-      joda::grp::FileGrouper grouper(plate.groupBy, plate.filenameRegex);
       const auto &images = allImages.getFilesListAt(plate.plateId);
+
+      mProgress.setRunningPreparingPipeline();
+      auto imagesToProcess = db.prepareImages(plate.plateId, plate.groupBy, plate.filenameRegex, images);
+      mProgress.setStateRunning();
 
       //
       // Iterate over each image
       //
-      for(const auto &imagePath : images) {
-        auto analyzeImage = [this, &program, &globalContext, &plateContext, &grouper, &pipelineOrder, &db,
-                             &poolSizeTiles, &poolSizeChannels, imagePath]() {
+      for(const auto &actImage : imagesToProcess) {
+        auto analyzeImage = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, &poolSizeTiles,
+                             &poolSizeChannels, &actImage]() {
+          auto const [imagePath, omeInfo, imageId] = actImage;
           PipelineInitializer imageLoader(program.imageSetup);
-          ImageContext imageContext{.imageLoader = imageLoader};
-          initializePipelineContext(globalContext, plateContext, grouper, imagePath, imageLoader, imageContext);
+          ImageContext imageContext{
+              .imageLoader = imageLoader, .imagePath = imagePath, .imageMeta = omeInfo, .imageId = imageId};
+          imageLoader.init(imageContext);
 
           //
           // Start the iteration over planes
@@ -119,8 +124,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                 break;
               }
 
-              auto analyzeTile = [this, &program, &globalContext, &plateContext, &grouper, &pipelineOrder, &db,
-                                  imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX, tileY,
+              auto analyzeTile = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db,
+                                  imagePath = imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX, tileY,
                                   &poolSizeChannels]() {
                 // Start of the image specific function
                 for(int tStack = 0; tStack < nrtStack; tStack++) {
@@ -137,9 +142,9 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     // Start with the highest prio pipelines down to the lowest prio
                     BS::multi_future<void> clustersFuture;
                     for(const auto &[order, pipelines] : pipelineOrder) {
-                      auto executePipeline = [this, &program, &globalContext, &plateContext, &grouper, &pipelineOrder,
-                                              &db, imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX,
-                                              tileY, pipelines = pipelines, &iterationContext, tStack, zStack]() {
+                      auto executePipeline = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db,
+                                              imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX, tileY,
+                                              pipelines = pipelines, &iterationContext, tStack, zStack]() {
                         // These are pipelines in onw prio step -> Can be parallelized
                         for(const auto &pipeline : pipelines) {
                           if(mProgress.isStopping()) {
@@ -264,37 +269,7 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
   }
   allImages.waitForFinished();
   mProgress.setTotalNrOfImages(allImages.getNrOfFiles());
-  mProgress.setStateRunning();
-}
-
-void Processor::initializePipelineContext(const GlobalContext &globalContext, const PlateContext &plateContext,
-                                          joda::grp::FileGrouper &grouper, const joda::filesystem::path &imagePath,
-                                          PipelineInitializer &imageLoader, ImageContext &imageContext) const
-{
-  auto &db = const_cast<joda::db::Database &>(globalContext.database);
-  imageLoader.init(imagePath, imageContext, globalContext);
-
-  //
-  // Assign image to group here!!
-  //
-  auto groupInfo = grouper.getGroupForFilename(imagePath);
-  db.insertGroup(plateContext.plateId, groupInfo);
-
-  try {
-    db.insertImage(imageContext, groupInfo);
-  } catch(const std::exception &ex) {
-    std::cout << "Im: " << ex.what() << std::endl;
-  }
-  try {
-    db.insertImageChannels(imageContext.imageId, imageContext.imageMeta);
-  } catch(const std::exception &ex) {
-    std::cout << "Ch: " << ex.what() << std::endl;
-  }
-  try {
-    db.insetImageToGroup(plateContext.plateId, imageContext.imageId, groupInfo.imageIdx, groupInfo);
-  } catch(const std::exception &ex) {
-    std::cout << "IM GR: " << ex.what() << std::endl;
-  }
+  mProgress.setRunningPreparingPipeline();
 }
 
 ///
@@ -308,12 +283,14 @@ auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, c
                                 const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
                                 int32_t tileY) -> std::tuple<cv::Mat, cv::Mat, cv::Mat>
 {
+  auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath);
+
   GlobalContext globalContext;
   PlateContext plateContext{.plateId = 0};
   joda::grp::FileGrouper grouper(enums::GroupBy::OFF, "");
   PipelineInitializer imageLoader(imageSetup);
-  ImageContext imageContext{.imageLoader = imageLoader};
-  imageLoader.init(imagePath, imageContext, globalContext);
+  ImageContext imageContext{.imageLoader = imageLoader, .imagePath = imagePath, .imageMeta = ome, .imageId = 1};
+  imageLoader.init(imageContext);
 
   IterationContext iterationContext;
 
@@ -334,41 +311,15 @@ auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, c
 
   joda::settings::ImageSaverSettings saverSettings;
 
-  saverSettings.clustersIn = {
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#808080",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#FF0000",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#00FF00",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#0000FF",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#0000FF",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#0000FF",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#0000FF",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#0000FF",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#0000FF",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#0000FF",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-      settings::ImageSaverSettings::SaveCluster{.inputCluster = {enums::ClusterIdIn::A, enums::ClassId::NONE},
-                                                .color        = "#0000FF",
-                                                .style        = settings::ImageSaverSettings::Style::FILLED},
-  };
+  for(int cluster = 0; cluster < 10; cluster++) {
+    for(int classs = 0; classs < 10; classs++) {
+      saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{
+          .inputCluster = {(enums::ClusterIdIn) cluster, (enums::ClassId) classs},
+          .color        = "#FF0000",
+          .style        = settings::ImageSaverSettings::Style::OUTLINED});
+    }
+  }
+
   saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_PLANE;
   saverSettings.planesIn   = enums::ImageId{.imageIdx = enums::ZProjection::$};
   saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
