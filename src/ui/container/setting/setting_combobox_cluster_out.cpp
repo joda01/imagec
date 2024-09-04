@@ -18,16 +18,14 @@ namespace joda::ui {
 
 QWidget *SettingComboBoxClusterOut::createInputObject()
 {
-  mComboBox = new QComboBoxMulti();
+  mComboBox = new QComboBox();
   mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
   clusterNamesChanged();
 
-  SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this,
-                       &SettingComboBoxClusterOut::onValueChanged);
-  SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this,
-                       &SettingComboBoxClusterOut::onValueChanged);
+  SettingBase::connect(mComboBox, &QComboBox::currentIndexChanged, this, &SettingComboBoxClusterOut::onValueChanged);
+  SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClusterOut::onValueChanged);
 
   return mComboBox;
 }
@@ -104,9 +102,9 @@ void SettingComboBoxClusterOut::onValueChanged()
   QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
   if(itemData.isValid() && itemData.canConvert<QIcon>()) {
     auto selectedIcon = qvariant_cast<QIcon>(itemData);
-    SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), selectedIcon);
+    SettingBase::triggerValueChanged((mComboBox)->currentText(), selectedIcon);
   } else {
-    SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText());
+    SettingBase::triggerValueChanged((mComboBox)->currentText());
   }
 }
 

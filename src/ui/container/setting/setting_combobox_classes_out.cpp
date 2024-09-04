@@ -18,16 +18,14 @@ namespace joda::ui {
 
 QWidget *SettingComboBoxClassesOut::createInputObject()
 {
-  mComboBox = new QComboBoxMulti();
+  mComboBox = new QComboBox();
   mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
   clusterNamesChanged();
 
-  SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this,
-                       &SettingComboBoxClassesOut::onValueChanged);
-  SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this,
-                       &SettingComboBoxClassesOut::onValueChanged);
+  SettingBase::connect(mComboBox, &QComboBox::currentIndexChanged, this, &SettingComboBoxClassesOut::onValueChanged);
+  SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClassesOut::onValueChanged);
 
   return mComboBox;
 }
@@ -61,8 +59,14 @@ void SettingComboBoxClassesOut::clusterNamesChanged()
     for(const auto &data : classes) {
       QVariant variant;
       variant = QVariant(toInt(data.first));
-      mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                         data.second, variant);
+      if(!SettingBase::getIcon().isNull()) {
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
+                           data.second, variant);
+      } else {
+        mComboBox->addItem(QIcon(QIcon(":/icons/outlined/icons8-unknown-status-50.png")
+                                     .pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
+                           data.second, variant);
+      }
     }
     setValue(actSelected);
     mComboBox->blockSignals(false);
@@ -104,9 +108,9 @@ void SettingComboBoxClassesOut::onValueChanged()
   QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
   if(itemData.isValid() && itemData.canConvert<QIcon>()) {
     auto selectedIcon = qvariant_cast<QIcon>(itemData);
-    SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), selectedIcon);
+    SettingBase::triggerValueChanged(mComboBox->currentText(), selectedIcon);
   } else {
-    SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText());
+    SettingBase::triggerValueChanged(mComboBox->currentText());
   }
 }
 

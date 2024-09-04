@@ -19,7 +19,6 @@
 #include <set>
 #include "backend/enums/enums_classes.hpp"
 #include "backend/settings/setting.hpp"
-#include "ui/helper/multicombobox.hpp"
 #include "setting_base.hpp"
 #include "setting_combobox.hpp"
 

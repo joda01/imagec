@@ -59,7 +59,7 @@ public:
 
       // Create an instance of Subdiv2D
 
-      for(const auto &res : voronoiPoints) {
+      for(const auto &res : voronoiPointsTmp) {
         if(inputPoints.classId == res.getClassId()) {
           voronoiPoints.emplace(res);
           int x = static_cast<int>(static_cast<float>(res.getBoundingBox().x) +

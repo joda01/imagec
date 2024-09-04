@@ -194,8 +194,8 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
     auto queryIntersectingMeasure = [&]() {
       std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
           "SELECT "
-          "floor(meas_center_x / $5) * $5 AS rectangle_x,"
-          "floor(meas_center_y / $5) * $5 AS rectangle_y,"
+          "floor(meas_center_x / $4) * $4 AS rectangle_x,"
+          "floor(meas_center_y / $4) * $4 AS rectangle_y,"
           "  	COUNT(object_intersections.meas_object_id) FILTER (images.validity = 0) as valid,"
           "  	COUNT(object_intersections.meas_object_id) FILTER (images.validity != 0) as invalid"
           "  FROM"
@@ -205,10 +205,10 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
           "  JOIN objects ON"
           "  	objects.object_id = object_intersections.meas_object_id"
           "  	AND objects.image_id = object_intersections.image_id   "
-          "  	AND objects.cluster_id = $6                            "
-          "  	AND objects.class_id = $7                              "
+          "  	AND objects.cluster_id = $5                            "
+          "  	AND objects.class_id = $6                              "
           "  WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3 "
-          "GROUP BY objects.object_id, floor(meas_center_x / $5), floor(meas_center_y / $5)",
+          "GROUP BY objects.object_id, floor(meas_center_x / $4), floor(meas_center_y / $4)",
           static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.actImageId,
           duckdb::Value::DOUBLE(filter.densityMapAreaSize), static_cast<uint16_t>(filter.crossChannelClusterId),
           static_cast<uint16_t>(filter.crossChannelClassId));

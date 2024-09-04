@@ -6,7 +6,7 @@
 	"dockerFile": "Dockerfile",
 	"mounts": [
 		{
-			"source": "/media/danmayr-joachim/",
+			"source": "/media/T-Rex/",
 			"target": "/mnt",
 			"type": "bind"
 		}
