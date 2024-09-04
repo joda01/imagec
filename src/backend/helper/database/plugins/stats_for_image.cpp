@@ -56,18 +56,22 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
   };
 
   auto queryIntersectingMeasure = [&]() {
+    std::cout << "Cross channel " << std::to_string((uint16_t) filter.clusterId) << " | "
+              << std::to_string((uint16_t) filter.crossChannelClusterId) << std::endl;
+
     std::unique_ptr<duckdb::QueryResult> stats = filter.analyzer->select(
         "SELECT "
-        "  	COUNT(object_intersections.meas_object_id) as valid"
-        "  FROM"
-        "  	object_intersections"
-        "  JOIN objects ON"
-        "  	objects.object_id = object_intersections.meas_object_id"
-        "  	AND objects.image_id = object_intersections.image_id   "
-        "  	AND objects.cluster_id = $4                            "
-        "  	AND objects.class_id = $5                              "
-        "  WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3"
-        "  GROUP BY objects.object_id  ",
+        "COUNT(inners.meas_object_id)"
+        "FROM objects"
+        "JOIN"
+        "("
+        "	SELECT intersect_in.object_id, intersect_in.meas_object_id FROM objects "
+        "	JOIN object_intersections AS intersect_in ON  objects.object_id = intersect_in.meas_object_id"
+        "	WHERE cluster_id = $4 AND class_id = $5 AND objects.image_id = 2002496892582215779"
+        ") as inners"
+        "on objects.object_id = inners.object_id"
+        "WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3"
+        "GROUP BY objects.object_id",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.actImageId,
         static_cast<uint16_t>(filter.crossChannelClusterId), static_cast<uint16_t>(filter.crossChannelClassId));
     return stats;
@@ -196,18 +200,18 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
           "SELECT "
           "floor(meas_center_x / $4) * $4 AS rectangle_x,"
           "floor(meas_center_y / $4) * $4 AS rectangle_y,"
-          "  	COUNT(object_intersections.meas_object_id) FILTER (images.validity = 0) as valid,"
-          "  	COUNT(object_intersections.meas_object_id) FILTER (images.validity != 0) as invalid"
-          "  FROM"
-          "  	object_intersections"
-          " JOIN images ON object_intersections.image_id = images.image_id"
-          "  JOIN images_groups ON object_intersections.image_id = images_groups.image_id "
-          "  JOIN objects ON"
-          "  	objects.object_id = object_intersections.meas_object_id"
-          "  	AND objects.image_id = object_intersections.image_id   "
-          "  	AND objects.cluster_id = $5                            "
-          "  	AND objects.class_id = $6                              "
-          "  WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3 "
+          "COUNT(inners.meas_object_id) FILTER (images.validity = 0) as valid,"
+          "COUNT(inners.meas_object_id) FILTER (images.validity != 0) as invalid "
+          "FROM objects "
+          "JOIN "
+          "("
+          "	SELECT intersect_in.object_id, intersect_in.meas_object_id FROM objects "
+          "	JOIN object_intersections AS intersect_in ON  objects.object_id = intersect_in.meas_object_id "
+          "	WHERE cluster_id = $5 AND class_id = $6 AND objects.image_id = $3 "
+          ") as inners "
+          "on objects.object_id = inners.object_id "
+          "JOIN images on objects.image_id = images.image_id "
+          "WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3 "
           "GROUP BY objects.object_id, floor(meas_center_x / $4), floor(meas_center_y / $4)",
           static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.actImageId,
           duckdb::Value::DOUBLE(filter.densityMapAreaSize), static_cast<uint16_t>(filter.crossChannelClusterId),

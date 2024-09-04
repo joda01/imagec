@@ -116,6 +116,9 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
   connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
   connect(mLayout.getDeleteButton(), &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
+  connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this,
+          &PanelPipelineSettings::onClassificationNameChanged);
+  onClassificationNameChanged();
 }
 
 ///
@@ -540,6 +543,26 @@ void PanelPipelineSettings::deletePipeline()
 
   mWindowMain->showPanelStartPage();
   mWindowMain->getPanelPipeline()->erase(this);
+}
+
+///
+/// \brief        Names in the classification has been changed, update all commands using
+///               Class or Cluster with the new name
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::onClassificationNameChanged()
+{
+  const auto [clusters, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
+  std::map<enums::ClusterId, QString> clustersN;
+  for(const auto &[id, name] : clusters) {
+    if(id != enums::ClusterIdIn::$) {
+      clustersN.emplace(static_cast<enums::ClusterId>(id), name);
+    }
+  }
+  defaultClusterId->changeOptionText(clustersN);
 }
 
 ///
