@@ -98,8 +98,8 @@ public:
       if(!result.contains(context.getClusterId(cluster.inputCluster.clusterId))) {
         continue;
       }
-      const auto &clusterObjects = result.at(context.getClusterId(cluster.inputCluster.clusterId));
-      for(const auto &roi : clusterObjects) {
+      const auto *clusterObjects = result.at(context.getClusterId(cluster.inputCluster.clusterId)).get();
+      for(const auto &roi : *clusterObjects) {
         drawObject(cluster, roi, img_8bit_color);
       }
     }

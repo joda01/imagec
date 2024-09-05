@@ -330,7 +330,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
   auto object_intersections = duckdb::Appender(*connection, "object_intersections");
 
   for(const auto &[_, obj] : objectsList) {
-    for(const auto &roi : obj) {
+    for(const auto &roi : *obj) {
       objects.BeginRow();
       // Primary key
       objects.Append<uint64_t>(imgContext.imageId);               // "	image_id UBIGINT,"
@@ -386,13 +386,13 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       //
       // Intersections
       //
-      for(const auto &intersectingRoi : roi.getIntersections()) {
+      for(const auto &[objectId, intersectingRoi] : roi.getIntersections()) {
         object_intersections.BeginRow();
         // Primary key
         object_intersections.Append<uint64_t>(imgContext.imageId);    //       "	image_id UBIGINT,"
         object_intersections.Append<uint64_t>(roi.getObjectId());     //       " object_id UBIGINT,"
         //  Data
-        object_intersections.Append<uint64_t>(intersectingRoi.objectId);    // meas_object_id UBIGINT
+        object_intersections.Append<uint64_t>(objectId);    // meas_object_id UBIGINT
         object_intersections.EndRow();
       }
     }
@@ -1008,8 +1008,10 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
 
   ImageInfo results;
-  results.filename = materializedResult->GetValue(0, 0).GetValue<std::string>();
-  results.validity = materializedResult->GetValue(1, 0).GetValue<uint64_t>();
+  if(materializedResult->RowCount() > 0) {
+    results.filename = materializedResult->GetValue(0, 0).GetValue<std::string>();
+    results.validity = materializedResult->GetValue(1, 0).GetValue<uint64_t>();
+  }
 
   return results;
 }

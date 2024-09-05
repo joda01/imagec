@@ -60,6 +60,7 @@ private:
   uint32_t mTstackToLoad                  = 0;
   uint32_t mZStackToLoad                  = 0;
   uint32_t mNrOfZStacks                   = 0;
+  int32_t mTotalNrOfChannels              = 0;
 
   /////////////////////////////////////////////////////
   const settings::ProjectImageSetup &mSettings;

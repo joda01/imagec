@@ -170,13 +170,6 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
 {
   for(int index = 0; index < mPipelineSteps->count(); index++) {
     if(toDelete == mPipelineSteps->itemAt(index)->widget()) {
-      // Delete settings
-      {
-        int toDeleteIndex = index / 2;    // Each second is a add button
-        const auto &it    = std::next(mSettings.pipelineSteps.begin(), toDeleteIndex);
-        mSettings.pipelineSteps.erase(it);
-      }
-
       // Delete add button
       {
         QWidget *widget = mPipelineSteps->itemAt(index + 1)->widget();
@@ -190,6 +183,24 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
         mPipelineSteps->removeWidget(widget);
         widget->setParent(nullptr);
       }
+
+      // Delete settings
+      {
+        int toDeleteIndex = index / 2;    // Each second is a add button
+        const auto &it    = std::next(mSettings.pipelineSteps.begin(), toDeleteIndex);
+        mSettings.pipelineSteps.erase(it);
+      }
+
+      // Delete command from vector
+      {
+        for(auto it = mCommands.begin(); it != mCommands.end(); it++) {
+          if(it->get() == toDelete) {
+            mCommands.erase(it);
+            break;
+          }
+        }
+      }
+
       return;
     }
   }

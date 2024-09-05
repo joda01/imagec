@@ -111,6 +111,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
           auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
           auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
           auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
+          auto nrChannels       = omeInfo.getNrOfChannels();
 
           mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY);
           BS::multi_future<void> tilesFutures;
@@ -125,8 +126,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
               }
 
               auto analyzeTile = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db,
-                                  imagePath = imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX, tileY,
-                                  &poolSizeChannels]() {
+                                  imagePath = imagePath, nrtStack, nrzSTack, nrChannels, &imageContext, &imageLoader,
+                                  tileX, tileY, &poolSizeChannels]() {
                 // Start of the image specific function
                 for(int tStack = 0; tStack < nrtStack; tStack++) {
                   if(mProgress.isStopping()) {
@@ -144,7 +145,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     for(const auto &[order, pipelines] : pipelineOrder) {
                       auto executePipeline = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db,
                                               imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX, tileY,
-                                              pipelines = pipelines, &iterationContext, tStack, zStack]() {
+                                              nrChannels, pipelines = pipelines, &iterationContext, tStack, zStack]() {
                         // These are pipelines in onw prio step -> Can be parallelized
                         for(const auto &pipeline : pipelines) {
                           if(mProgress.isStopping()) {
@@ -160,11 +161,14 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                               context);
                           auto planeId = context.getActImage().getId().imagePlane;
                           try {
-                            db.insertImagePlane(imageContext.imageId, planeId,
-                                                imageContext.imageMeta.getChannelInfos()
-                                                    .at(pipeline->pipelineSetup.cStackIndex)
-                                                    .planes.at(planeId.tStack)
-                                                    .at(planeId.zStack));
+                            if(pipeline->pipelineSetup.cStackIndex >= 0 &&
+                               pipeline->pipelineSetup.cStackIndex < nrChannels) {
+                              db.insertImagePlane(imageContext.imageId, planeId,
+                                                  imageContext.imageMeta.getChannelInfos()
+                                                      .at(pipeline->pipelineSetup.cStackIndex)
+                                                      .planes.at(planeId.tStack)
+                                                      .at(planeId.zStack));
+                            }
                           } catch(const std::exception &ex) {
                             std::cout << "Insert Plane: " << ex.what() << std::endl;
                           }
@@ -317,7 +321,7 @@ auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, c
       saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{
           .inputCluster = {(enums::ClusterIdIn) cluster, (enums::ClassId) classs},
           .color        = "#FF0000",
-          .style        = settings::ImageSaverSettings::Style::OUTLINED});
+          .style        = settings::ImageSaverSettings::Style::FILLED});
     }
   }
 

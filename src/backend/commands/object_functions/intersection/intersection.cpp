@@ -33,11 +33,13 @@ void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, a
                              ->at(context.getClusterId(inputClassification.clusterId));
 
     for(const auto &intersectWithClusterId : mSettings.inputObjectsIntersectWith.inputClusters) {
-      const auto &intersectWith = context.loadObjectsFromCache(mSettings.inputObjectsIntersectWith.objectIn)
-                                      ->at(context.getClusterId(intersectWithClusterId.clusterId));
+      const auto *intersectWith = context.loadObjectsFromCache(mSettings.inputObjectsIntersectWith.objectIn)
+                                      ->at(context.getClusterId(intersectWithClusterId.clusterId))
+                                      .get();
 
-      objectsInOut.calcIntersections(mSettings.mode, intersectWith, {inputClassification.classId},
-                                     {intersectWithClusterId.classId}, mSettings.minIntersection, mSettings.newClassId);
+      objectsInOut->calcIntersections(mSettings.mode, intersectWith, {inputClassification.classId},
+                                      {intersectWithClusterId.classId}, mSettings.minIntersection,
+                                      mSettings.newClassId);
     }
   }
 }

@@ -44,8 +44,9 @@ PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &sett
 
 void PipelineInitializer::init(ImageContext &imageContextOut)
 {
-  mImageContext = &imageContextOut;
-  mNrOfZStacks  = imageContextOut.imageMeta.getNrOfZStack();
+  mImageContext      = &imageContextOut;
+  mNrOfZStacks       = imageContextOut.imageMeta.getNrOfZStack();
+  mTotalNrOfChannels = imageContextOut.imageMeta.getNrOfChannels();
 
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
@@ -127,7 +128,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   //
   // Start with blank image
   //
-  if(joda::settings::PipelineSettings::Source::BLANK == pipelineSetup.source) {
+  if(joda::settings::PipelineSettings::Source::BLANK == pipelineSetup.source || c < 0 || c >= mTotalNrOfChannels) {
     auto rows = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageHeight;
     auto cols = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageWidth;
 
@@ -139,16 +140,12 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
     // Store original image to cache
     processContext.addImageToCache(imagePlaneOut.getId(),
                                    std::move(std::make_unique<joda::atom::ImagePlane>(imagePlaneOut)));
-  }
-
-  //
-  // Load from memory
-  /// \todo Load from memory
-  //
-  if(joda::settings::PipelineSettings::Source::FROM_MEMORY == pipelineSetup.source) {
-  }
-
-  if(joda::settings::PipelineSettings::Source::FROM_FILE == pipelineSetup.source) {
+  } else if(joda::settings::PipelineSettings::Source::FROM_MEMORY == pipelineSetup.source) {
+    //
+    // Load from memory
+    /// \todo Load from memory
+    //
+  } else if(joda::settings::PipelineSettings::Source::FROM_FILE == pipelineSetup.source) {
     processContext.setActImage(processContext.loadImageFromCache(
         loadImageToCache(planeToLoad,
                          mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION

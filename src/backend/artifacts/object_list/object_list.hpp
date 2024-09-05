@@ -7,6 +7,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <tuple>
 #include <unordered_map>
@@ -97,15 +98,15 @@ public:
     return potential_collisions;
   }
 
-  void calcColocalization(const enums::PlaneId &iterator, const SpheralIndex &other, SpheralIndex &result,
+  void calcColocalization(const enums::PlaneId &iterator, const SpheralIndex *other, SpheralIndex *result,
                           const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                           const std::set<joda::enums::ClassId> &objectClassesOther,
                           joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                           joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
-                          uint64_t indexOfIntersectingRoi, uint32_t snapAreaOfIntersectingRoi, float minIntersecion,
-                          const enums::tile_t &tile, const cv::Size &tileSize) const;
+                          uint32_t snapAreaOfIntersectingRoi, float minIntersecion, const enums::tile_t &tile,
+                          const cv::Size &tileSize) const;
 
-  void calcIntersections(joda::settings::IntersectionSettings::Function func, const SpheralIndex &other,
+  void calcIntersections(joda::settings::IntersectionSettings::Function func, const SpheralIndex *other,
                          const std::set<joda::enums::ClassId> objectClassesMe,
                          const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion,
                          joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
@@ -145,7 +146,7 @@ private:
     int max_y        = rect.y + rect.height;
 
     std::lock_guard<std::mutex> lock(mInsertLock);
-    auto &inserted = mElements.emplace_back(box);
+    auto &inserted = mElements.emplace_back(std::move(box.clone()));
     ROI *boxPtr    = &mElements.back();
 
     for(int x = min_x / mCellSize; x <= max_x / mCellSize; ++x) {
@@ -176,16 +177,25 @@ private:
   std::mutex mInsertLock;
 };
 
-class ObjectList : public std::map<enums::ClusterId, SpheralIndex>
+class ObjectList : public std::map<enums::ClusterId, std::unique_ptr<SpheralIndex>>
 {
 public:
   void push_back(const ROI &roi)
   {
     if(!contains(roi.getClusterId())) {
       SpheralIndex idx{};
-      operator[](roi.getClusterId()).cloneFromOther(idx);
+      operator[](roi.getClusterId())->cloneFromOther(idx);
     }
-    at(roi.getClusterId()).emplace(roi);
+    at(roi.getClusterId())->emplace(roi);
+  }
+
+  std::unique_ptr<SpheralIndex> &operator[](enums::ClusterId clusterId)
+  {
+    if(!contains(clusterId)) {
+      auto newS = std::make_unique<SpheralIndex>();
+      emplace(clusterId, std::move(newS));
+    }
+    return at(clusterId);
   }
 };
 

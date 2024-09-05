@@ -47,8 +47,8 @@ public:
         }
       };
 
-      const auto &cluster = result.at(context.getClusterId(classes.clusterId));
-      for(const auto &roi : cluster) {
+      const auto *cluster = result.at(context.getClusterId(classes.clusterId)).get();
+      for(const auto &roi : *cluster) {
         if(roi.getClassId() == classes.classId) {
           if(count > 0) {
             count--;

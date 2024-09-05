@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <cmath>
 #include <iterator>
+#include <optional>
+#include <stdexcept>
 #include <string>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
@@ -32,20 +34,20 @@
 namespace joda::atom {
 
 ROI::ROI() :
-    mId({}), confidence(confidence), mBoundingBoxTile({}), mBoundingBoxReal({}), mMask(cv::Mat(0, 0, CV_16UC1)),
-    mMaskContours({}), mImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0), mCircularity(0),
-    mSnapAreaBoundingBox(calcSnapAreaBoundingBox(0, cv::Size{0, 0})), mSnapAreaMask(calculateSnapAreaMask(0)),
-    mSnapAreaMaskContours(calculateSnapContours(0))
+    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), confidence(confidence), mBoundingBoxTile({}),
+    mBoundingBoxReal({}), mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}), mImageSize(cv::Size{0, 0}), mAreaSize(0),
+    mPerimeter(0), mCircularity(0), mSnapAreaBoundingBox(calcSnapAreaBoundingBox(0, cv::Size{0, 0})),
+    mSnapAreaMask(calculateSnapAreaMask(0)), mSnapAreaMaskContours(calculateSnapContours(0))
 {
 }
 
 ROI::ROI(RoiObjectId index, Confidence confidence, uint32_t snapAreaSize, const Boxes &boundingBox, const cv::Mat &mask,
          const std::vector<cv::Point> &contour, const cv::Size &imageSize, const enums::tile_t &tile,
          const cv::Size &tileSize) :
-    mId(index),
-    confidence(confidence), mBoundingBoxTile(boundingBox), mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)),
-    mMask(mask), mMaskContours(contour), mImageSize(imageSize), mAreaSize(calcAreaSize()),
-    mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
+    mIsNull(false),
+    mObjectId(mGlobalUniqueObjectId++), mId(index), confidence(confidence), mBoundingBoxTile(boundingBox),
+    mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize),
+    mAreaSize(calcAreaSize()), mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
     mSnapAreaBoundingBox(calcSnapAreaBoundingBox(snapAreaSize, imageSize)),
     mSnapAreaMask(calculateSnapAreaMask(snapAreaSize)), mSnapAreaMaskContours(calculateSnapContours(snapAreaSize)),
     mSnapAreaRadius(snapAreaSize)
@@ -328,12 +330,11 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 /// \param[in]  roi   ROI to check against
 /// \return     Intersection of the areas in percent
 ///
-[[nodiscard]] std::tuple<ROI, bool>
-ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint64_t indexOfIntersectingRoi,
-                      uint32_t snapAreaOfIntersectingRoi, float minIntersection, const enums::tile_t &tile,
-                      const cv::Size &tileSize,
-                      joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
+[[nodiscard]] ROI ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi,
+                                        uint32_t snapAreaOfIntersectingRoi, float minIntersection,
+                                        const enums::tile_t &tile, const cv::Size &tileSize,
+                                        joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
+                                        joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
 {
   auto intersectingMask = calcIntersectingMask(roi);
 
@@ -352,18 +353,22 @@ ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint64_t i
       }
     }
     if(intersectingMask.intersectionArea >= minIntersection) {
-      return {ROI{atom::ROI::RoiObjectId{
-                      .objectId   = indexOfIntersectingRoi,
-                      .clusterId  = objectClusterIntersectingObjectsShouldBeAssignedTo,
-                      .classId    = objectClassIntersectingObjectsShouldBeAssignedTo,
-                      .imagePlane = iterator,
-                  },
-                  intersectingMask.intersectionArea, snapAreaOfIntersectingRoi, intersectingMask.intersectedRect,
-                  intersectingMask.intersectedMask, contour, mImageSize, tile, tileSize},
-              true};
+      return ROI{atom::ROI::RoiObjectId{
+                     .clusterId  = objectClusterIntersectingObjectsShouldBeAssignedTo,
+                     .classId    = objectClassIntersectingObjectsShouldBeAssignedTo,
+                     .imagePlane = iterator,
+                 },
+                 intersectingMask.intersectionArea,
+                 snapAreaOfIntersectingRoi,
+                 intersectingMask.intersectedRect,
+                 intersectingMask.intersectedMask,
+                 contour,
+                 mImageSize,
+                 tile,
+                 tileSize};
     }
   }
-  return {{}, false};
+  return {};
 }
 
 ///

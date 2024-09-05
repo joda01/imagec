@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <bitset>
 #include <string>
 #include <vector>
@@ -45,15 +46,9 @@ class ROI
 public:
   struct RoiObjectId
   {
-    uint64_t objectId;
     joda::enums::ClusterId clusterId;
     joda::enums::ClassId classId;
     joda::enums::PlaneId imagePlane;
-
-    bool operator<(const RoiObjectId &in) const
-    {
-      return objectId < in.objectId;
-    }
   };
 
   struct Intensity
@@ -82,9 +77,49 @@ public:
   /////////////////////////////////////////////////////
 
   ROI();
+  ROI(const ROI &) = delete;
   ROI(RoiObjectId index, Confidence confidence, uint32_t snapAreaSize, const Boxes &boundingBox, const cv::Mat &mask,
       const std::vector<cv::Point> &contour, const cv::Size &imageSize, const enums::tile_t &tile,
       const cv::Size &tileSize);
+
+  ROI(ROI &&input) :
+      mIsNull(std::move(input.mIsNull)), mObjectId(std::move(input.mObjectId)), mId(std::move(input.mId)),
+      confidence(std::move(input.confidence)), mBoundingBoxTile(std::move(input.mBoundingBoxTile)),
+      mBoundingBoxReal(std::move(input.mBoundingBoxReal)), mMask(std::move(input.mMask)),
+      mMaskContours(std::move(input.mMaskContours)), mImageSize(std::move(input.mImageSize)),
+      mSnapAreaBoundingBox(std::move(input.mSnapAreaBoundingBox)), mSnapAreaMask(std::move(input.mSnapAreaMask)),
+      mSnapAreaMaskContours(std::move(input.mSnapAreaMaskContours)), mSnapAreaRadius(std::move(input.mSnapAreaRadius)),
+      mAreaSize(std::move(input.mAreaSize)), mPerimeter(std::move(input.mPerimeter)),
+      mCircularity(std::move(input.mCircularity)), intensity(std::move(input.intensity)),
+      mIntersectingRois(std::move(input.mIntersectingRois))
+  {
+  }
+
+  ROI(bool mIsNull, uint64_t mObjectId, RoiObjectId mId, Confidence confidence, Boxes mBoundingBoxTile,
+      Boxes mBoundingBoxReal, cv::Mat mMask, std::vector<cv::Point> mMaskContours, cv::Size mImageSize,
+      Boxes mSnapAreaBoundingBox, cv::Mat mSnapAreaMask, std::vector<cv::Point> mSnapAreaMaskContours,
+      uint32_t mSnapAreaRadius, double mAreaSize, float mPerimeter, float mCircularity,
+      std::map<enums::ImageId, Intensity> intensity, std::map<uint64_t, RoiObjectId> mIntersectingRois) :
+      mIsNull(mIsNull),
+      mObjectId(mObjectId), mId(mId), confidence(confidence), mBoundingBoxTile(mBoundingBoxTile),
+      mBoundingBoxReal(mBoundingBoxReal), mMask(mMask), mMaskContours(mMaskContours), mImageSize(mImageSize),
+      mSnapAreaBoundingBox(mSnapAreaBoundingBox), mSnapAreaMask(mSnapAreaMask),
+      mSnapAreaMaskContours(mSnapAreaMaskContours), mSnapAreaRadius(mSnapAreaRadius), mAreaSize(mAreaSize),
+      mPerimeter(mPerimeter), mCircularity(mCircularity), intensity(intensity), mIntersectingRois(mIntersectingRois)
+  {
+  }
+
+  bool isNull() const
+  {
+    return mIsNull;
+  }
+
+  [[nodiscard]] ROI clone() const
+  {
+    return {mIsNull,         mObjectId,     mId,        confidence,           mBoundingBoxTile, mBoundingBoxReal,
+            mMask,           mMaskContours, mImageSize, mSnapAreaBoundingBox, mSnapAreaMask,    mSnapAreaMaskContours,
+            mSnapAreaRadius, mAreaSize,     mPerimeter, mCircularity,         intensity,        mIntersectingRois};
+  }
 
   void setClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
   {
@@ -106,7 +141,7 @@ public:
 
   [[nodiscard]] auto getObjectId() const
   {
-    return mId.objectId;
+    return mObjectId;
   }
 
   [[nodiscard]] auto getClusterId() const
@@ -223,11 +258,10 @@ public:
     return mPerimeter;
   }
 
-  [[nodiscard]] std::tuple<ROI, bool>
-  calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint64_t indexOfIntersectingRoi,
-                   uint32_t snapAreaOfIntersectingRoi, float minIntersection, const enums::tile_t &tile,
-                   const cv::Size &tileSize, joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                   joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
+  [[nodiscard]] ROI calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint32_t snapAreaOfIntersectingRoi,
+                                     float minIntersection, const enums::tile_t &tile, const cv::Size &tileSize,
+                                     joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
+                                     joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
 
   auto measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensity;
 
@@ -235,9 +269,9 @@ public:
 
   void addIntersectingRoi(const ROI *roi)
   {
-    mIntersectingRois.emplace(roi->mId);
+    mIntersectingRois.emplace(roi->getObjectId(), roi->mId);
   }
-  [[nodiscard]] auto getIntersections() const -> const std::set<RoiObjectId> &
+  [[nodiscard]] auto getIntersections() const -> const std::map<uint64_t, RoiObjectId> &
   {
     return mIntersectingRois;
   }
@@ -260,6 +294,8 @@ private:
   [[nodiscard]] static float getTracedPerimeter(const std::vector<cv::Point> &points);
 
   // Identification ///////////////////////////////////////////////////
+  const bool mIsNull;
+  const uint64_t mObjectId;       ///< Global unique object ID
   const RoiObjectId mId;          ///< Unique identification of the this ROI
   const Confidence confidence;    ///< Probability
 
@@ -281,6 +317,8 @@ private:
 
   // Measurements ///////////////////////////////////////////////////
   std::map<enums::ImageId, Intensity> intensity;
-  std::set<RoiObjectId> mIntersectingRois;
+  std::map<uint64_t, RoiObjectId> mIntersectingRois;
+
+  static inline std::atomic<uint64_t> mGlobalUniqueObjectId = 0;
 };
 }    // namespace joda::atom

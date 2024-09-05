@@ -31,8 +31,8 @@ public:
     for(auto imageId : mSettings.planesIn) {
       auto const &image = *context.loadImageFromCache(imageId);
       for(const auto &clusterIdIn : mSettings.inputClusters) {
-        auto &clusterObjects = store.at(context.getClusterId(clusterIdIn.clusterId));
-        for(auto &object : clusterObjects) {
+        auto *clusterObjects = store.at(context.getClusterId(clusterIdIn.clusterId)).get();
+        for(auto &object : *clusterObjects) {
           if(clusterIdIn.classId == object.getClassId()) {
             object.measureIntensityAndAdd(image);
           }

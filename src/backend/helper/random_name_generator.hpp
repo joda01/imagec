@@ -1206,8 +1206,8 @@ public:
   {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> distributionLeft(0, left.size());
-    std::uniform_int_distribution<int> distributionRight(0, right.size());
+    std::uniform_int_distribution<int> distributionLeft(0, (left.size() - 1));
+    std::uniform_int_distribution<int> distributionRight(0, (right.size() - 1));
 
     int leftRandom  = distributionLeft(gen);
     int rightRandom = distributionRight(gen);

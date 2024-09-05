@@ -41,17 +41,17 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       joda::log::logWarning("At least two channels must be given to calc Colocalization!");
       return;
     }
-    atom::SpheralIndex &result = resultIn[context.getClusterId(mSettings.outputCluster.clusterId)];
+    atom::SpheralIndex *result = resultIn[context.getClusterId(mSettings.outputCluster.clusterId)].get();
 
-    const auto &firstDataBuffer =
-        context.loadObjectsFromCache(mSettings.objectIn)->at(context.getClusterId(it->clusterId));
-    const auto *working            = &firstDataBuffer;
+    const auto *firstDataBuffer =
+        context.loadObjectsFromCache(mSettings.objectIn)->at(context.getClusterId(it->clusterId)).get();
+    const auto *working            = firstDataBuffer;
     atom::SpheralIndex *resultTemp = nullptr;
     // Directly write to the output buffer
     atom::SpheralIndex buffer01;
     atom::SpheralIndex buffer02;
     if(intersectCount == 2) {
-      resultTemp = &result;
+      resultTemp = result;
     } else {
       resultTemp = &buffer01;
     }
@@ -62,11 +62,12 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
     ++idx;
 
     for(; it != clustersToIntersect.end(); ++it) {
-      const auto &objects02 = context.loadObjectsFromCache(mSettings.objectIn)->at(context.getClusterId(it->clusterId));
-      working->calcColocalization(context.getActIterator(), objects02, *resultTemp, objectClassesMe, {it->classId},
+      const auto *objects02 =
+          context.loadObjectsFromCache(mSettings.objectIn)->at(context.getClusterId(it->clusterId)).get();
+      working->calcColocalization(context.getActIterator(), objects02, resultTemp, objectClassesMe, {it->classId},
                                   context.getClusterId(mSettings.outputCluster.clusterId),
-                                  context.getClassId(mSettings.outputCluster.classId), context.acquireNextObjectId(), 0,
-                                  mSettings.minIntersection, context.getActTile(), context.getTileSize());
+                                  context.getClassId(mSettings.outputCluster.classId), 0, mSettings.minIntersection,
+                                  context.getActTile(), context.getTileSize());
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
       objectClassesMe.reset();
       idx++;
@@ -76,9 +77,9 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       const auto *tmpWorking = working;
       working                = resultTemp;
       if(idx + 1 >= intersectCount) {
-        resultTemp = &result;
+        resultTemp = result;
       } else {
-        if(tmpWorking == &firstDataBuffer) {
+        if(tmpWorking == firstDataBuffer) {
           // In the first run the working pointer was the loaded data we must change to buffer
           resultTemp = &buffer02;
         } else {

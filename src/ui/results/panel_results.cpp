@@ -514,7 +514,6 @@ void PanelResults::repaintHeatmap()
   if(!mIsLoading) {
     mIsLoading = true;
     std::thread([this] {
-      QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
       switch(mNavigation) {
         case Navigation::PLATE:
           paintPlate();
@@ -529,6 +528,8 @@ void PanelResults::repaintHeatmap()
           }
           break;
         case Navigation::IMAGE:
+          std::cout << "Navigate to image " << std::to_string(mFilter.actImageId) << std::endl;
+
           paintImage();
           if(mTableButton != nullptr && mTableButton->isChecked()) {
             tableToQWidgetTable(joda::db::StatsPerImage::toTable(mFilter));
@@ -536,7 +537,6 @@ void PanelResults::repaintHeatmap()
           break;
       }
       update();
-      QApplication::restoreOverrideCursor();
       mIsLoading = false;
     }).detach();
   }

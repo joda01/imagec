@@ -19,8 +19,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
                               const atom::SpheralIndex &voronoiPoints, atom::SpheralIndex &response,
                               atom::ObjectList &objects)
 {
-  auto filterVoronoiAreas = [this, &context, &response, &voronoiPoints,
-                             &voronoiGrid](std::optional<const atom::ROI> toIntersect) {
+  auto filterVoronoiAreas = [this, &context, &response, &voronoiPoints, &voronoiGrid](const atom::ROI *toIntersect) {
     for(const atom::ROI &voronoiArea : voronoiGrid) {
       if(voronoiArea.getClassId() == mSettings.outputClustersVoronoi.classId) {
         //
@@ -64,12 +63,11 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
         //
         // Mask if enabled
         //
-        if(toIntersect.has_value()) {
-          auto [cutedVoronoiArea, ok] = voronoiArea.calcIntersection(
-              voronoiArea.getId().imagePlane, toIntersect.value(), voronoiArea.getObjectId(),
-              voronoiArea.getSnapAreaRadius(), 0, context.getActTile(), context.getTileSize(),
-              voronoiArea.getClusterId(), voronoiArea.getClassId());
-          if(ok) {
+        if(toIntersect != nullptr) {
+          auto cutedVoronoiArea = voronoiArea.calcIntersection(
+              voronoiArea.getId().imagePlane, *toIntersect, voronoiArea.getSnapAreaRadius(), 0, context.getActTile(),
+              context.getTileSize(), voronoiArea.getClusterId(), voronoiArea.getClassId());
+          if(!cutedVoronoiArea.isNull()) {
             applyFilter(cutedVoronoiArea);
           }
         } else {
@@ -81,15 +79,15 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
 
   if(!mSettings.inputClustersMask.empty()) {
     for(const auto &maskIn : mSettings.inputClustersMask) {
-      const auto &mask = objects.at(context.getClusterId(maskIn.clusterId));
-      for(const auto &toIntersect : mask) {
+      const auto *mask = objects.at(context.getClusterId(maskIn.clusterId)).get();
+      for(const auto &toIntersect : *mask) {
         if(maskIn.classId == toIntersect.getClassId()) {
-          filterVoronoiAreas(toIntersect);
+          filterVoronoiAreas(&toIntersect);
         }
       }
     }
   } else {
-    filterVoronoiAreas(std::nullopt);
+    filterVoronoiAreas(nullptr);
   }
 }
 }    // namespace joda::cmd

@@ -44,20 +44,10 @@ struct GlobalContext
   friend class ProcessContext;
 
   std::filesystem::path resultsOutputFolder;
-  uint64_t nextObjectId()
-  {
-    return globalObjectIdCount++;
-  }
-  uint64_t actObjectId()
-  {
-    return globalObjectIdCount;
-  }
-
   db::Database database;
 
 private:
   objectCache_t objectCache;
-  std::atomic<uint64_t> globalObjectIdCount;
 };
 
 class ProcessContext
@@ -196,11 +186,6 @@ public:
   [[nodiscard]] cv::Size getImageSize() const
   {
     return pipelineContext.actImagePlane.image.size();
-  }
-
-  [[nodiscard]] uint64_t acquireNextObjectId() const
-  {
-    return globalContext.nextObjectId();
   }
 
   [[nodiscard]] enums::ClusterId getClusterId(enums::ClusterIdIn in) const
