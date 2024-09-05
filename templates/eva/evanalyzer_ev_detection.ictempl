@@ -6,7 +6,7 @@
   },
   "pipelineSetup": {
     "cStackIndex": 0,
-    "defaultClusterId": "$",
+    "defaultClusterId": "None",
     "source": "FromFile",
     "tStackIndex": -1,
     "zProjection": "None",
@@ -30,6 +30,7 @@
       "$threshold": {
         "thresholds": [
           {
+            "grayscaleAssignment": 65535,
             "mode": "Li",
             "thresholdMax": 65535,
             "thresholdMin": 0
@@ -41,21 +42,51 @@
       "$classify": {
         "classifiers": [
           {
-            "classOutNoMatch": "None",
-            "clusterOutNoMatch": "$",
             "filters": [
               {
-                "classOut": "0",
-                "clusterOut": "$",
+                "intensity": {
+                  "imageIn": {
+                    "imageIdx": "MaxIntensity",
+                    "imagePlane": {
+                      "cStack": -1,
+                      "tStack": -1,
+                      "zStack": -1
+                    }
+                  },
+                  "maxIntensity": -1,
+                  "minIntensity": -1
+                },
                 "maxParticleSize": -1,
                 "minCircularity": 0.0,
                 "minParticleSize": 5,
+                "outputCluster": {
+                  "classId": "None",
+                  "clusterId": "$"
+                },
                 "snapAreaSize": 0.0
               }
             ],
-            "modelClassId": 65535
+            "modelClassId": 65535,
+            "outputClusterNoMatch": {
+              "classId": "None",
+              "clusterId": "$"
+            }
           }
         ]
+      }
+    },
+    {
+      "$measure": {
+        "inputClusters": [],
+        "objectIn": {
+          "imagePlane": {
+            "cStack": -1,
+            "tStack": -1,
+            "zStack": -1
+          },
+          "storeIdx": "M0"
+        },
+        "planesIn": []
       }
     },
     {
@@ -63,15 +94,13 @@
         "canvas": "$",
         "clustersIn": [
           {
-            "classesIn": [
-              {
-                "classIn": "2",
-                "color": "#FF0000",
-                "paintBoundingBox": false,
-                "style": "Outlined"
-              }
-            ],
-            "clusterIn": "$"
+            "color": "#FF0000",
+            "inputCluster": {
+              "classId": "None",
+              "clusterId": "$"
+            },
+            "paintBoundingBox": false,
+            "style": "Outlined"
           }
         ],
         "compression": 1,

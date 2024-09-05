@@ -5,7 +5,7 @@
     "name": "Colocalization"
   },
   "pipelineSetup": {
-    "cStackIndex": 0,
+    "cStackIndex": -1,
     "defaultClusterId": "None",
     "source": "FromFile",
     "tStackIndex": -1,
@@ -15,30 +15,42 @@
   "pipelineSteps": [
     {
       "$colocalization": {
-        "classOut": "None",
-        "clusterOut": "$",
+        "inputClusters": [],
         "minIntersection": 0.10000000149011612,
-        "objectsIn": []
+        "objectIn": {
+          "imagePlane": {
+            "cStack": -1,
+            "tStack": -1,
+            "zStack": -1
+          },
+          "storeIdx": "M0"
+        },
+        "outputCluster": {
+          "classId": "None",
+          "clusterId": "$"
+        }
+      }
+    },
+    {
+      "$measure": {
+        "inputClusters": [],
+        "objectIn": {
+          "imagePlane": {
+            "cStack": -1,
+            "tStack": -1,
+            "zStack": -1
+          },
+          "storeIdx": "M0"
+        },
+        "planesIn": []
       }
     },
     {
       "$saveImage": {
         "canvas": "$",
-        "clustersIn": [
-          {
-            "classesIn": [
-              {
-                "classIn": "2",
-                "color": "#FF0000",
-                "paintBoundingBox": false,
-                "style": "Outlined"
-              }
-            ],
-            "clusterIn": "$"
-          }
-        ],
+        "clustersIn": [],
         "compression": 1,
-        "namePrefix": "coloc",
+        "namePrefix": "",
         "subFolder": "images/${imageName}"
       }
     }
