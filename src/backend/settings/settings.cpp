@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <stdexcept>
 #include <string>
+#include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 
@@ -62,13 +63,23 @@ int32_t Settings::getNrOfAllPipelines(const joda::settings::AnalyzeSettings &set
   return settings.pipelines.size();
 }
 
-ObjectOutputClusters Settings::getOutputClasses(const joda::settings::AnalyzeSettings &settings)
+std::set<ClassificatorSettingOut> Settings::getOutputClasses(const joda::settings::AnalyzeSettings &settings)
 {
-  ObjectOutputClusters out;
+  std::set<ClassificatorSettingOut> out;
   for(const auto &pipeline : settings.pipelines) {
     auto cluster = pipeline.getOutputClasses();
-    out.insert(cluster.begin(), cluster.end());
+    for(const auto &outClassesOfPipeline : cluster) {
+      ClassificatorSettingOut settings;
+      settings.classId = outClassesOfPipeline.classId;
+      if(outClassesOfPipeline.clusterId == enums::ClusterIdIn::$) {
+        settings.clusterId = pipeline.pipelineSetup.defaultClusterId;
+      } else {
+        settings.clusterId = (enums::ClusterId) outClassesOfPipeline.clusterId;
+      }
+      out.emplace(settings);
+    }
   }
+
   return out;
 }
 

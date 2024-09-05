@@ -56,7 +56,7 @@ struct ClassifierFilter
   //
   // Cluster the objects should be assigned if filter matches
   //
-  ObjectOutputClass outputCluster;
+  ClassificatorSetting outputCluster;
 
   //
   //
@@ -108,7 +108,7 @@ struct ObjectClass
   //
   // If no filter matches this class is assigned to the object
   //
-  ObjectOutputClass outputClusterNoMatch;
+  ClassificatorSetting outputClusterNoMatch;
 
   //
   // Grayscale or object class id from model

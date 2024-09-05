@@ -17,7 +17,7 @@ public:
   static bool isEqual(const joda::settings::AnalyzeSettings &settingsOld,
                       const joda::settings::AnalyzeSettings &settingsNew);
 
-  static ObjectOutputClusters getOutputClasses(const joda::settings::AnalyzeSettings &settings);
+  static std::set<ClassificatorSettingOut> getOutputClasses(const joda::settings::AnalyzeSettings &settings);
 };
 
 }    // namespace joda::settings

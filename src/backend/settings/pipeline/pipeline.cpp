@@ -51,10 +51,10 @@ ObjectOutputClusters Pipeline::getOutputClasses() const
     for(const auto &cluster : clustersCmd) {
       if(cluster.clusterId == enums::ClusterIdIn::$) {
         clusters.emplace(
-            ObjectOutputClass{.clusterId = static_cast<joda::enums::ClusterIdIn>(pipelineSetup.defaultClusterId),
-                              .classId   = cluster.classId});
+            ClassificatorSetting{.clusterId = static_cast<joda::enums::ClusterIdIn>(pipelineSetup.defaultClusterId),
+                                 .classId   = cluster.classId});
       } else {
-        clusters.emplace(ObjectOutputClass{.clusterId = cluster.clusterId, .classId = cluster.classId});
+        clusters.emplace(ClassificatorSetting{.clusterId = cluster.clusterId, .classId = cluster.classId});
       }
     }
   }

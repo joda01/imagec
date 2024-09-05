@@ -286,6 +286,7 @@ void PanelResults::onMeasurementChanged()
     auto currentChannel = mCrossChannelStackC->currentData().toInt();
     auto channels       = mAnalyzer->selectMeasurementChannelsForClusterAndClass(
         static_cast<enums::ClusterId>(clusterClass.clusterId), clusterClass.classId);
+    mCrossChannelStackC->blockSignals(true);
     mCrossChannelStackC->clear();
     for(const auto channelId : channels) {
       mCrossChannelStackC->addItem(
@@ -295,6 +296,7 @@ void PanelResults::onMeasurementChanged()
     if(idx >= 0) {
       mCrossChannelStackC->setCurrentIndex(idx);
     }
+    mCrossChannelStackC->blockSignals(false);
   }
 
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();

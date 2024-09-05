@@ -789,7 +789,7 @@ QString WindowMain::bytesToString(int64_t bytes)
 /// \author     Joachim Danmayr
 /// \return
 ///
-auto WindowMain::getOutputClasses() -> settings::ObjectOutputClusters
+auto WindowMain::getOutputClasses() -> std::set<settings::ClassificatorSettingOut>
 {
   return settings::Settings::getOutputClasses(mAnalyzeSettings);
 }

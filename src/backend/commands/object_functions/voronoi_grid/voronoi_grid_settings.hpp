@@ -25,7 +25,7 @@ public:
   //
   // To which cluster the result should be assigned to
   //
-  ObjectOutputClass outputClustersVoronoi;
+  ClassificatorSetting outputClustersVoronoi;
 
   //
   // Cluster which contains the masking classes

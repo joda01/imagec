@@ -38,7 +38,7 @@ public:
 
   struct SaveCluster
   {
-    ObjectOutputClass inputCluster;
+    ClassificatorSetting inputCluster;
     std::string color     = "#FF0000";
     Style style           = Style::OUTLINED;
     bool paintBoundingBox = false;

@@ -35,29 +35,29 @@ class SettingComboBoxMultiClassificationIn : public SettingBase
 public:
   struct ComboEntry
   {
-    settings::ObjectOutputClass key;
+    settings::ClassificatorSetting key;
     QString label;
     QString icon;
   };
 
   struct ComboEntryText
   {
-    settings::ObjectOutputClass key;
+    settings::ClassificatorSetting key;
     QString label;
   };
 
   using SettingBase::SettingBase;
 
   QWidget *createInputObject() override;
-  void setDefaultValue(settings::ObjectOutputClass defaultVal);
+  void setDefaultValue(settings::ClassificatorSetting defaultVal);
   void reset() override;
   void clear() override;
 
   void clusterNamesChanged() override;
   void outputClustersChanges() override;
-  QString getName(settings::ObjectOutputClass key) const;
+  QString getName(settings::ClassificatorSetting key) const;
   settings::ObjectInputClusters getValue();
-  std::map<settings::ObjectOutputClass, std::string> getValueAndNames();
+  std::map<settings::ClassificatorSetting, std::string> getValueAndNames();
 
   void selectAll()
   {
@@ -71,14 +71,19 @@ public:
     mSetting = setting;
   }
 
-  static uint32_t toInt(const settings::ObjectOutputClass &in)
+  static uint32_t toInt(const settings::ClassificatorSetting &in)
   {
     return ((((uint16_t) in.clusterId) & 0x0000FFFF) << 16) | ((uint16_t) (in.classId)) & 0x0000FFFF;
   }
 
-  static settings::ObjectOutputClass fromInt(uint32_t in)
+  static uint32_t toInt(const settings::ClassificatorSettingOut &in)
   {
-    settings::ObjectOutputClass out;
+    return ((((uint16_t) in.clusterId) & 0x0000FFFF) << 16) | ((uint16_t) (in.classId)) & 0x0000FFFF;
+  }
+
+  static settings::ClassificatorSetting fromInt(uint32_t in)
+  {
+    settings::ClassificatorSetting out;
     out.clusterId = static_cast<joda::enums::ClusterIdIn>((in >> 16) & 0x0000FFFF);
     out.classId   = static_cast<joda::enums::ClassId>(in & 0x0000FFFF);
     return out;
@@ -86,7 +91,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::optional<settings::ObjectOutputClass> mDefaultValue;
+  std::optional<settings::ClassificatorSetting> mDefaultValue;
   QComboBoxMulti *mComboBox;
   settings::ObjectInputClusters *mSetting = nullptr;
 

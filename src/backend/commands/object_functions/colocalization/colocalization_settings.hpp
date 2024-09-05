@@ -47,7 +47,7 @@ struct ColocalizationSettings : public SettingBase
   //
   // Resulting object cluster of the intersecting objects
   //
-  ObjectOutputClass outputCluster;
+  ClassificatorSetting outputCluster;
 
   /////////////////////////////////////////////////////
   void check() const

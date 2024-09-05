@@ -101,7 +101,7 @@ public:
 
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
-  auto getOutputClasses() -> settings::ObjectOutputClusters;
+  auto getOutputClasses() -> std::set<settings::ClassificatorSettingOut>;
 
 public slots:
   void onBackClicked();

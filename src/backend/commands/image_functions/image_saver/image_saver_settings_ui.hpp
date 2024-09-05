@@ -63,7 +63,7 @@ public:
     // Load from settings
     //
     {
-      std::set<settings::ObjectOutputClass> clustersToSet;
+      std::set<settings::ClassificatorSetting> clustersToSet;
       for(const auto &cluster : settings.clustersIn) {
         clustersToSet.emplace(cluster.inputCluster);
         style->setValue(cluster.style);

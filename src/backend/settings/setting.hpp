@@ -65,7 +65,7 @@
 
 namespace joda::settings {
 
-struct ObjectOutputClass
+struct ClassificatorSetting
 {
   //
   // Cluster the objects should be assigned if filter matches
@@ -81,18 +81,46 @@ struct ObjectOutputClass
   {
   }
 
-  bool operator<(const ObjectOutputClass &input) const
+  bool operator<(const ClassificatorSetting &input) const
   {
-    return (uint16_t) clusterId < (uint16_t) input.clusterId || (uint16_t) classId < (uint16_t) input.classId;
+    auto toUint32 = [](enums::ClusterIdIn clu, enums::ClassId cl) -> uint32_t {
+      uint32_t out = (((uint16_t) clu) << 16) | (((uint16_t) cl));
+      return out;
+    };
+
+    return toUint32(clusterId, classId) < toUint32(input.clusterId, input.classId);
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectOutputClass, clusterId, classId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassificatorSetting, clusterId, classId);
 };
 
-using ObjectOutputClusters = std::set<ObjectOutputClass>;
-using ObjectInputClusters  = std::set<ObjectOutputClass>;
-using ObjectInputCluster   = ObjectOutputClass;
-using ObjectOutputCluster  = ObjectOutputClass;
+struct ClassificatorSettingOut
+{
+  //
+  // Cluster the objects should be assigned if filter matches
+  //
+  joda::enums::ClusterId clusterId = joda::enums::ClusterId::UNDEFINED;
+
+  //
+  // Class the objects should be assigned if filter matches
+  //
+  joda::enums::ClassId classId = joda::enums::ClassId::NONE;
+
+  bool operator<(const ClassificatorSettingOut &input) const
+  {
+    auto toUint32 = [](enums::ClusterId clu, enums::ClassId cl) -> uint32_t {
+      uint32_t out = (((uint16_t) clu) << 16) | (((uint16_t) cl));
+      return out;
+    };
+
+    return toUint32(clusterId, classId) < toUint32(input.clusterId, input.classId);
+  }
+};
+
+using ObjectOutputClusters = std::set<ClassificatorSetting>;
+using ObjectInputClusters  = std::set<ClassificatorSetting>;
+using ObjectInputCluster   = ClassificatorSetting;
+using ObjectOutputCluster  = ClassificatorSetting;
 
 class SettingBase
 {
