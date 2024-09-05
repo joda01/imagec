@@ -99,8 +99,7 @@ private:
   PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;
 
-  QComboBox *mClusterSelector;
-  QComboBox *mClassSelector;
+  QComboBox *mClusterClassSelector;
   QComboBox *mMeasurementSelector;
   QComboBox *mStatsSelector;
 

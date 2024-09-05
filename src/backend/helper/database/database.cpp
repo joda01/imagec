@@ -1068,4 +1068,63 @@ auto Database::selectClasses() -> std::map<enums::ClassId, joda::settings::Class
   return results;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectClassesForClusters()
+    -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>
+{
+  std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>> resultOut;
+  auto clusters = selectClusters();
+  auto classes  = selectClasses();
+
+  std::unique_ptr<duckdb::QueryResult> result =
+      select("SELECT cluster_id, class_id FROM objects GROUP BY cluster_id, class_id");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    auto clusterId = static_cast<enums::ClusterId>(materializedResult->GetValue(0, n).GetValue<uint16_t>());
+    auto classId   = static_cast<enums::ClassId>(materializedResult->GetValue(1, n).GetValue<uint16_t>());
+
+    resultOut[clusterId].first = clusters[clusterId].name;
+    if(classes.contains(classId)) {
+      resultOut[clusterId].second.emplace(classId, classes[classId].name);
+    } else {
+      if(classId == enums::ClassId::UNDEFINED) {
+        resultOut[clusterId].second.emplace(classId, "Undefined");
+      }
+      if(classId == enums::ClassId::NONE) {
+        resultOut[clusterId].second.emplace(classId, "None");
+      }
+    }
+  }
+  return resultOut;
+}
+
+auto Database::selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
+    -> std::set<int32_t>
+{
+  std::set<int32_t> channels;
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "  SELECT object_measurements.meas_stack_c FROM objects"
+      "  JOIN object_measurements ON objects.object_id = object_measurements.object_id"
+      "   WHERE cluster_id = ? AND class_id = ? "
+      "   GROUP BY object_measurements.meas_stack_c",
+      (uint16_t) clusterId, (uint16_t) classId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    channels.emplace((int32_t) materializedResult->GetValue(0, n).GetValue<uint32_t>());
+  }
+  return channels;
+}
+
 }    // namespace joda::db

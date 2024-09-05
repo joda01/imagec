@@ -83,6 +83,10 @@ public:
   auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;
 
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
+  auto selectClassesForClusters()
+      -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>;
+  auto selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
+      -> std::set<int32_t>;
 
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)

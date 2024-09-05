@@ -28,6 +28,7 @@
 #include <QPainterPath>
 #include <QWidget>
 #include <cmath>
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <random>
@@ -45,6 +46,7 @@
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_label.hpp"
 #include "ui/container/panel_edit_base.hpp"
+#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
 #include "ui/results/dialog_export_data.hpp"
@@ -149,13 +151,9 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 
   //
   //
-  mClusterSelector = new QComboBox();
-  connect(mClusterSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  toolbar->addItemToTopToolbar(mClusterSelector);
-
-  mClassSelector = new QComboBox();
-  connect(mClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  toolbar->addItemToTopToolbar(mClassSelector);
+  mClusterClassSelector = new QComboBox();
+  connect(mClusterClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
+  toolbar->addItemToTopToolbar(mClusterClassSelector);
 
   mMeasurementSelector = new QComboBox();
   mMeasurementSelector->addItem("Count", (int32_t) joda::enums::Measurement::COUNT);
@@ -230,21 +228,26 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 void PanelResults::setAnalyzer()
 {
   {
-    // Clusters
-    auto clusters = mAnalyzer->selectClusters();
-    mClusterSelector->clear();
+    // Clusters/Class
+    auto clusters = mAnalyzer->selectClassesForClusters();
+    mClusterClassSelector->clear();
     for(const auto &[clusterId, cluster] : clusters) {
-      mClusterSelector->addItem(cluster.name.data(), static_cast<uint32_t>(clusterId));
-      mCrossChannelClusterSelector->addItem(cluster.name.data(), static_cast<uint32_t>(clusterId));
+      mCrossChannelClusterSelector->addItem(cluster.first.data(), static_cast<uint32_t>(clusterId));
+
+      for(const auto &[classId, classsName] : cluster.second) {
+        std::string name = cluster.first + "/" + classsName;
+        mClusterClassSelector->addItem(name.data(), SettingComboBoxMultiClassificationIn::toInt(
+                                                        {static_cast<enums::ClusterIdIn>(clusterId), classId}));
+      }
+      mClusterClassSelector->insertSeparator(mClusterClassSelector->count());
     }
   }
 
   {
     // Classes
     auto classes = mAnalyzer->selectClasses();
-    mClassSelector->clear();
+    mCrossChannelClassSelector->clear();
     for(const auto &[classId, classs] : classes) {
-      mClassSelector->addItem(classs.name.data(), static_cast<uint32_t>(classId));
       mCrossChannelClassSelector->addItem(classs.name.data(), static_cast<uint32_t>(classId));
     }
   }
@@ -276,8 +279,35 @@ void PanelResults::setAnalyzer()
 ///
 void PanelResults::onMeasurementChanged()
 {
+  auto clusterClass = SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
+
+  {
+    auto imageChannels  = mAnalyzer->selectImageChannels();
+    auto currentChannel = mCrossChannelStackC->currentData().toInt();
+    auto channels       = mAnalyzer->selectMeasurementChannelsForClusterAndClass(
+        static_cast<enums::ClusterId>(clusterClass.clusterId), clusterClass.classId);
+    mCrossChannelStackC->clear();
+    for(const auto channelId : channels) {
+      mCrossChannelStackC->addItem(
+          "CH" + QString::number(channelId) + " (" + QString(imageChannels.at(channelId).name.data()) + ")", channelId);
+    }
+    auto idx = mCrossChannelStackC->findData(currentChannel);
+    if(idx >= 0) {
+      mCrossChannelStackC->setCurrentIndex(idx);
+    }
+  }
+
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
+
+  QString className;
+  className = mClusterClassSelector->currentText();
+  if(!className.isEmpty()) {
+    auto splited = className.split("/");
+    if(splited.size() > 1) {
+      className = splited[1];
+    }
+  }
 
   mFilter = db::QueryFilter{
       .analyzer                = mAnalyzer.get(),
@@ -286,9 +316,9 @@ void PanelResults::onMeasurementChanged()
       .plateId                 = 0,
       .actGroupId              = mActGroupId,
       .actImageId              = mActImageId,
-      .clusterId               = static_cast<joda::enums::ClusterId>(mClusterSelector->currentData().toInt()),
-      .classId                 = static_cast<joda::enums::ClassId>(mClassSelector->currentData().toInt()),
-      .className               = mClassSelector->currentText().toStdString(),
+      .clusterId               = static_cast<enums::ClusterId>(clusterClass.clusterId),
+      .classId                 = clusterClass.classId,
+      .className               = className.toStdString(),
       .measurementChannel      = static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
       .stats                   = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
       .wellImageOrder          = wellOrder,

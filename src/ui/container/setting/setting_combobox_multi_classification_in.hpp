@@ -71,12 +71,6 @@ public:
     mSetting = setting;
   }
 
-private:
-  /////////////////////////////////////////////////////
-  std::optional<settings::ObjectOutputClass> mDefaultValue;
-  QComboBoxMulti *mComboBox;
-  settings::ObjectInputClusters *mSetting = nullptr;
-
   static uint32_t toInt(const settings::ObjectOutputClass &in)
   {
     return ((((uint16_t) in.clusterId) & 0x0000FFFF) << 16) | ((uint16_t) (in.classId)) & 0x0000FFFF;
@@ -89,6 +83,12 @@ private:
     out.classId   = static_cast<joda::enums::ClassId>(in & 0x0000FFFF);
     return out;
   }
+
+private:
+  /////////////////////////////////////////////////////
+  std::optional<settings::ObjectOutputClass> mDefaultValue;
+  QComboBoxMulti *mComboBox;
+  settings::ObjectInputClusters *mSetting = nullptr;
 
 private slots:
   void onValueChanged();
