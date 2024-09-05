@@ -231,6 +231,7 @@ void PanelResults::setAnalyzer()
     // Clusters/Class
     auto clusters = mAnalyzer->selectClassesForClusters();
     mClusterClassSelector->clear();
+    mCrossChannelClusterSelector->clear();
     for(const auto &[clusterId, cluster] : clusters) {
       mCrossChannelClusterSelector->addItem(cluster.first.data(), static_cast<uint32_t>(clusterId));
 
