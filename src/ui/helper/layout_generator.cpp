@@ -150,6 +150,33 @@ void LayoutGenerator::addItemToTopToolbar(QAction *widget)
 /// \param[out]
 /// \return
 ///
+void LayoutGenerator::addItemToBottomToolbar(QAction *widget)
+{
+  mToolbarBottom->insertAction(mSpaceTopToolbar, widget);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+QAction *LayoutGenerator::addActionBottomButton(const QString &text, const QString &icon)
+{
+  QIcon bmp(":/icons/outlined/" + icon);
+  auto *action = new QAction(bmp.pixmap(16, 16), text);
+  addItemToBottomToolbar(action);
+  return action;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 QAction *LayoutGenerator::addActionButton(const QString &text, const QString &icon)
 {
   QIcon bmp(":/icons/outlined/" + icon);

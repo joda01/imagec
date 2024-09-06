@@ -99,6 +99,9 @@ Command::Command(const QString &title, const QString &icon, QWidget *parent) :
 ///
 void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
 {
+  auto *okayBottom = mLayout.addActionBottomButton("Okay", "icons8-accept-50.png");
+  connect(okayBottom, &QAction::triggered, [this, pipelineSettingsUi]() { mEditDialog->close(); });
+
   connect(mLayout.getDeleteButton(), &QAction::triggered, [this, pipelineSettingsUi]() {
     QMessageBox messageBox(mParent);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
