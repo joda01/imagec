@@ -181,7 +181,24 @@ void ExportColumn::getImageChannels()
 
 void ExportColumn::getCrossChannelCount()
 {
-  mCrossChannelCount->addOptions(mClustersAndClassesVector);
+  auto clusterClassSelected = mClustersAndClasses->getValue();
+
+  std::map<settings::ClassificatorSettingOut, QString> options;
+
+  auto clusters = mAnalyzer->selectCrossChannelCountForClusterAndClass(
+      static_cast<enums::ClusterId>(clusterClassSelected.clusterId), clusterClassSelected.classId);
+  mCrossChannelCount->blockSignals(true);
+  auto currentChannel = mCrossChannelCount->getValue();
+  mCrossChannelCount->clear();
+  for(const auto &[clusterId, cluster] : clusters) {
+    for(const auto &[classId, classsName] : cluster.second) {
+      std::string name = cluster.first + "@" + classsName;
+      options.emplace(settings::ClassificatorSettingOut{clusterId, classId}, QString(name.data()));
+    }
+    mCrossChannelCount->addOptions(options);
+    mCrossChannelCount->setValue(currentChannel);
+    mCrossChannelCount->blockSignals(false);
+  }
 }
 
 ///

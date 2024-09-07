@@ -200,15 +200,11 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   mActionCrossChannelCStack = toolbar->addItemToTopToolbar(mCrossChannelStackC);
   mActionCrossChannelCStack->setEnabled(false);
 
-  mCrossChannelClusterSelector = new QComboBox();
-  connect(mCrossChannelClusterSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  mActionCrossChannelCluster = toolbar->addItemToTopToolbar(mCrossChannelClusterSelector);
+  mCrossChannelClusterAndClassesSelector = new QComboBox();
+  connect(mCrossChannelClusterAndClassesSelector, &QComboBox::currentIndexChanged, this,
+          &PanelResults::onMeasurementChanged);
+  mActionCrossChannelCluster = toolbar->addItemToTopToolbar(mCrossChannelClusterAndClassesSelector);
   mActionCrossChannelCluster->setEnabled(false);
-
-  mCrossChannelClassSelector = new QComboBox();
-  connect(mCrossChannelClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  mActionCrossChannelClass = toolbar->addItemToTopToolbar(mCrossChannelClassSelector);
-  mActionCrossChannelClass->setEnabled(false);
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -239,25 +235,13 @@ void PanelResults::setAnalyzer()
     // Clusters/Class
     auto clusters = mAnalyzer->selectClassesForClusters();
     mClusterClassSelector->clear();
-    mCrossChannelClusterSelector->clear();
     for(const auto &[clusterId, cluster] : clusters) {
-      mCrossChannelClusterSelector->addItem(cluster.first.data(), static_cast<uint32_t>(clusterId));
-
       for(const auto &[classId, classsName] : cluster.second) {
         std::string name = cluster.first + "@" + classsName;
         mClusterClassSelector->addItem(name.data(), SettingComboBoxMultiClassificationIn::toInt(
                                                         {static_cast<enums::ClusterIdIn>(clusterId), classId}));
       }
       mClusterClassSelector->insertSeparator(mClusterClassSelector->count());
-    }
-  }
-
-  {
-    // Classes
-    auto classes = mAnalyzer->selectClasses();
-    mCrossChannelClassSelector->clear();
-    for(const auto &[classId, classs] : classes) {
-      mCrossChannelClassSelector->addItem(classs.name.data(), static_cast<uint32_t>(classId));
     }
   }
 
@@ -288,13 +272,44 @@ void PanelResults::setAnalyzer()
 ///
 void PanelResults::onMeasurementChanged()
 {
-  auto clusterClass = SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
+  auto clusterClassSelected =
+      SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
 
+  //
+  // Select cross channel count
+  //
+  {
+    auto clusters = mAnalyzer->selectCrossChannelCountForClusterAndClass(
+        static_cast<enums::ClusterId>(clusterClassSelected.clusterId), clusterClassSelected.classId);
+    mCrossChannelClusterAndClassesSelector->blockSignals(true);
+    auto currentChannel = mCrossChannelClusterAndClassesSelector->currentData().toUInt();
+    mCrossChannelClusterAndClassesSelector->clear();
+    for(const auto &[clusterId, cluster] : clusters) {
+      for(const auto &[classId, classsName] : cluster.second) {
+        std::string name = cluster.first + "@" + classsName;
+        mCrossChannelClusterAndClassesSelector->addItem(
+            name.data(),
+            SettingComboBoxMultiClassificationIn::toInt({static_cast<enums::ClusterIdIn>(clusterId), classId}));
+      }
+      mCrossChannelClusterAndClassesSelector->insertSeparator(mCrossChannelClusterAndClassesSelector->count());
+
+      auto idx = mCrossChannelClusterAndClassesSelector->findData(currentChannel);
+      if(idx >= 0) {
+        mCrossChannelClusterAndClassesSelector->setCurrentIndex(idx);
+      }
+
+      mCrossChannelClusterAndClassesSelector->blockSignals(false);
+    }
+  }
+
+  //
+  // Select cross channel intensity
+  //
   {
     auto imageChannels  = mAnalyzer->selectImageChannels();
     auto currentChannel = mCrossChannelStackC->currentData().toInt();
     auto channels       = mAnalyzer->selectMeasurementChannelsForClusterAndClass(
-        static_cast<enums::ClusterId>(clusterClass.clusterId), clusterClass.classId);
+        static_cast<enums::ClusterId>(clusterClassSelected.clusterId), clusterClassSelected.classId);
     mCrossChannelStackC->blockSignals(true);
     mCrossChannelStackC->clear();
     for(const auto channelId : channels) {
@@ -320,6 +335,19 @@ void PanelResults::onMeasurementChanged()
     }
   }
 
+  auto crossChannelClusterAndClassSelected =
+      SettingComboBoxMultiClassificationIn::fromInt(mCrossChannelClusterAndClassesSelector->currentData().toUInt());
+  QString crossChannelClusterName;
+  QString crossChannelClassName;
+  crossChannelClusterName = mCrossChannelClusterAndClassesSelector->currentText();
+  if(!crossChannelClusterName.isEmpty()) {
+    auto splited = crossChannelClusterName.split("@");
+    if(splited.size() > 1) {
+      crossChannelClusterName = splited[0];
+      crossChannelClassName   = splited[1];
+    }
+  }
+
   mFilter = db::QueryFilter{
       .analyzer                = mAnalyzer.get(),
       .plateRows               = static_cast<uint16_t>(size.height()),
@@ -327,8 +355,8 @@ void PanelResults::onMeasurementChanged()
       .plateId                 = 0,
       .actGroupId              = mActGroupId,
       .actImageId              = mActImageId,
-      .clusterId               = static_cast<enums::ClusterId>(clusterClass.clusterId),
-      .classId                 = clusterClass.classId,
+      .clusterId               = static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
+      .classId                 = clusterClassSelected.classId,
       .className               = className.toStdString(),
       .measurementChannel      = static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
       .stats                   = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
@@ -336,25 +364,21 @@ void PanelResults::onMeasurementChanged()
       .densityMapAreaSize      = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
       .crossChanelStack_c      = static_cast<uint32_t>(mCrossChannelStackC->currentData().toInt()),
       .crossChannelStack_cName = mCrossChannelStackC->currentText().toStdString(),
-      .crossChannelClusterId = static_cast<joda::enums::ClusterId>(mCrossChannelClusterSelector->currentData().toInt()),
-      .crossChannelClusterName = mCrossChannelClusterSelector->currentText().toStdString(),
-      .crossChannelClassId     = static_cast<joda::enums::ClassId>(mCrossChannelClassSelector->currentData().toInt()),
-      .crossChannelClassName   = mCrossChannelClassSelector->currentText().toStdString()};
+      .crossChannelClusterId   = static_cast<enums::ClusterId>(crossChannelClusterAndClassSelected.clusterId),
+      .crossChannelClusterName = crossChannelClusterName.toStdString(),
+      .crossChannelClassId     = crossChannelClusterAndClassSelected.classId,
+      .crossChannelClassName   = crossChannelClassName.toStdString()};
 
-  if(mActionCrossChannelCStack != nullptr && mActionCrossChannelCluster != nullptr &&
-     mActionCrossChannelClass != nullptr) {
+  if(mActionCrossChannelCStack != nullptr && mActionCrossChannelCluster != nullptr) {
     if(db::getType(mFilter.measurementChannel) == db::MeasureType::INTENSITY) {
       mActionCrossChannelCStack->setEnabled(true);
       mActionCrossChannelCluster->setEnabled(false);
-      mActionCrossChannelClass->setEnabled(false);
     } else if(db::getType(mFilter.measurementChannel) == db::MeasureType::COUNT) {
       mActionCrossChannelCStack->setEnabled(false);
       mActionCrossChannelCluster->setEnabled(true);
-      mActionCrossChannelClass->setEnabled(true);
     } else {
       mActionCrossChannelCStack->setEnabled(false);
       mActionCrossChannelCluster->setEnabled(false);
-      mActionCrossChannelClass->setEnabled(false);
     }
   }
   repaintHeatmap();

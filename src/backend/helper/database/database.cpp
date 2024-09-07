@@ -1109,6 +1109,64 @@ auto Database::selectClassesForClusters()
   return resultOut;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectCrossChannelCountForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
+    -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>
+{
+  std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>> resultOut;
+  auto clusters = selectClusters();
+  auto classes  = selectClasses();
+
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT "
+      "  inners.cluster_id, inners.class_id"
+      "  FROM objects"
+      "  JOIN"
+      "  ("
+      "  	SELECT intersect_in.object_id, intersect_in.meas_object_id, objects.cluster_id, objects.class_id FROM "
+      "objects "
+      "  	JOIN object_intersections AS intersect_in ON  objects.object_id = intersect_in.meas_object_id"
+      "  ) as inners"
+      "  on objects.object_id = inners.object_id"
+      "  WHERE objects.cluster_id = ? AND objects.class_id = ?"
+      "  GROUP BY inners.cluster_id, inners.class_id",
+      (uint16_t) clusterId, (uint16_t) classId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    auto clusterId = static_cast<enums::ClusterId>(materializedResult->GetValue(0, n).GetValue<uint16_t>());
+    auto classId   = static_cast<enums::ClassId>(materializedResult->GetValue(1, n).GetValue<uint16_t>());
+
+    resultOut[clusterId].first = clusters[clusterId].name;
+    if(classes.contains(classId)) {
+      resultOut[clusterId].second.emplace(classId, classes[classId].name);
+    } else {
+      if(classId == enums::ClassId::UNDEFINED) {
+        resultOut[clusterId].second.emplace(classId, "Undefined");
+      }
+      if(classId == enums::ClassId::NONE) {
+        resultOut[clusterId].second.emplace(classId, "None");
+      }
+    }
+  }
+  return resultOut;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto Database::selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
     -> std::set<int32_t>
 {
