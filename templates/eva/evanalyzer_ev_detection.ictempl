@@ -16,7 +16,7 @@
     {
       "$rollingBall": {
         "ballSize": 4,
-        "ballType": "Ball"
+        "ballType": "Paraboloid"
       }
     },
     {

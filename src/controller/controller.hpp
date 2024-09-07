@@ -26,12 +26,6 @@
 
 namespace joda::ctrl {
 
-struct PreviewSettings
-{
-  int lowerBrightness = 0;
-  int upperBrightness = UINT16_MAX;
-};
-
 struct Preview
 {
   joda::image::Image thumbnail;
@@ -67,7 +61,8 @@ public:
   void registerImageLookupCallback(const std::function<void(joda::filesystem::State)> &lookingForFilesFinished);
 
   // PREVIEW ///////////////////////////////////////////////////
-  void preview(const settings::ProjectImageSetup &imageSetup, const settings::Pipeline &pipeline,
+  void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
+               const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline,
                const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, Preview &previewOut);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series = 0)
       -> joda::ome::OmeInfo;

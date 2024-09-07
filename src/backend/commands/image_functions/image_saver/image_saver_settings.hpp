@@ -13,6 +13,28 @@
 
 namespace joda::settings {
 
+static inline const std::vector<std::string> IMAGE_SAVER_COLORS = {
+    "#0000FF",    // Blue
+    "#00FF00",    // Green
+    "#FF0000",    // Red
+    "#FFFF00",    // Yellow
+    "#00FFFF",    // Cyan
+    "#FF00FF",    // Magenta
+    "#808080",    // Gray
+    "#C0C0C0",    // Silver
+    "#000000",    // Black
+    "#FF8C00",    // Orange
+    "#9ACD32",    // YellowGreen
+    "#008000",    // DarkGreen
+    "#800000",    // Maroon
+    "#8B0000",    // DarkRed
+    "#000080",    // Navy
+    "#4682B4",    // SteelBlue
+    "#D3D3D3",    // LightGray
+    "#A52A2A",    // Brown
+    "#FFA500"     // Gold
+};
+
 struct ImageSaverSettings : public SettingBase
 {
 public:

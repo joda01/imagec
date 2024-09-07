@@ -104,6 +104,13 @@ QWidget *PanelPreview::createToolBar()
   connect(openFullScreen, &QPushButton::pressed, this, &PanelPreview::onOpenFullScreenClickec);
   layout->addWidget(openFullScreen);
 
+  filled = new QPushButton(QIcon(":/icons/outlined/icons8-100-50.png"), "");
+  filled->setCheckable(true);
+  filled->setObjectName("ToolButton");
+  filled->setToolTip("Filled");
+  connect(filled, &QPushButton::pressed, this, &PanelPreview::onSettingChanged);
+  layout->addWidget(filled);
+
   layout->addStretch();
 
   return container;

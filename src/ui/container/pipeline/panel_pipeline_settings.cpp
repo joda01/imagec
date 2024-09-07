@@ -26,9 +26,11 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/processor/processor.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "backend/settings/project_settings/project_cluster.hpp"
@@ -113,6 +115,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelPipelineSettings::onTileClicked);
+  connect(mPreviewImage, &PanelPreview::onSettingChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
   connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
   connect(mLayout.getDeleteButton(), &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
@@ -318,7 +321,7 @@ void PanelPipelineSettings::valueChangedEvent()
   // } else {
   //   zProjection->getDisplayLabelWidget()->setVisible(true);
   // }
-  updatePreview(-1, -1);
+  updatePreview();
 }
 
 ///
@@ -341,7 +344,7 @@ void PanelPipelineSettings::metaChangedEvent()
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::updatePreview(int32_t /**/, int32_t /**/)
+void PanelPipelineSettings::updatePreview()
 {
   auto [newImgIdex, selectedSeries] = mWindowMain->getImagePanel()->getSelectedImage();
   if(mIsActiveShown) {
@@ -376,9 +379,11 @@ void PanelPipelineSettings::updatePreview(int32_t /**/, int32_t /**/)
                     imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.width, tileSize.height);
 
                 auto &previewResult = mPreviewImage->getPreviewObject();
-
-                controller->preview(mWindowMain->getSettings().imageSetup, getPipeline(), imgIndex, mSelectedTileX,
-                                    mSelectedTileY, previewResult);
+                processor::PreviewSettings prevSettings;
+                prevSettings.style = mPreviewImage->getFilledPreview() ? settings::ImageSaverSettings::Style::FILLED
+                                                                       : settings::ImageSaverSettings::Style::OUTLINED;
+                controller->preview(mWindowMain->getSettings().imageSetup, prevSettings, mWindowMain->getSettings(),
+                                    getPipeline(), imgIndex, mSelectedTileX, mSelectedTileY, previewResult);
                 // Create a QByteArray from the char array
                 int valid   = 0;
                 int invalid = 0;
@@ -440,7 +445,7 @@ void PanelPipelineSettings::onTileClicked(int32_t tileX, int32_t tileY)
 {
   mSelectedTileX = tileX;
   mSelectedTileY = tileY;
-  updatePreview(-1, -1);
+  updatePreview();
 }
 
 ///

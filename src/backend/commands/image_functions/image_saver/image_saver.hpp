@@ -59,7 +59,9 @@ public:
     };
 
     auto parentPath = context.getOutputFolder() / replacePlaceHolder(mSettings.subFolder);
-    std::filesystem::create_directories(parentPath);
+    if(mSettings.outputSlot == settings::ImageSaverSettings::Output::FILE) {
+      std::filesystem::create_directories(parentPath);
+    }
     auto fileName = context.getActImagePath().stem();
 
     auto actTile = context.getActTile();

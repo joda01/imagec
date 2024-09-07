@@ -15,6 +15,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include "graph.hpp"
 
 namespace joda::settings {
 class AnalyzeSettings;
@@ -24,6 +25,7 @@ class Pipeline;
 namespace joda::processor {
 
 using PipelineOrder_t = std::map<int, std::set<const settings::Pipeline *>>;
+using Graph_t         = std::vector<Node>;
 
 ///
 /// \class      DependencyGraph
@@ -35,7 +37,7 @@ using PipelineOrder_t = std::map<int, std::set<const settings::Pipeline *>>;
 class DependencyGraph
 {
 public:
-  static auto calcGraph(const joda::settings::AnalyzeSettings &) -> PipelineOrder_t;
+  static auto calcGraph(const joda::settings::AnalyzeSettings &) -> std::pair<PipelineOrder_t, Graph_t>;
   static void printOrder(const PipelineOrder_t &order);
 };
 

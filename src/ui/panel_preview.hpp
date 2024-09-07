@@ -61,8 +61,14 @@ public:
     mPreviewLabel.setWaiting(waiting);
   }
 
+  bool getFilledPreview() const
+  {
+    return filled->isChecked();
+  }
+
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
+  void onSettingChanged();
 
 private slots:
   void onFitImageToScreenSizeClicked();
@@ -75,6 +81,7 @@ private:
   /////////////////////////////////////////////////////
   QWidget *createToolBar();
   QLabel *mPreviewInfo;
+  QPushButton *filled;
 
   /////////////////////////////////////////////////////
   DialogImageViewer mImageViewer;

@@ -22,70 +22,6 @@
 
 namespace joda::processor {
 
-class Node
-{
-public:
-  Node(const settings::Pipeline *me) : me(me)
-  {
-  }
-
-  enums::ClusterId provides() const
-  {
-    return me->getOutputCluster();
-  }
-
-  std::set<enums::ClusterId> consumes() const
-  {
-    return me->getInputClusters();
-  }
-
-  bool attacheNode(Node node)
-  {
-    if(node.consumes().contains(provides())) {
-      // This node provides data for the other node
-      parents.emplace_back(node);
-      return true;
-    } else {
-      for(auto &parent : parents) {
-        if(parent.attacheNode(node)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  void printTree(int level = 0) const
-  {
-    std::string indent(level * 2, ' ');
-    std::cout << indent << "L" << std::to_string(level) << ":" << me->meta.name << std::endl;
-
-    for(const Node &parent : parents) {
-      parent.printTree(level + 1);
-    }
-  }
-
-  void orderPipeline(std::map<const settings::Pipeline *, int> &ordered, int level = 0) const
-  {
-    std::string indent(level * 2, ' ');
-    std::cout << indent << "L" << std::to_string(level) << ":" << me->meta.name << std::endl;
-    if(ordered.contains(me)) {
-      if(ordered.at(me) < level) {
-        ordered.at(me) = level;
-      }
-    } else {
-      ordered.emplace(me, level);
-    }
-
-    for(const Node &parent : parents) {
-      parent.orderPipeline(ordered, level + 1);
-    }
-  }
-
-  const settings::Pipeline *me = nullptr;
-  std::vector<Node> parents;
-};
-
 ///
 /// \brief
 /// \author
@@ -93,7 +29,7 @@ public:
 /// \param[out]
 /// \return
 ///
-auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings) -> PipelineOrder_t
+auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings) -> std::pair<PipelineOrder_t, Graph_t>
 {
   // List all pipelines to process
   std::set<const settings::Pipeline *> pipelinesToAttache;
@@ -108,7 +44,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings)
   };
 
   // Find root nodes
-  std::vector<Node> rootNodes;
+  Graph_t rootNodes;
   {
     std::set<const settings::Pipeline *> attached;
     for(const auto *pipeline : pipelinesToAttache) {
@@ -174,7 +110,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings)
 
     printOrder(finishedOrder);
   }*/
-  return finishedOrder;
+  return {finishedOrder, rootNodes};
 }
 
 ///

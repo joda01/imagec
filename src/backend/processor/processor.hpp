@@ -29,6 +29,11 @@ namespace joda::processor {
 
 using imagesList_t = joda::filesystem::DirectoryWatcher;
 
+struct PreviewSettings
+{
+  settings::ImageSaverSettings::Style style = settings::ImageSaverSettings::Style::OUTLINED;
+};
+
 enum class ProcessState
 {
   INITIALIZING,
@@ -176,7 +181,8 @@ public:
     return mJobInformation;
   }
 
-  auto generatePreview(const settings::ProjectImageSetup &imageSetup, const settings::Pipeline &pipeline,
+  auto generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
+                       const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline,
                        const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
                        int32_t tileY) -> std::tuple<cv::Mat, cv::Mat, cv::Mat>;
 

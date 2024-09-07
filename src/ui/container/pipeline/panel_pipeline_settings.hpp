@@ -55,7 +55,7 @@ public:
   {
     if(!mIsActiveShown && setActive) {
       mIsActiveShown = true;
-      updatePreview(-1, -1);
+      updatePreview();
     }
     if(!setActive) {
       mIsActiveShown = false;
@@ -125,7 +125,7 @@ private:
 
 private slots:
   /////////////////////////////////////////////////////
-  void updatePreview(int32_t newImgIdex, int32_t selectedSeries);
+  void updatePreview();
   void onTileClicked(int32_t tileX, int32_t tileY);
   void onPreviewStarted();
   void onPreviewFinished();

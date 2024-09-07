@@ -71,7 +71,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     int poolSizeTiles    = threadingSettings.cores.at(joda::thread::ThreadingSettings::TILES);
 
     // Resolve dependencies
-    auto pipelineOrder = joda::processor::DependencyGraph::calcGraph(program);
+    auto [pipelineOrderO, _] = joda::processor::DependencyGraph::calcGraph(program);
+    auto pipelineOrder       = pipelineOrderO;
 
     // Prepare the context
     GlobalContext globalContext;
@@ -284,10 +285,29 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
 /// \param[out]
 /// \return
 ///
-auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, const settings::Pipeline &pipeline,
+auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
+                                const settings::AnalyzeSettings &program, const settings::Pipeline &pipelineStart,
                                 const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
                                 int32_t tileY) -> std::tuple<cv::Mat, cv::Mat, cv::Mat>
 {
+  //
+  //  Resolve dependencies
+  //  We only want to execute those pipelines which are needed for the preview
+  //
+  auto [pipelineOrder, dependencyGraph] = joda::processor::DependencyGraph::calcGraph(program);
+  std::set<const settings::Pipeline *> deps;
+  for(const auto &node : dependencyGraph) {
+    auto parent = node.findParents(&pipelineStart);
+    for(const auto &ele : parent) {
+      deps.emplace(ele.pipeline());
+      node.printTree();
+    }
+  }
+  deps.emplace(&pipelineStart);
+
+  //
+  // Get image
+  //
   auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath);
 
   GlobalContext globalContext;
@@ -299,45 +319,68 @@ auto Processor::generatePreview(const settings::ProjectImageSetup &imageSetup, c
 
   IterationContext iterationContext;
 
-  //
-  // Load the image imagePlane
-  //
-  ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
-  imageLoader.initPipeline(pipeline.pipelineSetup, {tileX, tileY},
-                           {.tStack = tStack, .zStack = zStack, .cStack = pipeline.pipelineSetup.cStackIndex}, context);
-  auto planeId = context.getActImage().getId().imagePlane;
+  int executedSteps = 0;
+  for(const auto &[order, pipelines] : pipelineOrder) {
+    for(const auto &pipeline : pipelines) {
+      if(!deps.contains(pipeline)) {
+        continue;
+      }
+      executedSteps++;
+      //
+      // Load the image imagePlane
+      //
+      ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
+      imageLoader.initPipeline(pipeline->pipelineSetup, {tileX, tileY},
+                               {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex},
+                               context);
+      auto planeId = context.getActImage().getId().imagePlane;
 
-  //
-  // Execute the pipeline
-  //
-  for(const auto &step : pipeline.pipelineSteps) {
-    step(context, context.getActImage().image, context.getActObjects());
-  }
+      //
+      // Execute the pipeline
+      //
+      for(const auto &step : pipeline->pipelineSteps) {
+        if(step.$saveImage.has_value()) {
+          // For preview do not execute image saver
+          continue;
+        }
+        step(context, context.getActImage().image, context.getActObjects());
+      }
 
-  joda::settings::ImageSaverSettings saverSettings;
+      //
+      // The last step is the wanted pipeline
+      //
+      if(executedSteps >= deps.size()) {
+        joda::settings::ImageSaverSettings saverSettings;
+        int colorIdx = 0;
+        for(int cluster = 0; cluster < 10; cluster++) {
+          for(int classs = 0; classs < 10; classs++) {
+            saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{
+                .inputCluster = {(enums::ClusterIdIn) cluster, (enums::ClassId) classs},
+                .color        = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()],
+                .style        = previewSettings.style});
+            colorIdx++;
+          }
+        }
 
-  for(int cluster = 0; cluster < 10; cluster++) {
-    for(int classs = 0; classs < 10; classs++) {
-      saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{
-          .inputCluster = {(enums::ClusterIdIn) cluster, (enums::ClassId) classs},
-          .color        = "#FF0000",
-          .style        = settings::ImageSaverSettings::Style::FILLED});
+        saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_PLANE;
+        saverSettings.planesIn   = enums::ImageId{.imageIdx = enums::ZProjection::$};
+        saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
+        auto step                = settings::PipelineStep{.$saveImage = saverSettings};
+        auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
+        saver->execute(context, context.getActImage().image, context.getActObjects());
+
+        auto thumb = joda::image::reader::ImageReader::loadThumbnail(
+            imagePath.string(),
+            joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipeline->pipelineSetup.cStackIndex, .t = tStack},
+            0);
+
+        return {context.loadImageFromCache(joda::enums::ImageId{.imageIdx = enums::ZProjection::$, .imagePlane = {}})
+                    ->image,
+                context.getActImage().image, thumb};
+      }
     }
   }
-
-  saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_PLANE;
-  saverSettings.planesIn   = enums::ImageId{.imageIdx = enums::ZProjection::$};
-  saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
-  auto step                = settings::PipelineStep{.$saveImage = saverSettings};
-  auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
-  saver->execute(context, context.getActImage().image, context.getActObjects());
-
-  auto thumb = joda::image::reader::ImageReader::loadThumbnail(
-      imagePath.string(),
-      joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipeline.pipelineSetup.cStackIndex, .t = tStack}, 0);
-
-  return {context.loadImageFromCache(joda::enums::ImageId{.imageIdx = enums::ZProjection::$, .imagePlane = {}})->image,
-          context.getActImage().image, thumb};
+  return {{}, {}, {}};
 }
 
 }    // namespace joda::processor
