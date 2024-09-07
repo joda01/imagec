@@ -16,6 +16,7 @@
 #include <qlineedit.h>
 #include <string>
 #include "backend/helper/file_parser/directory_iterator.hpp"
+#include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "ui/results/panel_results.hpp"
 #include "ui/window_main/window_main.hpp"
@@ -100,19 +101,32 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
     //
     mDensityMapSize = new QComboBox();
     mDensityMapSize->addItem("50", 50);
+    mDensityMapSize->addItem(std::to_string(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 64).data(),
+                             joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 64);
     mDensityMapSize->addItem("100", 100);
+    mDensityMapSize->addItem(std::to_string(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 32).data(),
+                             joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 32);
     mDensityMapSize->addItem("150", 150);
     mDensityMapSize->addItem("200", 200);
     mDensityMapSize->addItem("250", 250);
+    mDensityMapSize->addItem(std::to_string(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 16).data(),
+                             joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 16);
     mDensityMapSize->addItem("300", 300);
     mDensityMapSize->addItem("350", 350);
     mDensityMapSize->addItem("400", 400);
     mDensityMapSize->addItem("450", 450);
     mDensityMapSize->addItem("450", 450);
+    mDensityMapSize->addItem(std::to_string(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 8).data(),
+                             joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 8);
     mDensityMapSize->addItem("1000", 1000);
+    mDensityMapSize->addItem(std::to_string(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 4).data(),
+                             joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 4);
     mDensityMapSize->addItem("2000", 2000);
+    mDensityMapSize->addItem(std::to_string(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 2).data(),
+                             joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 2);
     mDensityMapSize->addItem("3000", 3000);
-    mDensityMapSize->addItem("4000", 4000);
+    mDensityMapSize->addItem(std::to_string(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH).data(),
+                             joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH);
     mDensityMapSize->setCurrentIndex(13);
 
     formLayout->addRow(new QLabel(tr("Well order:")), mWellOrderMatrix);

@@ -88,14 +88,14 @@ std::unique_ptr<joda::ui::Command> DialogCommandSelection::generateCommand(const
 ///
 void DialogCommandSelection::addCommandsToTable()
 {
-  addTitleToTable("Preprocessing");
+  addTitleToTable("Image Processing");
+  addCommandToTable(settings::PipelineStep{.$crop = settings::MarginCropSettings{}});
   addCommandToTable(settings::PipelineStep{.$blur = settings::BlurSettings{}});
   addCommandToTable(settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}});
   addCommandToTable(settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}});
   addCommandToTable(settings::PipelineStep{.$edgeDetection = settings::EdgeDetectionSettings{}});
-  addCommandToTable(settings::PipelineStep{.$crop = settings::MarginCropSettings{}});
 
-  addTitleToTable("Detection");
+  addTitleToTable("Binary image Processing");
   addCommandToTable(settings::PipelineStep{.$threshold = settings::ThresholdSettings{}});
   addCommandToTable(settings::PipelineStep{.$watershed = settings::WatershedSettings{}});
 
@@ -105,17 +105,21 @@ void DialogCommandSelection::addCommandsToTable()
   addCommandToTable(settings::PipelineStep{.$classify = defaultClassify});
   addCommandToTable(settings::PipelineStep{.$aiClassify = settings::AiClassifierSettings{}});
 
-  addTitleToTable("Postprocessing");
+  addTitleToTable("Object Processing");
+  addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}});
+
+  addTitleToTable("Measurement");
   addCommandToTable(settings::PipelineStep{.$colocalization = settings::ColocalizationSettings{}});
   addCommandToTable(settings::PipelineStep{.$intersection = settings::IntersectionSettings{}});
-  addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}});
   addCommandToTable(settings::PipelineStep{.$measure = settings::MeasureSettings{}});
-  addCommandToTable(settings::PipelineStep{.$saveImage = settings::ImageSaverSettings{}});
-  addCommandToTable(settings::PipelineStep{.$imageFromClass = settings::ImageFromClassSettings{}});
 
   addTitleToTable("Filtering");
   addCommandToTable(settings::PipelineStep{.$thresholdValidator = settings::ThresholdValidatorSettings{}});
   addCommandToTable(settings::PipelineStep{.$noiseValidator = settings::NoiseValidatorSettings{}});
+
+  addTitleToTable("Output");
+  addCommandToTable(settings::PipelineStep{.$saveImage = settings::ImageSaverSettings{}});
+  addCommandToTable(settings::PipelineStep{.$imageFromClass = settings::ImageFromClassSettings{}});
 }
 
 void DialogCommandSelection::addTitleToTable(const std::string &title)
