@@ -147,14 +147,27 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
   const int ROW_OFFSET = 1;
   const int COL_OFFSET = 1;
 
-  enums::ClusterId actClusterId = enums::ClusterId::UNDEFINED;
-
   lxw_worksheet *worksheet = workbook_add_worksheet(workbookSettings.workbook, "overview");
   int colOffset            = 0;
   int tmpCols              = 0;
+  if(settings.clustersToExport.empty()) {
+    return;
+  }
+  enums::ClusterId actClusterId   = settings.clustersToExport.begin()->first.clusterId;
+  std::string actImageClusterName = settings.clustersToExport.begin()->second.clusterName;
+
+  int loopCount = 0;
   for(const auto &[clusterAndClassId, imageChannel] : settings.clustersToExport) {
+    loopCount++;
     if(actClusterId != clusterAndClassId.clusterId) {
-      tmpCols = 0;
+      actClusterId = clusterAndClassId.clusterId;
+      worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET - tmpCols, 0, colOffset + COL_OFFSET - 1, "-",
+                            workbookSettings.merge_format);
+      worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET - tmpCols, actImageClusterName.data(),
+                             workbookSettings.header);
+      colOffset++;
+      tmpCols             = 0;
+      actImageClusterName = imageChannel.clusterName;
     }
 
     for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
@@ -170,6 +183,7 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
                                               .plateId                 = settings.plateId,
                                               .actGroupId              = settings.groupId,
                                               .actImageId              = settings.imageId,
+                                              .clusterId               = clusterId,
                                               .classId                 = classId,
                                               .className               = className,
                                               .measurementChannel      = measureChannelId,
@@ -233,13 +247,11 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
       }
     }
 
-    if(actClusterId != clusterAndClassId.clusterId) {
-      actClusterId = clusterAndClassId.clusterId;
+    if(settings.clustersToExport.size() == loopCount) {
       worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET - tmpCols, 0, colOffset + COL_OFFSET - 1, "-",
                             workbookSettings.merge_format);
       worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET - tmpCols, imageChannel.clusterName.data(),
                              workbookSettings.header);
-      colOffset++;
     }
   }
 }
