@@ -71,7 +71,8 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
             applyFilter(cutedVoronoiArea);
           }
         } else {
-          applyFilter(response.push_back(voronoiArea));
+          auto areaClone = voronoiArea.clone();
+          applyFilter(areaClone);
         }
       }
     }

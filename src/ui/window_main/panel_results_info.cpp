@@ -125,9 +125,10 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
     mDensityMapSize->addItem(std::to_string(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 2).data(),
                              joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH / 2);
     mDensityMapSize->addItem("3000", 3000);
+    mDensityMapSize->addItem("4000", 4000);
     mDensityMapSize->addItem(std::to_string(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH).data(),
                              joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH);
-    mDensityMapSize->setCurrentIndex(13);
+    mDensityMapSize->setCurrentIndex(mDensityMapSize->count() - 1);
 
     formLayout->addRow(new QLabel(tr("Well order:")), mWellOrderMatrix);
     formLayout->addRow(new QLabel(tr("Plate size:")), mPlateSize);
