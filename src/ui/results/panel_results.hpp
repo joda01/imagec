@@ -86,6 +86,7 @@ private:
   void valueChangedEvent() override;
   void setAnalyzer();
   void tableToQWidgetTable(const table::Table &table);
+  void refreshView();
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
@@ -142,9 +143,10 @@ public slots:
   void paintWell();
   void paintImage();
   void onExportImageClicked();
-  void onMeasurementChanged();
   void onShowTable();
   void onShowHeatmap();
+  void onClusterAndClassesChanged();
+  void onMeasurementChanged();
 };
 
 }    // namespace joda::ui

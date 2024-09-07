@@ -160,7 +160,7 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   //
   //
   mClusterClassSelector = new QComboBox();
-  connect(mClusterClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
+  connect(mClusterClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onClusterAndClassesChanged);
   toolbar->addItemToTopToolbar(mClusterClassSelector);
 
   mMeasurementSelector = new QComboBox();
@@ -174,7 +174,6 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   mMeasurementSelector->addItem("Intensity avg.", (int32_t) joda::enums::Measurement::INTENSITY_AVG);
   mMeasurementSelector->addItem("Intensity min.", (int32_t) joda::enums::Measurement::INTENSITY_MIN);
   mMeasurementSelector->addItem("Intensity max.", (int32_t) joda::enums::Measurement::INTENSITY_MAX);
-
   connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
   toolbar->addItemToTopToolbar(mMeasurementSelector);
 
@@ -272,6 +271,18 @@ void PanelResults::setAnalyzer()
 ///
 void PanelResults::onMeasurementChanged()
 {
+  refreshView();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::onClusterAndClassesChanged()
+{
   auto clusterClassSelected =
       SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
 
@@ -300,6 +311,8 @@ void PanelResults::onMeasurementChanged()
 
       mCrossChannelClusterAndClassesSelector->blockSignals(false);
     }
+
+    refreshView();
   }
 
   //
@@ -322,6 +335,20 @@ void PanelResults::onMeasurementChanged()
     }
     mCrossChannelStackC->blockSignals(false);
   }
+  refreshView();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::refreshView()
+{
+  auto clusterClassSelected =
+      SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
 
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();

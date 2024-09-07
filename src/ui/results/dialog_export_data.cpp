@@ -307,7 +307,7 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
   mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
   mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
 
-  col1->addWidgetGroup("Columns", {mExportColumns.begin(), mExportColumns.end()}, 0, INT32_MAX);
+  col1->addWidgetGroup("Columns", {mExportColumns.begin(), mExportColumns.end()}, 0, 16777214);
 
   //
   // Details
