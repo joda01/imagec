@@ -46,6 +46,7 @@
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_label.hpp"
 #include "ui/container/panel_edit_base.hpp"
+#include "ui/container/setting/setting_combobox_classification_unmanaged.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
@@ -142,7 +143,14 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   auto *exportData = new QPushButton(QIcon(":/icons/outlined/icons8-export-excel-50.png"), "Export");
   exportData->setToolTip("Export data");
   connect(exportData, &QPushButton::pressed, [this]() {
-    DialogExportData exportData(mAnalyzer, mFilter, mWindowMain);
+    std::map<settings::ClassificatorSettingOut, QString> clustersAndClasses;
+    for(int i = 0; i < mClusterClassSelector->count(); ++i) {
+      clustersAndClasses.emplace(
+          SettingComboBoxClassificationUnmanaged::fromInt(mClusterClassSelector->itemData(i).toUInt()),
+          mClusterClassSelector->itemText(i));
+    }
+
+    DialogExportData exportData(mAnalyzer, mFilter, clustersAndClasses, mWindowMain);
     exportData.exec();
   });
   toolbar->addItemToTopToolbar(exportData);
@@ -236,7 +244,7 @@ void PanelResults::setAnalyzer()
       mCrossChannelClusterSelector->addItem(cluster.first.data(), static_cast<uint32_t>(clusterId));
 
       for(const auto &[classId, classsName] : cluster.second) {
-        std::string name = cluster.first + "/" + classsName;
+        std::string name = cluster.first + "@" + classsName;
         mClusterClassSelector->addItem(name.data(), SettingComboBoxMultiClassificationIn::toInt(
                                                         {static_cast<enums::ClusterIdIn>(clusterId), classId}));
       }
@@ -306,7 +314,7 @@ void PanelResults::onMeasurementChanged()
   QString className;
   className = mClusterClassSelector->currentText();
   if(!className.isEmpty()) {
-    auto splited = className.split("/");
+    auto splited = className.split("@");
     if(splited.size() > 1) {
       className = splited[1];
     }

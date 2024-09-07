@@ -139,7 +139,7 @@ inline std::string createHeader(const QueryFilter &filter)
       prefix = " (CH" + std::to_string(filter.crossChanelStack_c) + ")";
       break;
     case COUNT:
-      prefix = " (" + filter.crossChannelClusterName + "/" + filter.crossChannelClassName + ")";
+      prefix = " (" + filter.crossChannelClusterName + "@" + filter.crossChannelClassName + ")";
       break;
   }
 

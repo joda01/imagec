@@ -38,13 +38,52 @@ class QueryFilter;
 
 namespace joda::ui {
 
+class SettingComboBoxMultiClassificationUnmanaged;
+class SettingComboBoxClassificationUnmanaged;
+
+///
+/// \class
+/// \author
+/// \brief
+///
+class ExportColumn : public QWidget
+{
+public:
+  ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
+               const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses, QWidget *windowMain);
+
+  void getImageChannels();
+  void getCrossChannelCount();
+  bool isEnabled();
+
+  std::pair<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> getClusterClassesToExport();
+  std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> getCrossChannelCountToExport();
+  std::map<int32_t, std::string> getCrossChannelIntensityToExport();
+  std::map<enums::Measurement, std::set<enums::Stats>> getMeasurementAndStatsToExport();
+
+private:
+  /////////////////////////////////////////////////////
+  void setEnabledDisabled(bool);
+
+  /////////////////////////////////////////////////////
+  std::unique_ptr<SettingComboBoxClassificationUnmanaged> mClustersAndClasses;
+  std::unique_ptr<SettingComboBoxMulti<int32_t>> mCrossChannelImageChannel;
+  std::unique_ptr<SettingComboBoxMultiClassificationUnmanaged> mCrossChannelCount;
+  std::unique_ptr<SettingComboBoxMulti<enums::Measurement>> mMeasurement;
+  std::unique_ptr<SettingComboBoxMulti<enums::Stats>> mStats;
+
+  std::unique_ptr<joda::db::Database> &mAnalyzer;
+  const std::map<settings::ClassificatorSettingOut, QString> &mClustersAndClassesVector;
+};
+
 class DialogExportData : public QDialog
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const db::QueryFilter &filter, QWidget *windowMain);
+  DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const db::QueryFilter &filter,
+                   const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses, QWidget *windowMain);
 
 signals:
   void exportFinished();
@@ -61,27 +100,19 @@ private:
   QProgressBar *progressBar;
   QAction *mActionProgressBar = nullptr;
   QAction *mExportButton;
-
   QAction *mSelectAllMeasurements;
   QAction *mUnselectAllMeasurements;
-
   QAction *mSelectAllClustersAndClasses;
 
   /////////////////////////////////////////////////////
   std::unique_ptr<joda::db::Database> &mAnalyzer;
   const db::QueryFilter &mFilter;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClusterId>> mClustersToExport;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mClassesToExport;
+  std::vector<ExportColumn *> mExportColumns;
 
-  // Cross channel
-  std::unique_ptr<SettingComboBoxMulti<int32_t>> mCrossChannelStackC;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClusterId>> mCrossChannelClusterId;
-  std::unique_ptr<SettingComboBoxMulti<enums::ClassId>> mCrossChannelClassId;
-
-  std::map<enums::Measurement, std::unique_ptr<SettingComboBoxMulti<enums::Stats>>> mChannelsToExport;
   std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>> mReportingDetails;
   std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>> mReportingType;
   helper::LayoutGenerator mLayout;
+  std::map<settings::ClassificatorSettingOut, QString> mClustersAndClasses;
 
 private slots:
   void onExportFinished();

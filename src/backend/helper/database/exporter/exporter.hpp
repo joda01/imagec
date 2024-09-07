@@ -35,11 +35,13 @@ public:
 
     struct Channel
     {
-      std::string name;
-      std::map<enums::ClassId, std::string> classes;
+      std::string clusterName;
+      std::string className;
       std::map<enums::Measurement, std::set<enums::Stats>> measureChannels;
+      std::map<int32_t, std::string> crossChannelStacksC;
+      std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> crossChannelCount;
     };
-    std::map<enums::ClusterId, Channel> clustersToExport;
+    std::map<settings::ClassificatorSettingOut, Channel> clustersToExport;
     db::Database &analyzer;
     uint8_t plateId;
     uint16_t groupId;
@@ -50,10 +52,6 @@ public:
     std::vector<std::vector<int32_t>> wellImageOrder;
     ExportType exportType;
     ExportDetail exportDetail;
-
-    std::map<int32_t, std::string> crossChannelStacksC;
-    std::map<enums::ClusterId, std::string> crossChannelClusterIds;
-    std::map<enums::ClassId, std::string> crossChannelClassIds;
   };
 
   static void startExport(const Settings &settings, const std::string &outputFileName);

@@ -117,10 +117,11 @@ struct ClassificatorSettingOut
   }
 };
 
-using ObjectOutputClusters = std::set<ClassificatorSetting>;
-using ObjectInputClusters  = std::set<ClassificatorSetting>;
-using ObjectInputCluster   = ClassificatorSetting;
-using ObjectOutputCluster  = ClassificatorSetting;
+using ObjectOutputClusters   = std::set<ClassificatorSetting>;
+using ObjectInputClusters    = std::set<ClassificatorSetting>;
+using ObjectInputCluster     = ClassificatorSetting;
+using ObjectOutputCluster    = ClassificatorSetting;
+using ObjectInputClustersExp = std::set<ClassificatorSettingOut>;
 
 class SettingBase
 {

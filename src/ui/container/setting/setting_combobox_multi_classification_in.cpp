@@ -79,7 +79,7 @@ void SettingComboBoxMultiClassificationIn::outputClustersChanges()
 
           mComboBox->addItem(
               QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-              clusteres[static_cast<enums::ClusterIdIn>(data.clusterId)] + "/" + classes[data.classId], variant);
+              clusteres[static_cast<enums::ClusterIdIn>(data.clusterId)] + "@" + classes[data.classId], variant);
         }
       }
     }

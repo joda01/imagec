@@ -80,6 +80,7 @@ public:
 
   void addOptions(const std::vector<ComboEntry> &options)
   {
+    mComboBox->clear();
     for(const auto &data : options) {
       QVariant variant;
       if constexpr(std::is_enum<VALUE_T>::value) {

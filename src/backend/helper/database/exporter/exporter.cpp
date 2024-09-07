@@ -46,8 +46,13 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
 {
   const size_t MAX_WORKSHETT_NAME_LENGTH = 30;
 
-  for(const auto &[clusterId, imageChannel] : settings.clustersToExport) {
-    std::string worksheetName       = imageChannel.name;
+  enums::ClusterId actClusterId = enums::ClusterId::UNDEFINED;
+  lxw_worksheet *actWorkSheet;
+
+  Pos offsets;
+
+  auto newWorkSheet = [&](enums::ClusterId clusterId, const BatchExporter::Settings::Channel &expChannel) {
+    std::string worksheetName       = expChannel.clusterName;
     std::string worksheetNameSuffix = "(" + std::to_string(static_cast<uint16_t>(clusterId)) + ")";
     // Excel only allows 31 Chars as worksheet name -> we have to limit this
     size_t leftChars = MAX_WORKSHETT_NAME_LENGTH - worksheetNameSuffix.size();
@@ -55,69 +60,75 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
       worksheetName.resize(leftChars);
     }
 
-    lxw_worksheet *worksheet = workbook_add_worksheet(
-        workbookSettings.workbook, static_cast<std ::string>(worksheetName + worksheetNameSuffix).data());
+    actWorkSheet = workbook_add_worksheet(workbookSettings.workbook,
+                                          static_cast<std ::string>(worksheetName + worksheetNameSuffix).data());
+    offsets.col  = 0;
+    offsets.row  = 0;
+  };
 
-    Pos offsets;
-    for(const auto &[classId, className] : imageChannel.classes) {
-      for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
-        for(const auto stats : statsIn) {
-          auto generate = [&, clusterId = clusterId, classId = classId, className = className,
-                           measureChannelId =
-                               measureChannelId](uint32_t cStack, const std::string &crossChannelChannelCName,
-                                                 std::pair<enums::ClusterId, std::string> crossChannelCluster,
-                                                 std::pair<enums::ClassId, std::string> crossChannelClass) {
-            table::Table table;
-            auto filter = joda::db::QueryFilter{.analyzer                = &settings.analyzer,
-                                                .plateRows               = settings.plateRows,
-                                                .plateCols               = settings.plateCols,
-                                                .plateId                 = settings.plateId,
-                                                .actGroupId              = settings.groupId,
-                                                .actImageId              = settings.imageId,
-                                                .clusterId               = clusterId,
-                                                .classId                 = classId,
-                                                .className               = className,
-                                                .measurementChannel      = measureChannelId,
-                                                .stats                   = stats,
-                                                .wellImageOrder          = settings.wellImageOrder,
-                                                .densityMapAreaSize      = settings.heatmapAreaSize,
-                                                .crossChanelStack_c      = cStack,
-                                                .crossChannelStack_cName = crossChannelChannelCName,
-                                                .crossChannelClusterId   = crossChannelCluster.first,
-                                                .crossChannelClusterName = crossChannelCluster.second,
-                                                .crossChannelClassId     = crossChannelClass.first,
-                                                .crossChannelClassName   = crossChannelClass.second};
+  for(const auto &[clusterAndClassId, imageChannel] : settings.clustersToExport) {
+    if(actClusterId != clusterAndClassId.clusterId) {
+      actClusterId = clusterAndClassId.clusterId;
+      newWorkSheet(clusterAndClassId.clusterId, imageChannel);
+    }
 
-            switch(settings.exportDetail) {
-              case Settings::ExportDetail::PLATE:
-                table = joda::db::StatsPerPlate::toHeatmap(filter);
-                break;
-              case Settings::ExportDetail::WELL:
-                table = joda::db::StatsPerGroup::toHeatmap(filter);
-                break;
-              case Settings::ExportDetail::IMAGE:
-                table = joda::db::StatsPerImage::toHeatmap(filter);
-                break;
-            }
-            paintPlateBorder(worksheet, table.getRows(), table.getCols(), offsets.row, workbookSettings.header,
-                             workbookSettings.merge_format, workbookSettings.numberFormat, createHeader(filter));
-            offsets = paintHeatmap(workbookSettings, worksheet, table, offsets.row);
-            offsets.row += 4;
-          };
+    for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
+      for(const auto stats : statsIn) {
+        auto generate = [&, clusterId = clusterAndClassId.clusterId, classId = clusterAndClassId.classId,
+                         className = imageChannel.className, measureChannelId = measureChannelId](
+                            uint32_t cStack, const std::string &crossChannelChannelCName,
+                            std::pair<enums::ClusterId, std::string> crossChannelCluster,
+                            std::pair<enums::ClassId, std::string> crossChannelClass) {
+          table::Table table;
+          auto filter = joda::db::QueryFilter{.analyzer                = &settings.analyzer,
+                                              .plateRows               = settings.plateRows,
+                                              .plateCols               = settings.plateCols,
+                                              .plateId                 = settings.plateId,
+                                              .actGroupId              = settings.groupId,
+                                              .actImageId              = settings.imageId,
+                                              .clusterId               = clusterId,
+                                              .classId                 = classId,
+                                              .className               = className,
+                                              .measurementChannel      = measureChannelId,
+                                              .stats                   = stats,
+                                              .wellImageOrder          = settings.wellImageOrder,
+                                              .densityMapAreaSize      = settings.heatmapAreaSize,
+                                              .crossChanelStack_c      = cStack,
+                                              .crossChannelStack_cName = crossChannelChannelCName,
+                                              .crossChannelClusterId   = crossChannelCluster.first,
+                                              .crossChannelClusterName = crossChannelCluster.second,
+                                              .crossChannelClassId     = crossChannelClass.first,
+                                              .crossChannelClassName   = crossChannelClass.second};
 
-          if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
-            for(const auto &[cStack, name] : settings.crossChannelStacksC) {
-              generate(cStack, name, {}, {});
-            }
-          } else if(getType(measureChannelId) == joda::db::MeasureType::COUNT) {
-            for(const auto &cluster : settings.crossChannelClusterIds) {
-              for(const auto &classs : settings.crossChannelClassIds) {
-                generate(0, "", cluster, classs);
-              }
-            }
-          } else {
-            generate(0, "", {}, {});
+          switch(settings.exportDetail) {
+            case Settings::ExportDetail::PLATE:
+              table = joda::db::StatsPerPlate::toHeatmap(filter);
+              break;
+            case Settings::ExportDetail::WELL:
+              table = joda::db::StatsPerGroup::toHeatmap(filter);
+              break;
+            case Settings::ExportDetail::IMAGE:
+              table = joda::db::StatsPerImage::toHeatmap(filter);
+              break;
           }
+          paintPlateBorder(actWorkSheet, table.getRows(), table.getCols(), offsets.row, workbookSettings.header,
+                           workbookSettings.merge_format, workbookSettings.numberFormat, createHeader(filter));
+          offsets = paintHeatmap(workbookSettings, actWorkSheet, table, offsets.row);
+          offsets.row += 4;
+        };
+
+        if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
+          for(const auto &[cStack, name] : imageChannel.crossChannelStacksC) {
+            generate(cStack, name, {}, {});
+          }
+        } else if(getType(measureChannelId) == joda::db::MeasureType::COUNT) {
+          for(const auto &[clusterAndClassCrossChannel, name] : imageChannel.crossChannelCount) {
+            generate(0, "", {clusterAndClassCrossChannel.clusterId, std::get<0>(name)},
+                     {clusterAndClassCrossChannel.classId, std::get<1>(name)});
+          }
+
+        } else {
+          generate(0, "", {}, {});
         }
       }
     }
@@ -136,93 +147,100 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
   const int ROW_OFFSET = 1;
   const int COL_OFFSET = 1;
 
+  enums::ClusterId actClusterId = enums::ClusterId::UNDEFINED;
+
   lxw_worksheet *worksheet = workbook_add_worksheet(workbookSettings.workbook, "overview");
   int colOffset            = 0;
-  for(const auto &[clusterId, imageChannel] : settings.clustersToExport) {
-    int tmpCols = 0;
-    for(const auto &[classId, className] : imageChannel.classes) {
-      for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
-        for(const auto stats : statsIn) {
-          auto generate = [&, clusterId = clusterId, classId = classId, className = className,
-                           measureChannelId =
-                               measureChannelId](uint32_t cStack, const std::string &crossChannelChannelCName,
-                                                 std::pair<enums::ClusterId, std::string> crossChannelCluster,
-                                                 std::pair<enums::ClassId, std::string> crossChannelClass) {
-            auto filter = joda::db::QueryFilter{.analyzer                = &settings.analyzer,
-                                                .plateRows               = settings.plateRows,
-                                                .plateCols               = settings.plateCols,
-                                                .plateId                 = settings.plateId,
-                                                .actGroupId              = settings.groupId,
-                                                .actImageId              = settings.imageId,
-                                                .classId                 = classId,
-                                                .className               = className,
-                                                .measurementChannel      = measureChannelId,
-                                                .stats                   = stats,
-                                                .wellImageOrder          = settings.wellImageOrder,
-                                                .densityMapAreaSize      = settings.heatmapAreaSize,
-                                                .crossChanelStack_c      = cStack,
-                                                .crossChannelStack_cName = crossChannelChannelCName,
-                                                .crossChannelClusterId   = crossChannelCluster.first,
-                                                .crossChannelClusterName = crossChannelCluster.second,
-                                                .crossChannelClassId     = crossChannelClass.first,
-                                                .crossChannelClassName   = crossChannelClass.second};
+  int tmpCols              = 0;
+  for(const auto &[clusterAndClassId, imageChannel] : settings.clustersToExport) {
+    if(actClusterId != clusterAndClassId.clusterId) {
+      tmpCols = 0;
+    }
 
-            table::Table table;
-            switch(settings.exportDetail) {
-              case Settings::ExportDetail::PLATE:
-                table = joda::db::StatsPerPlate::toTable(filter);
-                break;
-              case Settings::ExportDetail::WELL:
-                table = joda::db::StatsPerGroup::toTable(filter);
-                break;
-              case Settings::ExportDetail::IMAGE:
-                table = joda::db::StatsPerImage::toTable(filter);
-                break;
-            }
+    for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
+      for(const auto stats : statsIn) {
+        auto generate = [&, clusterId = clusterAndClassId.clusterId, classId = clusterAndClassId.classId,
+                         className = imageChannel.className, measureChannelId = measureChannelId](
+                            uint32_t cStack, const std::string &crossChannelChannelCName,
+                            std::pair<enums::ClusterId, std::string> crossChannelCluster,
+                            std::pair<enums::ClassId, std::string> crossChannelClass) {
+          auto filter = joda::db::QueryFilter{.analyzer                = &settings.analyzer,
+                                              .plateRows               = settings.plateRows,
+                                              .plateCols               = settings.plateCols,
+                                              .plateId                 = settings.plateId,
+                                              .actGroupId              = settings.groupId,
+                                              .actImageId              = settings.imageId,
+                                              .classId                 = classId,
+                                              .className               = className,
+                                              .measurementChannel      = measureChannelId,
+                                              .stats                   = stats,
+                                              .wellImageOrder          = settings.wellImageOrder,
+                                              .densityMapAreaSize      = settings.heatmapAreaSize,
+                                              .crossChanelStack_c      = cStack,
+                                              .crossChannelStack_cName = crossChannelChannelCName,
+                                              .crossChannelClusterId   = crossChannelCluster.first,
+                                              .crossChannelClusterName = crossChannelCluster.second,
+                                              .crossChannelClassId     = crossChannelClass.first,
+                                              .crossChannelClassName   = crossChannelClass.second};
 
-            for(int col = 0; col < table.getCols(); col++) {
-              worksheet_write_string(worksheet, 1, colOffset + COL_OFFSET, table.getMutableColHeader()[col].data(),
+          table::Table table;
+          switch(settings.exportDetail) {
+            case Settings::ExportDetail::PLATE:
+              table = joda::db::StatsPerPlate::toTable(filter);
+              break;
+            case Settings::ExportDetail::WELL:
+              table = joda::db::StatsPerGroup::toTable(filter);
+              break;
+            case Settings::ExportDetail::IMAGE:
+              table = joda::db::StatsPerImage::toTable(filter);
+              break;
+          }
+
+          for(int col = 0; col < table.getCols(); col++) {
+            worksheet_write_string(worksheet, 1, colOffset + COL_OFFSET, table.getMutableColHeader()[col].data(),
+                                   workbookSettings.header);
+
+            for(int row = 0; row < table.getRows(); row++) {
+              // Row header
+              worksheet_write_string(worksheet, 1 + ROW_OFFSET + row, 0, table.getRowHeader(row).data(),
                                      workbookSettings.header);
 
-              for(int row = 0; row < table.getRows(); row++) {
-                // Row header
-                worksheet_write_string(worksheet, 1 + ROW_OFFSET + row, 0, table.getRowHeader(row).data(),
-                                       workbookSettings.header);
-
-                auto *format = workbookSettings.numberFormat;
-                if(!table.data(row, col).isValid()) {
-                  format = workbookSettings.numberFormatInvalid;
-                }
-                // Offset 2 because of title and plate numbering
-                double val = table.data(row, col).getVal();
-                worksheet_write_number(worksheet, 1 + ROW_OFFSET + row, colOffset + COL_OFFSET, val, format);
+              auto *format = workbookSettings.numberFormat;
+              if(!table.data(row, col).isValid()) {
+                format = workbookSettings.numberFormatInvalid;
               }
-              colOffset++;
-              tmpCols++;
+              // Offset 2 because of title and plate numbering
+              double val = table.data(row, col).getVal();
+              worksheet_write_number(worksheet, 1 + ROW_OFFSET + row, colOffset + COL_OFFSET, val, format);
             }
-          };
-
-          if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
-            for(const auto &[cStack, name] : settings.crossChannelStacksC) {
-              generate(cStack, name, {}, {});
-            }
-          } else if(getType(measureChannelId) == joda::db::MeasureType::COUNT) {
-            for(const auto &cluster : settings.crossChannelClusterIds) {
-              for(const auto &classs : settings.crossChannelClassIds) {
-                generate(0, "", cluster, classs);
-              }
-            }
-          } else {
-            generate(0, "", {}, {});
+            colOffset++;
+            tmpCols++;
           }
+        };
+
+        if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
+          for(const auto &[cStack, name] : imageChannel.crossChannelStacksC) {
+            generate(cStack, name, {}, {});
+          }
+        } else if(getType(measureChannelId) == joda::db::MeasureType::COUNT) {
+          for(const auto &[clusterAndClassCrossChannel, name] : imageChannel.crossChannelCount) {
+            generate(0, "", {clusterAndClassCrossChannel.clusterId, std::get<0>(name)},
+                     {clusterAndClassCrossChannel.classId, std::get<1>(name)});
+          }
+        } else {
+          generate(0, "", {}, {});
         }
       }
     }
-    worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET - tmpCols, 0, colOffset + COL_OFFSET - 1, "-",
-                          workbookSettings.merge_format);
-    worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET - tmpCols, imageChannel.name.data(),
-                           workbookSettings.header);
-    colOffset++;
+
+    if(actClusterId != clusterAndClassId.clusterId) {
+      actClusterId = clusterAndClassId.clusterId;
+      worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET - tmpCols, 0, colOffset + COL_OFFSET - 1, "-",
+                            workbookSettings.merge_format);
+      worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET - tmpCols, imageChannel.clusterName.data(),
+                             workbookSettings.header);
+      colOffset++;
+    }
   }
 }
 
