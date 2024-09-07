@@ -529,8 +529,6 @@ void PanelResults::repaintHeatmap()
           }
           break;
         case Navigation::IMAGE:
-          std::cout << "Navigate to image " << std::to_string(mFilter.actImageId) << std::endl;
-
           paintImage();
           if(mTableButton != nullptr && mTableButton->isChecked()) {
             tableToQWidgetTable(joda::db::StatsPerImage::toTable(mFilter));
