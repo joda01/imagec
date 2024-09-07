@@ -105,7 +105,13 @@ struct IntersectionSettings : public SettingBase
 
   [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
   {
-    return {{enums::ClusterIdIn::$, newClassId}};
+    ObjectOutputClusters out;
+    if(mode == Function::RECLASSIFY) {
+      for(const auto &in : inputObjectsIntersectWith.inputClusters) {
+        out.emplace(in.clusterId, newClassId);
+      }
+    }
+    return out;
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionSettings, mode, minIntersection, inputObjects,

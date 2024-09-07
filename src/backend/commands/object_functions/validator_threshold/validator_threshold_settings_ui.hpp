@@ -32,8 +32,9 @@ public:
   inline static std::string TITLE = "Threshold filter";
   inline static std::string ICON  = "icons8-filter-50.png";
 
-  ThresholdValidator(settings::ThresholdValidatorSettings &settings, QWidget *parent) :
-      Command(TITLE.data(), ICON.data(), parent)
+  ThresholdValidator(joda::settings::PipelineStep &pipelineStep, settings::ThresholdValidatorSettings &settings,
+                     QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
   {
     //
     //

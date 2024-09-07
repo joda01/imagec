@@ -19,6 +19,9 @@ namespace joda::settings {
 
 void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) const
 {
+  if(disabled) {
+    return;
+  }
   auto ret = PipelineFactory<joda::cmd::Command>::generate(*this);
   if(ret != nullptr) {
     ret->execute(context, image, result);

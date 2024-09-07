@@ -36,8 +36,8 @@ public:
   inline static std::string TITLE = "Intersection";
   inline static std::string ICON  = "icons8-query-inner-join-50.png";
 
-  Intersection(settings::IntersectionSettings &settings, QWidget *parent) :
-      Command(TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
+  Intersection(joda::settings::PipelineStep &pipelineStep, settings::IntersectionSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});
 
@@ -47,10 +47,6 @@ public:
          {.key = joda::settings::IntersectionSettings::Function::RECLASSIFY, .label = "Reclassify", .icon = ""}});
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
-
-    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Output class");
-    mClassOutput->setValue(settings.newClassId);
-    mClassOutput->connectWithSetting(&settings.newClassId);
 
     //
     //
@@ -63,10 +59,9 @@ public:
     mMinIntersection->connectWithSetting(&settings.minIntersection);
     mMinIntersection->setShortDescription("Cls. ");
 
-    auto *col = addSetting(modelTab, "Base settings",
-                           {{mMode.get(), true}, {mClassOutput.get(), true}, {mMinIntersection.get(), false}});
+    auto *col = addSetting(modelTab, "Base settings", {{mMode.get(), true}, {mMinIntersection.get(), false}});
 
-    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input");
+    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input (e.g. Tetraspeck)");
     mClustersIn->setValue(settings.inputObjects.inputClusters);
     mClustersIn->connectWithSetting(&settings.inputObjects.inputClusters);
 
@@ -74,8 +69,12 @@ public:
     mClustersIntersectWith->setValue(settings.inputObjectsIntersectWith.inputClusters);
     mClustersIntersectWith->connectWithSetting(&settings.inputObjectsIntersectWith.inputClusters);
 
+    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Reclassify to");
+    mClassOutput->setValue(settings.newClassId);
+    mClassOutput->connectWithSetting(&settings.newClassId);
+
     auto *col2 = addSetting(modelTab, "Input classes", {{mClustersIn.get(), true}});
-    addSetting(modelTab, "Intersect with", {{mClustersIntersectWith.get(), true}}, col2);
+    addSetting(modelTab, "Intersect with", {{mClustersIntersectWith.get(), true}, {mClassOutput.get(), true}}, col2);
   }
 
 private:

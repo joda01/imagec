@@ -36,8 +36,8 @@ public:
   inline static std::string TITLE = "AI Classifier";
   inline static std::string ICON  = "icons8-magic-50.png";
 
-  AiClassifier(settings::AiClassifierSettings &settings, QWidget *parent) :
-      Command(TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
+  AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Model", [] {});
 

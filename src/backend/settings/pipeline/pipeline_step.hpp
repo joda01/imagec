@@ -49,6 +49,7 @@ namespace joda::settings {
 struct PipelineStep
 {
 public:
+  bool disabled                                                 = false;
   std::optional<BlurSettings> $blur                             = std::nullopt;
   std::optional<ImageSaverSettings> $saveImage                  = std::nullopt;
   std::optional<ThresholdSettings> $threshold                   = std::nullopt;
@@ -75,7 +76,7 @@ public:
                                                        $imageFromClass, $classify, $aiClassify, $colocalization,
                                                        $intersection, $measure, $rollingBall, $medianSubtract,
                                                        $edgeDetection, $crop, $voronoi, $thresholdValidator,
-                                                       $noiseValidator);
+                                                       $noiseValidator, disabled);
 };
 
 }    // namespace joda::settings

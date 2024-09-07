@@ -37,8 +37,8 @@ public:
   inline static std::string TITLE = "Classifier";
   inline static std::string ICON  = "icons8-genealogy-50.png";
 
-  Classifier(settings::ClassifierSettings &settingsIn, QWidget *parent) :
-      Command(TITLE.data(), ICON.data(), parent), mSettings(settingsIn), mParent(parent)
+  Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settingsIn), mParent(parent)
   {
     if(settingsIn.classifiers.empty()) {
       addFilter();

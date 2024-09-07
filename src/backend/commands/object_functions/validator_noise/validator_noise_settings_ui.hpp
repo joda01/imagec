@@ -33,8 +33,9 @@ public:
   inline static std::string TITLE = "Noise filter";
   inline static std::string ICON  = "icons8-sort-by-price-50.png";
 
-  NoiseValidator(settings::NoiseValidatorSettings &settings, QWidget *parent) :
-      Command(TITLE.data(), ICON.data(), parent)
+  NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings,
+                 QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
   {
     mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input class");
     mClassesIn->setValue(settings.inputClusters);

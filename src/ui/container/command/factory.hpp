@@ -18,6 +18,7 @@
 #include <utility>
 #include "backend/global_enums.hpp"
 #include "backend/processor/context/process_context.hpp"
+#include "backend/settings/pipeline/pipeline_step.hpp"
 #include "backend/settings/setting.hpp"
 #include <opencv2/core/mat.hpp>
 #include "command.hpp"
@@ -31,7 +32,7 @@ template <Command_t CMD, class SETTING>
 class Factory : public CMD
 {
 public:
-  Factory(SETTING &setting, QWidget *parent = nullptr) : CMD(setting, parent)
+  Factory(settings::PipelineStep &step, SETTING &setting, QWidget *parent = nullptr) : CMD(step, setting, parent)
   {
   }
 

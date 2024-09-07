@@ -38,8 +38,10 @@ public:
   inline static std::string TITLE = "Colocalization";
   inline static std::string ICON  = "icons8-venn-diagram-50.png";
 
-  Colocalization(settings::ColocalizationSettings &settings, QWidget *parent) :
-      Command(TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
+  Colocalization(joda::settings::PipelineStep &pipelineStep, settings::ColocalizationSettings &settings,
+                 QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent),
+      mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});
 

@@ -245,6 +245,7 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
   if(mActThread.joinable()) {
     mActThread.join();
   }
+  mActProcessor.reset();
   mActThread = std::thread([this, settings, jobName] {
     mActProcessor = std::make_unique<processor::Processor>();
     mActProcessor->execute(

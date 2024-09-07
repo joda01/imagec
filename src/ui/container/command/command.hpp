@@ -24,6 +24,7 @@
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_combobox_multi.hpp"
 #include "ui/helper/layout_generator.hpp"
@@ -51,7 +52,7 @@ class Command : public QWidget
   Q_OBJECT
 public:
   /////////////////////////////////////////////////////
-  Command(const QString &title, const QString &icon, QWidget *parent);
+  Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon, QWidget *parent);
 
   helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
 
@@ -154,6 +155,15 @@ signals:
 
 protected:
   void updateClassesAndClusters();
+  [[nodiscard]] bool isDisabled() const
+  {
+    return mDisabled->isChecked();
+  }
+
+  void setIsDisabled(bool disabled)
+  {
+    mDisabled->setChecked(disabled);
+  }
 
 private:
   /////////////////////////////////////////////////////
@@ -170,6 +180,8 @@ private:
   }
 
   /////////////////////////////////////////////////////
+  joda::settings::PipelineStep &mPipelineStep;
+  QAction *mDisabled;
   QWidget *mParent;
   QString mTitle;
   QIcon mIcon;

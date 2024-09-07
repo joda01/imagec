@@ -129,12 +129,28 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   // Start with blank image
   //
   if(joda::settings::PipelineSettings::Source::BLANK == pipelineSetup.source || c < 0 || c >= mTotalNrOfChannels) {
-    auto rows = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageHeight;
-    auto cols = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageWidth;
+    auto imageHeight = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageHeight;
+    auto imageWidth  = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageWidth;
+
+    if(mLoadImageInTiles) {
+      int32_t offsetX          = std::get<0>(tile) * COMPOSITE_TILE_WIDTH;
+      int32_t offsetY          = std::get<1>(tile) * COMPOSITE_TILE_HEIGHT;
+      int32_t tileWidthToLoad  = COMPOSITE_TILE_WIDTH;
+      int32_t tileHeightToLoad = COMPOSITE_TILE_HEIGHT;
+      if(offsetX + COMPOSITE_TILE_WIDTH > imageWidth) {
+        tileWidthToLoad = COMPOSITE_TILE_WIDTH - ((offsetX + COMPOSITE_TILE_WIDTH) - imageWidth);
+      }
+
+      if(offsetY + COMPOSITE_TILE_HEIGHT > imageHeight) {
+        tileHeightToLoad = COMPOSITE_TILE_HEIGHT - ((offsetY + COMPOSITE_TILE_HEIGHT) - imageHeight);
+      }
+      imageWidth  = tileWidthToLoad;
+      imageHeight = tileHeightToLoad;
+    }
 
     imagePlaneOut.setId(joda::enums::ImageId{zProjection, planeToLoad}, tile);
 
-    imagePlaneOut.image.create(rows, cols, CV_16UC1);
+    imagePlaneOut.image.create(imageHeight, imageWidth, CV_16UC1);
     imagePlaneOut.image.setTo(cv::Scalar::all(0));
 
     // Store original image to cache

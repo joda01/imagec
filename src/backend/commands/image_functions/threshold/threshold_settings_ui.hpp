@@ -31,8 +31,8 @@ public:
   inline static std::string TITLE = "Threshold";
   inline static std::string ICON  = "icons8-grayscale-50.png";
 
-  Threshold(settings::ThresholdSettings &settings, QWidget *parent) :
-      Command(TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
+  Threshold(joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
   {
     if(settings.thresholds.empty()) {
       addFilter();

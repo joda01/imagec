@@ -123,9 +123,11 @@ void DialogAnalyzeRunning::refreshThread()
   mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName().toStdString());
   mStartedTime = std::chrono::high_resolution_clock::now();
 
+  // Wait unit new pipeline has been started. It could be that we are still waiting for finishing the prev thread.
+
   while(!mStopped) {
-    emit refreshEvent();
     std::this_thread::sleep_for(500ms);
+    emit refreshEvent();
   }
 
   // Wait unit finished

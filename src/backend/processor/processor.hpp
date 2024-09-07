@@ -182,7 +182,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  ProcessProgress mProgress;
+  ProcessProgress mProgress = {};
   ProcessInformation mJobInformation;
 };
 }    // namespace joda::processor

@@ -29,7 +29,9 @@ public:
   inline static std::string TITLE = "Edge detection";
   inline static std::string ICON  = "icons8-triangle-50.png";
 
-  EdgeDetection(settings::EdgeDetectionSettings &settings, QWidget *parent) : Command(TITLE.data(), ICON.data(), parent)
+  EdgeDetection(joda::settings::PipelineStep &pipelineStep, settings::EdgeDetectionSettings &settings,
+                QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
   {
     //
     //

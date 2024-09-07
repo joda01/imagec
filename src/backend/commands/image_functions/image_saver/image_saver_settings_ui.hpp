@@ -34,8 +34,8 @@ public:
   inline static std::string TITLE = "Save control image";
   inline static std::string ICON  = "icons8-image-50.png";
 
-  ImageSaver(settings::ImageSaverSettings &settings, QWidget *parent) :
-      Command(TITLE.data(), ICON.data(), parent), mSettings(settings)
+  ImageSaver(joda::settings::PipelineStep &pipelineStep, settings::ImageSaverSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settings)
   {
     auto *tab = addTab("", [] {});
     {

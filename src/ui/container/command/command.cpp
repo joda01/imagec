@@ -21,7 +21,9 @@
 
 namespace joda::ui {
 
-Command::Command(const QString &title, const QString &icon, QWidget *parent) :
+Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon,
+                 QWidget *parent) :
+    mPipelineStep(pipelineStep),
     mParent(parent), mTitle(title), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this)
 {
   setContentsMargins(0, 0, 4, 0);
@@ -99,8 +101,27 @@ Command::Command(const QString &title, const QString &icon, QWidget *parent) :
 ///
 void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
 {
+  mDisabled = mLayout.addActionButton("Disable", "icons8-hide-50.png");
+  mDisabled->setCheckable(true);
+  mDisabled->setChecked(mPipelineStep.disabled);
+  connect(mDisabled, &QAction::triggered, [this, pipelineSettingsUi](bool) {
+    if(mDisabled->isChecked()) {
+      QFont font;
+      font.setItalic(true);
+      mDisplayableText->setFont(font);
+      mDisplayableText->setStyleSheet("QLabel { color : #808080; }");
+    } else {
+      QFont font;
+      font.setItalic(false);
+      mDisplayableText->setFont(font);
+      mDisplayableText->setStyleSheet("QLabel { color: black; }");
+    }
+    mDisplayableText->repaint();
+    mPipelineStep.disabled = mDisabled->isChecked();
+  });
+
   auto *okayBottom = mLayout.addActionBottomButton("Okay", "icons8-accept-50.png");
-  connect(okayBottom, &QAction::triggered, [this, pipelineSettingsUi]() { mEditDialog->close(); });
+  connect(okayBottom, &QAction::triggered, [this]() { mEditDialog->close(); });
 
   connect(mLayout.getDeleteButton(), &QAction::triggered, [this, pipelineSettingsUi]() {
     QMessageBox messageBox(mParent);

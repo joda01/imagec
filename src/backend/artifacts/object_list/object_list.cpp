@@ -74,7 +74,7 @@ void SpheralIndex::calcIntersections(joda::settings::IntersectionSettings::Funct
                       box1->addIntersectingRoi(box2);
                       break;
                     case settings::IntersectionSettings::Function::RECLASSIFY:
-                      box1->setClass(newClassOFIntersectingObject);
+                      box2->setClass(newClassOFIntersectingObject);
                       break;
                     case settings::IntersectionSettings::Function::UNKNOWN:
                       break;

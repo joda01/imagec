@@ -28,7 +28,8 @@ public:
   inline static std::string TITLE = "Watershed";
   inline static std::string ICON  = "icons8-split-50";
 
-  Watershed(settings::WatershedSettings &settings, QWidget *parent) : Command(TITLE.data(), ICON.data(), parent)
+  Watershed(joda::settings::PipelineStep &pipelineStep, settings::WatershedSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
   {
     mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, "icons8-split-50", "Find tolerance");
     mFindTolerance->addOptions({

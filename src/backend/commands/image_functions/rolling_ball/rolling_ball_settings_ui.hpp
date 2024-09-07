@@ -27,8 +27,9 @@ public:
   inline static std::string TITLE = "Rolling ball";
   inline static std::string ICON  = "icons8-bubble-50.png";
 
-  RollingBallBackground(settings::RollingBallSettings &settings, QWidget *parent) :
-      Command(TITLE.data(), ICON.data(), parent)
+  RollingBallBackground(joda::settings::PipelineStep &pipelineStep, settings::RollingBallSettings &settings,
+                        QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
   {
     //
     //

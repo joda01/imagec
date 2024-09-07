@@ -28,8 +28,9 @@ public:
   inline static std::string TITLE = "Median subtraction";
   inline static std::string ICON  = "icons8-baseline-50.png";
 
-  MedianSubtraction(settings::MedianSubtractSettings &settings, QWidget *parent) :
-      Command(TITLE.data(), ICON.data(), parent)
+  MedianSubtraction(joda::settings::PipelineStep &pipelineStep, settings::MedianSubtractSettings &settings,
+                    QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
   {
     mMedianBackgroundSubtraction = SettingBase::create<SettingComboBox<int32_t>>(parent, "icons8-baseline-50.png",
                                                                                  "Median background subtraction");

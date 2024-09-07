@@ -29,7 +29,8 @@ public:
   inline static std::string TITLE = "Blur";
   inline static std::string ICON  = "icons8-blur-50.png";
 
-  Blur(settings::BlurSettings &settings, QWidget *parent) : Command(TITLE.data(), ICON.data(), parent)
+  Blur(joda::settings::PipelineStep &pipelineStep, settings::BlurSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
   {
     //
     //
