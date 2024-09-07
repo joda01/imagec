@@ -61,17 +61,17 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
 
     std::unique_ptr<duckdb::QueryResult> stats = filter.analyzer->select(
         "SELECT "
-        "COUNT(inners.meas_object_id)"
-        "FROM objects"
-        "JOIN"
+        "COUNT(inners.meas_object_id) "
+        "FROM objects "
+        "JOIN "
         "("
         "	SELECT intersect_in.object_id, intersect_in.meas_object_id FROM objects "
-        "	JOIN object_intersections AS intersect_in ON  objects.object_id = intersect_in.meas_object_id"
-        "	WHERE cluster_id = $4 AND class_id = $5 AND objects.image_id = 2002496892582215779"
-        ") as inners"
-        "on objects.object_id = inners.object_id"
-        "WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3"
-        "GROUP BY objects.object_id",
+        "	JOIN object_intersections AS intersect_in ON  objects.object_id = intersect_in.meas_object_id "
+        "	WHERE cluster_id = $4 AND class_id = $5 AND objects.image_id = $3 "
+        ") as inners "
+        "   on objects.object_id = inners.object_id "
+        "   WHERE objects.cluster_id = $1 AND objects.class_id = $2 AND objects.image_id = $3 "
+        "   GROUP BY objects.object_id",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.actImageId,
         static_cast<uint16_t>(filter.crossChannelClusterId), static_cast<uint16_t>(filter.crossChannelClassId));
     return stats;
