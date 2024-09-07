@@ -66,23 +66,23 @@ public:
     //
     //
     mRepeat = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Repeat");
-    mRepeat->addOptions({{1, "1x"},
-                         {2, "2x"},
-                         {3, "3x"},
-                         {4, "4x"},
-                         {5, "5x"},
-                         {6, "6x"},
-                         {7, "7x"},
-                         {8, "8x"},
-                         {9, "9x"},
-                         {10, "10x"},
-                         {11, "11x"},
-                         {12, "12x"},
-                         {13, "13x"}});
+    mRepeat->addOptions({{1, "x1"},
+                         {2, "x2"},
+                         {3, "x3"},
+                         {4, "x4"},
+                         {5, "x5"},
+                         {6, "x6"},
+                         {7, "x7"},
+                         {8, "x8"},
+                         {9, "x9"},
+                         {10, "x10"},
+                         {11, "x11"},
+                         {12, "x12"},
+                         {13, "x13"}});
     mRepeat->setValue(settings.repeat);
     mRepeat->connectWithSetting(&settings.repeat);
 
-    addSetting({{mBlurMode.get(), true}, {mKernelSize.get(), true}, {mRepeat.get(), false}});
+    addSetting({{mBlurMode.get(), true}, {mKernelSize.get(), true}, {mRepeat.get(), true}});
   }
 
 private:

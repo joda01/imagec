@@ -42,6 +42,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   void addNewCommand(int commandListIdx);
+  void addTitleToTable(const std::string &title);
   void addCommandsToTable();
   void addCommandToTable(const settings::PipelineStep &step);
   std::unique_ptr<joda::ui::Command> generateCommand(const settings::PipelineStep &step);

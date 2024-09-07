@@ -46,8 +46,9 @@ DialogCommandSelection::DialogCommandSelection(joda::settings::Pipeline &setting
   auto *layout = new QVBoxLayout();
 
   mCommands = new QTableWidget();
-  mCommands->setColumnCount(1);
-  mCommands->setHorizontalHeaderLabels({"Command"});
+  mCommands->setColumnCount(2);
+  mCommands->setColumnHidden(0, true);
+  mCommands->setHorizontalHeaderLabels({"", "Command"});
   mCommands->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   mCommands->verticalHeader()->setVisible(false);
 
@@ -55,7 +56,8 @@ DialogCommandSelection::DialogCommandSelection(joda::settings::Pipeline &setting
     // Open results
     // mWindowMain->showPanelResults();
     // mWindowMain->getPanelResults()->openFromFile(mLastLoadedResults->item(row, 0)->text());
-    addNewCommand(row);
+    auto idx = mCommands->item(row, 0)->text().toInt();
+    addNewCommand(idx);
     close();
   });
 
@@ -86,25 +88,54 @@ std::unique_ptr<joda::ui::Command> DialogCommandSelection::generateCommand(const
 ///
 void DialogCommandSelection::addCommandsToTable()
 {
+  addTitleToTable("Preprocessing");
   addCommandToTable(settings::PipelineStep{.$blur = settings::BlurSettings{}});
-  addCommandToTable(settings::PipelineStep{.$saveImage = settings::ImageSaverSettings{}});
-  addCommandToTable(settings::PipelineStep{.$threshold = settings::ThresholdSettings{}});
-  addCommandToTable(settings::PipelineStep{.$watershed = settings::WatershedSettings{}});
-  addCommandToTable(settings::PipelineStep{.$imageFromClass = settings::ImageFromClassSettings{}});
-  settings::ClassifierSettings defaultClassify;
-  defaultClassify.classifiers = {{.modelClassId = 65535}};
-  addCommandToTable(settings::PipelineStep{.$classify = defaultClassify});
-  addCommandToTable(settings::PipelineStep{.$aiClassify = settings::AiClassifierSettings{}});
-  addCommandToTable(settings::PipelineStep{.$colocalization = settings::ColocalizationSettings{}});
-  addCommandToTable(settings::PipelineStep{.$intersection = settings::IntersectionSettings{}});
-  addCommandToTable(settings::PipelineStep{.$measure = settings::MeasureSettings{}});
   addCommandToTable(settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}});
   addCommandToTable(settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}});
   addCommandToTable(settings::PipelineStep{.$edgeDetection = settings::EdgeDetectionSettings{}});
   addCommandToTable(settings::PipelineStep{.$crop = settings::MarginCropSettings{}});
+
+  addTitleToTable("Detection");
+  addCommandToTable(settings::PipelineStep{.$threshold = settings::ThresholdSettings{}});
+  addCommandToTable(settings::PipelineStep{.$watershed = settings::WatershedSettings{}});
+
+  addTitleToTable("Classification");
+  settings::ClassifierSettings defaultClassify;
+  defaultClassify.classifiers = {{.modelClassId = 65535}};
+  addCommandToTable(settings::PipelineStep{.$classify = defaultClassify});
+  addCommandToTable(settings::PipelineStep{.$aiClassify = settings::AiClassifierSettings{}});
+
+  addTitleToTable("Postprocessing");
+  addCommandToTable(settings::PipelineStep{.$colocalization = settings::ColocalizationSettings{}});
+  addCommandToTable(settings::PipelineStep{.$intersection = settings::IntersectionSettings{}});
   addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}});
+  addCommandToTable(settings::PipelineStep{.$measure = settings::MeasureSettings{}});
+  addCommandToTable(settings::PipelineStep{.$saveImage = settings::ImageSaverSettings{}});
+  addCommandToTable(settings::PipelineStep{.$imageFromClass = settings::ImageFromClassSettings{}});
+
+  addTitleToTable("Filtering");
   addCommandToTable(settings::PipelineStep{.$thresholdValidator = settings::ThresholdValidatorSettings{}});
   addCommandToTable(settings::PipelineStep{.$noiseValidator = settings::NoiseValidatorSettings{}});
+}
+
+void DialogCommandSelection::addTitleToTable(const std::string &title)
+{
+  int newRow = mCommands->rowCount();
+  mCommands->insertRow(newRow);
+  auto *iconItem = new QTableWidgetItem();
+  iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsSelectable);
+  QFont font;
+  font.setBold(true);
+  iconItem->setFont(font);    // Set the font to Arial, 12 points, and bold
+
+  // iconItem->setIcon(cmd->getIcon());
+  iconItem->setText(title.data());
+  iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
+  mCommands->setItem(newRow, 1, iconItem);
+
+  auto *vectorIndex = new QTableWidgetItem();
+  vectorIndex->setText("");
+  mCommands->setItem(newRow, 0, vectorIndex);
 }
 
 void DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step)
@@ -119,7 +150,11 @@ void DialogCommandSelection::addCommandToTable(const settings::PipelineStep &ste
     iconItem->setIcon(cmd->getIcon());
     iconItem->setText(cmd->getTitle());
     iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
-    mCommands->setItem(newRow, 0, iconItem);
+    mCommands->setItem(newRow, 1, iconItem);
+
+    auto *vectorIndex = new QTableWidgetItem();
+    vectorIndex->setText(std::to_string(mCommandList.size() - 1).data());
+    mCommands->setItem(newRow, 0, vectorIndex);
   }
   cmd.reset();
 }
