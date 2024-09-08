@@ -32,6 +32,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
+#include <duckdb/common/types.hpp>
 #include <duckdb/common/types/string_type.hpp>
 #include <duckdb/common/types/value.hpp>
 #include <duckdb/common/types/vector.hpp>
@@ -693,8 +694,8 @@ auto Database::selectExperiment() -> AnalyzeMeta
     auto materializedResult = resultJobs->Cast<duckdb::StreamQueryResult>().Materialize();
     if(materializedResult->RowCount() > 0) {
       auto timestampDb = materializedResult->GetValue(0, 0).GetValue<duckdb::timestamp_t>();
-      std::chrono::microseconds duration(timestampDb.value);
-      timestamp = std::chrono::system_clock::from_time_t(duration.count());
+      time_t epochTime = duckdb::Timestamp::GetEpochSeconds(timestampDb);
+      timestamp        = std::chrono::system_clock::from_time_t(epochTime);
     }
   }
 
