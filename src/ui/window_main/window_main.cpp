@@ -639,6 +639,10 @@ bool WindowMain::showPanelStartPage()
   mSaveProject->setVisible(true);
   mStartAnalysis->setVisible(true);
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::START_PAGE));
+  if(nullptr != mPanelReporting) {
+    mPanelReporting->setActive(false);
+  }
+
   mNavigation = Navigation::START_PAGE;
   return true;
 }
