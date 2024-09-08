@@ -77,7 +77,7 @@ void SpheralIndex::calcIntersections(joda::settings::IntersectionSettings::Funct
                       box2->setClass(newClassOFIntersectingObject);
                       break;
                     case settings::IntersectionSettings::Function::RECLASSIFY_COPY: {
-                      auto newRoi = box2->clone();
+                      auto newRoi = box2->copy();
                       newRoi.setClass(newClassOFIntersectingObject);
                       other->emplace(newRoi);
                     } break;

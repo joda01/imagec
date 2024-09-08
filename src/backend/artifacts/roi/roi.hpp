@@ -121,6 +121,28 @@ public:
             mSnapAreaRadius, mAreaSize,     mPerimeter, mCircularity,         intensity,        mIntersectingRois};
   }
 
+  [[nodiscard]] ROI copy() const
+  {
+    return {mIsNull,
+            mGlobalUniqueObjectId++,
+            mId,
+            confidence,
+            mBoundingBoxTile,
+            mBoundingBoxReal,
+            mMask,
+            mMaskContours,
+            mImageSize,
+            mSnapAreaBoundingBox,
+            mSnapAreaMask,
+            mSnapAreaMaskContours,
+            mSnapAreaRadius,
+            mAreaSize,
+            mPerimeter,
+            mCircularity,
+            intensity,
+            mIntersectingRois};
+  }
+
   void setClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
   {
     auto &oId     = const_cast<RoiObjectId &>(mId);
