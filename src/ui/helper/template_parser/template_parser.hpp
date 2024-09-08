@@ -22,6 +22,7 @@
 #include <optional>
 #include <regex>
 #include <string>
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
@@ -36,9 +37,6 @@ namespace fs = std::filesystem;
 class TemplateParser
 {
 public:
-  /////////////////////////////////////////////////////
-  static const inline std::string TEMPLATE_ENDIAN = ".ictempl";
-
   struct Data
   {
     std::string title;
@@ -55,7 +53,8 @@ public:
   };
 
   static void saveTemplate(const joda::settings::Pipeline &data, const std::filesystem::path &pathToStoreTemplateIn);
-  static void saveTemplate(nlohmann::json &, const std::filesystem::path &pathToStoreTemplateIn);
+  static void saveTemplate(nlohmann::json &, const std::filesystem::path &pathToStoreTemplateIn,
+                           const std::string &endian = joda::fs::EXT_PIPELINE_TEMPLATE);
 
   static auto findTemplates(const std::map<std::string, Category> &directories = {{"templates/basic", Category::BASIC},
                                                                                   {"templates/eva", Category::EVA},

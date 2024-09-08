@@ -22,6 +22,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include "backend/enums/enums_file_endians.hpp"
 #include "pipeline/pipeline.hpp"
 #include "project_settings/project_settings.hpp"
 #include <catch2/catch_config.hpp>
@@ -58,7 +59,7 @@ public:
   }
 
 private:
-  std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.icproj";
+  std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings" + joda::fs::EXT_PROJECT;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, projectSettings, imageSetup, pipelines);
 };

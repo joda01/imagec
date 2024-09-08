@@ -11,6 +11,7 @@
 #include "../processor.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/settings/analze_settings.hpp"
 #include "controller/controller.hpp"
@@ -46,7 +47,7 @@ SCENARIO("pipeline:test:bigdata", "[bigdata]")
   std::ifstream file("src/backend/processor/test/test_run.json");
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(file);
   db::Database db;
-  db.openDatabase(std::filesystem::path("results_bigdata.icdb"));
+  db.openDatabase(std::filesystem::path("results_bigdata" + joda::fs::EXT_DATABASE));
   auto jobId = db.startJob(settings, "test");
 
   processor::PipelineInitializer initializer(settings.imageSetup);

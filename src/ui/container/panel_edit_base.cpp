@@ -54,9 +54,9 @@ void PanelEdit::onSaveAsTemplate()
 {
   if(mContainerBase != nullptr) {
     QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-    QString pathToStoreFileIn = QFileDialog::getSaveFileName(
-        this, "Save File", templatePath,
-        "ImageC template files (*" + QString(joda::templates::TemplateParser::TEMPLATE_ENDIAN.data()) + ")");
+    QString pathToStoreFileIn = QFileDialog::getSaveFileName(this, "Save File", templatePath,
+                                                             "ImageC template files (*" +
+                                                                 QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
 
     if(pathToStoreFileIn.isEmpty()) {
       return;

@@ -48,6 +48,8 @@ class SettingComboBoxClassificationUnmanaged;
 ///
 class ExportColumn : public QWidget
 {
+  friend class DialogExportData;
+
 public:
   ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
                const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses, QWidget *windowMain);
@@ -95,6 +97,8 @@ private:
   void selectAvgOfAllMeasureChannels();
   void unselectAllMeasureChannels();
   void selectAllExports();
+  void saveTemplate();
+  void openTemplate();
 
   /////////////////////////////////////////////////////
   QProgressBar *progressBar;
@@ -104,7 +108,11 @@ private:
   QAction *mUnselectAllMeasurements;
   QAction *mSelectAllClustersAndClasses;
 
+  QAction *mSaveSettings;
+  QAction *mOpenSettings;
+
   /////////////////////////////////////////////////////
+  QWidget *mWindowMain;
   std::unique_ptr<joda::db::Database> &mAnalyzer;
   const db::QueryFilter &mFilter;
   std::vector<ExportColumn *> mExportColumns;

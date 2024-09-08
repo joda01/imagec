@@ -41,6 +41,7 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/database/exporter/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
@@ -50,8 +51,10 @@
 #include "ui/container/setting/setting_combobox_classification_unmanaged.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_unmanaged.hpp"
 #include "ui/helper/setting_generator.hpp"
+#include "ui/helper/template_parser/template_parser.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json_fwd.hpp>
+#include "dialog_export_settings.hpp"
 #include "panel_results.hpp"
 
 namespace joda::ui {
@@ -268,7 +271,7 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
                                    const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses,
                                    QWidget *windowMain) :
     QDialog(windowMain),
-    mAnalyzer(analyzer), mFilter(filter), mLayout(this, false, true, false, true)
+    mWindowMain(windowMain), mAnalyzer(analyzer), mFilter(filter), mLayout(this, false, true, false, true)
 {
   setWindowTitle("Export data");
   setMinimumHeight(700);
@@ -279,14 +282,20 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
 
   mLayout.addSeparatorToTopToolbar();
 
-  mSelectAllMeasurements = mLayout.addActionButton("Select all measurements", "icons8-select-column-50.png");
-  connect(mSelectAllMeasurements, &QAction::triggered, [this] { selectAvgOfAllMeasureChannels(); });
+  mSaveSettings = mLayout.addActionButton("Save template", "icons8-mark-as-favorite-50.png");
+  connect(mSaveSettings, &QAction::triggered, [this] { saveTemplate(); });
 
-  mUnselectAllMeasurements = mLayout.addActionButton("Unselect all measurements", "icons8-select-none-50.png");
-  connect(mUnselectAllMeasurements, &QAction::triggered, [this] { unselectAllMeasureChannels(); });
+  mOpenSettings = mLayout.addActionButton("Open template", "icons8-folder-50.png");
+  connect(mOpenSettings, &QAction::triggered, [this] { openTemplate(); });
 
-  mSelectAllClustersAndClasses = mLayout.addActionButton("Select all clusters", "icons8-select-50-all.png");
-  connect(mSelectAllClustersAndClasses, &QAction::triggered, [this] { selectAllExports(); });
+  /* mSelectAllMeasurements = mLayout.addActionButton("Select all measurements", "icons8-select-column-50.png");
+   connect(mSelectAllMeasurements, &QAction::triggered, [this] { selectAvgOfAllMeasureChannels(); });
+
+   mUnselectAllMeasurements = mLayout.addActionButton("Unselect all measurements", "icons8-select-none-50.png");
+   connect(mUnselectAllMeasurements, &QAction::triggered, [this] { unselectAllMeasureChannels(); });
+
+   mSelectAllClustersAndClasses = mLayout.addActionButton("Select all clusters", "icons8-select-50-all.png");
+   connect(mSelectAllClustersAndClasses, &QAction::triggered, [this] { selectAllExports(); });*/
 
   auto *tab  = mLayout.addTab("Columns", [] {});
   auto *col1 = tab->addVerticalPanel();
@@ -462,6 +471,109 @@ void DialogExportData::selectAllExports()
 {
   // mClustersToExport->selectAll();
   // mClassesToExport->selectAll();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::saveTemplate()
+{
+  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(
+      this, "Save template", folderToOpen,
+      "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
+  if(filePathOfSettingsFile.isEmpty()) {
+    return;
+  }
+
+  SettingsExportData settings;
+
+  // To settings
+  {
+    for(const auto &col : mExportColumns) {
+      SettingsExportData::Column colSetting;
+      colSetting.inputCluster          = col->mClustersAndClasses->getValue();
+      colSetting.measurements          = col->mMeasurement->getValue();
+      colSetting.stats                 = col->mStats->getValue();
+      colSetting.crossChannelIntensity = col->mCrossChannelImageChannel->getValue();
+      colSetting.crossChannelCount     = col->mCrossChannelCount->getValue();
+      settings.columns.emplace_back(colSetting);
+    }
+  }
+
+  try {
+    nlohmann::json templateJson = settings;
+    joda::templates::TemplateParser::saveTemplate(
+        templateJson, std::filesystem::path(filePathOfSettingsFile.toStdString()), joda::fs::EXT_EXPORT_TEMPLATE);
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(mWindowMain);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not save template!");
+    messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::openTemplate()
+{
+  using namespace std::chrono_literals;
+
+  QString folderToOpen = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString filePath     = QFileDialog::getOpenFileName(
+      this, "Open File", folderToOpen,
+      "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")", nullptr);
+
+  if(filePath.isEmpty()) {
+    return;
+  }
+  SettingsExportData settings;
+
+  try {
+    std::ifstream ifs(filePath.toStdString());
+    settings = nlohmann::json::parse(ifs);
+    ifs.close();
+
+    for(auto &col : mExportColumns) {
+      col->mClustersAndClasses->setValue({enums::ClusterId::UNDEFINED, enums::ClassId::UNDEFINED});
+    }
+
+    int colCnt = 0;
+    for(const auto &col : settings.columns) {
+      if(colCnt < mExportColumns.size()) {
+        mExportColumns[colCnt]->mClustersAndClasses->setValue(col.inputCluster);
+        mExportColumns[colCnt]->mMeasurement->setValue(col.measurements);
+        mExportColumns[colCnt]->mStats->setValue(col.stats);
+        std::this_thread::sleep_for(100ms);
+        mExportColumns[colCnt]->mCrossChannelImageChannel->setValue(col.crossChannelIntensity);
+        mExportColumns[colCnt]->mCrossChannelCount->setValue(col.crossChannelCount);
+      }
+      colCnt++;
+    }
+
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(mWindowMain);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not open template!");
+    messageBox.setText("Could not open template, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
 }
 
 }    // namespace joda::ui

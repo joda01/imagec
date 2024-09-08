@@ -36,6 +36,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
@@ -389,18 +390,22 @@ void WindowMain::onOpenClicked()
 
   QString filePath =
       QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
-                                   "ImageC project or results files (*.icproj *.icdb);;ImageC project files "
-                                   "(*.icdb);;ImageC results files (*.icdb)",
+                                   "ImageC project or results files (*" + QString(joda::fs::EXT_PROJECT.data()) + " *" +
+                                       QString(joda::fs::EXT_DATABASE.data()) +
+                                       ");;ImageC project files "
+                                       "(*" +
+                                       QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC results files (*" +
+                                       QString(joda::fs::EXT_DATABASE.data()) + ")",
                                    nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
   }
 
-  if(filePath.endsWith(".icproj")) {
+  if(filePath.endsWith(joda::fs::EXT_PROJECT.data())) {
     openProjectSettings(filePath);
   }
-  if(filePath.endsWith(".icdb")) {
+  if(filePath.endsWith(joda::fs::EXT_DATABASE.data())) {
     openResultsSettings(filePath);
   }
 }
@@ -483,8 +488,9 @@ void WindowMain::checkForSettingsChanged()
 void WindowMain::onSaveProjectAsClicked()
 {
   std::filesystem::path folderToSaveSettings(mSelectedProjectSettingsFilePath.parent_path());
-  QString filePath = QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(),
-                                                  "ImageC project files (*.icproj)");
+  QString filePath =
+      QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(),
+                                   "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
   if(!filePath.isEmpty()) {
     joda::settings::Settings::storeSettings(std::filesystem::path(filePath.toStdString()), mAnalyzeSettings);
   }
@@ -503,9 +509,10 @@ void WindowMain::onSaveProject()
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath = filePath / "settings.icproj";
+      filePath = filePath / ("settings" + joda::fs::EXT_PROJECT);
       QString filePathOfSettingsFile =
-          QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(), "ImageC project files (*.icproj)");
+          QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
+                                       "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
       mSelectedProjectSettingsFilePath = filePathOfSettingsFile.toStdString();
     }
 

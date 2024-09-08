@@ -21,6 +21,7 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -256,14 +257,15 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
 
   std::filesystem::create_directories(globalContext.resultsOutputFolder);
 
-  settings::Settings::storeSettings((globalContext.resultsOutputFolder / "settings.icproj"), program);
+  settings::Settings::storeSettings((globalContext.resultsOutputFolder / ("settings" + joda::fs::EXT_PROJECT)),
+                                    program);
 
-  mJobInformation.resultsFilePath  = globalContext.resultsOutputFolder / "results.icdb";
+  mJobInformation.resultsFilePath  = globalContext.resultsOutputFolder / ("results" + joda::fs::EXT_DATABASE);
   mJobInformation.ouputFolder      = globalContext.resultsOutputFolder;
   mJobInformation.jobName          = jobName;
   mJobInformation.timestampStarted = now;
   auto &db                         = globalContext.database;
-  db.openDatabase(globalContext.resultsOutputFolder / "results.icdb");
+  db.openDatabase(globalContext.resultsOutputFolder / ("results" + joda::fs::EXT_DATABASE));
   return db.startJob(program, jobName);
 }
 

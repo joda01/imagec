@@ -115,6 +115,8 @@ struct ClassificatorSettingOut
 
     return toUint32(clusterId, classId) < toUint32(input.clusterId, input.classId);
   }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClassificatorSettingOut, clusterId, classId);
 };
 
 using ObjectOutputClusters   = std::set<ClassificatorSetting>;

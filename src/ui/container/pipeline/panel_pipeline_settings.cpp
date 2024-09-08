@@ -590,10 +590,10 @@ void PanelPipelineSettings::onClassificationNameChanged()
 ///
 void PanelPipelineSettings::saveAsTemplate()
 {
-  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(
-      this, "Save template", folderToOpen,
-      "ImageC template files (*" + QString(joda::templates::TemplateParser::TEMPLATE_ENDIAN.data()) + ")");
+  QString folderToOpen = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString filePathOfSettingsFile =
+      QFileDialog::getSaveFileName(this, "Save template", folderToOpen,
+                                   "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
   if(filePathOfSettingsFile.isEmpty()) {
     return;
   }

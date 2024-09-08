@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 
@@ -28,8 +29,8 @@ void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::se
     nlohmann::json json = settings;
     removeNullValues(json);
 
-    if(!path.ends_with(".icproj")) {
-      path += ".icproj";
+    if(!path.ends_with(joda::fs::EXT_PROJECT)) {
+      path += joda::fs::EXT_PROJECT;
     }
     std::ofstream out(path);
     if(!out.is_open()) {

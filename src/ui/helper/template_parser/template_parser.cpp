@@ -43,7 +43,7 @@ auto TemplateParser::findTemplates(const std::map<std::string, Category> &direct
   for(const auto &[directory, category] : directories) {
     if(fs::exists(directory) && fs::is_directory(directory)) {
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
-        if(entry.is_regular_file() && entry.path().extension().string() == TEMPLATE_ENDIAN) {
+        if(entry.is_regular_file() && entry.path().extension().string() == joda::fs::EXT_PIPELINE_TEMPLATE) {
           std::ifstream ifs(entry.path().string());
           MetaFinder settings = nlohmann::json::parse(ifs);
           std::string name    = settings.meta.name + entry.path().filename().string();
@@ -126,11 +126,12 @@ void TemplateParser::saveTemplate(const settings::Pipeline &data, const std::fil
 /// \param[out]
 /// \return
 ///
-void TemplateParser::saveTemplate(nlohmann::json &json, const std::filesystem::path &pathToStoreTemplateIn)
+void TemplateParser::saveTemplate(nlohmann::json &json, const std::filesystem::path &pathToStoreTemplateIn,
+                                  const std::string &endian)
 {
   std::string pathToStore = pathToStoreTemplateIn.string();
-  if(!pathToStore.ends_with(TEMPLATE_ENDIAN)) {
-    pathToStore += TEMPLATE_ENDIAN;
+  if(!pathToStore.ends_with(endian)) {
+    pathToStore += endian;
   }
   removeNullValues(json);
   std::ofstream out(pathToStore);
