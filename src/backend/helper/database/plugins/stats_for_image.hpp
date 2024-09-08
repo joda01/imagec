@@ -16,5 +16,16 @@ class StatsPerImage
 public:
   static auto toTable(const QueryFilter &filter) -> joda::table::Table;
   static auto toHeatmap(const QueryFilter &filter) -> joda::table::Table;
+  static auto toHeatmapList(const QueryFilter &filter) -> joda::table::Table;
+
+private:
+  struct ImgInfo
+  {
+    uint64_t width;
+    uint64_t height;
+    std::string controlImgPath;
+  };
+
+  static auto densityMap(const QueryFilter &filter) -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>;
 };
 }    // namespace joda::db

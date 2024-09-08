@@ -23,7 +23,8 @@ public:
     enum class ExportType
     {
       HEATMAP,
-      LIST
+      TABLE,
+      TABLE_DETAIL
     };
 
     enum class ExportDetail

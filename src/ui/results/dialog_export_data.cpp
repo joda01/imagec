@@ -324,7 +324,8 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
       SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>>(windowMain, "", "Type");
   mReportingType->addOptions(
       {{joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", "icons8-heat-map-50.png"},
-       {joda::db::BatchExporter::Settings::ExportType::LIST, "Table", "icons8-table-50.png"}});
+       {joda::db::BatchExporter::Settings::ExportType::TABLE, "Table", "icons8-table-50.png"},
+       {joda::db::BatchExporter::Settings::ExportType::TABLE_DETAIL, "Details", "icons8-table-50.png"}});
   mReportingType->setDefaultValue(joda::db::BatchExporter::Settings::ExportType::HEATMAP);
 
   std::vector<SettingComboBoxMulti<enums::ClusterId>::ComboEntry> clustersCombo;

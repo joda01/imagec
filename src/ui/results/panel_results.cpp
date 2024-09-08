@@ -138,7 +138,15 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   });
 
   //
+  // Copy Button
   //
+  auto *copy = new QPushButton(QIcon(":/icons/outlined/icons8-copy-50.png"), "Copy table");
+  copy->setToolTip("Copy table");
+  connect(copy, &QPushButton::pressed, [this]() { copyTableToClipboard(mTable); });
+  toolbar->addItemToTopToolbar(copy);
+
+  //
+  // Export button
   //
   auto *exportData = new QPushButton(QIcon(":/icons/outlined/icons8-export-excel-50.png"), "Export");
   exportData->setToolTip("Export data");
@@ -590,7 +598,7 @@ void PanelResults::repaintHeatmap()
         case Navigation::IMAGE:
           paintImage();
           if(mTableButton != nullptr && mTableButton->isChecked()) {
-            tableToQWidgetTable(joda::db::StatsPerImage::toTable(mFilter));
+            tableToQWidgetTable(joda::db::StatsPerImage::toHeatmapList(mFilter));
           }
           break;
       }
@@ -704,6 +712,7 @@ void PanelResults::onShowTable()
 {
   mTable->setVisible(true);
   mHeatmap01->setVisible(false);
+  repaintHeatmap();
 }
 
 ///
@@ -717,6 +726,7 @@ void PanelResults::onShowHeatmap()
 {
   mTable->setVisible(false);
   mHeatmap01->setVisible(true);
+  repaintHeatmap();
 }
 
 ///
@@ -728,11 +738,15 @@ void PanelResults::onShowHeatmap()
 ///
 void PanelResults::tableToQWidgetTable(const table::Table &table)
 {
-  mTable->setRowCount(table.getRows());
+  mTable->setRowCount(table.getRowHeaderSize());
   mTable->setColumnCount(table.getCols());
 
   for(int n = 0; n < table.getColHeaderSize(); n++) {
     mTable->setHorizontalHeaderItem(n, new QTableWidgetItem(table.getColHeader(n).data()));
+  }
+
+  for(int n = 0; n < table.getRowHeaderSize(); n++) {
+    mTable->setVerticalHeaderItem(n, new QTableWidgetItem(table.getRowHeader(n).data()));
   }
 
   for(int col = 0; col < table.getCols(); col++) {
@@ -740,6 +754,31 @@ void PanelResults::tableToQWidgetTable(const table::Table &table)
       mTable->setItem(row, col, new QTableWidgetItem(QString::number((double) table.data(row, col).getVal())));
     }
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::copyTableToClipboard(QTableWidget *table)
+{
+  QStringList data;
+
+  for(int row = 0; row < table->rowCount(); ++row) {
+    QStringList rowData;
+    for(int col = 0; col < table->columnCount(); ++col) {
+      rowData << table->item(row, col)->text();
+    }
+    data << rowData.join("\t");    // Join row data with tabs for better readability
+  }
+
+  QString text = data.join("\n");    // Join rows with newlines
+
+  QClipboard *clipboard = QApplication::clipboard();
+  clipboard->setText(text);
 }
 
 }    // namespace joda::ui

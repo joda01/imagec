@@ -87,6 +87,7 @@ private:
   void setAnalyzer();
   void tableToQWidgetTable(const table::Table &table);
   void refreshView();
+  void copyTableToClipboard(QTableWidget *table);
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;

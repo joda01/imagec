@@ -28,7 +28,8 @@ void BatchExporter::startExport(const Settings &settings, const std::string &out
     case Settings::ExportType::HEATMAP:
       createHeatmapSummary(workbookSettings, settings);
       break;
-    case Settings::ExportType::LIST:
+    case Settings::ExportType::TABLE:
+    case Settings::ExportType::TABLE_DETAIL:
       createListSummary(workbookSettings, settings);
       break;
   }
@@ -206,7 +207,11 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
               table = joda::db::StatsPerGroup::toTable(filter);
               break;
             case Settings::ExportDetail::IMAGE:
-              table = joda::db::StatsPerImage::toTable(filter);
+              if(settings.exportType == Settings::ExportType::TABLE_DETAIL) {
+                table = joda::db::StatsPerImage::toTable(filter);
+              } else {
+                table = joda::db::StatsPerImage::toHeatmapList(filter);
+              }
               break;
           }
 
