@@ -31,6 +31,7 @@ struct IntersectionSettings : public SettingBase
     UNKNOWN,
     COUNT,
     RECLASSIFY,
+    RECLASSIFY_COPY,
   };
 
   struct IntersectingClasses
@@ -84,7 +85,7 @@ struct IntersectionSettings : public SettingBase
   {
     CHECK(mode != Function::UNKNOWN, "Define a intersection function!");
     CHECK(minIntersection >= 0, "Min intersection must be >=0.");
-    if(mode == Function::RECLASSIFY) {
+    if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {
       CHECK(newClassId != joda::enums::ClassId::UNDEFINED,
             "Define a class the elements should be assigned for reclassification.");
     }
@@ -106,7 +107,7 @@ struct IntersectionSettings : public SettingBase
   [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
   {
     ObjectOutputClusters out;
-    if(mode == Function::RECLASSIFY) {
+    if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {
       for(const auto &in : inputObjectsIntersectWith.inputClusters) {
         out.emplace(in.clusterId, newClassId);
       }
@@ -121,7 +122,8 @@ struct IntersectionSettings : public SettingBase
 NLOHMANN_JSON_SERIALIZE_ENUM(IntersectionSettings::Function,
                              {
                                  {IntersectionSettings::Function::COUNT, "Count"},
-                                 {IntersectionSettings::Function::RECLASSIFY, "Reclassify"},
+                                 {IntersectionSettings::Function::RECLASSIFY, "ReclassifyMove"},
+                                 {IntersectionSettings::Function::RECLASSIFY_COPY, "ReclassifyCopy"},
                              });
 
 }    // namespace joda::settings

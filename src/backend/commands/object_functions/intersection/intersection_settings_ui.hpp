@@ -44,7 +44,10 @@ public:
     mMode = SettingBase::create<SettingComboBox<joda::settings::IntersectionSettings::Function>>(parent, "", "Mode");
     mMode->addOptions(
         {{.key = joda::settings::IntersectionSettings::Function::COUNT, .label = "Count", .icon = ""},
-         {.key = joda::settings::IntersectionSettings::Function::RECLASSIFY, .label = "Reclassify", .icon = ""}});
+         {.key = joda::settings::IntersectionSettings::Function::RECLASSIFY, .label = "Reclassify Move", .icon = ""},
+         {.key   = joda::settings::IntersectionSettings::Function::RECLASSIFY_COPY,
+          .label = "Reclassify Copy",
+          .icon  = ""}});
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
 

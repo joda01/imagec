@@ -106,7 +106,7 @@ public:
                           uint32_t snapAreaOfIntersectingRoi, float minIntersecion, const enums::tile_t &tile,
                           const cv::Size &tileSize) const;
 
-  void calcIntersections(joda::settings::IntersectionSettings::Function func, const SpheralIndex *other,
+  void calcIntersections(joda::settings::IntersectionSettings::Function func, SpheralIndex *other,
                          const std::set<joda::enums::ClassId> objectClassesMe,
                          const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion,
                          joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);

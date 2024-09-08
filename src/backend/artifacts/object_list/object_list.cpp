@@ -49,7 +49,7 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
   }
 }
 
-void SpheralIndex::calcIntersections(joda::settings::IntersectionSettings::Function func, const SpheralIndex *other,
+void SpheralIndex::calcIntersections(joda::settings::IntersectionSettings::Function func, SpheralIndex *other,
                                      const std::set<joda::enums::ClassId> objectClassesMe,
                                      const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion,
                                      joda::enums::ClassId newClassOFIntersectingObject)
@@ -76,6 +76,11 @@ void SpheralIndex::calcIntersections(joda::settings::IntersectionSettings::Funct
                     case settings::IntersectionSettings::Function::RECLASSIFY:
                       box2->setClass(newClassOFIntersectingObject);
                       break;
+                    case settings::IntersectionSettings::Function::RECLASSIFY_COPY: {
+                      auto newRoi = box2->clone();
+                      newRoi.setClass(newClassOFIntersectingObject);
+                      other->emplace(newRoi);
+                    } break;
                     case settings::IntersectionSettings::Function::UNKNOWN:
                       break;
                   }
