@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "panel_image_view.hpp"
@@ -18,10 +18,10 @@
 #include <cstdint>
 #include <ranges>
 #include <string>
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 #include <opencv2/imgproc.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ////////////////////////////////////////////////////////////////
 // Image view section
@@ -305,6 +305,9 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 ///
 void PanelImageView::drawThumbnail()
 {
+  if(mNrOfTilesX <= 1 && mNrOfTilesY <= 1) {
+    return;
+  }
   float rectHeight = THUMB_RECT_HEIGHT_NORMAL;
   float rectWidth  = THUMB_RECT_WIDTH_NORMAL;
   if(mThumbnailAreaEntered) {
@@ -570,4 +573,4 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
   update();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

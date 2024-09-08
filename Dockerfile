@@ -169,16 +169,6 @@ RUN mkdir qt6-build &&\
     cmake --build . --parallel 6 &&\
     cmake --install .
 
-
-#
-# libtiff
-#
-RUN git clone -b v4.5.1 --depth 1 https://gitlab.com/libtiff/libtiff.git /libtiff &&\
-    cd libtiff && \
-    cmake -DBUILD_SHARED_LIBS=OFF . &&\
-    cmake --build . --config Release --target install &&\
-    cp -r libtiff/*.h  /usr/local/include
-
 #
 # xlsx writer
 #
@@ -190,32 +180,6 @@ RUN git clone -b RELEASE_1.1.5 --depth 1 https://github.com/jmcnamara/libxlsxwri
     cmake --build . &&\
     make install
 
-
-#
-# xz-utils
-#
-RUN git clone --depth 1 -b v5.6.1 https://github.com/joda01/xz.git /xz
-RUN cd /xz &&\
-    cmake . -DCMAKE_BUILD_TYPE="Release" -DBUILD_SHARED_LIBS=true &&\
-    make &&\
-    make install
-#
-# zlib
-#
-RUN git clone --depth 1 -b v1.3.1 https://github.com/joda01/zlib.git /zlib
-RUN cd /zlib &&\
-    cmake . &&\
-    make &&\
-    make install
-
-#
-# Libzip
-#
-RUN git clone --depth 1 -b v1.10.1 https://github.com/joda01/libzip.git /libzip
-RUN cd /libzip &&\
-    cmake -DBUILD_SHARED_LIBS=OFF . &&\
-    make &&\
-    make install
 
 #
 # DuckDb

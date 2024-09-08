@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -77,7 +77,7 @@ inline std::unique_ptr<joda::ctrl::Controller> executePipeline(const std::string
 ///
 inline std::unique_ptr<joda::results::Analyzer> getAnalyze(const std::string &outputFolder)
 {
-  auto databaseFile = std::filesystem::path(outputFolder) / "results.duckdb";
+  auto databaseFile = std::filesystem::path(outputFolder) / "results.icresult";
   auto analyze      = std::make_unique<joda::results::Analyzer>(databaseFile);
   return analyze;
 }

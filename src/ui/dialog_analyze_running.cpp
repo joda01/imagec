@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "dialog_analyze_running.hpp"
@@ -17,11 +17,13 @@
 #include <qlabel.h>
 #include <qnamespace.h>
 #include <qtmetamacros.h>
+#include <exception>
 #include <memory>
 #include <thread>
+#include "backend/helper/logger/console_logger.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 using namespace std::chrono_literals;
 
@@ -37,7 +39,7 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
   //
   // Set up the layout
   QVBoxLayout *mainLayout = new QVBoxLayout(this);
-  mainLayout->setContentsMargins(28, 28, 28, 28);
+  //   // mainLayout->setContentsMargins(28, 28, 28, 28);
 
   QFont font;
   font.setBold(true);
@@ -110,27 +112,33 @@ void DialogAnalyzeRunning::onCloseClicked()
 
 void DialogAnalyzeRunning::onOpenResultsFolderClicked()
 {
-  QString folderPath = mWindowMain->getController()->getOutputFolder().data();
+  QString folderPath = mWindowMain->getController()->getJobInformation().ouputFolder.string().data();
   QDesktopServices::openUrl(QUrl("file:///" + folderPath));
 }
 
 void DialogAnalyzeRunning::refreshThread()
 {
-  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings, 0);
-  mWindowMain->getController()->reset();
-  mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName());
+  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings);
+  // mWindowMain->getController()->reset();
+  mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName().toStdString());
   mStartedTime = std::chrono::high_resolution_clock::now();
 
+  // Wait unit new pipeline has been started. It could be that we are still waiting for finishing the prev thread.
+
   while(!mStopped) {
-    emit refreshEvent();
     std::this_thread::sleep_for(500ms);
+    emit refreshEvent();
   }
 
   // Wait unit finished
   while(true) {
-    auto [progress, state, errorMsg] = mWindowMain->getController()->getState();
-    if(state == joda::pipeline::Pipeline::State::FINISHED) {
-      break;
+    try {
+      const auto &state = mWindowMain->getController()->getState();
+      if(state.getState() == joda::processor::ProcessState::FINISHED ||
+         state.getState() == joda::processor::ProcessState::FINISHED_WITH_ERROR) {
+        break;
+      }
+    } catch(const std::exception &ex) {
     }
     std::this_thread::sleep_for(500ms);
   }
@@ -140,29 +148,21 @@ void DialogAnalyzeRunning::refreshThread()
 
 void DialogAnalyzeRunning::onRefreshData()
 {
-  QString newTextAllOver                   = "Processing Image 0/0";
-  QString newTextImage                     = "Processing Tile 0/0";
-  joda::pipeline::Pipeline::State actState = joda::pipeline::Pipeline::State::STOPPED;
+  QString newTextAllOver = "Processing Image 0/0";
+  QString newTextImage   = "Processing Tile 0/0";
+  auto actState          = joda::processor::ProcessState::INITIALIZING;
   try {
-    auto [progress, state, errorMsg] = mWindowMain->getController()->getState();
-    if(state == joda::pipeline::Pipeline::State::ERROR_) {
-      mLastErrorMsg = errorMsg;
-    }
-    if(state == joda::pipeline::Pipeline::State::RUNNING) {
+    const auto &state = mWindowMain->getController()->getState();
+    if(state.getState() == joda::processor::ProcessState::RUNNING ||
+       state.getState() == joda::processor::ProcessState::RUNNING_PREPARING_PIPELINE) {
       mEndedTime = std::chrono::high_resolution_clock::now();
     }
-    actState = state;
-
-    newTextAllOver = QString("Processing Image %1/%2").arg(progress.total.finished).arg(progress.total.total);
-    newTextImage   = QString("Processing Tile %1/%2").arg(progress.image.finished).arg(progress.image.total);
-
-    // progressBar->setMaximum(progress.total.total);
-    // if(progress.total.finished <= progress.total.total) {
-    //   progressBar->setValue(progress.total.finished);
-    // }
+    actState       = state.getState();
+    newTextAllOver = QString("Processing Image %1/%2").arg(state.finishedImages()).arg(state.totalImages());
+    newTextImage   = QString("Processing Tile %1/%2").arg(state.finishedTiles()).arg(state.totalTiles());
 
   } catch(const std::exception &ex) {
-    onStopClicked();
+    joda::log::logWarning("Pipeline error: " + std::string(ex.what()));
   }
   double elapsedTimeMs = std::chrono::duration<double, std::milli>(mEndedTime - mStartedTime).count();
   auto [timeDiff, exp] = exponentForTime(elapsedTimeMs);
@@ -170,12 +170,8 @@ void DialogAnalyzeRunning::onRefreshData()
   stream << std::fixed << std::setprecision(2) << timeDiff << " " << exp;
   std::string timeDiffStr = stream.str();
 
-  if(!mStopped && actState == joda::pipeline::Pipeline::State::ERROR_) {
-    mStopped = true;
-    // showErrorDialog(mLastErrorMsg);
-  }
   QString progressText;
-  if(actState != joda::pipeline::Pipeline::State::RUNNING || actState == joda::pipeline::Pipeline::State::STOPPED) {
+  if(actState == joda::processor::ProcessState::STOPPING) {
     stopButton->setEnabled(false);
     mStopped = true;
     progressBar->setRange(0, 100);
@@ -184,14 +180,40 @@ void DialogAnalyzeRunning::onRefreshData()
     progressBar->setValue(100);
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Stopping ...";
 
+  } else if(actState == joda::processor::ProcessState::FINISHED) {
+    closeButton->setEnabled(true);
+    stopButton->setEnabled(false);
+    mStopped = true;
+    progressBar->setRange(0, 100);
+    progressBar->setMaximum(100);
+    progressBar->setMinimum(0);
+    progressBar->setValue(100);
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
+  } else if(actState == joda::processor::ProcessState::FINISHED_WITH_ERROR) {
+    closeButton->setEnabled(true);
+    stopButton->setEnabled(false);
+    progressBar->setRange(0, 100);
+    progressBar->setMaximum(100);
+    progressBar->setMinimum(0);
+    progressBar->setValue(100);
+    if(!mStopped) {
+      QMessageBox messageBox(this);
+      auto *icon = new QIcon(":/icons/outlined/icons8-error-50.png");
+      messageBox.setIconPixmap(icon->pixmap(42, 42));
+      messageBox.setWindowTitle("Error...");
+      messageBox.setText("Error in execution got >" +
+                         QString(mWindowMain->getController()->getJobInformation().errorLog.data()) + "<.");
+      messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+      auto reply = messageBox.exec();
+    }
+    mStopped     = true;
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
+  } else if(actState == joda::processor::ProcessState::RUNNING_PREPARING_PIPELINE) {
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Preparing images ...";
   } else {
-    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage;
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Processing pipelines ...";
   }
 
-  if(actState == joda::pipeline::Pipeline::State::FINISHED || actState == joda::pipeline::Pipeline::State::ERROR_) {
-    closeButton->setEnabled(true);
-    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
-  }
   mProgressText->setText(progressText);
 
   // mLabelReporting->SetLabel(timeDiffStr);
@@ -213,4 +235,4 @@ std::tuple<double, std::string> DialogAnalyzeRunning::exponentForTime(double tim
   return {timeMs, " ms"};
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

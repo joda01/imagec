@@ -15,20 +15,19 @@
 #pragma once
 
 #include <qpushbutton.h>
-#include "ui/container/container_function_base.hpp"
+#include "ui/container/setting/setting_base.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
-class ContainerButton : public ContainerFunctionBase
+class ContainerButton : public SettingBase
 {
 public:
-  ContainerButton(const QString &text, const QString &iconName, QWidget *parent)
+  ContainerButton(const QString &text, const QString &iconName, QWidget *parent) : SettingBase(parent, iconName, text)
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
-    mEditable->setStyleSheet("QWidget#panelFunction { background-color: rgba(0, 104, 117, 0);}");
     QVBoxLayout *layout = new QVBoxLayout();
-    layout->setContentsMargins(8, 8, 8, 0);
+    //     layout->setContentsMargins(8, 8, 8, 0);
 
     mButton = new QPushButton(text, mEditable);
 
@@ -53,7 +52,7 @@ private slots:
   void onButtonPressed()
   {
     /////////////////////////////////////////////////////
-    triggerValueChanged();
+    triggerValueChanged("");
   }
 
 private:
@@ -62,4 +61,4 @@ private:
   QPushButton *mButton;
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

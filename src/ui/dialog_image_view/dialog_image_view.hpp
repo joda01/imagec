@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -16,11 +16,11 @@
 #include <qdialog.h>
 #include <qtmetamacros.h>
 #include <qwindow.h>
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
 #include "panel_image_view.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \class      DialogImageViewer
@@ -38,7 +38,7 @@ public:
   void imageUpdated();
   void fitImageToScreenSize();
   void createHistogramDialog();
-  joda::ctrl::Controller::Preview &getPreviewObject()
+  joda::ctrl::Preview &getPreviewObject()
   {
     return mPreviewImages;
   }
@@ -52,7 +52,7 @@ public:
     mPreviewImages.previewImage.clear();
     mPreviewImages.originalImage.clear();
     mPreviewImages.thumbnail.clear();
-    mPreviewImages.detectionResult.reset();
+    //    mPreviewImages.detectionResult.reset();
     mImageViewLeft.resetImage();
     mImageViewRight.resetImage();
   }
@@ -74,7 +74,7 @@ private:
   QScrollBar *mSliderScaling;
   QScrollBar *mSliderHistogramOffset;
 
-  joda::ctrl::Controller::Preview mPreviewImages;
+  joda::ctrl::Preview mPreviewImages;
   PanelImageView mImageViewLeft;
   PanelImageView mImageViewRight;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
@@ -101,4 +101,4 @@ private slots:
   void onTileClicked(int32_t tileX, int32_t tileY);
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

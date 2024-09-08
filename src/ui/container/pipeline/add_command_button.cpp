@@ -1,0 +1,80 @@
+///
+/// \file      add_command_button.cpp
+/// \author    Joachim Danmayr
+/// \date      2024-08-19
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            All rights reserved! This file is subject
+///            to the terms and conditions defined in file
+///            LICENSE.txt, which is part of this package.
+///
+///
+
+#include "add_command_button.hpp"
+#include <qnamespace.h>
+#include <qwidget.h>
+#include "ui/container/dialog_command_selection/dialog_command_selection.hpp"
+#include "ui/window_main/window_main.hpp"
+
+namespace joda::ui {
+
+AddCommandButtonBase::AddCommandButtonBase(joda::settings::Pipeline &settings,
+                                           PanelPipelineSettings *pipelineStepSettingsUi,
+                                           const settings::PipelineStep *pipelineStepBefore, WindowMain *parent) :
+    mParent(parent),
+    mPipelineStepBefore(pipelineStepBefore), mSettings(settings), pipelineStepSettingsUi(pipelineStepSettingsUi)
+{
+  setObjectName("addCommandButton");
+  // const QIcon myIcon(":/icons/outlined/icons8-plus-math-50.png");
+  // setIcon(myIcon.pixmap(12, 12));
+  setContentsMargins(0, 0, 0, 0);
+  setFixedHeight(10);
+  // connect(this, &QPushButton::clicked, this, &AddCommandButtonBase::onAddCommandClicked);
+}
+
+void AddCommandButtonBase::paintEvent(QPaintEvent *event)
+{
+  QPainter painter(this);
+  if(!mMouseEntered) {
+    painter.setPen(QPen(Qt::lightGray, 1, Qt::DotLine));
+  } else {
+    painter.setPen(QPen(Qt::black, 1, Qt::DotLine));
+  }
+
+  // Calculate the center point of the line
+  int centerX = width() / 2;
+  int centerY = height() / 2;
+
+  // Draw the line
+  painter.drawLine(0, centerY, width(), centerY);
+
+  // Draw the plus symbol
+  painter.drawText(centerX - 5, centerY - 5, 10, 10, Qt::AlignCenter, "+");
+}
+
+void AddCommandButtonBase::mousePressEvent(QMouseEvent *event)
+{
+  DialogCommandSelection selectionDialog(mSettings, pipelineStepSettingsUi, mPipelineStepBefore, mParent);
+  selectionDialog.exec();
+}
+
+void AddCommandButtonBase::enterEvent(QEnterEvent *event)
+{
+  QWidget::enterEvent(event);
+  mMouseEntered = true;
+  setCursor(Qt::PointingHandCursor);
+  repaint();
+}
+void AddCommandButtonBase::leaveEvent(QEvent *event)
+{
+  QWidget::leaveEvent(event);
+  mMouseEntered = false;
+  setCursor(Qt::ArrowCursor);
+
+  repaint();
+}
+
+void AddCommandButtonBase::onAddCommandClicked()
+{
+}
+}    // namespace joda::ui

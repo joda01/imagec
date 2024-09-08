@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -24,7 +24,7 @@
 #include <thread>
 #include <nlohmann/json_fwd.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class DialogShadow : public QDialog
 {
@@ -35,8 +35,6 @@ public:
   int exec() override;
 
 private:
-  void paintEvent(QPaintEvent *event) override;
-
   /////////////////////////////////////////////////////
   void showEvent(QShowEvent *event) override
   {
@@ -61,4 +59,4 @@ private:
 private slots:
   void onCloseWindow();
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

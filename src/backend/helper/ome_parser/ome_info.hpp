@@ -26,6 +26,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include "backend/enums/types.hpp"
 #include <opencv2/core/types.hpp>
 
 namespace joda::ome {
@@ -50,16 +51,20 @@ public:
   using TimeFrame = std::set<uint32_t>;
 
   /////////////////////////////////////////////////////
+  struct ImagePlane
+  {
+    float exposureTime = 0.0;
+    std::string exposureTimeUnit;
+  };
+
   struct ChannelInfo
   {
     std::string channelId;
     std::string name;
     float emissionWaveLength = 0;
     std::string emissionWaveLengthUnit;
-    std::string contrastMethos;
-    float exposuerTime = 0.0;
-    std::string exposuerTimeUnit;
-    std::map<uint32_t, TimeFrame> zStackForTimeFrame;    ///< TimeFrame <Time-Index, Frames in the time>
+    std::string contrastMethod;
+    std::map<enums::tStack_t, std::map<enums::zStack_t, ImagePlane>> planes;
   };
 
   struct ObjectiveInfo
@@ -114,8 +119,10 @@ public:
         return {tileX, tileY};
       }
     };
-    int seriesIdx    = 0;
-    int nrOfChannels = 0;
+    int32_t seriesIdx    = 0;
+    int32_t nrOfChannels = 0;
+    int32_t nrOfZStacks  = 0;
+    int32_t nrOfTStacks  = 0;
     std::map<int32_t, Pyramid> resolutions;      ///< Array of resolutions in case of a pyamid image
     std::map<uint32_t, ChannelInfo> channels;    ///< Contains the channel information <channelIdx | channelinfo>
   };
@@ -124,7 +131,6 @@ public:
   OmeInfo();
 
   void loadOmeInformationFromXMLString(const std::string &omeXML);
-  void emulateOmeInformationFromTiff(const ImageInfo &);
 
   [[nodiscard]] size_t getNrOfSeries() const
   {
@@ -138,11 +144,13 @@ public:
     return mImageInfo.at(series).resolutions;
   }
   [[nodiscard]] int getNrOfChannels(int32_t series = -1) const;
+  [[nodiscard]] int getNrOfZStack(int32_t series = -1) const;
+  [[nodiscard]] int getNrOfTStack(int32_t series = -1) const;
+
   [[nodiscard]] std::tuple<int64_t, int64_t> getSize(int32_t series = -1) const;
   [[nodiscard]] int32_t getBits(int32_t series = -1) const;
   [[nodiscard]] int32_t getSeriesWithHighestResolution() const;
-  [[nodiscard]] auto getDirectoryForChannel(uint32_t channel, uint32_t timeFrame, int32_t series = -1) const
-      -> std::set<uint32_t>;
+
   [[nodiscard]] const ImageInfo &getImageInfo(int32_t series = -1) const
   {
     if(series < 0) {
@@ -161,6 +169,11 @@ public:
       series = getSeriesWithHighestResolution();
     }
     return mImageInfo.at(series).channels;
+  }
+
+  std::map<int32_t, ImageInfo> &getImageInfoSeries()
+  {
+    return mImageInfo;
   }
 
 private:

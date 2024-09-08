@@ -27,8 +27,8 @@ cd build/build
 ni "dlls" -ItemType Directory
 ni "dlls\platforms" -ItemType Directory
 ni "dlls\imageformats" -ItemType Directory
-ni "dlls\templates" -ItemType Directory
-
+ni "dlls\templates\basic" -ItemType Directory
+ni "dlls\templates\eva" -ItemType Directory
 #$jvmdll = "$env:JAVA_HOME"
 #$dll = "\jre\bin\server\jvm.dll"
 #$jvmdll = "$jvmdll$dll"
@@ -47,7 +47,8 @@ $destinationDirectoryTemplates = ".\dlls\templates"
 Copy-Item -Path "$mingwBasePathWin\bin\*.dll" -Destination "$destinationDirectory" -Force
 Copy-Item -Path "$mingwQtPlatformsPath\*.dll" -Destination "$destinationDirectoryPlatforms" -Force
 Copy-Item -Path "$mingwQtImageFormatsPath\*.dll" -Destination "$destinationDirectoryPlugins" -Force
-Copy-Item -Path "..\..\templates\*.json" -Destination "$destinationDirectoryTemplates" -Force
+Copy-Item -Path "..\..\templates\basic\*.ictempl" -Destination "$destinationDirectoryTemplates\basic" -Force
+Copy-Item -Path "..\..\templates\eva\*.ictempl" -Destination "$destinationDirectoryTemplates\eva" -Force
 
 
 

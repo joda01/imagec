@@ -1,0 +1,202 @@
+
+#pragma once
+
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <iostream>
+#include <list>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <tuple>
+#include <unordered_map>
+#include <vector>
+#include "../roi/roi.hpp"
+#include "backend/commands/object_functions/intersection/intersection_settings.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
+
+namespace joda::atom {
+
+using namespace std;
+
+// Define a hash function for a pair of integers (x, y) to be used in the unordered_map
+
+struct PairHash
+{
+  template <class T1, class T2>
+  std::size_t operator()(const std::pair<T1, T2> &p) const
+  {
+    auto hash1 = std::hash<T1>{}(p.first);
+    auto hash2 = std::hash<T2>{}(p.second);
+    return hash1 ^ hash2;
+  }
+};
+
+class SpheralIndex
+{
+public:
+  /////////////////////////////////////////////////////
+
+  explicit SpheralIndex(int cellSize = 100) : mCellSize(cellSize)
+  {
+  }
+
+  void createBinaryImage(cv::Mat &img, const std::set<joda::enums::ClassId> &objectClasses) const;
+
+  ROI &emplace(const ROI &box)
+  {
+    return insertIntoGrid(box);
+  }
+
+  ROI &push_back(const ROI &box)
+  {
+    return insertIntoGrid(box);
+  }
+
+  bool empty() const
+  {
+    return grid.empty();
+  }
+
+  void clear()
+  {
+    grid.clear();
+    mElements.clear();
+  }
+
+  size_t size() const
+  {
+    return mElements.size();
+  }
+
+  void cloneFromOther(const SpheralIndex &);
+
+  std::unique_ptr<SpheralIndex> clone();
+
+  vector<pair<ROI *, ROI *>> detect_collisions(const SpheralIndex &other)
+  {
+    vector<pair<ROI *, ROI *>> potential_collisions;
+
+    // Check for collisions between objects in grid1 and grid2
+    for(const auto &cell : grid) {
+      const auto &boxes1 = cell.second;
+      auto it            = other.grid.find(cell.first);
+      if(it != other.grid.end()) {
+        const auto &boxes2 = it->second;
+        for(const auto &box1 : boxes1) {
+          for(const auto &box2 : boxes2) {
+            if(isCollision(box1, box2)) {
+              potential_collisions.emplace_back(box1, box2);
+            }
+          }
+        }
+      }
+    }
+
+    return potential_collisions;
+  }
+
+  void calcColocalization(const enums::PlaneId &iterator, const SpheralIndex *other, SpheralIndex *result,
+                          const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
+                          const std::set<joda::enums::ClassId> &objectClassesOther,
+                          joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
+                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
+                          uint32_t snapAreaOfIntersectingRoi, float minIntersecion, const enums::tile_t &tile,
+                          const cv::Size &tileSize) const;
+
+  void calcIntersections(joda::settings::IntersectionSettings::Function func, SpheralIndex *other,
+                         const std::set<joda::enums::ClassId> objectClassesMe,
+                         const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion,
+                         joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
+
+  auto begin() const
+  {
+    return mElements.begin();
+  }
+
+  auto end() const
+  {
+    return mElements.end();
+  }
+
+  auto begin()
+  {
+    return mElements.begin();
+  }
+
+  auto end()
+  {
+    return mElements.end();
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  std::list<ROI> mElements;
+  unordered_map<pair<int, int>, std::vector<ROI *>, PairHash> grid;
+  int mCellSize;
+
+  ROI &insertIntoGrid(const ROI &box)
+  {
+    const auto &rect = box.getBoundingBox();
+    int min_x        = rect.x;
+    int min_y        = rect.y;
+    int max_x        = rect.x + rect.width;
+    int max_y        = rect.y + rect.height;
+
+    std::lock_guard<std::mutex> lock(mInsertLock);
+    auto &inserted = mElements.emplace_back(std::move(box.clone()));
+    ROI *boxPtr    = &mElements.back();
+
+    for(int x = min_x / mCellSize; x <= max_x / mCellSize; ++x) {
+      for(int y = min_y / mCellSize; y <= max_y / mCellSize; ++y) {
+        grid[{x, y}].emplace_back(boxPtr);
+      }
+    }
+    return inserted;
+  }
+
+  static bool isCollision(const ROI *box1, const ROI *box2)
+  {
+    auto &rect1 = box1->getBoundingBox();
+    int min01_x = rect1.x;
+    int min11_y = rect1.y;
+    int max21_x = rect1.x + rect1.width;
+    int max31_y = rect1.y + rect1.height;
+
+    auto &rect2 = box2->getBoundingBox();
+    int min02_x = rect2.x;
+    int min12_y = rect2.y;
+    int max22_x = rect2.x + rect2.width;
+    int max32_y = rect2.y + rect2.height;
+
+    return max21_x > min02_x && min01_x < max22_x && max31_y > min12_y && min11_y < max32_y;
+  }
+
+  std::mutex mInsertLock;
+};
+
+class ObjectList : public std::map<enums::ClusterId, std::unique_ptr<SpheralIndex>>
+{
+public:
+  void push_back(const ROI &roi)
+  {
+    if(!contains(roi.getClusterId())) {
+      SpheralIndex idx{};
+      operator[](roi.getClusterId())->cloneFromOther(idx);
+    }
+    at(roi.getClusterId())->emplace(roi);
+  }
+
+  std::unique_ptr<SpheralIndex> &operator[](enums::ClusterId clusterId)
+  {
+    if(!contains(clusterId)) {
+      auto newS = std::make_unique<SpheralIndex>();
+      emplace(clusterId, std::move(newS));
+    }
+    return at(clusterId);
+  }
+};
+
+}    // namespace joda::atom

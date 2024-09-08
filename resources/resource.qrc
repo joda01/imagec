@@ -11,6 +11,26 @@
         <file>helptext/reporting_statistics.json</file>
     </qresource>
     <qresource prefix="/icons">
+        <file>outlined/icons8-100-50.png</file>
+        <file>outlined/icons8-hide-50.png</file>
+        <file>outlined/icons8-accept-50.png</file>
+        <file>outlined/icons8-image-50.png</file>
+        <file>outlined/icons8-sort-by-price-50.png</file>
+        <file>outlined/icons8-venn-diagram-50.png</file>
+        <file>outlined/icons8-select-50-all.png</file>
+        <file>outlined/icons8-select-column-50.png</file>
+        <file>outlined/icons8-select-none-50.png</file>
+        <file>outlined/icons8-table-50.png</file>
+        <file>outlined/icons8-mark-as-favorite-50.png</file>
+        <file>outlined/icons8-magic-50.png</file>
+        <file>outlined/icons8-ruler-50.png</file>
+        <file>outlined/icons8-genealogy-50.png</file>
+        <file>outlined/icons8-connection-50.png</file>
+        <file>outlined/icons8-copy-50.png</file>
+        <file>outlined/icons8-close-50.png</file>
+        <file>outlined/icons8-info-48-fill.png</file>
+        <file>outlined/icons8-gallery-50.png</file>
+        <file>outlined/icons8-file-50.png</file>
         <file>outlined/icons8-rectangle-50.png</file>
         <file>outlined/icons8-picture-in-picture-50.png</file>
         <file>outlined/icons8-table-top-view-50.png</file>
@@ -108,7 +128,6 @@
         <file>outlined/icons8-prototype-50.png</file>
         <file>outlined/icons8-query-inner-join-50.png</file>
         <file>outlined/icons8-query-outer-join-left-50.png</file>
-        <file>outlined/icons8-rectangle-50.png</file>
         <file>outlined/icons8-refresh-50.png</file>
         <file>outlined/icons8-replace-50.png</file>
         <file>outlined/icons8-resize-file-50.png</file>
@@ -159,7 +178,6 @@
         <file>outlined/dom-voronoi-50.png</file>
         <file>outlined/icons8-ksi-50.png</file>
         <file>outlined/placeholder_view_vector.svg.png</file>
-        <file>outlined/icons8-info-50-blue.png</file>
         <file>outlined/icons8-picture-1000.png</file>
         <file>outlined/icons8-picture-1000-lightgray.png</file>
         <file>outlined/icons8-bubble-50 -green-#06880C.png</file>
@@ -179,8 +197,10 @@
         <file>outlined/icons8-split-50.png</file>
         <file>outlined/girafa.gif</file>
         <file>outlined/icons8-info-50-circle.png</file>
-        <file>outlined/icons8-external-link-50.png</file>
+        <file>outlined/icons8-help-50.png</file>
         <file>outlined/icon_eva.png</file>
+        <file>outlined/icons8-add-to-favorites-50.png</file>
+        <file>outlined/icons8-favorite-50.png</file>
         <file>outlined/icon.png</file>
     </qresource>
 </RCC>

@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "dialog_image_view.hpp"
@@ -22,9 +22,9 @@
 #include <cstdint>
 #include <string>
 #include <thread>
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 using namespace std::chrono_literals;
 
@@ -45,7 +45,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
   {
     QToolBar *toolbarTop = new QToolBar();
-    toolbarTop->setContentsMargins(0, 0, 0, 0);
+    //     toolbarTop->setContentsMargins(0, 0, 0, 0);
     toolbarTop->setMaximumHeight(32);
 
     QAction *fitToScreen = new QAction(QIcon(":/icons/outlined/icons8-full-screen-50.png"), "");
@@ -462,4 +462,4 @@ void DialogImageViewer::onTileClicked(int32_t tileX, int32_t tileY)
   emit tileClicked(tileX, tileY);
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

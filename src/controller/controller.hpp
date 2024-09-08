@@ -8,23 +8,32 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
 
 #include <cstdint>
-#include "backend/helper/directory_iterator.hpp"
-#include "backend/helper/file_info_images.hpp"
-#include "backend/image_processing/image/image.hpp"
-#include "backend/pipelines/pipeline_factory.hpp"
+#include <filesystem>
+#include <memory>
+#include "backend/helper/file_parser/directory_iterator.hpp"
+#include "backend/helper/image/image.hpp"
+#include "backend/helper/ome_parser/ome_info.hpp"
+#include "backend/helper/system/system_resources.hpp"
+#include "backend/helper/threading/threading.hpp"
+#include "backend/processor/processor.hpp"
+#include "backend/settings/analze_settings.hpp"
 
 namespace joda::ctrl {
 
-struct PreviewSettings
+struct Preview
 {
-  int lowerBrightness = 0;
-  int upperBrightness = UINT16_MAX;
+  joda::image::Image thumbnail;
+  joda::image::Image previewImage;
+  joda::image::Image originalImage;
+  int height;
+  int width;
+  std::string imageFileName;
 };
 
 ///
@@ -35,48 +44,42 @@ struct PreviewSettings
 class Controller
 {
 public:
-  /////////////////////////////////////////////////////
-  Controller();
-  void start(const settings::AnalyzeSettings &settings, const pipeline::Pipeline::ThreadingSettings &threadSettings,
-             const std::string &analyzeName);
-  void stop();
-  void reset();
-  std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string> getState();
-  auto getNrOfFoundImages() -> uint32_t;
-  auto getListOfFoundImages() -> const std::vector<helper::fs::FileInfoImages> &;
-  bool isLookingForFiles();
-  void stopLookingForFiles();
-  void getSettings();
-  void setWorkingDirectory(const std::string &dir);
-  struct Preview
-  {
-    joda::image::Image thumbnail;
-    joda::image::Image previewImage;
-    joda::image::Image originalImage;
-    int height;
-    int width;
-    std::unique_ptr<joda::image::detect::DetectionResults> detectionResult;
-    std::string imageFileName;
-  };
-  void preview(const settings::ChannelSettings &settings, int32_t imgIndex, int32_t tileX, int32_t tileY,
-               uint16_t resolution, Preview &previewOut);
-  auto getImageProperties(int imgIndex, int series) -> joda::ome::OmeInfo;
-  struct Resources
-  {
-    uint64_t ramTotal;    // RAM in bytes
-    uint64_t ramAvailable;
-    uint32_t cpus;    // Nr. of CPUs
-  };
-  static auto getSystemResources() -> Resources;
+  Controller() = default;
+  ~Controller();
 
-  auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, int imgIndex)
-      -> pipeline::Pipeline::ThreadingSettings;
-  [[nodiscard]] std::string getOutputFolder() const;
+  // SYSTEM ///////////////////////////////////////////////////
+  static auto getSystemResources() -> joda::system::SystemResources;
+  static auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file,
+                                      int nrOfFiles) -> joda::thread::ThreadingSettings;
+  auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings) -> joda::thread::ThreadingSettings;
+  // FILES ///////////////////////////////////////////////////
+  auto getNrOfFoundImages() -> uint32_t;
+  auto getListOfFoundImages() -> const std::map<uint8_t, std::vector<std::filesystem::path>> &;
+  bool isLookingForImages();
+  void stopLookingForFiles();
+  void setWorkingDirectory(uint8_t plateNr, const std::filesystem::path &dir);
+  void registerImageLookupCallback(const std::function<void(joda::filesystem::State)> &lookingForFilesFinished);
+
+  // PREVIEW ///////////////////////////////////////////////////
+  void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
+               const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline,
+               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, Preview &previewOut);
+  [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series = 0)
+      -> joda::ome::OmeInfo;
+  cv::Size getCompositeTileSize() const;
+
+  // FLOW CONTROL ///////////////////////////////////////////////////
+  void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
+             const std::string &jobName);
+  void stop();
+  [[nodiscard]] auto getState() const -> const joda::processor::ProcessProgress &;
+  [[nodiscard]] const processor::ProcessInformation &getJobInformation() const;
 
 private:
   /////////////////////////////////////////////////////
-  joda::helper::fs::DirectoryWatcher<helper::fs::FileInfoImages> mWorkingDirectory;
-  std::string mActProcessId;
+  processor::imagesList_t mWorkingDirectory;
+  std::unique_ptr<processor::Processor> mActProcessor;
+  std::thread mActThread;
 };
 
 }    // namespace joda::ctrl

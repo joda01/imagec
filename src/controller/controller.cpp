@@ -1,232 +1,92 @@
 ///
 /// \file      controller.cpp
 /// \author    Joachim Danmayr
-/// \date      2023-08-22
+/// \date      2024-08-18
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
 ///            All rights reserved! This file is subject
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
 ///
 
 #include "controller.hpp"
-#include <algorithm>
-#include <map>
-#include <ranges>
-#include "backend/helper/file_info.hpp"
-#include "backend/helper/file_info_images.hpp"
-#include "backend/helper/system_resources.hpp"
-#include "backend/image_processing/detection/detection_response.hpp"
-#include "backend/image_processing/functions/resize/resize.hpp"
-#include "backend/image_processing/reader/bioformats/bioformats_loader.hpp"
-#include "backend/pipelines/processor/image_processor.hpp"
-#include "backend/settings/analze_settings.hpp"
+#include <exception>
+#include <filesystem>
+#include <memory>
+#include <stdexcept>
+#include "backend/helper/reader/image_reader.hpp"
+#include "backend/helper/system/system_resources.hpp"
+#include "backend/processor/initializer/pipeline_initializer.hpp"
 
 namespace joda::ctrl {
 
-Controller::Controller() : mWorkingDirectory({})
+///
+/// \brief
+/// \author
+/// \return
+///
+auto Controller::getSystemResources() -> joda::system::SystemResources
 {
+  return joda::system::acquire();
 }
 
 ///
-/// \brief      Start a new process
-/// \author     Joachim Danmayr
+/// \brief
+/// \author
+/// \return
 ///
-void Controller::start(const settings::AnalyzeSettings &settings,
-                       const pipeline::Pipeline::ThreadingSettings &threadSettings, const std::string &analyzeName)
+Controller::~Controller()
 {
-  try {
-    mActProcessId = joda::pipeline::PipelineFactory::startNewJob(settings, mWorkingDirectory.getWorkingDirectory(),
-                                                                 analyzeName, &mWorkingDirectory, threadSettings);
-    joda::log::logInfo("Analyze started!");
-  } catch(const std::exception &ex) {
-    joda::log::logWarning("Analyze could not be started! Got " + std::string(ex.what()) + ".");
-  }
-}
-
-///
-/// \brief      Stop a running process
-/// \author     Joachim Danmayr
-///
-void Controller::stop()
-{
-  joda::pipeline::PipelineFactory::stopJob(mActProcessId);
-}
-
-///
-/// \brief      Stop a running process
-/// \author     Joachim Danmayr
-///
-void Controller::reset()
-{
-  joda::pipeline::PipelineFactory::reset();
-}
-
-///
-/// \brief      Returns process state
-/// \author     Joachim Danmayr
-///
-std::tuple<joda::pipeline::Pipeline::ProgressIndicator, joda::pipeline::Pipeline::State, std::string>
-Controller::getState()
-{
-  return joda::pipeline::PipelineFactory::getState(mActProcessId);
-}
-
-///
-/// \brief      Get actual settings
-/// \author     Joachim Danmayr
-///
-void Controller::getSettings()
-{
-}
-
-///
-/// \brief      Get outputfolder of the actual job
-/// \author     Joachim Danmayr
-///
-std::string Controller::getOutputFolder() const
-{
-  return joda::pipeline::PipelineFactory::getOutputFolder(mActProcessId);
-}
-
-///
-/// \brief      Sets the working directory
-/// \author     Joachim Danmayr
-///
-void Controller::setWorkingDirectory(const std::string &dir)
-{
-  mWorkingDirectory.setWorkingDirectory(dir);
-}
-
-///
-/// \brief      Sets the working directory
-/// \author     Joachim Danmayr
-///
-auto Controller::getNrOfFoundImages() -> uint32_t
-{
-  return mWorkingDirectory.getNrOfFiles();
-}
-
-///
-/// \brief      Returns true as long as the thread is looking for files
-/// \author     Joachim Danmayr
-///
-auto Controller::isLookingForFiles() -> bool
-{
-  return mWorkingDirectory.isRunning();
-}
-
-///
-/// \brief      Sends a stop request and waits until the file looking has been ended
-/// \author     Joachim Danmayr
-///
-void Controller::stopLookingForFiles()
-{
-  mWorkingDirectory.stop();
-}
-
-///
-/// \brief      Sets the working directory
-/// \author     Joachim Danmayr
-///
-auto Controller::getListOfFoundImages() -> const std::vector<helper::fs::FileInfoImages> &
-{
-  return mWorkingDirectory.getFilesList();
-}
-
-///
-/// \brief      Returns preview
-/// \author     Joachim Danmayr
-///
-void Controller::preview(const settings::ChannelSettings &settings, int32_t imgIndex, int32_t tileX, int32_t tileY,
-                         uint16_t resolution, Preview &previewOut)
-{
-  // To also preview tetraspeck removal we must first process the reference spot
-  // channels This is a little bit more complicated therefor not supported yet
-
-  // Now we can process the original channel
-  auto imagePath  = mWorkingDirectory.getFileAt(imgIndex);
-  auto onnxModels = onnx::OnnxParser::findOnnxFiles();
-  if(!imagePath.getFilename().empty()) {
-    std::map<joda::settings::ChannelIndex, joda::image::detect::DetectionResponse> referenceChannelResults;
-    auto result = joda::pipeline::ImageProcessor::executeAlgorithm(
-        imagePath, settings,
-        joda::ome::TileToLoad{tileX, tileY, joda::pipeline::COMPOSITE_TILE_WIDTH,
-                              joda::pipeline::COMPOSITE_TILE_HEIGHT},
-        resolution, onnxModels, nullptr, &referenceChannelResults);
-    auto controlImage = result.result->generateControlImage(settings.meta.color, result.originalImage.size());
-
-    {
-      pipeline::ChannelProperties chProps;
-      chProps      = pipeline::ImageProcessor::loadChannelProperties(imagePath, settings.meta.series);
-      auto tifDirs = pipeline::ImageProcessor::getTifDirs(chProps, settings.meta.channelIdx);
-      uint16_t dir = static_cast<uint16_t>(*tifDirs.begin());
-      previewOut.thumbnail.setImage(
-          joda::image::BioformatsLoader::loadThumbnail(imagePath.getFilePath().string(), dir, settings.meta.series));
+  if(mActThread.joinable()) {
+    if(mActProcessor) {
+      mActProcessor->stop();
     }
-
-    previewOut.height = controlImage.rows;
-    previewOut.width  = controlImage.cols;
-    previewOut.originalImage.setImage(std::move(result.originalImage));
-    previewOut.previewImage.setImage(std::move(controlImage));
-    previewOut.detectionResult = std::move(result.result);
-    previewOut.imageFileName   = imagePath.getFilePath().string();
+    mActThread.join();
   }
 }
 
 ///
-/// \brief      Returns properties of given image
-/// \author     Joachim Danmayr
+/// \brief
+/// \author
+/// \return
 ///
-auto Controller::getImageProperties(int imgIndex, int series) -> joda::ome::OmeInfo
+auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings) -> joda::thread::ThreadingSettings
 {
-  auto imagePath = mWorkingDirectory.getFileAt(imgIndex);
-  return image::BioformatsLoader::getOmeInformation(imagePath.getFilePath().string());
-  ;
+  return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles());
 }
 
 ///
-/// \brief      Returns properties of given image
-/// \author     Joachim Danmayr
+/// \brief
+/// \author
+/// \return
 ///
-auto Controller::getSystemResources() -> Resources
+auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file,
+                                         int nrOfFiles) -> joda::thread::ThreadingSettings
 {
-  return {.ramTotal     = system::getTotalSystemMemory(),
-          .ramAvailable = system::getAvailableSystemMemory(),
-          .cpus         = system::getNrOfCPUs()};
-}
+  joda::thread::ThreadingSettings threads;
 
-///
-/// \brief      Calc optimal number of threads
-/// \author     Joachim Danmayr
-///
-auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, int imgIndex)
-    -> pipeline::Pipeline::ThreadingSettings
-{
-  pipeline::Pipeline::ThreadingSettings threads;
-  int series = 0;
-
-  if(!settings.channels.empty()) {
-    series = settings.channels.begin()->meta.series;
-  }
-
-  auto ome             = getImageProperties(imgIndex, series);
-  int64_t imgNr        = mWorkingDirectory.getNrOfFiles();
+  auto ome             = getImageProperties(file);
+  int64_t imgNr        = nrOfFiles;
   int64_t tileNr       = 1;
-  int64_t channelNr    = settings.channels.size();
+  int64_t pipelineNr   = settings.pipelines.size();
   const auto &props    = ome.getImageInfo();
   auto systemRecources = getSystemResources();
-  if(props.resolutions.at(0).imageMemoryUsage > joda::pipeline::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
-    auto [tilesX, tilesY] = props.resolutions.at(0).getNrOfTiles(joda::pipeline::COMPOSITE_TILE_WIDTH,
-                                                                 joda::pipeline::COMPOSITE_TILE_HEIGHT);
-    tileNr                = tilesX * tilesY;
-    threads.ramPerImage   = joda::pipeline::COMPOSITE_TILE_WIDTH * joda::pipeline::COMPOSITE_TILE_HEIGHT *
-                          (props.resolutions.at(0).bits / 8);
+
+  // Load image in tiles if too big
+  const auto &imageInfo = ome.getImageInfo().resolutions.at(0);
+  if(imageInfo.imageMemoryUsage > joda::processor::PipelineInitializer::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
+    auto [tilesX, tilesY] = imageInfo.getNrOfTiles(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH,
+                                                   joda::processor::PipelineInitializer::COMPOSITE_TILE_HEIGHT);
+    tileNr                = static_cast<int64_t>(tilesX) * tilesY;
+    threads.ramPerImage   = (imageInfo.bits * joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH *
+                           joda::processor::PipelineInitializer::COMPOSITE_TILE_HEIGHT) /
+                          8;
   } else {
-    threads.ramPerImage = props.resolutions.at(0).imageMemoryUsage;
+    tileNr              = 1;
+    threads.ramPerImage = imageInfo.imageMemoryUsage;
   }
+
   if(threads.ramPerImage <= 0) {
     threads.ramPerImage = 1;
   }
@@ -255,57 +115,185 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   }
   threads.coresUsed = maxNumberOfCoresToAssign;
 
-  threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES]   = 1;
-  threads.cores[pipeline::Pipeline::ThreadingSettings::TILES]    = 1;
-  threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] = 1;
+  threads.cores[joda::thread::ThreadingSettings::IMAGES]   = 1;
+  threads.cores[joda::thread::ThreadingSettings::TILES]    = 1;
+  threads.cores[joda::thread::ThreadingSettings::CHANNELS] = 1;
 
   if(imgNr > tileNr) {
-    if(imgNr > channelNr) {
+    if(imgNr > pipelineNr) {
       // Image Nr wins
-      threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES] = maxNumberOfCoresToAssign;
+      threads.cores[joda::thread::ThreadingSettings::IMAGES] = maxNumberOfCoresToAssign;
     } else {
       // Channel Nr wins
-      threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
+      threads.cores[joda::thread::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
     }
   } else {
-    if(tileNr > channelNr) {
+    if(tileNr > pipelineNr) {
       // Tile nr wins
-      threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] = maxNumberOfCoresToAssign;
+      threads.cores[joda::thread::ThreadingSettings::TILES] = maxNumberOfCoresToAssign;
     } else {
       // Channel Nr wins
-      threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
+      threads.cores[joda::thread::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
     }
   }
 
-  /*
-    uint64_t nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
-    while(nr > maxNumberOfCoresToAssign) {
-      threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS]--;
-      nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS];
-    }
-
-    nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
-         threads.cores[pipeline::Pipeline::ThreadingSettings::TILES];
-    while(nr > maxNumberOfCoresToAssign) {
-      threads.cores[pipeline::Pipeline::ThreadingSettings::TILES]--;
-      nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
-           threads.cores[pipeline::Pipeline::ThreadingSettings::TILES];
-    }
-
-    nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
-         threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
-         threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES];
-    while(nr > maxNumberOfCoresToAssign) {
-      threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES]--;
-      nr = threads.cores[pipeline::Pipeline::ThreadingSettings::CHANNELS] *
-           threads.cores[pipeline::Pipeline::ThreadingSettings::TILES] *
-           threads.cores[pipeline::Pipeline::ThreadingSettings::IMAGES];
-    }
-  */
-
-  threads.totalRuns = imgNr * tileNr * channelNr;
+  threads.totalRuns = imgNr * tileNr * pipelineNr;
 
   return threads;
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+auto Controller::getNrOfFoundImages() -> uint32_t
+{
+  return mWorkingDirectory.getNrOfFiles();
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+auto Controller::getListOfFoundImages() -> const std::map<uint8_t, std::vector<std::filesystem::path>> &
+{
+  return mWorkingDirectory.getFilesList();
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+bool Controller::isLookingForImages()
+{
+  return mWorkingDirectory.isRunning();
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+void Controller::stopLookingForFiles()
+{
+  mWorkingDirectory.stop();
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+void Controller::setWorkingDirectory(uint8_t plateNr, const std::filesystem::path &dir)
+{
+  mWorkingDirectory.setWorkingDirectory(plateNr, dir);
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+void Controller::registerImageLookupCallback(
+    const std::function<void(joda::filesystem::State)> &lookingForFilesFinished)
+{
+  mWorkingDirectory.addListener(lookingForFilesFinished);
+}
+
+// PREVIEW ///////////////////////////////////////////////////
+
+void Controller::preview(const settings::ProjectImageSetup &imageSetup,
+                         const processor::PreviewSettings &previewSettings, const settings::AnalyzeSettings &settings,
+                         const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX,
+                         int32_t tileY, Preview &previewOut)
+{
+  processor::Processor process;
+  auto [originalImg, previewImage, thumb] =
+      process.generatePreview(previewSettings, imageSetup, settings, pipeline, imagePath, 0, 0, tileX, tileY);
+  previewOut.originalImage.setImage(std::move(originalImg));
+  previewOut.previewImage.setImage(std::move(previewImage));
+  previewOut.thumbnail.setImage(std::move(thumb));
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+auto Controller::getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo
+{
+  return joda::image::reader::ImageReader::getOmeInformation(image);
+}
+
+cv::Size Controller::getCompositeTileSize() const
+{
+  return {joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH,
+          joda::processor::PipelineInitializer::COMPOSITE_TILE_HEIGHT};
+}
+
+// FLOW CONTROL ///////////////////////////////////////////////////
+
+///
+/// \brief
+/// \author
+/// \return
+///
+void Controller::start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
+                       const std::string &jobName)
+{
+  if(mActThread.joinable()) {
+    mActThread.join();
+  }
+  mActProcessor.reset();
+  mActThread = std::thread([this, settings, jobName] {
+    mActProcessor = std::make_unique<processor::Processor>();
+    mActProcessor->execute(
+        settings, jobName,
+        calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
+        mWorkingDirectory);
+  });
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+void Controller::stop()
+{
+  if(mActProcessor) {
+    return mActProcessor->stop();
+  }
+  throw std::runtime_error("No job running!");
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+[[nodiscard]] auto Controller::getState() const -> const joda::processor::ProcessProgress &
+{
+  if(mActProcessor) {
+    return mActProcessor->getProgress();
+  }
+  throw std::runtime_error("No job running!");
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+[[nodiscard]] const processor::ProcessInformation &Controller::getJobInformation() const
+{
+  if(mActProcessor) {
+    return mActProcessor->getJobInformation();
+  }
+  throw std::runtime_error("No job executed!");
 }
 
 }    // namespace joda::ctrl

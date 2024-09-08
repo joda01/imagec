@@ -1,0 +1,579 @@
+///
+/// \file      dialog_settings.hpp
+/// \author    Joachim Danmayr
+/// \date      2024-02-29
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            All rights reserved! This file is subject
+///            to the terms and conditions defined in file
+///            LICENSE.txt, which is part of this package.
+///
+
+///
+
+#include "dialog_export_data.hpp"
+#include <qaction.h>
+#include <qboxlayout.h>
+#include <qcheckbox.h>
+#include <qcombobox.h>
+#include <qdialog.h>
+#include <qgroupbox.h>
+#include <qlabel.h>
+#include <qlineedit.h>
+#include <qnamespace.h>
+#include <qprogressbar.h>
+#include <qpushbutton.h>
+#include <qtableview.h>
+#include <qtablewidget.h>
+#include <qwidget.h>
+#include <QMessageBox>
+#include <cstdint>
+#include <exception>
+#include <filesystem>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <string>
+#include <thread>
+#include <utility>
+#include <vector>
+#include "backend/commands/classification/classifier_filter.hpp"
+#include "backend/enums/enum_measurements.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_file_endians.hpp"
+#include "backend/helper/database/exporter/exporter.hpp"
+#include "backend/helper/database/plugins/control_image.hpp"
+#include "backend/helper/database/plugins/stats_for_image.hpp"
+#include "backend/helper/database/plugins/stats_for_plate.hpp"
+#include "backend/helper/database/plugins/stats_for_well.hpp"
+#include "ui/container/setting/setting_base.hpp"
+#include "ui/container/setting/setting_combobox_classification_unmanaged.hpp"
+#include "ui/container/setting/setting_combobox_multi_classification_unmanaged.hpp"
+#include "ui/helper/setting_generator.hpp"
+#include "ui/helper/template_parser/template_parser.hpp"
+#include <nlohmann/detail/macro_scope.hpp>
+#include <nlohmann/json_fwd.hpp>
+#include "dialog_export_settings.hpp"
+#include "panel_results.hpp"
+
+namespace joda::ui {
+
+struct Temp
+{
+  std::vector<std::vector<int32_t>> order;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Temp, order);
+};
+
+using Base = enums::Measurement;
+using Stat = enums::Stats;
+
+/////////////////////////////////////////////////////
+ExportColumn::ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
+                           const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses,
+                           QWidget *windowMain) :
+    QWidget(windowMain),
+    mAnalyzer(analyzer), mClustersAndClassesVector(clustersAndClasses)
+{
+  auto *layout = new QHBoxLayout();
+  layout->setContentsMargins(0, 0, 0, 0);
+
+  ///
+  ///
+  ///
+  mClustersAndClasses = SettingBase::create<SettingComboBoxClassificationUnmanaged>(windowMain, "", "Cluster/Class");
+  mClustersAndClasses->addOptions(clustersAndClasses);
+  layout->addWidget(mClustersAndClasses->getEditableWidget());
+
+  //
+  // Measurement
+  //
+  mMeasurement = SettingBase::create<SettingComboBoxMulti<enums::Measurement>>(windowMain, "", "Measurement");
+  mMeasurement->addOptions({{joda::enums::Measurement::COUNT, "Count", ""},
+                            {joda::enums::Measurement::CONFIDENCE, "Confidence", ""},
+                            {joda::enums::Measurement::AREA_SIZE, "Area size", ""},
+                            {joda::enums::Measurement::PERIMETER, "Perimeter", ""},
+                            {joda::enums::Measurement::CIRCULARITY, "Circularity", ""},
+                            {joda::enums::Measurement::INTERSECTING_CNT, "Cross channel count", ""},
+                            {joda::enums::Measurement::INTENSITY_SUM, "Intensity sum.", ""},
+                            {joda::enums::Measurement::INTENSITY_AVG, "Intensity avg.", ""},
+                            {joda::enums::Measurement::INTENSITY_MIN, "Intensity min.", ""},
+                            {joda::enums::Measurement::INTENSITY_MAX, "Intensity max.", ""}
+
+  });
+  layout->addWidget(mMeasurement->getEditableWidget());
+
+  //
+  // Stats
+  //
+  mStats = SettingBase::create<SettingComboBoxMulti<enums::Stats>>(windowMain, "", "Stats");
+  mStats->addOptions({{Stat::AVG, "Avg", ""},
+                      {Stat::CNT, "Cnt", ""},
+                      {Stat::SUM, "Sum", ""},
+                      {Stat::MIN, "Min", ""},
+                      {Stat::MAX, "Max", ""},
+                      {Stat::MEDIAN, "Median", ""},
+                      {Stat::STDDEV, "Stddev", ""}});
+  layout->addWidget(mStats->getEditableWidget());
+
+  //
+  // Cross channel
+  //
+  layout->addWidget(new QLabel("-->"), 0, Qt::AlignTop);
+  mCrossChannelImageChannel =
+      SettingBase::create<SettingComboBoxMulti<int32_t>>(windowMain, "", "Cross channel intensity");
+  mCrossChannelCount =
+      SettingBase::create<SettingComboBoxMultiClassificationUnmanaged>(windowMain, "", "Cross channel count");
+  layout->addWidget(mCrossChannelImageChannel->getEditableWidget());
+  layout->addWidget(mCrossChannelCount->getEditableWidget());
+  this->setLayout(layout);
+  this->setContentsMargins(0, 0, 0, 0);
+
+  //
+  // connect signals
+  //
+  mClustersAndClasses->setValue({enums::ClusterId::UNDEFINED, enums::ClassId::UNDEFINED});
+  connect(mClustersAndClasses.get(), &SettingBase::valueChanged, [this]() {
+    getImageChannels();
+    getCrossChannelCount();
+    setEnabledDisabled(isEnabled());
+  });
+  getImageChannels();
+  getCrossChannelCount();
+  setEnabledDisabled(false);
+}
+
+bool ExportColumn::isEnabled()
+{
+  return mClustersAndClasses->getValue().clusterId != enums::ClusterId::UNDEFINED;
+}
+
+void ExportColumn::setEnabledDisabled(bool enabled)
+{
+  mCrossChannelImageChannel->getEditableWidget()->setEnabled(enabled);
+  mCrossChannelCount->getEditableWidget()->setEnabled(enabled);
+  mMeasurement->getEditableWidget()->setEnabled(enabled);
+  mStats->getEditableWidget()->setEnabled(enabled);
+}
+
+void ExportColumn::getImageChannels()
+{
+  auto imageChannels  = mAnalyzer->selectImageChannels();
+  auto currentChannel = mCrossChannelImageChannel->getValue();
+  auto channels       = mAnalyzer->selectMeasurementChannelsForClusterAndClass(
+      static_cast<enums::ClusterId>(mClustersAndClasses->getValue().clusterId),
+      mClustersAndClasses->getValue().classId);
+  mCrossChannelImageChannel->blockSignals(true);
+  std::vector<SettingComboBoxMulti<int32_t>::ComboEntry> entry;
+
+  for(const auto channelId : channels) {
+    entry.emplace_back(SettingComboBoxMulti<int32_t>::ComboEntry{
+        .key   = channelId,
+        .label = "CH" + QString::number(channelId) + " (" + QString(imageChannels.at(channelId).name.data()) + ")",
+    });
+  }
+  mCrossChannelImageChannel->addOptions(entry);
+  mCrossChannelImageChannel->setValue(currentChannel);
+  mCrossChannelImageChannel->blockSignals(false);
+  if(channels.empty()) {
+    mCrossChannelImageChannel->setEnabled(false);
+  } else {
+    mCrossChannelImageChannel->setEnabled(true);
+  }
+}
+
+void ExportColumn::getCrossChannelCount()
+{
+  auto clusterClassSelected = mClustersAndClasses->getValue();
+
+  std::map<settings::ClassificatorSettingOut, QString> options;
+
+  auto clusters = mAnalyzer->selectCrossChannelCountForClusterAndClass(
+      static_cast<enums::ClusterId>(clusterClassSelected.clusterId), clusterClassSelected.classId);
+  mCrossChannelCount->blockSignals(true);
+  auto currentChannel = mCrossChannelCount->getValue();
+  mCrossChannelCount->clear();
+  for(const auto &[clusterId, cluster] : clusters) {
+    for(const auto &[classId, classsName] : cluster.second) {
+      std::string name = cluster.first + "@" + classsName;
+      options.emplace(settings::ClassificatorSettingOut{clusterId, classId}, QString(name.data()));
+    }
+    mCrossChannelCount->addOptions(options);
+    mCrossChannelCount->setValue(currentChannel);
+    mCrossChannelCount->blockSignals(false);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::pair<settings::ClassificatorSettingOut, std::pair<std::string, std::string>>
+ExportColumn::getClusterClassesToExport()
+{
+  return mClustersAndClasses->getValueAndNames();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>>
+ExportColumn::getCrossChannelCountToExport()
+{
+  return mCrossChannelCount->getValueAndNames();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::map<int32_t, std::string> ExportColumn::getCrossChannelIntensityToExport()
+{
+  return mCrossChannelImageChannel->getValueAndNames();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::map<enums::Measurement, std::set<enums::Stats>> ExportColumn::getMeasurementAndStatsToExport()
+{
+  std::map<enums::Measurement, std::set<enums::Stats>> ret;
+  for(const auto measure : mMeasurement->getValue()) {
+    for(const auto stat : mStats->getValue()) {
+      ret[measure].emplace(stat);
+    }
+  }
+  return ret;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const db::QueryFilter &filter,
+                                   const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses,
+                                   QWidget *windowMain) :
+    QDialog(windowMain),
+    mWindowMain(windowMain), mAnalyzer(analyzer), mFilter(filter), mLayout(this, false, true, false, true)
+{
+  setWindowTitle("Export data");
+  setMinimumHeight(700);
+  setMinimumWidth(1100);
+
+  mExportButton = mLayout.addActionButton("Excel export", "icons8-export-excel-50.png");
+  connect(mExportButton, &QAction::triggered, [this] { onExportClicked(); });
+
+  mLayout.addSeparatorToTopToolbar();
+
+  mSaveSettings = mLayout.addActionButton("Save template", "icons8-mark-as-favorite-50.png");
+  connect(mSaveSettings, &QAction::triggered, [this] { saveTemplate(); });
+
+  mOpenSettings = mLayout.addActionButton("Open template", "icons8-folder-50.png");
+  connect(mOpenSettings, &QAction::triggered, [this] { openTemplate(); });
+
+  /* mSelectAllMeasurements = mLayout.addActionButton("Select all measurements", "icons8-select-column-50.png");
+   connect(mSelectAllMeasurements, &QAction::triggered, [this] { selectAvgOfAllMeasureChannels(); });
+
+   mUnselectAllMeasurements = mLayout.addActionButton("Unselect all measurements", "icons8-select-none-50.png");
+   connect(mUnselectAllMeasurements, &QAction::triggered, [this] { unselectAllMeasureChannels(); });
+
+   mSelectAllClustersAndClasses = mLayout.addActionButton("Select all clusters", "icons8-select-50-all.png");
+   connect(mSelectAllClustersAndClasses, &QAction::triggered, [this] { selectAllExports(); });*/
+
+  auto *tab  = mLayout.addTab("Columns", [] {});
+  auto *col1 = tab->addVerticalPanel();
+
+  mClustersAndClasses = clustersAndClasses;
+  mClustersAndClasses.emplace(
+      settings::ClassificatorSettingOut{.clusterId = enums::ClusterId::UNDEFINED, .classId = enums::ClassId::UNDEFINED},
+      "Off");
+
+  mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
+  mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
+  mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
+  mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
+  mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
+  mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
+  mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
+  mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
+  mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
+  mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
+
+  col1->addWidgetGroup("Columns", {mExportColumns.begin(), mExportColumns.end()}, 0, 16777214);
+
+  //
+  // Details
+  mReportingDetails =
+      SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>>(windowMain, "", "Details");
+  mReportingDetails->addOptions({{joda::db::BatchExporter::Settings::ExportDetail::PLATE, "Overview of all images", ""},
+                                 {joda::db::BatchExporter::Settings::ExportDetail::WELL, "Selected well", ""},
+                                 {joda::db::BatchExporter::Settings::ExportDetail::IMAGE, "Selected image", ""}});
+  mReportingDetails->setDefaultValue(joda::db::BatchExporter::Settings::ExportDetail::PLATE);
+
+  //
+  // Type
+  mReportingType =
+      SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>>(windowMain, "", "Type");
+  mReportingType->addOptions(
+      {{joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", "icons8-heat-map-50.png"},
+       {joda::db::BatchExporter::Settings::ExportType::TABLE, "Table", "icons8-table-50.png"},
+       {joda::db::BatchExporter::Settings::ExportType::TABLE_DETAIL, "Details", "icons8-table-50.png"}});
+  mReportingType->setDefaultValue(joda::db::BatchExporter::Settings::ExportType::HEATMAP);
+
+  std::vector<SettingComboBoxMulti<enums::ClusterId>::ComboEntry> clustersCombo;
+  auto clusters = mAnalyzer->selectClusters();
+  clustersCombo.reserve(clusters.size());
+  for(const auto &[clusterId, cluster] : clusters) {
+    clustersCombo.push_back(
+        SettingComboBoxMulti<enums::ClusterId>::ComboEntry{.key = clusterId, .label = cluster.name.data(), .icon = ""});
+  }
+
+  std::vector<SettingComboBoxMulti<enums::ClassId>::ComboEntry> classCombo;
+  auto classes = mAnalyzer->selectClasses();
+  classCombo.reserve(classes.size());
+  for(const auto &[classId, cluster] : classes) {
+    classCombo.push_back(
+        SettingComboBoxMulti<enums::ClassId>::ComboEntry{.key = classId, .label = cluster.name.data(), .icon = ""});
+  }
+
+  auto *col2 = tab->addVerticalPanel();
+  col2->addGroup("Exports", {mReportingType.get(), mReportingDetails.get()});
+
+  // Progress bar
+  progressBar = new QProgressBar(this);
+  progressBar->setRange(0, 0);
+  progressBar->setMaximum(0);
+  progressBar->setMinimum(0);
+  mActionProgressBar = mLayout.addItemToBottomToolbar(progressBar);
+  mActionProgressBar->setVisible(false);
+  connect(this, &DialogExportData::exportFinished, this, &DialogExportData::onExportFinished);
+}
+
+///
+/// \brief      Export data
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::onExportClicked()
+{
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", "", "Spreadsheet (*.xlsx)");
+
+  if(filePathOfSettingsFile.isEmpty()) {
+    return;
+  }
+  mActionProgressBar->setVisible(true);
+  mExportButton->setEnabled(false);
+
+  std::thread([this, filePathOfSettingsFile] {
+    std::map<settings::ClassificatorSettingOut, joda::db::BatchExporter::BatchExporter::Settings::Channel>
+        clustersToExport;
+
+    for(const auto &columnToExport : mExportColumns) {
+      if(!columnToExport->isEnabled()) {
+        continue;
+      }
+      auto [clusterClassID, name] = columnToExport->getClusterClassesToExport();
+
+      joda::db::BatchExporter::BatchExporter::Settings::Channel channel;
+      channel.clusterName         = std::get<0>(name);
+      channel.className           = std::get<1>(name);
+      channel.measureChannels     = columnToExport->getMeasurementAndStatsToExport();
+      channel.crossChannelStacksC = columnToExport->getCrossChannelIntensityToExport();
+      channel.crossChannelCount   = columnToExport->getCrossChannelCountToExport();
+      clustersToExport.emplace(clusterClassID, channel);
+    }
+
+    joda::db::BatchExporter::Settings settings{
+        .clustersToExport = clustersToExport,
+        .analyzer         = *mAnalyzer,
+        .plateId          = mFilter.plateId,
+        .groupId          = mFilter.actGroupId,
+        .imageId          = mFilter.actImageId,
+        .plateRows        = mFilter.plateRows,
+        .plateCols        = mFilter.plateCols,
+        .heatmapAreaSize  = mFilter.densityMapAreaSize,
+        .wellImageOrder   = mFilter.wellImageOrder,
+        .exportType       = mReportingType->getValue(),
+        .exportDetail     = mReportingDetails->getValue(),
+    };
+    joda::db::BatchExporter::startExport(settings, filePathOfSettingsFile.toStdString());
+    emit exportFinished();
+  }).detach();
+}
+
+void DialogExportData::onCancelClicked()
+{
+}
+
+void DialogExportData::onExportFinished()
+{
+  if(mActionProgressBar != nullptr) {
+    mActionProgressBar->setVisible(false);
+    mExportButton->setEnabled(true);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::selectAvgOfAllMeasureChannels()
+{
+  // for(const auto &[measure, ch] : mChannelsToExport) {
+  //   ch->setValue({enums::Stats::AVG});
+  // }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::unselectAllMeasureChannels()
+{
+  // for(const auto &[measure, ch] : mChannelsToExport) {
+  //   ch->setValue({});
+  // }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::selectAllExports()
+{
+  // mClustersToExport->selectAll();
+  // mClassesToExport->selectAll();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::saveTemplate()
+{
+  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(
+      this, "Save template", folderToOpen,
+      "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
+  if(filePathOfSettingsFile.isEmpty()) {
+    return;
+  }
+
+  SettingsExportData settings;
+
+  // To settings
+  {
+    for(const auto &col : mExportColumns) {
+      SettingsExportData::Column colSetting;
+      colSetting.inputCluster          = col->mClustersAndClasses->getValue();
+      colSetting.measurements          = col->mMeasurement->getValue();
+      colSetting.stats                 = col->mStats->getValue();
+      colSetting.crossChannelIntensity = col->mCrossChannelImageChannel->getValue();
+      colSetting.crossChannelCount     = col->mCrossChannelCount->getValue();
+      settings.columns.emplace_back(colSetting);
+    }
+  }
+
+  try {
+    nlohmann::json templateJson = settings;
+    joda::templates::TemplateParser::saveTemplate(
+        templateJson, std::filesystem::path(filePathOfSettingsFile.toStdString()), joda::fs::EXT_EXPORT_TEMPLATE);
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(mWindowMain);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not save template!");
+    messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogExportData::openTemplate()
+{
+  using namespace std::chrono_literals;
+
+  QString folderToOpen = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString filePath     = QFileDialog::getOpenFileName(
+      this, "Open File", folderToOpen,
+      "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")", nullptr);
+
+  if(filePath.isEmpty()) {
+    return;
+  }
+  SettingsExportData settings;
+
+  try {
+    std::ifstream ifs(filePath.toStdString());
+    settings = nlohmann::json::parse(ifs);
+    ifs.close();
+
+    for(auto &col : mExportColumns) {
+      col->mClustersAndClasses->setValue({enums::ClusterId::UNDEFINED, enums::ClassId::UNDEFINED});
+    }
+
+    int colCnt = 0;
+    for(const auto &col : settings.columns) {
+      if(colCnt < mExportColumns.size()) {
+        mExportColumns[colCnt]->mClustersAndClasses->setValue(col.inputCluster);
+        mExportColumns[colCnt]->mMeasurement->setValue(col.measurements);
+        mExportColumns[colCnt]->mStats->setValue(col.stats);
+        std::this_thread::sleep_for(100ms);
+        mExportColumns[colCnt]->mCrossChannelImageChannel->setValue(col.crossChannelIntensity);
+        mExportColumns[colCnt]->mCrossChannelCount->setValue(col.crossChannelCount);
+      }
+      colCnt++;
+    }
+
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(mWindowMain);
+    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setWindowTitle("Could not open template!");
+    messageBox.setText("Could not open template, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
+}
+
+}    // namespace joda::ui

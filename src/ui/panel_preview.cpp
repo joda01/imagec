@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "panel_preview.hpp"
@@ -26,7 +26,7 @@
 #include <memory>
 #include <string>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \brief      Constructor
@@ -104,6 +104,13 @@ QWidget *PanelPreview::createToolBar()
   connect(openFullScreen, &QPushButton::pressed, this, &PanelPreview::onOpenFullScreenClickec);
   layout->addWidget(openFullScreen);
 
+  filled = new QPushButton(QIcon(":/icons/outlined/icons8-100-50.png"), "");
+  filled->setCheckable(true);
+  filled->setObjectName("ToolButton");
+  filled->setToolTip("Filled");
+  connect(filled, &QPushButton::pressed, this, &PanelPreview::onSettingChanged);
+  layout->addWidget(filled);
+
   layout->addStretch();
 
   return container;
@@ -134,4 +141,4 @@ void PanelPreview::onTileClicked(int32_t tileX, int32_t tileY)
   emit tileClicked(tileX, tileY);
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

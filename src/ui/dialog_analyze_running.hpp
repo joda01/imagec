@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -19,9 +19,9 @@
 #include <thread>
 #include "backend/settings/analze_settings.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
-#include "ui/window_main.hpp"
+#include "ui/window_main/window_main.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class DialogAnalyzeRunning : public DialogShadow
 {
@@ -63,4 +63,4 @@ private slots:
   void onOpenResultsFolderClicked();
 };
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

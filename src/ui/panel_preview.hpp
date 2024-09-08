@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -20,12 +20,12 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
 #include "ui/dialog_image_view/dialog_image_view.hpp"
 #include "ui/dialog_image_view/panel_image_view.hpp"
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 class PanelPreview : public QWidget
 {
@@ -50,7 +50,7 @@ public:
     mPreviewLabel.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
     mImageViewer.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
   }
-  joda::ctrl::Controller::Preview &getPreviewObject()
+  joda::ctrl::Preview &getPreviewObject()
   {
     return mImageViewer.getPreviewObject();
   }
@@ -61,8 +61,14 @@ public:
     mPreviewLabel.setWaiting(waiting);
   }
 
+  bool getFilledPreview() const
+  {
+    return filled->isChecked();
+  }
+
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
+  void onSettingChanged();
 
 private slots:
   void onFitImageToScreenSizeClicked();
@@ -75,9 +81,10 @@ private:
   /////////////////////////////////////////////////////
   QWidget *createToolBar();
   QLabel *mPreviewInfo;
+  QPushButton *filled;
 
   /////////////////////////////////////////////////////
   DialogImageViewer mImageViewer;
   PanelImageView mPreviewLabel;
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

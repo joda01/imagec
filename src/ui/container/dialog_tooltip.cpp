@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #include "dialog_tooltip.hpp"
@@ -31,7 +31,7 @@
 #include <thread>
 #include <nlohmann/json.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QString &pathToHelpText) :
     DialogShadow(windowMain)
@@ -42,7 +42,7 @@ DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QS
 
   /////////////////////////////////////////////////////////////////
   auto *mainLayout = new QVBoxLayout(this);
-  mainLayout->setContentsMargins(28, 28, 28, 28);
+  //   mainLayout->setContentsMargins(28, 28, 28, 28);
 
   QString helpText = "{}";
   QFile file(":/helptext/helptext/" + pathToHelpText);
@@ -94,15 +94,11 @@ DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QS
   QLabel *helpTextLabel = new QLabel(fullHelpText);
   helpTextLabel->setOpenExternalLinks(true);
   helpTextLabel->setWordWrap(true);
-  QFont fontLineEdit;
-  fontLineEdit.setPixelSize(16);
-  helpTextLabel->setFont(fontLineEdit);
   mainLayout->addWidget(helpTextLabel);
   mainLayout->addStretch();
   mainLayout->invalidate();
   mainLayout->activate();
   helpTextLabel->adjustSize();
-  helpTextLabel->setMinimumHeight(helpTextLabel->height() + 56);
 }
 
 void DialogToolTip::onCloseClicked()
@@ -110,4 +106,4 @@ void DialogToolTip::onCloseClicked()
   close();
 }
 
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

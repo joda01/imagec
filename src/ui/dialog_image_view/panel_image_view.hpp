@@ -8,7 +8,7 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-/// \brief     A short description what happens here.
+
 ///
 
 #pragma once
@@ -19,10 +19,10 @@
 #include <QtWidgets>
 #include <iostream>
 #include <string>
-#include "backend/image_processing/image/image.hpp"
+#include "backend/helper/image/image.hpp"
 #include <opencv2/core/types.hpp>
 
-namespace joda::ui::qt {
+namespace joda::ui {
 
 ///
 /// \class      PanelImageView
@@ -121,4 +121,4 @@ private:
 private slots:
   void onUpdateImage();
 };
-}    // namespace joda::ui::qt
+}    // namespace joda::ui

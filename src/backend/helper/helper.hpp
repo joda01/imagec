@@ -12,7 +12,7 @@
 
 namespace joda::helper {
 
-inline auto timeNowToString() -> std::string
+inline auto timeNowToString() -> std::tuple<std::string, std::chrono::system_clock::time_point>
 {
   auto now               = std::chrono::system_clock::now();
   std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -20,7 +20,7 @@ inline auto timeNowToString() -> std::string
   std::stringstream ss;
   ss << std::put_time(&now_tm, "%Y-%m-%dT%H%M%S");
   std::string now_str = ss.str();
-  return now_str;
+  return {now_str, now};
 }
 
 inline auto getFileNameFromPath(const std::filesystem::path &filePathIn) -> std::string
@@ -99,9 +99,12 @@ inline auto stringToNumber(const std::string &str) -> int
 inline std::string timepointToIsoString(const std::chrono::system_clock::time_point &tp)
 {
   std::time_t t = std::chrono::system_clock::to_time_t(tp);
-  std::tm tm    = *std::gmtime(&t);    // Get UTC time
+  if(t < 0) {
+    return "";
+  }
+  std::tm tm = *std::gmtime(&t);    // Get UTC time
   char buffer[80];
-  std::strftime(buffer, 80, "%Y-%m-%dT%H:%M:%S", &tm);
+  std::strftime(buffer, 80, "%Y-%m-%dT%H-%M-%S", &tm);
   auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()) % 1000;
   std::sprintf(buffer + 80, ".%03lldZ", static_cast<long long>(milliseconds.count()));
   return std::string(buffer);

@@ -1,0 +1,62 @@
+///
+/// \file      command.hpp
+/// \author    Joachim Danmayr
+/// \date      2024-08-18
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            All rights reserved! This file is subject
+///            to the terms and conditions defined in file
+///            LICENSE.txt, which is part of this package.
+///
+///
+
+#pragma once
+
+#include <qwidget.h>
+#include "ui/container/command/command.hpp"
+#include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_line_edit.hpp"
+#include "rolling_ball_settings.hpp"
+
+namespace joda::ui {
+
+class RollingBallBackground : public Command
+{
+public:
+  /////////////////////////////////////////////////////
+  inline static std::string TITLE = "Rolling ball";
+  inline static std::string ICON  = "icons8-bubble-50.png";
+
+  RollingBallBackground(joda::settings::PipelineStep &pipelineStep, settings::RollingBallSettings &settings,
+                        QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
+  {
+    //
+    //
+    mBallType = SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(
+        parent, "icons8-bubble-50.png", "Ball type");
+    mBallType->addOptions({{joda::settings::RollingBallSettings::BallType::BALL, "Ball"},
+                           {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}});
+    mBallType->setValue(settings.ballType);
+    mBallType->connectWithSetting(&settings.ballType);
+
+    //
+    //
+    mBallSize = SettingBase::create<SettingLineEdit<int>>(parent, "", "Ball size [0-256]");
+    mBallSize->setPlaceholderText("[0 - 256]");
+    mBallSize->setUnit("px");
+    mBallSize->setMinMax(0, 256);
+    mBallSize->setValue(settings.ballSize);
+    mBallSize->connectWithSetting(&settings.ballSize);
+    mBallSize->setShortDescription("Size. ");
+
+    addSetting({{mBallType.get(), true}, {mBallSize.get(), true}});
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  std::unique_ptr<SettingComboBox<joda::settings::RollingBallSettings::BallType>> mBallType;
+  std::shared_ptr<SettingLineEdit<int>> mBallSize;
+};
+
+}    // namespace joda::ui

@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "/workspaces/imagec/build/build/imagec",
             "args": [
-                "[image_loader_pyramid]"
+                "[dependencygraph]"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

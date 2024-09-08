@@ -1,0 +1,203 @@
+///
+/// \file      command.hpp
+/// \author    Joachim Danmayr
+/// \date      2024-08-18
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            All rights reserved! This file is subject
+///            to the terms and conditions defined in file
+///            LICENSE.txt, which is part of this package.
+///
+///
+
+#pragma once
+
+#include <qaction.h>
+#include <qboxlayout.h>
+#include <qdialog.h>
+#include <qicon.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+#include <memory>
+#include <thread>
+#include "../setting/setting_base.hpp"
+#include "backend/commands/command.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
+#include "backend/settings/pipeline/pipeline_step.hpp"
+#include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_multi.hpp"
+#include "ui/helper/layout_generator.hpp"
+
+namespace joda::ui {
+
+class WrapLabel : public QLabel
+{
+  void resizeEvent(QResizeEvent *event) override
+  {
+    QLabel::resizeEvent(event);
+
+    //    QFontMetrics fontMetrics(font());
+    //    int textWidth = fontMetrics.width(text());
+    //    int numLines  = textWidth / width() + 1;
+  }
+};
+
+class PanelPipelineSettings;
+
+using namespace std::chrono_literals;
+
+class Command : public QWidget
+{
+  Q_OBJECT
+public:
+  /////////////////////////////////////////////////////
+  Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon, QWidget *parent);
+
+  helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
+
+  void registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi);
+
+  void addSetting(const std::vector<std::pair<SettingBase *, bool>> &settings)
+  {
+    addSetting(addTab("", [] {}), "", settings);
+  }
+
+  void addSetting(helper::TabWidget *tab, const std::vector<std::pair<SettingBase *, bool>> &settings)
+  {
+    addSetting(tab, "", settings);
+  }
+  helper::VerticalPane *addSetting(helper::TabWidget *tab, const QString &boxTitle,
+                                   const std::vector<std::pair<SettingBase *, bool>> &settings,
+                                   helper::VerticalPane *col = nullptr);
+
+  void removeSetting(const std::set<SettingBase *> &toRemove)
+  {
+    for(int m = mSettings.size() - 1; m >= 0; m--) {
+      if(toRemove.contains(mSettings[m].first)) {
+        mSettings.erase(mSettings.begin() + m);
+      }
+    }
+
+    for(int m = mClusters.size() - 1; m >= 0; m--) {
+      if(toRemove.contains(mClusters[m])) {
+        mClusters.erase(mClusters.begin() + m);
+      }
+    }
+
+    for(int m = mClasses.size() - 1; m >= 0; m--) {
+      if(toRemove.contains(mClasses[m])) {
+        mClasses.erase(mClasses.begin() + m);
+      }
+    }
+
+    for(int m = mClustersMulti.size() - 1; m >= 0; m--) {
+      if(toRemove.contains(mClustersMulti[m])) {
+        mClustersMulti.erase(mClustersMulti.begin() + m);
+      }
+    }
+
+    for(int m = mClassesMulti.size() - 1; m >= 0; m--) {
+      if(toRemove.contains(mClassesMulti[m])) {
+        mClassesMulti.erase(mClassesMulti.begin() + m);
+      }
+    }
+  }
+
+  auto getDisplayWidget() const -> const QWidget *
+  {
+    return this;
+  }
+
+  auto getEditWidget() const -> const QWidget *
+  {
+    return &mEditView;
+  }
+
+  void openEditView()
+  {
+    mEditDialog->show();
+  }
+
+  void adjustDialogSize()
+  {
+    mEditDialog->adjustSize();
+  }
+
+  void addSeparatorToTopToolbar()
+  {
+    mLayout.addSeparatorToTopToolbar();
+  }
+  QAction *addItemToTopToolbar(QWidget *widget)
+  {
+    return mLayout.addItemToTopToolbar(widget);
+  }
+  QAction *addActionButton(const QString &text, const QString &icon)
+  {
+    return mLayout.addActionButton(text, icon);
+  }
+
+  void updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames,
+                                    const std::map<enums::ClassId, QString> &classNames);
+
+  const QString &getTitle()
+  {
+    return mTitle;
+  }
+
+  const QIcon &getIcon()
+  {
+    return mIcon;
+  }
+
+signals:
+  void valueChanged();
+
+protected:
+  void updateClassesAndClusters();
+  [[nodiscard]] bool isDisabled() const
+  {
+    return mDisabled->isChecked();
+  }
+
+  void setIsDisabled(bool disabled)
+  {
+    mDisabled->setChecked(disabled);
+  }
+
+private:
+  /////////////////////////////////////////////////////
+
+  ///
+  /// \brief      Constructor
+  /// \author     Joachim Danmayr
+  ///
+  void mousePressEvent(QMouseEvent *event) override
+  {
+    if(event->button() == Qt::LeftButton) {
+      openEditView();
+    }
+  }
+
+  /////////////////////////////////////////////////////
+  joda::settings::PipelineStep &mPipelineStep;
+  QAction *mDisabled;
+  QWidget *mParent;
+  QString mTitle;
+  QIcon mIcon;
+  QWidget mEditView;
+  helper::LayoutGenerator mLayout;
+  QGridLayout mDisplayViewLayout;
+  QDialog *mEditDialog;
+  WrapLabel *mDisplayableText;
+  std::vector<std::pair<SettingBase *, bool>> mSettings;
+  std::vector<SettingComboBox<enums::ClusterIdIn> *> mClusters;
+  std::vector<SettingComboBox<enums::ClassId> *> mClasses;
+  std::vector<SettingComboBoxMulti<enums::ClusterIdIn> *> mClustersMulti;
+  std::vector<SettingComboBoxMulti<enums::ClassId> *> mClassesMulti;
+
+protected slots:
+  void updateDisplayText();
+};
+
+}    // namespace joda::ui

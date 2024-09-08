@@ -8,7 +8,7 @@ mkdir -p ./build/build/models
 
 cmake -S . -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -B build -DCMAKE_PREFIX_PATH="/opt/Qt6/lib/cmake"
 cmake --build build --target imagec --config Release --parallel 8
-cmake --build build --target tests --config Release --parallel 8
+#cmake --build build --target tests --config Release --parallel 4
 
 
 #exit 0
@@ -46,7 +46,7 @@ cp /opt/Qt6/lib/libQt6DBus.so.6.3.3 ./build/build
 cp -r /opt/Qt6/plugins/* ./build/build/plugins
 cp /opt/Qt6/plugins/platforms/* ./build/build/platforms/
 cp imagec.sh ./build/build
-cp -r ./templates/*.json ./build/build/templates
+cp -r ./templates/* ./build/build/templates
 chmod +x ./build/build/imagec.sh
 
 #

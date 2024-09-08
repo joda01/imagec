@@ -12,191 +12,76 @@
 
 #include "settings.hpp"
 #include <exception>
+#include <filesystem>
 #include <stdexcept>
 #include <string>
-#include "backend/settings/channel/channel_index.hpp"
-#include "backend/settings/channel/channel_settings.hpp"
-#include "backend/settings/channel/channel_settings_cross.hpp"
-#include "backend/settings/channel/channel_settings_meta.hpp"
+#include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_file_endians.hpp"
+#include "backend/helper/logger/console_logger.hpp"
+#include "backend/settings/analze_settings.hpp"
 
 namespace joda::settings {
 
-void Settings::storeSettings(std::string path, const joda::settings::AnalyzeSettings &settings)
+void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::settings::AnalyzeSettings &settings)
 {
+  std::string path = pathIn.string();
   if(!path.empty()) {
     nlohmann::json json = settings;
     removeNullValues(json);
 
-    if(!path.ends_with(".json")) {
-      path += ".json";
+    if(!path.ends_with(joda::fs::EXT_PROJECT)) {
+      path += joda::fs::EXT_PROJECT;
     }
     std::ofstream out(path);
+    if(!out.is_open()) {
+      throw std::runtime_error("Cannot open file >" + path + "< for writing! Do you have write permissions?");
+    }
     out << json.dump(2);
+    if(out.bad()) {
+      throw std::runtime_error("Cannot write data! Do you have write permissions and enough space left on your disk?");
+    }
     out.close();
   }
 }
 
+/// \todo How to check incomplete settings
 bool Settings::isEqual(const joda::settings::AnalyzeSettings &settingsOld,
                        const joda::settings::AnalyzeSettings &settingsNew)
 {
-  nlohmann::json jsonOld = settingsOld;
-  nlohmann::json jsonNew = settingsNew;
-  return jsonOld.dump() == jsonNew.dump();
+  try {
+    nlohmann::json jsonOld = settingsOld;
+    nlohmann::json jsonNew = settingsNew;
+    return jsonOld.dump() == jsonNew.dump();
+
+  } catch(const std::exception &ex) {
+    joda::log::logError("Cannot compare: " + std::string(ex.what()));
+  }
+  return false;
 }
 
-int32_t Settings::getNrOfAllChannels(const joda::settings::AnalyzeSettings &settings)
+int32_t Settings::getNrOfAllPipelines(const joda::settings::AnalyzeSettings &settings)
 {
-  return settings.channels.size() + settings.vChannels.size();
+  return settings.pipelines.size();
 }
 
-std::vector<const joda::settings::ChannelSettings *>
-Settings::getChannelsOfType(const joda::settings::AnalyzeSettings &settings,
-                            joda::settings::ChannelSettingsMeta::Type type)
+std::set<ClassificatorSettingOut> Settings::getOutputClasses(const joda::settings::AnalyzeSettings &settings)
 {
-  std::vector<const joda::settings::ChannelSettings *> ret;
-  for(const auto &ch : settings.channels) {
-    if(ch.meta.type == type) {
-      ret.push_back(&ch);
-    }
-  }
-  return ret;
-}
-
-std::string Settings::getChannelNameOfChannelIndex(const joda::settings::AnalyzeSettings &settings,
-                                                   joda::settings::ChannelIndex channelIdx)
-{
-  for(const auto &channelSettings : settings.channels) {
-    if(channelSettings.meta.channelIdx == channelIdx) {
-      return channelSettings.meta.name;
+  std::set<ClassificatorSettingOut> out;
+  for(const auto &pipeline : settings.pipelines) {
+    auto cluster = pipeline.getOutputClasses();
+    for(const auto &outClassesOfPipeline : cluster) {
+      ClassificatorSettingOut settings;
+      settings.classId = outClassesOfPipeline.classId;
+      if(outClassesOfPipeline.clusterId == enums::ClusterIdIn::$) {
+        settings.clusterId = pipeline.pipelineSetup.defaultClusterId;
+      } else {
+        settings.clusterId = (enums::ClusterId) outClassesOfPipeline.clusterId;
+      }
+      out.emplace(settings);
     }
   }
 
-  for(const auto &channelSettings : settings.vChannels) {
-    if(channelSettings.$voronoi.has_value()) {
-      if(channelSettings.$voronoi->meta.channelIdx == channelIdx) {
-        return channelSettings.$voronoi->meta.name;
-      }
-    }
-
-    if(channelSettings.$intersection.has_value()) {
-      if(channelSettings.$intersection->meta.channelIdx == channelIdx) {
-        return channelSettings.$intersection->meta.name;
-      }
-    }
-  }
-  return "Not Found";
-}
-
-const joda::settings::CrossChannelSettings &
-Settings::getCrossChannelSettingsForChannel(const joda::settings::AnalyzeSettings &settings,
-                                            joda::settings::ChannelIndex channelIdx)
-{
-  for(const auto &channelSettings : settings.channels) {
-    if(channelSettings.meta.channelIdx == channelIdx) {
-      return channelSettings.crossChannel;
-    }
-  }
-
-  for(const auto &channelSettings : settings.vChannels) {
-    if(channelSettings.$voronoi.has_value()) {
-      if(channelSettings.$voronoi->meta.channelIdx == channelIdx) {
-        return channelSettings.$voronoi->crossChannel;
-      }
-    }
-
-    if(channelSettings.$intersection.has_value()) {
-      if(channelSettings.$intersection->meta.channelIdx == channelIdx) {
-        return channelSettings.$intersection->crossChannel;
-      }
-    }
-  }
-  throw std::runtime_error("No reporting settings for channel found!");
-}
-
-void Settings::checkSettings(const joda::settings::AnalyzeSettings &settings)
-{
-  std::set<joda::settings::ChannelIndex> index;
-  std::set<std::string> channelName;
-
-  index.emplace(joda::settings::ChannelIndex::NONE);    // None is always allowed
-
-  //
-  // Check for double indexes and names
-  //
-  auto checkMap = [&index, &channelName](joda::settings::ChannelIndex idx, const std::string &name) {
-    if(channelName.contains(name)) {
-      throw std::runtime_error("Each channel must have an unique name!");
-    }
-
-    if(index.contains(idx)) {
-      throw std::runtime_error("Each channel must have an unique index!");
-    }
-    index.emplace(idx);
-    channelName.emplace(name);
-  };
-
-  auto checkCrossChannel = [&index, &channelName](const joda::settings::CrossChannelSettings &set) {
-    for(const auto idx : set.crossChannelCountChannels) {
-      if(!index.contains(idx)) {
-        throw std::runtime_error("A cross channel count without corrsponding channel was set!");
-      }
-    }
-    for(const auto idx : set.crossChannelIntensityChannels) {
-      if(!index.contains(idx)) {
-        throw std::runtime_error("A cross channel intensity without corrsponding channel was set!");
-      }
-    }
-  };
-
-  for(const auto &channel : settings.channels) {
-    checkMap(channel.meta.channelIdx, channel.meta.name);
-  }
-
-  for(const auto &channel : settings.vChannels) {
-    if(channel.$voronoi.has_value()) {
-      checkMap(channel.$voronoi->meta.channelIdx, channel.$voronoi->meta.name);
-    }
-    if(channel.$intersection.has_value()) {
-      checkMap(channel.$intersection->meta.channelIdx, channel.$intersection->meta.name);
-    }
-  }
-
-  //
-  // Check for not used indexes
-  //
-
-  for(const auto &channel : settings.channels) {
-    checkCrossChannel(channel.crossChannel);
-    if(!index.contains(channel.objectFilter.referenceSpotChannelIndex)) {
-      throw std::runtime_error("A reference spot channel count without corrsponding channel was set!");
-    }
-    for(const auto &pipe : channel.preprocessing.pipeline)
-      if(pipe.$subtractChannel.has_value()) {
-        if(!index.contains(pipe.$subtractChannel->channelIdx)) {
-          throw std::runtime_error("A subtract channel count without corrsponding channel was set!");
-        }
-      }
-  }
-
-  for(const auto &channel : settings.vChannels) {
-    if(channel.$voronoi.has_value()) {
-      checkCrossChannel(channel.$voronoi->crossChannel);
-      if(!index.contains(channel.$voronoi->voronoi.gridPointsChannelIdx)) {
-        throw std::runtime_error("A voronoi grid point channel count without corrsponding channel was set!");
-      }
-      if(!index.contains(channel.$voronoi->voronoi.overlayMaskChannelIdx)) {
-        throw std::runtime_error("A voronoi overlay channel count without corrsponding channel was set!");
-      }
-    }
-    if(channel.$intersection.has_value()) {
-      checkCrossChannel(channel.$intersection->crossChannel);
-      for(const auto idx : channel.$intersection->intersection.intersectingChannels) {
-        if(!index.contains(idx)) {
-          throw std::runtime_error("An intersecting channel without corrsponding channel was set!");
-        }
-      }
-    }
-  }
+  return out;
 }
 
 }    // namespace joda::settings

@@ -57,7 +57,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -2454,7 +2453,7 @@ Returns the column index of the projected column at the specified position.
 This function must be used if projection pushdown is enabled to figure out which columns to emit.
 
 * info: The info object
-* column_index: The index at which to get the projected column index, from 0..duckdb_init_get_column_count(info)
+* column_index: The index at which to get the projected column index, from 0..icresult_init_get_column_count(info)
 * returns: The column index of the projected column.
 */
 DUCKDB_API idx_t duckdb_init_get_column_index(duckdb_init_info info, idx_t column_index);
