@@ -1036,6 +1036,7 @@ auto Database::selectCrossChannelCountForClusterAndClass(enums::ClusterId cluste
       "  	SELECT intersect_in.object_id, intersect_in.meas_object_id, objects.cluster_id, objects.class_id FROM "
       "objects "
       "  	JOIN object_intersections AS intersect_in ON  objects.object_id = intersect_in.meas_object_id"
+      "   LIMIT 10000000 "
       "  ) as inners"
       "  on objects.object_id = inners.object_id"
       "  WHERE objects.cluster_id = ? AND objects.class_id = ?"

@@ -240,6 +240,7 @@ void PanelResults::setAnalyzer()
 {
   {
     // Clusters/Class
+    mClusterClassSelector->blockSignals(true);
     auto clusters = mAnalyzer->selectClassesForClusters();
     mClusterClassSelector->clear();
     for(const auto &[clusterId, cluster] : clusters) {
@@ -250,16 +251,19 @@ void PanelResults::setAnalyzer()
       }
       mClusterClassSelector->insertSeparator(mClusterClassSelector->count());
     }
+    mClusterClassSelector->blockSignals(false);
   }
 
   {
     // Image channels
+    mCrossChannelStackC->blockSignals(true);
     auto imageChannels = mAnalyzer->selectImageChannels();
     mCrossChannelStackC->clear();
     for(const auto &[channelId, channel] : imageChannels) {
       mCrossChannelStackC->addItem("CH" + QString::number(channelId) + " (" + QString(channel.name.data()) + ")",
                                    channelId);
     }
+    mCrossChannelStackC->blockSignals(false);
   }
 
   // Analyze meta
@@ -268,6 +272,7 @@ void PanelResults::setAnalyzer()
   }
 
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
+  refreshView();
 }
 
 ///
@@ -297,6 +302,7 @@ void PanelResults::onClusterAndClassesChanged()
   //
   // Select cross channel count
   //
+
   {
     auto clusters = mAnalyzer->selectCrossChannelCountForClusterAndClass(
         static_cast<enums::ClusterId>(clusterClassSelected.clusterId), clusterClassSelected.classId);
@@ -573,7 +579,7 @@ void PanelResults::onBackClicked()
 ///
 void PanelResults::repaintHeatmap()
 {
-  if(!mIsLoading) {
+  if(mAnalyzer && !mIsLoading) {
     mIsLoading = true;
     std::thread([this] {
       switch(mNavigation) {

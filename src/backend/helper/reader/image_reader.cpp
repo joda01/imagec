@@ -327,7 +327,6 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
 ///             0     1     2     3     4     5     6     (7)   (8)
 ///
 /// \author     Joachim Danmayr
-/// \ref        http://www.simplesystems.org/libtiff//functions.html
 ///
 /// \param[in]  filename  Name of the file to load
 /// \param[in]  directory  If it is multi document tiff, the index of

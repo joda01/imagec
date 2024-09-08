@@ -72,11 +72,7 @@ find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
 find_package( DuckDB REQUIRED)
 SET(DuckDB_USE_STATIC_LIBS TRUE)
-
-
-
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
-
 
 include_directories(${JNI_INCLUDE_DIRS})
 include_directories(${Protobuf_INCLUDE_DIRS})
@@ -84,13 +80,9 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
 IF (WIN32)
-  find_package( libjpeg-turbo )
-  find_package( TIFF )
 ELSE ()
-  find_package( Tiff )
   pkg_check_modules(Xlsxwriter REQUIRED IMPORTED_TARGET xlsxwriter)
 ENDIF()
-
 
 #
 # Link to libraries
@@ -101,8 +93,6 @@ IF (WIN32)
     ${OPENSSL_LIBRARIES}
     ${Protobuf_LIBRARIES}
     pugixml
-    jpeg
-    TIFF
     Qt6::Widgets
     Qt6::Core
     xlsxwriter
@@ -114,7 +104,6 @@ ELSE()
     ${OPENSSL_LIBRARIES}
     ${Protobuf_LIBRARIES}
     pugixml
-    tiff
     Qt6::Widgets
     Qt6::Core
     PkgConfig::Xlsxwriter
