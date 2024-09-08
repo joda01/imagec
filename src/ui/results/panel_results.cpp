@@ -579,21 +579,15 @@ void PanelResults::repaintHeatmap()
       switch(mNavigation) {
         case Navigation::PLATE:
           paintPlate();
-          if(mTableButton != nullptr && mTableButton->isChecked()) {
-            tableToQWidgetTable(joda::db::StatsPerPlate::toTable(mFilter));
-          }
+          tableToQWidgetTable(joda::db::StatsPerPlate::toTable(mFilter));
           break;
         case Navigation::WELL:
           paintWell();
-          if(mTableButton != nullptr && mTableButton->isChecked()) {
-            tableToQWidgetTable(joda::db::StatsPerGroup::toTable(mFilter));
-          }
+          tableToQWidgetTable(joda::db::StatsPerGroup::toTable(mFilter));
           break;
         case Navigation::IMAGE:
           paintImage();
-          if(mTableButton != nullptr && mTableButton->isChecked()) {
-            tableToQWidgetTable(joda::db::StatsPerImage::toHeatmapList(mFilter));
-          }
+          tableToQWidgetTable(joda::db::StatsPerImage::toHeatmapList(mFilter));
           break;
       }
       update();
@@ -760,7 +754,6 @@ void PanelResults::tableToQWidgetTable(const table::Table &table)
 void PanelResults::copyTableToClipboard(QTableWidget *table)
 {
   QStringList data;
-
   for(int row = 0; row < table->rowCount(); ++row) {
     QStringList rowData;
     for(int col = 0; col < table->columnCount(); ++col) {
