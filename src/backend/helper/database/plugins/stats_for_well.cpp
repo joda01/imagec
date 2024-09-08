@@ -127,9 +127,11 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
 {
   auto buildStats = [&]() {
     return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) +
-           ") FILTER (images_planes.validity = 0 AND images.validity = 0) as valid, " + getStatsString(filter.stats) +
-           "(" + getMeasurement(filter.measurementChannel) +
-           ") FILTER (images_planes.validity != 0 OR images.validity != 0) as invalid ";
+           ") FILTER ((images_planes.validity = 0 OR images_planes.validity is NULL) AND images.validity = 0) as "
+           "valid, " +
+           getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) +
+           ") FILTER ((images_planes.validity != 0 AND images_planes.validity is not NULL) OR images.validity != 0) as "
+           "invalid ";
   };
 
   auto queryMeasure = [&]() {
@@ -145,10 +147,11 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             " JOIN images_groups ON objects.image_id = images_groups.image_id "
             " JOIN images ON objects.image_id = images.image_id "
             " JOIN images_planes ON objects.image_id = images_planes.image_id "
+            "                       AND images_planes.stack_c = $4            "
             " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
             " GROUP BY objects.image_id, images_groups.group_id",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint16_t>(filter.actGroupId));
+        static_cast<uint16_t>(filter.actGroupId), static_cast<uint32_t>(filter.crossChanelStack_c));
     return result;
   };
 
@@ -165,12 +168,12 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             " JOIN images_groups ON objects.image_id = images_groups.image_id "
             " JOIN images ON objects.image_id = images.image_id "
             " JOIN images_planes ON objects.image_id = images_planes.image_id "
-            "                    AND images_planes.stack_c = $4"
+            "                    AND images_planes.stack_c = $4               "
             "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
             "                                  objects.image_id = object_measurements.image_id "
             "                             AND object_measurements.meas_stack_c = $4)"
             " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
-            " GROUP BY objects.image_id, images_groups.group_id",
+            " GROUP BY objects.image_id, images_groups.group_id ",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
         static_cast<uint16_t>(filter.actGroupId), static_cast<uint32_t>(filter.crossChanelStack_c));
     return result;
