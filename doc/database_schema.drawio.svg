@@ -1,269 +1,408 @@
-<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="912px" height="732px" viewBox="-0.5 -0.5 912 732" content="&lt;mxfile&gt;&lt;diagram id=&quot;Orz3DvuclM0eVTHakObr&quot; name=&quot;Page-1&quot;&gt;7Vvfc+IqFP5rnNm+7OSHJuZRrds6q13H2nvbpw41VLMbg5Ngq/3rLyQQE0Cb2ljjXp8qhwOEcz6+AwdaMzvz1VUIFrMBcqFfMzR3VTMva4ah15tN8odK1omkYdqJYBp6LlPaCG69N8iEGpMuPRdGOUWMkI+9RV44QUEAJzgnA2GIXvNqz8jPj7oAUygJbifAl6X/ei6eMamlaZuKa+hNZ2xoh1fMAVdmgmgGXPSaEZndmtkJEcLJr/mqA31qPG6XpN2PLbXph4UwwEUaGEmDF+Av2dwWPsDEtsnX4TWfcvTqzX0QkFJ7MvN8tw/WaEmHiDCY/OGl9gyF3hsKMPBJlU4EpDrEzIOmltO4pS2JmEpDtAxc6LJGz6SetdHrvMy+RYs7DdGf1PQGbQ8joj/k89ZSUR9EmH8KtzWtdUE0i8ejBeB704D8npDWMCQC2YzMsi8wxHCVETGzXkE0hzhcExVWazWZixnGefE1AxibyWYZrOh1JgQMpNO0640fyQ/mSrVbTcmtNaP9bfjzAgTAX7/BHtFrEYW7ux6ptGqGqWvxtGOlGAKpyrh389C7GefVAkRBEiuMu/djCS7coj58xqnDOshHxLqXAYpx9Oz5viCKFmDiBdN+3OqyLkCBOpo6wCMrscUGwGjBfQ2eUoCECAOcKRNPchTIrjUKu5a50izqSr0EV9YlV3pzQi/nFVr6CjXsRkG/miX4tfGpJRpjIFW5vrvqSkuULC94A+Ywu0qz9cTLU4+M1aNdDePApFZk5tg+ErdNXuOEGaFeGEofZQStBORYEnLQ02+yzTlTwqcpwTHylGDZCsdah4ra9qEpgapNZoBsiv3d4Z0qJqBK9YhO96o7yuslX+u5Hl5TtY5Ra+3UXPJNw6A1/LZRJJbRsupxP1T2VT8uf921+92LkyYtqzDYd5CWEttlbGOaEranhD4WZ84qnbNUB42DUZZz6IMGVYuRkqrdDlr9vqT3Sr5rNUTRu0rr95SCHXumv+nY0ywMtGPwBe8jgywGqTNlfJoy6gJlGJbCtU2Va60drmXDjciuAQRTYpB0PKNALkRXDCees4BPTBAQzmhTl0QSntKZFoOYLkGsMHn9+HkRLoPtCrtIJJp4xHVehLNM0mjXGkIfLpko9tJ+eoPu7bg1GOaVfDQB2EMEIa0CdJWtZJN8jCDGhHyix99R3M3pcVt+CcrLQyu8PnYwnXI5lJEI0OUcrGR76E4hnyHFDl6PoB/7vbupkQw7w3NOdTBwWzTxTYrdEXHMGA1AsKYVKw/fcyXy+4Ha8HuDlS5XzNpxYc0LAZnifbaQaUWLm2ZxibfbylwRWoYTnlvnCX0QTiFTY7kSaoWd7sv6S1P5iwvD2Hov+XT+Dk4bIo98cspntsifDQEHyYRYq2z6XehI3LsZjtBRYgWpo33YTpUTFmC2F4D2BMM+wCsEIFPGj1Mx/Oi6EBClvFBRAEk9HRJBcir66ERlVIypzIohzdZLYirbyXdk2vb3xsGQpkqOl8FVDEMbnnnIIOo9CG1Q85ADzScg5MgI0q2KQcgSIGQ6kucLs5UmsFVDhGOJGJLT5MnF2eM58XSYxJPy/kyZIChl2/wl2fKPZKi83RkqNuJKUjqZc5YCM4dLOpdxU6bLWecD71jmIHB/Jf6gtKCqgP5TLOPuqOIhrKGIS3bF4pLTEGKJs3dUEnqqiz2VGJXkhDm7kIsez+86DhOX6oVvRIwSOIf3UYFb3OzV7LbOJsTBIVI/AjnlwOQURs0HA5N4vt4LI6rM85FP0nbFTtKVO0pL5yBrz3hjCUfphnhfVl644bhShJv/eZzJEpULn8HSx+VEH/FVoTL6KN+GlRJ9Pvfyt1BY2dxt/dMada5bo3z1HIJoGc6JBSPh6RC74zrhsJKup9JfBpYSViqYoD1iVFHdBPA1Vt2osn92TYorYoAqMa4USNCexgbmQKflyuGsKZ6W9929OObXoUxO4Uoo+yuuAThasgiq2jXASQJIzhHH5+tHsmc9P5dX72QUYN2619XTrcxR3ssrHhUf88F8AqodSvxTz2/gy9yfv4PghAOq8ahV+Vz66AEtv/U23n24U2hfp7jlUAa0vWLjNp9+2fsdTdi1WyI6it89iD01hZ72joakuPk/8kR989/4Zvc/&lt;/diagram&gt;&lt;/mxfile&gt;">
+<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1943px" height="1153px" viewBox="-0.5 -0.5 1943 1153" content="&lt;mxfile&gt;&lt;diagram id=&quot;Orz3DvuclM0eVTHakObr&quot; name=&quot;Page-1&quot;&gt;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&lt;/diagram&gt;&lt;/mxfile&gt;">
     <defs/>
     <g>
-        <path d="M 431 31 L 431 14.5 Q 431 1 417.5 1 L 274.5 1 Q 261 1 261 14.5 L 261 31" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="all"/>
-        <path d="M 261 31 L 261 127.5 Q 261 141 274.5 141 L 417.5 141 Q 431 141 431 127.5 L 431 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 261 31 L 431 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 789 481 L 789 464.5 Q 789 451 775.5 451 L 602.5 451 Q 589 451 589 464.5 L 589 481" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 589 481 L 589 567.5 Q 589 581 602.5 581 L 775.5 581 Q 789 581 789 567.5 L 789 481" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 589 481 L 789 481" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="345.5" y="21.5">
-                plates
-            </text>
-        </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="266.5" y="48.5">
-                +(PK)analyzeId: UUID
-            </text>
-            <text x="266.5" y="62.5">
-                +(PK)plateId: UTINYINT
-            </text>
-            <text x="266.5" y="76.5">
-                +notes: TEXT
-            </text>
-        </g>
-        <path d="M 431 226 L 431 209.5 Q 431 196 417.5 196 L 274.5 196 Q 261 196 261 209.5 L 261 226" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 261 226 L 261 312.5 Q 261 326 274.5 326 L 417.5 326 Q 431 326 431 312.5 L 431 226" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 261 226 L 431 226" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="345.5" y="216.5">
+            <text x="688.5" y="471.5">
                 images
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="266.5" y="243.5">
-                +(PK)analyzeId: UUID
+            <text x="594.5" y="498.5">
+                +(PK)image_id: UHUGEINT
             </text>
-            <text x="266.5" y="257.5">
-                +(PK)imageId: UHUGEINT
+            <text x="594.5" y="512.5">
+                + name
             </text>
-            <text x="266.5" y="271.5">
-                +fileName: TEXT
+            <text x="594.5" y="526.5">
+                + nrCStack
             </text>
-            <text x="266.5" y="285.5">
-                +originalImagePath: TEXT
+            <text x="594.5" y="540.5">
+                + nrTStack
             </text>
-            <text x="266.5" y="299.5">
-                +width: UHUGEINT
+            <text x="594.5" y="554.5">
+                + nrZStack
             </text>
-            <text x="266.5" y="313.5">
-                +height: UHUGEINT
+            <text x="594.5" y="568.5">
+                + validity
             </text>
         </g>
-        <path d="M 661 621 L 661 604.5 Q 661 591 647.5 591 L 514.5 591 Q 501 591 501 604.5 L 501 621" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 501 621 L 501 717.5 Q 501 731 514.5 731 L 647.5 731 Q 661 731 661 717.5 L 661 621" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 501 621 L 661 621" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1662 181 L 1662 164.5 Q 1662 151 1648.5 151 L 1475.5 151 Q 1462 151 1462 164.5 L 1462 181" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1462 181 L 1462 417.5 Q 1462 431 1475.5 431 L 1648.5 431 Q 1662 431 1662 417.5 L 1662 181" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1462 181 L 1662 181" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="580.5" y="611.5">
+            <text x="1561.5" y="171.5">
                 objects
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="506.5" y="638.5">
-                +(PK)analyzeId: UUID
+            <text x="1467.5" y="198.5">
+                +image_id: UHUGEINT
             </text>
-            <text x="506.5" y="652.5">
-                +(PK)imageId: UHUGEINT
+            <text x="1467.5" y="212.5">
+                +(PK) object_id: UINTEGER
             </text>
-            <text x="506.5" y="666.5">
-                +(PK)channelId: UTINYINT
+            <text x="1467.5" y="226.5">
+                +(PK) cluster_id
             </text>
-            <text x="506.5" y="680.5">
-                +(PK)objectId: UINTEGER
+            <text x="1467.5" y="240.5">
+                +(PK) class_id
             </text>
-            <text x="506.5" y="694.5">
-                + validity: UINTEGER
+            <text x="1467.5" y="268.5">
+                +cStack
             </text>
-            <text x="506.5" y="708.5">
-                + values: MAP(UINTEGER,
+            <text x="1467.5" y="282.5">
+                +zStack
             </text>
-            <text x="506.5" y="722.5">
-                DOUBLE)
+            <text x="1467.5" y="296.5">
+                +tStack
+            </text>
+            <text x="1467.5" y="310.5">
+                --------
+            </text>
+            <text x="1467.5" y="324.5">
+                + confidence
+            </text>
+            <text x="1467.5" y="338.5">
+                + boundingBox
+            </text>
+            <text x="1467.5" y="352.5">
+                + mask
+            </text>
+            <text x="1467.5" y="366.5">
+                + areaSize
+            </text>
+            <text x="1467.5" y="380.5">
+                + perimeter
+            </text>
+            <text x="1467.5" y="394.5">
+                + circulariry
             </text>
         </g>
-        <path d="M 661 31 L 661 14.5 Q 661 1 647.5 1 L 514.5 1 Q 501 1 501 14.5 L 501 31" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 501 31 L 501 127.5 Q 501 141 514.5 141 L 647.5 141 Q 661 141 661 127.5 L 661 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 501 31 L 661 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1942 131 L 1942 114.5 Q 1942 101 1928.5 101 L 1755.5 101 Q 1742 101 1742 114.5 L 1742 131" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1742 131 L 1742 267.5 Q 1742 281 1755.5 281 L 1928.5 281 Q 1942 281 1942 267.5 L 1942 131" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1742 131 L 1942 131" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="580.5" y="21.5">
+            <text x="1841.5" y="121.5">
+                object_measurements
+            </text>
+        </g>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
+            <text x="1747.5" y="148.5">
+                +(PK)image_id
+            </text>
+            <text x="1747.5" y="162.5">
+                +(PK,FK)object_id
+            </text>
+            <text x="1747.5" y="190.5">
+                +(PK)cStack_measuire
+            </text>
+            <text x="1747.5" y="204.5">
+                +(PK)zStack_measure
+            </text>
+            <text x="1747.5" y="218.5">
+                +(PK)tStack_measure
+            </text>
+            <text x="1747.5" y="232.5">
+                --------
+            </text>
+            <text x="1747.5" y="246.5">
+                + intensity
+            </text>
+        </g>
+        <path d="M 1662 306 L 1682 306 Q 1692 306 1693.96 296.19 L 1710.04 215.81 Q 1712 206 1722 206 L 1742 206" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1734 210 L 1734 202 M 1742 202 L 1734 206 L 1742 210" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1072 241 L 1072 224.5 Q 1072 211 1058.5 211 L 885.5 211 Q 872 211 872 224.5 L 872 241" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 872 241 L 872 357.5 Q 872 371 885.5 371 L 1058.5 371 Q 1072 371 1072 357.5 L 1072 241" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 872 241 L 1072 241" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
+            <text x="971.5" y="231.5">
+                clusters
+            </text>
+        </g>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
+            <text x="877.5" y="258.5">
+                +cluster_id: UHUGEINT
+            </text>
+            <text x="877.5" y="272.5">
+                +name: TEXT
+            </text>
+            <text x="877.5" y="286.5">
+                +description: TEXT
+            </text>
+        </g>
+        <path d="M 1070 31 L 1070 14.5 Q 1070 1 1056.5 1 L 883.5 1 Q 870 1 870 14.5 L 870 31" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 870 31 L 870 117.5 Q 870 131 883.5 131 L 1056.5 131 Q 1070 131 1070 117.5 L 1070 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 870 31 L 1070 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
+            <text x="969.5" y="21.5">
+                classes
+            </text>
+        </g>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
+            <text x="875.5" y="48.5">
+                +class_id: UHUGEINT
+            </text>
+            <text x="875.5" y="62.5">
+                +name: TEXT
+            </text>
+            <text x="875.5" y="76.5">
+                +description: TEXT
+            </text>
+        </g>
+        <path d="M 1352 241 L 1352 224.5 Q 1352 211 1338.5 211 L 1165.5 211 Q 1152 211 1152 224.5 L 1152 241" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1152 241 L 1152 357.5 Q 1152 371 1165.5 371 L 1338.5 371 Q 1352 371 1352 357.5 L 1352 241" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1152 241 L 1352 241" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
+            <text x="1251.5" y="231.5">
+                clusters_planes
+            </text>
+        </g>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
+            <text x="1157.5" y="258.5">
+                +image_id: UHUGEINT
+            </text>
+            <text x="1157.5" y="272.5">
+                +cluster_id: UHUGEINT
+            </text>
+            <text x="1157.5" y="286.5">
+                +cStack
+            </text>
+            <text x="1157.5" y="300.5">
+                +zStack
+            </text>
+            <text x="1157.5" y="314.5">
+                +tStack
+            </text>
+            <text x="1157.5" y="328.5">
+                +validity
+            </text>
+        </g>
+        <path d="M 1072 306 L 1092 306 Q 1102 306 1112 306 L 1117 306 Q 1122 306 1132 306 L 1152 306" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1144 310 L 1144 302 M 1152 302 L 1144 306 L 1152 310" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1069 481 L 1069 464.5 Q 1069 451 1055.5 451 L 882.5 451 Q 869 451 869 464.5 L 869 481" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 869 481 L 869 567.5 Q 869 581 882.5 581 L 1055.5 581 Q 1069 581 1069 567.5 L 1069 481" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 869 481 L 1069 481" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
+            <text x="968.5" y="471.5">
+                images_channels
+            </text>
+        </g>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
+            <text x="874.5" y="498.5">
+                +(PK)image_id: UHUGEINT
+            </text>
+            <text x="874.5" y="512.5">
+                +(PK)cStack: UHUGEINT
+            </text>
+            <text x="874.5" y="526.5">
+                +name
+            </text>
+        </g>
+        <path d="M 789 531 L 809 531 Q 819 531 829 531 L 834 531 Q 839 531 849 531 L 869 531" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 861 535 L 861 527 M 869 527 L 861 531 L 869 535" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1069 631 L 1069 614.5 Q 1069 601 1055.5 601 L 882.5 601 Q 869 601 869 614.5 L 869 631" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 869 631 L 869 727.5 Q 869 741 882.5 741 L 1055.5 741 Q 1069 741 1069 727.5 L 1069 631" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 869 631 L 1069 631" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
+            <text x="968.5" y="621.5">
+                images_planes
+            </text>
+        </g>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
+            <text x="874.5" y="648.5">
+                +(PK)image_id: UHUGEINT
+            </text>
+            <text x="874.5" y="662.5">
+                +cStack
+            </text>
+            <text x="874.5" y="676.5">
+                +zStack
+            </text>
+            <text x="874.5" y="690.5">
+                +tStack
+            </text>
+            <text x="874.5" y="704.5">
+                +validity
+            </text>
+            <text x="874.5" y="718.5">
+                +deltaT
+            </text>
+            <text x="874.5" y="732.5">
+                +expousureTime
+            </text>
+        </g>
+        <path d="M 789 531 L 809 531 Q 819 531 820.28 540.92 L 837.72 676.08 Q 839 686 849 686 L 869 686" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 861 690 L 861 682 M 869 682 L 861 686 L 869 690" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 789 801 L 789 784.5 Q 789 771 775.5 771 L 602.5 771 Q 589 771 589 784.5 L 589 801" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 589 801 L 589 917.5 Q 589 931 602.5 931 L 775.5 931 Q 789 931 789 917.5 L 789 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 589 801 L 789 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
+            <text x="688.5" y="791.5">
                 groups
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="506.5" y="48.5">
-                +(PK)analyzeId: UUID
+            <text x="594.5" y="818.5">
+                +plate_id
             </text>
-            <text x="506.5" y="62.5">
-                +(PK)plateId: UTINYINT
+            <text x="594.5" y="832.5">
+                +group_id
             </text>
-            <text x="506.5" y="76.5">
-                +(PK)groupId: USMALLINT
+            <text x="594.5" y="846.5">
+                +name
             </text>
-            <text x="506.5" y="90.5">
-                +wellxPos: USMALLINT
+            <text x="594.5" y="860.5">
+                +notes
             </text>
-            <text x="506.5" y="104.5">
-                +wellyPos: USMALLINT
+            <text x="594.5" y="874.5">
+                +plate_pos_x
             </text>
-            <text x="506.5" y="118.5">
-                +name: TEXT
-            </text>
-            <text x="506.5" y="132.5">
-                +notes: TEXT
+            <text x="594.5" y="888.5">
+                +plate_pos_y
             </text>
         </g>
-        <path d="M 181 211 L 181 194.5 Q 181 181 167.5 181 L 14.5 181 Q 1 181 1 194.5 L 1 211" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1 211 L 1 327.5 Q 1 341 14.5 341 L 167.5 341 Q 181 341 181 327.5 L 181 211" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1 211 L 181 211" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1069 801 L 1069 784.5 Q 1069 771 1055.5 771 L 882.5 771 Q 869 771 869 784.5 L 869 801" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 869 801 L 869 917.5 Q 869 931 882.5 931 L 1055.5 931 Q 1069 931 1069 917.5 L 1069 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 869 801 L 1069 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="90.5" y="201.5">
-                analyzes
-            </text>
-        </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="6.5" y="228.5">
-                +(PK)analyzeId: UUID
-            </text>
-            <text x="6.5" y="242.5">
-                +(FK)runId: UUID
-            </text>
-            <text x="6.5" y="256.5">
-                +name: TEXT
-            </text>
-            <text x="6.5" y="270.5">
-                +scientists: TEXT[]
-            </text>
-            <text x="6.5" y="284.5">
-                +datetime: TIMESTAMP
-            </text>
-            <text x="6.5" y="298.5">
-                +location:TEXT
-            </text>
-            <text x="6.5" y="312.5">
-                +notes: TEXT
-            </text>
-            <text x="6.5" y="326.5">
-                +analyze_settings_json: TEXT
-            </text>
-        </g>
-        <path d="M 181 276 L 201 276 Q 211 276 221 276 L 226 276 Q 231 276 241 276 L 261 276" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 253 280 L 253 272 M 261 272 L 253 276 L 261 280" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 431 86 L 501 86" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 493 90 L 493 82 M 501 82 L 493 86 L 501 90" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 181 243.5 L 201 243.5 Q 211 243.5 212.26 233.58 L 229.74 95.92 Q 231 86 241 86 L 261 86" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 253 90 L 253 82 M 261 82 L 253 86 L 261 90" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 581 141 L 581 196" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 577 188 L 585 188 M 585 196 L 581 188 L 577 196" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 661 226 L 661 209.5 Q 661 196 647.5 196 L 514.5 196 Q 501 196 501 209.5 L 501 226" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 501 226 L 501 312.5 Q 501 326 514.5 326 L 647.5 326 Q 661 326 661 312.5 L 661 226" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 501 226 L 661 226" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="580.5" y="216.5">
+            <text x="968.5" y="791.5">
                 images_groups
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="506.5" y="243.5">
-                +(PK)analyzeId: UUID
+            <text x="874.5" y="818.5">
+                +plate_id
             </text>
-            <text x="506.5" y="257.5">
-                +(PK)imageId: UHUGEINT
+            <text x="874.5" y="832.5">
+                +image_id
             </text>
-            <text x="506.5" y="271.5">
-                +(PK)plateId: UTINYINT
+            <text x="874.5" y="846.5">
+                +group_id
             </text>
-            <text x="506.5" y="285.5">
-                +(PK)groupid: USMALLINT
-            </text>
-            <text x="506.5" y="299.5">
-                +imageIdx: USMALLINT
+            <text x="874.5" y="860.5">
+                +imageGroupIdx
             </text>
         </g>
-        <path d="M 431 276 L 451 276 Q 461 276 466 276 L 468.5 276 Q 471 276 481 276 L 501 276" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 435 272 L 435 280 M 439 272 L 439 280" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 497 280 L 497 272 M 493 280 L 493 272" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 661 431 L 661 414.5 Q 661 401 647.5 401 L 514.5 401 Q 501 401 501 414.5 L 501 431" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 501 431 L 501 507.5 Q 501 521 514.5 521 L 647.5 521 Q 661 521 661 507.5 L 661 431" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 501 431 L 661 431" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 789 866 L 809 866 Q 819 866 829 866 L 834 866 Q 839 866 849 866 L 869 866" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 861 870 L 861 862 M 869 862 L 861 866 L 869 870" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 789 531 L 809 531 Q 819 531 819.66 540.98 L 838.34 823.52 Q 839 833.5 849 833.5 L 869 833.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 861 837.5 L 861 829.5 M 869 829.5 L 861 833.5 L 869 837.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 509 801 L 509 784.5 Q 509 771 495.5 771 L 322.5 771 Q 309 771 309 784.5 L 309 801" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 309 801 L 309 917.5 Q 309 931 322.5 931 L 495.5 931 Q 509 931 509 917.5 L 509 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 309 801 L 509 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="580.5" y="421.5">
-                channels_images
+            <text x="408.5" y="791.5">
+                plates
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="506.5" y="448.5">
-                +(PK)analyzeId: UUID
+            <text x="314.5" y="818.5">
+                +plate_id
             </text>
-            <text x="506.5" y="462.5">
-                +(PK)imageId: UHUGEINT
+            <text x="314.5" y="832.5">
+                +job_id
             </text>
-            <text x="506.5" y="476.5">
-                +(PK)channelId: UTINYINT
+            <text x="314.5" y="846.5">
+                +name
             </text>
-            <text x="506.5" y="490.5">
-                +validity: UHUGEINT
+            <text x="314.5" y="860.5">
+                +notes
             </text>
-            <text x="506.5" y="504.5">
-                +controlImagePath: TEXT
+            <text x="314.5" y="874.5">
+                +rows
+            </text>
+            <text x="314.5" y="888.5">
+                +cols
             </text>
         </g>
-        <path d="M 181 308.5 L 201 308.5 Q 211 308.5 212.19 318.43 L 229.81 466.07 Q 231 476 241 476 L 261 476" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 253 480 L 253 472 M 261 472 L 253 476 L 261 480" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 431 431 L 431 414.5 Q 431 401 417.5 401 L 274.5 401 Q 261 401 261 414.5 L 261 431" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 261 431 L 261 507.5 Q 261 521 274.5 521 L 417.5 521 Q 431 521 431 507.5 L 431 431" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 261 431 L 431 431" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 509 866 L 529 866 Q 539 866 549 866 L 554 866 Q 559 866 569 866 L 589 866" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 581 870 L 581 862 M 589 862 L 581 866 L 589 870" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1352 306 L 1372 306 Q 1382 306 1392 306 L 1422 306 Q 1432 306 1442 306 L 1462 306" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1454 310 L 1454 302 M 1462 302 L 1454 306 L 1462 310" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1069 686 L 1089 686 Q 1099 686 1099.66 676.02 L 1121.34 348.48 Q 1122 338.5 1132 338.5 L 1152 338.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1144 342.5 L 1144 334.5 M 1152 334.5 L 1144 338.5 L 1152 342.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1070 81 L 1090 81 Q 1100 81 1108.98 85.4 L 1423.02 239.1 Q 1432 243.5 1442 243.5 L 1462 243.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1454 247.5 L 1454 239.5 M 1462 239.5 L 1454 243.5 L 1462 247.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1942 341 L 1942 324.5 Q 1942 311 1928.5 311 L 1755.5 311 Q 1742 311 1742 324.5 L 1742 341" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1742 341 L 1742 417.5 Q 1742 431 1755.5 431 L 1928.5 431 Q 1942 431 1942 417.5 L 1942 341" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1742 341 L 1942 341" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="345.5" y="421.5">
-                channels
+            <text x="1841.5" y="331.5">
+                object_intersections
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="266.5" y="448.5">
-                +(PK)analyzeId: UUID
+            <text x="1747.5" y="358.5">
+                +(PK)image_id
             </text>
-            <text x="266.5" y="462.5">
-                +(PK)channelId: UTINYINT
+            <text x="1747.5" y="372.5">
+                +(PK,FK)object_id
             </text>
-            <text x="266.5" y="476.5">
-                +name: VARCHAR
-            </text>
-            <text x="266.5" y="490.5">
-                +measurments: UINTEGER[]
+            <text x="1747.5" y="400.5">
+                +(FK)object_id_intersect
             </text>
         </g>
-        <path d="M 431 476 L 451 476 Q 461 476 466 476 L 468.5 476 Q 471 476 481 476 L 501 476" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 493 480 L 493 472 M 501 472 L 493 476 L 501 480" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 431 301 L 451 301 Q 461 301 461.77 310.97 L 470.23 421.03 Q 471 431 481 431 L 501 431" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 493 435 L 493 427 M 501 427 L 493 431 L 501 435" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 581 521 L 581 591" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 577 583 L 585 583 M 585 591 L 581 583 L 577 591" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 911 621 L 911 604.5 Q 911 591 897.5 591 L 764.5 591 Q 751 591 751 604.5 L 751 621" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 751 621 L 751 717.5 Q 751 731 764.5 731 L 897.5 731 Q 911 731 911 717.5 L 911 621" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 751 621 L 911 621" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1662 306 L 1682 306 Q 1692 306 1694.43 315.7 L 1709.57 376.3 Q 1712 386 1722 386 L 1742 386" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1734 390 L 1734 382 M 1742 382 L 1734 386 L 1742 390" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 201 801 L 201 784.5 Q 201 771 187.5 771 L 14.5 771 Q 1 771 1 784.5 L 1 801" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1 801 L 1 917.5 Q 1 931 14.5 931 L 187.5 931 Q 201 931 201 917.5 L 201 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 1 801 L 201 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="830.5" y="611.5">
-                image_stats
+            <text x="100.5" y="791.5">
+                experiment
             </text>
         </g>
         <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="756.5" y="638.5">
-                +(PK)analyzeId: UUID
+            <text x="6.5" y="818.5">
+                +experiment_id
             </text>
-            <text x="756.5" y="652.5">
-                +(PK)imageId: UHUGEINT
+            <text x="6.5" y="832.5">
+                +name
             </text>
-            <text x="756.5" y="666.5">
-                +(PK)channelId: UTINYINT
+            <text x="6.5" y="846.5">
+                +notes
             </text>
-            <text x="756.5" y="680.5">
-                +(PK)stats: UTINYINT
+            <text x="6.5" y="860.5">
+                +first_name
             </text>
-            <text x="756.5" y="694.5">
-                + values: MAP(UINTEGER,
+            <text x="6.5" y="874.5">
+                +last_name
             </text>
-            <text x="756.5" y="708.5">
-                DOUBLE)
+            <text x="6.5" y="888.5">
+                +address
             </text>
         </g>
-        <path d="M 581 521 L 601 521 Q 611 521 618.23 527.9 L 713.77 619.1 Q 721 626 731 626 L 751 626" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 743 630 L 743 622 M 751 622 L 743 626 L 751 630" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 201 866 L 221 866 Q 231 866 241 866 L 269 866 Q 279 866 289 866 L 309 866" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 301 870 L 301 862 M 309 862 L 301 866 L 309 870" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 509 1021 L 509 1004.5 Q 509 991 495.5 991 L 322.5 991 Q 309 991 309 1004.5 L 309 1021" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 309 1021 L 309 1137.5 Q 309 1151 322.5 1151 L 495.5 1151 Q 509 1151 509 1137.5 L 509 1021" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 309 1021 L 509 1021" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
+            <text x="408.5" y="1011.5">
+                jobs
+            </text>
+        </g>
+        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
+            <text x="314.5" y="1038.5">
+                +experiment_id
+            </text>
+            <text x="314.5" y="1052.5">
+                +job_id
+            </text>
+            <text x="314.5" y="1066.5">
+                +time_started
+            </text>
+            <text x="314.5" y="1080.5">
+                +time_finished
+            </text>
+            <text x="314.5" y="1094.5">
+                +settings_jsob
+            </text>
+        </g>
+        <path d="M 201 898.5 L 221 898.5 Q 231 898.5 233.48 908.19 L 276.52 1076.31 Q 279 1086 289 1086 L 309 1086" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <path d="M 301 1090 L 301 1082 M 309 1082 L 301 1086 L 309 1090" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
     </g>
 </svg>
