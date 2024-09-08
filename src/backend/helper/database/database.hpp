@@ -44,6 +44,9 @@ struct ImageInfo
 {
   std::string filename;
   enums::ChannelValidity validity;
+  uint32_t width  = 0;
+  uint32_t height = 0;
+  std::string imageGroupName;
 };
 
 class Database

@@ -275,47 +275,50 @@ void PanelResultsInfo::setData(const DataSet &data)
     mResultsProperties->setItem(row, 1, new QTableWidgetItem(""));
     row++;
   };
+
+  if(data.analyzeMeta.has_value()) {
+    addTitle("Experiment");
+    addStringItem("Name", data.analyzeMeta->experiment.experimentName);
+    // addStringItem("Scientist", data.analyzeMeta->scientists[0]);
+    // addStringItem("Organization", data.analyzeMeta->addressOrganization);
+    addStringItem("Notes", data.analyzeMeta->experiment.notes);
+  }
   /*
-    if(data.analyzeMeta.has_value()) {
-      addTitle("Experiment");
-      addStringItem("Name", data.analyzeMeta->name);
-      addStringItem("Scientist", data.analyzeMeta->scientists[0]);
-      addStringItem("Organization", data.analyzeMeta->addressOrganization);
-      addStringItem("Notes", data.analyzeMeta->notes);
-    }
+  if(data.plateMeta.has_value()) {
+    addTitle("Plate");
+    addItem("Id", data.plateMeta->plateId, "");
+    addStringItem("Notes", data.plateMeta->notes);
+  }
 
-    if(data.plateMeta.has_value()) {
-      addTitle("Plate");
-      addItem("Id", data.plateMeta->plateId, "");
-      addStringItem("Notes", data.plateMeta->notes);
-    }
+  if(data.channelMeta.has_value()) {
+    addTitle("Channel");
+    addStringItem("Id", toString(data.channelMeta->channelId));
+    addStringItem("Name", data.channelMeta->name);
+  }*/
 
-    if(data.groupMeta.has_value()) {
-      addTitle("Group/Well");
-      addItem("Id", data.groupMeta->groupId, "");
-      addStringItem("Name", data.groupMeta->name);
-      addItem("Well pos. x", data.groupMeta->wellPosX, "");
-      addItem("Well pos. y", data.groupMeta->wellPosY, "");
-    }
+  if(data.imageMeta.has_value()) {
+    addTitle("Image");
+    addStringItem("Group", data.imageMeta->imageGroupName);
+    addStringItem("Name", data.imageMeta->filename);
+    addItem("Width", data.imageMeta->width, "px");
+    addItem("Height", data.imageMeta->height, "px");
+    // addItem("Well pos. x", data.groupMeta->wellPosX, "");
+    // addItem("Well pos. y", data.groupMeta->wellPosY, "");
+  }
 
-    if(data.channelMeta.has_value()) {
-      addTitle("Channel");
-      addStringItem("Id", toString(data.channelMeta->channelId));
-      addStringItem("Name", data.channelMeta->name);
-    }
+  if(data.value.has_value()) {
+    addTitle("Value");
+    addItem("Val", data.value->value, "");
+    // addItem("Well pos. x", data.groupMeta->wellPosX, "");
+    // addItem("Well pos. y", data.groupMeta->wellPosY, "");
+  }
 
-    if(data.imageMeta.has_value()) {
-      addTitle("Image");
-      addItem("Id", data.imageMeta->groupId, "");
-      addStringItem("Name", data.imageMeta->originalImagePath.filename().string());
-      addItem("Width", data.imageMeta->width, "px");
-      addItem("Height", data.imageMeta->height, "px");
-    }
-    if(data.imageChannelMeta.has_value()) {
-      addStringItem("Control image", data.imageChannelMeta->controlImagePath.filename().string());
-      addStringItem("Valid", toString(data.imageChannelMeta->validity));
-    }
-  */
+  /*
+  if(data.imageChannelMeta.has_value()) {
+    addStringItem("Control image", data.imageChannelMeta->controlImagePath.filename().string());
+    addStringItem("Valid", toString(data.imageChannelMeta->validity));
+  }*/
+
   mResultsProperties->setRowCount(row);
 }
 

@@ -205,114 +205,7 @@ void Database::createTables()
       "	image_id UBIGINT,"
       " object_id UBIGINT,"
       " meas_object_id UBIGINT"
-      ");"
-
-      "CREATE TABLE IF NOT EXISTS statistics ("
-      "	image_id UBIGINT,"
-      " cluster_id USMALLINT,"
-      " class_id USMALLINT,"
-      " stack_c UINTEGER,"
-      " stack_z UINTEGER,"
-      " stack_t UINTEGER,"
-
-      " meas_cnt UINTEGER,"
-
-      " avg_confidence float,"
-      " max_confidence float,"
-      " min_confidence float,"
-      " sum_confidence float,"
-      " median_confidence float,"
-      " stddev_confidence float,"
-
-      " avg_area_size float,"
-      " max_area_size float,"
-      " min_area_size float,"
-      " sum_area_size float,"
-      " median_area_size float,"
-      " stddev_area_size float,"
-
-      " avg_perimeter float,"
-      " max_perimeter float,"
-      " min_perimeter float,"
-      " sum_perimeter float,"
-      " median_perimeter float,"
-      " stddev_perimeter float,"
-
-      " avg_circularity float,"
-      " max_circularity float,"
-      " min_circularity float,"
-      " sum_circularity float,"
-      " median_circularity float,"
-      " stddev_circularity float,"
-      ");"
-
-      "CREATE TABLE IF NOT EXISTS statistic_measurements ("
-      "	image_id UBIGINT,"
-      " cluster_id USMALLINT,"
-      " class_id USMALLINT,"
-      " stack_c UINTEGER,"
-      " stack_z UINTEGER,"
-      " stack_t UINTEGER,"
-      " meas_stack_c UINTEGER,"
-      " meas_stack_z UINTEGER,"
-      " meas_stack_t UINTEGER,"
-
-      " meas_cnt UINTEGER,"
-
-      " avg_intensity_sum DOUBLE,"
-      " avg_intensity_avg DOUBLE,"
-      " avg_intensity_min DOUBLE,"
-      " avg_intensity_max DOUBLE,"
-
-      " max_intensity_sum DOUBLE,"
-      " max_intensity_avg DOUBLE,"
-      " max_intensity_min DOUBLE,"
-      " max_intensity_max DOUBLE,"
-
-      " min_intensity_sum DOUBLE,"
-      " min_intensity_avg DOUBLE,"
-      " min_intensity_min DOUBLE,"
-      " min_intensity_max DOUBLE,"
-
-      " sum_intensity_sum DOUBLE,"
-      " sum_intensity_avg DOUBLE,"
-      " sum_intensity_min DOUBLE,"
-      " sum_intensity_max DOUBLE,"
-
-      " median_intensity_sum DOUBLE,"
-      " median_intensity_avg DOUBLE,"
-      " median_intensity_min DOUBLE,"
-      " median_intensity_max DOUBLE,"
-
-      " stddev_intensity_sum DOUBLE,"
-      " stddev_intensity_avg DOUBLE,"
-      " stddev_intensity_min DOUBLE,"
-      " stddev_intensity_max DOUBLE"
-      ");"
-
-      "CREATE TABLE IF NOT EXISTS statistic_intersections ("
-      "	image_id UBIGINT,"
-      " cluster_id USMALLINT,"
-      " class_id USMALLINT,"
-      " stack_c UINTEGER,"
-      " stack_z UINTEGER,"
-      " stack_t UINTEGER,"
-      " meas_stack_c UINTEGER,"
-      " meas_stack_z UINTEGER,"
-      " meas_stack_t UINTEGER,"
-      " meas_cluster_id USMALLINT,"
-      " meas_class_id USMALLINT,"
-
-      " meas_cnt UINTEGER,"
-      " meas_sum UINTEGER,"
-      " meas_avg UINTEGER,"
-      " meas_min UINTEGER,"
-      " meas_max UINTEGER,"
-      " meas_median UINTEGER,"
-      " meas_stddev UINTEGER,"
-      ");"
-
-      ;
+      ");";
 
   auto connection = acquire();
   auto result     = connection->Query(create_table_sql);
@@ -999,8 +892,15 @@ auto Database::selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::C
 ///
 auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 {
-  std::unique_ptr<duckdb::QueryResult> result =
-      select("SELECT file_name, validity FROM images WHERE image_id = ?", imageId);
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT images.file_name, images.validity, images.width, images.height, groups.name "
+      "FROM images "
+      "JOIN images_groups ON "
+      "     images.image_id = images_groups.image_id "
+      "JOIN groups ON "
+      "     images_groups.group_id = groups.group_id "
+      "WHERE images.image_id = ?",
+      imageId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -1009,8 +909,11 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 
   ImageInfo results;
   if(materializedResult->RowCount() > 0) {
-    results.filename = materializedResult->GetValue(0, 0).GetValue<std::string>();
-    results.validity = materializedResult->GetValue(1, 0).GetValue<uint64_t>();
+    results.filename       = materializedResult->GetValue(0, 0).GetValue<std::string>();
+    results.validity       = materializedResult->GetValue(1, 0).GetValue<uint64_t>();
+    results.width          = materializedResult->GetValue(2, 0).GetValue<uint32_t>();
+    results.height         = materializedResult->GetValue(3, 0).GetValue<uint32_t>();
+    results.imageGroupName = materializedResult->GetValue(4, 0).GetValue<std::string>();
   }
 
   return results;

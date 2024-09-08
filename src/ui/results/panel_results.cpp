@@ -482,20 +482,14 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       //      mAnalyzer->getGroupInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, groupId);
       //  mSelectedDataSet.groupMeta   = result;
       //  mSelectedDataSet.channelMeta = channel;
-      //  mSelectedDataSet.imageMeta.reset();
-      //  mSelectedDataSet.channelMeta.reset();
-      //  mSelectedDataSet.imageChannelMeta.reset();
+      mSelectedDataSet.imageMeta.reset();
       mMarkAsInvalidAction->setVisible(false);
     } break;
     case Navigation::WELL: {
       mSelectedImageId = value.getId();
 
-      auto imageInfo = mAnalyzer->selectImageInfo(value.getId());
-
-      // mSelectedDataSet.imageMeta        = image;
-      // mSelectedDataSet.channelMeta      = channel;
-      // mSelectedDataSet.imageChannelMeta = imageChannelMeta;
-
+      auto imageInfo             = mAnalyzer->selectImageInfo(value.getId());
+      mSelectedDataSet.imageMeta = imageInfo;
       mMarkAsInvalid->blockSignals(true);
 
       if(imageInfo.validity.test(enums::ChannelValidityEnum::MANUAL_OUT_SORTED)) {
@@ -515,6 +509,8 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mSelectedAreaPos.y = cellY;
       break;
   }
+
+  mSelectedDataSet.value = {.value = value.getVal()};
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 
@@ -559,9 +555,7 @@ void PanelResults::onBackClicked()
   }
   switch(mNavigation) {
     case Navigation::PLATE:
-      // mSelectedDataSet.imageMeta.reset();
-      // mSelectedDataSet.channelMeta.reset();
-      // mSelectedDataSet.imageChannelMeta.reset();
+      mSelectedDataSet.imageMeta.reset();
       break;
     case Navigation::WELL:
       break;

@@ -41,7 +41,14 @@ class PanelResultsInfo : public QWidget
 public:
   struct DataSet
   {
+    struct Value
+    {
+      double value = 0;
+    };
+
     std::optional<db::AnalyzeMeta> analyzeMeta;
+    std::optional<db::ImageInfo> imageMeta;
+    std::optional<Value> value;
     //  std::optional<results::db::PlateMeta> plateMeta;
     //  std::optional<results::db::GroupMeta> groupMeta;
     //  std::optional<results::db::ImageMeta> imageMeta;
