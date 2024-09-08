@@ -107,10 +107,10 @@ void DialogCommandSelection::addCommandsToTable()
 
   addTitleToTable("Object Processing");
   addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}});
+  addCommandToTable(settings::PipelineStep{.$intersection = settings::IntersectionSettings{}});
 
   addTitleToTable("Measurement");
   addCommandToTable(settings::PipelineStep{.$colocalization = settings::ColocalizationSettings{}});
-  addCommandToTable(settings::PipelineStep{.$intersection = settings::IntersectionSettings{}});
   addCommandToTable(settings::PipelineStep{.$measure = settings::MeasureSettings{}});
 
   addTitleToTable("Filtering");
