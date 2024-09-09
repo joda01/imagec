@@ -47,13 +47,13 @@ public:
   {
     if(imageSetup.tStackHandling == ProjectImageSetup::TStackHandling::EXACT_ONE) {
       for(const auto &pip : pipelines) {
-        CHECK(pip.pipelineSetup.tStackIndex >= 0, "When processing exact one t stack image, define which one!");
+        CHECK_(pip.pipelineSetup.tStackIndex >= 0, "When processing exact one t stack image, define which one!");
       }
     }
 
     if(imageSetup.zStackHandling == ProjectImageSetup::ZStackHandling::EXACT_ONE) {
       for(const auto &pip : pipelines) {
-        CHECK(pip.pipelineSetup.zStackIndex >= 0, "When processing exact one z stack image, define which one!");
+        CHECK_(pip.pipelineSetup.zStackIndex >= 0, "When processing exact one z stack image, define which one!");
       }
     }
   }

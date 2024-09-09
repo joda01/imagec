@@ -53,8 +53,8 @@ struct NoiseValidatorSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(mode != FilterMode::UNKNOWN, "Define a filter mode!");
-    CHECK(maxObjects > 0, "Max objects must be > 0!");
+    CHECK_(mode != FilterMode::UNKNOWN, "Define a filter mode!");
+    CHECK_(maxObjects > 0, "Max objects must be > 0!");
   }
 
   std::set<enums::ClusterIdIn> getInputClusters() const override

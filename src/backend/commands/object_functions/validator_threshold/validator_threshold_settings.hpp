@@ -53,8 +53,8 @@ struct ThresholdValidatorSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(mode != FilterMode::UNKNOWN, "Define a filter mode!");
-    CHECK(histMinThresholdFilterFactor >= 0, "Thresholdfactor must be >=0!");
+    CHECK_(mode != FilterMode::UNKNOWN, "Define a filter mode!");
+    CHECK_(histMinThresholdFilterFactor >= 0, "Thresholdfactor must be >=0!");
   }
 
   std::set<enums::ClusterIdIn> getInputClusters() const override

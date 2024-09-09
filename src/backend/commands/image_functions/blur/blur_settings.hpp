@@ -25,8 +25,8 @@ public:
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(repeat >= 0, "Repeat must be a positive number.")
-    CHECK(kernelSize % 2 == 1, "Kernel size must be an odd number.");
+    CHECK_(repeat >= 0, "Repeat must be a positive number.")
+    CHECK_(kernelSize % 2 == 1, "Kernel size must be an odd number.");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(BlurSettings, mode, repeat, kernelSize);

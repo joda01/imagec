@@ -49,7 +49,7 @@
     nlohmann_json_t.check();                                                          \
   }
 
-#define CHECK(okay, what)                                              \
+#define CHECK_(okay, what)                                             \
   if(!(okay)) {                                                        \
     const auto name = std::string(typeid(*this).name());               \
     joda::log::logError(static_cast<std::string>(name + "::" + what)); \

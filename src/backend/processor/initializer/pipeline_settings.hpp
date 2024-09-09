@@ -60,9 +60,9 @@ struct PipelineSettings
   void check() const
   {
     if(source == Source::FROM_FILE) {
-      CHECK(cStackIndex >= 0, "Define which image channel >cStackIndex< should be loaded.");
-      CHECK(zProjection != enums::ZProjection::UNDEFINED,
-            "Define the z-projection mode for image loading in pipeline!");
+      CHECK_(cStackIndex >= 0, "Define which image channel >cStackIndex< should be loaded.");
+      CHECK_(zProjection != enums::ZProjection::UNDEFINED,
+             "Define the z-projection mode for image loading in pipeline!");
     }
   }
 

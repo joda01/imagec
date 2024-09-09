@@ -48,7 +48,7 @@ struct ClassifierFilter
     void check() const
     {
       if(minIntensity >= 0 || maxIntensity >= 0) {
-        CHECK(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
+        CHECK_(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
       }
     }
 
@@ -87,10 +87,10 @@ struct ClassifierFilter
 
   void check() const
   {
-    CHECK(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
-          "Max particle size must be bigger than min particle size!");
-    CHECK(minCircularity >= 0 && minCircularity <= 1, "Min circularity must be in range [0-1].");
-    CHECK(snapAreaSize >= 0, "Snap area size must be > 0.");
+    CHECK_(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
+           "Max particle size must be bigger than min particle size!");
+    CHECK_(minCircularity >= 0 && minCircularity <= 1, "Min circularity must be in range [0-1].");
+    CHECK_(snapAreaSize >= 0, "Snap area size must be > 0.");
   }
 
   bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi,
@@ -119,8 +119,8 @@ struct ObjectClass
 
   void check() const
   {
-    CHECK(!filters.empty(), "At least one classification filter must be given!");
-    CHECK(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
+    CHECK_(!filters.empty(), "At least one classification filter must be given!");
+    CHECK_(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, outputClusterNoMatch, modelClassId);

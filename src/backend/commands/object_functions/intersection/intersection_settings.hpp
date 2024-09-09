@@ -48,8 +48,8 @@ struct IntersectionSettings : public SettingBase
 
     void check() const
     {
-      CHECK(!inputClusters.empty(), "At least one class id must be given.");
-      // CHECK(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
+      CHECK_(!inputClusters.empty(), "At least one class id must be given.");
+      // CHECK_(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectingClasses, objectIn, inputClusters);
@@ -83,11 +83,11 @@ struct IntersectionSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(mode != Function::UNKNOWN, "Define a intersection function!");
-    CHECK(minIntersection >= 0, "Min intersection must be >=0.");
+    CHECK_(mode != Function::UNKNOWN, "Define a intersection function!");
+    CHECK_(minIntersection >= 0, "Min intersection must be >=0.");
     if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {
-      CHECK(newClassId != joda::enums::ClassId::UNDEFINED,
-            "Define a class the elements should be assigned for reclassification.");
+      CHECK_(newClassId != joda::enums::ClassId::UNDEFINED,
+             "Define a class the elements should be assigned for reclassification.");
     }
   }
 

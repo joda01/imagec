@@ -16,7 +16,7 @@ public:
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(kernelSize % 2 == 1, "Kernel size must be an odd number.");
+    CHECK_(kernelSize % 2 == 1, "Kernel size must be an odd number.");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MedianSubtractSettings, kernelSize);

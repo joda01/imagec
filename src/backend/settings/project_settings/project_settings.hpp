@@ -69,10 +69,10 @@ public:
 
   void check() const
   {
-    CHECK(!workingDirectory.empty(), "Working directory must not be empty!");
+    CHECK_(!workingDirectory.empty(), "Working directory must not be empty!");
     // Check plates
     {
-      CHECK(!plates.empty(), "At least one plate must be given!");
+      CHECK_(!plates.empty(), "At least one plate must be given!");
       std::set<uint8_t> ids;
       for(const auto &plate : plates) {
         if(ids.contains(plate.plateId)) {
@@ -82,7 +82,7 @@ public:
     }
     // Check clusters
     {
-      CHECK(!clusters.empty(), "At least one cluster must be given!");
+      CHECK_(!clusters.empty(), "At least one cluster must be given!");
       std::set<enums::ClusterId> ids;
       for(const auto &element : clusters) {
         if(element.clusterId == enums::ClusterId::UNDEFINED) {
@@ -95,7 +95,7 @@ public:
     }
     // Check classes
     {
-      CHECK(!classes.empty(), "At least one class must be given!");
+      CHECK_(!classes.empty(), "At least one class must be given!");
       std::set<enums::ClassId> ids;
       for(const auto &element : classes) {
         if(element.classId == enums::ClassId::UNDEFINED) {

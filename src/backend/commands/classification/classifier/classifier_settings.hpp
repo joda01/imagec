@@ -33,7 +33,7 @@ struct ClassifierSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(!classifiers.empty(), "At least one classifier must be given!");
+    CHECK_(!classifiers.empty(), "At least one classifier must be given!");
   }
 
   [[nodiscard]] ObjectOutputClusters getOutputClasses() const override

@@ -38,8 +38,8 @@ struct ExperimentSettings
 
   void check() const
   {
-    CHECK(!experimentId.empty(), "Experiment ID is empty.");
-    CHECK(!experimentName.empty(), "Experiment name is empty.");
+    CHECK_(!experimentId.empty(), "Experiment ID is empty.");
+    CHECK_(!experimentName.empty(), "Experiment name is empty.");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ExperimentSettings, experimentId, experimentName, notes);

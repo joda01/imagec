@@ -22,7 +22,7 @@ public:
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(ballSize > 0, "Ball size must be bigger than zero.");
+    CHECK_(ballSize > 0, "Ball size must be bigger than zero.");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(RollingBallSettings, ballType, ballSize);

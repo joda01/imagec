@@ -52,8 +52,8 @@ struct ColocalizationSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK(inputClusters.size() > 1, "At least two input objects must be given!");
-    CHECK(minIntersection >= 0, "Min intersection must be >=0.");
+    CHECK_(inputClusters.size() > 1, "At least two input objects must be given!");
+    CHECK_(minIntersection >= 0, "Min intersection must be >=0.");
   }
 
   std::set<enums::ClusterIdIn> getInputClusters() const override

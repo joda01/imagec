@@ -41,7 +41,7 @@ struct ImageId
 
   void check() const
   {
-    CHECK(imageIdx != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading!");
+    CHECK_(imageIdx != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading!");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageId, imageIdx, imagePlane);
