@@ -335,7 +335,7 @@ auto Database::prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std:
         groups.Append<duckdb::string_t>(groupInfo.groupName);    //       " name STRING,"
         groups.Append<duckdb::string_t>("");                     //       " notes STRING,"
         groups.Append<uint32_t>(groupInfo.wellPosX);             //       " pos_on_plate_x UINTEGER,"
-        groups.Append<uint32_t>(groupInfo.wellPosX);             //       " pos_on_plate_y UINTEGER,"
+        groups.Append<uint32_t>(groupInfo.wellPosY);             //       " pos_on_plate_y UINTEGER,"
         groups.EndRow();
         addedGroups.emplace(groupInfo.groupId);
       }
