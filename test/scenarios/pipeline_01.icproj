@@ -607,7 +607,12 @@
                 },
                 {
                     "$measure": {
-                        "inputClusters": [],
+                        "inputClusters": [
+                            {
+                                "classId": "0",
+                                "clusterId": "F"
+                            }
+                        ],
                         "objectIn": {
                             "imagePlane": {
                                 "cStack": -1,
@@ -616,7 +621,24 @@
                             },
                             "storeIdx": "M0"
                         },
-                        "planesIn": []
+                        "planesIn": [
+                            {
+                                "imageIdx": "MaxIntensity",
+                                "imagePlane": {
+                                    "cStack": 0,
+                                    "tStack": -1,
+                                    "zStack": -1
+                                }
+                            },
+                            {
+                                "imageIdx": "MaxIntensity",
+                                "imagePlane": {
+                                    "cStack": 1,
+                                    "tStack": -1,
+                                    "zStack": -1
+                                }
+                            }
+                        ]
                     },
                     "disabled": false
                 },
@@ -691,8 +713,8 @@
             }
         ],
         "experimentSettings": {
-            "experimentId": "",
-            "experimentName": "",
+            "experimentId": "fb9fbc44-c674-448f-b1fd-fee302534e50",
+            "experimentName": "Test",
             "notes": ""
         },
         "plates": [
@@ -700,7 +722,7 @@
                 "cols": 24,
                 "filenameRegex": "_((.)([0-9]+))_([0-9]+)",
                 "groupBy": "Off",
-                "imageFolder": "test/test_data",
+                "imageFolder": "./test/test_data/images/pipeline_01",
                 "name": "",
                 "notes": "",
                 "plateId": 1,
@@ -733,6 +755,6 @@
                 ]
             }
         ],
-        "workingDirectory": "test/test_data"
+        "workingDirectory": "./test/test_data/images/pipeline_01"
     }
 }

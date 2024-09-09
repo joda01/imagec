@@ -59,8 +59,11 @@ struct PipelineSettings
 
   void check() const
   {
-    CHECK(cStackIndex >= 0, "Define which image channel >cStackIndex< should be loaded.");
-    CHECK(zProjection != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading in pipeline!");
+    if(source == Source::FROM_FILE) {
+      CHECK(cStackIndex >= 0, "Define which image channel >cStackIndex< should be loaded.");
+      CHECK(zProjection != enums::ZProjection::UNDEFINED,
+            "Define the z-projection mode for image loading in pipeline!");
+    }
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineSettings, source, cStackIndex, tStackIndex, zStackIndex,

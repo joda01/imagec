@@ -47,7 +47,9 @@ struct ClassifierFilter
 
     void check() const
     {
-      CHECK(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
+      if(minIntensity >= 0 || maxIntensity >= 0) {
+        CHECK(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
+      }
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntensityFilter, imageIn, minIntensity, maxIntensity);

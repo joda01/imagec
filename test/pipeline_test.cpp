@@ -45,7 +45,6 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
 {
   if(!initialized) {
     initialized = true;
-    joda::image::reader::ImageReader::init();
 
     try {
       if(std::filesystem::exists("test/test_data/images/pipeline_01/imagec") &&
@@ -11564,8 +11563,6 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
       // generateTestingCode(results.get());
     }
   }
-
-  joda::image::reader::ImageReader::destroy();
 }
 /*
 void generateTestingCode(joda::results::Analyzer *results)
