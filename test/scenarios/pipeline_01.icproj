@@ -48,6 +48,12 @@
                     "disabled": false
                 },
                 {
+                    "$watershed": {
+                        "maximumFinderTolerance": 0.5
+                    },
+                    "disabled": false
+                },
+                {
                     "$classify": {
                         "classifiers": [
                             {
@@ -55,7 +61,7 @@
                                     {
                                         "intensity": {
                                             "imageIn": {
-                                                "imageIdx": "MaxIntensity",
+                                                "imageIdx": "None",
                                                 "imagePlane": {
                                                     "cStack": -1,
                                                     "tStack": -1,
@@ -65,7 +71,7 @@
                                             "maxIntensity": -1,
                                             "minIntensity": -1
                                         },
-                                        "maxParticleSize": -1,
+                                        "maxParticleSize": 999999999,
                                         "minCircularity": 0.0,
                                         "minParticleSize": 3,
                                         "outputCluster": {
@@ -134,7 +140,7 @@
                 {
                     "$rollingBall": {
                         "ballSize": 4,
-                        "ballType": "Paraboloid"
+                        "ballType": "Ball"
                     },
                     "disabled": false
                 },
@@ -158,6 +164,11 @@
                         ]
                     },
                     "disabled": false
+                },
+                {
+                    "$watershed": {
+                        "maximumFinderTolerance": 0.5
+                    }
                 },
                 {
                     "$classify": {
@@ -720,12 +731,12 @@
         "plates": [
             {
                 "cols": 24,
-                "filenameRegex": "_((.)([0-9]+))_([0-9]+)",
-                "groupBy": "Off",
+                "filenameRegex": "((.)([0-9]+))_([0-9]+)",
+                "groupBy": "Filename",
                 "imageFolder": "./test/test_data/images/pipeline_01",
                 "name": "",
                 "notes": "",
-                "plateId": 1,
+                "plateId": 0,
                 "rows": 16,
                 "wellImageOrder": [
                     [

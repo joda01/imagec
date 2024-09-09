@@ -1,0 +1,179 @@
+{
+    "duration": {
+        "avgMs": 2501.677734375,
+        "cnt": 2.0,
+        "totalMs": 5003.355305
+    },
+    "stats": {
+        "Add to ROI": {
+            "avgMs": 5.286596298217773,
+            "cnt": 8,
+            "totalMs": 42.292771
+        },
+        "Append to detail report": {
+            "avgMs": 164.9418487548828,
+            "cnt": 12,
+            "totalMs": 1979.302255
+        },
+        "Append to detail report intersect": {
+            "avgMs": 15.352436065673828,
+            "cnt": 2,
+            "totalMs": 30.704873
+        },
+        "Append to detail report stats": {
+            "avgMs": 236.05465698242188,
+            "cnt": 8,
+            "totalMs": 1888.437313
+        },
+        "Append to detail report vorono": {
+            "avgMs": 30.710308074951172,
+            "cnt": 2,
+            "totalMs": 61.420616
+        },
+        "Blur": {
+            "avgMs": 82.51993560791016,
+            "cnt": 8,
+            "totalMs": 660.159486
+        },
+        "Close": {
+            "avgMs": 11.99453067779541,
+            "cnt": 2,
+            "totalMs": 23.989061
+        },
+        "Create control image": {
+            "avgMs": 143.71762084960938,
+            "cnt": 12,
+            "totalMs": 1724.611472
+        },
+        "CrossChannelCount": {
+            "avgMs": 10.379941940307617,
+            "cnt": 2,
+            "totalMs": 20.759884
+        },
+        "CrossChannelIntensity": {
+            "avgMs": 9.221501350402832,
+            "cnt": 4,
+            "totalMs": 36.886007
+        },
+        "EdgeDetection": {
+            "avgMs": 53.5506591796875,
+            "cnt": 2,
+            "totalMs": 107.101321
+        },
+        "Find contours": {
+            "avgMs": 5.855599403381348,
+            "cnt": 8,
+            "totalMs": 46.844795
+        },
+        "Get OEM": {
+            "avgMs": 24.973411560058594,
+            "cnt": 2,
+            "totalMs": 49.946825
+        },
+        "Image filtering": {
+            "avgMs": 0.0002538750122766942,
+            "cnt": 8,
+            "totalMs": 0.002031
+        },
+        "Intersection": {
+            "avgMs": 1.9905024766921997,
+            "cnt": 2,
+            "totalMs": 3.981005
+        },
+        "ObjectSegmentation": {
+            "avgMs": 169.19158935546875,
+            "cnt": 8,
+            "totalMs": 1353.532677
+        },
+        "Paint bounding box": {
+            "avgMs": 4.789059638977051,
+            "cnt": 8,
+            "totalMs": 38.312476
+        },
+        "PipelineVoronoi": {
+            "avgMs": 147.6468048095703,
+            "cnt": 2,
+            "totalMs": 295.293619
+        },
+        "RollingBall": {
+            "avgMs": 1202.8868408203125,
+            "cnt": 4,
+            "totalMs": 4811.547573
+        },
+        "Tetraspeck removal": {
+            "avgMs": 0.0007713750237599015,
+            "cnt": 8,
+            "totalMs": 0.006171
+        },
+        "Watershed": {
+            "avgMs": 179.65301513671875,
+            "cnt": 6,
+            "totalMs": 1077.918148
+        },
+        "Zprojection": {
+            "avgMs": 561.5393676757813,
+            "cnt": 8,
+            "totalMs": 4492.315081
+        },
+        "loop db prepare >148<.": {
+            "avgMs": 5.0127458572387695,
+            "cnt": 1,
+            "totalMs": 5.012746
+        },
+        "loop db prepare >209<.": {
+            "avgMs": 11.495611190795898,
+            "cnt": 1,
+            "totalMs": 11.495611
+        },
+        "loop db prepare >246<.": {
+            "avgMs": 8.219776153564453,
+            "cnt": 1,
+            "totalMs": 8.219776
+        },
+        "loop db prepare >282<.": {
+            "avgMs": 11.542484283447266,
+            "cnt": 1,
+            "totalMs": 11.542484
+        },
+        "loop db prepare >324<.": {
+            "avgMs": 12.413785934448242,
+            "cnt": 1,
+            "totalMs": 12.413786
+        },
+        "loop db prepare >39<.": {
+            "avgMs": 1.1282639503479004,
+            "cnt": 1,
+            "totalMs": 1.128264
+        },
+        "loop db prepare >457<.": {
+            "avgMs": 17.878013610839844,
+            "cnt": 1,
+            "totalMs": 17.878014
+        },
+        "loop db prepare >467<.": {
+            "avgMs": 13.67308521270752,
+            "cnt": 1,
+            "totalMs": 13.673085
+        },
+        "loop db prepare >508<.": {
+            "avgMs": 19.87724494934082,
+            "cnt": 1,
+            "totalMs": 19.877245
+        },
+        "loop db prepare >51<.": {
+            "avgMs": 2.12253999710083,
+            "cnt": 1,
+            "totalMs": 2.12254
+        },
+        "loop db prepare >715<.": {
+            "avgMs": 28.668912887573242,
+            "cnt": 1,
+            "totalMs": 28.668913
+        },
+        "loop db prepare >781<.": {
+            "avgMs": 17.751249313354492,
+            "cnt": 1,
+            "totalMs": 17.75125
+        }
+    }
+}

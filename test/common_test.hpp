@@ -75,10 +75,9 @@ inline std::unique_ptr<joda::ctrl::Controller> executePipeline(const std::filesy
 /// \param[out]
 /// \return
 ///
-inline std::unique_ptr<joda::db::Database> getAnalyze(const std::filesystem::path &outputFolder)
+inline std::unique_ptr<joda::db::Database> getAnalyze(const std::filesystem::path &databaseFile)
 {
-  auto databaseFile = outputFolder / "results.icdb";
-  auto analyze      = std::make_unique<joda::db::Database>();
+  auto analyze = std::make_unique<joda::db::Database>();
   analyze->openDatabase(databaseFile);
   return analyze;
 }
