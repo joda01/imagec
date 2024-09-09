@@ -97,6 +97,10 @@ inline std::string getMeasurement(enums::Measurement measure)
       return "meas_intensity_min";
     case enums::Measurement::INTENSITY_MAX:
       return "meas_intensity_max";
+    case enums::Measurement::BOUNDING_BOX_WIDTH:
+      return "meas_box_width";
+    case enums::Measurement::BOUNDING_BOX_HEIGHT:
+      return "meas_box_height";
   }
   return "";
 }
