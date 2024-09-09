@@ -29,8 +29,6 @@ DirectoryWatcher::DirectoryWatcher(const std::set<std::string> &supportedFileFor
 ///
 void DirectoryWatcher::setWorkingDirectory(uint8_t group, const std::filesystem::path &inputFolder)
 {
-  std::cout << "Set working dir " << std::to_string(group) << ": " << inputFolder.string() << std::endl;
-
   if(mWorkingDirectory[group] != inputFolder) {
     mWorkingDirectory[group] = inputFolder;
     if(inputFolder.empty()) {
