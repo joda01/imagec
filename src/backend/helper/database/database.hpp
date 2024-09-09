@@ -86,6 +86,7 @@ public:
   auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;
 
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
+  auto selectImages() -> std::vector<ImageInfo>;
   auto selectClassesForClusters()
       -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>;
   auto selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)

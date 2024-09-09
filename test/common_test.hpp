@@ -14,9 +14,9 @@
 #pragma once
 
 #include <exception>
+#include <filesystem>
 #include <memory>
 #include "backend/helper/random_name_generator.hpp"
-#include "backend/results/analyzer/analyzer.hpp"
 #include "controller/controller.hpp"
 #include <nlohmann/json_fwd.hpp>
 
@@ -42,21 +42,21 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-inline std::unique_ptr<joda::ctrl::Controller> executePipeline(const std::string &cfgJsonPath,
-                                                               const std::string &imagesPath)
+inline std::unique_ptr<joda::ctrl::Controller> executePipeline(const std::filesystem::path &cfgJsonPath,
+                                                               const std::filesystem::path &imagesPath)
 {
   auto controller = std::make_unique<joda::ctrl::Controller>();
 
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{cfgJsonPath});
-  controller->setWorkingDirectory(imagesPath);
+  controller->setWorkingDirectory(0, imagesPath);
   std::this_thread::sleep_for(2s);
-  controller->start(settings, controller->calcOptimalThreadNumber(settings, 0),
+  controller->start(settings, controller->calcOptimalThreadNumber(settings),
                     joda::helper::RandomNameGenerator::GetRandomName());
 
   while(true) {
     std::this_thread::sleep_for(2s);
-    auto [_, state, str] = controller->getState();
-    if(state == joda::pipeline::Pipeline::State::FINISHED) {
+    const auto &pipState = controller->getState();
+    if(pipState.isFinished()) {
       break;
     }
   }
@@ -75,10 +75,11 @@ inline std::unique_ptr<joda::ctrl::Controller> executePipeline(const std::string
 /// \param[out]
 /// \return
 ///
-inline std::unique_ptr<joda::results::Analyzer> getAnalyze(const std::string &outputFolder)
+inline std::unique_ptr<joda::db::Database> getAnalyze(const std::filesystem::path &outputFolder)
 {
-  auto databaseFile = std::filesystem::path(outputFolder) / "results.icresult";
-  auto analyze      = std::make_unique<joda::results::Analyzer>(databaseFile);
+  auto databaseFile = outputFolder / "results.icdb";
+  auto analyze      = std::make_unique<joda::db::Database>();
+  analyze->openDatabase(databaseFile);
   return analyze;
 }
 
@@ -89,9 +90,9 @@ inline std::unique_ptr<joda::results::Analyzer> getAnalyze(const std::string &ou
 /// \param[out]
 /// \return
 ///
-inline nlohmann::json parseProfiling(const std::string &outputFolder)
+inline nlohmann::json parseProfiling(const std::filesystem::path &outputFolder)
 {
-  auto profilingFile = std::filesystem::path(outputFolder) / "profiling.json";
+  auto profilingFile = outputFolder / "profiling.json";
 
   std::ifstream input_file(profilingFile.string());
   if(!input_file.is_open()) {

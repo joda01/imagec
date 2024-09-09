@@ -927,6 +927,42 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 /// \param[out]
 /// \return
 ///
+auto Database::selectImages() -> std::vector<ImageInfo>
+{
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT images.file_name, images.validity, images.width, images.height, groups.name "
+      "FROM images "
+      "JOIN images_groups ON "
+      "     images.image_id = images_groups.image_id "
+      "JOIN groups ON "
+      "     images_groups.group_id = groups.group_id ");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  std::vector<ImageInfo> results;
+  for(int n = 0; n < materializedResult->RowCount(); n++) {
+    ImageInfo info;
+    info.filename       = materializedResult->GetValue(0, n).GetValue<std::string>();
+    info.validity       = materializedResult->GetValue(1, n).GetValue<uint64_t>();
+    info.width          = materializedResult->GetValue(2, n).GetValue<uint32_t>();
+    info.height         = materializedResult->GetValue(3, n).GetValue<uint32_t>();
+    info.imageGroupName = materializedResult->GetValue(4, n).GetValue<std::string>();
+    results.push_back(info);
+  }
+
+  return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto Database::selectClusters() -> std::map<enums::ClusterId, joda::settings::Cluster>
 {
   std::unique_ptr<duckdb::QueryResult> result = select("SELECT cluster_id, name FROM clusters");
