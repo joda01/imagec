@@ -36,7 +36,7 @@ struct PlaneId
     return tStack < in.tStack || zStack < in.zStack || cStack < in.cStack;
   }
 
-  void check() const
+  void check()
   {
   }
 

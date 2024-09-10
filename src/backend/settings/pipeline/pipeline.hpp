@@ -18,6 +18,7 @@
 #include "backend/processor/initializer/pipeline_settings.hpp"
 #include "backend/settings/pipeline/pipeline_meta.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
+#include "backend/settings/settings_types.hpp"
 
 namespace joda::settings {
 
@@ -30,7 +31,7 @@ public:
   std::list<PipelineStep> pipelineSteps;
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
   }
   std::set<enums::ClusterId> getInputClusters() const;

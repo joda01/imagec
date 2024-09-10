@@ -43,7 +43,7 @@ public:
     return configSchema;
   }
 
-  void check() const
+  void check()
   {
     if(imageSetup.tStackHandling == ProjectImageSetup::TStackHandling::EXACT_ONE) {
       for(const auto &pip : pipelines) {

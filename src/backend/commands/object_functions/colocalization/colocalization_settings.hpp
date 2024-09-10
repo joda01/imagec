@@ -45,7 +45,7 @@ struct ColocalizationSettings : public SettingBase
   ClassificatorSetting outputCluster;
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
     CHECK_(inputClusters.size() > 1, "At least two input objects must be given!");
     CHECK_(minIntersection >= 0, "Min intersection must be >=0.");

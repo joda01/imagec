@@ -31,7 +31,7 @@ struct ClassifierSettings : public SettingBase
   std::list<ObjectClass> modelClasses;
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
     CHECK_(!modelClasses.empty(), "At least one classifier must be given!");
   }

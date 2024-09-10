@@ -30,7 +30,7 @@ struct Address
   std::string city;
   std::string email;
 
-  void check() const
+  void check()
   {
   }
 

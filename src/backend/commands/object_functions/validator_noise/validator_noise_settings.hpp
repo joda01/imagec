@@ -51,7 +51,7 @@ struct NoiseValidatorSettings : public SettingBase
   uint32_t maxObjects = 100000;
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
     CHECK_(mode != FilterMode::UNKNOWN, "Define a filter mode!");
     CHECK_(maxObjects > 0, "Max objects must be > 0!");

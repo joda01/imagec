@@ -20,6 +20,7 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -41,7 +42,7 @@ struct IntersectionSettings : public SettingBase
     //
     ObjectInputClusters inputClusters;
 
-    void check() const
+    void check()
     {
       CHECK_(!inputClusters.empty(), "At least one class id must be given.");
       // CHECK_(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
@@ -76,7 +77,7 @@ struct IntersectionSettings : public SettingBase
   joda::enums::ClassId newClassId = joda::enums::ClassId::UNDEFINED;
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
     CHECK_(mode != Function::UNKNOWN, "Define a intersection function!");
     CHECK_(minIntersection >= 0, "Min intersection must be >=0.");

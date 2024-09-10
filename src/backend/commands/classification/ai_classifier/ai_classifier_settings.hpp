@@ -19,6 +19,8 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
+#include "backend/settings/settings_types.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -46,7 +48,7 @@ struct AiClassifierSettings : public SettingBase
   std::vector<ObjectClass> modelClasses = {{}};
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
     CHECK_(!modelPath.empty(), "A AI model path must be given!");
     CHECK_(std::filesystem::exists(modelPath), "AI model >" + modelPath + "< cannot be opened!");

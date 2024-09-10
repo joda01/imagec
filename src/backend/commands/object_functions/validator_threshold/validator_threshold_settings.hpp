@@ -51,7 +51,7 @@ struct ThresholdValidatorSettings : public SettingBase
   float histMinThresholdFilterFactor = 0.8;
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
     CHECK_(mode != FilterMode::UNKNOWN, "Define a filter mode!");
     CHECK_(histMinThresholdFilterFactor >= 0, "Thresholdfactor must be >=0!");

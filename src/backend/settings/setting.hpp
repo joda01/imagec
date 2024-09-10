@@ -14,6 +14,7 @@
 #pragma once
 
 #include <functional>
+#include <map>
 #include <memory>
 #include <set>
 #include <stdexcept>
@@ -23,123 +24,73 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
+#include "setting_macro_iterator.hpp"
 
-#define NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Type, ...)                     \
-  friend void to_json(nlohmann::json &nlohmann_json_j, const Type &nlohmann_json_t)         \
-  {                                                                                         \
-    nlohmann_json_t.check();                                                                \
-    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))                \
-  }                                                                                         \
-  friend void from_json(const nlohmann::json &nlohmann_json_j, Type &nlohmann_json_t)       \
-  {                                                                                         \
-    Type nlohmann_json_default_obj;                                                         \
-    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM_WITH_DEFAULT, __VA_ARGS__)) \
-    nlohmann_json_t.check();                                                                \
-  }
+using PipelineName_t = std::string;
 
-#define NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(Type, ...)                            \
-  friend void to_json(nlohmann::json &nlohmann_json_j, const Type &nlohmann_json_t)   \
-  {                                                                                   \
-    nlohmann_json_t.check();                                                          \
-    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))          \
-  }                                                                                   \
-  friend void from_json(const nlohmann::json &nlohmann_json_j, Type &nlohmann_json_t) \
-  {                                                                                   \
-    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__))        \
-    nlohmann_json_t.check();                                                          \
-  }
-
-#define CHECK_(okay, what)                                             \
-  if(!(okay)) {                                                        \
-    const auto name = std::string(typeid(*this).name());               \
-    joda::log::logError(static_cast<std::string>(name + "::" + what)); \
-  }
-
-// throw std::invalid_argument(static_cast<std::string>(name + "::" + what));
-
-#define THROW(what)                                                            \
-  {                                                                            \
-    const auto name = std::string(typeid(*this).name());                       \
-    throw std::invalid_argument(static_cast<std::string>(name + "::" + what)); \
-  }
-
-namespace joda::settings {
-
-struct ClassificatorSetting
+struct SettingParserLog
 {
-  //
-  // Cluster the objects should be assigned if filter matches
-  //
-  joda::enums::ClusterIdIn clusterId = joda::enums::ClusterIdIn::$;
-
-  //
-  // Class the objects should be assigned if filter matches
-  //
-  joda::enums::ClassId classId = joda::enums::ClassId::NONE;
-
-  void check() const
+  enum Severity
   {
-  }
+    INFO,
+    WARNING,
+    ERROR
+  };
 
-  bool operator<(const ClassificatorSetting &input) const
-  {
-    auto toUint32 = [](enums::ClusterIdIn clu, enums::ClassId cl) -> uint32_t {
-      uint32_t out = (((uint16_t) clu) << 16) | (((uint16_t) cl));
-      return out;
-    };
-
-    return toUint32(clusterId, classId) < toUint32(input.clusterId, input.classId);
-  }
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassificatorSetting, clusterId, classId);
+  Severity severity = Severity::ERROR;
+  std::string commandNameOfOccurrence;
+  std::string message;
 };
 
-struct ClassificatorSettingOut
-{
-  //
-  // Cluster the objects should be assigned if filter matches
-  //
-  joda::enums::ClusterId clusterId = joda::enums::ClusterId::UNDEFINED;
+using SettingParserLog_t = std::vector<SettingParserLog>;
 
-  //
-  // Class the objects should be assigned if filter matches
-  //
-  joda::enums::ClassId classId = joda::enums::ClassId::NONE;
+// Example action macro that processes each element
+#define ADD_TO_LOG(x) x.getErrorLogRecursive(log);
 
-  bool operator<(const ClassificatorSettingOut &input) const
-  {
-    auto toUint32 = [](enums::ClusterId clu, enums::ClassId cl) -> uint32_t {
-      uint32_t out = (((uint16_t) clu) << 16) | (((uint16_t) cl));
-      return out;
-    };
-
-    return toUint32(clusterId, classId) < toUint32(input.clusterId, input.classId);
+#define NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Type, ...)                                    \
+  mutable SettingParserLog_t joda_settings_log;                                                            \
+  friend void to_json(nlohmann::json &nlohmann_json_j, const Type &nlohmann_json_t)                        \
+  {                                                                                                        \
+    auto &typeIn = const_cast<Type &>(nlohmann_json_t);                                                    \
+    typeIn.check();                                                                                        \
+    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))                               \
+  }                                                                                                        \
+  friend void from_json(const nlohmann::json &nlohmann_json_j, Type &nlohmann_json_t)                      \
+  {                                                                                                        \
+    Type nlohmann_json_default_obj;                                                                        \
+    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM_WITH_DEFAULT, __VA_ARGS__))                \
+  }                                                                                                        \
+  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog)                                         \
+  {                                                                                                        \
+    joda_settings_log.insert(joda_settings_log.end(), settingsParserLog.begin(), settingsParserLog.end()); \
+    JODA_SETTINGS_EXPAND(JODA_SETTINGS_PASTE(JODA_SETTINGS_TO, __VA_ARGS__))                               \
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClassificatorSettingOut, clusterId, classId);
-};
-
-using ObjectOutputClusters   = std::set<ClassificatorSetting>;
-using ObjectInputClusters    = std::set<ClassificatorSetting>;
-using ObjectInputCluster     = ClassificatorSetting;
-using ObjectOutputCluster    = ClassificatorSetting;
-using ObjectInputClustersExp = std::set<ClassificatorSettingOut>;
-
-class SettingBase
-{
-public:
-  SettingBase() = default;
-  [[nodiscard]] virtual std::set<enums::ClusterIdIn> getInputClusters() const
-  {
-    return {};
+#define NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(Type, ...)                                                 \
+  mutable SettingParserLog_t joda_settings_log;                                                            \
+  friend void to_json(nlohmann::json &nlohmann_json_j, const Type &nlohmann_json_t)                        \
+  {                                                                                                        \
+    auto &typeIn = const_cast<Type &>(nlohmann_json_t);                                                    \
+    typeIn.check();                                                                                        \
+    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))                               \
+  }                                                                                                        \
+  friend void from_json(const nlohmann::json &nlohmann_json_j, Type &nlohmann_json_t)                      \
+  {                                                                                                        \
+    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__))                             \
+  }                                                                                                        \
+  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog)                                         \
+  {                                                                                                        \
+    joda_settings_log.insert(joda_settings_log.end(), settingsParserLog.begin(), settingsParserLog.end()); \
+    JODA_SETTINGS_EXPAND(JODA_SETTINGS_PASTE(JODA_SETTINGS_TO, __VA_ARGS__))                               \
   }
 
-  [[nodiscard]] virtual ObjectOutputClusters getOutputClasses() const
-  {
-    return {};
+#define CHECK_(okay, what)                                                                                   \
+  if(!(okay)) {                                                                                              \
+    const auto name = std::string(typeid(*this).name());                                                     \
+    joda_settings_log.emplace_back(SettingParserLog{                                                         \
+        .severity = SettingParserLog::Severity::ERROR, .commandNameOfOccurrence = name, .message = (what)}); \
   }
-};
 
-}    // namespace joda::settings
-
-// namespace joda::settings
+#define THROW(what) \
+  {                 \
+  }

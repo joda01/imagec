@@ -28,7 +28,7 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
   }
 }
 
-void PipelineStep::check() const
+void PipelineStep::check()
 {
 }
 

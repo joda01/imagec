@@ -56,7 +56,7 @@ public:
   int32_t maxAreaSize = -1;
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
   }
 

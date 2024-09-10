@@ -40,7 +40,7 @@ struct Cluster
   //
   std::string notes;
 
-  void check() const
+  void check()
   {
   }
 

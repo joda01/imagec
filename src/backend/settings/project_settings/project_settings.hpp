@@ -67,7 +67,7 @@ public:
   //
   std::string workingDirectory;
 
-  void check() const
+  void check()
   {
     CHECK_(!workingDirectory.empty(), "Working directory must not be empty!");
     // Check plates

@@ -29,7 +29,7 @@ struct ProjectImageSetup
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling);
 
-  void check() const
+  void check()
   {
   }
 };

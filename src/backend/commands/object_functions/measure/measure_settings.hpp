@@ -42,7 +42,7 @@ struct MeasureSettings : public SettingBase
   std::list<enums::ImageId> planesIn;
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
     CHECK_(!planesIn.empty(), "At least one image plane must be given for measurement.");
   }

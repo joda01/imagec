@@ -20,7 +20,7 @@ public:
   Mode mode = Mode::SOBEL;
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
   }
 

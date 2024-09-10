@@ -28,7 +28,7 @@ struct WatershedSettings : public SettingBase
   float maximumFinderTolerance = 0.5f;
 
   /////////////////////////////////////////////////////
-  void check() const
+  void check()
   {
     CHECK_(maximumFinderTolerance >= 0 && maximumFinderTolerance <= 1,
            "Maximum finder tolerance mut be in range [0-1]");

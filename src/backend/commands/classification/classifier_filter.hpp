@@ -17,6 +17,7 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/settings_types.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::processor {
@@ -45,7 +46,7 @@ struct ClassifierFilter
     //
     int32_t maxIntensity = -1;
 
-    void check() const
+    void check()
     {
       if(minIntensity >= 0 || maxIntensity >= 0) {
         CHECK_(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
@@ -85,7 +86,7 @@ struct ClassifierFilter
   //
   IntensityFilter intensity;
 
-  void check() const
+  void check()
   {
     CHECK_(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
            "Max particle size must be bigger than min particle size!");
@@ -117,7 +118,7 @@ struct ObjectClass
   //
   int32_t modelClassId = -1;
 
-  void check() const
+  void check()
   {
     CHECK_(!filters.empty(), "At least one classification filter must be given!");
     CHECK_(modelClassId >= 0, "A model class id >= 0 must be given for classification.");

@@ -58,7 +58,7 @@ public:
     uint16_t modelClassId = UINT16_MAX;
 
     /////////////////////////////////////////////////////
-    void check() const
+    void check()
     {
       CHECK_(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
     }
@@ -68,7 +68,7 @@ public:
 
   std::list<Threshold> modelClasses;
 
-  void check() const
+  void check()
   {
   }
 
