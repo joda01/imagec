@@ -38,7 +38,7 @@ struct NoiseValidatorSettings : public SettingBase
   //
   // Image which should be used for the validation
   //
-  enums::ImageId imageIn = {.imageIdx = enums::ZProjection::$};
+  enums::ImageId imageIn = {.zProjection = enums::ZProjection::$};
 
   //
   // Cluster on which the result should be applied to

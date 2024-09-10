@@ -37,11 +37,6 @@ struct IntersectionSettings : public SettingBase
   struct IntersectingClasses
   {
     //
-    // Input object to intersect with. Leaf empty to use imagePlane context store
-    //
-    joda::enums::ObjectStoreId objectIn;
-
-    //
     // Cluster to calculate the intersection with
     //
     ObjectInputClusters inputClusters;
@@ -52,7 +47,7 @@ struct IntersectionSettings : public SettingBase
       // CHECK_(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectingClasses, objectIn, inputClusters);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectingClasses, inputClusters);
   };
 
   //

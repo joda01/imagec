@@ -165,8 +165,8 @@ private:
                                                  {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                                                  {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
                                                  {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
-      zProjectionForIntensityFilter->setValue(classifyFilter.intensity.imageIn.imageIdx);
-      zProjectionForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.imageIdx);
+      zProjectionForIntensityFilter->setValue(classifyFilter.intensity.imageIn.zProjection);
+      zProjectionForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.zProjection);
 
       outer.addSetting(tab, "Intensity filter",
                        {{cStackForIntensityFilter.get(), true},

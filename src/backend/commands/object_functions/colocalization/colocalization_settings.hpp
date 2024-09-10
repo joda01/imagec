@@ -30,11 +30,6 @@ namespace joda::settings {
 struct ColocalizationSettings : public SettingBase
 {
   //
-  // Input object to intersect with. Leaf empty to use imagePlane context store
-  //
-  joda::enums::ObjectStoreId objectIn;
-
-  //
   // Clusters to calculate the intersection with
   //
   ObjectInputClusters inputClusters;
@@ -71,8 +66,7 @@ struct ColocalizationSettings : public SettingBase
     return {{outputCluster}};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, objectIn, inputClusters, minIntersection,
-                                          outputCluster);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, inputClusters, minIntersection, outputCluster);
 };
 
 }    // namespace joda::settings

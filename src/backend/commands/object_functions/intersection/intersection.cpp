@@ -29,13 +29,11 @@ Intersection::Intersection(const settings::IntersectionSettings &settings) : mSe
 void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
   for(const auto &inputClassification : mSettings.inputObjects.inputClusters) {
-    auto &objectsInOut = context.loadObjectsFromCache(mSettings.inputObjects.objectIn)
-                             ->at(context.getClusterId(inputClassification.clusterId));
+    auto &objectsInOut = context.loadObjectsFromCache()->at(context.getClusterId(inputClassification.clusterId));
 
     for(const auto &intersectWithClusterId : mSettings.inputObjectsIntersectWith.inputClusters) {
-      auto *intersectWith = context.loadObjectsFromCache(mSettings.inputObjectsIntersectWith.objectIn)
-                                ->at(context.getClusterId(intersectWithClusterId.clusterId))
-                                .get();
+      auto *intersectWith =
+          context.loadObjectsFromCache()->at(context.getClusterId(intersectWithClusterId.clusterId)).get();
 
       objectsInOut->calcIntersections(mSettings.mode, intersectWith, {inputClassification.classId},
                                       {intersectWithClusterId.classId}, mSettings.minIntersection,

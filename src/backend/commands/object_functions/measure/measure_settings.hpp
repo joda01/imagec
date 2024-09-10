@@ -32,11 +32,6 @@ namespace joda::settings {
 struct MeasureSettings : public SettingBase
 {
   //
-  // Optional input object for which a measurement should be applied
-  //
-  joda::enums::ObjectStoreId objectIn;
-
-  //
   // Clusters to calculate to measure for
   //
   ObjectInputClusters inputClusters;
@@ -61,7 +56,7 @@ struct MeasureSettings : public SettingBase
     return clusters;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, objectIn, inputClusters, planesIn);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, inputClusters, planesIn);
 };
 
 }    // namespace joda::settings

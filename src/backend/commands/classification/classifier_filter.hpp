@@ -33,7 +33,7 @@ struct ClassifierFilter
     // Which image should be used for measure the intensity value.
     // If not specified the initial image of the actual pipeline step is used.
     //
-    enums::ImageId imageIn = {.imageIdx = joda::enums::ZProjection::MAX_INTENSITY, .imagePlane = {.cStack = -1}};
+    enums::ImageId imageIn = {.zProjection = joda::enums::ZProjection::MAX_INTENSITY, .imagePlane = {.cStack = -1}};
 
     //
     // Min intensity

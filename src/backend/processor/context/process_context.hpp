@@ -134,7 +134,7 @@ public:
     iterationContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
   }
 
-  [[nodiscard]] joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId) const
+  [[nodiscard]] joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId = {}) const
   {
     if(cacheId.storeIdx == enums::MemoryIdx::M0) {
       return &iterationContext.actObjects;

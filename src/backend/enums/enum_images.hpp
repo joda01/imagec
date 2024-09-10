@@ -31,20 +31,20 @@ enum class ZProjection
 
 struct ImageId
 {
-  ZProjection imageIdx = ZProjection::UNDEFINED;
+  ZProjection zProjection = ZProjection::UNDEFINED;
   joda::enums::PlaneId imagePlane;
 
   bool operator<(const ImageId &in) const
   {
-    return imageIdx < in.imageIdx || imagePlane < in.imagePlane;
+    return zProjection < in.zProjection || imagePlane < in.imagePlane;
   }
 
   void check() const
   {
-    CHECK_(imageIdx != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading!");
+    CHECK_(zProjection != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading!");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageId, imageIdx, imagePlane);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageId, zProjection, imagePlane);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ZProjection, {

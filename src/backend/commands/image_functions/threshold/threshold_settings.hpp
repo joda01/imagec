@@ -55,7 +55,7 @@ public:
     //
     // Grayscale to assign to
     //
-    uint16_t grayscaleAssignment = UINT16_MAX;
+    uint16_t modelClassId = UINT16_MAX;
 
     /////////////////////////////////////////////////////
     void check() const
@@ -63,17 +63,16 @@ public:
       CHECK_(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, mode, thresholdMin, thresholdMax,
-                                                         grayscaleAssignment);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, mode, thresholdMin, thresholdMax, modelClassId);
   };
 
-  std::list<Threshold> thresholds;
+  std::list<Threshold> classes;
 
   void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdSettings, thresholds);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdSettings, classes);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode::NONE, ""},

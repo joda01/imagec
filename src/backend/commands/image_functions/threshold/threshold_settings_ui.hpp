@@ -34,11 +34,11 @@ public:
   Threshold(joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
   {
-    if(settings.thresholds.empty()) {
+    if(settings.classes.empty()) {
       addFilter();
     }
 
-    for(auto &classifierSetting : settings.thresholds) {
+    for(auto &classifierSetting : settings.classes) {
       auto *tab = addTab("Th", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
       thresholds.emplace_back(classifierSetting, *this, tab, parent);
     }
@@ -117,10 +117,10 @@ private:
   void removeObjectClass(settings::ThresholdSettings::Threshold *obj)
   {
     {
-      auto it = mSettings.thresholds.begin();
-      for(; it != mSettings.thresholds.end(); it++) {
+      auto it = mSettings.classes.begin();
+      for(; it != mSettings.classes.end(); it++) {
         if(&(*it) == obj) {
-          mSettings.thresholds.erase(it);
+          mSettings.classes.erase(it);
           break;
         }
       }
@@ -142,9 +142,9 @@ private slots:
   void addFilter()
   {
     settings::ThresholdSettings::Threshold objClass;
-    auto &ret               = mSettings.thresholds.emplace_back(objClass);
-    ret.grayscaleAssignment = UINT16_MAX - (mSettings.thresholds.size() - 1);
-    auto *tab               = addTab("Th", [this, &ret] { removeObjectClass(&ret); });
+    auto &ret        = mSettings.classes.emplace_back(objClass);
+    ret.modelClassId = UINT16_MAX - (mSettings.classes.size() - 1);
+    auto *tab        = addTab("Th", [this, &ret] { removeObjectClass(&ret); });
     thresholds.emplace_back(ret, *this, tab, mParent);
     updateDisplayText();
   }
