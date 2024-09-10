@@ -43,7 +43,7 @@ struct AiClassifierSettings : public SettingBase
   //
   // Vector array index is the class ID used by the AI model starting with 0
   //
-  std::vector<ObjectClass> classifiers = {{}};
+  std::vector<ObjectClass> modelClasses = {{}};
 
   /////////////////////////////////////////////////////
   void check() const
@@ -52,13 +52,13 @@ struct AiClassifierSettings : public SettingBase
     CHECK_(std::filesystem::exists(modelPath), "AI model >" + modelPath + "< cannot be opened!");
     CHECK_(classThreshold >= 0, "Class threshold must be >0.");
     CHECK_(numberOfModelClasses > 0, "Number of model classes be >0.");
-    CHECK_(!classifiers.empty(), "At least one classifier must be given!");
+    CHECK_(!modelClasses.empty(), "At least one classifier must be given!");
   }
 
   [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
   {
     ObjectOutputClusters out;
-    for(const auto &clas : classifiers) {
+    for(const auto &clas : modelClasses) {
       out.emplace(clas.outputClusterNoMatch);
       for(const auto &clasInner : clas.filters) {
         out.emplace(clasInner.outputCluster);
@@ -68,7 +68,7 @@ struct AiClassifierSettings : public SettingBase
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AiClassifierSettings, modelPath, classThreshold,
-                                                       numberOfModelClasses, classifiers);
+                                                       numberOfModelClasses, modelClasses);
 };
 
 }    // namespace joda::settings

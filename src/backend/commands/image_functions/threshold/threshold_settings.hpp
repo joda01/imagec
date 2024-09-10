@@ -66,13 +66,13 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, mode, thresholdMin, thresholdMax, modelClassId);
   };
 
-  std::list<Threshold> classes;
+  std::list<Threshold> modelClasses;
 
   void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdSettings, classes);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdSettings, modelClasses);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode::NONE, ""},

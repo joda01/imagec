@@ -40,11 +40,11 @@ public:
   Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settingsIn), mParent(parent)
   {
-    if(settingsIn.classifiers.empty()) {
+    if(settingsIn.modelClasses.empty()) {
       addFilter();
     }
 
-    for(auto &classifierSetting : settingsIn.classifiers) {
+    for(auto &classifierSetting : settingsIn.modelClasses) {
       auto *tab = addTab("Filter", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
       mClassifyFilter.emplace_back(classifierSetting, *this, tab, parent);
     }
@@ -212,10 +212,10 @@ private:
   void removeObjectClass(settings::ObjectClass *obj)
   {
     {
-      auto it = mSettings.classifiers.begin();
-      for(; it != mSettings.classifiers.end(); it++) {
+      auto it = mSettings.modelClasses.begin();
+      for(; it != mSettings.modelClasses.end(); it++) {
         if(&(*it) == obj) {
-          mSettings.classifiers.erase(it);
+          mSettings.modelClasses.erase(it);
           break;
         }
       }
@@ -238,7 +238,7 @@ private slots:
   void addFilter()
   {
     settings::ObjectClass objClass;
-    auto &ret = mSettings.classifiers.emplace_back(objClass);
+    auto &ret = mSettings.modelClasses.emplace_back(objClass);
     auto *tab = addTab("Filter", [this, &ret] { removeObjectClass(&ret); });
     mClassifyFilter.emplace_back(ret, *this, tab, mParent);
     updateDisplayText();

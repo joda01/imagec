@@ -44,7 +44,7 @@
         },
         {
           "$classify": {
-            "classifiers": [
+            "modelClasses": [
               {
                 "classOutNoMatch": "None",
                 "clusterOutNoMatch": "$",
@@ -120,7 +120,7 @@
         },
         {
           "$classify": {
-            "classifiers": [
+            "modelClasses": [
               {
                 "classOutNoMatch": "None",
                 "clusterOutNoMatch": "$",

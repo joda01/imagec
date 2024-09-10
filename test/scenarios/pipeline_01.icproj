@@ -36,7 +36,7 @@
                 },
                 {
                     "$threshold": {
-                        "classes": [
+                        "modelClasses": [
                             {
                                 "modelClassId": 65535,
                                 "mode": "Manual",
@@ -55,7 +55,7 @@
                 },
                 {
                     "$classify": {
-                        "classifiers": [
+                        "modelClasses": [
                             {
                                 "filters": [
                                     {
@@ -146,9 +146,9 @@
                 },
                 {
                     "$threshold": {
-                        "thresholds": [
+                        "modelClasses": [
                             {
-                                "grayscaleAssignment": 65535,
+                                "modelClassId": 65535,
                                 "mode": "Manual",
                                 "thresholdMax": 65535,
                                 "thresholdMin": 85
@@ -164,7 +164,7 @@
                 },
                 {
                     "$classify": {
-                        "classifiers": [
+                        "modelClasses": [
                             {
                                 "filters": [
                                     {
@@ -248,9 +248,9 @@
                 },
                 {
                     "$threshold": {
-                        "thresholds": [
+                        "modelClasses": [
                             {
-                                "grayscaleAssignment": 65535,
+                                "modelClassId": 65535,
                                 "mode": "Li",
                                 "thresholdMax": 65535,
                                 "thresholdMin": 0
@@ -267,7 +267,7 @@
                 },
                 {
                     "$classify": {
-                        "classifiers": [
+                        "modelClasses": [
                             {
                                 "filters": [
                                     {
@@ -357,9 +357,9 @@
                 },
                 {
                     "$threshold": {
-                        "thresholds": [
+                        "modelClasses": [
                             {
-                                "grayscaleAssignment": 65535,
+                                "modelClassId": 65535,
                                 "mode": "MinError",
                                 "thresholdMax": 65535,
                                 "thresholdMin": 0
@@ -370,7 +370,7 @@
                 },
                 {
                     "$classify": {
-                        "classifiers": [
+                        "modelClasses": [
                             {
                                 "filters": [
                                     {

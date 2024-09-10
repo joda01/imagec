@@ -30,9 +30,9 @@
     },
     {
       "$threshold": {
-        "thresholds": [
+        "modelClasses": [
           {
-            "grayscaleAssignment": 65535,
+            "modelClassId": 65535,
             "mode": "Triangle",
             "thresholdMax": 65535,
             "thresholdMin": 0
@@ -49,7 +49,7 @@
     },
     {
       "$classify": {
-        "classifiers": [
+        "modelClasses": [
           {
             "filters": [
               {

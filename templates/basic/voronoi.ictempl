@@ -22,14 +22,6 @@
         "maxAreaSize": -1,
         "maxRadius": -1,
         "minAreaSize": -1,
-        "objectStoreIn": {
-          "imagePlane": {
-            "cStack": -1,
-            "tStack": -1,
-            "zStack": -1
-          },
-          "storeIdx": "M0"
-        },
         "pointsClassIn": [],
         "pointsClusterIn": "$",
         "pointsClusterOut": "$",

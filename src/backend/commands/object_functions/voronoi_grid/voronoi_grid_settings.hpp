@@ -15,8 +15,6 @@ namespace joda::settings {
 struct VoronoiGridSettings : public SettingBase
 {
 public:
-  enums::ObjectStoreId objectStoreIn;
-
   //
   // Cluster where the points which should be used to generate the voronoi grid are stored in
   //
@@ -80,10 +78,9 @@ public:
     return {outputClustersVoronoi};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, objectStoreIn, inputClustersPoints,
-                                                       outputClustersVoronoi, inputClustersMask,
-                                                       excludeAreasWithoutPoint, excludeAreasAtTheEdge, maxRadius,
-                                                       minAreaSize, maxAreaSize);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, inputClustersPoints, outputClustersVoronoi,
+                                                       inputClustersMask, excludeAreasWithoutPoint,
+                                                       excludeAreasAtTheEdge, maxRadius, minAreaSize, maxAreaSize);
 };
 
 }    // namespace joda::settings

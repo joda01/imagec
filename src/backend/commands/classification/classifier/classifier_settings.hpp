@@ -28,18 +28,18 @@ struct ClassifierSettings : public SettingBase
   //
   // Object classification based on gray scale value (default: modelClassId = 65535)
   //
-  std::list<ObjectClass> classifiers;
+  std::list<ObjectClass> modelClasses;
 
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK_(!classifiers.empty(), "At least one classifier must be given!");
+    CHECK_(!modelClasses.empty(), "At least one classifier must be given!");
   }
 
   [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
   {
     ObjectOutputClusters out;
-    for(const auto &clas : classifiers) {
+    for(const auto &clas : modelClasses) {
       out.emplace(clas.outputClusterNoMatch);
       for(const auto &clasInner : clas.filters) {
         out.emplace(clasInner.outputCluster);
@@ -48,7 +48,7 @@ struct ClassifierSettings : public SettingBase
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierSettings, classifiers);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierSettings, modelClasses);
 };
 
 }    // namespace joda::settings
