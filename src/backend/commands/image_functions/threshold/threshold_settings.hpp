@@ -60,7 +60,7 @@ public:
     /////////////////////////////////////////////////////
     void check()
     {
-      CHECK_(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
+      CHECK_ERROR(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, mode, thresholdMin, thresholdMax, modelClassId);

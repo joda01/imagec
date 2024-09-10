@@ -51,7 +51,7 @@ private:
     const auto &imageThreshold = context.getActImage();
 
     if(!imageThreshold.isBinary) {
-      THROW_ERROR("Histogram filter can only be applied on threshold (binary) image!");
+      THROW("Histogram filter can only be applied on threshold (binary) image!");
     }
 
     if(mSettings.histMinThresholdFilterFactor > 0) {

@@ -8,7 +8,6 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-
 ///
 
 #pragma once
@@ -48,6 +47,13 @@ inline std::unique_ptr<joda::ctrl::Controller> executePipeline(const std::filesy
   auto controller = std::make_unique<joda::ctrl::Controller>();
 
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{cfgJsonPath});
+  SettingParserLog_t logTrace;
+  std::cout << "LOG----------" << std::endl;
+  settings.getErrorLogRecursive(logTrace);
+  for(const auto &trace : logTrace) {
+    trace.print();
+  }
+
   controller->setWorkingDirectory(0, imagesPath);
   std::this_thread::sleep_for(2s);
   controller->start(settings, controller->calcOptimalThreadNumber(settings),

@@ -44,7 +44,7 @@ struct MeasureSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check()
   {
-    CHECK_(!planesIn.empty(), "At least one image plane must be given for measurement.");
+    CHECK_ERROR(!planesIn.empty(), "At least one image plane must be given for measurement.");
   }
 
   std::set<enums::ClusterIdIn> getInputClusters() const override

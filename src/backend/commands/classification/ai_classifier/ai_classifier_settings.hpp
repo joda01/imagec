@@ -50,11 +50,11 @@ struct AiClassifierSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check()
   {
-    CHECK_(!modelPath.empty(), "A AI model path must be given!");
-    CHECK_(std::filesystem::exists(modelPath), "AI model >" + modelPath + "< cannot be opened!");
-    CHECK_(classThreshold >= 0, "Class threshold must be >0.");
-    CHECK_(numberOfModelClasses > 0, "Number of model classes be >0.");
-    CHECK_(!modelClasses.empty(), "At least one classifier must be given!");
+    CHECK_ERROR(!modelPath.empty(), "A AI model path must be given!");
+    CHECK_ERROR(std::filesystem::exists(modelPath), "AI model >" + modelPath + "< cannot be opened!");
+    CHECK_ERROR(classThreshold >= 0, "Class threshold must be >0.");
+    CHECK_ERROR(numberOfModelClasses > 0, "Number of model classes be >0.");
+    CHECK_ERROR(!modelClasses.empty(), "At least one classifier must be given!");
   }
 
   [[nodiscard]] ObjectOutputClusters getOutputClasses() const override

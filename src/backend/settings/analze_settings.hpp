@@ -47,20 +47,21 @@ public:
   {
     if(imageSetup.tStackHandling == ProjectImageSetup::TStackHandling::EXACT_ONE) {
       for(const auto &pip : pipelines) {
-        CHECK_(pip.pipelineSetup.tStackIndex >= 0, "When processing exact one t stack image, define which one!");
+        CHECK_ERROR(pip.pipelineSetup.tStackIndex >= 0, "When processing exact one t stack image, define which one!");
       }
     }
 
     if(imageSetup.zStackHandling == ProjectImageSetup::ZStackHandling::EXACT_ONE) {
       for(const auto &pip : pipelines) {
-        CHECK_(pip.pipelineSetup.zStackIndex >= 0, "When processing exact one z stack image, define which one!");
+        CHECK_ERROR(pip.pipelineSetup.zStackIndex >= 0, "When processing exact one z stack image, define which one!");
       }
     }
+    CHECK_INFO(true, "Okay");
   }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, projectSettings, imageSetup, pipelines);
 
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings" + joda::fs::EXT_PROJECT;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, projectSettings, imageSetup, pipelines);
 };
 }    // namespace joda::settings

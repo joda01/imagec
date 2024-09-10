@@ -13,7 +13,7 @@ public:
   int32_t marginSize = 0;
 
   /////////////////////////////////////////////////////
-  void check(){CHECK_(marginSize >= 0, "Margin to crop must be >=0.")}
+  void check(){CHECK_ERROR(marginSize >= 0, "Margin to crop must be >=0.")}
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MarginCropSettings, marginSize);
 };

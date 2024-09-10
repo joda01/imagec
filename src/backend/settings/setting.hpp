@@ -40,6 +40,8 @@ struct SettingParserLog
   Severity severity = Severity::ERROR;
   std::string commandNameOfOccurrence;
   std::string message;
+
+  void print() const;
 };
 
 using SettingParserLog_t = std::vector<SettingParserLog>;
@@ -51,8 +53,6 @@ using SettingParserLog_t = std::vector<SettingParserLog>;
   mutable SettingParserLog_t joda_settings_log;                                                            \
   friend void to_json(nlohmann::json &nlohmann_json_j, const Type &nlohmann_json_t)                        \
   {                                                                                                        \
-    auto &typeIn = const_cast<Type &>(nlohmann_json_t);                                                    \
-    typeIn.check();                                                                                        \
     NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))                               \
   }                                                                                                        \
   friend void from_json(const nlohmann::json &nlohmann_json_j, Type &nlohmann_json_t)                      \
@@ -62,7 +62,9 @@ using SettingParserLog_t = std::vector<SettingParserLog>;
   }                                                                                                        \
   void getErrorLogRecursive(SettingParserLog_t &settingsParserLog)                                         \
   {                                                                                                        \
-    joda_settings_log.insert(joda_settings_log.end(), settingsParserLog.begin(), settingsParserLog.end()); \
+    joda_settings_log.clear();                                                                             \
+    check();                                                                                               \
+    settingsParserLog.insert(settingsParserLog.end(), joda_settings_log.begin(), joda_settings_log.end()); \
     JODA_SETTINGS_EXPAND(JODA_SETTINGS_PASTE(JODA_SETTINGS_TO, __VA_ARGS__))                               \
   }
 
@@ -80,17 +82,34 @@ using SettingParserLog_t = std::vector<SettingParserLog>;
   }                                                                                                        \
   void getErrorLogRecursive(SettingParserLog_t &settingsParserLog)                                         \
   {                                                                                                        \
-    joda_settings_log.insert(joda_settings_log.end(), settingsParserLog.begin(), settingsParserLog.end()); \
+    joda_settings_log.clear();                                                                             \
+    check();                                                                                               \
+    settingsParserLog.insert(settingsParserLog.end(), joda_settings_log.begin(), joda_settings_log.end()); \
     JODA_SETTINGS_EXPAND(JODA_SETTINGS_PASTE(JODA_SETTINGS_TO, __VA_ARGS__))                               \
   }
 
-#define CHECK_(okay, what)                                                                                   \
+#define CHECK_ERROR(okay, what)                                                                              \
   if(!(okay)) {                                                                                              \
     const auto name = std::string(typeid(*this).name());                                                     \
     joda_settings_log.emplace_back(SettingParserLog{                                                         \
         .severity = SettingParserLog::Severity::ERROR, .commandNameOfOccurrence = name, .message = (what)}); \
   }
 
-#define THROW(what) \
-  {                 \
+#define CHECK_WARNING(okay, what)                                                                              \
+  if(!(okay)) {                                                                                                \
+    const auto name = std::string(typeid(*this).name());                                                       \
+    joda_settings_log.emplace_back(SettingParserLog{                                                           \
+        .severity = SettingParserLog::Severity::WARNING, .commandNameOfOccurrence = name, .message = (what)}); \
   }
+
+#define CHECK_INFO(okay, what)                                                                              \
+  if(!(okay)) {                                                                                             \
+    const auto name = std::string(typeid(*this).name());                                                    \
+    joda_settings_log.emplace_back(SettingParserLog{                                                        \
+        .severity = SettingParserLog::Severity::INFO, .commandNameOfOccurrence = name, .message = (what)}); \
+  }
+
+#define THROW_ERROR(what)                              \
+  const auto name = std::string(typeid(*this).name()); \
+  joda_settings_log.emplace_back(SettingParserLog{     \
+      .severity = SettingParserLog::Severity::ERROR, .commandNameOfOccurrence = name, .message = (what)});
