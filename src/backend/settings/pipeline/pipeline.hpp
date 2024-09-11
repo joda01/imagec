@@ -31,11 +31,10 @@ public:
   std::list<PipelineStep> pipelineSteps;
 
   /////////////////////////////////////////////////////
-  void check()
-  {
-  }
-  std::set<enums::ClusterId> getInputClusters() const;
-  ObjectOutputClusters getOutputClasses() const;
+  void check() const;
+
+  ObjectInputClustersExp getInputClusters() const;
+  ObjectOutputClustersExp getOutputClasses() const;
   enums::ClusterId getOutputCluster() const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps);

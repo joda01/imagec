@@ -37,7 +37,7 @@ struct PipelineMeta
   //
   std::string icon;
 
-  void check()
+  void check() const
   {
   }
 

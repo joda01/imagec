@@ -802,7 +802,7 @@ QString WindowMain::bytesToString(int64_t bytes)
 ///
 auto WindowMain::getOutputClasses() -> std::set<settings::ClassificatorSettingOut>
 {
-  return settings::Settings::getOutputClasses(mAnalyzeSettings);
+  return mAnalyzeSettings.getOutputClasses();
 }
 
 }    // namespace joda::ui

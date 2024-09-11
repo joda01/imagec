@@ -42,7 +42,7 @@ struct IntersectionSettings : public SettingBase
     //
     ObjectInputClusters inputClusters;
 
-    void check()
+    void check() const
     {
       CHECK_ERROR(!inputClusters.empty(), "At least one class id must be given.");
       // CHECK_ERROR(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
@@ -77,7 +77,7 @@ struct IntersectionSettings : public SettingBase
   joda::enums::ClassId newClassId = joda::enums::ClassId::UNDEFINED;
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
     CHECK_ERROR(mode != Function::UNKNOWN, "Define a intersection function!");
     CHECK_ERROR(minIntersection >= 0, "Min intersection must be >=0.");
@@ -87,15 +87,15 @@ struct IntersectionSettings : public SettingBase
     }
   }
 
-  std::set<enums::ClusterIdIn> getInputClusters() const override
+  settings::ObjectInputClusters getInputClusters() const override
   {
-    std::set<enums::ClusterIdIn> clusters;
+    settings::ObjectInputClusters clusters;
     for(const auto &in : inputObjects.inputClusters) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
 
     for(const auto &in : inputObjectsIntersectWith.inputClusters) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
     return clusters;
   }

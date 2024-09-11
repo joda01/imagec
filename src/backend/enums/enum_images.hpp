@@ -39,7 +39,7 @@ struct ImageId
     return zProjection < in.zProjection || imagePlane < in.imagePlane;
   }
 
-  void check()
+  void check() const
   {
     CHECK_ERROR(zProjection != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading!");
   }

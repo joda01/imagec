@@ -14,8 +14,11 @@
 
 #include <set>
 #include "backend/enums/enum_images.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
+#include "backend/settings/setting_base.hpp"
+#include "backend/settings/settings_types.hpp"
 
 namespace joda::settings {
 
@@ -51,15 +54,15 @@ struct ThresholdValidatorSettings : public SettingBase
   float histMinThresholdFilterFactor = 0.8;
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
     CHECK_ERROR(mode != FilterMode::UNKNOWN, "Define a filter mode!");
     CHECK_ERROR(histMinThresholdFilterFactor >= 0, "Thresholdfactor must be >=0!");
   }
 
-  std::set<enums::ClusterIdIn> getInputClusters() const override
+  settings::ObjectInputClusters getInputClusters() const override
   {
-    return {inputCluster};
+    return {{inputCluster, enums::ClassId::UNDEFINED}};
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdValidatorSettings, mode, imageIn, inputCluster,

@@ -20,7 +20,7 @@ public:
   int32_t ballSize  = 4;
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
     CHECK_ERROR(ballSize > 0, "Ball size must be bigger than zero.");
   }

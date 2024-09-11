@@ -23,7 +23,7 @@ public:
   int32_t repeat     = 0;
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
     CHECK_ERROR(repeat >= 0, "Repeat must be a positive number.")
     CHECK_ERROR(kernelSize % 2 == 1, "Kernel size must be an odd number.");

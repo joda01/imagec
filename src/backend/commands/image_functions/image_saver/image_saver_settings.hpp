@@ -65,7 +65,7 @@ public:
     Style style           = Style::OUTLINED;
     bool paintBoundingBox = false;
 
-    void check()
+    void check() const
     {
     }
 
@@ -105,7 +105,7 @@ public:
   std::string subFolder = "images/${imageName}";
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
     if(canvas == ImageSaverSettings::Canvas::IMAGE_PLANE) {
       CHECK_ERROR(planesIn.has_value(), "Define a plane on which the output should be painted!");

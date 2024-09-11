@@ -28,7 +28,7 @@ class SettingBase
 {
 public:
   SettingBase() = default;
-  [[nodiscard]] virtual std::set<enums::ClusterIdIn> getInputClusters() const
+  [[nodiscard]] virtual ObjectInputClusters getInputClusters() const
   {
     return {};
   }

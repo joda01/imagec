@@ -60,7 +60,7 @@ using SettingParserLog_t = std::vector<SettingParserLog>;
     Type nlohmann_json_default_obj;                                                                        \
     NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM_WITH_DEFAULT, __VA_ARGS__))                \
   }                                                                                                        \
-  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog)                                         \
+  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const                                   \
   {                                                                                                        \
     joda_settings_log.clear();                                                                             \
     check();                                                                                               \
@@ -80,7 +80,7 @@ using SettingParserLog_t = std::vector<SettingParserLog>;
   {                                                                                                        \
     NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__))                             \
   }                                                                                                        \
-  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog)                                         \
+  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const                                   \
   {                                                                                                        \
     joda_settings_log.clear();                                                                             \
     check();                                                                                               \

@@ -38,7 +38,7 @@ struct Class
   //
   std::string notes;
 
-  void check()
+  void check() const
   {
   }
 

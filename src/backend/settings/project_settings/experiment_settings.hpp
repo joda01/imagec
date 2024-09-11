@@ -36,7 +36,7 @@ struct ExperimentSettings
   //
   std::string notes;
 
-  void check()
+  void check() const
   {
     CHECK_ERROR(!experimentId.empty(), "Experiment ID is empty.");
     CHECK_ERROR(!experimentName.empty(), "Experiment name is empty.");

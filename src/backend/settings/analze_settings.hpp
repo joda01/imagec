@@ -43,25 +43,14 @@ public:
     return configSchema;
   }
 
-  void check()
-  {
-    if(imageSetup.tStackHandling == ProjectImageSetup::TStackHandling::EXACT_ONE) {
-      for(const auto &pip : pipelines) {
-        CHECK_ERROR(pip.pipelineSetup.tStackIndex >= 0, "When processing exact one t stack image, define which one!");
-      }
-    }
+  std::set<ClassificatorSettingOut> getOutputClasses();
+  std::set<ClassificatorSettingOut> getInputClasses();
 
-    if(imageSetup.zStackHandling == ProjectImageSetup::ZStackHandling::EXACT_ONE) {
-      for(const auto &pip : pipelines) {
-        CHECK_ERROR(pip.pipelineSetup.zStackIndex >= 0, "When processing exact one z stack image, define which one!");
-      }
-    }
-    CHECK_INFO(true, "Okay");
-  }
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, projectSettings, imageSetup, pipelines);
+  auto checkForErrors() -> std::vector<std::pair<std::string, SettingParserLog_t>>;
 
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings" + joda::fs::EXT_PROJECT;
+  void check() const;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, projectSettings, imageSetup, pipelines);
 };
 }    // namespace joda::settings

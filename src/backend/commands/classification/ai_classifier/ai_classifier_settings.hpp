@@ -48,7 +48,7 @@ struct AiClassifierSettings : public SettingBase
   std::vector<ObjectClass> modelClasses = {{}};
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
     CHECK_ERROR(!modelPath.empty(), "A AI model path must be given!");
     CHECK_ERROR(std::filesystem::exists(modelPath), "AI model >" + modelPath + "< cannot be opened!");

@@ -3,11 +3,14 @@
 #include <cstdint>
 #include <optional>
 #include <set>
+#include <string>
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
+#include "backend/settings/settings_types.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -56,19 +59,19 @@ public:
   int32_t maxAreaSize = -1;
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
   }
 
-  std::set<enums::ClusterIdIn> getInputClusters() const override
+  settings::ObjectInputClusters getInputClusters() const override
   {
-    std::set<enums::ClusterIdIn> clusters;
+    settings::ObjectInputClusters clusters;
     for(const auto &in : inputClustersPoints) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
 
     for(const auto &in : inputClustersMask) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
     return clusters;
   }

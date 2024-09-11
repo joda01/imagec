@@ -35,7 +35,7 @@ class CommandFactory
 {
 public:
   virtual void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) = 0;
-  virtual std::set<enums::ClusterIdIn> getInputClusters() const                                      = 0;
+  virtual settings::ObjectInputClusters getInputClusters() const                                     = 0;
   virtual settings::ObjectOutputClusters getOutputClasses() const                                    = 0;
 };
 
@@ -51,7 +51,7 @@ public:
     CMD func(mSetting);
     func(context, image, result);
   }
-  [[nodiscard]] std::set<enums::ClusterIdIn> getInputClusters() const override
+  [[nodiscard]] settings::ObjectInputClusters getInputClusters() const override
   {
     return mSetting.getInputClusters();
   }

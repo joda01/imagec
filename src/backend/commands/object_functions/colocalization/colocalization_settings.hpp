@@ -21,6 +21,8 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
+#include "backend/settings/settings_types.hpp"
 #include <nlohmann/json.hpp>
 
 // #warning "Allow multi intersection"
@@ -45,17 +47,17 @@ struct ColocalizationSettings : public SettingBase
   ClassificatorSetting outputCluster;
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
     CHECK_ERROR(inputClusters.size() > 1, "At least two input objects must be given!");
     CHECK_ERROR(minIntersection >= 0, "Min intersection must be >=0.");
   }
 
-  std::set<enums::ClusterIdIn> getInputClusters() const override
+  settings::ObjectInputClusters getInputClusters() const override
   {
-    std::set<enums::ClusterIdIn> clusters;
+    settings::ObjectInputClusters clusters;
     for(const auto cluster : inputClusters) {
-      clusters.emplace(cluster.clusterId);
+      clusters.emplace(cluster);
     }
 
     return clusters;

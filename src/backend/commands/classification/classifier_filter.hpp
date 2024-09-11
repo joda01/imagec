@@ -46,7 +46,7 @@ struct ClassifierFilter
     //
     int32_t maxIntensity = -1;
 
-    void check()
+    void check() const
     {
       if(minIntensity >= 0 || maxIntensity >= 0) {
         CHECK_ERROR(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
@@ -86,7 +86,7 @@ struct ClassifierFilter
   //
   IntensityFilter intensity;
 
-  void check()
+  void check() const
   {
     CHECK_ERROR(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
                 "Max particle size must be bigger than min particle size!");
@@ -118,7 +118,7 @@ struct ObjectClass
   //
   int32_t modelClassId = -1;
 
-  void check()
+  void check() const
   {
     CHECK_ERROR(!filters.empty(), "At least one classification filter must be given!");
     CHECK_ERROR(modelClassId >= 0, "A model class id >= 0 must be given for classification.");

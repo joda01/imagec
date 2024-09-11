@@ -101,7 +101,7 @@ struct Plate
   //
   std::string filenameRegex = "_((.)([0-9]+))_([0-9]+)";
 
-  void check()
+  void check() const
   {
     CHECK_ERROR(!imageFolder.empty(), "Image folder must not be empty!");
   }

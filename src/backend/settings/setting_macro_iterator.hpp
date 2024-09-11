@@ -370,18 +370,18 @@ concept IsBaseSetting_t = !(std::same_as<T, int> || std::same_as<T, uint32_t> ||
                             std::same_as<T, std::string> || std::same_as<T, unsigned char>);
 
 template <IsBaseSetting_t T>
-inline void toLog(T &v1, auto &settingsParserLog)
+inline void toLog(const T &v1, auto &settingsParserLog)
 {
   v1.getErrorLogRecursive(settingsParserLog);
 }
 
 template <IsPrimitive_t T>
-inline void toLog(std::optional<T> &v1, auto &settingsParserLog)
+inline void toLog(const std::optional<T> &v1, auto &settingsParserLog)
 {
 }
 
 template <IsBaseSetting_t T>
-inline void toLog(std::optional<T> &v1, auto &settingsParserLog)
+inline void toLog(const std::optional<T> &v1, auto &settingsParserLog)
 {
   if(v1.has_value()) {
     v1.value().getErrorLogRecursive(settingsParserLog);
@@ -389,53 +389,50 @@ inline void toLog(std::optional<T> &v1, auto &settingsParserLog)
 }
 
 template <IsPrimitive_t T>
-inline void toLog(T &v1, auto &settingsParserLog)
+inline void toLog(const T &v1, auto &settingsParserLog)
 {
 }
 
 template <IsBaseSetting_t T>
-inline void toLog(std::set<T> &v1, auto &settingsParserLog)
+inline void toLog(const std::set<T> &v1, auto &settingsParserLog)
 {
-  for(auto &e : v1) {
-    auto &ref = const_cast<T &>(e);
-    ref.getErrorLogRecursive(settingsParserLog);
+  for(const auto &e : v1) {
+    e.getErrorLogRecursive(settingsParserLog);
   }
 }
 
 template <IsPrimitive_t T>
-inline void toLog(std::set<T> &v1, auto &settingsParserLog)
+inline void toLog(const std::set<T> &v1, auto &settingsParserLog)
 {
 }
 
 template <IsBaseSetting_t T>
-inline void toLog(std::list<T> &v1, auto &settingsParserLog)
+inline void toLog(const std::list<T> &v1, auto &settingsParserLog)
 {
-  for(auto &e : v1) {
-    auto &ref = const_cast<T &>(e);
-    ref.getErrorLogRecursive(settingsParserLog);
+  for(const auto &e : v1) {
+    e.getErrorLogRecursive(settingsParserLog);
   }
 }
 
 template <IsPrimitive_t T>
-inline void toLog(std::list<T> &v1, auto &settingsParserLog)
+inline void toLog(const std::list<T> &v1, auto &settingsParserLog)
 {
 }
 
 template <IsBaseSetting_t T>
-inline void toLog(std::vector<T> &v1, auto &settingsParserLog)
+inline void toLog(const std::vector<T> &v1, auto &settingsParserLog)
 {
-  for(auto &e : v1) {
-    auto &ref = const_cast<T &>(e);
-    ref.getErrorLogRecursive(settingsParserLog);
+  for(const auto &e : v1) {
+    e.getErrorLogRecursive(settingsParserLog);
   }
 }
 
 template <IsPrimitive_t T>
-inline void toLog(std::vector<T> &v1, auto &settingsParserLog)
+inline void toLog(const std::vector<T> &v1, auto &settingsParserLog)
 {
 }
 
-inline void toLog(std::vector<std::vector<int32_t>> &v1, auto &settingsParserLog)
+inline void toLog(const std::vector<std::vector<int32_t>> &v1, auto &settingsParserLog)
 {
 }
 

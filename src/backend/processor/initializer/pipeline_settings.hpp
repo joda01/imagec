@@ -57,7 +57,7 @@ struct PipelineSettings
   //
   enums::ClusterId defaultClusterId = enums::ClusterId::NONE;
 
-  void check()
+  void check() const
   {
     if(source == Source::FROM_FILE) {
       CHECK_ERROR(cStackIndex >= 0, "Define which image channel >cStackIndex< should be loaded.");

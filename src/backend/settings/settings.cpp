@@ -59,29 +59,4 @@ bool Settings::isEqual(const joda::settings::AnalyzeSettings &settingsOld,
   return false;
 }
 
-int32_t Settings::getNrOfAllPipelines(const joda::settings::AnalyzeSettings &settings)
-{
-  return settings.pipelines.size();
-}
-
-std::set<ClassificatorSettingOut> Settings::getOutputClasses(const joda::settings::AnalyzeSettings &settings)
-{
-  std::set<ClassificatorSettingOut> out;
-  for(const auto &pipeline : settings.pipelines) {
-    auto cluster = pipeline.getOutputClasses();
-    for(const auto &outClassesOfPipeline : cluster) {
-      ClassificatorSettingOut settings;
-      settings.classId = outClassesOfPipeline.classId;
-      if(outClassesOfPipeline.clusterId == enums::ClusterIdIn::$) {
-        settings.clusterId = pipeline.pipelineSetup.defaultClusterId;
-      } else {
-        settings.clusterId = (enums::ClusterId) outClassesOfPipeline.clusterId;
-      }
-      out.emplace(settings);
-    }
-  }
-
-  return out;
-}
-
 }    // namespace joda::settings

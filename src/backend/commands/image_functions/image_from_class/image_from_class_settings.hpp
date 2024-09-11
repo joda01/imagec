@@ -23,7 +23,7 @@ public:
   std::set<joda::enums::ClassId> classesIn;
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
   }
 

@@ -49,9 +49,11 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings)
     std::set<const settings::Pipeline *> attached;
     for(const auto *pipeline : pipelinesToAttache) {
       // If empty or input cluster is me
-      if(pipeline->getInputClusters().empty() ||
-         (pipeline->getInputClusters().size() == 1 &&
-          *pipeline->getInputClusters().begin() == pipeline->pipelineSetup.defaultClusterId)) {
+      std::set<enums::ClusterId> clusters;
+      for(const auto &element : pipeline->getInputClusters()) {
+        clusters.emplace(element.clusterId);
+      }
+      if(clusters.empty() || (clusters.size() == 1 && *clusters.begin() == pipeline->pipelineSetup.defaultClusterId)) {
         // This is a root node
         rootNodes.emplace_back(pipeline);
         attached.emplace(pipeline);
@@ -70,22 +72,26 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings)
     std::map<const settings::Pipeline *, int> notAttachedTrys;
     while(!pipelinesToAttache.empty()) {
       std::set<const settings::Pipeline *> attached;
-      for(const auto *pipeline : pipelinesToAttache) {
-        bool isAttached = false;
-        for(int n = 0; n < rootNodes.size(); n++) {
-          auto &rootNode = rootNodes[n];
-          if(rootNode.attacheNode({pipeline})) {
-            attached.emplace(pipeline);
-            isAttached = true;
+      bool isAttached = false;
+      for(int x = 0; x < pipelinesToAttache.size() + 1; x++) {
+        for(const auto *pipeline : pipelinesToAttache) {
+          for(int n = 0; n < rootNodes.size(); n++) {
+            auto &rootNode = rootNodes[n];
+            if(rootNode.attacheNode({pipeline})) {
+              attached.emplace(pipeline);
+              isAttached = true;
+            }
           }
-        }
-        if(!isAttached) {
-          notAttachedTrys[pipeline]++;
-          if(notAttachedTrys[pipeline] > (pipelineCount * pipelineCount) * rootNodes.size()) {
-            throw std::invalid_argument("Cycle detected for pipeline >" + pipeline->meta.name + "<!");
+          if(pipelinesToAttache.size() == x) {
+            if(!isAttached) {
+              notAttachedTrys[pipeline]++;
+              if(notAttachedTrys[pipeline] > (pipelineCount * pipelineCount) * rootNodes.size()) {
+                throw std::invalid_argument("Cycle detected for pipeline >" + pipeline->meta.name + "<!");
+              }
+            } else {
+              notAttachedTrys.erase(pipeline);
+            }
           }
-        } else {
-          notAttachedTrys.erase(pipeline);
         }
       }
       cleanup(attached);
@@ -103,13 +109,14 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings)
     }
   }
   // Print result
-  /*{
-    for(auto &rootNode : rootNodes) {
-      rootNode.printTree();
-    }
+  /* {
+     for(auto &rootNode : rootNodes) {
+       rootNode.printTree();
+     }
 
-    printOrder(finishedOrder);
-  }*/
+     printOrder(finishedOrder);
+   }*/
+
   return {finishedOrder, rootNodes};
 }
 

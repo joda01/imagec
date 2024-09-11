@@ -40,7 +40,7 @@ struct ClassificatorSetting
     return toUint32(clusterId, classId) < toUint32(input.clusterId, input.classId);
   }
 
-  void check()
+  void check() const
   {
   }
 
@@ -69,16 +69,18 @@ struct ClassificatorSettingOut
     return toUint32(clusterId, classId) < toUint32(input.clusterId, input.classId);
   }
 
-  void check()
+  void check() const
   {
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassificatorSettingOut, clusterId, classId);
 };
 
-using ObjectOutputClusters   = std::set<ClassificatorSetting>;
-using ObjectInputClusters    = std::set<ClassificatorSetting>;
-using ObjectInputCluster     = ClassificatorSetting;
-using ObjectOutputCluster    = ClassificatorSetting;
-using ObjectInputClustersExp = std::set<ClassificatorSettingOut>;
+using ObjectOutputClusters    = std::set<ClassificatorSetting>;
+using ObjectInputClusters     = std::set<ClassificatorSetting>;
+using ObjectInputCluster      = ClassificatorSetting;
+using ObjectOutputCluster     = ClassificatorSetting;
+using ObjectInputClustersExp  = std::set<ClassificatorSettingOut>;
+using ObjectOutputClustersExp = std::set<ClassificatorSettingOut>;
+
 }    // namespace joda::settings

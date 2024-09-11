@@ -31,7 +31,7 @@ struct ObjectStoreId
     return storeIdx < in.storeIdx || imagePlane < in.imagePlane;
   }
 
-  void check()
+  void check() const
   {
   }
 

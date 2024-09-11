@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <memory>
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/settings/settings.hpp"
 #include "controller/controller.hpp"
 #include <nlohmann/json_fwd.hpp>
 
@@ -47,11 +48,15 @@ inline std::unique_ptr<joda::ctrl::Controller> executePipeline(const std::filesy
   auto controller = std::make_unique<joda::ctrl::Controller>();
 
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(std::ifstream{cfgJsonPath});
-  SettingParserLog_t logTrace;
-  std::cout << "LOG----------" << std::endl;
-  settings.getErrorLogRecursive(logTrace);
-  for(const auto &trace : logTrace) {
-    trace.print();
+  auto errorLog                            = settings.checkForErrors();
+  for(const auto &logGroup : errorLog) {
+    std::cout << "---------------------------------" << std::endl;
+    std::cout << std::get<0>(logGroup) << std::endl;
+    std::cout << "---------------------------------" << std::endl;
+    for(const auto &trace : std::get<1>(logGroup)) {
+      trace.print();
+    }
+    std::cout << "---------------------------------" << std::endl;
   }
 
   controller->setWorkingDirectory(0, imagesPath);

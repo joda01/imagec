@@ -14,7 +14,7 @@ public:
   int32_t kernelSize = 3;
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
     CHECK_ERROR(kernelSize % 2 == 1, "Kernel size must be an odd number.");
   }

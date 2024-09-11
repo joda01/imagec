@@ -17,6 +17,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
+#include "backend/settings/setting_base.hpp"
 
 namespace joda::settings {
 
@@ -51,17 +52,17 @@ struct NoiseValidatorSettings : public SettingBase
   uint32_t maxObjects = 100000;
 
   /////////////////////////////////////////////////////
-  void check()
+  void check() const
   {
     CHECK_ERROR(mode != FilterMode::UNKNOWN, "Define a filter mode!");
     CHECK_ERROR(maxObjects > 0, "Max objects must be > 0!");
   }
 
-  std::set<enums::ClusterIdIn> getInputClusters() const override
+  settings::ObjectInputClusters getInputClusters() const override
   {
-    std::set<enums::ClusterIdIn> clusters;
+    settings::ObjectInputClusters clusters;
     for(const auto &in : inputClusters) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
     return clusters;
   }
