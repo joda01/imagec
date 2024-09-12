@@ -68,6 +68,9 @@ public:
 
   helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
   void registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi);
+  void registerAddCommandButton(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi,
+                                WindowMain *mainWindow);
+
   void addSetting(const std::vector<std::pair<SettingBase *, bool>> &settings)
   {
     addSetting(addTab("", [] {}), "", settings);

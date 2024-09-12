@@ -16,8 +16,10 @@
 #include <qnamespace.h>
 #include <qpushbutton.h>
 #include <algorithm>
+#include <cstddef>
 #include <string>
 #include <type_traits>
+#include "ui/container/pipeline/add_command_button.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -124,15 +126,35 @@ void Command::paintEvent(QPaintEvent *event)
   QWidget::paintEvent(event);
 
   QPainter painter(this);
-  const int LINE_WIDTH = 10;
+  const int LINE_WIDTH = 5;
 
-  auto colorIn = getColor(mInOut.in);
+  int heightToPaint = std::ceil(static_cast<float>(height()) / 2.0);
+  auto colorIn      = getColor(mInOut.in);
   if(colorIn != Qt::lightGray) {
-    painter.fillRect((width() - LINE_WIDTH), 0, LINE_WIDTH, height() / 2, colorIn);
+    painter.fillRect((width() - LINE_WIDTH), 0, LINE_WIDTH, heightToPaint, colorIn);
   }
   auto colorOut = getColor(mInOut.out);
   if(colorOut != Qt::lightGray) {
-    painter.fillRect((width() - LINE_WIDTH), height() / 2, LINE_WIDTH, height() / 2, colorOut);
+    painter.fillRect((width() - LINE_WIDTH), heightToPaint, LINE_WIDTH, heightToPaint, colorOut);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::registerAddCommandButton(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi,
+                                       WindowMain *mainWindow)
+{
+  // Add command button
+  {
+    auto *cmdButton =
+        new AddCommandButtonBase(settings, pipelineSettingsUi, &mPipelineStep, getInOut().out, mainWindow);
+    cmdButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    mDisplayViewLayout.addWidget(cmdButton, 2, 0, 1, 2);
   }
 }
 

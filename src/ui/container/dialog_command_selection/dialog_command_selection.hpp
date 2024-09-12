@@ -16,6 +16,7 @@
 #include <qtablewidget.h>
 #include <memory>
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "ui/container/command/command.hpp"
 
 namespace joda::settings {
 class PipelineStep;
@@ -37,14 +38,14 @@ class DialogCommandSelection : public QDialog
 public:
   /////////////////////////////////////////////////////
   DialogCommandSelection(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineStepSettingsUi,
-                         const settings::PipelineStep *pipelineStepBefore, WindowMain *parent);
+                         const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore, WindowMain *parent);
 
 private:
   /////////////////////////////////////////////////////
   void addNewCommand(int commandListIdx);
-  void addTitleToTable(const std::string &title);
-  void addCommandsToTable();
-  void addCommandToTable(const settings::PipelineStep &step);
+  void addTitleToTable(const std::string &title, int position);
+  void addCommandsToTable(InOuts outOfStepBefore);
+  int addCommandToTable(const settings::PipelineStep &step, InOuts outOfStepBefore);
   std::unique_ptr<joda::ui::Command> generateCommand(const settings::PipelineStep &step);
 
   /////////////////////////////////////////////////////
