@@ -92,9 +92,29 @@ private:
       mThresholdValueMax->connectWithSetting(&settings.thresholdMax);
       mThresholdValueMax->setShortDescription("Max. ");
 
-      outer.addSetting(
-          tab, "",
-          {{mThresholdAlgorithm.get(), true}, {mThresholdValueMin.get(), true}, {mThresholdValueMax.get(), true}});
+      //
+      //
+      //
+      mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Grayscale");
+      mGrayScaleValue->setDefaultValue(65535);
+      mGrayScaleValue->addOptions({{65535, "TH 1"},
+                                   {65534, "TH 2"},
+                                   {65533, "TH 3"},
+                                   {65532, "TH 4"},
+                                   {65530, "TH 5"},
+                                   {65529, "TH 6"},
+                                   {65528, "TH 7"},
+                                   {65527, "TH 8"}});
+      mGrayScaleValue->setUnit("");
+      mGrayScaleValue->setValue(settings.modelClassId);
+      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
+      mGrayScaleValue->setShortDescription("TH. ");
+
+      outer.addSetting(tab, "",
+                       {{mGrayScaleValue.get(), true},
+                        {mThresholdAlgorithm.get(), true},
+                        {mThresholdValueMin.get(), true},
+                        {mThresholdValueMax.get(), true}});
     }
 
     ~ThresholdUi()
@@ -103,6 +123,7 @@ private:
     }
 
     /////////////////////////////////////////////////////
+    std::unique_ptr<SettingComboBox<int32_t>> mGrayScaleValue;
     std::unique_ptr<SettingComboBox<joda::settings::ThresholdSettings::Mode>> mThresholdAlgorithm;
     std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMin;
     std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMax;
@@ -142,9 +163,8 @@ private slots:
   void addFilter()
   {
     settings::ThresholdSettings::Threshold objClass;
-    auto &ret        = mSettings.modelClasses.emplace_back(objClass);
-    ret.modelClassId = UINT16_MAX - (mSettings.modelClasses.size() - 1);
-    auto *tab        = addTab("Th", [this, &ret] { removeObjectClass(&ret); });
+    auto &ret = mSettings.modelClasses.emplace_back(objClass);
+    auto *tab = addTab("TH", [this, &ret] { removeObjectClass(&ret); });
     thresholds.emplace_back(ret, *this, tab, mParent);
     updateDisplayText();
   }

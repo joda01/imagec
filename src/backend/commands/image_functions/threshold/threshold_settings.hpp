@@ -4,6 +4,7 @@
 #include <list>
 #include <set>
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -55,7 +56,7 @@ public:
     //
     // Grayscale to assign to
     //
-    uint16_t modelClassId = UINT16_MAX;
+    int32_t modelClassId = UINT16_MAX;
 
     /////////////////////////////////////////////////////
     void check() const

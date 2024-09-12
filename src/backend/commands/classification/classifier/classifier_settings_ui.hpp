@@ -75,20 +75,20 @@ private:
       //
       mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Grayscale");
       mGrayScaleValue->setDefaultValue(65535);
-      mGrayScaleValue->addOptions({{65535, "TH class 01"},
-                                   {65534, "TH class 02"},
-                                   {65533, "TH class 03"},
-                                   {65532, "TH class 04"},
-                                   {65531, "TH class 05"}});
+      mGrayScaleValue->addOptions({{65535, "TH 1"},
+                                   {65534, "TH 2"},
+                                   {65533, "TH 3"},
+                                   {65532, "TH 4"},
+                                   {65530, "TH 5"},
+                                   {65529, "TH 6"},
+                                   {65528, "TH 7"},
+                                   {65527, "TH 8"}});
       mGrayScaleValue->setUnit("");
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
-      mGrayScaleValue->setShortDescription("Cls. ");
+      mGrayScaleValue->setShortDescription("TH. ");
 
-      outer.addSetting(tab, "Match",
-                       {/*{mClusterOut.get(), false},*/
-                        {mClassOutNoMatch.get(), true},
-                        {mGrayScaleValue.get(), true}});
+      outer.addSetting(tab, "Match", {{mClassOut.get(), true}, {mClassOutNoMatch.get(), true}});
 
       //
       //
@@ -127,8 +127,7 @@ private:
       mMinCircularity->setShortDescription("Circ. ");
 
       auto *col = outer.addSetting(tab, "Size filter",
-                                   {/*{mClusterOut.get(), false},*/
-                                    {mClassOut.get(), true},
+                                   {{mGrayScaleValue.get(), true},
                                     {mMinCircularity.get(), true},
                                     {mMinParticleSize.get(), true},
                                     {mMaxParticleSize.get(), true}});
