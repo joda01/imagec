@@ -88,24 +88,28 @@ using SettingParserLog_t = std::vector<SettingParserLog>;
     JODA_SETTINGS_EXPAND(JODA_SETTINGS_PASTE(JODA_SETTINGS_TO, __VA_ARGS__))                               \
   }
 
-#define CHECK_ERROR(okay, what)                                                                                    \
-  if(!(okay)) {                                                                                                    \
-    const auto name = std::string(typeid(*this).name());                                                           \
-    joda_settings_log.emplace_back(SettingParserLog{SettingParserLog::Severity::ERROR, name, std::string(#what)}); \
+#define CHECK_ERROR(okay, what)                                                                      \
+  if(!(okay)) {                                                                                      \
+    const auto name = std::string(typeid(*this).name());                                             \
+    auto data       = SettingParserLog{SettingParserLog::Severity::ERROR, name, std::string(#what)}; \
+    joda_settings_log.emplace_back(data);                                                            \
   }
 
-#define CHECK_WARNING(okay, what)                                                                                    \
-  if(!(okay)) {                                                                                                      \
-    const auto name = std::string(typeid(*this).name());                                                             \
-    joda_settings_log.emplace_back(SettingParserLog{SettingParserLog::Severity::WARNING, name, std::string(#what)}); \
+#define CHECK_WARNING(okay, what)                                                                      \
+  if(!(okay)) {                                                                                        \
+    const auto name = std::string(typeid(*this).name());                                               \
+    auto data       = SettingParserLog{SettingParserLog::Severity::WARNING, name, std::string(#what)}; \
+    joda_settings_log.emplace_back(data);                                                              \
   }
 
-#define CHECK_INFO(okay, what)                                                                                    \
-  if(!(okay)) {                                                                                                   \
-    const auto name = std::string(typeid(*this).name());                                                          \
-    joda_settings_log.emplace_back(SettingParserLog{SettingParserLog::Severity::INFO, name, std::string(#what)}); \
+#define CHECK_INFO(okay, what)                                                                      \
+  if(!(okay)) {                                                                                     \
+    const auto name = std::string(typeid(*this).name());                                            \
+    auto data       = SettingParserLog{SettingParserLog::Severity::INFO, name, std::string(#what)}; \
+    joda_settings_log.emplace_back(data);                                                           \
   }
 
-#define THROW_ERROR(what)                              \
-  const auto name = std::string(typeid(*this).name()); \
-  joda_settings_log.emplace_back(SettingParserLog{SettingParserLog::Severity::ERROR, name, std::string(#what)});
+#define THROW_ERROR(what)                                                                         \
+  const auto name = std::string(typeid(*this).name());                                            \
+  auto data       = SettingParserLog{SettingParserLog::Severity::INFO, name, std::string(#what)}; \
+  joda_settings_log.emplace_back(data);
