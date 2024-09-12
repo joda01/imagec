@@ -1,4 +1,6 @@
 #include "analze_settings.hpp"
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
 
 namespace joda::settings {
 
@@ -73,6 +75,7 @@ std::set<ClassificatorSettingOut> AnalyzeSettings::getInputClasses() const
 ///
 auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>
 {
+  joda_settings_log.clear();
   std::vector<std::pair<std::string, SettingParserLog_t>> errorOrderedByPipeline;
 
   {
@@ -87,6 +90,19 @@ auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::strin
     errorOrderedByPipeline.emplace_back("Image setup", errors);
   }
 
+  std::map<enums::ClassId, std::string> classes;
+  for(const auto &classs : projectSettings.classes) {
+    classes.emplace(classs.classId, classs.name);
+  }
+  classes.emplace(enums::ClassId::NONE, "None");
+
+  std::map<enums::ClusterId, std::string> clusters;
+  for(const auto &cluster : projectSettings.clusters) {
+    clusters.emplace(cluster.clusterId, cluster.name);
+  }
+
+  clusters.emplace(enums::ClusterId::NONE, "None");
+
   // Check for unused output classes
   {
     auto outputClasses = getOutputClasses();
@@ -94,8 +110,8 @@ auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::strin
     for(const auto &outputClass : outputClasses) {
       if(!inputClasses.contains(outputClass)) {
         // This class is not used
-        CHECK_INFO(false, "Output class >" + std::to_string((uint16_t) outputClass.clusterId) + "/" +
-                              std::to_string((uint16_t) outputClass.classId) + "< has no input!");
+        CHECK_WARNING(false, "Output cluster/class >" + clusters[outputClass.clusterId] + "/" +
+                                 classes[outputClass.classId] + "< is unused!");
       }
     }
     errorOrderedByPipeline.emplace_back("Image setup", joda_settings_log);

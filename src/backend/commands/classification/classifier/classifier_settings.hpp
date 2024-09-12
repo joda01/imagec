@@ -19,6 +19,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
