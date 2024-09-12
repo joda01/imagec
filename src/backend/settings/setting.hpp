@@ -20,9 +20,6 @@
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
-#include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
-#include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
 #include "setting_macro_iterator.hpp"
 

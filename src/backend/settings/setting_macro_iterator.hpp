@@ -3,6 +3,7 @@
 #include <map>
 #include <optional>
 #include <set>
+#include <string>
 #include <type_traits>
 #include <vector>
 #define JODA_SETTINGS_EXPAND(x) x
