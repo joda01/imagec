@@ -119,18 +119,18 @@ private:
 
       //
       //
-      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Match class");
+      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Match");
       mClassOut->setValue(classifyFilter.outputCluster.classId);
       mClassOut->connectWithSetting(&classifyFilter.outputCluster.classId);
       mClassOut->setDisplayIconVisible(false);
 
       //
       //
-      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "No match class");
+      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "No match");
       mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
       mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
 
-      outer.addSetting(tab, "Cluster assignment", {{mClassOut.get(), true}, {mClassOutNoMatch.get(), true}});
+      outer.addSetting(tab, "Result output", {{mClassOut.get(), true}, {mClassOutNoMatch.get(), true}});
 
       // Intensity filter
 
