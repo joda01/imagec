@@ -14,7 +14,6 @@
 #pragma once
 
 #include "backend/enums/types.hpp"
-#include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::enums {

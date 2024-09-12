@@ -17,13 +17,13 @@ void SettingParserLog::print() const
 {
   std::string toLog = "[" + commandNameOfOccurrence + "] " + message;
   switch(severity) {
-    case INFO:
+    case Severity::INFO:
       joda::log::logInfo(toLog);
       break;
-    case WARNING:
+    case Severity::WARNING:
       joda::log::logWarning(toLog);
       break;
-    case ERROR:
+    case Severity::ERROR:
       joda::log::logError(toLog);
       break;
   }
