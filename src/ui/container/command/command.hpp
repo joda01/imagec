@@ -30,17 +30,28 @@
 #include "ui/helper/layout_generator.hpp"
 
 namespace joda::ui {
+enum class InOuts
+{
+  ALL,
+  IMAGE,
+  BINARY,
+  OBJECT,
+};
+
+struct InOut
+{
+  InOuts in  = InOuts::ALL;
+  InOuts out = InOuts::ALL;
+};
 
 class WrapLabel : public QLabel
 {
-  void resizeEvent(QResizeEvent *event) override
-  {
-    QLabel::resizeEvent(event);
+public:
+  WrapLabel(InOut inout);
+  void resizeEvent(QResizeEvent *event) override;
 
-    //    QFontMetrics fontMetrics(font());
-    //    int textWidth = fontMetrics.width(text());
-    //    int numLines  = textWidth / width() + 1;
-  }
+private:
+  InOut inout;
 };
 
 class PanelPipelineSettings;
@@ -52,29 +63,32 @@ class Command : public QWidget
   Q_OBJECT
 public:
   /////////////////////////////////////////////////////
-  Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon, QWidget *parent);
+  Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon, QWidget *parent, InOut type);
 
   helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
-
   void registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi);
+  void registerAddCommandButton(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow);
 
-  void addSetting(const std::vector<std::pair<SettingBase *, bool>> &settings)
+  void addSetting(const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings)
   {
     addSetting(addTab("", [] {}), "", settings);
   }
-
-  void addSetting(helper::TabWidget *tab, const std::vector<std::pair<SettingBase *, bool>> &settings)
+  void addSetting(helper::TabWidget *tab, const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings)
   {
     addSetting(tab, "", settings);
   }
   helper::VerticalPane *addSetting(helper::TabWidget *tab, const QString &boxTitle,
-                                   const std::vector<std::pair<SettingBase *, bool>> &settings,
-                                   helper::VerticalPane *col = nullptr);
+                                   const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings, helper::VerticalPane *col = nullptr);
+
+  [[nodiscard]] InOut getInOut() const
+  {
+    return mInOut;
+  }
 
   void removeSetting(const std::set<SettingBase *> &toRemove)
   {
     for(int m = mSettings.size() - 1; m >= 0; m--) {
-      if(toRemove.contains(mSettings[m].first)) {
+      if(toRemove.contains(std::get<0>(mSettings[m]))) {
         mSettings.erase(mSettings.begin() + m);
       }
     }
@@ -137,8 +151,7 @@ public:
     return mLayout.addActionButton(text, icon);
   }
 
-  void updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames,
-                                    const std::map<enums::ClassId, QString> &classNames);
+  void updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames, const std::map<enums::ClassId, QString> &classNames);
 
   const QString &getTitle()
   {
@@ -178,6 +191,7 @@ private:
       openEditView();
     }
   }
+  void paintEvent(QPaintEvent *event) override;
 
   /////////////////////////////////////////////////////
   joda::settings::PipelineStep &mPipelineStep;
@@ -190,12 +204,12 @@ private:
   QGridLayout mDisplayViewLayout;
   QDialog *mEditDialog;
   WrapLabel *mDisplayableText;
-  std::vector<std::pair<SettingBase *, bool>> mSettings;
+  std::vector<std::tuple<SettingBase *, bool, int32_t>> mSettings;
   std::vector<SettingComboBox<enums::ClusterIdIn> *> mClusters;
   std::vector<SettingComboBox<enums::ClassId> *> mClasses;
   std::vector<SettingComboBoxMulti<enums::ClusterIdIn> *> mClustersMulti;
   std::vector<SettingComboBoxMulti<enums::ClassId> *> mClassesMulti;
-
+  const InOut mInOut;
 protected slots:
   void updateDisplayText();
 };

@@ -30,14 +30,12 @@ public:
   inline static std::string ICON  = "icons8-blur-50.png";
 
   Blur(joda::settings::PipelineStep &pipelineStep, settings::BlurSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
   {
     //
     //
-    mBlurMode =
-        SettingBase::create<SettingComboBox<settings::BlurSettings::Mode>>(parent, "icons8-blur-50.png", "Blur mode");
-    mBlurMode->addOptions({{settings::BlurSettings::Mode::BLUR_MORE, "Smoothing"},
-                           {settings::BlurSettings::Mode::GAUSSIAN, "Gaussian blur"}});
+    mBlurMode = SettingBase::create<SettingComboBox<settings::BlurSettings::Mode>>(parent, "icons8-blur-50.png", "Blur mode");
+    mBlurMode->addOptions({{settings::BlurSettings::Mode::BLUR_MORE, "Smoothing"}, {settings::BlurSettings::Mode::GAUSSIAN, "Gaussian blur"}});
     mBlurMode->setValue(settings.mode);
     mBlurMode->connectWithSetting(&settings.mode);
 
@@ -82,7 +80,7 @@ public:
     mRepeat->setValue(settings.repeat);
     mRepeat->connectWithSetting(&settings.repeat);
 
-    addSetting({{mBlurMode.get(), true}, {mKernelSize.get(), true}, {mRepeat.get(), true}});
+    addSetting({{mBlurMode.get(), true, 0}, {mKernelSize.get(), true, 0}, {mRepeat.get(), true, 0}});
   }
 
 private:

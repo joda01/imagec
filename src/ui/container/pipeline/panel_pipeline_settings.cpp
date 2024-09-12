@@ -34,6 +34,7 @@
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "backend/settings/project_settings/project_cluster.hpp"
+#include "ui/container/command/command.hpp"
 #include "ui/container/command/factory.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
@@ -85,14 +86,14 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     // Create a horizontal layout for the pipeline steps
     mPipelineSteps = new QVBoxLayout(contentWidget);
     mPipelineSteps->setContentsMargins(0, 0, 0, 0);
-    mPipelineSteps->setSpacing(4);    // Adjust this value as needed
+    mPipelineSteps->setSpacing(0);    // Adjust this value as needed
     mPipelineSteps->setAlignment(Qt::AlignTop);
     contentWidget->setLayout(mPipelineSteps);
     scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    col2->addWidgetGroup("Pipeline steps", {scrollArea});
+    col2->addWidgetGroup("Pipeline steps", {scrollArea}, 300, 300);
 
-    mPipelineSteps->addWidget(new AddCommandButtonBase(mSettings, this, nullptr, mWindowMain));
+    mPipelineSteps->addWidget(new AddCommandButtonBase(mSettings, this, nullptr, InOuts::IMAGE, mWindowMain));
   }
 
   {
@@ -119,8 +120,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
   connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
   connect(mLayout.getDeleteButton(), &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
-  connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this,
-          &PanelPipelineSettings::onClassificationNameChanged);
+  connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this, &PanelPipelineSettings::onClassificationNameChanged);
   onClassificationNameChanged();
 }
 
@@ -131,13 +131,12 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::Command> command,
-                                            const settings::PipelineStep *pipelineStepBefore)
+void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::Command> command, const settings::PipelineStep *pipelineStepBefore)
 {
   command->registerDeleteButton(this);
+  command->registerAddCommandButton(mSettings, this, mWindowMain);
   connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
-  mPipelineSteps->addWidget(new AddCommandButtonBase(mSettings, this, pipelineStepBefore, mWindowMain));
   mCommands.push_back(std::move(command));
   mWindowMain->checkForSettingsChanged();
 }
@@ -153,11 +152,10 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
                                                   const settings::PipelineStep *pipelineStepBefore)
 {
   command->registerDeleteButton(this);
+  command->registerAddCommandButton(mSettings, this, mWindowMain);
   connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  int widgetPos = (posToInsert * 2) + 1;    // Each second is a button
+  int widgetPos = posToInsert + 1;    // Each second is a button
   mPipelineSteps->insertWidget(widgetPos, command.get());
-  mPipelineSteps->insertWidget(widgetPos + 1,
-                               new AddCommandButtonBase(mSettings, this, pipelineStepBefore, mWindowMain));
   mCommands.insert(mCommands.begin() + posToInsert, std::move(command));
   mWindowMain->checkForSettingsChanged();
 }
@@ -173,13 +171,6 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
 {
   for(int index = 0; index < mPipelineSteps->count(); index++) {
     if(toDelete == mPipelineSteps->itemAt(index)->widget()) {
-      // Delete add button
-      {
-        QWidget *widget = mPipelineSteps->itemAt(index + 1)->widget();
-        mPipelineSteps->removeWidget(widget);
-        widget->setParent(nullptr);
-      }
-
       // Delete command widget
       {
         QWidget *widget = mPipelineSteps->itemAt(index)->widget();
@@ -189,8 +180,8 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
 
       // Delete settings
       {
-        int toDeleteIndex = index / 2;    // Each second is a add button
-        const auto &it    = std::next(mSettings.pipelineSteps.begin(), toDeleteIndex);
+        // First is not a command
+        const auto &it = std::next(mSettings.pipelineSteps.begin(), (index - 1));
         mSettings.pipelineSteps.erase(it);
       }
 
@@ -228,8 +219,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  cStackIndex =
-      SettingBase::create<SettingComboBox<int32_t>>(windowMain, "icons8-unknown-status-50.png", "Image channel");
+  cStackIndex = SettingBase::create<SettingComboBox<int32_t>>(windowMain, "icons8-unknown-status-50.png", "Image channel");
   cStackIndex->addOptions({{-1, "Empty"},
                            {0, "Channel 0"},
                            {1, "Channel 1"},
@@ -247,8 +237,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  zProjection =
-      SettingBase::create<SettingComboBox<enums::ZProjection>>(windowMain, "icons8-layers-50.png", "Z-Projection");
+  zProjection = SettingBase::create<SettingComboBox<enums::ZProjection>>(windowMain, "icons8-layers-50.png", "Z-Projection");
   zProjection->addOptions({{enums::ZProjection::NONE, "Off"},
                            {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                            {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
@@ -257,8 +246,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  defaultClusterId =
-      SettingBase::create<SettingComboBox<enums::ClusterId>>(windowMain, "icons8-connection-50.png", "Cluster");
+  defaultClusterId = SettingBase::create<SettingComboBox<enums::ClusterId>>(windowMain, "icons8-connection-50.png", "Cluster");
   defaultClusterId->addOptions({{enums::ClusterId::A, "Cluster A"},
                                 {enums::ClusterId::B, "Cluster B"},
                                 {enums::ClusterId::C, "Cluster C"},
@@ -274,13 +262,11 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   connect(pipelineName.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
   connect(cStackIndex.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  connect(defaultClusterId.get(), &joda::ui::SettingBase::valueChanged, this,
-          &PanelPipelineSettings::valueChangedEvent);
+  connect(defaultClusterId.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
 
   {
     auto *col1 = tab->addVerticalPanel();
-    col1->addGroup("Pipeline setup",
-                   {pipelineName.get(), cStackIndex.get(), zProjection.get(), defaultClusterId.get()});
+    col1->addGroup("Pipeline setup", {pipelineName.get(), cStackIndex.get(), zProjection.get(), defaultClusterId.get()});
   }
 
   mOverview = new PanelChannelOverview(windowMain, this);
@@ -359,8 +345,7 @@ void PanelPipelineSettings::updatePreview()
           mPreviewThread->join();
         }
       }
-      mPreviewThread = std::make_unique<std::thread>([this, newImgIdex = newImgIdex,
-                                                      selectedSeries = selectedSeries]() {
+      mPreviewThread = std::make_unique<std::thread>([this, newImgIdex = newImgIdex, selectedSeries = selectedSeries]() {
         int previewCounter = 0;
         std::this_thread::sleep_for(500ms);
         do {
@@ -371,19 +356,18 @@ void PanelPipelineSettings::updatePreview()
             if(!imgIndex.empty()) {
               auto *controller = mWindowMain->getController();
               try {
-                int32_t resolution = 0;
-                uint32_t series    = selectedSeries;
-                auto tileSize      = controller->getCompositeTileSize();
-                auto imgProps      = controller->getImageProperties(imgIndex, series);
-                auto [tileNrX, tileNrY] =
-                    imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.width, tileSize.height);
+                int32_t resolution      = 0;
+                uint32_t series         = selectedSeries;
+                auto tileSize           = controller->getCompositeTileSize();
+                auto imgProps           = controller->getImageProperties(imgIndex, series);
+                auto [tileNrX, tileNrY] = imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.width, tileSize.height);
 
                 auto &previewResult = mPreviewImage->getPreviewObject();
                 processor::PreviewSettings prevSettings;
-                prevSettings.style = mPreviewImage->getFilledPreview() ? settings::ImageSaverSettings::Style::FILLED
-                                                                       : settings::ImageSaverSettings::Style::OUTLINED;
-                controller->preview(mWindowMain->getSettings().imageSetup, prevSettings, mWindowMain->getSettings(),
-                                    getPipeline(), imgIndex, mSelectedTileX, mSelectedTileY, previewResult);
+                prevSettings.style =
+                    mPreviewImage->getFilledPreview() ? settings::ImageSaverSettings::Style::FILLED : settings::ImageSaverSettings::Style::OUTLINED;
+                controller->preview(mWindowMain->getSettings().imageSetup, prevSettings, mWindowMain->getSettings(), getPipeline(), imgIndex,
+                                    mSelectedTileX, mSelectedTileY, previewResult);
                 // Create a QByteArray from the char array
                 int valid   = 0;
                 int invalid = 0;
@@ -499,9 +483,8 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.pipelineSteps.clear();
   for(const joda::settings::PipelineStep &step : settings.pipelineSteps) {
     mSettings.pipelineSteps.emplace_back(step);
-    auto &cmdSetting = mSettings.pipelineSteps.back();
-    std::unique_ptr<joda::ui::Command> cmd =
-        joda::settings::PipelineFactory<joda::ui::Command>::generate(cmdSetting, mWindowMain);
+    auto &cmdSetting                       = mSettings.pipelineSteps.back();
+    std::unique_ptr<joda::ui::Command> cmd = joda::settings::PipelineFactory<joda::ui::Command>::generate(cmdSetting, mWindowMain);
     if(cmd != nullptr) {
       addPipelineStep(std::move(cmd), &cmdSetting);
     }
@@ -590,18 +573,16 @@ void PanelPipelineSettings::onClassificationNameChanged()
 ///
 void PanelPipelineSettings::saveAsTemplate()
 {
-  QString folderToOpen = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-  QString filePathOfSettingsFile =
-      QFileDialog::getSaveFileName(this, "Save template", folderToOpen,
-                                   "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
+  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save template", folderToOpen,
+                                                                "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
   if(filePathOfSettingsFile.isEmpty()) {
     return;
   }
 
   try {
     nlohmann::json templateJson = mSettings;
-    joda::templates::TemplateParser::saveTemplate(templateJson,
-                                                  std::filesystem::path(filePathOfSettingsFile.toStdString()));
+    joda::templates::TemplateParser::saveTemplate(templateJson, std::filesystem::path(filePathOfSettingsFile.toStdString()));
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);

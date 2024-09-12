@@ -28,12 +28,10 @@ public:
   inline static std::string TITLE = "Median subtraction";
   inline static std::string ICON  = "icons8-baseline-50.png";
 
-  MedianSubtraction(joda::settings::PipelineStep &pipelineStep, settings::MedianSubtractSettings &settings,
-                    QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
+  MedianSubtraction(joda::settings::PipelineStep &pipelineStep, settings::MedianSubtractSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
   {
-    mMedianBackgroundSubtraction = SettingBase::create<SettingComboBox<int32_t>>(parent, "icons8-baseline-50.png",
-                                                                                 "Median background subtraction");
+    mMedianBackgroundSubtraction = SettingBase::create<SettingComboBox<int32_t>>(parent, "icons8-baseline-50.png", "Median background subtraction");
     mMedianBackgroundSubtraction->addOptions({{-1, "Off"},
                                               {3, "3x3"},
                                               {4, "4x4"},
@@ -51,7 +49,7 @@ public:
     mMedianBackgroundSubtraction->setValue(settings.kernelSize);
     mMedianBackgroundSubtraction->connectWithSetting(&settings.kernelSize);
 
-    addSetting({{mMedianBackgroundSubtraction.get(), true}});
+    addSetting({{mMedianBackgroundSubtraction.get(), true, 0}});
   }
 
 private:

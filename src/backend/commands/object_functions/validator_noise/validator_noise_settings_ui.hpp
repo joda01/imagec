@@ -33,9 +33,8 @@ public:
   inline static std::string TITLE = "Noise filter";
   inline static std::string ICON  = "icons8-sort-by-price-50.png";
 
-  NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings,
-                 QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
+  NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::ALL})
   {
     mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input class");
     mClassesIn->setValue(settings.inputClusters);
@@ -52,7 +51,7 @@ public:
     mMaxNrOfObjects->connectWithSetting(&settings.maxObjects);
     mMaxNrOfObjects->setShortDescription("Nr. ");
 
-    addSetting({{mClassesIn.get(), true}, {mMaxNrOfObjects.get(), true}});
+    addSetting({{mClassesIn.get(), true, 0}, {mMaxNrOfObjects.get(), true, 0}});
   }
 
 private:

@@ -29,21 +29,20 @@ public:
   inline static std::string TITLE = "Edge detection";
   inline static std::string ICON  = "icons8-triangle-50.png";
 
-  EdgeDetection(joda::settings::PipelineStep &pipelineStep, settings::EdgeDetectionSettings &settings,
-                QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
+  EdgeDetection(joda::settings::PipelineStep &pipelineStep, settings::EdgeDetectionSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
   {
     //
     //
-    mEdgeDetectionMode = SettingBase::create<SettingComboBox<settings::EdgeDetectionSettings::Mode>>(
-        parent, "icons8-triangle-50.png", "Edge detection mode");
+    mEdgeDetectionMode =
+        SettingBase::create<SettingComboBox<settings::EdgeDetectionSettings::Mode>>(parent, "icons8-triangle-50.png", "Edge detection mode");
     mEdgeDetectionMode->addOptions({{settings::EdgeDetectionSettings::Mode::OFF, "Off"},
                                     {settings::EdgeDetectionSettings::Mode::SOBEL, "Sobel"},
                                     {settings::EdgeDetectionSettings::Mode::CANNY, "Canny"}});
     mEdgeDetectionMode->setValue(settings.mode);
     mEdgeDetectionMode->connectWithSetting(&settings.mode);
 
-    addSetting({{mEdgeDetectionMode.get(), true}});
+    addSetting({{mEdgeDetectionMode.get(), true, 0}});
   }
 
 private:

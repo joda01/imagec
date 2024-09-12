@@ -27,16 +27,14 @@ public:
   inline static std::string TITLE = "Rolling ball";
   inline static std::string ICON  = "icons8-bubble-50.png";
 
-  RollingBallBackground(joda::settings::PipelineStep &pipelineStep, settings::RollingBallSettings &settings,
-                        QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
+  RollingBallBackground(joda::settings::PipelineStep &pipelineStep, settings::RollingBallSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
   {
     //
     //
-    mBallType = SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(
-        parent, "icons8-bubble-50.png", "Ball type");
-    mBallType->addOptions({{joda::settings::RollingBallSettings::BallType::BALL, "Ball"},
-                           {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}});
+    mBallType = SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, "icons8-bubble-50.png", "Ball type");
+    mBallType->addOptions(
+        {{joda::settings::RollingBallSettings::BallType::BALL, "Ball"}, {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}});
     mBallType->setValue(settings.ballType);
     mBallType->connectWithSetting(&settings.ballType);
 
@@ -50,7 +48,7 @@ public:
     mBallSize->connectWithSetting(&settings.ballSize);
     mBallSize->setShortDescription("Size. ");
 
-    addSetting({{mBallType.get(), true}, {mBallSize.get(), true}});
+    addSetting({{mBallType.get(), true, 0}, {mBallSize.get(), true, 0}});
   }
 
 private:

@@ -35,7 +35,7 @@ public:
   inline static std::string ICON  = "icons8-image-50.png";
 
   ImageSaver(joda::settings::PipelineStep &pipelineStep, settings::ImageSaverSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settings)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings)
   {
     auto *tab = addTab("", [] {});
     {
@@ -72,8 +72,8 @@ public:
       clustersIn->setValue(clustersToSet);
     }
 
-    addSetting(tab, "Input classes", {{clustersIn.get(), true}});
-    addSetting(tab, "Image name", {{mImageNamePrefix.get(), true}, {style.get(), false}});
+    addSetting(tab, "Input classes", {{clustersIn.get(), true, 0}});
+    addSetting(tab, "Image name", {{mImageNamePrefix.get(), true, 0}, {style.get(), false, 0}});
 
     connect(style.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
     connect(clustersIn.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);

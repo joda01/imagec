@@ -29,7 +29,7 @@ public:
   inline static std::string ICON  = "icons8-split-50";
 
   Watershed(joda::settings::PipelineStep &pipelineStep, settings::WatershedSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::BINARY, InOuts::BINARY})
   {
     mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, "icons8-split-50", "Find tolerance");
     mFindTolerance->addOptions({
@@ -43,7 +43,7 @@ public:
     mFindTolerance->connectWithSetting(&settings.maximumFinderTolerance);
     mFindTolerance->setUnit("%");
 
-    addSetting({{mFindTolerance.get(), true}});
+    addSetting({{mFindTolerance.get(), true, 0}});
   }
 
 private:
