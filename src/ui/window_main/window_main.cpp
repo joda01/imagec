@@ -48,6 +48,7 @@
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include "ui/helper/template_parser/template_parser.hpp"
+#include "ui/pipeline_compile_log/panel_pipeline_compile_log.hpp"
 #include "ui/results/panel_results.hpp"
 #include "ui/window_main/panel_image.hpp"
 #include "ui/window_main/panel_pipeline.hpp"
@@ -60,7 +61,8 @@ namespace joda::ui {
 
 using namespace std::chrono_literals;
 
-WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller)
+WindowMain::WindowMain(joda::ctrl::Controller *controller) :
+    mController(controller), mCompilerLog(new PanelCompilerLog(this))
 {
   const QIcon myIcon(":/icons/outlined/icon.png");
   setWindowIcon(myIcon);
@@ -133,6 +135,13 @@ void WindowMain::createTopToolbar()
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
   toolbar->addAction(mSaveProject);
+
+  toolbar->addSeparator();
+
+  auto *showCompileLog = new QAction(QIcon(":/icons/outlined/icons8-log-50.png"), "Compiler log", toolbar);
+  showCompileLog->setToolTip("CompileLog!");
+  connect(showCompileLog, &QAction::triggered, [this]() { mCompilerLog->showDialog(); });
+  toolbar->addAction(showCompileLog);
 
   auto *spacerTop = new QWidget();
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -479,6 +488,7 @@ void WindowMain::checkForSettingsChanged()
     // mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50.png"));
     mSaveProject->setEnabled(false);
   }
+  mCompilerLog->updateCompilerLog(mAnalyzeSettings);
 }
 
 ///

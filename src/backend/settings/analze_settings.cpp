@@ -32,7 +32,7 @@ void AnalyzeSettings::check() const
 /// \param[out]
 /// \return
 ///
-std::set<ClassificatorSettingOut> AnalyzeSettings::getOutputClasses()
+std::set<ClassificatorSettingOut> AnalyzeSettings::getOutputClasses() const
 {
   std::set<ClassificatorSettingOut> out;
   for(const auto &pipeline : pipelines) {
@@ -52,7 +52,7 @@ std::set<ClassificatorSettingOut> AnalyzeSettings::getOutputClasses()
 /// \param[out]
 /// \return
 ///
-std::set<ClassificatorSettingOut> AnalyzeSettings::getInputClasses()
+std::set<ClassificatorSettingOut> AnalyzeSettings::getInputClasses() const
 {
   std::set<ClassificatorSettingOut> out;
   for(const auto &pipeline : pipelines) {
@@ -71,7 +71,7 @@ std::set<ClassificatorSettingOut> AnalyzeSettings::getInputClasses()
 /// \param[out]
 /// \return
 ///
-auto AnalyzeSettings::checkForErrors() -> std::vector<std::pair<std::string, SettingParserLog_t>>
+auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>
 {
   std::vector<std::pair<std::string, SettingParserLog_t>> errorOrderedByPipeline;
 
@@ -83,7 +83,7 @@ auto AnalyzeSettings::checkForErrors() -> std::vector<std::pair<std::string, Set
 
   {
     SettingParserLog_t errors;
-    projectSettings.getErrorLogRecursive(errors);
+    imageSetup.getErrorLogRecursive(errors);
     errorOrderedByPipeline.emplace_back("Image setup", errors);
   }
 
@@ -105,7 +105,7 @@ auto AnalyzeSettings::checkForErrors() -> std::vector<std::pair<std::string, Set
   for(const auto &pipeline : pipelines) {
     SettingParserLog_t errors;
     pipeline.getErrorLogRecursive(errors);
-    errorOrderedByPipeline.emplace_back("Pipeline: " + pipeline.meta.name, errors);
+    errorOrderedByPipeline.emplace_back(pipeline.meta.name, errors);
   }
   return errorOrderedByPipeline;
 }

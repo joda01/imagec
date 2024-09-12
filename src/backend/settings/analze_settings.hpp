@@ -43,10 +43,10 @@ public:
     return configSchema;
   }
 
-  std::set<ClassificatorSettingOut> getOutputClasses();
-  std::set<ClassificatorSettingOut> getInputClasses();
+  std::set<ClassificatorSettingOut> getOutputClasses() const;
+  std::set<ClassificatorSettingOut> getInputClasses() const;
 
-  auto checkForErrors() -> std::vector<std::pair<std::string, SettingParserLog_t>>;
+  auto checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>;
 
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings" + joda::fs::EXT_PROJECT;
