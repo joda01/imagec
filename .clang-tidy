@@ -17,3 +17,5 @@ Checks: |
 CheckOptions:
   - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
     value: true
+  - key: misc-header-include-cycle
+    value: true

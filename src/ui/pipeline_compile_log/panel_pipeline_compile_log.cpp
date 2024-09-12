@@ -75,13 +75,13 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
     // Set the icon in the first column
     auto *iconItem = new QTableWidgetItem();
     QIcon *icon    = nullptr;
-    if(log.severity == SettingParserLog::ERROR) {
+    if(log.severity == SettingParserLog::Severity::ERROR) {
       icon = new QIcon(":/icons/outlined/icons8-error-50.png");
       iconItem->setText("Error");
-    } else if(log.severity == SettingParserLog::WARNING) {
+    } else if(log.severity == SettingParserLog::Severity::WARNING) {
       icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
       iconItem->setText("Warning");
-    } else if(log.severity == SettingParserLog::INFO) {
+    } else if(log.severity == SettingParserLog::Severity::INFO) {
       icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
       iconItem->setText("Info");
     }

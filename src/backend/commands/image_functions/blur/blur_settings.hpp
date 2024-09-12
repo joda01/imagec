@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <set>
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -25,7 +26,7 @@ public:
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK_ERROR(repeat >= 0, "Repeat must be a positive number.")
+    CHECK_ERROR(repeat >= 0, "Repeat must be a positive number.");
     CHECK_ERROR(kernelSize % 2 == 1, "Kernel size must be an odd number.");
   }
 

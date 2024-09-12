@@ -73,11 +73,14 @@ private:
 
       //
       //
-      mGrayScaleValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Grayscale");
+      mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Grayscale");
       mGrayScaleValue->setDefaultValue(65535);
-      mGrayScaleValue->setPlaceholderText("[0 - 65535]");
-      mGrayScaleValue->setUnit("%");
-      mGrayScaleValue->setMinMax(0, 65535);
+      mGrayScaleValue->addOptions({{65535, "TH class 01"},
+                                   {65534, "TH class 02"},
+                                   {65533, "TH class 03"},
+                                   {65532, "TH class 04"},
+                                   {65531, "TH class 05"}});
+      mGrayScaleValue->setUnit("");
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
       mGrayScaleValue->setShortDescription("Cls. ");
@@ -168,12 +171,12 @@ private:
       zProjectionForIntensityFilter->setValue(classifyFilter.intensity.imageIn.zProjection);
       zProjectionForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.zProjection);
 
-      outer.addSetting(tab, "Intensity filter",
+      /*outer.addSetting(tab, "Intensity filter",
                        {{cStackForIntensityFilter.get(), true},
                         {zProjectionForIntensityFilter.get(), true},
                         {mMinIntensity.get(), true},
                         {mMaxIntensity.get(), true}},
-                       col);
+                       col);*/
     }
 
     ~ClassifierFilter()
@@ -186,7 +189,7 @@ private:
 
     // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
     std::unique_ptr<SettingComboBoxClassesOut> mClassOutNoMatch;
-    std::unique_ptr<SettingLineEdit<int32_t>> mGrayScaleValue;
+    std::unique_ptr<SettingComboBox<int32_t>> mGrayScaleValue;
     QWidget *mParent;
 
     std::unique_ptr<SettingComboBoxClassesOut> mClassOut;
