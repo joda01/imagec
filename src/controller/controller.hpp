@@ -22,7 +22,11 @@
 #include "backend/helper/system/system_resources.hpp"
 #include "backend/helper/threading/threading.hpp"
 #include "backend/processor/processor.hpp"
-#include "backend/settings/analze_settings.hpp"
+
+namespace joda::settings {
+class AnalyzeSettings;
+class ProjectImageSetup;
+}    // namespace joda::settings
 
 namespace joda::ctrl {
 

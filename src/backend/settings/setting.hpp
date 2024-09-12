@@ -30,7 +30,7 @@ using PipelineName_t = std::string;
 
 struct SettingParserLog
 {
-  enum Severity
+  enum class Severity
   {
     INFO,
     WARNING,
