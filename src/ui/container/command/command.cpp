@@ -289,23 +289,29 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
 
 void Command::updateDisplayText()
 {
-  QString txt;
-  int cnt      = 0;
-  int oldGroup = -1;
-  for(const auto &[setting, show, group] : mSettings) {
-    if(show) {
-      if(setting == nullptr) {
-        continue;
-      }
-      if(!setting->getDisplayLabelText().isEmpty()) {
-        txt = txt + setting->getDisplayLabelText();
-        if(oldGroup != group) {
-          oldGroup = group;
-          cnt      = 0;
-          txt += "\n----\n";
-        } else {
+  QString txt = "<html>";
+  if(!mSettings.empty()) {
+    int cnt      = 0;
+    int oldGroup = std::get<2>(*mSettings.begin());
+    for(const auto &[setting, show, group] : mSettings) {
+      if(show) {
+        if(setting == nullptr) {
+          continue;
+        }
+        if(!setting->getDisplayLabelText().isEmpty()) {
+          if(oldGroup != group) {
+            if(txt.endsWith(", ")) {
+              txt.chop(2);
+            } else if(txt.endsWith("<br>")) {
+              txt.chop(4);
+            }
+            oldGroup = group;
+            cnt      = 0;
+            txt += "<hr>";
+          }
+          txt = txt + setting->getDisplayLabelText();
           if(cnt > 0 && cnt % 3 == 0) {
-            txt += "\n";
+            txt += "<br>";
           } else {
             txt += ", ";
           }
@@ -314,7 +320,12 @@ void Command::updateDisplayText()
       }
     }
   }
-  txt.chop(2);
+  if(txt.endsWith(", ")) {
+    txt.chop(2);
+  } else if(txt.endsWith("<br>")) {
+    txt.chop(4);
+  }
+  txt += "</html>";
   mDisplayableText->setText(txt);
   mDisplayableText->adjustSize();
 }
