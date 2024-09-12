@@ -510,7 +510,6 @@ void DialogExportData::saveTemplate()
     joda::templates::TemplateParser::saveTemplate(
         templateJson, std::filesystem::path(filePathOfSettingsFile.toStdString()), joda::fs::EXT_EXPORT_TEMPLATE);
   } catch(const std::exception &ex) {
-    joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
@@ -565,7 +564,6 @@ void DialogExportData::openTemplate()
     }
 
   } catch(const std::exception &ex) {
-    joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);
     auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
