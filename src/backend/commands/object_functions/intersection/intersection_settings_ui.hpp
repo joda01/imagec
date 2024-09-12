@@ -37,7 +37,8 @@ public:
   inline static std::string ICON  = "icons8-query-inner-join-50.png";
 
   Intersection(joda::settings::PipelineStep &pipelineStep, settings::IntersectionSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings),
+      mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});
 

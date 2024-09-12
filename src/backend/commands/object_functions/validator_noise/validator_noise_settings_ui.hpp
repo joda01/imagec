@@ -35,7 +35,7 @@ public:
 
   NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings,
                  QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::ALL})
   {
     mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input class");
     mClassesIn->setValue(settings.inputClusters);

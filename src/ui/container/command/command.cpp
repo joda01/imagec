@@ -11,6 +11,7 @@
 ///
 
 #include "command.hpp"
+#include <qcolor.h>
 #include <qlabel.h>
 #include <qnamespace.h>
 #include <qpushbutton.h>
@@ -21,10 +22,23 @@
 
 namespace joda::ui {
 
-Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon,
-                 QWidget *parent) :
+WrapLabel::WrapLabel(InOut inout) : QLabel(), inout(inout)
+{
+}
+
+void WrapLabel::resizeEvent(QResizeEvent *event)
+{
+  QLabel::resizeEvent(event);
+
+  //    QFontMetrics fontMetrics(font());
+  //    int textWidth = fontMetrics.width(text());
+  //    int numLines  = textWidth / width() + 1;
+}
+
+Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon, QWidget *parent,
+                 InOut type) :
     mPipelineStep(pipelineStep),
-    mParent(parent), mTitle(title), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this)
+    mParent(parent), mTitle(title), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this), mInOut(type)
 {
   setContentsMargins(0, 0, 4, 0);
   mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);
@@ -54,7 +68,7 @@ Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &titl
   }
   // Content
   {
-    mDisplayableText = new WrapLabel();
+    mDisplayableText = new WrapLabel(type);
     mDisplayableText->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
     mDisplayableText->setWordWrap(true);
     mDisplayableText->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -90,6 +104,36 @@ Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &titl
   mEditDialog->setMinimumWidth(300);
   mEditDialog->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   mEditDialog->setWindowTitle(title);
+}
+
+void Command::paintEvent(QPaintEvent *event)
+{
+  auto getColor = [](InOuts inouts) {
+    switch(inouts) {
+      case InOuts::ALL:
+        return Qt::lightGray;
+      case InOuts::IMAGE:
+        return Qt::darkGray;
+      case InOuts::BINARY:
+        return Qt::white;
+      case InOuts::OBJECT:
+        return Qt::green;
+    }
+  };
+
+  QWidget::paintEvent(event);
+
+  QPainter painter(this);
+  const int LINE_WIDTH = 10;
+
+  auto colorIn = getColor(mInOut.in);
+  if(colorIn != Qt::lightGray) {
+    painter.fillRect((width() - LINE_WIDTH), 0, LINE_WIDTH, height() / 2, colorIn);
+  }
+  auto colorOut = getColor(mInOut.out);
+  if(colorOut != Qt::lightGray) {
+    painter.fillRect((width() - LINE_WIDTH), height() / 2, LINE_WIDTH, height() / 2, colorOut);
+  }
 }
 
 ///

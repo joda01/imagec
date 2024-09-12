@@ -34,7 +34,7 @@ public:
 
   ThresholdValidator(joda::settings::PipelineStep &pipelineStep, settings::ThresholdValidatorSettings &settings,
                      QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::BINARY, InOuts::BINARY})
   {
     //
     //

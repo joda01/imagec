@@ -40,7 +40,7 @@ public:
 
   Colocalization(joda::settings::PipelineStep &pipelineStep, settings::ColocalizationSettings &settings,
                  QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent),
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}),
       mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});

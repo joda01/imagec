@@ -36,7 +36,7 @@ public:
   inline static std::string ICON  = "dom-voronoi-50.png";
 
   VoronoiGrid(joda::settings::PipelineStep &pipelineStep, settings::VoronoiGridSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT})
   {
     auto *tab = addTab("", [] {});
     //

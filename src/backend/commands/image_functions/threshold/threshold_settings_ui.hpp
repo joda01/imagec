@@ -32,7 +32,8 @@ public:
   inline static std::string ICON  = "icons8-grayscale-50.png";
 
   Threshold(joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::BINARY}), mSettings(settings),
+      mParent(parent)
   {
     if(settings.modelClasses.empty()) {
       addFilter();
@@ -111,10 +112,10 @@ private:
       mGrayScaleValue->setShortDescription("");
 
       outer.addSetting(tab, "",
-                       {{mGrayScaleValue.get(), true},
-                        {mThresholdAlgorithm.get(), true},
+                       {{mThresholdAlgorithm.get(), true},
                         {mThresholdValueMin.get(), true},
-                        {mThresholdValueMax.get(), true}});
+                        {mThresholdValueMax.get(), true},
+                        {mGrayScaleValue.get(), true}});
     }
 
     ~ThresholdUi()
