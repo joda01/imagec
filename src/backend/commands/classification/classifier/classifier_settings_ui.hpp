@@ -38,16 +38,17 @@ public:
   inline static std::string ICON  = "icons8-genealogy-50.png";
 
   Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::BINARY, InOuts::OBJECT}), mSettings(settingsIn),
-      mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::BINARY, InOuts::OBJECT}), mSettings(settingsIn), mParent(parent)
   {
     if(settingsIn.modelClasses.empty()) {
       addFilter();
     }
 
+    int32_t cnt = 0;
     for(auto &classifierSetting : settingsIn.modelClasses) {
       auto *tab = addTab("Filter", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
-      mClassifyFilter.emplace_back(classifierSetting, *this, tab, parent);
+      mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
+      cnt++;
     }
 
     auto *addFilter = addActionButton("Add filter", "icons8-add-new-50.png");
@@ -58,7 +59,7 @@ private:
   /////////////////////////////////////////////////////
   struct ClassifierFilter
   {
-    ClassifierFilter(settings::ObjectClass &settings, Classifier &outer, helper::TabWidget *tab, QWidget *parent) :
+    ClassifierFilter(settings::ObjectClass &settings, Classifier &outer, helper::TabWidget *tab, int32_t tabIndex, QWidget *parent) :
         outer(outer), tab(tab), settings(settings)
     {
       if(settings.filters.empty()) {
@@ -70,14 +71,8 @@ private:
       //
       mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Threshold input class");
       mGrayScaleValue->setDefaultValue(65535);
-      mGrayScaleValue->addOptions({{65535, "TH 1"},
-                                   {65534, "TH 2"},
-                                   {65533, "TH 3"},
-                                   {65532, "TH 4"},
-                                   {65530, "TH 5"},
-                                   {65529, "TH 6"},
-                                   {65528, "TH 7"},
-                                   {65527, "TH 8"}});
+      mGrayScaleValue->addOptions(
+          {{65535, "TH 1"}, {65534, "TH 2"}, {65533, "TH 3"}, {65532, "TH 4"}, {65530, "TH 5"}, {65529, "TH 6"}, {65528, "TH 7"}, {65527, "TH 8"}});
       mGrayScaleValue->setUnit("");
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
@@ -113,10 +108,10 @@ private:
       mMinCircularity->setShortDescription("Circ. ");
 
       auto *col = outer.addSetting(tab, "Match filter",
-                                   {{mGrayScaleValue.get(), true},
-                                    {mMinCircularity.get(), true},
-                                    {mMinParticleSize.get(), true},
-                                    {mMaxParticleSize.get(), true}});
+                                   {{mGrayScaleValue.get(), true, tabIndex},
+                                    {mMinCircularity.get(), true, tabIndex},
+                                    {mMinParticleSize.get(), true, tabIndex},
+                                    {mMaxParticleSize.get(), true, tabIndex}});
 
       //
       //
@@ -131,7 +126,7 @@ private:
       mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
       mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
 
-      outer.addSetting(tab, "Result output", {{mClassOut.get(), true}, {mClassOutNoMatch.get(), true}});
+      outer.addSetting(tab, "Result output", {{mClassOut.get(), true, tabIndex}, {mClassOutNoMatch.get(), true, tabIndex}});
 
       // Intensity filter
 
@@ -162,8 +157,7 @@ private:
 
       //
       //
-      zProjectionForIntensityFilter =
-          SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, "icons8-layers-50.png", "Z-Projection");
+      zProjectionForIntensityFilter = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, "icons8-layers-50.png", "Z-Projection");
       zProjectionForIntensityFilter->addOptions({{enums::ZProjection::NONE, "Off"},
                                                  {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                                                  {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
@@ -181,10 +175,9 @@ private:
 
     ~ClassifierFilter()
     {
-      outer.removeSetting({mClassOutNoMatch.get(), mGrayScaleValue.get(), mClassOut.get(), mMinParticleSize.get(),
-                           mMaxParticleSize.get(), mMinCircularity.get(), mSnapAreaSize.get(),
-                           cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), mMinIntensity.get(),
-                           mMaxIntensity.get()});
+      outer.removeSetting({mClassOutNoMatch.get(), mGrayScaleValue.get(), mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
+                           mMinCircularity.get(), mSnapAreaSize.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(),
+                           mMinIntensity.get(), mMaxIntensity.get()});
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
@@ -243,7 +236,7 @@ private slots:
     settings::ObjectClass objClass;
     auto &ret = mSettings.modelClasses.emplace_back(objClass);
     auto *tab = addTab("Filter", [this, &ret] { removeObjectClass(&ret); });
-    mClassifyFilter.emplace_back(ret, *this, tab, mParent);
+    mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }
 };

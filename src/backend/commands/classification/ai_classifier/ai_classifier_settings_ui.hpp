@@ -37,8 +37,7 @@ public:
   inline static std::string ICON  = "icons8-magic-50.png";
 
   AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::OBJECT}), mSettings(settings),
-      mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::OBJECT}), mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Model", [] {});
 
@@ -57,11 +56,12 @@ public:
     mNumberOdModelClasses->connectWithSetting(&settings.numberOfModelClasses);
     mNumberOdModelClasses->setShortDescription("Classes:");
 
-    auto *col =
-        addSetting(modelTab, "AI model settings", {{mModelPath.get(), true}, {mNumberOdModelClasses.get(), false}});
+    auto *col = addSetting(modelTab, "AI model settings", {{mModelPath.get(), true, 0}, {mNumberOdModelClasses.get(), false, 0}});
+    int cnt   = 0;
     for(auto &classifierSetting : settings.modelClasses) {
       auto *tab = addTab("Class", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
-      modelClasses.emplace_back(classifierSetting, *this, tab, parent);
+      modelClasses.emplace_back(classifierSetting, *this, tab, cnt, parent);
+      cnt++;
     }
     auto *addClassifier = addActionButton("Add class", "icons8-add-new-50.png");
     connect(addClassifier, &QAction::triggered, this, &AiClassifier::addClassifier);
@@ -71,10 +71,8 @@ private:
   /////////////////////////////////////////////////////
   struct ClassifierFilter
   {
-    ClassifierFilter(settings::ClassifierFilter &settings, AiClassifier &outer, helper::TabWidget *tab,
-                     QWidget *parent) :
-        outer(outer),
-        tab(tab)
+    ClassifierFilter(settings::ClassifierFilter &settings, AiClassifier &outer, helper::TabWidget *tab, int32_t tabIndex, QWidget *parent) :
+        outer(outer), tab(tab)
     {
       //
       //
@@ -120,16 +118,16 @@ private:
 
       outer.addSetting(tab, "Filter",
                        {/*{mClusterOut.get(), false},*/
-                        {mClassOut.get(), true},
-                        {mMinCircularity.get(), true},
-                        {mMinParticleSize.get(), true},
-                        {mMaxParticleSize.get(), true}});
+                        {mClassOut.get(), true, tabIndex},
+                        {mMinCircularity.get(), true, tabIndex},
+                        {mMinParticleSize.get(), true, tabIndex},
+                        {mMaxParticleSize.get(), true, tabIndex}});
     }
 
     ~ClassifierFilter()
     {
-      outer.removeSetting({/*mClusterOut.get(),*/ mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
-                           mMinCircularity.get(), mSnapAreaSize.get()});
+      outer.removeSetting(
+          {/*mClusterOut.get(),*/ mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(), mMinCircularity.get(), mSnapAreaSize.get()});
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
@@ -145,7 +143,7 @@ private:
 
   struct ObjectClass
   {
-    ObjectClass(settings::ObjectClass &settings, AiClassifier &outer, helper::TabWidget *tab, QWidget *parent) :
+    ObjectClass(settings::ObjectClass &settings, AiClassifier &outer, helper::TabWidget *tab, int32_t tabIndex, QWidget *parent) :
         outer(outer), tab(tab), mSettings(settings)
     {
       //
@@ -171,12 +169,12 @@ private:
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
       mGrayScaleValue->setShortDescription("Cls. ");
 
-      auto *col = outer.addSetting(tab, "Classification", {{mGrayScaleValue.get(), false}});
-      outer.addSetting(tab, "No match handling",
-                       {/*{mClusterOutNoMatch.get(), false},*/ {mClassOutNoMatch.get(), false}}, col);
-
+      auto *col = outer.addSetting(tab, "Classification", {{mGrayScaleValue.get(), false, tabIndex}});
+      outer.addSetting(tab, "No match handling", {/*{mClusterOutNoMatch.get(), false},*/ {mClassOutNoMatch.get(), false, tabIndex}}, col);
+      int32_t cnt = 0;
       for(auto &filter : settings.filters) {
-        mClassifyFilter.emplace_back(filter, outer, tab, parent);
+        mClassifyFilter.emplace_back(filter, outer, tab, cnt, parent);
+        cnt++;
       }
     }
 
@@ -234,7 +232,7 @@ private slots:
     objClass.modelClassId = 0;
     auto &ret             = mSettings.modelClasses.emplace_back(objClass);
     auto *tab             = addTab("Class", [this, &ret] { removeObjectClass(&ret); });
-    modelClasses.emplace_back(ret, *this, tab, mParent);
+    modelClasses.emplace_back(ret, *this, tab, (int32_t) mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }
 };

@@ -91,7 +91,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     contentWidget->setLayout(mPipelineSteps);
     scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    col2->addWidgetGroup("Pipeline steps", {scrollArea});
+    col2->addWidgetGroup("Pipeline steps", {scrollArea}, 300, 300);
 
     mPipelineSteps->addWidget(new AddCommandButtonBase(mSettings, this, nullptr, InOuts::IMAGE, mWindowMain));
   }

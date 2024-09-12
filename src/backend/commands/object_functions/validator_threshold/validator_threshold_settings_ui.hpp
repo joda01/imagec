@@ -32,8 +32,7 @@ public:
   inline static std::string TITLE = "Threshold filter";
   inline static std::string ICON  = "icons8-filter-50.png";
 
-  ThresholdValidator(joda::settings::PipelineStep &pipelineStep, settings::ThresholdValidatorSettings &settings,
-                     QWidget *parent) :
+  ThresholdValidator(joda::settings::PipelineStep &pipelineStep, settings::ThresholdValidatorSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::BINARY, InOuts::BINARY})
   {
     //
@@ -47,7 +46,7 @@ public:
     mHistThreshold->connectWithSetting(&settings.histMinThresholdFilterFactor);
     mHistThreshold->setShortDescription("Factor. ");
 
-    addSetting({{mHistThreshold.get(), true}});
+    addSetting({{mHistThreshold.get(), true, 0}});
   }
 
 private:

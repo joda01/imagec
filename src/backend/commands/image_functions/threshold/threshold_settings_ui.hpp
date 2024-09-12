@@ -32,16 +32,16 @@ public:
   inline static std::string ICON  = "icons8-grayscale-50.png";
 
   Threshold(joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::BINARY}), mSettings(settings),
-      mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::BINARY}), mSettings(settings), mParent(parent)
   {
     if(settings.modelClasses.empty()) {
       addFilter();
     }
-
+    int cnt = 0;
     for(auto &classifierSetting : settings.modelClasses) {
       auto *tab = addTab("Th", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
-      thresholds.emplace_back(classifierSetting, *this, tab, parent);
+      thresholds.emplace_back(classifierSetting, *this, tab, cnt, parent);
+      cnt++;
     }
 
     auto *addFilter = addActionButton("Add threshold", "icons8-add-new-50.png");
@@ -52,16 +52,14 @@ private:
   class ThresholdUi
   {
   public:
-    ThresholdUi(settings::ThresholdSettings::Threshold &settings, Threshold &outer, helper::TabWidget *tab,
-                QWidget *parent) :
-        settings(settings),
-        outer(outer)
+    ThresholdUi(settings::ThresholdSettings::Threshold &settings, Threshold &outer, helper::TabWidget *tab, int32_t index, QWidget *parent) :
+        settings(settings), outer(outer)
     {
       //
       //
       //
-      mThresholdAlgorithm = SettingBase::create<SettingComboBox<joda::settings::ThresholdSettings::Mode>>(
-          parent, "icons8-grayscale-50.png", "Threshold algorithm");
+      mThresholdAlgorithm =
+          SettingBase::create<SettingComboBox<joda::settings::ThresholdSettings::Mode>>(parent, "icons8-grayscale-50.png", "Threshold algorithm");
       mThresholdAlgorithm->addOptions({{joda::settings::ThresholdSettings::Mode::MANUAL, "Manual"},
                                        {joda::settings::ThresholdSettings::Mode::LI, "Li"},
                                        {joda::settings::ThresholdSettings::Mode::MIN_ERROR, "Min. error"},
@@ -98,30 +96,23 @@ private:
       //
       mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Threshold output class");
       mGrayScaleValue->setDefaultValue(65535);
-      mGrayScaleValue->addOptions({{65535, "TH 1"},
-                                   {65534, "TH 2"},
-                                   {65533, "TH 3"},
-                                   {65532, "TH 4"},
-                                   {65530, "TH 5"},
-                                   {65529, "TH 6"},
-                                   {65528, "TH 7"},
-                                   {65527, "TH 8"}});
+      mGrayScaleValue->addOptions(
+          {{65535, "TH 1"}, {65534, "TH 2"}, {65533, "TH 3"}, {65532, "TH 4"}, {65530, "TH 5"}, {65529, "TH 6"}, {65528, "TH 7"}, {65527, "TH 8"}});
       mGrayScaleValue->setUnit("");
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
       mGrayScaleValue->setShortDescription("");
 
       outer.addSetting(tab, "",
-                       {{mThresholdAlgorithm.get(), true},
-                        {mThresholdValueMin.get(), true},
-                        {mThresholdValueMax.get(), true},
-                        {mGrayScaleValue.get(), true}});
+                       {{mThresholdAlgorithm.get(), true, index},
+                        {mThresholdValueMin.get(), true, index},
+                        {mThresholdValueMax.get(), true, index},
+                        {mGrayScaleValue.get(), true, index}});
     }
 
     ~ThresholdUi()
     {
-      outer.removeSetting(
-          {mGrayScaleValue.get(), mThresholdAlgorithm.get(), mThresholdValueMin.get(), mThresholdValueMax.get()});
+      outer.removeSetting({mGrayScaleValue.get(), mThresholdAlgorithm.get(), mThresholdValueMin.get(), mThresholdValueMax.get()});
     }
 
     /////////////////////////////////////////////////////
@@ -167,7 +158,7 @@ private slots:
     settings::ThresholdSettings::Threshold objClass;
     auto &ret = mSettings.modelClasses.emplace_back(objClass);
     auto *tab = addTab("TH", [this, &ret] { removeObjectClass(&ret); });
-    thresholds.emplace_back(ret, *this, tab, mParent);
+    thresholds.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }
 };

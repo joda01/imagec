@@ -37,8 +37,7 @@ public:
   inline static std::string ICON  = "icons8-ruler-50.png";
 
   Measure(joda::settings::PipelineStep &pipelineStep, settings::MeasureSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings),
-      mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings), mParent(parent)
   {
     //
     //
@@ -60,8 +59,7 @@ public:
 
     //
     //
-    zProjection =
-        SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, "icons8-layers-50.png", "Z-Projection");
+    zProjection = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, "icons8-layers-50.png", "Z-Projection");
     zProjection->addOptions({{enums::ZProjection::NONE, "Off"},
                              {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                              {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
@@ -72,8 +70,8 @@ public:
     //
     //
     auto *tab = addTab("Input class", [] {});
-    addSetting(tab, "Input classes", {{clustersIn.get(), true}});
-    addSetting(tab, "Input image channels", {{cStackIndex.get(), true}, {zProjection.get(), true}});
+    addSetting(tab, "Input classes", {{clustersIn.get(), true, 0}});
+    addSetting(tab, "Input image channels", {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}});
 
     // auto *addClassifier = addActionButton("Add class", "icons8-genealogy-50.png");
     //  connect(addClassifier, &QAction::triggered, this, &Classifier::addClassifier);
@@ -91,7 +89,6 @@ private slots:
 
   void onCStackChanged()
   {
-    std::cout << "Val changhed" << std::endl;
     auto cStacks = cStackIndex->getValue();
     mSettings.planesIn.clear();
     for(const auto &cStack : cStacks) {

@@ -61,28 +61,26 @@ public:
 
     //
     //
-    maskingCluster =
-        SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Masking cluster (optional)");
+    maskingCluster = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Masking cluster (optional)");
     maskingCluster->setValue(settings.inputClustersMask);
     maskingCluster->connectWithSetting(&settings.inputClustersMask);
 
-    auto *col1 = addSetting(tab, "Voronoi input/output", {{pointsCluster.get(), true}, {voronoiClassOut.get(), false}});
-    addSetting(tab, "Voronoi masking", {{mMaxRadius.get(), true}, {maskingCluster.get(), false}}, col1);
+    auto *col1 = addSetting(tab, "Voronoi input/output", {{pointsCluster.get(), true, 0}, {voronoiClassOut.get(), false, 0}});
+    addSetting(tab, "Voronoi masking", {{mMaxRadius.get(), true, 0}, {maskingCluster.get(), false, 0}}, col1);
 
     excludeAreasWithoutPoints = SettingBase::create<SettingComboBox<bool>>(parent, "", "Exclude areas without points");
-    excludeAreasWithoutPoints->addOptions({{false, "Off"}, {true, "On"}});
+    excludeAreasWithoutPoints->addOptions({{false, "Off", 0}, {true, "On", 0}});
     excludeAreasWithoutPoints->setDefaultValue(true);
     excludeAreasWithoutPoints->setValue(settings.excludeAreasWithoutPoint);
     excludeAreasWithoutPoints->connectWithSetting(&settings.excludeAreasWithoutPoint);
 
     excludeAreasAtTheEdge = SettingBase::create<SettingComboBox<bool>>(parent, "", "Exclude areas at the edges");
-    excludeAreasAtTheEdge->addOptions({{false, "Off"}, {true, "On"}});
+    excludeAreasAtTheEdge->addOptions({{false, "Off", 0}, {true, "On", 0}});
     excludeAreasAtTheEdge->setDefaultValue(true);
     excludeAreasAtTheEdge->setValue(settings.excludeAreasAtTheEdge);
     excludeAreasAtTheEdge->connectWithSetting(&settings.excludeAreasAtTheEdge);
 
-    auto *col2 =
-        addSetting(tab, "Area filter", {{excludeAreasWithoutPoints.get(), true}, {excludeAreasAtTheEdge.get(), false}});
+    auto *col2 = addSetting(tab, "Area filter", {{excludeAreasWithoutPoints.get(), true, 0}, {excludeAreasAtTheEdge.get(), false, 0}});
 
     //
     //
@@ -104,7 +102,7 @@ public:
     mMaxAreaSize->connectWithSetting(&settings.maxAreaSize);
     mMaxAreaSize->setShortDescription("Max. ");
 
-    addSetting(tab, "Size filter", {{mMinAreaSize.get(), false}, {mMaxAreaSize.get(), false}}, col2);
+    addSetting(tab, "Size filter", {{mMinAreaSize.get(), false, 0}, {mMaxAreaSize.get(), false, 0}}, col2);
   }
 
 private:

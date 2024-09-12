@@ -26,27 +26,24 @@ namespace joda::ui {
 
 WrapLabel::WrapLabel(InOut inout) : QLabel(), inout(inout)
 {
+  setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
+  setWordWrap(true);
+  setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 }
 
 void WrapLabel::resizeEvent(QResizeEvent *event)
 {
   QLabel::resizeEvent(event);
-
-  //    QFontMetrics fontMetrics(font());
-  //    int textWidth = fontMetrics.width(text());
-  //    int numLines  = textWidth / width() + 1;
 }
 
-Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon, QWidget *parent,
-                 InOut type) :
-    mPipelineStep(pipelineStep),
-    mParent(parent), mTitle(title), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this), mInOut(type)
+Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon, QWidget *parent, InOut type) :
+    mPipelineStep(pipelineStep), mParent(parent), mTitle(title), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this), mInOut(type)
 {
   setContentsMargins(0, 0, 4, 0);
   mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);
   setLayout(&mDisplayViewLayout);
   mDisplayViewLayout.setSpacing(4);
-  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
   // Header
   {
@@ -65,15 +62,12 @@ Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &titl
     }
     // layout->addWidget(new QLabel(title));
     // layout->addStretch();
-    headerWidget->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Minimum);
+    headerWidget->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
     mDisplayViewLayout.addWidget(headerWidget, 0, 0);
   }
   // Content
   {
     mDisplayableText = new WrapLabel(type);
-    mDisplayableText->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
-    mDisplayableText->setWordWrap(true);
-    mDisplayableText->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     mDisplayViewLayout.addWidget(mDisplayableText, 0, 1);
   }
 
@@ -92,8 +86,6 @@ Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &titl
     label->setMaximumHeight(10);
     mDisplayViewLayout.addWidget(label, 1, 0, 1, 2);
   }
-
-  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   // Prepare edit dialog
   mEditView.setContentsMargins(0, 0, 0, 0);
@@ -121,6 +113,7 @@ void Command::paintEvent(QPaintEvent *event)
       case InOuts::OBJECT:
         return Qt::green;
     }
+    return Qt::lightGray;
   };
 
   QWidget::paintEvent(event);
@@ -146,13 +139,11 @@ void Command::paintEvent(QPaintEvent *event)
 /// \param[out]
 /// \return
 ///
-void Command::registerAddCommandButton(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi,
-                                       WindowMain *mainWindow)
+void Command::registerAddCommandButton(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow)
 {
   // Add command button
   {
-    auto *cmdButton =
-        new AddCommandButtonBase(settings, pipelineSettingsUi, &mPipelineStep, getInOut().out, mainWindow);
+    auto *cmdButton = new AddCommandButtonBase(settings, pipelineSettingsUi, &mPipelineStep, getInOut().out, mainWindow);
     cmdButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     mDisplayViewLayout.addWidget(cmdButton, 2, 0, 1, 2);
   }
@@ -228,11 +219,10 @@ helper::TabWidget *Command::addTab(const QString &title, std::function<void()> b
 }
 
 helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString &boxTitle,
-                                          const std::vector<std::pair<SettingBase *, bool>> &settings,
-                                          helper::VerticalPane *col)
+                                          const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings, helper::VerticalPane *col)
 {
   auto containsPtr = [&](SettingBase *toCheck) {
-    for(const auto &[ptr, _] : mSettings) {
+    for(const auto &[ptr, _, group] : mSettings) {
       if(ptr == toCheck) {
         return true;
       }
@@ -240,9 +230,9 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
     return false;
   };
 
-  for(auto &[data, bo] : settings) {
+  for(auto &[data, bo, group] : settings) {
     if(!containsPtr(data)) {
-      mSettings.emplace_back(data, bo);
+      mSettings.emplace_back(data, bo, group);
 
       {
         auto *casted = dynamic_cast<SettingComboBox<enums::ClusterIdIn> *>(data);
@@ -275,7 +265,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   }
   auto convert = [&]() {
     std::vector<SettingBase *> vec;
-    std::transform(settings.begin(), settings.end(), std::back_inserter(vec), [](auto &kv) { return kv.first; });
+    std::transform(settings.begin(), settings.end(), std::back_inserter(vec), [](auto &kv) { return std::get<0>(kv); });
     return vec;
   };
 
@@ -287,7 +277,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   } else {
     col->addGroup(boxTitle, convert(), 220, 300);
   }
-  for(const auto &[setting, show] : settings) {
+  for(const auto &[setting, show, group] : settings) {
     setting->setDisplayIconVisible(false);
     connect(setting, &SettingBase::valueChanged, this, &Command::valueChanged);
   }
@@ -300,13 +290,27 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
 void Command::updateDisplayText()
 {
   QString txt;
-  for(const auto &[setting, show] : mSettings) {
+  int cnt      = 0;
+  int oldGroup = -1;
+  for(const auto &[setting, show, group] : mSettings) {
     if(show) {
       if(setting == nullptr) {
         continue;
       }
       if(!setting->getDisplayLabelText().isEmpty()) {
-        txt = txt + setting->getDisplayLabelText() + ", ";
+        txt = txt + setting->getDisplayLabelText();
+        if(oldGroup != group) {
+          oldGroup = group;
+          cnt      = 0;
+          txt += "\n----\n";
+        } else {
+          if(cnt > 0 && cnt % 3 == 0) {
+            txt += "\n";
+          } else {
+            txt += ", ";
+          }
+          cnt++;
+        }
       }
     }
   }

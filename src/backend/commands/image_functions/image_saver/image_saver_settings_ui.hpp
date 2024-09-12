@@ -72,8 +72,8 @@ public:
       clustersIn->setValue(clustersToSet);
     }
 
-    addSetting(tab, "Input classes", {{clustersIn.get(), true}});
-    addSetting(tab, "Image name", {{mImageNamePrefix.get(), true}, {style.get(), false}});
+    addSetting(tab, "Input classes", {{clustersIn.get(), true, 0}});
+    addSetting(tab, "Image name", {{mImageNamePrefix.get(), true, 0}, {style.get(), false, 0}});
 
     connect(style.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
     connect(clustersIn.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);

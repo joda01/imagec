@@ -43,7 +43,7 @@ public:
     mFindTolerance->connectWithSetting(&settings.maximumFinderTolerance);
     mFindTolerance->setUnit("%");
 
-    addSetting({{mFindTolerance.get(), true}});
+    addSetting({{mFindTolerance.get(), true, 0}});
   }
 
 private:

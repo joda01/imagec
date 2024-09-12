@@ -38,10 +38,8 @@ public:
   inline static std::string TITLE = "Colocalization";
   inline static std::string ICON  = "icons8-venn-diagram-50.png";
 
-  Colocalization(joda::settings::PipelineStep &pipelineStep, settings::ColocalizationSettings &settings,
-                 QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}),
-      mSettings(settings), mParent(parent)
+  Colocalization(joda::settings::PipelineStep &pipelineStep, settings::ColocalizationSettings &settings, QWidget *parent) :
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});
 
@@ -60,13 +58,13 @@ public:
     mMinIntersection->connectWithSetting(&settings.minIntersection);
     mMinIntersection->setShortDescription("Cls. ");
 
-    auto *col = addSetting(modelTab, "Base settings.", {{mClassOutput.get(), true}, {mMinIntersection.get(), false}});
+    auto *col = addSetting(modelTab, "Base settings.", {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}});
 
     mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input");
     mClustersIn->setValue(settings.inputClusters);
     mClustersIn->connectWithSetting(&settings.inputClusters);
 
-    addSetting(modelTab, "Coloc with.", {{mClustersIn.get(), true}});
+    addSetting(modelTab, "Coloc with.", {{mClustersIn.get(), true, 0}});
   }
 
 private:

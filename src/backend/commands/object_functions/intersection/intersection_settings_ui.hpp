@@ -37,18 +37,14 @@ public:
   inline static std::string ICON  = "icons8-query-inner-join-50.png";
 
   Intersection(joda::settings::PipelineStep &pipelineStep, settings::IntersectionSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings),
-      mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});
 
     mMode = SettingBase::create<SettingComboBox<joda::settings::IntersectionSettings::Function>>(parent, "", "Mode");
-    mMode->addOptions(
-        {{.key = joda::settings::IntersectionSettings::Function::COUNT, .label = "Count", .icon = ""},
-         {.key = joda::settings::IntersectionSettings::Function::RECLASSIFY, .label = "Reclassify Move", .icon = ""},
-         {.key   = joda::settings::IntersectionSettings::Function::RECLASSIFY_COPY,
-          .label = "Reclassify Copy",
-          .icon  = ""}});
+    mMode->addOptions({{.key = joda::settings::IntersectionSettings::Function::COUNT, .label = "Count", .icon = ""},
+                       {.key = joda::settings::IntersectionSettings::Function::RECLASSIFY, .label = "Reclassify Move", .icon = ""},
+                       {.key = joda::settings::IntersectionSettings::Function::RECLASSIFY_COPY, .label = "Reclassify Copy", .icon = ""}});
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
 
@@ -63,7 +59,7 @@ public:
     mMinIntersection->connectWithSetting(&settings.minIntersection);
     mMinIntersection->setShortDescription("Cls. ");
 
-    auto *col = addSetting(modelTab, "Base settings", {{mMode.get(), true}, {mMinIntersection.get(), false}});
+    auto *col = addSetting(modelTab, "Base settings", {{mMode.get(), true, 0}, {mMinIntersection.get(), false, 0}});
 
     mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input (e.g. Tetraspeck)");
     mClustersIn->setValue(settings.inputObjects.inputClusters);
@@ -77,8 +73,8 @@ public:
     mClassOutput->setValue(settings.newClassId);
     mClassOutput->connectWithSetting(&settings.newClassId);
 
-    auto *col2 = addSetting(modelTab, "Input classes", {{mClustersIn.get(), true}});
-    addSetting(modelTab, "Intersect with", {{mClustersIntersectWith.get(), true}, {mClassOutput.get(), true}}, col2);
+    auto *col2 = addSetting(modelTab, "Input classes", {{mClustersIn.get(), true, 0}});
+    addSetting(modelTab, "Intersect with", {{mClustersIntersectWith.get(), true, 0}, {mClassOutput.get(), true, 0}}, col2);
   }
 
 private:
