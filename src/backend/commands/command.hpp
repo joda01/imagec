@@ -48,7 +48,7 @@ protected:
     joda::log::logWarning(static_cast<std::string>(name + "::" + what));
   }
 
-  void THROW_ERROR(const std::string &what) const
+  void THROW(const std::string &what) const
   {
     const auto name = std::string(typeid(*this).name());
     throw std::invalid_argument(static_cast<std::string>(name + "::" + what));

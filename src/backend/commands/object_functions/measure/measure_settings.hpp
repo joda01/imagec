@@ -25,17 +25,13 @@
 #include "backend/global_enums.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
 
 struct MeasureSettings : public SettingBase
 {
-  //
-  // Optional input object for which a measurement should be applied
-  //
-  joda::enums::ObjectStoreId objectIn;
-
   //
   // Clusters to calculate to measure for
   //
@@ -49,19 +45,19 @@ struct MeasureSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK_(!planesIn.empty(), "At least one image plane must be given for measurement.");
+    CHECK_ERROR(!planesIn.empty(), "At least one image plane must be given for measurement.");
   }
 
-  std::set<enums::ClusterIdIn> getInputClusters() const override
+  settings::ObjectInputClusters getInputClusters() const override
   {
-    std::set<enums::ClusterIdIn> clusters;
+    settings::ObjectInputClusters clusters;
     for(const auto &in : inputClusters) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
     return clusters;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, objectIn, inputClusters, planesIn);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, inputClusters, planesIn);
 };
 
 }    // namespace joda::settings

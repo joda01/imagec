@@ -183,8 +183,8 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     //
     // Apply the filter based on the object class
     //
-    if(mSettings.classifiers.size() > classId) {
-      const auto &objectClass = mSettings.classifiers.at(classId);
+    if(mSettings.modelClasses.size() > classId) {
+      const auto &objectClass = mSettings.modelClasses.at(classId);
 
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{

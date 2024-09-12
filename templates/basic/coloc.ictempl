@@ -17,14 +17,6 @@
       "$colocalization": {
         "inputClusters": [],
         "minIntersection": 0.10000000149011612,
-        "objectIn": {
-          "imagePlane": {
-            "cStack": -1,
-            "tStack": -1,
-            "zStack": -1
-          },
-          "storeIdx": "M0"
-        },
         "outputCluster": {
           "classId": "None",
           "clusterId": "$"
@@ -34,14 +26,6 @@
     {
       "$measure": {
         "inputClusters": [],
-        "objectIn": {
-          "imagePlane": {
-            "cStack": -1,
-            "tStack": -1,
-            "zStack": -1
-          },
-          "storeIdx": "M0"
-        },
         "planesIn": []
       }
     },

@@ -59,10 +59,12 @@ struct PipelineSettings
 
   void check() const
   {
+    CHECK_ERROR((defaultClusterId != enums::ClusterId::UNDEFINED && defaultClusterId != enums::ClusterId::NONE),
+                "Define a cluster for the pipeline!");
     if(source == Source::FROM_FILE) {
-      CHECK_(cStackIndex >= 0, "Define which image channel >cStackIndex< should be loaded.");
-      CHECK_(zProjection != enums::ZProjection::UNDEFINED,
-             "Define the z-projection mode for image loading in pipeline!");
+      // CHECK_ERROR(cStackIndex >= 0, "Define which image channel >cStackIndex< should be loaded.");
+      CHECK_ERROR(zProjection != enums::ZProjection::UNDEFINED,
+                  "Define the z-projection mode for image loading in pipeline!");
     }
   }
 

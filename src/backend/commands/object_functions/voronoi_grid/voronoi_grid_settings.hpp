@@ -3,11 +3,14 @@
 #include <cstdint>
 #include <optional>
 #include <set>
+#include <string>
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
+#include "backend/settings/settings_types.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -15,8 +18,6 @@ namespace joda::settings {
 struct VoronoiGridSettings : public SettingBase
 {
 public:
-  enums::ObjectStoreId objectStoreIn;
-
   //
   // Cluster where the points which should be used to generate the voronoi grid are stored in
   //
@@ -62,15 +63,15 @@ public:
   {
   }
 
-  std::set<enums::ClusterIdIn> getInputClusters() const override
+  settings::ObjectInputClusters getInputClusters() const override
   {
-    std::set<enums::ClusterIdIn> clusters;
+    settings::ObjectInputClusters clusters;
     for(const auto &in : inputClustersPoints) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
 
     for(const auto &in : inputClustersMask) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
     return clusters;
   }
@@ -80,10 +81,9 @@ public:
     return {outputClustersVoronoi};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, objectStoreIn, inputClustersPoints,
-                                                       outputClustersVoronoi, inputClustersMask,
-                                                       excludeAreasWithoutPoint, excludeAreasAtTheEdge, maxRadius,
-                                                       minAreaSize, maxAreaSize);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, inputClustersPoints, outputClustersVoronoi,
+                                                       inputClustersMask, excludeAreasWithoutPoint,
+                                                       excludeAreasAtTheEdge, maxRadius, minAreaSize, maxAreaSize);
 };
 
 }    // namespace joda::settings

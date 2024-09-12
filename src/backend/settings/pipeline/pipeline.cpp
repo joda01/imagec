@@ -21,17 +21,18 @@ namespace joda::settings {
 /// \brief      Returns the input clusters this pipeline is using
 /// \author     Joachim Danmayr
 ///
-std::set<enums::ClusterId> Pipeline::getInputClusters() const
+ObjectInputClustersExp Pipeline::getInputClusters() const
 {
-  std::set<enums::ClusterId> clusters;
+  ObjectInputClustersExp clusters;
   for(const auto &pipelineStep : pipelineSteps) {
     auto command            = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
     const auto &clustersCmd = command->getInputClusters();
     for(const auto &clusterId : clustersCmd) {
-      if(clusterId == enums::ClusterIdIn::$) {
-        clusters.emplace(pipelineSetup.defaultClusterId);
+      if(clusterId.clusterId == enums::ClusterIdIn::$) {
+        clusters.emplace(ClassificatorSettingOut{pipelineSetup.defaultClusterId, clusterId.classId});
       } else {
-        clusters.emplace(static_cast<enums::ClusterId>(clusterId));
+        clusters.emplace(
+            ClassificatorSettingOut{static_cast<joda::enums::ClusterId>(clusterId.clusterId), clusterId.classId});
       }
     }
   }
@@ -42,19 +43,19 @@ std::set<enums::ClusterId> Pipeline::getInputClusters() const
 /// \brief      Returns the cluster ID this pipeline is storing the results in
 /// \author     Joachim Danmayr
 ///
-ObjectOutputClusters Pipeline::getOutputClasses() const
+ObjectOutputClustersExp Pipeline::getOutputClasses() const
 {
-  ObjectOutputClusters clusters;
+  ObjectOutputClustersExp clusters;
   for(const auto &pipelineStep : pipelineSteps) {
     auto command            = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
     const auto &clustersCmd = command->getOutputClasses();
     for(const auto &cluster : clustersCmd) {
       if(cluster.clusterId == enums::ClusterIdIn::$) {
         clusters.emplace(
-            ClassificatorSetting{.clusterId = static_cast<joda::enums::ClusterIdIn>(pipelineSetup.defaultClusterId),
-                                 .classId   = cluster.classId});
+            ClassificatorSettingOut{.clusterId = pipelineSetup.defaultClusterId, .classId = cluster.classId});
       } else {
-        clusters.emplace(ClassificatorSetting{.clusterId = cluster.clusterId, .classId = cluster.classId});
+        clusters.emplace(ClassificatorSettingOut{.clusterId = static_cast<joda::enums::ClusterId>(cluster.clusterId),
+                                                 .classId   = cluster.classId});
       }
     }
   }
@@ -68,6 +69,32 @@ ObjectOutputClusters Pipeline::getOutputClasses() const
 enums::ClusterId Pipeline::getOutputCluster() const
 {
   return pipelineSetup.defaultClusterId;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Pipeline::check() const
+{
+  bool hasSaveImage = false;
+  bool hasMeasure   = false;
+
+  for(const auto &command : pipelineSteps) {
+    if(command.$saveImage.has_value()) {
+      hasSaveImage = true;
+    }
+
+    if(command.$measure.has_value()) {
+      hasMeasure = true;
+    }
+  }
+
+  CHECK_INFO(hasSaveImage, "Pipeline does not store control image!");
+  CHECK_WARNING(hasMeasure, "Pipeline does not measure anything!");
 }
 
 }    // namespace joda::settings

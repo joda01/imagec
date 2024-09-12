@@ -13,6 +13,7 @@
 #include "setting_combobox_multi_classification_in.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/settings/settings_types.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {

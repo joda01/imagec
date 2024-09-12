@@ -17,6 +17,7 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/settings_types.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::processor {
@@ -33,7 +34,7 @@ struct ClassifierFilter
     // Which image should be used for measure the intensity value.
     // If not specified the initial image of the actual pipeline step is used.
     //
-    enums::ImageId imageIn = {.imageIdx = joda::enums::ZProjection::MAX_INTENSITY, .imagePlane = {.cStack = -1}};
+    enums::ImageId imageIn = {.zProjection = joda::enums::ZProjection::MAX_INTENSITY, .imagePlane = {.cStack = -1}};
 
     //
     // Min intensity
@@ -48,7 +49,7 @@ struct ClassifierFilter
     void check() const
     {
       if(minIntensity >= 0 || maxIntensity >= 0) {
-        CHECK_(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
+        CHECK_ERROR(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
       }
     }
 
@@ -87,10 +88,10 @@ struct ClassifierFilter
 
   void check() const
   {
-    CHECK_(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
-           "Max particle size must be bigger than min particle size!");
-    CHECK_(minCircularity >= 0 && minCircularity <= 1, "Min circularity must be in range [0-1].");
-    CHECK_(snapAreaSize >= 0, "Snap area size must be > 0.");
+    CHECK_ERROR(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
+                "Max particle size must be bigger than min particle size!");
+    CHECK_ERROR(minCircularity >= 0 && minCircularity <= 1, "Min circularity must be in range [0-1].");
+    CHECK_ERROR(snapAreaSize >= 0, "Snap area size must be > 0.");
   }
 
   bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi,
@@ -119,8 +120,8 @@ struct ObjectClass
 
   void check() const
   {
-    CHECK_(!filters.empty(), "At least one classification filter must be given!");
-    CHECK_(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
+    CHECK_ERROR(!filters.empty(), "At least one classification filter must be given!");
+    CHECK_ERROR(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, outputClusterNoMatch, modelClassId);

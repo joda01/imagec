@@ -108,9 +108,9 @@ public:
   void check() const
   {
     if(canvas == ImageSaverSettings::Canvas::IMAGE_PLANE) {
-      CHECK_(planesIn.has_value(), "Define a plane on which the output should be painted!");
+      CHECK_ERROR(planesIn.has_value(), "Define a plane on which the output should be painted!");
     }
-    CHECK_(compression >= 0 && compression <= 6, "Image compression must be in between [0-6].");
+    CHECK_ERROR(compression >= 0 && compression <= 6, "Image compression must be in between [0-6].");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageSaverSettings, subFolder, canvas, planesIn, compression,

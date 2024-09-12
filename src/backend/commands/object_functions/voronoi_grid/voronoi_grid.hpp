@@ -55,7 +55,7 @@ public:
 
     for(const auto &inputPoints : mSettings.inputClustersPoints) {
       const auto *voronoiPointsTmp =
-          context.loadObjectsFromCache(mSettings.objectStoreIn)->at(context.getClusterId(inputPoints.clusterId)).get();
+          context.loadObjectsFromCache()->at(context.getClusterId(inputPoints.clusterId)).get();
 
       // Create an instance of Subdiv2D
 

@@ -43,8 +43,7 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
     }
     atom::SpheralIndex *result = resultIn[context.getClusterId(mSettings.outputCluster.clusterId)].get();
 
-    const auto *firstDataBuffer =
-        context.loadObjectsFromCache(mSettings.objectIn)->at(context.getClusterId(it->clusterId)).get();
+    const auto *firstDataBuffer    = context.loadObjectsFromCache()->at(context.getClusterId(it->clusterId)).get();
     const auto *working            = firstDataBuffer;
     atom::SpheralIndex *resultTemp = nullptr;
     // Directly write to the output buffer
@@ -62,8 +61,7 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
     ++idx;
 
     for(; it != clustersToIntersect.end(); ++it) {
-      const auto *objects02 =
-          context.loadObjectsFromCache(mSettings.objectIn)->at(context.getClusterId(it->clusterId)).get();
+      const auto *objects02 = context.loadObjectsFromCache()->at(context.getClusterId(it->clusterId)).get();
       working->calcColocalization(context.getActIterator(), objects02, resultTemp, objectClassesMe, {it->classId},
                                   context.getClusterId(mSettings.outputCluster.clusterId),
                                   context.getClassId(mSettings.outputCluster.classId), 0, mSettings.minIntersection,

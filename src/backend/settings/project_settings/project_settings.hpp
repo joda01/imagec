@@ -69,40 +69,40 @@ public:
 
   void check() const
   {
-    CHECK_(!workingDirectory.empty(), "Working directory must not be empty!");
+    CHECK_ERROR(!workingDirectory.empty(), "Working directory must not be empty!");
     // Check plates
     {
-      CHECK_(!plates.empty(), "At least one plate must be given!");
+      CHECK_ERROR(!plates.empty(), "At least one plate must be given!");
       std::set<uint8_t> ids;
       for(const auto &plate : plates) {
         if(ids.contains(plate.plateId)) {
-          THROW("Plate ID >" + std::to_string(plate.plateId) + "< was used twice!");
+          THROW_ERROR("Plate ID >" + std::to_string(plate.plateId) + "< was used twice!");
         }
       }
     }
     // Check clusters
     {
-      CHECK_(!clusters.empty(), "At least one cluster must be given!");
+      CHECK_ERROR(!clusters.empty(), "At least one cluster must be given!");
       std::set<enums::ClusterId> ids;
       for(const auto &element : clusters) {
         if(element.clusterId == enums::ClusterId::UNDEFINED) {
-          THROW("Cluster >UNDEFINED< is not allowed was used twice!");
+          THROW_ERROR("Cluster >UNDEFINED< is not allowed was used twice!");
         }
         if(ids.contains(element.clusterId)) {
-          THROW("Cluster ID >" + std::to_string((uint16_t) element.clusterId) + "< was used twice!");
+          THROW_ERROR("Cluster ID >" + std::to_string((uint16_t) element.clusterId) + "< was used twice!");
         }
       }
     }
     // Check classes
     {
-      CHECK_(!classes.empty(), "At least one class must be given!");
+      CHECK_ERROR(!classes.empty(), "At least one class must be given!");
       std::set<enums::ClassId> ids;
       for(const auto &element : classes) {
         if(element.classId == enums::ClassId::UNDEFINED) {
-          THROW("Class >UNDEFINED< is not allowed was used twice!");
+          THROW_ERROR("Class >UNDEFINED< is not allowed was used twice!");
         }
         if(ids.contains(element.classId)) {
-          THROW("Class ID >" + std::to_string((uint16_t) element.classId) + "< was used twice!");
+          THROW_ERROR("Class ID >" + std::to_string((uint16_t) element.classId) + "< was used twice!");
         }
       }
     }

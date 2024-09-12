@@ -375,7 +375,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         }
 
         saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_PLANE;
-        saverSettings.planesIn   = enums::ImageId{.imageIdx = enums::ZProjection::$};
+        saverSettings.planesIn   = enums::ImageId{.zProjection = enums::ZProjection::$};
         saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
         auto step                = settings::PipelineStep{.$saveImage = saverSettings};
         auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
@@ -386,9 +386,10 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
             joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipeline->pipelineSetup.cStackIndex, .t = tStack},
             0);
 
-        return {context.loadImageFromCache(joda::enums::ImageId{.imageIdx = enums::ZProjection::$, .imagePlane = {}})
-                    ->image,
-                context.getActImage().image, thumb};
+        return {
+            context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})
+                ->image,
+            context.getActImage().image, thumb};
       }
     }
   }

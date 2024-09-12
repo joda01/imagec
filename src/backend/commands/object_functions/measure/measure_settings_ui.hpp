@@ -52,7 +52,7 @@ public:
     enums::ZProjection zProject = enums::ZProjection::NONE;
     for(const auto &cStack : settings.planesIn) {
       cStacks.emplace(cStack.imagePlane.cStack);
-      zProject = cStack.imageIdx;
+      zProject = cStack.zProjection;
     }
     cStackIndex->setValue(cStacks);
     connect(cStackIndex.get(), &SettingBase::valueChanged, this, &Measure::onCStackChanged);
@@ -96,7 +96,7 @@ private slots:
     for(const auto &cStack : cStacks) {
       enums::ImageId id;
       id.imagePlane.cStack = cStack;
-      id.imageIdx          = zProjection->getValue();
+      id.zProjection       = zProjection->getValue();
       mSettings.planesIn.emplace_back(id);
     }
   }

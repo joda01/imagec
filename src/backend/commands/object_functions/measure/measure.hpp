@@ -27,7 +27,7 @@ public:
 
   void execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &result) override
   {
-    auto &store = *context.loadObjectsFromCache(mSettings.objectIn);
+    auto &store = *context.loadObjectsFromCache();
     for(auto imageId : mSettings.planesIn) {
       auto const &image = *context.loadImageFromCache(imageId);
       for(const auto &clusterIdIn : mSettings.inputClusters) {

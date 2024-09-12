@@ -33,3 +33,22 @@ SCENARIO("pipeline:test:dependencygraph", "[dependencygraph]")
   DurationCount::stop(i);
 }
 }    // namespace joda::test
+
+/*
+L0:EV detection c7
+  L1:Cell brightfiel
+    L2:Voronoi
+  L1:Colocalization
+L0:Nucle detection
+  L1:Cell brightfiel
+    L2:Voronoi
+  L1:Voronoi
+L0:EV detection c5
+  L1:Cell brightfiel
+    L2:Voronoi
+  L1:Colocalization
+0) EV detection c7,Nucle detection,EV detection c5,
+1) Cell brightfiel,Colocalization,
+2) Voronoi,
+
+*/

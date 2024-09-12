@@ -28,6 +28,7 @@
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/helper/clickablelabel.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
+#include "ui/pipeline_compile_log/panel_pipeline_compile_log.hpp"
 #include "ui/window_main/panel_classification.hpp"
 #include "ui/window_main/panel_image.hpp"
 #include "ui/window_main/panel_pipeline.hpp"
@@ -150,6 +151,7 @@ private:
   ////Common/////////////////////////////////////////////////
   joda::ctrl::Controller *mController;
   QFileSystemWatcher mTemplateDirWatcher;
+  PanelCompilerLog *mCompilerLog;
 
   ////Project settings/////////////////////////////////////////////////
   joda::settings::AnalyzeSettings mAnalyzeSettings;

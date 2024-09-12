@@ -17,6 +17,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
+#include "backend/settings/setting_base.hpp"
 
 namespace joda::settings {
 
@@ -38,7 +39,7 @@ struct NoiseValidatorSettings : public SettingBase
   //
   // Image which should be used for the validation
   //
-  enums::ImageId imageIn = {.imageIdx = enums::ZProjection::$};
+  enums::ImageId imageIn = {.zProjection = enums::ZProjection::$};
 
   //
   // Cluster on which the result should be applied to
@@ -53,15 +54,15 @@ struct NoiseValidatorSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK_(mode != FilterMode::UNKNOWN, "Define a filter mode!");
-    CHECK_(maxObjects > 0, "Max objects must be > 0!");
+    CHECK_ERROR(mode != FilterMode::UNKNOWN, "Define a filter mode!");
+    CHECK_ERROR(maxObjects > 0, "Max objects must be > 0!");
   }
 
-  std::set<enums::ClusterIdIn> getInputClusters() const override
+  settings::ObjectInputClusters getInputClusters() const override
   {
-    std::set<enums::ClusterIdIn> clusters;
+    settings::ObjectInputClusters clusters;
     for(const auto &in : inputClusters) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
     return clusters;
   }

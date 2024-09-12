@@ -30,8 +30,8 @@ struct WatershedSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK_(maximumFinderTolerance >= 0 && maximumFinderTolerance <= 1,
-           "Maximum finder tolerance mut be in range [0-1]");
+    CHECK_ERROR(maximumFinderTolerance >= 0 && maximumFinderTolerance <= 1,
+                "Maximum finder tolerance mut be in range [0-1]");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(WatershedSettings, maximumFinderTolerance);

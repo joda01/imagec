@@ -103,7 +103,7 @@ struct Plate
 
   void check() const
   {
-    CHECK_(!imageFolder.empty(), "Image folder must not be empty!");
+    CHECK_ERROR(!imageFolder.empty(), "Image folder must not be empty!");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Plate, plateId, name, notes, rows, cols, imageFolder, groupBy,

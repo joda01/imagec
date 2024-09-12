@@ -21,6 +21,8 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
+#include "backend/settings/settings_types.hpp"
 #include <nlohmann/json.hpp>
 
 // #warning "Allow multi intersection"
@@ -29,11 +31,6 @@ namespace joda::settings {
 
 struct ColocalizationSettings : public SettingBase
 {
-  //
-  // Input object to intersect with. Leaf empty to use imagePlane context store
-  //
-  joda::enums::ObjectStoreId objectIn;
-
   //
   // Clusters to calculate the intersection with
   //
@@ -52,15 +49,15 @@ struct ColocalizationSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK_(inputClusters.size() > 1, "At least two input objects must be given!");
-    CHECK_(minIntersection >= 0, "Min intersection must be >=0.");
+    CHECK_ERROR(inputClusters.size() > 1, "At least two input objects must be given!");
+    CHECK_ERROR(minIntersection >= 0, "Min intersection must be >=0.");
   }
 
-  std::set<enums::ClusterIdIn> getInputClusters() const override
+  settings::ObjectInputClusters getInputClusters() const override
   {
-    std::set<enums::ClusterIdIn> clusters;
+    settings::ObjectInputClusters clusters;
     for(const auto cluster : inputClusters) {
-      clusters.emplace(cluster.clusterId);
+      clusters.emplace(cluster);
     }
 
     return clusters;
@@ -71,8 +68,7 @@ struct ColocalizationSettings : public SettingBase
     return {{outputCluster}};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, objectIn, inputClusters, minIntersection,
-                                          outputCluster);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, inputClusters, minIntersection, outputCluster);
 };
 
 }    // namespace joda::settings

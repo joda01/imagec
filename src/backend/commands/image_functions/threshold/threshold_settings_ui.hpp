@@ -34,11 +34,11 @@ public:
   Threshold(joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent), mSettings(settings), mParent(parent)
   {
-    if(settings.thresholds.empty()) {
+    if(settings.modelClasses.empty()) {
       addFilter();
     }
 
-    for(auto &classifierSetting : settings.thresholds) {
+    for(auto &classifierSetting : settings.modelClasses) {
       auto *tab = addTab("Th", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
       thresholds.emplace_back(classifierSetting, *this, tab, parent);
     }
@@ -92,17 +92,39 @@ private:
       mThresholdValueMax->connectWithSetting(&settings.thresholdMax);
       mThresholdValueMax->setShortDescription("Max. ");
 
-      outer.addSetting(
-          tab, "",
-          {{mThresholdAlgorithm.get(), true}, {mThresholdValueMin.get(), true}, {mThresholdValueMax.get(), true}});
+      //
+      //
+      //
+      mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Threshold output class");
+      mGrayScaleValue->setDefaultValue(65535);
+      mGrayScaleValue->addOptions({{65535, "TH 1"},
+                                   {65534, "TH 2"},
+                                   {65533, "TH 3"},
+                                   {65532, "TH 4"},
+                                   {65530, "TH 5"},
+                                   {65529, "TH 6"},
+                                   {65528, "TH 7"},
+                                   {65527, "TH 8"}});
+      mGrayScaleValue->setUnit("");
+      mGrayScaleValue->setValue(settings.modelClassId);
+      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
+      mGrayScaleValue->setShortDescription("");
+
+      outer.addSetting(tab, "",
+                       {{mGrayScaleValue.get(), true},
+                        {mThresholdAlgorithm.get(), true},
+                        {mThresholdValueMin.get(), true},
+                        {mThresholdValueMax.get(), true}});
     }
 
     ~ThresholdUi()
     {
-      outer.removeSetting({mThresholdAlgorithm.get(), mThresholdValueMin.get(), mThresholdValueMax.get()});
+      outer.removeSetting(
+          {mGrayScaleValue.get(), mThresholdAlgorithm.get(), mThresholdValueMin.get(), mThresholdValueMax.get()});
     }
 
     /////////////////////////////////////////////////////
+    std::unique_ptr<SettingComboBox<int32_t>> mGrayScaleValue;
     std::unique_ptr<SettingComboBox<joda::settings::ThresholdSettings::Mode>> mThresholdAlgorithm;
     std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMin;
     std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMax;
@@ -117,10 +139,10 @@ private:
   void removeObjectClass(settings::ThresholdSettings::Threshold *obj)
   {
     {
-      auto it = mSettings.thresholds.begin();
-      for(; it != mSettings.thresholds.end(); it++) {
+      auto it = mSettings.modelClasses.begin();
+      for(; it != mSettings.modelClasses.end(); it++) {
         if(&(*it) == obj) {
-          mSettings.thresholds.erase(it);
+          mSettings.modelClasses.erase(it);
           break;
         }
       }
@@ -142,9 +164,8 @@ private slots:
   void addFilter()
   {
     settings::ThresholdSettings::Threshold objClass;
-    auto &ret               = mSettings.thresholds.emplace_back(objClass);
-    ret.grayscaleAssignment = UINT16_MAX - (mSettings.thresholds.size() - 1);
-    auto *tab               = addTab("Th", [this, &ret] { removeObjectClass(&ret); });
+    auto &ret = mSettings.modelClasses.emplace_back(objClass);
+    auto *tab = addTab("TH", [this, &ret] { removeObjectClass(&ret); });
     thresholds.emplace_back(ret, *this, tab, mParent);
     updateDisplayText();
   }

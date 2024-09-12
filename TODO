@@ -1,10 +1,8 @@
 - [ ] For tiled images, calculate real X/Y values of pixels in region of interest
 - [ ] Ignore result folder
-- [ ] Support for reference spot removal in preview.
 - [ ] Describe file extensions
 - [ ] Describe templates
 
-- [ ] Catch exception when starting run
 - [ ] Handle non ASCII chars when inserting to DB
 - [ ] Support the filtering (validity) for image plane and cluster
 - [ ] Display class in/out in pipeline view

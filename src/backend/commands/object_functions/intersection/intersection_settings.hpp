@@ -20,6 +20,7 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -37,22 +38,17 @@ struct IntersectionSettings : public SettingBase
   struct IntersectingClasses
   {
     //
-    // Input object to intersect with. Leaf empty to use imagePlane context store
-    //
-    joda::enums::ObjectStoreId objectIn;
-
-    //
     // Cluster to calculate the intersection with
     //
     ObjectInputClusters inputClusters;
 
     void check() const
     {
-      CHECK_(!inputClusters.empty(), "At least one class id must be given.");
-      // CHECK_(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
+      CHECK_ERROR(!inputClusters.empty(), "At least one class id must be given.");
+      // CHECK_ERROR(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectingClasses, objectIn, inputClusters);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectingClasses, inputClusters);
   };
 
   //
@@ -83,23 +79,23 @@ struct IntersectionSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK_(mode != Function::UNKNOWN, "Define a intersection function!");
-    CHECK_(minIntersection >= 0, "Min intersection must be >=0.");
+    CHECK_ERROR(mode != Function::UNKNOWN, "Define a intersection function!");
+    CHECK_ERROR(minIntersection >= 0, "Min intersection must be >=0.");
     if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {
-      CHECK_(newClassId != joda::enums::ClassId::UNDEFINED,
-             "Define a class the elements should be assigned for reclassification.");
+      CHECK_ERROR(newClassId != joda::enums::ClassId::UNDEFINED,
+                  "Define a class the elements should be assigned for reclassification.");
     }
   }
 
-  std::set<enums::ClusterIdIn> getInputClusters() const override
+  settings::ObjectInputClusters getInputClusters() const override
   {
-    std::set<enums::ClusterIdIn> clusters;
+    settings::ObjectInputClusters clusters;
     for(const auto &in : inputObjects.inputClusters) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
 
     for(const auto &in : inputObjectsIntersectWith.inputClusters) {
-      clusters.emplace(in.clusterId);
+      clusters.emplace(in);
     }
     return clusters;
   }

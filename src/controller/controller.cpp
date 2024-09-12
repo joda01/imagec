@@ -18,6 +18,7 @@
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
+#include "backend/settings/analze_settings.hpp"
 
 namespace joda::ctrl {
 

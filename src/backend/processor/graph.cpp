@@ -11,6 +11,7 @@
 ///
 
 #include "graph.hpp"
+#include <string>
 
 namespace joda::processor {
 
@@ -25,23 +26,39 @@ enums::ClusterId Node::provides() const
 
 std::set<enums::ClusterId> Node::consumes() const
 {
-  return me->getInputClusters();
+  std::set<enums::ClusterId> out;
+  for(const auto &element : me->getInputClusters()) {
+    out.emplace(element.clusterId);
+  }
+
+  return out;
 }
 
 bool Node::attacheNode(Node node)
 {
-  if(node.consumes().contains(provides())) {
-    // This node provides data for the other node
-    children.emplace_back(node);
-    return true;
-  } else {
-    for(auto &child : children) {
-      if(child.attacheNode(node)) {
-        return true;
-      }
+  bool attached = false;
+  for(auto &child : children) {
+    if(child.attacheNode(node)) {
+      attached = true;
     }
   }
-  return false;
+
+  if(node.me != me && node.consumes().contains(provides())) {
+    // This node provides data for the other node
+    bool stillExists = false;
+    for(const auto &child : children) {
+      if(child.pipeline() == node.me) {
+        stillExists = true;
+        break;
+      }
+    }
+    if(!stillExists) {
+      children.emplace_back(node);
+    }
+    attached = true;
+  }
+
+  return attached;
 }
 
 void Node::printTree(int level) const

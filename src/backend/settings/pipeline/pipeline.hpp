@@ -18,6 +18,7 @@
 #include "backend/processor/initializer/pipeline_settings.hpp"
 #include "backend/settings/pipeline/pipeline_meta.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
+#include "backend/settings/settings_types.hpp"
 
 namespace joda::settings {
 
@@ -30,11 +31,10 @@ public:
   std::list<PipelineStep> pipelineSteps;
 
   /////////////////////////////////////////////////////
-  void check() const
-  {
-  }
-  std::set<enums::ClusterId> getInputClusters() const;
-  ObjectOutputClusters getOutputClasses() const;
+  void check() const;
+
+  ObjectInputClustersExp getInputClusters() const;
+  ObjectOutputClustersExp getOutputClasses() const;
   enums::ClusterId getOutputCluster() const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps);

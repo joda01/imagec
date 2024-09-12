@@ -58,9 +58,9 @@ public:
 
     auto *col =
         addSetting(modelTab, "AI model settings", {{mModelPath.get(), true}, {mNumberOdModelClasses.get(), false}});
-    for(auto &classifierSetting : settings.classifiers) {
+    for(auto &classifierSetting : settings.modelClasses) {
       auto *tab = addTab("Class", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
-      classifiers.emplace_back(classifierSetting, *this, tab, parent);
+      modelClasses.emplace_back(classifierSetting, *this, tab, parent);
     }
     auto *addClassifier = addActionButton("Add class", "icons8-add-new-50.png");
     connect(addClassifier, &QAction::triggered, this, &AiClassifier::addClassifier);
@@ -194,7 +194,7 @@ private:
     settings::ObjectClass &mSettings;
   };
 
-  std::list<ObjectClass> classifiers;
+  std::list<ObjectClass> modelClasses;
   std::unique_ptr<SettingLineEdit<std::string>> mModelPath;
   std::unique_ptr<SettingLineEdit<int32_t>> mNumberOdModelClasses;
   settings::AiClassifierSettings &mSettings;
@@ -203,20 +203,20 @@ private:
   void removeObjectClass(settings::ObjectClass *obj)
   {
     {
-      auto it = mSettings.classifiers.begin();
-      for(; it != mSettings.classifiers.end(); it++) {
+      auto it = mSettings.modelClasses.begin();
+      for(; it != mSettings.modelClasses.end(); it++) {
         if(&(*it) == obj) {
-          mSettings.classifiers.erase(it);
+          mSettings.modelClasses.erase(it);
           break;
         }
       }
     }
 
     {
-      auto it = classifiers.begin();
-      for(; it != classifiers.end(); it++) {
+      auto it = modelClasses.begin();
+      for(; it != modelClasses.end(); it++) {
         if(&(it->mSettings) == obj) {
-          classifiers.erase(it);
+          modelClasses.erase(it);
           break;
         }
       }
@@ -231,9 +231,9 @@ private slots:
   {
     settings::ObjectClass objClass;
     objClass.modelClassId = 0;
-    auto &ret             = mSettings.classifiers.emplace_back(objClass);
+    auto &ret             = mSettings.modelClasses.emplace_back(objClass);
     auto *tab             = addTab("Class", [this, &ret] { removeObjectClass(&ret); });
-    classifiers.emplace_back(ret, *this, tab, mParent);
+    modelClasses.emplace_back(ret, *this, tab, mParent);
     updateDisplayText();
   }
 };

@@ -4,6 +4,7 @@
 #include <list>
 #include <set>
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -55,25 +56,24 @@ public:
     //
     // Grayscale to assign to
     //
-    uint16_t grayscaleAssignment = UINT16_MAX;
+    int32_t modelClassId = UINT16_MAX;
 
     /////////////////////////////////////////////////////
     void check() const
     {
-      CHECK_(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
+      CHECK_ERROR(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, mode, thresholdMin, thresholdMax,
-                                                         grayscaleAssignment);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, mode, thresholdMin, thresholdMax, modelClassId);
   };
 
-  std::list<Threshold> thresholds;
+  std::list<Threshold> modelClasses;
 
   void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdSettings, thresholds);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdSettings, modelClasses);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode::NONE, ""},

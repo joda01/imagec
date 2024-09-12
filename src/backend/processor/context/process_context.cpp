@@ -29,16 +29,16 @@ ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plate
   getCorrectIteration(cacheId.imagePlane);
   if(!doesImageInCacheExist(cacheId)) {
     // Load image to cache
-    if(cacheId.imageIdx == enums::ZProjection::UNDEFINED) {
+    if(cacheId.zProjection == enums::ZProjection::UNDEFINED) {
       throw std::invalid_argument("Define image plane to load from!");
     }
 
-    if(cacheId.imageIdx == enums::ZProjection::$) {
-      cacheId.imageIdx = pipelineContext.actImagePlane.getId().imageIdx;
+    if(cacheId.zProjection == enums::ZProjection::$) {
+      cacheId.zProjection = pipelineContext.actImagePlane.getId().zProjection;
     }
 
-    imageContext.imageLoader.loadImageToCache(cacheId.imagePlane, cacheId.imageIdx, pipelineContext.actImagePlane.tile,
-                                              *this);
+    imageContext.imageLoader.loadImageToCache(cacheId.imagePlane, cacheId.zProjection,
+                                              pipelineContext.actImagePlane.tile, *this);
   }
 
   return iterationContext.imageCache.at(cacheId).get();
