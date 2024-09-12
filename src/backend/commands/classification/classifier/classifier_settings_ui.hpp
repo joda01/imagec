@@ -67,13 +67,7 @@ private:
 
       //
       //
-      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "No match class");
-      mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
-      mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
-
-      //
-      //
-      mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Grayscale");
+      mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Threshold input class");
       mGrayScaleValue->setDefaultValue(65535);
       mGrayScaleValue->addOptions({{65535, "TH 1"},
                                    {65534, "TH 2"},
@@ -86,16 +80,7 @@ private:
       mGrayScaleValue->setUnit("");
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
-      mGrayScaleValue->setShortDescription("TH. ");
-
-      outer.addSetting(tab, "Match", {{mClassOut.get(), true}, {mClassOutNoMatch.get(), true}});
-
-      //
-      //
-      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Match class");
-      mClassOut->setValue(classifyFilter.outputCluster.classId);
-      mClassOut->connectWithSetting(&classifyFilter.outputCluster.classId);
-      mClassOut->setDisplayIconVisible(false);
+      mGrayScaleValue->setShortDescription("");
 
       //
       //
@@ -126,11 +111,26 @@ private:
       mMinCircularity->connectWithSetting(&classifyFilter.minCircularity);
       mMinCircularity->setShortDescription("Circ. ");
 
-      auto *col = outer.addSetting(tab, "Size filter",
+      auto *col = outer.addSetting(tab, "Match filter",
                                    {{mGrayScaleValue.get(), true},
                                     {mMinCircularity.get(), true},
                                     {mMinParticleSize.get(), true},
                                     {mMaxParticleSize.get(), true}});
+
+      //
+      //
+      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Match class");
+      mClassOut->setValue(classifyFilter.outputCluster.classId);
+      mClassOut->connectWithSetting(&classifyFilter.outputCluster.classId);
+      mClassOut->setDisplayIconVisible(false);
+
+      //
+      //
+      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "No match class");
+      mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
+      mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
+
+      outer.addSetting(tab, "Cluster assignment", {{mClassOut.get(), true}, {mClassOutNoMatch.get(), true}});
 
       // Intensity filter
 

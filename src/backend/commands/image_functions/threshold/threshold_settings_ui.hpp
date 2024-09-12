@@ -95,7 +95,7 @@ private:
       //
       //
       //
-      mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Grayscale");
+      mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Threshold output class");
       mGrayScaleValue->setDefaultValue(65535);
       mGrayScaleValue->addOptions({{65535, "TH 1"},
                                    {65534, "TH 2"},
@@ -108,7 +108,7 @@ private:
       mGrayScaleValue->setUnit("");
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
-      mGrayScaleValue->setShortDescription("TH. ");
+      mGrayScaleValue->setShortDescription("");
 
       outer.addSetting(tab, "",
                        {{mGrayScaleValue.get(), true},
