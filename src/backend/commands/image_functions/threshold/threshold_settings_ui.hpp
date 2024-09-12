@@ -119,7 +119,8 @@ private:
 
     ~ThresholdUi()
     {
-      outer.removeSetting({mThresholdAlgorithm.get(), mThresholdValueMin.get(), mThresholdValueMax.get()});
+      outer.removeSetting(
+          {mGrayScaleValue.get(), mThresholdAlgorithm.get(), mThresholdValueMin.get(), mThresholdValueMax.get()});
     }
 
     /////////////////////////////////////////////////////
