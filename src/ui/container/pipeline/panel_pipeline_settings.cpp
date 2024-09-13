@@ -528,7 +528,7 @@ void PanelPipelineSettings::closeWindow()
 void PanelPipelineSettings::deletePipeline()
 {
   QMessageBox messageBox(mWindowMain);
-  auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+  auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
   messageBox.setIconPixmap(icon->pixmap(42, 42));
   messageBox.setWindowTitle("Delete pipeline?");
   messageBox.setText("Delete pipeline?");
@@ -586,7 +586,7 @@ void PanelPipelineSettings::saveAsTemplate()
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);
-    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");

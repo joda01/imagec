@@ -70,8 +70,7 @@ using Stat = enums::Stats;
 
 /////////////////////////////////////////////////////
 ExportColumn::ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
-                           const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses,
-                           QWidget *windowMain) :
+                           const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses, QWidget *windowMain) :
     QWidget(windowMain),
     mAnalyzer(analyzer), mClustersAndClassesVector(clustersAndClasses)
 {
@@ -120,10 +119,8 @@ ExportColumn::ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
   // Cross channel
   //
   layout->addWidget(new QLabel("-->"), 0, Qt::AlignTop);
-  mCrossChannelImageChannel =
-      SettingBase::create<SettingComboBoxMulti<int32_t>>(windowMain, "", "Cross channel intensity");
-  mCrossChannelCount =
-      SettingBase::create<SettingComboBoxMultiClassificationUnmanaged>(windowMain, "", "Cross channel count");
+  mCrossChannelImageChannel = SettingBase::create<SettingComboBoxMulti<int32_t>>(windowMain, "", "Cross channel intensity");
+  mCrossChannelCount        = SettingBase::create<SettingComboBoxMultiClassificationUnmanaged>(windowMain, "", "Cross channel count");
   layout->addWidget(mCrossChannelImageChannel->getEditableWidget());
   layout->addWidget(mCrossChannelCount->getEditableWidget());
   this->setLayout(layout);
@@ -160,9 +157,8 @@ void ExportColumn::getImageChannels()
 {
   auto imageChannels  = mAnalyzer->selectImageChannels();
   auto currentChannel = mCrossChannelImageChannel->getValue();
-  auto channels       = mAnalyzer->selectMeasurementChannelsForClusterAndClass(
-      static_cast<enums::ClusterId>(mClustersAndClasses->getValue().clusterId),
-      mClustersAndClasses->getValue().classId);
+  auto channels = mAnalyzer->selectMeasurementChannelsForClusterAndClass(static_cast<enums::ClusterId>(mClustersAndClasses->getValue().clusterId),
+                                                                         mClustersAndClasses->getValue().classId);
   mCrossChannelImageChannel->blockSignals(true);
   std::vector<SettingComboBoxMulti<int32_t>::ComboEntry> entry;
 
@@ -188,8 +184,8 @@ void ExportColumn::getCrossChannelCount()
 
   std::map<settings::ClassificatorSettingOut, QString> options;
 
-  auto clusters = mAnalyzer->selectCrossChannelCountForClusterAndClass(
-      static_cast<enums::ClusterId>(clusterClassSelected.clusterId), clusterClassSelected.classId);
+  auto clusters = mAnalyzer->selectCrossChannelCountForClusterAndClass(static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
+                                                                       clusterClassSelected.classId);
   mCrossChannelCount->blockSignals(true);
   auto currentChannel = mCrossChannelCount->getValue();
   mCrossChannelCount->clear();
@@ -211,8 +207,7 @@ void ExportColumn::getCrossChannelCount()
 /// \param[out]
 /// \return
 ///
-std::pair<settings::ClassificatorSettingOut, std::pair<std::string, std::string>>
-ExportColumn::getClusterClassesToExport()
+std::pair<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> ExportColumn::getClusterClassesToExport()
 {
   return mClustersAndClasses->getValueAndNames();
 }
@@ -224,8 +219,7 @@ ExportColumn::getClusterClassesToExport()
 /// \param[out]
 /// \return
 ///
-std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>>
-ExportColumn::getCrossChannelCountToExport()
+std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> ExportColumn::getCrossChannelCountToExport()
 {
   return mCrossChannelCount->getValueAndNames();
 }
@@ -268,8 +262,7 @@ std::map<enums::Measurement, std::set<enums::Stats>> ExportColumn::getMeasuremen
 /// \return
 ///
 DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const db::QueryFilter &filter,
-                                   const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses,
-                                   QWidget *windowMain) :
+                                   const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses, QWidget *windowMain) :
     QDialog(windowMain),
     mWindowMain(windowMain), mAnalyzer(analyzer), mFilter(filter), mLayout(this, false, true, false, true)
 {
@@ -301,9 +294,8 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
   auto *col1 = tab->addVerticalPanel();
 
   mClustersAndClasses = clustersAndClasses;
-  mClustersAndClasses.emplace(
-      settings::ClassificatorSettingOut{.clusterId = enums::ClusterId::UNDEFINED, .classId = enums::ClassId::UNDEFINED},
-      "Off");
+  mClustersAndClasses.emplace(settings::ClassificatorSettingOut{.clusterId = enums::ClusterId::UNDEFINED, .classId = enums::ClassId::UNDEFINED},
+                              "Off");
 
   mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
   mExportColumns.push_back(new ExportColumn(mAnalyzer, mClustersAndClasses, windowMain));
@@ -320,8 +312,7 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
 
   //
   // Details
-  mReportingDetails =
-      SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>>(windowMain, "", "Details");
+  mReportingDetails = SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>>(windowMain, "", "Details");
   mReportingDetails->addOptions({{joda::db::BatchExporter::Settings::ExportDetail::PLATE, "Overview of all images", ""},
                                  {joda::db::BatchExporter::Settings::ExportDetail::WELL, "Selected well", ""},
                                  {joda::db::BatchExporter::Settings::ExportDetail::IMAGE, "Selected image", ""}});
@@ -329,28 +320,24 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
 
   //
   // Type
-  mReportingType =
-      SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>>(windowMain, "", "Type");
-  mReportingType->addOptions(
-      {{joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", "icons8-heat-map-50.png"},
-       {joda::db::BatchExporter::Settings::ExportType::TABLE, "Table", "icons8-table-50.png"},
-       {joda::db::BatchExporter::Settings::ExportType::TABLE_DETAIL, "Details", "icons8-table-50.png"}});
+  mReportingType = SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>>(windowMain, "", "Type");
+  mReportingType->addOptions({{joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", "icons8-heat-map-50.png"},
+                              {joda::db::BatchExporter::Settings::ExportType::TABLE, "Table", "icons8-table-50.png"},
+                              {joda::db::BatchExporter::Settings::ExportType::TABLE_DETAIL, "Details", "icons8-table-50.png"}});
   mReportingType->setDefaultValue(joda::db::BatchExporter::Settings::ExportType::HEATMAP);
 
   std::vector<SettingComboBoxMulti<enums::ClusterId>::ComboEntry> clustersCombo;
   auto clusters = mAnalyzer->selectClusters();
   clustersCombo.reserve(clusters.size());
   for(const auto &[clusterId, cluster] : clusters) {
-    clustersCombo.push_back(
-        SettingComboBoxMulti<enums::ClusterId>::ComboEntry{.key = clusterId, .label = cluster.name.data(), .icon = ""});
+    clustersCombo.push_back(SettingComboBoxMulti<enums::ClusterId>::ComboEntry{.key = clusterId, .label = cluster.name.data(), .icon = ""});
   }
 
   std::vector<SettingComboBoxMulti<enums::ClassId>::ComboEntry> classCombo;
   auto classes = mAnalyzer->selectClasses();
   classCombo.reserve(classes.size());
   for(const auto &[classId, cluster] : classes) {
-    classCombo.push_back(
-        SettingComboBoxMulti<enums::ClassId>::ComboEntry{.key = classId, .label = cluster.name.data(), .icon = ""});
+    classCombo.push_back(SettingComboBoxMulti<enums::ClassId>::ComboEntry{.key = classId, .label = cluster.name.data(), .icon = ""});
   }
 
   auto *col2 = tab->addVerticalPanel();
@@ -384,8 +371,7 @@ void DialogExportData::onExportClicked()
   mExportButton->setEnabled(false);
 
   std::thread([this, filePathOfSettingsFile] {
-    std::map<settings::ClassificatorSettingOut, joda::db::BatchExporter::BatchExporter::Settings::Channel>
-        clustersToExport;
+    std::map<settings::ClassificatorSettingOut, joda::db::BatchExporter::BatchExporter::Settings::Channel> clustersToExport;
 
     for(const auto &columnToExport : mExportColumns) {
       if(!columnToExport->isEnabled()) {
@@ -484,8 +470,7 @@ void DialogExportData::saveTemplate()
 {
   QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
   QString filePathOfSettingsFile = QFileDialog::getSaveFileName(
-      this, "Save template", folderToOpen,
-      "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
+      this, "Save template", folderToOpen, "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
   if(filePathOfSettingsFile.isEmpty()) {
     return;
   }
@@ -507,11 +492,11 @@ void DialogExportData::saveTemplate()
 
   try {
     nlohmann::json templateJson = settings;
-    joda::templates::TemplateParser::saveTemplate(
-        templateJson, std::filesystem::path(filePathOfSettingsFile.toStdString()), joda::fs::EXT_EXPORT_TEMPLATE);
+    joda::templates::TemplateParser::saveTemplate(templateJson, std::filesystem::path(filePathOfSettingsFile.toStdString()),
+                                                  joda::fs::EXT_EXPORT_TEMPLATE);
   } catch(const std::exception &ex) {
     QMessageBox messageBox(mWindowMain);
-    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
@@ -532,9 +517,8 @@ void DialogExportData::openTemplate()
   using namespace std::chrono_literals;
 
   QString folderToOpen = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-  QString filePath     = QFileDialog::getOpenFileName(
-      this, "Open File", folderToOpen,
-      "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")", nullptr);
+  QString filePath     = QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
+                                                      "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")", nullptr);
 
   if(filePath.isEmpty()) {
     return;
@@ -565,7 +549,7 @@ void DialogExportData::openTemplate()
 
   } catch(const std::exception &ex) {
     QMessageBox messageBox(mWindowMain);
-    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not open template!");
     messageBox.setText("Could not open template, got error >" + QString(ex.what()) + "<!");

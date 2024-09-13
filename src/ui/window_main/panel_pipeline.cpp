@@ -28,8 +28,7 @@ namespace joda::ui {
 /// \param[out]
 /// \return
 ///
-PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings) :
-    mWindowMain(windowMain), mAnalyzeSettings(settings)
+PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings) : mWindowMain(windowMain), mAnalyzeSettings(settings)
 {
   setFrameStyle(0);
   setFrameShape(QFrame::NoFrame);
@@ -78,16 +77,14 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
   if(toRemove != nullptr) {
     toRemove->setActive(false);
     // Find the iterator to the element using the pointer
-    auto it = std::find_if(mChannels.begin(), mChannels.end(),
-                           [&toRemove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
-                             return entry.first.get() == toRemove;
-                           });
+    auto it = std::find_if(mChannels.begin(), mChannels.end(), [&toRemove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
+      return entry.first.get() == toRemove;
+    });
 
     if(it != mChannels.end()) {
       void *elementInSettings = it->second;
 
-      mAnalyzeSettings.pipelines.remove_if(
-          [&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
+      mAnalyzeSettings.pipelines.remove_if([&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
 
       mVerticalLayout->removeWidget(toRemove->getOverviewPanel());
       toRemove->getOverviewPanel()->setParent(nullptr);
@@ -146,11 +143,10 @@ void PanelPipeline::addChannel(const joda::settings::Pipeline &settings)
 void PanelPipeline::addChannel(const QString &pathToSettings)
 {
   try {
-    addChannel(
-        joda::templates::TemplateParser::loadChannelFromTemplate(std::filesystem::path(pathToSettings.toStdString())));
+    addChannel(joda::templates::TemplateParser::loadChannelFromTemplate(std::filesystem::path(pathToSettings.toStdString())));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
@@ -172,7 +168,7 @@ void PanelPipeline::addChannel(const nlohmann::json &json)
     addChannel(joda::templates::TemplateParser::loadChannelFromTemplate(json));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");

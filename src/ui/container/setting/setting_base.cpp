@@ -25,16 +25,14 @@ namespace joda::ui {
 /// \param[out]
 /// \return
 ///
-SettingBase::SettingBase(QWidget *parent, const QString &icon, const QString &description) :
-    mParent((WindowMain *) parent), mDescription(description)
+SettingBase::SettingBase(QWidget *parent, const QString &icon, const QString &description) : mParent((WindowMain *) parent), mDescription(description)
 {
   if(!icon.isEmpty()) {
-    mIcon = QIcon(":/icons/outlined/" + icon);
+    mIcon = QIcon(":/icons/icons/" + icon);
   }
   createDisplayAbleWidget(icon, description);
   if(parent != nullptr) {
-    connect(mParent->getPanelClassification(), &PanelClassification::settingsChanged, this,
-            &SettingBase::onClassificationNameChanged);
+    connect(mParent->getPanelClassification(), &PanelClassification::settingsChanged, this, &SettingBase::onClassificationNameChanged);
 
     connect(mParent, &WindowMain::onOutputClassifierChanges, this, &SettingBase::onOutputClassifierChanges);
   }
@@ -137,8 +135,7 @@ void SettingBase::triggerValueChanged(const QString &newValue, const QIcon &icon
 {
   mDisplayValue = newValue;
   if(!icon.isNull()) {
-    mDisplayLabelIcon->setPixmap(
-        icon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
+    mDisplayLabelIcon->setPixmap(icon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
   }
   updateDisplayLabel();
   emit valueChanged();
@@ -295,7 +292,7 @@ void SettingBase::createHelperText(QVBoxLayout *layout, const QString &helpText)
       "}");
   mHelpButton->setCursor(Qt::PointingHandCursor);
   mHelpButton->setIconSize({HELP_ICON_SIZE, HELP_ICON_SIZE});
-  mHelpButton->setIcon(QIcon(":/icons/outlined/icons8-info-48-fill.png"));
+  mHelpButton->setIcon(QIcon(":/icons/icons/icons8-info-48-fill.png"));
   mHelpButton->setVisible(false);
   connect(mHelpButton, &QPushButton::clicked, this, &SettingBase::onHelpButtonClicked);
   hLayout->addWidget(mHelpButton);

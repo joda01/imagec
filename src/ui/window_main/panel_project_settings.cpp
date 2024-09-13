@@ -50,7 +50,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mWorkingDir->setPlaceholderText("Directory your images are placed in...");
   QHBoxLayout *workingDir = new QHBoxLayout;
   workingDir->addWidget(mWorkingDir);
-  QPushButton *openDir = new QPushButton(QIcon(":/icons/outlined/icons8-folder-50.png"), "");
+  QPushButton *openDir = new QPushButton(QIcon(":/icons/icons/icons8-folder-50.png"), "");
   connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
   workingDir->addWidget(openDir);
   workingDir->setStretch(0, 1);    // Make label take all available space
@@ -107,22 +107,16 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Stack handling
   //
   mStackHandlingZ = new QComboBox();
-  mStackHandlingZ->addItem(
-      "Intensity projection",
-      static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION));
-  mStackHandlingZ->addItem("Each one",
-                           static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EACH_ONE));
-  mStackHandlingZ->addItem("Exact one",
-                           static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
+  mStackHandlingZ->addItem("Intensity projection", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION));
+  mStackHandlingZ->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EACH_ONE));
+  mStackHandlingZ->addItem("Exact one", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
   formLayout->addRow(new QLabel(tr("Z-Stack:")), mStackHandlingZ);
   connect(mStackHandlingZ, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
 
   //
   mStackHandlingT = new QComboBox();
-  mStackHandlingT->addItem("Each one",
-                           static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
-  mStackHandlingT->addItem("Exact one",
-                           static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
+  mStackHandlingT->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
+  mStackHandlingT->addItem("Exact one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
   connect(mStackHandlingT, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
 
   formLayout->addRow(new QLabel(tr("T-Stack:")), mStackHandlingT);
@@ -204,8 +198,7 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
   }
 
   {
-    mWellOrderMatrix->setText(
-        joda::settings::vectorToString(settings.projectSettings.plates.begin()->wellImageOrder).data());
+    mWellOrderMatrix->setText(joda::settings::vectorToString(settings.projectSettings.plates.begin()->wellImageOrder).data());
   }
   {
     auto val = settings.projectSettings.plates.begin()->rows * 100 + settings.projectSettings.plates.begin()->cols;
@@ -257,22 +250,18 @@ void PanelProjectSettings::toSettings()
   mSettings.projectSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
   mSettings.projectSettings.address.firstName        = mScientistsFirstName->text().toStdString();
 
-  mSettings.projectSettings.plates.begin()->groupBy =
-      static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
-  mSettings.projectSettings.plates.begin()->filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
-  mSettings.projectSettings.plates.begin()->imageFolder   = mWorkingDir->text().toStdString();
-  mSettings.projectSettings.plates.begin()->wellImageOrder =
-      joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
+  mSettings.projectSettings.plates.begin()->groupBy        = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mSettings.projectSettings.plates.begin()->filenameRegex  = mRegexToFindTheWellPosition->currentText().toStdString();
+  mSettings.projectSettings.plates.begin()->imageFolder    = mWorkingDir->text().toStdString();
+  mSettings.projectSettings.plates.begin()->wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
 
   auto value                                        = mPlateSize->currentData().toUInt();
   mSettings.projectSettings.plates.begin()->rows    = value / 100;
   mSettings.projectSettings.plates.begin()->cols    = value % 100;
   mSettings.projectSettings.plates.begin()->plateId = 1;
 
-  mSettings.imageSetup.zStackHandling =
-      static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
-  mSettings.imageSetup.tStackHandling =
-      static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
+  mSettings.imageSetup.zStackHandling = static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
+  mSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
 
   mParentWindow->checkForSettingsChanged();
 }
@@ -293,8 +282,7 @@ void PanelProjectSettings::onOpenWorkingDirectoryClicked()
   mWorkingDir->update();
   mWorkingDir->repaint();
   mSettings.projectSettings.workingDirectory = mWorkingDir->text().toStdString();
-  mParentWindow->getController()->setWorkingDirectory(mSettings.projectSettings.plates.begin()->plateId,
-                                                      selectedDirectory.toStdString());
+  mParentWindow->getController()->setWorkingDirectory(mSettings.projectSettings.plates.begin()->plateId, selectedDirectory.toStdString());
   mSettings.projectSettings.plates.begin()->imageFolder = mSettings.projectSettings.workingDirectory;
   onSettingChanged();
 }
@@ -321,13 +309,11 @@ void PanelProjectSettings::onSettingChanged()
 void PanelProjectSettings::applyRegex()
 {
   try {
-    auto regexResult = joda::grp::FileGrouper::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(),
-                                                          mTestFileName->text().toStdString());
+    auto regexResult =
+        joda::grp::FileGrouper::applyRegex(mRegexToFindTheWellPosition->currentText().toStdString(), mTestFileName->text().toStdString());
 
     if(regexResult.groupName.length() > 20) {
-      regexResult.groupName =
-          (QString(regexResult.groupName.data()).left(8) + "..." + QString(regexResult.groupName.data()).right(10))
-              .toStdString();
+      regexResult.groupName = (QString(regexResult.groupName.data()).left(8) + "..." + QString(regexResult.groupName.data()).right(10)).toStdString();
     }
     std::string matching = "<html><b>Group:</b> " + regexResult.groupName;
     std::string row;

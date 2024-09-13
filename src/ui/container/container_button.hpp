@@ -32,7 +32,7 @@ public:
     mButton = new QPushButton(text, mEditable);
 
     if(!iconName.isEmpty()) {
-      const QIcon icon(":/icons/outlined/" + iconName);
+      const QIcon icon(":/icons/icons/" + iconName);
       mButton->setIconSize({16, 16});
       mButton->setIcon(icon);
     }

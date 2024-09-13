@@ -61,10 +61,9 @@ namespace joda::ui {
 
 using namespace std::chrono_literals;
 
-WindowMain::WindowMain(joda::ctrl::Controller *controller) :
-    mController(controller), mCompilerLog(new PanelCompilerLog(this))
+WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller), mCompilerLog(new PanelCompilerLog(this))
 {
-  const QIcon myIcon(":/icons/outlined/icon.png");
+  const QIcon myIcon(":/icons/icons/icon.png");
   setWindowIcon(myIcon);
   setWindowTitle(Version::getTitle().data());
   createTopToolbar();
@@ -94,13 +93,9 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) :
   // Watch for new templates added
   //
 
-  mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory()
-                                  .string()
-                                  .data());    // Replace with your desired path
-  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged,
-                   [&](const QString &path) { loadTemplates(); });
-  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged,
-                   [&](const QString &path) { loadTemplates(); });
+  mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory().string().data());    // Replace with your desired path
+  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) { loadTemplates(); });
+  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) { loadTemplates(); });
 }
 
 void WindowMain::setWindowTitlePrefix(const QString &txt)
@@ -121,16 +116,15 @@ void WindowMain::createTopToolbar()
   auto *toolbar = addToolBar("toolbar");
   toolbar->setMovable(false);
 
-  mNewProjectButton = new QAction(QIcon(":/icons/outlined/icons8-file-50.png"), "New project", toolbar);
+  mNewProjectButton = new QAction(QIcon(":/icons/icons/icons8-file-50.png"), "New project", toolbar);
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   toolbar->addAction(mNewProjectButton);
 
-  mOpenProjectButton =
-      new QAction(QIcon(":/icons/outlined/icons8-opened-folder-50.png"), "Open project or results", toolbar);
+  mOpenProjectButton = new QAction(QIcon(":/icons/icons/icons8-opened-folder-50.png"), "Open project or results", toolbar);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
   toolbar->addAction(mOpenProjectButton);
 
-  mSaveProject = new QAction(QIcon(":/icons/outlined/icons8-save-50.png"), "Save", toolbar);
+  mSaveProject = new QAction(QIcon(":/icons/icons/icons8-save-50.png"), "Save", toolbar);
   mSaveProject->setToolTip("Save project!");
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
@@ -138,7 +132,7 @@ void WindowMain::createTopToolbar()
 
   toolbar->addSeparator();
 
-  auto *showCompileLog = new QAction(QIcon(":/icons/outlined/icons8-log-50.png"), "Compiler log", toolbar);
+  auto *showCompileLog = new QAction(QIcon(":/icons/icons/icons8-log-50.png"), "Compiler log", toolbar);
   showCompileLog->setToolTip("CompileLog!");
   connect(showCompileLog, &QAction::triggered, [this]() { mCompilerLog->showDialog(); });
   toolbar->addAction(showCompileLog);
@@ -147,12 +141,12 @@ void WindowMain::createTopToolbar()
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   toolbar->addWidget(spacerTop);
 
-  auto *helpButton = new QAction(QIcon(":/icons/outlined/icons8-help-50.png"), "Info", toolbar);
+  auto *helpButton = new QAction(QIcon(":/icons/icons/icons8-help-50.png"), "Info", toolbar);
   helpButton->setToolTip("Help");
   connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
   toolbar->addAction(helpButton);
 
-  mShowInfoDialog = new QAction(QIcon(":/icons/outlined/icons8-info-50-circle.png"), "Info", toolbar);
+  mShowInfoDialog = new QAction(QIcon(":/icons/icons/icons8-info-50-circle.png"), "Info", toolbar);
   mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
   toolbar->addAction(mShowInfoDialog);
@@ -192,7 +186,7 @@ void WindowMain::createLeftToolbar()
     mTemplateSelection = new QComboBox();
     innerLayout->addWidget(mTemplateSelection);
 
-    mStartAnalysis = new QPushButton(QIcon(":/icons/outlined/icons8-play-50.png"), "");
+    mStartAnalysis = new QPushButton(QIcon(":/icons/icons/icons8-play-50.png"), "");
     mStartAnalysis->setEnabled(false);
     mStartAnalysis->setToolTip("Run pipeline!");
     innerLayout->addWidget(mStartAnalysis);
@@ -268,12 +262,11 @@ QWidget *WindowMain::createStartPageWidget()
   //
   // Create a label
   auto *iconLabel = new QLabel();
-  QPixmap pixmap(":/icons/outlined/icon.png");
+  QPixmap pixmap(":/icons/icons/icon.png");
   iconLabel->setPixmap(pixmap.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
   layout->addWidget(iconLabel);
   QString text = "<p><span style='font-weight: bold;'>" + QString(Version::getTitle().data()) +
-                 "&nbsp;</span><span style='font-weight: bold; font-size: 10pt;'>" +
-                 QString(Version::getSubtitle().data()) +
+                 "&nbsp;</span><span style='font-weight: bold; font-size: 10pt;'>" + QString(Version::getSubtitle().data()) +
                  "</span><br>"
                  "<span style='font-size: 10pt; color: darkgray;'>" +
                  QString(Version::getVersion().data()) + "</span></p>";
@@ -292,7 +285,7 @@ QWidget *WindowMain::createStartPageWidget()
     // New project
     //
     auto *newProject = new QPushButton();
-    const QIcon voronoiIcon(":/icons/outlined/icons8-add-new-50.png");
+    const QIcon voronoiIcon(":/icons/icons/icons8-add-new-50.png");
     newProject->setText("New project");
     newProject->setIconSize({16, 16});
     newProject->setIcon(voronoiIcon);
@@ -302,7 +295,7 @@ QWidget *WindowMain::createStartPageWidget()
     // Open existing project
     //
     auto *openProject = new QPushButton();
-    const QIcon intersectionIcon(":/icons/outlined/icons8-opened-folder-50.png");
+    const QIcon intersectionIcon(":/icons/icons/icons8-opened-folder-50.png");
     openProject->setIconSize({16, 16});
     openProject->setIcon(intersectionIcon);
     openProject->setText("Open project");
@@ -312,7 +305,7 @@ QWidget *WindowMain::createStartPageWidget()
     // Open results
     //
     auto *openResults = new QPushButton();
-    const QIcon openResultsIcon(":/icons/outlined/icons8-graph-50.png");
+    const QIcon openResultsIcon(":/icons/icons/icons8-graph-50.png");
     openResults->setIconSize({16, 16});
     openResults->setIcon(openResultsIcon);
     openResults->setText("Open results");
@@ -344,7 +337,7 @@ void WindowMain::onNewProjectClicked()
 {
   if(!mSelectedProjectSettingsFilePath.empty()) {
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-info-50-blue.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Create new project?");
     messageBox.setText("Unsaved settings will get lost! Create new project?");
@@ -397,15 +390,13 @@ void WindowMain::onOpenClicked()
   QFileDialog::Options opt;
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
-  QString filePath =
-      QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
-                                   "ImageC project or results files (*" + QString(joda::fs::EXT_PROJECT.data()) + " *" +
-                                       QString(joda::fs::EXT_DATABASE.data()) +
-                                       ");;ImageC project files "
-                                       "(*" +
-                                       QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC results files (*" +
-                                       QString(joda::fs::EXT_DATABASE.data()) + ")",
-                                   nullptr, opt);
+  QString filePath = QFileDialog::getOpenFileName(
+      this, "Open File", folderToOpen,
+      "ImageC project or results files (*" + QString(joda::fs::EXT_PROJECT.data()) + " *" + QString(joda::fs::EXT_DATABASE.data()) +
+          ");;ImageC project files "
+          "(*" +
+          QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC results files (*" + QString(joda::fs::EXT_DATABASE.data()) + ")",
+      nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
@@ -462,7 +453,7 @@ void WindowMain::openProjectSettings(const QString &filePath)
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
@@ -479,13 +470,13 @@ void WindowMain::checkForSettingsChanged()
 {
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
-    // mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50-red.png"));
+    // mSaveProject->setIcon(QIcon(":/icons/icons/icons8-save-50-red.png"));
 
     mSaveProject->setEnabled(true);
     emit onOutputClassifierChanges();
   } else {
     // Equal
-    // mSaveProject->setIcon(QIcon(":/icons/outlined/icons8-save-50.png"));
+    // mSaveProject->setIcon(QIcon(":/icons/icons/icons8-save-50.png"));
     mSaveProject->setEnabled(false);
   }
   mCompilerLog->updateCompilerLog(mAnalyzeSettings);
@@ -498,9 +489,8 @@ void WindowMain::checkForSettingsChanged()
 void WindowMain::onSaveProjectAsClicked()
 {
   std::filesystem::path folderToSaveSettings(mSelectedProjectSettingsFilePath.parent_path());
-  QString filePath =
-      QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(),
-                                   "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
+  QString filePath = QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(),
+                                                  "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
   if(!filePath.isEmpty()) {
     joda::settings::Settings::storeSettings(std::filesystem::path(filePath.toStdString()), mAnalyzeSettings);
   }
@@ -519,10 +509,9 @@ void WindowMain::onSaveProject()
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath = filePath / ("settings" + joda::fs::EXT_PROJECT);
-      QString filePathOfSettingsFile =
-          QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
-                                       "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
+      filePath                         = filePath / ("settings" + joda::fs::EXT_PROJECT);
+      QString filePathOfSettingsFile   = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
+                                                                      "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
       mSelectedProjectSettingsFilePath = filePathOfSettingsFile.toStdString();
     }
 
@@ -537,7 +526,7 @@ void WindowMain::onSaveProject()
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not save settings!");
     messageBox.setText("Could not save settings, got error >" + QString(ex.what()) + "<!");
@@ -560,8 +549,7 @@ void WindowMain::loadTemplates()
   mTemplateSelection->addItem("Add pipeline ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
 
-  mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-select-none-50.png").pixmap(28, 28), "Empty pipeline",
-                              "emptyChannel");
+  mTemplateSelection->addItem(QIcon(":/icons/icons/icons8-select-none-50.png").pixmap(28, 28), "Empty pipeline", "emptyChannel");
 
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
   joda::templates::TemplateParser::Category actCategory = joda::templates::TemplateParser::Category::BASIC;
@@ -575,8 +563,7 @@ void WindowMain::loadTemplates()
       if(!data.icon.isNull()) {
         mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
       } else {
-        mTemplateSelection->addItem(QIcon(":/icons/outlined/icons8-favorite-50.png").pixmap(28, 28), data.title.data(),
-                                    data.path.data());
+        mTemplateSelection->addItem(QIcon(":/icons/icons/icons8-favorite-50.png").pixmap(28, 28), data.title.data(), data.path.data());
       }
     }
   }
@@ -599,7 +586,7 @@ void WindowMain::onStartClicked()
     mPanelProjectSettings->generateNewJobName();
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/outlined/icons8-error-50.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-error-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Error in settings!");
     messageBox.setText(ex.what());
@@ -665,7 +652,7 @@ void WindowMain::showPanelPipelineSettingsEdit(PanelPipelineSettings *selectedCh
 {
   if(mNavigation == Navigation::REPORTING) {
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-info-50-blue.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Info");
     messageBox.setText("Please close results view first!");
@@ -702,7 +689,7 @@ void WindowMain::onRemoveChannelClicked()
 {
   if(mSelectedChannel != nullptr) {
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Remove channel?");
     messageBox.setText("Do you want to remove the channel?");
@@ -756,21 +743,20 @@ void WindowMain::onShowInfoDialog()
   messageBox.setWindowTitle("Info");
   auto *mainLayout = new QVBoxLayout(&messageBox);
   //   mainLayout->setContentsMargins(28, 28, 28, 28);
-  QLabel *helpTextLabel = new QLabel(
-      "<p style=\"text-align: left;\"><strong>" + QString(Version::getProgamName().data()) + " " +
-      QString(Version::getVersion().data()) + " (" + QString(Version::getBuildTime().data()) +
-      ")</strong></p>"
-      "<p style=\"text-align: left;\"><em>Licensed under AGPL-3.0<br />Free for non commercial use."
-      "</em></p>"
-      "<p style=\"text-align: left;\"><strong>Many thanks</strong> for help in setting this project to Melanie "
-      "Schuerz</p>"
-      "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI "
-      "models</strong><br "
-      "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke, Patricia Hrasnova and "
-      "Ritesh Khanna</p>"
-      "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
-      "Dominik Handl.<br /> Special thanks to Tanja Plank for the logo design.</em></p>"
-      "<p style=\"text-align: left;\">(c) 2022-2024 Joachim Danmayr</p>");
+  QLabel *helpTextLabel = new QLabel("<p style=\"text-align: left;\"><strong>" + QString(Version::getProgamName().data()) + " " +
+                                     QString(Version::getVersion().data()) + " (" + QString(Version::getBuildTime().data()) +
+                                     ")</strong></p>"
+                                     "<p style=\"text-align: left;\"><em>Licensed under AGPL-3.0<br />Free for non commercial use."
+                                     "</em></p>"
+                                     "<p style=\"text-align: left;\"><strong>Many thanks</strong> for help in setting this project to Melanie "
+                                     "Schuerz</p>"
+                                     "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI "
+                                     "models</strong><br "
+                                     "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke, Patricia Hrasnova and "
+                                     "Ritesh Khanna</p>"
+                                     "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
+                                     "Dominik Handl.<br /> Special thanks to Tanja Plank for the logo design.</em></p>"
+                                     "<p style=\"text-align: left;\">(c) 2022-2024 Joachim Danmayr</p>");
   helpTextLabel->setOpenExternalLinks(true);
   helpTextLabel->setWordWrap(true);
   QFont fontLineEdit;

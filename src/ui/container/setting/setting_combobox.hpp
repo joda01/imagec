@@ -86,7 +86,7 @@ public:
       if(data.icon.isEmpty()) {
         mComboBox->addItem(QIcon(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
       } else {
-        const QIcon myIcon(":/icons/outlined/" + data.icon);
+        const QIcon myIcon(":/icons/icons/" + data.icon);
         mComboBox->addItem(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
       }
     }

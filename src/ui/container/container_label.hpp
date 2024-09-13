@@ -33,7 +33,7 @@ public:
     mLabel = new QLabel(text, mEditable);
 
     // if(!iconName.isEmpty()) {
-    //   const QIcon icon(":/icons/outlined/" + iconName);
+    //   const QIcon icon(":/icons/icons/" + iconName);
     //   mLabel->setIconSize({16, 16});
     //   mLabel->setIcon(icon);
     // }

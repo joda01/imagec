@@ -60,11 +60,9 @@ void SettingComboBoxClassesOut::clusterNamesChanged()
       QVariant variant;
       variant = QVariant(toInt(data.first));
       if(!SettingBase::getIcon().isNull()) {
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                           data.second, variant);
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second, variant);
       } else {
-        mComboBox->addItem(QIcon(QIcon(":/icons/outlined/icons8-unknown-status-50.png")
-                                     .pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
+        mComboBox->addItem(QIcon(QIcon(":/icons/icons/icons8-unknown-status-50.png").pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
                            data.second, variant);
       }
     }

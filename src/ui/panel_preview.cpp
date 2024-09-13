@@ -33,8 +33,7 @@ namespace joda::ui {
 /// \author     Joachim Danmayr
 ///
 PanelPreview::PanelPreview(int width, int height, QWidget *parent) :
-    mImageViewer(parent),
-    mPreviewLabel(mImageViewer.getPreviewObject().previewImage, mImageViewer.getPreviewObject().thumbnail)
+    mImageViewer(parent), mPreviewLabel(mImageViewer.getPreviewObject().previewImage, mImageViewer.getPreviewObject().thumbnail)
 {
   mPreviewLabel.setMinimumWidth(width);
   mPreviewLabel.setMinimumHeight(height);
@@ -72,7 +71,7 @@ QWidget *PanelPreview::createToolBar()
 
   QButtonGroup *buttonGroup = new QButtonGroup();
 
-  QPushButton *move = new QPushButton(QIcon(":/icons/outlined/icons8-hand-50.png"), "");
+  QPushButton *move = new QPushButton(QIcon(":/icons/icons/icons8-hand-50.png"), "");
   move->setObjectName("ToolButton");
   move->setCheckable(true);
   move->setToolTip("Move the image");
@@ -80,31 +79,31 @@ QWidget *PanelPreview::createToolBar()
   // buttonGroup->addButton(move);
   // layout->addWidget(move);
 
-  QPushButton *fitToScreen = new QPushButton(QIcon(":/icons/outlined/icons8-full-screen-50.png"), "");
+  QPushButton *fitToScreen = new QPushButton(QIcon(":/icons/icons/icons8-full-screen-50.png"), "");
   fitToScreen->setObjectName("ToolButton");
   fitToScreen->setToolTip("Fit image to screen");
   connect(fitToScreen, &QPushButton::pressed, this, &PanelPreview::onFitImageToScreenSizeClicked);
   layout->addWidget(fitToScreen);
 
-  QPushButton *zoomIn = new QPushButton(QIcon(":/icons/outlined/icons8-zoom-in-50.png"), "");
+  QPushButton *zoomIn = new QPushButton(QIcon(":/icons/icons/icons8-zoom-in-50.png"), "");
   zoomIn->setObjectName("ToolButton");
   zoomIn->setToolTip("Zoom in");
   connect(zoomIn, &QPushButton::pressed, this, &PanelPreview::onZoomInClicked);
   layout->addWidget(zoomIn);
 
-  QPushButton *zoomOut = new QPushButton(QIcon(":/icons/outlined/icons8-zoom-out-50.png"), "");
+  QPushButton *zoomOut = new QPushButton(QIcon(":/icons/icons/icons8-zoom-out-50.png"), "");
   zoomOut->setObjectName("ToolButton");
   zoomOut->setToolTip("Zoom out");
   connect(zoomOut, &QPushButton::pressed, this, &PanelPreview::onZoomOutClicked);
   layout->addWidget(zoomOut);
 
-  QPushButton *openFullScreen = new QPushButton(QIcon(":/icons/outlined/icons8-external-link-50.png"), "");
+  QPushButton *openFullScreen = new QPushButton(QIcon(":/icons/icons/icons8-external-link-50.png"), "");
   openFullScreen->setObjectName("ToolButton");
   openFullScreen->setToolTip("Full screen");
   connect(openFullScreen, &QPushButton::pressed, this, &PanelPreview::onOpenFullScreenClickec);
   layout->addWidget(openFullScreen);
 
-  filled = new QPushButton(QIcon(":/icons/outlined/icons8-100-50.png"), "");
+  filled = new QPushButton(QIcon(":/icons/icons/icons8-100-50.png"), "");
   filled->setCheckable(true);
   filled->setObjectName("ToolButton");
   filled->setToolTip("Filled");

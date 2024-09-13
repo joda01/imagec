@@ -89,12 +89,10 @@ public:
         variant = QVariant(data.key);
       }
       if(data.icon.isEmpty()) {
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                           data.label, variant);
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.label, variant);
       } else {
-        const QIcon myIcon(":/icons/outlined/" + data.icon);
-        mComboBox->addItem(QIcon(myIcon.pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.label,
-                           variant);
+        const QIcon myIcon(":/icons/icons/" + data.icon);
+        mComboBox->addItem(QIcon(myIcon.pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.label, variant);
       }
     }
   }
