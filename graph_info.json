@@ -2082,7 +2082,7 @@
   ],
   [
    "qt:qtdeclarative",
-   "True"
+   "False"
   ],
   [
    "qt:qtdoc",
@@ -2090,7 +2090,7 @@
   ],
   [
    "qt:qtgraphs",
-   "True"
+   "False"
   ],
   [
    "qt:qtgrpc",
@@ -2138,7 +2138,7 @@
   ],
   [
    "qt:qtquick3d",
-   "True"
+   "False"
   ],
   [
    "qt:qtquick3dphysics",
@@ -2174,7 +2174,7 @@
   ],
   [
    "qt:qtshadertools",
-   "True"
+   "False"
   ],
   [
    "qt:qtspeech",
@@ -2186,7 +2186,7 @@
   ],
   [
    "qt:qttools",
-   "True"
+   "False"
   ],
   [
    "qt:qttranslations",
