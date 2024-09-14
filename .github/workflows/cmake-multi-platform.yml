@@ -21,6 +21,8 @@ jobs:
       - name: Install Conan
         run: |
           pip install conan
+          apt-get update
+          apt-get install -y libva-dev libvdpau-dev xkb-data
 
       - name: Restore Conan Cache
         uses: actions/cache@v3
