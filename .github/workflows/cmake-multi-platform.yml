@@ -32,6 +32,8 @@ jobs:
 
       - name: Build with Conan
         run: |
+          conan profile detect
+          cat /home/runner/.conan2/profiles/default
           conan install . --profile conan/profile_linux --output-folder=build --build=missing
 
       - name: Save Conan Cache
@@ -74,6 +76,8 @@ jobs:
 
       - name: Build with Conan
         run: |
+          conan profile detect
+          cat C:\Users\runneradmin\.conan2\profiles\default
           conan install . --profile conan/profile_linux --output-folder=build --build=missing
 
       - name: Save Conan Cache
