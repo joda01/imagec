@@ -28,7 +28,7 @@ jobs:
       - name: Restore Conan Cache
         uses: actions/cache@v3
         with:
-          path: ~/.conan
+          path: /root/.conan2
           key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
           restore-keys: |
             conan-cache-${{ runner.os }}-
@@ -42,7 +42,7 @@ jobs:
       - name: Save Conan Cache
         uses: actions/cache@v3
         with:
-          path: ~/.conan
+          path: /root/.conan2
           key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
           restore-keys: |
             conan-cache-${{ runner.os }}-
@@ -71,7 +71,7 @@ jobs:
       - name: Restore Conan Cache
         uses: actions/cache@v3
         with:
-          path: ~/.conan
+          path: /Users/runner/.conan2
           key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
           restore-keys: |
             conan-cache-${{ runner.os }}-
@@ -85,7 +85,7 @@ jobs:
       - name: Save Conan Cache
         uses: actions/cache@v3
         with:
-          path: ~/.conan
+          path: /Users/runner/.conan2
           key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
           restore-keys: |
             conan-cache-${{ runner.os }}-
@@ -115,7 +115,7 @@ jobs:
       - name: Restore Conan Cache
         uses: actions/cache@v3
         with:
-          path: ~/.conan
+          path: C:/Users/runneradmin/.conan2
           key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
           restore-keys: |
             conan-cache-${{ runner.os }}-
@@ -129,7 +129,7 @@ jobs:
       - name: Save Conan Cache
         uses: actions/cache@v3
         with:
-          path: ~/.conan
+          path: C:/Users/runneradmin/.conan2
           key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
           restore-keys: |
             conan-cache-${{ runner.os }}-
