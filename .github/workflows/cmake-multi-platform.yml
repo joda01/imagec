@@ -20,9 +20,10 @@ jobs:
 
       - name: Install Conan
         run: |
-          pip install conan
           sudo apt-get update
           sudo apt-get install -y libva-dev libvdpau-dev xkb-data
+          pip install conan
+
 
       - name: Restore Conan Cache
         uses: actions/cache@v3
@@ -52,6 +53,49 @@ jobs:
           cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
           
+  build-macos:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Conan
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Conan
+        run: |
+          pip install conan
+
+      - name: Restore Conan Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.conan
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-cache-${{ runner.os }}-
+
+      - name: Build with Conan
+        run: |
+          conan profile detect
+          cat /home/runner/.conan2/profiles/default
+          conan install . --profile conan/profile_macos --output-folder=build --build=missing
+
+      - name: Save Conan Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.conan
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-cache-${{ runner.os }}-
+
+      - name: Build imagec
+        run: |
+          cd build
+          cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cmake --build . --config Release --target imagec --parallel 8
+
 
   build-windows:
     runs-on: windows-2022
