@@ -36,7 +36,7 @@ jobs:
       - name: Build with Conan
         run: |
           sudo conan profile detect
-          sudo cat /home/runner/.conan2/profiles/default
+          sudo cat /root/.conan2/profiles/default
           sudo conan install . --profile conan/profile_linux --output-folder=build --build=missing
 
       - name: Save Conan Cache
@@ -50,8 +50,8 @@ jobs:
       - name: Build imagec
         run: |
           cd build
-          cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
-          cmake --build . --config Release --target imagec --parallel 8
+          sudo cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          sudo cmake --build . --config Release --target imagec --parallel 8
           
   build-macos:
     runs-on: macos-14
