@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -49,7 +49,7 @@ jobs:
           cmake --build . --config Release --target imagec --parallel 8
           
 
-  build:
+  build-windows:
     runs-on: windows-2022
 
     steps:
