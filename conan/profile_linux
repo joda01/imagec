@@ -2,7 +2,11 @@
 arch=x86_64
 build_type=Release
 compiler=gcc
-compiler.cppstd=gnu14
+compiler.cppstd=17
 compiler.libcxx=libstdc++11
-compiler.version=10
+compiler.version=11
 os=Linux
+
+
+[conf]
+tools.system.package_manager:mode=install
