@@ -58,3 +58,4 @@ heaptrack.imagec.183820.gz
 *.icdb
 *.icdb.wal
 *.gz
+conan.lock
