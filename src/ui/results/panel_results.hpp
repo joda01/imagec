@@ -17,7 +17,6 @@
 #include <qcolormap.h>
 #include <qcombobox.h>
 #include <qmainwindow.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <memory>
 #include "backend/enums/enum_measurements.hpp"

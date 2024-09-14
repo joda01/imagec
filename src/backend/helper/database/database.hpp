@@ -58,15 +58,13 @@ public:
   std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName);
   void finishJob(const std::string &jobId);
 
-  auto prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std::string &filenameRegex,
-                     const std::vector<std::filesystem::path> &imagePaths)
+  auto prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std::string &filenameRegex, const std::vector<std::filesystem::path> &imagePaths)
       -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>;
   void setImageProcessed(uint64_t);
 
   void insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo);
   void insertImage(const joda::processor::ImageContext &, const joda::grp::GroupInformation &groupInfo);
-  void insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t imageIdx,
-                         const joda::grp::GroupInformation &groupInfo);
+  void insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t imageIdx, const joda::grp::GroupInformation &groupInfo);
 
   void insertImageChannels(uint64_t imageId, const joda::ome::OmeInfo &ome);
   void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &);
@@ -74,8 +72,7 @@ public:
   void setImageValidity(uint64_t imageId, enums::ChannelValidity validity);
   void unsetImageValidity(uint64_t imageId, enums::ChannelValidity validity);
   void setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &, enums::ChannelValidity validity);
-  void setImagePlaneClusterClusterValidity(uint64_t imageId, const enums::PlaneId &, enums::ClusterId clusterId,
-                                           enums::ChannelValidity validity);
+  void setImagePlaneClusterClusterValidity(uint64_t imageId, const enums::PlaneId &, enums::ClusterId clusterId, enums::ChannelValidity validity);
 
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
 
@@ -87,10 +84,8 @@ public:
 
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
   auto selectImages() -> std::vector<ImageInfo>;
-  auto selectClassesForClusters()
-      -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>;
-  auto selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
-      -> std::set<int32_t>;
+  auto selectClassesForClusters() -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>;
+  auto selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId) -> std::set<int32_t>;
   auto selectCrossChannelCountForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
       -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>;
 

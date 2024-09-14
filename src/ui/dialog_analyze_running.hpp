@@ -14,7 +14,6 @@
 #pragma once
 
 #include <qdialog.h>
-#include <qtmetamacros.h>
 #include <memory>
 #include <thread>
 #include "backend/settings/analze_settings.hpp"

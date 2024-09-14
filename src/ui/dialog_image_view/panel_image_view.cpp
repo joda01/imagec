@@ -13,7 +13,6 @@
 
 #include "panel_image_view.hpp"
 #include <qpixmap.h>
-#include <qtmetamacros.h>
 #include <cmath>
 #include <cstdint>
 #include <ranges>
@@ -26,11 +25,8 @@ namespace joda::ui {
 ////////////////////////////////////////////////////////////////
 // Image view section
 //
-PanelImageView::PanelImageView(const joda::image::Image &imageReference,
-                               const joda::image::Image &thumbnailImageReference, QWidget *parent) :
-    QGraphicsView(parent),
-    mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference),
-    scene(new QGraphicsScene(this))
+PanelImageView::PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, QWidget *parent) :
+    QGraphicsView(parent), mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference), scene(new QGraphicsScene(this))
 {
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
@@ -259,10 +255,8 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   float actImageWith   = RECT_SIZE * width() / (zoomFactor * scene->width());
   float actImageHeight = RECT_SIZE * height() / (zoomFactor * scene->width());
 
-  float posX =
-      (RECT_SIZE - actImageWith) * (float) horizontalScrollBar()->value() / (float) horizontalScrollBar()->maximum();
-  float posY =
-      (RECT_SIZE - actImageHeight) * (float) verticalScrollBar()->value() / (float) verticalScrollBar()->maximum();
+  float posX = (RECT_SIZE - actImageWith) * (float) horizontalScrollBar()->value() / (float) horizontalScrollBar()->maximum();
+  float posY = (RECT_SIZE - actImageHeight) * (float) verticalScrollBar()->value() / (float) verticalScrollBar()->maximum();
 
   QRect viewPort(RECT_START_X + posX, RECT_START_Y + posY, actImageWith, actImageHeight);
 
@@ -338,9 +332,8 @@ void PanelImageView::drawThumbnail()
     newHeight = rectHeight;
     newWidth  = static_cast<int>(rectHeight * aspectRatio);
   }
-  QRect thumbRect(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y),
-                  QSize(newWidth,
-                        newHeight));    // Adjust the size as needed
+  QRect thumbRect(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(newWidth,
+                                                                                              newHeight));    // Adjust the size as needed
   painter.drawPixmap(thumbRect, mThumbnailImageReference.getPixmap());
 
   //
@@ -348,9 +341,8 @@ void PanelImageView::drawThumbnail()
   //
   painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
   painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
-  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y),
-                  QSize(rectWidth,
-                        rectHeight));    // Adjust the size as needed
+  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(rectWidth,
+                                                                                              rectHeight));    // Adjust the size as needed
   painter.drawRect(rectangle);
 
   //
@@ -405,8 +397,7 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
       int xOffset = x * tileRectWidth;
       int yOffset = y * tileRectHeight;
 
-      QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth + xOffset, THUMB_RECT_START_Y + yOffset),
-                      QSize(tileRectWidth, tileRectHeight));
+      QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth + xOffset, THUMB_RECT_START_Y + yOffset), QSize(tileRectWidth, tileRectHeight));
       if(rectangle.contains(event->pos())) {
         mSelectedTileX = x;
         mSelectedTileY = y;
@@ -556,10 +547,6 @@ void PanelImageView::drawHistogram()
       }
     }
   }
-}
-
-void PanelImageView::enterEvent(QEnterEvent *)
-{
 }
 
 void PanelImageView::leaveEvent(QEvent *)

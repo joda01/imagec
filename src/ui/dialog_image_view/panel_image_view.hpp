@@ -14,7 +14,6 @@
 #pragma once
 
 #include <qlabel.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>
@@ -39,8 +38,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference,
-                 QWidget *parent = nullptr);
+  PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, QWidget *parent = nullptr);
   void imageUpdated();
   void resetImage();
   void fitImageToScreenSize();
@@ -74,7 +72,6 @@ protected:
   void mousePressEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
-  void enterEvent(QEnterEvent *) override;
   void leaveEvent(QEvent *) override;
   void wheelEvent(QWheelEvent *event) override;
   void paintEvent(QPaintEvent *event) override;

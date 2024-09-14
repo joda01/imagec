@@ -21,7 +21,6 @@
 #include <qnamespace.h>
 #include <qpainter.h>
 #include <qpushbutton.h>
-#include <qtmetamacros.h>
 #include <QCoreApplication>
 #include <QFile>
 #include <QResource>
@@ -33,8 +32,7 @@
 
 namespace joda::ui {
 
-DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QString &pathToHelpText) :
-    DialogShadow(windowMain)
+DialogToolTip::DialogToolTip(QWidget *windowMain, const QString &title, const QString &pathToHelpText) : DialogShadow(windowMain)
 {
   setWindowTitle(title);
   setMaximumWidth(650);

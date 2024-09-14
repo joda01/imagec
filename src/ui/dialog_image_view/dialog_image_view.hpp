@@ -14,7 +14,6 @@
 #pragma once
 
 #include <qdialog.h>
-#include <qtmetamacros.h>
 #include <qwindow.h>
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"

@@ -10,3 +10,12 @@ os=Linux
 
 [conf]
 tools.system.package_manager:mode=install
+
+[options]
+qt/*:qtsvg=True
+qt/*:qttools=True
+qt/*:qtcharts=True
+qt/*:qtgraphs=True
+qt/*:qtwayland=True
+qt/*:qtshadertools=True
+libxlsxwriter/*:md5=False

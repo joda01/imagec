@@ -23,10 +23,8 @@ QWidget *SettingComboBoxMultiClassificationUnmanaged::createInputObject()
   mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
-  SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this,
-                       &SettingComboBoxMultiClassificationUnmanaged::onValueChanged);
-  SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this,
-                       &SettingComboBoxMultiClassificationUnmanaged::onValueChanged);
+  SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this, &SettingComboBoxMultiClassificationUnmanaged::onValueChanged);
+  SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this, &SettingComboBoxMultiClassificationUnmanaged::onValueChanged);
 
   return mComboBox;
 }
@@ -49,8 +47,7 @@ void SettingComboBoxMultiClassificationUnmanaged::clear()
   mComboBox->setCurrentIndex(0);
 }
 
-void SettingComboBoxMultiClassificationUnmanaged::addOptions(
-    const std::map<settings::ClassificatorSettingOut, QString> &dataIn)
+void SettingComboBoxMultiClassificationUnmanaged::addOptions(const std::map<settings::ClassificatorSettingOut, QString> &dataIn)
 {
   mComboBox->blockSignals(true);
   auto actSelected = getValue();
@@ -66,8 +63,7 @@ void SettingComboBoxMultiClassificationUnmanaged::addOptions(
 
         QVariant variant;
         variant = QVariant(toInt(data));
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                           label, variant);
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), label, variant);
       }
     }
   }
@@ -105,8 +101,7 @@ void SettingComboBoxMultiClassificationUnmanaged::setValue(const settings::Objec
   (mComboBox)->setCheckedItems(toCheck);
 }
 
-std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>>
-SettingComboBoxMultiClassificationUnmanaged::getValueAndNames()
+std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> SettingComboBoxMultiClassificationUnmanaged::getValueAndNames()
 {
   std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> toReturn;
   auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();

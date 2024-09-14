@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include <qtmetamacros.h>
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
@@ -46,8 +45,7 @@ public:
   ~PanelPipelineSettings();
 
   void addPipelineStep(std::unique_ptr<joda::ui::Command> command, const settings::PipelineStep *);
-  void insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::Command> command,
-                             const settings::PipelineStep *pipelineStepBefore);
+  void insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::Command> command, const settings::PipelineStep *pipelineStepBefore);
 
   void erasePipelineStep(const Command *);
 

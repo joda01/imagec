@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <qcombobox.h>
+#include <QComboBox>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -25,7 +25,6 @@ namespace joda::ui {
 /// \author
 /// \brief
 ///
-
 template <NumberOrEnum_t VALUE_T>
 class SettingComboBox : public SettingBase
 {

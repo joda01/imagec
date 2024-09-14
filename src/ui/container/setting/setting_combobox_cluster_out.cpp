@@ -59,8 +59,7 @@ void SettingComboBoxClusterOut::clusterNamesChanged()
     for(const auto &data : clusteres) {
       QVariant variant;
       variant = QVariant(toInt(data.first));
-      mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                         data.second, variant);
+      mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second, variant);
     }
     setValue(actSelected);
     mComboBox->blockSignals(false);

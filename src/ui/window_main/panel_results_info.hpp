@@ -14,7 +14,6 @@
 #pragma once
 
 #include <qcombobox.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <filesystem>
@@ -63,8 +62,7 @@ public:
   [[nodiscard]] auto getPlateSize() const -> QSize;
   [[nodiscard]] auto getDensityMapSize() const -> uint32_t;
 
-  void addResultsFileToHistory(const std::filesystem::path &dbFile, const std::string &jobName,
-                               const std::chrono::system_clock::time_point &time);
+  void addResultsFileToHistory(const std::filesystem::path &dbFile, const std::string &jobName, const std::chrono::system_clock::time_point &time);
   void clearHistory();
 
 signals:

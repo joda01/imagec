@@ -1,218 +1,91 @@
-name: C++ Build
+name: Build with Conan and Caching
 
 on:
   push:
-    branches:
-      - main
-      - design-rework
-    tags:
-      - '*'
+    branches: [use-conan-build-system]
   pull_request:
-    branches:
-      - main
-      
+    branches: [main]
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
 
-  build-windows:
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Conan
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Conan
+        run: |
+          pip install conan
+
+      - name: Restore Conan Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.conan
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-cache-${{ runner.os }}-
+
+      - name: Build with Conan
+        run: |
+          conan install . --profile conan/profile_linux --output-folder=build --build=missing
+
+      - name: Save Conan Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.conan
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-cache-${{ runner.os }}-
+
+      - name: Build imagec
+        run: |
+          cd build
+          cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cmake --build . --config Release --target imagec --parallel 8
+          
+
+  build:
     runs-on: windows-2022
 
     steps:
+      - uses: actions/checkout@v4
 
-      - uses: msys2/setup-msys2@v2
+      - name: Set up Conan
+        uses: actions/setup-python@v4
         with:
-          update: true
-          install: >-
-            git
-            curl
-            base-devel
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-catch
-            mingw-w64-x86_64-pugixml
-            mingw-w64-x86_64-protobuf
-            mingw-w64-x86_64-opencv
-            mingw-w64-x86_64-nlohmann-json
-            mingw-w64-x86_64-python-mingw-ldd
-            mingw-w64-x86_64-qt6-base
-            mingw-w64-x86_64-libxlsxwriter
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-ninja
-      - name: Put MSYS2_MinGW64 on PATH
+          python-version: '3.10'
+
+      - name: Install Conan
         run: |
-          echo "D:/a/_temp/msys64/mingw64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "D:/a/_temp/msys64/usr/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      
-      - name: Checkout code
-        uses: actions/checkout@v4
+          pip install conan
 
-      - name: Build imageC for Windows
-        env:
-          PRIV_KEY: ${{ secrets.PRIV_KEY }}
-          PUB_KEY: ${{ secrets.PUB_KEY }}
-          TAG_NAME: "${{ github.ref_name }}"
+      - name: Restore Conan Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.conan
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-cache-${{ runner.os }}-
+
+      - name: Build with Conan
         run: |
-          echo "Workspace: $env:GITHUB_WORKSPACE"
-          ./build.ps1
-      
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+          conan install . --profile conan/profile_linux --output-folder=build --build=missing
+
+      - name: Save Conan Cache
+        uses: actions/cache@v3
         with:
-          name: imagec-x64-win
-          path: build/build
-          if-no-files-found: error
+          path: ~/.conan
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-cache-${{ runner.os }}-
 
-
-  build-linux:
-    runs-on: ubuntu-22.04
-    container: 
-      image: joda001/imagec:v1.7.9
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build imageC for Linux
-        env:
-          TAG_NAME: "${{ github.ref_name }}"
+      - name: Build imagec
         run: |
-          ./clean.sh
-          ./build.sh
-          strip build/build/imagec
-
-      #- name: Test code
-      #  run: |
-      #    ./execute_test.sh
-#
-      #- name: Upload test results
-      #  uses: actions/upload-artifact@v3
-      #  with:
-      #    name: test-results
-      #    path: test-results.xml
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: imagec-x64-linux
-          path: build/build
-          if-no-files-found: error
-
-      
-  release:
-    needs:
-      - build-windows
-      - build-linux
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: imagec-x64-linux
-          path: build/build
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: imagec-x64-win
-          path: build/build
-
-      - name: Rename files through architecture
-        run: |
-          mv build/build/win-dlls.zip build/win-dlls.zip
-
-          mkdir imagec-x64-linux-bundle
-          mkdir -p imagec-x64-linux-bundle/java
-          cp -r build/build/* imagec-x64-linux-bundle/
-          cp java/bioformats.jar imagec-x64-linux-bundle/java/bioformats.jar
-          cp java/BioFormatsWrapper.class imagec-x64-linux-bundle/java/BioFormatsWrapper.class
-          unzip java/jre_linux.zip -d jre_linux_unzip
-          mv jre_linux_unzip/jre_linux imagec-x64-linux-bundle/java/jre_linux
-          zip -r imagec-x64-linux-bundle.zip imagec-x64-linux-bundle
-          
-
-          mkdir imagec-x64-win-bundle
-          mkdir -p imagec-x64-win-bundle/java
-          mkdir -p imagec-x64-win-bundle/models
-          cp build/build/imagec.exe imagec-x64-win-bundle/imagec.exe
-          cp java/bioformats.jar imagec-x64-win-bundle/java/bioformats.jar
-          cp java/BioFormatsWrapper.class imagec-x64-win-bundle/java/BioFormatsWrapper.class
-          unzip java/jre_win.zip -d jre_win_unzip
-          mv jre_win_unzip/jre_win imagec-x64-win-bundle/java/jre_win
-          unzip build/win-dlls.zip -d win_dll_unzip
-          mv win_dll_unzip/dlls/* imagec-x64-win-bundle/
-          zip -r imagec-x64-win-bundle.zip imagec-x64-win-bundle
-
-          mv build/build/imagec build/build/imagec-x64-linux
-          mv build/build/imagec.exe build/build/imagec-x64-win.exe
-          mv java/jre_linux.zip java/jre-linux.zip
-          mv java/jre_win.zip java/jre-win.zip
-          zip java/bioformats-jni-wrapper.zip java/bioformats.jar java/BioFormatsWrapper.class
-
-          
-          timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-          hash_value_linux=$(sha256sum imagec-x64-linux-bundle/imagec | cut -d ' ' -f 1)
-          hash_value_win=$(sha256sum imagec-x64-win-bundle/imagec.exe | cut -d ' ' -f 1)
-          version="${GITHUB_REF#refs/tags/}"
-          
-          json_string_linux=$(cat <<-EOF
-          {
-            "version": "$version",
-            "sha256": "$hash_value_linux",
-            "timestamp": "$timestamp"
-          }
-          EOF
-          )
-          
-          json_string_win=$(cat <<-EOF
-          {
-            "version": "$version",
-            "sha256": "$hash_value_win",
-            "timestamp": "$timestamp"
-          }
-          EOF
-          )
-
-          echo "$json_string_linux"
-          echo "$json_string_win"
-
-          echo "$json_string_linux" > imagec-x64-linux-bundle.json
-          echo "$json_string_win" > imagec-x64-win-bundle.json
-
-      - name: Upload Additional Files
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            build/build/imagec-x64-linux
-            build/build/imagec-x64-win.exe
-            imagec-x64-linux-bundle.zip
-            imagec-x64-win-bundle.zip
-      
-# build/build/win-dlls.zip
-# java/jre-linux.zip
-# java/jre-win.zip
-# java/bioformats-jni-wrapper.zip      
-
-      - name: Upload to imagec.org
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          SSH_KEY: ${{ secrets.SSH_KEY_IMAGEC }}
-          SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}
-        run: |
-          echo "$SSH_KEY" > ssh_key_for_github
-          chmod 400 ssh_key_for_github
-          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.zip
-          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.json
-          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.zip
-          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.json
-          rm -rf ssh_key_for_github
-
-
-      
-      
-      
-      
-      
-      
-      
-         
+          cd build
+          cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cmake --build . --config Release --target imagec --parallel 8

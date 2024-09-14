@@ -21,7 +21,6 @@
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QAction>
 #include <QIcon>

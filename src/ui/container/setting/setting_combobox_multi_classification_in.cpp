@@ -26,10 +26,8 @@ QWidget *SettingComboBoxMultiClassificationIn::createInputObject()
 
   clusterNamesChanged();
 
-  SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this,
-                       &SettingComboBoxMultiClassificationIn::onValueChanged);
-  SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this,
-                       &SettingComboBoxMultiClassificationIn::onValueChanged);
+  SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this, &SettingComboBoxMultiClassificationIn::onValueChanged);
+  SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this, &SettingComboBoxMultiClassificationIn::onValueChanged);
 
   return mComboBox;
 }
@@ -78,9 +76,8 @@ void SettingComboBoxMultiClassificationIn::outputClustersChanges()
           QVariant variant;
           variant = QVariant(toInt(data));
 
-          mComboBox->addItem(
-              QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-              clusteres[static_cast<enums::ClusterIdIn>(data.clusterId)] + "@" + classes[data.classId], variant);
+          mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
+                             clusteres[static_cast<enums::ClusterIdIn>(data.clusterId)] + "@" + classes[data.classId], variant);
         }
       }
     }

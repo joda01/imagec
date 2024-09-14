@@ -12,7 +12,6 @@
 ///
 
 #include "image_reader.hpp"
-
 #include <jni.h>
 #include <stdio.h>
 #include <cmath>
@@ -29,6 +28,9 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#elif defined(__APPLE__)
+#include <dlfcn.h>
+#include <cstdlib>
 #else
 #include <dlfcn.h>
 #endif
@@ -71,7 +73,13 @@ void ImageReader::setPath()
   const char *path    = std::getenv("PATH");
   std::string newPath = javaBin + std::string(";") + path;
   SetEnvironmentVariable(L"PATH", ConvertToWideString(javaBin.c_str()));
-
+#elif defined(__APPLE__)
+  std::string javaHome = "java/jre_mac/macosx/zulu8.60.0.21-ca-fx-jdk8.0.322-macosx_x64/jre/Contents/Home";
+  std::string javaBin  = javaHome + "/bin";
+  setenv("JAVA_HOME", javaHome.c_str(), 1);
+  std::string path = std::getenv("PATH");
+  path             = javaBin + ":" + path;
+  setenv("PATH", path.c_str(), 1);
 #else
   std::string javaHome = "java/jre_win";
   std::string javaBin  = javaHome + "/bin";
@@ -151,12 +159,10 @@ void ImageReader::init()
         }
         std::cout << "Error: Class not found!" << std::endl;
       } else {
-        mGetImageProperties = myGlobEnv->GetStaticMethodID(mBioformatsClass, "getImageProperties",
-                                                           "(Ljava/lang/String;I)Ljava/lang/String;");
-        mReadImage = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;IIIII)[B");
-        mReadImageTile =
-            myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageTile", "(Ljava/lang/String;IIIIIIIII)[B");
-        mGetImageInfo = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageInfo", "(Ljava/lang/String;II)[I");
+        mGetImageProperties = myGlobEnv->GetStaticMethodID(mBioformatsClass, "getImageProperties", "(Ljava/lang/String;I)Ljava/lang/String;");
+        mReadImage          = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;IIIII)[B");
+        mReadImageTile      = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageTile", "(Ljava/lang/String;IIIIIIIII)[B");
+        mGetImageInfo       = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageInfo", "(Ljava/lang/String;II)[I");
       }
     }
   } catch(const std::exception &ex) {
@@ -208,8 +214,7 @@ std::string ImageReader::getJavaVersion()
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series,
-                                     uint16_t resolutionIdx)
+cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx)
 {
   // Takes 150 ms
   if(mJVMInitialised) {
@@ -217,15 +222,14 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
 
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
-    jstring filePath      = myEnv->NewStringUTF(filename.c_str());
-    jintArray readImgInfo = (jintArray) myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jstring filePath          = myEnv->NewStringUTF(filename.c_str());
+    jintArray readImgInfo     = (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series),
+                                                                          static_cast<int>(resolutionIdx));
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
     myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
-    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mReadImage, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx), imagePlane.z,
-        imagePlane.c, imagePlane.t);
+    jbyteArray readImg    = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
+                                                                       static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
     jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     // This is the image information
@@ -259,21 +263,19 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
     auto resolution    = ome.getResolutionCount(series).at(resolutionIdx);
 
     if(resolution.imageMemoryUsage > 209715200) {
-      joda::log::logWarning("Cannot create thumbnail. Pyramid to big: >" + std::to_string(resolution.imageMemoryUsage) +
-                            "< Bytes.");
+      joda::log::logWarning("Cannot create thumbnail. Pyramid to big: >" + std::to_string(resolution.imageMemoryUsage) + "< Bytes.");
       return cv::Mat{};
     }
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
-    jstring filePath      = myEnv->NewStringUTF(filename.c_str());
-    jintArray readImgInfo = (jintArray) myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx));
+    jstring filePath          = myEnv->NewStringUTF(filename.c_str());
+    jintArray readImgInfo     = (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series),
+                                                                          static_cast<int>(resolutionIdx));
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
     myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
-    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mReadImage, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx), imagePlane.z,
-        imagePlane.c, imagePlane.t);
+    jbyteArray readImg    = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
+                                                                       static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
     jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     // This is the image information
@@ -335,8 +337,8 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
 /// \param[in]  nrOfTilesToRead Nr of tiles which should form one composite image
 /// \return Loaded composite image
 ///
-cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series,
-                                   uint16_t resolutionIdx, const joda::ome::TileToLoad &tile)
+cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
+                                   const joda::ome::TileToLoad &tile)
 {
   if(mJVMInitialised) {
     JNIEnv *myEnv = nullptr;
@@ -346,8 +348,8 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     //
     // ReadImage Info
     //
-    auto *readImgInfo = (jintArray) myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx));
+    auto *readImgInfo         = (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series),
+                                                                          static_cast<int>(resolutionIdx));
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     auto *imageInfo           = new int32_t[totalSizeLoadedInfo];
     myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
@@ -374,9 +376,9 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     //
     // Load image
     //
-    auto *readImg = (jbyteArray) myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx),
-        imagePlane.z, imagePlane.c, imagePlane.t, offsetX, offsetY, tileWidthToLoad, tileHeightToLoad);
+    auto *readImg         = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
+                                                                       static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t, offsetX,
+                                                                       offsetY, tileWidthToLoad, tileHeightToLoad);
     jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     //
@@ -411,8 +413,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename) -> jo
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
 
     jstring filePath = myEnv->NewStringUTF(filename.string().c_str());
-    jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath,
-                                                               static_cast<int>(series));
+    jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, static_cast<int>(series));
     myEnv->DeleteLocalRef(filePath);
     const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
     std::string omeXML(stringChars);

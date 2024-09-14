@@ -16,7 +16,6 @@
 #include <qicon.h>
 #include <qlabel.h>
 #include <qnamespace.h>
-#include <qtmetamacros.h>
 #include <exception>
 #include <memory>
 #include <thread>

@@ -19,7 +19,6 @@
 #include <qnamespace.h>
 #include <qpixmap.h>
 #include <qpushbutton.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>

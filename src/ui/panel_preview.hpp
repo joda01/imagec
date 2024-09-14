@@ -14,7 +14,6 @@
 #pragma once
 
 #include <qlabel.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>
