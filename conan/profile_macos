@@ -1,10 +1,10 @@
 [settings]
 arch=arm64
 build_type=Release
-compiler=gcc
-compiler.cppstd=17
-compiler.libcxx=libstdc++11
-compiler.version=11
+compiler=apple-clang
+compiler.cppstd=gnu17
+compiler.libcxx=libc++
+compiler.version=15
 os=Macos
 
 
@@ -16,6 +16,5 @@ qt/*:qtsvg=True
 qt/*:qttools=True
 qt/*:qtcharts=True
 qt/*:qtgraphs=True
-qt/*:qtwayland=True
 qt/*:qtshadertools=True
 libxlsxwriter/*:md5=False

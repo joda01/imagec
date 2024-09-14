@@ -35,9 +35,9 @@ jobs:
 
       - name: Build with Conan
         run: |
-          conan profile detect
-          cat /home/runner/.conan2/profiles/default
-          conan install . --profile conan/profile_linux --output-folder=build --build=missing
+          sudo conan profile detect
+          sudo cat /home/runner/.conan2/profiles/default
+          sudo conan install . --profile conan/profile_linux --output-folder=build --build=missing
 
       - name: Save Conan Cache
         uses: actions/cache@v3
@@ -79,7 +79,7 @@ jobs:
       - name: Build with Conan
         run: |
           conan profile detect
-          cat /home/runner/.conan2/profiles/default
+          cat /Users/runner/.conan2/profiles/default
           conan install . --profile conan/profile_macos --output-folder=build --build=missing
 
       - name: Save Conan Cache
