@@ -14,6 +14,7 @@ qt/*:with_pq=False
 qt/*:with_odbc=False
 qt/*:with_sqlite3=False
 qt/*:shared=True
+qt/*:with_harfbuzz=False
 libxlsxwriter/*:md5=False
 
 [buildenv]
