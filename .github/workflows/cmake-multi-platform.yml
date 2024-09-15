@@ -143,6 +143,6 @@ jobs:
 
       - name: Build imagec
         run: |
-          cd build
-          cmake .. -G "Visual Studio 15 2017" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cd D:\a\imagec\imagec\build
+          cmake .. -G "Visual Studio 15 2017" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
