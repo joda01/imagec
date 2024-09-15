@@ -1,5 +1,26 @@
 cmake_minimum_required (VERSION 3.5)
 
+if(NOT CLANG_TIDY)
+  find_package(Python3)
+endif()
+
+if(POLICY CMP0026)
+  cmake_policy(SET CMP0026 NEW)
+endif()
+
+if(POLICY CMP0051)
+  cmake_policy(SET CMP0051 NEW)
+endif()
+
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 NEW)
+endif()
+
+if(POLICY CMP0063)
+  cmake_policy(SET CMP0063 NEW)
+endif()
+
+
 # Project name and version
 project (imagec
          VERSION 1.0.0

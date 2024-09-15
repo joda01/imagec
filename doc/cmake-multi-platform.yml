@@ -107,6 +107,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_ref }}
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
+      # see here: https://gist.github.com/scivision/1de4fd6abea9ba6b2d87dc1e86b5d2ce
+      - name: Put MSYS2_MinGW64 on PATH
+        # there is not yet an environment variable for this path from msys2/setup-msys2
+        shell: msys2 {0}
+        run: export PATH=D:/a/_temp/msys/msys64/mingw64/bin:$PATH
+
 
       - name: Set up Conan
         uses: actions/setup-python@v4
@@ -144,5 +157,5 @@ jobs:
       - name: Build imagec
         run: |
           cd D:\a\imagec\imagec\build
-          cmake .. -G "MinGW Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake"
+          cmake .. -G "Ninja" -DTAG_NAME="$TAG_NAME" -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8

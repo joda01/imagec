@@ -2218,7 +2218,7 @@
   ],
   [
    "qt:shared",
-   "False"
+   "True"
   ],
   [
    "qt:sysroot",
