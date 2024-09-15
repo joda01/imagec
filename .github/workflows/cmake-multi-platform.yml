@@ -29,9 +29,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: /root/.conan2
-          key: conan-cache-${{ runner.os }}
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
           restore-keys: |
-            conan-cache-${{ runner.os }}
+            conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
 
       - name: Build with Conan
         run: |
@@ -48,7 +48,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: /root/.conan2
-          key: conan-cache-${{ runner.os }}
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
 
       - name: Build imagec
         run: |
@@ -75,9 +75,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: /Users/runner/.conan2
-          key: conan-cache-${{ runner.os }}
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
           restore-keys: |
-            conan-cache-${{ runner.os }}
+            conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
 
       - name: Build with Conan
         run: |
@@ -93,7 +93,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: /Users/runner/.conan2
-          key: conan-cache-${{ runner.os }}
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
 
       - name: Build imagec
         run: |
@@ -121,9 +121,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: C:/Users/runneradmin/.conan2
-          key: conan-cache-${{ runner.os }}
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
           restore-keys: |
-            conan-cache-${{ runner.os }}
+            conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
 
       - name: Build with Conan
         run: |
@@ -139,10 +139,10 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: C:/Users/runneradmin/.conan2
-          key: conan-cache-${{ runner.os }}
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
 
       - name: Build imagec
         run: |
           cd D:\a\imagec\imagec\build
-          cmake .. -G "Visual Studio 17 2022" -DTAG_NAME="$TAG_NAME" -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake"
+          cmake .. -G "msvc" -DTAG_NAME="$TAG_NAME" -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
