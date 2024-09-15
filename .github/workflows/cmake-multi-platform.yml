@@ -107,17 +107,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up MinGW
+        uses: egor-tensin/setup-mingw@v2
         with:
-          ref: ${{ inputs.git_ref }}
-      
-      - uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
-      - name: Put MSYS2_MinGW64 on PATH
-        shell: msys2 {0}
-        run: export PATH=D:/a/_temp/msys/msys64/mingw64/bin:$PATH
+          platform: x64
 
       - name: Set up Conan
         uses: actions/setup-python@v4
