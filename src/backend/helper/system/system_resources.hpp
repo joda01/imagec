@@ -15,9 +15,15 @@
 
 #include <thread>
 
-#ifndef _WIN32
+#ifdef _WIN32
+
+#include <windows.h>
+#include <iostream>
+
+#else
 
 #include <unistd.h>
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -25,16 +31,29 @@
 #include "sys/sysinfo.h"
 #include "sys/types.h"
 
-#else
-
-#include <windows.h>
-#include <iostream>
-
 #endif
 
 namespace joda::system {
 
-#ifndef _WIN32
+#ifdef _WIN32
+
+inline uint64_t getTotalSystemMemory()
+{
+  MEMORYSTATUSEX status;
+  status.dwLength = sizeof(status);
+  GlobalMemoryStatusEx(&status);
+  return status.ullTotalPhys;
+}
+
+inline uint64_t getAvailableSystemMemory()
+{
+  MEMORYSTATUSEX status;
+  status.dwLength = sizeof(status);
+  GlobalMemoryStatusEx(&status);
+  return status.ullAvailPhys;
+}
+
+#else
 
 inline uint64_t getTotalSystemMemory()
 {
@@ -80,24 +99,6 @@ inline uint64_t getAvailableSystemMemory()
   }
 
   return -1;    // MemAvailable not found
-}
-
-#else
-
-inline uint64_t getTotalSystemMemory()
-{
-  MEMORYSTATUSEX status;
-  status.dwLength = sizeof(status);
-  GlobalMemoryStatusEx(&status);
-  return status.ullTotalPhys;
-}
-
-inline uint64_t getAvailableSystemMemory()
-{
-  MEMORYSTATUSEX status;
-  status.dwLength = sizeof(status);
-  GlobalMemoryStatusEx(&status);
-  return status.ullAvailPhys;
 }
 
 #endif

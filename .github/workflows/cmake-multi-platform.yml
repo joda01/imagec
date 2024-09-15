@@ -26,10 +26,10 @@ jobs:
 
 
       - name: Restore Conan Cache
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: /root/.conan2
-          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          key: conan-cache-${{ runner.os }}
           restore-keys: |
             conan-cache-${{ runner.os }}-
 
@@ -40,12 +40,10 @@ jobs:
           sudo conan install . --profile conan/profile_linux --output-folder=build --build=missing
 
       - name: Save Conan Cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v4
         with:
           path: /root/.conan2
-          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
-          restore-keys: |
-            conan-cache-${{ runner.os }}-
+          key: conan-cache-${{ runner.os }}
 
       - name: Build imagec
         run: |
@@ -69,10 +67,10 @@ jobs:
           pip install conan
 
       - name: Restore Conan Cache
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: /Users/runner/.conan2
-          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          key: conan-cache-${{ runner.os }}
           restore-keys: |
             conan-cache-${{ runner.os }}-
 
@@ -83,12 +81,10 @@ jobs:
           conan install . --profile conan/profile_macos --output-folder=build --build=missing
 
       - name: Save Conan Cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v4
         with:
           path: /Users/runner/.conan2
-          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
-          restore-keys: |
-            conan-cache-${{ runner.os }}-
+          key: conan-cache-${{ runner.os }}
 
       - name: Build imagec
         run: |
@@ -113,10 +109,10 @@ jobs:
           pip install conan
 
       - name: Restore Conan Cache
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: C:/Users/runneradmin/.conan2
-          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          key: conan-cache-${{ runner.os }}
           restore-keys: |
             conan-cache-${{ runner.os }}-
 
@@ -127,12 +123,10 @@ jobs:
           conan install . --profile conan/profile_win --output-folder=build --build=missing
 
       - name: Save Conan Cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v4
         with:
           path: C:/Users/runneradmin/.conan2
-          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
-          restore-keys: |
-            conan-cache-${{ runner.os }}-
+          key: conan-cache-${{ runner.os }}
 
       - name: Build imagec
         run: |
