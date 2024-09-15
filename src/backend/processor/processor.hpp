@@ -164,11 +164,10 @@ class Processor
 public:
   /////////////////////////////////////////////////////
   Processor();
-  void execute(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
-               const joda::thread::ThreadingSettings &threadingSettings, imagesList_t &allImages);
+  void execute(const joda::settings::AnalyzeSettings &program, const std::string &jobName, const joda::thread::ThreadingSettings &threadingSettings,
+               imagesList_t &allImages);
   void stop();
-  std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
-                                      GlobalContext &globalContext);
+  std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName, GlobalContext &globalContext);
 
   void listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &);
   const ProcessProgress &getProgress() const
@@ -182,9 +181,9 @@ public:
   }
 
   auto generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
-                       const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline,
-                       const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
-                       int32_t tileY) -> std::tuple<cv::Mat, cv::Mat, cv::Mat>;
+                       const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
+                       int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY)
+      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<enums::ClassId, int32_t>>;
 
 private:
   /////////////////////////////////////////////////////

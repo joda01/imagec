@@ -369,19 +369,13 @@ void PanelPipelineSettings::updatePreview()
                 controller->preview(mWindowMain->getSettings().imageSetup, prevSettings, mWindowMain->getSettings(), getPipeline(), imgIndex,
                                     mSelectedTileX, mSelectedTileY, previewResult);
                 // Create a QByteArray from the char array
-                int valid   = 0;
-                int invalid = 0;
-                /* for(const auto &roi : *previewResult.detectionResult) {
-                   if(roi.isValid()) {
-                     valid++;
-                   } else {
-                     invalid++;
-                   }
-                 }*/
-
+                QString info;
+                auto [_, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
+                for(const auto &[classId, count] : previewResult.foundObjects) {
+                  info += (classes[classId] + ":" + QString::number(count) + ", ");
+                }
+                info.chop(2);
                 mPreviewImage->setThumbnailPosition(tileNrX, tileNrY, mSelectedTileX, mSelectedTileY);
-
-                QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
                 mPreviewImage->updateImage(info);
                 if(!mIsActiveShown) {
                   mPreviewImage->resetImage("");
