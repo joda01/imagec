@@ -7,9 +7,6 @@ compiler.libcxx=libstdc++11
 compiler.version=11
 os=Windows
 
-[conf]
-tools.system.package_manager:mode=install
-
 [options]
 qt/*:qtsvg=True
 qt/*:qtcharts=True
