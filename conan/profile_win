@@ -14,5 +14,8 @@ tools.system.package_manager:mode=install
 [options]
 qt/*:qtsvg=True
 qt/*:qtcharts=True
+qt/*:with_pq=False
+qt/*:with_odbc=False
+qt/*:with_sqlite3=False
 qt/*:shared=True
 libxlsxwriter/*:md5=False
