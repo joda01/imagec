@@ -23,7 +23,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libva-dev libvdpau-dev xkb-data
           sudo pip install conan
-
+          sudo chmod 777 -R /root/.conan2
 
       - name: Restore Conan Cache
         uses: actions/cache/restore@v4
@@ -38,6 +38,7 @@ jobs:
           sudo conan profile detect
           sudo cat /root/.conan2/profiles/default
           sudo conan install . --profile conan/profile_linux --output-folder=build --build=missing
+          sudo chmod 777 -R /root/.conan2
 
       - name: Save Conan Cache
         uses: actions/cache/save@v4
