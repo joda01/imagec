@@ -23,7 +23,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libva-dev libvdpau-dev xkb-data
           sudo pip install conan
-          sudo chmod 777 -R /root/.conan2
+          sudo chmod 777 -R /root
 
       - name: Restore Conan Cache
         uses: actions/cache/restore@v4
@@ -132,5 +132,5 @@ jobs:
       - name: Build imagec
         run: |
           cd build
-          cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cmake .. -G "Visual Studio 15 2017" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
