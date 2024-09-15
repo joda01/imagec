@@ -20,9 +20,11 @@ qt/*:shared=True
 libxlsxwriter/*:md5=False
 
 [buildenv]
+PATH=['D:/a/_temp/msys64/mingw64/bin']
 CC=D:/a/_temp/msys64/mingw64/bin/gcc.exe
 CXX=D:/a/_temp/msys64/mingw64/bin/g++.exe 
 
 [runenv]
+PATH=['D:/a/_temp/msys64/mingw64/bin']
 CC=D:/a/_temp/msys64/mingw64/bin/gcc.exe
 CXX=D:/a/_temp/msys64/mingw64/bin/g++.exe 
