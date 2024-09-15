@@ -31,7 +31,7 @@ jobs:
           path: /root/.conan2
           key: conan-cache-${{ runner.os }}
           restore-keys: |
-            conan-cache-${{ runner.os }}-
+            conan-cache-${{ runner.os }}
 
       - name: Build with Conan
         run: |
@@ -73,7 +73,7 @@ jobs:
           path: /Users/runner/.conan2
           key: conan-cache-${{ runner.os }}
           restore-keys: |
-            conan-cache-${{ runner.os }}-
+            conan-cache-${{ runner.os }}
 
       - name: Build with Conan
         run: |
@@ -115,7 +115,7 @@ jobs:
           path: C:/Users/runneradmin/.conan2
           key: conan-cache-${{ runner.os }}
           restore-keys: |
-            conan-cache-${{ runner.os }}-
+            conan-cache-${{ runner.os }}
 
       - name: Build with Conan
         run: |
