@@ -7,6 +7,9 @@ compiler.libcxx=libstdc++11
 compiler.version=11
 os=Windows
 
+[conf]
+tools.env.virtualenv:powershell=False
+
 [options]
 qt/*:qtsvg=True
 qt/*:qtcharts=True
