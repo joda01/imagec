@@ -12,7 +12,6 @@ cd ..
 mkdir plugins
 mkdir platforms
 cp -r /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/plugins/* ./plugins
-cp -r /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/plugins/platforms/* ./platforms
 cp /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/lib/libQt6Core.so .
 cp /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/lib/libQt6Core.so.6 .
 cp /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/lib/libQt6Core.so.6.7.1 .
@@ -25,8 +24,14 @@ cp /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da
 cp /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/lib/libQt6XcbQpa.so .
 cp /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/lib/libQt6XcbQpa.so.6 .
 cp /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/lib/libQt6XcbQpa.so.6.7.1 .
-cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 ./platforms/libxcb-cursor.so.0
-cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 ./plugins/platforms/libxcb-cursor.so.0
+cp /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/lib/libQt6Svg.so .
+cp /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/lib/libQt6Svg.so.6 .
+cp /root/.conan/data/qt/6.7.1/_/_/build/3dacd9de57e47d982f83d918eae536f96f2cd3da/build/Release/qtbase/lib/libQt6Svg.so.6.7.1 .
+
+
 cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 libxcb-cursor.so.0
 cp /workspaces/imagec/resources/launcher/imagec.sh imagec.sh
+cp -r /workspaces/imagec/resources/templates ./templates
+mkdir -p ./models
+
 cd /workspaces/imagec
