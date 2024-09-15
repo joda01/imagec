@@ -7,7 +7,6 @@ compiler.libcxx=libstdc++11
 compiler.version=11
 os=Windows
 
-
 [conf]
 tools.system.package_manager:mode=install
 
@@ -19,3 +18,8 @@ qt/*:with_odbc=False
 qt/*:with_sqlite3=False
 qt/*:shared=True
 libxlsxwriter/*:md5=False
+
+[env]
+PATH=['D:/a/_temp/msys64/mingw64/bin']
+CC=D:/a/_temp/msys64/mingw64/bin/gcc.exe
+CXX=D:/a/_temp/msys64/mingw64/bin/g++.exe 
