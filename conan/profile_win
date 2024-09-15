@@ -19,10 +19,10 @@ qt/*:with_sqlite3=False
 qt/*:shared=True
 libxlsxwriter/*:md5=False
 
-[options]
-[conf]
-[build_requires]
-[env]
-PATH=['D:/a/_temp/msys64/mingw64/bin']
+[buildenv]
+CC=D:/a/_temp/msys64/mingw64/bin/gcc.exe
+CXX=D:/a/_temp/msys64/mingw64/bin/g++.exe 
+
+[runenv]
 CC=D:/a/_temp/msys64/mingw64/bin/gcc.exe
 CXX=D:/a/_temp/msys64/mingw64/bin/g++.exe 
