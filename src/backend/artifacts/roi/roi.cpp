@@ -34,23 +34,21 @@
 namespace joda::atom {
 
 ROI::ROI() :
-    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), confidence(confidence), mBoundingBoxTile({}),
-    mBoundingBoxReal({}), mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}), mImageSize(cv::Size{0, 0}), mAreaSize(0),
-    mPerimeter(0), mCircularity(0), mSnapAreaBoundingBox(calcSnapAreaBoundingBox(0, cv::Size{0, 0})),
-    mSnapAreaMask(calculateSnapAreaMask(0)), mSnapAreaMaskContours(calculateSnapContours(0))
+    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), confidence(0), mBoundingBoxTile({}), mBoundingBoxReal({}),
+    mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}), mImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0), mCircularity(0),
+    mSnapAreaBoundingBox(calcSnapAreaBoundingBox(0, cv::Size{0, 0})), mSnapAreaMask(calculateSnapAreaMask(0)),
+    mSnapAreaMaskContours(calculateSnapContours(0))
 {
 }
 
 ROI::ROI(RoiObjectId index, Confidence confidence, uint32_t snapAreaSize, const Boxes &boundingBox, const cv::Mat &mask,
-         const std::vector<cv::Point> &contour, const cv::Size &imageSize, const enums::tile_t &tile,
-         const cv::Size &tileSize) :
+         const std::vector<cv::Point> &contour, const cv::Size &imageSize, const enums::tile_t &tile, const cv::Size &tileSize) :
     mIsNull(false),
     mObjectId(mGlobalUniqueObjectId++), mId(index), confidence(confidence), mBoundingBoxTile(boundingBox),
-    mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize),
-    mAreaSize(calcAreaSize()), mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
-    mSnapAreaBoundingBox(calcSnapAreaBoundingBox(snapAreaSize, imageSize)),
-    mSnapAreaMask(calculateSnapAreaMask(snapAreaSize)), mSnapAreaMaskContours(calculateSnapContours(snapAreaSize)),
-    mSnapAreaRadius(snapAreaSize)
+    mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize), mAreaSize(calcAreaSize()),
+    mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
+    mSnapAreaBoundingBox(calcSnapAreaBoundingBox(snapAreaSize, imageSize)), mSnapAreaMask(calculateSnapAreaMask(snapAreaSize)),
+    mSnapAreaMaskContours(calculateSnapContours(snapAreaSize)), mSnapAreaRadius(snapAreaSize)
 {
 }
 
@@ -285,8 +283,7 @@ float ROI::getTracedPerimeter(const std::vector<cv::Point> &points)
     side1 = side2;
   }
 
-  return static_cast<float>(static_cast<float>(sumdx) + static_cast<float>(sumdy) -
-                            (static_cast<float>(nCorners) * (2.0F - std::sqrt(2))));
+  return static_cast<float>(static_cast<float>(sumdx) + static_cast<float>(sumdy) - (static_cast<float>(nCorners) * (2.0F - std::sqrt(2))));
 }
 
 ///
@@ -302,12 +299,10 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
   double pixelHeight = 1.0;
   double length      = 0;
   for(int i = 0; i < npoints - 1; i++) {
-    length += std::sqrt(std::pow((points[i + 1].x - points[i].x) * pixelWidth, 2) +
-                        std::pow((points[i + 1].y - points[i].y) * pixelHeight, 2));
+    length += std::sqrt(std::pow((points[i + 1].x - points[i].x) * pixelWidth, 2) + std::pow((points[i + 1].y - points[i].y) * pixelHeight, 2));
   }
   if(closeShape) {
-    length += std::sqrt(pow((points[0].x - points[npoints - 1].x) * pixelWidth, 2) +
-                        pow((points[0].y - points[npoints - 1].y) * pixelHeight, 2));
+    length += std::sqrt(pow((points[0].x - points[npoints - 1].x) * pixelWidth, 2) + pow((points[0].y - points[npoints - 1].y) * pixelHeight, 2));
   }
   return length;
 }
@@ -330,8 +325,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 /// \param[in]  roi   ROI to check against
 /// \return     Intersection of the areas in percent
 ///
-[[nodiscard]] ROI ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi,
-                                        uint32_t snapAreaOfIntersectingRoi, float minIntersection,
+[[nodiscard]] ROI ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint32_t snapAreaOfIntersectingRoi, float minIntersection,
                                         const enums::tile_t &tile, const cv::Size &tileSize,
                                         joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                                         joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
