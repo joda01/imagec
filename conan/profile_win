@@ -9,6 +9,9 @@ os=Windows
 
 [conf]
 tools.env.virtualenv:powershell=False
+libiconv/*:tools.env.virtualenv:powershell=False 
+libgettext/*:tools.env.virtualenv:powershell=False
+libffi/*:tools.env.virtualenv:powershell=False
 
 [options]
 qt/*:qtsvg=True
