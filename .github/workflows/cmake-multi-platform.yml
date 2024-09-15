@@ -113,10 +113,12 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
+          install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
       - name: Put MSYS2_MinGW64 on PATH
         shell: msys2 {0}
-        run: export PATH=D:/a/_temp/msys/msys64/mingw64/bin:$PATH
+        run: |
+          echo "D:/a/_temp/msys64/mingw64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "D:/a/_temp/msys64/usr/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Set up Conan
         uses: actions/setup-python@v4
