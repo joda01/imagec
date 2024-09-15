@@ -84,6 +84,7 @@ void Blur::filter3x3(cv::Mat &image, joda::settings::BlurSettings::Mode type, in
     v9 = imageCopy.at<unsigned short>(p9) & 0xffff;
 
     switch(type) {
+      case joda::settings::BlurSettings::Mode::GAUSSIAN:
       case joda::settings::BlurSettings::Mode::BLUR_MORE:
         for(int x = roiX; x < xEnd; x++, p++) {
           if(x < width - 1) {
