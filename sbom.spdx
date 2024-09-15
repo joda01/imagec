@@ -1,0 +1,981 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.3",
+  "serialNumber": "urn:uuid:37ddaa2a-3523-4f8c-a30f-ffb7a5b4fb7c",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "bom-ref": "unknown@0.0.0",
+      "type": "application",
+      "name": "unknown",
+      "version": "0.0.0"
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:conan/ImageC@1.0?repository_url=localhost",
+      "type": "library",
+      "name": "ImageC",
+      "version": "1.0",
+      "purl": "pkg:conan/ImageC@1.0?repository_url=localhost"
+    },
+    {
+      "bom-ref": "pkg:conan/libalsa@1.2.10?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libalsa",
+      "version": "1.2.10",
+      "purl": "pkg:conan/libalsa@1.2.10?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libdeflate@1.19?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libdeflate",
+      "version": "1.19",
+      "purl": "pkg:conan/libdeflate@1.19?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/jbig@20160605?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "jbig",
+      "version": "20160605",
+      "purl": "pkg:conan/jbig@20160605?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/pulseaudio@14.2?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "pulseaudio",
+      "version": "14.2",
+      "purl": "pkg:conan/pulseaudio@14.2?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/sqlite3@3.46.1?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "sqlite3",
+      "version": "3.46.1",
+      "purl": "pkg:conan/sqlite3@3.46.1?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/minizip@1.2.13?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "minizip",
+      "version": "1.2.13",
+      "purl": "pkg:conan/minizip@1.2.13?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/fontconfig@2.15.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "fontconfig",
+      "version": "2.15.0",
+      "purl": "pkg:conan/fontconfig@2.15.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/brotli@1.1.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "brotli",
+      "version": "1.1.0",
+      "purl": "pkg:conan/brotli@1.1.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/opencv@4.10.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "opencv",
+      "version": "4.10.0",
+      "purl": "pkg:conan/opencv@4.10.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libtiff@4.6.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libtiff",
+      "version": "4.6.0",
+      "purl": "pkg:conan/libtiff@4.6.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/protobuf@3.21.12?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "protobuf",
+      "version": "3.21.12",
+      "purl": "pkg:conan/protobuf@3.21.12?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libcap@2.69?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libcap",
+      "version": "2.69",
+      "purl": "pkg:conan/libcap@2.69?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/nlohmann_json@3.11.3?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "nlohmann_json",
+      "version": "3.11.3",
+      "purl": "pkg:conan/nlohmann_json@3.11.3?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/openjpeg@2.5.2?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "openjpeg",
+      "version": "2.5.2",
+      "purl": "pkg:conan/openjpeg@2.5.2?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/harfbuzz@8.3.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "harfbuzz",
+      "version": "8.3.0",
+      "purl": "pkg:conan/harfbuzz@8.3.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libxml2@2.12.7?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libxml2",
+      "version": "2.12.7",
+      "purl": "pkg:conan/libxml2@2.12.7?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/icu@74.2?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "icu",
+      "version": "74.2",
+      "purl": "pkg:conan/icu@74.2?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libvpx@1.14.1?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libvpx",
+      "version": "1.14.1",
+      "purl": "pkg:conan/libvpx@1.14.1?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/imath@3.1.9?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "imath",
+      "version": "3.1.9",
+      "purl": "pkg:conan/imath@3.1.9?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/eigen@3.4.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "eigen",
+      "version": "3.4.0",
+      "purl": "pkg:conan/eigen@3.4.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/vdpau@system?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "vdpau",
+      "version": "system",
+      "purl": "pkg:conan/vdpau@system?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/m4@1.4.19?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "m4",
+      "version": "1.4.19",
+      "purl": "pkg:conan/m4@1.4.19?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/pugixml@1.14?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "pugixml",
+      "version": "1.14",
+      "purl": "pkg:conan/pugixml@1.14?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libsndfile@1.2.2?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libsndfile",
+      "version": "1.2.2",
+      "purl": "pkg:conan/libsndfile@1.2.2?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/xorg@system?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "xorg",
+      "version": "system",
+      "purl": "pkg:conan/xorg@system?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/dav1d@1.4.3?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "dav1d",
+      "version": "1.4.3",
+      "purl": "pkg:conan/dav1d@1.4.3?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libelf@0.8.13?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libelf",
+      "version": "0.8.13",
+      "purl": "pkg:conan/libelf@0.8.13?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/openssl@3.3.1?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "openssl",
+      "version": "3.3.1",
+      "purl": "pkg:conan/openssl@3.3.1?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/flac@1.4.2?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "flac",
+      "version": "1.4.2",
+      "purl": "pkg:conan/flac@1.4.2?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libjpeg@9e?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libjpeg",
+      "version": "9e",
+      "purl": "pkg:conan/libjpeg@9e?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/quirc@1.2?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "quirc",
+      "version": "1.2",
+      "purl": "pkg:conan/quirc@1.2?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libx264@cci.20240224?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libx264",
+      "version": "cci.20240224",
+      "purl": "pkg:conan/libx264@cci.20240224?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/pcre2@10.42?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "pcre2",
+      "version": "10.42",
+      "purl": "pkg:conan/pcre2@10.42?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libwebp@1.3.2?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libwebp",
+      "version": "1.3.2",
+      "purl": "pkg:conan/libwebp@1.3.2?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libtool@2.4.7?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libtool",
+      "version": "2.4.7",
+      "purl": "pkg:conan/libtool@2.4.7?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/bzip2@1.0.8?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "bzip2",
+      "version": "1.0.8",
+      "purl": "pkg:conan/bzip2@1.0.8?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/expat@2.6.3?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "expat",
+      "version": "2.6.3",
+      "purl": "pkg:conan/expat@2.6.3?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/vorbis@1.3.7?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "vorbis",
+      "version": "1.3.7",
+      "purl": "pkg:conan/vorbis@1.3.7?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/xkeyboard-config@system?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "xkeyboard-config",
+      "version": "system",
+      "purl": "pkg:conan/xkeyboard-config@system?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libpng@1.6.43?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libpng",
+      "version": "1.6.43",
+      "purl": "pkg:conan/libpng@1.6.43?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libmp3lame@3.100?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libmp3lame",
+      "version": "3.100",
+      "purl": "pkg:conan/libmp3lame@3.100?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/mpg123@1.31.2?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "mpg123",
+      "version": "1.31.2",
+      "purl": "pkg:conan/mpg123@1.31.2?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/xkbcommon@1.6.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "xkbcommon",
+      "version": "1.6.0",
+      "purl": "pkg:conan/xkbcommon@1.6.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/automake@1.16.5?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "automake",
+      "version": "1.16.5",
+      "purl": "pkg:conan/automake@1.16.5?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/openh264@2.4.1?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "openh264",
+      "version": "2.4.1",
+      "purl": "pkg:conan/openh264@2.4.1?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/duckdb@1.1.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "duckdb",
+      "version": "1.1.0",
+      "purl": "pkg:conan/duckdb@1.1.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/double-conversion@3.3.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "double-conversion",
+      "version": "3.3.0",
+      "purl": "pkg:conan/double-conversion@3.3.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/ogg@1.3.5?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "ogg",
+      "version": "1.3.5",
+      "purl": "pkg:conan/ogg@1.3.5?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libffi@3.4.4?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libffi",
+      "version": "3.4.4",
+      "purl": "pkg:conan/libffi@3.4.4?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libfdk_aac@2.0.3?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libfdk_aac",
+      "version": "2.0.3",
+      "purl": "pkg:conan/libfdk_aac@2.0.3?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libmount@2.39?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libmount",
+      "version": "2.39",
+      "purl": "pkg:conan/libmount@2.39?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/autoconf@2.71?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "autoconf",
+      "version": "2.71",
+      "purl": "pkg:conan/autoconf@2.71?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/glib@2.78.3?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "glib",
+      "version": "2.78.3",
+      "purl": "pkg:conan/glib@2.78.3?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/util-linux-libuuid@2.39.2?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "util-linux-libuuid",
+      "version": "2.39.2",
+      "purl": "pkg:conan/util-linux-libuuid@2.39.2?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/ade@0.1.2d?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "ade",
+      "version": "0.1.2d",
+      "purl": "pkg:conan/ade@0.1.2d?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/xz_utils@5.4.5?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "xz_utils",
+      "version": "5.4.5",
+      "purl": "pkg:conan/xz_utils@5.4.5?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libx265@3.4?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libx265",
+      "version": "3.4",
+      "purl": "pkg:conan/libx265@3.4?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/ffmpeg@4.4.4?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "ffmpeg",
+      "version": "4.4.4",
+      "purl": "pkg:conan/ffmpeg@4.4.4?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libiconv@1.17?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libiconv",
+      "version": "1.17",
+      "purl": "pkg:conan/libiconv@1.17?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/zstd@1.5.5?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "zstd",
+      "version": "1.5.5",
+      "purl": "pkg:conan/zstd@1.5.5?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/freetype@2.13.2?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "freetype",
+      "version": "2.13.2",
+      "purl": "pkg:conan/freetype@2.13.2?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/wayland@1.22.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "wayland",
+      "version": "1.22.0",
+      "purl": "pkg:conan/wayland@1.22.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "zlib",
+      "version": "1.3.1",
+      "purl": "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/qt@6.7.1?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "qt",
+      "version": "6.7.1",
+      "purl": "pkg:conan/qt@6.7.1?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/opengl@system?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "opengl",
+      "version": "system",
+      "purl": "pkg:conan/opengl@system?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/openexr@3.2.3?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "openexr",
+      "version": "3.2.3",
+      "purl": "pkg:conan/openexr@3.2.3?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/catch2@3.7.0?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "catch2",
+      "version": "3.7.0",
+      "purl": "pkg:conan/catch2@3.7.0?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/opus@1.4?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "opus",
+      "version": "1.4",
+      "purl": "pkg:conan/opus@1.4?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libxlsxwriter@1.1.8?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libxlsxwriter",
+      "version": "1.1.8",
+      "purl": "pkg:conan/libxlsxwriter@1.1.8?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libselinux@3.6?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libselinux",
+      "version": "3.6",
+      "purl": "pkg:conan/libselinux@3.6?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/libaom-av1@3.6.1?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "libaom-av1",
+      "version": "3.6.1",
+      "purl": "pkg:conan/libaom-av1@3.6.1?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/vaapi@system?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "vaapi",
+      "version": "system",
+      "purl": "pkg:conan/vaapi@system?repository_url=https://center.conan.io"
+    },
+    {
+      "bom-ref": "pkg:conan/md4c@0.4.8?repository_url=https://center.conan.io",
+      "type": "library",
+      "name": "md4c",
+      "version": "0.4.8",
+      "purl": "pkg:conan/md4c@0.4.8?repository_url=https://center.conan.io"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:conan/ImageC@1.0?repository_url=localhost",
+      "dependsOn": [
+        "pkg:conan/qt@6.7.1?repository_url=https://center.conan.io",
+        "pkg:conan/opencv@4.10.0?repository_url=https://center.conan.io",
+        "pkg:conan/catch2@3.7.0?repository_url=https://center.conan.io",
+        "pkg:conan/pugixml@1.14?repository_url=https://center.conan.io",
+        "pkg:conan/nlohmann_json@3.11.3?repository_url=https://center.conan.io",
+        "pkg:conan/libxlsxwriter@1.1.8?repository_url=https://center.conan.io",
+        "pkg:conan/duckdb@1.1.0?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/libalsa@1.2.10?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libdeflate@1.19?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/jbig@20160605?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/pulseaudio@14.2?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/libiconv@1.17?repository_url=https://center.conan.io",
+        "pkg:conan/libsndfile@1.2.2?repository_url=https://center.conan.io",
+        "pkg:conan/libcap@2.69?repository_url=https://center.conan.io",
+        "pkg:conan/libtool@2.4.7?repository_url=https://center.conan.io",
+        "pkg:conan/libalsa@1.2.10?repository_url=https://center.conan.io",
+        "pkg:conan/xorg@system?repository_url=https://center.conan.io",
+        "pkg:conan/openssl@3.3.1?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/sqlite3@3.46.1?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/minizip@1.2.13?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/bzip2@1.0.8?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/fontconfig@2.15.0?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/freetype@2.13.2?repository_url=https://center.conan.io",
+        "pkg:conan/expat@2.6.3?repository_url=https://center.conan.io",
+        "pkg:conan/util-linux-libuuid@2.39.2?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/brotli@1.1.0?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/opencv@4.10.0?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/eigen@3.4.0?repository_url=https://center.conan.io",
+        "pkg:conan/protobuf@3.21.12?repository_url=https://center.conan.io",
+        "pkg:conan/ade@0.1.2d?repository_url=https://center.conan.io",
+        "pkg:conan/xkbcommon@1.6.0?repository_url=https://center.conan.io",
+        "pkg:conan/wayland@1.22.0?repository_url=https://center.conan.io",
+        "pkg:conan/libjpeg@9e?repository_url=https://center.conan.io",
+        "pkg:conan/openjpeg@2.5.2?repository_url=https://center.conan.io",
+        "pkg:conan/libpng@1.6.43?repository_url=https://center.conan.io",
+        "pkg:conan/openexr@3.2.3?repository_url=https://center.conan.io",
+        "pkg:conan/libtiff@4.6.0?repository_url=https://center.conan.io",
+        "pkg:conan/libwebp@1.3.2?repository_url=https://center.conan.io",
+        "pkg:conan/quirc@1.2?repository_url=https://center.conan.io",
+        "pkg:conan/ffmpeg@4.4.4?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/libtiff@4.6.0?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/libdeflate@1.19?repository_url=https://center.conan.io",
+        "pkg:conan/xz_utils@5.4.5?repository_url=https://center.conan.io",
+        "pkg:conan/libjpeg@9e?repository_url=https://center.conan.io",
+        "pkg:conan/jbig@20160605?repository_url=https://center.conan.io",
+        "pkg:conan/zstd@1.5.5?repository_url=https://center.conan.io",
+        "pkg:conan/libwebp@1.3.2?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/protobuf@3.21.12?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/libcap@2.69?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/nlohmann_json@3.11.3?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/openjpeg@2.5.2?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/harfbuzz@8.3.0?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/freetype@2.13.2?repository_url=https://center.conan.io",
+        "pkg:conan/glib@2.78.3?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/libxml2@2.12.7?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/libiconv@1.17?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/icu@74.2?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libvpx@1.14.1?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/imath@3.1.9?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/eigen@3.4.0?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/vdpau@system?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/m4@1.4.19?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/pugixml@1.14?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libsndfile@1.2.2?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/ogg@1.3.5?repository_url=https://center.conan.io",
+        "pkg:conan/vorbis@1.3.7?repository_url=https://center.conan.io",
+        "pkg:conan/flac@1.4.2?repository_url=https://center.conan.io",
+        "pkg:conan/opus@1.4?repository_url=https://center.conan.io",
+        "pkg:conan/mpg123@1.31.2?repository_url=https://center.conan.io",
+        "pkg:conan/libmp3lame@3.100?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/xorg@system?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/dav1d@1.4.3?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libelf@0.8.13?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/openssl@3.3.1?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/flac@1.4.2?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/ogg@1.3.5?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/libjpeg@9e?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/quirc@1.2?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libx264@cci.20240224?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/pcre2@10.42?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/bzip2@1.0.8?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/libwebp@1.3.2?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libtool@2.4.7?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/automake@1.16.5?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/bzip2@1.0.8?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/expat@2.6.3?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/vorbis@1.3.7?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/ogg@1.3.5?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/xkeyboard-config@system?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libpng@1.6.43?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/libmp3lame@3.100?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/mpg123@1.31.2?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/xkbcommon@1.6.0?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/xkeyboard-config@system?repository_url=https://center.conan.io",
+        "pkg:conan/xorg@system?repository_url=https://center.conan.io",
+        "pkg:conan/libxml2@2.12.7?repository_url=https://center.conan.io",
+        "pkg:conan/wayland@1.22.0?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/automake@1.16.5?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/autoconf@2.71?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/openh264@2.4.1?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/duckdb@1.1.0?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/double-conversion@3.3.0?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/ogg@1.3.5?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libffi@3.4.4?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libfdk_aac@2.0.3?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libmount@2.39?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/autoconf@2.71?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/m4@1.4.19?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/glib@2.78.3?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/libffi@3.4.4?repository_url=https://center.conan.io",
+        "pkg:conan/pcre2@10.42?repository_url=https://center.conan.io",
+        "pkg:conan/libelf@0.8.13?repository_url=https://center.conan.io",
+        "pkg:conan/libmount@2.39?repository_url=https://center.conan.io",
+        "pkg:conan/libselinux@3.6?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/util-linux-libuuid@2.39.2?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/ade@0.1.2d?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/xz_utils@5.4.5?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libx265@3.4?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/ffmpeg@4.4.4?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/bzip2@1.0.8?repository_url=https://center.conan.io",
+        "pkg:conan/xz_utils@5.4.5?repository_url=https://center.conan.io",
+        "pkg:conan/libiconv@1.17?repository_url=https://center.conan.io",
+        "pkg:conan/freetype@2.13.2?repository_url=https://center.conan.io",
+        "pkg:conan/openjpeg@2.5.2?repository_url=https://center.conan.io",
+        "pkg:conan/openh264@2.4.1?repository_url=https://center.conan.io",
+        "pkg:conan/vorbis@1.3.7?repository_url=https://center.conan.io",
+        "pkg:conan/opus@1.4?repository_url=https://center.conan.io",
+        "pkg:conan/libx264@cci.20240224?repository_url=https://center.conan.io",
+        "pkg:conan/libx265@3.4?repository_url=https://center.conan.io",
+        "pkg:conan/libvpx@1.14.1?repository_url=https://center.conan.io",
+        "pkg:conan/libmp3lame@3.100?repository_url=https://center.conan.io",
+        "pkg:conan/libfdk_aac@2.0.3?repository_url=https://center.conan.io",
+        "pkg:conan/libwebp@1.3.2?repository_url=https://center.conan.io",
+        "pkg:conan/openssl@3.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/libalsa@1.2.10?repository_url=https://center.conan.io",
+        "pkg:conan/xorg@system?repository_url=https://center.conan.io",
+        "pkg:conan/pulseaudio@14.2?repository_url=https://center.conan.io",
+        "pkg:conan/vaapi@system?repository_url=https://center.conan.io",
+        "pkg:conan/vdpau@system?repository_url=https://center.conan.io",
+        "pkg:conan/libaom-av1@3.6.1?repository_url=https://center.conan.io",
+        "pkg:conan/dav1d@1.4.3?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/libiconv@1.17?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/zstd@1.5.5?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/freetype@2.13.2?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/libpng@1.6.43?repository_url=https://center.conan.io",
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/bzip2@1.0.8?repository_url=https://center.conan.io",
+        "pkg:conan/brotli@1.1.0?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/wayland@1.22.0?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/libffi@3.4.4?repository_url=https://center.conan.io",
+        "pkg:conan/libxml2@2.12.7?repository_url=https://center.conan.io",
+        "pkg:conan/expat@2.6.3?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/qt@6.7.1?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/openssl@3.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/pcre2@10.42?repository_url=https://center.conan.io",
+        "pkg:conan/double-conversion@3.3.0?repository_url=https://center.conan.io",
+        "pkg:conan/freetype@2.13.2?repository_url=https://center.conan.io",
+        "pkg:conan/fontconfig@2.15.0?repository_url=https://center.conan.io",
+        "pkg:conan/icu@74.2?repository_url=https://center.conan.io",
+        "pkg:conan/harfbuzz@8.3.0?repository_url=https://center.conan.io",
+        "pkg:conan/libpng@1.6.43?repository_url=https://center.conan.io",
+        "pkg:conan/sqlite3@3.46.1?repository_url=https://center.conan.io",
+        "pkg:conan/xkbcommon@1.6.0?repository_url=https://center.conan.io",
+        "pkg:conan/xorg@system?repository_url=https://center.conan.io",
+        "pkg:conan/opengl@system?repository_url=https://center.conan.io",
+        "pkg:conan/wayland@1.22.0?repository_url=https://center.conan.io",
+        "pkg:conan/brotli@1.1.0?repository_url=https://center.conan.io",
+        "pkg:conan/md4c@0.4.8?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/opengl@system?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/openexr@3.2.3?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io",
+        "pkg:conan/imath@3.1.9?repository_url=https://center.conan.io",
+        "pkg:conan/libdeflate@1.19?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/catch2@3.7.0?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/opus@1.4?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/libxlsxwriter@1.1.8?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/minizip@1.2.13?repository_url=https://center.conan.io",
+        "pkg:conan/zlib@1.3.1?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/libselinux@3.6?repository_url=https://center.conan.io",
+      "dependsOn": [
+        "pkg:conan/pcre2@10.42?repository_url=https://center.conan.io"
+      ]
+    },
+    {
+      "ref": "pkg:conan/libaom-av1@3.6.1?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/vaapi@system?repository_url=https://center.conan.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:conan/md4c@0.4.8?repository_url=https://center.conan.io",
+      "dependsOn": []
+    }
+  ]
+}

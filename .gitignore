@@ -59,3 +59,4 @@ heaptrack.imagec.183820.gz
 *.icdb.wal
 *.gz
 conan.lock
+graph_info.json
