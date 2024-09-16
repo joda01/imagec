@@ -10,15 +10,6 @@ os=Windows
 [conf]
 tools.system.package_manager:mode=install
 tools.env.virtualenv:powershell=False
-libiconv/*:tools.env.virtualenv:powershell=False
-libgettext/*:tools.env.virtualenv:powershell=False
-libffi/*:tools.env.virtualenv:powershell=False
-libvpx/*:tools.env.virtualenv:powershell=False
-libx264/*:tools.env.virtualenv:powershell=False
-openh264/*:tools.env.virtualenv:powershell=False
-ffmpeg/*:tools.env.virtualenv:powershell=False
-gsl/*:tools.env.virtualenv:powershell=False
-
 
 [options]
 qt/*:qtsvg=True
@@ -29,9 +20,7 @@ qt/*:with_sqlite3=False
 qt/*:shared=True
 qt/*:with_harfbuzz=False
 libxlsxwriter/*:md5=False
-libiconv/*:tools.env.virtualenv:powershell=False 
-libgettext/*:tools.env.virtualenv:powershell=False
-libffi/*:tools.env.virtualenv:powershell=False
+
 
 [buildenv]
 PATH=+D:/a/_temp/msys64/mingw64/bin;D:/a/_temp/msys64/usr/bin
