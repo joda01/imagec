@@ -108,16 +108,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      
-      - uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
-      - name: Put MSYS2_MinGW64 on PATH
-        shell: msys2 {0}
-        run: export PATH=D:/a/_temp/msys64/mingw64/bin:D:/a/_temp/msys64/usr/bin:$PATH
-
       - name: Set up Conan
         uses: actions/setup-python@v4
         with:
@@ -143,7 +133,7 @@ jobs:
             conan profile detect
           }
           cat C:\Users\runneradmin\.conan2\profiles\default
-          conan install . --profile conan/profile_win --output-folder=build --build=missing -c tools.env.virtualenv:powershell=False
+          conan install . --profile conan/profile_win --output-folder=build --build=missing
 
       - name: Save Conan Cache
         uses: actions/cache/save@v4
@@ -154,5 +144,5 @@ jobs:
       - name: Build imagec
         run: |
           cd D:\a\imagec\imagec\build
-          cmake .. -G "Ninja" -DTAG_NAME="$TAG_NAME" -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake"
+          cmake .. -G "Visual Studio 17 2022" -DTAG_NAME="$TAG_NAME" -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
