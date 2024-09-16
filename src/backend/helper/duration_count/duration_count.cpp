@@ -13,8 +13,8 @@ uint32_t DurationCount::start(std::string comment)
 {
   totalCnt++;
   srand((unsigned) time(0) + totalCnt);
-  uint32_t randNr = (rand() % INT32_MAX) + 1;
-  auto d          = TimeDely{.t_start = std::chrono::high_resolution_clock::now(), .mComment = comment};
+  uint32_t randNr           = (rand() % INT32_MAX) + 1;
+  DurationCount::TimeDely d = TimeDely{.t_start = std::chrono::high_resolution_clock::now(), .mComment = comment};
   std::lock_guard<std::mutex> lock(mLock);
   mDelays[randNr] = d;
   return randNr;

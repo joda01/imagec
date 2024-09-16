@@ -163,8 +163,7 @@ void RollingBallBackground::execute(processor::ProcessContext &context, cv::Mat 
 
 /** Create background for a float image by rolling a ball over
  * the image. */
-void RollingBallBackground::rollingBallFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth,
-                                                       RollingBall *ball) const
+void RollingBallBackground::rollingBallFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth, RollingBall *ball) const
 {
   bool shrink = ball->shrinkFactor > 1;
   if(invert) {
@@ -207,8 +206,7 @@ cv::Mat RollingBallBackground::shrinkImage(const cv::Mat &ip, int shrinkFactor) 
             min = thispixel;
         }
       }
-      smallImage.at<float>(xSmall + ySmall * sWidth) =
-          min;    // each point in small image is minimum of its neighborhood
+      smallImage.at<float>(xSmall + ySmall * sWidth) = min;    // each point in small image is minimum of its neighborhood
     }
   }
   return smallImage;
@@ -216,21 +214,20 @@ cv::Mat RollingBallBackground::shrinkImage(const cv::Mat &ip, int shrinkFactor) 
 
 void RollingBallBackground::enlargeImage(const cv::Mat &smallImage, cv::Mat &fp, int shrinkFactor) const
 {
-  int width       = fp.cols;
-  int height      = fp.rows;
-  int smallWidth  = smallImage.cols;
-  int smallHeight = smallImage.rows;
-  int xSmallIndices[width];    // index of first point in smallImage
-  float xWeights[width];       // weight of this point
+  int width          = fp.cols;
+  int height         = fp.rows;
+  int smallWidth     = smallImage.cols;
+  int smallHeight    = smallImage.rows;
+  int *xSmallIndices = new int[width];      // index of first point in smallImage
+  float *xWeights    = new float[width];    // weight of this point
   makeInterpolationArrays(xSmallIndices, xWeights, width, smallWidth, shrinkFactor);
-  int ySmallIndices[height];
-  float yWeights[height];
+  int *ySmallIndices = new int[height];
+  float *yWeights    = new float[height];
   makeInterpolationArrays(ySmallIndices, yWeights, height, smallHeight, shrinkFactor);
-  float line0[width];
-  float line1[width];
+  float *line0 = new float[width];
+  float *line1 = new float[width];
   for(int x = 0; x < width; x++)    // x-interpolation of the first smallImage line
-    line1[x] = smallImage.at<float>(xSmallIndices[x]) * xWeights[x] +
-               smallImage.at<float>(xSmallIndices[x] + 1) * (1.0f - xWeights[x]);
+    line1[x] = smallImage.at<float>(xSmallIndices[x]) * xWeights[x] + smallImage.at<float>(xSmallIndices[x] + 1) * (1.0f - xWeights[x]);
   int ySmallLine0 = -1;    // line0 corresponds to this y of smallImage
   for(int y = 0; y < height; y++) {
     if(ySmallLine0 < ySmallIndices[y]) {
@@ -247,6 +244,13 @@ void RollingBallBackground::enlargeImage(const cv::Mat &smallImage, cv::Mat &fp,
     for(int x = 0, p = y * width; x < width; x++, p++)
       fp.at<float>(p) = line0[x] * weight + line1[x] * (1.0f - weight);
   }
+
+  delete[] xSmallIndices;
+  delete[] xWeights;
+  delete[] ySmallIndices;
+  delete[] yWeights;
+  delete[] line0;
+  delete[] line1;
 }
 
 /** Create arrays of indices and weigths for interpolation.
@@ -259,17 +263,15 @@ void RollingBallBackground::enlargeImage(const cv::Mat &smallImage, cv::Mat &fp,
            it is higher by one
  </pre>
  */
-void RollingBallBackground::makeInterpolationArrays(int *smallIndices, float *weights, int length, int smallLength,
-                                                    int shrinkFactor)
+void RollingBallBackground::makeInterpolationArrays(int *smallIndices, float *weights, int length, int smallLength, int shrinkFactor)
 {
   for(int i = 0; i < length; i++) {
     int smallIndex = (i - shrinkFactor / 2) / shrinkFactor;
     if(smallIndex >= smallLength - 1)
       smallIndex = smallLength - 2;
     smallIndices[i] = smallIndex;
-    float distance =
-        (i + 0.5f) / shrinkFactor - (smallIndex + 0.5f);    // distance of pixel centers (in smallImage pixels)
-    weights[i] = 1.0f - distance;
+    float distance  = (i + 0.5f) / shrinkFactor - (smallIndex + 0.5f);    // distance of pixel centers (in smallImage pixels)
+    weights[i]      = 1.0f - distance;
   }
 }
 
@@ -289,8 +291,7 @@ void RollingBallBackground::rollBall(RollingBall *ball, cv::Mat &fp) const
       // std::copy(pixels + nextLineToRead * width, pixels + (nextLineToRead + 1) * width,cache + nextLineToWriteInCache
       // * width);
 
-      std::copy(reinterpret_cast<float *>(fp.data) + nextLineToRead * width,
-                reinterpret_cast<float *>(fp.data) + (nextLineToRead + 1) * width,
+      std::copy(reinterpret_cast<float *>(fp.data) + nextLineToRead * width, reinterpret_cast<float *>(fp.data) + (nextLineToRead + 1) * width,
                 cache + nextLineToWriteInCache * width);
 
       for(int x = 0, p = nextLineToRead * width; x < width; x++, p++) {
