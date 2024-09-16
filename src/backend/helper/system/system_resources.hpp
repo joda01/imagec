@@ -83,6 +83,8 @@ uint64_t getTotalSystemMemory()
 
 uint64_t getAvailableSystemMemory()
 {
+  return (uint64_t) ((float) getTotalSystemMemory() * (float) 0.8);
+  /*
   uint64_t totalMemory = 0;
   size_t length        = sizeof(totalMemory);
   int mib[2]           = {CTL_HW, HW_MEMSIZE};
@@ -105,6 +107,7 @@ uint64_t getAvailableSystemMemory()
   uint64_t availableMemory = vmStats.free_count * vmStats.page_size;
 
   return availableMemory;
+  */
 }
 #else
 
