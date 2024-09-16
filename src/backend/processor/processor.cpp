@@ -252,7 +252,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
 std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
                                                GlobalContext &globalContext)
 {
-  auto now = std::chrono::high_resolution_clock::now();
+  auto now = std::chrono::system_clock::now();
   mProgress.reset();
   globalContext.resultsOutputFolder =
       std::filesystem::path(program.projectSettings.workingDirectory) / "imagec" / (joda::helper::timepointToIsoString(now) + "_" + jobName);

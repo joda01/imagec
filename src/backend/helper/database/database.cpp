@@ -246,8 +246,8 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       objects.Append<uint32_t>(roi.getBoundingBoxReal().height);    // " meas_box_height UINTEGER,"
       objects.Append<uint32_t>(0);                                  // " meas_box_depth UINTEGER,"
 
-      auto mask = duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER),
-                                     duckdb::LogicalType(duckdb::LogicalTypeId::BOOLEAN), {}, {});
+      auto mask =
+          duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), duckdb::LogicalType(duckdb::LogicalTypeId::BOOLEAN), {}, {});
       objects.Append<duckdb::Value>(mask);
       /* objects.Append<duckdb::Value>(
            joda::rle::rle_encode({roi.getMask().datastart, roi.getMask().dataend}));    // " meas_mask BOOLEAN[]"*/
@@ -422,9 +422,8 @@ void Database::insertImage(const joda::processor::ImageContext &image, const jod
          "VALUES (?, ?, ?, ?, ?, ?, ?, ? ,? )");
 
   auto [width, heigh] = image.imageMeta.getSize();
-  prepare->Execute(image.imageId, image.imagePath.filename().string(), image.imagePath.string(),
-                   image.imageMeta.getNrOfChannels(), image.imageLoader.getNrOfZStacksToProcess(),
-                   image.imageLoader.getNrOfTStacksToProcess(), width, heigh, 0);
+  prepare->Execute(image.imageId, image.imagePath.filename().string(), image.imagePath.string(), image.imageMeta.getNrOfChannels(),
+                   image.imageLoader.getNrOfZStacksToProcess(), image.imageLoader.getNrOfTStacksToProcess(), width, heigh, 0);
 }
 
 ///
@@ -488,12 +487,10 @@ void Analyzer::unMarkImageChannelAsManualInvalid(const std::string &analyzeId, u
 /// \param[out]
 /// \return
 ///
-void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId,
-                                const ome::OmeInfo::ImagePlane &planeInfo)
+void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId, const ome::OmeInfo::ImagePlane &planeInfo)
 {
   auto connection = acquire();
-  auto prepare    = connection->Prepare(
-      "INSERT OR IGNORE INTO images_planes (image_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?)");
+  auto prepare    = connection->Prepare("INSERT OR IGNORE INTO images_planes (image_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?)");
   prepare->Execute(imageId, planeId.cStack, planeId.zStack, planeId.tStack, 0);
 }
 
@@ -506,8 +503,8 @@ void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId,
 ///
 void Database::setImageValidity(uint64_t imageId, enums::ChannelValidity validity)
 {
-  std::unique_ptr<duckdb::QueryResult> result = select("UPDATE images SET validity = validity | ? WHERE image_id=?",
-                                                       static_cast<uint64_t>(validity.to_ullong()), imageId);
+  std::unique_ptr<duckdb::QueryResult> result =
+      select("UPDATE images SET validity = validity | ? WHERE image_id=?", static_cast<uint64_t>(validity.to_ullong()), imageId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -537,8 +534,8 @@ void Database::setImageProcessed(uint64_t imageId)
 ///
 void Database::unsetImageValidity(uint64_t imageId, enums::ChannelValidity validity)
 {
-  std::unique_ptr<duckdb::QueryResult> result = select("UPDATE images SET validity = validity & ~(?) WHERE image_id=?",
-                                                       static_cast<uint64_t>(validity.to_ullong()), imageId);
+  std::unique_ptr<duckdb::QueryResult> result =
+      select("UPDATE images SET validity = validity & ~(?) WHERE image_id=?", static_cast<uint64_t>(validity.to_ullong()), imageId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -553,9 +550,9 @@ void Database::unsetImageValidity(uint64_t imageId, enums::ChannelValidity valid
 ///
 void Database::setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &planeId, enums::ChannelValidity validity)
 {
-  std::unique_ptr<duckdb::QueryResult> result = select(
-      "UPDATE images_planes SET validity = validity | ? WHERE image_id=? AND stack_c=? AND stack_z=? AND stack_t=?",
-      static_cast<uint64_t>(validity.to_ullong()), imageId, planeId.cStack, planeId.zStack, planeId.tStack);
+  std::unique_ptr<duckdb::QueryResult> result =
+      select("UPDATE images_planes SET validity = validity | ? WHERE image_id=? AND stack_c=? AND stack_z=? AND stack_t=?",
+             static_cast<uint64_t>(validity.to_ullong()), imageId, planeId.cStack, planeId.zStack, planeId.tStack);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -568,14 +565,14 @@ void Database::setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &pla
 /// \param[out]
 /// \return
 ///
-void Database::setImagePlaneClusterClusterValidity(uint64_t imageId, const enums::PlaneId &planeId,
-                                                   enums::ClusterId clusterId, enums::ChannelValidity validity)
+void Database::setImagePlaneClusterClusterValidity(uint64_t imageId, const enums::PlaneId &planeId, enums::ClusterId clusterId,
+                                                   enums::ChannelValidity validity)
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
       "INSERT INTO clusters_planes (image_id, cluster_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?) "
       "ON CONFLICT DO UPDATE SET validity = validity | ?",
-      imageId, static_cast<uint16_t>(clusterId), planeId.cStack, planeId.zStack, planeId.tStack,
-      static_cast<uint64_t>(validity.to_ullong()), static_cast<uint64_t>(validity.to_ullong()));
+      imageId, static_cast<uint16_t>(clusterId), planeId.cStack, planeId.zStack, planeId.tStack, static_cast<uint64_t>(validity.to_ullong()),
+      static_cast<uint64_t>(validity.to_ullong()));
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -588,12 +585,10 @@ void Database::setImagePlaneClusterClusterValidity(uint64_t imageId, const enums
 /// \param[out]
 /// \return
 ///
-void Database::insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t imageIdx,
-                                 const joda::grp::GroupInformation &groupInfo)
+void Database::insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t imageIdx, const joda::grp::GroupInformation &groupInfo)
 {
   auto connection = acquire();
-  auto prepare    = connection->Prepare(
-      "INSERT OR IGNORE INTO images_groups (plate_id, group_id, image_id, image_group_idx) VALUES (?, ?, ?, ?)");
+  auto prepare    = connection->Prepare("INSERT OR IGNORE INTO images_groups (plate_id, group_id, image_id, image_group_idx) VALUES (?, ?, ?, ?)");
   prepare->Execute(plateId, groupInfo.groupId, imageId, imageIdx);
 }
 
@@ -622,12 +617,10 @@ std::string Database::startJob(const joda::settings::AnalyzeSettings &exp, const
 ///
 void Database::finishJob(const std::string &jobId)
 {
-  auto timestampFinished = duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(
-                                                   std::chrono::high_resolution_clock::now().time_since_epoch())
-                                                   .count());
+  auto timestampFinished =
+      duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
   std::unique_ptr<duckdb::QueryResult> result =
-      select("UPDATE jobs SET time_finished = ? WHERE job_id = ?", duckdb::Value::TIMESTAMP(timestampFinished),
-             duckdb::Value::UUID(jobId));
+      select("UPDATE jobs SET time_finished = ? WHERE job_id = ?", duckdb::Value::TIMESTAMP(timestampFinished), duckdb::Value::UUID(jobId));
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -720,9 +713,8 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
   // If this was successful, insert the job
   //
   try {
-    auto timestampStart     = duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(
-                                                  std::chrono::high_resolution_clock::now().time_since_epoch())
-                                                      .count());
+    auto timestampStart =
+        duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
     duckdb::timestamp_t nil = {};
     auto prepare            = connection->Prepare(
         "INSERT INTO jobs (experiment_id, job_id,job_name, time_started, time_finished, settings) VALUES (?, ?, ?, ?, "
@@ -731,8 +723,7 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
 
     nlohmann::json json = exp;
     prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName,
-                     duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil),
-                     static_cast<std::string>(json.dump()));
+                     duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil), static_cast<std::string>(json.dump()));
   } catch(const std::exception &ex) {
     connection->Rollback();
     throw std::runtime_error(ex.what());
@@ -744,17 +735,16 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
     for(const auto &plate : exp.projectSettings.plates) {
       nlohmann::json groupBy = plate.groupBy;
       platesDb.BeginRow();
-      platesDb.Append(jobId);                                  //       " job_id UUID,"
-      platesDb.Append<uint16_t>(plate.plateId);                //       " plate_id USMALLINT,"
-      platesDb.Append<duckdb::string_t>(plate.name);           //       " name STRING,"
-      platesDb.Append<duckdb::string_t>(plate.notes);          //       " notes STRING,"
-      platesDb.Append<uint16_t>(plate.rows);                   //       " rows USMALLINT,"
-      platesDb.Append<uint16_t>(plate.cols);                   //       " cols USMALLINT,"
-      platesDb.Append<duckdb::string_t>(plate.imageFolder);    //       " image_folder STRING,"
-      platesDb.Append<duckdb::string_t>(
-          settings::vectorToString(plate.wellImageOrder));        //       " well_image_order STRING,"
-      platesDb.Append<duckdb::string_t>(std::string(groupBy));    //       " group_by STRING,"
-      platesDb.Append<duckdb::string_t>(plate.filenameRegex);     //       " filename_regex STRING,"
+      platesDb.Append(jobId);                                                               //       " job_id UUID,"
+      platesDb.Append<uint16_t>(plate.plateId);                                             //       " plate_id USMALLINT,"
+      platesDb.Append<duckdb::string_t>(plate.name);                                        //       " name STRING,"
+      platesDb.Append<duckdb::string_t>(plate.notes);                                       //       " notes STRING,"
+      platesDb.Append<uint16_t>(plate.rows);                                                //       " rows USMALLINT,"
+      platesDb.Append<uint16_t>(plate.cols);                                                //       " cols USMALLINT,"
+      platesDb.Append<duckdb::string_t>(plate.imageFolder);                                 //       " image_folder STRING,"
+      platesDb.Append<duckdb::string_t>(settings::vectorToString(plate.wellImageOrder));    //       " well_image_order STRING,"
+      platesDb.Append<duckdb::string_t>(std::string(groupBy));                              //       " group_by STRING,"
+      platesDb.Append<duckdb::string_t>(plate.filenameRegex);                               //       " filename_regex STRING,"
       platesDb.EndRow();
     }
     platesDb.Close();
@@ -776,8 +766,8 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
 ///
 auto Database::selectPlates() -> std::map<uint16_t, joda::settings::Plate>
 {
-  std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT plate_id, name, notes, rows, cols,image_folder,well_image_order,group_by,filename_regex FROM plates");
+  std::unique_ptr<duckdb::QueryResult> result =
+      select("SELECT plate_id, name, notes, rows, cols,image_folder,well_image_order,group_by,filename_regex FROM plates");
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -1017,15 +1007,13 @@ auto Database::selectClasses() -> std::map<enums::ClassId, joda::settings::Class
 /// \param[out]
 /// \return
 ///
-auto Database::selectClassesForClusters()
-    -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>
+auto Database::selectClassesForClusters() -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>
 {
   std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>> resultOut;
   auto clusters = selectClusters();
   auto classes  = selectClasses();
 
-  std::unique_ptr<duckdb::QueryResult> result =
-      select("SELECT cluster_id, class_id FROM objects GROUP BY cluster_id, class_id");
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT cluster_id, class_id FROM objects GROUP BY cluster_id, class_id");
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -1108,8 +1096,7 @@ auto Database::selectCrossChannelCountForClusterAndClass(enums::ClusterId cluste
 /// \param[out]
 /// \return
 ///
-auto Database::selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
-    -> std::set<int32_t>
+auto Database::selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId) -> std::set<int32_t>
 {
   std::set<int32_t> channels;
   std::unique_ptr<duckdb::QueryResult> result = select(

@@ -13,8 +13,9 @@ uint32_t DurationCount::start(std::string comment)
 {
   totalCnt++;
   srand((unsigned) time(0) + totalCnt);
-  uint32_t randNr           = (rand() % INT32_MAX) + 1;
-  DurationCount::TimeDely d = TimeDely{.t_start = std::chrono::high_resolution_clock::now(), .mComment = comment};
+  uint32_t randNr                             = (rand() % INT32_MAX) + 1;
+  std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+  DurationCount::TimeDely d                   = TimeDely{.t_start = start, .mComment = comment};
   std::lock_guard<std::mutex> lock(mLock);
   mDelays[randNr] = d;
   return randNr;
@@ -22,7 +23,7 @@ uint32_t DurationCount::start(std::string comment)
 
 void DurationCount::stop(uint32_t rand)
 {
-  auto t_end = std::chrono::high_resolution_clock::now();
+  std::chrono::system_clock::time_point t_end = std::chrono::system_clock::now();
   std::lock_guard<std::mutex> lock(mLock);
   auto durations         = t_end - mDelays[rand].t_start;
   double elapsed_time_ms = std::chrono::duration<double, std::milli>(durations).count();
@@ -36,7 +37,7 @@ void DurationCount::resetStats()
 {
   std::lock_guard<std::mutex> lock(mLock);
   mStats.clear();
-  mStartTime = std::chrono::high_resolution_clock::now();
+  mStartTime = std::chrono::system_clock::now();
 }
 
 std::string getCurrentDateTime()
@@ -50,7 +51,7 @@ std::string getCurrentDateTime()
 void DurationCount::printStats(double nrOfImages, const std::filesystem::path &outputDir)
 {
   std::lock_guard<std::mutex> lock(mLock);
-  auto timeEnd = std::chrono::high_resolution_clock::now();
+  auto timeEnd = std::chrono::system_clock::now();
 
   auto durations         = timeEnd - mStartTime;
   double elapsed_time_ms = std::chrono::duration<double, std::milli>(durations).count();

@@ -3,4 +3,4 @@ conan install . --profile conan/profile_linux --output-folder=build --build=miss
 cyclonedx-conan . --output sbom.spdx
 
 
-conan graph info . --profile conan/profile_win_mingw --format=html > graph.html
+#conan graph info . --profile conan/profile_win_mingw --format=html > graph.html

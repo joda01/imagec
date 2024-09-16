@@ -65,7 +65,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 find_package( OpenCV REQUIRED )
 find_package( PugiXML )
-find_package( OpenSSL  )
 find_package( JNI REQUIRED )
 find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )

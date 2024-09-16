@@ -88,7 +88,6 @@
         "shared_mutex": "cpp"
     },
     "files.exclude": {
-        ".clang-format": true,
         ".gitignore": true,
         ".dockerignore": true,
         ".clang-tidy": true,

@@ -120,7 +120,7 @@ void DialogAnalyzeRunning::refreshThread()
   auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings);
   // mWindowMain->getController()->reset();
   mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName().toStdString());
-  mStartedTime = std::chrono::high_resolution_clock::now();
+  mStartedTime = std::chrono::system_clock::now();
 
   // Wait unit new pipeline has been started. It could be that we are still waiting for finishing the prev thread.
 
@@ -152,7 +152,7 @@ void DialogAnalyzeRunning::onRefreshData()
   try {
     const auto &state = mWindowMain->getController()->getState();
     if(state.getState() == joda::processor::ProcessState::RUNNING || state.getState() == joda::processor::ProcessState::RUNNING_PREPARING_PIPELINE) {
-      mEndedTime = std::chrono::high_resolution_clock::now();
+      mEndedTime = std::chrono::system_clock::now();
     }
     actState       = state.getState();
     newTextAllOver = QString("Processing Image %1/%2").arg(state.finishedImages()).arg(state.totalImages());
