@@ -34,6 +34,7 @@ concept Setting_t = ::std::is_base_of<joda::settings::SettingBase, T>::value;
 class CommandFactory
 {
 public:
+  virtual ~CommandFactory()                                                                          = default;
   virtual void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) = 0;
   virtual settings::ObjectInputClusters getInputClusters() const                                     = 0;
   virtual settings::ObjectOutputClusters getOutputClasses() const                                    = 0;
