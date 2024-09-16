@@ -10,6 +10,14 @@ os=Windows
 [conf]
 tools.system.package_manager:mode=install
 tools.env.virtualenv:powershell=False
+libiconv/*:tools.env.virtualenv:powershell=False
+libgettext/*:tools.env.virtualenv:powershell=False
+libffi/*:tools.env.virtualenv:powershell=False
+libvpx/*:tools.env.virtualenv:powershell=False
+libx264/*:tools.env.virtualenv:powershell=False
+openh264/*:tools.env.virtualenv:powershell=False
+ffmpeg/*:tools.env.virtualenv:powershell=False
+gsl/*:tools.env.virtualenv:powershell=False
 
 
 [options]
