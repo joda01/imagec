@@ -73,6 +73,9 @@ find_package( nlohmann_json CONFIG REQUIRED)
 find_package( DuckDB CONFIG REQUIRED)
 find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets )
 
+SET(DuckDB_USE_STATIC_LIBS TRUE)
+
+
 set(LIBS
   ${OpenCV_LIBS}
   pugixml::pugixml
