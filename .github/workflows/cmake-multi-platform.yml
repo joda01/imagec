@@ -51,9 +51,11 @@ jobs:
           key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
 
       - name: Build imagec
+        env:
+          TAG_NAME: "${{ github.ref_name }}"
         run: |
           cd build
-          sudo cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          sudo cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           sudo cmake --build . --config Release --target imagec --parallel 8
           
   build-macos:
@@ -96,11 +98,12 @@ jobs:
           key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
 
       - name: Build imagec
+        env:
+          TAG_NAME: "${{ github.ref_name }}"
         run: |
           cd build
-          cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
-
 
   build-windows:
     runs-on: windows-2022
@@ -142,7 +145,11 @@ jobs:
           key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
 
       - name: Build imagec
+        env:
+          PRIV_KEY: ${{ secrets.PRIV_KEY }}
+          PUB_KEY: ${{ secrets.PUB_KEY }}
+          TAG_NAME: "${{ github.ref_name }}"
         run: |
           cd D:\a\imagec\imagec\build
-          cmake .. -G "Ninja" -DTAG_NAME="$TAG_NAME" -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake"
+          cmake .. -G "MinGW Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_SH=CMAKE_SH-NOTFOUND -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
