@@ -11,7 +11,7 @@
 ///
 
 #include "file_grouper.hpp"
-#include <regex.h>
+#include <regex>
 #include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
