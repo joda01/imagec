@@ -69,10 +69,10 @@ void ImageReader::setPath()
 #ifdef _WIN32
   std::string javaHome = "java\\jre_win";
   std::string javaBin  = javaHome + "\\bin";
-  SetEnvironmentVariable(L"JAVA_HOME", ConvertToWideString(javaHome.data()));
+  SetEnvironmentVariable("JAVA_HOME", javaHome.data());
   const char *path    = std::getenv("PATH");
   std::string newPath = javaBin + std::string(";") + path;
-  SetEnvironmentVariable(L"PATH", ConvertToWideString(javaBin.c_str()));
+  SetEnvironmentVariable("PATH", javaBin.c_str());
 #elif defined(__APPLE__)
   std::string javaHome = "java/jre_macos_arm";
   std::string javaBin  = javaHome + "/bin";
