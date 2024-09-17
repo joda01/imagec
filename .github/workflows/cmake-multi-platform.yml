@@ -161,8 +161,6 @@ jobs:
           Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libparquet_extension.a" -Destination "$conanDuckDBbasePath\lib" -Force
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb" -Destination "$conanDuckDBbasePath\include" -Force
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\third_party\*.a" -Destination "$conanDuckDBbasePath\lib" -Force
-          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\cmake\*.cmake" -Destination "$conanDuckDBbasePath\lib\cmake\duckdb" -Force
-
 
           cd D:\a\imagec\imagec\build
           cmake .. -G "MinGW Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_SH=CMAKE_SH-NOTFOUND -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
