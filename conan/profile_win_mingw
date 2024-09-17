@@ -9,7 +9,7 @@ arch=x86_64
 build_type=Release
 
 [tool_requires]
-mingw-builds/12.2.0
+mingw-builds/13.2.0
 
 [options]
 qt/*:qtsvg=True
