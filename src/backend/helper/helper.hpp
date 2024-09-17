@@ -1,7 +1,6 @@
 #pragma once
 
 #include <opencv2/core/hal/interface.h>
-#include <unistd.h>
 #include <array>
 #include <chrono>
 #include <cstdlib>

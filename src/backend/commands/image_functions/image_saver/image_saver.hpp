@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include <bits/iterator_concepts.h>
 #include <filesystem>
 #include <regex>
 #include <string>
@@ -67,18 +66,15 @@ public:
     auto actTile = context.getActTile();
 
     std::filesystem::path saveName =
-        parentPath /
-        (fileName.string() + "__" + std::to_string(std::get<1>(actTile)) + "x" + std::to_string(std::get<0>(actTile)) +
-         "__" + std::to_string((int32_t) context.getActImagePlaneId().cStack) + "-" +
-         std::to_string(context.getActImagePlaneId().zStack) + "-" +
-         std::to_string((int32_t) context.getActImagePlaneId().tStack) + mSettings.namePrefix + ".png");
+        parentPath / (fileName.string() + "__" + std::to_string(std::get<1>(actTile)) + "x" + std::to_string(std::get<0>(actTile)) + "__" +
+                      std::to_string((int32_t) context.getActImagePlaneId().cStack) + "-" + std::to_string(context.getActImagePlaneId().zStack) +
+                      "-" + std::to_string((int32_t) context.getActImagePlaneId().tStack) + mSettings.namePrefix + ".png");
 
     // Convert to 8-bit grayscale
     cv::Mat img_8bit_color;
 
     // Paint on existing image
-    if(mSettings.canvas == settings::ImageSaverSettings::Canvas::IMAGE_PLANE ||
-       mSettings.canvas == settings::ImageSaverSettings::Canvas::IMAGE_$) {
+    if(mSettings.canvas == settings::ImageSaverSettings::Canvas::IMAGE_PLANE || mSettings.canvas == settings::ImageSaverSettings::Canvas::IMAGE_$) {
       cv::Mat &imageBackground = image;
       if(mSettings.canvas == settings::ImageSaverSettings::Canvas::IMAGE_PLANE && mSettings.planesIn.has_value()) {
         imageBackground = context.loadImageFromCache(mSettings.planesIn.value())->image;

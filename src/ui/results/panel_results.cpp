@@ -507,7 +507,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       break;
   }
 
-  mSelectedDataSet.value = {.value = value.getVal()};
+  mSelectedDataSet.value = PanelResultsInfo::DataSet::Value{.value = value.getVal()};
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 

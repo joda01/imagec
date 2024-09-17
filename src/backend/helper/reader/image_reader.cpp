@@ -74,7 +74,7 @@ void ImageReader::setPath()
   std::string newPath = javaBin + std::string(";") + path;
   SetEnvironmentVariable(L"PATH", ConvertToWideString(javaBin.c_str()));
 #elif defined(__APPLE__)
-  std::string javaHome = "java/jre_mac/macosx/zulu8.60.0.21-ca-fx-jdk8.0.322-macosx_x64/jre/Contents/Home";
+  std::string javaHome = "java/jre_macos_arm";
   std::string javaBin  = javaHome + "/bin";
   setenv("JAVA_HOME", javaHome.c_str(), 1);
   std::string path = std::getenv("PATH");
@@ -106,8 +106,10 @@ void ImageReader::init()
 
 #ifdef _WIN32
   HINSTANCE jvmDll = LoadLibrary(TEXT("./java/jre_win/bin/server/jvm.dll"));
+#elif defined(__APPLE__)
+  void *jvmDll     = dlopen("./java/jre_macos_arm/lib/server/libjvm.dylib", RTLD_LAZY);
 #else
-  void *jvmDll     = dlopen("./java/jre_linux/lib/amd64/server/libjvm.so", RTLD_LAZY);
+  void *jvmDll = dlopen("./java/jre_linux/lib/amd64/server/libjvm.so", RTLD_LAZY);
 #endif
 
   if(jvmDll == NULL) {

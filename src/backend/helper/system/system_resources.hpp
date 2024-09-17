@@ -66,7 +66,7 @@ inline uint64_t getAvailableSystemMemory()
 
 #elif defined(__APPLE__)
 
-uint64_t getTotalSystemMemory()
+inline uint64_t getTotalSystemMemory()
 {
   uint64_t totalMemory = 0;
   size_t length        = sizeof(totalMemory);
@@ -81,7 +81,7 @@ uint64_t getTotalSystemMemory()
   return totalMemory;
 }
 
-uint64_t getAvailableSystemMemory()
+inline uint64_t getAvailableSystemMemory()
 {
   return (uint64_t) ((float) getTotalSystemMemory() * (float) 0.8);
   /*

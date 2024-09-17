@@ -65,7 +65,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 find_package( OpenCV REQUIRED )
 find_package( PugiXML )
-find_package( OpenSSL  )
 find_package( JNI REQUIRED )
 find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
@@ -73,6 +72,9 @@ find_package( libxlsxwriter CONFIG REQUIRED)
 find_package( nlohmann_json CONFIG REQUIRED)
 find_package( DuckDB CONFIG REQUIRED)
 find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets )
+
+SET(DuckDB_USE_STATIC_LIBS TRUE)
+
 
 set(LIBS
   ${OpenCV_LIBS}

@@ -20,7 +20,9 @@ qt/*:with_sqlite3=False
 qt/*:shared=True
 qt/*:with_harfbuzz=False
 libxlsxwriter/*:md5=False
-
+opencv/*:with_ffmpeg=False
+opencv/*:video=False
+opencv/*:videoio=False
 
 [buildenv]
 PATH=+D:/a/_temp/msys64/mingw64/bin;D:/a/_temp/msys64/usr/bin
