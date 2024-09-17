@@ -150,7 +150,7 @@ jobs:
           PUB_KEY: ${{ secrets.PUB_KEY }}
           TAG_NAME: "${{ github.ref_name }}"
         run: |
-          $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\duckd50a282c0bd57c\s'
+          $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b\duckd92ca9c549dcec\p'
 
           Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll" -Destination "$conanDuckDBbasePath\bin" -Force
           Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll.a" -Destination "$conanDuckDBbasePath\lib" -Force
@@ -159,7 +159,7 @@ jobs:
           Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.h" -Destination "$conanDuckDBbasePath\include" -Force
           Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libparquet.dll.a" -Destination "$conanDuckDBbasePath\lib" -Force
           Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libparquet_extension.a" -Destination "$conanDuckDBbasePath\lib" -Force
-          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb\*" -Destination "$conanDuckDBbasePath\include" -Force
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb" -Destination "$conanDuckDBbasePath\include" -Force
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\third_party\*.a" -Destination "$conanDuckDBbasePath\lib" -Force
 
           cd D:\a\imagec\imagec\build
