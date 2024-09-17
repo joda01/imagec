@@ -138,11 +138,11 @@ jobs:
           cat C:\Users\runneradmin\.conan2\profiles\default
           conan install . --profile conan/profile_win_mingw --output-folder=build --build=missing
 
-      #- name: Save Conan Cache
-      #  uses: actions/cache/save@v4
-      #  with:
-      #    path: C:/Users/runneradmin/.conan2
-      #    key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+      - name: Save Conan Cache
+        uses: actions/cache/save@v4
+        with:
+          path: C:/Users/runneradmin/.conan2
+          key: conan-cache-${{ runner.os }}-e836fa557b07517f8df145f13dcfa974b3484eb4fedb79fdcfb009cc1ad3b36c
 
       - name: Build imagec
         env:
@@ -150,7 +150,7 @@ jobs:
           PUB_KEY: ${{ secrets.PUB_KEY }}
           TAG_NAME: "${{ github.ref_name }}"
         run: |
-          $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b\duckd79b1eaba3a801\p'
+          $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b\duckda9fcf6273264c\p'
 
           Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll" -Destination "$conanDuckDBbasePath\bin" -Force
           Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll.a" -Destination "$conanDuckDBbasePath\lib" -Force
