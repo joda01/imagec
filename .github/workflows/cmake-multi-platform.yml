@@ -152,13 +152,13 @@ jobs:
         run: |
           $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\duckd50a282c0bd57c\s'
 
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll" -Destination "$conanDuckDBbasePath\bin" -Force
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll.a" -Destination "$conanDuckDBbasePath\lib" -Force
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb_static.a" -Destination "$conanDuckDBbasePath\lib" -Force
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.hpp" -Destination "$conanDuckDBbasePath\include" -Force
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.h" -Destination "$conanDuckDBbasePath\include" -Force
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libparquet.dll.a" -Destination "$conanDuckDBbasePath\lib" -Force
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libparquet_extension.a" -Destination "$conanDuckDBbasePath\lib" -Force
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll" -Destination "$conanDuckDBbasePath\bin\libduckdb.dll" -Force
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb.dll.a" -Destination "$conanDuckDBbasePath\lib\libduckdb.dll.a" -Force
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libduckdb_static.a" -Destination "$conanDuckDBbasePath\lib\libduckdb_static.a" -Force
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.hpp" -Destination "$conanDuckDBbasePath\include\duckdb.hpp" -Force
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.h" -Destination "$conanDuckDBbasePath\include\duckdb.h" -Force
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libparquet.dll.a" -Destination "$conanDuckDBbasePath\lib\libparquet.dll.a" -Force
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\libparquet_extension.a" -Destination "$conanDuckDBbasePath\lib\libparquet_extension.a" -Force
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb" -Destination "$conanDuckDBbasePath\include" -Force
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\third_party\*.a" -Destination "$conanDuckDBbasePath\lib" -Force
 
