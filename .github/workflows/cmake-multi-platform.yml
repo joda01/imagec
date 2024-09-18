@@ -60,6 +60,7 @@ jobs:
           
       - name: Prepare output
         run: |
+          sudo chmod -R 777 build/build
           cd build/build
           mkdir -p output
           cd output
@@ -154,7 +155,7 @@ jobs:
           mkdir -p output
           cd output
           mkdir -p ./plugins
-          cp ../imagec imagec
+          cp -r ../imagec.app imagec.app
           mkdir -p ./models
           cp -r /Users/runner/.conan2/p/b/*/p/./plugins* ./plugins
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.so .
