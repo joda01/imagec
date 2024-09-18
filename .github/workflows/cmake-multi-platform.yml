@@ -68,7 +68,7 @@ jobs:
           mkdir -p ./models
           mkdir -p ./java
           cp ../imagec imagec
-          cp -r /root/.conan2/p/b/*/p/./plugins* ./plugins
+          cp -r /root/.conan2/p/b/*/p/./plugins/* ./plugins
           cp /root/.conan2/p/b/*/p/lib/libQt6Core.so .
           cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
           cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6.7.1 .
@@ -87,6 +87,8 @@ jobs:
           cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 ./libxcb-cursor.so.0
           cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
+          chmod +x imagec
+          chmod +x imagec.sh
           cd java
           cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
           cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .
@@ -94,8 +96,6 @@ jobs:
           unzip jre_linux.zip
           rm -rf jre_linux.zip
           cd ..
-          chmod +x imagec
-          chmod +x imagec.sh
 
 
       - name: Upload Artifact
@@ -163,7 +163,7 @@ jobs:
           mkdir -p ./models
           mkdir -p ./java
           cp -r ../imagec.app imagec.app
-          cp -r /Users/runner/.conan2/p/b/*/p/./plugins* ./plugins
+          cp -r /Users/runner/.conan2/p/b/*/p/./plugins/* ./plugins
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.7.1.dylib .
@@ -262,7 +262,6 @@ jobs:
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Core.dll" -Destination "."
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Gui.dll" -Destination "."
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Widgets.dll" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6XcbQpa.dll" -Destination "."
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Svg.dll" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
           cd java
