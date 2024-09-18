@@ -65,8 +65,9 @@ jobs:
           mkdir -p output
           cd output
           mkdir -p ./plugins
-          cp ../imagec imagec
           mkdir -p ./models
+          mkdir -p ./java
+          cp ../imagec imagec
           cp -r /root/.conan2/p/b/*/p/./plugins* ./plugins
           cp /root/.conan2/p/b/*/p/lib/libQt6Core.so .
           cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
@@ -86,12 +87,16 @@ jobs:
           cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 ./libxcb-cursor.so.0
           cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
+          cd java
+          cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar
+          cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class
           cp -r ${GITHUB_WORKSPACE}/resources/java/jre_linux.zip .
           unzip jre_linux.zip
           rm -rf jre_linux.zip
-          ls -l
-          cd jre_linux
-          ls -l
+          cd ..
+          chmod +x imagec
+          chmod +x imagec.sh
+
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -155,31 +160,33 @@ jobs:
           mkdir -p output
           cd output
           mkdir -p ./plugins
-          cp -r ../imagec.app imagec.app
           mkdir -p ./models
+          mkdir -p ./java
+          cp -r ../imagec.app imagec.app
           cp -r /Users/runner/.conan2/p/b/*/p/./plugins* ./plugins
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.dylib.6 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.dylib.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.7.1.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.dylib.6 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.dylib.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.6.7.1.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.dylib.6 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.dylib.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.6.7.1.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.dylib.6 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.dylib.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.6.7.1.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.dylib.6 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.dylib.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.6.7.1.dylib .
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
+          cd java
+          cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar
+          cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class
           cp -r ${GITHUB_WORKSPACE}/resources/java/jre_macos_arm.zip .
           unzip jre_macos_arm.zip
           rm -rf jre_macos_arm.zip
-          ls -l
-          cd jre_macos_arm
-          ls -l
+          cd ..
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -252,6 +259,7 @@ jobs:
           cd output
           ni "plugins" -ItemType Directory
           ni "models" -ItemType Directory
+          ni "java" -ItemType Directory
           Copy-Item -Path "../imagec.exe" -Destination "imagec.exe"
           Copy-Item -Recurse -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/./plugins" -Destination "./plugins"
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Core.dll" -Destination "."
@@ -260,13 +268,13 @@ jobs:
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6XcbQpa.dll" -Destination "."
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Svg.dll" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
+          cd java
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" .
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" .
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/jre_win.zip" .
-          ls
           Expand-Archive "jre_win.zip" -DestinationPath "jre_win"
-          cd jre_win
-          ls
           Remove-Item jre_win.zip
-          ls
+          cd ..
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
