@@ -92,6 +92,13 @@ jobs:
           cd jre_linux
           ls -l
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imagec-x64-linux
+          include-hidden-files: true
+          if-no-files-found: error
+          path: build/build/output
 
 
   build-macos:
@@ -172,6 +179,14 @@ jobs:
           ls -l
           cd jre_macos_arm
           ls -l
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imagec-arm-macos
+          include-hidden-files: true
+          if-no-files-found: error
+          path: build/build/output
 
 
   build-windows:
@@ -261,3 +276,11 @@ jobs:
           ls
           Remove-Item jre_win.zip
           ls
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imagec-x64-win
+          include-hidden-files: true
+          if-no-files-found: error
+          path: build/build/output
