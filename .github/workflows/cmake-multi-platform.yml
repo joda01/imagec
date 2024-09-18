@@ -58,6 +58,42 @@ jobs:
           sudo cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           sudo cmake --build . --config Release --target imagec --parallel 8
           
+      - name: Prepare output
+        run: |
+          cd build/build
+          mkdir -p output
+          cd output
+          mkdir -p ./plugins
+          cp ../imagec imagec
+          mkdir -p ./models
+          cp -r /root/.conan2/p/b/*/p/./plugins* ./plugins
+          cp /root/.conan2/p/b/*/p/lib/libQt6Core.so .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6.7.1 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so.6.7.1 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so.6.7.1 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so .
+          cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6.7.1 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so.6.7.1 .
+          cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 ./libxcb-cursor.so.0
+          cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
+          cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
+          cp -r ${GITHUB_WORKSPACE}/resources/java/jre_linux.zip .
+          unzip jre_linux.zip
+          rm -rf jre_linux.zip
+          ls -l
+          cd jre_linux
+          ls -l
+
+
+
   build-macos:
     runs-on: macos-14
 
@@ -104,6 +140,39 @@ jobs:
           cd build
           cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
+
+      - name: Prepare output
+        run: |
+          cd build/build
+          mkdir -p output
+          cd output
+          mkdir -p ./plugins
+          cp ../imagec imagec
+          mkdir -p ./models
+          cp -r /Users/runner/.conan2/p/b/*/p/./plugins* ./plugins
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.so .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.so.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.so .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.so.6 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.so.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.so .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.so.6 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.so.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.so .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.so .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.so.6 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.so.6.7.1 .
+          cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
+          cp -r ${GITHUB_WORKSPACE}/resources/java/jre_macos_arm.zip .
+          unzip jre_macos_arm.zip
+          rm -rf jre_macos_arm.zip
+          ls -l
+          cd jre_macos_arm
+          ls -l
+
 
   build-windows:
     runs-on: windows-latest
@@ -159,3 +228,36 @@ jobs:
           cd D:\a\imagec\imagec\build
           cmake .. -G "MinGW Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_SH=CMAKE_SH-NOTFOUND -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
+
+      - name: Prepare output
+        run: |
+          cd build/build
+          ni "output" -ItemType Directory
+          cd output
+          ni "plugins" -ItemType Directory
+          ni "models" -ItemType Directory
+          Copy-Item -Path "../imagec.exe" -Destination "imagec.exe"
+          Copy-Item -Recurse -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/./plugins" -Destination "./plugins"
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Core.so" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Core.so.6" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Core.so.6.7.1" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Gui.so" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Gui.so.6" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Gui.so.6.7.1" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Widgets.so" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Widgets.so.6" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Widgets.so.6.7.1" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6XcbQpa.so" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6XcbQpa.so.6" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6XcbQpa.so.6.7.1" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Svg.so" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Svg.so.6" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Svg.so.6.7.1" -Destination "."
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/jre_win.zip" .
+          ls
+          Expand-Archive "jre_win.zip" -DestinationPath "jre_win"
+          cd jre_win
+          ls
+          Remove-Item jre_win.zip
+          ls
