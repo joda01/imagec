@@ -158,21 +158,21 @@ jobs:
           cp -r ../imagec.app imagec.app
           mkdir -p ./models
           cp -r /Users/runner/.conan2/p/b/*/p/./plugins* ./plugins
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.so .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.so.6.7.1 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.so .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.so.6 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.so.6.7.1 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.so .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.so.6 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.so.6.7.1 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.so .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6.7.1 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.so .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.so.6 .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.so.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.dylib.6 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.dylib.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.dylib.6 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.dylib.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.dylib.6 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.dylib.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.dylib.6 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.dylib.6.7.1 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.dylib.6 .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.dylib.6.7.1 .
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           cp -r ${GITHUB_WORKSPACE}/resources/java/jre_macos_arm.zip .
           unzip jre_macos_arm.zip
@@ -254,21 +254,11 @@ jobs:
           ni "models" -ItemType Directory
           Copy-Item -Path "../imagec.exe" -Destination "imagec.exe"
           Copy-Item -Recurse -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/./plugins" -Destination "./plugins"
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Core.so" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Core.so.6" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Core.so.6.7.1" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Gui.so" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Gui.so.6" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Gui.so.6.7.1" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Widgets.so" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Widgets.so.6" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Widgets.so.6.7.1" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6XcbQpa.so" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6XcbQpa.so.6" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6XcbQpa.so.6.7.1" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Svg.so" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Svg.so.6" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/libQt6Svg.so.6.7.1" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Core.dll" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Gui.dll" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Widgets.dll" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6XcbQpa.dll" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Svg.dll" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/jre_win.zip" .
           ls
