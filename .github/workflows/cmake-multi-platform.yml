@@ -66,27 +66,20 @@ jobs:
           cd output
           mkdir -p ./plugins
           mkdir -p ./models
+          mkdir -p ./lib
           mkdir -p ./java
           cp ../imagec imagec
           cp -r /root/.conan2/p/b/*/p/./plugins/* ./plugins
-          cp /root/.conan2/p/b/*/p/lib/libQt6Core.so .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6.7.1 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so.6 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so.6.7.1 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so.6 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so.6.7.1 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so .
-          cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6.7.1 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so.6 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so.6.7.1 .
-          cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 ./libxcb-cursor.so.0
-          cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
+          cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
+          cd lib
+          cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so.6 .
+          cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
+          cd ..
           chmod +x imagec
           chmod +x imagec.sh
           cd java
@@ -161,22 +154,17 @@ jobs:
           cd output
           mkdir -p ./plugins
           mkdir -p ./models
+          mkdir -p ./lib
           mkdir -p ./java
           cp -r ../imagec.app imagec.app
           cp -r /Users/runner/.conan2/p/b/*/p/./plugins/* ./plugins
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.7.1.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.6.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.6.7.1.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.6.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.6.7.1.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.6.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.6.7.1.dylib .
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
+          cd lib
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.6.dylib .
+          cd ..
           cd java
           cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
           cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .

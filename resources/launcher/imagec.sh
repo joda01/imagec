@@ -7,13 +7,8 @@ tmp="${dirname#?}"
 if [ "${dirname%$tmp}" != "/" ]; then
 dirname=$PWD/$dirname
 fi
-LD_LIBRARY_PATH=$dirname
-QT_PLUGIN_PATH=$dirname/plugins
-FONTCONFIG_PATH=/etc/fonts/
-export QT_QPA_PLATFORM=xcb
-#export QT_DEBUG_PLUGINS=1
+LD_LIBRARY_PATH=$dirname/lib
 export LD_LIBRARY_PATH
-export QT_PLUGIN_PATH
-export FONTCONFIG_PATH
+
 
 $dirname/$appname "$@"

@@ -45,8 +45,16 @@ else()
   set(VERSION "${TAG_NAME}")
 endif()
 
-
 message("Tag name is ${TAG_NAME}")
+
+set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+
+if (APPLE)
+    set(CMAKE_INSTALL_RPATH "@executable_path/lib")
+else ()
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/lib")
+endif()
+
 
 
 # Get the current user and host
@@ -87,6 +95,7 @@ set(LIBS
 )
 
 set(RESOURCE_FILES
+    resources/qt_conf.qrc
     resources/resource.qrc
 )
 
