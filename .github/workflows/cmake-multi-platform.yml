@@ -88,8 +88,8 @@ jobs:
           cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           cd java
-          cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar
-          cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class
+          cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
+          cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .
           cp -r ${GITHUB_WORKSPACE}/resources/java/jre_linux.zip .
           unzip jre_linux.zip
           rm -rf jre_linux.zip
@@ -173,16 +173,13 @@ jobs:
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.6.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.6.7.1.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.6.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6XcbQpa.6.7.1.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.6.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.6.7.1.dylib .
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           cd java
-          cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar
-          cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class
+          cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
+          cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .
           cp -r ${GITHUB_WORKSPACE}/resources/java/jre_macos_arm.zip .
           unzip jre_macos_arm.zip
           rm -rf jre_macos_arm.zip
@@ -191,7 +188,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: imagec-arm-macos
+          name: imagec-arm64-macos
           include-hidden-files: true
           if-no-files-found: error
           path: build/build/output
@@ -269,9 +266,9 @@ jobs:
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Svg.dll" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
           cd java
-          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" .
-          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" .
-          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/jre_win.zip" .
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/jre_win.zip" -Destination "."
           Expand-Archive "jre_win.zip" -DestinationPath "jre_win"
           Remove-Item jre_win.zip
           cd ..
