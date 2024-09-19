@@ -40,3 +40,9 @@ export QT_PLUGIN_PATH
 export FONTCONFIG_PATH
 
 $dirname/$appname "$@"
+
+
+
+
+
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
