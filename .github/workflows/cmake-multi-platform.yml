@@ -392,8 +392,8 @@ jobs:
       - name: Upload Additional Files
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
-        generate_release_notes: true
         with:
+          generate_release_notes: true
           files: |
             imagec-x64-linux-bundle.zip
             imagec-x64-win-bundle.zip
