@@ -25,7 +25,6 @@ opencv/*:video=False
 opencv/*:videoio=False
 opencv/*:photo=False
 opencv/*:highgui=False
-opencv/*:imgcodecs=False
 opencv/*:with_openexr=False
 opencv/*:with_imgcodec_hdr=False
 opencv/*:with_imgcodec_pfm=False

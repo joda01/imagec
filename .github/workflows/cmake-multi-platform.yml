@@ -246,11 +246,11 @@ jobs:
           ni "models" -ItemType Directory
           ni "java" -ItemType Directory
           Copy-Item -Path "../imagec.exe" -Destination "imagec.exe"
-          Copy-Item -Recurse -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/./plugins/*" -Destination "./plugins"
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Core.dll" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Gui.dll" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Widgets.dll" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qtbaa6f4860780e/p/bin/Qt6Svg.dll" -Destination "."
+          Copy-Item -Recurse -Path "C:/Users/runneradmin/.conan2/p/b/*/p/./plugins/*" -Destination "./plugins"
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/*/p/bin/Qt6Core.dll" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/*/p/bin/Qt6Gui.dll" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/*/p/bin/Qt6Widgets.dll" -Destination "."
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/*/p/bin/Qt6Svg.dll" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
           cd java
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
