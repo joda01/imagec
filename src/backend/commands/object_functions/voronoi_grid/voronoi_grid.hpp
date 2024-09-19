@@ -22,7 +22,6 @@
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "voronoi_grid_settings.hpp"
@@ -54,18 +53,15 @@ public:
     atom::SpheralIndex voronoiPoints;
 
     for(const auto &inputPoints : mSettings.inputClustersPoints) {
-      const auto *voronoiPointsTmp =
-          context.loadObjectsFromCache()->at(context.getClusterId(inputPoints.clusterId)).get();
+      const auto *voronoiPointsTmp = context.loadObjectsFromCache()->at(context.getClusterId(inputPoints.clusterId)).get();
 
       // Create an instance of Subdiv2D
 
       for(const auto &res : *voronoiPointsTmp) {
         if(inputPoints.classId == res.getClassId()) {
           voronoiPoints.emplace(res);
-          int x = static_cast<int>(static_cast<float>(res.getBoundingBox().x) +
-                                   static_cast<float>(res.getBoundingBox().width) / 2.0F);
-          int y = static_cast<int>(static_cast<float>(res.getBoundingBox().y) +
-                                   static_cast<float>(res.getBoundingBox().height) / 2.0F);
+          int x = static_cast<int>(static_cast<float>(res.getBoundingBox().x) + static_cast<float>(res.getBoundingBox().width) / 2.0F);
+          int y = static_cast<int>(static_cast<float>(res.getBoundingBox().y) + static_cast<float>(res.getBoundingBox().height) / 2.0F);
           subdiv.insert(cv::Point2f(x, y));
         }
       }
@@ -93,8 +89,7 @@ public:
   /// \ref        https://learnopencv.com/delaunay-triangulation-and-voronoi-diagram-using-opencv-c-python/
   /// \param[in]   subdiv   Sub division points
   ///
-  void drawVoronoi(processor::ProcessContext &context, const cv::Size &imgSize, cv::Subdiv2D &subdiv, int circleSize,
-                   atom::SpheralIndex &result)
+  void drawVoronoi(processor::ProcessContext &context, const cv::Size &imgSize, cv::Subdiv2D &subdiv, int circleSize, atom::SpheralIndex &result)
   {
     std::vector<std::vector<cv::Point2f>> facets;
     std::vector<cv::Point2f> centers;
@@ -144,19 +139,18 @@ public:
         }
       }
 
-      atom::ROI roi(atom::ROI::RoiObjectId{.clusterId = context.getClusterId(mSettings.outputClustersVoronoi.clusterId),
-                                           .classId   = mSettings.outputClustersVoronoi.classId,
+      atom::ROI roi(atom::ROI::RoiObjectId{.clusterId  = context.getClusterId(mSettings.outputClustersVoronoi.clusterId),
+                                           .classId    = mSettings.outputClustersVoronoi.classId,
                                            .imagePlane = context.getActIterator()},
                     1, 0, box, boxMask, contours[idxMax], imgSize, context.getActTile(), context.getTileSize());
       result.push_back(roi);
     }
   }
 
-  void applyFilter(processor::ProcessContext &context, const atom::SpheralIndex &voronoiGrid,
-                   const atom::SpheralIndex &voronoiPoints, atom::SpheralIndex &response, atom::ObjectList &objects);
+  void applyFilter(processor::ProcessContext &context, const atom::SpheralIndex &voronoiGrid, const atom::SpheralIndex &voronoiPoints,
+                   atom::SpheralIndex &response, atom::ObjectList &objects);
 
-  static bool doesAreaContainsPoint(const atom::ROI &voronoiArea, const atom::SpheralIndex &voronoiPoints,
-                                    std::set<enums::ClassId> pointsClassIn)
+  static bool doesAreaContainsPoint(const atom::ROI &voronoiArea, const atom::SpheralIndex &voronoiPoints, std::set<enums::ClassId> pointsClassIn)
   {
     for(const auto &point : voronoiPoints) {
       if(pointsClassIn.contains(point.getClassId())) {
