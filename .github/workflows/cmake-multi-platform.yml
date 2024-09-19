@@ -289,7 +289,7 @@ jobs:
         env:
           PRIV_KEY: ${{ secrets.PRIV_KEY }}
           PUB_KEY: ${{ secrets.PUB_KEY }}
-        with: |
+        run: |
           if ($env:GITHUB_REPOSITORY -eq "joda01/imagec-sign") {
             "$env:PRIV_KEY" | Set-Content -Path privkey.key
             "$env:PUB_KEY" | Set-Content -Path pubkey.pem
@@ -308,3 +308,109 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           path: build/build/output
+
+
+
+  deploy:
+    needs:
+      - build-windows
+      - build-linux
+      - build-macos
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/download-artifact@v4
+        with:
+          include-hidden-files: true
+          name: imagec-x64-linux
+          path: imagec-x64-linux
+
+      - uses: actions/download-artifact@v4
+        with:
+          include-hidden-files: true
+          name: imagec-arm64-macos
+          path: imagec-arm64-macos
+
+      - uses: actions/download-artifact@v4
+        with:
+          include-hidden-files: true
+          name: imagec-x64-win
+          path: imagec-x64-win
+
+      - name: Rename files through architecture
+        run: |
+          chmod +x imagec-x64-linux/imagec
+          chmod +x imagec-x64-linux/imagec.sh
+          chmod +x imagec-arm64-macos/imagec.app/Contents/MacOS/imagec
+
+          zip -r imagec-x64-linux-bundle.zip imagec-x64-linux
+          zip -r imagec-x64-win-bundle.zip imagec-x64-win
+          zip -r imagec-arm64-macos-bundle.zip imagec-arm64-macos
+          
+          
+          timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+          hash_value_linux=$(sha256sum imagec-x64-linux/imagec | cut -d ' ' -f 1)
+          hash_value_win=$(sha256sum imagec-x64-win/imagec.exe | cut -d ' ' -f 1)
+          hash_value_macos=$(sha256sum imagec-arm64-macos/imagec.app/Contents/MacOS/imagec | cut -d ' ' -f 1)
+          version="${GITHUB_REF#refs/tags/}"
+          
+          json_string_linux=$(cat <<-EOF
+          {
+            "version": "$version",
+            "sha256": "$hash_value_linux",
+            "timestamp": "$timestamp"
+          }
+          EOF
+          )
+          
+          json_string_win=$(cat <<-EOF
+          {
+            "version": "$version",
+            "sha256": "$hash_value_win",
+            "timestamp": "$timestamp"
+          }
+          EOF
+          )
+
+          json_string_macos=$(cat <<-EOF
+          {
+            "version": "$version",
+            "sha256": "$hash_value_macos",
+            "timestamp": "$timestamp"
+          }
+          EOF
+          )
+
+          echo "$json_string_linux"
+          echo "$json_string_win"
+          echo "$json_string_macos"
+
+          echo "$json_string_linux" > imagec-x64-linux-bundle.json
+          echo "$json_string_win" > imagec-x64-win-bundle.json
+          echo "$json_string_macos" > imagec-arm64-macos-bundle.json
+
+      - name: Upload Additional Files
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        generate_release_notes: true
+        with:
+          files: |
+            imagec-x64-linux-bundle.zip
+            imagec-x64-win-bundle.zip
+            imagec-arm64-macos-bundle.zip
+      
+      - name: Upload to imagec.org
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY_IMAGEC }}
+          SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}
+        run: |
+          echo "$SSH_KEY" > ssh_key_for_github
+          chmod 400 ssh_key_for_github
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.json
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.json
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-arm64-macos-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-arm64-macos-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-arm64-macos-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-arm64-macos-bundle.json
+          rm -rf ssh_key_for_github
