@@ -90,7 +90,6 @@ jobs:
           rm -rf jre_linux.zip
           cd ..
 
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -173,6 +172,34 @@ jobs:
           rm -rf jre_macos_arm.zip
           cd ..
 
+
+      - name: Sign Binaries
+        shell: bash
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.OSX_CODESIGN_BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.OSX_CODESIGN_P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.OSX_CODESIGN_KEYCHAIN_PASSWORD }}
+        run: |
+          if [[ "$GITHUB_REPOSITORY" = "joda01/imagec-sign" ]] ; then
+            # create variables
+            export CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+            export KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+            # import certificate and provisioning profile from secrets
+            echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+            # create temporary keychain
+            security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+            # import certificate to keychain
+            security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+            security list-keychain -d user -s $KEYCHAIN_PATH
+
+            codesign --all-architectures --force --sign "Developer ID Application: Joachim Danmayr" build/build/imagec
+          fi
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -223,8 +250,6 @@ jobs:
 
       - name: Build imagec
         env:
-          PRIV_KEY: ${{ secrets.PRIV_KEY }}
-          PUB_KEY: ${{ secrets.PUB_KEY }}
           TAG_NAME: "${{ github.ref_name }}"
         run: |
           $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b\duckdd9affeb581942\p'
@@ -252,7 +277,6 @@ jobs:
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qt52d2d6c1695d0/p/bin/Qt6Widgets.dll" -Destination "."
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qt52d2d6c1695d0/p/bin/Qt6Svg.dll" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/mingwf3629a0c4f698/p/bin*.dll" -Destination "." -Force          
           cd java
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."
@@ -260,6 +284,22 @@ jobs:
           Expand-Archive "jre_win.zip" -DestinationPath "jre_win"
           Remove-Item jre_win.zip
           cd ..
+
+      - name: Sign Binaries
+        env:
+          PRIV_KEY: ${{ secrets.PRIV_KEY }}
+          PUB_KEY: ${{ secrets.PUB_KEY }}
+        with: |
+          if ($env:GITHUB_REPOSITORY -eq "joda01/imagec-sign") {
+            "$env:PRIV_KEY" | Set-Content -Path privkey.key
+            "$env:PUB_KEY" | Set-Content -Path pubkey.pem
+            cd build/build
+            openssl pkcs12 -password pass: -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
+            & "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe" sign /fd SHA256 /td sha256 /f "mycert.pfx" /tr http://timestamp.digicert.com "imagec.exe"
+            Remove-Item -Force mycert.pfx
+            Remove-Item -Force privkey.key
+            Remove-Item -Force pubkey.pem
+          }
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
