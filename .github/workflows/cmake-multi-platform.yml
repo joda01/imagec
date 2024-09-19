@@ -34,9 +34,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: /root/.conan2
-          key: conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
+          key: conan-cache-${{ runner.os }}-v1
           restore-keys: |
-            conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
+            conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
@@ -48,12 +48,6 @@ jobs:
           sudo cat /root/.conan2/profiles/default
           sudo conan install . --profile conan/profile_linux --output-folder=build --build=missing
           sudo chmod 777 -R /root/.conan2
-
-      #- name: Save Conan Cache
-      #  uses: actions/cache/save@v4
-      #  with:
-      #    path: /root/.conan2
-      #    key: conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
 
       - name: Build imagec
         env:
@@ -123,9 +117,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: /Users/runner/.conan2
-          key: conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
+          key: conan-cache-${{ runner.os }}-v1
           restore-keys: |
-            conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
+            conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
@@ -137,11 +131,6 @@ jobs:
           cat /Users/runner/.conan2/profiles/default
           conan install . --profile conan/profile_macos --output-folder=build --build=missing
 
-      #- name: Save Conan Cache
-      #  uses: actions/cache/save@v4
-      #  with:
-      #    path: /Users/runner/.conan2
-      #    key: conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
 
       - name: Build imagec
         env:
@@ -233,9 +222,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: C:/Users/runneradmin/.conan2
-          key: conan-cache-${{ runner.os }}-e836fa557b07517f8df145f13dcfa974b3484eb4fedb79fdcfb009cc1ad3b36c
+          key: conan-cache-${{ runner.os }}-v1
           restore-keys: |
-            conan-cache-${{ runner.os }}-e836fa557b07517f8df145f13dcfa974b3484eb4fedb79fdcfb009cc1ad3b36c
+            conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
@@ -246,12 +235,6 @@ jobs:
           }
           cat C:\Users\runneradmin\.conan2\profiles\default
           conan install . --profile conan/profile_win_mingw --output-folder=build --build=missing
-
-      #- name: Save Conan Cache
-      #  uses: actions/cache/save@v4
-      #  with:
-      #    path: C:/Users/runneradmin/.conan2
-      #    key: conan-cache-${{ runner.os }}-e836fa557b07517f8df145f13dcfa974b3484eb4fedb79fdcfb009cc1ad3b36c
 
       - name: Build imagec
         env:
