@@ -252,6 +252,7 @@ jobs:
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qt52d2d6c1695d0/p/bin/Qt6Widgets.dll" -Destination "."
           Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qt52d2d6c1695d0/p/bin/Qt6Svg.dll" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
+          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/mingwf3629a0c4f698/p/bin*.dll" -Destination "." -Force          
           cd java
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."
