@@ -2,9 +2,14 @@ name: Build with Conan and Caching
 
 on:
   push:
-    branches: [use-conan-build-system]
+    branches:
+      - main
+      - use-conan-build-system
+    tags:
+      - '*'
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build-linux:
