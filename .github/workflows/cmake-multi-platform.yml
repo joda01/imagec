@@ -227,7 +227,7 @@ jobs:
           PUB_KEY: ${{ secrets.PUB_KEY }}
           TAG_NAME: "${{ github.ref_name }}"
         run: |
-          $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b\duckd92ca9c549dcec\p'
+          $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b\*\p'
 
           Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.hpp" -Destination "$conanDuckDBbasePath\include" -Force
           Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.h" -Destination "$conanDuckDBbasePath\include" -Force
