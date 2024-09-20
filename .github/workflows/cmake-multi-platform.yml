@@ -72,11 +72,11 @@ jobs:
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
           cd lib
-          cp /root/.conan2/p/b/qt*/p/lib/libQt6Core.so.6 .
-          cp /root/.conan2/p/b/qt*/p/lib/libQt6Gui.so.6 .
-          cp /root/.conan2/p/b/qt*/p/lib/libQt6Widgets.so.6 .
-          cp /root/.conan2/p/b/qt*/p/lib/libQt6XcbQpa.so.6 .
-          cp /root/.conan2/p/b/qt*/p/lib/libQt6Svg.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so.6 .
           cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
           cd ..
           chmod +x imagec
