@@ -277,7 +277,7 @@ jobs:
 
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
             $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\.\plugins\*"
-            Copy-Item -Path $pathToCopyFrom -Destination "./plugins"  -Force 
+            Copy-Item -Path -Recurse $pathToCopyFrom -Destination "./plugins"  -Force 
           }
 
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
@@ -305,7 +305,7 @@ jobs:
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/jre_win.zip" -Destination "."
-          Expand-Archive "jre_win.zip" -DestinationPath "jre_win"
+          Expand-Archive "jre_win.zip" -DestinationPath "."
           Remove-Item jre_win.zip
           cd ..
 
