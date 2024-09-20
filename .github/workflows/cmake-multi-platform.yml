@@ -301,7 +301,7 @@ jobs:
           }
           
 
-          $mingwPath = "C:\Users\Joachim\.conan2\p"
+          $mingwPath = "C:\Users\runneradmin\.conan2\p"
           Get-ChildItem -Path "$mingwPath\*" | Where-Object {$_.Name -like "mingw*"} | ForEach-Object {
             $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libatomic-1.dll"
             Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 

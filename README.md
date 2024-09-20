@@ -1,6 +1,5 @@
 [![C++ Build](https://github.com/joda01/imagec/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/joda01/imagec/actions/workflows/cmake-multi-platform.yml)
 ![GitHub Release](https://img.shields.io/github/v/release/joda01/imagec)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/joda01/imagec/total)
 ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/joda01/imagec/latest/total)
 ![GitHub License](https://img.shields.io/github/license/joda01/imagec)
 
