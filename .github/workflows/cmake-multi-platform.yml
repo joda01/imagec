@@ -1,4 +1,4 @@
-name: Build with Conan and Caching
+name: build-imagec
 
 on:
   push:
