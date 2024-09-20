@@ -1,10 +1,15 @@
-name: Build with Conan and Caching
+name: build-imagec
 
 on:
   push:
-    branches: [use-conan-build-system]
+    branches:
+      - main
+      - use-conan-build-system
+    tags:
+      - '*'
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build-linux:
@@ -29,9 +34,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: /root/.conan2
-          key: conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
+          key: conan-cache-${{ runner.os }}-v1
           restore-keys: |
-            conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
+            conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
@@ -43,12 +48,6 @@ jobs:
           sudo cat /root/.conan2/profiles/default
           sudo conan install . --profile conan/profile_linux --output-folder=build --build=missing
           sudo chmod 777 -R /root/.conan2
-
-      #- name: Save Conan Cache
-      #  uses: actions/cache/save@v4
-      #  with:
-      #    path: /root/.conan2
-      #    key: conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
 
       - name: Build imagec
         env:
@@ -90,7 +89,6 @@ jobs:
           rm -rf jre_linux.zip
           cd ..
 
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -119,9 +117,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: /Users/runner/.conan2
-          key: conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
+          key: conan-cache-${{ runner.os }}-v1
           restore-keys: |
-            conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
+            conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
@@ -133,11 +131,6 @@ jobs:
           cat /Users/runner/.conan2/profiles/default
           conan install . --profile conan/profile_macos --output-folder=build --build=missing
 
-      #- name: Save Conan Cache
-      #  uses: actions/cache/save@v4
-      #  with:
-      #    path: /Users/runner/.conan2
-      #    key: conan-cache-${{ runner.os }}-aeeb58cbdbc758396c21f25d1fc0c8c1e735bedfc8d1c3fa033a301e70b42318
 
       - name: Build imagec
         env:
@@ -173,6 +166,34 @@ jobs:
           rm -rf jre_macos_arm.zip
           cd ..
 
+
+      - name: Sign Binaries
+        shell: bash
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.OSX_CODESIGN_BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.OSX_CODESIGN_P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.OSX_CODESIGN_KEYCHAIN_PASSWORD }}
+        run: |
+          if [[ "$GITHUB_REPOSITORY" = "joda01/imagec-sign" ]] ; then
+            # create variables
+            export CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+            export KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+            # import certificate and provisioning profile from secrets
+            echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+            # create temporary keychain
+            security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+            # import certificate to keychain
+            security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+            security list-keychain -d user -s $KEYCHAIN_PATH
+
+            codesign --all-architectures --force --sign "Developer ID Application: Joachim Danmayr" build/build/imagec
+          fi
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -201,9 +222,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: C:/Users/runneradmin/.conan2
-          key: conan-cache-${{ runner.os }}-e836fa557b07517f8df145f13dcfa974b3484eb4fedb79fdcfb009cc1ad3b36c
+          key: conan-cache-${{ runner.os }}-v1
           restore-keys: |
-            conan-cache-${{ runner.os }}-e836fa557b07517f8df145f13dcfa974b3484eb4fedb79fdcfb009cc1ad3b36c
+            conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
@@ -215,16 +236,8 @@ jobs:
           cat C:\Users\runneradmin\.conan2\profiles\default
           conan install . --profile conan/profile_win_mingw --output-folder=build --build=missing
 
-      #- name: Save Conan Cache
-      #  uses: actions/cache/save@v4
-      #  with:
-      #    path: C:/Users/runneradmin/.conan2
-      #    key: conan-cache-${{ runner.os }}-e836fa557b07517f8df145f13dcfa974b3484eb4fedb79fdcfb009cc1ad3b36c
-
       - name: Build imagec
         env:
-          PRIV_KEY: ${{ secrets.PRIV_KEY }}
-          PUB_KEY: ${{ secrets.PUB_KEY }}
           TAG_NAME: "${{ github.ref_name }}"
         run: |
           $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b'
@@ -296,6 +309,22 @@ jobs:
           Remove-Item jre_win.zip
           cd ..
 
+      - name: Sign Binaries
+        env:
+          PRIV_KEY: ${{ secrets.PRIV_KEY }}
+          PUB_KEY: ${{ secrets.PUB_KEY }}
+        run: |
+          if ($env:GITHUB_REPOSITORY -eq "joda01/imagec-sign") {
+            "$env:PRIV_KEY" | Set-Content -Path privkey.key
+            "$env:PUB_KEY" | Set-Content -Path pubkey.pem
+            cd build/build
+            openssl pkcs12 -password pass: -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
+            & "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe" sign /fd SHA256 /td sha256 /f "mycert.pfx" /tr http://timestamp.digicert.com "imagec.exe"
+            Remove-Item -Force mycert.pfx
+            Remove-Item -Force privkey.key
+            Remove-Item -Force pubkey.pem
+          }
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -303,3 +332,109 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           path: build/build/output
+
+
+
+  deploy:
+    needs:
+      - build-windows
+      - build-linux
+      - build-macos
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/download-artifact@v4
+        with:
+          include-hidden-files: true
+          name: imagec-x64-linux
+          path: imagec-x64-linux
+
+      - uses: actions/download-artifact@v4
+        with:
+          include-hidden-files: true
+          name: imagec-arm64-macos
+          path: imagec-arm64-macos
+
+      - uses: actions/download-artifact@v4
+        with:
+          include-hidden-files: true
+          name: imagec-x64-win
+          path: imagec-x64-win
+
+      - name: Rename files through architecture
+        run: |
+          chmod +x imagec-x64-linux/imagec
+          chmod +x imagec-x64-linux/imagec.sh
+          chmod +x imagec-arm64-macos/imagec.app/Contents/MacOS/imagec
+
+          zip -r imagec-x64-linux-bundle.zip imagec-x64-linux
+          zip -r imagec-x64-win-bundle.zip imagec-x64-win
+          zip -r imagec-arm64-macos-bundle.zip imagec-arm64-macos
+          
+          
+          timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+          hash_value_linux=$(sha256sum imagec-x64-linux/imagec | cut -d ' ' -f 1)
+          hash_value_win=$(sha256sum imagec-x64-win/imagec.exe | cut -d ' ' -f 1)
+          hash_value_macos=$(sha256sum imagec-arm64-macos/imagec.app/Contents/MacOS/imagec | cut -d ' ' -f 1)
+          version="${GITHUB_REF#refs/tags/}"
+          
+          json_string_linux=$(cat <<-EOF
+          {
+            "version": "$version",
+            "sha256": "$hash_value_linux",
+            "timestamp": "$timestamp"
+          }
+          EOF
+          )
+          
+          json_string_win=$(cat <<-EOF
+          {
+            "version": "$version",
+            "sha256": "$hash_value_win",
+            "timestamp": "$timestamp"
+          }
+          EOF
+          )
+
+          json_string_macos=$(cat <<-EOF
+          {
+            "version": "$version",
+            "sha256": "$hash_value_macos",
+            "timestamp": "$timestamp"
+          }
+          EOF
+          )
+
+          echo "$json_string_linux"
+          echo "$json_string_win"
+          echo "$json_string_macos"
+
+          echo "$json_string_linux" > imagec-x64-linux-bundle.json
+          echo "$json_string_win" > imagec-x64-win-bundle.json
+          echo "$json_string_macos" > imagec-arm64-macos-bundle.json
+
+      - name: Upload Additional Files
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          files: |
+            imagec-x64-linux-bundle.zip
+            imagec-x64-win-bundle.zip
+            imagec-arm64-macos-bundle.zip
+      
+      - name: Upload to imagec.org
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY_IMAGEC }}
+          SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}
+        run: |
+          echo "$SSH_KEY" > ssh_key_for_github
+          chmod 400 ssh_key_for_github
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.json
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.json
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-arm64-macos-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-arm64-macos-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-arm64-macos-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-arm64-macos-bundle.json
+          rm -rf ssh_key_for_github
