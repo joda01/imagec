@@ -277,7 +277,7 @@ jobs:
 
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
             $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\.\plugins\*"
-            Copy-Item -Path -Recurse $pathToCopyFrom -Destination "./plugins"  -Force 
+            Copy-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force 
           }
 
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
