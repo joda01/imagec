@@ -1,9 +1,35 @@
 cmake_minimum_required (VERSION 3.5)
 
+if(NOT CLANG_TIDY)
+  find_package(Python3)
+endif()
+
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif()
+
+
+if(POLICY CMP0026)
+  cmake_policy(SET CMP0026 NEW)
+endif()
+
+if(POLICY CMP0051)
+  cmake_policy(SET CMP0051 NEW)
+endif()
+
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 NEW)
+endif()
+
+if(POLICY CMP0063)
+  cmake_policy(SET CMP0063 NEW)
+endif()
+
+
 # Project name and version
 project (imagec
          VERSION 1.0.0
-         HOMEPAGE_URL https://danmayr.org
+         HOMEPAGE_URL https://imagec.org
          LANGUAGES CXX C)
 
 # Get the current date and time
@@ -19,10 +45,15 @@ else()
   set(VERSION "${TAG_NAME}")
 endif()
 
-
-
 message("Tag name is ${TAG_NAME}")
 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+
+if (APPLE)
+    set(CMAKE_INSTALL_RPATH "@executable_path/lib")
+else ()
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/lib")
+endif()
 
 
 
@@ -31,103 +62,54 @@ execute_process(COMMAND whoami OUTPUT_VARIABLE BUILD_USER OUTPUT_STRIP_TRAILING_
 execute_process(COMMAND hostname OUTPUT_VARIABLE BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 
-# 1) Choose option and adapt Line 95 if needed
-option(MAKE_LIBRARY "Builds a library instead of an executable program." OFF)
-
-SET(CMAKE_CXX20_STANDARD 20)
-SET(CMAKE_CXX20_STANDARD_REQUIRED true)
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
-
-# -Ofast
-IF (WIN32)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -pthread -Wno-unknown-pragmas -lz -lws2_32 -lwsock32 -lm -std=c++20")  
-ELSE()
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -pthread -Wno-unknown-pragmas -lm -std=c++20")
-  set(CMAKE_INSTALL_RPATH "$ORIGIN")
-ENDIF()
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -lm")
 SET(CMAKE_GENERATOR "Unix Makefiles")
-SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 
-
-IF (WIN32)
-ELSE()
-  set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
-  SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
-ENDIF()
-
-
-set(OpenCV_STATIC ON)
-
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 find_package( OpenCV REQUIRED )
-find_package( PkgConfig REQUIRED )
 find_package( PugiXML )
-find_package( OpenSSL  )
 find_package( JNI REQUIRED )
 find_package( Java COMPONENTS REQUIRED)
 find_package( protobuf CONFIG REQUIRED )
-find_package( DuckDB REQUIRED)
+find_package( libxlsxwriter CONFIG REQUIRED)
+find_package( nlohmann_json CONFIG REQUIRED)
+find_package( DuckDB CONFIG REQUIRED)
+find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets )
+
 SET(DuckDB_USE_STATIC_LIBS TRUE)
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets )
-
-include_directories(${JNI_INCLUDE_DIRS})
-include_directories(${Protobuf_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
-IF (WIN32)
-ELSE ()
-  pkg_check_modules(Xlsxwriter REQUIRED IMPORTED_TARGET xlsxwriter)
-ENDIF()
-
-#
-# Link to libraries
-#
-IF (WIN32)
-  set(LIBS
-    ${OpenCV_LIBS}
-    ${OPENSSL_LIBRARIES}
-    ${Protobuf_LIBRARIES}
-    pugixml
-    Qt6::Widgets
-    Qt6::Core
-    xlsxwriter
-    duckdb
-  )
-ELSE()
-  set(LIBS
-    ${OpenCV_LIBS}
-    ${OPENSSL_LIBRARIES}
-    ${Protobuf_LIBRARIES}
-    pugixml
-    Qt6::Widgets
-    Qt6::Core
-    PkgConfig::Xlsxwriter
-    duckdb
-  )
-ENDIF()
+set(LIBS
+  ${OpenCV_LIBS}
+  pugixml::pugixml
+  Qt6::Widgets
+  Qt6::Core
+  libxlsxwriter::libxlsxwriter
+  duckdb::duckdb
+  nlohmann_json::nlohmann_json
+)
 
 set(RESOURCE_FILES
+    resources/qt_conf.qrc
     resources/resource.qrc
 )
 
 qt_add_resources(RESOURCE_SOURCES ${RESOURCE_FILES})
 
 include_directories("./src")
+include_directories(${JNI_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
-###########################################################################################
-# Source file
-###########################################################################################
 file(GLOB_RECURSE SOURCES
   ./src/*.cpp
   ./src/*.c
   ./src/*.cc
-  /usr/local/include/libtiff/*.h
  ${RESOURCE_SOURCES}
 )
 
@@ -145,26 +127,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
-
-
-#
-# Protobuf generate
-#
-
-# Specify the path to your .proto files
-#set(PROTO_FILES src/onnx/onnx.proto 
-#)
-#set(PROTO_IMPORT_DIRS src/onnx/)
-#protobuf_generate(
-#  LANGUAGE cpp
-#  TARGET ${PROJECT_NAME}
-#  IMPORT_DIRS ${PROTO_IMPORT_DIRS}
-#  PROTOS ${PROTO_FILES}
-#  PROTOC_OUT_DIR "/workspaces/imagec/src/onnx"
-#  )
-
 target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY)
-
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
@@ -174,9 +137,6 @@ set_target_properties( ${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
-target_link_options(${PROJECT_NAME}  PRIVATE -static-libgcc -static-libstdc++)
-
-
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/src/build_info.h.in"
@@ -184,11 +144,9 @@ configure_file(
 )
 
 
-
-
 ###########################################################################################
 # Unittest
-###########################################################################################
+
 set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
 
 file(GLOB_RECURSE TEST_SOURCES
@@ -203,13 +161,8 @@ file(GLOB_RECURSE TEST_SOURCES
 list(FILTER TEST_SOURCES EXCLUDE REGEX "/main\\.cpp$")
 
 add_executable(tests ${TEST_SOURCES})
-
 set_property(TARGET tests PROPERTY CXX_STANDARD 20)
-
-
 target_sources(tests PRIVATE ${RESOURCE_SOURCES})
-
-
 set_target_properties( tests
   PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
@@ -222,25 +175,10 @@ set_target_properties( tests
 
 find_package(Catch2 3 REQUIRED)
 
-
 set(TESTING_LIBS
   Catch2::Catch2
 )
 
 set_property(TARGET tests PROPERTY CXX_STANDARD 20)
-
-
 target_link_libraries(tests ${LIBS} ${TESTING_LIBS})
-#include(CTest)
-#include(Catch)
-
-#catch_discover_tests(tests)
 target_compile_definitions(tests PUBLIC UNIT_TEST BS_THREAD_POOL_ENABLE_PRIORITY)
-
-
-
-#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory /opt/Qt6/bin $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-
-#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory /opt/Qt6/plugins $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-
-#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory /opt/Qt6/qml $<TARGET_FILE_DIR:${PROJECT_NAME}>)

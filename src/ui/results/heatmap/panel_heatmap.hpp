@@ -16,7 +16,6 @@
 #include <qboxlayout.h>
 #include <qcolormap.h>
 #include <qmainwindow.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include "backend/helper/table/table.hpp"
 #include "heatmap_color_generator.hpp"

@@ -1,0 +1,161 @@
+name: Build with Conan and Caching
+
+on:
+  push:
+    branches: [use-conan-build-system]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Conan
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Conan
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libva-dev libvdpau-dev xkb-data
+          sudo pip install conan
+          sudo chmod 777 -R /root
+
+      - name: Restore Conan Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /root/.conan2
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+
+      - name: Build with Conan
+        run: |
+          if [[ -f "/root/.conan2/profiles/default" ]]; then
+            echo "Loaded from cache"
+          else
+            sudo conan profile detect
+          fi
+          sudo cat /root/.conan2/profiles/default
+          sudo conan install . --profile conan/profile_linux --output-folder=build --build=missing
+          sudo chmod 777 -R /root/.conan2
+
+      - name: Save Conan Cache
+        uses: actions/cache/save@v4
+        with:
+          path: /root/.conan2
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+
+      - name: Build imagec
+        run: |
+          cd build
+          sudo cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          sudo cmake --build . --config Release --target imagec --parallel 8
+          
+  build-macos:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Conan
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Conan
+        run: |
+          pip install conan
+
+      - name: Restore Conan Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /Users/runner/.conan2
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+
+      - name: Build with Conan
+        run: |
+          if [[ -f "/Users/runner/.conan2/profiles/default" ]]; then
+            echo "Loaded from cache"
+          else
+            conan profile detect
+          fi
+          cat /Users/runner/.conan2/profiles/default
+          conan install . --profile conan/profile_macos --output-folder=build --build=missing
+
+      - name: Save Conan Cache
+        uses: actions/cache/save@v4
+        with:
+          path: /Users/runner/.conan2
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+
+      - name: Build imagec
+        run: |
+          cd build
+          cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cmake --build . --config Release --target imagec --parallel 8
+
+
+  build-windows:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_ref }}
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
+      # see here: https://gist.github.com/scivision/1de4fd6abea9ba6b2d87dc1e86b5d2ce
+      - name: Put MSYS2_MinGW64 on PATH
+        # there is not yet an environment variable for this path from msys2/setup-msys2
+        shell: msys2 {0}
+        run: export PATH=D:/a/_temp/msys/msys64/mingw64/bin:$PATH
+
+
+      - name: Set up Conan
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Conan
+        run: |
+          pip install conan
+
+      - name: Restore Conan Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: C:/Users/runneradmin/.conan2
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+
+      - name: Build with Conan
+        run: |
+          if (Test-Path "C:\Users\runneradmin\.conan2\profiles\default") {
+            Write-Host "Loaded from cache!"
+          } else {
+            conan profile detect
+          }
+          cat C:\Users\runneradmin\.conan2\profiles\default
+          conan install . --profile conan/profile_win --output-folder=build --build=missing
+
+      - name: Save Conan Cache
+        uses: actions/cache/save@v4
+        with:
+          path: C:/Users/runneradmin/.conan2
+          key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+
+      - name: Build imagec
+        run: |
+          cd D:\a\imagec\imagec\build
+          cmake .. -G "Ninja" -DTAG_NAME="$TAG_NAME" -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake"
+          cmake --build . --config Release --target imagec --parallel 8

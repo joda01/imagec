@@ -33,11 +33,11 @@ PanelEdit::PanelEdit(WindowMain *wm, ContainerBase *containerBase, bool withExtr
     mWindowMain(wm), mContainerBase(containerBase), mLayout(this, withExtraButtons)
 {
   if(withExtraButtons) {
-    auto *mSaveAsTemplate = new QAction(QIcon(":/icons/outlined/icons8-add-to-favorites-50.png"), "Save as template");
+    auto *mSaveAsTemplate = new QAction(QIcon(":/icons/icons/icons8-add-to-favorites-50.png"), "Save as template");
     mLayout.addItemToTopToolbar(mSaveAsTemplate);
     connect(mSaveAsTemplate, &QAction::triggered, this, &PanelEdit::onSaveAsTemplate);
 
-    auto *copyChannel = new QAction(QIcon(":/icons/outlined/icons8-copy-50.png"), "Copy channel");
+    auto *copyChannel = new QAction(QIcon(":/icons/icons/icons8-copy-50.png"), "Copy channel");
     mLayout.addItemToTopToolbar(copyChannel);
     connect(copyChannel, &QAction::triggered, this, &PanelEdit::onCopyChannel);
   }
@@ -55,8 +55,7 @@ void PanelEdit::onSaveAsTemplate()
   if(mContainerBase != nullptr) {
     QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
     QString pathToStoreFileIn = QFileDialog::getSaveFileName(this, "Save File", templatePath,
-                                                             "ImageC template files (*" +
-                                                                 QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
+                                                             "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
 
     if(pathToStoreFileIn.isEmpty()) {
       return;
@@ -64,7 +63,7 @@ void PanelEdit::onSaveAsTemplate()
     if(!pathToStoreFileIn.startsWith(templatePath)) {
       joda::log::logError("Templates must be stored in >" + templatePath.toStdString() + "< directory.");
       QMessageBox messageBox(this);
-      auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+      auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
       messageBox.setIconPixmap(icon->pixmap(42, 42));
       messageBox.setWindowTitle("Could not save template!");
       messageBox.setText("Templates must be stored in >" + templatePath + "< directory.");

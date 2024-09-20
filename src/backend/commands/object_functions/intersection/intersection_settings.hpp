@@ -82,8 +82,7 @@ struct IntersectionSettings : public SettingBase
     CHECK_ERROR(mode != Function::UNKNOWN, "Define a intersection function!");
     CHECK_ERROR(minIntersection >= 0, "Min intersection must be >=0.");
     if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {
-      CHECK_ERROR(newClassId != joda::enums::ClassId::UNDEFINED,
-                  "Define a class the elements should be assigned for reclassification.");
+      CHECK_ERROR(newClassId != joda::enums::ClassId::UNDEFINED, "Define a class the elements should be assigned for reclassification.");
     }
   }
 
@@ -105,21 +104,20 @@ struct IntersectionSettings : public SettingBase
     ObjectOutputClusters out;
     if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {
       for(const auto &in : inputObjectsIntersectWith.inputClusters) {
-        out.emplace(in.clusterId, newClassId);
+        out.emplace(ClassificatorSetting{in.clusterId, newClassId});
       }
     }
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionSettings, mode, minIntersection, inputObjects,
-                                                       inputObjectsIntersectWith, newClassId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionSettings, mode, minIntersection, inputObjects, inputObjectsIntersectWith,
+                                                       newClassId);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(IntersectionSettings::Function,
-                             {
-                                 {IntersectionSettings::Function::COUNT, "Count"},
-                                 {IntersectionSettings::Function::RECLASSIFY, "ReclassifyMove"},
-                                 {IntersectionSettings::Function::RECLASSIFY_COPY, "ReclassifyCopy"},
-                             });
+NLOHMANN_JSON_SERIALIZE_ENUM(IntersectionSettings::Function, {
+                                                                 {IntersectionSettings::Function::COUNT, "Count"},
+                                                                 {IntersectionSettings::Function::RECLASSIFY, "ReclassifyMove"},
+                                                                 {IntersectionSettings::Function::RECLASSIFY_COPY, "ReclassifyCopy"},
+                                                             });
 
 }    // namespace joda::settings

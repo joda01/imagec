@@ -87,8 +87,13 @@
         "semaphore": "cpp",
         "shared_mutex": "cpp"
     },
-    "files.exclude": {},
-    "C_Cpp.intelliSenseEngineFallback": "Disabled",
+    "files.exclude": {
+        ".gitignore": true,
+        ".dockerignore": true,
+        ".clang-tidy": true,
+        ".clangd": true
+    },
+    "C_Cpp.intelliSenseEngineFallback": "disabled",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": false,
@@ -102,5 +107,5 @@
         "thersholding",
         "Voronoi"
     ],
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "disabled"
 }

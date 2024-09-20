@@ -4,7 +4,6 @@
 #include <qcombobox.h>
 #include <qdialog.h>
 #include <qlabel.h>
-#include <qtmetamacros.h>
 #include <qwindow.h>
 #include <memory>
 #include <thread>

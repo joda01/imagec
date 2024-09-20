@@ -62,8 +62,8 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 /// \author
 /// \return
 ///
-auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file,
-                                         int nrOfFiles) -> joda::thread::ThreadingSettings
+auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles)
+    -> joda::thread::ThreadingSettings
 {
   joda::thread::ThreadingSettings threads;
 
@@ -80,9 +80,9 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
     auto [tilesX, tilesY] = imageInfo.getNrOfTiles(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH,
                                                    joda::processor::PipelineInitializer::COMPOSITE_TILE_HEIGHT);
     tileNr                = static_cast<int64_t>(tilesX) * tilesY;
-    threads.ramPerImage   = (imageInfo.bits * joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH *
-                           joda::processor::PipelineInitializer::COMPOSITE_TILE_HEIGHT) /
-                          8;
+    threads.ramPerImage =
+        (imageInfo.bits * joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH * joda::processor::PipelineInitializer::COMPOSITE_TILE_HEIGHT) /
+        8;
   } else {
     tileNr              = 1;
     threads.ramPerImage = imageInfo.imageMemoryUsage;
@@ -105,8 +105,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 
   // Maximum number of cores depends on the available RAM.)
   int32_t maxNumberOfCoresToAssign =
-      std::min(static_cast<uint64_t>(systemRecources.cpus),
-               static_cast<uint64_t>(systemRecources.ramAvailable / threads.ramPerImage));
+      std::min(static_cast<uint64_t>(systemRecources.cpus), static_cast<uint64_t>(systemRecources.ramAvailable / threads.ramPerImage));
   if(maxNumberOfCoresToAssign <= 0) {
     maxNumberOfCoresToAssign = 1;
   }
@@ -198,25 +197,24 @@ void Controller::setWorkingDirectory(uint8_t plateNr, const std::filesystem::pat
 /// \author
 /// \return
 ///
-void Controller::registerImageLookupCallback(
-    const std::function<void(joda::filesystem::State)> &lookingForFilesFinished)
+void Controller::registerImageLookupCallback(const std::function<void(joda::filesystem::State)> &lookingForFilesFinished)
 {
   mWorkingDirectory.addListener(lookingForFilesFinished);
 }
 
 // PREVIEW ///////////////////////////////////////////////////
 
-void Controller::preview(const settings::ProjectImageSetup &imageSetup,
-                         const processor::PreviewSettings &previewSettings, const settings::AnalyzeSettings &settings,
-                         const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX,
-                         int32_t tileY, Preview &previewOut)
+void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
+                         const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
+                         int32_t tileX, int32_t tileY, Preview &previewOut)
 {
   processor::Processor process;
-  auto [originalImg, previewImage, thumb] =
+  auto [originalImg, previewImage, thumb, foundObjects] =
       process.generatePreview(previewSettings, imageSetup, settings, pipeline, imagePath, 0, 0, tileX, tileY);
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.previewImage.setImage(std::move(previewImage));
   previewOut.thumbnail.setImage(std::move(thumb));
+  previewOut.foundObjects = foundObjects;
 }
 
 ///
@@ -231,8 +229,7 @@ auto Controller::getImageProperties(const std::filesystem::path &image, int seri
 
 cv::Size Controller::getCompositeTileSize() const
 {
-  return {joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH,
-          joda::processor::PipelineInitializer::COMPOSITE_TILE_HEIGHT};
+  return {joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH, joda::processor::PipelineInitializer::COMPOSITE_TILE_HEIGHT};
 }
 
 // FLOW CONTROL ///////////////////////////////////////////////////
@@ -242,8 +239,7 @@ cv::Size Controller::getCompositeTileSize() const
 /// \author
 /// \return
 ///
-void Controller::start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
-                       const std::string &jobName)
+void Controller::start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName)
 {
   if(mActThread.joinable()) {
     mActThread.join();
@@ -251,10 +247,8 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
   mActProcessor.reset();
   mActThread = std::thread([this, settings, jobName] {
     mActProcessor = std::make_unique<processor::Processor>();
-    mActProcessor->execute(
-        settings, jobName,
-        calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
-        mWorkingDirectory);
+    mActProcessor->execute(settings, jobName, calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
+                           mWorkingDirectory);
   });
 }
 

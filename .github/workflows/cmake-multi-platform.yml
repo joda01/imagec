@@ -1,159 +1,413 @@
-name: C++ Build
+name: build-imagec
 
 on:
   push:
     branches:
       - main
-      - design-rework
+      - use-conan-build-system
     tags:
       - '*'
   pull_request:
     branches:
       - main
-      
 
 jobs:
-
-  build-windows:
-    runs-on: windows-2022
+  build-linux:
+    runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
 
-      - uses: msys2/setup-msys2@v2
+      - name: Set up Conan
+        uses: actions/setup-python@v4
         with:
-          update: true
-          install: >-
-            git
-            curl
-            base-devel
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-catch
-            mingw-w64-x86_64-pugixml
-            mingw-w64-x86_64-protobuf
-            mingw-w64-x86_64-opencv
-            mingw-w64-x86_64-nlohmann-json
-            mingw-w64-x86_64-python-mingw-ldd
-            mingw-w64-x86_64-qt6-base
-            mingw-w64-x86_64-libxlsxwriter
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-ninja
-      - name: Put MSYS2_MinGW64 on PATH
-        run: |
-          echo "D:/a/_temp/msys64/mingw64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "D:/a/_temp/msys64/usr/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      
-      - name: Checkout code
-        uses: actions/checkout@v4
+          python-version: '3.10'
 
-      - name: Build imageC for Windows
+      - name: Install Conan
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libva-dev libvdpau-dev xkb-data
+          sudo pip install conan
+          sudo chmod 777 -R /root
+
+      - name: Restore Conan Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /root/.conan2
+          key: conan-cache-${{ runner.os }}-v1
+          restore-keys: |
+            conan-cache-${{ runner.os }}-v1
+
+      - name: Build with Conan
+        run: |
+          if [[ -f "/root/.conan2/profiles/default" ]]; then
+            echo "Loaded from cache"
+          else
+            sudo conan profile detect
+          fi
+          sudo cat /root/.conan2/profiles/default
+          sudo conan install . --profile conan/profile_linux --output-folder=build --build=missing
+          sudo chmod 777 -R /root/.conan2
+
+      - name: Build imagec
+        env:
+          TAG_NAME: "${{ github.ref_name }}"
+        run: |
+          cd build
+          sudo cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          sudo cmake --build . --config Release --target imagec --parallel 8
+          
+      - name: Prepare output
+        run: |
+          sudo chmod -R 777 build/build
+          cd build/build
+          mkdir -p output
+          cd output
+          mkdir -p ./plugins
+          mkdir -p ./models
+          mkdir -p ./lib
+          mkdir -p ./java
+          cp ../imagec imagec
+          cp -r /root/.conan2/p/b/*/p/./plugins/* ./plugins
+          cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
+          cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
+          cd lib
+          cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6 .
+          cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so.6 .
+          cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
+          cd ..
+          chmod +x imagec
+          chmod +x imagec.sh
+          cd java
+          cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
+          cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .
+          cp -r ${GITHUB_WORKSPACE}/resources/java/jre_linux.zip .
+          unzip jre_linux.zip
+          rm -rf jre_linux.zip
+          cd ..
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imagec-x64-linux
+          include-hidden-files: true
+          if-no-files-found: error
+          path: build/build/output
+
+
+  build-macos:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Conan
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Conan
+        run: |
+          pip install conan
+
+      - name: Restore Conan Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /Users/runner/.conan2
+          key: conan-cache-${{ runner.os }}-v1
+          restore-keys: |
+            conan-cache-${{ runner.os }}-v1
+
+      - name: Build with Conan
+        run: |
+          if [[ -f "/Users/runner/.conan2/profiles/default" ]]; then
+            echo "Loaded from cache"
+          else
+            conan profile detect
+          fi
+          cat /Users/runner/.conan2/profiles/default
+          conan install . --profile conan/profile_macos --output-folder=build --build=missing
+
+
+      - name: Build imagec
+        env:
+          TAG_NAME: "${{ github.ref_name }}"
+        run: |
+          cd build
+          cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cmake --build . --config Release --target imagec --parallel 8
+
+      - name: Prepare output
+        run: |
+          cd build/build
+          mkdir -p output
+          cd output
+          mkdir -p ./plugins
+          mkdir -p ./models
+          mkdir -p ./lib
+          mkdir -p ./java
+          cp -r ../imagec.app imagec.app
+          cp -r /Users/runner/.conan2/p/b/*/p/./plugins/* ./plugins
+          cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
+          cd lib
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.6.dylib .
+          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.6.dylib .
+          cd ..
+          cd java
+          cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
+          cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .
+          cp -r ${GITHUB_WORKSPACE}/resources/java/jre_macos_arm.zip .
+          unzip jre_macos_arm.zip
+          rm -rf jre_macos_arm.zip
+          cd ..
+
+
+      - name: Sign Binaries
+        shell: bash
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.OSX_CODESIGN_BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.OSX_CODESIGN_P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.OSX_CODESIGN_KEYCHAIN_PASSWORD }}
+        run: |
+          if [[ "$GITHUB_REPOSITORY" = "joda01/imagec-sign" ]] ; then
+            # create variables
+            export CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+            export KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+            # import certificate and provisioning profile from secrets
+            echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+            # create temporary keychain
+            security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+            # import certificate to keychain
+            security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+            security list-keychain -d user -s $KEYCHAIN_PATH
+
+            codesign --all-architectures --force --sign "Developer ID Application: Joachim Danmayr" build/build/imagec
+          fi
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imagec-arm64-macos
+          include-hidden-files: true
+          if-no-files-found: error
+          path: build/build/output
+
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Conan
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Conan
+        run: |
+          pip install conan
+
+      - name: Restore Conan Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: C:/Users/runneradmin/.conan2
+          key: conan-cache-${{ runner.os }}-v1
+          restore-keys: |
+            conan-cache-${{ runner.os }}-v1
+
+      - name: Build with Conan
+        run: |
+          if (Test-Path "C:\Users\runneradmin\.conan2\profiles\default") {
+            Write-Host "Loaded from cache!"
+          } else {
+            conan profile detect
+          }
+          cat C:\Users\runneradmin\.conan2\profiles\default
+          conan install . --profile conan/profile_win_mingw --output-folder=build --build=missing
+
+      - name: Build imagec
+        env:
+          TAG_NAME: "${{ github.ref_name }}"
+        run: |
+          $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b'
+        
+          Get-ChildItem -Path "$conanDuckDBbasePath\*" | Where-Object {$_.Name -like "duck*"} | ForEach-Object {
+            $pathToCopy = "$conanDuckDBbasePath\"+$_.Name + "\p\include"
+            Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.hpp" -Destination $pathToCopy  -Force 
+            
+            }
+          Get-ChildItem -Path "$conanDuckDBbasePath\*" | Where-Object {$_.Name -like "duck*"} | ForEach-Object {
+            $pathToCopy = "$conanDuckDBbasePath\"+$_.Name + "\p\include"
+            Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.h" -Destination $pathToCopy  -Force 
+            
+            }
+
+          Get-ChildItem -Path "$conanDuckDBbasePath\*" | Where-Object {$_.Name -like "duck*"} | ForEach-Object {
+            $pathToCopy = "$conanDuckDBbasePath\"+$_.Name + "\p\include"
+            Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb" -Destination $pathToCopy  -Force 
+            
+            }
+    
+          cd D:\a\imagec\imagec\build
+          cmake .. -G "MinGW Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_SH=CMAKE_SH-NOTFOUND -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cmake --build . --config Release --target imagec --parallel 8
+
+      - name: Prepare output
+        run: |
+          cd build/build
+          ni "output" -ItemType Directory
+          cd output
+          ni "plugins" -ItemType Directory
+          ni "models" -ItemType Directory
+          ni "java" -ItemType Directory
+          Copy-Item -Path "../imagec.exe" -Destination "imagec.exe"
+          
+          $qtInstallPath = 'C:\Users\runneradmin\.conan2\p\b'
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\.\plugins\*"
+            Copy-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force 
+          }
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Core.dll"
+            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+          }
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Gui.dll"
+            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+          }
+          
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Widgets.dll"
+            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+          }
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Svg.dll"
+            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+          }
+          
+
+          $mingwPath = "C:\Users\Joachim\.conan2\p"
+          Get-ChildItem -Path "$mingwPath\*" | Where-Object {$_.Name -like "mingw*"} | ForEach-Object {
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libatomic-1.dll"
+            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgcc_s_seh-1.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgfortran-5.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgomp-1.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libquadmath-0.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libstdc++-6.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libwinpthread-1.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+          }
+
+
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
+          cd java
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/jre_win.zip" -Destination "."
+          Expand-Archive "jre_win.zip" -DestinationPath "."
+          Remove-Item jre_win.zip
+          cd ..
+
+      - name: Sign Binaries
         env:
           PRIV_KEY: ${{ secrets.PRIV_KEY }}
           PUB_KEY: ${{ secrets.PUB_KEY }}
-          TAG_NAME: "${{ github.ref_name }}"
         run: |
-          echo "Workspace: $env:GITHUB_WORKSPACE"
-          ./build.ps1
-      
+          if ($env:GITHUB_REPOSITORY -eq "joda01/imagec-sign") {
+            "$env:PRIV_KEY" | Set-Content -Path privkey.key
+            "$env:PUB_KEY" | Set-Content -Path pubkey.pem
+            cd build/build
+            openssl pkcs12 -password pass: -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
+            & "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe" sign /fd SHA256 /td sha256 /f "mycert.pfx" /tr http://timestamp.digicert.com "imagec.exe"
+            Remove-Item -Force mycert.pfx
+            Remove-Item -Force privkey.key
+            Remove-Item -Force pubkey.pem
+          }
+
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: imagec-x64-win
-          path: build/build
+          include-hidden-files: true
           if-no-files-found: error
+          path: build/build/output
 
 
-  build-linux:
-    runs-on: ubuntu-22.04
-    container: 
-      image: joda001/imagec:v1.7.9
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build imageC for Linux
-        env:
-          TAG_NAME: "${{ github.ref_name }}"
-        run: |
-          ./clean.sh
-          ./build.sh
-          strip build/build/imagec
-
-      #- name: Test code
-      #  run: |
-      #    ./execute_test.sh
-#
-      #- name: Upload test results
-      #  uses: actions/upload-artifact@v3
-      #  with:
-      #    name: test-results
-      #    path: test-results.xml
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: imagec-x64-linux
-          path: build/build
-          if-no-files-found: error
-
-      
-  release:
+  deploy:
     needs:
       - build-windows
       - build-linux
+      - build-macos
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
+          include-hidden-files: true
           name: imagec-x64-linux
-          path: build/build
+          path: imagec-x64-linux
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
+          include-hidden-files: true
+          name: imagec-arm64-macos
+          path: imagec-arm64-macos
+
+      - uses: actions/download-artifact@v4
+        with:
+          include-hidden-files: true
           name: imagec-x64-win
-          path: build/build
+          path: imagec-x64-win
 
       - name: Rename files through architecture
         run: |
-          mv build/build/win-dlls.zip build/win-dlls.zip
+          chmod +x imagec-x64-linux/imagec
+          chmod +x imagec-x64-linux/imagec.sh
+          chmod +x imagec-arm64-macos/imagec.app/Contents/MacOS/imagec
 
-          mkdir imagec-x64-linux-bundle
-          mkdir -p imagec-x64-linux-bundle/java
-          cp -r build/build/* imagec-x64-linux-bundle/
-          cp java/bioformats.jar imagec-x64-linux-bundle/java/bioformats.jar
-          cp java/BioFormatsWrapper.class imagec-x64-linux-bundle/java/BioFormatsWrapper.class
-          unzip java/jre_linux.zip -d jre_linux_unzip
-          mv jre_linux_unzip/jre_linux imagec-x64-linux-bundle/java/jre_linux
-          zip -r imagec-x64-linux-bundle.zip imagec-x64-linux-bundle
+          zip -r imagec-x64-linux-bundle.zip imagec-x64-linux
+          zip -r imagec-x64-win-bundle.zip imagec-x64-win
+          zip -r imagec-arm64-macos-bundle.zip imagec-arm64-macos
           
-
-          mkdir imagec-x64-win-bundle
-          mkdir -p imagec-x64-win-bundle/java
-          mkdir -p imagec-x64-win-bundle/models
-          cp build/build/imagec.exe imagec-x64-win-bundle/imagec.exe
-          cp java/bioformats.jar imagec-x64-win-bundle/java/bioformats.jar
-          cp java/BioFormatsWrapper.class imagec-x64-win-bundle/java/BioFormatsWrapper.class
-          unzip java/jre_win.zip -d jre_win_unzip
-          mv jre_win_unzip/jre_win imagec-x64-win-bundle/java/jre_win
-          unzip build/win-dlls.zip -d win_dll_unzip
-          mv win_dll_unzip/dlls/* imagec-x64-win-bundle/
-          zip -r imagec-x64-win-bundle.zip imagec-x64-win-bundle
-
-          mv build/build/imagec build/build/imagec-x64-linux
-          mv build/build/imagec.exe build/build/imagec-x64-win.exe
-          mv java/jre_linux.zip java/jre-linux.zip
-          mv java/jre_win.zip java/jre-win.zip
-          zip java/bioformats-jni-wrapper.zip java/bioformats.jar java/BioFormatsWrapper.class
-
           
           timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-          hash_value_linux=$(sha256sum imagec-x64-linux-bundle/imagec | cut -d ' ' -f 1)
-          hash_value_win=$(sha256sum imagec-x64-win-bundle/imagec.exe | cut -d ' ' -f 1)
+          hash_value_linux=$(sha256sum imagec-x64-linux/imagec | cut -d ' ' -f 1)
+          hash_value_win=$(sha256sum imagec-x64-win/imagec.exe | cut -d ' ' -f 1)
+          hash_value_macos=$(sha256sum imagec-arm64-macos/imagec.app/Contents/MacOS/imagec | cut -d ' ' -f 1)
           version="${GITHUB_REF#refs/tags/}"
           
+          zip -r imagec-x64-linux-bin.zip imagec-x64-linux/imagec
+          zip -r imagec-x64-win-bin.zip imagec-x64-win/imagec.exe
+          zip -r imagec-arm64-macos-bin.zip imagec-x64-macos/imagec.app
+
           json_string_linux=$(cat <<-EOF
           {
             "version": "$version",
@@ -172,27 +426,36 @@ jobs:
           EOF
           )
 
+          json_string_macos=$(cat <<-EOF
+          {
+            "version": "$version",
+            "sha256": "$hash_value_macos",
+            "timestamp": "$timestamp"
+          }
+          EOF
+          )
+
           echo "$json_string_linux"
           echo "$json_string_win"
+          echo "$json_string_macos"
 
           echo "$json_string_linux" > imagec-x64-linux-bundle.json
           echo "$json_string_win" > imagec-x64-win-bundle.json
+          echo "$json_string_macos" > imagec-arm64-macos-bundle.json
 
       - name: Upload Additional Files
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          generate_release_notes: true
           files: |
-            build/build/imagec-x64-linux
-            build/build/imagec-x64-win.exe
             imagec-x64-linux-bundle.zip
             imagec-x64-win-bundle.zip
+            imagec-arm64-macos-bundle.zip
+            imagec-x64-linux-bin.zip
+            imagec-x64-win-bin.zip
+            imagec-arm64-macos-bin.zip
       
-# build/build/win-dlls.zip
-# java/jre-linux.zip
-# java/jre-win.zip
-# java/bioformats-jni-wrapper.zip      
-
       - name: Upload to imagec.org
         if: startsWith(github.ref, 'refs/tags/')
         env:
@@ -205,14 +468,6 @@ jobs:
           scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.json
           scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.zip
           scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.json
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-arm64-macos-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-arm64-macos-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-arm64-macos-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-arm64-macos-bundle.json
           rm -rf ssh_key_for_github
-
-
-      
-      
-      
-      
-      
-      
-      
-         

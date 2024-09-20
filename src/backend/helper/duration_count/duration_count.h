@@ -50,5 +50,5 @@ private:
   static inline std::map<uint32_t, TimeDely> mDelays;
   static inline uint32_t totalCnt = 0;
   static inline std::mutex mLock;
-  static inline std::chrono::time_point<std::chrono::high_resolution_clock> mStartTime;
+  static inline std::chrono::time_point<std::chrono::system_clock> mStartTime;
 };

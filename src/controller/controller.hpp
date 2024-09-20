@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/helper/image/image.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
@@ -35,6 +36,7 @@ struct Preview
   joda::image::Image thumbnail;
   joda::image::Image previewImage;
   joda::image::Image originalImage;
+  std::map<enums::ClassId, int32_t> foundObjects;
   int height;
   int width;
   std::string imageFileName;
@@ -53,8 +55,8 @@ public:
 
   // SYSTEM ///////////////////////////////////////////////////
   static auto getSystemResources() -> joda::system::SystemResources;
-  static auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file,
-                                      int nrOfFiles) -> joda::thread::ThreadingSettings;
+  static auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles)
+      -> joda::thread::ThreadingSettings;
   auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings) -> joda::thread::ThreadingSettings;
   // FILES ///////////////////////////////////////////////////
   auto getNrOfFoundImages() -> uint32_t;
@@ -66,15 +68,13 @@ public:
 
   // PREVIEW ///////////////////////////////////////////////////
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
-               const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline,
-               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, Preview &previewOut);
-  [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series = 0)
-      -> joda::ome::OmeInfo;
+               const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX,
+               int32_t tileY, Preview &previewOut);
+  [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series = 0) -> joda::ome::OmeInfo;
   cv::Size getCompositeTileSize() const;
 
   // FLOW CONTROL ///////////////////////////////////////////////////
-  void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
-             const std::string &jobName);
+  void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName);
   void stop();
   [[nodiscard]] auto getState() const -> const joda::processor::ProcessProgress &;
   [[nodiscard]] const processor::ProcessInformation &getJobInformation() const;

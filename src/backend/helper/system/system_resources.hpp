@@ -15,9 +15,26 @@
 
 #include <thread>
 
-#ifndef _WIN32
+#ifdef _WIN32
+
+#include <windows.h>
+#include <iostream>
+
+#elif defined(__APPLE__)
+
+#include <mach/mach.h>
+#include <sys/sysctl.h>
+#include <unistd.h>
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+#else
 
 #include <unistd.h>
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -25,16 +42,74 @@
 #include "sys/sysinfo.h"
 #include "sys/types.h"
 
-#else
-
-#include <windows.h>
-#include <iostream>
-
 #endif
 
 namespace joda::system {
 
-#ifndef _WIN32
+#ifdef _WIN32
+
+inline uint64_t getTotalSystemMemory()
+{
+  MEMORYSTATUSEX status;
+  status.dwLength = sizeof(status);
+  GlobalMemoryStatusEx(&status);
+  return status.ullTotalPhys;
+}
+
+inline uint64_t getAvailableSystemMemory()
+{
+  MEMORYSTATUSEX status;
+  status.dwLength = sizeof(status);
+  GlobalMemoryStatusEx(&status);
+  return status.ullAvailPhys;
+}
+
+#elif defined(__APPLE__)
+
+inline uint64_t getTotalSystemMemory()
+{
+  uint64_t totalMemory = 0;
+  size_t length        = sizeof(totalMemory);
+  int mib[2]           = {CTL_HW, HW_MEMSIZE};
+
+  // Rufe sysctl auf, um die Gesamtmenge des physischen Speichers abzufragen
+  if(sysctl(mib, 2, &totalMemory, &length, NULL, 0) < 0) {
+    perror("sysctl");
+    return 0;    // Fehlerbehandlung
+  }
+
+  return totalMemory;
+}
+
+inline uint64_t getAvailableSystemMemory()
+{
+  return (uint64_t) ((float) getTotalSystemMemory() * (float) 0.8);
+  /*
+  uint64_t totalMemory = 0;
+  size_t length        = sizeof(totalMemory);
+  int mib[2]           = {CTL_HW, HW_MEMSIZE};
+
+  // Get total physical memory
+  if(sysctl(mib, 2, &totalMemory, &length, NULL, 0) < 0) {
+    perror("sysctl");
+    return 0;
+  }
+
+  // Get available memory using vm_statistics
+  vm_statistics_data_t vmStats;
+  mach_msg_type_number_t count = HOST_VM_INFO_COUNT;
+  if(host_statistics(mach_host_self(), HOST_VM_INFO, &vmStats, &count) != KERN_SUCCESS) {
+    perror("host_statistics");
+    return 0;
+  }
+
+  // Calculate available memory
+  uint64_t availableMemory = vmStats.free_count * vmStats.page_size;
+
+  return availableMemory;
+  */
+}
+#else
 
 inline uint64_t getTotalSystemMemory()
 {
@@ -45,15 +120,6 @@ inline uint64_t getTotalSystemMemory()
 
   return totalPhysMem;
 }
-
-// inline uint64_t getAvailableSystemMemory()
-//{
-//   struct sysinfo memInfo;
-//   sysinfo(&memInfo);
-//   uint64_t result = memInfo.freeram * memInfo.mem_unit;
-//   result += memInfo.bufferram * memInfo.mem_unit;
-//   return result;
-// }
 
 inline uint64_t getAvailableSystemMemory()
 {
@@ -80,24 +146,6 @@ inline uint64_t getAvailableSystemMemory()
   }
 
   return -1;    // MemAvailable not found
-}
-
-#else
-
-inline uint64_t getTotalSystemMemory()
-{
-  MEMORYSTATUSEX status;
-  status.dwLength = sizeof(status);
-  GlobalMemoryStatusEx(&status);
-  return status.ullTotalPhys;
-}
-
-inline uint64_t getAvailableSystemMemory()
-{
-  MEMORYSTATUSEX status;
-  status.dwLength = sizeof(status);
-  GlobalMemoryStatusEx(&status);
-  return status.ullAvailPhys;
 }
 
 #endif

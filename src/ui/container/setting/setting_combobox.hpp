@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <qcombobox.h>
+#include <QComboBox>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -25,7 +25,6 @@ namespace joda::ui {
 /// \author
 /// \brief
 ///
-
 template <NumberOrEnum_t VALUE_T>
 class SettingComboBox : public SettingBase
 {
@@ -86,7 +85,7 @@ public:
       if(data.icon.isEmpty()) {
         mComboBox->addItem(QIcon(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
       } else {
-        const QIcon myIcon(":/icons/outlined/" + data.icon);
+        const QIcon myIcon(":/icons/icons/" + data.icon);
         mComboBox->addItem(QIcon(myIcon.pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), data.label, variant);
       }
     }

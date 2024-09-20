@@ -100,12 +100,10 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
       // Iterate over each image
       //
       for(const auto &actImage : imagesToProcess) {
-        auto analyzeImage = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, &poolSizeTiles,
-                             &poolSizeChannels, &actImage]() {
+        auto analyzeImage = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, &poolSizeTiles, &poolSizeChannels, &actImage]() {
           auto const [imagePath, omeInfo, imageId] = actImage;
           PipelineInitializer imageLoader(program.imageSetup);
-          ImageContext imageContext{
-              .imageLoader = imageLoader, .imagePath = imagePath, .imageMeta = omeInfo, .imageId = imageId};
+          ImageContext imageContext{.imageLoader = imageLoader, .imagePath = imagePath, .imageMeta = omeInfo, .imageId = imageId};
           imageLoader.init(imageContext);
 
           //
@@ -128,9 +126,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                 break;
               }
 
-              auto analyzeTile = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db,
-                                  imagePath = imagePath, nrtStack, nrzSTack, nrChannels, &imageContext, &imageLoader,
-                                  tileX, tileY, &poolSizeChannels]() {
+              auto analyzeTile = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, imagePath = imagePath, nrtStack, nrzSTack,
+                                  nrChannels, &imageContext, &imageLoader, tileX, tileY, &poolSizeChannels]() {
                 // Start of the image specific function
                 for(int tStack = 0; tStack < nrtStack; tStack++) {
                   if(mProgress.isStopping()) {
@@ -145,32 +142,27 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
 
                     // Start with the highest prio pipelines down to the lowest prio
                     for(const auto &[order, pipelines] : pipelineOrder) {
-                      auto executePipelineOrder = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db,
-                                                   imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX,
-                                                   tileY, nrChannels, pipelines = pipelines, &iterationContext, tStack,
-                                                   zStack, &poolSizeChannels]() {
+                      auto executePipelineOrder = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, imagePath, nrtStack, nrzSTack,
+                                                   &imageContext, &imageLoader, tileX, tileY, nrChannels, pipelines = pipelines, &iterationContext,
+                                                   tStack, zStack, &poolSizeChannels]() {
                         // These are pipelines in onw prio step -> Can be parallelized
                         BS::multi_future<void> pipelinesFutures;
                         for(const auto &pipelineToExecute : pipelines) {
                           if(mProgress.isStopping()) {
                             break;
                           }
-                          auto executePipeline = [pipeline = pipelineToExecute, this, &program, &globalContext,
-                                                  &plateContext, &pipelineOrder, &db, imagePath, nrtStack, nrzSTack,
-                                                  &imageContext, &imageLoader, tileX, tileY, nrChannels,
+                          auto executePipeline = [pipeline = pipelineToExecute, this, &program, &globalContext, &plateContext, &pipelineOrder, &db,
+                                                  imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX, tileY, nrChannels,
                                                   pipelines = pipelines, &iterationContext, tStack, zStack]() {
                             //
                             // Load the image imagePlane
                             //
                             ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
-                            imageLoader.initPipeline(
-                                pipeline->pipelineSetup, {tileX, tileY},
-                                {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex},
-                                context);
+                            imageLoader.initPipeline(pipeline->pipelineSetup, {tileX, tileY},
+                                                     {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context);
                             auto planeId = context.getActImage().getId().imagePlane;
                             try {
-                              if(pipeline->pipelineSetup.cStackIndex >= 0 &&
-                                 pipeline->pipelineSetup.cStackIndex < nrChannels) {
+                              if(pipeline->pipelineSetup.cStackIndex >= 0 && pipeline->pipelineSetup.cStackIndex < nrChannels) {
                                 db.insertImagePlane(imageContext.imageId, planeId,
                                                     imageContext.imageMeta.getChannelInfos()
                                                         .at(pipeline->pipelineSetup.cStackIndex)
@@ -257,18 +249,17 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
   }
 }
 
-std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSettings &program,
-                                               const std::string &jobName, GlobalContext &globalContext)
+std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
+                                               GlobalContext &globalContext)
 {
-  auto now = std::chrono::high_resolution_clock::now();
+  auto now = std::chrono::system_clock::now();
   mProgress.reset();
-  globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory) / "imagec" /
-                                      (joda::helper::timepointToIsoString(now) + "_" + jobName);
+  globalContext.resultsOutputFolder =
+      std::filesystem::path(program.projectSettings.workingDirectory) / "imagec" / (joda::helper::timepointToIsoString(now) + "_" + jobName);
 
   std::filesystem::create_directories(globalContext.resultsOutputFolder);
 
-  settings::Settings::storeSettings((globalContext.resultsOutputFolder / ("settings" + joda::fs::EXT_PROJECT)),
-                                    program);
+  settings::Settings::storeSettings((globalContext.resultsOutputFolder / ("settings" + joda::fs::EXT_PROJECT)), program);
 
   mJobInformation.resultsFilePath  = globalContext.resultsOutputFolder / ("results" + joda::fs::EXT_DATABASE);
   mJobInformation.ouputFolder      = globalContext.resultsOutputFolder;
@@ -299,8 +290,8 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
 ///
 auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                                 const settings::AnalyzeSettings &program, const settings::Pipeline &pipelineStart,
-                                const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
-                                int32_t tileY) -> std::tuple<cv::Mat, cv::Mat, cv::Mat>
+                                const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY)
+    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<enums::ClassId, int32_t>>
 {
   //
   //  Resolve dependencies
@@ -343,8 +334,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
       //
       ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
       imageLoader.initPipeline(pipeline->pipelineSetup, {tileX, tileY},
-                               {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex},
-                               context);
+                               {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context);
       auto planeId = context.getActImage().getId().imagePlane;
 
       //
@@ -366,10 +356,10 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         int colorIdx = 0;
         for(int cluster = 0; cluster < 10; cluster++) {
           for(int classs = 0; classs < 10; classs++) {
-            saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{
-                .inputCluster = {(enums::ClusterIdIn) cluster, (enums::ClassId) classs},
-                .color        = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()],
-                .style        = previewSettings.style});
+            saverSettings.clustersIn.emplace_back(
+                settings::ImageSaverSettings::SaveCluster{.inputCluster = {(enums::ClusterIdIn) cluster, (enums::ClassId) classs},
+                                                          .color = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()],
+                                                          .style = previewSettings.style});
             colorIdx++;
           }
         }
@@ -382,18 +372,26 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         saver->execute(context, context.getActImage().image, context.getActObjects());
 
         auto thumb = joda::image::reader::ImageReader::loadThumbnail(
-            imagePath.string(),
-            joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipeline->pipelineSetup.cStackIndex, .t = tStack},
-            0);
+            imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipeline->pipelineSetup.cStackIndex, .t = tStack}, 0);
 
-        return {
-            context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})
-                ->image,
-            context.getActImage().image, thumb};
+        //
+        // Count elements
+        //
+        std::map<enums::ClassId, int32_t> foundObjects;
+        const auto &objects = context.getActObjects().at(pipelineStart.getOutputCluster());
+        for(const auto &roi : *objects) {
+          if(!foundObjects.contains(roi.getClassId())) {
+            foundObjects[roi.getClassId()] = 0;
+          }
+          foundObjects[roi.getClassId()]++;
+        }
+
+        return {context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})->image,
+                context.getActImage().image, thumb, foundObjects};
       }
     }
   }
-  return {{}, {}, {}};
+  return {{}, {}, {}, {}};
 }
 
 }    // namespace joda::processor

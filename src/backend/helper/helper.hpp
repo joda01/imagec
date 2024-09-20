@@ -1,7 +1,7 @@
 #pragma once
 
 #include <opencv2/core/hal/interface.h>
-#include <unistd.h>
+#include <array>
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
@@ -49,7 +49,6 @@ inline std::string execCommand(const std::string &cmd, int &out_exitStatus)
   }
 
   std::array<char, 256> buffer;
-
   std::string result;
 
   while(not std::feof(pPipe)) {

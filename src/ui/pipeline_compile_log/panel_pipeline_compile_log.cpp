@@ -76,13 +76,13 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
     auto *iconItem = new QTableWidgetItem();
     QIcon *icon    = nullptr;
     if(log.severity == SettingParserLog::Severity::JODA_ERROR) {
-      icon = new QIcon(":/icons/outlined/icons8-error-50.png");
+      icon = new QIcon(":/icons/icons/icons8-error-50.png");
       iconItem->setText("Error");
     } else if(log.severity == SettingParserLog::Severity::JODA_WARNING) {
-      icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+      icon = new QIcon(":/icons/icons/icons8-warning-50.png");
       iconItem->setText("Warning");
     } else if(log.severity == SettingParserLog::Severity::JODA_INFO) {
-      icon = new QIcon(":/icons/outlined/icons8-info-50-blue.png");
+      icon = new QIcon(":/icons/icons/icons8-info-50-blue.png");
       iconItem->setText("Info");
     }
     iconItem->setIcon(icon->pixmap(16, 16));

@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include <qtmetamacros.h>
 #include <QtWidgets>
 #include <memory>
 #include <mutex>

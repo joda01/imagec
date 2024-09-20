@@ -192,14 +192,12 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
               .classId    = context.getClassId(objectClass.outputClusterNoMatch.classId),
               .imagePlane = context.getActIterator(),
           },
-#warning "Check if the contour is in the area of the bounding box"
-          context.getAppliedMinThreshold(), 0, box, mask, contours[idxMax], context.getImageSize(),
-          context.getActTile(), context.getTileSize());
+          // #warning "Check if the contour is in the area of the bounding box"
+          context.getAppliedMinThreshold(), 0, box, mask, contours[idxMax], context.getImageSize(), context.getActTile(), context.getTileSize());
 
       for(const auto &filter : objectClass.filters) {
         if(filter.doesFilterMatch(context, detectedRoi, filter.intensity)) {
-          detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId),
-                                         context.getClassId(filter.outputCluster.classId));
+          detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId), context.getClassId(filter.outputCluster.classId));
         }
       }
     }
@@ -217,11 +215,9 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 /// \param[in]  inputImageShape Image shape
 /// \param[out] output          Stores the mask to the output
 ///
-auto AiClassifier::getMask(const Mat &maskChannel, const cv::Vec4d &params, const cv::Size &inputImageShape,
-                           const cv::Rect &box) -> cv::Mat
+auto AiClassifier::getMask(const Mat &maskChannel, const cv::Vec4d &params, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat
 {
-  static const Rect roi(static_cast<int>(params[2] / NET_WIDTH * SEG_WIDTH),
-                        static_cast<int>(params[3] / NET_HEIGHT * SEG_HEIGHT),
+  static const Rect roi(static_cast<int>(params[2] / NET_WIDTH * SEG_WIDTH), static_cast<int>(params[3] / NET_HEIGHT * SEG_HEIGHT),
                         static_cast<int>(SEG_WIDTH - params[2] / 2), static_cast<int>(SEG_HEIGHT - params[3] / 2));
 
   Mat dest;
@@ -237,8 +233,8 @@ auto AiClassifier::getMask(const Mat &maskChannel, const cv::Vec4d &params, cons
 /// \brief      Image preparation
 /// \author     Joachim Danmayr
 ///
-void AiClassifier::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::Vec4d &params, const cv::Size &newShape,
-                             bool autoShape, bool scaleFill, bool scaleUp, int stride, const cv::Scalar &color)
+void AiClassifier::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::Vec4d &params, const cv::Size &newShape, bool autoShape, bool scaleFill,
+                             bool scaleUp, int stride, const cv::Scalar &color)
 {
   // if(false) {
   //   int maxLen = MAX(image.rows, image.cols);

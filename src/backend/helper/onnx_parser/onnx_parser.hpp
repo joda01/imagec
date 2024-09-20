@@ -149,7 +149,7 @@ private:
     // We get the classes in following format: {0: 'cell', 1: 'cell_cut'}
     // The next lines converts this in a valid JSON
     //
-    char ch[readL];
+    auto *ch        = new char[readL];
     int size        = 0;
     bool braketOpen = false;
     for(int n = 0; n < readL; n++) {
@@ -188,6 +188,7 @@ private:
     }
     ch[size] = 0;
     std::string jsonString(ch, size);
+    delete[] ch;
     file.close();
 
     std::map<int32_t, std::string> classes;

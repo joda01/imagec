@@ -26,8 +26,7 @@ namespace joda::ui::helper {
 /// \param[out]
 /// \return
 ///
-LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool withTopToolbar, bool withBackButton,
-                                 bool withBottomToolbar) :
+LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool withTopToolbar, bool withBackButton, bool withBottomToolbar) :
     mParent(parent)
 {
   auto *container = new QVBoxLayout(parent);
@@ -42,7 +41,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
       auto *spacerTop = new QWidget();
       spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
       mSpaceTopToolbar = mToolbarTop->addWidget(spacerTop);
-      mBackButton = new QAction(QIcon(":/icons/outlined/icons8-close-50.png").pixmap(16, 16), "Close", mToolbarTop);
+      mBackButton      = new QAction(QIcon(":/icons/icons/icons8-close-50.png").pixmap(16, 16), "Close", mToolbarTop);
       mToolbarTop->addAction(mBackButton);
     }
   }
@@ -55,8 +54,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
       spacerBottom->setContentsMargins(0, 0, 0, 0);
       spacerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
       mSpaceBottomToolbar = mToolbarBottom->addWidget(spacerBottom);
-      mDeleteButton =
-          new QAction(QIcon(":/icons/outlined/icons8-trash-50.png").pixmap(16, 16), "Delete", mToolbarBottom);
+      mDeleteButton       = new QAction(QIcon(":/icons/icons/icons8-trash-50.png").pixmap(16, 16), "Delete", mToolbarBottom);
       mDeleteButton->setToolTip("Delete");
       mToolbarBottom->addAction(mDeleteButton);
     }
@@ -164,7 +162,7 @@ void LayoutGenerator::addItemToBottomToolbar(QAction *widget)
 ///
 QAction *LayoutGenerator::addActionBottomButton(const QString &text, const QString &icon)
 {
-  QIcon bmp(":/icons/outlined/" + icon);
+  QIcon bmp(":/icons/icons/" + icon);
   auto *action = new QAction(bmp.pixmap(16, 16), text);
   addItemToBottomToolbar(action);
   return action;
@@ -179,7 +177,7 @@ QAction *LayoutGenerator::addActionBottomButton(const QString &text, const QStri
 ///
 QAction *LayoutGenerator::addActionButton(const QString &text, const QString &icon)
 {
-  QIcon bmp(":/icons/outlined/" + icon);
+  QIcon bmp(":/icons/icons/" + icon);
   auto *action = new QAction(bmp.pixmap(16, 16), text);
   addItemToTopToolbar(action);
   return action;
@@ -192,8 +190,7 @@ QAction *LayoutGenerator::addActionButton(const QString &text, const QString &ic
 /// \param[out]
 /// \return
 ///
-void VerticalPane::addGroup(const QString &title, const std::vector<SettingBase *> &elements, int minWidth,
-                            int maxWidth)
+void VerticalPane::addGroup(const QString &title, const std::vector<SettingBase *> &elements, int minWidth, int maxWidth)
 {
   auto *group = new QGroupBox(title);
   group->setMaximumWidth(maxWidth);
@@ -230,8 +227,7 @@ void VerticalPane::addGroup(const std::vector<SettingBase *> &elements, int minW
 /// \param[out]
 /// \return
 ///
-void VerticalPane ::addWidgetGroup(const QString &title, const std::vector<QWidget *> &elements, int minWidth,
-                                   int maxWidth)
+void VerticalPane ::addWidgetGroup(const QString &title, const std::vector<QWidget *> &elements, int minWidth, int maxWidth)
 {
   auto *group = new QGroupBox(title);
   group->setMaximumWidth(maxWidth);
@@ -252,10 +248,8 @@ void VerticalPane ::addWidgetGroup(const QString &title, const std::vector<QWidg
 /// \param[out]
 /// \return
 ///
-TabWidget::TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator,
-                     QWidget *parent) :
-    beforeTabClose(std::move(beforeTabClose)),
-    mLayoutGenerator(layoutGenerator), mParent(parent)
+TabWidget::TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator, QWidget *parent) :
+    beforeTabClose(std::move(beforeTabClose)), mLayoutGenerator(layoutGenerator), mParent(parent)
 {
   setObjectName("scrollArea");
   setFrameStyle(0);

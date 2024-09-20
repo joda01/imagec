@@ -17,7 +17,6 @@
 #include <qcombobox.h>
 #include <qdialog.h>
 #include <qlabel.h>
-#include <qtmetamacros.h>
 #include <qwindow.h>
 #include <memory>
 #include <thread>
@@ -51,8 +50,8 @@ class ExportColumn : public QWidget
   friend class DialogExportData;
 
 public:
-  ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
-               const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses, QWidget *windowMain);
+  ExportColumn(std::unique_ptr<joda::db::Database> &analyzer, const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses,
+               QWidget *windowMain);
 
   void getImageChannels();
   void getCrossChannelCount();

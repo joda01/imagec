@@ -14,7 +14,6 @@
 #pragma once
 
 #include <qcombobox.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <filesystem>
@@ -41,8 +40,7 @@ public:
   explicit PanelClassification(joda::settings::ProjectSettings &settings, WindowMain *windowMain);
   void fromSettings(const joda::settings::ProjectSettings &settings);
   void toSettings();
-  [[nodiscard]] auto getClustersAndClasses() const
-      -> std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassId, QString>>;
+  [[nodiscard]] auto getClustersAndClasses() const -> std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassId, QString>>;
 
 signals:
   void settingsChanged();

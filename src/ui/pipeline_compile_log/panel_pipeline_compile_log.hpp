@@ -13,7 +13,6 @@
 #pragma once
 
 #include <qtablewidget.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 
 namespace joda::settings {

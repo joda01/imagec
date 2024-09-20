@@ -9,6 +9,7 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -113,8 +114,7 @@ public:
     CHECK_ERROR(compression >= 0 && compression <= 6, "Image compression must be in between [0-6].");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageSaverSettings, subFolder, canvas, planesIn, compression,
-                                                       namePrefix, clustersIn);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageSaverSettings, subFolder, canvas, planesIn, compression, namePrefix, clustersIn);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::Style, {

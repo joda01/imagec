@@ -5,9 +5,32 @@
 
 - [ ] Handle non ASCII chars when inserting to DB
 - [ ] Support the filtering (validity) for image plane and cluster
-- [ ] Display class in/out in pipeline view
 - [ ] Rethink control image naming to keep the order and store the ref to a control image in the database
 
 (gdb) handle SIGSEGV nostop noprint pass
 
 handle SIGSEGV nostop print pass
+readelf -d imagec
+
+
+Linux:
+
+sudo apt install libxcb-cursor-dev
+sudo apt install libxcb-*
+
+
+Start-Process -RedirectStandardOutput
+
+
+
+
+
+
+
+
+ key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+
+
+Add to path
+
+C:\Users\Joachim\.conan2\p\mingwf3629a0c4f698\p\bin

@@ -23,16 +23,13 @@ QWidget *SettingComboBoxClassificationUnmanaged::createInputObject()
   mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
-  SettingBase::connect(mComboBox, &QComboBox::currentIndexChanged, this,
-                       &SettingComboBoxClassificationUnmanaged::onValueChanged);
-  SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this,
-                       &SettingComboBoxClassificationUnmanaged::onValueChanged);
+  SettingBase::connect(mComboBox, &QComboBox::currentIndexChanged, this, &SettingComboBoxClassificationUnmanaged::onValueChanged);
+  SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClassificationUnmanaged::onValueChanged);
 
   return mComboBox;
 }
 
-void SettingComboBoxClassificationUnmanaged::addOptions(
-    const std::map<settings::ClassificatorSettingOut, QString> &dataIn)
+void SettingComboBoxClassificationUnmanaged::addOptions(const std::map<settings::ClassificatorSettingOut, QString> &dataIn)
 {
   mComboBox->blockSignals(true);
   auto actSelected = getValue();
@@ -47,8 +44,7 @@ void SettingComboBoxClassificationUnmanaged::addOptions(
 
       QVariant variant;
       variant = QVariant(toInt(data));
-      mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                         label, variant);
+      mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), label, variant);
     }
   }
   setValue(actSelected);
@@ -95,8 +91,7 @@ void SettingComboBoxClassificationUnmanaged::setValue(const settings::Classifica
   }
 }
 
-std::pair<settings::ClassificatorSettingOut, std::pair<std::string, std::string>>
-SettingComboBoxClassificationUnmanaged::getValueAndNames()
+std::pair<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> SettingComboBoxClassificationUnmanaged::getValueAndNames()
 {
   std::string clusterName;
   std::string className;

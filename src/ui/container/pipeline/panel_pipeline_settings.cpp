@@ -369,19 +369,13 @@ void PanelPipelineSettings::updatePreview()
                 controller->preview(mWindowMain->getSettings().imageSetup, prevSettings, mWindowMain->getSettings(), getPipeline(), imgIndex,
                                     mSelectedTileX, mSelectedTileY, previewResult);
                 // Create a QByteArray from the char array
-                int valid   = 0;
-                int invalid = 0;
-                /* for(const auto &roi : *previewResult.detectionResult) {
-                   if(roi.isValid()) {
-                     valid++;
-                   } else {
-                     invalid++;
-                   }
-                 }*/
-
+                QString info;
+                auto [_, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
+                for(const auto &[classId, count] : previewResult.foundObjects) {
+                  info += (classes[classId] + ":" + QString::number(count) + ", ");
+                }
+                info.chop(2);
                 mPreviewImage->setThumbnailPosition(tileNrX, tileNrY, mSelectedTileX, mSelectedTileY);
-
-                QString info("Valid: " + QString::number(valid) + " | Invalid: " + QString::number(invalid));
                 mPreviewImage->updateImage(info);
                 if(!mIsActiveShown) {
                   mPreviewImage->resetImage("");
@@ -528,7 +522,7 @@ void PanelPipelineSettings::closeWindow()
 void PanelPipelineSettings::deletePipeline()
 {
   QMessageBox messageBox(mWindowMain);
-  auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+  auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
   messageBox.setIconPixmap(icon->pixmap(42, 42));
   messageBox.setWindowTitle("Delete pipeline?");
   messageBox.setText("Delete pipeline?");
@@ -586,7 +580,7 @@ void PanelPipelineSettings::saveAsTemplate()
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);
-    auto *icon = new QIcon(":/icons/outlined/icons8-warning-50.png");
+    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
     messageBox.setIconPixmap(icon->pixmap(42, 42));
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");

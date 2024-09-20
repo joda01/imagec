@@ -13,6 +13,13 @@ int main(int argc, char *argv[])
   Version::initVersion(std::string(argv[0]));
   joda::image::reader::ImageReader::init();
 
+#ifdef _WIN32
+#elif defined(__APPLE__)
+#else
+  //  setenv("LD_LIBRARY_PATH", "./lib", 1);
+  setenv("FONTCONFIG_PATH", "/etc/fonts/", 1);
+#endif
+
   //
   // Start UI
   //

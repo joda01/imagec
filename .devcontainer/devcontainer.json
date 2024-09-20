@@ -3,7 +3,7 @@
 {
 	// docker run   your_image_name
 	"name": "C++",
-	"dockerFile": "Dockerfile",
+	"dockerFile": "../Dockerfile",
 	//"mounts": [
 	//	{
 	//		"source": "/media/danmayr-joachim/T-Rex/",

@@ -16,7 +16,6 @@
 #include <qboxlayout.h>
 #include <qdialog.h>
 #include <qicon.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <memory>
 #include <thread>

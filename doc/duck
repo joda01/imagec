@@ -1,0 +1,143 @@
+duckdb/1.1.0: RUN: cmake --install "C:\Users\runneradmin\.conan2\p\b\duckd92ca9c549dcec\b\build\Release" --prefix "C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p"
+-- Install configuration: "Release"
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/aggregate_function_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/collate_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/column_dependency_manager.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/copy_function_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/dependency
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/dependency/dependency_dependent_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/dependency/dependency_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/dependency/dependency_subject_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/duck_index_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/duck_schema_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/duck_table_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/function_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/index_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/list.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/macro_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/pragma_function_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/scalar_function_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/scalar_macro_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/schema_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/sequence_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/table_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/table_column_type.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/table_function_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/table_macro_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/type_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry/view_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry_map.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_entry_retriever.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_search_path.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_set.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/catalog_transaction.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/default
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/default/builtin_types
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/default/builtin_types/types.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/default/default_functions.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/default/default_generator.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/default/default_schemas.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/default/default_table_functions.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/default/default_types.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/default/default_views.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/dependency.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/dependency_catalog_set.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/dependency_list.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/dependency_manager.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/duck_catalog.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/similar_catalog_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/catalog/standard_entry.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/adbc
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/adbc/adbc-init.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/adbc/adbc.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/adbc/single_batch_array_stream.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/algorithm.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/allocator.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/array.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/array_ptr.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/append_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/bool_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/enum_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/fixed_size_list_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/list.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/list_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/list_view_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/map_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/scalar_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/struct_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/union_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/appender/varchar_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/arrow.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/arrow_appender.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/arrow_buffer.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/arrow_converter.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/arrow_merge_event.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/arrow_query_result.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/arrow_wrapper.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/nanoarrow
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/nanoarrow/nanoarrow.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/physical_arrow_batch_collector.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/common/arrow/physical_arrow_collector.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/commit_state.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/delete_info.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/duck_transaction.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/duck_transaction_manager.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/local_storage.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/meta_transaction.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/rollback_state.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/transaction.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/transaction_context.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/transaction_data.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/transaction_manager.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/undo_buffer.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/update_info.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/transaction/wal_write_state.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/verification
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/verification/copied_statement_verifier.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/verification/deserialized_statement_verifier.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/verification/external_statement_verifier.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/verification/fetch_row_verifier.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/verification/no_operator_caching_verifier.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/verification/parsed_statement_verifier.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/verification/prepared_statement_verifier.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/verification/statement_verifier.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb/verification/unoptimized_statement_verifier.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb.hpp
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/include/duckdb.h
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_static.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libparquet_extension.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_fmt.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_pg_query.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_re2.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_miniz.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_utf8proc.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_hyperloglog.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_skiplistlib.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_fastpforlib.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_mbedtls.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_fsst.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/lib/libduckdb_yyjson.a
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/cmake/DuckDBExports.cmake
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/cmake/DuckDBExports-release.cmake
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/cmake/DuckDBConfig.cmake
+-- Installing: C:/Users/runneradmin/.conan2/p/b/duckd92ca9c549dcec/p/cmake/DuckDBConfigVersion.cmake
+
+duckdb/1.1.0: package(): Packaged 1 '.h' file: duckdb.h
+duckdb/1.1.0: package(): Packaged 1149 '.hpp' files
+duckdb/1.1.0: package(): Packaged 13 '.a' files
+duckdb/1.1.0: package(): Packaged 1 file: LICENSE
+duckdb/1.1.0: Created package revision 6050328d1492a516158cbfb0ecaf1a70
+duckdb/1.1.0: Package '11ea54c457560c01885abbdb4f6e8704e0d026dd' created
+duckdb/1.1.0: Full package reference: duckdb/1.1.0#ef01a06a8205b7fd18b622eb53a64921:11ea54c457560c01885abbdb4f6e8704e0d026dd#6050328d1492a516158cbfb0ecaf1a70
+duckdb/1.1.0: Package folder C:\Users\runneradmin\.conan2\p\b\duckd92ca9c549dcec\p
+imath/3.1.9: Sources downloaded from 'conancenter'
+imath/3.1.9: Calling source() in C:\Users\runneradmin\.conan2\p\imath3353ad56cbc60\s\src
+imath/3.1.9: Unzipping v3.1.9.tar.gz to .

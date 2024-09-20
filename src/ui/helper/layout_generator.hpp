@@ -27,7 +27,6 @@
 #include <qscrollbar.h>
 #include <qtableview.h>
 #include <qtablewidget.h>
-#include <qtmetamacros.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
 #include <future>
@@ -52,8 +51,8 @@ class LayoutGenerator : public QObject
 
 public:
   /////////////////////////////////////////////////////
-  explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withTopToolbar = true,
-                           bool withBackButton = true, bool withBottomToolbar = false);
+  explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withTopToolbar = true, bool withBackButton = true,
+                           bool withBottomToolbar = false);
 
   TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
 
@@ -130,10 +129,8 @@ public:
   {
   }
   void addGroup(const std::vector<SettingBase *> &elements, int minWidth = 220, int maxWidth = 220);
-  void addGroup(const QString &title, const std::vector<SettingBase *> &elements, int minWidth = 220,
-                int maxWidth = 220);
-  void addWidgetGroup(const QString &title, const std::vector<QWidget *> &elements, int minWidth = 220,
-                      int maxWidth = 220);
+  void addGroup(const QString &title, const std::vector<SettingBase *> &elements, int minWidth = 220, int maxWidth = 220);
+  void addWidgetGroup(const QString &title, const std::vector<QWidget *> &elements, int minWidth = 220, int maxWidth = 220);
 
 private:
   LayoutGenerator *layoutGenerator;
@@ -150,8 +147,7 @@ class TabWidget : public QScrollArea
   Q_OBJECT
 
 public:
-  TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator,
-            QWidget *parent);
+  TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator, QWidget *parent);
   VerticalPane *addVerticalPanel();
   void beforeClose()
   {

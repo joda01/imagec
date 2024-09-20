@@ -16,7 +16,6 @@
 #include <qicon.h>
 #include <qlabel.h>
 #include <qnamespace.h>
-#include <qtmetamacros.h>
 #include <exception>
 #include <memory>
 #include <thread>
@@ -70,7 +69,7 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
   stopButton->setObjectName("ToolButton");
   stopButton->setEnabled(true);
 
-  QPushButton *openResultsFolder = new QPushButton(QIcon(":/icons/outlined/icons8-scatter-plot-50.png"), "", this);
+  QPushButton *openResultsFolder = new QPushButton(QIcon(":/icons/icons/icons8-scatter-plot-50.png"), "", this);
   openResultsFolder->setObjectName("ToolButton");
   openResultsFolder->setToolTip("Open results folder");
 
@@ -121,7 +120,7 @@ void DialogAnalyzeRunning::refreshThread()
   auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings);
   // mWindowMain->getController()->reset();
   mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName().toStdString());
-  mStartedTime = std::chrono::high_resolution_clock::now();
+  mStartedTime = std::chrono::system_clock::now();
 
   // Wait unit new pipeline has been started. It could be that we are still waiting for finishing the prev thread.
 
@@ -134,8 +133,7 @@ void DialogAnalyzeRunning::refreshThread()
   while(true) {
     try {
       const auto &state = mWindowMain->getController()->getState();
-      if(state.getState() == joda::processor::ProcessState::FINISHED ||
-         state.getState() == joda::processor::ProcessState::FINISHED_WITH_ERROR) {
+      if(state.getState() == joda::processor::ProcessState::FINISHED || state.getState() == joda::processor::ProcessState::FINISHED_WITH_ERROR) {
         break;
       }
     } catch(const std::exception &ex) {
@@ -153,9 +151,8 @@ void DialogAnalyzeRunning::onRefreshData()
   auto actState          = joda::processor::ProcessState::INITIALIZING;
   try {
     const auto &state = mWindowMain->getController()->getState();
-    if(state.getState() == joda::processor::ProcessState::RUNNING ||
-       state.getState() == joda::processor::ProcessState::RUNNING_PREPARING_PIPELINE) {
-      mEndedTime = std::chrono::high_resolution_clock::now();
+    if(state.getState() == joda::processor::ProcessState::RUNNING || state.getState() == joda::processor::ProcessState::RUNNING_PREPARING_PIPELINE) {
+      mEndedTime = std::chrono::system_clock::now();
     }
     actState       = state.getState();
     newTextAllOver = QString("Processing Image %1/%2").arg(state.finishedImages()).arg(state.totalImages());
@@ -198,11 +195,10 @@ void DialogAnalyzeRunning::onRefreshData()
     progressBar->setValue(100);
     if(!mStopped) {
       QMessageBox messageBox(this);
-      auto *icon = new QIcon(":/icons/outlined/icons8-error-50.png");
+      auto *icon = new QIcon(":/icons/icons/icons8-error-50.png");
       messageBox.setIconPixmap(icon->pixmap(42, 42));
       messageBox.setWindowTitle("Error...");
-      messageBox.setText("Error in execution got >" +
-                         QString(mWindowMain->getController()->getJobInformation().errorLog.data()) + "<.");
+      messageBox.setText("Error in execution got >" + QString(mWindowMain->getController()->getJobInformation().errorLog.data()) + "<.");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
       auto reply = messageBox.exec();
     }

@@ -25,7 +25,6 @@
 #include "backend/enums/enums_file_endians.hpp"
 #include "pipeline/pipeline.hpp"
 #include "project_settings/project_settings.hpp"
-#include <catch2/catch_config.hpp>
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 
