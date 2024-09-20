@@ -1,6 +1,13 @@
 name: update-cache
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+      - use-conan-build-system
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build-linux-cache:
