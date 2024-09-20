@@ -1,13 +1,12 @@
 name: update-cache
 
 on:
-  push:
-    branches:
-      - main
-      - use-conan-build-system
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      testType:
+        description: 'Version of cache'
+        required: true
+        default: 'v1'
 
 jobs:
   build-linux-cache:
