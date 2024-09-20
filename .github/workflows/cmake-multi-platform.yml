@@ -227,12 +227,25 @@ jobs:
           PUB_KEY: ${{ secrets.PUB_KEY }}
           TAG_NAME: "${{ github.ref_name }}"
         run: |
-          $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b\duckdd9affeb581942\p'
+          $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b'
+        
+          Get-ChildItem -Path "$conanDuckDBbasePath\*" | Where-Object {$_.Name -like "duck*"} | ForEach-Object {
+            $pathToCopy = "$conanDuckDBbasePath\"+$_.Name + "\p\include"
+            Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.hpp" -Destination $pathToCopy  -Force 
+            
+            }
+          Get-ChildItem -Path "$conanDuckDBbasePath\*" | Where-Object {$_.Name -like "duck*"} | ForEach-Object {
+            $pathToCopy = "$conanDuckDBbasePath\"+$_.Name + "\p\include"
+            Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.h" -Destination $pathToCopy  -Force 
+            
+            }
 
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.hpp" -Destination "$conanDuckDBbasePath\include" -Force
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.h" -Destination "$conanDuckDBbasePath\include" -Force
-          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb" -Destination "$conanDuckDBbasePath\include" -Force
-
+          Get-ChildItem -Path "$conanDuckDBbasePath\*" | Where-Object {$_.Name -like "duck*"} | ForEach-Object {
+            $pathToCopy = "$conanDuckDBbasePath\"+$_.Name + "\p\include"
+            Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb" -Destination $pathToCopy  -Force 
+            
+            }
+    
           cd D:\a\imagec\imagec\build
           cmake .. -G "MinGW Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_SH=CMAKE_SH-NOTFOUND -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
@@ -246,13 +259,35 @@ jobs:
           ni "models" -ItemType Directory
           ni "java" -ItemType Directory
           Copy-Item -Path "../imagec.exe" -Destination "imagec.exe"
-          Copy-Item -Recurse -Path "C:/Users/runneradmin/.conan2/p/b/qt52d2d6c1695d0/p/./plugins/*" -Destination "./plugins"
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qt52d2d6c1695d0/p/bin/Qt6Core.dll" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qt52d2d6c1695d0/p/bin/Qt6Gui.dll" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qt52d2d6c1695d0/p/bin/Qt6Widgets.dll" -Destination "."
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/b/qt52d2d6c1695d0/p/bin/Qt6Svg.dll" -Destination "."
+          
+          $qtInstallPath = 'C:\Users\runneradmin\.conan2\p\b'
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\.\plugins\*"
+            Copy-Item -Path $pathToCopyFrom -Destination "./plugins"  -Force 
+          }
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Core.dll"
+            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+          }
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Gui.dll"
+            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+          }
+          
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Widgets.dll"
+            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+          }
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Svg.dll"
+            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+          }
+          
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
-          Copy-Item -Path "C:/Users/runneradmin/.conan2/p/mingwf3629a0c4f698/p/bin*.dll" -Destination "." -Force          
           cd java
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."

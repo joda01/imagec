@@ -46,3 +46,8 @@ $dirname/$appname "$@"
 
 
           key: conan-cache-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+
+
+Add to path
+
+C:\Users\Joachim\.conan2\p\mingwf3629a0c4f698\p\bin
