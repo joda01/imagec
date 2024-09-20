@@ -300,6 +300,32 @@ jobs:
             Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
           }
           
+
+          $mingwPath = "C:\Users\Joachim\.conan2\p"
+          Get-ChildItem -Path "$mingwPath\*" | Where-Object {$_.Name -like "mingw*"} | ForEach-Object {
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libatomic-1.dll"
+            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgcc_s_seh-1.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgfortran-5.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgomp-1.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libquadmath-0.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libstdc++-6.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+
+            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libwinpthread-1.dll"
+            Copy-Item -Path $mingwPath -Destination "."  -Force 
+          }
+
+
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
           cd java
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
