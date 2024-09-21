@@ -166,7 +166,7 @@ void PanelImages::updateImageMeta()
     auto tileSize       = mWindowMain->getController()->getCompositeTileSize();
     const auto &imgInfo = ome.getImageInfo();
 
-    mImageMeta->setRowCount(20 + ome.getChannelInfos().size() * 7);
+    mImageMeta->setRowCount(20);
 
     int32_t row = 0;
 
@@ -238,6 +238,7 @@ void PanelImages::updateImageMeta()
 
     QString channelInfoStr;
     for(const auto &[idx, channelInfo] : ome.getChannelInfos()) {
+      mImageMeta->setRowCount(mImageMeta->rowCount() + 5);
       addTitle("Channel " + std::to_string(idx));
       addStringItem("ID", channelInfo.channelId);
       addStringItem("Name", channelInfo.name);
@@ -246,6 +247,7 @@ void PanelImages::updateImageMeta()
 
       for(const auto &[tStack, tdata] : channelInfo.planes) {
         for(const auto &[zStack, zData] : tdata) {
+          mImageMeta->setRowCount(mImageMeta->rowCount() + 3);
           addItemFloat("Exposure time", zData.exposureTime, zData.exposureTimeUnit);
           addItem("Z-Stack", zStack, "");
           addItem("T-Stack", tStack, "");
