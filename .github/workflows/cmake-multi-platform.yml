@@ -421,7 +421,7 @@ jobs:
           
           zip -r imagec-x64-linux-bin.zip imagec-x64-linux/imagec
           zip -r imagec-x64-win-bin.zip imagec-x64-win/imagec.exe
-          zip -r imagec-arm64-macos-bin.zip imagec-x64-macos/imagec.app
+          zip -r imagec-arm64-macos-bin.zip imagec-arm64-macos/imagec.app
 
           json_string_linux=$(cat <<-EOF
           {
