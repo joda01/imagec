@@ -302,7 +302,7 @@ jobs:
           
 
           $mingwPath = "C:\Users\runneradmin\.conan2\p"
-          Get-ChildItem -Path "$mingwPath\*" | Where-Object {$_.Name -like "mingw*"} | ForEach-Object {
+          Get-ChildItem -Path "$mingwPath\*" | Where-Object {$_.Name -like "mingwf*"} | ForEach-Object {
             $pathToCopyFrom = $mingwPath
             ls $pathToCopyFrom
             
