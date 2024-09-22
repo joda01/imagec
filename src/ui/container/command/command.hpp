@@ -150,7 +150,7 @@ public:
     return mLayout.addActionButton(text, icon);
   }
 
-  void updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames, const std::map<enums::ClassId, QString> &classNames);
+  void updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames, const std::map<enums::ClassIdIn, QString> &classNames);
 
   const QString &getTitle()
   {
@@ -205,9 +205,9 @@ private:
   WrapLabel *mDisplayableText;
   std::vector<std::tuple<SettingBase *, bool, int32_t>> mSettings;
   std::vector<SettingComboBox<enums::ClusterIdIn> *> mClusters;
-  std::vector<SettingComboBox<enums::ClassId> *> mClasses;
+  std::vector<SettingComboBox<enums::ClassIdIn> *> mClasses;
   std::vector<SettingComboBoxMulti<enums::ClusterIdIn> *> mClustersMulti;
-  std::vector<SettingComboBoxMulti<enums::ClassId> *> mClassesMulti;
+  std::vector<SettingComboBoxMulti<enums::ClassIdIn> *> mClassesMulti;
   const InOut mInOut;
 protected slots:
   void updateDisplayText();

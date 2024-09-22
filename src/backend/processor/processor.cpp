@@ -357,7 +357,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         for(int cluster = 0; cluster < 10; cluster++) {
           for(int classs = 0; classs < 10; classs++) {
             saverSettings.clustersIn.emplace_back(
-                settings::ImageSaverSettings::SaveCluster{.inputCluster = {(enums::ClusterIdIn) cluster, (enums::ClassId) classs},
+                settings::ImageSaverSettings::SaveCluster{.inputCluster = {(enums::ClusterIdIn) cluster, (enums::ClassIdIn) classs},
                                                           .color = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()],
                                                           .style = previewSettings.style});
             colorIdx++;

@@ -28,11 +28,11 @@ struct ClassificatorSetting
   //
   // Class the objects should be assigned if filter matches
   //
-  joda::enums::ClassId classId = joda::enums::ClassId::NONE;
+  joda::enums::ClassIdIn classId = joda::enums::ClassIdIn::$;
 
   bool operator<(const ClassificatorSetting &input) const
   {
-    auto toUint32 = [](enums::ClusterIdIn clu, enums::ClassId cl) -> uint32_t {
+    auto toUint32 = [](enums::ClusterIdIn clu, enums::ClassIdIn cl) -> uint32_t {
       uint32_t out = (((uint16_t) clu) << 16) | (((uint16_t) cl));
       return out;
     };

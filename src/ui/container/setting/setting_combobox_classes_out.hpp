@@ -34,50 +34,50 @@ class SettingComboBoxClassesOut : public SettingBase
 public:
   struct ComboEntry
   {
-    enums::ClassId key;
+    enums::ClassIdIn key;
     QString label;
     QString icon;
   };
 
   struct ComboEntryText
   {
-    enums::ClassId key;
+    enums::ClassIdIn key;
     QString label;
   };
 
   using SettingBase::SettingBase;
 
   QWidget *createInputObject() override;
-  void setDefaultValue(enums::ClassId defaultVal);
+  void setDefaultValue(enums::ClassIdIn defaultVal);
   void reset() override;
   void clear() override;
 
   void clusterNamesChanged() override;
-  QString getName(enums::ClassId key) const;
-  enums::ClassId getValue();
-  std::pair<enums::ClassId, std::string> getValueAndNames();
+  QString getName(enums::ClassIdIn key) const;
+  enums::ClassIdIn getValue();
+  std::pair<enums::ClassIdIn, std::string> getValueAndNames();
 
-  void setValue(const enums::ClassId &valueIn);
+  void setValue(const enums::ClassIdIn &valueIn);
 
-  void connectWithSetting(enums::ClassId *setting)
+  void connectWithSetting(enums::ClassIdIn *setting)
   {
     mSetting = setting;
   }
 
 private:
   /////////////////////////////////////////////////////
-  std::optional<enums::ClassId> mDefaultValue;
+  std::optional<enums::ClassIdIn> mDefaultValue;
   QComboBox *mComboBox;
-  enums::ClassId *mSetting = nullptr;
+  enums::ClassIdIn *mSetting = nullptr;
 
-  static uint32_t toInt(const enums::ClassId &in)
+  static uint32_t toInt(const enums::ClassIdIn &in)
   {
     return static_cast<uint32_t>(in);
   }
 
-  static enums::ClassId fromInt(uint32_t in)
+  static enums::ClassIdIn fromInt(uint32_t in)
   {
-    return static_cast<enums::ClassId>(in);
+    return static_cast<enums::ClassIdIn>(in);
   }
 
 private slots:

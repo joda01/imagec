@@ -243,8 +243,8 @@ void PanelResults::setAnalyzer()
     for(const auto &[clusterId, cluster] : clusters) {
       for(const auto &[classId, classsName] : cluster.second) {
         std::string name = cluster.first + "@" + classsName;
-        mClusterClassSelector->addItem(name.data(),
-                                       SettingComboBoxMultiClassificationIn::toInt({static_cast<enums::ClusterIdIn>(clusterId), classId}));
+        mClusterClassSelector->addItem(name.data(), SettingComboBoxMultiClassificationIn::toInt(
+                                                        {static_cast<enums::ClusterIdIn>(clusterId), static_cast<enums::ClassIdIn>(classId)}));
       }
       mClusterClassSelector->insertSeparator(mClusterClassSelector->count());
     }
@@ -300,7 +300,7 @@ void PanelResults::onClusterAndClassesChanged()
 
   {
     auto clusters = mAnalyzer->selectCrossChannelCountForClusterAndClass(static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                         clusterClassSelected.classId);
+                                                                         static_cast<enums::ClassId>(clusterClassSelected.classId));
     mCrossChannelClusterAndClassesSelector->blockSignals(true);
     auto currentChannel = mCrossChannelClusterAndClassesSelector->currentData().toUInt();
     mCrossChannelClusterAndClassesSelector->clear();
@@ -308,7 +308,8 @@ void PanelResults::onClusterAndClassesChanged()
       for(const auto &[classId, classsName] : cluster.second) {
         std::string name = cluster.first + "@" + classsName;
         mCrossChannelClusterAndClassesSelector->addItem(
-            name.data(), SettingComboBoxMultiClassificationIn::toInt({static_cast<enums::ClusterIdIn>(clusterId), classId}));
+            name.data(),
+            SettingComboBoxMultiClassificationIn::toInt({static_cast<enums::ClusterIdIn>(clusterId), static_cast<enums::ClassIdIn>(classId)}));
       }
       mCrossChannelClusterAndClassesSelector->insertSeparator(mCrossChannelClusterAndClassesSelector->count());
 
@@ -330,7 +331,7 @@ void PanelResults::onClusterAndClassesChanged()
     auto imageChannels  = mAnalyzer->selectImageChannels();
     auto currentChannel = mCrossChannelStackC->currentData().toInt();
     auto channels       = mAnalyzer->selectMeasurementChannelsForClusterAndClass(static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                                 clusterClassSelected.classId);
+                                                                                 static_cast<enums::ClassId>(clusterClassSelected.classId));
     mCrossChannelStackC->blockSignals(true);
     mCrossChannelStackC->clear();
     for(const auto channelId : channels) {
@@ -388,7 +389,7 @@ void PanelResults::refreshView()
                             .actGroupId              = mActGroupId,
                             .actImageId              = mActImageId,
                             .clusterId               = static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
-                            .classId                 = clusterClassSelected.classId,
+                            .classId                 = static_cast<enums::ClassId>(clusterClassSelected.classId),
                             .className               = className.toStdString(),
                             .measurementChannel      = static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
                             .stats                   = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
@@ -398,7 +399,7 @@ void PanelResults::refreshView()
                             .crossChannelStack_cName = mCrossChannelStackC->currentText().toStdString(),
                             .crossChannelClusterId   = static_cast<enums::ClusterId>(crossChannelClusterAndClassSelected.clusterId),
                             .crossChannelClusterName = crossChannelClusterName.toStdString(),
-                            .crossChannelClassId     = crossChannelClusterAndClassSelected.classId,
+                            .crossChannelClassId     = static_cast<enums::ClassId>(crossChannelClusterAndClassSelected.classId),
                             .crossChannelClassName   = crossChannelClassName.toStdString()};
 
   if(mActionCrossChannelCStack != nullptr && mActionCrossChannelCluster != nullptr) {

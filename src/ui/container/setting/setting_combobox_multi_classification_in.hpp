@@ -86,7 +86,7 @@ public:
   {
     settings::ClassificatorSetting out;
     out.clusterId = static_cast<joda::enums::ClusterIdIn>((in >> 16) & 0x0000FFFF);
-    out.classId   = static_cast<joda::enums::ClassId>(in & 0x0000FFFF);
+    out.classId   = static_cast<joda::enums::ClassIdIn>(in & 0x0000FFFF);
     return out;
   }
 

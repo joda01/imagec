@@ -12,6 +12,7 @@
 
 #include "pipeline.hpp"
 #include <memory>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "pipeline_factory.hpp"
 
@@ -28,12 +29,18 @@ ObjectInputClustersExp Pipeline::getInputClusters() const
     auto command            = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
     const auto &clustersCmd = command->getInputClusters();
     for(const auto &clusterId : clustersCmd) {
+      auto clusterIdToSet = static_cast<joda::enums::ClusterId>(clusterId.clusterId);
+      auto classIdToSet   = static_cast<joda::enums::ClassId>(clusterId.classId);
+
       if(clusterId.clusterId == enums::ClusterIdIn::$) {
-        clusters.emplace(ClassificatorSettingOut{pipelineSetup.defaultClusterId, clusterId.classId});
-      } else {
-        clusters.emplace(
-            ClassificatorSettingOut{static_cast<joda::enums::ClusterId>(clusterId.clusterId), clusterId.classId});
+        clusterIdToSet = pipelineSetup.defaultClusterId;
       }
+
+      if(clusterId.classId == enums::ClassIdIn::$) {
+        classIdToSet = pipelineSetup.defaultClassId;
+      }
+
+      clusters.emplace(ClassificatorSettingOut{clusterIdToSet, classIdToSet});
     }
   }
   return clusters;
@@ -50,13 +57,18 @@ ObjectOutputClustersExp Pipeline::getOutputClasses() const
     auto command            = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
     const auto &clustersCmd = command->getOutputClasses();
     for(const auto &cluster : clustersCmd) {
+      auto clusterIdToSet = static_cast<joda::enums::ClusterId>(cluster.clusterId);
+      auto classIdToSet   = static_cast<joda::enums::ClassId>(cluster.classId);
+
       if(cluster.clusterId == enums::ClusterIdIn::$) {
-        clusters.emplace(
-            ClassificatorSettingOut{.clusterId = pipelineSetup.defaultClusterId, .classId = cluster.classId});
-      } else {
-        clusters.emplace(ClassificatorSettingOut{.clusterId = static_cast<joda::enums::ClusterId>(cluster.clusterId),
-                                                 .classId   = cluster.classId});
+        clusterIdToSet = pipelineSetup.defaultClusterId;
       }
+
+      if(cluster.classId == enums::ClassIdIn::$) {
+        classIdToSet = pipelineSetup.defaultClassId;
+      }
+
+      clusters.emplace(ClassificatorSettingOut{clusterIdToSet, classIdToSet});
     }
   }
   return clusters;

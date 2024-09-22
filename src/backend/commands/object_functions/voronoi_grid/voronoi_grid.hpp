@@ -58,7 +58,7 @@ public:
       // Create an instance of Subdiv2D
 
       for(const auto &res : *voronoiPointsTmp) {
-        if(inputPoints.classId == res.getClassId()) {
+        if(context.getClassId(inputPoints.classId) == res.getClassId()) {
           voronoiPoints.emplace(res);
           int x = static_cast<int>(static_cast<float>(res.getBoundingBox().x) + static_cast<float>(res.getBoundingBox().width) / 2.0F);
           int y = static_cast<int>(static_cast<float>(res.getBoundingBox().y) + static_cast<float>(res.getBoundingBox().height) / 2.0F);
@@ -140,7 +140,7 @@ public:
       }
 
       atom::ROI roi(atom::ROI::RoiObjectId{.clusterId  = context.getClusterId(mSettings.outputClustersVoronoi.clusterId),
-                                           .classId    = mSettings.outputClustersVoronoi.classId,
+                                           .classId    = context.getClassId(mSettings.outputClustersVoronoi.classId),
                                            .imagePlane = context.getActIterator()},
                     1, 0, box, boxMask, contours[idxMax], imgSize, context.getActTile(), context.getTileSize());
       result.push_back(roi);

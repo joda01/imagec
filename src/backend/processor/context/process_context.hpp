@@ -53,8 +53,7 @@ private:
 class ProcessContext
 {
 public:
-  ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext,
-                 IterationContext &iterationContext);
+  ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext, IterationContext &iterationContext);
 
   void initDefaultSettings(enums::ClusterId cluster, enums::ZProjection zProjection)
   {
@@ -166,8 +165,7 @@ public:
   {
     enums::ChannelValidity validity;
     validity.set(validityIn);
-    globalContext.database.setImagePlaneClusterClusterValidity(imageContext.imageId, getActIterator(),
-                                                               getClusterId(clusterIn), validity);
+    globalContext.database.setImagePlaneClusterClusterValidity(imageContext.imageId, getActIterator(), getClusterId(clusterIn), validity);
   }
 
   // void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const
@@ -193,9 +191,18 @@ public:
     return in != enums::ClusterIdIn::$ ? static_cast<enums::ClusterId>(in) : pipelineContext.defaultClusterId;
   }
 
-  [[nodiscard]] static enums::ClassId getClassId(enums::ClassId in)
+  [[nodiscard]] enums::ClassId getClassId(enums::ClassIdIn in) const
   {
-    return static_cast<enums::ClassId>(in);
+    return in != enums::ClassIdIn::$ ? static_cast<enums::ClassId>(in) : pipelineContext.defaultClassId;
+  }
+
+  [[nodiscard]] std::set<enums::ClassId> getClassId(std::set<enums::ClassIdIn> in) const
+  {
+    std::set<enums::ClassId> out;
+    for(const auto &d : in) {
+      out.emplace(getClassId(d));
+    }
+    return out;
   }
 
   ///

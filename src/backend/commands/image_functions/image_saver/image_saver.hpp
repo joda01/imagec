@@ -98,7 +98,7 @@ public:
       }
       const auto *clusterObjects = result.at(context.getClusterId(cluster.inputCluster.clusterId)).get();
       for(const auto &roi : *clusterObjects) {
-        drawObject(cluster, roi, img_8bit_color);
+        drawObject(context, cluster, roi, img_8bit_color);
       }
     }
 
@@ -124,9 +124,10 @@ private:
   static inline cv::Scalar GREEN  = cv::Scalar(0, 255, 0);
 
   /////////////////////////////////////////////////////
-  void drawObject(const settings::ImageSaverSettings::SaveCluster &settings, const atom::ROI &roi, cv::Mat &imageOut)
+  void drawObject(processor::ProcessContext &context, const settings::ImageSaverSettings::SaveCluster &settings, const atom::ROI &roi,
+                  cv::Mat &imageOut)
   {
-    if(settings.inputCluster.classId == roi.getClassId()) {
+    if(context.getClassId(settings.inputCluster.classId) == roi.getClassId()) {
       int left   = roi.getBoundingBox().x;
       int top    = roi.getBoundingBox().y;
       int width  = roi.getBoundingBox().width;

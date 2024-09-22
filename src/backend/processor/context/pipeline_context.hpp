@@ -15,6 +15,7 @@
 #include <filesystem>
 #include "backend/artifacts/image/image.hpp"
 #include "backend/enums/enum_images.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 
 namespace joda::processor {
@@ -23,6 +24,7 @@ struct PipelineContext
 {
   joda::atom::ImagePlane actImagePlane;
   enums::ClusterId defaultClusterId;
+  enums::ClassId defaultClassId;
   enums::ZProjection defaultZProjection;
 };
 

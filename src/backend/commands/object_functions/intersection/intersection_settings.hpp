@@ -74,7 +74,7 @@ struct IntersectionSettings : public SettingBase
   //
   // In case of reclassification this is the new class ID for intersecting elements
   //
-  joda::enums::ClassId newClassId = joda::enums::ClassId::UNDEFINED;
+  joda::enums::ClassIdIn newClassId = joda::enums::ClassIdIn::UNDEFINED;
 
   /////////////////////////////////////////////////////
   void check() const
@@ -82,7 +82,7 @@ struct IntersectionSettings : public SettingBase
     CHECK_ERROR(mode != Function::UNKNOWN, "Define a intersection function!");
     CHECK_ERROR(minIntersection >= 0, "Min intersection must be >=0.");
     if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {
-      CHECK_ERROR(newClassId != joda::enums::ClassId::UNDEFINED, "Define a class the elements should be assigned for reclassification.");
+      CHECK_ERROR(newClassId != joda::enums::ClassIdIn::UNDEFINED, "Define a class the elements should be assigned for reclassification.");
     }
   }
 

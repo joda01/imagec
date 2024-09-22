@@ -30,7 +30,7 @@ QWidget *SettingComboBoxClassesOut::createInputObject()
   return mComboBox;
 }
 
-void SettingComboBoxClassesOut::setDefaultValue(enums::ClassId defaultVal)
+void SettingComboBoxClassesOut::setDefaultValue(enums::ClassIdIn defaultVal)
 {
   mDefaultValue = defaultVal;
   reset();
@@ -71,7 +71,7 @@ void SettingComboBoxClassesOut::clusterNamesChanged()
   }
 }
 
-QString SettingComboBoxClassesOut::getName(enums::ClassId key) const
+QString SettingComboBoxClassesOut::getName(enums::ClassIdIn key) const
 {
   auto idx = mComboBox->findData(toInt(key), Qt::UserRole + 1);
   if(idx >= 0) {
@@ -80,12 +80,12 @@ QString SettingComboBoxClassesOut::getName(enums::ClassId key) const
   return "";
 }
 
-enums::ClassId SettingComboBoxClassesOut::getValue()
+enums::ClassIdIn SettingComboBoxClassesOut::getValue()
 {
   return fromInt(mComboBox->currentData().toUInt());
 }
 
-void SettingComboBoxClassesOut::setValue(const enums::ClassId &valueIn)
+void SettingComboBoxClassesOut::setValue(const enums::ClassIdIn &valueIn)
 {
   auto idx = mComboBox->findData(toInt(valueIn));
   if(idx >= 0) {
@@ -93,7 +93,7 @@ void SettingComboBoxClassesOut::setValue(const enums::ClassId &valueIn)
   }
 }
 
-std::pair<enums::ClassId, std::string> SettingComboBoxClassesOut::getValueAndNames()
+std::pair<enums::ClassIdIn, std::string> SettingComboBoxClassesOut::getValueAndNames()
 {
   return {fromInt(mComboBox->currentData().toUInt()), mComboBox->currentText().toStdString()};
 }

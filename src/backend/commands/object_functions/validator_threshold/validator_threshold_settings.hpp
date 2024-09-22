@@ -62,11 +62,10 @@ struct ThresholdValidatorSettings : public SettingBase
 
   settings::ObjectInputClusters getInputClusters() const override
   {
-    return {{inputCluster, enums::ClassId::UNDEFINED}};
+    return {{inputCluster, enums::ClassIdIn::UNDEFINED}};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdValidatorSettings, mode, imageIn, inputCluster,
-                                                       histMinThresholdFilterFactor);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdValidatorSettings, mode, imageIn, inputCluster, histMinThresholdFilterFactor);
 };
 
 }    // namespace joda::settings

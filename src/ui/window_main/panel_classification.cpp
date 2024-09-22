@@ -226,10 +226,8 @@ void PanelClassification::toSettings()
       clusterNotes = itemNotes->text();
     }
 
-    mSettings.clusters.emplace_back(joda::settings::Cluster{.clusterId = clusterId,
-                                                            .name      = clusterName.toStdString(),
-                                                            .color     = clusterColor.toStdString(),
-                                                            .notes     = clusterNotes.toStdString()});
+    mSettings.clusters.emplace_back(joda::settings::Cluster{
+        .clusterId = clusterId, .name = clusterName.toStdString(), .color = clusterColor.toStdString(), .notes = clusterNotes.toStdString()});
   }
 
   //
@@ -261,10 +259,8 @@ void PanelClassification::toSettings()
       classNotes = itemNotes->text();
     }
 
-    mSettings.classes.emplace_back(joda::settings::Class{.classId = classId,
-                                                         .name    = className.toStdString(),
-                                                         .color   = classColor.toStdString(),
-                                                         .notes   = classNotes.toStdString()});
+    mSettings.classes.emplace_back(joda::settings::Class{
+        .classId = classId, .name = className.toStdString(), .color = classColor.toStdString(), .notes = classNotes.toStdString()});
   }
 }
 
@@ -276,23 +272,24 @@ void PanelClassification::toSettings()
 /// \return
 ///
 [[nodiscard]] auto PanelClassification::getClustersAndClasses() const
-    -> std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassId, QString>>
+    -> std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassIdIn, QString>>
 {
   std::map<enums::ClusterIdIn, QString> clusters;
-  std::map<enums::ClassId, QString> classes;
+  std::map<enums::ClassIdIn, QString> classes;
 
   clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::$), QString("This"));
   clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::NONE), QString("None"));
 
-  classes.emplace(static_cast<enums::ClassId>(enums::ClassId::NONE), QString("None"));
-  classes.emplace(static_cast<enums::ClassId>(enums::ClassId::UNDEFINED), QString("Undefined"));
+  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::$), QString("This"));
+  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::NONE), QString("None"));
+  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::UNDEFINED), QString("Undefined"));
 
   for(const auto &cluster : mSettings.clusters) {
     clusters.emplace(static_cast<enums::ClusterIdIn>(cluster.clusterId), QString(cluster.name.data()));
   }
 
   for(const auto &classs : mSettings.classes) {
-    classes.emplace(classs.classId, QString(classs.name.data()));
+    classes.emplace(static_cast<enums::ClassIdIn>(classs.classId), QString(classs.name.data()));
   }
 
   return {clusters, classes};

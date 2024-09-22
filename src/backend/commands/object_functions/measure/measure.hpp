@@ -33,7 +33,7 @@ public:
       for(const auto &clusterIdIn : mSettings.inputClusters) {
         auto *clusterObjects = store.at(context.getClusterId(clusterIdIn.clusterId)).get();
         for(auto &object : *clusterObjects) {
-          if(clusterIdIn.classId == object.getClassId()) {
+          if(context.getClassId(clusterIdIn.classId) == object.getClassId()) {
             object.measureIntensityAndAdd(image);
           }
         }

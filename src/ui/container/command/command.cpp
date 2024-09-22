@@ -242,7 +242,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
       }
 
       {
-        auto *casted = dynamic_cast<SettingComboBox<enums::ClassId> *>(data);
+        auto *casted = dynamic_cast<SettingComboBox<enums::ClassIdIn> *>(data);
         if(casted) {
           mClasses.emplace_back(casted);
         }
@@ -256,7 +256,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
       }
 
       {
-        auto *casted = dynamic_cast<SettingComboBoxMulti<enums::ClassId> *>(data);
+        auto *casted = dynamic_cast<SettingComboBoxMulti<enums::ClassIdIn> *>(data);
         if(casted) {
           mClassesMulti.emplace_back(casted);
         }
@@ -353,7 +353,7 @@ void Command::updateClassesAndClusters()
 /// \return
 ///
 void Command::updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames,
-                                           const std::map<enums::ClassId, QString> &classNames)
+                                           const std::map<enums::ClassIdIn, QString> &classNames)
 {
   for(auto &cluster : mClusters) {
     cluster->changeOptionText(clusterNames);

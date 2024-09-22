@@ -259,14 +259,28 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
                                 {enums::ClusterId::J, "Cluster J"}});
   defaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId);
 
+  defaultClassId = SettingBase::create<SettingComboBox<enums::ClassId>>(windowMain, "icons8-connection-50.png", "Class");
+  defaultClassId->addOptions({{enums::ClassId::C0, "Class A"},
+                              {enums::ClassId::C1, "Class B"},
+                              {enums::ClassId::C2, "Class C"},
+                              {enums::ClassId::C3, "Class D"},
+                              {enums::ClassId::C4, "Class E"},
+                              {enums::ClassId::C5, "Class F"},
+                              {enums::ClassId::C6, "Class G"},
+                              {enums::ClassId::C7, "Class H"},
+                              {enums::ClassId::C8, "Class I"},
+                              {enums::ClassId::C9, "Class J"}});
+  defaultClassId->connectWithSetting(&mSettings.pipelineSetup.defaultClassId);
+
   connect(pipelineName.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
   connect(cStackIndex.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(defaultClusterId.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  connect(defaultClassId.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
 
   {
     auto *col1 = tab->addVerticalPanel();
-    col1->addGroup("Pipeline setup", {pipelineName.get(), cStackIndex.get(), zProjection.get(), defaultClusterId.get()});
+    col1->addGroup("Pipeline setup", {pipelineName.get(), cStackIndex.get(), zProjection.get(), defaultClusterId.get(), defaultClassId.get()});
   }
 
   mOverview = new PanelChannelOverview(windowMain, this);
@@ -372,7 +386,7 @@ void PanelPipelineSettings::updatePreview()
                 QString info;
                 auto [_, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
                 for(const auto &[classId, count] : previewResult.foundObjects) {
-                  info += (classes[classId] + ":" + QString::number(count) + ", ");
+                  info += (classes[(enums::ClassIdIn) classId] + ":" + QString::number(count) + ", ");
                 }
                 info.chop(2);
                 mPreviewImage->setThumbnailPosition(tileNrX, tileNrY, mSelectedTileX, mSelectedTileY);
@@ -470,6 +484,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
   zProjection->setValue(settings.pipelineSetup.zProjection);
   defaultClusterId->setValue(settings.pipelineSetup.defaultClusterId);
+  defaultClassId->setValue(settings.pipelineSetup.defaultClassId);
 
   //
   // Pipelinesteps
@@ -498,6 +513,7 @@ void PanelPipelineSettings::toSettings()
   mSettings.pipelineSetup.cStackIndex      = cStackIndex->getValue();
   mSettings.pipelineSetup.zProjection      = zProjection->getValue();
   mSettings.pipelineSetup.defaultClusterId = defaultClusterId->getValue();
+  mSettings.pipelineSetup.defaultClassId   = defaultClassId->getValue();
 }
 
 ///
@@ -549,13 +565,26 @@ void PanelPipelineSettings::deletePipeline()
 void PanelPipelineSettings::onClassificationNameChanged()
 {
   const auto [clusters, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
-  std::map<enums::ClusterId, QString> clustersN;
-  for(const auto &[id, name] : clusters) {
-    if(id != enums::ClusterIdIn::$) {
-      clustersN.emplace(static_cast<enums::ClusterId>(id), name);
+
+  {
+    std::map<enums::ClusterId, QString> clustersN;
+    for(const auto &[id, name] : clusters) {
+      if(id != enums::ClusterIdIn::$) {
+        clustersN.emplace(static_cast<enums::ClusterId>(id), name);
+      }
     }
+    defaultClusterId->changeOptionText(clustersN);
   }
-  defaultClusterId->changeOptionText(clustersN);
+
+  {
+    std::map<enums::ClassId, QString> classN;
+    for(const auto &[id, name] : classes) {
+      if(id != enums::ClassIdIn::$) {
+        classN.emplace(static_cast<enums::ClassId>(id), name);
+      }
+    }
+    defaultClassId->changeOptionText(classN);
+  }
 }
 
 ///

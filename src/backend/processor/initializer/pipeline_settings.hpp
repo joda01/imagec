@@ -5,6 +5,7 @@
 #include <set>
 #include <stdexcept>
 #include "backend/enums/enum_objects.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
@@ -55,7 +56,12 @@ struct PipelineSettings
   //
   // Default cluster ID of this pipeline. Can be accessed with $
   //
-  enums::ClusterId defaultClusterId = enums::ClusterId::NONE;
+  enums::ClusterId defaultClusterId = enums::ClusterId::UNDEFINED;
+
+  //
+  // Default class ID of this pipeline. Can be accessed with $
+  //
+  enums::ClassId defaultClassId = enums::ClassId::UNDEFINED;
 
   void check() const
   {
@@ -63,13 +69,12 @@ struct PipelineSettings
                 "Define a cluster for the pipeline!");
     if(source == Source::FROM_FILE) {
       // CHECK_ERROR(cStackIndex >= 0, "Define which image channel >cStackIndex< should be loaded.");
-      CHECK_ERROR(zProjection != enums::ZProjection::UNDEFINED,
-                  "Define the z-projection mode for image loading in pipeline!");
+      CHECK_ERROR(zProjection != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading in pipeline!");
     }
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineSettings, source, cStackIndex, tStackIndex, zStackIndex,
-                                                       zProjection, defaultClusterId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineSettings, source, cStackIndex, tStackIndex, zStackIndex, zProjection, defaultClusterId,
+                                                       defaultClassId);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PipelineSettings::Source, {
