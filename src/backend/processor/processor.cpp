@@ -378,12 +378,14 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         // Count elements
         //
         std::map<enums::ClassId, int32_t> foundObjects;
-        const auto &objects = context.getActObjects().at(pipelineStart.getOutputCluster());
-        for(const auto &roi : *objects) {
-          if(!foundObjects.contains(roi.getClassId())) {
-            foundObjects[roi.getClassId()] = 0;
+        if(context.getActObjects().contains(pipelineStart.getOutputCluster())) {
+          const auto &objects = context.getActObjects().at(pipelineStart.getOutputCluster());
+          for(const auto &roi : *objects) {
+            if(!foundObjects.contains(roi.getClassId())) {
+              foundObjects[roi.getClassId()] = 0;
+            }
+            foundObjects[roi.getClassId()]++;
           }
-          foundObjects[roi.getClassId()]++;
         }
 
         return {context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})->image,
