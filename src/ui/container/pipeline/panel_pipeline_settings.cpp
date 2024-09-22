@@ -280,7 +280,9 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   {
     auto *col1 = tab->addVerticalPanel();
-    col1->addGroup("Pipeline setup", {pipelineName.get(), cStackIndex.get(), zProjection.get(), defaultClusterId.get(), defaultClassId.get()});
+    col1->addGroup("Pipeline meta", {pipelineName.get()});
+    col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get()});
+    col1->addGroup("Pipeline output", {defaultClusterId.get(), defaultClassId.get()});
   }
 
   mOverview = new PanelChannelOverview(windowMain, this);
