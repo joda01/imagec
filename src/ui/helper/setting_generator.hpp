@@ -23,24 +23,14 @@
 namespace joda::ui {
 
 template <class T>
-concept ImageCStackCombo_t =
-    std::is_base_of<SettingComboBoxMulti<int32_t>, T>::value || std::is_base_of<SettingComboBox<int32_t>, T>::value;
+concept ImageCStackCombo_t = std::is_base_of<SettingComboBoxMulti<int32_t>, T>::value || std::is_base_of<SettingComboBox<int32_t>, T>::value;
 
 template <ImageCStackCombo_t T>
 inline auto generateCStackCombo(const QString &helpText, QWidget *parent)
 {
   auto dropBox = SettingBase::create<T>(parent, "icons8-unknown-status-50.png", helpText);
-  dropBox->addOptions({{-1, "None"},
-                       {0, "CH0"},
-                       {1, "CH1"},
-                       {2, "CH2"},
-                       {3, "CH3"},
-                       {4, "CH4"},
-                       {5, "CH5"},
-                       {6, "CH6"},
-                       {7, "CH7"},
-                       {8, "CH8"},
-                       {9, "CH9"}});
+  dropBox->addOptions(
+      {{-1, "This"}, {0, "CH0"}, {1, "CH1"}, {2, "CH2"}, {3, "CH3"}, {4, "CH4"}, {5, "CH5"}, {6, "CH6"}, {7, "CH7"}, {8, "CH8"}, {9, "CH9"}});
   return dropBox;
 }
 

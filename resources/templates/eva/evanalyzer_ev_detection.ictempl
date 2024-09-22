@@ -77,7 +77,12 @@
     },
     {
       "$measure": {
-        "inputClusters": [],
+        "inputClusters": [
+          {
+            "clusterId": "$",
+            "classId": "$"
+          }
+        ],
         "objectIn": {
           "imagePlane": {
             "cStack": -1,
@@ -86,7 +91,14 @@
           },
           "storeIdx": "M0"
         },
-        "planesIn": []
+        "planesIn": [
+          {
+            "zProjection": "$",
+            "imagePlane": {
+              "cStack": -1
+            }
+          }
+        ]
       }
     },
     {
@@ -96,7 +108,7 @@
           {
             "color": "#FF0000",
             "inputCluster": {
-              "classId": "None",
+              "classId": "$",
               "clusterId": "$"
             },
             "paintBoundingBox": false,
