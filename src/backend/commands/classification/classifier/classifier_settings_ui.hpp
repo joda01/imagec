@@ -158,7 +158,8 @@ private:
       //
       //
       zProjectionForIntensityFilter = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, "icons8-layers-50.png", "Z-Projection");
-      zProjectionForIntensityFilter->addOptions({{enums::ZProjection::NONE, "Off"},
+      zProjectionForIntensityFilter->addOptions({{enums::ZProjection::$, "This"},
+                                                 {enums::ZProjection::NONE, "Off"},
                                                  {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                                                  {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
                                                  {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});

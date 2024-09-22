@@ -34,7 +34,7 @@ struct ClassifierFilter
     // Which image should be used for measure the intensity value.
     // If not specified the initial image of the actual pipeline step is used.
     //
-    enums::ImageId imageIn = {.zProjection = joda::enums::ZProjection::MAX_INTENSITY, .imagePlane = {.cStack = -1}};
+    enums::ImageId imageIn = {.zProjection = joda::enums::ZProjection::$, .imagePlane = {.cStack = -1}};
 
     //
     // Min intensity
@@ -94,11 +94,10 @@ struct ClassifierFilter
     CHECK_ERROR(snapAreaSize >= 0, "Snap area size must be > 0.");
   }
 
-  bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi,
-                       const IntensityFilter &intensity) const;
+  bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi, const IntensityFilter &intensity) const;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, minParticleSize, maxParticleSize,
-                                                       minCircularity, snapAreaSize, intensity, outputCluster);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, minParticleSize, maxParticleSize, minCircularity, snapAreaSize, intensity,
+                                                       outputCluster);
 };
 
 struct ObjectClass
