@@ -127,7 +127,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
-target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY)
+target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY DUCKDB_BUILD_LIBRARY )
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES

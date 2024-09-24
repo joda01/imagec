@@ -44,8 +44,9 @@ namespace joda::db {
 /////////////////////////////////////////////////////
 void Database::openDatabase(const std::filesystem::path &pathToDb)
 {
-  mDbCfg.SetOption("temp_directory", pathToDb.parent_path().string());
-  mDb = std::make_unique<duckdb::DuckDB>(pathToDb.string(), &mDbCfg);
+  mDbCfg = std::make_unique<duckdb::DBConfig>();
+  mDbCfg->SetOption("temp_directory", pathToDb.parent_path().string());
+  mDb = std::make_unique<duckdb::DuckDB>(pathToDb.string(), mDbCfg.get());
   createTables();
 }
 

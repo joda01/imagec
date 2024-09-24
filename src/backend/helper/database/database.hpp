@@ -52,7 +52,9 @@ struct ImageInfo
 class Database
 {
 public:
-  Database() = default;
+  Database()
+  {
+  }
   /////////////////////////////////////////////////////
   void openDatabase(const std::filesystem::path &pathToDb);
   std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName);
@@ -114,7 +116,7 @@ private:
   void flatten(const std::vector<cv::Point> &, duckdb::vector<duckdb::Value> &);
 
   /////////////////////////////////////////////////////
-  duckdb::DBConfig mDbCfg;
+  std::unique_ptr<duckdb::DBConfig> mDbCfg;
   std::unique_ptr<duckdb::DuckDB> mDb;
 };
 
