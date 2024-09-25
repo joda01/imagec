@@ -6,14 +6,6 @@ buildlibs(){
     conan graph info . --profile conan/profile_win_mingw --format=html > graph.html
 }
 
-buildlibsDebug(){
-    #conan profile detect --force
-    conan install . --profile conan/profile_linux_debug --output-folder=build --build=missing
-    cyclonedx-conan . --output sbom.spdx
-    conan graph info . --profile conan/profile_win_mingw --format=html > graph.html
-}
-
-
 build(){
     cd build
     cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
@@ -45,4 +37,5 @@ build(){
     cd /workspaces/imagec
 }
 
+buildlibs
 build

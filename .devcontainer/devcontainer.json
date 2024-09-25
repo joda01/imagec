@@ -4,13 +4,13 @@
 	// docker run   your_image_name
 	"name": "C++",
 	"dockerFile": "../Dockerfile",
-	//"mounts": [
-	//	{
-	//		"source": "/media/danmayr-joachim/T-Rex/",
-	//		"target": "/mnt",
-	//		"type": "bind"
-	//	}
-	//],
+	"mounts": [
+		{
+			"source": "/home/joachim-danmayr/Documents/github/conan_cache",
+			"target": "/root/.conan",
+			"type": "bind"
+		}
+	],
 	"runArgs": [],
 	"customizations": {
 		// Set *default* container specific settings.json values on container create.
