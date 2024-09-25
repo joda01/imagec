@@ -55,6 +55,7 @@ RUN ./install_git_lfs.sh
 #
 RUN apt-get update && apt-get install -y pip libva-dev libvdpau-dev xkb-data
 RUN pip install conan --break-system-packages
+RUN pip install conan --upgrade --break-system-packages
 RUN pip install cyclonedx-conan --break-system-packages
 
 RUN ldconfig
