@@ -154,7 +154,7 @@ jobs:
           cp -r /Users/runner/.conan2/p/b/*/p/./plugins/* ./plugins
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           strip ./imagec.app/Contents/MacOS/imagec
-          chmod +x ./imagec.app/Contents/MacOS/image
+          chmod +x ./imagec.app/Contents/MacOS/imagec
           chmod +x ./imagec.app
           cd lib
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.dylib .
