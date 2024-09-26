@@ -34,11 +34,11 @@ PanelEdit::PanelEdit(WindowMain *wm, ContainerBase *containerBase, bool withExtr
     mWindowMain(wm), mContainerBase(containerBase), mLayout(this, withExtraButtons)
 {
   if(withExtraButtons) {
-    auto *mSaveAsTemplate = new QAction(QIcon(":/icons/icons/icons8-add-to-favorites-50.png"), "Save as template");
+    auto *mSaveAsTemplate = new QAction(generateIcon("add-to-favorites"), "Save as template");
     mLayout.addItemToTopToolbar(mSaveAsTemplate);
     connect(mSaveAsTemplate, &QAction::triggered, this, &PanelEdit::onSaveAsTemplate);
 
-    auto *copyChannel = new QAction(QIcon(":/icons/icons/icons8-copy-50.png"), "Copy channel");
+    auto *copyChannel = new QAction(generateIcon("copy"), "Copy channel");
     mLayout.addItemToTopToolbar(copyChannel);
     connect(copyChannel, &QAction::triggered, this, &PanelEdit::onCopyChannel);
   }

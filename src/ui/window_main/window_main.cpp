@@ -280,37 +280,6 @@ QWidget *WindowMain::createStartPageWidget()
   line->setFrameShape(QFrame::HLine);
   line->setFrameShadow(QFrame::Sunken);
   layout->addWidget(line);
-  /*
-    //
-    // New project
-    //
-    auto *newProject = new QPushButton();
-    const QIcon voronoiIcon(":/icons/icons/icons8-add-new-50.png");
-    newProject->setText("New project");
-    newProject->setIconSize({16, 16});
-    newProject->setIcon(voronoiIcon);
-    layout->addWidget(newProject);
-
-    //
-    // Open existing project
-    //
-    auto *openProject = new QPushButton();
-    const QIcon intersectionIcon(":/icons/icons/icons8-opened-folder-50.png");
-    openProject->setIconSize({16, 16});
-    openProject->setIcon(intersectionIcon);
-    openProject->setText("Open project");
-    layout->addWidget(openProject);
-
-    //
-    // Open results
-    //
-    auto *openResults = new QPushButton();
-    const QIcon openResultsIcon(":/icons/icons/icons8-graph-50.png");
-    openResults->setIconSize({16, 16});
-    openResults->setIcon(openResultsIcon);
-    openResults->setText("Open results");
-    layout->addWidget(openResults);
-  */
 
   ////////////////////////////////////////
   auto *startScreenWidget = new QWidget();
@@ -469,13 +438,10 @@ void WindowMain::checkForSettingsChanged()
 {
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
-    // mSaveProject->setIcon(QIcon(":/icons/icons/icons8-save-50-red.png"));
-
     mSaveProject->setEnabled(true);
     emit onOutputClassifierChanges();
   } else {
     // Equal
-    // mSaveProject->setIcon(QIcon(":/icons/icons/icons8-save-50.png"));
     mSaveProject->setEnabled(false);
   }
   mCompilerLog->updateCompilerLog(mAnalyzeSettings);
@@ -547,7 +513,7 @@ void WindowMain::loadTemplates()
   mTemplateSelection->addItem("Add pipeline ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
 
-  mTemplateSelection->addItem(QIcon(":/icons/icons/icons8-select-none-50.png").pixmap(28, 28), "Empty pipeline", "emptyChannel");
+  mTemplateSelection->addItem(generateIcon("flow-many"), "Empty pipeline", "emptyChannel");
 
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
   joda::templates::TemplateParser::Category actCategory = joda::templates::TemplateParser::Category::BASIC;
@@ -561,7 +527,7 @@ void WindowMain::loadTemplates()
       if(!data.icon.isNull()) {
         mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
       } else {
-        mTemplateSelection->addItem(QIcon(":/icons/icons/icons8-favorite-50.png").pixmap(28, 28), data.title.data(), data.path.data());
+        mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
       }
     }
   }
