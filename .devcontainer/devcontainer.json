@@ -7,7 +7,7 @@
 	"mounts": [
 		{
 			"source": "/home/joachim-danmayr/Documents/github/conan_cache",
-			"target": "/root/.conan",
+			"target": "/root/.conan2",
 			"type": "bind"
 		}
 	],

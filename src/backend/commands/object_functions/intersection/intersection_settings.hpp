@@ -54,7 +54,7 @@ struct IntersectionSettings : public SettingBase
   //
   // What should happen when an intersection was found
   //
-  Function mode = Function::UNKNOWN;
+  Function mode = Function::RECLASSIFY;
 
   //
   // Minimum intersection in [0-1]

@@ -43,6 +43,15 @@ public:
   {
     auto *modelTab = addTab("Base", [] {});
 
+    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Classes to coloc.");
+    mClustersIn->setValue(settings.inputClusters);
+    mClustersIn->connectWithSetting(&settings.inputClusters);
+
+    addSetting(modelTab, "Input", {{mClustersIn.get(), true, 0}});
+
+    //
+    //
+    //
     mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Output class");
     mClassOutput->setValue(settings.outputCluster.classId);
     mClassOutput->connectWithSetting(&settings.outputCluster.classId);
@@ -58,13 +67,7 @@ public:
     mMinIntersection->connectWithSetting(&settings.minIntersection);
     mMinIntersection->setShortDescription("Cls. ");
 
-    auto *col = addSetting(modelTab, "Base settings.", {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}});
-
-    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input");
-    mClustersIn->setValue(settings.inputClusters);
-    mClustersIn->connectWithSetting(&settings.inputClusters);
-
-    addSetting(modelTab, "Coloc with.", {{mClustersIn.get(), true, 0}});
+    auto *col = addSetting(modelTab, "Output", {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}});
   }
 
 private:

@@ -327,7 +327,7 @@ void Command::updateDisplayText()
   }
   txt += "</html>";
   mDisplayableText->setText(txt);
-  mDisplayableText->adjustSize();
+  // mDisplayableText->adjustSize();
 }
 
 ///
