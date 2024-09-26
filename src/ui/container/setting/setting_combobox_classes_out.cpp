@@ -12,6 +12,7 @@
 
 #include "setting_combobox_classes_out.hpp"
 #include <string>
+#include "backend/enums/enums_classes.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -56,14 +57,25 @@ void SettingComboBoxClassesOut::clusterNamesChanged()
     auto actSelected = getValue();
     mComboBox->clear();
     auto [_, classes] = parent->getPanelClassification()->getClustersAndClasses();
+
+    // Add this cluster
     for(const auto &data : classes) {
       QVariant variant;
       variant = QVariant(toInt(data.first));
-      if(!SettingBase::getIcon().isNull()) {
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second, variant);
+
+      if(data.first == enums::ClassIdIn::$) {
+        // We want this to be the first
+        mComboBox->insertItem(
+            0, QIcon(QIcon(":/icons/icons/icons8-unknown-status-50.png").pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second,
+            variant);
       } else {
-        mComboBox->addItem(QIcon(QIcon(":/icons/icons/icons8-unknown-status-50.png").pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                           data.second, variant);
+        if(!SettingBase::getIcon().isNull()) {
+          mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second, variant);
+        } else {
+          mComboBox->addItem(
+              QIcon(QIcon(":/icons/icons/icons8-unknown-status-50.png").pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second,
+              variant);
+        }
       }
     }
     setValue(actSelected);
