@@ -46,6 +46,7 @@
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/pipeline_compile_log/panel_pipeline_compile_log.hpp"
 #include "ui/results/panel_results.hpp"
@@ -115,15 +116,15 @@ void WindowMain::createTopToolbar()
   auto *toolbar = addToolBar("toolbar");
   toolbar->setMovable(false);
 
-  mNewProjectButton = new QAction(QIcon(":/icons/icons/icons8-file-50.png"), "New project", toolbar);
+  mNewProjectButton = new QAction(generateIcon("file"), "New project", toolbar);
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   toolbar->addAction(mNewProjectButton);
 
-  mOpenProjectButton = new QAction(QIcon(":/icons/icons/icons8-opened-folder-50.png"), "Open project or results", toolbar);
+  mOpenProjectButton = new QAction(generateIcon("opened-folder"), "Open project or results", toolbar);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
   toolbar->addAction(mOpenProjectButton);
 
-  mSaveProject = new QAction(QIcon(":/icons/icons/icons8-save-50.png"), "Save", toolbar);
+  mSaveProject = new QAction(generateIcon("save"), "Save", toolbar);
   mSaveProject->setToolTip("Save project!");
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
@@ -131,7 +132,7 @@ void WindowMain::createTopToolbar()
 
   toolbar->addSeparator();
 
-  auto *showCompileLog = new QAction(QIcon(":/icons/icons/icons8-log-50.png"), "Compiler log", toolbar);
+  auto *showCompileLog = new QAction(generateIcon("log"), "Compiler log", toolbar);
   showCompileLog->setToolTip("CompileLog!");
   connect(showCompileLog, &QAction::triggered, [this]() { mCompilerLog->showDialog(); });
   toolbar->addAction(showCompileLog);
@@ -140,12 +141,12 @@ void WindowMain::createTopToolbar()
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   toolbar->addWidget(spacerTop);
 
-  auto *helpButton = new QAction(QIcon(":/icons/icons/icons8-help-50.png"), "Info", toolbar);
+  auto *helpButton = new QAction(generateIcon("help"), "Help", toolbar);
   helpButton->setToolTip("Help");
   connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
   toolbar->addAction(helpButton);
 
-  mShowInfoDialog = new QAction(QIcon(":/icons/icons/icons8-info-50-circle.png"), "Info", toolbar);
+  mShowInfoDialog = new QAction(generateIcon("info"), "Info", toolbar);
   mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
   toolbar->addAction(mShowInfoDialog);
@@ -185,7 +186,7 @@ void WindowMain::createLeftToolbar()
     mTemplateSelection = new QComboBox();
     innerLayout->addWidget(mTemplateSelection);
 
-    mStartAnalysis = new QPushButton(QIcon(":/icons/icons/icons8-play-50.png"), "");
+    mStartAnalysis = new QPushButton(generateIcon("play"), "");
     mStartAnalysis->setEnabled(false);
     mStartAnalysis->setToolTip("Run pipeline!");
     innerLayout->addWidget(mStartAnalysis);

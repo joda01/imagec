@@ -18,6 +18,7 @@
 #include "backend/settings/project_settings/project_image_setup.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -50,7 +51,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mWorkingDir->setPlaceholderText("Directory your images are placed in...");
   QHBoxLayout *workingDir = new QHBoxLayout;
   workingDir->addWidget(mWorkingDir);
-  QPushButton *openDir = new QPushButton(QIcon(":/icons/icons/icons8-folder-50.png"), "");
+  QPushButton *openDir = new QPushButton(generateIcon("images-folder"), "");
   connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
   workingDir->addWidget(openDir);
   workingDir->setStretch(0, 1);    // Make label take all available space
@@ -59,11 +60,13 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   addSeparator();
 
   mScientistsFirstName = new QLineEdit;
+  mScientistsFirstName->addAction(generateIcon("name"), QLineEdit::LeadingPosition);
   formLayout->addRow(new QLabel(tr("Scientist:")), mScientistsFirstName);
   connect(mScientistsFirstName, &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
   mScientistsFirstName->setPlaceholderText(joda::helper::getLoggedInUserName());
 
   mAddressOrganisation = new QLineEdit;
+  mAddressOrganisation->addAction(generateIcon("address"), QLineEdit::LeadingPosition);
   mAddressOrganisation->setPlaceholderText("University of Salzburg");
   formLayout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
 

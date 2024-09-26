@@ -97,6 +97,7 @@ set(LIBS
 set(RESOURCE_FILES
     resources/qt_conf.qrc
     resources/resource.qrc
+    resources/icons.qrc
 )
 
 qt_add_resources(RESOURCE_SOURCES ${RESOURCE_FILES})
