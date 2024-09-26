@@ -46,7 +46,7 @@ build(){
     cp -r ../../../../resources/java/bioformats.jar .
     cp -r ../../../../resources/java/BioFormatsWrapper.class .
     cp -r ../../../../resources/java/jre_linux.zip .
-    unzip  -qq jre_linux.zip
+    #unzip  -qq jre_linux.zip
     rm -rf jre_linux.zip
     cd ..
 }

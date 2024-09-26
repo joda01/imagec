@@ -259,7 +259,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
                                 {enums::ClusterId::J, "Cluster J"}});
   defaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId);
 
-  defaultClassId = SettingBase::create<SettingComboBox<enums::ClassId>>(windowMain, "icons8-unknown-status", "Class");
+  defaultClassId = SettingBase::create<SettingComboBox<enums::ClassId>>(windowMain, "icons8-unknown-status-50.png", "Class");
   defaultClassId->addOptions({{enums::ClassId::C0, "Class A"},
                               {enums::ClassId::C1, "Class B"},
                               {enums::ClassId::C2, "Class C"},
