@@ -35,22 +35,23 @@ class Intersection : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Intersection";
-  inline static std::string ICON  = "icons8-query-inner-join-50.png";
+  inline static std::string ICON  = "query-inner-join";
 
   Intersection(joda::settings::PipelineStep &pipelineStep, settings::IntersectionSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});
 
-    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input (e.g. Tetraspeck, Cell)");
+    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input (e.g. Tetraspeck, Cell)");
     mClustersIn->setValue(settings.inputObjects.inputClusters);
     mClustersIn->connectWithSetting(&settings.inputObjects.inputClusters);
 
-    mClustersIntersectWith = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Intersect with  (e.g. Spot)");
+    mClustersIntersectWith =
+        SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("query-outer-join-right"), "Intersect with  (e.g. Spot)");
     mClustersIntersectWith->setValue(settings.inputObjectsIntersectWith.inputClusters);
     mClustersIntersectWith->connectWithSetting(&settings.inputObjectsIntersectWith.inputClusters);
 
-    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Reclassify to");
+    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("move-right"), "Reclassify to");
     mClassOutput->setValue(settings.newClassId);
     mClassOutput->connectWithSetting(&settings.newClassId);
 
@@ -60,10 +61,13 @@ public:
     //
     // Options
     //
-    mMode = SettingBase::create<SettingComboBox<joda::settings::IntersectionSettings::Function>>(parent, "", "Mode");
-    mMode->addOptions({{.key = joda::settings::IntersectionSettings::Function::COUNT, .label = "Count", .icon = ""},
-                       {.key = joda::settings::IntersectionSettings::Function::RECLASSIFY, .label = "Reclassify Move", .icon = ""},
-                       {.key = joda::settings::IntersectionSettings::Function::RECLASSIFY_COPY, .label = "Reclassify Copy", .icon = ""}});
+    mMode = SettingBase::create<SettingComboBox<joda::settings::IntersectionSettings::Function>>(parent, {}, "Mode");
+    mMode->addOptions(
+        {{.key = joda::settings::IntersectionSettings::Function::COUNT, .label = "Count", .icon = generateIcon("100")},
+         {.key = joda::settings::IntersectionSettings::Function::RECLASSIFY, .label = "Reclassify Move", .icon = generateIcon("move-right")},
+         {.key   = joda::settings::IntersectionSettings::Function::RECLASSIFY_COPY,
+          .label = "Reclassify Copy",
+          .icon  = generateIcon("query-inner-join")}});
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
     connect(mMode.get(), &SettingBase::valueChanged, [this]() {
@@ -76,7 +80,7 @@ public:
 
     //
     //
-    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, "", "Min. intersection");
+    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("query-inner-join"), "Min. intersection");
     mMinIntersection->setDefaultValue(0.1);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");

@@ -22,7 +22,7 @@ namespace joda::ui {
 class ContainerButton : public SettingBase
 {
 public:
-  ContainerButton(const QString &text, const QString &iconName, QWidget *parent) : SettingBase(parent, iconName, text)
+  ContainerButton(const QString &text, const QIcon &icon, QWidget *parent) : SettingBase(parent, icon, text)
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");
@@ -31,9 +31,8 @@ public:
 
     mButton = new QPushButton(text, mEditable);
 
-    if(!iconName.isEmpty()) {
-      const QIcon icon(":/icons/icons/" + iconName);
-      mButton->setIconSize({16, 16});
+    if(!icon.isNull()) {
+      //      mButton->setIconSize({16, 16});
       mButton->setIcon(icon);
     }
 

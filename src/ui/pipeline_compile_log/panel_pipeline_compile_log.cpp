@@ -15,6 +15,7 @@
 #include <qdialog.h>
 #include <qheaderview.h>
 #include "backend/settings/analze_settings.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -76,17 +77,16 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
     auto *iconItem = new QTableWidgetItem();
     QIcon *icon    = nullptr;
     if(log.severity == SettingParserLog::Severity::JODA_ERROR) {
-      icon = new QIcon(":/icons/icons/icons8-error-50.png");
+      icon = new QIcon(generateIcon("error-red"));
       iconItem->setText("Error");
     } else if(log.severity == SettingParserLog::Severity::JODA_WARNING) {
-      icon = new QIcon(":/icons/icons/icons8-warning-50.png");
+      icon = new QIcon(generateIcon("warning-yellow"));
       iconItem->setText("Warning");
     } else if(log.severity == SettingParserLog::Severity::JODA_INFO) {
-      icon = new QIcon(":/icons/icons/icons8-info-50-blue.png");
+      icon = new QIcon(generateIcon("info-blue"));
       iconItem->setText("Info");
     }
     iconItem->setIcon(icon->pixmap(16, 16));
-
     iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
     mLogOutput->setItem(newRow, 0, iconItem);
 

@@ -145,7 +145,7 @@ public:
   {
     return mLayout.addItemToTopToolbar(widget);
   }
-  QAction *addActionButton(const QString &text, const QString &icon)
+  QAction *addActionButton(const QString &text, const QIcon &icon)
   {
     return mLayout.addActionButton(text, icon);
   }

@@ -19,7 +19,9 @@
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
+#include "ui/helper/setting_generator.hpp"
 #include "threshold_settings.hpp"
 
 namespace joda::ui {
@@ -29,7 +31,7 @@ class Threshold : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Threshold";
-  inline static std::string ICON  = "icons8-grayscale-50.png";
+  inline static std::string ICON  = "grayscale";
 
   Threshold(joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::BINARY}), mSettings(settings), mParent(parent)
@@ -44,7 +46,7 @@ public:
       cnt++;
     }
 
-    auto *addFilter = addActionButton("Add threshold", "icons8-add-new-50.png");
+    auto *addFilter = addActionButton("Add threshold", generateIcon("add"));
     connect(addFilter, &QAction::triggered, this, &Threshold::addFilter);
   }
 
@@ -58,9 +60,9 @@ private:
       //
       //
       //
-      mThresholdAlgorithm =
-          SettingBase::create<SettingComboBox<joda::settings::ThresholdSettings::Mode>>(parent, "icons8-grayscale-50.png", "Threshold algorithm");
-      mThresholdAlgorithm->addOptions({{joda::settings::ThresholdSettings::Mode::MANUAL, "Manual"},
+      mThresholdAlgorithm = SettingBase::create<SettingComboBox<joda::settings::ThresholdSettings::Mode>>(parent, generateIcon("automatic-contrast"),
+                                                                                                          "Threshold algorithm");
+      mThresholdAlgorithm->addOptions({{joda::settings::ThresholdSettings::Mode::MANUAL, "Manual", generateIcon("contrast")},
                                        {joda::settings::ThresholdSettings::Mode::LI, "Li"},
                                        {joda::settings::ThresholdSettings::Mode::MIN_ERROR, "Min. error"},
                                        {joda::settings::ThresholdSettings::Mode::TRIANGLE, "Triangle"},
@@ -72,7 +74,7 @@ private:
       //
       //
       //
-      mThresholdValueMin = SettingBase::create<SettingLineEdit<uint16_t>>(parent, "", "Min. threshold");
+      mThresholdValueMin = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateIcon("light-min"), "Min. threshold");
       mThresholdValueMin->setPlaceholderText("[0 - 65535]");
       mThresholdValueMin->setUnit("");
       mThresholdValueMin->setMinMax(0, 65535);
@@ -83,7 +85,7 @@ private:
       //
       //
       //
-      mThresholdValueMax = SettingBase::create<SettingLineEdit<uint16_t>>(parent, "", "Max. threshold");
+      mThresholdValueMax = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateIcon("light"), "Max. threshold");
       mThresholdValueMax->setPlaceholderText("[0 - 65535]");
       mThresholdValueMax->setUnit("");
       mThresholdValueMax->setMinMax(0, 65535);
@@ -94,14 +96,9 @@ private:
       //
       //
       //
-      mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Threshold output class");
-      mGrayScaleValue->setDefaultValue(65535);
-      mGrayScaleValue->addOptions(
-          {{65535, "TH 1"}, {65534, "TH 2"}, {65533, "TH 3"}, {65532, "TH 4"}, {65530, "TH 5"}, {65529, "TH 6"}, {65528, "TH 7"}, {65527, "TH 8"}});
-      mGrayScaleValue->setUnit("");
+      mGrayScaleValue = generateThresholdClass(parent);
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
-      mGrayScaleValue->setShortDescription("");
 
       outer.addSetting(tab, "",
                        {{mThresholdAlgorithm.get(), true, index},

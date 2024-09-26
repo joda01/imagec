@@ -17,6 +17,7 @@
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "edge_detection_settings.hpp"
 
@@ -27,7 +28,7 @@ class EdgeDetection : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Edge detection";
-  inline static std::string ICON  = "icons8-triangle-50.png";
+  inline static std::string ICON  = "triangle";
 
   EdgeDetection(joda::settings::PipelineStep &pipelineStep, settings::EdgeDetectionSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
@@ -35,7 +36,7 @@ public:
     //
     //
     mEdgeDetectionMode =
-        SettingBase::create<SettingComboBox<settings::EdgeDetectionSettings::Mode>>(parent, "icons8-triangle-50.png", "Edge detection mode");
+        SettingBase::create<SettingComboBox<settings::EdgeDetectionSettings::Mode>>(parent, generateIcon("triangle"), "Edge detection mode");
     mEdgeDetectionMode->addOptions({{settings::EdgeDetectionSettings::Mode::OFF, "Off"},
                                     {settings::EdgeDetectionSettings::Mode::SOBEL, "Sobel"},
                                     {settings::EdgeDetectionSettings::Mode::CANNY, "Canny"}});

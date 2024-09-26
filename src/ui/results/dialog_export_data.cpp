@@ -50,6 +50,7 @@
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox_classification_unmanaged.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_unmanaged.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
@@ -80,24 +81,24 @@ ExportColumn::ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
   ///
   ///
   ///
-  mClustersAndClasses = SettingBase::create<SettingComboBoxClassificationUnmanaged>(windowMain, "", "Cluster/Class");
+  mClustersAndClasses = SettingBase::create<SettingComboBoxClassificationUnmanaged>(windowMain, generateIcon("circle"), "Cluster/Class");
   mClustersAndClasses->addOptions(clustersAndClasses);
   layout->addWidget(mClustersAndClasses->getEditableWidget());
 
   //
   // Measurement
   //
-  mMeasurement = SettingBase::create<SettingComboBoxMulti<enums::Measurement>>(windowMain, "", "Measurement");
-  mMeasurement->addOptions({{joda::enums::Measurement::COUNT, "Count", ""},
-                            {joda::enums::Measurement::CONFIDENCE, "Confidence", ""},
-                            {joda::enums::Measurement::AREA_SIZE, "Area size", ""},
-                            {joda::enums::Measurement::PERIMETER, "Perimeter", ""},
-                            {joda::enums::Measurement::CIRCULARITY, "Circularity", ""},
-                            {joda::enums::Measurement::INTERSECTING_CNT, "Cross channel count", ""},
-                            {joda::enums::Measurement::INTENSITY_SUM, "Intensity sum.", ""},
-                            {joda::enums::Measurement::INTENSITY_AVG, "Intensity avg.", ""},
-                            {joda::enums::Measurement::INTENSITY_MIN, "Intensity min.", ""},
-                            {joda::enums::Measurement::INTENSITY_MAX, "Intensity max.", ""}
+  mMeasurement = SettingBase::create<SettingComboBoxMulti<enums::Measurement>>(windowMain, generateIcon("length"), "Measurement");
+  mMeasurement->addOptions({{joda::enums::Measurement::COUNT, "Count", {}},
+                            {joda::enums::Measurement::CONFIDENCE, "Confidence", {}},
+                            {joda::enums::Measurement::AREA_SIZE, "Area size", {}},
+                            {joda::enums::Measurement::PERIMETER, "Perimeter", {}},
+                            {joda::enums::Measurement::CIRCULARITY, "Circularity", {}},
+                            {joda::enums::Measurement::INTERSECTING_CNT, "Cross channel count", {}},
+                            {joda::enums::Measurement::INTENSITY_SUM, "Intensity sum.", {}},
+                            {joda::enums::Measurement::INTENSITY_AVG, "Intensity avg.", {}},
+                            {joda::enums::Measurement::INTENSITY_MIN, "Intensity min.", {}},
+                            {joda::enums::Measurement::INTENSITY_MAX, "Intensity max.", {}}
 
   });
   layout->addWidget(mMeasurement->getEditableWidget());
@@ -105,22 +106,22 @@ ExportColumn::ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
   //
   // Stats
   //
-  mStats = SettingBase::create<SettingComboBoxMulti<enums::Stats>>(windowMain, "", "Stats");
-  mStats->addOptions({{Stat::AVG, "Avg", ""},
-                      {Stat::CNT, "Cnt", ""},
-                      {Stat::SUM, "Sum", ""},
-                      {Stat::MIN, "Min", ""},
-                      {Stat::MAX, "Max", ""},
-                      {Stat::MEDIAN, "Median", ""},
-                      {Stat::STDDEV, "Stddev", ""}});
+  mStats = SettingBase::create<SettingComboBoxMulti<enums::Stats>>(windowMain, generateIcon("sigma"), "Stats");
+  mStats->addOptions({{Stat::AVG, "Avg", {}},
+                      {Stat::CNT, "Cnt", {}},
+                      {Stat::SUM, "Sum", {}},
+                      {Stat::MIN, "Min", {}},
+                      {Stat::MAX, "Max", {}},
+                      {Stat::MEDIAN, "Median", {}},
+                      {Stat::STDDEV, "Stddev", {}}});
   layout->addWidget(mStats->getEditableWidget());
 
   //
   // Cross channel
   //
   layout->addWidget(new QLabel("-->"), 0, Qt::AlignTop);
-  mCrossChannelImageChannel = SettingBase::create<SettingComboBoxMulti<int32_t>>(windowMain, "", "Cross channel intensity");
-  mCrossChannelCount        = SettingBase::create<SettingComboBoxMultiClassificationUnmanaged>(windowMain, "", "Cross channel count");
+  mCrossChannelImageChannel = SettingBase::create<SettingComboBoxMulti<int32_t>>(windowMain, generateIcon("light"), "Cross channel intensity");
+  mCrossChannelCount = SettingBase::create<SettingComboBoxMultiClassificationUnmanaged>(windowMain, generateIcon("100"), "Cross channel count");
   layout->addWidget(mCrossChannelImageChannel->getEditableWidget());
   layout->addWidget(mCrossChannelCount->getEditableWidget());
   this->setLayout(layout);
@@ -270,15 +271,15 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
   setMinimumHeight(700);
   setMinimumWidth(1100);
 
-  mExportButton = mLayout.addActionButton("Excel export", "icons8-export-excel-50.png");
+  mExportButton = mLayout.addActionButton("Excel export", generateIcon("export-excel"));
   connect(mExportButton, &QAction::triggered, [this] { onExportClicked(); });
 
   mLayout.addSeparatorToTopToolbar();
 
-  mSaveSettings = mLayout.addActionButton("Save template", "icons8-mark-as-favorite-50.png");
+  mSaveSettings = mLayout.addActionButton("Save template", generateIcon("mark-as-favorite"));
   connect(mSaveSettings, &QAction::triggered, [this] { saveTemplate(); });
 
-  mOpenSettings = mLayout.addActionButton("Open template", "icons8-folder-50.png");
+  mOpenSettings = mLayout.addActionButton("Open template", generateIcon("folder"));
   connect(mOpenSettings, &QAction::triggered, [this] { openTemplate(); });
 
   /* mSelectAllMeasurements = mLayout.addActionButton("Select all measurements", "icons8-select-column-50.png");
@@ -312,32 +313,32 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
 
   //
   // Details
-  mReportingDetails = SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>>(windowMain, "", "Details");
-  mReportingDetails->addOptions({{joda::db::BatchExporter::Settings::ExportDetail::PLATE, "Overview of all images", ""},
-                                 {joda::db::BatchExporter::Settings::ExportDetail::WELL, "Selected well", ""},
-                                 {joda::db::BatchExporter::Settings::ExportDetail::IMAGE, "Selected image", ""}});
+  mReportingDetails = SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>>(windowMain, {}, "Details");
+  mReportingDetails->addOptions({{joda::db::BatchExporter::Settings::ExportDetail::PLATE, "Overview of all images", {}},
+                                 {joda::db::BatchExporter::Settings::ExportDetail::WELL, "Selected well", {}},
+                                 {joda::db::BatchExporter::Settings::ExportDetail::IMAGE, "Selected image", {}}});
   mReportingDetails->setDefaultValue(joda::db::BatchExporter::Settings::ExportDetail::PLATE);
 
   //
   // Type
-  mReportingType = SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>>(windowMain, "", "Type");
-  mReportingType->addOptions({{joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", "icons8-heat-map-50.png"},
-                              {joda::db::BatchExporter::Settings::ExportType::TABLE, "Table", "icons8-table-50.png"},
-                              {joda::db::BatchExporter::Settings::ExportType::TABLE_DETAIL, "Details", "icons8-table-50.png"}});
+  mReportingType = SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>>(windowMain, {}, "Type");
+  mReportingType->addOptions({{joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", generateIcon("heatmap")},
+                              {joda::db::BatchExporter::Settings::ExportType::TABLE, "Table", generateIcon("table")},
+                              {joda::db::BatchExporter::Settings::ExportType::TABLE_DETAIL, "Details", generateIcon("table-detail")}});
   mReportingType->setDefaultValue(joda::db::BatchExporter::Settings::ExportType::HEATMAP);
 
   std::vector<SettingComboBoxMulti<enums::ClusterId>::ComboEntry> clustersCombo;
   auto clusters = mAnalyzer->selectClusters();
   clustersCombo.reserve(clusters.size());
   for(const auto &[clusterId, cluster] : clusters) {
-    clustersCombo.push_back(SettingComboBoxMulti<enums::ClusterId>::ComboEntry{.key = clusterId, .label = cluster.name.data(), .icon = ""});
+    clustersCombo.push_back(SettingComboBoxMulti<enums::ClusterId>::ComboEntry{.key = clusterId, .label = cluster.name.data(), .icon = {}});
   }
 
   std::vector<SettingComboBoxMulti<enums::ClassId>::ComboEntry> classCombo;
   auto classes = mAnalyzer->selectClasses();
   classCombo.reserve(classes.size());
   for(const auto &[classId, cluster] : classes) {
-    classCombo.push_back(SettingComboBoxMulti<enums::ClassId>::ComboEntry{.key = classId, .label = cluster.name.data(), .icon = ""});
+    classCombo.push_back(SettingComboBoxMulti<enums::ClassId>::ComboEntry{.key = classId, .label = cluster.name.data(), .icon = {}});
   }
 
   auto *col2 = tab->addVerticalPanel();
@@ -496,8 +497,7 @@ void DialogExportData::saveTemplate()
                                                   joda::fs::EXT_EXPORT_TEMPLATE);
   } catch(const std::exception &ex) {
     QMessageBox messageBox(mWindowMain);
-    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -549,8 +549,7 @@ void DialogExportData::openTemplate()
 
   } catch(const std::exception &ex) {
     QMessageBox messageBox(mWindowMain);
-    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
     messageBox.setWindowTitle("Could not open template!");
     messageBox.setText("Could not open template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

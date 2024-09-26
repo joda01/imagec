@@ -16,6 +16,7 @@
 #include "backend/commands/command.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "median_substraction_settings.hpp"
 
@@ -26,12 +27,12 @@ class MedianSubtraction : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Median subtraction";
-  inline static std::string ICON  = "icons8-baseline-50.png";
+  inline static std::string ICON  = "baseline";
 
   MedianSubtraction(joda::settings::PipelineStep &pipelineStep, settings::MedianSubtractSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
   {
-    mMedianBackgroundSubtraction = SettingBase::create<SettingComboBox<int32_t>>(parent, "icons8-baseline-50.png", "Median background subtraction");
+    mMedianBackgroundSubtraction = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("baseline"), "Median background subtraction");
     mMedianBackgroundSubtraction->addOptions({{-1, "Off"},
                                               {3, "3x3"},
                                               {4, "4x4"},

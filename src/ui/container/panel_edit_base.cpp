@@ -15,6 +15,7 @@
 #include <qaction.h>
 #include <qpushbutton.h>
 #include "backend/helper/logger/console_logger.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
@@ -63,8 +64,7 @@ void PanelEdit::onSaveAsTemplate()
     if(!pathToStoreFileIn.startsWith(templatePath)) {
       joda::log::logError("Templates must be stored in >" + templatePath.toStdString() + "< directory.");
       QMessageBox messageBox(this);
-      auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-      messageBox.setIconPixmap(icon->pixmap(42, 42));
+      messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
       messageBox.setWindowTitle("Could not save template!");
       messageBox.setText("Templates must be stored in >" + templatePath + "< directory.");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

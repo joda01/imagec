@@ -23,6 +23,7 @@
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox_multi.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
 #include "measure_settings.hpp"
@@ -34,14 +35,14 @@ class Measure : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Measure";
-  inline static std::string ICON  = "icons8-ruler-50.png";
+  inline static std::string ICON  = "ruler";
 
   Measure(joda::settings::PipelineStep &pipelineStep, settings::MeasureSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings), mParent(parent)
   {
     //
     //
-    clustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Cluster in");
+    clustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Classes in");
     clustersIn->setValue(settings.inputClusters);
     clustersIn->connectWithSetting(&settings.inputClusters);
 
@@ -59,12 +60,7 @@ public:
 
     //
     //
-    zProjection = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, "icons8-layers-50.png", "Z-Projection");
-    zProjection->addOptions({{enums::ZProjection::$, "This"},
-                             {enums::ZProjection::NONE, "Off"},
-                             {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
-                             {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
-                             {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
+    zProjection = generateZProjection(true, parent);
     zProjection->setValue(zProject);
     connect(zProjection.get(), &SettingBase::valueChanged, this, &Measure::onCStackChanged);
 
@@ -74,7 +70,7 @@ public:
     addSetting(tab, "Input classes", {{clustersIn.get(), true, 0}});
     addSetting(tab, "Input image channels", {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}});
 
-    // auto *addClassifier = addActionButton("Add class", "icons8-genealogy-50.png");
+    // auto *addClassifier = addActionButton("Add class", "icons8-genealogy");
     //  connect(addClassifier, &QAction::triggered, this, &Classifier::addClassifier);
   }
 

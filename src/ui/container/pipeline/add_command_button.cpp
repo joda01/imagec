@@ -24,11 +24,8 @@ AddCommandButtonBase::AddCommandButtonBase(joda::settings::Pipeline &settings, P
     mPipelineStepBefore(pipelineStepBefore), mSettings(settings), pipelineStepSettingsUi(pipelineStepSettingsUi), mOutOfStepBefore(outOfStepBefore)
 {
   setObjectName("addCommandButton");
-  // const QIcon myIcon(":/icons/icons/icons8-plus-math-50.png");
-  // setIcon(myIcon.pixmap(12, 12));
   setContentsMargins(0, 0, 0, 0);
   setFixedHeight(10);
-  // connect(this, &QPushButton::clicked, this, &AddCommandButtonBase::onAddCommandClicked);
 }
 
 void AddCommandButtonBase::paintEvent(QPaintEvent *event)

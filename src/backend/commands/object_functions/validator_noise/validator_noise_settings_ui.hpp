@@ -20,6 +20,7 @@
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
 #include "validator_noise_settings.hpp"
@@ -31,18 +32,18 @@ class NoiseValidator : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Noise filter";
-  inline static std::string ICON  = "icons8-sort-by-price-50.png";
+  inline static std::string ICON  = "sort-by-price";
 
   NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::ALL})
   {
-    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input class");
+    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input class");
     mClassesIn->setValue(settings.inputClusters);
     mClassesIn->connectWithSetting(&settings.inputClusters);
 
     //
     //
-    mMaxNrOfObjects = SettingBase::create<SettingLineEdit<uint32_t>>(parent, "", "Max. objects");
+    mMaxNrOfObjects = SettingBase::create<SettingLineEdit<uint32_t>>(parent, generateIcon("sort-by-price"), "Max. objects");
     mMaxNrOfObjects->setDefaultValue(100000);
     mMaxNrOfObjects->setPlaceholderText("[0 - " + QString(std::to_string(UINT32_MAX).data()) + "]");
     mMaxNrOfObjects->setUnit("");

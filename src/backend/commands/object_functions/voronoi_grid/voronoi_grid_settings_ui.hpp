@@ -22,6 +22,7 @@
 #include "ui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
 #include "voronoi_grid_settings.hpp"
@@ -33,7 +34,7 @@ class VoronoiGrid : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Voronoi";
-  inline static std::string ICON  = "dom-voronoi-50.png";
+  inline static std::string ICON  = "voronoi";
 
   VoronoiGrid(joda::settings::PipelineStep &pipelineStep, settings::VoronoiGridSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT})
@@ -41,17 +42,17 @@ public:
     auto *tab = addTab("", [] {});
     //
     //
-    pointsCluster = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Centers");
+    pointsCluster = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("initial-state"), "Centers");
     pointsCluster->setValue(settings.inputClustersPoints);
     pointsCluster->connectWithSetting(&settings.inputClustersPoints);
 
-    voronoiClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Output class");
+    voronoiClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("voronoi"), "Output class");
     voronoiClassOut->setValue(settings.outputClustersVoronoi.classId);
     voronoiClassOut->connectWithSetting(&settings.outputClustersVoronoi.classId);
 
     //
     //
-    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max. radius");
+    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("radius"), "Max. radius");
     mMaxRadius->setPlaceholderText("[0 - ]");
     mMaxRadius->setUnit("px");
     mMaxRadius->setMinMax(0, INT32_MAX);
@@ -61,21 +62,21 @@ public:
 
     //
     //
-    maskingCluster = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Masking cluster (optional)");
+    maskingCluster = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("layer-mask"), "Masking cluster (optional)");
     maskingCluster->setValue(settings.inputClustersMask);
     maskingCluster->connectWithSetting(&settings.inputClustersMask);
 
     auto *col1 = addSetting(tab, "Voronoi input/output", {{pointsCluster.get(), true, 0}, {voronoiClassOut.get(), false, 0}});
     addSetting(tab, "Voronoi masking", {{mMaxRadius.get(), true, 0}, {maskingCluster.get(), false, 0}}, col1);
 
-    excludeAreasWithoutPoints = SettingBase::create<SettingComboBox<bool>>(parent, "", "Exclude areas without points");
-    excludeAreasWithoutPoints->addOptions({{false, "Off", 0}, {true, "On", 0}});
+    excludeAreasWithoutPoints = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Exclude areas without points");
+    excludeAreasWithoutPoints->addOptions({{false, "Off", {}}, {true, "On", {}}});
     excludeAreasWithoutPoints->setDefaultValue(true);
     excludeAreasWithoutPoints->setValue(settings.excludeAreasWithoutPoint);
     excludeAreasWithoutPoints->connectWithSetting(&settings.excludeAreasWithoutPoint);
 
-    excludeAreasAtTheEdge = SettingBase::create<SettingComboBox<bool>>(parent, "", "Exclude areas at the edges");
-    excludeAreasAtTheEdge->addOptions({{false, "Off", 0}, {true, "On", 0}});
+    excludeAreasAtTheEdge = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Exclude areas at the edges");
+    excludeAreasAtTheEdge->addOptions({{false, "Off", {}}, {true, "On", {}}});
     excludeAreasAtTheEdge->setDefaultValue(true);
     excludeAreasAtTheEdge->setValue(settings.excludeAreasAtTheEdge);
     excludeAreasAtTheEdge->connectWithSetting(&settings.excludeAreasAtTheEdge);
@@ -84,7 +85,7 @@ public:
 
     //
     //
-    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Min. area size");
+    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Min. area size");
     mMinAreaSize->setPlaceholderText("[0 - ]");
     mMinAreaSize->setUnit("px");
     mMinAreaSize->setMinMax(0, INT32_MAX);
@@ -94,7 +95,7 @@ public:
 
     //
     //
-    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max. area size");
+    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Max. area size");
     mMaxAreaSize->setPlaceholderText("[0 - ]");
     mMaxAreaSize->setUnit("px");
     mMaxAreaSize->setMinMax(0, INT32_MAX);

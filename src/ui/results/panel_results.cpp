@@ -48,6 +48,7 @@
 #include "ui/container/panel_edit_base.hpp"
 #include "ui/container/setting/setting_combobox_classification_unmanaged.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
 #include "ui/results/dialog_export_data.hpp"
@@ -674,8 +675,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load database!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
