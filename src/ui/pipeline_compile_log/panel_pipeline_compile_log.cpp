@@ -36,7 +36,7 @@ PanelCompilerLog::PanelCompilerLog(WindowMain *parent)
   mLogOutput->setColumnWidth(2, 250);
   mLogOutput->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
   mLogOutput->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
-  mLogOutput->setHorizontalHeaderLabels({"Severity", "Location", "Message"});
+  mLogOutput->setHorizontalHeaderLabels({"", "Severity", "Location", "Message"});
 
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
