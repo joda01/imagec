@@ -28,20 +28,20 @@ template <class T>
 concept ImageCStackCombo_t = std::is_base_of<SettingComboBoxMulti<int32_t>, T>::value || std::is_base_of<SettingComboBox<int32_t>, T>::value;
 
 template <ImageCStackCombo_t T>
-inline auto generateCStackCombo(const QString &helpText, QWidget *parent)
+inline auto generateCStackCombo(const QString &helpText, QWidget *parent, const QString &thisText = "Default")
 {
   auto dropBox = SettingBase::create<T>(parent, generateIcon("channel"), helpText);
-  dropBox->addOptions({{-1, "This", generateIcon("square")},
+  dropBox->addOptions({{-1, thisText, generateIcon("square")},
                        {0, "CH0", generateIcon("zero")},
                        {1, "CH1", generateIcon("one")},
-                       {2, "CH2", generateIcon("two")},
+                       {2, "CH2", generateIcon("2")},
                        {3, "CH3", generateIcon("three")},
-                       {4, "CH4", generateIcon("channel")},
-                       {5, "CH5", generateIcon("channel")},
-                       {6, "CH6", generateIcon("channel")},
-                       {7, "CH7", generateIcon("channel")},
-                       {8, "CH8", generateIcon("channel")},
-                       {9, "CH9", generateIcon("channel")}});
+                       {4, "CH4", generateIcon("four")},
+                       {5, "CH5", generateIcon("5")},
+                       {6, "CH6", generateIcon("six")},
+                       {7, "CH7", generateIcon("seven")},
+                       {8, "CH8", generateIcon("eight")},
+                       {9, "CH9", generateIcon("nine")}});
   return dropBox;
 }
 
@@ -49,7 +49,7 @@ inline auto generateZProjection(bool withThis, QWidget *parent) -> std::unique_p
 {
   auto zProjection = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, generateIcon("layer"), "Z-Projection");
   if(withThis) {
-    zProjection->addOptions({{enums::ZProjection::$, "This"},
+    zProjection->addOptions({{enums::ZProjection::$, "Default"},
                              {enums::ZProjection::NONE, "Off"},
                              {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                              {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
@@ -63,9 +63,9 @@ inline auto generateZProjection(bool withThis, QWidget *parent) -> std::unique_p
   return zProjection;
 }
 
-inline auto generateThresholdClass(QWidget *parent) -> std::unique_ptr<SettingComboBox<int32_t>>
+inline auto generateThresholdClass(const QString &helpText, QWidget *parent) -> std::unique_ptr<SettingComboBox<int32_t>>
 {
-  auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Threshold input class");
+  auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, helpText);
   mGrayScaleValue->setDefaultValue(65535);
   mGrayScaleValue->addOptions({{65535, "TH 1", generateIcon("one-round")},
                                {65534, "TH 2"},

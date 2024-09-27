@@ -13,6 +13,7 @@
 #include "setting_combobox_classes_out.hpp"
 #include <string>
 #include "backend/enums/enums_classes.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -65,16 +66,12 @@ void SettingComboBoxClassesOut::clusterNamesChanged()
 
       if(data.first == enums::ClassIdIn::$) {
         // We want this to be the first
-        mComboBox->insertItem(
-            0, QIcon(QIcon(":/icons/icons/icons8-unknown-status-50.png").pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second,
-            variant);
+        mComboBox->insertItem(0, generateIcon("circle"), data.second, variant);
       } else {
         if(!SettingBase::getIcon().isNull()) {
-          mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second, variant);
+          mComboBox->addItem(SettingBase::getIcon(), data.second, variant);
         } else {
-          mComboBox->addItem(
-              QIcon(QIcon(":/icons/icons/icons8-unknown-status-50.png").pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second,
-              variant);
+          mComboBox->addItem(generateIcon("circle"), data.second, variant);
         }
       }
     }

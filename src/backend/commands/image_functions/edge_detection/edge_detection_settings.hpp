@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <set>
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {
@@ -12,7 +13,6 @@ struct EdgeDetectionSettings : public SettingBase
 public:
   enum class Mode
   {
-    OFF,
     CANNY,
     SOBEL
   };
@@ -28,7 +28,6 @@ public:
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(EdgeDetectionSettings::Mode, {
-                                                              {EdgeDetectionSettings::Mode::OFF, "Off"},
                                                               {EdgeDetectionSettings::Mode::CANNY, "Canny"},
                                                               {EdgeDetectionSettings::Mode::SOBEL, "Sobel"},
                                                           });

@@ -66,7 +66,7 @@ void SettingComboBoxMultiClassificationIn::outputClustersChanges()
     mComboBox->clear();
 
     // Add this cluster
-    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "This",
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Default",
                        QVariant(toInt({enums::ClusterIdIn::$, enums::ClassIdIn::$})));
 
     auto [clusteres, classes] = parent->getPanelClassification()->getClustersAndClasses();

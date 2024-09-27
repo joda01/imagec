@@ -277,10 +277,10 @@ void PanelClassification::toSettings()
   std::map<enums::ClusterIdIn, QString> clusters;
   std::map<enums::ClassIdIn, QString> classes;
 
-  clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::$), QString("This"));
+  clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::$), QString("Default"));
   clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::NONE), QString("None"));
 
-  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::$), QString("This"));
+  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::$), QString("Default"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::NONE), QString("None"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::UNDEFINED), QString("Undefined"));
 

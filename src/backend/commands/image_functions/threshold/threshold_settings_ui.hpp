@@ -96,7 +96,7 @@ private:
       //
       //
       //
-      mGrayScaleValue = generateThresholdClass(parent);
+      mGrayScaleValue = generateThresholdClass("Threshold class", parent);
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
 

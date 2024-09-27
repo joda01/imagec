@@ -37,9 +37,8 @@ public:
     //
     mEdgeDetectionMode =
         SettingBase::create<SettingComboBox<settings::EdgeDetectionSettings::Mode>>(parent, generateIcon("triangle"), "Edge detection mode");
-    mEdgeDetectionMode->addOptions({{settings::EdgeDetectionSettings::Mode::OFF, "Off"},
-                                    {settings::EdgeDetectionSettings::Mode::SOBEL, "Sobel"},
-                                    {settings::EdgeDetectionSettings::Mode::CANNY, "Canny"}});
+    mEdgeDetectionMode->addOptions(
+        {{settings::EdgeDetectionSettings::Mode::SOBEL, "Sobel"}, {settings::EdgeDetectionSettings::Mode::CANNY, "Canny"}});
     mEdgeDetectionMode->setValue(settings.mode);
     mEdgeDetectionMode->connectWithSetting(&settings.mode);
 

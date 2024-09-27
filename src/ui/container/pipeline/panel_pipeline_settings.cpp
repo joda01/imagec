@@ -220,7 +220,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  cStackIndex = generateCStackCombo<SettingComboBox<int32_t>>("Image channel", windowMain);
+  cStackIndex = generateCStackCombo<SettingComboBox<int32_t>>("Image channel", windowMain, "Empty");
   cStackIndex->setDefaultValue(-1);
   cStackIndex->connectWithSetting(&mSettings.pipelineSetup.cStackIndex);
 

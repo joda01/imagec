@@ -35,7 +35,7 @@ public:
   inline static std::string ICON  = "sort-by-price";
 
   NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::ALL})
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT})
   {
     mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input class");
     mClassesIn->setValue(settings.inputClusters);

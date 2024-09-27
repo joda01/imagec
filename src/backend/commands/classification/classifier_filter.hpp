@@ -15,6 +15,7 @@
 #include <cstdint>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enum_images.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/settings_types.hpp"
@@ -74,7 +75,7 @@ struct ClassifierFilter
   //
   //
   //
-  float minCircularity = 0;
+  float minCircularity = -1;
 
   //
   //
@@ -110,7 +111,7 @@ struct ObjectClass
   //
   // If no filter matches this class is assigned to the object
   //
-  ClassificatorSetting outputClusterNoMatch;
+  ClassificatorSetting outputClusterNoMatch = {.classId = enums::ClassIdIn::NONE};
 
   //
   // Grayscale or object class id from model
