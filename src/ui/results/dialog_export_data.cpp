@@ -279,7 +279,7 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
   mSaveSettings = mLayout.addActionButton("Save template", generateIcon("mark-as-favorite"));
   connect(mSaveSettings, &QAction::triggered, [this] { saveTemplate(); });
 
-  mOpenSettings = mLayout.addActionButton("Open template", generateIcon("folder"));
+  mOpenSettings = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
   connect(mOpenSettings, &QAction::triggered, [this] { openTemplate(); });
 
   /* mSelectAllMeasurements = mLayout.addActionButton("Select all measurements", "icons8-select-column);
