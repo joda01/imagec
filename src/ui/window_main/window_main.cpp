@@ -130,6 +130,11 @@ void WindowMain::createTopToolbar()
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
   toolbar->addAction(mSaveProject);
 
+  mSaveProjectAs = new QAction(generateIcon("save-as"), "Save as", toolbar);
+  mSaveProjectAs->setToolTip("Save project as!");
+  connect(mSaveProjectAs, &QAction::triggered, this, &WindowMain::onSaveProjectAs);
+  toolbar->addAction(mSaveProjectAs);
+
   toolbar->addSeparator();
 
   auto *showCompileLog = new QAction(generateIcon("log"), "Compiler log", toolbar);
@@ -306,8 +311,8 @@ void WindowMain::onNewProjectClicked()
 {
   if(!mSelectedProjectSettingsFilePath.empty()) {
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/icons/icons8-info-50-blue.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    auto icon = generateIcon("info-blue");
+    messageBox.setIconPixmap(icon.pixmap(42, 42));
     messageBox.setWindowTitle("Create new project?");
     messageBox.setText("Unsaved settings will get lost! Create new project?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -467,22 +472,40 @@ void WindowMain::onSaveProjectAsClicked()
 ///
 void WindowMain::onSaveProject()
 {
+  saveProject(mSelectedProjectSettingsFilePath);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onSaveProjectAs()
+{
+  saveProject("");
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::saveProject(std::filesystem::path filename)
+{
   try {
-    if(mSelectedProjectSettingsFilePath.empty()) {
+    if(filename.empty()) {
       std::filesystem::path filePath(mAnalyzeSettings.projectSettings.workingDirectory);
       filePath = filePath / "imagec";
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath                         = filePath / ("settings" + joda::fs::EXT_PROJECT);
-      QString filePathOfSettingsFile   = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
-                                                                      "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
-      mSelectedProjectSettingsFilePath = filePathOfSettingsFile.toStdString();
+      filePath                       = filePath / ("settings" + joda::fs::EXT_PROJECT);
+      QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
+                                                                    "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
+      filename                       = filePathOfSettingsFile.toStdString();
     }
 
-    if(!mSelectedProjectSettingsFilePath.empty()) {
+    if(!filename.empty()) {
       if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
-        joda::settings::Settings::storeSettings(mSelectedProjectSettingsFilePath, mAnalyzeSettings);
+        joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
       }
       mAnalyzeSettingsOld = mAnalyzeSettings;
       checkForSettingsChanged();
@@ -497,8 +520,8 @@ void WindowMain::onSaveProject()
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
-
-  setWindowTitlePrefix(mSelectedProjectSettingsFilePath.filename().string().data());
+  mSelectedProjectSettingsFilePath = filename;
+  setWindowTitlePrefix(filename.filename().string().data());
 }
 
 ///

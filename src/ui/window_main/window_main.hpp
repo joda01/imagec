@@ -137,6 +137,7 @@ private:
   void createLeftToolbar();
   void loadTemplates();
   void clearSettings();
+  void saveProject(std::filesystem::path filename);
 
   void openProjectSettings(const QString &filePath);
   void openResultsSettings(const QString &filePath);
@@ -181,12 +182,14 @@ private:
   QAction *mNewProjectButton  = nullptr;
   QAction *mOpenProjectButton = nullptr;
   QAction *mSaveProject       = nullptr;
+  QAction *mSaveProjectAs     = nullptr;
   QAction *mShowInfoDialog    = nullptr;
 
 private slots:
   void onNewProjectClicked();
   void onAddChannel();
   void onSaveProject();
+  void onSaveProjectAs();
   void onSaveProjectAsClicked();
   void onStartClicked();
   void onShowInfoDialog();
