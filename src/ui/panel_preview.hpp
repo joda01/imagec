@@ -36,13 +36,14 @@ public:
   {
     mImageViewer.imageUpdated();
     mPreviewLabel.imageUpdated();
-    mPreviewInfo->setText(info);
+
+    QMetaObject::invokeMethod(mPreviewInfo, "setText", Q_ARG(QString, info));
   }
   void resetImage(const QString &info)
   {
     mImageViewer.resetImage();
     mPreviewLabel.resetImage();
-    mPreviewInfo->setText(info);
+    QMetaObject::invokeMethod(mPreviewInfo, "setText", Q_ARG(QString, info));
   }
   void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y)
   {

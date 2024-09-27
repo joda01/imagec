@@ -33,10 +33,16 @@ namespace joda::ctrl {
 
 struct Preview
 {
+  struct PreviewCount
+  {
+    int32_t count = 0;
+    std::string color;
+  };
+
   joda::image::Image thumbnail;
   joda::image::Image previewImage;
   joda::image::Image originalImage;
-  std::map<enums::ClassId, int32_t> foundObjects;
+  std::map<settings::ClassificatorSetting, PreviewCount> foundObjects;
   int height;
   int width;
   std::string imageFileName;

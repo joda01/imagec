@@ -372,12 +372,14 @@ void PanelPipelineSettings::updatePreview()
                 controller->preview(mWindowMain->getSettings().imageSetup, prevSettings, mWindowMain->getSettings(), getPipeline(), imgIndex,
                                     mSelectedTileX, mSelectedTileY, previewResult);
                 // Create a QByteArray from the char array
-                QString info;
-                auto [_, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
+                QString info             = "<html>";
+                auto [clusters, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
                 for(const auto &[classId, count] : previewResult.foundObjects) {
-                  info += (classes[(enums::ClassIdIn) classId] + ":" + QString::number(count) + ", ");
+                  QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
+                                (clusters[classId.clusterId] + "/" + classes[classId.classId] + "</span>: " + QString::number(count.count) + "<br>");
+                  info += tmp;
                 }
-                info.chop(2);
+                info += "</html>";
                 mPreviewImage->setThumbnailPosition(tileNrX, tileNrY, mSelectedTileX, mSelectedTileY);
                 mPreviewImage->updateImage(info);
                 if(!mIsActiveShown) {

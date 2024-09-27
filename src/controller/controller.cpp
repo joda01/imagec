@@ -214,7 +214,11 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.previewImage.setImage(std::move(previewImage));
   previewOut.thumbnail.setImage(std::move(thumb));
-  previewOut.foundObjects = foundObjects;
+  previewOut.foundObjects.clear();
+  for(const auto &[key, val] : foundObjects) {
+    previewOut.foundObjects[key].color = val.color;
+    previewOut.foundObjects[key].count = val.count;
+  }
 }
 
 ///

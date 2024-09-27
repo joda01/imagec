@@ -34,6 +34,12 @@ struct PreviewSettings
   settings::ImageSaverSettings::Style style = settings::ImageSaverSettings::Style::OUTLINED;
 };
 
+struct PreviewReturn
+{
+  int32_t count = 0;
+  std::string color;
+};
+
 enum class ProcessState
 {
   INITIALIZING,
@@ -183,7 +189,7 @@ public:
   auto generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                        const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
                        int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY)
-      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<enums::ClassId, int32_t>>;
+      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSetting, PreviewReturn>>;
 
 private:
   /////////////////////////////////////////////////////

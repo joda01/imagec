@@ -20,6 +20,7 @@
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/enums/enums_grouping.hpp"
@@ -291,7 +292,7 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
 auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                                 const settings::AnalyzeSettings &program, const settings::Pipeline &pipelineStart,
                                 const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY)
-    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<enums::ClassId, int32_t>>
+    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSetting, PreviewReturn>>
 {
   //
   //  Resolve dependencies
@@ -351,15 +352,18 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
       //
       // The last step is the wanted pipeline
       //
+      std::map<settings::ClassificatorSetting, std::string> colors;
       if(executedSteps >= deps.size()) {
         joda::settings::ImageSaverSettings saverSettings;
         int colorIdx = 0;
         for(int cluster = 0; cluster < 10; cluster++) {
           for(int classs = 0; classs < 10; classs++) {
-            saverSettings.clustersIn.emplace_back(
-                settings::ImageSaverSettings::SaveCluster{.inputCluster = {(enums::ClusterIdIn) cluster, (enums::ClassIdIn) classs},
-                                                          .color = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()],
-                                                          .style = previewSettings.style});
+            auto color = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()];
+            colors.emplace(settings::ClassificatorSetting{static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)}, color);
+            saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{
+                .inputCluster = {static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)},
+                .color        = color,
+                .style        = previewSettings.style});
             colorIdx++;
           }
         }
@@ -377,14 +381,19 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         //
         // Count elements
         //
-        std::map<enums::ClassId, int32_t> foundObjects;
-        if(context.getActObjects().contains(pipelineStart.getOutputCluster())) {
-          const auto &objects = context.getActObjects().at(pipelineStart.getOutputCluster());
+        std::map<settings::ClassificatorSetting, PreviewReturn> foundObjects;
+        // auto cluster = pipelineStart.getOutputCluster();
+        for(auto const &[cluster, objects] : context.getActObjects()) {
           for(const auto &roi : *objects) {
-            if(!foundObjects.contains(roi.getClassId())) {
-              foundObjects[roi.getClassId()] = 0;
+            settings::ClassificatorSetting key{static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(roi.getClassId())};
+
+            if(!foundObjects.contains(key)) {
+              foundObjects[key].count = 0;
+              if(colors.contains(key)) {
+                foundObjects[key].color = colors[key];
+              }
             }
-            foundObjects[roi.getClassId()]++;
+            foundObjects[key].count++;
           }
         }
 
