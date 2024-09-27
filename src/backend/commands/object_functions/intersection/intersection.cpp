@@ -26,7 +26,7 @@ Intersection::Intersection(const settings::IntersectionSettings &settings) : mSe
 {
 }
 
-void Intersection::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
+void Intersection::execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList & /*resultIn*/)
 {
   for(const auto &inputClassification : mSettings.inputObjects.inputClusters) {
     auto &objectsInOut = context.loadObjectsFromCache()->at(context.getClusterId(inputClassification.clusterId));

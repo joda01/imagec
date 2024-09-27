@@ -102,14 +102,12 @@ public:
                           const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                           const std::set<joda::enums::ClassId> &objectClassesOther,
                           joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo,
-                          uint32_t snapAreaOfIntersectingRoi, float minIntersecion, const enums::tile_t &tile,
-                          const cv::Size &tileSize) const;
+                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, uint32_t snapAreaOfIntersectingRoi,
+                          float minIntersecion, const enums::tile_t &tile, const cv::Size &tileSize) const;
 
   void calcIntersections(joda::settings::IntersectionSettings::Function func, SpheralIndex *other,
-                         const std::set<joda::enums::ClassId> objectClassesMe,
-                         const std::set<joda::enums::ClassId> &objectClassesOther, float minIntersecion,
-                         joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
+                         const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
+                         float minIntersecion, joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
 
   auto begin() const
   {
@@ -137,21 +135,21 @@ private:
   unordered_map<pair<int, int>, std::vector<ROI *>, PairHash> grid;
   int mCellSize;
 
-  ROI &insertIntoGrid(const ROI &box)
+  ROI &insertIntoGrid(const ROI &boxIn)
   {
-    const auto &rect = box.getBoundingBox();
+    ROI cloned       = boxIn.clone();
+    const auto &rect = cloned.getBoundingBox();
     int min_x        = rect.x;
     int min_y        = rect.y;
     int max_x        = rect.x + rect.width;
     int max_y        = rect.y + rect.height;
 
     std::lock_guard<std::mutex> lock(mInsertLock);
-    auto &inserted = mElements.emplace_back(std::move(box.clone()));
-    ROI *boxPtr    = &mElements.back();
+    ROI &inserted = mElements.emplace_back(std::move(cloned));
 
     for(int x = min_x / mCellSize; x <= max_x / mCellSize; ++x) {
       for(int y = min_y / mCellSize; y <= max_y / mCellSize; ++y) {
-        grid[{x, y}].emplace_back(boxPtr);
+        grid[{x, y}].emplace_back(&inserted);
       }
     }
     return inserted;
