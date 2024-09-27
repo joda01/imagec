@@ -29,11 +29,12 @@ namespace joda::ui {
 ///
 PanelCompilerLog::PanelCompilerLog(WindowMain *parent)
 {
-  mLogOutput = new QTableWidget(1, 3);
+  mLogOutput = new QTableWidget(1, 4);
   mLogOutput->verticalHeader()->setVisible(false);
-  mLogOutput->setColumnWidth(0, 150);
+  mLogOutput->setColumnHidden(0, true);
   mLogOutput->setColumnWidth(1, 250);
-  mLogOutput->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+  mLogOutput->setColumnWidth(2, 250);
+  mLogOutput->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
   mLogOutput->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
   mLogOutput->setHorizontalHeaderLabels({"Severity", "Location", "Message"});
 
@@ -76,21 +77,26 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
     mLogOutput->insertRow(newRow);
     // Set the icon in the first column
     auto *iconItem = new QTableWidgetItem();
+    auto *sortItem = new QTableWidgetItem();
     QIcon *icon    = nullptr;
     if(log.severity == SettingParserLog::Severity::JODA_ERROR) {
       icon = new QIcon(generateIcon("error-red"));
       iconItem->setText("Error");
+      sortItem->setText("A");
       mNrOfErrors++;
     } else if(log.severity == SettingParserLog::Severity::JODA_WARNING) {
       icon = new QIcon(generateIcon("warning-yellow"));
       iconItem->setText("Warning");
+      sortItem->setText("B");
     } else if(log.severity == SettingParserLog::Severity::JODA_INFO) {
       icon = new QIcon(generateIcon("info-blue"));
       iconItem->setText("Info");
+      sortItem->setText("C");
     }
     iconItem->setIcon(icon->pixmap(16, 16));
     iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
-    mLogOutput->setItem(newRow, 0, iconItem);
+    mLogOutput->setItem(newRow, 0, sortItem);
+    mLogOutput->setItem(newRow, 1, iconItem);
 
     //
     //
@@ -112,7 +118,7 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
     }
     pipeline->setText(result);
     pipeline->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
-    mLogOutput->setItem(newRow, 1, pipeline);
+    mLogOutput->setItem(newRow, 2, pipeline);
 
     //
     //
@@ -120,7 +126,7 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
     auto *message = new QTableWidgetItem();
     message->setText(log.message.data());
     message->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
-    mLogOutput->setItem(newRow, 2, message);
+    mLogOutput->setItem(newRow, 3, message);
   };
 
   mLogOutput->setRowCount(0);
@@ -129,6 +135,11 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
     for(const auto &log : error) {
       addEntry(pipelineName, log);
     }
+  }
+
+  if(mLogOutput->rowCount() > 0) {
+    mLogOutput->sortItems(0, Qt::AscendingOrder);    // Sort in ascending order
+    mLogOutput->selectRow(0);
   }
 }
 

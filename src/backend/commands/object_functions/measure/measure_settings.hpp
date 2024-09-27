@@ -35,12 +35,12 @@ struct MeasureSettings : public SettingBase
   //
   // Clusters to calculate to measure for
   //
-  ObjectInputClusters inputClusters;
+  ObjectInputClusters inputClusters = {{}};
 
   //
   // Image planes on which a measurement should be applied
   //
-  std::list<enums::ImageId> planesIn;
+  std::list<enums::ImageId> planesIn = {{}};
 
   /////////////////////////////////////////////////////
   void check() const

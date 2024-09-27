@@ -195,11 +195,11 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
           }
         }
       }
-
+      updatePreview();
+      mWindowMain->checkForSettingsChanged();
       return;
     }
   }
-  mWindowMain->checkForSettingsChanged();
 }
 
 ///
@@ -232,7 +232,8 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   //
   //
   defaultClusterId = SettingBase::create<SettingComboBox<enums::ClusterId>>(windowMain, generateIcon("hexagon"), "Cluster");
-  defaultClusterId->addOptions({{enums::ClusterId::A, "Cluster A"},
+  defaultClusterId->addOptions({{enums::ClusterId::NONE, "None"},
+                                {enums::ClusterId::A, "Cluster A"},
                                 {enums::ClusterId::B, "Cluster B"},
                                 {enums::ClusterId::C, "Cluster C"},
                                 {enums::ClusterId::D, "Cluster D"},
@@ -245,7 +246,8 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   defaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId);
 
   defaultClassId = SettingBase::create<SettingComboBox<enums::ClassId>>(windowMain, generateIcon("circle"), "Class");
-  defaultClassId->addOptions({{enums::ClassId::C0, "Class A"},
+  defaultClassId->addOptions({{enums::ClassId::UNDEFINED, "Undefined"},
+                              {enums::ClassId::C0, "Class A"},
                               {enums::ClassId::C1, "Class B"},
                               {enums::ClassId::C2, "Class C"},
                               {enums::ClassId::C3, "Class D"},
