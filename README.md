@@ -4,7 +4,6 @@
 ![GitHub License](https://img.shields.io/github/license/joda01/imagec)
 
 
-
 # imageC (EVAnalyzer 2)
 
 is an open source application designed for high throughput analyzing of microscopy images in the biological sciences.  

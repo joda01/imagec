@@ -16,6 +16,7 @@
 #include <qwidget.h>
 
 #include <utility>
+#include "ui/helper/icon_generator.hpp"
 
 namespace joda::ui::helper {
 
@@ -41,7 +42,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
       auto *spacerTop = new QWidget();
       spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
       mSpaceTopToolbar = mToolbarTop->addWidget(spacerTop);
-      mBackButton      = new QAction(QIcon(":/icons/icons/icons8-close-50.png").pixmap(16, 16), "Close", mToolbarTop);
+      mBackButton      = new QAction(generateIcon("close"), "Close", mToolbarTop);
       mToolbarTop->addAction(mBackButton);
     }
   }
@@ -54,7 +55,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
       spacerBottom->setContentsMargins(0, 0, 0, 0);
       spacerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
       mSpaceBottomToolbar = mToolbarBottom->addWidget(spacerBottom);
-      mDeleteButton       = new QAction(QIcon(":/icons/icons/icons8-trash-50.png").pixmap(16, 16), "Delete", mToolbarBottom);
+      mDeleteButton       = new QAction(generateIcon("delete"), "Delete", mToolbarBottom);
       mDeleteButton->setToolTip("Delete");
       mToolbarBottom->addAction(mDeleteButton);
     }
@@ -160,10 +161,9 @@ void LayoutGenerator::addItemToBottomToolbar(QAction *widget)
 /// \param[out]
 /// \return
 ///
-QAction *LayoutGenerator::addActionBottomButton(const QString &text, const QString &icon)
+QAction *LayoutGenerator::addActionBottomButton(const QString &text, const QIcon &icon)
 {
-  QIcon bmp(":/icons/icons/" + icon);
-  auto *action = new QAction(bmp.pixmap(16, 16), text);
+  auto *action = new QAction(icon, text);
   addItemToBottomToolbar(action);
   return action;
 }
@@ -175,10 +175,9 @@ QAction *LayoutGenerator::addActionBottomButton(const QString &text, const QStri
 /// \param[out]
 /// \return
 ///
-QAction *LayoutGenerator::addActionButton(const QString &text, const QString &icon)
+QAction *LayoutGenerator::addActionButton(const QString &text, const QIcon &icon)
 {
-  QIcon bmp(":/icons/icons/" + icon);
-  auto *action = new QAction(bmp.pixmap(16, 16), text);
+  auto *action = new QAction(icon, text);
   addItemToTopToolbar(action);
   return action;
 }

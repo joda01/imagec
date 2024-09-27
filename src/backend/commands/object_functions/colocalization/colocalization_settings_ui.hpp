@@ -25,6 +25,7 @@
 #include "ui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
 #include "colocalization_settings.hpp"
@@ -36,20 +37,29 @@ class Colocalization : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Colocalization";
-  inline static std::string ICON  = "icons8-venn-diagram-50.png";
+  inline static std::string ICON  = "venn-diagram";
 
   Colocalization(joda::settings::PipelineStep &pipelineStep, settings::ColocalizationSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});
 
-    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Output class");
+    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("venn-diagram"), "Classes to coloc.");
+    mClustersIn->setValue(settings.inputClusters);
+    mClustersIn->connectWithSetting(&settings.inputClusters);
+
+    addSetting(modelTab, "Input", {{mClustersIn.get(), true, 0}});
+
+    //
+    //
+    //
+    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Output class");
     mClassOutput->setValue(settings.outputCluster.classId);
     mClassOutput->connectWithSetting(&settings.outputCluster.classId);
 
     //
     //
-    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, "", "Min. intersection");
+    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("query-inner-join"), "Min. intersection");
     mMinIntersection->setDefaultValue(0.1);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");
@@ -58,13 +68,7 @@ public:
     mMinIntersection->connectWithSetting(&settings.minIntersection);
     mMinIntersection->setShortDescription("Cls. ");
 
-    auto *col = addSetting(modelTab, "Base settings.", {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}});
-
-    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, "", "Input");
-    mClustersIn->setValue(settings.inputClusters);
-    mClustersIn->connectWithSetting(&settings.inputClusters);
-
-    addSetting(modelTab, "Coloc with.", {{mClustersIn.get(), true, 0}});
+    auto *col = addSetting(modelTab, "Output", {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}});
   }
 
 private:

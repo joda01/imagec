@@ -15,6 +15,7 @@
 #include <cstdint>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enum_images.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/settings_types.hpp"
@@ -34,7 +35,7 @@ struct ClassifierFilter
     // Which image should be used for measure the intensity value.
     // If not specified the initial image of the actual pipeline step is used.
     //
-    enums::ImageId imageIn = {.zProjection = joda::enums::ZProjection::MAX_INTENSITY, .imagePlane = {.cStack = -1}};
+    enums::ImageId imageIn = {.zProjection = joda::enums::ZProjection::$, .imagePlane = {.cStack = -1}};
 
     //
     // Min intensity
@@ -74,7 +75,7 @@ struct ClassifierFilter
   //
   //
   //
-  float minCircularity = 0;
+  float minCircularity = -1;
 
   //
   //
@@ -90,15 +91,14 @@ struct ClassifierFilter
   {
     CHECK_ERROR(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
                 "Max particle size must be bigger than min particle size!");
-    CHECK_ERROR(minCircularity >= 0 && minCircularity <= 1, "Min circularity must be in range [0-1].");
+    CHECK_ERROR(minCircularity < 0 || (minCircularity >= 0 && minCircularity <= 1), "Min circularity must be in range [0-1].");
     CHECK_ERROR(snapAreaSize >= 0, "Snap area size must be > 0.");
   }
 
-  bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi,
-                       const IntensityFilter &intensity) const;
+  bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi, const IntensityFilter &intensity) const;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, minParticleSize, maxParticleSize,
-                                                       minCircularity, snapAreaSize, intensity, outputCluster);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, minParticleSize, maxParticleSize, minCircularity, snapAreaSize, intensity,
+                                                       outputCluster);
 };
 
 struct ObjectClass
@@ -111,7 +111,7 @@ struct ObjectClass
   //
   // If no filter matches this class is assigned to the object
   //
-  ClassificatorSetting outputClusterNoMatch;
+  ClassificatorSetting outputClusterNoMatch = {.classId = enums::ClassIdIn::NONE};
 
   //
   // Grayscale or object class id from model

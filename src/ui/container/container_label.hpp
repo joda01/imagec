@@ -23,7 +23,7 @@ namespace joda::ui {
 class ContainerLabel : public SettingBase
 {
 public:
-  ContainerLabel(const QString &text, const QString &iconName, QWidget *parent) : SettingBase(parent, iconName, text)
+  ContainerLabel(const QString &text, const QIcon &iconName, QWidget *parent) : SettingBase(parent, iconName, text)
   {
     mEditable = new QWidget();
     mEditable->setObjectName("panelFunction");

@@ -48,6 +48,7 @@
 #include "ui/container/panel_edit_base.hpp"
 #include "ui/container/setting/setting_combobox_classification_unmanaged.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
 #include "ui/results/dialog_export_data.hpp"
@@ -109,19 +110,19 @@ void PanelResults::setActive(bool active)
 void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 {
   // Back button
-  mBackButton = new QPushButton(QIcon(":/icons/icons/icons8-left-50.png"), "");
+  mBackButton = new QPushButton(generateIcon("arrow-left"), "");
   mBackButton->setEnabled(false);
   connect(mBackButton, &QPushButton::pressed, this, &PanelResults::onBackClicked);
   toolbar->addItemToTopToolbar(mBackButton);
 
   QButtonGroup *grp = new QButtonGroup();
-  mHeatmapButton    = new QPushButton(QIcon(":/icons/icons/icons8-heat-map-50.png"), "");
+  mHeatmapButton    = new QPushButton(generateIcon("heat-map"), "");
   mHeatmapButton->setCheckable(true);
   mHeatmapButton->setChecked(true);
   grp->addButton(mHeatmapButton);
   toolbar->addItemToTopToolbar(mHeatmapButton);
 
-  mTableButton = new QPushButton(QIcon(":/icons/icons/icons8-table-50.png"), "");
+  mTableButton = new QPushButton(generateIcon("table"), "");
   mTableButton->setCheckable(true);
   grp->addButton(mTableButton);
   toolbar->addItemToTopToolbar(mTableButton);
@@ -140,7 +141,7 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   //
   // Copy Button
   //
-  auto *copy = new QPushButton(QIcon(":/icons/icons/icons8-copy-50.png"), "Copy table");
+  auto *copy = new QPushButton(generateIcon("copy"), "Copy table");
   copy->setToolTip("Copy table");
   connect(copy, &QPushButton::pressed, [this]() { copyTableToClipboard(mTable); });
   toolbar->addItemToTopToolbar(copy);
@@ -148,7 +149,7 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   //
   // Export button
   //
-  auto *exportData = new QPushButton(QIcon(":/icons/icons/icons8-export-excel-50.png"), "Export");
+  auto *exportData = new QPushButton(generateIcon("export-excel"), "Export");
   exportData->setToolTip("Export data");
   connect(exportData, &QPushButton::pressed, [this]() {
     std::map<settings::ClassificatorSettingOut, QString> clustersAndClasses;
@@ -243,8 +244,8 @@ void PanelResults::setAnalyzer()
     for(const auto &[clusterId, cluster] : clusters) {
       for(const auto &[classId, classsName] : cluster.second) {
         std::string name = cluster.first + "@" + classsName;
-        mClusterClassSelector->addItem(name.data(),
-                                       SettingComboBoxMultiClassificationIn::toInt({static_cast<enums::ClusterIdIn>(clusterId), classId}));
+        mClusterClassSelector->addItem(name.data(), SettingComboBoxMultiClassificationIn::toInt(
+                                                        {static_cast<enums::ClusterIdIn>(clusterId), static_cast<enums::ClassIdIn>(classId)}));
       }
       mClusterClassSelector->insertSeparator(mClusterClassSelector->count());
     }
@@ -300,7 +301,7 @@ void PanelResults::onClusterAndClassesChanged()
 
   {
     auto clusters = mAnalyzer->selectCrossChannelCountForClusterAndClass(static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                         clusterClassSelected.classId);
+                                                                         static_cast<enums::ClassId>(clusterClassSelected.classId));
     mCrossChannelClusterAndClassesSelector->blockSignals(true);
     auto currentChannel = mCrossChannelClusterAndClassesSelector->currentData().toUInt();
     mCrossChannelClusterAndClassesSelector->clear();
@@ -308,7 +309,8 @@ void PanelResults::onClusterAndClassesChanged()
       for(const auto &[classId, classsName] : cluster.second) {
         std::string name = cluster.first + "@" + classsName;
         mCrossChannelClusterAndClassesSelector->addItem(
-            name.data(), SettingComboBoxMultiClassificationIn::toInt({static_cast<enums::ClusterIdIn>(clusterId), classId}));
+            name.data(),
+            SettingComboBoxMultiClassificationIn::toInt({static_cast<enums::ClusterIdIn>(clusterId), static_cast<enums::ClassIdIn>(classId)}));
       }
       mCrossChannelClusterAndClassesSelector->insertSeparator(mCrossChannelClusterAndClassesSelector->count());
 
@@ -330,7 +332,7 @@ void PanelResults::onClusterAndClassesChanged()
     auto imageChannels  = mAnalyzer->selectImageChannels();
     auto currentChannel = mCrossChannelStackC->currentData().toInt();
     auto channels       = mAnalyzer->selectMeasurementChannelsForClusterAndClass(static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                                 clusterClassSelected.classId);
+                                                                                 static_cast<enums::ClassId>(clusterClassSelected.classId));
     mCrossChannelStackC->blockSignals(true);
     mCrossChannelStackC->clear();
     for(const auto channelId : channels) {
@@ -388,7 +390,7 @@ void PanelResults::refreshView()
                             .actGroupId              = mActGroupId,
                             .actImageId              = mActImageId,
                             .clusterId               = static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
-                            .classId                 = clusterClassSelected.classId,
+                            .classId                 = static_cast<enums::ClassId>(clusterClassSelected.classId),
                             .className               = className.toStdString(),
                             .measurementChannel      = static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
                             .stats                   = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
@@ -398,7 +400,7 @@ void PanelResults::refreshView()
                             .crossChannelStack_cName = mCrossChannelStackC->currentText().toStdString(),
                             .crossChannelClusterId   = static_cast<enums::ClusterId>(crossChannelClusterAndClassSelected.clusterId),
                             .crossChannelClusterName = crossChannelClusterName.toStdString(),
-                            .crossChannelClassId     = crossChannelClusterAndClassSelected.classId,
+                            .crossChannelClassId     = static_cast<enums::ClassId>(crossChannelClusterAndClassSelected.classId),
                             .crossChannelClassName   = crossChannelClassName.toStdString()};
 
   if(mActionCrossChannelCStack != nullptr && mActionCrossChannelCluster != nullptr) {
@@ -673,8 +675,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load database!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

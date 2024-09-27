@@ -25,11 +25,9 @@ namespace joda::ui {
 /// \param[out]
 /// \return
 ///
-SettingBase::SettingBase(QWidget *parent, const QString &icon, const QString &description) : mParent((WindowMain *) parent), mDescription(description)
+SettingBase::SettingBase(QWidget *parent, const QIcon &icon, const QString &description) :
+    mParent((WindowMain *) parent), mIcon(icon), mDescription(description)
 {
-  if(!icon.isEmpty()) {
-    mIcon = QIcon(":/icons/icons/" + icon);
-  }
   createDisplayAbleWidget(icon, description);
   if(parent != nullptr) {
     connect(mParent->getPanelClassification(), &PanelClassification::settingsChanged, this, &SettingBase::onClassificationNameChanged);
@@ -191,7 +189,7 @@ void SettingBase::updateDisplayLabel()
 /// \brief    This label is not editable but only shows the entered data
 /// \author   Joachim Danmayr
 ///
-void SettingBase::createDisplayAbleWidget(const QString &icon, const QString &tooltip)
+void SettingBase::createDisplayAbleWidget(const QIcon &icon, const QString &tooltip)
 {
   mDisplayable = new QWidget();
   mDisplayable->setContentsMargins(0, 0, 0, 0);
@@ -204,7 +202,7 @@ void SettingBase::createDisplayAbleWidget(const QString &icon, const QString &to
   mDisplayLabel->setToolTip(tooltip);
 
   // Create a QPixmap for the icon (you may need to adjust the path)
-  if(!icon.isEmpty()) {
+  if(!icon.isNull()) {
     mDisplayLabelIcon->setPixmap(mIcon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));
     mDisplayLabelIcon->setToolTip(tooltip);
   }
@@ -214,7 +212,7 @@ void SettingBase::createDisplayAbleWidget(const QString &icon, const QString &to
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(4);
   mDisplayable->setLayout(layout);
-  if(!icon.isEmpty()) {
+  if(!icon.isNull()) {
     layout->addWidget(mDisplayLabelIcon);
   }
   layout->addWidget(mDisplayLabel);

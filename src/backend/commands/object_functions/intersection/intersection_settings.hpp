@@ -44,8 +44,8 @@ struct IntersectionSettings : public SettingBase
 
     void check() const
     {
-      CHECK_ERROR(!inputClusters.empty(), "At least one class id must be given.");
-      // CHECK_ERROR(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
+      // CHECK_ERROR(!inputClusters.empty(), "At least one class id must be given.");
+      //  CHECK_ERROR(clusterIn != joda::enums::ClusterId::NONE, "Input cluster ID must not be >NONE<.");
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectingClasses, inputClusters);
@@ -54,7 +54,7 @@ struct IntersectionSettings : public SettingBase
   //
   // What should happen when an intersection was found
   //
-  Function mode = Function::UNKNOWN;
+  Function mode = Function::RECLASSIFY;
 
   //
   // Minimum intersection in [0-1]
@@ -74,15 +74,17 @@ struct IntersectionSettings : public SettingBase
   //
   // In case of reclassification this is the new class ID for intersecting elements
   //
-  joda::enums::ClassId newClassId = joda::enums::ClassId::UNDEFINED;
+  joda::enums::ClassIdIn newClassId = joda::enums::ClassIdIn::UNDEFINED;
 
   /////////////////////////////////////////////////////
   void check() const
   {
     CHECK_ERROR(mode != Function::UNKNOWN, "Define a intersection function!");
-    CHECK_ERROR(minIntersection >= 0, "Min intersection must be >=0.");
+    CHECK_ERROR(minIntersection >= 0 && minIntersection <= 1, "Min intersection must be in range [0-1].");
+    CHECK_ERROR(!inputObjects.inputClusters.empty(), "At least one input must be given!");
+    CHECK_ERROR(!inputObjectsIntersectWith.inputClusters.empty(), "At least one interseting class must be given!");
     if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {
-      CHECK_ERROR(newClassId != joda::enums::ClassId::UNDEFINED, "Define a class the elements should be assigned for reclassification.");
+      CHECK_ERROR(newClassId != joda::enums::ClassIdIn::UNDEFINED, "Define a class the elements should be assigned for reclassification.");
     }
   }
 

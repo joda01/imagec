@@ -55,17 +55,16 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       resultTemp = &buffer01;
     }
 
-    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = std::set<joda::enums::ClassId>{it->classId};
+    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = std::set<joda::enums::ClassId>{context.getClassId(it->classId)};
 
     ++it;
     ++idx;
 
     for(; it != clustersToIntersect.end(); ++it) {
       const auto *objects02 = context.loadObjectsFromCache()->at(context.getClusterId(it->clusterId)).get();
-      working->calcColocalization(context.getActIterator(), objects02, resultTemp, objectClassesMe, {it->classId},
-                                  context.getClusterId(mSettings.outputCluster.clusterId),
-                                  context.getClassId(mSettings.outputCluster.classId), 0, mSettings.minIntersection,
-                                  context.getActTile(), context.getTileSize());
+      working->calcColocalization(context.getActIterator(), objects02, resultTemp, objectClassesMe, {context.getClassId(it->classId)},
+                                  context.getClusterId(mSettings.outputCluster.clusterId), context.getClassId(mSettings.outputCluster.classId), 0,
+                                  mSettings.minIntersection, context.getActTile(), context.getTileSize());
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
       objectClassesMe.reset();
       idx++;

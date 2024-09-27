@@ -39,6 +39,7 @@
 #include "ui/container/container_base.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/window_main/panel_classification.hpp"
@@ -110,7 +111,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   // Tool button
 
-  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", "icons8-mark-as-favorite-50.png");
+  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("mark-as-favorite"));
   connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
@@ -194,11 +195,11 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
           }
         }
       }
-
+      updatePreview();
+      mWindowMain->checkForSettingsChanged();
       return;
     }
   }
-  mWindowMain->checkForSettingsChanged();
 }
 
 ///
@@ -212,42 +213,27 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 {
   //
   //
-  pipelineName = SettingBase::create<SettingLineEdit<std::string>>(windowMain, "icons8-text-50.png", "Pipeline name");
+  pipelineName = SettingBase::create<SettingLineEdit<std::string>>(windowMain, generateIcon("header"), "Pipeline name");
   pipelineName->setPlaceholderText("Name");
   pipelineName->setMaxLength(15);
   pipelineName->connectWithSetting(&mSettings.meta.name);
 
   //
   //
-  cStackIndex = SettingBase::create<SettingComboBox<int32_t>>(windowMain, "icons8-unknown-status-50.png", "Image channel");
-  cStackIndex->addOptions({{-1, "Empty"},
-                           {0, "Channel 0"},
-                           {1, "Channel 1"},
-                           {2, "Channel 2"},
-                           {3, "Channel 3"},
-                           {4, "Channel 4"},
-                           {5, "Channel 5"},
-                           {6, "Channel 6"},
-                           {7, "Channel 7"},
-                           {8, "Channel 8"},
-                           {9, "Channel 9"},
-                           {10, "Channel 10"}});
+  cStackIndex = generateCStackCombo<SettingComboBox<int32_t>>("Image channel", windowMain, "Empty");
   cStackIndex->setDefaultValue(-1);
   cStackIndex->connectWithSetting(&mSettings.pipelineSetup.cStackIndex);
 
   //
   //
-  zProjection = SettingBase::create<SettingComboBox<enums::ZProjection>>(windowMain, "icons8-layers-50.png", "Z-Projection");
-  zProjection->addOptions({{enums::ZProjection::NONE, "Off"},
-                           {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
-                           {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
-                           {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
+  zProjection = generateZProjection(false, windowMain);
   zProjection->connectWithSetting(&mSettings.pipelineSetup.zProjection);
 
   //
   //
-  defaultClusterId = SettingBase::create<SettingComboBox<enums::ClusterId>>(windowMain, "icons8-connection-50.png", "Cluster");
-  defaultClusterId->addOptions({{enums::ClusterId::A, "Cluster A"},
+  defaultClusterId = SettingBase::create<SettingComboBox<enums::ClusterId>>(windowMain, generateIcon("hexagon"), "Cluster");
+  defaultClusterId->addOptions({{enums::ClusterId::NONE, "None"},
+                                {enums::ClusterId::A, "Cluster A"},
                                 {enums::ClusterId::B, "Cluster B"},
                                 {enums::ClusterId::C, "Cluster C"},
                                 {enums::ClusterId::D, "Cluster D"},
@@ -259,14 +245,31 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
                                 {enums::ClusterId::J, "Cluster J"}});
   defaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId);
 
+  defaultClassId = SettingBase::create<SettingComboBox<enums::ClassId>>(windowMain, generateIcon("circle"), "Class");
+  defaultClassId->addOptions({{enums::ClassId::UNDEFINED, "Undefined"},
+                              {enums::ClassId::C0, "Class A"},
+                              {enums::ClassId::C1, "Class B"},
+                              {enums::ClassId::C2, "Class C"},
+                              {enums::ClassId::C3, "Class D"},
+                              {enums::ClassId::C4, "Class E"},
+                              {enums::ClassId::C5, "Class F"},
+                              {enums::ClassId::C6, "Class G"},
+                              {enums::ClassId::C7, "Class H"},
+                              {enums::ClassId::C8, "Class I"},
+                              {enums::ClassId::C9, "Class J"}});
+  defaultClassId->connectWithSetting(&mSettings.pipelineSetup.defaultClassId);
+
   connect(pipelineName.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
   connect(cStackIndex.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(defaultClusterId.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  connect(defaultClassId.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
 
   {
     auto *col1 = tab->addVerticalPanel();
-    col1->addGroup("Pipeline setup", {pipelineName.get(), cStackIndex.get(), zProjection.get(), defaultClusterId.get()});
+    col1->addGroup("Pipeline meta", {pipelineName.get()});
+    col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get()});
+    col1->addGroup("Pipeline output", {defaultClusterId.get(), defaultClassId.get()});
   }
 
   mOverview = new PanelChannelOverview(windowMain, this);
@@ -372,7 +375,7 @@ void PanelPipelineSettings::updatePreview()
                 QString info;
                 auto [_, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
                 for(const auto &[classId, count] : previewResult.foundObjects) {
-                  info += (classes[classId] + ":" + QString::number(count) + ", ");
+                  info += (classes[(enums::ClassIdIn) classId] + ":" + QString::number(count) + ", ");
                 }
                 info.chop(2);
                 mPreviewImage->setThumbnailPosition(tileNrX, tileNrY, mSelectedTileX, mSelectedTileY);
@@ -470,6 +473,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
   zProjection->setValue(settings.pipelineSetup.zProjection);
   defaultClusterId->setValue(settings.pipelineSetup.defaultClusterId);
+  defaultClassId->setValue(settings.pipelineSetup.defaultClassId);
 
   //
   // Pipelinesteps
@@ -498,6 +502,7 @@ void PanelPipelineSettings::toSettings()
   mSettings.pipelineSetup.cStackIndex      = cStackIndex->getValue();
   mSettings.pipelineSetup.zProjection      = zProjection->getValue();
   mSettings.pipelineSetup.defaultClusterId = defaultClusterId->getValue();
+  mSettings.pipelineSetup.defaultClassId   = defaultClassId->getValue();
 }
 
 ///
@@ -522,8 +527,7 @@ void PanelPipelineSettings::closeWindow()
 void PanelPipelineSettings::deletePipeline()
 {
   QMessageBox messageBox(mWindowMain);
-  auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-  messageBox.setIconPixmap(icon->pixmap(42, 42));
+  messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
   messageBox.setWindowTitle("Delete pipeline?");
   messageBox.setText("Delete pipeline?");
   QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -549,13 +553,26 @@ void PanelPipelineSettings::deletePipeline()
 void PanelPipelineSettings::onClassificationNameChanged()
 {
   const auto [clusters, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
-  std::map<enums::ClusterId, QString> clustersN;
-  for(const auto &[id, name] : clusters) {
-    if(id != enums::ClusterIdIn::$) {
-      clustersN.emplace(static_cast<enums::ClusterId>(id), name);
+
+  {
+    std::map<enums::ClusterId, QString> clustersN;
+    for(const auto &[id, name] : clusters) {
+      if(id != enums::ClusterIdIn::$) {
+        clustersN.emplace(static_cast<enums::ClusterId>(id), name);
+      }
     }
+    defaultClusterId->changeOptionText(clustersN);
   }
-  defaultClusterId->changeOptionText(clustersN);
+
+  {
+    std::map<enums::ClassId, QString> classN;
+    for(const auto &[id, name] : classes) {
+      if(id != enums::ClassIdIn::$) {
+        classN.emplace(static_cast<enums::ClassId>(id), name);
+      }
+    }
+    defaultClassId->changeOptionText(classN);
+  }
 }
 
 ///
@@ -580,8 +597,7 @@ void PanelPipelineSettings::saveAsTemplate()
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);
-    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

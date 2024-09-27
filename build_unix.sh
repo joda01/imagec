@@ -1,19 +1,22 @@
 
 buildlibs(){
+    pip install conan --upgrade --break-system-packages
     conan profile detect --force
     conan install . --profile conan/profile_linux --output-folder=build --build=missing
     #cyclonedx-conan . --output sbom.spdx
     #conan graph info . --profile conan/profile_win_mingw --format=html > graph.html
 }
 
-
 build(){
-    cd build
-    cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Debug/generators/conan_toolchain.cmake"
-    cmake --build . --config Release --target imagec --parallel 16
-exit
+    cd resources
+    python3 get_icons.py
     cd ..
+    cd build
+    cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+    cmake --build . --config Release --target imagec --parallel 16
 
+    cd ..
+    
     rm -rf build/build/java
     rm -rf build/build/plugins
     rm -rf build/build/libs
@@ -43,13 +46,13 @@ exit
     chmod +x imagec
     chmod +x imagec.sh
     cd java
-    cp ../../../../resources/java/bioformats.jar .
-    cp ../../../../resources/java/BioFormatsWrapper.class .
+    cp -r ../../../../resources/java/bioformats.jar .
+    cp -r ../../../../resources/java/BioFormatsWrapper.class .
     cp -r ../../../../resources/java/jre_linux.zip .
-    unzip jre_linux.zip
+    #unzip  -qq jre_linux.zip
     rm -rf jre_linux.zip
     cd ..
 }
 
-buildlibs
+
 build

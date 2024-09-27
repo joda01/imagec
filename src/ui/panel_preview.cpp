@@ -24,6 +24,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "ui/helper/icon_generator.hpp"
 
 namespace joda::ui {
 
@@ -70,7 +71,7 @@ QWidget *PanelPreview::createToolBar()
 
   QButtonGroup *buttonGroup = new QButtonGroup();
 
-  QPushButton *move = new QPushButton(QIcon(":/icons/icons/icons8-hand-50.png"), "");
+  QPushButton *move = new QPushButton(generateIcon("hand"), "");
   move->setObjectName("ToolButton");
   move->setCheckable(true);
   move->setToolTip("Move the image");
@@ -78,31 +79,31 @@ QWidget *PanelPreview::createToolBar()
   // buttonGroup->addButton(move);
   // layout->addWidget(move);
 
-  QPushButton *fitToScreen = new QPushButton(QIcon(":/icons/icons/icons8-full-screen-50.png"), "");
+  QPushButton *fitToScreen = new QPushButton(generateIcon("full-screen"), "");
   fitToScreen->setObjectName("ToolButton");
   fitToScreen->setToolTip("Fit image to screen");
   connect(fitToScreen, &QPushButton::pressed, this, &PanelPreview::onFitImageToScreenSizeClicked);
   layout->addWidget(fitToScreen);
 
-  QPushButton *zoomIn = new QPushButton(QIcon(":/icons/icons/icons8-zoom-in-50.png"), "");
+  QPushButton *zoomIn = new QPushButton(generateIcon("zoom-in"), "");
   zoomIn->setObjectName("ToolButton");
   zoomIn->setToolTip("Zoom in");
   connect(zoomIn, &QPushButton::pressed, this, &PanelPreview::onZoomInClicked);
   layout->addWidget(zoomIn);
 
-  QPushButton *zoomOut = new QPushButton(QIcon(":/icons/icons/icons8-zoom-out-50.png"), "");
+  QPushButton *zoomOut = new QPushButton(generateIcon("zoom-out"), "");
   zoomOut->setObjectName("ToolButton");
   zoomOut->setToolTip("Zoom out");
   connect(zoomOut, &QPushButton::pressed, this, &PanelPreview::onZoomOutClicked);
   layout->addWidget(zoomOut);
 
-  QPushButton *openFullScreen = new QPushButton(QIcon(":/icons/icons/icons8-external-link-50.png"), "");
+  QPushButton *openFullScreen = new QPushButton(generateIcon("external-link"), "");
   openFullScreen->setObjectName("ToolButton");
   openFullScreen->setToolTip("Full screen");
   connect(openFullScreen, &QPushButton::pressed, this, &PanelPreview::onOpenFullScreenClickec);
   layout->addWidget(openFullScreen);
 
-  filled = new QPushButton(QIcon(":/icons/icons/icons8-100-50.png"), "");
+  filled = new QPushButton(generateIcon("fill-color"), "");
   filled->setCheckable(true);
   filled->setObjectName("ToolButton");
   filled->setToolTip("Filled");

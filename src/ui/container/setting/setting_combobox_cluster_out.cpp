@@ -12,6 +12,8 @@
 
 #include "setting_combobox_cluster_out.hpp"
 #include <string>
+#include "backend/enums/enums_clusters.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -59,7 +61,13 @@ void SettingComboBoxClusterOut::clusterNamesChanged()
     for(const auto &data : clusteres) {
       QVariant variant;
       variant = QVariant(toInt(data.first));
-      mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second, variant);
+
+      if(data.first == enums::ClusterIdIn::$) {
+        // We want this to be the first
+        mComboBox->insertItem(0, generateIcon("circle"), data.second, variant);
+      } else {
+        mComboBox->addItem(SettingBase::getIcon(), data.second, variant);
+      }
     }
     setValue(actSelected);
     mComboBox->blockSignals(false);

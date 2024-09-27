@@ -35,7 +35,7 @@ class Classifier : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Classifier";
-  inline static std::string ICON  = "icons8-genealogy-50.png";
+  inline static std::string ICON  = "classify";
 
   Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::BINARY, InOuts::OBJECT}), mSettings(settingsIn), mParent(parent)
@@ -51,7 +51,7 @@ public:
       cnt++;
     }
 
-    auto *addFilter = addActionButton("Add filter", "icons8-add-new-50.png");
+    auto *addFilter = addActionButton("Add filter", generateIcon("add"));
     connect(addFilter, &QAction::triggered, this, &Classifier::addFilter);
   }
 
@@ -69,18 +69,13 @@ private:
 
       //
       //
-      mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Threshold input class");
-      mGrayScaleValue->setDefaultValue(65535);
-      mGrayScaleValue->addOptions(
-          {{65535, "TH 1"}, {65534, "TH 2"}, {65533, "TH 3"}, {65532, "TH 4"}, {65530, "TH 5"}, {65529, "TH 6"}, {65528, "TH 7"}, {65527, "TH 8"}});
-      mGrayScaleValue->setUnit("");
+      mGrayScaleValue = generateThresholdClass("Threshold class input", parent);
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
-      mGrayScaleValue->setShortDescription("");
 
       //
       //
-      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Min particle size");
+      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Min particle size");
       mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMinParticleSize->setUnit("px");
       mMinParticleSize->setMinMax(0, INT32_MAX);
@@ -89,7 +84,7 @@ private:
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
-      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max particle size");
+      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Max particle size");
       mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMaxParticleSize->setUnit("px");
       mMaxParticleSize->setMinMax(0, INT32_MAX);
@@ -99,7 +94,7 @@ private:
 
       //
       //
-      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, "", "Circularity [0-1]");
+      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("oval"), "Circularity [0-1]");
       mMinCircularity->setPlaceholderText("[0 - 1]");
       mMinCircularity->setUnit("%");
       mMinCircularity->setMinMax(0, 1);
@@ -115,14 +110,14 @@ private:
 
       //
       //
-      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Match");
+      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Match");
       mClassOut->setValue(classifyFilter.outputCluster.classId);
       mClassOut->connectWithSetting(&classifyFilter.outputCluster.classId);
       mClassOut->setDisplayIconVisible(false);
 
       //
       //
-      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "No match");
+      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("railroad-crossing"), "No match");
       mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
       mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
 
@@ -132,7 +127,7 @@ private:
 
       //
       //
-      mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Min intensity");
+      mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light-min"), "Min intensity");
       mMinIntensity->setPlaceholderText("[0 - 65535]");
       mMinIntensity->setUnit("");
       mMinIntensity->setMinMax(0, INT32_MAX);
@@ -141,7 +136,7 @@ private:
       mMinIntensity->setShortDescription("Min. ");
       //
       //
-      mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max intensity");
+      mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light"), "Max intensity");
       mMaxIntensity->setPlaceholderText("[0 - 65535]");
       mMaxIntensity->setUnit("");
       mMaxIntensity->setMinMax(0, INT32_MAX);
@@ -157,11 +152,7 @@ private:
 
       //
       //
-      zProjectionForIntensityFilter = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, "icons8-layers-50.png", "Z-Projection");
-      zProjectionForIntensityFilter->addOptions({{enums::ZProjection::NONE, "Off"},
-                                                 {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
-                                                 {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
-                                                 {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
+      zProjectionForIntensityFilter = generateZProjection(true, parent);
       zProjectionForIntensityFilter->setValue(classifyFilter.intensity.imageIn.zProjection);
       zProjectionForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.zProjection);
 

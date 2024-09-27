@@ -94,8 +94,8 @@ public:
   void addItemToBottomToolbar(QAction *widget);
   QAction *addItemToTopToolbar(QWidget *);
   void addItemToTopToolbar(QAction *widget);
-  QAction *addActionButton(const QString &text, const QString &icon);
-  QAction *addActionBottomButton(const QString &text, const QString &icon);
+  QAction *addActionButton(const QString &text, const QIcon &icon);
+  QAction *addActionBottomButton(const QString &text, const QIcon &icon);
 
   QAction *addItemToBottomToolbar(QWidget *);
 

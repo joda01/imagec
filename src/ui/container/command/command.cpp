@@ -20,6 +20,7 @@
 #include <string>
 #include <type_traits>
 #include "ui/container/pipeline/add_command_button.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -56,7 +57,7 @@ Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &titl
     headerWidget->setLayout(layout);
     auto *mDisplayLabelIcon = new QLabel();
     if(!icon.isEmpty()) {
-      mIcon = QIcon(":/icons/icons/" + icon);
+      mIcon = generateIcon(icon);
       mDisplayLabelIcon->setPixmap(mIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
       layout->addWidget(mDisplayLabelIcon);
     }
@@ -158,7 +159,7 @@ void Command::registerAddCommandButton(joda::settings::Pipeline &settings, Panel
 ///
 void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
 {
-  mDisabled = mLayout.addActionButton("Disable", "icons8-hide-50.png");
+  mDisabled = mLayout.addActionButton("Disable", generateIcon("invisible"));
   mDisabled->setCheckable(true);
   mDisabled->setChecked(mPipelineStep.disabled);
   connect(mDisabled, &QAction::triggered, [this, pipelineSettingsUi](bool) {
@@ -177,13 +178,12 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
     mPipelineStep.disabled = mDisabled->isChecked();
   });
 
-  auto *okayBottom = mLayout.addActionBottomButton("Okay", "icons8-accept-50.png");
+  auto *okayBottom = mLayout.addActionBottomButton("Okay", generateIcon("accept"));
   connect(okayBottom, &QAction::triggered, [this]() { mEditDialog->close(); });
 
   connect(mLayout.getDeleteButton(), &QAction::triggered, [this, pipelineSettingsUi]() {
     QMessageBox messageBox(mParent);
-    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
     messageBox.setWindowTitle("Delete command?");
     messageBox.setText("Delete command from pipeline?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -242,7 +242,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
       }
 
       {
-        auto *casted = dynamic_cast<SettingComboBox<enums::ClassId> *>(data);
+        auto *casted = dynamic_cast<SettingComboBox<enums::ClassIdIn> *>(data);
         if(casted) {
           mClasses.emplace_back(casted);
         }
@@ -256,7 +256,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
       }
 
       {
-        auto *casted = dynamic_cast<SettingComboBoxMulti<enums::ClassId> *>(data);
+        auto *casted = dynamic_cast<SettingComboBoxMulti<enums::ClassIdIn> *>(data);
         if(casted) {
           mClassesMulti.emplace_back(casted);
         }
@@ -327,7 +327,7 @@ void Command::updateDisplayText()
   }
   txt += "</html>";
   mDisplayableText->setText(txt);
-  mDisplayableText->adjustSize();
+  // mDisplayableText->adjustSize();
 }
 
 ///
@@ -353,7 +353,7 @@ void Command::updateClassesAndClusters()
 /// \return
 ///
 void Command::updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames,
-                                           const std::map<enums::ClassId, QString> &classNames)
+                                           const std::map<enums::ClassIdIn, QString> &classNames)
 {
   for(auto &cluster : mClusters) {
     cluster->changeOptionText(clusterNames);

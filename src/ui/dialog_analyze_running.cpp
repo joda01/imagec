@@ -21,6 +21,7 @@
 #include <thread>
 #include "backend/helper/logger/console_logger.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
+#include "ui/helper/icon_generator.hpp"
 
 namespace joda::ui {
 
@@ -69,7 +70,7 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
   stopButton->setObjectName("ToolButton");
   stopButton->setEnabled(true);
 
-  QPushButton *openResultsFolder = new QPushButton(QIcon(":/icons/icons/icons8-scatter-plot-50.png"), "", this);
+  QPushButton *openResultsFolder = new QPushButton(generateIcon("scatter-plot"), "", this);
   openResultsFolder->setObjectName("ToolButton");
   openResultsFolder->setToolTip("Open results folder");
 
@@ -195,8 +196,8 @@ void DialogAnalyzeRunning::onRefreshData()
     progressBar->setValue(100);
     if(!mStopped) {
       QMessageBox messageBox(this);
-      auto *icon = new QIcon(":/icons/icons/icons8-error-50.png");
-      messageBox.setIconPixmap(icon->pixmap(42, 42));
+      // Color red = #860000
+      messageBox.setIconPixmap(generateIcon("error-red").pixmap(48, 48));
       messageBox.setWindowTitle("Error...");
       messageBox.setText("Error in execution got >" + QString(mWindowMain->getController()->getJobInformation().errorLog.data()) + "<.");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

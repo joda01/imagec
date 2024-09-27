@@ -51,7 +51,7 @@ class SettingBase : public QWidget
 
 public:
   template <class T>
-  static std::unique_ptr<T> create(QWidget *parent, const QString &icon, const QString &description)
+  static std::unique_ptr<T> create(QWidget *parent, const QIcon &icon, const QString &description)
   {
     auto instance = std::make_unique<T>(parent, icon, description);
     instance->createEditableWidget();
@@ -59,7 +59,7 @@ public:
   }
 
   /////////////////////////////////////////////////////
-  SettingBase(QWidget *parent, const QString &icon, const QString &description);
+  SettingBase(QWidget *parent, const QIcon &icon, const QString &description);
 
   ~SettingBase() = default;
 
@@ -97,7 +97,7 @@ protected:
 private:
   /////////////////////////////////////////////////////
   void updateDisplayLabel();
-  void createDisplayAbleWidget(const QString &icon, const QString &tooltip);
+  void createDisplayAbleWidget(const QIcon &icon, const QString &tooltip);
   QWidget *createDisplayAbleWidgetPlaceholder();
   void createEditableWidget();
   void createHelperText(QVBoxLayout *layout, const QString &helpText);

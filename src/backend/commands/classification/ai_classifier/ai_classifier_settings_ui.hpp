@@ -23,6 +23,7 @@
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
 #include "ai_classifier_settings.hpp"
@@ -34,21 +35,21 @@ class AiClassifier : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "AI Classifier";
-  inline static std::string ICON  = "icons8-magic-50.png";
+  inline static std::string ICON  = "magic";
 
   AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::OBJECT}), mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Model", [] {});
 
-    mModelPath = SettingBase::create<SettingLineEdit<std::string>>(parent, "", "Model path");
+    mModelPath = SettingBase::create<SettingLineEdit<std::string>>(parent, {}, "Model path");
     mModelPath->connectWithSetting(&settings.modelPath);
     mModelPath->setValue(settings.modelPath);
     mModelPath->setShortDescription("Model:");
 
     //
     //
-    mNumberOdModelClasses = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Nr. of model classes");
+    mNumberOdModelClasses = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Nr. of model classes");
     mNumberOdModelClasses->setPlaceholderText("[0 - 2,147,483,647]");
     mNumberOdModelClasses->setUnit("");
     mNumberOdModelClasses->setMinMax(1, INT32_MAX);
@@ -63,7 +64,7 @@ public:
       modelClasses.emplace_back(classifierSetting, *this, tab, cnt, parent);
       cnt++;
     }
-    auto *addClassifier = addActionButton("Add class", "icons8-add-new-50.png");
+    auto *addClassifier = addActionButton("Add class", generateIcon("add"));
     connect(addClassifier, &QAction::triggered, this, &AiClassifier::addClassifier);
   }
 
@@ -82,14 +83,14 @@ private:
 
       //
       //
-      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "Match class");
+      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Match class");
       mClassOut->setValue(settings.outputCluster.classId);
       mClassOut->connectWithSetting(&settings.outputCluster.classId);
       mClassOut->setDisplayIconVisible(false);
 
       //
       //
-      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Min particle size");
+      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Min particle size");
       mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMinParticleSize->setUnit("px");
       mMinParticleSize->setMinMax(0, INT32_MAX);
@@ -98,7 +99,7 @@ private:
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
-      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Max particle size");
+      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Max particle size");
       mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMaxParticleSize->setUnit("px");
       mMaxParticleSize->setMinMax(0, INT32_MAX);
@@ -108,7 +109,7 @@ private:
 
       //
       //
-      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, "", "Circularity [0-1]");
+      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("polygon"), "Circularity [0-1]");
       mMinCircularity->setPlaceholderText("[0 - 1]");
       mMinCircularity->setUnit("%");
       mMinCircularity->setMinMax(0, 1);
@@ -154,13 +155,13 @@ private:
 
       //
       //
-      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, "", "No match class");
+      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("railroad-crossing"), "No match class");
       mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
       mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
 
       //
       //
-      mGrayScaleValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, "", "Grayscale");
+      mGrayScaleValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("grayscale"), "Grayscale");
       mGrayScaleValue->setDefaultValue(65535);
       mGrayScaleValue->setPlaceholderText("[0 - 65535]");
       mGrayScaleValue->setUnit("%");

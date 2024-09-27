@@ -23,6 +23,7 @@
 #include <string>
 #include <thread>
 #include "backend/helper/image/image.hpp"
+#include "ui/helper/icon_generator.hpp"
 
 namespace joda::ui {
 
@@ -48,19 +49,19 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     //     toolbarTop->setContentsMargins(0, 0, 0, 0);
     toolbarTop->setMaximumHeight(32);
 
-    QAction *fitToScreen = new QAction(QIcon(":/icons/icons/icons8-full-screen-50.png"), "");
+    QAction *fitToScreen = new QAction(generateIcon("full-screen"), "");
     fitToScreen->setObjectName("ToolButton");
     fitToScreen->setToolTip("Fit image to screen");
     connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
     toolbarTop->addAction(fitToScreen);
 
-    QAction *zoomIn = new QAction(QIcon(":/icons/icons/icons8-zoom-in-50.png"), "");
+    QAction *zoomIn = new QAction(generateIcon("zoom-in"), "");
     zoomIn->setObjectName("ToolButton");
     zoomIn->setToolTip("Zoom in");
     connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
     toolbarTop->addAction(zoomIn);
 
-    QAction *zoomOut = new QAction(QIcon(":/icons/icons/icons8-zoom-out-50.png"), "");
+    QAction *zoomOut = new QAction(generateIcon("zoom-out"), "");
     zoomOut->setObjectName("ToolButton");
     zoomOut->setToolTip("Zoom out");
     connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
@@ -70,14 +71,14 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
     QActionGroup *buttonGroup = new QActionGroup(toolbarTop);
 
-    QAction *action2 = new QAction(QIcon(":/icons/icons/icons8-hand-50.png"), "");
+    QAction *action2 = new QAction(generateIcon("hand"), "");
     action2->setCheckable(true);
     action2->setChecked(true);
     connect(action2, &QAction::triggered, this, &DialogImageViewer::onSetSateToMove);
     buttonGroup->addAction(action2);
     toolbarTop->addAction(action2);
 
-    QAction *paintRectangle = new QAction(QIcon(":/icons/icons/icons8-rectangle-50.png"), "");
+    QAction *paintRectangle = new QAction(generateIcon("rectangle"), "");
     paintRectangle->setCheckable(true);
     connect(paintRectangle, &QAction::triggered, this, &DialogImageViewer::onSetStateToPaintRect);
     buttonGroup->addAction(paintRectangle);
@@ -85,7 +86,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
     toolbarTop->addSeparator();
 
-    QAction *showThumbnail = new QAction(QIcon(":/icons/icons/icons8-picture-in-picture-50.png"), "");
+    QAction *showThumbnail = new QAction(generateIcon("picture-in-picture-alternative"), "");
     showThumbnail->setCheckable(true);
     showThumbnail->setChecked(true);
     connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
@@ -130,23 +131,23 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(mSlider, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
     toolBar->addWidget(mSlider);
 
-    // QAction *fitToScreen = new QAction(QIcon(":/icons/icons/icons8-full-screen-50.png"), "");
+    // QAction *fitToScreen = new QAction(QIcon(":/icons/icons/icons8-full-screen"), "");
     // fitToScreen->setObjectName("ToolButton");
     // fitToScreen->setToolTip("Fit histogram to screen");
     // connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitHistogramToScreenSizeClicked);
     // toolBar->addAction(fitToScreen);
 
-    QAction *action1 = new QAction(QIcon(":/icons/icons/icons8-normal-distribution-histogram-50.png"), "");
+    QAction *action1 = new QAction(generateIcon("distribution-histogram"), "");
     connect(action1, &QAction::triggered, this, &DialogImageViewer::onShowHistogramDialog);
     toolBar->addAction(action1);
 
-    QAction *zoomIn = new QAction(QIcon(":/icons/icons/icons8-zoom-in-50.png"), "");
+    QAction *zoomIn = new QAction(generateIcon("zoom-in"), "");
     zoomIn->setObjectName("ToolButton");
     zoomIn->setToolTip("Zoom in");
     connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomHistogramInClicked);
     toolBar->addAction(zoomIn);
 
-    QAction *zoomOut = new QAction(QIcon(":/icons/icons/icons8-zoom-out-50.png"), "");
+    QAction *zoomOut = new QAction(generateIcon("zoom-out"), "");
     zoomOut->setObjectName("ToolButton");
     zoomOut->setToolTip("Zoom out");
     connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomHistogramOutClicked);

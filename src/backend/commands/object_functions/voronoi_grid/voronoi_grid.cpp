@@ -15,13 +15,12 @@
 
 namespace joda::cmd {
 
-void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::SpheralIndex &voronoiGrid,
-                              const atom::SpheralIndex &voronoiPoints, atom::SpheralIndex &response,
-                              atom::ObjectList &objects)
+void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::SpheralIndex &voronoiGrid, const atom::SpheralIndex &voronoiPoints,
+                              atom::SpheralIndex &response, atom::ObjectList &objects)
 {
   auto filterVoronoiAreas = [this, &context, &response, &voronoiPoints, &voronoiGrid](const atom::ROI *toIntersect) {
     for(const atom::ROI &voronoiArea : voronoiGrid) {
-      if(voronoiArea.getClassId() == mSettings.outputClustersVoronoi.classId) {
+      if(voronoiArea.getClassId() == context.getClassId(mSettings.outputClustersVoronoi.classId)) {
         //
         // Apply filter
         //
@@ -31,7 +30,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
           //
           if(mSettings.excludeAreasWithoutPoint) {
             for(const auto &points : mSettings.inputClustersPoints) {
-              if(!doesAreaContainsPoint(cutedVoronoiArea, voronoiPoints, {points.classId})) {
+              if(!doesAreaContainsPoint(cutedVoronoiArea, voronoiPoints, {context.getClassId(points.classId)})) {
                 return;
               }
             }
@@ -51,8 +50,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
           if(mSettings.excludeAreasAtTheEdge) {
             auto box       = cutedVoronoiArea.getBoundingBox();
             auto imageSize = context.getImageSize();
-            if(box.x <= 0 || box.y <= 0 || box.x + box.width >= imageSize.width ||
-               box.y + box.height >= imageSize.height) {
+            if(box.x <= 0 || box.y <= 0 || box.x + box.width >= imageSize.width || box.y + box.height >= imageSize.height) {
               // Touches the edge
               return;
             }
@@ -64,9 +62,9 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
         // Mask if enabled
         //
         if(toIntersect != nullptr) {
-          auto cutedVoronoiArea = voronoiArea.calcIntersection(
-              voronoiArea.getId().imagePlane, *toIntersect, voronoiArea.getSnapAreaRadius(), 0, context.getActTile(),
-              context.getTileSize(), voronoiArea.getClusterId(), voronoiArea.getClassId());
+          auto cutedVoronoiArea =
+              voronoiArea.calcIntersection(voronoiArea.getId().imagePlane, *toIntersect, voronoiArea.getSnapAreaRadius(), 0, context.getActTile(),
+                                           context.getTileSize(), voronoiArea.getClusterId(), voronoiArea.getClassId());
           if(!cutedVoronoiArea.isNull()) {
             applyFilter(cutedVoronoiArea);
           }
@@ -82,7 +80,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
     for(const auto &maskIn : mSettings.inputClustersMask) {
       const auto *mask = objects.at(context.getClusterId(maskIn.clusterId)).get();
       for(const auto &toIntersect : *mask) {
-        if(maskIn.classId == toIntersect.getClassId()) {
+        if(context.getClassId(maskIn.classId) == toIntersect.getClassId()) {
           filterVoronoiAreas(&toIntersect);
         }
       }

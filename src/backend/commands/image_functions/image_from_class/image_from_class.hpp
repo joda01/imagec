@@ -39,7 +39,7 @@ public:
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
     image = 0;
-    result.at(context.getClusterId(mSettings.clusterIn))->createBinaryImage(image, mSettings.classesIn);
+    result.at(context.getClusterId(mSettings.clusterIn))->createBinaryImage(image, context.getClassId(mSettings.classesIn));
   }
 
 private:

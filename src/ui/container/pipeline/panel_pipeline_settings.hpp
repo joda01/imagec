@@ -17,6 +17,7 @@
 #include <memory>
 #include <mutex>
 #include "backend/enums/enum_images.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/container_base.hpp"
@@ -100,6 +101,7 @@ private:
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
   std::unique_ptr<SettingComboBox<enums::ClusterId>> defaultClusterId;
+  std::unique_ptr<SettingComboBox<enums::ClassId>> defaultClassId;
 
   /////////////////////////////////////////////////////
   PanelPreview *mPreviewImage = nullptr;

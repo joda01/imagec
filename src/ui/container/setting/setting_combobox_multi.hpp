@@ -37,7 +37,7 @@ public:
   {
     VALUE_T key;
     QString label;
-    QString icon;
+    QIcon icon;
   };
 
   struct ComboEntryText
@@ -88,11 +88,10 @@ public:
       } else {
         variant = QVariant(data.key);
       }
-      if(data.icon.isEmpty()) {
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.label, variant);
+      if(data.icon.isNull()) {
+        mComboBox->addItem(SettingBase::getIcon(), data.label, variant);
       } else {
-        const QIcon myIcon(":/icons/icons/" + data.icon);
-        mComboBox->addItem(QIcon(myIcon.pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.label, variant);
+        mComboBox->addItem(data.icon, data.label, variant);
       }
     }
   }

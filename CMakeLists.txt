@@ -65,7 +65,7 @@ execute_process(COMMAND hostname OUTPUT_VARIABLE BUILD_HOST OUTPUT_STRIP_TRAILIN
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
-#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unknown-pragmas -lm")
+#SET(CMAKE_CXX_FLAGS "-g  -fsanitize=address -O1")
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -97,6 +97,7 @@ set(LIBS
 set(RESOURCE_FILES
     resources/qt_conf.qrc
     resources/resource.qrc
+    resources/icons.qrc
 )
 
 qt_add_resources(RESOURCE_SOURCES ${RESOURCE_FILES})
@@ -127,7 +128,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
-target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY)
+target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY DUCKDB_BUILD_LIBRARY )
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES

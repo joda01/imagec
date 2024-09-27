@@ -41,15 +41,14 @@ public:
             context.setImagePlaneValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
           case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER:
-            context.setImagePlaneClusterClusterValidity(classes.clusterId,
-                                                        joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+            context.setImagePlaneClusterClusterValidity(classes.clusterId, joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
         }
       };
 
       const auto *cluster = result.at(context.getClusterId(classes.clusterId)).get();
       for(const auto &roi : *cluster) {
-        if(roi.getClassId() == classes.classId) {
+        if(roi.getClassId() == context.getClassId(classes.classId)) {
           if(count > 0) {
             count--;
           } else {

@@ -79,6 +79,7 @@ jobs:
           cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so.6 .
           cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
           cd ..
+          strip imagec
           chmod +x imagec
           chmod +x imagec.sh
           cd java
@@ -152,6 +153,9 @@ jobs:
           cp -r ../imagec.app imagec.app
           cp -r /Users/runner/.conan2/p/b/*/p/./plugins/* ./plugins
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
+          strip ./imagec.app/Contents/MacOS/imagec
+          chmod +x ./imagec.app/Contents/MacOS/imagec
+          chmod +x ./imagec.app
           cd lib
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.6.dylib .
@@ -239,26 +243,7 @@ jobs:
       - name: Build imagec
         env:
           TAG_NAME: "${{ github.ref_name }}"
-        run: |
-          $conanDuckDBbasePath = 'C:\Users\runneradmin\.conan2\p\b'
-        
-          Get-ChildItem -Path "$conanDuckDBbasePath\*" | Where-Object {$_.Name -like "duck*"} | ForEach-Object {
-            $pathToCopy = "$conanDuckDBbasePath\"+$_.Name + "\p\include"
-            Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.hpp" -Destination $pathToCopy  -Force 
-            
-            }
-          Get-ChildItem -Path "$conanDuckDBbasePath\*" | Where-Object {$_.Name -like "duck*"} | ForEach-Object {
-            $pathToCopy = "$conanDuckDBbasePath\"+$_.Name + "\p\include"
-            Copy-Item -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb.h" -Destination $pathToCopy  -Force 
-            
-            }
-
-          Get-ChildItem -Path "$conanDuckDBbasePath\*" | Where-Object {$_.Name -like "duck*"} | ForEach-Object {
-            $pathToCopy = "$conanDuckDBbasePath\"+$_.Name + "\p\include"
-            Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE\lib\libduckdb-windows-amd64\duckdb" -Destination $pathToCopy  -Force 
-            
-            }
-    
+        run: |    
           cd D:\a\imagec\imagec\build
           cmake .. -G "MinGW Makefiles" -DTAG_NAME="$env:TAG_NAME" -DCMAKE_SH=CMAKE_SH-NOTFOUND -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
@@ -266,6 +251,7 @@ jobs:
       - name: Prepare output
         run: |
           cd build/build
+          strip imagec.exe
           ni "output" -ItemType Directory
           cd output
           ni "plugins" -ItemType Directory

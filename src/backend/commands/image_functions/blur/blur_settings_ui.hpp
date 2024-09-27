@@ -17,6 +17,7 @@
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "blur_settings.hpp"
 
@@ -27,14 +28,14 @@ class Blur : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Blur";
-  inline static std::string ICON  = "icons8-blur-50.png";
+  inline static std::string ICON  = "blur";
 
   Blur(joda::settings::PipelineStep &pipelineStep, settings::BlurSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
   {
     //
     //
-    mBlurMode = SettingBase::create<SettingComboBox<settings::BlurSettings::Mode>>(parent, "icons8-blur-50.png", "Blur mode");
+    mBlurMode = SettingBase::create<SettingComboBox<settings::BlurSettings::Mode>>(parent, generateIcon("blur"), "Blur mode");
     mBlurMode->addOptions({{settings::BlurSettings::Mode::BLUR_MORE, "Smoothing"}, {settings::BlurSettings::Mode::GAUSSIAN, "Gaussian blur"}});
     mBlurMode->setValue(settings.mode);
     mBlurMode->connectWithSetting(&settings.mode);
@@ -42,7 +43,7 @@ public:
     //
     //
     //
-    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Kernel size");
+    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("matrix"), "Kernel size");
     mKernelSize->addOptions({{-1, "Off"},
                              {3, "3x3"},
                              {4, "4x4"},
@@ -63,7 +64,7 @@ public:
     //
     //
     //
-    mRepeat = SettingBase::create<SettingComboBox<int32_t>>(parent, "", "Repeat");
+    mRepeat = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("repeat"), "Repeat");
     mRepeat->addOptions({{1, "x1"},
                          {2, "x2"},
                          {3, "x3"},

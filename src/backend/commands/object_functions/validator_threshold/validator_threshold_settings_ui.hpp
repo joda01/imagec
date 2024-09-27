@@ -19,6 +19,7 @@
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
 #include "validator_threshold_settings.hpp"
@@ -30,14 +31,14 @@ class ThresholdValidator : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Threshold filter";
-  inline static std::string ICON  = "icons8-filter-50.png";
+  inline static std::string ICON  = "filter";
 
   ThresholdValidator(joda::settings::PipelineStep &pipelineStep, settings::ThresholdValidatorSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::BINARY, InOuts::BINARY})
   {
     //
     //
-    mHistThreshold = SettingBase::create<SettingLineEdit<float>>(parent, "", "Hist. min threshold");
+    mHistThreshold = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("filter"), "Hist. min threshold");
     mHistThreshold->setDefaultValue(0.8);
     mHistThreshold->setPlaceholderText("[0 - 1]");
     mHistThreshold->setUnit("");

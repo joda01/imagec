@@ -16,6 +16,7 @@
 #include "backend/commands/command.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "watershed_settings.hpp"
 
@@ -26,12 +27,12 @@ class Watershed : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Watershed";
-  inline static std::string ICON  = "icons8-split-50";
+  inline static std::string ICON  = "split";
 
   Watershed(joda::settings::PipelineStep &pipelineStep, settings::WatershedSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::BINARY, InOuts::BINARY})
   {
-    mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, "icons8-split-50", "Find tolerance");
+    mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, generateIcon("split"), "Find tolerance");
     mFindTolerance->addOptions({
         {0.5, "Default (0.5)"},
         {0.6, "0.6"},

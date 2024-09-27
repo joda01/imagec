@@ -16,6 +16,7 @@
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "rolling_ball_settings.hpp"
 
 namespace joda::ui {
@@ -25,14 +26,14 @@ class RollingBallBackground : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE = "Rolling ball";
-  inline static std::string ICON  = "icons8-bubble-50.png";
+  inline static std::string ICON  = "bubble";
 
   RollingBallBackground(joda::settings::PipelineStep &pipelineStep, settings::RollingBallSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
   {
     //
     //
-    mBallType = SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, "icons8-bubble-50.png", "Ball type");
+    mBallType = SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, generateIcon("bubble"), "Ball type");
     mBallType->addOptions(
         {{joda::settings::RollingBallSettings::BallType::BALL, "Ball"}, {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}});
     mBallType->setValue(settings.ballType);
@@ -40,7 +41,7 @@ public:
 
     //
     //
-    mBallSize = SettingBase::create<SettingLineEdit<int>>(parent, "", "Ball size [0-256]");
+    mBallSize = SettingBase::create<SettingLineEdit<int>>(parent, generateIcon("diameter"), "Ball size [0-256]");
     mBallSize->setPlaceholderText("[0 - 256]");
     mBallSize->setUnit("px");
     mBallSize->setMinMax(0, 256);

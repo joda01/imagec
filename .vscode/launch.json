@@ -8,7 +8,7 @@
             "name": "CMake Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/workspaces/imagec/build/build/tests",
+            "program": "/workspaces/imagec/build/build/output/imagec",
             "args": [
                 "[dependencygraph]"
             ],
@@ -26,6 +26,11 @@
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Handle SIGSEGV without stopping or printing",
+                    "text": "handle SIGSEGV nostop noprint pass",
                     "ignoreFailures": true
                 }
             ]

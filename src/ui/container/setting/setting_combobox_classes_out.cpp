@@ -12,6 +12,8 @@
 
 #include "setting_combobox_classes_out.hpp"
 #include <string>
+#include "backend/enums/enums_classes.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -30,7 +32,7 @@ QWidget *SettingComboBoxClassesOut::createInputObject()
   return mComboBox;
 }
 
-void SettingComboBoxClassesOut::setDefaultValue(enums::ClassId defaultVal)
+void SettingComboBoxClassesOut::setDefaultValue(enums::ClassIdIn defaultVal)
 {
   mDefaultValue = defaultVal;
   reset();
@@ -56,14 +58,21 @@ void SettingComboBoxClassesOut::clusterNamesChanged()
     auto actSelected = getValue();
     mComboBox->clear();
     auto [_, classes] = parent->getPanelClassification()->getClustersAndClasses();
+
+    // Add this cluster
     for(const auto &data : classes) {
       QVariant variant;
       variant = QVariant(toInt(data.first));
-      if(!SettingBase::getIcon().isNull()) {
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), data.second, variant);
+
+      if(data.first == enums::ClassIdIn::$) {
+        // We want this to be the first
+        mComboBox->insertItem(0, generateIcon("circle"), data.second, variant);
       } else {
-        mComboBox->addItem(QIcon(QIcon(":/icons/icons/icons8-unknown-status-50.png").pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                           data.second, variant);
+        if(!SettingBase::getIcon().isNull()) {
+          mComboBox->addItem(SettingBase::getIcon(), data.second, variant);
+        } else {
+          mComboBox->addItem(generateIcon("circle"), data.second, variant);
+        }
       }
     }
     setValue(actSelected);
@@ -71,7 +80,7 @@ void SettingComboBoxClassesOut::clusterNamesChanged()
   }
 }
 
-QString SettingComboBoxClassesOut::getName(enums::ClassId key) const
+QString SettingComboBoxClassesOut::getName(enums::ClassIdIn key) const
 {
   auto idx = mComboBox->findData(toInt(key), Qt::UserRole + 1);
   if(idx >= 0) {
@@ -80,12 +89,12 @@ QString SettingComboBoxClassesOut::getName(enums::ClassId key) const
   return "";
 }
 
-enums::ClassId SettingComboBoxClassesOut::getValue()
+enums::ClassIdIn SettingComboBoxClassesOut::getValue()
 {
   return fromInt(mComboBox->currentData().toUInt());
 }
 
-void SettingComboBoxClassesOut::setValue(const enums::ClassId &valueIn)
+void SettingComboBoxClassesOut::setValue(const enums::ClassIdIn &valueIn)
 {
   auto idx = mComboBox->findData(toInt(valueIn));
   if(idx >= 0) {
@@ -93,7 +102,7 @@ void SettingComboBoxClassesOut::setValue(const enums::ClassId &valueIn)
   }
 }
 
-std::pair<enums::ClassId, std::string> SettingComboBoxClassesOut::getValueAndNames()
+std::pair<enums::ClassIdIn, std::string> SettingComboBoxClassesOut::getValueAndNames()
 {
   return {fromInt(mComboBox->currentData().toUInt()), mComboBox->currentText().toStdString()};
 }

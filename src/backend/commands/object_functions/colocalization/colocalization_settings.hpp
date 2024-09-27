@@ -50,7 +50,7 @@ struct ColocalizationSettings : public SettingBase
   void check() const
   {
     CHECK_ERROR(inputClusters.size() > 1, "At least two input objects must be given!");
-    CHECK_ERROR(minIntersection >= 0, "Min intersection must be >=0.");
+    CHECK_ERROR(minIntersection >= 0 && minIntersection <= 1, "Min intersection must be between [0-1].");
   }
 
   settings::ObjectInputClusters getInputClusters() const override

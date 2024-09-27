@@ -60,11 +60,17 @@ void SettingComboBoxMultiClassificationIn::outputClustersChanges()
   auto *parent = getParent();
   if(parent != nullptr) {
     auto outputClusters = parent->getOutputClasses();
+
     mComboBox->blockSignals(true);
     auto actSelected = getValue();
     mComboBox->clear();
+
+    // Add this cluster
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Default",
+                       QVariant(toInt({enums::ClusterIdIn::$, enums::ClassIdIn::$})));
+
     auto [clusteres, classes] = parent->getPanelClassification()->getClustersAndClasses();
-    if(outputClusters.size() > 0) {
+    if(!outputClusters.empty()) {
       auto oldCluster = outputClusters.begin()->clusterId;
       for(const auto &data : outputClusters) {
         if(data.classId != enums::ClassId::UNDEFINED) {
@@ -75,9 +81,9 @@ void SettingComboBoxMultiClassificationIn::outputClustersChanges()
 
           QVariant variant;
           variant = QVariant(toInt(data));
-
           mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                             clusteres[static_cast<enums::ClusterIdIn>(data.clusterId)] + "@" + classes[data.classId], variant);
+                             clusteres[static_cast<enums::ClusterIdIn>(data.clusterId)] + "@" + classes[static_cast<enums::ClassIdIn>(data.classId)],
+                             variant);
         }
       }
     }

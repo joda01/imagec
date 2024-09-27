@@ -46,6 +46,7 @@
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/dialog_analyze_running.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/pipeline_compile_log/panel_pipeline_compile_log.hpp"
 #include "ui/results/panel_results.hpp"
@@ -80,11 +81,14 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
     if(state == joda::filesystem::State::FINISHED) {
       if(getController()->getNrOfFoundImages() > 0) {
         mStartAnalysis->setEnabled(true);
+        mStartAnalysisToolButton->setEnabled(true);
       } else {
         mStartAnalysis->setEnabled(false);
+        mStartAnalysisToolButton->setEnabled(false);
       }
     } else if(state == joda::filesystem::State::RUNNING) {
       mStartAnalysis->setEnabled(false);
+      mStartAnalysisToolButton->setEnabled(false);
     }
   });
 
@@ -115,37 +119,48 @@ void WindowMain::createTopToolbar()
   auto *toolbar = addToolBar("toolbar");
   toolbar->setMovable(false);
 
-  mNewProjectButton = new QAction(QIcon(":/icons/icons/icons8-file-50.png"), "New project", toolbar);
+  mNewProjectButton = new QAction(generateIcon("file"), "New project", toolbar);
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   toolbar->addAction(mNewProjectButton);
 
-  mOpenProjectButton = new QAction(QIcon(":/icons/icons/icons8-opened-folder-50.png"), "Open project or results", toolbar);
+  mOpenProjectButton = new QAction(generateIcon("opened-folder"), "Open project or results", toolbar);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
   toolbar->addAction(mOpenProjectButton);
 
-  mSaveProject = new QAction(QIcon(":/icons/icons/icons8-save-50.png"), "Save", toolbar);
+  mSaveProject = new QAction(generateIcon("save"), "Save", toolbar);
   mSaveProject->setToolTip("Save project!");
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
   toolbar->addAction(mSaveProject);
 
+  mSaveProjectAs = new QAction(generateIcon("save-as"), "Save as", toolbar);
+  mSaveProjectAs->setToolTip("Save project as!");
+  connect(mSaveProjectAs, &QAction::triggered, this, &WindowMain::onSaveProjectAs);
+  toolbar->addAction(mSaveProjectAs);
+
   toolbar->addSeparator();
 
-  auto *showCompileLog = new QAction(QIcon(":/icons/icons/icons8-log-50.png"), "Compiler log", toolbar);
+  auto *showCompileLog = new QAction(generateIcon("log"), "Compiler log", toolbar);
   showCompileLog->setToolTip("CompileLog!");
   connect(showCompileLog, &QAction::triggered, [this]() { mCompilerLog->showDialog(); });
   toolbar->addAction(showCompileLog);
+
+  mStartAnalysisToolButton = new QAction(generateIcon("play"), "Start analyze", toolbar);
+  mStartAnalysisToolButton->setEnabled(false);
+  mStartAnalysisToolButton->setToolTip("Run pipeline!");
+  connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
+  toolbar->addAction(mStartAnalysisToolButton);
 
   auto *spacerTop = new QWidget();
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   toolbar->addWidget(spacerTop);
 
-  auto *helpButton = new QAction(QIcon(":/icons/icons/icons8-help-50.png"), "Info", toolbar);
+  auto *helpButton = new QAction(generateIcon("help"), "Help", toolbar);
   helpButton->setToolTip("Help");
   connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
   toolbar->addAction(helpButton);
 
-  mShowInfoDialog = new QAction(QIcon(":/icons/icons/icons8-info-50-circle.png"), "Info", toolbar);
+  mShowInfoDialog = new QAction(generateIcon("info"), "Info", toolbar);
   mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
   toolbar->addAction(mShowInfoDialog);
@@ -185,7 +200,7 @@ void WindowMain::createLeftToolbar()
     mTemplateSelection = new QComboBox();
     innerLayout->addWidget(mTemplateSelection);
 
-    mStartAnalysis = new QPushButton(QIcon(":/icons/icons/icons8-play-50.png"), "");
+    mStartAnalysis = new QPushButton(generateIcon("play"), "");
     mStartAnalysis->setEnabled(false);
     mStartAnalysis->setToolTip("Run pipeline!");
     innerLayout->addWidget(mStartAnalysis);
@@ -279,37 +294,6 @@ QWidget *WindowMain::createStartPageWidget()
   line->setFrameShape(QFrame::HLine);
   line->setFrameShadow(QFrame::Sunken);
   layout->addWidget(line);
-  /*
-    //
-    // New project
-    //
-    auto *newProject = new QPushButton();
-    const QIcon voronoiIcon(":/icons/icons/icons8-add-new-50.png");
-    newProject->setText("New project");
-    newProject->setIconSize({16, 16});
-    newProject->setIcon(voronoiIcon);
-    layout->addWidget(newProject);
-
-    //
-    // Open existing project
-    //
-    auto *openProject = new QPushButton();
-    const QIcon intersectionIcon(":/icons/icons/icons8-opened-folder-50.png");
-    openProject->setIconSize({16, 16});
-    openProject->setIcon(intersectionIcon);
-    openProject->setText("Open project");
-    layout->addWidget(openProject);
-
-    //
-    // Open results
-    //
-    auto *openResults = new QPushButton();
-    const QIcon openResultsIcon(":/icons/icons/icons8-graph-50.png");
-    openResults->setIconSize({16, 16});
-    openResults->setIcon(openResultsIcon);
-    openResults->setText("Open results");
-    layout->addWidget(openResults);
-  */
 
   ////////////////////////////////////////
   auto *startScreenWidget = new QWidget();
@@ -336,8 +320,8 @@ void WindowMain::onNewProjectClicked()
 {
   if(!mSelectedProjectSettingsFilePath.empty()) {
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/icons/icons8-info-50-blue.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    auto icon = generateIcon("info-blue");
+    messageBox.setIconPixmap(icon.pixmap(42, 42));
     messageBox.setWindowTitle("Create new project?");
     messageBox.setText("Unsaved settings will get lost! Create new project?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -452,8 +436,7 @@ void WindowMain::openProjectSettings(const QString &filePath)
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -469,13 +452,10 @@ void WindowMain::checkForSettingsChanged()
 {
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
-    // mSaveProject->setIcon(QIcon(":/icons/icons/icons8-save-50-red.png"));
-
     mSaveProject->setEnabled(true);
     emit onOutputClassifierChanges();
   } else {
     // Equal
-    // mSaveProject->setIcon(QIcon(":/icons/icons/icons8-save-50.png"));
     mSaveProject->setEnabled(false);
   }
   mCompilerLog->updateCompilerLog(mAnalyzeSettings);
@@ -501,22 +481,40 @@ void WindowMain::onSaveProjectAsClicked()
 ///
 void WindowMain::onSaveProject()
 {
+  saveProject(mSelectedProjectSettingsFilePath);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::onSaveProjectAs()
+{
+  saveProject("");
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::saveProject(std::filesystem::path filename)
+{
   try {
-    if(mSelectedProjectSettingsFilePath.empty()) {
+    if(filename.empty()) {
       std::filesystem::path filePath(mAnalyzeSettings.projectSettings.workingDirectory);
       filePath = filePath / "imagec";
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath                         = filePath / ("settings" + joda::fs::EXT_PROJECT);
-      QString filePathOfSettingsFile   = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
-                                                                      "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
-      mSelectedProjectSettingsFilePath = filePathOfSettingsFile.toStdString();
+      filePath                       = filePath / ("settings" + joda::fs::EXT_PROJECT);
+      QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
+                                                                    "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
+      filename                       = filePathOfSettingsFile.toStdString();
     }
 
-    if(!mSelectedProjectSettingsFilePath.empty()) {
+    if(!filename.empty()) {
       if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
-        joda::settings::Settings::storeSettings(mSelectedProjectSettingsFilePath, mAnalyzeSettings);
+        joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
       }
       mAnalyzeSettingsOld = mAnalyzeSettings;
       checkForSettingsChanged();
@@ -525,15 +523,14 @@ void WindowMain::onSaveProject()
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
     messageBox.setWindowTitle("Could not save settings!");
     messageBox.setText("Could not save settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
-
-  setWindowTitlePrefix(mSelectedProjectSettingsFilePath.filename().string().data());
+  mSelectedProjectSettingsFilePath = filename;
+  setWindowTitlePrefix(filename.filename().string().data());
 }
 
 ///
@@ -548,7 +545,7 @@ void WindowMain::loadTemplates()
   mTemplateSelection->addItem("Add pipeline ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
 
-  mTemplateSelection->addItem(QIcon(":/icons/icons/icons8-select-none-50.png").pixmap(28, 28), "Empty pipeline", "emptyChannel");
+  mTemplateSelection->addItem(generateIcon("flow-many"), "Empty pipeline", "emptyChannel");
 
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
   joda::templates::TemplateParser::Category actCategory = joda::templates::TemplateParser::Category::BASIC;
@@ -562,7 +559,7 @@ void WindowMain::loadTemplates()
       if(!data.icon.isNull()) {
         mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
       } else {
-        mTemplateSelection->addItem(QIcon(":/icons/icons/icons8-favorite-50.png").pixmap(28, 28), data.title.data(), data.path.data());
+        mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
       }
     }
   }
@@ -574,9 +571,18 @@ void WindowMain::loadTemplates()
 ///
 void WindowMain::onStartClicked()
 {
+  // If there are errors, starting the pipeline is not allowed
+  if(mCompilerLog->getNumberOfErrors() > 0) {
+    mCompilerLog->showDialog();
+    return;
+  }
+
+  // Go back to the start panel to free the RAM of the preview
+  showPanelStartPage();
+
   try {
-    mAnalyzeSettings.projectSettings.experimentSettings.experimentId   = "6fc87cc8-686e-4806-a78a-3f623c849cb7";
-    mAnalyzeSettings.projectSettings.experimentSettings.experimentName = "Experiment";
+    mAnalyzeSettings.projectSettings.experimentSettings.experimentId   = mPanelProjectSettings->getExperimentId().toStdString();
+    mAnalyzeSettings.projectSettings.experimentSettings.experimentName = mPanelProjectSettings->getExperimentName().toStdString();
     DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
     dialg.exec();
     auto jobIinfo = getController()->getJobInformation();
@@ -585,8 +591,7 @@ void WindowMain::onStartClicked()
     mPanelProjectSettings->generateNewJobName();
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/icons/icons8-error-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setIconPixmap(generateIcon("error-red").pixmap(48, 48));
     messageBox.setWindowTitle("Error in settings!");
     messageBox.setText(ex.what());
     messageBox.addButton(tr("Okay"), QMessageBox::YesRole);
@@ -605,11 +610,6 @@ void WindowMain::onBackClicked()
       break;
     case Navigation::CHANNEL_EDIT:
       showPanelStartPage();
-      if(mSelectedChannel != nullptr) {
-        mSelectedChannel->toSettings();
-        mSelectedChannel->setActive(false);
-        mSelectedChannel = nullptr;
-      }
       checkForSettingsChanged();
       break;
     case Navigation::REPORTING:
@@ -634,12 +634,20 @@ bool WindowMain::showPanelStartPage()
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
   mStartAnalysis->setVisible(true);
+  mStartAnalysisToolButton->setVisible(true);
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::START_PAGE));
   if(nullptr != mPanelReporting) {
     mPanelReporting->setActive(false);
   }
 
+  if(mSelectedChannel != nullptr) {
+    mSelectedChannel->toSettings();
+    mSelectedChannel->setActive(false);
+    mSelectedChannel = nullptr;
+  }
+
   mNavigation = Navigation::START_PAGE;
+
   return true;
 }
 
@@ -688,8 +696,7 @@ void WindowMain::onRemoveChannelClicked()
 {
   if(mSelectedChannel != nullptr) {
     QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/icons/icons8-warning-50.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
     messageBox.setWindowTitle("Remove channel?");
     messageBox.setText("Do you want to remove the channel?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
