@@ -162,6 +162,7 @@
     <file>icons/icons8-table-48.png</file>
     <file>icons/icons8-log-48.png</file>
     <file>icons/icons8-genealogy-16.png</file>
+    <file>icons/icons8-arrow-left-24.png</file>
     <file>icons/icons8-layer-24.png</file>
     <file>icons/icons8-accept-24.png</file>
     <file>icons/icons8-copy-16.png</file>
@@ -301,6 +302,7 @@
     <file>icons/icons8-open-parcel-48.png</file>
     <file>icons/icons8-hexagon-16.png</file>
     <file>icons/icons8-hexagonal-pattern-96.png</file>
+    <file>icons/icons8-arrow-left-16.png</file>
     <file>icons/icons8-image-24.png</file>
     <file>icons/icons8-shutdown-16.png</file>
     <file>icons/icons8-warning-yellow-96.png</file>
@@ -503,6 +505,8 @@
     <file>icons/icons8-arrow-up-24.png</file>
     <file>icons/icons8-export-excel-48.png</file>
     <file>icons/icons8-normal-distribution-histogram-24.png</file>
+    <file>icons/icons8-arrow-left-48.png</file>
+    <file>icons/icons8-arrow-left-96.png</file>
     <file>icons/icons8-contrast-24.png</file>
     <file>icons/icons8-warning-yellow-16.png</file>
     <file>icons/icons8-grayscale-48.png</file>

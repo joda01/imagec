@@ -110,19 +110,19 @@ void PanelResults::setActive(bool active)
 void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 {
   // Back button
-  mBackButton = new QPushButton(QIcon(":/icons/icons/icons8-left-50.png"), "");
+  mBackButton = new QPushButton(generateIcon("arrow-left"), "");
   mBackButton->setEnabled(false);
   connect(mBackButton, &QPushButton::pressed, this, &PanelResults::onBackClicked);
   toolbar->addItemToTopToolbar(mBackButton);
 
   QButtonGroup *grp = new QButtonGroup();
-  mHeatmapButton    = new QPushButton(QIcon(":/icons/icons/icons8-heat-map-50.png"), "");
+  mHeatmapButton    = new QPushButton(generateIcon("heat-map"), "");
   mHeatmapButton->setCheckable(true);
   mHeatmapButton->setChecked(true);
   grp->addButton(mHeatmapButton);
   toolbar->addItemToTopToolbar(mHeatmapButton);
 
-  mTableButton = new QPushButton(QIcon(":/icons/icons/icons8-table-50.png"), "");
+  mTableButton = new QPushButton(generateIcon("table"), "");
   mTableButton->setCheckable(true);
   grp->addButton(mTableButton);
   toolbar->addItemToTopToolbar(mTableButton);
@@ -141,7 +141,7 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   //
   // Copy Button
   //
-  auto *copy = new QPushButton(QIcon(":/icons/icons/icons8-copy-50.png"), "Copy table");
+  auto *copy = new QPushButton(generateIcon("copy"), "Copy table");
   copy->setToolTip("Copy table");
   connect(copy, &QPushButton::pressed, [this]() { copyTableToClipboard(mTable); });
   toolbar->addItemToTopToolbar(copy);
@@ -149,7 +149,7 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   //
   // Export button
   //
-  auto *exportData = new QPushButton(QIcon(":/icons/icons/icons8-export-excel-50.png"), "Export");
+  auto *exportData = new QPushButton(generateIcon("export-excel"), "Export");
   exportData->setToolTip("Export data");
   connect(exportData, &QPushButton::pressed, [this]() {
     std::map<settings::ClassificatorSettingOut, QString> clustersAndClasses;

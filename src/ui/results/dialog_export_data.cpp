@@ -282,13 +282,13 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
   mOpenSettings = mLayout.addActionButton("Open template", generateIcon("folder"));
   connect(mOpenSettings, &QAction::triggered, [this] { openTemplate(); });
 
-  /* mSelectAllMeasurements = mLayout.addActionButton("Select all measurements", "icons8-select-column-50.png");
+  /* mSelectAllMeasurements = mLayout.addActionButton("Select all measurements", "icons8-select-column);
    connect(mSelectAllMeasurements, &QAction::triggered, [this] { selectAvgOfAllMeasureChannels(); });
 
-   mUnselectAllMeasurements = mLayout.addActionButton("Unselect all measurements", "icons8-select-none-50.png");
+   mUnselectAllMeasurements = mLayout.addActionButton("Unselect all measurements", "icons8-select-none);
    connect(mUnselectAllMeasurements, &QAction::triggered, [this] { unselectAllMeasureChannels(); });
 
-   mSelectAllClustersAndClasses = mLayout.addActionButton("Select all clusters", "icons8-select-50-all.png");
+   mSelectAllClustersAndClasses = mLayout.addActionButton("Select all clusters", "icons8-select-50-all");
    connect(mSelectAllClustersAndClasses, &QAction::triggered, [this] { selectAllExports(); });*/
 
   auto *tab  = mLayout.addTab("Columns", [] {});
@@ -322,7 +322,7 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
   //
   // Type
   mReportingType = SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>>(windowMain, {}, "Type");
-  mReportingType->addOptions({{joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", generateIcon("heatmap")},
+  mReportingType->addOptions({{joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", generateIcon("heat-map")},
                               {joda::db::BatchExporter::Settings::ExportType::TABLE, "Table", generateIcon("table")},
                               {joda::db::BatchExporter::Settings::ExportType::TABLE_DETAIL, "Details", generateIcon("table-detail")}});
   mReportingType->setDefaultValue(joda::db::BatchExporter::Settings::ExportType::HEATMAP);
