@@ -45,6 +45,23 @@ public:
     }
     return mJobName->text();
   }
+
+  [[nodiscard]] QString getExperimentName() const
+  {
+    if(mExperimentName->text().isEmpty()) {
+      return mExperimentName->placeholderText();
+    }
+    return mExperimentName->text();
+  }
+
+  [[nodiscard]] QString getExperimentId() const
+  {
+    if(mExperimentId->text().isEmpty()) {
+      return mExperimentId->placeholderText();
+    }
+    return mExperimentId->text();
+  }
+
   void generateNewJobName()
   {
     mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
@@ -59,6 +76,8 @@ private:
   QLineEdit *mAddressOrganisation;
   QLineEdit *mJobName;
   QLineEdit *mScientistsFirstName;
+  QLineEdit *mExperimentName;
+  QLineEdit *mExperimentId;
 
   QComboBox *mGroupByComboBox;
   QComboBox *mPlateSize;

@@ -59,17 +59,42 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
 
   addSeparator();
 
+  //
+  // Experiment name
+  //
+  mExperimentName = new QLineEdit;
+  mExperimentName->addAction(generateIcon("rename"), QLineEdit::LeadingPosition);
+  mExperimentName->setPlaceholderText("Experiment");
+  formLayout->addRow(new QLabel(tr("Experiment name:")), mExperimentName);
+
+  //
+  // Scientist
+  //
   mScientistsFirstName = new QLineEdit;
   mScientistsFirstName->addAction(generateIcon("name"), QLineEdit::LeadingPosition);
   formLayout->addRow(new QLabel(tr("Scientist:")), mScientistsFirstName);
   connect(mScientistsFirstName, &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
   mScientistsFirstName->setPlaceholderText(joda::helper::getLoggedInUserName());
 
+  //
+  // Organization
+  //
   mAddressOrganisation = new QLineEdit;
   mAddressOrganisation->addAction(generateIcon("address"), QLineEdit::LeadingPosition);
   mAddressOrganisation->setPlaceholderText("University of Salzburg");
   formLayout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
 
+  //
+  // Experiment ID
+  //
+  mExperimentId = new QLineEdit;
+  mExperimentId->addAction(generateIcon("binary-code"), QLineEdit::LeadingPosition);
+  mExperimentId->setPlaceholderText("6fc87cc8-686e-4806-a78a-3f623c849cb7");
+  formLayout->addRow(new QLabel(tr("Experiment ID:")), mExperimentId);
+
+  //
+  // Job name
+  //
   mJobName = new QLineEdit;
   mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
   formLayout->addRow(new QLabel(tr("Job name:")), mJobName);

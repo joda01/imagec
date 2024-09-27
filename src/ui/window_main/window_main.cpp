@@ -546,8 +546,8 @@ void WindowMain::onStartClicked()
   }
 
   try {
-    mAnalyzeSettings.projectSettings.experimentSettings.experimentId   = "6fc87cc8-686e-4806-a78a-3f623c849cb7";
-    mAnalyzeSettings.projectSettings.experimentSettings.experimentName = "Experiment";
+    mAnalyzeSettings.projectSettings.experimentSettings.experimentId   = mPanelProjectSettings->getExperimentId().toStdString();
+    mAnalyzeSettings.projectSettings.experimentSettings.experimentName = mPanelProjectSettings->getExperimentName().toStdString();
     DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
     dialg.exec();
     auto jobIinfo = getController()->getJobInformation();
