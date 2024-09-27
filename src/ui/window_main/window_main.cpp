@@ -81,11 +81,14 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
     if(state == joda::filesystem::State::FINISHED) {
       if(getController()->getNrOfFoundImages() > 0) {
         mStartAnalysis->setEnabled(true);
+        mStartAnalysisToolButton->setEnabled(true);
       } else {
         mStartAnalysis->setEnabled(false);
+        mStartAnalysisToolButton->setEnabled(false);
       }
     } else if(state == joda::filesystem::State::RUNNING) {
       mStartAnalysis->setEnabled(false);
+      mStartAnalysisToolButton->setEnabled(false);
     }
   });
 
@@ -141,6 +144,12 @@ void WindowMain::createTopToolbar()
   showCompileLog->setToolTip("CompileLog!");
   connect(showCompileLog, &QAction::triggered, [this]() { mCompilerLog->showDialog(); });
   toolbar->addAction(showCompileLog);
+
+  mStartAnalysisToolButton = new QAction(generateIcon("play"), "Start analyze", toolbar);
+  mStartAnalysisToolButton->setEnabled(false);
+  mStartAnalysisToolButton->setToolTip("Run pipeline!");
+  connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
+  toolbar->addAction(mStartAnalysisToolButton);
 
   auto *spacerTop = new QWidget();
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -568,6 +577,9 @@ void WindowMain::onStartClicked()
     return;
   }
 
+  // Go back to the start panel to free the RAM of the preview
+  showPanelStartPage();
+
   try {
     mAnalyzeSettings.projectSettings.experimentSettings.experimentId   = mPanelProjectSettings->getExperimentId().toStdString();
     mAnalyzeSettings.projectSettings.experimentSettings.experimentName = mPanelProjectSettings->getExperimentName().toStdString();
@@ -598,11 +610,6 @@ void WindowMain::onBackClicked()
       break;
     case Navigation::CHANNEL_EDIT:
       showPanelStartPage();
-      if(mSelectedChannel != nullptr) {
-        mSelectedChannel->toSettings();
-        mSelectedChannel->setActive(false);
-        mSelectedChannel = nullptr;
-      }
       checkForSettingsChanged();
       break;
     case Navigation::REPORTING:
@@ -627,12 +634,20 @@ bool WindowMain::showPanelStartPage()
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
   mStartAnalysis->setVisible(true);
+  mStartAnalysisToolButton->setVisible(true);
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::START_PAGE));
   if(nullptr != mPanelReporting) {
     mPanelReporting->setActive(false);
   }
 
+  if(mSelectedChannel != nullptr) {
+    mSelectedChannel->toSettings();
+    mSelectedChannel->setActive(false);
+    mSelectedChannel = nullptr;
+  }
+
   mNavigation = Navigation::START_PAGE;
+
   return true;
 }
 

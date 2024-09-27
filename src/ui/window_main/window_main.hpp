@@ -179,11 +179,12 @@ private:
   QComboBox *mTemplateSelection;
 
   ////ToolbarIcons/////////////////////////////////////////////////
-  QAction *mNewProjectButton  = nullptr;
-  QAction *mOpenProjectButton = nullptr;
-  QAction *mSaveProject       = nullptr;
-  QAction *mSaveProjectAs     = nullptr;
-  QAction *mShowInfoDialog    = nullptr;
+  QAction *mNewProjectButton        = nullptr;
+  QAction *mOpenProjectButton       = nullptr;
+  QAction *mSaveProject             = nullptr;
+  QAction *mSaveProjectAs           = nullptr;
+  QAction *mShowInfoDialog          = nullptr;
+  QAction *mStartAnalysisToolButton = nullptr;
 
 private slots:
   void onNewProjectClicked();
