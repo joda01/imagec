@@ -30,7 +30,7 @@ enum class ZProjection
 
 struct ImageId
 {
-  ZProjection zProjection = ZProjection::UNDEFINED;
+  ZProjection zProjection = ZProjection::$;
   joda::enums::PlaneId imagePlane;
 
   bool operator<(const ImageId &in) const
