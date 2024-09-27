@@ -91,7 +91,7 @@ struct ClassifierFilter
   {
     CHECK_ERROR(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
                 "Max particle size must be bigger than min particle size!");
-    CHECK_ERROR(minCircularity >= 0 && minCircularity <= 1, "Min circularity must be in range [0-1].");
+    CHECK_ERROR(minCircularity < 0 || (minCircularity >= 0 && minCircularity <= 1), "Min circularity must be in range [0-1].");
     CHECK_ERROR(snapAreaSize >= 0, "Snap area size must be > 0.");
   }
 

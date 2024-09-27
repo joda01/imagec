@@ -70,6 +70,7 @@ void PanelCompilerLog::showDialog()
 ///
 void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &settings)
 {
+  mNrOfErrors   = 0;
   auto addEntry = [this](const std::string &pipelineName, const SettingParserLog &log) {
     int newRow = mLogOutput->rowCount();
     mLogOutput->insertRow(newRow);
@@ -79,6 +80,7 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
     if(log.severity == SettingParserLog::Severity::JODA_ERROR) {
       icon = new QIcon(generateIcon("error-red"));
       iconItem->setText("Error");
+      mNrOfErrors++;
     } else if(log.severity == SettingParserLog::Severity::JODA_WARNING) {
       icon = new QIcon(generateIcon("warning-yellow"));
       iconItem->setText("Warning");

@@ -80,7 +80,7 @@ struct IntersectionSettings : public SettingBase
   void check() const
   {
     CHECK_ERROR(mode != Function::UNKNOWN, "Define a intersection function!");
-    CHECK_ERROR(minIntersection >= 0, "Min intersection must be >=0.");
+    CHECK_ERROR(minIntersection >= 0 && minIntersection <= 1, "Min intersection must be in range [0-1].");
     CHECK_ERROR(!inputObjects.inputClusters.empty(), "At least one input must be given!");
     CHECK_ERROR(!inputObjectsIntersectWith.inputClusters.empty(), "At least one interseting class must be given!");
     if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {

@@ -35,11 +35,16 @@ public:
   PanelCompilerLog(WindowMain *parent);
   void updateCompilerLog(const joda::settings::AnalyzeSettings &);
   void showDialog();
+  int32_t getNumberOfErrors() const
+  {
+    return mNrOfErrors;
+  }
 
 private:
   /////////////////////////////////////////////////////
   QTableWidget *mLogOutput;
   QDialog *mDialog;
+  int32_t mNrOfErrors = 0;
 };
 
 }    // namespace joda::ui

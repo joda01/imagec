@@ -539,6 +539,12 @@ void WindowMain::loadTemplates()
 ///
 void WindowMain::onStartClicked()
 {
+  // If there are errors, starting the pipeline is not allowed
+  if(mCompilerLog->getNumberOfErrors() > 0) {
+    mCompilerLog->showDialog();
+    return;
+  }
+
   try {
     mAnalyzeSettings.projectSettings.experimentSettings.experimentId   = "6fc87cc8-686e-4806-a78a-3f623c849cb7";
     mAnalyzeSettings.projectSettings.experimentSettings.experimentName = "Experiment";
