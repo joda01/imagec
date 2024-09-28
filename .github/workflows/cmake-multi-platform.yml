@@ -221,6 +221,7 @@ jobs:
       - name: Install Conan
         run: |
           pip install conan
+          pip install numpy
 
       - name: Restore Conan Cache
         uses: actions/cache/restore@v4
