@@ -19,6 +19,7 @@
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 namespace joda::cmd {
@@ -220,13 +221,14 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 auto AiClassifier::getMask(const Mat &maskChannel, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat
 {
   static const Rect roi(0, 0, static_cast<int>(SEG_WIDTH), static_cast<int>(SEG_HEIGHT));
-
   Mat dest;
   Mat mask;
   cv::exp(-maskChannel, dest);    // sigmoid
   dest = (1.0 / (1.0 + dest))(roi);
   resize(dest, mask, inputImageShape, INTER_NEAREST);
-  mask = mask(box) > MASK_THRESHOLD;
+  mask = mask(box).clone();
+  mask = mask > MASK_THRESHOLD;
+
   return mask;
 }
 
