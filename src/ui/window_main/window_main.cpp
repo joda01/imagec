@@ -38,6 +38,7 @@
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
+#include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/random_name_generator.hpp"
 #include "backend/helper/username.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -95,10 +96,14 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   //
   // Watch for new templates added
   //
-
   mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory().string().data());    // Replace with your desired path
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) { loadTemplates(); });
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) { loadTemplates(); });
+
+  //
+  // Initial background tasks
+  //
+  std::thread([]() { joda::onnx::OnnxParser::findOnnxFiles(); }).detach();
 }
 
 void WindowMain::setWindowTitlePrefix(const QString &txt)

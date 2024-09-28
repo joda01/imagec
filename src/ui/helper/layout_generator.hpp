@@ -61,6 +61,16 @@ public:
     mTabWidget->removeTab(idx);
   }
 
+  void onRemoveTab(int idx)
+  {
+    onTabClosed(idx);
+  }
+
+  int32_t getNrOfTabs() const
+  {
+    return mTabWidget->count();
+  }
+
   static void addSeparator(QFormLayout *formLayout)
   {
     auto *separator = new QFrame;

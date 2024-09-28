@@ -12,6 +12,7 @@
 
 #include "onnx_parser.hpp"
 #include <onnxruntime/core/session/onnxruntime_cxx_api.h>
+#include <mutex>
 
 namespace joda::onnx {
 
@@ -24,6 +25,7 @@ namespace joda::onnx {
 ///
 auto OnnxParser::findOnnxFiles(const std::string &directory) -> std::map<std::filesystem::path, Data>
 {
+  std::lock_guard<std::mutex> lock(lookForMutex);
   std::map<std::filesystem::path, Data> onnxFiles;
   if(fs::exists(directory) && fs::is_directory(directory)) {
     for(const auto &entry : fs::recursive_directory_iterator(directory)) {
@@ -61,6 +63,7 @@ auto OnnxParser::findOnnxFiles(const std::string &directory) -> std::map<std::fi
 ///
 auto OnnxParser::getOnnxInfo(const std::filesystem::path &path) -> Data
 {
+  std::lock_guard<std::mutex> lock(lookForMutex);
   if(mCache.contains(path)) {
     return mCache.at(path);
   }

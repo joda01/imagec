@@ -45,7 +45,7 @@ struct AiClassifierSettings : public SettingBase
   //
   // Vector array index is the class ID used by the AI model starting with 0
   //
-  std::vector<ObjectClass> modelClasses = {{}};
+  std::vector<ObjectClass> modelClasses = {};
 
   /////////////////////////////////////////////////////
   void check() const

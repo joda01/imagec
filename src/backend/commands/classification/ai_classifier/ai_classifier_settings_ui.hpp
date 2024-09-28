@@ -47,7 +47,8 @@ public:
     auto onnxModels = joda::onnx::OnnxParser::findOnnxFiles();
 
     std::vector<SettingComboBoxString::ComboEntry> entries;
-    entries.reserve(onnxModels.size());
+    entries.reserve(onnxModels.size() + 1);
+    entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});
     for(const auto &[key, model] : onnxModels) {
       entries.emplace_back(SettingComboBoxString::ComboEntry{.key = model.modelPath.string(), .label = model.modelName.data()});
     }
@@ -58,8 +59,16 @@ public:
     mModelPath->setValue(settings.modelPath);
     mModelPath->setShortDescription("Path:");
     connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
-      auto info = joda::onnx::OnnxParser::getOnnxInfo(std::filesystem::path(mModelPath->getValue()));
-      mNumberOdModelClasses->setValue(info.classes.size());
+      if(!mModelPath->getValue().empty()) {
+        auto info = joda::onnx::OnnxParser::getOnnxInfo(std::filesystem::path(mModelPath->getValue()));
+        removeAll();
+        mNumberOdModelClasses->setValue(info.classes.size());
+        int n = 0;
+        for(const auto &classs : info.classes) {
+          addFilter(classs, n);
+          n++;
+        }
+      }
     });
 
     //
@@ -72,20 +81,18 @@ public:
     mNumberOdModelClasses->connectWithSetting(&settings.numberOfModelClasses);
     mNumberOdModelClasses->setShortDescription("Classes:");
 
-    auto *col   = addSetting(modelTab, "AI model settings", {{mModelPath.get(), false, 0}, {mNumberOdModelClasses.get(), false, 0}});
+    auto *col   = addSetting(modelTab, "AI model settings", {{mModelPath.get(), true, 0}, {mNumberOdModelClasses.get(), false, 0}});
     int32_t cnt = 0;
     for(auto &classifierSetting : settings.modelClasses) {
       auto *tab = addTab("Filter", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
       mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
       cnt++;
     }
-    auto *addClassifier = addActionButton("Add class", generateIcon("add"));
-    connect(addClassifier, &QAction::triggered, this, &AiClassifier::addFilter);
   }
 
 private:
   /////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////
+
   struct ClassifierFilter
   {
     ClassifierFilter(settings::ObjectClass &settings, AiClassifier &outer, helper::TabWidget *tab, int32_t tabIndex, QWidget *parent) :
@@ -98,7 +105,7 @@ private:
 
       //
       //
-      mGrayScaleValue = generateThresholdClass("AI class input", parent);
+      mGrayScaleValue = generateAiModelClass("AI class input", parent);
       mGrayScaleValue->setValue(settings.modelClassId);
       mGrayScaleValue->connectWithSetting(&settings.modelClassId);
 
@@ -222,7 +229,6 @@ private:
   };
 
   std::unique_ptr<SettingComboBoxString> mModelPath;
-
   std::unique_ptr<SettingLineEdit<int32_t>> mNumberOdModelClasses;
   std::list<ClassifierFilter> mClassifyFilter;
   settings::AiClassifierSettings &mSettings;
@@ -252,14 +258,20 @@ private:
     updateDisplayText();
   }
 
+  void removeAll()
+  {
+    removeAllTabsExceptFirst();
+  }
+
   /////////////////////////////////////////////////////
 
 private slots:
-  void addFilter()
+  void addFilter(const std::string &title, int32_t classId)
   {
     settings::ObjectClass objClass;
-    auto &ret = mSettings.modelClasses.emplace_back(objClass);
-    auto *tab = addTab("Filter", [this, &ret] { removeObjectClass(&ret); });
+    objClass.modelClassId = classId;
+    auto &ret             = mSettings.modelClasses.emplace_back(objClass);
+    auto *tab             = addTab(title.data(), [this, &ret] { removeObjectClass(&ret); });
     mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }
