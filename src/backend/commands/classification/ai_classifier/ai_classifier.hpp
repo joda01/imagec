@@ -79,11 +79,11 @@ private:
   static constexpr inline float BOX_THRESHOLD           = 0.25;    // (default = 0.25)
   static constexpr inline float CLASS_THRESHOLD_DEFAULT = 0.5;     // (default = 0.5)
   static constexpr inline float NMS_THRESHOLD           = 0.5;     // To prevent double bounding boxes (default = 0.45)
-  static constexpr inline float MASK_THRESHOLD          = 0.5;     // (default = 0.5)
-  // static constexpr inline float NMS_SCORE_THRESHOLD     = BOX_THRESHOLD * CLASS_THRESHOLD_DEFAULT;
+  static constexpr inline float MASK_THRESHOLD          = 0.8;     // (default = 0.5)
+  static constexpr inline float NMS_SCORE_THRESHOLD     = BOX_THRESHOLD * CLASS_THRESHOLD_DEFAULT;
 
-  float mClassThreshold;
-  float mNmsScoreThreshold;
+  // float mClassThreshold;
+  // float mNmsScoreThreshold;
 
   // Colors
   int32_t mNumberOfClasses;
