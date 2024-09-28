@@ -79,16 +79,18 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
 
   Mat blob;
-  int col    = inputImage.cols;
-  int row    = inputImage.rows;
-  int maxLen = MAX(col, row);
-  Mat netInputImg;
-  Vec4d params;
-  letterBox(inputImage, netInputImg, params, cv::Size(NET_WIDTH, NET_HEIGHT));
+  Mat netInputImg = inputImage.clone();
   blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(NET_WIDTH, NET_HEIGHT), cv::Scalar(0, 0, 0), true, false);
   mNet.setInput(blob);
   std::vector<cv::Mat> netOutputImg;
   mNet.forward(netOutputImg, mNet.getUnconnectedOutLayersNames());
+
+  float ratio[2] = {};
+  {
+    cv::Size shape = inputImage.size();
+    ratio[0]       = static_cast<float>(NET_WIDTH) / static_cast<float>(shape.width);
+    ratio[1]       = static_cast<float>(NET_HEIGHT) / static_cast<float>(shape.height);
+  }
 
   // vector<string> outputLayerName{"output0", "output1"};
   // mNet.forward(netOutputImg, outputLayerName);
@@ -98,8 +100,6 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   std::vector<cv::Rect> boxes;
   std::vector<vector<float>> pickedProposals;    // output0[:,:, 5 + mClassNames.size():net_width]
 
-  float ratio_h = static_cast<float>(netInputImg.rows) / NET_HEIGHT;
-  float ratio_w = static_cast<float>(netInputImg.cols) / NET_WIDTH;
   int net_width = mNumberOfClasses + 5 + SEG_CHANNELS;
   float *pdata  = (float *) netOutputImg[0].data;
   for(int stride = 0; stride < STRIDE_SIZE; stride++) {    // stride
@@ -123,15 +123,15 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
               vector<float> temp_proto(pdata + 5 + mNumberOfClasses, pdata + net_width);
               pickedProposals.push_back(temp_proto);
               // rect [x,y,w,h]
-              float x  = (pdata[0] - params[2]) / params[0];    // x
-              float y  = (pdata[1] - params[3]) / params[1];    // y
-              float w  = pdata[2] / params[0];                  // w
-              float h  = pdata[3] / params[1];                  // h
-              int left = MAX((x - 0.5 * w) * ratio_w, 0);
-              int top  = MAX((y - 0.5 * h) * ratio_h, 0);
+              float x  = pdata[0] / ratio[0];    // x
+              float y  = pdata[1] / ratio[1];    // y
+              float w  = pdata[2] / ratio[0];    // w
+              float h  = pdata[3] / ratio[1];    // h
+              int left = MAX((x - 0.5 * w), 0);
+              int top  = MAX((y - 0.5 * h), 0);
               classIds.push_back(classIdPoint.x);
               confidences.push_back(maxClassScores * box_score);
-              boxes.push_back(Rect(left, top, static_cast<int>(w * ratio_w), static_cast<int>(h * ratio_h)));
+              boxes.push_back(Rect(left, top, static_cast<int>(w), static_cast<int>(h)));
             }
           }
           pdata += net_width;
@@ -164,7 +164,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   for(int i = 0; i < nms_result.size(); ++i) {
     int idx              = nms_result[i];
     cv::Rect boundingBox = boxes[idx] & holeImgRect;
-    auto mask            = getMask(maskChannels[i], params, inputImageOriginal.size(), boundingBox);
+    auto mask            = getMask(maskChannels[i], inputImageOriginal.size(), boundingBox);
 
     // Find contours in the binary image
     std::vector<std::vector<cv::Point>> contours;
@@ -217,10 +217,9 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 /// \param[in]  inputImageShape Image shape
 /// \param[out] output          Stores the mask to the output
 ///
-auto AiClassifier::getMask(const Mat &maskChannel, const cv::Vec4d &params, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat
+auto AiClassifier::getMask(const Mat &maskChannel, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat
 {
-  static const Rect roi(static_cast<int>(params[2] / NET_WIDTH * SEG_WIDTH), static_cast<int>(params[3] / NET_HEIGHT * SEG_HEIGHT),
-                        static_cast<int>(SEG_WIDTH - params[2] / 2), static_cast<int>(SEG_HEIGHT - params[3] / 2));
+  static const Rect roi(0, 0, static_cast<int>(SEG_WIDTH), static_cast<int>(SEG_HEIGHT));
 
   Mat dest;
   Mat mask;
@@ -229,69 +228,6 @@ auto AiClassifier::getMask(const Mat &maskChannel, const cv::Vec4d &params, cons
   resize(dest, mask, inputImageShape, INTER_NEAREST);
   mask = mask(box) > MASK_THRESHOLD;
   return mask;
-}
-
-///
-/// \brief      Image preparation
-/// \author     Joachim Danmayr
-///
-void AiClassifier::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::Vec4d &params, const cv::Size &newShape, bool autoShape, bool scaleFill,
-                             bool scaleUp, int stride, const cv::Scalar &color)
-{
-  // if(false) {
-  //   int maxLen = MAX(image.rows, image.cols);
-  //   outImage   = Mat::zeros(Size(maxLen, maxLen), CV_8UC3);
-  //   image.copyTo(outImage(Rect(0, 0, image.cols, image.rows)));
-  //   params[0] = 1;
-  //   params[1] = 1;
-  //   params[3] = 0;
-  //   params[2] = 0;
-  // }
-
-  cv::Size shape = image.size();
-  float r        = std::min(static_cast<float>(newShape.height) / static_cast<float>(shape.height),
-                            static_cast<float>(newShape.width) / static_cast<float>(shape.width));
-  if(!scaleUp) {
-    r = std::min(r, 1.0F);
-  }
-
-  float ratio[2]{r, r};
-  int newUnpad[2]{static_cast<int>(std::round(static_cast<float>(shape.width) * r)),
-                  static_cast<int>(std::round(static_cast<float>(shape.height) * r))};
-
-  auto dw = static_cast<float>(newShape.width - newUnpad[0]);
-  auto dh = static_cast<float>(newShape.height - newUnpad[1]);
-
-  if(autoShape) {
-    dw = static_cast<float>(static_cast<int>(dw) % stride);
-    dh = static_cast<float>(static_cast<int>(dh) % stride);
-  } else if(scaleFill) {
-    dw          = 0.0F;
-    dh          = 0.0F;
-    newUnpad[0] = newShape.width;
-    newUnpad[1] = newShape.height;
-    ratio[0]    = static_cast<float>(newShape.width) / static_cast<float>(shape.width);
-    ratio[1]    = static_cast<float>(newShape.height) / static_cast<float>(shape.height);
-  }
-
-  dw /= 2.0F;
-  dh /= 2.0F;
-
-  if(shape.width != newUnpad[0] && shape.height != newUnpad[1]) {
-    cv::resize(image, outImage, cv::Size(newUnpad[0], newUnpad[1]));
-  } else {
-    outImage = image.clone();
-  }
-
-  int top    = static_cast<int>(std::round(dh - 0.1F));
-  int bottom = static_cast<int>(std::round(dh + 0.1F));
-  int left   = static_cast<int>(std::round(dw - 0.1F));
-  int right  = static_cast<int>(std::round(dw + 0.1F));
-  params[0]  = ratio[0];
-  params[1]  = ratio[1];
-  params[2]  = left;
-  params[3]  = top;
-  cv::copyMakeBorder(outImage, outImage, top, bottom, left, right, cv::BORDER_CONSTANT, color);
 }
 
 }    // namespace joda::cmd

@@ -38,12 +38,7 @@ public:
 private:
   /////////////////////////////////////////////////////
 
-  auto getMask(const cv::Mat &maskChannel, const cv::Vec4d &params, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat;
-
-  void letterBox(const cv::Mat &image, cv::Mat &outImage,
-                 cv::Vec4d &params,    //[ratio_x,ratio_y,dw,dh]
-                 const cv::Size &newShape = cv::Size(NET_WIDTH, NET_HEIGHT), bool autoShape = false, bool scaleFill = false, bool scaleUp = true,
-                 int stride = NET_STRIDE[2], const cv::Scalar &color = cv::Scalar(114, 114, 114));
+  auto getMask(const cv::Mat &maskChannel, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat;
 
 /////////////////////////////////////////////////////
 #if(defined YOLO_P6 && YOLO_P6 == true)
