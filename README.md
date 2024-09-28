@@ -139,7 +139,7 @@ qt6                     |https://code.qt.io/cgit/                       | LGPL-3
 jmcnamara/libxlsxwriter |https://github.com/jmcnamara/libxlsxwriter.git | FreeBSD
 duckdb/duckdb           |https://github.com/duckdb/duckdb               | MIT
 ome/bioformats          |https://github.com/ome/bioformats              | GPL-2.0
-
+microsoft/onnxruntime   |https://github.com/microsoft/onnxruntime       | MIT
 
 Thank's to the authors of [imagej](https://github.com/imagej/imagej2) I ported some image processing algorithms from to C++.  
 imageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).

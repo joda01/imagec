@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - use-conan-build-system
+      - add-onnx-runtime
     tags:
       - '*'
   pull_request:

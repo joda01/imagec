@@ -52,7 +52,9 @@ build(){
     #unzip  -qq jre_linux.zip
     rm -rf jre_linux.zip
     cd ..
+    cd models
+    cp -r ../../../../resources/ai_models/*.onnx .
 }
 
-
+#buildlibs
 build
