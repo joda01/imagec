@@ -162,22 +162,25 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
   Rect holeImgRect(0, 0, inputImage.cols, inputImage.rows);
   for(int i = 0; i < nms_result.size(); ++i) {
-    int idx      = nms_result[i];
-    cv::Rect box = boxes[idx] & holeImgRect;
-    auto mask    = getMask(maskChannels[i], params, inputImageOriginal.size(), box);
+    int idx              = nms_result[i];
+    cv::Rect boundingBox = boxes[idx] & holeImgRect;
+    auto mask            = getMask(maskChannels[i], params, inputImageOriginal.size(), boundingBox);
 
+    // Find contours in the binary image
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(mask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
-    if(contours.empty()) {
-      contours.emplace_back();
-    }
+    std::vector<cv::Vec4i> hierarchy;
+    cv::findContours(mask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
+
     // Look for the biggest contour area
     int idxMax = 0;
     for(int i = 1; i < contours.size(); i++) {
-      if(contours[i - 1].size() < contours[i].size()) {
-        idxMax = i;
+      if(hierarchy[i][3] == -1) {
+        if(contours[i - 1].size() < contours[i].size()) {
+          idxMax = i;
+        }
       }
     }
+
     int32_t classId = classIds[idx];
 
     //
@@ -192,14 +195,15 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
               .classId    = context.getClassId(objectClass.outputClusterNoMatch.classId),
               .imagePlane = context.getActIterator(),
           },
-          // #warning "Check if the contour is in the area of the bounding box"
-          context.getAppliedMinThreshold(), 0, box, mask, contours[idxMax], context.getImageSize(), context.getActTile(), context.getTileSize());
+          context.getAppliedMinThreshold(), 0, boundingBox, mask, contours[idxMax], context.getImageSize(), context.getActTile(),
+          context.getTileSize());
 
       for(const auto &filter : objectClass.filters) {
         if(filter.doesFilterMatch(context, detectedRoi, filter.intensity)) {
           detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId), context.getClassId(filter.outputCluster.classId));
         }
       }
+      result.push_back(detectedRoi);
     }
   }
 }
@@ -208,9 +212,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 /// \brief      Extracts the mask from the prediction and stores the mask
 ///             to the output >output[i].boxMask<
 /// \author     Joachim Danmayr
-/// \param[in]  image           Original image
-/// \param[in]  maskProposals   Mask proposal
-/// \param[in]  maskProtos      Mask proto
+/// \param[in]  maskChannel     Mask proposal
 /// \param[in]  params          Image scaling parameters
 /// \param[in]  inputImageShape Image shape
 /// \param[out] output          Stores the mask to the output

@@ -91,6 +91,7 @@ std::vector<std::pair<int, std::string>> OnnxParser::getONNXModelOutputClasses(c
   // Get model output names
   for(size_t i = 0; i < output_count; ++i) {
     // Get output name allocated by ONNX Runtime
+    auto meta                               = session.GetModelMetadata();
     Ort::AllocatedStringPtr output_name_ptr = session.GetOutputNameAllocated(i, allocator);
     std::string output_name(output_name_ptr.get());    // Convert to std::string
 

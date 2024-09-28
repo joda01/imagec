@@ -38,14 +38,12 @@ public:
 private:
   /////////////////////////////////////////////////////
 
-  auto getMask(const cv::Mat &maskChannel, const cv::Vec4d &params, const cv::Size &inputImageShape,
-               const cv::Rect &box) -> cv::Mat;
+  auto getMask(const cv::Mat &maskChannel, const cv::Vec4d &params, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat;
 
   void letterBox(const cv::Mat &image, cv::Mat &outImage,
                  cv::Vec4d &params,    //[ratio_x,ratio_y,dw,dh]
-                 const cv::Size &newShape = cv::Size(NET_WIDTH, NET_HEIGHT), bool autoShape = false,
-                 bool scaleFill = false, bool scaleUp = true, int stride = NET_STRIDE[2],
-                 const cv::Scalar &color = cv::Scalar(114, 114, 114));
+                 const cv::Size &newShape = cv::Size(NET_WIDTH, NET_HEIGHT), bool autoShape = false, bool scaleFill = false, bool scaleUp = true,
+                 int stride = NET_STRIDE[2], const cv::Scalar &color = cv::Scalar(114, 114, 114));
 
 /////////////////////////////////////////////////////
 #if(defined YOLO_P6 && YOLO_P6 == true)
@@ -72,9 +70,7 @@ private:
 
   //
   // Anchors defined in: https://github.com/ultralytics/yolov5/blob/master/models/segment/yolov5l-seg.yaml
-  static constexpr inline float NET_ANCHORS[3][6] = {{10, 13, 16, 30, 33, 23},
-                                                     {30, 61, 62, 45, 59, 119},
-                                                     {116, 90, 156, 198, 373, 326}};
+  static constexpr inline float NET_ANCHORS[3][6] = {{10, 13, 16, 30, 33, 23}, {30, 61, 62, 45, 59, 119}, {116, 90, 156, 198, 373, 326}};
 
   static constexpr inline int NET_WIDTH    = 640;
   static constexpr inline int NET_HEIGHT   = 640;
@@ -87,7 +83,7 @@ private:
   static constexpr inline float NET_STRIDE[4]           = {8, 16, 32, 64};
   static constexpr inline float BOX_THRESHOLD           = 0.25;    // (default = 0.25)
   static constexpr inline float CLASS_THRESHOLD_DEFAULT = 0.5;     // (default = 0.5)
-  static constexpr inline float NMS_THRESHOLD           = 0.3;     // To prevent double bounding boxes (default = 0.45)
+  static constexpr inline float NMS_THRESHOLD           = 0.5;     // To prevent double bounding boxes (default = 0.45)
   static constexpr inline float MASK_THRESHOLD          = 0.5;     // (default = 0.5)
   // static constexpr inline float NMS_SCORE_THRESHOLD     = BOX_THRESHOLD * CLASS_THRESHOLD_DEFAULT;
 
