@@ -31,7 +31,7 @@ opencv/*:with_imgcodec_pfm=False
 opencv/*:with_imgcodec_pxm=False
 opencv/*:with_imgcodec_sunraster=False
 
-boost/*:header_only=False
+boost/*:header_only=True
 boost/*:without_log=True
 boost/*:without_mpi=True
 boost/*:without_url=True
