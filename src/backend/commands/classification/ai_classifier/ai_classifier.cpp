@@ -179,12 +179,40 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
         }
       }
     }
+    auto &contour = contours[idxMax];
 
-    int32_t classId = classIds[idx];
+    //
+    // Remove pixels outside the contour
+    //
+    cv::Mat maskMaskTmp = cv::Mat::zeros(mask.size(), CV_8UC1);
+    cv::fillPoly(maskMaskTmp, contour, cv::Scalar(255));
+    cv::bitwise_and(mask, maskMaskTmp, maskMaskTmp);
+
+    //
+    // Fit the bounding box and mask
+    //
+    auto contourTmp = contour;
+    for(auto &point : contourTmp) {
+      point.x = point.x + boundingBox.x;
+      point.y = point.y + boundingBox.y;
+    }
+    cv::Rect fittedBoundingBox = cv::boundingRect(contourTmp);
+    cv::Mat shiftedMask        = cv::Mat::zeros(fittedBoundingBox.size(), CV_8UC1);
+    int32_t xOffset            = fittedBoundingBox.x - boundingBox.x;
+    int32_t yOffset            = fittedBoundingBox.y - boundingBox.y;
+    // Transforms the old big mask to the new smaller one
+    cv::Mat translationMatrix = (cv::Mat_<double>(2, 3) << 1, 0, -xOffset, 0, 1, -yOffset);
+    cv::warpAffine(maskMaskTmp, shiftedMask, translationMatrix, shiftedMask.size());
+    // Move by the offset of the old bounding box
+    for(auto &point : contour) {
+      point.x = point.x - xOffset;
+      point.y = point.y - yOffset;
+    }
 
     //
     // Apply the filter based on the object class
     //
+    int32_t classId = classIds[idx];
     if(mSettings.modelClasses.size() > classId) {
       const auto objectClass = mSettings.modelClasses.begin();
       while(objectClass != mSettings.modelClasses.end()) {
@@ -199,7 +227,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
               .classId    = context.getClassId(objectClass->outputClusterNoMatch.classId),
               .imagePlane = context.getActIterator(),
           },
-          context.getAppliedMinThreshold(), 0, boundingBox, mask, contours[idxMax], context.getImageSize(), context.getActTile(),
+          context.getAppliedMinThreshold(), 0, fittedBoundingBox, shiftedMask, contour, context.getImageSize(), context.getActTile(),
           context.getTileSize());
 
       for(const auto &filter : objectClass->filters) {
