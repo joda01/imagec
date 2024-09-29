@@ -25,6 +25,7 @@ class ImageC(ConanFile):
         self.requires("onnxruntime/1.18.1")
         self.requires("xkbcommon/1.6.0", override=True)
         self.requires("libpq/15.5", override=True)
+        self.requires("boost/1.86", override=True)
 
 
     def layout(self):
