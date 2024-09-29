@@ -170,6 +170,10 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     std::vector<cv::Vec4i> hierarchy;
     cv::findContours(mask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
 
+    if(mask.empty() || mask.cols == 0 || mask.rows == 0 || contours.empty()) {
+      continue;
+    }
+
     // Look for the biggest contour area
     int idxMax = 0;
     for(int i = 1; i < contours.size(); i++) {
@@ -189,7 +193,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     cv::bitwise_and(mask, maskMaskTmp, maskMaskTmp);
 
     //
-    // Fit the bounding box and mask
+    // Fit the bounding box and mask to the new size
     //
     auto contourTmp = contour;
     for(auto &point : contourTmp) {
@@ -206,7 +210,13 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     // Move by the offset of the old bounding box
     for(auto &point : contour) {
       point.x = point.x - xOffset;
+      if(point.x < 0) {
+        point.x = 0;
+      }
       point.y = point.y - yOffset;
+      if(point.y < 0) {
+        point.y = 0;
+      }
     }
 
     //
