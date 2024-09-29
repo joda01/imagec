@@ -361,9 +361,10 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
             auto color = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()];
             colors.emplace(settings::ClassificatorSetting{static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)}, color);
             saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{
-                .inputCluster = {static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)},
-                .color        = color,
-                .style        = previewSettings.style});
+                .inputCluster     = {static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)},
+                .color            = color,
+                .style            = previewSettings.style,
+                .paintBoundingBox = true});
             colorIdx++;
           }
         }

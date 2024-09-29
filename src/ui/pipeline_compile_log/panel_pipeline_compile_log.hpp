@@ -45,6 +45,7 @@ private:
   QTableWidget *mLogOutput;
   QDialog *mDialog;
   int32_t mNrOfErrors = 0;
+  std::mutex mWriteMutex;
 };
 
 }    // namespace joda::ui
