@@ -20,6 +20,7 @@
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
+#include "backend/commands/image_functions/intensity/intensity_settings.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
@@ -49,34 +50,34 @@ namespace joda::settings {
 struct PipelineStep
 {
 public:
-  bool disabled                                                 = false;
-  std::optional<BlurSettings> $blur                             = std::nullopt;
-  std::optional<ImageSaverSettings> $saveImage                  = std::nullopt;
-  std::optional<ThresholdSettings> $threshold                   = std::nullopt;
-  std::optional<WatershedSettings> $watershed                   = std::nullopt;
-  std::optional<ImageFromClassSettings> $imageFromClass         = std::nullopt;
-  std::optional<ClassifierSettings> $classify                   = std::nullopt;
-  std::optional<AiClassifierSettings> $aiClassify               = std::nullopt;
-  std::optional<ColocalizationSettings> $colocalization         = std::nullopt;
-  std::optional<IntersectionSettings> $intersection             = std::nullopt;
-  std::optional<MeasureSettings> $measure                       = std::nullopt;
-  std::optional<RollingBallSettings> $rollingBall               = std::nullopt;
-  std::optional<MedianSubtractSettings> $medianSubtract         = std::nullopt;
-  std::optional<EdgeDetectionSettings> $edgeDetection           = std::nullopt;
-  std::optional<MarginCropSettings> $crop                       = std::nullopt;
-  std::optional<VoronoiGridSettings> $voronoi                   = std::nullopt;
-  std::optional<ThresholdValidatorSettings> $thresholdValidator = std::nullopt;
-  std::optional<NoiseValidatorSettings> $noiseValidator         = std::nullopt;
+  bool disabled                                                      = false;
+  std::optional<BlurSettings> $blur                                  = std::nullopt;
+  std::optional<ImageSaverSettings> $saveImage                       = std::nullopt;
+  std::optional<IntensityTransformationSettings> $intensityTransform = std::nullopt;
+  std::optional<ThresholdSettings> $threshold                        = std::nullopt;
+  std::optional<WatershedSettings> $watershed                        = std::nullopt;
+  std::optional<ImageFromClassSettings> $imageFromClass              = std::nullopt;
+  std::optional<ClassifierSettings> $classify                        = std::nullopt;
+  std::optional<AiClassifierSettings> $aiClassify                    = std::nullopt;
+  std::optional<ColocalizationSettings> $colocalization              = std::nullopt;
+  std::optional<IntersectionSettings> $intersection                  = std::nullopt;
+  std::optional<MeasureSettings> $measure                            = std::nullopt;
+  std::optional<RollingBallSettings> $rollingBall                    = std::nullopt;
+  std::optional<MedianSubtractSettings> $medianSubtract              = std::nullopt;
+  std::optional<EdgeDetectionSettings> $edgeDetection                = std::nullopt;
+  std::optional<MarginCropSettings> $crop                            = std::nullopt;
+  std::optional<VoronoiGridSettings> $voronoi                        = std::nullopt;
+  std::optional<ThresholdValidatorSettings> $thresholdValidator      = std::nullopt;
+  std::optional<NoiseValidatorSettings> $noiseValidator              = std::nullopt;
 
   /////////////////////////////////////////////////////
   void operator()(processor::ProcessContext &context, cv::Mat &image, joda::atom::ObjectList &result) const;
   void check() const;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed,
-                                                       $imageFromClass, $classify, $aiClassify, $colocalization,
-                                                       $intersection, $measure, $rollingBall, $medianSubtract,
-                                                       $edgeDetection, $crop, $voronoi, $thresholdValidator,
-                                                       $noiseValidator, disabled);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass, $classify,
+                                                       $aiClassify, $colocalization, $intersection, $measure, $rollingBall, $medianSubtract,
+                                                       $edgeDetection, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
+                                                       disabled);
 };
 
 }    // namespace joda::settings

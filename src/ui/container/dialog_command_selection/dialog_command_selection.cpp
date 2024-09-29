@@ -90,6 +90,7 @@ void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
     int inserted = 0;
     inserted += addCommandToTable(settings::PipelineStep{.$crop = settings::MarginCropSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$blur = settings::BlurSettings{}}, outOfStepBefore);
+    inserted += addCommandToTable(settings::PipelineStep{.$intensityTransform = settings::IntensityTransformationSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$edgeDetection = settings::EdgeDetectionSettings{}}, outOfStepBefore);

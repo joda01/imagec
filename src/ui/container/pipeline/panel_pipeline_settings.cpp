@@ -353,6 +353,7 @@ void PanelPipelineSettings::updatePreview()
         std::this_thread::sleep_for(500ms);
         do {
           toSettings();
+          // Double free
           mWindowMain->checkForSettingsChanged();
           if(nullptr != mPreviewImage) {
             std::filesystem::path imgIndex = newImgIdex;

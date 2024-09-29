@@ -369,7 +369,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           }
         }
 
-        saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_PLANE;
+        saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_$;
         saverSettings.planesIn   = enums::ImageId{.zProjection = enums::ZProjection::$};
         saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
         auto step                = settings::PipelineStep{.$saveImage = saverSettings};

@@ -62,3 +62,12 @@ conan.lock
 graph_info.json
 CMakeUserPresets.json
 graph.html
+java/bioformats.jar
+java/BioFormatsWrapper.class
+models/best.onnx
+models/cell_brightfield_01.onnx
+models/cell_segmentation_brightfield_in_vitro_v1.onnx
+models/cell-brightfield--03-80.onnx
+models/cell-brightfield-02.onnx
+models/nucleus_detection_ex_vivo_v1.onnx
+settings.icproj
