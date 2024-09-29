@@ -25,3 +25,4 @@ libxlsxwriter/*:md5=False
 opencv/*:with_ffmpeg=False
 opencv/*:video=False
 opencv/*:videoio=False
+boost/*:without_fiber=True
