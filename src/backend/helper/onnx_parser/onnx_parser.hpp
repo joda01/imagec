@@ -47,7 +47,8 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  static std::vector<std::pair<int, std::string>> getONNXModelOutputClasses(const std::filesystem::path &modelPath);
+  static std::map<int, std::string> getONNXModelOutputClasses(const std::filesystem::path &modelPath);
+  static std::map<int, std::string> parseName(const std::string &input);
   static inline std::map<std::filesystem::path, Data> mCache;
   static inline std::mutex lookForMutex;
 };

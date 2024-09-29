@@ -13,6 +13,7 @@
 #include "onnx_parser.hpp"
 #include <onnxruntime/core/session/onnxruntime_cxx_api.h>
 #include <mutex>
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::onnx {
 
@@ -70,7 +71,7 @@ auto OnnxParser::getOnnxInfo(const std::filesystem::path &path) -> Data
   return {};
 }
 
-std::vector<std::pair<int, std::string>> OnnxParser::getONNXModelOutputClasses(const std::filesystem::path &modelPath)
+std::map<int, std::string> OnnxParser::getONNXModelOutputClasses(const std::filesystem::path &modelPath)
 {
   // Initialize ONNX Runtime
   Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "ONNX Model Output Classes Reader");
@@ -83,7 +84,7 @@ std::vector<std::pair<int, std::string>> OnnxParser::getONNXModelOutputClasses(c
   size_t output_count = session.GetOutputCount();
 
   // Create a vector to hold the output classes with their indices
-  std::vector<std::pair<int, std::string>> output_classes;
+  std::map<int, std::string> output_classes;
 
   // Allocate memory for output names using ONNX Runtime allocator
   Ort::AllocatorWithDefaultOptions allocator;
@@ -94,12 +95,59 @@ std::vector<std::pair<int, std::string>> OnnxParser::getONNXModelOutputClasses(c
     auto meta                               = session.GetModelMetadata();
     Ort::AllocatedStringPtr output_name_ptr = session.GetOutputNameAllocated(i, allocator);
     std::string output_name(output_name_ptr.get());    // Convert to std::string
-
     // Add the index and output name to the vector
-    output_classes.emplace_back(i, output_name);
+    output_classes.emplace(i, output_name);
+    //////////////////////////
+
+    Ort::AllocatorWithDefaultOptions customMeta;
+    std::vector<Ort::AllocatedStringPtr> customMetaKey = meta.GetCustomMetadataMapKeysAllocated(customMeta);
+    for(const auto &m : customMetaKey) {
+      std::string key = std::string(m.get());
+      if(key == "names") {
+        Ort::AllocatorWithDefaultOptions customMetaAlloc;
+        auto data     = meta.LookupCustomMetadataMapAllocated(m.get(), customMetaAlloc);
+        auto elements = parseName(std::string(data.get()));
+        if(elements.contains(i)) {
+          output_classes.at(i) = elements.at(i);
+        }
+      }
+    }
   }
 
   return output_classes;
+}
+
+std::map<int, std::string> OnnxParser::parseName(const std::string &inputIn)
+{
+  // Remove the curly braces
+  auto input = inputIn.substr(1, inputIn.size() - 2);
+
+  // Map to store parsed data
+  std::map<int, std::string> parsed_data;
+
+  std::istringstream ss(input);
+  std::string key_value_pair;
+
+  // Split by commas to get key-value pairs
+  while(std::getline(ss, key_value_pair, ',')) {
+    // Find the position of the colon (key-value separator)
+    size_t colon_pos = key_value_pair.find(':');
+
+    // Extract the key
+    std::string key_str = key_value_pair.substr(0, colon_pos);
+    key_str.erase(remove(key_str.begin(), key_str.end(), ' '), key_str.end());    // Remove whitespace
+    int key = std::stoi(key_str);
+
+    // Extract the value
+    std::string value = key_value_pair.substr(colon_pos + 1);
+    value.erase(remove(value.begin(), value.end(), ' '), value.end());     // Remove whitespace
+    value.erase(remove(value.begin(), value.end(), '\''), value.end());    // Remove quotes
+
+    // Store the parsed key-value pair
+    parsed_data[key] = value;
+  }
+
+  return parsed_data;
 }
 
 }    // namespace joda::onnx
