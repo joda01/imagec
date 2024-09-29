@@ -186,18 +186,23 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     // Apply the filter based on the object class
     //
     if(mSettings.modelClasses.size() > classId) {
-      const auto &objectClass = mSettings.modelClasses.at(classId);
+      const auto objectClass = mSettings.modelClasses.begin();
+      while(objectClass != mSettings.modelClasses.end()) {
+        if(objectClass->modelClassId == classId) {
+          break;
+        }
+      }
 
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{
-              .clusterId  = context.getClusterId(objectClass.outputClusterNoMatch.clusterId),
-              .classId    = context.getClassId(objectClass.outputClusterNoMatch.classId),
+              .clusterId  = context.getClusterId(objectClass->outputClusterNoMatch.clusterId),
+              .classId    = context.getClassId(objectClass->outputClusterNoMatch.classId),
               .imagePlane = context.getActIterator(),
           },
           context.getAppliedMinThreshold(), 0, boundingBox, mask, contours[idxMax], context.getImageSize(), context.getActTile(),
           context.getTileSize());
 
-      for(const auto &filter : objectClass.filters) {
+      for(const auto &filter : objectClass->filters) {
         if(filter.doesFilterMatch(context, detectedRoi, filter.intensity)) {
           detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId), context.getClassId(filter.outputCluster.classId));
         }
@@ -218,6 +223,9 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 ///
 auto AiClassifier::getMask(const Mat &maskChannel, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat
 {
+  if(maskChannel.empty()) {
+    return {};
+  }
   static const Rect roi(0, 0, static_cast<int>(SEG_WIDTH), static_cast<int>(SEG_HEIGHT));
   Mat dest;
   Mat mask;
