@@ -176,6 +176,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
     }
     mDisplayableText->repaint();
     mPipelineStep.disabled = mDisabled->isChecked();
+    emit valueChanged();
   });
 
   auto *okayBottom = mLayout.addActionBottomButton("Okay", generateIcon("accept"));

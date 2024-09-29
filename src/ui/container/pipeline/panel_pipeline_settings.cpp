@@ -335,14 +335,14 @@ void PanelPipelineSettings::metaChangedEvent()
 ///
 void PanelPipelineSettings::updatePreview()
 {
+  std::lock_guard<std::mutex> lock(mPreviewMutex);
+
   auto [newImgIdex, selectedSeries] = mWindowMain->getImagePanel()->getSelectedImage();
   if(mIsActiveShown) {
     if(mPreviewCounter == 0) {
-      {
-        std::lock_guard<std::mutex> lock(mPreviewMutex);
-        mPreviewCounter++;
-        emit updatePreviewStarted();
-      }
+      mPreviewCounter++;
+      emit updatePreviewStarted();
+
       if(mPreviewThread != nullptr) {
         if(mPreviewThread->joinable()) {
           mPreviewThread->join();
@@ -404,8 +404,6 @@ void PanelPipelineSettings::updatePreview()
         emit updatePreviewFinished();
       });
     } else {
-      std::lock_guard<std::mutex> lock(mPreviewMutex);
-
       mPreviewCounter++;
       if(mPreviewCounter > 1) {
         mPreviewCounter = 1;

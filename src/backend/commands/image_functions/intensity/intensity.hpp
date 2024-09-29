@@ -33,18 +33,12 @@ public:
   {
   }
 
-  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
-  {
-    // Modify contrast and brightness for 16-bit image
-    for(int y = 0; y < image.rows; y++) {
-      for(int x = 0; x < image.cols; x++) {
-        image.at<uint16_t>(y, x) =
-            cv::saturate_cast<uint16_t>(mSettings.contrast * static_cast<float>(image.at<uint16_t>(y, x)) + static_cast<float>(mSettings.brightness));
-      }
-    }
-  }
+  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override;
 
 private:
+  /////////////////////////////////////////////////////
+  static cv::Mat equalizeHist16Bit(const cv::Mat &src);
+
   /////////////////////////////////////////////////////
   const settings::IntensityTransformationSettings &mSettings;
 };
