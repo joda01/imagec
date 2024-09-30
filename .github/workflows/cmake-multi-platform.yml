@@ -223,13 +223,13 @@ jobs:
           pip install conan
           pip install numpy
 
-      - name: Restore Conan Cache
-        uses: actions/cache/restore@v4
-        with:
-          path: C:/Users/runneradmin/.conan2
-          key: conan-cache-${{ runner.os }}-v1
-          restore-keys: |
-            conan-cache-${{ runner.os }}-v1
+      #- name: Restore Conan Cache
+      #  uses: actions/cache/restore@v4
+      #  with:
+      #    path: C:/Users/runneradmin/.conan2
+      #    key: conan-cache-${{ runner.os }}-v1
+      #    restore-keys: |
+      #      conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
@@ -238,7 +238,12 @@ jobs:
           } else {
             conan profile detect
           }
-          cat C:\Users\runneradmin\.conan2\profiles\default
+          ls "C:\Users\runneradmin\.conan2\p"
+          
+          cd "$env:GITHUB_WORKSPACE/conan/patches/onnx"
+          ./patch.ps1
+          cd "$env:GITHUB_WORKSPACE"
+          
           conan install . --profile conan/profile_win_mingw --output-folder=build --build=missing
 
       - name: Build imagec

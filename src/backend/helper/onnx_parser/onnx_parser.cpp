@@ -74,9 +74,12 @@ std::map<int, std::string> OnnxParser::getONNXModelOutputClasses(const std::file
   // Get the number of outputs from the model graph
   std::map<int, std::string> output_classes;
   const ::onnx::GraphProto &graph = model.graph();
-  for(int n = 0; n < graph.output_size(); n++) {
-    output_classes.emplace(n, std::string{});
+
+  for(int i = 0; i < graph.output_size(); ++i) {
+    const ::onnx::ValueInfoProto &output_info = graph.output(i);
+    output_classes.emplace(i, output_info.name());
   }
+
   return output_classes;
 }
 
