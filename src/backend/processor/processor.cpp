@@ -361,14 +361,15 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
             auto color = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()];
             colors.emplace(settings::ClassificatorSetting{static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)}, color);
             saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{
-                .inputCluster = {static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)},
-                .color        = color,
-                .style        = previewSettings.style});
+                .inputCluster     = {static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)},
+                .color            = color,
+                .style            = previewSettings.style,
+                .paintBoundingBox = true});
             colorIdx++;
           }
         }
 
-        saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_PLANE;
+        saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_$;
         saverSettings.planesIn   = enums::ImageId{.zProjection = enums::ZProjection::$};
         saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
         auto step                = settings::PipelineStep{.$saveImage = saverSettings};

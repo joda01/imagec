@@ -55,9 +55,10 @@ class ProcessContext
 public:
   ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext, IterationContext &iterationContext);
 
-  void initDefaultSettings(enums::ClusterId cluster, enums::ZProjection zProjection)
+  void initDefaultSettings(enums::ClusterId cluster, enums::ClassId classId, enums::ZProjection zProjection)
   {
     pipelineContext.defaultClusterId   = cluster;
+    pipelineContext.defaultClassId     = classId;
     pipelineContext.defaultZProjection = zProjection;
   }
 

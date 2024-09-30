@@ -1,0 +1,8 @@
+sources:
+  1.16.2:
+    sha256: 84fc1c3d6133417f8a13af6643ed50983c91dacde5ffba16cc8bb39b22c2acbb
+    url: https://github.com/onnx/onnx/archive/v1.16.2.tar.gz
+
+patches:
+  1.16.2:
+    - patch_file: "0001-undef-optional.patch"

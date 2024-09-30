@@ -71,6 +71,7 @@ void PanelCompilerLog::showDialog()
 ///
 void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &settings)
 {
+  std::lock_guard<std::mutex> lock(mWriteMutex);
   mNrOfErrors   = 0;
   auto addEntry = [this](const std::string &pipelineName, const SettingParserLog &log) {
     int newRow = mLogOutput->rowCount();

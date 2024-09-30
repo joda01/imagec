@@ -2,7 +2,7 @@
 arch=armv8
 build_type=Release
 compiler=apple-clang
-compiler.cppstd=gnu17
+compiler.cppstd=gnu20
 compiler.libcxx=libc++
 compiler.version=15
 os=Macos
@@ -19,6 +19,7 @@ qt/*:with_pq=False
 qt/*:with_odbc=False
 qt/*:with_sqlite3=False
 qt/*:with_harfbuzz=True
+onnxruntime/*:fPIC=False
 harfbuzz/*:fPIC=False
 harfbuzz/*:with_glib=False
 harfbuzz/*:with_freetype=False

@@ -65,6 +65,7 @@ public:
   Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon, QWidget *parent, InOut type);
 
   helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
+  void removeAllTabsExceptFirst();
   void registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi);
   void registerAddCommandButton(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow);
 

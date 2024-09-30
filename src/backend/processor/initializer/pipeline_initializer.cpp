@@ -89,8 +89,7 @@ void PipelineInitializer::init(ImageContext &imageContextOut)
 /// \return
 ///
 void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &pipelineSetup, const enums::tile_t &tile,
-                                       const joda::enums::PlaneId &imagePartToLoad,
-                                       joda::processor::ProcessContext &processContext) const
+                                       const joda::enums::PlaneId &imagePartToLoad, joda::processor::ProcessContext &processContext) const
 {
   int32_t c = pipelineSetup.cStackIndex;
   int32_t z = pipelineSetup.zStackIndex;
@@ -122,9 +121,8 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
 
   enums::PlaneId planeToLoad{.tStack = t, .zStack = z, .cStack = c};
 
-  auto zProjection = mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION
-                         ? pipelineSetup.zProjection
-                         : enums::ZProjection::NONE;
+  auto zProjection = mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION ? pipelineSetup.zProjection
+                                                                                                                   : enums::ZProjection::NONE;
   //
   // Start with blank image
   //
@@ -154,8 +152,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
     imagePlaneOut.image.setTo(cv::Scalar::all(0));
 
     // Store original image to cache
-    processContext.addImageToCache(imagePlaneOut.getId(),
-                                   std::move(std::make_unique<joda::atom::ImagePlane>(imagePlaneOut)));
+    processContext.addImageToCache(imagePlaneOut.getId(), std::move(std::make_unique<joda::atom::ImagePlane>(imagePlaneOut)));
   } else if(joda::settings::PipelineSettings::Source::FROM_MEMORY == pipelineSetup.source) {
     //
     // Load from memory
@@ -164,16 +161,15 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   } else if(joda::settings::PipelineSettings::Source::FROM_FILE == pipelineSetup.source) {
     processContext.setActImage(processContext.loadImageFromCache(
         loadImageToCache(planeToLoad,
-                         mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION
-                             ? pipelineSetup.zProjection
-                             : enums::ZProjection::NONE,
+                         mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION ? pipelineSetup.zProjection
+                                                                                                                       : enums::ZProjection::NONE,
                          tile, processContext)));
   }
 
   //
   // Write context
   //
-  processContext.initDefaultSettings(pipelineSetup.defaultClusterId, zProjection);
+  processContext.initDefaultSettings(pipelineSetup.defaultClusterId, pipelineSetup.defaultClassId, zProjection);
 }
 
 ///
@@ -183,8 +179,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
 /// \param[out]
 /// \return
 ///
-enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &planeToLoad, enums::ZProjection zProjection,
-                                                     const enums::tile_t &tile,
+enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &planeToLoad, enums::ZProjection zProjection, const enums::tile_t &tile,
                                                      joda::processor::ProcessContext &processContext) const
 {
   joda::atom::ImagePlane imagePlaneOut;
@@ -206,17 +201,15 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
   //
 
   auto loadEntireImage = [this, &planeToLoad](int32_t z, int32_t c, int32_t t) {
-    return joda::image::reader::ImageReader::loadEntireImage(
-        mImageContext->imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0);
+    return joda::image::reader::ImageReader::loadEntireImage(mImageContext->imagePath.string(),
+                                                             joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0);
   };
 
   auto loadImageTile = [this, &tile](int32_t z, int32_t c, int32_t t) {
     return joda::image::reader::ImageReader::loadImageTile(
         mImageContext->imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0,
-        joda::ome::TileToLoad{.tileX      = std::get<0>(tile),
-                              .tileY      = std::get<1>(tile),
-                              .tileWidth  = COMPOSITE_TILE_WIDTH,
-                              .tileHeight = COMPOSITE_TILE_HEIGHT});
+        joda::ome::TileToLoad{
+            .tileX = std::get<0>(tile), .tileY = std::get<1>(tile), .tileWidth = COMPOSITE_TILE_WIDTH, .tileHeight = COMPOSITE_TILE_HEIGHT});
   };
 
   std::function<cv::Mat(int32_t, int32_t, int32_t)> loadImage = loadEntireImage;
@@ -257,8 +250,7 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
   }
 
   // Store original image to cache
-  processContext.addImageToCache(imagePlaneOut.getId(),
-                                 std::move(std::make_unique<joda::atom::ImagePlane>(imagePlaneOut)));
+  processContext.addImageToCache(imagePlaneOut.getId(), std::move(std::make_unique<joda::atom::ImagePlane>(imagePlaneOut)));
 
   return imagePlaneOut.getId();
 }

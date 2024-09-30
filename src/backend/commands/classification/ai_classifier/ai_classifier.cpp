@@ -19,6 +19,7 @@
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 namespace joda::cmd {
@@ -33,9 +34,7 @@ using namespace cv::dnn;
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
-    mSettings(settings), mNumberOfClasses(settings.numberOfModelClasses), mClassThreshold(settings.classThreshold),
-    mNmsScoreThreshold(settings.classThreshold * BOX_THRESHOLD)
+AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSettings(settings), mNumberOfClasses(settings.numberOfModelClasses)
 {
   mNet        = cv::dnn::readNet(settings.modelPath);
   bool isCuda = false;
@@ -79,16 +78,18 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   cv::cvtColor(grayImageFloat, inputImage, cv::COLOR_GRAY2BGR);
 
   Mat blob;
-  int col    = inputImage.cols;
-  int row    = inputImage.rows;
-  int maxLen = MAX(col, row);
-  Mat netInputImg;
-  Vec4d params;
-  letterBox(inputImage, netInputImg, params, cv::Size(NET_WIDTH, NET_HEIGHT));
+  Mat netInputImg = inputImage.clone();
   blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(NET_WIDTH, NET_HEIGHT), cv::Scalar(0, 0, 0), true, false);
   mNet.setInput(blob);
   std::vector<cv::Mat> netOutputImg;
   mNet.forward(netOutputImg, mNet.getUnconnectedOutLayersNames());
+
+  float ratio[2] = {};
+  {
+    cv::Size shape = inputImage.size();
+    ratio[0]       = static_cast<float>(NET_WIDTH) / static_cast<float>(shape.width);
+    ratio[1]       = static_cast<float>(NET_HEIGHT) / static_cast<float>(shape.height);
+  }
 
   // vector<string> outputLayerName{"output0", "output1"};
   // mNet.forward(netOutputImg, outputLayerName);
@@ -98,8 +99,6 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   std::vector<cv::Rect> boxes;
   std::vector<vector<float>> pickedProposals;    // output0[:,:, 5 + mClassNames.size():net_width]
 
-  float ratio_h = static_cast<float>(netInputImg.rows) / NET_HEIGHT;
-  float ratio_w = static_cast<float>(netInputImg.cols) / NET_WIDTH;
   int net_width = mNumberOfClasses + 5 + SEG_CHANNELS;
   float *pdata  = (float *) netOutputImg[0].data;
   for(int stride = 0; stride < STRIDE_SIZE; stride++) {    // stride
@@ -119,19 +118,19 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
             double maxClassScores;
             minMaxLoc(scores, nullptr, &maxClassScores, nullptr, &classIdPoint);
             maxClassScores = static_cast<float>(maxClassScores);
-            if(maxClassScores >= mClassThreshold) {
+            if(maxClassScores >= CLASS_THRESHOLD_DEFAULT) {
               vector<float> temp_proto(pdata + 5 + mNumberOfClasses, pdata + net_width);
               pickedProposals.push_back(temp_proto);
               // rect [x,y,w,h]
-              float x  = (pdata[0] - params[2]) / params[0];    // x
-              float y  = (pdata[1] - params[3]) / params[1];    // y
-              float w  = pdata[2] / params[0];                  // w
-              float h  = pdata[3] / params[1];                  // h
-              int left = MAX((x - 0.5 * w) * ratio_w, 0);
-              int top  = MAX((y - 0.5 * h) * ratio_h, 0);
+              float x  = pdata[0] / ratio[0];    // x
+              float y  = pdata[1] / ratio[1];    // y
+              float w  = pdata[2] / ratio[0];    // w
+              float h  = pdata[3] / ratio[1];    // h
+              int left = MAX((x - 0.5 * w), 0);
+              int top  = MAX((y - 0.5 * h), 0);
               classIds.push_back(classIdPoint.x);
               confidences.push_back(maxClassScores * box_score);
-              boxes.push_back(Rect(left, top, static_cast<int>(w * ratio_w), static_cast<int>(h * ratio_h)));
+              boxes.push_back(Rect(left, top, static_cast<int>(w), static_cast<int>(h)));
             }
           }
           pdata += net_width;
@@ -143,7 +142,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   // Perform non-maximum suppression to remove redundant overlapping boxes with
   // lower confidence
   vector<int> nms_result;
-  NMSBoxes(boxes, confidences, mNmsScoreThreshold, NMS_THRESHOLD, nms_result);
+  NMSBoxes(boxes, confidences, NMS_SCORE_THRESHOLD, NMS_THRESHOLD, nms_result);
 
   Mat mask_proposals;
   for(int i = 0; i < nms_result.size(); ++i) {
@@ -162,44 +161,91 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
   Rect holeImgRect(0, 0, inputImage.cols, inputImage.rows);
   for(int i = 0; i < nms_result.size(); ++i) {
-    int idx      = nms_result[i];
-    cv::Rect box = boxes[idx] & holeImgRect;
-    auto mask    = getMask(maskChannels[i], params, inputImageOriginal.size(), box);
+    int idx              = nms_result[i];
+    cv::Rect boundingBox = boxes[idx] & holeImgRect;
+    auto mask            = getMask(maskChannels[i], inputImageOriginal.size(), boundingBox);
 
+    // Find contours in the binary image
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(mask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
-    if(contours.empty()) {
-      contours.emplace_back();
+    std::vector<cv::Vec4i> hierarchy;
+    cv::findContours(mask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
+
+    if(mask.empty() || mask.cols == 0 || mask.rows == 0 || contours.empty()) {
+      continue;
     }
+
     // Look for the biggest contour area
     int idxMax = 0;
     for(int i = 1; i < contours.size(); i++) {
-      if(contours[i - 1].size() < contours[i].size()) {
-        idxMax = i;
+      if(hierarchy[i][3] == -1) {
+        if(contours[i - 1].size() < contours[i].size()) {
+          idxMax = i;
+        }
       }
     }
-    int32_t classId = classIds[idx];
+    auto &contour = contours[idxMax];
+
+    //
+    // Remove pixels outside the contour
+    //
+    cv::Mat maskMaskTmp = cv::Mat::zeros(mask.size(), CV_8UC1);
+    cv::fillPoly(maskMaskTmp, contour, cv::Scalar(255));
+    cv::bitwise_and(mask, maskMaskTmp, maskMaskTmp);
+
+    //
+    // Fit the bounding box and mask to the new size
+    //
+    auto contourTmp = contour;
+    for(auto &point : contourTmp) {
+      point.x = point.x + boundingBox.x;
+      point.y = point.y + boundingBox.y;
+    }
+    cv::Rect fittedBoundingBox = cv::boundingRect(contourTmp);
+    cv::Mat shiftedMask        = cv::Mat::zeros(fittedBoundingBox.size(), CV_8UC1);
+    int32_t xOffset            = fittedBoundingBox.x - boundingBox.x;
+    int32_t yOffset            = fittedBoundingBox.y - boundingBox.y;
+    // Transforms the old big mask to the new smaller one
+    cv::Mat translationMatrix = (cv::Mat_<double>(2, 3) << 1, 0, -xOffset, 0, 1, -yOffset);
+    cv::warpAffine(maskMaskTmp, shiftedMask, translationMatrix, shiftedMask.size());
+    // Move by the offset of the old bounding box
+    for(auto &point : contour) {
+      point.x = point.x - xOffset;
+      if(point.x < 0) {
+        point.x = 0;
+      }
+      point.y = point.y - yOffset;
+      if(point.y < 0) {
+        point.y = 0;
+      }
+    }
 
     //
     // Apply the filter based on the object class
     //
+    int32_t classId = classIds[idx];
     if(mSettings.modelClasses.size() > classId) {
-      const auto &objectClass = mSettings.modelClasses.at(classId);
+      const auto objectClass = mSettings.modelClasses.begin();
+      while(objectClass != mSettings.modelClasses.end()) {
+        if(objectClass->modelClassId == classId) {
+          break;
+        }
+      }
 
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{
-              .clusterId  = context.getClusterId(objectClass.outputClusterNoMatch.clusterId),
-              .classId    = context.getClassId(objectClass.outputClusterNoMatch.classId),
+              .clusterId  = context.getClusterId(objectClass->outputClusterNoMatch.clusterId),
+              .classId    = context.getClassId(objectClass->outputClusterNoMatch.classId),
               .imagePlane = context.getActIterator(),
           },
-          // #warning "Check if the contour is in the area of the bounding box"
-          context.getAppliedMinThreshold(), 0, box, mask, contours[idxMax], context.getImageSize(), context.getActTile(), context.getTileSize());
+          context.getAppliedMinThreshold(), 0, fittedBoundingBox, shiftedMask, contour, context.getImageSize(), context.getActTile(),
+          context.getTileSize());
 
-      for(const auto &filter : objectClass.filters) {
+      for(const auto &filter : objectClass->filters) {
         if(filter.doesFilterMatch(context, detectedRoi, filter.intensity)) {
           detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId), context.getClassId(filter.outputCluster.classId));
         }
       }
+      result.push_back(detectedRoi);
     }
   }
 }
@@ -208,88 +254,26 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 /// \brief      Extracts the mask from the prediction and stores the mask
 ///             to the output >output[i].boxMask<
 /// \author     Joachim Danmayr
-/// \param[in]  image           Original image
-/// \param[in]  maskProposals   Mask proposal
-/// \param[in]  maskProtos      Mask proto
+/// \param[in]  maskChannel     Mask proposal
 /// \param[in]  params          Image scaling parameters
 /// \param[in]  inputImageShape Image shape
 /// \param[out] output          Stores the mask to the output
 ///
-auto AiClassifier::getMask(const Mat &maskChannel, const cv::Vec4d &params, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat
+auto AiClassifier::getMask(const Mat &maskChannel, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat
 {
-  static const Rect roi(static_cast<int>(params[2] / NET_WIDTH * SEG_WIDTH), static_cast<int>(params[3] / NET_HEIGHT * SEG_HEIGHT),
-                        static_cast<int>(SEG_WIDTH - params[2] / 2), static_cast<int>(SEG_HEIGHT - params[3] / 2));
-
+  if(maskChannel.empty()) {
+    return {};
+  }
+  static const Rect roi(0, 0, static_cast<int>(SEG_WIDTH), static_cast<int>(SEG_HEIGHT));
   Mat dest;
   Mat mask;
   cv::exp(-maskChannel, dest);    // sigmoid
   dest = (1.0 / (1.0 + dest))(roi);
   resize(dest, mask, inputImageShape, INTER_NEAREST);
-  mask = mask(box) > MASK_THRESHOLD;
+  mask = mask(box).clone();
+  mask = mask > MASK_THRESHOLD;
+
   return mask;
-}
-
-///
-/// \brief      Image preparation
-/// \author     Joachim Danmayr
-///
-void AiClassifier::letterBox(const cv::Mat &image, cv::Mat &outImage, cv::Vec4d &params, const cv::Size &newShape, bool autoShape, bool scaleFill,
-                             bool scaleUp, int stride, const cv::Scalar &color)
-{
-  // if(false) {
-  //   int maxLen = MAX(image.rows, image.cols);
-  //   outImage   = Mat::zeros(Size(maxLen, maxLen), CV_8UC3);
-  //   image.copyTo(outImage(Rect(0, 0, image.cols, image.rows)));
-  //   params[0] = 1;
-  //   params[1] = 1;
-  //   params[3] = 0;
-  //   params[2] = 0;
-  // }
-
-  cv::Size shape = image.size();
-  float r        = std::min(static_cast<float>(newShape.height) / static_cast<float>(shape.height),
-                            static_cast<float>(newShape.width) / static_cast<float>(shape.width));
-  if(!scaleUp) {
-    r = std::min(r, 1.0F);
-  }
-
-  float ratio[2]{r, r};
-  int newUnpad[2]{static_cast<int>(std::round(static_cast<float>(shape.width) * r)),
-                  static_cast<int>(std::round(static_cast<float>(shape.height) * r))};
-
-  auto dw = static_cast<float>(newShape.width - newUnpad[0]);
-  auto dh = static_cast<float>(newShape.height - newUnpad[1]);
-
-  if(autoShape) {
-    dw = static_cast<float>(static_cast<int>(dw) % stride);
-    dh = static_cast<float>(static_cast<int>(dh) % stride);
-  } else if(scaleFill) {
-    dw          = 0.0F;
-    dh          = 0.0F;
-    newUnpad[0] = newShape.width;
-    newUnpad[1] = newShape.height;
-    ratio[0]    = static_cast<float>(newShape.width) / static_cast<float>(shape.width);
-    ratio[1]    = static_cast<float>(newShape.height) / static_cast<float>(shape.height);
-  }
-
-  dw /= 2.0F;
-  dh /= 2.0F;
-
-  if(shape.width != newUnpad[0] && shape.height != newUnpad[1]) {
-    cv::resize(image, outImage, cv::Size(newUnpad[0], newUnpad[1]));
-  } else {
-    outImage = image.clone();
-  }
-
-  int top    = static_cast<int>(std::round(dh - 0.1F));
-  int bottom = static_cast<int>(std::round(dh + 0.1F));
-  int left   = static_cast<int>(std::round(dw - 0.1F));
-  int right  = static_cast<int>(std::round(dw + 0.1F));
-  params[0]  = ratio[0];
-  params[1]  = ratio[1];
-  params[2]  = left;
-  params[3]  = top;
-  cv::copyMakeBorder(outImage, outImage, top, bottom, left, right, cv::BORDER_CONSTANT, color);
 }
 
 }    // namespace joda::cmd

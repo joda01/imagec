@@ -176,6 +176,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
     }
     mDisplayableText->repaint();
     mPipelineStep.disabled = mDisabled->isChecked();
+    emit valueChanged();
   });
 
   auto *okayBottom = mLayout.addActionBottomButton("Okay", generateIcon("accept"));
@@ -216,6 +217,21 @@ helper::TabWidget *Command::addTab(const QString &title, std::function<void()> b
     }).detach();
   }
   return tab;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::removeAllTabsExceptFirst()
+{
+  int n = mLayout.getNrOfTabs() - 1;
+  for(; n >= 1; n--) {
+    mLayout.onRemoveTab(n);
+  }
 }
 
 helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString &boxTitle,

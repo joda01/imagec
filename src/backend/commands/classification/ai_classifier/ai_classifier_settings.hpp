@@ -45,7 +45,7 @@ struct AiClassifierSettings : public SettingBase
   //
   // Vector array index is the class ID used by the AI model starting with 0
   //
-  std::vector<ObjectClass> modelClasses = {{}};
+  std::vector<ObjectClass> modelClasses = {};
 
   /////////////////////////////////////////////////////
   void check() const
@@ -69,8 +69,7 @@ struct AiClassifierSettings : public SettingBase
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AiClassifierSettings, modelPath, classThreshold,
-                                                       numberOfModelClasses, modelClasses);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AiClassifierSettings, modelPath, classThreshold, numberOfModelClasses, modelClasses);
 };
 
 }    // namespace joda::settings

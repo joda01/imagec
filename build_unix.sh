@@ -14,6 +14,8 @@ build(){
     cd build
     cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
     cmake --build . --config Release --target imagec --parallel 16
+    cmake --build . --config Release --target tests --parallel 16
+
 
     cd ..
     
@@ -32,6 +34,7 @@ build(){
     mkdir -p ./lib
     mkdir -p ./java
     cp ../imagec imagec
+    cp ../tests tests
     cp -r /root/.conan2/p/b/*/p/./plugins/* ./plugins
     cp -r ../../../resources/templates ./templates
     cp ../../../resources/launcher/imagec.sh imagec.sh
@@ -52,7 +55,9 @@ build(){
     #unzip  -qq jre_linux.zip
     rm -rf jre_linux.zip
     cd ..
+    cd models
+    cp -r ../../../../resources/models/*.onnx .
 }
 
-
+#buildlibs
 build

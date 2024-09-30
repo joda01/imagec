@@ -11,6 +11,7 @@
     <file>icons/icons8-railroad-crossing-48.png</file>
     <file>icons/icons8-accept-48.png</file>
     <file>icons/icons8-oval-48.png</file>
+    <file>icons/icons8-brightness-48.png</file>
     <file>icons/icons8-pin-16.png</file>
     <file>icons/icons8-square-number-48.png</file>
     <file>icons/icons8-voronoi-48.png</file>
@@ -105,6 +106,7 @@
     <file>icons/icons8-favorite-48.png</file>
     <file>icons/icons8-three-48.png</file>
     <file>icons/icons8-length-16.png</file>
+    <file>icons/icons8-brightness-16.png</file>
     <file>icons/icons8-metamorphose-48.png</file>
     <file>icons/icons8-clone-24.png</file>
     <file>icons/icons8-warning-48.png</file>
@@ -145,6 +147,7 @@
     <file>icons/icons8-square-border-96.png</file>
     <file>icons/icons8-radius-96.png</file>
     <file>icons/icons8-filter-24.png</file>
+    <file>icons/icons8-brightness-24.png</file>
     <file>icons/icons8-move-right-24.png</file>
     <file>icons/icons8-layer-96.png</file>
     <file>icons/icons8-images-folder-16.png</file>
@@ -520,6 +523,7 @@
     <file>icons/icons8-empty-tray-96.png</file>
     <file>icons/icons8-hexagonal-pattern-24.png</file>
     <file>icons/icons8-file-48.png</file>
+    <file>icons/icons8-brightness-96.png</file>
     <file>icons/icons8-contrast-48.png</file>
     <file>icons/icons8-two-48.png</file>
     <file>icons/icons8-header-24.png</file>

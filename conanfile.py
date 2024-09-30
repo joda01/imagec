@@ -22,6 +22,7 @@ class ImageC(ConanFile):
         self.requires("nlohmann_json/3.11.3")
         self.requires("libxlsxwriter/1.1.8")
         self.requires("duckdb/1.1.0")
+        self.requires("onnx/1.16.2")
         self.requires("xkbcommon/1.6.0", override=True)
         self.requires("libpq/15.5", override=True)
 

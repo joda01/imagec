@@ -75,6 +75,14 @@ This id is calculated by the `fnv1a` hash: `object.image_id = fnv1a(<ORIGINAL-IM
  valgrind --tool=massif --log-file="filename" ./build/build/tests "[pipeline_test_spots]"
  valgrind --gen-suppressions=all --tool=massif --log-file="filename" ./build/build/tests "[pipeline_test_nucleus]"
 
+
+### Add new command
+
+- Create new command in `backend/commands/image_functions`
+- Add the new command to `backend/settings/pipeline/pipeline_step.hpp`
+- Add the new command to `backend/settings/pipeline/pipeline_factory.hpp`
+- Add the command tp `ui/container/dialog_command_selection.cpp`
+
 ## Build
 
 
@@ -139,7 +147,7 @@ qt6                     |https://code.qt.io/cgit/                       | LGPL-3
 jmcnamara/libxlsxwriter |https://github.com/jmcnamara/libxlsxwriter.git | FreeBSD
 duckdb/duckdb           |https://github.com/duckdb/duckdb               | MIT
 ome/bioformats          |https://github.com/ome/bioformats              | GPL-2.0
-
+microsoft/onnxruntime   |https://github.com/microsoft/onnxruntime       | MIT
 
 Thank's to the authors of [imagej](https://github.com/imagej/imagej2) I ported some image processing algorithms from to C++.  
 imageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).

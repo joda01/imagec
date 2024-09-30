@@ -19,9 +19,11 @@
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_combobox_classes_out.hpp"
+#include "ui/container/setting/setting_combobox_string.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
@@ -42,10 +44,32 @@ public:
   {
     auto *modelTab = addTab("Model", [] {});
 
-    mModelPath = SettingBase::create<SettingLineEdit<std::string>>(parent, {}, "Model path");
+    auto onnxModels = joda::onnx::OnnxParser::findOnnxFiles();
+
+    std::vector<SettingComboBoxString::ComboEntry> entries;
+    entries.reserve(onnxModels.size() + 1);
+    entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});
+    for(const auto &[key, model] : onnxModels) {
+      entries.emplace_back(SettingComboBoxString::ComboEntry{.key = model.modelPath.string(), .label = model.modelName.data()});
+    }
+
+    mModelPath = SettingBase::create<SettingComboBoxString>(parent, {}, "Model path");
+    mModelPath->addOptions(entries);
     mModelPath->connectWithSetting(&settings.modelPath);
     mModelPath->setValue(settings.modelPath);
-    mModelPath->setShortDescription("Model:");
+    mModelPath->setShortDescription("Path:");
+    connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
+      if(!mModelPath->getValue().empty()) {
+        auto info = joda::onnx::OnnxParser::getOnnxInfo(std::filesystem::path(mModelPath->getValue()));
+        removeAll();
+        mNumberOdModelClasses->setValue(info.classes.size());
+        int n = 0;
+        for(const auto &classs : info.classes) {
+          addFilter(classs, n);
+          n++;
+        }
+      }
+    });
 
     //
     //
@@ -57,36 +81,33 @@ public:
     mNumberOdModelClasses->connectWithSetting(&settings.numberOfModelClasses);
     mNumberOdModelClasses->setShortDescription("Classes:");
 
-    auto *col = addSetting(modelTab, "AI model settings", {{mModelPath.get(), true, 0}, {mNumberOdModelClasses.get(), false, 0}});
-    int cnt   = 0;
+    auto *col   = addSetting(modelTab, "AI model settings", {{mModelPath.get(), true, 0}, {mNumberOdModelClasses.get(), false, 0}});
+    int32_t cnt = 0;
     for(auto &classifierSetting : settings.modelClasses) {
-      auto *tab = addTab("Class", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
-      modelClasses.emplace_back(classifierSetting, *this, tab, cnt, parent);
+      auto *tab = addTab("Filter", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
+      mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
       cnt++;
     }
-    auto *addClassifier = addActionButton("Add class", generateIcon("add"));
-    connect(addClassifier, &QAction::triggered, this, &AiClassifier::addClassifier);
   }
 
 private:
   /////////////////////////////////////////////////////
+
   struct ClassifierFilter
   {
-    ClassifierFilter(settings::ClassifierFilter &settings, AiClassifier &outer, helper::TabWidget *tab, int32_t tabIndex, QWidget *parent) :
-        outer(outer), tab(tab)
+    ClassifierFilter(settings::ObjectClass &settings, AiClassifier &outer, helper::TabWidget *tab, int32_t tabIndex, QWidget *parent) :
+        outer(outer), tab(tab), settings(settings)
     {
-      //
-      //
-      // mClusterOut = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("Match cluster", parent);
-      // mClusterOut->setValue(settings.clusterOut);
-      // mClusterOut->connectWithSetting(&settings.clusterOut);
+      if(settings.filters.empty()) {
+        settings.filters.emplace_back(settings::ClassifierFilter{});
+      }
+      auto &classifyFilter = *settings.filters.begin();
 
       //
       //
-      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Match class");
-      mClassOut->setValue(settings.outputCluster.classId);
-      mClassOut->connectWithSetting(&settings.outputCluster.classId);
-      mClassOut->setDisplayIconVisible(false);
+      mGrayScaleValue = generateAiModelClass("AI class input", parent);
+      mGrayScaleValue->setValue(settings.modelClassId);
+      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
 
       //
       //
@@ -94,8 +115,8 @@ private:
       mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMinParticleSize->setUnit("px");
       mMinParticleSize->setMinMax(0, INT32_MAX);
-      mMinParticleSize->setValue(settings.minParticleSize);
-      mMinParticleSize->connectWithSetting(&settings.minParticleSize);
+      mMinParticleSize->setValue(classifyFilter.minParticleSize);
+      mMinParticleSize->connectWithSetting(&classifyFilter.minParticleSize);
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
@@ -103,100 +124,113 @@ private:
       mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMaxParticleSize->setUnit("px");
       mMaxParticleSize->setMinMax(0, INT32_MAX);
-      mMaxParticleSize->setValue(settings.maxParticleSize);
-      mMaxParticleSize->connectWithSetting(&settings.maxParticleSize);
+      mMaxParticleSize->setValue(classifyFilter.maxParticleSize);
+      mMaxParticleSize->connectWithSetting(&classifyFilter.maxParticleSize);
       mMaxParticleSize->setShortDescription("Max. ");
 
       //
       //
-      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("polygon"), "Circularity [0-1]");
+      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("oval"), "Circularity [0-1]");
       mMinCircularity->setPlaceholderText("[0 - 1]");
       mMinCircularity->setUnit("%");
       mMinCircularity->setMinMax(0, 1);
-      mMinCircularity->setValue(settings.minCircularity);
-      mMinCircularity->connectWithSetting(&settings.minCircularity);
+      mMinCircularity->setValue(classifyFilter.minCircularity);
+      mMinCircularity->connectWithSetting(&classifyFilter.minCircularity);
       mMinCircularity->setShortDescription("Circ. ");
 
-      outer.addSetting(tab, "Filter",
-                       {/*{mClusterOut.get(), false},*/
-                        {mClassOut.get(), true, tabIndex},
-                        {mMinCircularity.get(), true, tabIndex},
-                        {mMinParticleSize.get(), true, tabIndex},
-                        {mMaxParticleSize.get(), true, tabIndex}});
+      auto *col = outer.addSetting(tab, "Match filter",
+                                   {{mGrayScaleValue.get(), true, tabIndex},
+                                    {mMinCircularity.get(), true, tabIndex},
+                                    {mMinParticleSize.get(), true, tabIndex},
+                                    {mMaxParticleSize.get(), true, tabIndex}});
+
+      //
+      //
+      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Match");
+      mClassOut->setValue(classifyFilter.outputCluster.classId);
+      mClassOut->connectWithSetting(&classifyFilter.outputCluster.classId);
+      mClassOut->setDisplayIconVisible(false);
+
+      //
+      //
+      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("railroad-crossing"), "No match");
+      mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
+      mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
+
+      outer.addSetting(tab, "Result output", {{mClassOut.get(), true, tabIndex}, {mClassOutNoMatch.get(), true, tabIndex}});
+
+      // Intensity filter
+
+      //
+      //
+      mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light-min"), "Min intensity");
+      mMinIntensity->setPlaceholderText("[0 - 65535]");
+      mMinIntensity->setUnit("");
+      mMinIntensity->setMinMax(0, INT32_MAX);
+      mMinIntensity->setValue(classifyFilter.intensity.minIntensity);
+      mMinIntensity->connectWithSetting(&classifyFilter.intensity.minIntensity);
+      mMinIntensity->setShortDescription("Min. ");
+      //
+      //
+      mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light"), "Max intensity");
+      mMaxIntensity->setPlaceholderText("[0 - 65535]");
+      mMaxIntensity->setUnit("");
+      mMaxIntensity->setMinMax(0, INT32_MAX);
+      mMaxIntensity->setValue(classifyFilter.intensity.maxIntensity);
+      mMaxIntensity->connectWithSetting(&classifyFilter.intensity.maxIntensity);
+      mMaxIntensity->setShortDescription("Max. ");
+
+      //
+      //
+      cStackForIntensityFilter = generateCStackCombo<SettingComboBox<int32_t>>("Image channel", parent);
+      cStackForIntensityFilter->setValue(classifyFilter.intensity.imageIn.imagePlane.cStack);
+      cStackForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.imagePlane.cStack);
+
+      //
+      //
+      zProjectionForIntensityFilter = generateZProjection(true, parent);
+      zProjectionForIntensityFilter->setValue(classifyFilter.intensity.imageIn.zProjection);
+      zProjectionForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.zProjection);
+
+      /*outer.addSetting(tab, "Intensity filter",
+                       {{cStackForIntensityFilter.get(), true},
+                        {zProjectionForIntensityFilter.get(), true},
+                        {mMinIntensity.get(), true},
+                        {mMaxIntensity.get(), true}},
+                       col);*/
     }
 
     ~ClassifierFilter()
     {
-      outer.removeSetting(
-          {/*mClusterOut.get(),*/ mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(), mMinCircularity.get(), mSnapAreaSize.get()});
+      outer.removeSetting({mClassOutNoMatch.get(), mGrayScaleValue.get(), mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
+                           mMinCircularity.get(), mSnapAreaSize.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(),
+                           mMinIntensity.get(), mMaxIntensity.get()});
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
+    std::unique_ptr<SettingComboBoxClassesOut> mClassOutNoMatch;
+    std::unique_ptr<SettingComboBox<int32_t>> mGrayScaleValue;
+    QWidget *mParent;
+
     std::unique_ptr<SettingComboBoxClassesOut> mClassOut;
     std::unique_ptr<SettingLineEdit<int>> mMinParticleSize;
     std::unique_ptr<SettingLineEdit<int>> mMaxParticleSize;
     std::unique_ptr<SettingLineEdit<float>> mMinCircularity;
     std::unique_ptr<SettingLineEdit<float>> mSnapAreaSize;
 
+    std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
+    std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;
+    std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
+    std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
+
+    settings::ObjectClass &settings;
     AiClassifier &outer;
     helper::TabWidget *tab;
   };
 
-  struct ObjectClass
-  {
-    ObjectClass(settings::ObjectClass &settings, AiClassifier &outer, helper::TabWidget *tab, int32_t tabIndex, QWidget *parent) :
-        outer(outer), tab(tab), mSettings(settings)
-    {
-      //
-      //
-      // mClusterOutNoMatch = generateClusterDropDown<SettingComboBox<enums::ClusterIdIn>>("No match cluster", parent);
-      // mClusterOutNoMatch->setValue(settings.clusterOutNoMatch);
-      // mClusterOutNoMatch->connectWithSetting(&settings.clusterOutNoMatch);
-
-      //
-      //
-      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("railroad-crossing"), "No match class");
-      mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
-      mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
-
-      //
-      //
-      mGrayScaleValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("grayscale"), "Grayscale");
-      mGrayScaleValue->setDefaultValue(65535);
-      mGrayScaleValue->setPlaceholderText("[0 - 65535]");
-      mGrayScaleValue->setUnit("%");
-      mGrayScaleValue->setMinMax(0, 65535);
-      mGrayScaleValue->setValue(settings.modelClassId);
-      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
-      mGrayScaleValue->setShortDescription("Cls. ");
-
-      auto *col = outer.addSetting(tab, "Classification", {{mGrayScaleValue.get(), false, tabIndex}});
-      outer.addSetting(tab, "No match handling", {/*{mClusterOutNoMatch.get(), false},*/ {mClassOutNoMatch.get(), false, tabIndex}}, col);
-      int32_t cnt = 0;
-      for(auto &filter : settings.filters) {
-        mClassifyFilter.emplace_back(filter, outer, tab, cnt, parent);
-        cnt++;
-      }
-    }
-
-    ~ObjectClass()
-    {
-      outer.removeSetting({/*mClusterOutNoMatch.get(),*/ mClassOutNoMatch.get()});
-    }
-
-    // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOutNoMatch;
-    std::unique_ptr<SettingComboBoxClassesOut> mClassOutNoMatch;
-    std::unique_ptr<SettingLineEdit<int32_t>> mGrayScaleValue;
-
-    std::list<ClassifierFilter> mClassifyFilter;
-    AiClassifier &outer;
-    helper::TabWidget *tab;
-    settings::ObjectClass &mSettings;
-  };
-
-  std::list<ObjectClass> modelClasses;
-  std::unique_ptr<SettingLineEdit<std::string>> mModelPath;
+  std::unique_ptr<SettingComboBoxString> mModelPath;
   std::unique_ptr<SettingLineEdit<int32_t>> mNumberOdModelClasses;
+  std::list<ClassifierFilter> mClassifyFilter;
   settings::AiClassifierSettings &mSettings;
   QWidget *mParent;
 
@@ -213,10 +247,10 @@ private:
     }
 
     {
-      auto it = modelClasses.begin();
-      for(; it != modelClasses.end(); it++) {
-        if(&(it->mSettings) == obj) {
-          modelClasses.erase(it);
+      auto it = mClassifyFilter.begin();
+      for(; it != mClassifyFilter.end(); it++) {
+        if(&(it->settings) == obj) {
+          mClassifyFilter.erase(it);
           break;
         }
       }
@@ -224,16 +258,21 @@ private:
     updateDisplayText();
   }
 
+  void removeAll()
+  {
+    removeAllTabsExceptFirst();
+  }
+
   /////////////////////////////////////////////////////
 
 private slots:
-  void addClassifier()
+  void addFilter(const std::string &title, int32_t classId)
   {
     settings::ObjectClass objClass;
-    objClass.modelClassId = 0;
+    objClass.modelClassId = classId;
     auto &ret             = mSettings.modelClasses.emplace_back(objClass);
-    auto *tab             = addTab("Class", [this, &ret] { removeObjectClass(&ret); });
-    modelClasses.emplace_back(ret, *this, tab, (int32_t) mSettings.modelClasses.size(), mParent);
+    auto *tab             = addTab(title.data(), [this, &ret] { removeObjectClass(&ret); });
+    mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }
 };
