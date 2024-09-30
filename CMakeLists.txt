@@ -80,7 +80,7 @@ find_package( libxlsxwriter CONFIG REQUIRED)
 find_package( nlohmann_json CONFIG REQUIRED)
 find_package( DuckDB CONFIG REQUIRED)
 find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets )
-find_package(onnxruntime REQUIRED)
+find_package( ONNX REQUIRED )
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -94,7 +94,7 @@ set(LIBS
   libxlsxwriter::libxlsxwriter
   duckdb::duckdb
   nlohmann_json::nlohmann_json
-  onnxruntime::onnxruntime
+  onnx::onnx
 )
 
 set(RESOURCE_FILES

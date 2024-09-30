@@ -22,10 +22,9 @@ class ImageC(ConanFile):
         self.requires("nlohmann_json/3.11.3")
         self.requires("libxlsxwriter/1.1.8")
         self.requires("duckdb/1.1.0")
-        self.requires("onnxruntime/1.18.1")
+        self.requires("onnx/1.16.2")
         self.requires("xkbcommon/1.6.0", override=True)
         self.requires("libpq/15.5", override=True)
-        self.requires("boost/1.86.0", override=True)
 
 
     def layout(self):

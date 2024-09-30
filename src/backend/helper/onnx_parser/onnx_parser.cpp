@@ -11,7 +11,7 @@
 ///
 
 #include "onnx_parser.hpp"
-#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
+#include <onnx/onnx_pb.h>    // The ONNX protobuf headers
 #include <mutex>
 #include <nlohmann/json_fwd.hpp>
 
@@ -55,6 +55,31 @@ auto OnnxParser::findOnnxFiles(const std::string &directory) -> std::map<std::fi
   return onnxFiles;
 };
 
+// Function to get the number of outputs in an ONNX model
+std::map<int, std::string> OnnxParser::getONNXModelOutputClasses(const std::filesystem::path &modelPath)
+{
+  // Read the ONNX model into a protobuf object
+  ::onnx::ModelProto model;
+  std::ifstream input(modelPath.string(), std::ios::in | std::ios::binary);
+
+  if(!input) {
+    throw std::runtime_error("Cannot open ONNX!");
+  }
+
+  // Parse the input stream into the ONNX model protobuf structure
+  if(!model.ParseFromIstream(&input)) {
+    throw std::runtime_error("Cannot parse ONNX!");
+  }
+
+  // Get the number of outputs from the model graph
+  std::map<int, std::string> output_classes;
+  const ::onnx::GraphProto &graph = model.graph();
+  for(int n = 0; n < graph.output_size(); n++) {
+    output_classes.emplace(n, std::string{});
+  }
+  return output_classes;
+}
+
 ///
 /// \brief
 /// \author
@@ -71,6 +96,7 @@ auto OnnxParser::getOnnxInfo(const std::filesystem::path &path) -> Data
   return {};
 }
 
+/*
 std::map<int, std::string> OnnxParser::getONNXModelOutputClasses(const std::filesystem::path &modelPath)
 {
   // Initialize ONNX Runtime
@@ -116,6 +142,7 @@ std::map<int, std::string> OnnxParser::getONNXModelOutputClasses(const std::file
 
   return output_classes;
 }
+*/
 
 std::map<int, std::string> OnnxParser::parseName(const std::string &inputIn)
 {
