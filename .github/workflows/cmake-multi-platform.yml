@@ -238,7 +238,6 @@ jobs:
           } else {
             conan profile detect
           }
-          ls "C:\Users\runneradmin\.conan2\p"
           
           cd "$env:GITHUB_WORKSPACE/conan/patches/onnx"
           ./patch.ps1
