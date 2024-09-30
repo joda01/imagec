@@ -5,4 +5,4 @@ sources:
 
 patches:
   1.16.2:
-    - patch_file: "patches/004.patch"
+    - patch_file: "0001-undef-optional.patch"
