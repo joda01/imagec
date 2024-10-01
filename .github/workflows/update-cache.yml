@@ -11,6 +11,7 @@ jobs:
 
       - name: Check if cache exists
         run: |
+          exit 0
           if [[ -d ".github/workflows/cache/conan-cache-${{ runner.os }}-v1" ]]; then
             echo "Cache exists, skipping"
             exit 0
@@ -54,6 +55,7 @@ jobs:
 
       - name: Check if cache exists
         run: |
+          exit 0
           if [[ -d ".github/workflows/cache/conan-cache-${{ runner.os }}-v1" ]]; then
             echo "Cache exists, skipping"
             exit 0
@@ -123,8 +125,9 @@ jobs:
           ls "C:\Users\runneradmin\.conan2\p"
           ls "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569\s"
           ls "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569"
-          ls "C:\Users\runneradmin\.conan2\p\b"
           conan install . --profile conan/profile_win_mingw --output-folder=build --build=missing
+          ls "C:\Users\runneradmin\.conan2\p\b"
+
 
 
       - name: Save Conan Cache
