@@ -1,4 +1,5 @@
 #include <string>
+#include "backend/commands/image_functions/color_filter/color_filter.hpp"
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -53,7 +54,14 @@ TEST_CASE("image:loader:bioformats:rgb", "[image_loader_rgb]")
   auto omeXML = joda::image::reader::ImageReader::getOmeInformation("/workspaces/imagec/test/tmp/rgb.tif");
 
   auto img = joda::image::reader::ImageReader::loadEntireImage("/workspaces/imagec/test/tmp/rgb.tif", {0, 0, 0}, 0, 0);
-  cv::imwrite("tmp/test.jpg", img);    // A JPG FILE IS BEING SAVED
+
+  joda::settings::ColorFilterSettings settings;
+  settings.colorToKeep = "#9ba6bf";
+  settings.tolerance   = 0;
+
+  joda::cmd::ColorFilter filter(settings);
+  filter.execute(img);
+  cv::imwrite("tmp/test.jpg", (img / 256));    // A JPG FILE IS BEING SAVED
 
   joda::image::reader::ImageReader::destroy();
 }

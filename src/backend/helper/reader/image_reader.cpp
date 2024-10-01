@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include "backend/commands/image_functions/resize/resize.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -303,37 +304,23 @@ cv::Mat ImageReader::convertTo16BitGrayscale(cv::Mat &input, bool isRgb, bool in
           return bgrImage;
         }
       }
-
-      case CV_16U:
-      case CV_16S:
-        return {};
-
-      case CV_32S:
-      case CV_32F:
-        return {};
-      case CV_64F:
-        return {};
-      default:
-        std::cerr << "Unknown depth!" << std::endl;
     }
-  } else {
-    auto depth = input.depth();
-    switch(depth) {
-      case CV_8U:
-      case CV_8S:
-        break;
-      case CV_16U:
-      case CV_16S:
-        return input;
-      case CV_32S:
-      case CV_32F:
-        break;
-      case CV_64F:
-        break;
-      default:
-        std::cerr << "Unknown depth!" << std::endl;
-    }
+    throw std::invalid_argument("Not supported image format!");
   }
+  auto depth = input.depth();
+  switch(depth) {
+    case CV_16U:
+    case CV_16S:
+      return input;
+    case CV_8U:
+    case CV_8S:
+    case CV_32S:
+    case CV_32F:
+    case CV_64F:
+    default:
+      break;
+  }
+  throw std::invalid_argument("Not supported image format!");
 }
 ///
 /// \brief
