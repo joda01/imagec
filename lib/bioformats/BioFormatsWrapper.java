@@ -29,7 +29,7 @@ public class BioFormatsWrapper {
             }
             formatReader.setResolution(resolution);
 
-            int[] imageBytes = new int[7];
+            int[] imageBytes = new int[8];
             imageBytes[0] = formatReader.getSizeY(); // Height
             imageBytes[1] = formatReader.getSizeX(); // Width
             imageBytes[2] = formatReader.getOptimalTileHeight();
@@ -37,7 +37,7 @@ public class BioFormatsWrapper {
             imageBytes[4] = formatReader.getBitsPerPixel();
             imageBytes[5] = formatReader.getRGBChannelCount();
             imageBytes[6] = formatReader.getResolutionCount();
-
+            imageBytes[7] = formatReader.isInterleaved() == true ? 1 : 0; // if interleaved [R1, G1, B1, R2, G2, B2, ..., Rn, Gn, Bn]
             return imageBytes;
         } catch (Exception e) {
             e.printStackTrace();

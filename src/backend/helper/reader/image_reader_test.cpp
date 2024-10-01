@@ -32,12 +32,27 @@ TEST_CASE("image:loader:bioformats:pyramid", "[image_loader_pyramid]")
   joda::image::reader::ImageReader::init();
 
   joda::ome::OmeInfo ome;
-  auto omeXML = joda::image::reader::ImageReader::getOmeInformation(
-      "/workspaces/imagec/test/test_data/images_pyramid/pyramid.ome.btf");
+  auto omeXML = joda::image::reader::ImageReader::getOmeInformation("/workspaces/imagec/test/test_data/images_pyramid/pyramid.ome.btf");
 
-  auto img = joda::image::reader::ImageReader::loadEntireImage(
-      "/workspaces/imagec/test/test_data/images_pyramid/pyramid.ome.btf", {0, 0, 0}, 0, 1);
+  auto img = joda::image::reader::ImageReader::loadEntireImage("/workspaces/imagec/test/test_data/images_pyramid/pyramid.ome.btf", {0, 0, 0}, 0, 1);
   img *= 256;
+  cv::imwrite("tmp/test.jpg", img);    // A JPG FILE IS BEING SAVED
+
+  joda::image::reader::ImageReader::destroy();
+}
+
+///
+/// \brief  Load a config file
+/// \author Joachim Danmayr
+///
+TEST_CASE("image:loader:bioformats:rgb", "[image_loader_rgb]")
+{
+  joda::image::reader::ImageReader::init();
+
+  joda::ome::OmeInfo ome;
+  auto omeXML = joda::image::reader::ImageReader::getOmeInformation("/workspaces/imagec/test/tmp/rgb.tif");
+
+  auto img = joda::image::reader::ImageReader::loadEntireImage("/workspaces/imagec/test/tmp/rgb.tif", {0, 0, 0}, 0, 0);
   cv::imwrite("tmp/test.jpg", img);    // A JPG FILE IS BEING SAVED
 
   joda::image::reader::ImageReader::destroy();

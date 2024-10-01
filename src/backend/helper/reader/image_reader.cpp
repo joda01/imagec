@@ -25,6 +25,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -224,29 +225,116 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
 
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
-    jstring filePath          = myEnv->NewStringUTF(filename.c_str());
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+
+    //
+    // ReadImage Info
+    //
     jintArray readImgInfo     = (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series),
                                                                           static_cast<int>(resolutionIdx));
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
     myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
+    int32_t imageHeight     = imageInfo[0];
+    int32_t imageWidth      = imageInfo[1];
+    int32_t bitDepth        = imageInfo[4];
+    int32_t rgbChannelCount = imageInfo[5];
+    int32_t isInterleaved   = imageInfo[7];
+    delete[] imageInfo;
+
+    //
+    // Load image
+    //
     jbyteArray readImg    = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
                                                                        static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
     jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
-    // This is the image information
-    cv::Mat retValue = cv::Mat::zeros(imageInfo[0], imageInfo[1], CV_16UC1);
-    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) retValue.data);
+    auto format       = CV_16UC1;
+    int32_t widthTmp  = imageWidth;
+    int32_t heightTmp = imageHeight;
+    if(bitDepth == 16 && rgbChannelCount != 3) {
+      format = CV_16UC1;
+    } else if(bitDepth == 8 && rgbChannelCount == 3 && 1 == isInterleaved) {
+      format = CV_8UC3;
+    } else if(bitDepth == 8 && rgbChannelCount == 3 && 0 == isInterleaved) {
+      format    = CV_8UC1;
+      heightTmp = imageHeight * 3;
+      widthTmp  = imageWidth;
+    }
 
-    delete[] imageInfo;
+    cv::Mat image = cv::Mat::zeros(heightTmp, widthTmp, format);
+    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) image.data);
+
+    //
+    // Cleanup
+    //
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
-    return retValue;
+    return convertTo16BitGrayscale(image, rgbChannelCount == 3, isInterleaved == 1, imageWidth, imageHeight);
   }
 
   return cv::Mat{};
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+cv::Mat ImageReader::convertTo16BitGrayscale(cv::Mat &input, bool isRgb, bool interleaved, int32_t width, int32_t height)
+{
+  if(isRgb) {
+    auto depth = input.depth();
+    switch(depth) {
+      case CV_8U:
+      case CV_8S: {
+        if(!interleaved) {
+          // Step 1: Split the non-interleaved matrix into separate R, G, B channels
+          cv::Mat redChannel   = input(cv::Rect(0, 0, width, height));             // First part (R)
+          cv::Mat greenChannel = input(cv::Rect(0, height, width, height));        // Second part (G)
+          cv::Mat blueChannel  = input(cv::Rect(0, 2 * height, width, height));    // Third part (B)
+
+          // Step 2: Merge the separate channels into one BGR interleaved image
+          std::vector<cv::Mat> channels = {blueChannel, greenChannel, redChannel};    // OpenCV uses BGR
+          cv::Mat bgrImage              = cv::Mat::zeros(cv::Size(width, height), CV_8UC3);
+          cv::merge(channels, bgrImage);
+          return bgrImage;
+        }
+      }
+
+      case CV_16U:
+      case CV_16S:
+        return {};
+
+      case CV_32S:
+      case CV_32F:
+        return {};
+      case CV_64F:
+        return {};
+      default:
+        std::cerr << "Unknown depth!" << std::endl;
+    }
+  } else {
+    auto depth = input.depth();
+    switch(depth) {
+      case CV_8U:
+      case CV_8S:
+        break;
+      case CV_16U:
+      case CV_16S:
+        return input;
+      case CV_32S:
+      case CV_32F:
+        break;
+      case CV_64F:
+        break;
+      default:
+        std::cerr << "Unknown depth!" << std::endl;
+    }
+  }
+}
 ///
 /// \brief
 /// \author
@@ -355,9 +443,10 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     auto *imageInfo           = new int32_t[totalSizeLoadedInfo];
     myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
-    int32_t imageHeight = imageInfo[0];
-    int32_t imageWidth  = imageInfo[1];
-    int32_t bitDepth    = imageInfo[4];
+    int32_t imageHeight     = imageInfo[0];
+    int32_t imageWidth      = imageInfo[1];
+    int32_t bitDepth        = imageInfo[4];
+    int32_t rgbChannelCount = imageInfo[5];
     delete[] imageInfo;
 
     //
