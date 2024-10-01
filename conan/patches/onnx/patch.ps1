@@ -12,10 +12,12 @@ if (-not (Test-Path -Path $onnxPatchPath)) {
 
 $onnxSource = "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569\s\src.tar.gz"
 $unpackesFolderName = "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569\s\onnx-1.16.2"
-
-Invoke-WebRequest -Uri "https://github.com/onnx/onnx/archive/v1.16.2.tar.gz" -OutFile $onnxSource
-tar -xvzf $onnxSource -C $onnxPatchPath
-Rename-Item $unpackesFolderName "src"
+$unpackesFolderNameRenamed = "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569\s\src"
+if (-not (Test-Path -Path $unpackesFolderNameRenamed)) {
+    Invoke-WebRequest -Uri "https://github.com/onnx/onnx/archive/v1.16.2.tar.gz" -OutFile $onnxSource
+    tar -xvzf $onnxSource -C $onnxPatchPath
+    Rename-Item $unpackesFolderName "src"
+}
 
 Copy-Item -Path conandata.yml -Destination $conanmetaPath -Force
 Copy-Item -Recurse -Path patches -Destination $onnxPatchPath -Force
