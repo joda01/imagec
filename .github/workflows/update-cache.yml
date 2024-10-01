@@ -120,6 +120,10 @@ jobs:
           ./patch.ps1
           cd "$env:GITHUB_WORKSPACE"
 
+          ls "C:\Users\runneradmin\.conan2\p"
+          ls "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569\s"
+          ls "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569"
+          ls "C:\Users\runneradmin\.conan2\p\b"
           conan install . --profile conan/profile_win_mingw --output-folder=build --build=missing
 
 
