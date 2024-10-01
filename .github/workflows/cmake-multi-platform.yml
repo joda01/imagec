@@ -223,13 +223,13 @@ jobs:
           pip install conan
           pip install numpy
 
-      #- name: Restore Conan Cache
-      #  uses: actions/cache/restore@v4
-      #  with:
-      #    path: C:/Users/runneradmin/.conan2
-      #    key: conan-cache-${{ runner.os }}-v1
-      #    restore-keys: |
-      #      conan-cache-${{ runner.os }}-v1
+      - name: Restore Conan Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: C:/Users/runneradmin/.conan2
+          key: conan-cache-${{ runner.os }}-v1
+          restore-keys: |
+            conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
