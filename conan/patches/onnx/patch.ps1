@@ -12,5 +12,3 @@ if (-not (Test-Path -Path $onnxPatchPath)) {
 
 Copy-Item -Path conandata.yml -Destination $conanmetaPath -Force
 Copy-Item -Recurse -Path patches -Destination $onnxPatchPath -Force
-
-conan install --build=missing --profile profile .
