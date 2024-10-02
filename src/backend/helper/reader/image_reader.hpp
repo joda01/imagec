@@ -47,8 +47,11 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  cv::Mat loadImage();
+
   static void setPath();
-  static cv::Mat convertTo16BitGrayscale(cv::Mat &, bool isRgb, bool interleaved, int32_t width, int32_t height);
+  static cv::Mat convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg, int32_t imageWidth, int32_t imageHeight, int32_t bitDepth,
+                                   int32_t rgbChannelCount, int32_t isInterleaved);
 
   /////////////////////////////////////////////////////
   static inline std::mutex mReadMutex{};

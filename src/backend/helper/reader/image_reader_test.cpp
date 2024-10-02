@@ -56,8 +56,8 @@ TEST_CASE("image:loader:bioformats:rgb", "[image_loader_rgb]")
   auto img = joda::image::reader::ImageReader::loadEntireImage("/workspaces/imagec/test/tmp/rgb.tif", {0, 0, 0}, 0, 0);
 
   joda::settings::ColorFilterSettings settings;
-  settings.colorToKeep = "#7c492a";
-  settings.tolerance   = 20;
+  // settings. = "#7c492a";
+  // settings.tolerance   = 20;
 
   joda::cmd::ColorFilter filter(settings);
   filter.execute(img);

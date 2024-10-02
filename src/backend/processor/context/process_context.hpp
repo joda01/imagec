@@ -74,6 +74,11 @@ public:
     pipelineContext.actImagePlane.imageType = atom::ImagePlane::ImageType::RGB;
   }
 
+  bool isRgb() const
+  {
+    return pipelineContext.actImagePlane.imageType == atom::ImagePlane::ImageType::RGB;
+  }
+
   void setToGrayscaleImage()
   {
     pipelineContext.actImagePlane.imageType = atom::ImagePlane::ImageType::GRAYSCALE;

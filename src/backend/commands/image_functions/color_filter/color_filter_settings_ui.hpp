@@ -43,6 +43,13 @@ public:
     mTargetColor->setValue("#000000");
     mTargetColor->connectWithSetting(&settings.filter.at(0).targetColor);
     mTargetColor->setShortDescription("Color: ");
+    auto *targetEdit = mTargetColor->getLineEdit();
+    connect(targetEdit, &ClickableLineEdit::mousePressedEvent, [this, parent]() {
+      auto color = pickColor(parent);
+      if(color.isValid()) {
+        mTargetColor->setValue(color.name().toStdString());
+      }
+    });
 
     //
     //
@@ -52,6 +59,13 @@ public:
     mLowerFilter->setValue("#000000");
     mLowerFilter->connectWithSetting(&settings.filter.at(0).lowerColor);
     mLowerFilter->setShortDescription("Color: ");
+    auto *lowerEdit = mTargetColor->getLineEdit();
+    connect(lowerEdit, &ClickableLineEdit::mousePressedEvent, [this, parent]() {
+      auto color = pickColor(parent);
+      if(color.isValid()) {
+        mLowerFilter->setValue(color.name().toStdString());
+      }
+    });
 
     //
     //
@@ -61,6 +75,13 @@ public:
     mUpperFilter->setValue("#000000");
     mUpperFilter->connectWithSetting(&settings.filter.at(0).upperColor);
     mUpperFilter->setShortDescription("Color: ");
+    auto *upperEdit = mUpperFilter->getLineEdit();
+    connect(upperEdit, &ClickableLineEdit::mousePressedEvent, [this, parent]() {
+      auto color = pickColor(parent);
+      if(color.isValid()) {
+        mUpperFilter->setValue(color.name().toStdString());
+      }
+    });
 
     //
     //
@@ -71,10 +92,16 @@ public:
     mGrayscaleMode->setValue(settings.grayScaleConvertMode);
     mGrayscaleMode->connectWithSetting(&settings.grayScaleConvertMode);
 
-    addSetting({{mTargetColor.get(), true, 0}, {mLowerFilter.get(), false, 0}, {mUpperFilter.get(), false, 0}});
+    addSetting({{mTargetColor.get(), true, 0}, {mLowerFilter.get(), false, 0}, {mUpperFilter.get(), false, 0}, {mGrayscaleMode.get(), false, 0}});
   }
 
 private:
+  QColor pickColor(QWidget *parent)
+  {
+    // Open the color dialog and get the selected color
+    return QColorDialog::getColor(Qt::white, parent, "Select Color");
+  }
+
   /////////////////////////////////////////////////////
   std::shared_ptr<SettingLineEdit<std::string>> mTargetColor;
   std::shared_ptr<SettingLineEdit<std::string>> mLowerFilter;

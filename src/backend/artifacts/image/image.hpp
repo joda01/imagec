@@ -43,6 +43,11 @@ public:
     return imageType == ImageType::BINARY;
   }
 
+  bool isRgb() const
+  {
+    return imageType == ImageType::RGB;
+  }
+
   enums::tile_t tile;
   cv::Mat image;
   ImageType imageType          = ImageType::GRAYSCALE;

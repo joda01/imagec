@@ -18,12 +18,31 @@
 
 namespace joda::ui {
 
+class ClickableLineEdit : public QLineEdit
+{
+  Q_OBJECT
+public:
+  ClickableLineEdit(QWidget *parent = nullptr) : QLineEdit(parent)
+  {
+  }
+
+signals:
+  void mousePressedEvent();
+
+protected:
+  // Override the mousePressEvent method
+  void mousePressEvent(QMouseEvent *e) override
+  {
+    QLineEdit::mousePressEvent(e);    // Call the base class implementation
+    emit mousePressedEvent();
+  }
+};
+
 ///
 /// \class
 /// \author
 /// \brief
 ///
-
 template <NumberOrString VALUE_T>
 class SettingLineEdit : public SettingBase
 {
@@ -32,7 +51,7 @@ public:
 
   QWidget *createInputObject() override
   {
-    mLineEdit = new QLineEdit();
+    mLineEdit = new ClickableLineEdit();
     // mLineEdit->setClearButtonEnabled(true);
     if(!getIcon().isNull()) {
       mLineEdit->addAction(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE), QLineEdit::LeadingPosition);
@@ -40,6 +59,11 @@ public:
     connect(mLineEdit, &QLineEdit::editingFinished, this, &SettingLineEdit::onValueChanged);
     connect(mLineEdit, &QLineEdit::returnPressed, this, &SettingLineEdit::onValueChanged);
     connect(mLineEdit, &QLineEdit::textChanged, this, &SettingLineEdit::onValueChanged);
+    return mLineEdit;
+  }
+
+  ClickableLineEdit *getLineEdit()
+  {
     return mLineEdit;
   }
 
@@ -169,7 +193,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  QLineEdit *mLineEdit = nullptr;
+  ClickableLineEdit *mLineEdit = nullptr;
   std::optional<VALUE_T> mDefaultValue;
   VALUE_T *mSetting = nullptr;
 
