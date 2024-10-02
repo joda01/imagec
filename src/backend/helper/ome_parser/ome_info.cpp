@@ -51,8 +51,7 @@ void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML)
   std::string keyPrefix;    // OME:
 
 TRY_AGAIN:
-  std::string imageName =
-      std::string(doc.child("OME").child(std::string(keyPrefix + "Image").data()).attribute("Name").as_string());
+  std::string imageName = std::string(doc.child("OME").child(std::string(keyPrefix + "Image").data()).attribute("Name").as_string());
   if(imageName.empty() && keyPrefix.empty()) {
     keyPrefix = "OME:";
     goto TRY_AGAIN;
@@ -79,8 +78,7 @@ TRY_AGAIN:
                                 .attribute("Medium")
                                 .as_string("Unknown"));
 
-  mObjectiveInfo = ObjectiveInfo{
-      .manufacturer = objectivManufacturer, .model = objectivModel, .medium = medium, .magnification = magnification};
+  mObjectiveInfo = ObjectiveInfo{.manufacturer = objectivManufacturer, .model = objectivModel, .medium = medium, .magnification = magnification};
 
   int series = 0;
 
@@ -96,11 +94,10 @@ TRY_AGAIN:
     //
     // Plane numbers
     //
-    auto sizeC = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeC").as_int();
-    auto sizeZ = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeZ").as_int();
-    auto sizeT = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeT").as_int();
-    auto dimOrder =
-        std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("DimensionOrder").as_string());
+    auto sizeC    = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeC").as_int();
+    auto sizeZ    = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeZ").as_int();
+    auto sizeT    = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeT").as_int();
+    auto dimOrder = std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("DimensionOrder").as_string());
 
     //
     // TIFF Data
@@ -190,21 +187,23 @@ TRY_AGAIN:
 
     for(pugi::xml_node pyramid = doc.child("JODA").child(std::string("PyramidResolution").data()); pyramid != nullptr;
         pyramid                = pyramid.next_sibling(std::string("PyramidResolution").data())) {
-      int32_t idx        = pyramid.attribute("idx").as_int();
-      int32_t width      = pyramid.attribute("width").as_int();
-      int32_t height     = pyramid.attribute("height").as_int();
-      int32_t tileWidth  = pyramid.attribute("TileWidth").as_int();
-      int32_t tileHeight = pyramid.attribute("TileHeight").as_int();
-      int32_t bits       = pyramid.attribute("BitsPerPixel").as_int();
+      int32_t idx             = pyramid.attribute("idx").as_int();
+      int32_t width           = pyramid.attribute("width").as_int();
+      int32_t height          = pyramid.attribute("height").as_int();
+      int32_t tileWidth       = pyramid.attribute("TileWidth").as_int();
+      int32_t tileHeight      = pyramid.attribute("TileHeight").as_int();
+      int32_t bits            = pyramid.attribute("BitsPerPixel").as_int();
+      int32_t rgbChannelCpunt = pyramid.attribute("RGBChannelCount").as_int();
+      int32_t isInterleaved   = pyramid.attribute("IsInterleaved").as_int();
 
-      actImageInfo.resolutions.emplace(
-          idx, ImageInfo::Pyramid{.bits                   = bits,
-                                  .imageMemoryUsage       = static_cast<int64_t>(width) * height * (bits / 8),
-                                  .imageWidth             = width,
-                                  .imageHeight            = height,
-                                  .optimalTileMemoryUsage = static_cast<int64_t>(tileWidth) * tileHeight * (bits / 8),
-                                  .optimalTileWidth       = tileWidth,
-                                  .optimalTileHeight      = tileHeight});
+      actImageInfo.resolutions.emplace(idx, ImageInfo::Pyramid{.bits                   = bits,
+                                                               .rgbChannelCount        = rgbChannelCpunt,
+                                                               .imageMemoryUsage       = static_cast<int64_t>(width) * height * (bits / 8),
+                                                               .imageWidth             = width,
+                                                               .imageHeight            = height,
+                                                               .optimalTileMemoryUsage = static_cast<int64_t>(tileWidth) * tileHeight * (bits / 8),
+                                                               .optimalTileWidth       = tileWidth,
+                                                               .optimalTileHeight      = tileHeight});
     }
   }
 }

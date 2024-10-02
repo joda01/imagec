@@ -37,7 +37,8 @@ public class BioFormatsWrapper {
             imageBytes[4] = formatReader.getBitsPerPixel();
             imageBytes[5] = formatReader.getRGBChannelCount();
             imageBytes[6] = formatReader.getResolutionCount();
-            imageBytes[7] = formatReader.isInterleaved() == true ? 1 : 0; // if interleaved [R1, G1, B1, R2, G2, B2, ..., Rn, Gn, Bn]
+            imageBytes[7] = formatReader.isInterleaved() == true ? 1 : 0; // if interleaved [R1, G1, B1, R2, G2, B2,
+                                                                          // ..., Rn, Gn, Bn]
             return imageBytes;
         } catch (Exception e) {
             e.printStackTrace();
@@ -133,7 +134,9 @@ public class BioFormatsWrapper {
                         + String.valueOf(formatReader.getSizeY()) + "\" TileWidth=\""
                         + String.valueOf(formatReader.getOptimalTileWidth()) + "\" TileHeight=\""
                         + String.valueOf(formatReader.getOptimalTileHeight()) + "\" BitsPerPixel=\""
-                        + String.valueOf(formatReader.getBitsPerPixel()) + "\"/>";
+                        + String.valueOf(formatReader.getBitsPerPixel()) + "\" RGBChannelCount=\""
+                        + String.valueOf(formatReader.getRGBChannelCount()) + "\" IsInterleaved=\""
+                        + String.valueOf(formatReader.isInterleaved() == true ? 1 : 0) + "\"/>";
 
             }
             omeXML += "</JODA>";
