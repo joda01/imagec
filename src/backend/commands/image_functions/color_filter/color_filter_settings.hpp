@@ -11,20 +11,43 @@ namespace joda::settings {
 struct ColorFilterSettings : public SettingBase
 {
 public:
-  std::string colorToKeep = "#FF0000";
-  int32_t tolerance       = 30;
+  enum class GrayscaleMode
+  {
+    LINEAR,
+    HUMAN
+  };
+
+  struct Filter
+  {
+    std::string lowerColor  = "#FF0000";
+    std::string targetColor = "#FF0000";
+    std::string upperColor  = "#FF0000";
+
+    void check() const
+    {
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Filter, lowerColor, targetColor, upperColor);
+  };
+
+  std::vector<Filter> filter;
 
   //
   // Use 0.299 * R + 0.587 * G + 0.114 * B
   //
-  bool useHumanPerceptionGrayscaleConversion = false;
+  GrayscaleMode grayScaleConvertMode = GrayscaleMode::LINEAR;
 
   /////////////////////////////////////////////////////
   void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ColorFilterSettings, colorToKeep, tolerance, useHumanPerceptionGrayscaleConversion);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ColorFilterSettings, filter, grayScaleConvertMode);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ColorFilterSettings::GrayscaleMode, {
+                                                                     {ColorFilterSettings::GrayscaleMode::LINEAR, "Linear"},
+                                                                     {ColorFilterSettings::GrayscaleMode::HUMAN, "HumanEye"},
+                                                                 });
 
 }    // namespace joda::settings

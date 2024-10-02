@@ -94,6 +94,8 @@ void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
     inserted += addCommandToTable(settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$edgeDetection = settings::EdgeDetectionSettings{}}, outOfStepBefore);
+    inserted += addCommandToTable(settings::PipelineStep{.$colorFilter = settings::ColorFilterSettings{}}, outOfStepBefore);
+
     if(inserted > 0) {
       // Only insert title if at least one element has been added
       addTitleToTable("Image Processing", inserted);

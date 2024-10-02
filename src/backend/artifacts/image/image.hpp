@@ -20,6 +20,13 @@ namespace joda::atom {
 class ImagePlane
 {
 public:
+  enum class ImageType
+  {
+    GRAYSCALE,
+    RGB,
+    BINARY
+  };
+
   void setId(const enums::ImageId &id, const enums::tile_t &tile)
   {
     this->tile = tile;
@@ -30,9 +37,15 @@ public:
   {
     return mId;
   }
+
+  bool isBinary() const
+  {
+    return imageType == ImageType::BINARY;
+  }
+
   enums::tile_t tile;
   cv::Mat image;
-  bool isBinary                = false;
+  ImageType imageType          = ImageType::GRAYSCALE;
   uint16_t appliedMinThreshold = 0;
   uint16_t appliedMaxThreshold = 0;
   enums::ImageId mId;

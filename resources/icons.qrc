@@ -26,6 +26,7 @@
     <file>icons/icons8-asterisk-key-48.png</file>
     <file>icons/icons8-project-management-24.png</file>
     <file>icons/icons8-image-96.png</file>
+    <file>icons/icons8-color-16.png</file>
     <file>icons/icons8-file-24.png</file>
     <file>icons/icons8-no-filling-48.png</file>
     <file>icons/icons8-eight-48.png</file>
@@ -117,6 +118,7 @@
     <file>icons/icons8-arrow-up-48.png</file>
     <file>icons/icons8-images-folder-24.png</file>
     <file>icons/icons8-arrow-16.png</file>
+    <file>icons/icons8-color-48.png</file>
     <file>icons/icons8-triangle-16.png</file>
     <file>icons/icons8-arrow-96.png</file>
     <file>icons/icons8-type-24.png</file>
@@ -152,6 +154,7 @@
     <file>icons/icons8-layer-96.png</file>
     <file>icons/icons8-images-folder-16.png</file>
     <file>icons/icons8-split-48.png</file>
+    <file>icons/icons8-color-24.png</file>
     <file>icons/icons8-log-16.png</file>
     <file>icons/icons8-error-red-48.png</file>
     <file>icons/icons8-metamorphose-96.png</file>
@@ -381,6 +384,7 @@
     <file>icons/icons8-one-24.png</file>
     <file>icons/icons8-original-size-16.png</file>
     <file>icons/icons8-baseline-24.png</file>
+    <file>icons/icons8-color-96.png</file>
     <file>icons/icons8-two-16.png</file>
     <file>icons/icons8-scatter-plot-96.png</file>
     <file>icons/icons8-name-96.png</file>

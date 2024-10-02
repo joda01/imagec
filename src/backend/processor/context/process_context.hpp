@@ -64,9 +64,19 @@ public:
 
   void setBinaryImage(uint16_t thresholdMin, uint16_t thresholdMax)
   {
-    pipelineContext.actImagePlane.isBinary            = true;
+    pipelineContext.actImagePlane.imageType           = atom::ImagePlane::ImageType::BINARY;
     pipelineContext.actImagePlane.appliedMinThreshold = thresholdMin;
     pipelineContext.actImagePlane.appliedMaxThreshold = thresholdMax;
+  }
+
+  void setToRgbImage()
+  {
+    pipelineContext.actImagePlane.imageType = atom::ImagePlane::ImageType::RGB;
+  }
+
+  void setToGrayscaleImage()
+  {
+    pipelineContext.actImagePlane.imageType = atom::ImagePlane::ImageType::GRAYSCALE;
   }
 
   [[nodiscard]] joda::atom::ImagePlane &getActImage()
