@@ -14,29 +14,10 @@
 
 #include <qglobal.h>
 #include <optional>
+#include "ui/helper/clickablelineedit.hpp"
 #include "setting_base.hpp"
 
 namespace joda::ui {
-
-class ClickableLineEdit : public QLineEdit
-{
-  Q_OBJECT
-public:
-  ClickableLineEdit(QWidget *parent = nullptr) : QLineEdit(parent)
-  {
-  }
-
-signals:
-  void mousePressedEvent();
-
-protected:
-  // Override the mousePressEvent method
-  void mousePressEvent(QMouseEvent *e) override
-  {
-    QLineEdit::mousePressEvent(e);    // Call the base class implementation
-    emit mousePressedEvent();
-  }
-};
 
 ///
 /// \class

@@ -14,7 +14,6 @@
 
 #include <qwidget.h>
 #include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "color_filter_settings.hpp"
