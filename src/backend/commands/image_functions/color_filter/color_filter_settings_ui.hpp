@@ -43,10 +43,12 @@ public:
     mTargetColor->connectWithSetting(&settings.filter.at(0).targetColor);
     mTargetColor->setShortDescription("Color: ");
     auto *targetEdit = mTargetColor->getLineEdit();
-    connect(targetEdit, &ClickableLineEdit::mousePressedEvent, [this, parent]() {
+    connect(targetEdit, &ClickableLineEdit::mousePressedEvent, [this, parent, targetEdit]() {
       auto color = pickColor(parent);
       if(color.isValid()) {
         mTargetColor->setValue(color.name().toStdString());
+        QString colorStyle = QString("background-color: %1").arg(color.name());
+        targetEdit->setStyleSheet(colorStyle);
       }
     });
 
@@ -58,11 +60,13 @@ public:
     mLowerFilter->setValue("#000000");
     mLowerFilter->connectWithSetting(&settings.filter.at(0).lowerColor);
     mLowerFilter->setShortDescription("Color: ");
-    auto *lowerEdit = mTargetColor->getLineEdit();
-    connect(lowerEdit, &ClickableLineEdit::mousePressedEvent, [this, parent]() {
+    auto *lowerEdit = mLowerFilter->getLineEdit();
+    connect(lowerEdit, &ClickableLineEdit::mousePressedEvent, [this, parent, lowerEdit]() {
       auto color = pickColor(parent);
       if(color.isValid()) {
         mLowerFilter->setValue(color.name().toStdString());
+        QString colorStyle = QString("background-color: %1").arg(color.name());
+        lowerEdit->setStyleSheet(colorStyle);
       }
     });
 
@@ -75,10 +79,12 @@ public:
     mUpperFilter->connectWithSetting(&settings.filter.at(0).upperColor);
     mUpperFilter->setShortDescription("Color: ");
     auto *upperEdit = mUpperFilter->getLineEdit();
-    connect(upperEdit, &ClickableLineEdit::mousePressedEvent, [this, parent]() {
+    connect(upperEdit, &ClickableLineEdit::mousePressedEvent, [this, parent, upperEdit]() {
       auto color = pickColor(parent);
       if(color.isValid()) {
         mUpperFilter->setValue(color.name().toStdString());
+        QString colorStyle = QString("background-color: %1").arg(color.name());
+        upperEdit->setStyleSheet(colorStyle);
       }
     });
 
