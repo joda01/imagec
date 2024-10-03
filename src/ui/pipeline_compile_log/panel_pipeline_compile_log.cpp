@@ -130,6 +130,12 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
     mLogOutput->setItem(newRow, 3, message);
   };
 
+  for(int row = 0; row < mLogOutput->rowCount(); ++row) {
+    for(int col = 0; col < mLogOutput->columnCount(); ++col) {
+      QTableWidgetItem *item = mLogOutput->takeItem(row, col);    // Take ownership of the item
+      delete item;                                                // Delete the item to free memory
+    }
+  }
   mLogOutput->setRowCount(0);
   auto errors = settings.checkForErrors();
   for(const auto &[pipelineName, error] : errors) {

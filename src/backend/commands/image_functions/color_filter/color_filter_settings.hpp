@@ -19,9 +19,9 @@ public:
 
   struct Filter
   {
-    std::string lowerColor  = "#FF0000";
-    std::string targetColor = "#FF0000";
-    std::string upperColor  = "#FF0000";
+    std::string lowerColor  = "#000000";
+    std::string targetColor = "#000000";
+    std::string upperColor  = "#000000";
 
     void check() const
     {

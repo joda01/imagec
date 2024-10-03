@@ -37,6 +37,9 @@ public:
   {
     for(const auto &filter : mSetting.filter) {
       // Define the color you want to keep (in RGB format)
+      if(filter.targetColor == "#000000") {
+        continue;
+      }
       cv::Scalar lowerBound  = hexToRGB(filter.lowerColor);
       cv::Scalar targetColor = hexToRGB(filter.targetColor);
       cv::Scalar upperBound  = hexToRGB(filter.upperColor);

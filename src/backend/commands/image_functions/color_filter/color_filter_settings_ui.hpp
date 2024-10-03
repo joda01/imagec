@@ -87,12 +87,12 @@ public:
         QString colorStyle = QString("background-color: %1").arg(color.name());
         targetEdit->setStyleSheet(colorStyle);
 
-        QColor colorUpper = adjustColor(color, 30);
+        QColor colorUpper = adjustColor(color, 100);
         mUpperFilter->setValue(colorUpper.name().toStdString());
         QString colorUpperStyle = QString("background-color: %1").arg(colorUpper.name());
         upperEdit->setStyleSheet(colorUpperStyle);
 
-        QColor colorLower = adjustColor(color, -20);
+        QColor colorLower = adjustColor(color, -100);
         mLowerFilter->setValue(colorLower.name().toStdString());
         QString colorLowerStyle = QString("background-color: %1").arg(colorLower.name());
         lowerEdit->setStyleSheet(colorLowerStyle);

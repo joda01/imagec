@@ -364,7 +364,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                 .inputCluster     = {static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)},
                 .color            = color,
                 .style            = previewSettings.style,
-                .paintBoundingBox = true});
+                .paintBoundingBox = false});
             colorIdx++;
           }
         }
