@@ -221,7 +221,7 @@ std::string ImageReader::getJavaVersion()
 cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx)
 {
   // Takes 150 ms
-  if(mJVMInitialised) {
+  if(mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
 
     JNIEnv *myEnv;
@@ -270,7 +270,7 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
 cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &imagePlane, uint16_t series)
 {
   // Takes 150 ms
-  if(mJVMInitialised) {
+  if(mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
 
     auto ome           = getOmeInformation(filename);
@@ -367,7 +367,7 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
 cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
                                    const joda::ome::TileToLoad &tile)
 {
-  if(mJVMInitialised) {
+  if(mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     JNIEnv *myEnv = nullptr;
     myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
     jstring filePath = myEnv->NewStringUTF(filename.c_str());
@@ -412,7 +412,7 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     //
     // Assign image data
     //
-    cv::Mat image = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved);
+    cv::Mat image = convertImageToMat(myEnv, readImg, tileWidthToLoad, tileHeightToLoad, bitDepth, rgbChannelCount, isInterleaved);
 
     //
     // Cleanup

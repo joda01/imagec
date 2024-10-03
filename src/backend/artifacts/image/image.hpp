@@ -43,17 +43,29 @@ public:
     return imageType == ImageType::BINARY;
   }
 
+  void setToBinary()
+  {
+    imageType = ImageType::BINARY;
+  }
+
+  void setToGrayscale()
+  {
+    imageType = ImageType::GRAYSCALE;
+  }
+
   bool isRgb() const
   {
-    return imageType == ImageType::RGB;
+    return image.channels() == 3;
   }
 
   enums::tile_t tile;
   cv::Mat image;
-  ImageType imageType          = ImageType::GRAYSCALE;
   uint16_t appliedMinThreshold = 0;
   uint16_t appliedMaxThreshold = 0;
   enums::ImageId mId;
+
+private:
+  ImageType imageType = ImageType::GRAYSCALE;
 };
 
 }    // namespace joda::atom

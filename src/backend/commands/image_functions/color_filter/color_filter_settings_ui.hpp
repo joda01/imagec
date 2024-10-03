@@ -43,14 +43,6 @@ public:
     mTargetColor->connectWithSetting(&settings.filter.at(0).targetColor);
     mTargetColor->setShortDescription("Color: ");
     auto *targetEdit = mTargetColor->getLineEdit();
-    connect(targetEdit, &ClickableLineEdit::mousePressedEvent, [this, parent, targetEdit]() {
-      auto color = pickColor(parent);
-      if(color.isValid()) {
-        mTargetColor->setValue(color.name().toStdString());
-        QString colorStyle = QString("background-color: %1").arg(color.name());
-        targetEdit->setStyleSheet(colorStyle);
-      }
-    });
 
     //
     //
@@ -62,7 +54,7 @@ public:
     mLowerFilter->setShortDescription("Color: ");
     auto *lowerEdit = mLowerFilter->getLineEdit();
     connect(lowerEdit, &ClickableLineEdit::mousePressedEvent, [this, parent, lowerEdit]() {
-      auto color = pickColor(parent);
+      auto color = pickColor(parent, mLowerFilter->getValue().data());
       if(color.isValid()) {
         mLowerFilter->setValue(color.name().toStdString());
         QString colorStyle = QString("background-color: %1").arg(color.name());
@@ -80,11 +72,30 @@ public:
     mUpperFilter->setShortDescription("Color: ");
     auto *upperEdit = mUpperFilter->getLineEdit();
     connect(upperEdit, &ClickableLineEdit::mousePressedEvent, [this, parent, upperEdit]() {
-      auto color = pickColor(parent);
+      auto color = pickColor(parent, mUpperFilter->getValue().data());
       if(color.isValid()) {
         mUpperFilter->setValue(color.name().toStdString());
         QString colorStyle = QString("background-color: %1").arg(color.name());
         upperEdit->setStyleSheet(colorStyle);
+      }
+    });
+
+    connect(targetEdit, &ClickableLineEdit::mousePressedEvent, [this, parent, targetEdit, lowerEdit, upperEdit]() {
+      auto color = pickColor(parent, QColor(mTargetColor->getValue().data()));
+      if(color.isValid()) {
+        mTargetColor->setValue(color.name().toStdString());
+        QString colorStyle = QString("background-color: %1").arg(color.name());
+        targetEdit->setStyleSheet(colorStyle);
+
+        QColor colorUpper = adjustColor(color, 30);
+        mUpperFilter->setValue(colorUpper.name().toStdString());
+        QString colorUpperStyle = QString("background-color: %1").arg(colorUpper.name());
+        upperEdit->setStyleSheet(colorUpperStyle);
+
+        QColor colorLower = adjustColor(color, -20);
+        mLowerFilter->setValue(colorLower.name().toStdString());
+        QString colorLowerStyle = QString("background-color: %1").arg(colorLower.name());
+        lowerEdit->setStyleSheet(colorLowerStyle);
       }
     });
 
@@ -101,10 +112,19 @@ public:
   }
 
 private:
-  QColor pickColor(QWidget *parent)
+  QColor pickColor(QWidget *parent, QColor initialColor)
   {
     // Open the color dialog and get the selected color
-    return QColorDialog::getColor(Qt::white, parent, "Select Color");
+    return QColorDialog::getColor(initialColor, parent, "Select Color");
+  }
+
+  QColor adjustColor(const QColor &color, int delta)
+  {
+    int red   = qBound(0, color.red() + delta, 255);
+    int green = qBound(0, color.green() + delta, 255);
+    int blue  = qBound(0, color.blue() + delta, 255);
+
+    return QColor(red, green, blue);
   }
 
   /////////////////////////////////////////////////////
