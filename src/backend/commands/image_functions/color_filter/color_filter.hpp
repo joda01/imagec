@@ -62,7 +62,17 @@ public:
       // Convert the original image to grayscale
       hsvImageTmp = cv::Mat::zeros(image.size(), CV_16UC1);
       if(mSetting.grayScaleConvertMode == settings::ColorFilterSettings::GrayscaleMode::HUMAN) {
-        cv::cvtColor(image, hsvImageTmp, cv::COLOR_BGR2GRAY);
+        for(int i = 0; i < image.rows; ++i) {
+          for(int j = 0; j < image.cols; ++j) {
+            if(mask.at<uint8_t>(i, j) == 0) {
+            } else {
+              cv::Vec3b pixel = image.at<cv::Vec3b>(i, j);
+              uint16_t grayValue =
+                  (((0.299 * (float) pixel[2] + 0.587 * (float) pixel[1] + 0.114 * (float) pixel[0]) * 65535.0) / (3 * 255.0));    // BGR format
+              hsvImageTmp.at<uint16_t>(i, j) = grayValue;
+            }
+          }
+        }
       } else {
         for(int i = 0; i < image.rows; ++i) {
           for(int j = 0; j < image.cols; ++j) {

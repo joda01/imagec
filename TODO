@@ -2,11 +2,13 @@
 - [ ] Ignore result folder
 - [ ] Describe file extensions
 - [ ] Describe templates
-
 - [ ] Handle non ASCII chars when inserting to DB
 - [ ] Support the filtering (validity) for image plane and cluster
 - [ ] Rethink control image naming to keep the order and store the ref to a control image in the database
+- [ ] allow to specify the intensity calculation mode for RGB images in (/workspaces/imagec/src/backend/commands/object_functions/measure/measure.hpp)
 
+
+## Tips
 (gdb) handle SIGSEGV nostop noprint pass
 
 handle SIGSEGV nostop print pass
