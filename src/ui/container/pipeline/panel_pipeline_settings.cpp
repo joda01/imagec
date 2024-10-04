@@ -402,8 +402,14 @@ void PanelPipelineSettings::previewThread()
 {
   while(!mStopped) {
     try {
+    next:
       // Wait until there is at least one job in the queue
-      auto jobToDo       = mPreviewQue.pop();
+      auto jobToDo = mPreviewQue.pop();
+      // Process only the last element in the que
+      if(!mPreviewQue.isEmpty()) {
+        std::this_thread::sleep_for(1000ms);
+        goto next;
+      }
       mPreviewInProgress = true;
       emit updatePreviewStarted();
       if(nullptr != jobToDo.previewPanel && mIsActiveShown) {

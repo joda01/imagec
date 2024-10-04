@@ -39,7 +39,7 @@ public:
     }
     connect(mLineEdit, &QLineEdit::editingFinished, this, &SettingLineEdit::onValueChanged);
     connect(mLineEdit, &QLineEdit::returnPressed, this, &SettingLineEdit::onValueChanged);
-    connect(mLineEdit, &QLineEdit::textChanged, this, &SettingLineEdit::onValueChanged);
+    // connect(mLineEdit, &QLineEdit::textChanged, this, &SettingLineEdit::onValueChanged);
     return mLineEdit;
   }
 
