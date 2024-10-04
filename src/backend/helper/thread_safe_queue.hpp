@@ -51,7 +51,9 @@ public:
 
     // wait until queue is not empty
     m_cond.wait(lock, [this]() { return (!m_queue.empty() || mStopped); });
-
+    if(mStopped) {
+      throw std::runtime_error("Stopped!");
+    }
     // retrieve item
     T item = m_queue.front();
     m_queue.pop();
@@ -68,6 +70,7 @@ public:
   void stop()
   {
     mStopped = true;
+    m_cond.notify_all();
   }
 };
 }    // namespace joda

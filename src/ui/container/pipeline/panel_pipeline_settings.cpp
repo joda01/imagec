@@ -334,8 +334,6 @@ void PanelPipelineSettings::valueChangedEvent()
   //   qDebug() << "Could not identify sender!";
   // }
 
-  std::cout << "Value changed event" << std::endl;
-
   updatePreview();
 }
 
@@ -403,64 +401,70 @@ void PanelPipelineSettings::updatePreview()
 void PanelPipelineSettings::previewThread()
 {
   while(!mStopped) {
-    // Wait until there is at least one job in the queue
-    auto jobToDo       = mPreviewQue.pop();
-    mPreviewInProgress = true;
-    emit updatePreviewStarted();
-    if(nullptr != jobToDo.previewPanel && mIsActiveShown) {
-      auto [imgIndex, selectedSeries] = jobToDo.selectedImage;
-      if(!imgIndex.empty()) {
-        try {
-          int32_t resolution      = 0;
-          uint32_t series         = selectedSeries;
-          auto tileSize           = jobToDo.controller->getCompositeTileSize();
-          auto imgProps           = joda::ctrl::Controller::getImageProperties(imgIndex, series);
-          auto [tileNrX, tileNrY] = imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.width, tileSize.height);
+    try {
+      // Wait until there is at least one job in the queue
+      auto jobToDo       = mPreviewQue.pop();
+      mPreviewInProgress = true;
+      emit updatePreviewStarted();
+      if(nullptr != jobToDo.previewPanel && mIsActiveShown) {
+        auto [imgIndex, selectedSeries] = jobToDo.selectedImage;
+        if(!imgIndex.empty()) {
+          try {
+            int32_t resolution      = 0;
+            uint32_t series         = selectedSeries;
+            auto tileSize           = jobToDo.controller->getCompositeTileSize();
+            auto imgProps           = joda::ctrl::Controller::getImageProperties(imgIndex, series);
+            auto [tileNrX, tileNrY] = imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.width, tileSize.height);
 
-          auto &previewResult = jobToDo.previewPanel->getPreviewObject();
-          processor::PreviewSettings prevSettings;
-          prevSettings.style =
-              jobToDo.previewPanel->getFilledPreview() ? settings::ImageSaverSettings::Style::FILLED : settings::ImageSaverSettings::Style::OUTLINED;
+            auto &previewResult = jobToDo.previewPanel->getPreviewObject();
+            processor::PreviewSettings prevSettings;
+            prevSettings.style = jobToDo.previewPanel->getFilledPreview() ? settings::ImageSaverSettings::Style::FILLED
+                                                                          : settings::ImageSaverSettings::Style::OUTLINED;
 
-          joda::settings::Pipeline &myPipeline = *jobToDo.settings.pipelines.begin();
-          int cnt                              = 0;
-          for(const auto &pip : jobToDo.settings.pipelines) {
-            if(cnt == jobToDo.pipelinePos) {
-              myPipeline = pip;
-              break;
+            joda::settings::Pipeline &myPipeline = *jobToDo.settings.pipelines.begin();
+            int cnt                              = 0;
+            for(const auto &pip : jobToDo.settings.pipelines) {
+              if(cnt == jobToDo.pipelinePos) {
+                myPipeline = pip;
+                break;
+              }
+              cnt++;
             }
-            cnt++;
-          }
 
-          jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, myPipeline, imgIndex, jobToDo.selectedTileX,
-                                      jobToDo.selectedTileY, previewResult);
-          // Create a QByteArray from the char array
-          QString info             = "<html>";
-          auto [clusters, classes] = jobToDo.clustersAndClasses;
-          for(const auto &[classId, count] : previewResult.foundObjects) {
-            QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
-                          (clusters[classId.clusterId] + "/" + classes[classId.classId] + "</span>: " + QString::number(count.count) + "<br>");
-            info += tmp;
-          }
-          info += "</html>";
-          jobToDo.previewPanel->setThumbnailPosition(tileNrX, tileNrY, jobToDo.selectedTileX, jobToDo.selectedTileY);
-          jobToDo.previewPanel->updateImage(info);
+            jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, myPipeline, imgIndex, jobToDo.selectedTileX,
+                                        jobToDo.selectedTileY, previewResult);
+            // Create a QByteArray from the char array
+            QString info             = "<html>";
+            auto [clusters, classes] = jobToDo.clustersAndClasses;
+            for(const auto &[classId, count] : previewResult.foundObjects) {
+              QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
+                            (clusters[classId.clusterId] + "/" + classes[classId.classId] + "</span>: " + QString::number(count.count) + "<br>");
+              info += tmp;
+            }
+            info += "</html>";
+            jobToDo.previewPanel->setThumbnailPosition(tileNrX, tileNrY, jobToDo.selectedTileX, jobToDo.selectedTileY);
+            jobToDo.previewPanel->updateImage(info);
 
-        } catch(const std::exception &error) {
-          // mPreviewImage->resetImage(error.what());
-          joda::log::logError("Preview error: " + std::string(error.what()));
+          } catch(const std::exception &error) {
+            // mPreviewImage->resetImage(error.what());
+            joda::log::logError("Preview error: " + std::string(error.what()));
+          }
         }
       }
-    }
 
-    {
-      std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
-      if(mPreviewQue.isEmpty()) {
-        mPreviewInProgress = false;
-        emit updatePreviewFinished();
+      {
+        std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
+        if(mPreviewQue.isEmpty()) {
+          mPreviewInProgress = false;
+          emit updatePreviewFinished();
+        }
       }
+    } catch(...) {
     }
   }
+
+  mPreviewInProgress = false;
+  emit updatePreviewFinished();
 }
 
 ///
@@ -517,12 +521,6 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.meta          = settings.meta;
   mSettings.pipelineSetup = settings.pipelineSetup;
 
-  pipelineName->blockComponentSignals(true);
-  cStackIndex->blockComponentSignals(true);
-  zProjection->blockComponentSignals(true);
-  defaultClusterId->blockComponentSignals(true);
-  defaultClassId->blockComponentSignals(true);
-
   pipelineName->setValue(settings.meta.name);
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
   zProjection->setValue(settings.pipelineSetup.zProjection);
@@ -549,12 +547,6 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
       mTopAddCommandButton->setInOutBefore(InOuts::IMAGE);
     }
   }
-
-  pipelineName->blockComponentSignals(false);
-  cStackIndex->blockComponentSignals(false);
-  zProjection->blockComponentSignals(false);
-  defaultClusterId->blockComponentSignals(false);
-  defaultClassId->blockComponentSignals(false);
 }
 
 ///
