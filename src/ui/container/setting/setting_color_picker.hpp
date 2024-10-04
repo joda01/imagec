@@ -66,6 +66,13 @@ public:
     mSettingsC = c;
   }
 
+  void blockComponentSignals(bool bl) override
+  {
+    if(nullptr != mColorPicker) {
+      mColorPicker->blockSignals(bl);
+    }
+  }
+
 private:
   /////////////////////////////////////////////////////
   joda::ui::ColorPicker *mColorPicker;

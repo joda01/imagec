@@ -172,6 +172,13 @@ public:
     mSetting = setting;
   }
 
+  void blockComponentSignals(bool bl) override
+  {
+    if(nullptr != mLineEdit) {
+      mLineEdit->blockSignals(bl);
+    }
+  }
+
 private:
   /////////////////////////////////////////////////////
   ClickableLineEdit *mLineEdit = nullptr;

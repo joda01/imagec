@@ -28,12 +28,24 @@ namespace joda::ui {
 SettingBase::SettingBase(QWidget *parent, const QIcon &icon, const QString &description) :
     mParent((WindowMain *) parent), mIcon(icon), mDescription(description)
 {
+  setObjectName("SettingBase");
   createDisplayAbleWidget(icon, description);
   if(parent != nullptr) {
     connect(mParent->getPanelClassification(), &PanelClassification::settingsChanged, this, &SettingBase::onClassificationNameChanged);
-
     connect(mParent, &WindowMain::onOutputClassifierChanges, this, &SettingBase::onOutputClassifierChanges);
   }
+}
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void SettingBase::blockAllSignals(bool bl)
+{
+  SettingBase::blockSignals(bl);
+  blockComponentSignals(bl);
 }
 
 ///

@@ -201,6 +201,13 @@ public:
     mSetting = setting;
   }
 
+  void blockComponentSignals(bool bl) override
+  {
+    if(nullptr != mComboBox) {
+      mComboBox->blockSignals(bl);
+    }
+  }
+
 private:
   /////////////////////////////////////////////////////
   std::optional<VALUE_T> mDefaultValue;

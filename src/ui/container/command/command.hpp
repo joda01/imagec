@@ -85,6 +85,14 @@ public:
     return mInOut;
   }
 
+  void blockComponentSignals(bool bl)
+  {
+    QWidget::blockSignals(bl);
+    for(auto &setting : mSettings) {
+      std::get<0>(setting)->blockAllSignals(bl);
+    }
+  }
+
   void removeSetting(const std::set<SettingBase *> &toRemove)
   {
     for(int m = mSettings.size() - 1; m >= 0; m--) {

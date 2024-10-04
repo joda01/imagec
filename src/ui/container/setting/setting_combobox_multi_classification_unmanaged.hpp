@@ -83,6 +83,13 @@ public:
     return out;
   }
 
+  void blockComponentSignals(bool bl) override
+  {
+    if(nullptr != mComboBox) {
+      mComboBox->blockSignals(bl);
+    }
+  }
+
 private:
   /////////////////////////////////////////////////////
   std::optional<settings::ClassificatorSettingOut> mDefaultValue;
