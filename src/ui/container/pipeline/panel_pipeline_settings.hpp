@@ -30,6 +30,7 @@
 namespace joda::ui {
 
 class WindowMain;
+class AddCommandButtonBase;
 
 class PanelPipelineSettings : public QWidget, public ContainerBase
 {
@@ -47,23 +48,8 @@ public:
 
   void addPipelineStep(std::unique_ptr<joda::ui::Command> command, const settings::PipelineStep *);
   void insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::Command> command, const settings::PipelineStep *pipelineStepBefore);
-
   void erasePipelineStep(const Command *);
-
-  void setActive(bool setActive) override
-  {
-    if(!mIsActiveShown && setActive) {
-      mIsActiveShown = true;
-      updatePreview();
-    }
-    if(!setActive) {
-      mIsActiveShown = false;
-      std::lock_guard<std::mutex> lock(mPreviewMutex);
-      mPreviewCounter = 0;
-      mPreviewImage->resetImage("");
-    }
-  }
-
+  void setActive(bool setActive) override;
   const joda::settings::Pipeline &getPipeline()
   {
     return mSettings;
@@ -109,7 +95,9 @@ private:
   int mPreviewCounter                         = 0;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
+  bool mPreviewInProgress                     = false;
   WindowMain *mWindowMain;
+  AddCommandButtonBase *mTopAddCommandButton;
 
   // PIPELINE STEPS //////////////////////////////////////////////////
   QVBoxLayout *mPipelineSteps;

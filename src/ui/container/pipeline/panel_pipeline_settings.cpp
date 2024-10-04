@@ -94,7 +94,9 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
     col2->addWidgetGroup("Pipeline steps", {scrollArea}, 300, 300);
 
-    mPipelineSteps->addWidget(new AddCommandButtonBase(mSettings, this, nullptr, InOuts::IMAGE, mWindowMain));
+    // Allow to start with
+    mTopAddCommandButton = new AddCommandButtonBase(mSettings, this, nullptr, InOuts::OBJECT, mWindowMain);
+    mPipelineSteps->addWidget(mTopAddCommandButton);
   }
 
   {
@@ -224,6 +226,15 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   cStackIndex = generateCStackCombo<SettingComboBox<int32_t>>("Image channel", windowMain, "Empty");
   cStackIndex->setDefaultValue(-1);
   cStackIndex->connectWithSetting(&mSettings.pipelineSetup.cStackIndex);
+  connect(cStackIndex.get(), &SettingBase::valueChanged, [this]() {
+    if(nullptr != mTopAddCommandButton) {
+      if(cStackIndex->getValue() == -1) {
+        mTopAddCommandButton->setInOutBefore(InOuts::OBJECT);
+      } else {
+        mTopAddCommandButton->setInOutBefore(InOuts::IMAGE);
+      }
+    }
+  });
 
   //
   //
@@ -285,10 +296,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 ///
 PanelPipelineSettings::~PanelPipelineSettings()
 {
-  {
-    std::lock_guard<std::mutex> lock(mPreviewMutex);
-    mPreviewCounter = 0;
-  }
+  mPreviewCounter = 0;
   if(mPreviewThread != nullptr) {
     if(mPreviewThread->joinable()) {
       mPreviewThread->join();
@@ -342,6 +350,7 @@ void PanelPipelineSettings::updatePreview()
   if(mIsActiveShown) {
     if(mPreviewCounter == 0) {
       mPreviewCounter++;
+      mPreviewInProgress = true;
       emit updatePreviewStarted();
 
       if(mPreviewThread != nullptr) {
@@ -402,6 +411,10 @@ void PanelPipelineSettings::updatePreview()
             mPreviewCounter = previewCounter;
           }
         } while(previewCounter > 0);
+        {
+          std::lock_guard<std::mutex> lock(mPreviewMutex);
+          mPreviewInProgress = false;
+        }
         emit updatePreviewFinished();
       });
     } else {
@@ -604,6 +617,30 @@ void PanelPipelineSettings::saveAsTemplate()
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
+  }
+}
+
+///
+/// \brief      Save as template
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::setActive(bool setActive)
+{
+  if(!mIsActiveShown && setActive) {
+    mIsActiveShown = true;
+    updatePreview();
+  }
+  if(!setActive) {
+    mIsActiveShown  = false;
+    mPreviewCounter = 0;
+    // Wait until preview render has been finished
+    while(mPreviewInProgress) {
+      std::this_thread::sleep_for(100ms);
+    }
+    mPreviewImage->resetImage("");
   }
 }
 

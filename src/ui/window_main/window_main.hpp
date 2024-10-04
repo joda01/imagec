@@ -186,6 +186,9 @@ private:
   QAction *mShowInfoDialog          = nullptr;
   QAction *mStartAnalysisToolButton = nullptr;
 
+  ////Mutexes/////////////////////////////////////////////////
+  std::mutex mCheckForSettingsChangedMutex;
+
 private slots:
   void onNewProjectClicked();
   void onAddChannel();

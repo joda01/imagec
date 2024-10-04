@@ -455,6 +455,7 @@ void WindowMain::openProjectSettings(const QString &filePath)
 ///
 void WindowMain::checkForSettingsChanged()
 {
+  std::lock_guard<std::mutex> lock(mCheckForSettingsChangedMutex);
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
     mSaveProject->setEnabled(true);
