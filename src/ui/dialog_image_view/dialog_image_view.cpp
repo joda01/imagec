@@ -92,6 +92,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
     toolbarTop->addAction(showThumbnail);
 
+    QAction *showCrossHairCursor = new QAction(generateIcon("crosshair"), "");
+    showCrossHairCursor->setCheckable(true);
+    showCrossHairCursor->setChecked(false);
+    connect(showCrossHairCursor, &QAction::triggered, this, &DialogImageViewer::onShowCrossHandCursor);
+    toolbarTop->addAction(showCrossHairCursor);
+
     addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
 
@@ -248,6 +254,7 @@ void DialogImageViewer::onLeftViewChanged()
   mImageViewRight.blockSignals(true);
   mImageViewLeft.blockSignals(true);
 
+  mImageViewRight.setCursorPosition(mImageViewLeft.getCursorPosition());
   mImageViewRight.setTransform(mImageViewLeft.transform());
   mImageViewRight.horizontalScrollBar()->setValue(mImageViewLeft.horizontalScrollBar()->value());
   mImageViewRight.verticalScrollBar()->setValue(mImageViewLeft.verticalScrollBar()->value());
@@ -268,6 +275,7 @@ void DialogImageViewer::onRightViewChanged()
   mImageViewRight.blockSignals(true);
   mImageViewLeft.blockSignals(true);
 
+  mImageViewLeft.setCursorPosition(mImageViewRight.getCursorPosition());
   mImageViewLeft.setTransform(mImageViewRight.transform());
   mImageViewLeft.horizontalScrollBar()->setValue(mImageViewRight.horizontalScrollBar()->value());
   mImageViewLeft.verticalScrollBar()->setValue(mImageViewRight.verticalScrollBar()->value());
@@ -410,6 +418,19 @@ void DialogImageViewer::onShowThumbnailChanged(bool checked)
 {
   mImageViewLeft.setShowThumbnail(checked);
   mImageViewRight.setShowThumbnail(checked);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onShowCrossHandCursor(bool checked)
+{
+  mImageViewLeft.setShowCrosshandCursor(checked);
+  mImageViewRight.setShowCrosshandCursor(checked);
 }
 
 ///
