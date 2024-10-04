@@ -159,6 +159,7 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
   mPipelineSteps->insertWidget(widgetPos, command.get());
   mCommands.insert(mCommands.begin() + posToInsert, std::move(command));
   mWindowMain->checkForSettingsChanged();
+  updatePreview();
 }
 
 ///
