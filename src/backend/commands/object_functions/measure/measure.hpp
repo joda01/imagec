@@ -29,12 +29,30 @@ public:
   {
     auto &store = *context.loadObjectsFromCache();
     for(auto imageId : mSettings.planesIn) {
+      joda::atom::ImagePlane rgbPlane;
       auto const &image = *context.loadImageFromCache(imageId);
+      if(image.isRgb()) {
+        /// \todo Allow to specify which grayscale calculation mode should be used
+        rgbPlane       = image;
+        rgbPlane.image = cv::Mat::zeros(image.image.size(), CV_16UC1);
+        for(int i = 0; i < image.image.rows; ++i) {
+          for(int j = 0; j < image.image.cols; ++j) {
+            cv::Vec3b pixel                   = image.image.at<cv::Vec3b>(i, j);
+            uint16_t grayValue                = (((pixel[2] + pixel[1] + pixel[0]) * 65535.0) / (3 * 255.0));    // BGR format
+            rgbPlane.image.at<uint16_t>(i, j) = grayValue;
+          }
+        }
+      }
+
       for(const auto &clusterIdIn : mSettings.inputClusters) {
         auto *clusterObjects = store.at(context.getClusterId(clusterIdIn.clusterId)).get();
         for(auto &object : *clusterObjects) {
           if(context.getClassId(clusterIdIn.classId) == object.getClassId()) {
-            object.measureIntensityAndAdd(image);
+            if(image.isRgb()) {
+              object.measureIntensityAndAdd(rgbPlane);
+            } else {
+              object.measureIntensityAndAdd(image);
+            }
           }
         }
       }

@@ -69,7 +69,7 @@ void PipelineInitializer::init(ImageContext &imageContextOut)
 
   // Load image in tiles if too big
   const auto &imageInfo = imageContextOut.imageMeta.getImageInfo().resolutions.at(0);
-  if(imageInfo.imageMemoryUsage > MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
+  if(/*imageInfo.imageMemoryUsage > MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE &&*/ imageInfo.getTileCount() > 1) {
     mNrOfTiles               = imageInfo.getNrOfTiles(COMPOSITE_TILE_WIDTH, COMPOSITE_TILE_HEIGHT);
     imageContextOut.tileSize = {COMPOSITE_TILE_WIDTH, COMPOSITE_TILE_HEIGHT};
 
@@ -147,7 +147,6 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
     }
 
     imagePlaneOut.setId(joda::enums::ImageId{zProjection, planeToLoad}, tile);
-
     imagePlaneOut.image.create(imageHeight, imageWidth, CV_16UC1);
     imagePlaneOut.image.setTo(cv::Scalar::all(0));
 

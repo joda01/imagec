@@ -210,12 +210,13 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
 helper::TabWidget *Command::addTab(const QString &title, std::function<void()> beforeTabClose)
 {
   auto *tab = mLayout.addTab(title, beforeTabClose);
-  if(mEditDialog->isVisible()) {
-    std::thread([this] {
-      std::this_thread::sleep_for(100ms);
-      mEditDialog->adjustSize();
-    }).detach();
-  }
+  /// \todo rethink this
+  // if(mEditDialog->isVisible()) {
+  //   std::thread([this] {
+  //     std::this_thread::sleep_for(100ms);
+  //     mEditDialog->adjustSize();
+  //   }).detach();
+  // }
   return tab;
 }
 
@@ -343,7 +344,6 @@ void Command::updateDisplayText()
   }
   txt += "</html>";
   mDisplayableText->setText(txt);
-  // mDisplayableText->adjustSize();
 }
 
 ///

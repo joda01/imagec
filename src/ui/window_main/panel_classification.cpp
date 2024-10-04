@@ -74,8 +74,8 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
 
   initTable();
   connect(mClasses, &QTableWidget::itemChanged, [&](QTableWidgetItem *item) { onSettingChanged(); });
-  connect(mClusters, &QTableWidget::cellDoubleClicked, [&](int row, int column) {});
   connect(mClusters, &QTableWidget::itemChanged, [&](QTableWidgetItem *item) { onSettingChanged(); });
+  connect(mClusters, &QTableWidget::cellDoubleClicked, [&](int row, int column) {});
 }
 
 ///
@@ -87,6 +87,8 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
 ///
 void PanelClassification::initTable()
 {
+  mClasses->blockSignals(true);
+  mClusters->blockSignals(true);
   //
   // Load clusters
   //
@@ -130,6 +132,8 @@ void PanelClassification::initTable()
     auto *itemNotes = new QTableWidgetItem(QString(""));
     mClasses->setItem(classId, COL_NOTES, itemNotes);
   }
+  mClasses->blockSignals(false);
+  mClusters->blockSignals(false);
 }
 
 ///
@@ -141,6 +145,8 @@ void PanelClassification::initTable()
 ///
 void PanelClassification::fromSettings(const joda::settings::ProjectSettings &settings)
 {
+  mClasses->blockSignals(true);
+  mClusters->blockSignals(true);
   //
   // Load clusters
   //
@@ -186,6 +192,9 @@ void PanelClassification::fromSettings(const joda::settings::ProjectSettings &se
     auto *itemNotes = new QTableWidgetItem(classs.notes.data());
     mClasses->setItem(classId, COL_NOTES, itemNotes);
   }
+
+  mClasses->blockSignals(false);
+  mClusters->blockSignals(false);
 }
 
 ///

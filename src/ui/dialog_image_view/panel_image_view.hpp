@@ -60,7 +60,10 @@ public:
 
   void setState(State);
   void setShowThumbnail(bool);
+  void setShowCrosshandCursor(bool);
   void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y);
+  void setCursorPosition(const QPoint &pos);
+  auto getCursorPosition() -> QPoint;
 
 signals:
   void updateImage();
@@ -99,6 +102,7 @@ private:
   QGraphicsScene *scene;
   bool isDragging = false;
   QPoint lastPos;
+  QPoint mCursorPos;
   State mState = State::MOVE;
   cv::Size mPixmapSize;
 
@@ -112,8 +116,9 @@ private:
   bool mThumbnailAreaEntered = false;
 
   /////////////////////////////////////////////////////
-  bool mWaiting       = false;
-  bool mShowThumbnail = true;
+  bool mWaiting             = false;
+  bool mShowThumbnail       = true;
+  bool mShowCrosshandCursor = false;
 
 private slots:
   void onUpdateImage();

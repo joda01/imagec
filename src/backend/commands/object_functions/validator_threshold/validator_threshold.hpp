@@ -50,7 +50,7 @@ private:
     const auto &imageOriginal  = *context.loadImageFromCache(mSettings.imageIn);
     const auto &imageThreshold = context.getActImage();
 
-    if(!imageThreshold.isBinary) {
+    if(!imageThreshold.isBinary()) {
       THROW("Histogram filter can only be applied on threshold (binary) image!");
     }
 
@@ -79,8 +79,7 @@ private:
             context.setImagePlaneValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
           case settings::ThresholdValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER:
-            context.setImagePlaneClusterClusterValidity(mSettings.inputCluster,
-                                                        joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+            context.setImagePlaneClusterClusterValidity(mSettings.inputCluster, joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
         }
       }

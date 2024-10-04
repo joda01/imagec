@@ -26,6 +26,7 @@ AddCommandButtonBase::AddCommandButtonBase(joda::settings::Pipeline &settings, P
   setObjectName("addCommandButton");
   setContentsMargins(0, 0, 0, 0);
   setFixedHeight(10);
+  mSelectionDialog = new DialogCommandSelection(mSettings, pipelineStepSettingsUi, mPipelineStepBefore, mOutOfStepBefore, mParent);
 }
 
 void AddCommandButtonBase::paintEvent(QPaintEvent *event)
@@ -50,8 +51,7 @@ void AddCommandButtonBase::paintEvent(QPaintEvent *event)
 
 void AddCommandButtonBase::mousePressEvent(QMouseEvent *event)
 {
-  DialogCommandSelection selectionDialog(mSettings, pipelineStepSettingsUi, mPipelineStepBefore, mOutOfStepBefore, mParent);
-  selectionDialog.exec();
+  mSelectionDialog->exec();
 }
 
 void AddCommandButtonBase::enterEvent(QEnterEvent *event)
@@ -73,4 +73,11 @@ void AddCommandButtonBase::leaveEvent(QEvent *event)
 void AddCommandButtonBase::onAddCommandClicked()
 {
 }
+
+void AddCommandButtonBase::setInOutBefore(InOuts inout)
+{
+  mOutOfStepBefore = inout;
+  mSelectionDialog->setInOutBefore(inout);
+}
+
 }    // namespace joda::ui

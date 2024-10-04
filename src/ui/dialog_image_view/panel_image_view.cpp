@@ -12,6 +12,7 @@
 ///
 
 #include "panel_image_view.hpp"
+#include <qnamespace.h>
 #include <qpixmap.h>
 #include <cmath>
 #include <cstdint>
@@ -160,6 +161,13 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
 ///
 void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
+  if(mShowCrosshandCursor && event->button() == Qt::RightButton) {
+    mCursorPos = event->pos();
+    viewport()->update();
+    emit onImageRepainted();
+    return;
+  }
+
   if(event->button() == Qt::LeftButton) {
     // Start dragging
     if(cursor() != Qt::ClosedHandCursor) {
@@ -287,6 +295,24 @@ void PanelImageView::paintEvent(QPaintEvent *event)
     painter.setPen(QColor(255, 255, 255));      // Set the pen color to light blue
     painter.setBrush(QColor(255, 255, 255));    // Set the brush to no brush for transparent fill
     painter.drawText(overlay, Qt::AlignHCenter | Qt::AlignVCenter, "Generating preview ...");
+  }
+
+  //
+  // Paint cross cursor
+  //
+  if(mShowCrosshandCursor) {
+    QPainter painter(viewport());
+    // Set the color and pen thickness for the cross lines
+    QPen pen(Qt::blue, 2);
+    painter.setPen(pen);
+
+    if(mCursorPos.x() != -1 && mCursorPos.y() != -1) {
+      // Draw horizontal line at cursor's Y position
+      painter.drawLine(0, mCursorPos.y(), width(), mCursorPos.y());
+
+      // Draw vertical line at cursor's X position
+      painter.drawLine(mCursorPos.x(), 0, mCursorPos.x(), height());
+    }
   }
 }
 
@@ -557,7 +583,22 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
 {
   mShowThumbnail = showThumbnail;
   viewport()->update();
-  update();
+}
+
+void PanelImageView::setShowCrosshandCursor(bool show)
+{
+  mShowCrosshandCursor = show;
+  viewport()->update();
+}
+
+void PanelImageView::setCursorPosition(const QPoint &pos)
+{
+  mCursorPos = pos;
+  viewport()->update();
+}
+auto PanelImageView::getCursorPosition() -> QPoint
+{
+  return mCursorPos;
 }
 
 }    // namespace joda::ui

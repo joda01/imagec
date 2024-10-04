@@ -19,12 +19,14 @@
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include "backend/commands/image_functions/resize/resize.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -219,29 +221,40 @@ std::string ImageReader::getJavaVersion()
 cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx)
 {
   // Takes 150 ms
-  if(mJVMInitialised) {
+  if(mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
 
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
-    jstring filePath          = myEnv->NewStringUTF(filename.c_str());
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+
+    //
+    // ReadImage Info
+    //
     jintArray readImgInfo     = (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series),
                                                                           static_cast<int>(resolutionIdx));
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
     myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
-    jbyteArray readImg    = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
-                                                                       static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
-    jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
-
-    // This is the image information
-    cv::Mat retValue = cv::Mat::zeros(imageInfo[0], imageInfo[1], CV_16UC1);
-    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) retValue.data);
-
+    int32_t imageHeight     = imageInfo[0];
+    int32_t imageWidth      = imageInfo[1];
+    int32_t bitDepth        = imageInfo[4];
+    int32_t rgbChannelCount = imageInfo[5];
+    int32_t isInterleaved   = imageInfo[7];
     delete[] imageInfo;
+
+    //
+    // Load image
+    //
+    jbyteArray readImg  = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
+                                                                     static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
+    cv::Mat loadedImage = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved);
+    //
+    // Cleanup
+    //
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
-    return retValue;
+    return loadedImage;
   }
 
   return cv::Mat{};
@@ -257,7 +270,7 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
 cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &imagePlane, uint16_t series)
 {
   // Takes 150 ms
-  if(mJVMInitialised) {
+  if(mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
 
     auto ome           = getOmeInformation(filename);
@@ -270,24 +283,36 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
     }
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
-    jstring filePath          = myEnv->NewStringUTF(filename.c_str());
-    jintArray readImgInfo     = (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series),
-                                                                          static_cast<int>(resolutionIdx));
+    jstring filePath      = myEnv->NewStringUTF(filename.c_str());
+    jintArray readImgInfo = (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series),
+                                                                      static_cast<int>(resolutionIdx));
+
+    //
+    // ReadImage Info
+    //
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
     myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
+    int32_t imageHeight     = imageInfo[0];
+    int32_t imageWidth      = imageInfo[1];
+    int32_t bitDepth        = imageInfo[4];
+    int32_t rgbChannelCount = imageInfo[5];
+    int32_t isInterleaved   = imageInfo[7];
+    delete[] imageInfo;
+
+    //
+    // Read image
+    //
     jbyteArray readImg    = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
                                                                        static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
     jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     // This is the image information
-    cv::Mat tmp = cv::Mat::zeros(imageInfo[0], imageInfo[1], CV_16UC1);
-    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) tmp.data);
-    delete[] imageInfo;
+    cv::Mat loadedImage = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved);
+
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
-    return cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(tmp, 256, 256));
-    ;
+    return cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(loadedImage, 256, 256));
   }
 
   return cv::Mat{};
@@ -342,7 +367,7 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
 cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
                                    const joda::ome::TileToLoad &tile)
 {
-  if(mJVMInitialised) {
+  if(mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     JNIEnv *myEnv = nullptr;
     myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
     jstring filePath = myEnv->NewStringUTF(filename.c_str());
@@ -355,9 +380,11 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
     auto *imageInfo           = new int32_t[totalSizeLoadedInfo];
     myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
-    int32_t imageHeight = imageInfo[0];
-    int32_t imageWidth  = imageInfo[1];
-    int32_t bitDepth    = imageInfo[4];
+    int32_t imageHeight     = imageInfo[0];
+    int32_t imageWidth      = imageInfo[1];
+    int32_t bitDepth        = imageInfo[4];
+    int32_t rgbChannelCount = imageInfo[5];
+    int32_t isInterleaved   = imageInfo[7];
     delete[] imageInfo;
 
     //
@@ -378,16 +405,14 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     //
     // Load image
     //
-    auto *readImg         = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
-                                                                       static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t, offsetX,
-                                                                       offsetY, tileWidthToLoad, tileHeightToLoad);
-    jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
+    auto *readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
+                                                               static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t, offsetX,
+                                                               offsetY, tileWidthToLoad, tileHeightToLoad);
 
     //
     // Assign image data
     //
-    cv::Mat image(tileHeightToLoad, tileWidthToLoad, CV_16UC1);
-    myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, reinterpret_cast<jbyte *>(image.data));
+    cv::Mat image = convertImageToMat(myEnv, readImg, tileWidthToLoad, tileHeightToLoad, bitDepth, rgbChannelCount, isInterleaved);
 
     //
     // Cleanup
@@ -429,6 +454,70 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename) -> jo
     return omeInfo;
   }
   return {};
+}
+
+cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg, int32_t imageWidth, int32_t imageHeight, int32_t bitDepth,
+                                       int32_t rgbChannelCount, int32_t isInterleaved)
+{
+  //
+  //
+  //
+  jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
+
+  auto format       = CV_16UC1;
+  int32_t widthTmp  = imageWidth;
+  int32_t heightTmp = imageHeight;
+  if(bitDepth == 16 && rgbChannelCount != 3) {
+    format = CV_16UC1;
+  } else if(bitDepth == 16 && rgbChannelCount != 3) {
+    format = CV_8UC1;
+  } else if(bitDepth == 8 && rgbChannelCount == 3 && 1 == isInterleaved) {
+    format = CV_8UC3;
+  } else if(bitDepth == 8 && rgbChannelCount == 3 && 0 == isInterleaved) {
+    format    = CV_8UC1;
+    heightTmp = imageHeight * 3;
+    widthTmp  = imageWidth;
+  }
+
+  cv::Mat image = cv::Mat::zeros(heightTmp, widthTmp, format);
+  myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) image.data);
+
+  //
+  // Handling of special formats
+  //
+
+  // 16 bit grayscale
+  if(format == CV_16UC1) {
+    return image;
+  }
+
+  // 8 bit grayscale
+  if(format == CV_8UC1) {
+    cv::Mat img16bit;
+    image.convertTo(img16bit, CV_16U, 256);    // Scale 8-bit values (0–255) to 16-bit (0–65535)
+  }
+
+  // Interleaved RGB image
+  if(format == CV_8UC3) {
+    cvtColor(image, image, cv::COLOR_RGB2BGR);
+    return image;
+  }
+
+  // Planar RGB image
+  if(format == CV_8UC1 && rgbChannelCount == 3) {
+    // Step 1: Split the non-interleaved matrix into separate R, G, B channels
+    cv::Mat redChannel   = image(cv::Rect(0, 0, imageWidth, imageHeight));                  // First part (R)
+    cv::Mat greenChannel = image(cv::Rect(0, imageHeight, imageWidth, imageHeight));        // Second part (G)
+    cv::Mat blueChannel  = image(cv::Rect(0, 2 * imageHeight, imageWidth, imageHeight));    // Third part (B)
+
+    // Step 2: Merge the separate channels into one BGR interleaved image
+    std::vector<cv::Mat> channels = {blueChannel, greenChannel, redChannel};    // OpenCV uses BGR
+    cv::Mat bgrImage              = cv::Mat::zeros(cv::Size(imageWidth, imageHeight), CV_8UC3);
+    cv::merge(channels, bgrImage);
+    return bgrImage;
+  }
+
+  throw std::invalid_argument("Not supported image format!");
 }
 
 //     jsize imageArraySize = myEnv->GetArrayLength(readImg);

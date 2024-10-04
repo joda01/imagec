@@ -76,7 +76,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 
   // Load image in tiles if too big
   const auto &imageInfo = ome.getImageInfo().resolutions.at(0);
-  if(imageInfo.imageMemoryUsage > joda::processor::PipelineInitializer::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE) {
+  if(/*imageInfo.imageMemoryUsage > joda::processor::PipelineInitializer::MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE*/ imageInfo.getTileCount() > 1) {
     auto [tilesX, tilesY] = imageInfo.getNrOfTiles(joda::processor::PipelineInitializer::COMPOSITE_TILE_WIDTH,
                                                    joda::processor::PipelineInitializer::COMPOSITE_TILE_HEIGHT);
     tileNr                = static_cast<int64_t>(tilesX) * tilesY;

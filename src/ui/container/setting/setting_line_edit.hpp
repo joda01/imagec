@@ -14,6 +14,7 @@
 
 #include <qglobal.h>
 #include <optional>
+#include "ui/helper/clickablelineedit.hpp"
 #include "setting_base.hpp"
 
 namespace joda::ui {
@@ -23,7 +24,6 @@ namespace joda::ui {
 /// \author
 /// \brief
 ///
-
 template <NumberOrString VALUE_T>
 class SettingLineEdit : public SettingBase
 {
@@ -32,14 +32,19 @@ public:
 
   QWidget *createInputObject() override
   {
-    mLineEdit = new QLineEdit();
+    mLineEdit = new ClickableLineEdit();
     // mLineEdit->setClearButtonEnabled(true);
     if(!getIcon().isNull()) {
       mLineEdit->addAction(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE), QLineEdit::LeadingPosition);
     }
     connect(mLineEdit, &QLineEdit::editingFinished, this, &SettingLineEdit::onValueChanged);
-    connect(mLineEdit, &QLineEdit::returnPressed, this, &SettingLineEdit::onValueChanged);
-    connect(mLineEdit, &QLineEdit::textChanged, this, &SettingLineEdit::onValueChanged);
+    // connect(mLineEdit, &QLineEdit::returnPressed, this, &SettingLineEdit::onValueChanged);
+    //  connect(mLineEdit, &QLineEdit::textChanged, this, &SettingLineEdit::onValueChanged);
+    return mLineEdit;
+  }
+
+  ClickableLineEdit *getLineEdit()
+  {
     return mLineEdit;
   }
 
@@ -167,9 +172,16 @@ public:
     mSetting = setting;
   }
 
+  void blockComponentSignals(bool bl) override
+  {
+    if(nullptr != mLineEdit) {
+      mLineEdit->blockSignals(bl);
+    }
+  }
+
 private:
   /////////////////////////////////////////////////////
-  QLineEdit *mLineEdit = nullptr;
+  ClickableLineEdit *mLineEdit = nullptr;
   std::optional<VALUE_T> mDefaultValue;
   VALUE_T *mSetting = nullptr;
 

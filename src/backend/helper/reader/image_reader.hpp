@@ -35,10 +35,9 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  static cv::Mat loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series,
-                               uint16_t resolutionIdx, const joda::ome::TileToLoad &tile);
-  static cv::Mat loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series,
-                                 uint16_t resolutionIdx);
+  static cv::Mat loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
+                               const joda::ome::TileToLoad &tile);
+  static cv::Mat loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx);
 
   static cv::Mat loadThumbnail(const std::string &filename, const Plane &directory, uint16_t series);
 
@@ -48,7 +47,11 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  cv::Mat loadImage();
+
   static void setPath();
+  static cv::Mat convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg, int32_t imageWidth, int32_t imageHeight, int32_t bitDepth,
+                                   int32_t rgbChannelCount, int32_t isInterleaved);
 
   /////////////////////////////////////////////////////
   static inline std::mutex mReadMutex{};

@@ -107,7 +107,7 @@ QWidget *PanelPreview::createToolBar()
   filled->setCheckable(true);
   filled->setObjectName("ToolButton");
   filled->setToolTip("Filled");
-  connect(filled, &QPushButton::pressed, this, &PanelPreview::onSettingChanged);
+  connect(filled, &QPushButton::toggled, this, &PanelPreview::onSettingChanged);
   layout->addWidget(filled);
 
   layout->addStretch();

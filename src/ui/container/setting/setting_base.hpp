@@ -60,9 +60,8 @@ public:
 
   /////////////////////////////////////////////////////
   SettingBase(QWidget *parent, const QIcon &icon, const QString &description);
-
   ~SettingBase() = default;
-
+  void blockAllSignals(bool);
   void setUnit(const QString &unit);
   void setDisplayIconVisible(bool visible);
   void setShortDescription(const QString &description);
@@ -96,6 +95,7 @@ protected:
 
 private:
   /////////////////////////////////////////////////////
+  virtual void blockComponentSignals(bool) = 0;
   void updateDisplayLabel();
   void createDisplayAbleWidget(const QIcon &icon, const QString &tooltip);
   QWidget *createDisplayAbleWidgetPlaceholder();

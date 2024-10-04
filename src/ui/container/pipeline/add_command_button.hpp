@@ -22,6 +22,7 @@ namespace joda::ui {
 
 class WindowMain;
 class PanelPipelineSettings;
+class DialogCommandSelection;
 
 ///
 /// \class
@@ -38,6 +39,7 @@ public:
   void mousePressEvent(QMouseEvent *event) override;
   void enterEvent(QEnterEvent *event) override;
   void leaveEvent(QEvent *event) override;
+  void setInOutBefore(InOuts inout);
 
 public slots:
   void onAddCommandClicked();
@@ -50,6 +52,7 @@ private:
   joda::settings::Pipeline &mSettings;
   PanelPipelineSettings *pipelineStepSettingsUi;
   InOuts mOutOfStepBefore;
+  DialogCommandSelection *mSelectionDialog;
 };
 
 }    // namespace joda::ui

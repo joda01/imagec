@@ -86,14 +86,17 @@ std::unique_ptr<joda::ui::Command> DialogCommandSelection::generateCommand(const
 ///
 void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
 {
+  mCommands->setRowCount(0);
   {
     int inserted = 0;
+    inserted += addCommandToTable(settings::PipelineStep{.$colorFilter = settings::ColorFilterSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$crop = settings::MarginCropSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$blur = settings::BlurSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$intensityTransform = settings::IntensityTransformationSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$edgeDetection = settings::EdgeDetectionSettings{}}, outOfStepBefore);
+
     if(inserted > 0) {
       // Only insert title if at least one element has been added
       addTitleToTable("Image Processing", inserted);
@@ -226,6 +229,11 @@ void DialogCommandSelection::addNewCommand(int commandListIdx)
       return;
     }
   }
+}
+
+void DialogCommandSelection::setInOutBefore(InOuts inout)
+{
+  addCommandsToTable(inout);
 }
 
 }    // namespace joda::ui

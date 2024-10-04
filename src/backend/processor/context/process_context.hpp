@@ -64,9 +64,19 @@ public:
 
   void setBinaryImage(uint16_t thresholdMin, uint16_t thresholdMax)
   {
-    pipelineContext.actImagePlane.isBinary            = true;
+    pipelineContext.actImagePlane.setToBinary();
     pipelineContext.actImagePlane.appliedMinThreshold = thresholdMin;
     pipelineContext.actImagePlane.appliedMaxThreshold = thresholdMax;
+  }
+
+  bool isRgb() const
+  {
+    return pipelineContext.actImagePlane.isRgb();
+  }
+
+  void setToGrayscaleImage()
+  {
+    pipelineContext.actImagePlane.setToGrayscale();
   }
 
   [[nodiscard]] joda::atom::ImagePlane &getActImage()

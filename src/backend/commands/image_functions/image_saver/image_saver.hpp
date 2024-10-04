@@ -76,13 +76,20 @@ public:
     // Paint on existing image
     if(mSettings.canvas == settings::ImageSaverSettings::Canvas::IMAGE_PLANE || mSettings.canvas == settings::ImageSaverSettings::Canvas::IMAGE_$) {
       cv::Mat &imageBackground = image;
+      bool isRgb               = context.isRgb();
       if(mSettings.canvas == settings::ImageSaverSettings::Canvas::IMAGE_PLANE && mSettings.planesIn.has_value()) {
-        imageBackground = context.loadImageFromCache(mSettings.planesIn.value())->image;
+        const auto *tmp = context.loadImageFromCache(mSettings.planesIn.value());
+        imageBackground = tmp->image;
+        isRgb           = tmp->isBinary();
       }
 
-      cv::Mat img_8bit_gray;
-      imageBackground.convertTo(img_8bit_gray, CV_8U, 1.0 / 256);    // Scale down to 8-bit
-      cvtColor(img_8bit_gray, img_8bit_color, cv::COLOR_GRAY2BGR);
+      if(!isRgb) {
+        cv::Mat img_8bit_gray;
+        imageBackground.convertTo(img_8bit_gray, CV_8U, 1.0 / 256);    // Scale down to 8-bit
+        cvtColor(img_8bit_gray, img_8bit_color, cv::COLOR_GRAY2BGR);
+      } else {
+        img_8bit_color = imageBackground;
+      }
     } else if(mSettings.canvas == settings::ImageSaverSettings::Canvas::BLACK) {
       img_8bit_color = cv::Mat::zeros(context.getImageSize(), CV_8UC3);
     } else if(mSettings.canvas == settings::ImageSaverSettings::Canvas::WHITE) {

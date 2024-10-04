@@ -80,6 +80,7 @@ public:
     struct Pyramid
     {
       int32_t bits                   = 16;
+      int32_t rgbChannelCount        = 1;
       int64_t imageMemoryUsage       = 0;
       int32_t imageWidth             = 0;
       int32_t imageHeight            = 0;
@@ -110,13 +111,16 @@ public:
         auto [tileNrX, tileNrY] = getNrOfTiles(tile.tileWidth, tile.tileHeight);
         return tile.tileX + tile.tileY * tileNrX;
       }
-      [[nodiscard]] auto tileNrToTile(int32_t tileNr, int32_t tileWidth, int32_t tileHeight) const
-          -> std::tuple<int32_t, int32_t>
+      [[nodiscard]] auto tileNrToTile(int32_t tileNr, int32_t tileWidth, int32_t tileHeight) const -> std::tuple<int32_t, int32_t>
       {
         auto [tileNrX, tileNrY] = getNrOfTiles(tileWidth, tileHeight);
         int32_t tileX           = tileNr % tileNrX;
         int32_t tileY           = tileNr / tileNrX;
         return {tileX, tileY};
+      }
+      [[nodiscard]] bool isRgb() const
+      {
+        return rgbChannelCount == 3;
       }
     };
     int32_t seriesIdx    = 0;
