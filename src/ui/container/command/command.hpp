@@ -131,11 +131,9 @@ public:
   void openEditView()
   {
     mEditDialog->show();
-  }
-
-  void adjustDialogSize()
-  {
-    mEditDialog->adjustSize();
+    mEditDialog->setFixedSize(mEditDialog->sizeHint());      // Set size according to content
+    mEditDialog->setMaximumSize(mEditDialog->sizeHint());    // Set size according to content
+    mEditDialog->setMinimumSize(mEditDialog->sizeHint());    // Set size according to content
   }
 
   void addSeparatorToTopToolbar()

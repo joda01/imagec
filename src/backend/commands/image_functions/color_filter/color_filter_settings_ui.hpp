@@ -14,6 +14,7 @@
 
 #include <qwidget.h>
 #include "ui/container/command/command.hpp"
+#include "ui/container/setting/setting_color_picker.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "color_filter_settings.hpp"
@@ -36,68 +37,10 @@ public:
 
     //
     //
-    mTargetColor = SettingBase::create<SettingLineEdit<std::string>>(parent, generateIcon("color"), "Target color");
-    mTargetColor->setPlaceholderText("[#000000 - #FFFFFF]");
-    mTargetColor->setUnit("");
-    mTargetColor->setValue("#000000");
-    mTargetColor->connectWithSetting(&settings.filter.at(0).targetColor);
+    mTargetColor = SettingBase::create<SettingColorPicker>(parent, generateIcon("color"), "Target color");
+    mTargetColor->setValue({settings.filter.at(0).filterPointA, settings.filter.at(0).filterPointB, settings.filter.at(0).filterPointC});
+    mTargetColor->connectWithSetting(&settings.filter.at(0).filterPointA, &settings.filter.at(0).filterPointB, &settings.filter.at(0).filterPointC);
     mTargetColor->setShortDescription("Color: ");
-    auto *targetEdit = mTargetColor->getLineEdit();
-
-    //
-    //
-    mLowerFilter = SettingBase::create<SettingLineEdit<std::string>>(parent, generateIcon("color"), "Lower color");
-    mLowerFilter->setPlaceholderText("[#000000 - #FFFFFF]");
-    mLowerFilter->setUnit("");
-    mLowerFilter->setValue("#000000");
-    mLowerFilter->connectWithSetting(&settings.filter.at(0).lowerColor);
-    mLowerFilter->setShortDescription("Color: ");
-    auto *lowerEdit = mLowerFilter->getLineEdit();
-    connect(lowerEdit, &ClickableLineEdit::mousePressedEvent, [this, parent, lowerEdit]() {
-      auto color = pickColor(parent, mLowerFilter->getValue().data());
-      if(color.isValid()) {
-        mLowerFilter->setValue(color.name().toStdString());
-        QString colorStyle = QString("background-color: %1").arg(color.name());
-        lowerEdit->setStyleSheet(colorStyle);
-      }
-    });
-
-    //
-    //
-    mUpperFilter = SettingBase::create<SettingLineEdit<std::string>>(parent, generateIcon("color"), "Upper color");
-    mUpperFilter->setPlaceholderText("[#000000 - #FFFFFF]");
-    mUpperFilter->setUnit("");
-    mUpperFilter->setValue("#000000");
-    mUpperFilter->connectWithSetting(&settings.filter.at(0).upperColor);
-    mUpperFilter->setShortDescription("Color: ");
-    auto *upperEdit = mUpperFilter->getLineEdit();
-    connect(upperEdit, &ClickableLineEdit::mousePressedEvent, [this, parent, upperEdit]() {
-      auto color = pickColor(parent, mUpperFilter->getValue().data());
-      if(color.isValid()) {
-        mUpperFilter->setValue(color.name().toStdString());
-        QString colorStyle = QString("background-color: %1").arg(color.name());
-        upperEdit->setStyleSheet(colorStyle);
-      }
-    });
-
-    connect(targetEdit, &ClickableLineEdit::mousePressedEvent, [this, parent, targetEdit, lowerEdit, upperEdit]() {
-      auto color = pickColor(parent, QColor(mTargetColor->getValue().data()));
-      if(color.isValid()) {
-        mTargetColor->setValue(color.name().toStdString());
-        QString colorStyle = QString("background-color: %1").arg(color.name());
-        targetEdit->setStyleSheet(colorStyle);
-
-        QColor colorUpper = adjustColor(color, 100);
-        mUpperFilter->setValue(colorUpper.name().toStdString());
-        QString colorUpperStyle = QString("background-color: %1").arg(colorUpper.name());
-        upperEdit->setStyleSheet(colorUpperStyle);
-
-        QColor colorLower = adjustColor(color, -100);
-        mLowerFilter->setValue(colorLower.name().toStdString());
-        QString colorLowerStyle = QString("background-color: %1").arg(colorLower.name());
-        lowerEdit->setStyleSheet(colorLowerStyle);
-      }
-    });
 
     //
     //
@@ -108,7 +51,7 @@ public:
     mGrayscaleMode->setValue(settings.grayScaleConvertMode);
     mGrayscaleMode->connectWithSetting(&settings.grayScaleConvertMode);
 
-    addSetting({{mTargetColor.get(), true, 0}, {mLowerFilter.get(), false, 0}, {mUpperFilter.get(), false, 0}, {mGrayscaleMode.get(), false, 0}});
+    addSetting({{mTargetColor.get(), true, 0}, {mGrayscaleMode.get(), false, 0}});
   }
 
 private:
@@ -128,9 +71,7 @@ private:
   }
 
   /////////////////////////////////////////////////////
-  std::shared_ptr<SettingLineEdit<std::string>> mTargetColor;
-  std::shared_ptr<SettingLineEdit<std::string>> mLowerFilter;
-  std::shared_ptr<SettingLineEdit<std::string>> mUpperFilter;
+  std::shared_ptr<SettingColorPicker> mTargetColor;
   std::unique_ptr<SettingComboBox<joda::settings::ColorFilterSettings::GrayscaleMode>> mGrayscaleMode;
 };
 

@@ -43,4 +43,20 @@ struct PlaneId
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PlaneId, tStack, zStack, cStack);
 };
 
+struct HsvColor
+{
+  int32_t hue = 0;    // Color
+  int32_t sat = 0;    // Saturation
+  int32_t val = 0;    // Brightness
+
+  void check() const
+  {
+    CHECK_ERROR(hue >= 0 && hue <= 359, "Hue must be in range [0-359]");
+    CHECK_ERROR(sat >= 0 && sat <= 255, "Saturation must be in range [0-255]");
+    CHECK_ERROR(val >= 0 && val <= 255, "Value must be in range [0-255]");
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(HsvColor, hue, sat, val);
+};
+
 }    // namespace joda::enums

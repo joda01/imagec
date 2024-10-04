@@ -36,45 +36,49 @@ public:
   void execute(cv::Mat &image)
   {
     for(const auto &filter : mSetting.filter) {
-      // Define the color you want to keep (in RGB format)
-      if(filter.targetColor == "#000000") {
-        continue;
-      }
-      cv::Scalar lowerBound  = hexToRGB(filter.lowerColor);
-      cv::Scalar targetColor = hexToRGB(filter.targetColor);
-      cv::Scalar upperBound  = hexToRGB(filter.upperColor);
+      cv::Mat hsvImageTmp;
+      cvtColor(image, hsvImageTmp, cv::COLOR_BGR2HSV_FULL);
 
-      // Define the tolerance range for each channel (R, G, B)
+      int32_t hueMax =
+          std::max(mSetting.filter.at(0).filterPointA.hue, std::max(mSetting.filter.at(0).filterPointB.hue, mSetting.filter.at(0).filterPointC.hue));
+      int32_t hueMin =
+          std::min(mSetting.filter.at(0).filterPointA.hue, std::min(mSetting.filter.at(0).filterPointB.hue, mSetting.filter.at(0).filterPointC.hue));
+      int32_t satMax =
+          std::max(mSetting.filter.at(0).filterPointA.sat, std::max(mSetting.filter.at(0).filterPointB.sat, mSetting.filter.at(0).filterPointC.sat));
+      int32_t satMin =
+          std::min(mSetting.filter.at(0).filterPointA.sat, std::min(mSetting.filter.at(0).filterPointB.sat, mSetting.filter.at(0).filterPointC.sat));
+      int32_t valMax =
+          std::max(mSetting.filter.at(0).filterPointA.val, std::max(mSetting.filter.at(0).filterPointB.val, mSetting.filter.at(0).filterPointC.val));
+      int32_t valMin =
+          std::min(mSetting.filter.at(0).filterPointA.val, std::min(mSetting.filter.at(0).filterPointB.val, mSetting.filter.at(0).filterPointC.val));
+
+      cv::Scalar lowerBound((hueMin * 255) / 360, satMin, valMin);    // Hue, Satturation, Value
+      cv::Scalar upperBound((hueMax * 255) / 360, satMax, valMax);    // Hue, Satturation, Value
 
       // Create a mask that isolates the target color
       cv::Mat mask;
-      cv::inRange(image, lowerBound, upperBound, mask);
-
-      // Create a result image initialized to black
-      cv::Mat result = cv::Mat::zeros(image.size(), CV_8UC1);
+      cv::inRange(hsvImageTmp, lowerBound, upperBound, mask);
 
       // Convert the original image to grayscale
-      cv::Mat grayscale = cv::Mat::zeros(image.size(), CV_8UC1);
+      hsvImageTmp = cv::Mat::zeros(image.size(), CV_16UC1);
       if(mSetting.grayScaleConvertMode == settings::ColorFilterSettings::GrayscaleMode::HUMAN) {
-        cv::cvtColor(image, grayscale, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(image, hsvImageTmp, cv::COLOR_BGR2GRAY);
       } else {
         for(int i = 0; i < image.rows; ++i) {
           for(int j = 0; j < image.cols; ++j) {
-            cv::Vec3b pixel           = image.at<cv::Vec3b>(i, j);
-            uchar grayValue           = (pixel[2] + pixel[1] + pixel[0]) / 3;    // BGR format
-            grayscale.at<uchar>(i, j) = grayValue;
+            if(mask.at<uint8_t>(i, j) == 0) {
+            } else {
+              cv::Vec3b pixel                = image.at<cv::Vec3b>(i, j);
+              uint16_t grayValue             = (((pixel[2] + pixel[1] + pixel[0]) * 65535.0) / (3 * 255.0));    // BGR format
+              hsvImageTmp.at<uint16_t>(i, j) = grayValue;
+            }
           }
         }
       }
 
       // Copy grayscale values only where the mask is non-zero (color matches)
-      grayscale.copyTo(result, mask);
-
-      // Convert the grayscale image to 16-bit format
-      cv::Mat grayscale16Bit;
-      result.convertTo(grayscale16Bit, CV_16U, 65535.0 / 255.0);    // Scale to 16-bit
-
-      image = grayscale16Bit.clone();
+      image = cv::Mat::zeros(image.size(), CV_16UC1);
+      hsvImageTmp.copyTo(image, mask);
     }
   }
 

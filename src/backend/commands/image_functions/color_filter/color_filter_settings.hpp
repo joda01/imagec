@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <set>
+#include "backend/enums/types.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
@@ -19,15 +20,20 @@ public:
 
   struct Filter
   {
-    std::string lowerColor  = "#000000";
-    std::string targetColor = "#000000";
-    std::string upperColor  = "#000000";
+    //
+    // With three filter points (defining hue, saturation and val)
+    // a triangle on the HSV color circle is defined.
+    // All colors wihin this triangle are accepted
+    //
+    joda::enums::HsvColor filterPointA{223, 172, 0};
+    joda::enums::HsvColor filterPointB{287, 200, 0};
+    joda::enums::HsvColor filterPointC{62, 71, 255};
 
     void check() const
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Filter, lowerColor, targetColor, upperColor);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Filter, filterPointA, filterPointB, filterPointC);
   };
 
   std::vector<Filter> filter;
