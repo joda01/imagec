@@ -40,6 +40,8 @@ public:
   DialogCommandSelection(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineStepSettingsUi,
                          const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore, WindowMain *parent);
 
+  void setInOutBefore(InOuts inout);
+
 private:
   /////////////////////////////////////////////////////
   void addNewCommand(int commandListIdx);

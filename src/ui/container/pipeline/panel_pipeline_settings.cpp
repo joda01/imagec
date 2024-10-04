@@ -44,6 +44,7 @@
 #include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/window_main/panel_classification.hpp"
 #include "ui/window_main/window_main.hpp"
+#include <nlohmann/json_fwd.hpp>
 #include "add_command_button.hpp"
 
 namespace joda::ui {
@@ -125,6 +126,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   connect(mLayout.getDeleteButton(), &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
   connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this, &PanelPipelineSettings::onClassificationNameChanged);
   onClassificationNameChanged();
+
+  mPreviewThread = std::make_unique<std::thread>(&PanelPipelineSettings::previewThread, this);
 }
 
 ///
@@ -136,10 +139,12 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 ///
 void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::Command> command, const settings::PipelineStep *pipelineStepBefore)
 {
+  command->blockComponentSignals(true);
   command->registerDeleteButton(this);
   command->registerAddCommandButton(mSettings, this, mWindowMain);
   connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
+  command->blockComponentSignals(false);
   mCommands.push_back(std::move(command));
   mWindowMain->checkForSettingsChanged();
 }
@@ -296,7 +301,8 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 ///
 PanelPipelineSettings::~PanelPipelineSettings()
 {
-  mPreviewCounter = 0;
+  mStopped = true;
+  mPreviewQue.stop();
   if(mPreviewThread != nullptr) {
     if(mPreviewThread->joinable()) {
       mPreviewThread->join();
@@ -319,6 +325,17 @@ void PanelPipelineSettings::valueChangedEvent()
   // } else {
   //   zProjection->getDisplayLabelWidget()->setVisible(true);
   // }
+
+  // QObject *senderObject = sender();    // Get the signal's origin
+  // if(senderObject) {
+  //   qDebug() << "Signal received from:" << senderObject->objectName();
+  //   senderObject->dumpObjectInfo();
+  // } else {
+  //   qDebug() << "Could not identify sender!";
+  // }
+
+  std::cout << "Value changed event" << std::endl;
+
   updatePreview();
 }
 
@@ -344,88 +361,104 @@ void PanelPipelineSettings::metaChangedEvent()
 ///
 void PanelPipelineSettings::updatePreview()
 {
-  std::lock_guard<std::mutex> lock(mPreviewMutex);
+  {
+    std::lock_guard<std::mutex> lock(mShutingDownMutex);
+    if(!mIsActiveShown) {
+      return;
+    }
+  }
+  toSettings();
+  mWindowMain->checkForSettingsChanged();
+  auto *controller = mWindowMain->getController();
+  int cnt          = 0;
+  for(const auto &myPipeline : mWindowMain->getSettings().pipelines) {
+    if(&myPipeline == &getPipeline()) {
+      break;
+    }
+    cnt++;
+  }
 
-  auto [newImgIdex, selectedSeries] = mWindowMain->getImagePanel()->getSelectedImage();
-  if(mIsActiveShown) {
-    if(mPreviewCounter == 0) {
-      mPreviewCounter++;
-      mPreviewInProgress = true;
-      emit updatePreviewStarted();
+  PreviewJob job{.settings           = mWindowMain->getSettings(),
+                 .controller         = mWindowMain->getController(),
+                 .previewPanel       = mPreviewImage,
+                 .selectedImage      = mWindowMain->getImagePanel()->getSelectedImage(),
+                 .pipelinePos        = cnt,
+                 .selectedTileX      = mSelectedTileX,
+                 .selectedTileY      = mSelectedTileY,
+                 .clustersAndClasses = mWindowMain->getPanelClassification()->getClustersAndClasses()
 
-      if(mPreviewThread != nullptr) {
-        if(mPreviewThread->joinable()) {
-          mPreviewThread->join();
-        }
-      }
-      mPreviewThread = std::make_unique<std::thread>([this, newImgIdex = newImgIdex, selectedSeries = selectedSeries]() {
-        int previewCounter = 0;
-        std::this_thread::sleep_for(500ms);
-        do {
-          toSettings();
-          // Double free
-          mWindowMain->checkForSettingsChanged();
-          if(nullptr != mPreviewImage) {
-            std::filesystem::path imgIndex = newImgIdex;
-            if(!imgIndex.empty()) {
-              auto *controller = mWindowMain->getController();
-              try {
-                int32_t resolution      = 0;
-                uint32_t series         = selectedSeries;
-                auto tileSize           = controller->getCompositeTileSize();
-                auto imgProps           = controller->getImageProperties(imgIndex, series);
-                auto [tileNrX, tileNrY] = imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.width, tileSize.height);
+  };
 
-                auto &previewResult = mPreviewImage->getPreviewObject();
-                processor::PreviewSettings prevSettings;
-                prevSettings.style =
-                    mPreviewImage->getFilledPreview() ? settings::ImageSaverSettings::Style::FILLED : settings::ImageSaverSettings::Style::OUTLINED;
-                controller->preview(mWindowMain->getSettings().imageSetup, prevSettings, mWindowMain->getSettings(), getPipeline(), imgIndex,
-                                    mSelectedTileX, mSelectedTileY, previewResult);
-                // Create a QByteArray from the char array
-                QString info             = "<html>";
-                auto [clusters, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
-                for(const auto &[classId, count] : previewResult.foundObjects) {
-                  QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
-                                (clusters[classId.clusterId] + "/" + classes[classId.classId] + "</span>: " + QString::number(count.count) + "<br>");
-                  info += tmp;
-                }
-                info += "</html>";
-                mPreviewImage->setThumbnailPosition(tileNrX, tileNrY, mSelectedTileX, mSelectedTileY);
-                mPreviewImage->updateImage(info);
-                if(!mIsActiveShown) {
-                  mPreviewImage->resetImage("");
-                }
+  std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
+  mPreviewQue.push(job);
+}
 
-              } catch(const std::exception &error) {
-                // mPreviewImage->resetImage(error.what());
-                joda::log::logError("Preview error: " + std::string(error.what()));
-              }
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::previewThread()
+{
+  while(!mStopped) {
+    // Wait until there is at least one job in the queue
+    auto jobToDo       = mPreviewQue.pop();
+    mPreviewInProgress = true;
+    emit updatePreviewStarted();
+    if(nullptr != jobToDo.previewPanel && mIsActiveShown) {
+      auto [imgIndex, selectedSeries] = jobToDo.selectedImage;
+      if(!imgIndex.empty()) {
+        try {
+          int32_t resolution      = 0;
+          uint32_t series         = selectedSeries;
+          auto tileSize           = jobToDo.controller->getCompositeTileSize();
+          auto imgProps           = joda::ctrl::Controller::getImageProperties(imgIndex, series);
+          auto [tileNrX, tileNrY] = imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.width, tileSize.height);
+
+          auto &previewResult = jobToDo.previewPanel->getPreviewObject();
+          processor::PreviewSettings prevSettings;
+          prevSettings.style =
+              jobToDo.previewPanel->getFilledPreview() ? settings::ImageSaverSettings::Style::FILLED : settings::ImageSaverSettings::Style::OUTLINED;
+
+          joda::settings::Pipeline &myPipeline = *jobToDo.settings.pipelines.begin();
+          int cnt                              = 0;
+          for(const auto &pip : jobToDo.settings.pipelines) {
+            if(cnt == jobToDo.pipelinePos) {
+              myPipeline = pip;
+              break;
             }
+            cnt++;
           }
-          std::this_thread::sleep_for(250ms);
-          {
-            std::lock_guard<std::mutex> lock(mPreviewMutex);
-            previewCounter = mPreviewCounter;
-            previewCounter--;
-            mPreviewCounter = previewCounter;
+
+          jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, myPipeline, imgIndex, jobToDo.selectedTileX,
+                                      jobToDo.selectedTileY, previewResult);
+          // Create a QByteArray from the char array
+          QString info             = "<html>";
+          auto [clusters, classes] = jobToDo.clustersAndClasses;
+          for(const auto &[classId, count] : previewResult.foundObjects) {
+            QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
+                          (clusters[classId.clusterId] + "/" + classes[classId.classId] + "</span>: " + QString::number(count.count) + "<br>");
+            info += tmp;
           }
-        } while(previewCounter > 0);
-        {
-          std::lock_guard<std::mutex> lock(mPreviewMutex);
-          mPreviewInProgress = false;
+          info += "</html>";
+          jobToDo.previewPanel->setThumbnailPosition(tileNrX, tileNrY, jobToDo.selectedTileX, jobToDo.selectedTileY);
+          jobToDo.previewPanel->updateImage(info);
+
+        } catch(const std::exception &error) {
+          // mPreviewImage->resetImage(error.what());
+          joda::log::logError("Preview error: " + std::string(error.what()));
         }
-        emit updatePreviewFinished();
-      });
-    } else {
-      mPreviewCounter++;
-      if(mPreviewCounter > 1) {
-        mPreviewCounter = 1;
       }
     }
-  } else {
-    if(nullptr != mPreviewImage) {
-      mPreviewImage->resetImage("");
+
+    {
+      std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
+      if(mPreviewQue.isEmpty()) {
+        mPreviewInProgress = false;
+        emit updatePreviewFinished();
+      }
     }
   }
 }
@@ -484,6 +517,12 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.meta          = settings.meta;
   mSettings.pipelineSetup = settings.pipelineSetup;
 
+  pipelineName->blockComponentSignals(true);
+  cStackIndex->blockComponentSignals(true);
+  zProjection->blockComponentSignals(true);
+  defaultClusterId->blockComponentSignals(true);
+  defaultClassId->blockComponentSignals(true);
+
   pipelineName->setValue(settings.meta.name);
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
   zProjection->setValue(settings.pipelineSetup.zProjection);
@@ -502,6 +541,20 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
       addPipelineStep(std::move(cmd), &cmdSetting);
     }
   }
+
+  if(nullptr != mTopAddCommandButton) {
+    if(cStackIndex->getValue() == -1) {
+      mTopAddCommandButton->setInOutBefore(InOuts::OBJECT);
+    } else {
+      mTopAddCommandButton->setInOutBefore(InOuts::IMAGE);
+    }
+  }
+
+  pipelineName->blockComponentSignals(false);
+  cStackIndex->blockComponentSignals(false);
+  zProjection->blockComponentSignals(false);
+  defaultClusterId->blockComponentSignals(false);
+  defaultClassId->blockComponentSignals(false);
 }
 
 ///
@@ -567,6 +620,9 @@ void PanelPipelineSettings::deletePipeline()
 ///
 void PanelPipelineSettings::onClassificationNameChanged()
 {
+  defaultClusterId->blockComponentSignals(true);
+  defaultClassId->blockComponentSignals(true);
+
   const auto [clusters, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
 
   {
@@ -588,6 +644,11 @@ void PanelPipelineSettings::onClassificationNameChanged()
     }
     defaultClassId->changeOptionText(classN);
   }
+
+  defaultClusterId->blockComponentSignals(false);
+  defaultClassId->blockComponentSignals(false);
+
+  valueChangedEvent();
 }
 
 ///
@@ -633,9 +694,9 @@ void PanelPipelineSettings::setActive(bool setActive)
     mIsActiveShown = true;
     updatePreview();
   }
-  if(!setActive) {
-    mIsActiveShown  = false;
-    mPreviewCounter = 0;
+  if(!setActive && mIsActiveShown) {
+    std::lock_guard<std::mutex> lock(mShutingDownMutex);
+    mIsActiveShown = false;
     // Wait until preview render has been finished
     while(mPreviewInProgress) {
       std::this_thread::sleep_for(100ms);

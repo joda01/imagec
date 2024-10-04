@@ -19,6 +19,8 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/helper/thread_safe_queue.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/container/pipeline/panel_channel_overview.hpp"
@@ -31,6 +33,7 @@ namespace joda::ui {
 
 class WindowMain;
 class AddCommandButtonBase;
+class PanelClassification;
 
 class PanelPipelineSettings : public QWidget, public ContainerBase
 {
@@ -80,6 +83,7 @@ private:
   /////////////////////////////////////////////////////
   void createSettings(helper::TabWidget *, WindowMain *windowMain);
   void saveAsTemplate();
+  void previewThread();
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
@@ -90,9 +94,7 @@ private:
   std::unique_ptr<SettingComboBox<enums::ClassId>> defaultClassId;
 
   /////////////////////////////////////////////////////
-  PanelPreview *mPreviewImage = nullptr;
-  std::mutex mPreviewMutex;
-  int mPreviewCounter                         = 0;
+  PanelPreview *mPreviewImage                 = nullptr;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
   bool mPreviewInProgress                     = false;
@@ -110,6 +112,23 @@ private:
   // joda::ctrl::Preview mPreviewObject;
   PanelChannelOverview *mOverview;
   joda::settings::Pipeline &mSettings;
+
+  struct PreviewJob
+  {
+    settings::AnalyzeSettings settings;
+    joda::ctrl::Controller *controller;
+    PanelPreview *previewPanel;
+    std::tuple<std::filesystem::path, uint32_t> selectedImage;
+    int32_t pipelinePos;
+    int32_t selectedTileX = 0;
+    int32_t selectedTileY = 0;
+    std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassIdIn, QString>> clustersAndClasses;
+  };
+
+  bool mStopped = false;
+  joda::TSQueue<PreviewJob> mPreviewQue;
+  std::mutex mCheckForEmptyMutex;
+  std::mutex mShutingDownMutex;
 
 private slots:
   /////////////////////////////////////////////////////

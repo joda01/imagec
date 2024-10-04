@@ -86,6 +86,7 @@ std::unique_ptr<joda::ui::Command> DialogCommandSelection::generateCommand(const
 ///
 void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
 {
+  mCommands->setRowCount(0);
   {
     int inserted = 0;
     inserted += addCommandToTable(settings::PipelineStep{.$colorFilter = settings::ColorFilterSettings{}}, outOfStepBefore);
@@ -228,6 +229,11 @@ void DialogCommandSelection::addNewCommand(int commandListIdx)
       return;
     }
   }
+}
+
+void DialogCommandSelection::setInOutBefore(InOuts inout)
+{
+  addCommandsToTable(inout);
 }
 
 }    // namespace joda::ui

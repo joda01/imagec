@@ -459,7 +459,8 @@ void WindowMain::checkForSettingsChanged()
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
     mSaveProject->setEnabled(true);
-    emit onOutputClassifierChanges();
+    /// \todo check if all updates still work
+    // emit onOutputClassifierChanges();
   } else {
     // Equal
     mSaveProject->setEnabled(false);

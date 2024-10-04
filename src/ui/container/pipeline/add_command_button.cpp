@@ -77,6 +77,7 @@ void AddCommandButtonBase::onAddCommandClicked()
 void AddCommandButtonBase::setInOutBefore(InOuts inout)
 {
   mOutOfStepBefore = inout;
+  mSelectionDialog->setInOutBefore(inout);
 }
 
 }    // namespace joda::ui
