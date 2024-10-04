@@ -248,9 +248,9 @@ void DialogImageViewer::onLeftViewChanged()
   mImageViewRight.blockSignals(true);
   mImageViewLeft.blockSignals(true);
 
+  mImageViewRight.setTransform(mImageViewLeft.transform());
   mImageViewRight.horizontalScrollBar()->setValue(mImageViewLeft.horizontalScrollBar()->value());
   mImageViewRight.verticalScrollBar()->setValue(mImageViewLeft.verticalScrollBar()->value());
-  mImageViewRight.setTransform(mImageViewLeft.transform());
 
   mImageViewRight.blockSignals(false);
   mImageViewLeft.blockSignals(false);
@@ -268,9 +268,9 @@ void DialogImageViewer::onRightViewChanged()
   mImageViewRight.blockSignals(true);
   mImageViewLeft.blockSignals(true);
 
+  mImageViewLeft.setTransform(mImageViewRight.transform());
   mImageViewLeft.horizontalScrollBar()->setValue(mImageViewRight.horizontalScrollBar()->value());
   mImageViewLeft.verticalScrollBar()->setValue(mImageViewRight.verticalScrollBar()->value());
-  mImageViewLeft.setTransform(mImageViewRight.transform());
 
   mImageViewRight.blockSignals(false);
   mImageViewLeft.blockSignals(false);
