@@ -164,7 +164,7 @@ public:
     if constexpr(std::same_as<VALUE_T, std::string>) {
       mLineEdit->setText(value.data());
     }
-    // onValueChanged();
+    onValueChanged();
   }
 
   void connectWithSetting(VALUE_T *setting)
