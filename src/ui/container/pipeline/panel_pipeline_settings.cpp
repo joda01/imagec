@@ -427,17 +427,20 @@ void PanelPipelineSettings::previewThread()
             prevSettings.style = jobToDo.previewPanel->getFilledPreview() ? settings::ImageSaverSettings::Style::FILLED
                                                                           : settings::ImageSaverSettings::Style::OUTLINED;
 
-            joda::settings::Pipeline &myPipeline = *jobToDo.settings.pipelines.begin();
+            joda::settings::Pipeline *myPipeline = nullptr;
             int cnt                              = 0;
-            for(const auto &pip : jobToDo.settings.pipelines) {
+            for(auto &pip : jobToDo.settings.pipelines) {
               if(cnt == jobToDo.pipelinePos) {
-                myPipeline = pip;
+                myPipeline = &pip;
                 break;
               }
               cnt++;
             }
+            if(myPipeline == nullptr) {
+              continue;
+            }
 
-            jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, myPipeline, imgIndex, jobToDo.selectedTileX,
+            jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, *myPipeline, imgIndex, jobToDo.selectedTileX,
                                         jobToDo.selectedTileY, previewResult);
             // Create a QByteArray from the char array
             QString info             = "<html>";
