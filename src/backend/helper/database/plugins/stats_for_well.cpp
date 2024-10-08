@@ -17,8 +17,7 @@ struct ImgPositionInWell
   int32_t y   = -1;
 };
 
-auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, int32_t &sizeX, int32_t &sizeY)
-    -> std::map<int32_t, ImgPositionInWell>;
+auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, int32_t &sizeX, int32_t &sizeY) -> std::map<int32_t, ImgPositionInWell>;
 
 ///
 /// \brief
@@ -149,9 +148,10 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             " JOIN images_planes ON objects.image_id = images_planes.image_id "
             "                       AND images_planes.stack_c = $4            "
             " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
-            " GROUP BY objects.image_id, images_groups.group_id",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint16_t>(filter.actGroupId), static_cast<uint32_t>(filter.crossChanelStack_c));
+            " GROUP BY objects.image_id, images_groups.group_id"
+            " ORDER BY objects.image_id, images_groups.group_id",
+        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint16_t>(filter.actGroupId),
+        static_cast<uint32_t>(filter.crossChanelStack_c));
     return result;
   };
 
@@ -173,9 +173,10 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             "                                  objects.image_id = object_measurements.image_id "
             "                             AND object_measurements.meas_stack_c = $4)"
             " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
-            " GROUP BY objects.image_id, images_groups.group_id ",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint16_t>(filter.actGroupId), static_cast<uint32_t>(filter.crossChanelStack_c));
+            " GROUP BY objects.image_id, images_groups.group_id "
+            " ORDER BY objects.image_id, images_groups.group_id",
+        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint16_t>(filter.actGroupId),
+        static_cast<uint32_t>(filter.crossChanelStack_c));
     return result;
   };
 
@@ -214,10 +215,10 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             "     GROUP BY objects.object_id"
             "    	) "
             " AS subquery"
-            "    	GROUP BY image_id",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint16_t>(filter.actGroupId), static_cast<uint16_t>(filter.crossChannelClusterId),
-        static_cast<uint16_t>(filter.crossChannelClassId));
+            "    	GROUP BY image_id"
+            "     ORDER BY image_id,group_id",
+        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint16_t>(filter.actGroupId),
+        static_cast<uint16_t>(filter.crossChannelClusterId), static_cast<uint16_t>(filter.crossChannelClassId));
     return result;
   };
 
@@ -259,8 +260,7 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
 ///
 /// \author     Joachim Danmayr
 ///
-auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, int32_t &sizeX, int32_t &sizeY)
-    -> std::map<int32_t, ImgPositionInWell>
+auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, int32_t &sizeX, int32_t &sizeY) -> std::map<int32_t, ImgPositionInWell>
 {
   sizeY = wellImageOrder.size();
   sizeX = 0;
