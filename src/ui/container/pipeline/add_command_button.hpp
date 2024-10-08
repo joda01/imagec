@@ -52,7 +52,7 @@ private:
   joda::settings::Pipeline &mSettings;
   PanelPipelineSettings *pipelineStepSettingsUi;
   InOuts mOutOfStepBefore;
-  DialogCommandSelection *mSelectionDialog;
+  DialogCommandSelection *mSelectionDialog = nullptr;
 };
 
 }    // namespace joda::ui
