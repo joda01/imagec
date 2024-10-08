@@ -155,6 +155,7 @@ private:
   PanelCompilerLog *mCompilerLog;
 
   ////Project settings/////////////////////////////////////////////////
+  joda ::settings::AnalyzeSettings *mActAnalyzeSettings = nullptr;
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   joda::settings::AnalyzeSettings mAnalyzeSettingsOld;
   std::filesystem::path mSelectedProjectSettingsFilePath;
