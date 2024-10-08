@@ -138,7 +138,7 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
         " SELECT"
         " objects.image_id,"
         " ANY_VALUE(images_groups.image_group_idx),"
-        " ANY_VALUE(images.file_name),"
+        " ANY_VALUE(images.file_name) as filename,"
         " ANY_VALUE(images.validity) as validity,"
         " images_groups.group_id as group_id," +
             buildStats() +
@@ -149,7 +149,7 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             "                       AND images_planes.stack_c = $4            "
             " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
             " GROUP BY objects.image_id, images_groups.group_id"
-            " ORDER BY objects.image_id, images_groups.group_id",
+            " ORDER BY filename, objects.image_id, images_groups.group_id",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint16_t>(filter.actGroupId),
         static_cast<uint32_t>(filter.crossChanelStack_c));
     return result;
@@ -160,7 +160,7 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
         " SELECT"
         " objects.image_id,"
         " ANY_VALUE(images_groups.image_group_idx),"
-        " ANY_VALUE(images.file_name),"
+        " ANY_VALUE(images.file_name) as filename,"
         " ANY_VALUE(images.validity),"
         " images_groups.group_id as group_id," +
             buildStats() +
@@ -174,7 +174,7 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             "                             AND object_measurements.meas_stack_c = $4)"
             " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
             " GROUP BY objects.image_id, images_groups.group_id "
-            " ORDER BY objects.image_id, images_groups.group_id",
+            " ORDER BY filename, objects.image_id, images_groups.group_id",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint16_t>(filter.actGroupId),
         static_cast<uint32_t>(filter.crossChanelStack_c));
     return result;
@@ -185,7 +185,7 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
         "   SELECT "
         "   subquery.image_id,"
         "     ANY_VALUE(subquery.image_group_idx),"
-        "     ANY_VALUE(subquery.file_name),"
+        "     ANY_VALUE(subquery.file_name) as filename,"
         "     ANY_VALUE(subquery.validity),"
         "     ANY_VALUE(subquery.group_id) as group_id," +
             getStatsString(filter.stats) + "(subquery.valid) as valid," + getStatsString(filter.stats) +
@@ -216,7 +216,7 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             "    	) "
             " AS subquery"
             "    	GROUP BY image_id"
-            "     ORDER BY image_id,group_id",
+            "     ORDER BY filename,image_id,group_id",
         static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint16_t>(filter.actGroupId),
         static_cast<uint16_t>(filter.crossChannelClusterId), static_cast<uint16_t>(filter.crossChannelClassId));
     return result;
