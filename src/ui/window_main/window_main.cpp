@@ -420,18 +420,25 @@ void WindowMain::openProjectSettings(const QString &filePath)
     joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(ifs);
     ifs.close();
 
+    // Assign temporary the newly loaded settings.
+    // This is needed to avoid a hen and eg problem when loading the output clusters which are needed for the pipelines.
+    // They must be known before the pipeline steps are loaded.
+    mActAnalyzeSettings = &analyzeSettings;
     showPanelStartPage();
     clearSettings();
-
-    for(const auto &channel : analyzeSettings.pipelines) {
-      mPanelPipeline->addChannel(channel);
-    }
 
     mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings);
 
     mAnalyzeSettings.projectSettings = analyzeSettings.projectSettings;
     mAnalyzeSettingsOld              = mAnalyzeSettings;
+
+    for(const auto &channel : analyzeSettings.pipelines) {
+      mPanelPipeline->addChannel(channel);
+    }
+
+    mActAnalyzeSettings = &mAnalyzeSettings;
+    emit onOutputClassifierChanges();
 
     mSelectedProjectSettingsFilePath = filePath.toStdString();
     checkForSettingsChanged();
@@ -811,6 +818,9 @@ QString WindowMain::bytesToString(int64_t bytes)
 ///
 auto WindowMain::getOutputClasses() -> std::set<settings::ClassificatorSettingOut>
 {
+  if(mActAnalyzeSettings != nullptr) {
+    return mActAnalyzeSettings->getOutputClasses();
+  }
   return mAnalyzeSettings.getOutputClasses();
 }
 
