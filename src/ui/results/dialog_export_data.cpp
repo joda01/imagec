@@ -276,11 +276,11 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
 
   mLayout.addSeparatorToTopToolbar();
 
-  mSaveSettings = mLayout.addActionButton("Save template", generateIcon("mark-as-favorite"));
-  connect(mSaveSettings, &QAction::triggered, [this] { saveTemplate(); });
-
   mOpenSettings = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
   connect(mOpenSettings, &QAction::triggered, [this] { openTemplate(); });
+
+  mSaveSettings = mLayout.addActionButton("Save template", generateIcon("save"));
+  connect(mSaveSettings, &QAction::triggered, [this] { saveTemplate(); });
 
   /* mSelectAllMeasurements = mLayout.addActionButton("Select all measurements", "icons8-select-column);
    connect(mSelectAllMeasurements, &QAction::triggered, [this] { selectAvgOfAllMeasureChannels(); });
