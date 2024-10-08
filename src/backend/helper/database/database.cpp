@@ -14,6 +14,7 @@
 #include <duckdb.h>
 #include <chrono>
 #include <exception>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
@@ -27,6 +28,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/rle/rle.hpp"
+#include "backend/helper/threadpool/thread_pool.hpp"
 #include "backend/helper/uuid.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -306,7 +308,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
 }
 
 auto Database::prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std::string &filenameRegex,
-                             const std::vector<std::filesystem::path> &imagePaths)
+                             const std::vector<std::filesystem::path> &imagePaths, BS::thread_pool &globalThreadPool)
     -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
 {
   std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> imagesToProcess;
@@ -318,68 +320,83 @@ auto Database::prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std:
   auto images_groups   = duckdb::Appender(*connection, "images_groups");
   auto images_channels = duckdb::Appender(*connection, "images_channels");
   std::set<uint16_t> addedGroups;
+
+  std::mutex insertMutex;
+
   //
   // Preparing -> Insert all images to database
   //
+  BS::multi_future<void> prepareFuture;
+
   for(const auto &imagePath : imagePaths) {
-    auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath);
-    uint64_t imageId = joda::helper::fnv1a(imagePath.string());
+    auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, plateId,
+                         imagePath]() {
+      auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath);
+      uint64_t imageId = joda::helper::fnv1a(imagePath.string());
+      auto groupInfo   = grouper.getGroupForFilename(imagePath);
 
-    imagesToProcess.emplace_back(imagePath, ome, imageId);
-    auto groupInfo = grouper.getGroupForFilename(imagePath);
-    // Group
-    {
-      if(!addedGroups.contains(groupInfo.groupId)) {
-        groups.BeginRow();
-        groups.Append<uint16_t>(plateId);                        //       " plate_id USMALLINT,"
-        groups.Append<uint16_t>(groupInfo.groupId);              //       " group_id USMALLINT,"
-        groups.Append<duckdb::string_t>(groupInfo.groupName);    //       " name STRING,"
-        groups.Append<duckdb::string_t>("");                     //       " notes STRING,"
-        groups.Append<uint32_t>(groupInfo.wellPosX);             //       " pos_on_plate_x UINTEGER,"
-        groups.Append<uint32_t>(groupInfo.wellPosY);             //       " pos_on_plate_y UINTEGER,"
-        groups.EndRow();
-        addedGroups.emplace(groupInfo.groupId);
+      {
+        std::lock_guard<std::mutex> lock(insertMutex);
+        imagesToProcess.emplace_back(imagePath, ome, imageId);
+        // Group
+        {
+          if(!addedGroups.contains(groupInfo.groupId)) {
+            groups.BeginRow();
+            groups.Append<uint16_t>(plateId);                        //       " plate_id USMALLINT,"
+            groups.Append<uint16_t>(groupInfo.groupId);              //       " group_id USMALLINT,"
+            groups.Append<duckdb::string_t>(groupInfo.groupName);    //       " name STRING,"
+            groups.Append<duckdb::string_t>("");                     //       " notes STRING,"
+            groups.Append<uint32_t>(groupInfo.wellPosX);             //       " pos_on_plate_x UINTEGER,"
+            groups.Append<uint32_t>(groupInfo.wellPosY);             //       " pos_on_plate_y UINTEGER,"
+            groups.EndRow();
+            addedGroups.emplace(groupInfo.groupId);
+          }
+        }
+
+        // Image
+        {
+          images.BeginRow();
+          images.Append<uint64_t>(imageId);                                  //       " image_id UBIGINT,"
+          images.Append<duckdb::string_t>(imagePath.filename().string());    //       " file_name TEXT,"
+          images.Append<duckdb::string_t>(imagePath.string());               //       " original_file_path TEXT
+          images.Append<uint32_t>(ome.getNrOfChannels());                    //       " nr_of_c_stacks UINTEGER
+          images.Append<uint32_t>(ome.getNrOfZStack());                      //       " nr_of_z_stacks UINTEGER
+          images.Append<uint32_t>(ome.getNrOfTStack());                      //       " nr_of_t_stacks UINTEGER
+          images.Append<uint32_t>(std::get<0>(ome.getSize()));               //       " width UINTEGER,"
+          images.Append<uint32_t>(std::get<1>(ome.getSize()));               //       " height UINTEGER,"
+          images.Append<uint64_t>(0);                                        //       " validity UBIGINT,"
+          images.Append<bool>(false);                                        //       " processed BOOL,"
+          images.EndRow();
+        }
+
+        // Image Group
+        {
+          images_groups.BeginRow();
+          images_groups.Append<uint16_t>(plateId);               //       " plate_id USMALLINT,"
+          images_groups.Append<uint16_t>(groupInfo.groupId);     //       " group_id USMALLINT,"
+          images_groups.Append<uint64_t>(imageId);               //       " image_id UBIGINT,"
+          images_groups.Append<uint32_t>(groupInfo.imageIdx);    //       " image_group_idx UINTEGER, "
+          images_groups.EndRow();
+        }
+
+        // Image channel
+        {
+          for(const auto &[channelId, channel] : ome.getChannelInfos()) {
+            images_channels.BeginRow();
+            images_channels.Append<uint64_t>(imageId);                      // " image_id UBIGINT,"
+            images_channels.Append<uint32_t>(channelId);                    // " stack_c UINTEGER, "
+            images_channels.Append<duckdb::string_t>(channel.channelId);    // " channel_id TEXT,"
+            images_channels.Append<duckdb::string_t>(channel.name);         // " name TEXT,"
+            images_channels.EndRow();
+          }
+        }
       }
-    }
+    };
 
-    // Image
-    {
-      images.BeginRow();
-      images.Append<uint64_t>(imageId);                                  //       " image_id UBIGINT,"
-      images.Append<duckdb::string_t>(imagePath.filename().string());    //       " file_name TEXT,"
-      images.Append<duckdb::string_t>(imagePath.string());               //       " original_file_path TEXT
-      images.Append<uint32_t>(ome.getNrOfChannels());                    //       " nr_of_c_stacks UINTEGER
-      images.Append<uint32_t>(ome.getNrOfZStack());                      //       " nr_of_z_stacks UINTEGER
-      images.Append<uint32_t>(ome.getNrOfTStack());                      //       " nr_of_t_stacks UINTEGER
-      images.Append<uint32_t>(std::get<0>(ome.getSize()));               //       " width UINTEGER,"
-      images.Append<uint32_t>(std::get<1>(ome.getSize()));               //       " height UINTEGER,"
-      images.Append<uint64_t>(0);                                        //       " validity UBIGINT,"
-      images.Append<bool>(false);                                        //       " processed BOOL,"
-      images.EndRow();
-    }
-
-    // Image Group
-    {
-      images_groups.BeginRow();
-      images_groups.Append<uint16_t>(plateId);               //       " plate_id USMALLINT,"
-      images_groups.Append<uint16_t>(groupInfo.groupId);     //       " group_id USMALLINT,"
-      images_groups.Append<uint64_t>(imageId);               //       " image_id UBIGINT,"
-      images_groups.Append<uint32_t>(groupInfo.imageIdx);    //       " image_group_idx UINTEGER, "
-      images_groups.EndRow();
-    }
-
-    // Image channel
-    {
-      for(const auto &[channelId, channel] : ome.getChannelInfos()) {
-        images_channels.BeginRow();
-        images_channels.Append<uint64_t>(imageId);                      // " image_id UBIGINT,"
-        images_channels.Append<uint32_t>(channelId);                    // " stack_c UINTEGER, "
-        images_channels.Append<duckdb::string_t>(channel.channelId);    // " channel_id TEXT,"
-        images_channels.Append<duckdb::string_t>(channel.name);         // " name TEXT,"
-        images_channels.EndRow();
-      }
-    }
+    prepareFuture.push_back(globalThreadPool.submit_task(prepareImage));
   }
+
+  prepareFuture.wait();
 
   groups.Close();
   images.Close();
