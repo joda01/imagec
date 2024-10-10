@@ -24,31 +24,31 @@
 class Version
 {
 public:
-  static auto getVersion() -> std::string
+  static constexpr auto getVersion() -> std::string
   {
     return VERSION;
   }
 
-  static auto getBuildTime() -> std::string
+  static constexpr auto getBuildTime() -> std::string
   {
     return BUILD_TIME;
   }
 
-  static void initVersion(const std::string &bin)
+  static constexpr void initVersion(const std::string &bin)
   {
   }
 
-  static std::string getProgamName()
+  static constexpr std::string getProgamName()
   {
     return "imageC";
   }
 
-  static std::string getTitle()
+  static constexpr std::string getTitle()
   {
     return "EVAnalayzer2";
   }
 
-  static std::string getSubtitle()
+  static constexpr std::string getSubtitle()
   {
     return "powered by " + getProgamName();
   }

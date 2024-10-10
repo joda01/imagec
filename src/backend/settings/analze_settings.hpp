@@ -23,6 +23,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/enums/enums_file_endians.hpp"
+#include "backend/settings/program/program_meta.hpp"
 #include "pipeline/pipeline.hpp"
 #include "project_settings/project_settings.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
@@ -36,6 +37,7 @@ public:
   ProjectSettings projectSettings;
   ProjectImageSetup imageSetup;
   std::list<Pipeline> pipelines;
+  ProgramMeta meta;
 
   [[nodiscard]] const std::string &schema() const
   {
@@ -48,8 +50,8 @@ public:
   auto checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>;
 
 private:
-  std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings" + joda::fs::EXT_PROJECT;
+  std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.json";
   void check() const;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, projectSettings, imageSetup, pipelines);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, projectSettings, imageSetup, pipelines, meta);
 };
 }    // namespace joda::settings
