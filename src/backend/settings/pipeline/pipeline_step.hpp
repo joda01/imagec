@@ -30,6 +30,7 @@
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
 #include "backend/commands/object_functions/intersection/intersection_settings.hpp"
 #include "backend/commands/object_functions/measure/measure_settings.hpp"
+#include "backend/commands/object_functions/object_math/object_math_settings.hpp"
 #include "backend/commands/object_functions/validator_noise/validator_noise_settings.hpp"
 #include "backend/commands/object_functions/validator_threshold/validator_threshold_settings.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings.hpp"
@@ -71,6 +72,7 @@ public:
   std::optional<ThresholdValidatorSettings> $thresholdValidator      = std::nullopt;
   std::optional<NoiseValidatorSettings> $noiseValidator              = std::nullopt;
   std::optional<ColorFilterSettings> $colorFilter                    = std::nullopt;
+  std::optional<ObjectMathSettings> $objectMath                      = std::nullopt;
 
   /////////////////////////////////////////////////////
   void operator()(processor::ProcessContext &context, cv::Mat &image, joda::atom::ObjectList &result) const;
@@ -79,7 +81,7 @@ public:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass, $classify,
                                                        $aiClassify, $colocalization, $intersection, $measure, $rollingBall, $medianSubtract,
                                                        $edgeDetection, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
-                                                       $colorFilter, disabled);
+                                                       $colorFilter, $objectMath, disabled);
 };
 
 }    // namespace joda::settings

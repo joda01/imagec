@@ -114,6 +114,7 @@
     <file>icons/icons8-three-48.png</file>
     <file>icons/icons8-length-16.png</file>
     <file>icons/icons8-brightness-16.png</file>
+    <file>icons/icons8-ampersand-96.png</file>
     <file>icons/icons8-metamorphose-48.png</file>
     <file>icons/icons8-clone-24.png</file>
     <file>icons/icons8-warning-48.png</file>
@@ -199,6 +200,7 @@
     <file>icons/icons8-snap-background-to-white-24.png</file>
     <file>icons/icons8-sigma-96.png</file>
     <file>icons/icons8-move-right-16.png</file>
+    <file>icons/icons8-equals-24.png</file>
     <file>icons/icons8-empty-tray-24.png</file>
     <file>icons/icons8-type-48.png</file>
     <file>icons/icons8-pipeline-24.png</file>
@@ -254,6 +256,7 @@
     <file>icons/icons8-image-48.png</file>
     <file>icons/icons8-name-24.png</file>
     <file>icons/icons8-repeat-16.png</file>
+    <file>icons/icons8-ampersand-48.png</file>
     <file>icons/icons8-clone-96.png</file>
     <file>icons/icons8-cancel-48.png</file>
     <file>icons/icons8-asterisk-key-24.png</file>
@@ -306,6 +309,7 @@
     <file>icons/icons8-add-48.png</file>
     <file>icons/icons8-sort-by-price-96.png</file>
     <file>icons/icons8-hexagon-48.png</file>
+    <file>icons/icons8-ampersand-16.png</file>
     <file>icons/icons8-circle-48.png</file>
     <file>icons/icons8-no-image-16.png</file>
     <file>icons/icons8-diameter-48.png</file>
@@ -319,6 +323,7 @@
     <file>icons/icons8-full-page-view-48.png</file>
     <file>icons/icons8-info-48.png</file>
     <file>icons/icons8-square-48.png</file>
+    <file>icons/icons8-equals-16.png</file>
     <file>icons/icons8-shutdown-96.png</file>
     <file>icons/icons8-light-48.png</file>
     <file>icons/icons8-accept-16.png</file>
@@ -398,6 +403,7 @@
     <file>icons/icons8-aspect-ratio-48.png</file>
     <file>icons/icons8-full-screen-16.png</file>
     <file>icons/icons8-seven-96.png</file>
+    <file>icons/icons8-equals-96.png</file>
     <file>icons/icons8-invert-selection-24.png</file>
     <file>icons/icons8-warning-16.png</file>
     <file>icons/icons8-oval-16.png</file>
@@ -489,6 +495,7 @@
     <file>icons/icons8-seven-48.png</file>
     <file>icons/icons8-no-image-96.png</file>
     <file>icons/icons8-automatic-contrast-48.png</file>
+    <file>icons/icons8-ampersand-24.png</file>
     <file>icons/icons8-venn-diagram-16.png</file>
     <file>icons/icons8-info-blue-24.png</file>
     <file>icons/icons8-screensharing-16.png</file>
@@ -523,6 +530,7 @@
     <file>icons/icons8-divide-horizontal-direction-16.png</file>
     <file>icons/icons8-type-16.png</file>
     <file>icons/icons8-square-border-48.png</file>
+    <file>icons/icons8-equals-48.png</file>
     <file>icons/icons8-sigma-16.png</file>
     <file>icons/icons8-invert-colors-24.png</file>
     <file>icons/icons8-arrow-48.png</file>

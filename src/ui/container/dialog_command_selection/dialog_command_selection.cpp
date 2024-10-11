@@ -127,6 +127,7 @@ void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
     int inserted = 0;
     inserted += addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$intersection = settings::IntersectionSettings{}}, outOfStepBefore);
+    inserted += addCommandToTable(settings::PipelineStep{.$objectMath = settings::ObjectMathSettings{}}, outOfStepBefore);
     if(inserted > 0) {
       addTitleToTable("Object Processing", inserted);
     }
