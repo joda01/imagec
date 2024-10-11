@@ -155,6 +155,7 @@ jobs:
           chmod +x ./imagec.app/Contents/MacOS/imagec
           chmod +x ./imagec.app
           mkdir -p imagec.app/Contents/MacOS/lib
+          mkdir -p imagec.app/Contents/MacOS/java
           cd imagec.app/Contents/MacOS/lib
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.6.dylib .
