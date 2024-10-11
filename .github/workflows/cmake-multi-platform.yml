@@ -153,7 +153,6 @@ jobs:
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           strip ./imagec.app/Contents/MacOS/imagec
           chmod +x ./imagec.app/Contents/MacOS/imagec
-          chmod +x ./imagec.app/Contents/MacOS/java
           chmod +x ./imagec.app
           mkdir -p imagec.app/Contents/MacOS/lib
           cd imagec.app/Contents/MacOS/lib
