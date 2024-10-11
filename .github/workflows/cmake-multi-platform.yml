@@ -148,7 +148,6 @@ jobs:
           cd output
           mkdir -p ./plugins
           mkdir -p ./models
-          mkdir -p ./lib
           mkdir -p ./java
           cp -r ../imagec.app imagec.app
           cp -r /Users/runner/.conan2/p/b/*/p/./plugins/* ./plugins
@@ -156,7 +155,8 @@ jobs:
           strip ./imagec.app/Contents/MacOS/imagec
           chmod +x ./imagec.app/Contents/MacOS/imagec
           chmod +x ./imagec.app
-          cd lib
+          mkdir -p imagec.app/Contents/MacOS/lib
+          cd imagec.app/Contents/MacOS/lib
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.6.dylib .
           cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.6.dylib .
@@ -166,9 +166,10 @@ jobs:
           cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
           cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .
           cp -r ${GITHUB_WORKSPACE}/resources/java/jre_macos_arm.zip .
+          mkdir -p jre_macos_arm
+          cd jre_macos_arm
           unzip jre_macos_arm.zip
           rm -rf jre_macos_arm.zip
-          cd ..
 
 
       - name: Sign Binaries
