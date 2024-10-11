@@ -670,9 +670,8 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
     mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
     setAnalyzer();
     if(mSelectedDataSet.analyzeMeta.has_value()) {
-      getWindowMain()->getPanelResultsInfo()->addResultsFileToHistory(std::filesystem::path(pathToDbFile.toStdString()),
-                                                                      mSelectedDataSet.analyzeMeta->experiment.experimentName,
-                                                                      mSelectedDataSet.analyzeMeta->timestampStart);
+      getWindowMain()->getPanelResultsInfo()->addResultsFileToHistory(
+          std::filesystem::path(pathToDbFile.toStdString()), mSelectedDataSet.analyzeMeta->jobName, mSelectedDataSet.analyzeMeta->timestampStart);
     }
 
   } catch(const std::exception &ex) {

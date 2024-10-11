@@ -40,6 +40,7 @@ struct AnalyzeMeta
   joda::settings::ExperimentSettings experiment;
   std::chrono::system_clock::time_point timestampStart;
   std::chrono::system_clock::time_point timestampFinish;
+  std::string jobName;
   std::string analyzeSettingsJsonString;
 };
 

@@ -22,13 +22,13 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-void BatchExporter::startExport(const Settings &settings, const settings::AnalyzeSettings &analyzeSettings,
+void BatchExporter::startExport(const Settings &settings, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                                 std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
                                 const std::string &outputFileName)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   auto workbookSettings = createWorkBook(outputFileName);
-  createAnalyzeSettings(workbookSettings, analyzeSettings, timeStarted, timeFinished);
+  createAnalyzeSettings(workbookSettings, analyzeSettings, jobName, timeStarted, timeFinished);
   switch(settings.exportType) {
     case Settings::ExportType::HEATMAP:
       createHeatmapSummary(workbookSettings, settings);
@@ -449,7 +449,7 @@ BatchExporter::Pos BatchExporter::paintHeatmap(const WorkBook &workbookSettings,
 /// \param[out]
 /// \return
 ///
-void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const settings::AnalyzeSettings &settings,
+void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const settings::AnalyzeSettings &settings, const std::string &jobName,
                                           std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished)
 {
   auto *sheet = workbook_add_worksheet(workbookSettings.workbook, "Analyze");
@@ -508,6 +508,7 @@ void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const sett
   addElement("Organisation", settings.projectSettings.address.organization);
   addElement("Experiment ID", settings.projectSettings.experimentSettings.experimentId);
   addElement("Experiment name", settings.projectSettings.experimentSettings.experimentName);
+  addElement("Job name", jobName);
   addElement("Notes", settings.projectSettings.experimentSettings.notes);
   addElement("Working directory", settings.projectSettings.workingDirectory);
 

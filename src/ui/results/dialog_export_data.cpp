@@ -407,14 +407,13 @@ void DialogExportData::onExportClicked()
 
     settings::AnalyzeSettings analyzeSettings;
     try {
-      std::cout << mAnalyzeMeta->analyzeSettingsJsonString;
       analyzeSettings = nlohmann::json::parse(mAnalyzeMeta->analyzeSettingsJsonString);
     } catch(const std::exception &ex) {
       std::cout << "Ups " << ex.what() << std::endl;
     }
 
-    joda::db::BatchExporter::startExport(settings, analyzeSettings, mAnalyzeMeta->timestampStart, mAnalyzeMeta->timestampFinish,
-                                         filePathOfSettingsFile.toStdString());
+    joda::db::BatchExporter::startExport(settings, analyzeSettings, mAnalyzeMeta->jobName, mAnalyzeMeta->timestampStart,
+                                         mAnalyzeMeta->timestampFinish, filePathOfSettingsFile.toStdString());
     emit exportFinished();
   }).detach();
 }

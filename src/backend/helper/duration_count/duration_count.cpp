@@ -84,8 +84,6 @@ void DurationCount::printStats(double nrOfImages, const std::filesystem::path &o
 
     // Close the file
     outputFile.close();
-
-    std::cout << "String successfully written to file '" << filename << "'." << std::endl;
   } else {
     std::cerr << "Error: Unable to open file '" << filename << "' for writing." << std::endl;
   }

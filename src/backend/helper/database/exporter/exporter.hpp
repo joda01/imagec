@@ -56,7 +56,7 @@ public:
     ExportDetail exportDetail;
   };
 
-  static void startExport(const Settings &settings, const settings::AnalyzeSettings &analyzeSettings,
+  static void startExport(const Settings &settings, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                           std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
                           const std::string &outputFileName);
 
@@ -85,8 +85,8 @@ private:
     uint32_t col = 0;
   };
   static WorkBook createWorkBook(std::string outputFileName);
-  static void createAnalyzeSettings(WorkBook &, const settings::AnalyzeSettings &settings, std::chrono::system_clock::time_point timeStarted,
-                                    std::chrono::system_clock::time_point timeFinished);
+  static void createAnalyzeSettings(WorkBook &, const settings::AnalyzeSettings &settings, const std::string &jobName,
+                                    std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished);
   static void createHeatmapSummary(WorkBook &, const Settings &settings);
   static void createListSummary(WorkBook &workbookSettings, const Settings &settings);
   static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header, lxw_format *numberFormat,

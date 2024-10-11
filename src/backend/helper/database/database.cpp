@@ -21,6 +21,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/enums_grouping.hpp"
+#include "backend/helper/base64.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
@@ -68,6 +69,7 @@ void Database::createTables()
       "	experiment_id UUID,"
       " job_id UUID,"
       " job_name TEXT, "
+      " imagec_version TEXT, "
       " time_started TIMESTAMP,"
       " time_finished TIMESTAMP,"
       " settings TEXT,"
@@ -686,6 +688,7 @@ auto Database::selectExperiment() -> AnalyzeMeta
   std::chrono::system_clock::time_point timestampStart;
   std::chrono::system_clock::time_point timestampFinish;
   std::string settingsString;
+  std::string jobName;
 
   {
     std::unique_ptr<duckdb::QueryResult> result = select("SELECT experiment_id,name,notes FROM experiment");
@@ -702,7 +705,7 @@ auto Database::selectExperiment() -> AnalyzeMeta
   }
 
   {
-    std::unique_ptr<duckdb::QueryResult> resultJobs = select("SELECT time_started,time_finished,settings FROM jobs ORDER BY time_started");
+    std::unique_ptr<duckdb::QueryResult> resultJobs = select("SELECT time_started,time_finished,settings,job_name FROM jobs ORDER BY time_started");
     if(resultJobs->HasError()) {
       throw std::invalid_argument(resultJobs->GetError());
     }
@@ -720,12 +723,20 @@ auto Database::selectExperiment() -> AnalyzeMeta
       }
 
       {
-        settingsString = materializedResult->GetValue(2, 0).GetValue<std::string>();
+        settingsString = helper::base64Decode(materializedResult->GetValue(2, 0).GetValue<std::string>());
+      }
+
+      {
+        jobName = materializedResult->GetValue(3, 0).GetValue<std::string>();
       }
     }
   }
 
-  return {.experiment = exp, .timestampStart = timestampStart, .timestampFinish = timestampFinish, .analyzeSettingsJsonString = settingsString};
+  return {.experiment                = exp,
+          .timestampStart            = timestampStart,
+          .timestampFinish           = timestampFinish,
+          .jobName                   = jobName,
+          .analyzeSettingsJsonString = settingsString};
 }
 
 ///
@@ -750,12 +761,13 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
         duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
     duckdb::timestamp_t nil = {};
     auto prepare            = connection->Prepare(
-        "INSERT INTO jobs (experiment_id, job_id,job_name, time_started, time_finished, settings) VALUES (?, ?, ?, ?, "
+        "INSERT INTO jobs (experiment_id, job_id, job_name,imagec_version, time_started, time_finished, settings) VALUES (?, ?, ?, ?, "
                    "?, "
                    "?)");
 
-    prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName,
-                     duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil), settings::Settings::toString(exp));
+    prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName, std::string(Version::getVersion()),
+                     duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil),
+                     helper::base64Encode(settings::Settings::toString(exp)));
   } catch(const std::exception &ex) {
     connection->Rollback();
     throw std::runtime_error(ex.what());
