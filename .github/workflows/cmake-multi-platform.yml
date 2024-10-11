@@ -148,12 +148,12 @@ jobs:
           cd output
           mkdir -p ./plugins
           mkdir -p ./models
-          mkdir -p ./java
           cp -r ../imagec.app imagec.app
           cp -r /Users/runner/.conan2/p/b/*/p/./plugins/* ./plugins
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           strip ./imagec.app/Contents/MacOS/imagec
           chmod +x ./imagec.app/Contents/MacOS/imagec
+          chmod +x ./imagec.app/Contents/MacOS/java
           chmod +x ./imagec.app
           mkdir -p imagec.app/Contents/MacOS/lib
           cd imagec.app/Contents/MacOS/lib
