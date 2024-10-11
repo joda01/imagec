@@ -12,6 +12,7 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/table/table.hpp"
+#include "backend/settings/analze_settings.hpp"
 
 namespace joda::db {
 
@@ -55,7 +56,9 @@ public:
     ExportDetail exportDetail;
   };
 
-  static void startExport(const Settings &settings, const std::string &outputFileName);
+  static void startExport(const Settings &settings, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
+                          std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
+                          const std::string &outputFileName);
 
 private:
   /////////////////////////////////////////////////////
@@ -82,14 +85,13 @@ private:
     uint32_t col = 0;
   };
   static WorkBook createWorkBook(std::string outputFileName);
+  static void createAnalyzeSettings(WorkBook &, const settings::AnalyzeSettings &settings, const std::string &jobName,
+                                    std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished);
   static void createHeatmapSummary(WorkBook &, const Settings &settings);
   static void createListSummary(WorkBook &workbookSettings, const Settings &settings);
-
-  static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,
-                               lxw_format *numberFormat, lxw_format *mergeFormat, const std::string &title);
-
-  static Pos paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet, const joda::table::Table &table,
-                          uint32_t rowOffset);
+  static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header, lxw_format *numberFormat,
+                               lxw_format *mergeFormat, const std::string &title);
+  static Pos paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet, const joda::table::Table &table, uint32_t rowOffset);
 };
 
 }    // namespace joda::db

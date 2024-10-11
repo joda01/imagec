@@ -6,10 +6,12 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/database/plugins/helper.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
 #include "backend/helper/database/plugins/stats_for_plate.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
+#include "backend/settings/analze_settings.hpp"
 
 namespace joda::db {
 
@@ -20,10 +22,13 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-void BatchExporter::startExport(const Settings &settings, const std::string &outputFileName)
+void BatchExporter::startExport(const Settings &settings, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
+                                std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
+                                const std::string &outputFileName)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   auto workbookSettings = createWorkBook(outputFileName);
+  createAnalyzeSettings(workbookSettings, analyzeSettings, jobName, timeStarted, timeFinished);
   switch(settings.exportType) {
     case Settings::ExportType::HEATMAP:
       createHeatmapSummary(workbookSettings, settings);
@@ -61,8 +66,7 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
       worksheetName.resize(leftChars);
     }
 
-    actWorkSheet = workbook_add_worksheet(workbookSettings.workbook,
-                                          static_cast<std ::string>(worksheetName + worksheetNameSuffix).data());
+    actWorkSheet = workbook_add_worksheet(workbookSettings.workbook, static_cast<std ::string>(worksheetName + worksheetNameSuffix).data());
     offsets.col  = 0;
     offsets.row  = 0;
   };
@@ -75,11 +79,10 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
 
     for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
       for(const auto stats : statsIn) {
-        auto generate = [&, clusterId = clusterAndClassId.clusterId, classId = clusterAndClassId.classId,
-                         className = imageChannel.className, measureChannelId = measureChannelId](
-                            uint32_t cStack, const std::string &crossChannelChannelCName,
-                            std::pair<enums::ClusterId, std::string> crossChannelCluster,
-                            std::pair<enums::ClassId, std::string> crossChannelClass) {
+        auto generate = [&, clusterId = clusterAndClassId.clusterId, classId = clusterAndClassId.classId, className = imageChannel.className,
+                         measureChannelId = measureChannelId](uint32_t cStack, const std::string &crossChannelChannelCName,
+                                                              std::pair<enums::ClusterId, std::string> crossChannelCluster,
+                                                              std::pair<enums::ClassId, std::string> crossChannelClass) {
           table::Table table;
           auto filter = joda::db::QueryFilter{.analyzer                = &settings.analyzer,
                                               .plateRows               = settings.plateRows,
@@ -112,8 +115,8 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
               table = joda::db::StatsPerImage::toHeatmap(filter);
               break;
           }
-          paintPlateBorder(actWorkSheet, table.getRows(), table.getCols(), offsets.row, workbookSettings.header,
-                           workbookSettings.merge_format, workbookSettings.numberFormat, createHeader(filter));
+          paintPlateBorder(actWorkSheet, table.getRows(), table.getCols(), offsets.row, workbookSettings.header, workbookSettings.merge_format,
+                           workbookSettings.numberFormat, createHeader(filter));
           offsets = paintHeatmap(workbookSettings, actWorkSheet, table, offsets.row);
           offsets.row += 4;
         };
@@ -124,8 +127,7 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
           }
         } else if(getType(measureChannelId) == joda::db::MeasureType::COUNT) {
           for(const auto &[clusterAndClassCrossChannel, name] : imageChannel.crossChannelCount) {
-            generate(0, "", {clusterAndClassCrossChannel.clusterId, std::get<0>(name)},
-                     {clusterAndClassCrossChannel.classId, std::get<1>(name)});
+            generate(0, "", {clusterAndClassCrossChannel.clusterId, std::get<0>(name)}, {clusterAndClassCrossChannel.classId, std::get<1>(name)});
           }
 
         } else {
@@ -162,10 +164,8 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
     loopCount++;
     if(actClusterId != clusterAndClassId.clusterId) {
       actClusterId = clusterAndClassId.clusterId;
-      worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET - tmpCols, 0, colOffset + COL_OFFSET - 1, "-",
-                            workbookSettings.merge_format);
-      worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET - tmpCols, actImageClusterName.data(),
-                             workbookSettings.header);
+      worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET - tmpCols, 0, colOffset + COL_OFFSET - 1, "-", workbookSettings.merge_format);
+      worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET - tmpCols, actImageClusterName.data(), workbookSettings.header);
       colOffset++;
       tmpCols             = 0;
       actImageClusterName = imageChannel.clusterName;
@@ -173,11 +173,10 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
 
     for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
       for(const auto stats : statsIn) {
-        auto generate = [&, clusterId = clusterAndClassId.clusterId, classId = clusterAndClassId.classId,
-                         className = imageChannel.className, measureChannelId = measureChannelId](
-                            uint32_t cStack, const std::string &crossChannelChannelCName,
-                            std::pair<enums::ClusterId, std::string> crossChannelCluster,
-                            std::pair<enums::ClassId, std::string> crossChannelClass) {
+        auto generate = [&, clusterId = clusterAndClassId.clusterId, classId = clusterAndClassId.classId, className = imageChannel.className,
+                         measureChannelId = measureChannelId](uint32_t cStack, const std::string &crossChannelChannelCName,
+                                                              std::pair<enums::ClusterId, std::string> crossChannelCluster,
+                                                              std::pair<enums::ClassId, std::string> crossChannelClass) {
           auto filter = joda::db::QueryFilter{.analyzer                = &settings.analyzer,
                                               .plateRows               = settings.plateRows,
                                               .plateCols               = settings.plateCols,
@@ -216,13 +215,11 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
           }
 
           for(int col = 0; col < table.getCols(); col++) {
-            worksheet_write_string(worksheet, 1, colOffset + COL_OFFSET, table.getMutableColHeader()[col].data(),
-                                   workbookSettings.header);
+            worksheet_write_string(worksheet, 1, colOffset + COL_OFFSET, table.getMutableColHeader()[col].data(), workbookSettings.header);
 
             for(int row = 0; row < table.getRows(); row++) {
               // Row header
-              worksheet_write_string(worksheet, 1 + ROW_OFFSET + row, 0, table.getRowHeader(row).data(),
-                                     workbookSettings.header);
+              worksheet_write_string(worksheet, 1 + ROW_OFFSET + row, 0, table.getRowHeader(row).data(), workbookSettings.header);
 
               auto *format = workbookSettings.numberFormat;
               if(!table.data(row, col).isValid()) {
@@ -243,8 +240,7 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
           }
         } else if(getType(measureChannelId) == joda::db::MeasureType::COUNT) {
           for(const auto &[clusterAndClassCrossChannel, name] : imageChannel.crossChannelCount) {
-            generate(0, "", {clusterAndClassCrossChannel.clusterId, std::get<0>(name)},
-                     {clusterAndClassCrossChannel.classId, std::get<1>(name)});
+            generate(0, "", {clusterAndClassCrossChannel.clusterId, std::get<0>(name)}, {clusterAndClassCrossChannel.classId, std::get<1>(name)});
           }
         } else {
           generate(0, "", {}, {});
@@ -253,10 +249,8 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
     }
 
     if(settings.clustersToExport.size() == loopCount) {
-      worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET - tmpCols, 0, colOffset + COL_OFFSET - 1, "-",
-                            workbookSettings.merge_format);
-      worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET - tmpCols, imageChannel.clusterName.data(),
-                             workbookSettings.header);
+      worksheet_merge_range(worksheet, 0, colOffset + COL_OFFSET - tmpCols, 0, colOffset + COL_OFFSET - 1, "-", workbookSettings.merge_format);
+      worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET - tmpCols, imageChannel.clusterName.data(), workbookSettings.header);
     }
   }
 }
@@ -368,18 +362,9 @@ BatchExporter::WorkBook BatchExporter::createWorkBook(std::string outputFileName
   // format_set_border(numberFormatInvalid, LXW_BORDER_THIN);                 // Set border style to thin
   format_set_diag_type(numberFormatInvalidScientific, LXW_DIAGONAL_BORDER_UP_DOWN);
 
-  return WorkBook{workbook,
-                  header,
-                  headerInvalid,
-                  imageHeaderHyperlinkFormat,
-                  imageHeaderHyperlinkFormatInvalid,
-                  merge_format,
-                  headerBold,
-                  fontNormal,
-                  numberFormat,
-                  numberFormatInvalid,
-                  numberFormatScientific,
-                  numberFormatInvalidScientific};
+  return WorkBook{
+      workbook,   header,       headerInvalid,       imageHeaderHyperlinkFormat, imageHeaderHyperlinkFormatInvalid, merge_format, headerBold,
+      fontNormal, numberFormat, numberFormatInvalid, numberFormatScientific,     numberFormatInvalidScientific};
 }
 
 ///
@@ -389,9 +374,8 @@ BatchExporter::WorkBook BatchExporter::createWorkBook(std::string outputFileName
 /// \param[out]
 /// \return
 ///
-void BatchExporter::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset,
-                                     lxw_format *header, lxw_format *numberFormat, lxw_format *mergeFormat,
-                                     const std::string &title)
+void BatchExporter::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header,
+                                     lxw_format *numberFormat, lxw_format *mergeFormat, const std::string &title)
 {
   const int32_t ROW_OFFSET       = 2;
   const int32_t HEADER_CELL_SIZE = 15;
@@ -436,12 +420,11 @@ void BatchExporter::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t
     worksheet_write_string(sheet, row + rowOffset + ROW_OFFSET, cols + 1, toWrt, header);
   }
 
-  worksheet_conditional_format_range(sheet, rowOffset + ROW_OFFSET, 1, rowOffset + rows + ROW_OFFSET, 1 + cols,
-                                     condFormat);
+  worksheet_conditional_format_range(sheet, rowOffset + ROW_OFFSET, 1, rowOffset + rows + ROW_OFFSET, 1 + cols, condFormat);
 }
 
-BatchExporter::Pos BatchExporter::paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet,
-                                               const joda::table::Table &table, uint32_t rowOffset)
+BatchExporter::Pos BatchExporter::paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet, const joda::table::Table &table,
+                                               uint32_t rowOffset)
 {
   const int32_t ROW_OFFSET = 2;
 
@@ -457,6 +440,86 @@ BatchExporter::Pos BatchExporter::paintHeatmap(const WorkBook &workbookSettings,
   }
 
   return BatchExporter::Pos{.row = table.getRows() + rowOffset + ROW_OFFSET, .col = table.getCols()};
+}
+
+///
+/// \brief      Add analyze settings to excel
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const settings::AnalyzeSettings &settings, const std::string &jobName,
+                                          std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished)
+{
+  auto *sheet = workbook_add_worksheet(workbookSettings.workbook, "Analyze");
+
+  worksheet_set_column_pixels(sheet, 0, 0, 200, NULL);
+  worksheet_set_column_pixels(sheet, 1, 1, 200, NULL);
+
+  int32_t rowOffset = 0;
+  auto addTitle     = [&sheet, &rowOffset, &workbookSettings](const std::string &title) {
+    rowOffset++;
+    worksheet_merge_range(sheet, rowOffset, 0, rowOffset, 1, "-", workbookSettings.headerBold);
+    worksheet_write_string(sheet, rowOffset, 0, title.data(), workbookSettings.headerBold);
+    rowOffset++;
+  };
+
+  auto addElement = [&sheet, &rowOffset, &workbookSettings](const std::string &title, const std::string &value) {
+    worksheet_write_string(sheet, rowOffset, 0, title.data(), workbookSettings.headerBold);
+    worksheet_write_string(sheet, rowOffset, 1, value.data(), workbookSettings.fontNormal);
+    rowOffset++;
+  };
+
+  addTitle("Date");
+  addElement("Started at", joda::helper::timepointToIsoString(timeStarted));
+  addElement("Finished at", joda::helper::timepointToIsoString(timeFinished));
+  addElement("Duration at", joda::helper::getDurationAsString(timeStarted, timeFinished));
+
+  addTitle("ImageC");
+  addElement("Version", settings.meta.imagecVersion);
+  addElement("Build", settings.meta.buildTime);
+
+  addTitle("Clusters");
+  for(const auto &cluster : settings.projectSettings.clusters) {
+    nlohmann::json classIdStr = static_cast<enums::ClusterId>(cluster.clusterId);
+    addElement(std::string(classIdStr), cluster.name);
+  }
+
+  addTitle("Classes");
+  for(const auto &classs : settings.projectSettings.classes) {
+    nlohmann::json classIdStr = static_cast<enums::ClassId>(classs.classId);
+    addElement(std::string(classIdStr), classs.name);
+  }
+
+  addTitle("Pipelines");
+  for(const auto &pipeline : settings.pipelines) {
+    addElement("Name", pipeline.meta.name);
+
+    nlohmann::json clusterId = static_cast<enums::ClusterId>(pipeline.pipelineSetup.defaultClusterId);
+    addElement("Default cluster", std::string(clusterId));
+
+    nlohmann::json classId = static_cast<enums::ClassId>(pipeline.pipelineSetup.defaultClassId);
+    addElement("Default class", std::string(classId));
+  }
+
+  addTitle("Project settings");
+  addElement("Scientist", settings.projectSettings.address.firstName + " " + settings.projectSettings.address.lastName);
+  addElement("Organisation", settings.projectSettings.address.organization);
+  addElement("Experiment ID", settings.projectSettings.experimentSettings.experimentId);
+  addElement("Experiment name", settings.projectSettings.experimentSettings.experimentName);
+  addElement("Job name", jobName);
+  addElement("Notes", settings.projectSettings.experimentSettings.notes);
+  addElement("Working directory", settings.projectSettings.workingDirectory);
+
+  for(const auto &plate : settings.projectSettings.plates) {
+    addTitle("Plate " + std::to_string(plate.plateId));
+    addElement("Filename regex", plate.filenameRegex);
+    addElement("Image folder", plate.imageFolder);
+    addElement("Well order", joda::settings::vectorToString(plate.wellImageOrder));
+    nlohmann::json groupBy = static_cast<enums::GroupBy>(plate.groupBy);
+    addElement("Group by", std::string(groupBy));
+  }
 }
 
 }    // namespace joda::db

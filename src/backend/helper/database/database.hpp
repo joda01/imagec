@@ -21,6 +21,7 @@
 #include "backend/enums/types.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
+#include "backend/helper/threadpool/thread_pool.hpp"
 #include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/experiment_settings.hpp"
@@ -37,7 +38,10 @@ namespace joda::db {
 struct AnalyzeMeta
 {
   joda::settings::ExperimentSettings experiment;
-  std::chrono::system_clock::time_point timestamp;
+  std::chrono::system_clock::time_point timestampStart;
+  std::chrono::system_clock::time_point timestampFinish;
+  std::string jobName;
+  std::string analyzeSettingsJsonString;
 };
 
 struct ImageInfo
@@ -60,8 +64,8 @@ public:
   std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName);
   void finishJob(const std::string &jobId);
 
-  auto prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std::string &filenameRegex, const std::vector<std::filesystem::path> &imagePaths)
-      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>;
+  auto prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std::string &filenameRegex, const std::vector<std::filesystem::path> &imagePaths,
+                     BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>;
   void setImageProcessed(uint64_t);
 
   void insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo);

@@ -151,3 +151,11 @@ microsoft/onnxruntime   |https://github.com/microsoft/onnxruntime       | MIT
 
 Thank's to the authors of [imagej](https://github.com/imagej/imagej2) I ported some image processing algorithms from to C++.  
 imageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).
+
+
+
+## For MacOS you have to do
+
+chmod +x imagec.app/Contents/MacOS/imagec
+xattr -dr com.apple.quarantine imagec.app
+open imagec.app

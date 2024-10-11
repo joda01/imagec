@@ -27,7 +27,7 @@ struct ExperimentSettings
   std::string experimentId;
 
   //
-  // Unique name of the job
+  // Unique name of the experiment
   //
   std::string experimentName;
 

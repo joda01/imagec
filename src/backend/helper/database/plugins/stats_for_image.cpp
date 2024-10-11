@@ -32,12 +32,12 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
   auto buildStats = [&]() { return getMeasurement(filter.measurementChannel) + " as val"; };
 
   auto queryMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> stats = filter.analyzer->select(
-        "SELECT " + buildStats() +
-            " FROM objects "
-            "WHERE"
-            " objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 ",
-        filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId));
+    std::unique_ptr<duckdb::QueryResult> stats =
+        filter.analyzer->select("SELECT " + buildStats() +
+                                    " FROM objects "
+                                    "WHERE"
+                                    " objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 ",
+                                filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId));
     return stats;
   };
 
@@ -51,15 +51,11 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
             " WHERE"
             "  objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 AND "
             "object_measurements.meas_stack_c = $4",
-        filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        filter.crossChanelStack_c);
+        filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.crossChanelStack_c);
     return stats;
   };
 
   auto queryIntersectingMeasure = [&]() {
-    std::cout << "Cross channel " << std::to_string((uint16_t) filter.clusterId) << " | "
-              << std::to_string((uint16_t) filter.crossChannelClusterId) << std::endl;
-
     std::unique_ptr<duckdb::QueryResult> stats = filter.analyzer->select(
         "SELECT "
         "COUNT(inners.meas_object_id) "
@@ -127,8 +123,7 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> joda::table::Table
     results.getMutableRowHeader()[row] = std::to_string(row + 1);
     for(uint64_t col = 0; col < imageInfo.width; col++) {
       results.getMutableColHeader()[col] = std::to_string(col + 1);
-      results.setData(row, col,
-                      table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, imageInfo.controlImgPath});
+      results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, imageInfo.controlImgPath});
     }
   }
 
@@ -173,8 +168,7 @@ auto StatsPerImage::toHeatmapList(const QueryFilter &filter) -> joda::table::Tab
       uint32_t key                                 = ((row << 16) & 0xFFFF0000) | (col & 0xFFFF);
       char letter                                  = 'A' + row;
       results.getMutableRowHeader()[tableRowCount] = std::string(1, letter) + "" + std::to_string(col + 1);
-      results.setData(tableRowCount, 0,
-                      table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, imageInfo.controlImgPath});
+      results.setData(tableRowCount, 0, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, imageInfo.controlImgPath});
       sortedData.emplace(key, std::pair<double, std::string>{std::numeric_limits<double>::quiet_NaN(), ""});
       tableRowCount++;
     }
@@ -252,9 +246,7 @@ auto StatsPerImage::densityMap(const QueryFilter &filter) -> std::tuple<std::uni
     imgInfo.height         = height;
     imgInfo.controlImgPath = linkToImage;
   }
-  auto buildStats = [&]() {
-    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") as val";
-  };
+  auto buildStats = [&]() { return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") as val"; };
 
   auto queryMeasure = [&]() {
     std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
