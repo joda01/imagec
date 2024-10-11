@@ -157,9 +157,12 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
       clustersAndClasses.emplace(SettingComboBoxClassificationUnmanaged::fromInt(mClusterClassSelector->itemData(i).toUInt()),
                                  mClusterClassSelector->itemText(i));
     }
-
-    DialogExportData exportData(mAnalyzer, mFilter, clustersAndClasses, mWindowMain);
-    exportData.exec();
+    if(mSelectedDataSet.analyzeMeta.has_value()) {
+      DialogExportData exportData(mAnalyzer, mFilter, clustersAndClasses, &mSelectedDataSet.analyzeMeta.value(), mWindowMain);
+      exportData.exec();
+    } else {
+      /// \todo Add error message
+    }
   });
   toolbar->addItemToTopToolbar(exportData);
 
@@ -669,7 +672,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
     if(mSelectedDataSet.analyzeMeta.has_value()) {
       getWindowMain()->getPanelResultsInfo()->addResultsFileToHistory(std::filesystem::path(pathToDbFile.toStdString()),
                                                                       mSelectedDataSet.analyzeMeta->experiment.experimentName,
-                                                                      mSelectedDataSet.analyzeMeta->timestamp);
+                                                                      mSelectedDataSet.analyzeMeta->timestampStart);
     }
 
   } catch(const std::exception &ex) {

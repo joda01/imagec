@@ -44,9 +44,15 @@ void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::se
   }
 }
 
+std::string Settings::toString(const joda::settings::AnalyzeSettings &settings)
+{
+  nlohmann::json json = settings;
+  removeNullValues(json);
+  return json.dump(2);
+}
+
 /// \todo How to check incomplete settings
-bool Settings::isEqual(const joda::settings::AnalyzeSettings &settingsOld,
-                       const joda::settings::AnalyzeSettings &settingsNew)
+bool Settings::isEqual(const joda::settings::AnalyzeSettings &settingsOld, const joda::settings::AnalyzeSettings &settingsNew)
 {
   try {
     nlohmann::json jsonOld = settingsOld;

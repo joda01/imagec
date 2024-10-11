@@ -47,6 +47,7 @@
 #include "backend/helper/database/plugins/stats_for_image.hpp"
 #include "backend/helper/database/plugins/stats_for_plate.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox_classification_unmanaged.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_unmanaged.hpp"
@@ -263,9 +264,10 @@ std::map<enums::Measurement, std::set<enums::Stats>> ExportColumn::getMeasuremen
 /// \return
 ///
 DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const db::QueryFilter &filter,
-                                   const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses, QWidget *windowMain) :
+                                   const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses, db::AnalyzeMeta *analyzeMeta,
+                                   QWidget *windowMain) :
     QDialog(windowMain),
-    mWindowMain(windowMain), mAnalyzer(analyzer), mFilter(filter), mLayout(this, false, true, false, true)
+    mWindowMain(windowMain), mAnalyzer(analyzer), mAnalyzeMeta(analyzeMeta), mFilter(filter), mLayout(this, false, true, false, true)
 {
   setWindowTitle("Export data");
   setMinimumHeight(700);
@@ -402,7 +404,17 @@ void DialogExportData::onExportClicked()
         .exportType       = mReportingType->getValue(),
         .exportDetail     = mReportingDetails->getValue(),
     };
-    joda::db::BatchExporter::startExport(settings, filePathOfSettingsFile.toStdString());
+
+    settings::AnalyzeSettings analyzeSettings;
+    try {
+      std::cout << mAnalyzeMeta->analyzeSettingsJsonString;
+      analyzeSettings = nlohmann::json::parse(mAnalyzeMeta->analyzeSettingsJsonString);
+    } catch(const std::exception &ex) {
+      std::cout << "Ups " << ex.what() << std::endl;
+    }
+
+    joda::db::BatchExporter::startExport(settings, analyzeSettings, mAnalyzeMeta->timestampStart, mAnalyzeMeta->timestampFinish,
+                                         filePathOfSettingsFile.toStdString());
     emit exportFinished();
   }).detach();
 }

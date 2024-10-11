@@ -38,7 +38,9 @@ namespace joda::db {
 struct AnalyzeMeta
 {
   joda::settings::ExperimentSettings experiment;
-  std::chrono::system_clock::time_point timestamp;
+  std::chrono::system_clock::time_point timestampStart;
+  std::chrono::system_clock::time_point timestampFinish;
+  std::string analyzeSettingsJsonString;
 };
 
 struct ImageInfo

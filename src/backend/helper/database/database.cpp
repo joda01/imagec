@@ -34,6 +34,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
+#include "backend/settings/settings.hpp"
 #include <duckdb/common/types.hpp>
 #include <duckdb/common/types/string_type.hpp>
 #include <duckdb/common/types/value.hpp>
@@ -682,7 +683,10 @@ bool Database::insertExperiment(const joda::settings::ExperimentSettings &exp)
 auto Database::selectExperiment() -> AnalyzeMeta
 {
   joda::settings::ExperimentSettings exp;
-  std::chrono::system_clock::time_point timestamp;
+  std::chrono::system_clock::time_point timestampStart;
+  std::chrono::system_clock::time_point timestampFinish;
+  std::string settingsString;
+
   {
     std::unique_ptr<duckdb::QueryResult> result = select("SELECT experiment_id,name,notes FROM experiment");
     if(result->HasError()) {
@@ -693,24 +697,35 @@ auto Database::selectExperiment() -> AnalyzeMeta
     if(materializedResult->RowCount() > 0) {
       exp.experimentId   = materializedResult->GetValue(0, 0).GetValue<std::string>();
       exp.experimentName = materializedResult->GetValue(1, 0).GetValue<std::string>();
-      exp.experimentName = materializedResult->GetValue(1, 0).GetValue<std::string>();
+      exp.notes          = materializedResult->GetValue(2, 0).GetValue<std::string>();
     }
   }
 
   {
-    std::unique_ptr<duckdb::QueryResult> resultJobs = select("SELECT time_started FROM jobs ORDER BY time_started");
+    std::unique_ptr<duckdb::QueryResult> resultJobs = select("SELECT time_started,time_finished,settings FROM jobs ORDER BY time_started");
     if(resultJobs->HasError()) {
       throw std::invalid_argument(resultJobs->GetError());
     }
     auto materializedResult = resultJobs->Cast<duckdb::StreamQueryResult>().Materialize();
     if(materializedResult->RowCount() > 0) {
-      auto timestampDb = materializedResult->GetValue(0, 0).GetValue<duckdb::timestamp_t>();
-      time_t epochTime = duckdb::Timestamp::GetEpochSeconds(timestampDb);
-      timestamp        = std::chrono::system_clock::from_time_t(epochTime);
+      {
+        auto timestampDb = materializedResult->GetValue(0, 0).GetValue<duckdb::timestamp_t>();
+        time_t epochTime = duckdb::Timestamp::GetEpochSeconds(timestampDb);
+        timestampStart   = std::chrono::system_clock::from_time_t(epochTime);
+      }
+      {
+        auto timestampDb = materializedResult->GetValue(1, 0).GetValue<duckdb::timestamp_t>();
+        time_t epochTime = duckdb::Timestamp::GetEpochSeconds(timestampDb);
+        timestampFinish  = std::chrono::system_clock::from_time_t(epochTime);
+      }
+
+      {
+        settingsString = materializedResult->GetValue(2, 0).GetValue<std::string>();
+      }
     }
   }
 
-  return {.experiment = exp, .timestamp = timestamp};
+  return {.experiment = exp, .timestampStart = timestampStart, .timestampFinish = timestampFinish, .analyzeSettingsJsonString = settingsString};
 }
 
 ///
@@ -739,9 +754,8 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
                    "?, "
                    "?)");
 
-    nlohmann::json json = exp;
     prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName,
-                     duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil), static_cast<std::string>(json.dump()));
+                     duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil), settings::Settings::toString(exp));
   } catch(const std::exception &ex) {
     connection->Rollback();
     throw std::runtime_error(ex.what());

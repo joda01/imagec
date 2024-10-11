@@ -84,7 +84,7 @@ class DialogExportData : public QDialog
 public:
   /////////////////////////////////////////////////////
   DialogExportData(std::unique_ptr<joda::db::Database> &analyzer, const db::QueryFilter &filter,
-                   const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses, QWidget *windowMain);
+                   const std::map<settings::ClassificatorSettingOut, QString> &clustersAndClasses, db::AnalyzeMeta *analyzeMeta, QWidget *windowMain);
 
 signals:
   void exportFinished();
@@ -113,6 +113,7 @@ private:
   /////////////////////////////////////////////////////
   QWidget *mWindowMain;
   std::unique_ptr<joda::db::Database> &mAnalyzer;
+  db::AnalyzeMeta *mAnalyzeMeta = nullptr;
   const db::QueryFilter &mFilter;
   std::vector<ExportColumn *> mExportColumns;
 

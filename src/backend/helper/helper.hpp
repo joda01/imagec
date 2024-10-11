@@ -109,6 +109,22 @@ inline std::string timepointToIsoString(const std::chrono::system_clock::time_po
   return std::string(buffer);
 }
 
+inline std::string getDurationAsString(const std::chrono::system_clock::time_point &t1, const std::chrono::system_clock::time_point &t2)
+{
+  // Calculate the duration between t1 and t2 in seconds
+  auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
+
+  // Extract minutes and seconds
+  auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration).count();
+  auto seconds = duration.count() % 60;
+
+  // Create a formatted string
+  std::ostringstream oss;
+  oss << minutes << " min. " << seconds << " sec.";
+
+  return oss.str();
+}
+
 }    // namespace joda::helper
 
 namespace joda::types {
