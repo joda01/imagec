@@ -83,7 +83,7 @@ void ImageReader::setPath()
   path             = javaBin + ":" + path;
   setenv("PATH", path.c_str(), 1);
 #else
-  std::string javaHome = "java/jre_win";
+  std::string javaHome = "java/jre_linux";
   std::string javaBin  = javaHome + "/bin";
   setenv("JAVA_HOME", javaHome.c_str(), 1);
   std::string path = std::getenv("PATH");
