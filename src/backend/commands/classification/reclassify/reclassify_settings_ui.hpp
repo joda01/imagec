@@ -70,7 +70,7 @@ public:
     mClustersIntersectWith->setValue(settings.intersection.inputClustersIntersectWith);
     mClustersIntersectWith->connectWithSetting(&settings.intersection.inputClustersIntersectWith);
 
-    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("query-inner-join"), "Min. Reclassify");
+    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("query-inner-join"), "Min. intersection");
     mMinIntersection->setDefaultValue(0.1);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");
