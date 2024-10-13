@@ -43,7 +43,6 @@ void RExporter::startExport(const ExportSettings &settings, const settings::Anal
 
   int loopCount = 0;
   for(const auto &[clusterAndClassId, imageChannel] : settings.clustersToExport) {
-    loopCount++;
     if(actClusterId != clusterAndClassId.clusterId) {
       actClusterId        = clusterAndClassId.clusterId;
       actImageClusterName = imageChannel.clusterName;
@@ -109,6 +108,7 @@ void RExporter::startExport(const ExportSettings &settings, const settings::Anal
           }
           auto command = "res_" + std::to_string(loopCount) + " <- dbGetQuery(con, \"" + sqlData.first + "\", list(" + arguments + "))\n";
           sqlStatements.emplace_back(command);
+          loopCount++;
         };
         if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
           for(const auto &[cStack, name] : imageChannel.crossChannelStacksC) {
@@ -130,13 +130,16 @@ void RExporter::startExport(const ExportSettings &settings, const settings::Anal
       helper::timepointToIsoString(timeStarted) + "\n" + "# \\version " + analyzeSettings.meta.imagecVersion +
       "\n"
       "\n"
+      "# Be sure the duckdb package is installed. By executing the following line, the package will be installed.\n"
+      "# You have to run the install package only once on your computer\n"
+      "# install.packages(\"duckdb\")\n"
       "\n"
-      "# The following line will take a couple of time, the first time of executing the script because it compiles the R package for your computer\n"
-      "install.packages(\"duckdb\")\n"
-      "\n"
-      "\n"
-      "# Main\n"
       "library(\"duckdb\")\n"
+      "\n"
+      "#\n"
+      "# Main\n"
+      "# Press Alt+Ctrl+R to execute the script\n"
+      "#\n"
       "con <- dbConnect(duckdb(), dbdir = \"results.icdb\", read_only = TRUE)\n";
 
   for(const auto &selects : sqlStatements) {
