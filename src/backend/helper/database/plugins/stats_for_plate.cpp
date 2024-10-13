@@ -16,78 +16,8 @@ namespace joda::db {
 
 auto StatsPerPlate::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb::QueryResult>
 {
-  auto buildStats = [&]() {
-    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") FILTER (images.validity = 0) as valid, " +
-           getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") FILTER (images.validity != 0) as invalid ";
-  };
-
-  auto queryMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
-        "SELECT"
-        " subquery.group_id as groupid,"
-        " ANY_VALUE(pos_on_plate_x) as pos_x,"
-        " ANY_VALUE(pos_on_plate_y) as pos_y,"
-        " AVG(valid) AS avg_valid,"
-        " AVG(invalid) AS avg_invalid,"
-        " ANY_VALUE(file_name) AS file_name"
-        " FROM ("
-        "     SELECT"
-        "         objects.image_id,"
-        "         ANY_VALUE(images.file_name) AS file_name,"
-        "         images_groups.group_id as group_id," +
-            buildStats() +
-            "     FROM objects "
-            "     JOIN images ON objects.image_id = images.image_id "
-            "     JOIN images_groups ON objects.image_id = images_groups.image_id "
-            "     WHERE cluster_id = $1 AND class_id = $2"
-            "     GROUP BY objects.image_id, images_groups.group_id"
-            " ) AS subquery"
-            " JOIN groups ON subquery.group_id = groups.group_id "
-            " GROUP BY groupid",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId));
-    return result;
-  };
-
-  auto queryIntensityMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
-        "SELECT"
-        " subquery.group_id as groupid,"
-        " ANY_VALUE(pos_on_plate_x) as pos_x,"
-        " ANY_VALUE(pos_on_plate_y) as pos_y,"
-        " AVG(valid) AS avg_valid,"
-        " AVG(invalid) AS avg_invalid,"
-        " ANY_VALUE(file_name) AS file_name"
-        " FROM ("
-        "     SELECT"
-        "         objects.image_id,"
-        "         ANY_VALUE(images.file_name) AS file_name,"
-        "         images_groups.group_id as group_id," +
-            buildStats() +
-            "     FROM objects "
-            "     JOIN images ON objects.image_id = images.image_id "
-            "     JOIN images_groups ON objects.image_id = images_groups.image_id "
-            "     JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
-            "                                  objects.image_id = object_measurements.image_id)"
-            "     WHERE cluster_id = $1 AND class_id = $2 AND object_measurements.meas_stack_c = $3"
-            "     GROUP BY objects.image_id, images_groups.group_id"
-            " ) AS subquery"
-            " JOIN groups ON subquery.group_id = groups.group_id "
-            " GROUP BY groupid",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint32_t>(filter.crossChanelStack_c));
-    return result;
-  };
-
-  auto query = [&]() {
-    switch(getType(filter.measurementChannel)) {
-      default:
-      case OBJECT:
-        return queryMeasure();
-      case INTENSITY:
-        return queryIntensityMeasure();
-    }
-  };
-
-  return query();
+  auto [sql, params] = toSQL(filter);
+  return filter.analyzer->select(sql, params);
 }
 
 auto StatsPerPlate::toTable(const QueryFilter &filter) -> joda::table::Table
@@ -180,4 +110,83 @@ auto StatsPerPlate::toHeatmap(const QueryFilter &filter) -> joda::table::Table
 
   return results;
 }
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto StatsPerPlate::toSQL(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>
+{
+  auto buildStats = [&]() {
+    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") FILTER (images.validity = 0) as valid, " +
+           getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") FILTER (images.validity != 0) as invalid ";
+  };
+
+  auto queryMeasure = [&]() {
+    std::string sql =
+        "SELECT"
+        " subquery.group_id as groupid,"
+        " ANY_VALUE(pos_on_plate_x) as pos_x,"
+        " ANY_VALUE(pos_on_plate_y) as pos_y,"
+        " AVG(valid) AS avg_valid,"
+        " AVG(invalid) AS avg_invalid,"
+        " ANY_VALUE(file_name) AS file_name"
+        " FROM ("
+        "     SELECT"
+        "         objects.image_id,"
+        "         ANY_VALUE(images.file_name) AS file_name,"
+        "         images_groups.group_id as group_id," +
+        buildStats() +
+        "     FROM objects "
+        "     JOIN images ON objects.image_id = images.image_id "
+        "     JOIN images_groups ON objects.image_id = images_groups.image_id "
+        "     WHERE cluster_id = $1 AND class_id = $2"
+        "     GROUP BY objects.image_id, images_groups.group_id"
+        " ) AS subquery"
+        " JOIN groups ON subquery.group_id = groups.group_id "
+        " GROUP BY groupid";
+    return sql;
+  };
+
+  auto queryIntensityMeasure = [&]() {
+    std::string sql =
+        "SELECT"
+        " subquery.group_id as groupid,"
+        " ANY_VALUE(pos_on_plate_x) as pos_x,"
+        " ANY_VALUE(pos_on_plate_y) as pos_y,"
+        " AVG(valid) AS avg_valid,"
+        " AVG(invalid) AS avg_invalid,"
+        " ANY_VALUE(file_name) AS file_name"
+        " FROM ("
+        "     SELECT"
+        "         objects.image_id,"
+        "         ANY_VALUE(images.file_name) AS file_name,"
+        "         images_groups.group_id as group_id," +
+        buildStats() +
+        "     FROM objects "
+        "     JOIN images ON objects.image_id = images.image_id "
+        "     JOIN images_groups ON objects.image_id = images_groups.image_id "
+        "     JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
+        "                                  objects.image_id = object_measurements.image_id)"
+        "     WHERE cluster_id = $1 AND class_id = $2 AND object_measurements.meas_stack_c = $3"
+        "     GROUP BY objects.image_id, images_groups.group_id"
+        " ) AS subquery"
+        " JOIN groups ON subquery.group_id = groups.group_id "
+        " GROUP BY groupid";
+    return sql;
+  };
+
+  switch(getType(filter.measurementChannel)) {
+    default:
+    case OBJECT:
+      return {queryMeasure(), {static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId)}};
+    case INTENSITY:
+      return {queryIntensityMeasure(),
+              {static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint32_t>(filter.crossChanelStack_c)}};
+  }
+}
+
 }    // namespace joda::db

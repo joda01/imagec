@@ -12,6 +12,7 @@ class StatsPerGroup
 public:
   static auto toTable(const QueryFilter &filter) -> joda::table::Table;
   static auto toHeatmap(const QueryFilter &filter) -> joda::table::Table;
+  static auto toSQL(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>;
 
 private:
   static auto getData(const QueryFilter &filter) -> std::unique_ptr<duckdb::QueryResult>;
@@ -20,8 +21,7 @@ private:
   /// \brief      Get data for group
   /// \author     Joachim Danmayr
   ///
-  static auto getData(Database &analyzer, uint8_t plateId, uint16_t groupId, enums::ClusterId clusterId,
-                      enums::ClassId classId) -> table::Table
+  static auto getData(Database &analyzer, uint8_t plateId, uint16_t groupId, enums::ClusterId clusterId, enums::ClassId classId) -> table::Table
   {
     return {};
     /*

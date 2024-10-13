@@ -29,43 +29,9 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
   if(filter.measurementChannel == enums::Measurement::COUNT) {
     return {};
   }
-  auto buildStats = [&]() { return getMeasurement(filter.measurementChannel) + " as val"; };
 
-  auto queryMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> stats =
-        filter.analyzer->select("SELECT " + buildStats() +
-                                    " FROM objects "
-                                    "WHERE"
-                                    " objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 ",
-                                filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId));
-    return stats;
-  };
-
-  auto queryIntensityMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> stats = filter.analyzer->select(
-        "SELECT " + buildStats() +
-            " FROM objects "
-            "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
-            "                             objects.image_id = object_measurements.image_id AND  "
-            "                             object_measurements.meas_stack_c = $4 )"
-            " WHERE"
-            "  objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 AND "
-            "object_measurements.meas_stack_c = $4",
-        filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.crossChanelStack_c);
-    return stats;
-  };
-
-  auto query = [&]() -> std::unique_ptr<duckdb::QueryResult> {
-    switch(getType(filter.measurementChannel)) {
-      default:
-      case OBJECT:
-        return queryMeasure();
-      case INTENSITY:
-        return queryIntensityMeasure();
-    }
-  };
-
-  auto result = query();
+  auto [sql, params] = toSqlTable(filter);
+  auto result        = filter.analyzer->select(sql, params);
 
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
@@ -83,6 +49,50 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> joda::table::Table
     }
   }
   return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto StatsPerImage::toSqlTable(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>
+{
+  if(filter.measurementChannel == enums::Measurement::COUNT) {
+    return {};
+  }
+  auto buildStats = [&]() { return getMeasurement(filter.measurementChannel) + " as val"; };
+
+  auto queryMeasure = [&]() {
+    std::string sql = "SELECT " + buildStats() +
+                      " FROM objects "
+                      "WHERE"
+                      " objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 ";
+    return sql;
+  };
+
+  auto queryIntensityMeasure = [&]() {
+    std::string sql = "SELECT " + buildStats() +
+                      " FROM objects "
+                      "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
+                      "                             objects.image_id = object_measurements.image_id AND  "
+                      "                             object_measurements.meas_stack_c = $4 )"
+                      " WHERE"
+                      "  objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 AND "
+                      "object_measurements.meas_stack_c = $4";
+    return sql;
+  };
+
+  switch(getType(filter.measurementChannel)) {
+    default:
+    case OBJECT:
+      return {queryMeasure(), {filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId)}};
+    case INTENSITY:
+      return {queryIntensityMeasure(),
+              {filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), filter.crossChanelStack_c}};
+  }
 }
 
 ///
@@ -225,60 +235,67 @@ auto StatsPerImage::densityMap(const QueryFilter &filter) -> std::tuple<std::uni
     imgInfo.height         = height;
     imgInfo.controlImgPath = linkToImage;
   }
-  auto buildStats = [&]() { return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") as val"; };
 
-  auto queryMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
-        "SELECT "
-        "floor(meas_center_x / $4) * $4 AS rectangle_x,"
-        "floor(meas_center_y / $4) * $4 AS rectangle_y," +
-            buildStats() +
-            " FROM objects "
-            " WHERE"
-            "  image_id=$1 AND cluster_id=$2 AND class_id=$3 "
-            "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)",
-        filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        duckdb::Value::DOUBLE(filter.densityMapAreaSize));
-
-    return result;
-  };
-
-  auto queryIntensityMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
-        "SELECT "
-        "floor(meas_center_x / $4) * $4 AS rectangle_x,"
-        "floor(meas_center_y / $4) * $4 AS rectangle_y," +
-            buildStats() +
-            " FROM objects "
-            "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
-            "                                  objects.image_id = object_measurements.image_id "
-            "                             AND object_measurements.meas_stack_c = $5)"
-            " WHERE"
-            "  objects.image_id=$1 AND cluster_id=$2 AND class_id=$3 "
-            "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)",
-        filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        duckdb::Value::DOUBLE(filter.densityMapAreaSize), filter.crossChanelStack_c);
-
-    return result;
-  };
-
-  auto query = [&]() {
-    switch(getType(filter.measurementChannel)) {
-      default:
-      case OBJECT:
-        return queryMeasure();
-      case INTENSITY:
-        return queryIntensityMeasure();
-    }
-  };
-
-  std::unique_ptr<duckdb::QueryResult> result = query();
+  auto [sql, params]                          = toSqlHeatmap(filter);
+  std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(sql, params);
 
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
 
   return {std::move(result), imgInfo};
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto StatsPerImage::toSqlHeatmap(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>
+{
+  auto buildStats = [&]() { return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") as val"; };
+
+  auto queryMeasure = [&]() {
+    std::string sql =
+        "SELECT "
+        "floor(meas_center_x / $4) * $4 AS rectangle_x,"
+        "floor(meas_center_y / $4) * $4 AS rectangle_y," +
+        buildStats() +
+        " FROM objects "
+        " WHERE"
+        "  image_id=$1 AND cluster_id=$2 AND class_id=$3 "
+        "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)";
+    return sql;
+  };
+
+  auto queryIntensityMeasure = [&]() {
+    std::string sql =
+        "SELECT "
+        "floor(meas_center_x / $4) * $4 AS rectangle_x,"
+        "floor(meas_center_y / $4) * $4 AS rectangle_y," +
+        buildStats() +
+        " FROM objects "
+        "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
+        "                                  objects.image_id = object_measurements.image_id "
+        "                             AND object_measurements.meas_stack_c = $5)"
+        " WHERE"
+        "  objects.image_id=$1 AND cluster_id=$2 AND class_id=$3 "
+        "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)";
+    return sql;
+  };
+
+  switch(getType(filter.measurementChannel)) {
+    case OBJECT:
+      return {queryMeasure(),
+              {filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), (filter.densityMapAreaSize)}};
+    case INTENSITY:
+      return {queryIntensityMeasure(),
+              {filter.actImageId, static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), (filter.densityMapAreaSize),
+               filter.crossChanelStack_c}};
+  }
+  return {"", {}};
 }
 
 }    // namespace joda::db

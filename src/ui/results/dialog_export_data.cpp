@@ -42,7 +42,8 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/enums_file_endians.hpp"
-#include "backend/helper/database/exporter/exporter.hpp"
+#include "backend/helper/database/exporter/r/exporter_r.hpp"
+#include "backend/helper/database/exporter/xlsx/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
 #include "backend/helper/database/plugins/stats_for_plate.hpp"
@@ -234,8 +235,11 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
   setMinimumHeight(700);
   setMinimumWidth(1100);
 
-  mExportButton = mLayout.addActionButton("Excel export", generateIcon("export-excel"));
-  connect(mExportButton, &QAction::triggered, [this] { onExportClicked(); });
+  mExportButtonXLSX = mLayout.addActionButton("Excel export", generateIcon("export-excel"));
+  connect(mExportButtonXLSX, &QAction::triggered, [this] { onExportClicked(ExportFormat::XLSX); });
+
+  mExportButtonR = mLayout.addActionButton("R export", generateIcon("export-excel"));
+  connect(mExportButtonR, &QAction::triggered, [this] { onExportClicked(ExportFormat::R); });
 
   mLayout.addSeparatorToTopToolbar();
 
@@ -276,19 +280,19 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
 
   //
   // Details
-  mReportingDetails = SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>>(windowMain, {}, "Details");
-  mReportingDetails->addOptions({{joda::db::BatchExporter::Settings::ExportDetail::PLATE, "Overview of all images", {}},
-                                 {joda::db::BatchExporter::Settings::ExportDetail::WELL, "Selected well", {}},
-                                 {joda::db::BatchExporter::Settings::ExportDetail::IMAGE, "Selected image", {}}});
-  mReportingDetails->setDefaultValue(joda::db::BatchExporter::Settings::ExportDetail::PLATE);
+  mReportingDetails = SettingBase::create<SettingComboBox<joda::db::ExportSettings::ExportDetail>>(windowMain, {}, "Details");
+  mReportingDetails->addOptions({{joda::db::ExportSettings::ExportDetail::PLATE, "Overview of all images", {}},
+                                 {joda::db::ExportSettings::ExportDetail::WELL, "Selected well", {}},
+                                 {joda::db::ExportSettings::ExportDetail::IMAGE, "Selected image", {}}});
+  mReportingDetails->setDefaultValue(joda::db::ExportSettings::ExportDetail::PLATE);
 
   //
   // Type
-  mReportingType = SettingBase::create<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>>(windowMain, {}, "Type");
-  mReportingType->addOptions({{joda::db::BatchExporter::Settings::ExportType::HEATMAP, "Heatmap", generateIcon("heat-map")},
-                              {joda::db::BatchExporter::Settings::ExportType::TABLE, "Table", generateIcon("table")},
-                              {joda::db::BatchExporter::Settings::ExportType::TABLE_DETAIL, "Details", generateIcon("table-detail")}});
-  mReportingType->setDefaultValue(joda::db::BatchExporter::Settings::ExportType::HEATMAP);
+  mReportingType = SettingBase::create<SettingComboBox<joda::db::ExportSettings::ExportType>>(windowMain, {}, "Type");
+  mReportingType->addOptions({{joda::db::ExportSettings::ExportType::HEATMAP, "Heatmap", generateIcon("heat-map")},
+                              {joda::db::ExportSettings::ExportType::TABLE, "Table", generateIcon("table")},
+                              {joda::db::ExportSettings::ExportType::TABLE_DETAIL, "Details", generateIcon("table-detail")}});
+  mReportingType->setDefaultValue(joda::db::ExportSettings::ExportType::HEATMAP);
 
   std::vector<SettingComboBoxMulti<enums::ClusterId>::ComboEntry> clustersCombo;
   auto clusters = mAnalyzer->selectClusters();
@@ -324,7 +328,7 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
 /// \param[out]
 /// \return
 ///
-void DialogExportData::onExportClicked()
+void DialogExportData::onExportClicked(ExportFormat format)
 {
   QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", "", "Spreadsheet (*.xlsx)");
 
@@ -332,10 +336,11 @@ void DialogExportData::onExportClicked()
     return;
   }
   mActionProgressBar->setVisible(true);
-  mExportButton->setEnabled(false);
+  mExportButtonXLSX->setEnabled(false);
+  mExportButtonR->setEnabled(false);
 
-  std::thread([this, filePathOfSettingsFile] {
-    std::map<settings::ClassificatorSettingOut, joda::db::BatchExporter::BatchExporter::Settings::Channel> clustersToExport;
+  std::thread([this, filePathOfSettingsFile, format] {
+    std::map<settings::ClassificatorSettingOut, joda::db::ExportSettings::Channel> clustersToExport;
 
     for(const auto &columnToExport : mExportColumns) {
       if(!columnToExport->isEnabled()) {
@@ -343,7 +348,7 @@ void DialogExportData::onExportClicked()
       }
       auto [clusterClassID, name] = columnToExport->getClusterClassesToExport();
 
-      joda::db::BatchExporter::BatchExporter::Settings::Channel channel;
+      joda::db::ExportSettings::Channel channel;
       channel.clusterName         = std::get<0>(name);
       channel.className           = std::get<1>(name);
       channel.measureChannels     = columnToExport->getMeasurementAndStatsToExport();
@@ -351,7 +356,7 @@ void DialogExportData::onExportClicked()
       clustersToExport.emplace(clusterClassID, channel);
     }
 
-    joda::db::BatchExporter::Settings settings{
+    joda::db::ExportSettings settings{
         .clustersToExport = clustersToExport,
         .analyzer         = *mAnalyzer,
         .plateId          = mFilter.plateId,
@@ -372,8 +377,17 @@ void DialogExportData::onExportClicked()
       std::cout << "Ups " << ex.what() << std::endl;
     }
 
-    joda::db::BatchExporter::startExport(settings, analyzeSettings, mAnalyzeMeta->jobName, mAnalyzeMeta->timestampStart,
+    switch(format) {
+      case ExportFormat::XLSX:
+        joda::db::BatchExporter::startExport(settings, analyzeSettings, mAnalyzeMeta->jobName, mAnalyzeMeta->timestampStart,
+                                             mAnalyzeMeta->timestampFinish, filePathOfSettingsFile.toStdString());
+        break;
+      case ExportFormat::R:
+        joda::db::RExporter::startExport(settings, analyzeSettings, mAnalyzeMeta->jobName, mAnalyzeMeta->timestampStart,
                                          mAnalyzeMeta->timestampFinish, filePathOfSettingsFile.toStdString());
+        break;
+    }
+
     emit exportFinished();
   }).detach();
 }
@@ -386,7 +400,8 @@ void DialogExportData::onExportFinished()
 {
   if(mActionProgressBar != nullptr) {
     mActionProgressBar->setVisible(false);
-    mExportButton->setEnabled(true);
+    mExportButtonXLSX->setEnabled(true);
+    mExportButtonR->setEnabled(true);
   }
 }
 

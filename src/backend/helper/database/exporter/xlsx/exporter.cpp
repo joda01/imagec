@@ -22,7 +22,7 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-void BatchExporter::startExport(const Settings &settings, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
+void BatchExporter::startExport(const ExportSettings &settings, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                                 std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
                                 const std::string &outputFileName)
 {
@@ -30,11 +30,11 @@ void BatchExporter::startExport(const Settings &settings, const settings::Analyz
   auto workbookSettings = createWorkBook(outputFileName);
   createAnalyzeSettings(workbookSettings, analyzeSettings, jobName, timeStarted, timeFinished);
   switch(settings.exportType) {
-    case Settings::ExportType::HEATMAP:
+    case ExportSettings::ExportType::HEATMAP:
       createHeatmapSummary(workbookSettings, settings);
       break;
-    case Settings::ExportType::TABLE:
-    case Settings::ExportType::TABLE_DETAIL:
+    case ExportSettings::ExportType::TABLE:
+    case ExportSettings::ExportType::TABLE_DETAIL:
       createListSummary(workbookSettings, settings);
       break;
   }
@@ -48,7 +48,7 @@ void BatchExporter::startExport(const Settings &settings, const settings::Analyz
 /// \param[out]
 /// \return
 ///
-void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Settings &settings)
+void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const ExportSettings &settings)
 {
   const size_t MAX_WORKSHETT_NAME_LENGTH = 30;
 
@@ -57,7 +57,7 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
 
   Pos offsets;
 
-  auto newWorkSheet = [&](enums::ClusterId clusterId, const BatchExporter::Settings::Channel &expChannel) {
+  auto newWorkSheet = [&](enums::ClusterId clusterId, const ExportSettings::Channel &expChannel) {
     std::string worksheetName       = expChannel.clusterName;
     std::string worksheetNameSuffix = "(" + std::to_string(static_cast<uint16_t>(clusterId)) + ")";
     // Excel only allows 31 Chars as worksheet name -> we have to limit this
@@ -101,13 +101,13 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
                                               .crossChannelStack_cName = crossChannelChannelCName};
 
           switch(settings.exportDetail) {
-            case Settings::ExportDetail::PLATE:
+            case ExportSettings::ExportDetail::PLATE:
               table = joda::db::StatsPerPlate::toHeatmap(filter);
               break;
-            case Settings::ExportDetail::WELL:
+            case ExportSettings::ExportDetail::WELL:
               table = joda::db::StatsPerGroup::toHeatmap(filter);
               break;
-            case Settings::ExportDetail::IMAGE:
+            case ExportSettings::ExportDetail::IMAGE:
               table = joda::db::StatsPerImage::toHeatmap(filter);
               break;
           }
@@ -136,7 +136,7 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
 /// \param[out]
 /// \return
 ///
-void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings &settings)
+void BatchExporter::createListSummary(WorkBook &workbookSettings, const ExportSettings &settings)
 {
   const int ROW_OFFSET = 1;
   const int COL_OFFSET = 1;
@@ -186,14 +186,14 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
 
           table::Table table;
           switch(settings.exportDetail) {
-            case Settings::ExportDetail::PLATE:
+            case ExportSettings::ExportDetail::PLATE:
               table = joda::db::StatsPerPlate::toTable(filter);
               break;
-            case Settings::ExportDetail::WELL:
+            case ExportSettings::ExportDetail::WELL:
               table = joda::db::StatsPerGroup::toTable(filter);
               break;
-            case Settings::ExportDetail::IMAGE:
-              if(settings.exportType == Settings::ExportType::TABLE_DETAIL) {
+            case ExportSettings::ExportDetail::IMAGE:
+              if(settings.exportType == ExportSettings::ExportType::TABLE_DETAIL) {
                 table = joda::db::StatsPerImage::toTable(filter);
               } else {
                 table = joda::db::StatsPerImage::toHeatmapList(filter);

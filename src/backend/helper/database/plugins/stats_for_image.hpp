@@ -17,6 +17,8 @@ public:
   static auto toTable(const QueryFilter &filter) -> joda::table::Table;
   static auto toHeatmap(const QueryFilter &filter) -> joda::table::Table;
   static auto toHeatmapList(const QueryFilter &filter) -> joda::table::Table;
+  static auto toSqlTable(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>;
+  static auto toSqlHeatmap(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>;
 
 private:
   struct ImgInfo

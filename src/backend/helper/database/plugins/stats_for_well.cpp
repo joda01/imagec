@@ -124,6 +124,25 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter) -> joda::table::Table
 ///
 auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb::QueryResult>
 {
+  auto [sql, params]                          = toSQL(filter);
+  std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(sql, params);
+  return result;
+
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  return result;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto StatsPerGroup::toSQL(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>
+{
   auto buildStats = [&]() {
     return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) +
            ") FILTER ((images_planes.validity = 0 OR images_planes.validity is NULL) AND images.validity = 0) as "
@@ -134,53 +153,49 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
   };
 
   auto queryMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
+    std::string sqlStatement =
         " SELECT"
         " objects.image_id,"
         " ANY_VALUE(images_groups.image_group_idx),"
         " ANY_VALUE(images.file_name) as filename,"
         " ANY_VALUE(images.validity) as validity,"
         " images_groups.group_id as group_id," +
-            buildStats() +
-            " FROM objects "
-            " JOIN images_groups ON objects.image_id = images_groups.image_id "
-            " JOIN images ON objects.image_id = images.image_id "
-            " JOIN images_planes ON objects.image_id = images_planes.image_id "
-            "                       AND images_planes.stack_c = $4            "
-            " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
-            " GROUP BY objects.image_id, images_groups.group_id"
-            " ORDER BY filename, objects.image_id, images_groups.group_id",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint16_t>(filter.actGroupId),
-        static_cast<uint32_t>(filter.crossChanelStack_c));
-    return result;
+        buildStats() +
+        " FROM objects "
+        " JOIN images_groups ON objects.image_id = images_groups.image_id "
+        " JOIN images ON objects.image_id = images.image_id "
+        " JOIN images_planes ON objects.image_id = images_planes.image_id "
+        "                       AND images_planes.stack_c = $4            "
+        " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
+        " GROUP BY objects.image_id, images_groups.group_id"
+        " ORDER BY filename, objects.image_id, images_groups.group_id";
+    return sqlStatement;
   };
 
   auto queryIntensityMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
+    std::string sqlStatement =
         " SELECT"
         " objects.image_id,"
         " ANY_VALUE(images_groups.image_group_idx),"
         " ANY_VALUE(images.file_name) as filename,"
         " ANY_VALUE(images.validity),"
         " images_groups.group_id as group_id," +
-            buildStats() +
-            " FROM objects "
-            " JOIN images_groups ON objects.image_id = images_groups.image_id "
-            " JOIN images ON objects.image_id = images.image_id "
-            " JOIN images_planes ON objects.image_id = images_planes.image_id "
-            "                    AND images_planes.stack_c = $4               "
-            "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
-            "                                  objects.image_id = object_measurements.image_id "
-            "                             AND object_measurements.meas_stack_c = $4)"
-            " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
-            " GROUP BY objects.image_id, images_groups.group_id "
-            " ORDER BY filename, objects.image_id, images_groups.group_id",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint16_t>(filter.actGroupId),
-        static_cast<uint32_t>(filter.crossChanelStack_c));
-    return result;
+        buildStats() +
+        " FROM objects "
+        " JOIN images_groups ON objects.image_id = images_groups.image_id "
+        " JOIN images ON objects.image_id = images.image_id "
+        " JOIN images_planes ON objects.image_id = images_planes.image_id "
+        "                    AND images_planes.stack_c = $4               "
+        "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
+        "                                  objects.image_id = object_measurements.image_id "
+        "                             AND object_measurements.meas_stack_c = $4)"
+        " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
+        " GROUP BY objects.image_id, images_groups.group_id "
+        " ORDER BY filename, objects.image_id, images_groups.group_id";
+    return sqlStatement;
   };
 
-  auto query = [&]() {
+  auto query = [&]() -> std::string {
     switch(getType(filter.measurementChannel)) {
       default:
       case OBJECT:
@@ -190,12 +205,9 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
     }
   };
 
-  auto result = query();
-
-  if(result->HasError()) {
-    throw std::invalid_argument(result->GetError());
-  }
-  return result;
+  return {query(),
+          {static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint16_t>(filter.actGroupId),
+           static_cast<uint32_t>(filter.crossChanelStack_c)}};
 }
 
 ///

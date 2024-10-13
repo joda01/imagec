@@ -25,7 +25,8 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/database/database.hpp"
-#include "backend/helper/database/exporter/exporter.hpp"
+#include "backend/helper/database/exporter/r/exporter_r.hpp"
+#include "backend/helper/database/exporter/xlsx/exporter.hpp"
 #include "ui/container/setting/setting_combobox_multi.hpp"
 #include "ui/dialog_shadow/dialog_shadow.h"
 #include "ui/helper/layout_generator.hpp"
@@ -88,7 +89,14 @@ signals:
 
 private:
   /////////////////////////////////////////////////////
-  void onExportClicked();
+  enum class ExportFormat
+  {
+    XLSX,
+    R
+  };
+
+  /////////////////////////////////////////////////////
+  void onExportClicked(ExportFormat);
   void onCancelClicked();
   void selectAvgOfAllMeasureChannels();
   void unselectAllMeasureChannels();
@@ -99,7 +107,8 @@ private:
   /////////////////////////////////////////////////////
   QProgressBar *progressBar;
   QAction *mActionProgressBar = nullptr;
-  QAction *mExportButton;
+  QAction *mExportButtonXLSX;
+  QAction *mExportButtonR;
   QAction *mSelectAllMeasurements;
   QAction *mUnselectAllMeasurements;
   QAction *mSelectAllClustersAndClasses;
@@ -114,8 +123,8 @@ private:
   const db::QueryFilter &mFilter;
   std::vector<ExportColumn *> mExportColumns;
 
-  std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportDetail>> mReportingDetails;
-  std::unique_ptr<SettingComboBox<joda::db::BatchExporter::Settings::ExportType>> mReportingType;
+  std::unique_ptr<SettingComboBox<joda::db::ExportSettings::ExportDetail>> mReportingDetails;
+  std::unique_ptr<SettingComboBox<joda::db::ExportSettings::ExportType>> mReportingType;
   helper::LayoutGenerator mLayout;
   std::map<settings::ClassificatorSettingOut, QString> mClustersAndClasses;
 
