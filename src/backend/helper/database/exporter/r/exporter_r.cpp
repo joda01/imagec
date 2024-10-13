@@ -14,6 +14,11 @@
 #include <iostream>
 #include <ostream>
 #include <string>
+#include "backend/helper/database/plugins/helper.hpp"
+#include "backend/helper/database/plugins/stats_for_image.hpp"
+#include "backend/helper/database/plugins/stats_for_plate.hpp"
+#include "backend/helper/database/plugins/stats_for_well.hpp"
+#include "backend/helper/helper.hpp"
 
 namespace joda::db {
 
@@ -28,31 +33,114 @@ void RExporter::startExport(const ExportSettings &settings, const settings::Anal
                             std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
                             std::string outputFileName)
 {
+  std::vector<std::string> sqlStatements;
+
+  if(settings.clustersToExport.empty()) {
+    return;
+  }
+  enums::ClusterId actClusterId   = settings.clustersToExport.begin()->first.clusterId;
+  std::string actImageClusterName = settings.clustersToExport.begin()->second.clusterName;
+
+  int loopCount = 0;
+  for(const auto &[clusterAndClassId, imageChannel] : settings.clustersToExport) {
+    loopCount++;
+    if(actClusterId != clusterAndClassId.clusterId) {
+      actClusterId        = clusterAndClassId.clusterId;
+      actImageClusterName = imageChannel.clusterName;
+    }
+
+    for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
+      for(const auto stats : statsIn) {
+        auto generate = [&, clusterId = clusterAndClassId.clusterId, classId = clusterAndClassId.classId, className = imageChannel.className,
+                         measureChannelId = measureChannelId](uint32_t cStack, const std::string &crossChannelChannelCName,
+                                                              std::pair<enums::ClusterId, std::string> crossChannelCluster,
+                                                              std::pair<enums::ClassId, std::string> crossChannelClass) {
+          auto filter = joda::db::QueryFilter{.analyzer                = &settings.analyzer,
+                                              .plateRows               = settings.plateRows,
+                                              .plateCols               = settings.plateCols,
+                                              .plateId                 = settings.plateId,
+                                              .actGroupId              = settings.groupId,
+                                              .actImageId              = settings.imageId,
+                                              .clusterId               = clusterId,
+                                              .classId                 = classId,
+                                              .className               = className,
+                                              .measurementChannel      = measureChannelId,
+                                              .stats                   = stats,
+                                              .wellImageOrder          = settings.wellImageOrder,
+                                              .densityMapAreaSize      = settings.heatmapAreaSize,
+                                              .crossChanelStack_c      = cStack,
+                                              .crossChannelStack_cName = crossChannelChannelCName};
+
+          std::pair<std::string, DbArgs_t> sqlData;
+          switch(settings.exportDetail) {
+            case ExportSettings::ExportDetail::PLATE:
+              sqlData = joda::db::StatsPerPlate::toSQL(filter);
+              break;
+            case ExportSettings::ExportDetail::WELL:
+              sqlData = joda::db::StatsPerGroup::toSQL(filter);
+              break;
+            case ExportSettings::ExportDetail::IMAGE:
+              if(settings.exportType == ExportSettings::ExportType::TABLE_DETAIL) {
+                sqlData = joda::db::StatsPerImage::toSqlTable(filter);
+              } else {
+                sqlData = joda::db::StatsPerImage::toSqlHeatmap(filter);
+              }
+              break;
+          }
+
+          std::string arguments;
+          for(const auto &arg : sqlData.second) {
+            if(std::holds_alternative<std::string>(arg)) {
+              arguments += "'" + (std::get<std::string>(arg)) + "', ";
+            } else if(std::holds_alternative<uint16_t>(arg)) {
+              arguments += std::to_string((std::get<uint16_t>(arg))) + ", ";
+            } else if(std::holds_alternative<uint32_t>(arg)) {
+              arguments += std::to_string((std::get<uint32_t>(arg))) + ", ";
+              ;
+            } else if(std::holds_alternative<uint64_t>(arg)) {
+              arguments += std::to_string((std::get<uint64_t>(arg))) + ", ";
+              ;
+            } else if(std::holds_alternative<double>(arg)) {
+              arguments += std::to_string((std::get<double>(arg))) + ", ";
+            }
+          }
+          if(arguments.size() >= 2) {
+            arguments = arguments.erase(arguments.size() - 2, 2);
+          }
+          auto command = "res_" + std::to_string(loopCount) + " <- dbGetQuery(con, \"" + sqlData.first + "\", list(" + arguments + "))\n";
+          sqlStatements.emplace_back(command);
+        };
+        if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
+          for(const auto &[cStack, name] : imageChannel.crossChannelStacksC) {
+            generate(cStack, name, {}, {});
+          }
+        } else {
+          generate(0, "", {}, {});
+        }
+      }
+    }
+  }
+
   std::string rScript =
       "# \n"
-      "# \n"
-      "# \n"
-      ""
+      "# \\author  " +
+      analyzeSettings.projectSettings.address.firstName + " " + analyzeSettings.projectSettings.address.lastName +
+      "\n"
+      "# \\date  " +
+      helper::timepointToIsoString(timeStarted) + "\n" + "# \\version " + analyzeSettings.meta.imagecVersion +
+      "\n"
+      "\n"
+      "\n"
+      "# The following line will take a couple of time, the first time of executing the script because it compiles the R package for your computer\n"
       "install.packages(\"duckdb\")\n"
+      "\n"
+      "\n"
+      "# Main\n"
       "library(\"duckdb\")\n"
-      "con <- dbConnect(duckdb(), dbdir = \"result.icdb\"++, read_only = TRUE)\n"
-      "res <- dbGetQuery(con, \"SELECT * FROM items\")\n"
-      "print(res)\n";
+      "con <- dbConnect(duckdb(), dbdir = \"results.icdb\", read_only = TRUE)\n";
 
-  switch(settings.exportDetail) {
-    case ExportSettings::ExportDetail::PLATE:
-      table = joda::db::StatsPerPlate::toTable(filter);
-      break;
-    case ExportSettings::ExportDetail::WELL:
-      table = joda::db::StatsPerGroup::toTable(filter);
-      break;
-    case ExportSettings::ExportDetail::IMAGE:
-      if(settings.exportType == ExportSettings::ExportType::TABLE_DETAIL) {
-        table = joda::db::StatsPerImage::toTable(filter);
-      } else {
-        table = joda::db::StatsPerImage::toHeatmapList(filter);
-      }
-      break;
+  for(const auto &selects : sqlStatements) {
+    rScript += selects;
   }
 
   if(!outputFileName.ends_with(".r")) {

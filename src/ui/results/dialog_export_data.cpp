@@ -235,10 +235,10 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
   setMinimumHeight(700);
   setMinimumWidth(1100);
 
-  mExportButtonXLSX = mLayout.addActionButton("Excel export", generateIcon("export-excel"));
+  mExportButtonXLSX = mLayout.addActionButton("Excel export", generateIcon("excel"));
   connect(mExportButtonXLSX, &QAction::triggered, [this] { onExportClicked(ExportFormat::XLSX); });
 
-  mExportButtonR = mLayout.addActionButton("R export", generateIcon("export-excel"));
+  mExportButtonR = mLayout.addActionButton("R export", generateIcon("r-studio"));
   connect(mExportButtonR, &QAction::triggered, [this] { onExportClicked(ExportFormat::R); });
 
   mLayout.addSeparatorToTopToolbar();
@@ -330,7 +330,15 @@ DialogExportData::DialogExportData(std::unique_ptr<joda::db::Database> &analyzer
 ///
 void DialogExportData::onExportClicked(ExportFormat format)
 {
-  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", "", "Spreadsheet (*.xlsx)");
+  QString filePathOfSettingsFile;
+  switch(format) {
+    case ExportFormat::XLSX:
+      filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", "", "Spreadsheet (*.xlsx)");
+      break;
+    case ExportFormat::R:
+      filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", "", "R-Script (*.r)");
+      break;
+  }
 
   if(filePathOfSettingsFile.isEmpty()) {
     return;
@@ -340,6 +348,7 @@ void DialogExportData::onExportClicked(ExportFormat format)
   mExportButtonR->setEnabled(false);
 
   std::thread([this, filePathOfSettingsFile, format] {
+    mLastExportedFile = "";
     std::map<settings::ClassificatorSettingOut, joda::db::ExportSettings::Channel> clustersToExport;
 
     for(const auto &columnToExport : mExportColumns) {
@@ -387,7 +396,7 @@ void DialogExportData::onExportClicked(ExportFormat format)
                                          mAnalyzeMeta->timestampFinish, filePathOfSettingsFile.toStdString());
         break;
     }
-
+    mLastExportedFile = std::filesystem::path(filePathOfSettingsFile.toStdString());
     emit exportFinished();
   }).detach();
 }
@@ -403,6 +412,9 @@ void DialogExportData::onExportFinished()
     mExportButtonXLSX->setEnabled(true);
     mExportButtonR->setEnabled(true);
   }
+
+  QString folderPath = mLastExportedFile.parent_path().string().data();
+  QDesktopServices::openUrl(QUrl("file:///" + folderPath));
 }
 
 ///

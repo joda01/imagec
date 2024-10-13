@@ -128,6 +128,8 @@ private:
   helper::LayoutGenerator mLayout;
   std::map<settings::ClassificatorSettingOut, QString> mClustersAndClasses;
 
+  std::filesystem::path mLastExportedFile;
+
 private slots:
   void onExportFinished();
 };

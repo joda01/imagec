@@ -95,6 +95,7 @@
     <file>icons/icons8-number-16.png</file>
     <file>icons/icons8-repeat-96.png</file>
     <file>icons/icons8-project-setup-16.png</file>
+    <file>icons/icons8-excel-24.png</file>
     <file>icons/icons8-zero-48.png</file>
     <file>icons/icons8-layer-mask-48.png</file>
     <file>icons/icons8-pin-96.png</file>
@@ -124,6 +125,7 @@
     <file>icons/icons8-number-96.png</file>
     <file>icons/icons8-arrow-up-48.png</file>
     <file>icons/icons8-images-folder-24.png</file>
+    <file>icons/icons8-r-48.png</file>
     <file>icons/icons8-arrow-16.png</file>
     <file>icons/icons8-color-48.png</file>
     <file>icons/icons8-triangle-16.png</file>
@@ -147,6 +149,7 @@
     <file>icons/icons8-table-detail-16.png</file>
     <file>icons/icons8-one-round-16.png</file>
     <file>icons/icons8-experiment-24.png</file>
+    <file>icons/icons8-r-studio-48.png</file>
     <file>icons/icons8-100-16.png</file>
     <file>icons/icons8-name-48.png</file>
     <file>icons/icons8-error-96.png</file>
@@ -186,6 +189,7 @@
     <file>icons/icons8-copy-16.png</file>
     <file>icons/icons8-filter-16.png</file>
     <file>icons/icons8-arrow-up-16.png</file>
+    <file>icons/icons8-excel-48.png</file>
     <file>icons/icons8-heat-map-96.png</file>
     <file>icons/icons8-external-link-48.png</file>
     <file>icons/icons8-fill-color-96.png</file>
@@ -252,6 +256,7 @@
     <file>icons/icons8-no-idea-16.png</file>
     <file>icons/icons8-opened-folder-48.png</file>
     <file>icons/icons8-opened-folder-16.png</file>
+    <file>icons/icons8-r-16.png</file>
     <file>icons/icons8-type-96.png</file>
     <file>icons/icons8-image-48.png</file>
     <file>icons/icons8-name-24.png</file>
@@ -275,6 +280,7 @@
     <file>icons/icons8-error-48.png</file>
     <file>icons/icons8-original-size-48.png</file>
     <file>icons/icons8-pin-24.png</file>
+    <file>icons/icons8-r-studio-16.png</file>
     <file>icons/icons8-close-48.png</file>
     <file>icons/icons8-full-screen-96.png</file>
     <file>icons/icons8-open-96.png</file>
@@ -333,6 +339,7 @@
     <file>icons/icons8-no-filling-24.png</file>
     <file>icons/icons8-open-parcel-48.png</file>
     <file>icons/icons8-hexagon-16.png</file>
+    <file>icons/icons8-excel-96.png</file>
     <file>icons/icons8-hexagonal-pattern-96.png</file>
     <file>icons/icons8-arrow-left-16.png</file>
     <file>icons/icons8-image-24.png</file>
@@ -478,6 +485,7 @@
     <file>icons/icons8-frames-48.png</file>
     <file>icons/icons8-one-16.png</file>
     <file>icons/icons8-move-right-48.png</file>
+    <file>icons/icons8-r-studio-24.png</file>
     <file>icons/icons8-open-48.png</file>
     <file>icons/icons8-nine-48.png</file>
     <file>icons/icons8-polygon-16.png</file>
@@ -551,6 +559,7 @@
     <file>icons/icons8-average-math-48.png</file>
     <file>icons/icons8-railroad-crossing-96.png</file>
     <file>icons/icons8-diameter-96.png</file>
+    <file>icons/icons8-r-96.png</file>
     <file>icons/icons8-histogram-24.png</file>
     <file>icons/icons8-hexagon-96.png</file>
     <file>icons/icons8-arrow-up-24.png</file>
@@ -587,11 +596,14 @@
     <file>icons/icons8-rename-96.png</file>
     <file>icons/icons8-snap-background-to-white-96.png</file>
     <file>icons/icons8-add-to-favorites-96.png</file>
+    <file>icons/icons8-r-studio-96.png</file>
     <file>icons/icons8-square-number-16.png</file>
     <file>icons/icons8-blur-24.png</file>
     <file>icons/icons8-rename-24.png</file>
+    <file>icons/icons8-r-24.png</file>
     <file>icons/icons8-flow-24.png</file>
     <file>icons/icons8-2-24.png</file>
+    <file>icons/icons8-excel-16.png</file>
     <file>icons/icons8-table-detail-48.png</file>
     <file>icons/icons8-three-96.png</file>
     <file>icons/icons8-save-96.png</file>

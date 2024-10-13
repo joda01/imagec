@@ -122,59 +122,59 @@ auto StatsPerPlate::toSQL(const QueryFilter &filter) -> std::pair<std::string, D
 {
   auto buildStats = [&]() {
     return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") FILTER (images.validity = 0) as valid, " +
-           getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") FILTER (images.validity != 0) as invalid ";
+           getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") FILTER (images.validity != 0) as invalid\n";
   };
 
   auto queryMeasure = [&]() {
     std::string sql =
-        "SELECT"
-        " subquery.group_id as groupid,"
-        " ANY_VALUE(pos_on_plate_x) as pos_x,"
-        " ANY_VALUE(pos_on_plate_y) as pos_y,"
-        " AVG(valid) AS avg_valid,"
-        " AVG(invalid) AS avg_invalid,"
-        " ANY_VALUE(file_name) AS file_name"
-        " FROM ("
+        "SELECT\n"
+        " subquery.group_id as groupid,\n"
+        " ANY_VALUE(pos_on_plate_x) as pos_x,\n"
+        " ANY_VALUE(pos_on_plate_y) as pos_y,\n"
+        " AVG(valid) AS avg_valid,\n"
+        " AVG(invalid) AS avg_invalid,\n"
+        " ANY_VALUE(file_name) AS file_name\n"
+        "FROM (\n"
         "     SELECT"
-        "         objects.image_id,"
-        "         ANY_VALUE(images.file_name) AS file_name,"
-        "         images_groups.group_id as group_id," +
+        "       objects.image_id,\n"
+        "       ANY_VALUE(images.file_name) AS file_name,\n"
+        "       images_groups.group_id as group_id,\n" +
         buildStats() +
-        "     FROM objects "
-        "     JOIN images ON objects.image_id = images.image_id "
-        "     JOIN images_groups ON objects.image_id = images_groups.image_id "
-        "     WHERE cluster_id = $1 AND class_id = $2"
-        "     GROUP BY objects.image_id, images_groups.group_id"
-        " ) AS subquery"
-        " JOIN groups ON subquery.group_id = groups.group_id "
+        "     FROM objects\n"
+        "     JOIN images ON objects.image_id = images.image_id\n"
+        "     JOIN images_groups ON objects.image_id = images_groups.image_id\n"
+        "     WHERE cluster_id = $1 AND class_id = $2\n"
+        "     GROUP BY objects.image_id, images_groups.group_id\n"
+        " ) AS subquery\n"
+        " JOIN groups ON subquery.group_id = groups.group_id\n"
         " GROUP BY groupid";
     return sql;
   };
 
   auto queryIntensityMeasure = [&]() {
     std::string sql =
-        "SELECT"
-        " subquery.group_id as groupid,"
-        " ANY_VALUE(pos_on_plate_x) as pos_x,"
-        " ANY_VALUE(pos_on_plate_y) as pos_y,"
-        " AVG(valid) AS avg_valid,"
-        " AVG(invalid) AS avg_invalid,"
-        " ANY_VALUE(file_name) AS file_name"
-        " FROM ("
-        "     SELECT"
-        "         objects.image_id,"
-        "         ANY_VALUE(images.file_name) AS file_name,"
-        "         images_groups.group_id as group_id," +
+        "SELECT\n"
+        " subquery.group_id as groupid,\n"
+        " ANY_VALUE(pos_on_plate_x) as pos_x,\n"
+        " ANY_VALUE(pos_on_plate_y) as pos_y,\n"
+        " AVG(valid) AS avg_valid,\n"
+        " AVG(invalid) AS avg_invalid,\n"
+        " ANY_VALUE(file_name) AS file_name\n"
+        " FROM (\n"
+        "     SELECT\n"
+        "         objects.image_id,\n"
+        "         ANY_VALUE(images.file_name) AS file_name,\n"
+        "         images_groups.group_id as group_id,\n" +
         buildStats() +
-        "     FROM objects "
-        "     JOIN images ON objects.image_id = images.image_id "
-        "     JOIN images_groups ON objects.image_id = images_groups.image_id "
-        "     JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
-        "                                  objects.image_id = object_measurements.image_id)"
-        "     WHERE cluster_id = $1 AND class_id = $2 AND object_measurements.meas_stack_c = $3"
-        "     GROUP BY objects.image_id, images_groups.group_id"
-        " ) AS subquery"
-        " JOIN groups ON subquery.group_id = groups.group_id "
+        "     FROM objects\n"
+        "     JOIN images ON objects.image_id = images.image_id\n"
+        "     JOIN images_groups ON objects.image_id = images_groups.image_id\n"
+        "     JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND\n"
+        "                                  objects.image_id = object_measurements.image_id)\n"
+        "     WHERE cluster_id = $1 AND class_id = $2 AND object_measurements.meas_stack_c = $3\n"
+        "     GROUP BY objects.image_id, images_groups.group_id\n"
+        " ) AS subquery\n"
+        " JOIN groups ON subquery.group_id = groups.group_id\n"
         " GROUP BY groupid";
     return sql;
   };

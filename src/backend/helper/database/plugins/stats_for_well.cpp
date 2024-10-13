@@ -149,48 +149,48 @@ auto StatsPerGroup::toSQL(const QueryFilter &filter) -> std::pair<std::string, D
            "valid, " +
            getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) +
            ") FILTER ((images_planes.validity != 0 AND images_planes.validity is not NULL) OR images.validity != 0) as "
-           "invalid ";
+           "invalid\n";
   };
 
   auto queryMeasure = [&]() {
     std::string sqlStatement =
-        " SELECT"
-        " objects.image_id,"
-        " ANY_VALUE(images_groups.image_group_idx),"
-        " ANY_VALUE(images.file_name) as filename,"
-        " ANY_VALUE(images.validity) as validity,"
-        " images_groups.group_id as group_id," +
+        " SELECT\n"
+        " objects.image_id,\n"
+        " ANY_VALUE(images_groups.image_group_idx),\n"
+        " ANY_VALUE(images.file_name) as filename,\n"
+        " ANY_VALUE(images.validity) as validity,\n"
+        " images_groups.group_id as group_id,\n" +
         buildStats() +
-        " FROM objects "
-        " JOIN images_groups ON objects.image_id = images_groups.image_id "
-        " JOIN images ON objects.image_id = images.image_id "
-        " JOIN images_planes ON objects.image_id = images_planes.image_id "
-        "                       AND images_planes.stack_c = $4            "
-        " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
-        " GROUP BY objects.image_id, images_groups.group_id"
+        " FROM objects\n"
+        " JOIN images_groups ON objects.image_id = images_groups.image_id\n"
+        " JOIN images ON objects.image_id = images.image_id\n"
+        " JOIN images_planes ON objects.image_id = images_planes.image_id\n"
+        "                       AND images_planes.stack_c = $4\n"
+        " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3\n"
+        " GROUP BY objects.image_id, images_groups.group_id\n"
         " ORDER BY filename, objects.image_id, images_groups.group_id";
     return sqlStatement;
   };
 
   auto queryIntensityMeasure = [&]() {
     std::string sqlStatement =
-        " SELECT"
-        " objects.image_id,"
-        " ANY_VALUE(images_groups.image_group_idx),"
-        " ANY_VALUE(images.file_name) as filename,"
-        " ANY_VALUE(images.validity),"
-        " images_groups.group_id as group_id," +
+        " SELECT\n"
+        " objects.image_id,\n"
+        " ANY_VALUE(images_groups.image_group_idx),\n"
+        " ANY_VALUE(images.file_name) as filename,\n"
+        " ANY_VALUE(images.validity),\n"
+        " images_groups.group_id as group_id,\n" +
         buildStats() +
-        " FROM objects "
-        " JOIN images_groups ON objects.image_id = images_groups.image_id "
-        " JOIN images ON objects.image_id = images.image_id "
-        " JOIN images_planes ON objects.image_id = images_planes.image_id "
-        "                    AND images_planes.stack_c = $4               "
-        "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
-        "                                  objects.image_id = object_measurements.image_id "
-        "                             AND object_measurements.meas_stack_c = $4)"
-        " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3"
-        " GROUP BY objects.image_id, images_groups.group_id "
+        " FROM objects\n"
+        " JOIN images_groups ON objects.image_id = images_groups.image_id\n"
+        " JOIN images ON objects.image_id = images.image_id\n"
+        " JOIN images_planes ON objects.image_id = images_planes.image_id\n"
+        "                    AND images_planes.stack_c = $4\n"
+        "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND\n"
+        "                                  objects.image_id = object_measurements.image_id\n"
+        "                             AND object_measurements.meas_stack_c = $4)\n"
+        " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3\n"
+        " GROUP BY objects.image_id, images_groups.group_id\n"
         " ORDER BY filename, objects.image_id, images_groups.group_id";
     return sqlStatement;
   };

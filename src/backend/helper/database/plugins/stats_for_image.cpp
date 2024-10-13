@@ -63,11 +63,11 @@ auto StatsPerImage::toSqlTable(const QueryFilter &filter) -> std::pair<std::stri
   if(filter.measurementChannel == enums::Measurement::COUNT) {
     return {};
   }
-  auto buildStats = [&]() { return getMeasurement(filter.measurementChannel) + " as val"; };
+  auto buildStats = [&]() { return getMeasurement(filter.measurementChannel) + " as val\n"; };
 
   auto queryMeasure = [&]() {
     std::string sql = "SELECT " + buildStats() +
-                      " FROM objects "
+                      "FROM objects\n"
                       "WHERE"
                       " objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 ";
     return sql;
@@ -75,13 +75,14 @@ auto StatsPerImage::toSqlTable(const QueryFilter &filter) -> std::pair<std::stri
 
   auto queryIntensityMeasure = [&]() {
     std::string sql = "SELECT " + buildStats() +
-                      " FROM objects "
-                      "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
-                      "                             objects.image_id = object_measurements.image_id AND  "
-                      "                             object_measurements.meas_stack_c = $4 )"
-                      " WHERE"
-                      "  objects.image_id=$1 AND objects.cluster_id=$2 AND objects.class_id=$3 AND "
-                      "object_measurements.meas_stack_c = $4";
+                      "FROM objects\n"
+                      "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND\n"
+                      "                             objects.image_id = object_measurements.image_id AND\n"
+                      "                             object_measurements.meas_stack_c = $4)\n"
+                      "WHERE\n"
+                      "  objects.image_id=$1 AND objects.cluster_id=$2 AND\n"
+                      "  objects.class_id=$3 AND\n"
+                      "  object_measurements.meas_stack_c = $4";
     return sql;
   };
 
@@ -255,33 +256,33 @@ auto StatsPerImage::densityMap(const QueryFilter &filter) -> std::tuple<std::uni
 ///
 auto StatsPerImage::toSqlHeatmap(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>
 {
-  auto buildStats = [&]() { return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") as val"; };
+  auto buildStats = [&]() { return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") as val\n"; };
 
   auto queryMeasure = [&]() {
     std::string sql =
-        "SELECT "
-        "floor(meas_center_x / $4) * $4 AS rectangle_x,"
-        "floor(meas_center_y / $4) * $4 AS rectangle_y," +
+        "SELECT\n"
+        "floor(meas_center_x / $4) * $4 AS rectangle_x,\n"
+        "floor(meas_center_y / $4) * $4 AS rectangle_y,\n" +
         buildStats() +
-        " FROM objects "
-        " WHERE"
-        "  image_id=$1 AND cluster_id=$2 AND class_id=$3 "
+        "FROM objects\n"
+        "WHERE\n"
+        "  image_id=$1 AND cluster_id=$2 AND class_id=$3\n"
         "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)";
     return sql;
   };
 
   auto queryIntensityMeasure = [&]() {
     std::string sql =
-        "SELECT "
+        "SELECT\n"
         "floor(meas_center_x / $4) * $4 AS rectangle_x,"
         "floor(meas_center_y / $4) * $4 AS rectangle_y," +
         buildStats() +
-        " FROM objects "
-        "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND "
-        "                                  objects.image_id = object_measurements.image_id "
-        "                             AND object_measurements.meas_stack_c = $5)"
-        " WHERE"
-        "  objects.image_id=$1 AND cluster_id=$2 AND class_id=$3 "
+        "FROM objects\n"
+        "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND\n"
+        "                             objects.image_id = object_measurements.image_id AND\n"
+        "                             object_measurements.meas_stack_c = $5)\n"
+        "WHERE\n"
+        "  objects.image_id=$1 AND cluster_id=$2 AND class_id=$3\n"
         "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)";
     return sql;
   };
