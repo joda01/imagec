@@ -27,41 +27,36 @@ class ProcessContext;
 
 namespace joda::settings {
 
-struct ClassifierFilter
+struct IntensityFilter
 {
-  struct IntensityFilter
+  //
+  // Which image should be used for measure the intensity value.
+  // If not specified the initial image of the actual pipeline step is used.
+  //
+  enums::ImageId imageIn = {.zProjection = joda::enums::ZProjection::$, .imagePlane = {.cStack = -1}};
+
+  //
+  // Min intensity
+  //
+  int32_t minIntensity = -1;
+
+  //
+  // Max intensity
+  //
+  int32_t maxIntensity = -1;
+
+  void check() const
   {
-    //
-    // Which image should be used for measure the intensity value.
-    // If not specified the initial image of the actual pipeline step is used.
-    //
-    enums::ImageId imageIn = {.zProjection = joda::enums::ZProjection::$, .imagePlane = {.cStack = -1}};
-
-    //
-    // Min intensity
-    //
-    int32_t minIntensity = -1;
-
-    //
-    // Max intensity
-    //
-    int32_t maxIntensity = -1;
-
-    void check() const
-    {
-      if(minIntensity >= 0 || maxIntensity >= 0) {
-        CHECK_ERROR(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
-      }
+    if(minIntensity >= 0 || maxIntensity >= 0) {
+      CHECK_ERROR(maxIntensity > minIntensity, "Min intensity must be bigger than max intensity!");
     }
+  }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntensityFilter, imageIn, minIntensity, maxIntensity);
-  };
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntensityFilter, imageIn, minIntensity, maxIntensity);
+};
 
-  //
-  // Cluster the objects should be assigned if filter matches
-  //
-  ClassificatorSetting outputCluster;
-
+struct MetricsFilter
+{
   //
   //
   //
@@ -82,11 +77,6 @@ struct ClassifierFilter
   //
   float snapAreaSize = 0;
 
-  //
-  // Use an intensity filter for classification
-  //
-  IntensityFilter intensity;
-
   void check() const
   {
     CHECK_ERROR(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
@@ -95,10 +85,34 @@ struct ClassifierFilter
     CHECK_ERROR(snapAreaSize >= 0, "Snap area size must be > 0.");
   }
 
-  bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi, const IntensityFilter &intensity) const;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MetricsFilter, minParticleSize, maxParticleSize, minCircularity, snapAreaSize);
+};
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, minParticleSize, maxParticleSize, minCircularity, snapAreaSize, intensity,
-                                                       outputCluster);
+struct ClassifierFilter
+{
+  //
+  // Cluster the objects should be assigned if filter matches
+  //
+  ClassificatorSetting outputCluster;
+
+  //
+  // Use an intensity filter for classification
+  //
+  IntensityFilter intensity;
+
+  //
+  // Metrics filter
+  //
+  MetricsFilter metrics;
+
+  void check() const
+  {
+  }
+
+  static bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi, const MetricsFilter &metrics,
+                              const IntensityFilter &intensity);
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, metrics, intensity, outputCluster);
 };
 
 struct ObjectClass

@@ -72,7 +72,7 @@ SCENARIO("pipeline:test:heatmap", "[pipeline]")
 
       THEN("We expect a created database with filled out data.")
       {
-        REQUIRE(results->selectExperiment().timestamp.time_since_epoch().count() > 0);
+        REQUIRE(results->selectExperiment().timestampStart.time_since_epoch().count() > 0);
         auto images = results->selectImages();
         CHECK(images.size() == 2);
       }

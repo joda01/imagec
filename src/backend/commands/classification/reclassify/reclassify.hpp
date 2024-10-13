@@ -15,7 +15,7 @@
 
 #include "backend/commands/command.hpp"
 #include "backend/processor/context/process_context.hpp"
-#include "intersection_settings.hpp"
+#include "reclassify_settings.hpp"
 
 namespace joda::cmd {
 
@@ -25,16 +25,16 @@ namespace joda::cmd {
 /// \brief      Classify objects in a grayscal image.
 ///             Each gray value is used for one object class.
 ///
-class Intersection : public Command
+class Reclassify : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  Intersection(const settings::IntersectionSettings &);
+  Reclassify(const settings::ReclassifySettings &);
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
 
 private:
   /////////////////////////////////////////////////////
-  const settings::IntersectionSettings &mSettings;
+  const settings::ReclassifySettings &mSettings;
 };
 
 }    // namespace joda::cmd

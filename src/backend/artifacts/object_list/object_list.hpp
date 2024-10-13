@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <vector>
 #include "../roi/roi.hpp"
-#include "backend/commands/object_functions/intersection/intersection_settings.hpp"
+#include "backend/commands/classification/reclassify/reclassify_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 
@@ -105,9 +105,10 @@ public:
                           joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, uint32_t snapAreaOfIntersectingRoi,
                           float minIntersecion, const enums::tile_t &tile, const cv::Size &tileSize) const;
 
-  void calcIntersections(joda::settings::IntersectionSettings::Function func, SpheralIndex *other,
-                         const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
-                         float minIntersecion, joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
+  void calcIntersection(joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func, SpheralIndex *other,
+                        const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
+                        float minIntersecion, const settings::MetricsFilter &metrics, const settings::IntensityFilter &intensity,
+                        joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
 
   auto begin() const
   {
