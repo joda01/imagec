@@ -114,10 +114,10 @@ public:
     zProjectionForIntensityFilter->connectWithSetting(&settings.intensity.imageIn.zProjection);
 
     addSetting(modelTab, "Intensity filter",
-               {{cStackForIntensityFilter.get(), true, 0},
-                {zProjectionForIntensityFilter.get(), true, 0},
-                {mMinIntensity.get(), true, 0},
-                {mMaxIntensity.get(), true, 0}},
+               {{cStackForIntensityFilter.get(), false, 0},
+                {zProjectionForIntensityFilter.get(), false, 0},
+                {mMinIntensity.get(), false, 0},
+                {mMaxIntensity.get(), false, 0}},
                col2);
   }
 
