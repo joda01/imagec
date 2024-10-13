@@ -95,7 +95,7 @@ ExportColumn::ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
                             {joda::enums::Measurement::AREA_SIZE, "Area size", {}},
                             {joda::enums::Measurement::PERIMETER, "Perimeter", {}},
                             {joda::enums::Measurement::CIRCULARITY, "Circularity", {}},
-                            {joda::enums::Measurement::INTERSECTING_CNT, "Cross channel count", {}},
+                            {joda::enums::Measurement::ORIGIN_OBJECT_ID, "Origin object ID", {}},
                             {joda::enums::Measurement::INTENSITY_SUM, "Intensity sum.", {}},
                             {joda::enums::Measurement::INTENSITY_AVG, "Intensity avg.", {}},
                             {joda::enums::Measurement::INTENSITY_MIN, "Intensity min.", {}},
@@ -121,10 +121,8 @@ ExportColumn::ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
   // Cross channel
   //
   layout->addWidget(new QLabel("-->"), 0, Qt::AlignTop);
-  mCrossChannelImageChannel = SettingBase::create<SettingComboBoxMulti<int32_t>>(windowMain, generateIcon("light"), "Cross channel intensity");
-  mCrossChannelCount = SettingBase::create<SettingComboBoxMultiClassificationUnmanaged>(windowMain, generateIcon("100"), "Cross channel count");
+  mCrossChannelImageChannel = SettingBase::create<SettingComboBoxMulti<int32_t>>(windowMain, generateIcon("light"), "Intensity");
   layout->addWidget(mCrossChannelImageChannel->getEditableWidget());
-  layout->addWidget(mCrossChannelCount->getEditableWidget());
   this->setLayout(layout);
   this->setContentsMargins(0, 0, 0, 0);
 
@@ -134,11 +132,9 @@ ExportColumn::ExportColumn(std::unique_ptr<joda::db::Database> &analyzer,
   mClustersAndClasses->setValue({enums::ClusterId::UNDEFINED, enums::ClassId::UNDEFINED});
   connect(mClustersAndClasses.get(), &SettingBase::valueChanged, [this]() {
     getImageChannels();
-    getCrossChannelCount();
     setEnabledDisabled(isEnabled());
   });
   getImageChannels();
-  getCrossChannelCount();
   setEnabledDisabled(false);
 }
 
@@ -150,7 +146,6 @@ bool ExportColumn::isEnabled()
 void ExportColumn::setEnabledDisabled(bool enabled)
 {
   mCrossChannelImageChannel->getEditableWidget()->setEnabled(enabled);
-  mCrossChannelCount->getEditableWidget()->setEnabled(enabled);
   mMeasurement->getEditableWidget()->setEnabled(enabled);
   mStats->getEditableWidget()->setEnabled(enabled);
 }
@@ -180,28 +175,6 @@ void ExportColumn::getImageChannels()
   }
 }
 
-void ExportColumn::getCrossChannelCount()
-{
-  auto clusterClassSelected = mClustersAndClasses->getValue();
-
-  std::map<settings::ClassificatorSettingOut, QString> options;
-
-  auto clusters = mAnalyzer->selectCrossChannelCountForClusterAndClass(static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                       clusterClassSelected.classId);
-  mCrossChannelCount->blockSignals(true);
-  auto currentChannel = mCrossChannelCount->getValue();
-  mCrossChannelCount->clear();
-  for(const auto &[clusterId, cluster] : clusters) {
-    for(const auto &[classId, classsName] : cluster.second) {
-      std::string name = cluster.first + "@" + classsName;
-      options.emplace(settings::ClassificatorSettingOut{clusterId, classId}, QString(name.data()));
-    }
-    mCrossChannelCount->addOptions(options);
-    mCrossChannelCount->setValue(currentChannel);
-    mCrossChannelCount->blockSignals(false);
-  }
-}
-
 ///
 /// \brief
 /// \author
@@ -212,18 +185,6 @@ void ExportColumn::getCrossChannelCount()
 std::pair<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> ExportColumn::getClusterClassesToExport()
 {
   return mClustersAndClasses->getValueAndNames();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> ExportColumn::getCrossChannelCountToExport()
-{
-  return mCrossChannelCount->getValueAndNames();
 }
 
 ///
@@ -387,7 +348,6 @@ void DialogExportData::onExportClicked()
       channel.className           = std::get<1>(name);
       channel.measureChannels     = columnToExport->getMeasurementAndStatsToExport();
       channel.crossChannelStacksC = columnToExport->getCrossChannelIntensityToExport();
-      channel.crossChannelCount   = columnToExport->getCrossChannelCountToExport();
       clustersToExport.emplace(clusterClassID, channel);
     }
 
@@ -497,7 +457,6 @@ void DialogExportData::saveTemplate()
       colSetting.measurements          = col->mMeasurement->getValue();
       colSetting.stats                 = col->mStats->getValue();
       colSetting.crossChannelIntensity = col->mCrossChannelImageChannel->getValue();
-      colSetting.crossChannelCount     = col->mCrossChannelCount->getValue();
       settings.columns.emplace_back(colSetting);
     }
   }
@@ -553,7 +512,6 @@ void DialogExportData::openTemplate()
         mExportColumns[colCnt]->mStats->setValue(col.stats);
         std::this_thread::sleep_for(100ms);
         mExportColumns[colCnt]->mCrossChannelImageChannel->setValue(col.crossChannelIntensity);
-        mExportColumns[colCnt]->mCrossChannelCount->setValue(col.crossChannelCount);
       }
       colCnt++;
     }

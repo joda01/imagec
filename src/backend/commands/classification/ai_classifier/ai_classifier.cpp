@@ -241,7 +241,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
           context.getTileSize());
 
       for(const auto &filter : objectClass->filters) {
-        if(filter.doesFilterMatch(context, detectedRoi, filter.intensity)) {
+        if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
           detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId), context.getClassId(filter.outputCluster.classId));
         }
       }

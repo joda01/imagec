@@ -17,9 +17,8 @@ namespace joda::db {
 auto StatsPerPlate::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb::QueryResult>
 {
   auto buildStats = [&]() {
-    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) +
-           ") FILTER (images.validity = 0) as valid, " + getStatsString(filter.stats) + "(" +
-           getMeasurement(filter.measurementChannel) + ") FILTER (images.validity != 0) as invalid ";
+    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") FILTER (images.validity = 0) as valid, " +
+           getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") FILTER (images.validity != 0) as invalid ";
   };
 
   auto queryMeasure = [&]() {
@@ -74,49 +73,7 @@ auto StatsPerPlate::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
             " ) AS subquery"
             " JOIN groups ON subquery.group_id = groups.group_id "
             " GROUP BY groupid",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint32_t>(filter.crossChanelStack_c));
-    return result;
-  };
-
-  auto queryIntersectingMeasure = [&]() {
-    std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(
-        "SELECT"
-        " subquery.group_id as groupid,"
-        " ANY_VALUE(pos_on_plate_x) as pos_x,"
-        " ANY_VALUE(pos_on_plate_y) as pos_y," +
-            getStatsString(filter.stats) + "(valid) AS avg_valid," + getStatsString(filter.stats) +
-            "(invalid) AS avg_invalid,"
-            " ANY_VALUE(file_name) AS file_name"
-            "   FROM"
-            "   ("
-            "     SELECT "
-            "     ANY_VALUE(images.image_id) as image_id,"
-            "     ANY_VALUE(images.validity) as validity,"
-            "     ANY_VALUE(images.file_name) as file_name,"
-            "     ANY_VALUE(images_groups.image_group_idx) as image_group_idx,"
-            "     ANY_VALUE(images_groups.group_id) as group_id," +
-            "     COUNT(inners.meas_object_id) FILTER (images.validity = 0) as valid,"
-            "     COUNT(inners.meas_object_id) FILTER (images.validity != 0) as invalid "
-            "     FROM objects "
-            "     JOIN "
-            "     ("
-            "     	SELECT intersect_in.object_id, intersect_in.meas_object_id FROM objects "
-            "     	JOIN object_intersections AS intersect_in ON objects.object_id = intersect_in.meas_object_id "
-            "     	WHERE cluster_id = $3 AND class_id = $4"
-            "     ) as inners "
-            "     on objects.object_id = inners.object_id "
-            "     JOIN images on objects.image_id = images.image_id "
-            "     JOIN images_groups ON objects.image_id = images_groups.image_id "
-            "     WHERE objects.cluster_id = $1 AND objects.class_id = $2"
-            "     GROUP BY objects.object_id"
-            "    	) "
-            " AS subquery"
-            " JOIN groups ON subquery.group_id = groups.group_id "
-            " GROUP BY groupid",
-        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId),
-        static_cast<uint16_t>(filter.crossChannelClusterId), static_cast<uint16_t>(filter.crossChannelClassId));
-
+        static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint32_t>(filter.crossChanelStack_c));
     return result;
   };
 
@@ -127,8 +84,6 @@ auto StatsPerPlate::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
         return queryMeasure();
       case INTENSITY:
         return queryIntensityMeasure();
-      case COUNT:
-        return queryIntersectingMeasure();
     }
   };
 

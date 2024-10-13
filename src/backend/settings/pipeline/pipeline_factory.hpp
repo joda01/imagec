@@ -18,6 +18,9 @@
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings_ui.hpp"
 #include "backend/commands/classification/classifier/classifier.hpp"
 #include "backend/commands/classification/classifier/classifier_settings_ui.hpp"
+#include "backend/commands/classification/reclassify/reclassify.hpp"
+#include "backend/commands/classification/reclassify/reclassify_settings.hpp"
+#include "backend/commands/classification/reclassify/reclassify_settings_ui.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/commands/factory.hpp"
 #include "backend/commands/image_functions/blur/blur.hpp"
@@ -45,9 +48,6 @@
 #include "backend/commands/image_functions/watershed/watershed_settings_ui.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization_settings_ui.hpp"
-#include "backend/commands/object_functions/intersection/intersection.hpp"
-#include "backend/commands/object_functions/intersection/intersection_settings.hpp"
-#include "backend/commands/object_functions/intersection/intersection_settings_ui.hpp"
 #include "backend/commands/object_functions/measure/measure.hpp"
 #include "backend/commands/object_functions/measure/measure_settings_ui.hpp"
 #include "backend/commands/object_functions/object_math/object_math.hpp"
@@ -191,12 +191,12 @@ private:
       }
     }
 
-    if(step.$intersection) {
+    if(step.$reclassify) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
-        return std::make_unique<joda::cmd::Factory<joda::cmd::Intersection, IntersectionSettings>>(step.$intersection.value());
+        return std::make_unique<joda::cmd::Factory<joda::cmd::Reclassify, ReclassifySettings>>(step.$reclassify.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::Intersection, IntersectionSettings>>(
-            const_cast<settings::PipelineStep &>(step), const_cast<IntersectionSettings &>(step.$intersection.value()), parent));
+        return std::move(std::make_unique<joda::ui::Factory<joda::ui::Reclassify, ReclassifySettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<ReclassifySettings &>(step.$reclassify.value()), parent));
       }
     }
 

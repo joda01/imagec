@@ -4,6 +4,7 @@
 #include <exception>
 #include <list>
 #include <memory>
+#include "backend/commands/classification/classifier_filter.hpp"
 
 namespace joda::atom {
 
@@ -47,9 +48,10 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
   }
 }
 
-void SpheralIndex::calcIntersections(joda::settings::IntersectionSettings::Function func, SpheralIndex *other,
-                                     const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
-                                     float minIntersecion, joda::enums::ClassId newClassOFIntersectingObject)
+void SpheralIndex::calcIntersection(joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func, SpheralIndex *other,
+                                    const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
+                                    float minIntersecion, const settings::MetricsFilter &metrics, const settings::IntensityFilter &intensity,
+                                    joda::enums::ClassId newClassOFIntersectingObject)
 {
   std::set<ROI *> intersecting;
   // Check for collisions between objects in grid1 and grid2
@@ -68,19 +70,20 @@ void SpheralIndex::calcIntersections(joda::settings::IntersectionSettings::Funct
                 if(box1->isIntersecting(*box2, minIntersecion)) {
                   intersecting.emplace(box2);
                   switch(func) {
-                    case settings::IntersectionSettings::Function::COUNT:
-                      box1->addIntersectingRoi(box2);
+                    case settings::ReclassifySettings::Mode::RECLASSIFY_MOVE:
+                      if(settings::ClassifierFilter::doesFilterMatch(context, *box2, metrics, intensity)) {
+                        box2->setClass(newClassOFIntersectingObject);
+                      }
                       break;
-                    case settings::IntersectionSettings::Function::RECLASSIFY:
-                      box2->setClass(newClassOFIntersectingObject);
-                      break;
-                    case settings::IntersectionSettings::Function::RECLASSIFY_COPY: {
-                      auto newRoi = box2->copy();
-                      newRoi.setClass(newClassOFIntersectingObject);
-                      // Store the ROIs we want to enter
-                      roisToEnter.emplace_back(std::move(newRoi));
+                    case settings::ReclassifySettings::Mode::RECLASSIFY_COPY: {
+                      if(settings::ClassifierFilter::doesFilterMatch(context, *box2, metrics, intensity)) {
+                        auto newRoi = box2->copy();
+                        newRoi.setClass(newClassOFIntersectingObject);
+                        // Store the ROIs we want to enter
+                        roisToEnter.emplace_back(std::move(newRoi));
+                      }
                     } break;
-                    case settings::IntersectionSettings::Function::UNKNOWN:
+                    case settings::ReclassifySettings::Mode::UNKNOWN:
                       break;
                   }
                 }

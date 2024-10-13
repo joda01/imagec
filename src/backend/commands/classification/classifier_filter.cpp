@@ -6,20 +6,19 @@
 
 namespace joda::settings {
 
-bool ClassifierFilter::doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi,
-                                       const IntensityFilter &intensity) const
+bool ClassifierFilter::doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi, const MetricsFilter &metrics,
+                                       const IntensityFilter &intensity)
 {
   if((intensity.imageIn.imagePlane.cStack >= 0) && (intensity.minIntensity >= 0 || intensity.maxIntensity >= 0)) {
     const auto &cachedImage = context.loadImageFromCache(intensity.imageIn);
     auto intensityMeasured  = roi.measureIntensityAndAdd(*cachedImage);
-    if(intensityMeasured.intensityAvg < intensity.minIntensity ||
-       intensityMeasured.intensityAvg > intensity.maxIntensity) {
+    if(intensityMeasured.intensityAvg < intensity.minIntensity || intensityMeasured.intensityAvg > intensity.maxIntensity) {
       // Intensity filter does not match
       return false;
     }
   }
-  if((minParticleSize < 0 || roi.getAreaSize() >= minParticleSize) &&
-     (maxParticleSize < 0 || roi.getAreaSize() <= maxParticleSize) && roi.getCircularity() >= minCircularity) {
+  if((metrics.minParticleSize < 0 || roi.getAreaSize() >= metrics.minParticleSize) &&
+     (metrics.maxParticleSize < 0 || roi.getAreaSize() <= metrics.maxParticleSize) && roi.getCircularity() >= metrics.minCircularity) {
     return true;
   }
 

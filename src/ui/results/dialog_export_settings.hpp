@@ -13,6 +13,7 @@
 #include <set>
 #include <vector>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/settings/settings_types.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::ui {
@@ -25,10 +26,8 @@ struct SettingsExportData
     std::set<joda::enums::Measurement> measurements;
     std::set<enums::Stats> stats;
     std::set<int32_t> crossChannelIntensity;
-    std::set<settings::ClassificatorSettingOut> crossChannelCount;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Column, inputCluster, measurements, stats, crossChannelIntensity,
-                                                crossChannelCount);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Column, inputCluster, measurements, stats, crossChannelIntensity);
   };
 
   std::vector<Column> columns;

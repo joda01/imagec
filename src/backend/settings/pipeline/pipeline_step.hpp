@@ -16,6 +16,7 @@
 #include <memory>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/classification/classifier/classifier_settings.hpp"
+#include "backend/commands/classification/reclassify/reclassify_settings.hpp"
 #include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include "backend/commands/image_functions/color_filter/color_filter_settings.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings.hpp"
@@ -28,7 +29,6 @@
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
-#include "backend/commands/object_functions/intersection/intersection_settings.hpp"
 #include "backend/commands/object_functions/measure/measure_settings.hpp"
 #include "backend/commands/object_functions/object_math/object_math_settings.hpp"
 #include "backend/commands/object_functions/validator_noise/validator_noise_settings.hpp"
@@ -62,7 +62,7 @@ public:
   std::optional<ClassifierSettings> $classify                        = std::nullopt;
   std::optional<AiClassifierSettings> $aiClassify                    = std::nullopt;
   std::optional<ColocalizationSettings> $colocalization              = std::nullopt;
-  std::optional<IntersectionSettings> $intersection                  = std::nullopt;
+  std::optional<ReclassifySettings> $reclassify                      = std::nullopt;
   std::optional<MeasureSettings> $measure                            = std::nullopt;
   std::optional<RollingBallSettings> $rollingBall                    = std::nullopt;
   std::optional<MedianSubtractSettings> $medianSubtract              = std::nullopt;
@@ -79,7 +79,7 @@ public:
   void check() const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass, $classify,
-                                                       $aiClassify, $colocalization, $intersection, $measure, $rollingBall, $medianSubtract,
+                                                       $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract,
                                                        $edgeDetection, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
                                                        $colorFilter, $objectMath, disabled);
 };

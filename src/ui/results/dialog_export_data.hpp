@@ -54,11 +54,9 @@ public:
                QWidget *windowMain);
 
   void getImageChannels();
-  void getCrossChannelCount();
   bool isEnabled();
 
   std::pair<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> getClusterClassesToExport();
-  std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> getCrossChannelCountToExport();
   std::map<int32_t, std::string> getCrossChannelIntensityToExport();
   std::map<enums::Measurement, std::set<enums::Stats>> getMeasurementAndStatsToExport();
 
@@ -69,7 +67,6 @@ private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBoxClassificationUnmanaged> mClustersAndClasses;
   std::unique_ptr<SettingComboBoxMulti<int32_t>> mCrossChannelImageChannel;
-  std::unique_ptr<SettingComboBoxMultiClassificationUnmanaged> mCrossChannelCount;
   std::unique_ptr<SettingComboBoxMulti<enums::Measurement>> mMeasurement;
   std::unique_ptr<SettingComboBoxMulti<enums::Stats>> mStats;
 

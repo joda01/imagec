@@ -98,11 +98,7 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
                                               .wellImageOrder          = settings.wellImageOrder,
                                               .densityMapAreaSize      = settings.heatmapAreaSize,
                                               .crossChanelStack_c      = cStack,
-                                              .crossChannelStack_cName = crossChannelChannelCName,
-                                              .crossChannelClusterId   = crossChannelCluster.first,
-                                              .crossChannelClusterName = crossChannelCluster.second,
-                                              .crossChannelClassId     = crossChannelClass.first,
-                                              .crossChannelClassName   = crossChannelClass.second};
+                                              .crossChannelStack_cName = crossChannelChannelCName};
 
           switch(settings.exportDetail) {
             case Settings::ExportDetail::PLATE:
@@ -125,11 +121,6 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Setti
           for(const auto &[cStack, name] : imageChannel.crossChannelStacksC) {
             generate(cStack, name, {}, {});
           }
-        } else if(getType(measureChannelId) == joda::db::MeasureType::COUNT) {
-          for(const auto &[clusterAndClassCrossChannel, name] : imageChannel.crossChannelCount) {
-            generate(0, "", {clusterAndClassCrossChannel.clusterId, std::get<0>(name)}, {clusterAndClassCrossChannel.classId, std::get<1>(name)});
-          }
-
         } else {
           generate(0, "", {}, {});
         }
@@ -191,11 +182,7 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
                                               .wellImageOrder          = settings.wellImageOrder,
                                               .densityMapAreaSize      = settings.heatmapAreaSize,
                                               .crossChanelStack_c      = cStack,
-                                              .crossChannelStack_cName = crossChannelChannelCName,
-                                              .crossChannelClusterId   = crossChannelCluster.first,
-                                              .crossChannelClusterName = crossChannelCluster.second,
-                                              .crossChannelClassId     = crossChannelClass.first,
-                                              .crossChannelClassName   = crossChannelClass.second};
+                                              .crossChannelStack_cName = crossChannelChannelCName};
 
           table::Table table;
           switch(settings.exportDetail) {
@@ -237,10 +224,6 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const Settings
         if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
           for(const auto &[cStack, name] : imageChannel.crossChannelStacksC) {
             generate(cStack, name, {}, {});
-          }
-        } else if(getType(measureChannelId) == joda::db::MeasureType::COUNT) {
-          for(const auto &[clusterAndClassCrossChannel, name] : imageChannel.crossChannelCount) {
-            generate(0, "", {clusterAndClassCrossChannel.clusterId, std::get<0>(name)}, {clusterAndClassCrossChannel.classId, std::get<1>(name)});
           }
         } else {
           generate(0, "", {}, {});

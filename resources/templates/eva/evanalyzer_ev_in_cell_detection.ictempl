@@ -64,14 +64,16 @@
                   "maxIntensity": -1,
                   "minIntensity": -1
                 },
-                "maxParticleSize": -1,
-                "minCircularity": 0.0,
-                "minParticleSize": 5,
+                "metrics": {
+                  "maxParticleSize": -1,
+                  "minCircularity": 0.0,
+                  "minParticleSize": 5,
+                  "snapAreaSize": 0.0
+                },
                 "outputCluster": {
                   "classId": "None",
                   "clusterId": "$"
-                },
-                "snapAreaSize": 0.0
+                }
               }
             ],
             "modelClassId": 65535,

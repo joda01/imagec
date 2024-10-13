@@ -115,8 +115,8 @@ private:
       mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMinParticleSize->setUnit("px");
       mMinParticleSize->setMinMax(0, INT32_MAX);
-      mMinParticleSize->setValue(classifyFilter.minParticleSize);
-      mMinParticleSize->connectWithSetting(&classifyFilter.minParticleSize);
+      mMinParticleSize->setValue(classifyFilter.metrics.minParticleSize);
+      mMinParticleSize->connectWithSetting(&classifyFilter.metrics.minParticleSize);
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
@@ -124,8 +124,8 @@ private:
       mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMaxParticleSize->setUnit("px");
       mMaxParticleSize->setMinMax(0, INT32_MAX);
-      mMaxParticleSize->setValue(classifyFilter.maxParticleSize);
-      mMaxParticleSize->connectWithSetting(&classifyFilter.maxParticleSize);
+      mMaxParticleSize->setValue(classifyFilter.metrics.maxParticleSize);
+      mMaxParticleSize->connectWithSetting(&classifyFilter.metrics.maxParticleSize);
       mMaxParticleSize->setShortDescription("Max. ");
 
       //
@@ -134,8 +134,8 @@ private:
       mMinCircularity->setPlaceholderText("[0 - 1]");
       mMinCircularity->setUnit("%");
       mMinCircularity->setMinMax(0, 1);
-      mMinCircularity->setValue(classifyFilter.minCircularity);
-      mMinCircularity->connectWithSetting(&classifyFilter.minCircularity);
+      mMinCircularity->setValue(classifyFilter.metrics.minCircularity);
+      mMinCircularity->connectWithSetting(&classifyFilter.metrics.minCircularity);
       mMinCircularity->setShortDescription("Circ. ");
 
       auto *col = outer.addSetting(tab, "Match filter",
